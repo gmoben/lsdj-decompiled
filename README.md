@@ -114,16 +114,21 @@ lsdj-decompiled/
 │   └── bank00.sym        # bank 0 symbol map (addr -> routine name)
 ├── include/
 │   └── hardware.inc      # standard GB hardware definitions (gbdev, CC0)
-├── constants/            # symbolic constants (RAM addrs, enums, …)
+├── constants/            # symbolic constants
+│   └── song.inc          # song-data memory map (offsets, counts)
 ├── data/                 # extracted data tables (added as carved)
 ├── gfx/                  # graphics assets (added as carved)
 ├── docs/
 │   ├── rom_map.md        # ROM / memory map and per-bank notes
-│   ├── functionality.md  # what the code does (interrupts, engines, RAM map)
+│   ├── bank_map.md       # per-bank classification (generated)
+│   ├── functionality.md  # what the code does (interrupts, engines)
+│   ├── data_model.md     # song format: chains/phrases/instruments/tables/synths
+│   ├── save_format.md    # .sav filesystem, compression, kits, lsdsng
 │   └── toolchain.md      # Track 2: period GBDK 2.95 / SDCC 2.2.1 recovery
 ├── tools/
 │   ├── gen_baseline.py   # one-time bootstrap baseline generator
 │   ├── disasm.py         # byte-exact SM83->RGBDS disassembler (self-tested)
+│   ├── bankmap.py        # classify all banks; detect/name sample kits
 │   ├── toolchain/        # fetch + run the period compiler (under Wine)
 │   └── match/            # matching-decompilation harness (compile C, diff vs ROM)
 └── .githooks/pre-commit  # ROM-leak guard + `make compare`

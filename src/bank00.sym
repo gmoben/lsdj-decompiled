@@ -12,3 +12,4 @@
 18BF ReadJoypad         ; standard d-pad/button matrix read
 349B DisableLCD         ; wait for VBlank (rLY), then clear rLCDC bit 7
 34B2 OAMDMARoutine      ; OAM DMA (source $DD00); copied to HRAM and called there
+14D1 ReadSongByte       ; (bank,addr): select SRAM bank + enable RAM, read [de]

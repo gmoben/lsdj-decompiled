@@ -50,6 +50,12 @@ reset rSCY/rSCX/rSTAT/rWY ; clear scroll, LCD status, window
   buttons via `rJOYP`), returns a combined button bitmask.
 - **Sync (link cable)** — `SerialHandler` (`$34BD`) plus serial setup near
   `$01AB` (`rSC`/`rSB`). Supports LSDj's master/slave clock sync.
+- **Song data access** — `ReadSongByte` (`$14D1`): an SDCC function
+  `(bank, addr)` that `di`s, selects the SRAM bank (`$4000`), enables RAM
+  (`$0A`→`$0000`), reads `[addr]`, then disables RAM. This is how the engine
+  reads the working song out of SRAM banks 0-3. See
+  [`data_model.md`](data_model.md) for the song structures it indexes and
+  [`save_format.md`](save_format.md) for the `.sav` filesystem.
 - **Banking / dispatch** — MBC5 ROM bank register at `$2000`. Bank 0 contains
   16 bank-switch sites; cross-bank calls use the trampoline pattern
   `ld a, N` / `ld [$2000], a` / `jp|call $4000-$7FFF`, e.g.

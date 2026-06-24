@@ -1,0 +1,112 @@
+# LSDj data model — the song format
+
+How LSDj represents a song in memory: Chains, Phrases, Notes, Instruments,
+Synths, Tables, Grooves, Words (speech), the sequence, and song properties.
+
+The **working song** is a 32 KiB structure. At runtime it lives in **SRAM**
+(`$A000`-`$BFFF`, battery-backed) as four 8 KiB banks; on a `.sav` it is the
+first 32 KiB (see [`save_format.md`](save_format.md)). Runtime playback state
+(cursors, tick counters, e.g. `$C578` tempo, `$C8F4` tick — see
+[`functionality.md`](functionality.md)) lives separately in WRAM.
+
+Layout is the canonical LSDj song format (cross-checked with
+[liblsdj](https://github.com/stijnfrishert/libLSDJ) and
+[pylsdj](https://github.com/alexras/pylsdj)); offsets validate against the
+reserved-region markers at `$1030`, `$1FBA`, `$2000`, `$5FE0`, `$7FF2`. The
+sample-kit location was confirmed directly in this ROM (magic `60 40` + names).
+
+## How a song fits together (tree)
+
+```
+Sequence (song)            256 steps x 4 channels (PU1, PU2, WAV, NOI)
+  -> Chain                 up to 128 chains; a list of phrases + transposes
+       -> Phrase           up to 255 phrases; 16 steps of note/instr/fx/val
+            -> Note        pitch
+            -> Instrument  one of 64; how the note sounds
+                 -> Table  one of 32; per-tick fx/transpose/volume macro
+                 -> Synth   one of 16 softsynths -> Wave frames (wavetable)
+```
+
+## Song memory map (offsets within the 32 KiB buffer)
+
+| Offset | Size | Field | Feature |
+|--------|------|-------|---------|
+| `$0000` | `$0FF0` | `phrase_notes` [255][16] | **Notes** in every phrase |
+| `$0FF0` | `$0040` | `bookmarks` [64] | screen bookmarks |
+| `$1030` | `$0060` | reserved (96) | |
+| `$1090` | `$0200` | `grooves` [32][16] | **Grooves** |
+| `$1290` | `$0400` | `song` [256][4] | **Sequence**: chain # per channel per step |
+| `$1690` | `$0200` | `table_envelopes` [32][16] | **Tables** (envelope/amp column) |
+| `$1890` | `$0540` | `words` [42][16][2] | **Speech** allophones (SPEECH instr) |
+| `$1DD0` | `$00A8` | `word_names` [42][4] | speech word names |
+| `$1E78` | `$0002` | `mem_init_flag_1` (`'rb'`) | init/format marker |
+| `$1E7A` | `$0140` | `instrument_names` [64][5] | **Instrument** names |
+| `$1FBA` | `$0046` | reserved (70) | |
+| `$2000` | `$0020` | reserved (32) | (SRAM bank 1 start) |
+| `$2020` | `$0020` | `table_alloc_table` [32] | which **Tables** are in use |
+| `$2040` | `$0040` | `instr_alloc_table` [64] | which **Instruments** are in use |
+| `$2080` | `$0800` | `chain_phrases` [128][16] | **Chains**: phrase # per step |
+| `$2880` | `$0800` | `chain_transposes` [128][16] | **Chains**: transpose per step |
+| `$3080` | `$0400` | `instruments` [64][16] | **Instrument** params (16 B each) |
+| `$3480` | `$0200` | `table_transposes` [32][16] | **Tables** (transpose column) |
+| `$3680` | `$0400` | `table_cmd1` (fx[32][16]+val) | **Tables** (command column 1) |
+| `$3A80` | `$0400` | `table_cmd2` (fx[32][16]+val) | **Tables** (command column 2) |
+| `$3E80` | `$0002` | `mem_init_flag_2` (`'rb'`) | init marker |
+| `$3E82` | `$0020` | `phrase_alloc_table` [256b] | which **Phrases** are in use |
+| `$3EA2` | `$0010` | `chain_alloc_table` [128b] | which **Chains** are in use |
+| `$3EB2` | `$0100` | `softsynth_params` [16][16] | **Synths** (16 B each) |
+| `$3FB2` | ~`$4E` | clock, tempo, tune, sync, font, colorset, … | **Song properties** |
+| `$4000` | `$0FF0` | `phrase_fx` [255][16] | **Phrase** command column |
+| `$4FF0` | `$0FF0` | `phrase_fx_val` [255][16] | **Phrase** command values |
+| `$5FE0` | `$0020` | reserved (32) | |
+| `$6000` | `$1000` | `wave_frames` [16][16][32] | **Synth** wavetables (nibbles) |
+| `$7000` | `$0FF0` | `phrase_instruments` [255][16] | **Phrase** instrument column |
+| `$7FF0` | `$0010` | `mem_init_flag_3` (`'rb'`), version | format version (`$7FFF`) |
+
+## Structures
+
+- **Sequence / "song"** (`$1290`): 256 steps; each step has a chain number for
+  PU1, PU2, WAV, NOI (`$FF` = empty). This is the top-level arrangement.
+- **Chain** (`$2080`/`$2880`): 16 steps, each a phrase number + a transpose.
+- **Phrase** (`$0000` notes, `$7000` instruments, `$4000`/`$4FF0` fx+val): 16
+  steps; columns = note, instrument, command, command value (matches the Phrase
+  screen).
+- **Instrument** (`$3080`, 16 bytes): type (pulse/wave/kit/noise), envelope,
+  pan, optional `table`, vibrato, sound length, etc. Type-specific fields per
+  `pulse`/`wave`/`kit`/`noise` (see pylsdj/liblsdj for the bitfields).
+- **Table** (`$1690` env, `$3480` transpose, `$3680`/`$3A80` two command cols):
+  16-step macros run per tick; referenced by instruments.
+- **Synth (softsynth)** (`$3EB2`, 16 bytes): waveform, filter type/cutoff/Q,
+  distortion, phase, start/end sound params. Renders into `wave_frames`
+  (`$6000`): 16 synths × 16 waves × 32 nibble frames.
+- **Groove** (`$1090`): 16-step tick patterns controlling playback speed.
+- **Words / Speech** (`$1890` + names `$1DD0`): 42 words of allophones for the
+  SPEECH instrument.
+- **Allocation tables**: bitmaps/byte-tables marking which chains/phrases/
+  instruments/tables are in use — drives "next free slot" and memory display.
+- **FX commands** (phrase & table command columns): `A C D E F G H K L M O P R
+  S T V W Z` (+ Arduinoboy `N X Q Y`).
+
+## SRAM banking (runtime access)
+
+The 32 KiB song = SRAM banks 0-3, each mapped at `$A000`-`$BFFF`:
+
+| Song offset | SRAM bank | CPU address |
+|-------------|-----------|-------------|
+| `$0000`-`$1FFF` | 0 | `$A000` + offset |
+| `$2000`-`$3FFF` | 1 | `$A000` + (offset-`$2000`) |
+| `$4000`-`$5FFF` | 2 | `$A000` + (offset-`$4000`) |
+| `$6000`-`$7FFF` | 3 | `$A000` + (offset-`$6000`) |
+
+So e.g. `chain_phrases` (`$2080`) is read at `$A080` after selecting SRAM bank 1
+(MBC5 RAM-bank register `$4000`-`$5FFF`). Bank 0's 5 `ld [$4000], a` writes are
+these SRAM-bank selects. Symbolic offsets live in
+[`../constants/song.inc`](../constants/song.inc).
+
+## Sources / confidence
+
+- Structure & offsets: pylsdj `bread_spec`, liblsdj — **documented**, offsets
+  cross-validated against reserved markers.
+- Sample kits at banks `$08`-`$1A`,`$20`-`$21`: **confirmed in this ROM**.
+- Mapping these structures to the specific bank-0 routines that read/write them
+  is the next labelling pass.

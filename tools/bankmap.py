@@ -1,0 +1,119 @@
+#!/usr/bin/env python3
+"""Classify every 16 KiB bank of the ROM as code / data / text / empty.
+
+First-order, objective structural map of the whole ROM. Heuristics:
+  * illegal-opcode density   -- code has ~none; data/graphics scatter them
+  * call/ret density         -- code is dense in $CD (call) / $C9 (ret)
+  * $FF/$00 fill ratio       -- padding / empty space
+  * printable-ASCII ratio    -- text / string tables
+It also reports which banks bank-switch trampolines (`ld a,N; ld [$2000],a`)
+target, i.e. the cross-bank call edges originating anywhere in the ROM.
+
+This is a guide for where to point tools/disasm.py next, not ground truth.
+
+Usage: tools/bankmap.py [ROM] [-o docs/bank_map.md]
+"""
+
+from __future__ import annotations
+
+import argparse
+import sys
+from pathlib import Path
+
+BANK = 0x4000
+ILLEGAL = {0xD3, 0xDB, 0xDD, 0xE3, 0xE4, 0xEB, 0xEC, 0xED, 0xF4, 0xFC, 0xFD}
+
+
+def classify(b: bytes) -> tuple[str, dict[str, float]]:
+    n = len(b)
+    ff = b.count(0xFF)
+    zero = b.count(0x00)
+    illegal = sum(b.count(x) for x in ILLEGAL)
+    call = b.count(0xCD)
+    ret = b.count(0xC9)
+    printable = sum(1 for x in b if 0x20 <= x <= 0x7E)
+    stats = {
+        "fill": (ff + zero) / n,
+        "illegal": illegal / n,
+        "callret": (call + ret) / n,
+        "ascii": printable / n,
+    }
+    if stats["fill"] > 0.85:
+        kind = "empty"
+    elif stats["illegal"] < 0.012 and stats["callret"] > 0.03:
+        kind = "code"
+    elif stats["ascii"] > 0.55 and stats["illegal"] > 0.03:
+        kind = "text?"
+    elif stats["illegal"] > 0.045:
+        kind = "data/gfx"
+    else:
+        kind = "mixed"
+    return kind, stats
+
+
+def bank_switch_targets(rom: bytes) -> dict[int, list[int]]:
+    """Find `ld a, N` / `ld [$2000], a` pairs and record N (target bank) by the
+    source bank where the switch occurs."""
+    targets: dict[int, list[int]] = {}
+    for i in range(len(rom) - 4):
+        # 3E nn (ld a,nn) ... EA 00 20 (ld [$2000],a)
+        if rom[i] == 0x3E and rom[i + 2] == 0xEA and rom[i + 3] == 0x00 and rom[i + 4] == 0x20:
+            src = i // BANK
+            targets.setdefault(src, []).append(rom[i + 1])
+    return targets
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser(description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("rom", nargs="?", default="lsdj9_4_0.gb", type=Path)
+    ap.add_argument("-o", "--output", type=Path, help="write Markdown table here")
+    args = ap.parse_args()
+    if not args.rom.is_file():
+        sys.exit(f"error: ROM not found: {args.rom}")
+    rom = args.rom.read_bytes()
+    nbanks = len(rom) // BANK
+
+    switches = bank_switch_targets(rom)
+    called: dict[int, int] = {}
+    for tgts in switches.values():
+        for t in tgts:
+            called[t] = called.get(t, 0) + 1
+
+    rows = []
+    tally: dict[str, int] = {}
+    for bank in range(nbanks):
+        b = rom[bank * BANK:(bank + 1) * BANK]
+        kind, st = classify(b)
+        note = ""
+        # Sample kit: magic 60 40, 6-char name at offset 0x52.
+        if b[:2] == bytes([0x60, 0x40]):
+            kind = "kit"
+            name = "".join(chr(c) if 0x20 <= c <= 0x7E else "." for c in b[0x52:0x58]).strip()
+            note = f"sample kit: {name}"
+        tally[kind] = tally.get(kind, 0) + 1
+        rows.append((bank, kind, st, called.get(bank, 0), note))
+
+    lines = ["# ROM bank map (heuristic)", "",
+             f"{nbanks} banks. Kinds: " +
+             ", ".join(f"{k}={v}" for k, v in sorted(tally.items())), "",
+             "| Bank | Kind | fill% | illegal% | call+ret% | ascii% | sw | notes |",
+             "|------|------|-------|----------|-----------|--------|----|-------|"]
+    for bank, kind, st, ncall, note in rows:
+        lines.append(
+            f"| `${bank:02X}` | {kind} | {st['fill']*100:.0f} | "
+            f"{st['illegal']*100:.1f} | {st['callret']*100:.1f} | "
+            f"{st['ascii']*100:.0f} | {ncall or ''} | {note} |")
+    out = "\n".join(lines) + "\n"
+
+    if args.output:
+        args.output.write_text(out)
+        print(f"wrote {args.output}")
+    else:
+        sys.stdout.write(out)
+    print("summary: " + ", ".join(f"{k}={v}" for k, v in sorted(tally.items())),
+          file=sys.stderr)
+
+
+if __name__ == "__main__":
+    main()
