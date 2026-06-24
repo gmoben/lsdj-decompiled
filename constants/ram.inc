@@ -14,6 +14,11 @@ DEF wIsCGB           EQU $C402  ; set at boot when running on a Game Boy Color
 DEF wProjectCursor   EQU $C566  ; Project screen cursor/selection (with $C567)
 DEF wProjectCursor2  EQU $C567
 
+; --- Drawing helpers (used by DrawString/DrawHexByte/... in bank 0) ----------
+DEF wStringSrc       EQU $C564  ; source pointer for DrawString (16-bit)
+DEF wVramCursor      EQU $C574  ; VRAM tilemap destination ($98xx-$9Bxx, 16-bit)
+DEF wDebugTrapped    EQU $C7AF  ; set by DebugTrap so it fires only once
+
 ; --- Playback / timing ------------------------------------------------------
 DEF wTimerReload     EQU $C578  ; tempo; copied to rTIMA each VBlank
 DEF wSoundTick       EQU $C8F4  ; sound/playback tick counter (TimerHandler)

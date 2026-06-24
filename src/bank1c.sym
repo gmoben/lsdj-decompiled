@@ -7,6 +7,6 @@
 ; --- song decompressor (LOAD) ---
 46E1 DecompressSpecial   ; handle an $E0-escape sub-command: $F0 wave / $F1 instr / $FF end / literal $E0
 7402 ReadCompressedByte  ; read next byte from the compressed stream (ptr $C97B/$C97C)
-74E0 WriteSongByte       ; write a decompressed byte into the working song
+74E0 WriteDecompByte     ; write a decompressed byte into the working song (decompress output)
 753E EmitDefaultWave     ; $F0 run: emit a default wavetable frame
 758E EmitDefaultInstrument ; $F1 run: emit a default instrument

@@ -33,6 +33,16 @@
 34B2 OAMDMARoutine      ; OAM DMA (source $DD00); copied to HRAM and called there
 14D1 ReadSongByte       ; (bank,addr): select SRAM bank + enable RAM, read [de]
 179A FarCall            ; banked call: caller pushes (addr, bank); switch ROM bank, call addr, restore
+1574 WriteSongByte      ; (bank,addr,val): select SRAM bank + enable RAM, write [de] (write side of ReadSongByte)
+; --- screen-drawing helpers (VRAM cursor $C574/$C575, string src $C564/$C565) ---
+2F21 DrawString         ; draw a NUL/len string to the VRAM tilemap cursor
+2F6A DrawStringIndexed  ; draw from the string source at a byte offset
+2E33 DrawHexByte        ; draw byte A as two hex digits at the cursor
+2E6D DrawByte           ; draw a byte (stack arg) at the cursor
+1298 DrawTextField      ; draw a positioned text field
+; --- defensive checks ---
+0A91 BoundsCheck        ; validate row (<$40) / column (<$10); DebugTrap on failure
+1482 DebugTrap          ; assert/debug trap (ld b,b BGB marker + rst $38), fires once via $C7AF
 
 ; --- Link cable sync (see docs/sync.md) ---
 01AA SerialInit         ; boot: arm rSC=$80 (slave), preload rSB=$66
