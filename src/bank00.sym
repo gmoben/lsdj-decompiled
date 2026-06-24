@@ -42,7 +42,8 @@
 2E6D DrawByte           ; draw a byte (stack arg) at the cursor
 1298 DrawTextField      ; draw a positioned text field
 ; --- defensive checks ---
-0A91 BoundsCheck        ; validate row (<$40) / column (<$10); DebugTrap on failure
+0A91 ReadSongCell       ; read byte from song SRAM bank 1 at $B080 + row*$20 + col (asserts row<$40, col<$10)
+0AE2 ReadSongCellCur    ; ReadSongCell(row, [$C576] = current column)
 1482 DebugTrap          ; assert/debug trap (ld b,b BGB marker + rst $38), fires once via $C7AF
 
 ; --- Link cable sync (see docs/sync.md) ---
@@ -57,3 +58,7 @@
 34F7 DisableInterrupts  ; di; ret
 34F9 SoftReset          ; a = boot id [$CBD9]; jp Start
 34FF SetInterruptEnable ; update rIE, ack rIF for newly-enabled interrupts
+38A2 MulU8              ; SDCC runtime: 8-bit multiply (reads 2 byte args -> MulCharToInt)
+38AE MulU16             ; SDCC runtime: 16-bit multiply (reads 2 word args -> MulInt)
+38BF MulCharToInt      ; zero-extend 8-bit operands (b=0,d=0) then fall into MulInt
+38C2 MulInt            ; core 16x16->16 shift-and-add multiply (hl = bc * de)
