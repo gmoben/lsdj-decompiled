@@ -1,2 +1,8 @@
-; Bank $1C -- File screen (save/load)
-57BB DrawFileScreen     ; screen idx 13: draws the file/save-load browser
+; Bank $1C -- File screen (save/load) + song (de)compression
+57BB DrawFileScreen      ; screen idx 13: draws the file/save-load browser
+; --- song decompressor (LOAD); see docs/save_format.md ---
+46E1 DecompressCommand   ; process one command: $E0 esc / $F0 wave / $F1 instr / $FF end / literal
+7402 ReadCompressedByte  ; read next byte from the compressed stream (ptr $C97B/$C97C)
+74E0 WriteSongByte       ; write a decompressed byte into the working song
+753E EmitDefaultWave     ; $F0 run: emit a default wavetable frame
+758E EmitDefaultInstrument ; $F1 run: emit a default instrument

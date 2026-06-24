@@ -56,9 +56,27 @@ runs of `$00`/`$FF` (empty phrases/chains).
   into the 32 KiB working song (SRAM banks 0-3), set the active-project index.
 - **Save**: compress the working song, allocate free blocks (allocation table),
   write the chain, update filename/version/active index.
-- These live in the **File screen** code (project screen → LOAD/SAVE). Bank 0
-  performs the SRAM bank selects (`ld [$4000], a`); the file-management logic is
-  reached via the bank trampolines — exact routines **TBD** (next pass).
+- These live in the **File screen** code, in **bank `$1C`** (`DrawFileScreen`
+  `$57BB`) alongside the song (de)compressor.
+
+### Decompressor — located in bank `$1C` (the LOAD path)
+
+| Routine | Addr | Role |
+|---------|------|------|
+| `DecompressCommand` | `$46E1` | read a byte and act: `$E0` (escape→literal), `$F0` (default-wave run), `$F1` (default-instrument run), `$FF` (end), else literal |
+| `ReadCompressedByte` | `$7402` | fetch the next stream byte via the SRAM block pointer (`$C97B`/`$C97C`) |
+| `WriteSongByte` | `$74E0` | write a decompressed byte into the working song |
+| `EmitDefaultWave` | `$753E` | `$F0` run: emit a default wavetable frame |
+| `EmitDefaultInstrument` | `$758E` | `$F1` run: emit a default instrument |
+
+The output pointer (`$C97D`/`$C97E`) is filled until it reaches `$8000` (the
+32 KiB song size). The `$F0`/`$F1` default-fill commands are the LSDj-specific
+signature that confirms this is the song decompressor.
+
+> Note: the **top-level dispatch observed in 9.4.0** keys on
+> `$E0`/`$F0`/`$F1`/`$FF` + literal; the `$C0` RLE in the table above is from the
+> liblsdj model — exact codec semantics (and the matching compressor on the SAVE
+> path) still need confirmation via emulator tracing.
 
 ## Sample-kit ROM format (confirmed in this ROM)
 
