@@ -53,8 +53,19 @@ reachable code:
 The text-heavy banks (`$1B`/`$1C` Project/File/Help) are legitimately lower (lots
 of string data). Progression: per-bank 42% → jump tables 56% → bank-aware trace
 60% → farcall 68% → computed-farcall tables 71% → **second farcall helper
-(`FarCallArg`) 72%**. `$1F` (12%) remains the outlier; some of its instrument-type
-dispatch is reached through tables not yet modelled.
+(`FarCallArg`) 72%**.
+
+`$1F` (12%) is a **metric artifact, not missing disassembly**. The bank is the
+instrument subsystem and carves as ~93% code (8977 instruction lines vs 146 `db`),
+but it is dominated by deep *computed* / RAM-indirect dispatch chains (the
+instrument-type handlers in §`$4000` switch on instrument field 0, then editor
+handlers call each other through pointers held in RAM). Static recursive-descent
+cannot follow a `jp hl`/`ret` whose address came from RAM, so whole subtrees read
+as unreached even though they are real, correctly-decoded code. The unreached runs
+were inspected (`$5413`, `$4A65`, `$7097` are `push bc; add sp,-N` prologues;
+`$77F5` is the "COPIED WORD"/"CUT WORD" string pool) and confirmed to interleave
+short label strings ("ATK", "ON", "0.5") with code, so forcing data ranges would
+risk *hiding* code — the conservative carve is correct here.
 
 The coverage tracer resolves the **computed-address farcall**: when a
 `call $179A` pushes an immediate `bank` but reads the `addr` from a pointer
