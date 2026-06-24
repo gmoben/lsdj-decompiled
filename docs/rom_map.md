@@ -53,9 +53,40 @@ convention, `__sdcc`-style runtime helpers, banked-call trampolines, and library
 routines from `crt0`/`libc`. Recognising these idioms is the fastest way to
 label large stretches of the disassembly.
 
-## Bank map (to be filled in)
+## Bank map
 
 | Bank | Contents | Status |
 |------|----------|--------|
-| `$000` | entry, header, vectors, core dispatch | INCBIN (not yet carved) |
+| `$000` | entry, header, vectors, init, core dispatch | **disassembled** (`src/bank00.asm`) |
 | `$001`-`$03F` | code, data, graphics, sample kits, ... | INCBIN (not yet carved) |
+
+## Bank 0 notes
+
+Disassembled with `tools/disasm.py` (header `$104`-`$14F` marked as data).
+Named entry points: `Entry` (`$100`), the five interrupt vectors, and
+auto-generated `Lxxxx` labels at branch/call targets.
+
+### Boot / init (`$0150`, reached via `jp` from `Entry`)
+
+```
+di
+ld d, a / ld e, b        ; preserve boot regs (A = CGB/DMG id, B = AGB id)
+xor a
+ld sp, $e000             ; stack at top of WRAM
+ld hl, $dfff / clear...  ; zero WRAM  $C000-$DFFF (0x2000 bytes)
+ld hl, $ffff / clear...  ; zero HRAM  $FF80-$FFFF (0x80 bytes)
+ld [$cbd9], a <- d       ; save boot A (hardware id) to WRAM $CBD9
+ld [$cbda], a <- e       ; save boot B (GBA flag)   to WRAM $CBDA
+call $349b               ; (next: identify/continue init)
+xor a / ldh [rSCY],[rSCX],[rSTAT],[rWY],a   ; reset scroll/LCD status/window
+...
+```
+
+WRAM `$CBD9`/`$CBDA` therefore hold the CGB/AGB detection bytes — candidates for
+`constants/` symbols once confirmed.
+
+## References
+
+- [Pan Docs](https://gbdev.io/pandocs/) — memory map, I/O registers, power-up sequence.
+- [GB Complete Technical Reference](https://gekkio.fi/files/gb-docs/gbctr.pdf) — CPU/instruction semantics & timing.
+- [RGBDS docs](https://rgbds.gbdev.io/docs/) — assembler syntax.

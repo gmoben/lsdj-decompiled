@@ -87,12 +87,14 @@ betting on C. Until that succeeds, treat C as unproven. See
 | `Makefile` | Build, `compare` (byte verification), `verify-rom`, `baseline`, `clean` |
 | `rgbdscheck.asm` | Fails the build on an unsupported RGBDS version |
 | `lsdj9_4_0.sha1` | Expected base-ROM checksum |
-| `src/main.asm` | Disassembly entry point: 64 bank sections, carved over time |
+| `src/main.asm` | Top level: `INCLUDE`s carved banks, `INCBIN`s the rest |
+| `src/bank00.asm` | Disassembled bank 0 (entry, vectors, init) — carved |
 | `include/hardware.inc` | Standard GB hardware defs (gbdev, CC0) — do not edit |
 | `constants/` | Symbolic constants (RAM map, enums, magic numbers) |
 | `data/`, `gfx/` | Extracted data tables and graphics (added as carved) |
 | `docs/rom_map.md` | Reverse-engineering notes and memory map |
 | `tools/gen_baseline.py` | One-time bootstrap baseline generator |
+| `tools/disasm.py` | SM83→RGBDS disassembler (`--selftest`, labels, hw regs) |
 | `.githooks/pre-commit` | ROM-leak guard + `make compare` |
 
 ## Build & Verify
@@ -123,8 +125,9 @@ git config core.hooksPath .githooks
 
 ## The Disassembly Workflow (Carving)
 
-The build starts as opaque `INCBIN`s and is refined into real source. Work in
-small, verifiable steps:
+The build starts as opaque `INCBIN`s and is refined into real source with the
+help of `tools/disasm.py` (a byte-exact SM83→RGBDS disassembler — see below).
+Work in small, verifiable steps:
 
 1. **Pick a target.** A routine reachable from the entry point (`0x150`), an
    interrupt vector, or a referenced data table. Prefer following call/jump
@@ -145,6 +148,36 @@ Tips:
   labels and comments — not when it merely assembles.
 - Use a debugger (Emulicious, mGBA, SameBoy) to confirm behaviour and trace
   banked calls before naming things.
+- Consult [Pan Docs](https://gbdev.io/pandocs/) for hardware/memory-map context
+  and the [GB Complete Technical Reference](https://gekkio.fi/files/gb-docs/gbctr.pdf)
+  for exact instruction semantics/timing when analysing a routine.
+
+### The disassembler (`tools/disasm.py`)
+
+A faithful, **byte-exact** SM83→RGBDS disassembler. Because it decodes every byte
+(emitting `db` for illegal opcodes and declared data ranges), linearly
+disassembling a whole region always reassembles to identical bytes — so you can
+bulk-convert an `INCBIN` to assembly and keep `make compare` green, then refine
+semantics afterwards.
+
+```sh
+# Validate the opcode table against real rgbasm (run after any table change):
+tools/disasm.py --selftest
+
+# Disassemble a whole bank (auto SECTION header, labels, hardware-reg names):
+tools/disasm.py --rom lsdj9_4_0.gb --bank 0 --data 0x104:0x150 --comments -o src/bank00.asm
+
+# Disassemble an explicit range at a given address:
+tools/disasm.py --rom lsdj9_4_0.gb --start 0x150 --end 0x200 --org 0x150
+```
+
+- `--data lo:hi[,lo:hi]` marks file-offset ranges as `db` (e.g. the header,
+  graphics, tables) so they are not mis-decoded as code.
+- Labels are generated for in-range branch/call targets, plus named interrupt
+  vectors and `Entry`; `$FFxx` I/O accesses become `hardware.inc` register
+  names. Both are byte-safe (they resolve to the same addresses).
+- **Re-run `--selftest` after any opcode-table change**, and `make compare`
+  after every carve.
 
 ## RGBDS & Coding Conventions
 
@@ -263,7 +296,9 @@ Always, before committing:
 - [ ] Go/no-go decision on Track 2 (matching C) vs asm-only
 
 **Phase 2 — asm skeleton (Track 1)**
-- [ ] Carve bank 0: entry, RST/interrupt vectors, core dispatch
+- [x] Byte-exact SM83→RGBDS disassembler (`tools/disasm.py`, opcode self-test)
+- [x] Carve bank 0 to real asm (entry, RST/interrupt vectors, init), labels + hw regs
+- [ ] Name the boot/init routine and core dispatch reached from `Entry`
 - [ ] Identify MBC5 bank-switching trampolines and the GBDK `crt0`
 - [ ] Establish `constants/` RAM map (WRAM/HRAM/SRAM symbols)
 
@@ -282,5 +317,7 @@ Always, before committing:
 
 - [pret](https://github.com/pret) — methodology (`pokered`, `pokecrystal`).
 - [GBDK 2.95](https://github.com/rbong/gbdk/tree/master/gbdk-2.95) — LSDj's toolkit.
-- [Pan Docs](https://gbdev.io/pandocs/) · [RGBDS docs](https://rgbds.gbdev.io/docs/).
+- [Pan Docs](https://gbdev.io/pandocs/) — hardware / memory map / I/O registers.
+- [GB Complete Technical Reference](https://gekkio.fi/files/gb-docs/gbctr.pdf) — exact CPU/instruction semantics & timing.
+- [RGBDS docs](https://rgbds.gbdev.io/docs/) — assembler/linker reference.
 - [liblsdj](https://github.com/gb-archive/liblsdj) · [lsdj-doc](https://github.com/jkotlinski/lsdj-doc) — format/internals.

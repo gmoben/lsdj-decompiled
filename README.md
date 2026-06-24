@@ -109,7 +109,8 @@ lsdj-decompiled/
 ├── rgbdscheck.asm        # RGBDS version guard
 ├── lsdj9_4_0.sha1        # expected base-ROM checksum
 ├── src/
-│   └── main.asm          # disassembly entry point (bank sections)
+│   ├── main.asm          # top level: INCLUDEs carved banks, INCBINs the rest
+│   └── bank00.asm        # disassembled bank 0 (entry, vectors, init) — carved
 ├── include/
 │   └── hardware.inc      # standard GB hardware definitions (gbdev, CC0)
 ├── constants/            # symbolic constants (RAM addrs, enums, …)
@@ -120,6 +121,7 @@ lsdj-decompiled/
 │   └── toolchain.md      # Track 2: period GBDK 2.95 / SDCC 2.2.1 recovery
 ├── tools/
 │   ├── gen_baseline.py   # one-time bootstrap baseline generator
+│   ├── disasm.py         # byte-exact SM83->RGBDS disassembler (self-tested)
 │   ├── toolchain/        # fetch + run the period compiler (under Wine)
 │   └── match/            # matching-decompilation harness (compile C, diff vs ROM)
 └── .githooks/pre-commit  # ROM-leak guard + `make compare`
@@ -155,6 +157,8 @@ conventions, and the carving methodology.
 - [GBDK 2.95 source](https://github.com/rbong/gbdk/tree/master/gbdk-2.95) — the
   toolkit LSDj is built with (modified).
 - [Pan Docs](https://gbdev.io/pandocs/) — Game Boy hardware reference.
+- [GB Complete Technical Reference](https://gekkio.fi/files/gb-docs/gbctr.pdf) —
+  exact CPU/instruction semantics and timing.
 - [RGBDS docs](https://rgbds.gbdev.io/docs/) — assembler/linker reference.
 - [gbdev/hardware.inc](https://github.com/gbdev/hardware.inc) — vendored in
   `include/`.
