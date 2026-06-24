@@ -38,22 +38,28 @@ control-transfer entry point:
 
 ### Current coverage
 
-Run `tools/coverage.py`. As of writing, **72%** of the code/data banks trace as
+Run `tools/coverage.py`. As of writing, **67%** of the code/data banks trace as
 reachable code:
 
 | bank | code% | | bank | code% |
 |------|-------|-|------|-------|
-| `$00` | 89% | | `$1B` | 67% |
-| `$03` | 86% | | `$1C` | 76% |
+| `$00` | 84% | | `$1B` | 54% |
+| `$03` | 86% | | `$1C` | 65% |
 | `$04` | 93% | | `$1D` | 89% |
-| `$05` | 76% | | `$1E` | 28% |
+| `$05` | 69% | | `$1E` | 18% |
 | `$06` | 85% | | `$1F` | 12% |
-| `$07` | 88% | | `$01`/`$02` | 71% / 79% |
+| `$07` | 73% | | `$01`/`$02` | 71% / 77% |
 
 The text-heavy banks (`$1B`/`$1C` Project/File/Help) are legitimately lower (lots
 of string data). Progression: per-bank 42% → jump tables 56% → bank-aware trace
-60% → farcall 68% → computed-farcall tables 71% → **second farcall helper
-(`FarCallArg`) 72%**.
+60% → farcall 68% → computed-farcall tables 71% → second farcall helper
+(`FarCallArg`) 72% → **`$FF`-fill stop (honest) 67%**.
+
+The last step *lowered* the number on purpose: `rst $38` ($FF) was not a
+flow-terminator, so any stray computed target landing in end-of-bank `$FF`
+padding made the tracer walk the whole tail as bogus `rst $38` "code" (~8300
+lines, ~5% of the total). Treating `$FF` followed by `$FF` as padding both
+corrects the metric and lets the carve render that padding as `db`.
 
 `$1F` (12%) is a **metric artifact, not missing disassembly**. The bank is the
 instrument subsystem and carves as ~93% code (8977 instruction lines vs 146 `db`),
