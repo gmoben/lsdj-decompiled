@@ -217,6 +217,8 @@ CALL_OPS = {0xCD, 0xC4, 0xCC, 0xD4, 0xDC}
 RST_OPS = {0xC7, 0xCF, 0xD7, 0xDF, 0xE7, 0xEF, 0xF7, 0xFF}
 # Instructions after which control does not fall through to the next address.
 STOP_FLOW = {0x18, 0xC3, 0xC9, 0xD9, 0xE9}  # jr, jp, ret, reti, jp hl
+# Undefined SM83 opcodes (appear only in data).
+ILLEGAL = {0xD3, 0xDB, 0xDD, 0xE3, 0xE4, 0xEB, 0xEC, 0xED, 0xF4, 0xFC, 0xFD}
 
 # Hardware-defined entry points worth naming when they fall in range.
 VECTOR_NAMES = {
@@ -352,6 +354,7 @@ def trace_code(data: bytes, start: int, end: int, org: int,
     work = [o for o in seeds if start <= o < end]
     while work:
         o = work.pop()
+        last_hl: int | None = None
         while start <= o < end and o not in seen:
             seen.add(o)
             op = data[o]
@@ -365,6 +368,9 @@ def trace_code(data: bytes, start: int, end: int, org: int,
             for i in range(length):
                 code.add(o + i)
 
+            if op == 0x21 and length == 3:  # ld hl, nn -- candidate jump-table base
+                last_hl = data[o + 1] | (data[o + 2] << 8)
+
             target: int | None = None
             if op in JR_OPS and length == 2:
                 off = data[o + 1] - 256 if data[o + 1] > 127 else data[o + 1]
@@ -377,6 +383,29 @@ def trace_code(data: bytes, start: int, end: int, org: int,
                 toff = start + (target - org)
                 if start <= toff < end:
                     work.append(toff)
+
+            # `jp hl` after `ld hl, TABLE`: follow the jump table.
+            if op == 0xE9 and last_hl is not None:
+                p = start + (last_hl - org)
+                addr_form = o >= 3 and data[o - 3:o] == bytes([0x2A, 0x66, 0x6F])
+                for _ in range(128):
+                    if addr_form:  # table of 2-byte little-endian addresses
+                        if p + 2 > end:
+                            break
+                        t = data[p] | (data[p + 1] << 8)
+                        step = 2
+                    else:          # table of `jp xxxx` instructions
+                        if p + 3 > end or data[p] != 0xC3:
+                            break
+                        t = data[p + 1] | (data[p + 2] << 8)
+                        step = 3
+                    toff = start + (t - org)
+                    # Conservative: target must be in range and a plausible code
+                    # start (not an illegal opcode), else stop the table.
+                    if not (org <= t < org + (end - start)) or data[toff] in ILLEGAL:
+                        break
+                    work.append(toff)
+                    p += step
 
             if op in STOP_FLOW:
                 break

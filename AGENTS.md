@@ -102,7 +102,9 @@ betting on C. Until that succeeds, treat C as unproven. See
 | `docs/editors.md` | Screen/editor architecture + systematic carving plan |
 | `docs/data_model.md` | Song format: chains/phrases/instruments/tables/synths/… |
 | `docs/save_format.md` | `.sav` filesystem, compression, sample-kit & lsdsng formats |
+| `docs/reversal.md` | 100%-reversal methodology + the coverage metric |
 | `tools/gen_baseline.py` | One-time bootstrap baseline generator |
+| `tools/coverage.py` | Whole-ROM reachability/coverage analysis ("% reversed") |
 | `tools/gen_main.py` | Generate `src/main.asm` (INCLUDE carved banks, INCBIN rest) |
 | `tools/disasm.py` | SM83→RGBDS disassembler (`--selftest`, labels, symbols, hw regs) |
 | `tools/bankmap.py` | Classify all banks; detect/name sample kits |
@@ -347,11 +349,18 @@ Always, before committing:
       draw routine is named (`Draw<Screen>Screen`), `make compare` stays green
 - [x] Disassembler: symbol-anchored decoding + bank-prefixed labels so all
       ROMX banks can be INCLUDEd together without label collisions
+- [x] Locate + name the save/load **compressor + decompressor** (`docs/save_format.md`)
+- [x] Name per-screen update handlers; carve all editor+support banks (11/64)
 - [ ] Name each editor's input/edit handler and per-field routines
 - [ ] Mark embedded data tables in the carved banks (refine first-pass carves)
-- [ ] Locate load/save/compress/format routines in ROM and name them
 
-**Phase 5 — Matching C decompilation (Track 2, if green-lit by Phase 1)**
+**Phase 5 — Toward 100% reversal (`docs/reversal.md`)**
+- [x] Coverage metric: whole-ROM reachability (`tools/coverage.py`)
+- [x] Tracer follows `jp`/address jump tables (42% → 56% reachable code)
+- [ ] Cross-bank entry discovery (banked-call helper) to cover `$1E`/`$1F`
+- [ ] Drive coverage toward 100%; mark data; name all routines
+
+**Phase 6 — Matching C decompilation (Track 2, if green-lit by Phase 1)**
 - [ ] Per-translation-unit match workflow (objdiff-style byte diff vs ROM)
 - [ ] Reproduce the original bank/link layout under the recovered toolchain
 - [ ] Replace asm functions with matching C, keeping `make compare` green
