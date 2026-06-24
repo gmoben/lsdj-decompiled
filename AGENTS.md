@@ -179,9 +179,15 @@ semantics afterwards.
 # Validate the opcode table against real rgbasm (run after any table change):
 tools/disasm.py --selftest
 
-# Regenerate bank 0 (symbols + known data tables) — this is the canonical command:
+# Re-carve all (or specific) banks — THIS is the canonical command. It runs the
+# coverage trace, splits code/data, applies known-data ranges (carve_clean.py's
+# MANUAL dict) and --globals, then rewires main.asm:
+tools/carve_clean.py            # all carved banks
+tools/carve_clean.py 00 1f      # just banks $00 and $1F
+
+# Under the hood it invokes disasm.py per bank, e.g. bank 0 expands to:
 tools/disasm.py --rom lsdj9_4_0.gb --bank 0 --symbols src/bank00.sym \
-    --data 0x10:0x20,0x104:0x150 --comments -o src/bank00.asm
+    --data <ranges from MANUAL + the trace> --comments -o src/bank00.asm
 
 # Disassemble an explicit range at a given address:
 tools/disasm.py --rom lsdj9_4_0.gb --start 0x150 --end 0x200 --org 0x150
