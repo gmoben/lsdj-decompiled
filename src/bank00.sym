@@ -42,8 +42,8 @@
 2E6D DrawByte           ; draw a byte (stack arg) at the cursor
 1298 DrawTextField      ; draw a positioned text field
 ; --- defensive checks ---
-0A91 ReadSongCell       ; read byte from song SRAM bank 1 at $B080 + row*$20 + col (asserts row<$40, col<$10)
-0AE2 ReadSongCellCur    ; ReadSongCell(row, [$C576] = current column)
+0A91 ReadInstrByte      ; read instruments[instr][field]: SRAM bank1 $B080 + instr*$10 + field (asserts instr<$40, field<$10)
+0AE2 ReadCurInstrByte   ; ReadInstrByte([$C576] current instrument, field)
 1482 DebugTrap          ; assert/debug trap (ld b,b BGB marker + rst $38), fires once via $C7AF
 
 ; --- Link cable sync (see docs/sync.md) ---
