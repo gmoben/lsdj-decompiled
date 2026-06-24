@@ -14,6 +14,43 @@ LSDj uses a byte-per-event protocol: whoever is master writes a byte to `rSB`
 and starts an internal-clock transfer (`rSC=$81`); the slave has armed an
 external-clock transfer (`rSC=$80`) and receives it, taking the serial IRQ.
 
+## Sync modes (the `SYNC` project setting)
+
+The Project screen's `SYNC` field selects how LSDj clocks to the outside world.
+**All modes use the same serial link port**; what differs is the clock
+*direction* and the byte *source/format*. The value is the song `sync_setting`
+property (`$3FBD`; WRAM mirror `$CB66`, loaded by `LoadSyncSetting` `$1CFF`).
+
+The option strings are a table in bank `$1B` at `$59B7`, 7 bytes/entry (6 chars
++ NUL): `OFF`, `LSDJ`, `MIDI`, `KEYBD`, `ANA.IN`, `AN.OUT`, then the sub-setting
+labels `PS/2 DELAY` and `TICKS/STEP`, then a blank — confirmed in this ROM.
+
+The value encoding is **non-contiguous** — confirmed by the SYNC field draw
+routine `DrawSyncField` (bank `$1B` `$58B1`), which reads `$CB66` and selects the
+string with an explicit `cp` chain (values `2` and `4` are legacy/unused):
+
+| `$CB66` | Label | Meaning |
+|---------|-------|---------|
+| `0` | `OFF` | No sync. |
+| `1` | `LSDJ` | **Game Boy ↔ Game Boy** link sync. The cart that starts becomes the leader (clock master, `rSC=$81`) and streams position bytes + `$55` handshakes; the other follows (slave, `rSC=$80`). This is the `SerialHandler`/`SendSyncByte`/`ProcessSyncByte` path. |
+| `3` | `MIDI` | **MIDI clock** via a MIDI→Game Boy adapter on the link port. LSDj is slave; the adapter clocks bytes in. Press START to wait for MIDI clock. Use 6-tick grooves (24 MIDI clocks/quarter → 24 bytes). |
+| `5` | `KEYBD` | **PS/2 keyboard** via adapter — *not* tempo sync. The keyboard sends scan codes over the serial line and LSDj plays it like a piano. Calibrate with the `PS/2 DELAY` sub-setting. (`SerialHandlerTail` `$14B9` special-cases `$CB66==5`.) |
+| `6` | `ANA.IN` | **Analog clock in**. External gear (Korg Volca/Monotribe, …) sends pulses; a converter turns each pulse into a serial byte (`$FF`). `TICKS/STEP` sets how many LSDj ticks per incoming pulse. |
+| `7` | `AN.OUT` | **Analog clock out**. LSDj is the clock source and emits pulses (bytes) out the link port to drive external gear. `TICKS/STEP` sets the rate. |
+
+`DrawSyncField` writes the chosen string to the screen at VRAM `$9885` (via the
+`$C573` draw pointer), then `call $2F21` (string→VRAM).
+
+Sub-settings shown beneath `SYNC` depending on mode: `KEYBD` → **PS/2 DELAY**
+(calibration); `ANA.IN`/`AN.OUT` → **TICKS/STEP** (e.g. Monotribe 6, Volca C).
+
+**Unifying mechanism:** LSDj sync is byte-based, ~sync24/DIN-sync style — 24
+bytes per quarter note, each "pulse" carried as a serial byte (commonly `$FF`).
+So MIDI/analog adapters merely convert their clock to/from serial bytes; the
+same `SerialHandler` / `ProcessSyncByte` machinery (and the `$FD`-`$FF`
+transport commands) drives every mode. `KEYBD` reuses the serial port for
+scan-code input rather than tempo.
+
 ## Boot arming — `SerialInit` (`$01AA`)
 
 ```

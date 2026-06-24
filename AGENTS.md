@@ -88,8 +88,8 @@ betting on C. Until that succeeds, treat C as unproven. See
 | `rgbdscheck.asm` | Fails the build on an unsupported RGBDS version |
 | `lsdj9_4_0.sha1` | Expected base-ROM checksum |
 | `src/main.asm` | **Generated** by `tools/gen_main.py`: INCLUDE carved banks, INCBIN rest |
-| `src/bank00.asm` | Disassembled bank 0 (generated from the ROM + symbols) |
-| `src/bank00.sym` | Hand-maintained bank 0 symbol map (addr → routine name) |
+| `src/bankNN.asm` | Disassembled carved banks (currently `00`, `1b`) |
+| `src/bankNN.sym` | Hand-maintained per-bank symbol maps (addr → routine name) |
 | `include/hardware.inc` | Standard GB hardware defs (gbdev, CC0) — do not edit |
 | `constants/song.inc` | Song-data memory map (offsets, counts) as RGBDS EQUs |
 | `data/`, `gfx/` | Extracted data tables and graphics (added as carved) |

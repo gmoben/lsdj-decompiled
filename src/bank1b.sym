@@ -1,0 +1,6 @@
+; Bank $1B symbol map -- Project / File / Help screens + UI text.
+; See docs/editors.md and docs/sync.md. First-pass carve: the major string
+; tables are marked as data in the disasm command; some embedded graphics/jump
+; tables are still shown as code (byte-safe) and will be refined.
+
+58B1 DrawSyncField   ; Project SYNC field: read $CB66, draw mode string to VRAM $9885

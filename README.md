@@ -110,8 +110,8 @@ lsdj-decompiled/
 ├── lsdj9_4_0.sha1        # expected base-ROM checksum
 ├── src/
 │   ├── main.asm          # top level: INCLUDEs carved banks, INCBINs the rest
-│   ├── bank00.asm        # disassembled bank 0 (generated from ROM + symbols)
-│   └── bank00.sym        # bank 0 symbol map (addr -> routine name)
+│   ├── bankNN.asm        # disassembled carved banks (00, 1b, …)
+│   └── bankNN.sym        # per-bank symbol maps (addr -> routine name)
 ├── include/
 │   └── hardware.inc      # standard GB hardware definitions (gbdev, CC0)
 ├── constants/            # symbolic constants

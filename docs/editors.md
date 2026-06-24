@@ -57,6 +57,35 @@ is INCLUDEd; the rest stay INCBIN. `make compare` is the invariant throughout.
 - Bank `$01`: UI **string table** (+ code).
 - Sample kits: `$08`-`$1A`, `$20`-`$21`. Empty: `$22`-`$3F`.
 
+## Project editor (in progress)
+
+The Project screen holds whole-song settings. Its **value strings and field-draw
+helpers live in bank `$1B`** (now carved → `src/bank1b.asm`, `src/bank1b.sym`):
+
+| Field | Value source | Strings (bank `$1B`) |
+|-------|--------------|----------------------|
+| TEMPO | song `$3FB4` (BPM) | numeric |
+| TRANSPOSE | song property | numeric |
+| **SYNC** | `$CB66` (song `$3FBD`) | `$59B7` table — see [`sync.md`](sync.md) |
+| └ sub-setting | PS/2 DELAY / TICKS/STEP | `$59E1` / `$59ED` |
+| CLONE | deep/slim | `DEEP`/`SLIM` (`$5D4F`, `$6A5C`) |
+| LOOK | font + colorset | colorset names `$5707` (Y2K/ZERO/KIKO/…/GOOD) |
+| KEY DELAY/REPEAT | settings | numeric |
+| PRELISTEN | flag | on/off |
+| clock | total/work time | `PLAY %d:` / `WORKED %d:` (`$5C03`) |
+| menu | — | `LOAD/SAVE SONG`, `RESET MEMORY` (`$5D59`), `RESET CARTRIDGE?` (`$6A66`) |
+
+Confirmed routine: **`DrawSyncField` (`$58B1`)** — reads `$CB66`, selects the
+mode string via an explicit `cp` chain (values `0,1,3,5,6,7`), and draws it to
+the tilemap at VRAM `$9885` (`call $2F21`). The field *labels* (TEMPO, SYNC, …)
+are rendered as tiles, not ASCII, so they don't appear as strings here.
+
+The Project screen's top-level draw/input orchestration calls `DrawSyncField`
+cross-bank (no in-bank caller); locating that caller and the input handler that
+edits each field is the remaining work. Bank `$1B` is a **first-pass carve**:
+the SYNC/clock/clone/reset string tables are marked as data; the large help-text
+block and some graphics/jump tables are still shown as code (byte-safe).
+
 ## Status
 
 | Screen / editor | Edits | Located | Carved | Named |
@@ -69,8 +98,8 @@ is INCLUDEd; the rest stay INCBIN. `make compare` is the invariant throughout.
 | Groove | `$1090` | — | — | — |
 | Synth (Wave) | `$3EB2`/`$6000` | — | — | — |
 | Word / Speech | `$1890` | — | — | — |
-| Project | properties `$3FB2` | — | — | — |
-| File (save/load) | SRAM filesystem | partial (`ReadSongByte`, SRAM access) | — | — |
+| Project | properties `$3FB2` | bank `$1B` | first pass | `DrawSyncField` |
+| File (save/load) | SRAM filesystem | bank `$1B` (text) + `ReadSongByte` | first pass | — |
 
 Spine routines named so far: `MainLoop`, `Start`, `LoadSyncSetting`,
 `ReadSongByte`, the interrupt handlers, and the sync subsystem
