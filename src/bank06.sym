@@ -1,0 +1,4 @@
+; Bank $06 -- Chain / Wave / Word screens
+5947 DrawChainScreen     ; screen idx 3: draws chain phrases + transposes
+4F18 DrawWaveScreen      ; screen idx 8: draws the waveform (synth wave frames)
+41A2 DrawWordScreen      ; screen idx 12: draws speech words

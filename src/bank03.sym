@@ -1,0 +1,2 @@
+; Bank $03 -- Song screen (see docs/editors.md)
+4DE7 DrawSongScreen      ; screen idx 6: draws the song sequence (4 channels)

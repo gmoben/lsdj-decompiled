@@ -1,0 +1,4 @@
+; Bank $1D -- Groove / Synth screens
+41DA DrawGrooveScreen   ; screen idx 2: draws the groove steps
+68AB DrawSynthScreen    ; screen idx 10: draws softsynth params
+4215 GrooveScreenUpdate ; screen idx 2 per-frame update (from ScreenUpdateTable)

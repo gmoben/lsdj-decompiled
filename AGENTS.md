@@ -88,7 +88,7 @@ betting on C. Until that succeeds, treat C as unproven. See
 | `rgbdscheck.asm` | Fails the build on an unsupported RGBDS version |
 | `lsdj9_4_0.sha1` | Expected base-ROM checksum |
 | `src/main.asm` | **Generated** by `tools/gen_main.py`: INCLUDE carved banks, INCBIN rest |
-| `src/bankNN.asm` | Disassembled carved banks (currently `00`, `1b`) |
+| `src/bankNN.asm` | Disassembled carved banks (`00`, `03`-`07`, `1b`-`1d`) |
 | `src/bankNN.sym` | Hand-maintained per-bank symbol maps (addr → routine name) |
 | `include/hardware.inc` | Standard GB hardware defs (gbdev, CC0) — do not edit |
 | `constants/song.inc` | Song-data memory map (offsets, counts) as RGBDS EQUs |
@@ -343,11 +343,13 @@ Always, before committing:
 - [x] Find the screen-draw + update dispatch (the editor index) in bank 0
 - [x] Identify **all 12 screens** (Song/Chain/Phrase/Instrument/Table/Groove/
       Wave/Synth/Project/Word/File/Help) → `constants/screens.inc`, `docs/editors.md`
-- [x] Carve the Project + Help bank (`$1B`); name Project draw + sync fields
-- [ ] Carve each remaining editor's bank ($03-$07, $1C, $1D) and name its
-      draw routine + input/edit handler
+- [x] Carve **every editor's bank** (`$03`-`$07`, `$1B`-`$1D`); each screen's
+      draw routine is named (`Draw<Screen>Screen`), `make compare` stays green
+- [x] Disassembler: symbol-anchored decoding + bank-prefixed labels so all
+      ROMX banks can be INCLUDEd together without label collisions
+- [ ] Name each editor's input/edit handler and per-field routines
+- [ ] Mark embedded data tables in the carved banks (refine first-pass carves)
 - [ ] Locate load/save/compress/format routines in ROM and name them
-- [ ] Map the `jp hl` jump tables / embedded data to complete the call graph
 
 **Phase 5 — Matching C decompilation (Track 2, if green-lit by Phase 1)**
 - [ ] Per-translation-unit match workflow (objdiff-style byte diff vs ROM)

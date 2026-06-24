@@ -133,23 +133,29 @@ block and some graphics/jump tables still show as byte-safe code).
 
 ## Status
 
-All screens are now **located** (draw routine `bank:addr` + dispatch index).
-"Carved" = its bank is disassembled into the tree; "Named" = routines labelled.
+Every screen is **located and its bank carved** into the source tree (byte-for-
+byte). "Named" lists the draw routine label; the per-field input/edit handlers
+are the remaining refinement.
 
-| Screen | idx | Draw routine | Edits | Carved | Named |
-|--------|-----|--------------|-------|--------|-------|
-| Song | 6 | `$03:$4DE7` | `sequence` `$1290` | — | dispatch stub |
-| Chain | 3 | `$06:$5947` | `chain_*` `$2080`/`$2880` | — | dispatch stub |
-| Phrase | 4 | `$07:$4574` | notes/instr/fx | — | dispatch stub |
-| Instrument | 1 | `$04:$4CE5` | `instruments` `$3080` | — | dispatch stub |
-| Table | 5 | `$05:$4762` | `table_*` | — | dispatch stub |
-| Groove | 2 | `$1D:$41DA` | `grooves` `$1090` | — | dispatch stub |
-| Wave | 8 | `$06:$4F18` | `wave_frames` `$6000` | — | dispatch stub |
-| Synth | 10 | `$1D:$68AB` | `synth` `$3EB2` | — | dispatch stub |
-| Word/Speech | 12 | `$06:$41A2` | `words` `$1890` | — | dispatch stub |
-| Project | 9 | `$1B:$5C17` | properties `$3FB2` | bank `$1B` | `DrawProjectScreen`, `DrawSyncField`, `DrawSyncSubSetting` |
-| File | 13 | `$1C:$57BB` | SRAM filesystem | — | dispatch stub |
-| Help | 14 | `$1B:$4A62` | (text) | bank `$1B` | `DrawHelpScreen` |
+| Screen | idx | Draw routine | Edits | Carved | Draw label |
+|--------|-----|--------------|-------|--------|-----------|
+| Song | 6 | `$03:$4DE7` | `sequence` `$1290` | ✓ `bank03.asm` | `DrawSongScreen` |
+| Chain | 3 | `$06:$5947` | `chain_*` `$2080`/`$2880` | ✓ `bank06.asm` | `DrawChainScreen` |
+| Phrase | 4 | `$07:$4574` | notes/instr/fx | ✓ `bank07.asm` | `DrawPhraseScreen` |
+| Instrument | 1 | `$04:$4CE5` | `instruments` `$3080` | ✓ `bank04.asm` | `DrawInstrumentScreen` |
+| Table | 5 | `$05:$4762` | `table_*` | ✓ `bank05.asm` | `DrawTableScreen` |
+| Groove | 2 | `$1D:$41DA` | `grooves` `$1090` | ✓ `bank1d.asm` | `DrawGrooveScreen` |
+| Wave | 8 | `$06:$4F18` | `wave_frames` `$6000` | ✓ `bank06.asm` | `DrawWaveScreen` |
+| Synth | 10 | `$1D:$68AB` | `synth` `$3EB2` | ✓ `bank1d.asm` | `DrawSynthScreen` |
+| Word/Speech | 12 | `$06:$41A2` | `words` `$1890` | ✓ `bank06.asm` | `DrawWordScreen` |
+| Project | 9 | `$1B:$5C17` | properties `$3FB2` | ✓ `bank1b.asm` | `DrawProjectScreen` (+sync) |
+| File | 13 | `$1C:$57BB` | SRAM filesystem | ✓ `bank1c.asm` | `DrawFileScreen` |
+| Help | 14 | `$1B:$4A62` | (text) | ✓ `bank1b.asm` | `DrawHelpScreen` |
+
+Carved code banks: `$00`, `$03`-`$07`, `$1B`, `$1C`, `$1D` (9 of 64). The
+remaining `INCBIN` banks are sample kits (`$08`-`$1A`, `$20`-`$21`), empty space
+(`$22`-`$3F`), the UI string/helper banks (`$01`, `$02`), and the pre-draw /
+update helper banks (`$1E`, `$1F`).
 
 Spine routines named: `MainLoop`, `Start`, `LoadSyncSetting`, `ReadSongByte`,
 `ScreenDrawDispatch` (+ `ScreenDrawTable`), the interrupt handlers, and the sync
