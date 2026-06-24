@@ -6,6 +6,8 @@
 0150 Start              ; init: di, stack=$E000, clear WRAM/HRAM, save boot regs
 1377 MainLoop           ; poll ready flags, then process a frame (-> L0ED6)
 1CFF LoadSyncSetting    ; read song sync property ($BFBD) -> $CB66/$CB67
+254F ScreenDrawDispatch ; jp table $2563 indexed by wCurrentScreen ($C401): per-screen draw
+2563 ScreenDrawTable    ; 15x jp: screen index -> "select bank N; call draw; ret"
 0061 CallBank1_794B     ; trampoline: select ROM bank 1, jp $794B
 0391 TimerHandler       ; timer IRQ body: sound/playback engine tick
 0662 TimerHandlerReturn ; timer IRQ epilogue: restore regs, wait rSTAT, reti

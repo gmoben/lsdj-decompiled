@@ -3,4 +3,6 @@
 ; tables are marked as data in the disasm command; some embedded graphics/jump
 ; tables are still shown as code (byte-safe) and will be refined.
 
+5C17 DrawProjectScreen ; Project screen draw: all fields (tempo/transpose/sync/clone/look/clock/menu)
 58B1 DrawSyncField   ; Project SYNC field: read $CB66, draw mode string to VRAM $9885
+5B7A DrawSyncSubSetting ; draw PS/2 DELAY (KEYBD) or TICKS/STEP (analog) value beside SYNC

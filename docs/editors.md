@@ -12,6 +12,8 @@ Entry $0100 -> Start $0150 (init) -> ... -> MainLoop $1377
   MainLoop: poll ready flags ($C56C, $C9F1); when a frame is due ->
     process-frame (L13A5): L0ED6 (frame/queue processor) + bookkeeping
       L0ED6 -> banked handlers (bank set via $FF8E shadow + $2000 register)
+  ScreenDrawDispatch $254F: jp ($2563 + 3*wCurrentScreen) -> the active
+      screen's draw routine (selects its bank, calls it) -- see index below
 ```
 
 Key mechanisms:
@@ -27,6 +29,36 @@ Key mechanisms:
   "A: RUN …"). `L0DBC` copies strings into the display buffer (`$C6A9`).
 - **Config**: `LoadSyncSetting` ($1CFF) pulls song properties (e.g. sync) from
   SRAM into WRAM mirrors (`$CB66`…).
+
+## Screen dispatch — the editor index (bank 0)
+
+The current screen is `wCurrentScreen` = **`$C401`** (0–14). Each frame,
+`ScreenDrawDispatch` (`$254F`) does `hl = $2563 + 3*screen; jp hl` into a
+15-entry `jp` table (`ScreenDrawTable`, `$2563`). Each target is a stub that
+selects the screen's ROM bank (`$FF8E` + `$2000`) and `call`s its draw routine:
+
+| `$C401` | Draw routine | Screen |
+|---------|--------------|--------|
+| 0 | — | (none) |
+| 1 | `$04:$4CE5` | TBD |
+| 2 | `$1D:$41DA` | TBD |
+| 3 | `$06:$5947` | TBD |
+| 4 | `$07:$4574` | TBD |
+| 5 | `$05:$4762` | TBD |
+| 6 | `$03:$4DE7` | TBD |
+| 7 | — | (none) |
+| 8 | `$06:$4F18` | TBD |
+| 9 | `$1B:$5C17` | **Project** (`DrawProjectScreen`) ✓ |
+| 10 | `$1D:$68AB` | TBD |
+| 12 | `$06:$41A2` | TBD |
+| 13 | `$1C:$57BB` | TBD |
+| 14 | `$1B:$4A62` | Help? (bank `$1B` holds the help text) |
+
+This table is the master index for carving editors: each screen's draw routine
+is now located by `bank:addr`. Identifying each (and its paired input handler)
+is a bounded task — disassemble that bank/address and see which song structure
+and VRAM region it touches. A parallel input-dispatch (keyed on `$C401`) routes
+button presses to the active screen's edit handler.
 
 ## The screens (LSDj manual)
 
@@ -75,16 +107,23 @@ helpers live in bank `$1B`** (now carved → `src/bank1b.asm`, `src/bank1b.sym`)
 | clock | total/work time | `PLAY %d:` / `WORKED %d:` (`$5C03`) |
 | menu | — | `LOAD/SAVE SONG`, `RESET MEMORY` (`$5D59`), `RESET CARTRIDGE?` (`$6A66`) |
 
-Confirmed routine: **`DrawSyncField` (`$58B1`)** — reads `$CB66`, selects the
-mode string via an explicit `cp` chain (values `0,1,3,5,6,7`), and draws it to
-the tilemap at VRAM `$9885` (`call $2F21`). The field *labels* (TEMPO, SYNC, …)
-are rendered as tiles, not ASCII, so they don't appear as strings here.
+Confirmed routines (bank `$1B`):
 
-The Project screen's top-level draw/input orchestration calls `DrawSyncField`
-cross-bank (no in-bank caller); locating that caller and the input handler that
-edits each field is the remaining work. Bank `$1B` is a **first-pass carve**:
-the SYNC/clock/clone/reset string tables are marked as data; the large help-text
-block and some graphics/jump tables are still shown as code (byte-safe).
+- **`DrawProjectScreen` (`$5C17`)** — the Project draw routine (dispatch index
+  9). Paints each field at a fixed tilemap address via helpers, e.g. the
+  LOAD/SAVE-SONG vs RESET-MEMORY menu line, then the SYNC value, then song
+  properties read with `ReadSongByte`.
+- **`DrawSyncField` (`$58B1`)** — reads `$CB66`, selects the mode string via an
+  explicit `cp` chain (`0,1,3,5,6,7`), draws it to VRAM `$9885`.
+- **`DrawSyncSubSetting` (`$5B7A`)** — the PS/2 DELAY / TICKS/STEP value beside
+  SYNC. Other field-draw helpers: `$5853`, `$569C` (TBD), `$2E33` (numbers).
+
+The Project cursor/selection state is `$C566`/`$C567`. The field *labels*
+(TEMPO, SYNC, …) are tiles, not ASCII. Remaining: the Project **input handler**
+(edits a field on A+CURSOR — the input-dispatch counterpart of
+`ScreenDrawDispatch`) and naming the remaining field helpers. Bank `$1B` is a
+**first-pass carve** (SYNC/clock/clone/reset tables marked as data; the help-text
+block and some graphics/jump tables still show as byte-safe code).
 
 ## Status
 
@@ -98,10 +137,11 @@ block and some graphics/jump tables are still shown as code (byte-safe).
 | Groove | `$1090` | — | — | — |
 | Synth (Wave) | `$3EB2`/`$6000` | — | — | — |
 | Word / Speech | `$1890` | — | — | — |
-| Project | properties `$3FB2` | bank `$1B` | first pass | `DrawSyncField` |
+| Project | properties `$3FB2` | `$1B:$5C17` (idx 9) | draw carved | `DrawProjectScreen`, `DrawSyncField`, `DrawSyncSubSetting` |
 | File (save/load) | SRAM filesystem | bank `$1B` (text) + `ReadSongByte` | first pass | — |
 
-Spine routines named so far: `MainLoop`, `Start`, `LoadSyncSetting`,
-`ReadSongByte`, the interrupt handlers, and the sync subsystem
-([`sync.md`](sync.md)). Next: find the screen-dispatch table, then carve the
-hosting bank(s) and work down the table above.
+Spine routines named: `MainLoop`, `Start`, `LoadSyncSetting`, `ReadSongByte`,
+`ScreenDrawDispatch` (+ `ScreenDrawTable`), the interrupt handlers, and the sync
+subsystem ([`sync.md`](sync.md)). The **screen-dispatch index is now mapped**
+(above); next: identify each `bank:addr` draw routine's screen, then carve them
+and the matching input handlers, working down the table.
