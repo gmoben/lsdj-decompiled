@@ -47,7 +47,14 @@
 0A91 ReadInstrByte      ; read instruments[instr][field]: SRAM bank1 $B080 + instr*$10 + field (asserts instr<$40, field<$10)
 0AE2 ReadCurInstrByte   ; ReadInstrByte([$C576] current instrument, field)
 0AF6 ReadSeqByte        ; read song sequence song[step][channel]: bank0 $B290 + step*4 + channel (step<$C0, channel<4)
-0C8F FarCallArg2        ; banked call passing two byte args: save bank, switch, jp hl to (addr), restore
+; SDCC banked-call thunk family (bc-addr style: save bank, switch, jp hl, restore),
+; one per (arg-count, return-type). The sp-addr style lives at FarCall/FarCallArg.
+0BFE FarCallByte        ; 0 args, returns byte (e)
+0C29 FarCallArgByte     ; 1 byte arg, returns byte (e)
+0C5A FarCallArg2V       ; 2 byte args, void
+0C8F FarCallArg2        ; 2 byte args, returns byte (e)
+0CC5 FarCallArg3        ; 3 byte args, void
+0CFE FarCallByteAlt     ; 0 args, returns byte (e) -- second 0-arg/byte variant
 2106 ReadSeqByteRaw     ; ReadSeqByte via ReadSongByteRaw (bank0 $B290)
 1482 DebugTrap          ; assert/debug trap (ld b,b BGB marker + rst $38), fires once via $C7AF
 

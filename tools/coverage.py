@@ -167,7 +167,10 @@ def collect_entries(rom: bytes) -> dict[int, set[int]]:
     # addr loaded as an immediate), so one extractor handles them. This is LSDj's
     # main cross-bank call mechanism.
     nbanks = len(rom) // BANK
-    for helper in (0x179A, 0x17BB, 0x0C8F):
+    # Two thunk families share the (addr, args..., bank) push convention: the
+    # sp-addr style ($179A/$17BB) and the bc-addr SDCC style ($0BFE..$0CFE, one
+    # thunk per arg-count/return-type). All are extracted the same way.
+    for helper in (0x179A, 0x17BB, 0x0BFE, 0x0C29, 0x0C5A, 0x0C8F, 0x0CC5, 0x0CFE):
         farcall = bytes([0xCD, helper & 0xFF, helper >> 8])
         j = rom.find(farcall)
         while j >= 0:
