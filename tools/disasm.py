@@ -211,6 +211,49 @@ def _db(raw: bytes) -> str:
     return "db " + ", ".join(f"${b:02x}" for b in raw)
 
 
+def _db_str(run: bytes) -> str:
+    """`db "..."` for a printable run; escapes RGBDS-special chars (byte-exact)."""
+    out = []
+    for b in run:
+        c = chr(b)
+        out.append("\\" + c if c in '"\\{}' else c)
+    return 'db "' + "".join(out) + '"'
+
+
+def _emit_data(data: bytes, lo: int, hi: int, base_addr: int) -> list[Row]:
+    """Emit a data range as rows: printable runs (>= 4) as `db "TEXT"`, the rest
+    as hex `db` lines (<= 16 bytes). Byte-exact either way."""
+    rows: list[Row] = []
+    pend: list[tuple[int, int]] = []
+
+    def flush() -> None:
+        if not pend:
+            return
+        off0 = pend[0][0]
+        bs = bytes(b for _, b in pend)
+        for k in range(0, len(bs), 16):
+            seg = bs[k:k + 16]
+            rows.append((base_addr + (off0 - lo) + k, seg, _db(seg), None))
+        pend.clear()
+
+    i = lo
+    while i < hi:
+        if 0x20 <= data[i] <= 0x7E:
+            j = i
+            while j < hi and 0x20 <= data[j] <= 0x7E:
+                j += 1
+            if j - i >= 4:
+                flush()
+                run = data[i:j]
+                rows.append((base_addr + (i - lo), run, _db_str(run), None))
+                i = j
+                continue
+        pend.append((i, data[i]))
+        i += 1
+    flush()
+    return rows
+
+
 JR_OPS = {0x18, 0x20, 0x28, 0x30, 0x38}
 JP_OPS = {0xC3, 0xC2, 0xCA, 0xD2, 0xDA}
 CALL_OPS = {0xCD, 0xC4, 0xCC, 0xD4, 0xDC}
@@ -289,10 +332,7 @@ def disassemble(data: bytes, start: int, end: int, org: int,
         addr = org + (o - start)
         if in_data(o):
             edge = min(next_data_edge(o), end)
-            chunk = data[o:edge]
-            for i in range(0, len(chunk), 16):
-                seg = chunk[i:i + 16]
-                out.append((addr + i, seg, _db(seg), None))
+            out.extend(_emit_data(data, o, edge, addr))
             o = edge
             continue
 
@@ -479,9 +519,11 @@ def render(rows: list[Row], comments: bool,
         if ref is not None and ref in labels:
             text = text.replace(f"${ref:04x}", labels[ref])
         text = _sub_hw_regs(text)
-        if comments:
+        if comments and not text.startswith('db "'):
             hexb = " ".join(f"{b:02x}" for b in raw)
             lines.append(f"\t{text:<28} ; ${addr:04x}: {hexb}")
+        elif comments:
+            lines.append(f"\t{text:<28} ; ${addr:04x}")
         else:
             lines.append(f"\t{text}")
     return "\n".join(lines)
