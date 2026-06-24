@@ -62,6 +62,8 @@
 34F7 DisableInterrupts  ; di; ret
 34F9 SoftReset          ; a = boot id [$CBD9]; jp Start
 34FF SetInterruptEnable ; update rIE, ack rIF for newly-enabled interrupts
+3887 MemSetLoop        ; inner loop: fill de bytes at hl with value b
+388F MemSet            ; memset(dest=sp+4, value=sp+6, count=sp+7) -> MemSetLoop
 38A2 MulU8              ; SDCC runtime: 8-bit multiply (reads 2 byte args -> MulCharToInt)
 38AE MulU16             ; SDCC runtime: 16-bit multiply (reads 2 word args -> MulInt)
 38BF MulCharToInt      ; zero-extend 8-bit operands (b=0,d=0) then fall into MulInt
