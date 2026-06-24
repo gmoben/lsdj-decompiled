@@ -70,13 +70,23 @@ runs of `$00`/`$FF` (empty phrases/chains).
 | `EmitDefaultInstrument` | `$758E` | `$F1` run: emit a default instrument |
 
 The output pointer (`$C97D`/`$C97E`) is filled until it reaches `$8000` (the
-32 KiB song size). The `$F0`/`$F1` default-fill commands are the LSDj-specific
-signature that confirms this is the song decompressor.
+32 KiB song size). `DecompressSpecial` (`$46E1`) is the `$E0`-escape sub-handler
+(`$F0`/`$F1`/`$FF`/literal-`$E0`); the main loop also handles `$C0` RLE and
+literals.
 
-> Note: the **top-level dispatch observed in 9.4.0** keys on
-> `$E0`/`$F0`/`$F1`/`$FF` + literal; the `$C0` RLE in the table above is from the
-> liblsdj model — exact codec semantics (and the matching compressor on the SAVE
-> path) still need confirmation via emulator tracing.
+### Compressor — located in bank `$1C` (the SAVE path)
+
+| Routine | Addr | Role |
+|---------|------|------|
+| `CompressSong` | `$441E` | compress the 32 KiB working song into blocks; inits `$C97D=0`, reads the song from `$A000` |
+| `WriteCompressedByte` | `$715B` | emit one byte to the compressed output stream |
+| `ReadWorkingSongByte` | `$711F` | read a byte of the working song (compressor input) |
+
+The compressor confirms the codec **exactly matches the table above** (the
+liblsdj model): it emits `$C0 $C0` / `$E0 $E0` (literal escapes), `$C0 v n`
+(RLE), `$E0 $F0 n` (default-wave run), `$E0 $F1 n` (default-instrument run), and
+`$E0 $FF` (end). Compress (`$441E`+) and decompress (`$45xx`/`$46xx`) sit next to
+each other in bank `$1C` and share the loop tail at `$464F`.
 
 ## Sample-kit ROM format (confirmed in this ROM)
 
