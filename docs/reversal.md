@@ -37,38 +37,39 @@ control-transfer entry point:
 
 ### Current coverage
 
-Run `tools/coverage.py`. As of writing, **68%** of the code/data banks trace as
+Run `tools/coverage.py`. As of writing, **71%** of the code/data banks trace as
 reachable code:
 
 | bank | code% | | bank | code% |
 |------|-------|-|------|-------|
-| `$00` | 87% | | `$1B` | 54% |
+| `$00` | 89% | | `$1B` | 67% |
 | `$03` | 86% | | `$1C` | 76% |
 | `$04` | 93% | | `$1D` | 89% |
-| `$05` | 64% | | `$1E` | 28% |
-| `$06` | 85% | | `$1F` | 7% |
-| `$07` | 71% | | `$01`/`$02` | 65% / 79% |
+| `$05` | 71% | | `$1E` | 28% |
+| `$06` | 85% | | `$1F` | 12% |
+| `$07` | 88% | | `$01`/`$02` | 66% / 79% |
 
 The text-heavy banks (`$1B`/`$1C` Project/File/Help) are legitimately lower (lots
-of string data). Progression this far: per-bank 42% → jump tables 56% →
-bank-aware trace 60% → farcall resolution **68%**.
+of string data). Progression: per-bank 42% → jump tables 56% → bank-aware trace
+60% → farcall 68% → **computed-farcall tables 71%**. `$1F` (12%) remains the
+outlier; some of its instrument-type dispatch is reached through tables not yet
+modelled.
 
-`$1F` is the outlier: it is all code (SDCC stack frames), reached via
-**computed-address** farcalls — the instrument screen dispatches to per-type draw
-routines through a *table* of `$1F` addresses, which the immediate-arg scan can't
-see.
+The coverage tracer resolves the **computed-address farcall**: when a
+`call $179A` pushes an immediate `bank` but reads the `addr` from a pointer
+table (`ld a,[hl+]; ld h,[hl]; ld l,a`), it reads the table from the *caller's*
+bank and validates targets in the *callee's* bank.
 
 ## Path to 100%
 
-1. **Computed-address dispatch tables.** Resolve the instrument-type (and similar)
-   farcall/jump tables whose targets come from a table, not an immediate — the
-   main thing keeping `$1F` low. (Needs tracking which bank a table *lives in* vs
-   which bank its *targets* run in.)
-2. **Code/data split.** Once coverage plateaus, the unreached remainder in a bank
-   is data — mark it (`--data`) and carve cleanly; label graphics/strings/tables.
-3. **Naming.** Replace auto `L*` labels with real names, routine by routine,
-   keeping `docs/*` in sync.
-4. **Track the number.** Re-run `tools/coverage.py` after each push; it is the
-   objective progress meter toward a complete disassembly.
+1. **Code/data split (cleaner carves).** The unreached remainder in a bank is
+   data or not-yet-reached code. `tools/carve_clean.py` re-carves a bank marking
+   only the unreached runs that look like **data** (illegal-opcode-dense, ASCII,
+   or `$00`/`$FF` fill) as `db`, leaving ambiguous/code-like runs as
+   instructions — so graphics/strings/tables read as data without hiding code.
+2. **More computed dispatch.** Keep modelling indirect dispatch (e.g. the rest of
+   `$1F`).
+3. **Naming.** Replace auto `L*` labels with real names, routine by routine.
+4. **Track the number.** Re-run `tools/coverage.py` after each push.
 
 Throughout, the invariant is non-negotiable: **`make compare` stays green.**
