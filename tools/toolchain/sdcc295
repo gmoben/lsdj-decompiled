@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# Run the period GBDK 2.95 SDCC (2.2.1, gbz80) under Wine, robustly.
+#
+# This is the compiler LSDj was built with; use it for matching-decompilation
+# experiments (Track 2). All arguments pass through to sdcc.exe.
+#
+# Wine quirks this wrapper handles for you:
+#   * sdcpp/as-gbz80 must be findable -> bin dir is added via WINEPATH.
+#   * sdcc 2.2.1 writes its temp file at the *current drive's* root, so we run
+#     from Wine's writable C: drive (else you get "undocumented I/O error").
+#   * file arguments are resolved to absolute paths so they still open after the
+#     working-directory switch.
+#
+# Env:
+#   GBDK_295   GBDK 2.95 tree (default: <repo>/toolchain/gbdk-2.95)
+#   WINEPREFIX wine prefix (default: <repo>/toolchain/.wine)
+#
+# Examples:
+#   tools/toolchain/sdcc295 --version
+#   tools/toolchain/sdcc295 -mgbz80 -S path/to/file.c     # -> file.asm (asxxxx)
+set -o errexit
+set -o pipefail
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+GBDK_295="${GBDK_295:-$repo_root/toolchain/gbdk-2.95}"
+sdcc_exe="$GBDK_295/bin/sdcc.exe"
+
+if [[ ! -f "$sdcc_exe" ]]; then
+    echo "error: $sdcc_exe not found. Run tools/toolchain/fetch_gbdk295.sh first." >&2
+    exit 1
+fi
+if ! command -v wine >/dev/null 2>&1; then
+    echo "error: wine is required to run the 32-bit period sdcc.exe." >&2
+    exit 1
+fi
+
+export WINEPREFIX="${WINEPREFIX:-$repo_root/toolchain/.wine}"
+export WINEDEBUG="${WINEDEBUG:--all}"
+mkdir -p "$WINEPREFIX/drive_c"
+# Initialise the prefix quietly on first use.
+[[ -d "$WINEPREFIX/drive_c/windows" ]] || wineboot -i >/dev/null 2>&1 || true
+export WINEPATH="$(winepath -w "$GBDK_295/bin" 2>/dev/null)"
+
+# Resolve existing file arguments to absolute paths before changing directory.
+args=()
+for a in "$@"; do
+    if [[ -e "$a" ]]; then args+=("$(readlink -f "$a")"); else args+=("$a"); fi
+done
+
+# Run from the C: drive root so sdcc's "\<tmp>" temp file is writable.
+cd "$WINEPREFIX/drive_c"
+exec wine "$sdcc_exe" "${args[@]}" \
+    2> >(grep -v -iE 'libEGL|pci id for fd|wine|gecko|mono|fixme:|err:winediag' >&2)

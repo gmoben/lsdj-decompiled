@@ -116,11 +116,17 @@ lsdj-decompiled/
 ├── data/                 # extracted data tables (added as carved)
 ├── gfx/                  # graphics assets (added as carved)
 ├── docs/
-│   └── rom_map.md        # reverse-engineering notes / memory map
+│   ├── rom_map.md        # reverse-engineering notes / memory map
+│   └── toolchain.md      # Track 2: period GBDK 2.95 / SDCC 2.2.1 recovery
 ├── tools/
-│   └── gen_baseline.py   # one-time bootstrap baseline generator
+│   ├── gen_baseline.py   # one-time bootstrap baseline generator
+│   ├── toolchain/        # fetch + run the period compiler (under Wine)
+│   └── match/            # matching-decompilation harness (compile C, diff vs ROM)
 └── .githooks/pre-commit  # ROM-leak guard + `make compare`
 ```
+
+> `toolchain/` (the downloaded GBDK 2.95 / SDCC 2.2.1) is git-ignored and fetched
+> on demand by `tools/toolchain/fetch_gbdk295.sh`. It requires `wine`.
 
 ## Development
 

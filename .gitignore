@@ -14,7 +14,11 @@
 *.sym
 *.map
 
-# --- Editor / OS noise ------------------------------------------------------
+# --- Recovered period toolchain (downloaded; binaries are not ours to ship) --
+# GBDK 2.95 / SDCC 2.2.1 are fetched on demand by tools/toolchain/fetch_gbdk295.sh.
+/toolchain/
+
+# --- Editor / OS / local agent tooling noise --------------------------------
 *.swp
 *.swo
 *~
@@ -22,6 +26,8 @@
 .vscode/
 .DS_Store
 Thumbs.db
+opencode.jsonc
+.opencode/
 
 # --- Python tooling ---------------------------------------------------------
 __pycache__/
