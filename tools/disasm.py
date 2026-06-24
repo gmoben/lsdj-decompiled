@@ -214,6 +214,9 @@ def _db(raw: bytes) -> str:
 JR_OPS = {0x18, 0x20, 0x28, 0x30, 0x38}
 JP_OPS = {0xC3, 0xC2, 0xCA, 0xD2, 0xDA}
 CALL_OPS = {0xCD, 0xC4, 0xCC, 0xD4, 0xDC}
+RST_OPS = {0xC7, 0xCF, 0xD7, 0xDF, 0xE7, 0xEF, 0xF7, 0xFF}
+# Instructions after which control does not fall through to the next address.
+STOP_FLOW = {0x18, 0xC3, 0xC9, 0xD9, 0xE9}  # jr, jp, ret, reti, jp hl
 
 # Hardware-defined entry points worth naming when they fall in range.
 VECTOR_NAMES = {
@@ -328,6 +331,65 @@ def disassemble(data: bytes, start: int, end: int, org: int,
     return out
 
 
+def trace_code(data: bytes, start: int, end: int, org: int,
+               seeds: list[int]) -> set[int]:
+    """Recursive-descent reachability: return the set of file offsets that are
+    code, starting from `seeds` (file offsets). Follows direct branches, calls,
+    and rst within [start, end); stops at ret/reti/unconditional jr|jp/jp hl.
+    Targets outside the range (other banks, RAM) are not followed. Bytes never
+    reached stay data -- byte-safe either way, this only affects the rendering."""
+    code: set[int] = set()
+    seen: set[int] = set()
+    work = [o for o in seeds if start <= o < end]
+    while work:
+        o = work.pop()
+        while start <= o < end and o not in seen:
+            seen.add(o)
+            op = data[o]
+            if op == 0xCB:
+                length = 2
+            elif op == 0x10:
+                length = 2 if (o + 1 < end and data[o + 1] == 0) else 1
+            else:
+                length = MAIN[op][0]
+            length = min(length, end - o)
+            for i in range(length):
+                code.add(o + i)
+
+            target: int | None = None
+            if op in JR_OPS and length == 2:
+                off = data[o + 1] - 256 if data[o + 1] > 127 else data[o + 1]
+                target = (org + (o - start) + 2 + off) & 0xFFFF
+            elif (op in JP_OPS or op in CALL_OPS) and length == 3:
+                target = data[o + 1] | (data[o + 2] << 8)
+            elif op in RST_OPS:
+                target = op & 0x38
+            if target is not None:
+                toff = start + (target - org)
+                if start <= toff < end:
+                    work.append(toff)
+
+            if op in STOP_FLOW:
+                break
+            o += length
+    return code
+
+
+def complement_ranges(code: set[int], start: int, end: int) -> list[tuple[int, int]]:
+    """File-offset ranges in [start, end) that are NOT in `code` (i.e. data)."""
+    ranges = []
+    o = start
+    while o < end:
+        if o in code:
+            o += 1
+            continue
+        run = o
+        while o < end and o not in code:
+            o += 1
+        ranges.append((run, o))
+    return ranges
+
+
 def build_labels(rows: list[Row], lo: int, hi: int) -> dict[int, str]:
     """Name interrupt vectors/entry and any in-range branch/call target that
     lands on an instruction boundary. Labels never change emitted bytes."""
@@ -417,6 +479,11 @@ def main() -> None:
     ap.add_argument("--org", type=lambda s: int(s, 0), help="GB address of --start")
     ap.add_argument("--data", default="",
                     help="comma-separated lo:hi file-offset ranges to emit as db")
+    ap.add_argument("--trace", action="store_true",
+                    help="recursive-descent: only decode reachable code as code, "
+                         "rest as data (auto-seeds vectors/entry for --bank 0)")
+    ap.add_argument("--seed", default="",
+                    help="extra comma-separated GB addresses to seed --trace")
     ap.add_argument("--section", help="SECTION header to emit")
     ap.add_argument("--comments", action="store_true", help="annotate addr/bytes")
     ap.add_argument("--no-labels", action="store_true",
@@ -443,10 +510,28 @@ def main() -> None:
         start, end = args.start, args.end
         org = args.org if args.org is not None else start
 
-    data_ranges = []
+    explicit_data = []
     for part in filter(None, (p.strip() for p in args.data.split(","))):
         lo, hi = (int(x, 0) for x in part.split(":"))
-        data_ranges.append((lo, hi))
+        explicit_data.append((lo, hi))
+
+    if args.trace:
+        seeds: list[int] = []
+        if args.bank == 0:
+            seeds += [start + (a - org) for a in (0x100, 0x40, 0x48, 0x50, 0x58, 0x60)]
+        for s in filter(None, (p.strip() for p in args.seed.split(","))):
+            seeds.append(start + (int(s, 0) - org))
+        if not seeds:
+            ap.error("--trace needs seeds: use --bank 0 or pass --seed ADDR[,ADDR]")
+        code = trace_code(data, start, end, org, seeds)
+        for lo, hi in explicit_data:
+            code -= set(range(lo, hi))
+        data_ranges = complement_ranges(code, start, end)
+        pct = 100 * len(code) // (end - start)
+        print(f"trace: {len(code)} code bytes ({pct}%), "
+              f"{len(data_ranges)} data run(s)", file=sys.stderr)
+    else:
+        data_ranges = explicit_data
 
     rows = disassemble(data, start, end, org, data_ranges)
     labels = {} if args.no_labels else build_labels(rows, org, org + (end - start))

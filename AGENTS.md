@@ -176,6 +176,12 @@ tools/disasm.py --rom lsdj9_4_0.gb --start 0x150 --end 0x200 --org 0x150
 - Labels are generated for in-range branch/call targets, plus named interrupt
   vectors and `Entry`; `$FFxx` I/O accesses become `hardware.inc` register
   names. Both are byte-safe (they resolve to the same addresses).
+- `--trace` (with `--seed ADDR,…`, auto-seeded for `--bank 0`) does
+  recursive-descent reachability to split code from data. It **cannot** follow
+  computed `jp hl` dispatch or cross-bank calls, so it under-approximates code
+  (dispatch-reached functions look like data). Use it for data-dominated regions
+  or diagnosis — **not** for code-dense banks like bank 0, which is best left as
+  full linear disassembly.
 - **Re-run `--selftest` after any opcode-table change**, and `make compare`
   after every carve.
 

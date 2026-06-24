@@ -66,6 +66,17 @@ Disassembled with `tools/disasm.py` (header `$104`-`$14F` marked as data).
 Named entry points: `Entry` (`$100`), the five interrupt vectors, and
 auto-generated `Lxxxx` labels at branch/call targets.
 
+### Structure
+
+Bank 0 is almost entirely **compiled C** (SDCC/GBDK): ~211 `ret`s (functions),
+291 direct `call`s, and the SDCC stack idiom `ld hl, sp+N` (`f8 0N`) is
+everywhere. Control is dispatched through **16 `jp hl` sites** (jump tables /
+`switch`), which is why it is kept as full linear disassembly: recursive-descent
+tracing (`--trace`) cannot follow computed jumps and would mislabel
+dispatch-reached functions as data. Understanding these `jp hl` jump tables is
+the key to mapping bank 0's call graph. There is also a small bit-mask table at
+`$0010` (`80 40 20 10 08 04 02 01 01 02 04 08 10 20 40 80`).
+
 ### Boot / init (`$0150`, reached via `jp` from `Entry`)
 
 ```
