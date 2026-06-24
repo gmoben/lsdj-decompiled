@@ -13,3 +13,16 @@
 349B DisableLCD         ; wait for VBlank (rLY), then clear rLCDC bit 7
 34B2 OAMDMARoutine      ; OAM DMA (source $DD00); copied to HRAM and called there
 14D1 ReadSongByte       ; (bank,addr): select SRAM bank + enable RAM, read [de]
+
+; --- Link cable sync (see docs/sync.md) ---
+01AA SerialInit         ; boot: arm rSC=$80 (slave), preload rSB=$66
+14B9 SerialHandlerTail  ; serial IRQ tail: sync bookkeeping -> TimerHandlerReturn
+3467 SendSyncByte       ; master: $CBDE=1, send $CBDC, rSC=$81 (internal clock)
+347A SendSyncHandshake  ; master: $CBDE=2, send $55, rSC=$80
+234D ProcessSyncByte    ; consume received $CBDD: <$FD position / >=$FD transport
+227C SendByteStep       ; one step of the multi-byte (MIDI) send loop
+34F0 GetSyncPosition    ; e = [$CBDB]
+34F5 EnableInterrupts   ; ei; ret
+34F7 DisableInterrupts  ; di; ret
+34F9 SoftReset          ; a = boot id [$CBD9]; jp Start
+34FF SetInterruptEnable ; update rIE, ack rIF for newly-enabled interrupts

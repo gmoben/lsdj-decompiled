@@ -48,8 +48,10 @@ reset rSCY/rSCX/rSTAT/rWY ; clear scroll, LCD status, window
   HRAM execution).
 - **Input** — `ReadJoypad` (`$18BF`): standard two-pass matrix read (d-pad then
   buttons via `rJOYP`), returns a combined button bitmask.
-- **Sync (link cable)** — `SerialHandler` (`$34BD`) plus serial setup near
-  `$01AB` (`rSC`/`rSB`). Supports LSDj's master/slave clock sync.
+- **Sync (link cable)** — `SerialHandler` (`$34BD`), `SerialInit` (`$01AA`),
+  `SendSyncByte`/`SendSyncHandshake` (`$3467`/`$347A`), `ProcessSyncByte`
+  (`$234D`). Master/slave clock sync over the serial port — **fully written up
+  in [`sync.md`](sync.md)**.
 - **Song data access** — `ReadSongByte` (`$14D1`): an SDCC function
   `(bank, addr)` that `di`s, selects the SRAM bank (`$4000`), enables RAM
   (`$0A`→`$0000`), reads `[addr]`, then disables RAM. This is how the engine

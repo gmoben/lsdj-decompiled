@@ -122,6 +122,7 @@ lsdj-decompiled/
 │   ├── rom_map.md        # ROM / memory map and per-bank notes
 │   ├── bank_map.md       # per-bank classification (generated)
 │   ├── functionality.md  # what the code does (interrupts, engines)
+│   ├── sync.md           # link cable sync protocol (serial IRQ, master/slave)
 │   ├── data_model.md     # song format: chains/phrases/instruments/tables/synths
 │   ├── save_format.md    # .sav filesystem, compression, kits, lsdsng
 │   └── toolchain.md      # Track 2: period GBDK 2.95 / SDCC 2.2.1 recovery
