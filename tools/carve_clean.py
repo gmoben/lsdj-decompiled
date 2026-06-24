@@ -33,7 +33,9 @@ ROM = ROOT / "lsdj9_4_0.gb"
 # Known data tables the content heuristic alone would miss (bytes that decode as
 # legal opcodes but are really data).
 MANUAL: dict[int, list[tuple[int, int]]] = {
-    0x00: [(0x10, 0x20), (0x104, 0x150)],  # bitmask table, cartridge header
+    # bitmask table, cartridge header, signed modulation LUTs (triangle/ramp/
+    # clamp tables at $0200; the leading fill run already covers up to $0206).
+    0x00: [(0x10, 0x20), (0x104, 0x150), (0x207, 0x2C0)],
 }
 
 
