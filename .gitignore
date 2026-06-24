@@ -1,0 +1,30 @@
+# --- Copyrighted material: NEVER commit ROMs or saves -----------------------
+# LSDj is commercial software. This repo only contains the means to rebuild the
+# ROM from a copy you supply yourself. Do not commit the ROM under any name.
+*.gb
+*.gbc
+*.gba
+*.sav
+*.srm
+*.sgm
+
+# --- Build output -----------------------------------------------------------
+/build/
+*.o
+*.sym
+*.map
+
+# --- Editor / OS noise ------------------------------------------------------
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# --- Python tooling ---------------------------------------------------------
+__pycache__/
+*.pyc
+.venv/
+.ruff_cache/

@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# Pre-commit quality gate for the LSDj disassembly.
+# Install with: git config core.hooksPath .githooks
+#
+# 1. Refuse to commit copyrighted ROM/save material (defense in depth on top of
+#    .gitignore).
+# 2. Verify the disassembly still reassembles to the original ROM byte-for-byte
+#    (`make compare`) when a base ROM is available.
+set -o errexit
+set -o pipefail
+
+# --- 1. Block ROM/save blobs from ever being committed ----------------------
+blocked=$(git diff --cached --name-only --diff-filter=A \
+    | grep -Ei '\.(gb|gbc|gba|sav|srm|sgm)$' || true)
+if [[ -n "$blocked" ]]; then
+    echo "error: refusing to commit copyrighted ROM/save files:" >&2
+    echo "$blocked" >&2
+    echo "These must never be committed. Remove them from the index:" >&2
+    echo "  git restore --staged <file>" >&2
+    exit 1
+fi
+
+# --- 2. Verify the build still matches the original ROM ---------------------
+if [[ -f lsdj9_4_0.gb ]]; then
+    echo "==> make compare"
+    make compare
+else
+    echo "==> base ROM not present; skipping 'make compare'." >&2
+    echo "    Supply lsdj9_4_0.gb to enable byte-for-byte verification." >&2
+fi
+
+echo "==> pre-commit checks passed."
