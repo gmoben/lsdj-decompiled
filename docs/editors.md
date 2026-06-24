@@ -62,9 +62,23 @@ carve its draw routine's bank and name its input/edit handler.
 
 A **second** dispatch, `ScreenUpdateDispatch` (`$264B`), runs each frame for
 screens **1–5 only** (the active music editors) via its own 5-entry table
-(`$268D`) into banks `$1F`/`$1D`/… — the per-screen update/input path that
-complements the draw. So `$C401` drives parallel *draw* and *update* dispatches.
-Runtime variables are collected in [`../constants/ram.inc`](../constants/ram.inc).
+(`$268D`) — a per-frame **visual refresh** (redraws the playing rows), distinct
+from the (interleaved) input-edit code. So `$C401` drives parallel *draw* and
+*update* dispatches. The per-screen update handlers:
+
+| Screen | Update handler | | Screen | Update handler |
+|--------|----------------|-|--------|----------------|
+| Instrument (1) | `InstrumentScreenUpdate` `$1F:$648F` | | Phrase (4) | `PhraseScreenUpdate` `$07:$47AA` |
+| Groove (2) | `GrooveScreenUpdate` `$1D:$4215` | | Table (5) | `TableScreenUpdate` `$05:$4967` |
+| Chain (3) | `ChainScreenUpdate` `$06:$5A62` | | | |
+
+Before most screen draws, the dispatch prologue calls `ScreenPreDraw`
+(`$1E:$4000`). Runtime variables are collected in
+[`../constants/ram.inc`](../constants/ram.inc).
+
+**Carved banks: 11 of 64** — `$00`, `$03`-`$07`, `$1B`-`$1F` (every editor and
+editor-support bank). The remaining `INCBIN` banks are the UI string table
+(`$01`), boot/general helpers (`$02`), sample kits, and empty space.
 
 ## The screens (LSDj manual)
 

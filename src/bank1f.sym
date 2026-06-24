@@ -1,0 +1,2 @@
+; Bank $1F -- Instrument screen update + helpers
+648F InstrumentScreenUpdate ; per-frame visual update (screen idx 1)

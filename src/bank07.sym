@@ -1,2 +1,3 @@
 ; Bank $07 -- Phrase screen
 4574 DrawPhraseScreen    ; screen idx 4: draws phrase notes/instr/cmd/val
+47AA PhraseScreenUpdate ; per-frame visual update (screen idx 4)

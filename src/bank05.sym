@@ -1,2 +1,3 @@
 ; Bank $05 -- Table screen
 4762 DrawTableScreen     ; screen idx 5: draws the table (env/transpose/cmd cols)
+4967 TableScreenUpdate  ; per-frame visual update (screen idx 5)

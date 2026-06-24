@@ -1,0 +1,2 @@
+; Bank $1E -- screen pre-draw helper
+4000 ScreenPreDraw       ; called before most screen draws (ScreenDrawDispatch prologue)
