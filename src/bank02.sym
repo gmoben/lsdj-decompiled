@@ -1,0 +1,2 @@
+; Bank $02 -- boot / general helpers
+24DD BankcallHelper02   ; called from boot (Start) early init

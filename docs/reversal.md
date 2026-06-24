@@ -8,8 +8,8 @@ all code disassembled with meaningful labels, all data structured.
 
 The 1 MiB ROM is 64 × 16 KiB banks:
 
-- **~13 code/data banks** — the actual program (`$00`-`$07`, `$1B`-`$1F`, plus
-  string/helper banks `$01`/`$02`). **This is the reversal target.**
+- **13 code/data banks** — the actual program (`$00`-`$07`, `$1B`-`$1F`). **This
+  is the reversal target, and all 13 are now carved into the source tree.**
 - **21 sample-kit banks** (`$08`-`$1A`, `$20`-`$21`) — PCM data; identified and
   named (see `bank_map.md`), reversed as data.
 - **30 empty banks** (`$22`-`$3F`) — `$FF` fill / spare.

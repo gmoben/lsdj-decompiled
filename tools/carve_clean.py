@@ -89,7 +89,7 @@ def main() -> None:
     code, _ = cov.global_trace(rom, seeds)
 
     want = {int(a, 16) for a in sys.argv[1:]}
-    banks = sorted(int(p.name[4:6], 16) for p in (ROOT / "src").glob("bank*.asm"))
+    banks = sorted(int(p.name[4:6], 16) for p in (ROOT / "src").glob("bank*.sym"))
     for b in banks:
         if want and b not in want:
             continue

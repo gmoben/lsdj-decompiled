@@ -76,9 +76,9 @@ Before most screen draws, the dispatch prologue calls `ScreenPreDraw`
 (`$1E:$4000`). Runtime variables are collected in
 [`../constants/ram.inc`](../constants/ram.inc).
 
-**Carved banks: 11 of 64** — `$00`, `$03`-`$07`, `$1B`-`$1F` (every editor and
-editor-support bank). The remaining `INCBIN` banks are the UI string table
-(`$01`), boot/general helpers (`$02`), sample kits, and empty space.
+**Carved banks: 13 of 64** — `$00`-`$07` and `$1B`-`$1F`, i.e. **every program
+bank**. The remaining `INCBIN` banks are the 21 sample kits (`$08`-`$1A`,
+`$20`-`$21`) and 30 empty banks (`$22`-`$3F`) — both correctly left as raw data.
 
 ## The screens (LSDj manual)
 
