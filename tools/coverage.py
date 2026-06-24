@@ -34,6 +34,89 @@ def fileoff(bank: int, cpu: int) -> int:
     return bank * BANK + (cpu - 0x4000 if bank else cpu)
 
 
+def _ilen(rom: bytes, phys: int) -> int:
+    op = rom[phys]
+    if op == 0xCB:
+        return 2
+    if op == 0x10:
+        return 2 if (phys + 1 < len(rom) and rom[phys + 1] == 0) else 1
+    return disasm.MAIN[op][0]
+
+
+def global_trace(rom: bytes, seeds: list[tuple[int, int]],
+                 max_states: int = 6_000_000) -> tuple[set[int], bool]:
+    """Bank-aware whole-ROM reachability. State = (cpu, pending_bank); a window
+    byte's bank is its physical offset's bank, but `call/jp $4000-$7FFF` resolve
+    against the *pending* bank set by the most recent `$2000` write in the path.
+    Follows trampolines through into the callee bank, and `jp hl` jump tables in
+    the current bank context. Returns (code physical-offsets, hit_cap)."""
+    JR, JP, CALL, RST = disasm.JR_OPS, disasm.JP_OPS, disasm.CALL_OPS, disasm.RST_OPS
+    STOP, ILL = disasm.STOP_FLOW, disasm.ILLEGAL
+    code: set[int] = set()
+    seen: set[tuple[int, int]] = set()
+    work: list[tuple[int, int]] = [(cpu, bank) for bank, cpu in seeds]
+    n = 0
+    while work:
+        cpu, pbank = work.pop()
+        last_a = last_hl = None
+        while True:
+            if n >= max_states:
+                return code, True
+            n += 1
+            phys = cpu if cpu < 0x4000 else pbank * BANK + (cpu - 0x4000)
+            if not (0 <= phys < len(rom)) or (cpu, pbank) in seen:
+                break
+            seen.add((cpu, pbank))
+            op = rom[phys]
+            length = min(_ilen(rom, phys), len(rom) - phys)
+            for i in range(length):
+                code.add(phys + i)
+
+            if op == 0x3E:
+                last_a = rom[phys + 1]
+            elif op == 0x21 and length == 3:
+                last_hl = rom[phys + 1] | (rom[phys + 2] << 8)
+            if op == 0xEA and rom[phys + 1] == 0 and rom[phys + 2] == 0x20 and last_a is not None:
+                pbank = last_a                      # ld [$2000], a
+            elif op == 0x36 and last_hl == 0x2000:
+                pbank = rom[phys + 1]               # ld [hl], n  (hl == $2000)
+
+            tgt = None
+            if op in JR and length == 2:
+                off = rom[phys + 1] - 256 if rom[phys + 1] > 127 else rom[phys + 1]
+                tgt = (cpu + 2 + off) & 0xFFFF
+            elif (op in JP or op in CALL) and length == 3:
+                tgt = rom[phys + 1] | (rom[phys + 2] << 8)
+            elif op in RST:
+                tgt = op & 0x38
+            if tgt is not None:
+                work.append((tgt, pbank))
+
+            if op == 0xE9 and last_hl is not None:  # jp hl over a jump table
+                addr_form = phys >= 3 and rom[phys - 3:phys] == bytes([0x2A, 0x66, 0x6F])
+                p = last_hl
+                for _ in range(128):
+                    pe = p if p < 0x4000 else pbank * BANK + (p - 0x4000)
+                    if addr_form:
+                        if pe + 2 > len(rom):
+                            break
+                        t, step = rom[pe] | (rom[pe + 1] << 8), 2
+                    else:
+                        if pe + 3 > len(rom) or rom[pe] != 0xC3:
+                            break
+                        t, step = rom[pe + 1] | (rom[pe + 2] << 8), 3
+                    tp = t if t < 0x4000 else pbank * BANK + (t - 0x4000)
+                    if not (0 <= tp < len(rom)) or rom[tp] in ILL:
+                        break
+                    work.append((t, pbank))
+                    p += step
+
+            if op in STOP:
+                break
+            cpu += length
+    return code, False
+
+
 def collect_entries(rom: bytes) -> dict[int, set[int]]:
     """bank -> set of CPU entry addresses."""
     ent: dict[int, set[int]] = defaultdict(set)
@@ -68,6 +151,26 @@ def collect_entries(rom: bytes) -> dict[int, set[int]]:
         if hit:
             ent[bank].add(hit[0])
 
+    # Banked-call helper `L179A` (farcall): caller pushes addr (ld bc/de/hl, nn;
+    # push) then bank (ld a, N; push af; inc sp), then `call $179A`. Extract the
+    # (bank, addr) pair at each call site -- this is LSDj's main cross-bank call.
+    farcall = bytes([0xCD, 0x9A, 0x17])
+    j = rom.find(farcall)
+    while j >= 0:
+        win = rom[max(0, j - 24):j]
+        bank = addr = None
+        for k in range(len(win) - 1):
+            if (k + 3 < len(win) and win[k] == 0x3E
+                    and win[k + 2] == 0xF5 and win[k + 3] == 0x33):
+                bank = win[k + 1]               # ld a,N; push af; inc sp
+            if win[k] in (0x01, 0x11, 0x21) and k + 2 < len(win):
+                v = win[k + 1] | (win[k + 2] << 8)  # ld bc/de/hl, nn
+                if 0x4000 <= v <= 0x7FFF:
+                    addr = v
+        if bank is not None and addr is not None and bank < len(rom) // BANK:
+            ent[bank].add(addr)
+        j = rom.find(farcall, j + 1)
+
     # Hand-named symbols (src/bankNN.sym) are known code starts.
     for sym in sorted((ROOT / "src").glob("bank*.sym")):
         m = re.match(r"bank([0-9a-fA-F]{2})\.sym", sym.name)
@@ -91,29 +194,33 @@ def main() -> None:
     ent = collect_entries(rom)
     carved = {int(p.name[4:6], 16) for p in (ROOT / "src").glob("bank*.asm")}
 
-    print(f"{'bank':5} {'entries':>7} {'code%':>6}  kind")
+    seeds = [(b, a) for b, addrs in ent.items() for a in addrs]
+    code, capped = global_trace(rom, seeds)
+    if capped:
+        print("(state cap hit; figures are a lower bound)\n")
+    bank_code = [0] * nbanks
+    for o in code:
+        bank_code[o // BANK] += 1
+
+    print(f"{'bank':5} {'code%':>6}  kind")
     tot_code = tot_size = 0
     for b in range(nbanks):
-        start, end = b * BANK, (b + 1) * BANK
-        org = 0 if b == 0 else 0x4000
-        seeds = [fileoff(b, a) for a in ent.get(b, set())]
-        code = disasm.trace_code(rom, start, end, org, seeds) if seeds else set()
-        seg = rom[start:end]
+        seg = rom[b * BANK:(b + 1) * BANK]
         if seg[:2] == bytes([0x60, 0x40]):
             kind = "kit"
         elif seg.count(0xFF) + seg.count(0x00) > 0.85 * BANK:
             kind = "empty"
         else:
             kind = "code/data"
-        pct = 100 * len(code) // BANK
+        pct = 100 * bank_code[b] // BANK
         if kind == "code/data":
-            tot_code += len(code)
+            tot_code += bank_code[b]
             tot_size += BANK
         mark = " *carved" if b in carved else ""
-        if seeds or kind == "code/data":
-            print(f"${b:02X}   {len(seeds):>7} {pct:>5}%  {kind}{mark}")
+        if kind == "code/data":
+            print(f"${b:02X}   {pct:>5}%  {kind}{mark}")
     print(f"\nReachable code in code/data banks: {tot_code}/{tot_size} "
-          f"({100*tot_code//max(tot_size,1)}%)")
+          f"({100*tot_code//max(tot_size,1)}%)  [bank-aware global trace]")
 
 
 if __name__ == "__main__":

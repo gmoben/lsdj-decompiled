@@ -185,8 +185,17 @@ tools/disasm.py --rom lsdj9_4_0.gb --bank 0 --symbols src/bank00.sym \
 tools/disasm.py --rom lsdj9_4_0.gb --start 0x150 --end 0x200 --org 0x150
 ```
 
-To name a routine: add `ADDR Name` to `src/bank00.sym`, regenerate `bank00.asm`
-with the command above, then `make compare`. Names become labels and are
+Carve a ROMX bank (pass `--globals src/bank00.sym` so cross-bank `call`s into
+home/bank-0 routines render as names like `call FarCall`):
+
+```sh
+tools/disasm.py --rom lsdj9_4_0.gb --bank 0x04 --symbols src/bank04.sym \
+    --globals src/bank00.sym --comments -o src/bank04.asm
+tools/gen_main.py        # rewire main.asm
+```
+
+To name a routine: add `ADDR Name` to the bank's `.sym`, regenerate, `make
+compare`. Track overall progress with `tools/coverage.py` (see `docs/reversal.md`). Names become labels and are
 substituted at all call/jump sites (byte-safe). Record what the routine *does*
 in `docs/functionality.md`.
 

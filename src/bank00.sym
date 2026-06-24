@@ -32,6 +32,7 @@
 349B DisableLCD         ; wait for VBlank (rLY), then clear rLCDC bit 7
 34B2 OAMDMARoutine      ; OAM DMA (source $DD00); copied to HRAM and called there
 14D1 ReadSongByte       ; (bank,addr): select SRAM bank + enable RAM, read [de]
+179A FarCall            ; banked call: caller pushes (addr, bank); switch ROM bank, call addr, restore
 
 ; --- Link cable sync (see docs/sync.md) ---
 01AA SerialInit         ; boot: arm rSC=$80 (slave), preload rSB=$66

@@ -24,36 +24,51 @@ control-transfer entry point:
   scanned ROM-wide → per-bank entry addresses;
 - the **dispatch tables** (screen draw/update) and every hand-named symbol
   (`src/*.sym`);
-- the tracer follows direct branches/calls **and jump tables** (`jp hl` over a
-  `jp`-list or a 2-byte address array), conservatively (targets must be in range
-  and start on a legal opcode).
-
-It reports, per code/data bank, the fraction provably reachable as code. The
-remainder is data (tables, strings, graphics), padding, or code reached through
-mechanisms not yet modelled.
+- a **bank-aware global trace** (`global_trace`): state is `(cpu, pending_bank)`;
+  a window byte's bank is implied by its physical offset, and `call/jp
+  $4000-$7FFF` resolve against the pending bank set by the most recent `$2000`
+  write — so the trace follows control flow **through** bank switches.
+- it follows direct branches/calls, **jump tables** (`jp hl` over a `jp`-list or
+  a 2-byte address array), and LSDj's **farcall helper** `L179A` (the caller
+  pushes `addr` then `bank`; the helper switches bank and calls). Every
+  `call $179A` site's `(bank, addr)` pair is extracted as an entry point.
+- conservative throughout (jump-table targets must be in range and start on a
+  legal opcode), so the figure is a sound lower bound.
 
 ### Current coverage
 
-Run `tools/coverage.py`. As of writing, **56%** of the code/data banks trace as
-reachable code, e.g. `$04` (Instrument) 93%, `$03` (Song) 86%, `$1D` 89%, while
-the text-heavy `$1B`/`$1C` (Project/File/Help) are lower (≈45%, lots of strings)
-and `$1E`/`$1F` are low (≈4%) because they are entered cross-bank from sites the
-per-bank trace doesn't yet resolve.
+Run `tools/coverage.py`. As of writing, **68%** of the code/data banks trace as
+reachable code:
 
-Jump-table following alone raised the figure from 42% → 56%.
+| bank | code% | | bank | code% |
+|------|-------|-|------|-------|
+| `$00` | 87% | | `$1B` | 54% |
+| `$03` | 86% | | `$1C` | 76% |
+| `$04` | 93% | | `$1D` | 89% |
+| `$05` | 64% | | `$1E` | 28% |
+| `$06` | 85% | | `$1F` | 7% |
+| `$07` | 71% | | `$01`/`$02` | 65% / 79% |
+
+The text-heavy banks (`$1B`/`$1C` Project/File/Help) are legitimately lower (lots
+of string data). Progression this far: per-bank 42% → jump tables 56% →
+bank-aware trace 60% → farcall resolution **68%**.
+
+`$1F` is the outlier: it is all code (SDCC stack frames), reached via
+**computed-address** farcalls — the instrument screen dispatches to per-type draw
+routines through a *table* of `$1F` addresses, which the immediate-arg scan can't
+see.
 
 ## Path to 100%
 
-1. **Cross-bank entry discovery.** Find LSDj's banked-call helper(s) and seed the
-   target banks from their call sites; follow trampolines *through* into the
-   callee bank. This is what `$1E`/`$1F` need.
-2. **Finish computed-jump resolution.** Cover the remaining `jp hl` dispatch and
-   any pointer-table call sites.
-3. **Code/data split.** Once coverage plateaus, the unreached remainder in a bank
+1. **Computed-address dispatch tables.** Resolve the instrument-type (and similar)
+   farcall/jump tables whose targets come from a table, not an immediate — the
+   main thing keeping `$1F` low. (Needs tracking which bank a table *lives in* vs
+   which bank its *targets* run in.)
+2. **Code/data split.** Once coverage plateaus, the unreached remainder in a bank
    is data — mark it (`--data`) and carve cleanly; label graphics/strings/tables.
-4. **Naming.** Replace auto `L*` labels with real names, routine by routine
-   (engines, editors, helpers), keeping `docs/*` in sync.
-5. **Track the number.** Re-run `tools/coverage.py` after each push; it is the
+3. **Naming.** Replace auto `L*` labels with real names, routine by routine,
+   keeping `docs/*` in sync.
+4. **Track the number.** Re-run `tools/coverage.py` after each push; it is the
    objective progress meter toward a complete disassembly.
 
 Throughout, the invariant is non-negotiable: **`make compare` stays green.**

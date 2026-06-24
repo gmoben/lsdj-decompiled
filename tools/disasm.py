@@ -551,6 +551,8 @@ def main() -> None:
                     help="extra comma-separated GB addresses to seed --trace")
     ap.add_argument("--symbols", type=Path,
                     help="symbol map file (ADDR Name per line) for label names")
+    ap.add_argument("--globals", type=Path,
+                    help="home (bank-0) symbol map; names cross-bank calls to it")
     ap.add_argument("--section", help="SECTION header to emit")
     ap.add_argument("--comments", action="store_true", help="annotate addr/bytes")
     ap.add_argument("--no-labels", action="store_true",
@@ -611,6 +613,12 @@ def main() -> None:
     rows = disassemble(data, start, end, org, data_ranges, anchors)
     labels = ({} if args.no_labels
               else build_labels(rows, org, org + size, symbols, prefix))
+    # Name cross-bank calls into home (bank 0): substitute references to home
+    # addresses with their global names (defined in bank00.asm when assembled).
+    if args.globals and args.bank not in (0, None) and not args.no_labels:
+        for a, name in parse_symbols(args.globals).items():
+            if a < 0x4000:
+                labels.setdefault(a, name)
     body = render(rows, comments=args.comments, labels=labels)
     section = args.section
     if section is None:
