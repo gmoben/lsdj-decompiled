@@ -31,7 +31,8 @@
 18BF ReadJoypad         ; standard d-pad/button matrix read
 349B DisableLCD         ; wait for VBlank (rLY), then clear rLCDC bit 7
 34B2 OAMDMARoutine      ; OAM DMA (source $DD00); copied to HRAM and called there
-14D1 ReadSongByte       ; (bank,addr): select SRAM bank + enable RAM, read [de]
+14D1 ReadSongByte       ; (bank,addr): di, select SRAM bank + enable RAM, read [de], reti
+14EB ReadSongByteRaw    ; like ReadSongByte but no di/reti (caller already holds IRQ off)
 179A FarCall            ; banked call: caller pushes (addr, bank); switch ROM bank, call addr, restore
 17BB FarCallArg         ; like FarCall but also passes one byte argument to the callee
 1574 WriteSongByte      ; (bank,addr,val): select SRAM bank + enable RAM, write [de] (write side of ReadSongByte)
@@ -42,8 +43,11 @@
 2E6D DrawByte           ; draw a byte (stack arg) at the cursor
 1298 DrawTextField      ; draw a positioned text field
 ; --- defensive checks ---
+0953 WriteInstrByte     ; write value (sp+8, <4) to instruments[instr][field]: bank1 $B080 + instr*$10 + field
 0A91 ReadInstrByte      ; read instruments[instr][field]: SRAM bank1 $B080 + instr*$10 + field (asserts instr<$40, field<$10)
 0AE2 ReadCurInstrByte   ; ReadInstrByte([$C576] current instrument, field)
+0AF6 ReadSeqByte        ; read song sequence song[step][channel]: bank0 $B290 + step*4 + channel (step<$C0, channel<4)
+2106 ReadSeqByteRaw     ; ReadSeqByte via ReadSongByteRaw (bank0 $B290)
 1482 DebugTrap          ; assert/debug trap (ld b,b BGB marker + rst $38), fires once via $C7AF
 
 ; --- Link cable sync (see docs/sync.md) ---
