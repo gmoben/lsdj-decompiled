@@ -32,7 +32,7 @@ OBJ    := $(BUILD)/main.o
 SYM    := $(BUILD)/lsdj9_4_0.sym
 MAP    := $(BUILD)/lsdj9_4_0.map
 
-.PHONY: all compare verify-rom clean tidy baseline
+.PHONY: all compare verify-rom sym clean tidy baseline
 .SECONDARY:
 
 all: $(TARGET)
@@ -50,6 +50,14 @@ $(TARGET): $(OBJ)
 	@mkdir -p $(@D)
 	$(RGBLINK) $(RGBLINKFLAGS) -n $(SYM) -m $(MAP) -o $@ $<
 	$(RGBFIX) $(RGBFIXFLAGS) $@
+
+# --- Symbol file for emulator-assisted debugging ---------------------------
+# rgblink emits a BANK:ADDR Name .sym (BGB / SameBoy / Emulicious format) with
+# every named routine. Copy it next to your ROM (as lsdj9_4_0.sym) to debug LSDj
+# with named labels -- the fastest way to identify and name more routines.
+sym: $(TARGET)
+	@printf '==> %s  (%s symbols)\n' "$(SYM)" "$$(wc -l < $(SYM))"
+	@echo "    Copy next to your ROM as lsdj9_4_0.sym for named emulator debugging."
 
 # --- Verification ----------------------------------------------------------
 # `compare` is the core invariant: the build must equal the original ROM,

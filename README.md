@@ -154,8 +154,13 @@ Common commands:
 make            # build build/lsdj9_4_0.gb
 make compare    # build, then assert it equals the original ROM
 make verify-rom # check your supplied ROM is the right revision
+make sym        # emit the BANK:ADDR symbol file for emulator debugging
 make clean      # remove build/
 ```
+
+`make sym` writes a `BANK:ADDR Name` symbol file (`build/lsdj9_4_0.sym`,
+BGB/SameBoy/Emulicious format) with every named routine — copy it next to your
+ROM as `lsdj9_4_0.sym` to debug LSDj with named labels.
 
 See [`AGENTS.md`](AGENTS.md) for the full contributor/agent workflow, coding
 conventions, and the carving methodology.

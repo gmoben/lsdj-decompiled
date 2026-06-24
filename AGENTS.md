@@ -119,6 +119,7 @@ Daily commands:
 make            # assemble + link + fix -> build/lsdj9_4_0.gb
 make compare    # build, then assert byte-for-byte equality with the original
 make verify-rom # confirm your supplied ROM is the correct revision
+make sym        # emit build/lsdj9_4_0.sym (BANK:ADDR labels for emulator debugging)
 make clean      # remove build/
 make baseline   # (one-time) regenerate src/main.asm from the ROM — clobbers edits
 ```
