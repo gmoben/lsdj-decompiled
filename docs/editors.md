@@ -55,10 +55,15 @@ selects the screen's ROM bank (`$FF8E` + `$2000`) and `call`s its draw routine:
 | 14 | `$1B:$4A62` | Help? (bank `$1B` holds the help text) |
 
 This table is the master index for carving editors: each screen's draw routine
-is now located by `bank:addr`. Identifying each (and its paired input handler)
+is now located by `bank:addr`. Identifying each (and its paired update handler)
 is a bounded task — disassemble that bank/address and see which song structure
-and VRAM region it touches. A parallel input-dispatch (keyed on `$C401`) routes
-button presses to the active screen's edit handler.
+and VRAM region it touches.
+
+A **second** dispatch, `ScreenUpdateDispatch` (`$264B`), runs each frame for
+screens **1–5 only** (the active music editors) via its own 5-entry table
+(`$268D`) into banks `$1F`/`$1D`/… — the per-screen update/input path that
+complements the draw. So `$C401` drives parallel *draw* and *update* dispatches.
+Runtime variables are collected in [`../constants/ram.inc`](../constants/ram.inc).
 
 ## The screens (LSDj manual)
 

@@ -8,6 +8,8 @@
 1CFF LoadSyncSetting    ; read song sync property ($BFBD) -> $CB66/$CB67
 254F ScreenDrawDispatch ; jp table $2563 indexed by wCurrentScreen ($C401): per-screen draw
 2563 ScreenDrawTable    ; 15x jp: screen index -> "select bank N; call draw; ret"
+264B ScreenUpdateDispatch ; per-frame per-screen update for screens 1-5 (table $268D)
+268D ScreenUpdateTable  ; 5x jp: screen 1-5 -> "select bank N; call update; ret"
 0061 CallBank1_794B     ; trampoline: select ROM bank 1, jp $794B
 0391 TimerHandler       ; timer IRQ body: sound/playback engine tick
 0662 TimerHandlerReturn ; timer IRQ epilogue: restore regs, wait rSTAT, reti
