@@ -38,28 +38,33 @@ control-transfer entry point:
 
 ### Current coverage
 
-Run `tools/coverage.py`. As of writing, **67%** of the code/data banks trace as
+Run `tools/coverage.py`. As of writing, **64%** of the code/data banks trace as
 reachable code:
 
 | bank | code% | | bank | code% |
 |------|-------|-|------|-------|
-| `$00` | 84% | | `$1B` | 54% |
+| `$00` | 83% | | `$1B` | 54% |
 | `$03` | 86% | | `$1C` | 65% |
 | `$04` | 93% | | `$1D` | 89% |
-| `$05` | 69% | | `$1E` | 18% |
+| `$05` | 69% | | `$1E` | 8% |
 | `$06` | 85% | | `$1F` | 12% |
-| `$07` | 73% | | `$01`/`$02` | 71% / 77% |
+| `$07` | 73% | | `$01`/`$02` | 38% / 77% |
 
-The text-heavy banks (`$1B`/`$1C` Project/File/Help) are legitimately lower (lots
-of string data). Progression: per-bank 42% → jump tables 56% → bank-aware trace
-60% → farcall 68% → computed-farcall tables 71% → second farcall helper
-(`FarCallArg`) 72% → **`$FF`-fill stop (honest) 67%**.
+The lower banks are legitimately data-heavy: `$1B`/`$1C` (Project/File/Help) are
+string-heavy, and `$01`/`$1E` carry large zero-padded data tables. Progression:
+per-bank 42% → jump tables 56% → bank-aware trace 60% → farcall 68% →
+computed-farcall tables 71% → second farcall helper (`FarCallArg`) 72% →
+**fill-stop (honest) 64%**.
 
-The last step *lowered* the number on purpose: `rst $38` ($FF) was not a
-flow-terminator, so any stray computed target landing in end-of-bank `$FF`
-padding made the tracer walk the whole tail as bogus `rst $38` "code" (~8300
-lines, ~5% of the total). Treating `$FF` followed by `$FF` as padding both
-corrects the metric and lets the carve render that padding as `db`.
+The last step *lowered* the number on purpose. `rst $38` ($FF) and `nop` ($00)
+were not flow-terminators, so any stray computed target landing in padding made
+the tracer walk the whole run as bogus "code" (`rst $38`/`nop`), inflating the
+metric and keeping the carve from rendering the padding as `db`. Stopping on a
+clear fill run (two `$FF`, or eight `$00` -- real alignment is never that long)
+both corrects the metric and cleans ~12k lines of fill noise to `db`. Note the
+disassembly never *hides* code: carve marks bytes `db` only when they are **both**
+unreached and data-like, so a real function after a padding gap still decodes as
+code even though the tracer stops short of it.
 
 `$1F` (12%) is a **metric artifact, not missing disassembly**. The bank is the
 instrument subsystem and carves as ~93% code (8977 instruction lines vs 146 `db`),

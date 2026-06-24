@@ -68,11 +68,14 @@ def global_trace(rom: bytes, seeds: list[tuple[int, int]],
                 break
             seen.add((cpu, pbank))
             op = rom[phys]
-            # `rst $38` ($FF) followed by another $FF is padding, never real
-            # control flow. Stop before walking (and miscounting) the fill run --
-            # otherwise a stray computed target landing in padding walks the whole
-            # tail of a bank as bogus `rst $38` "code".
+            # Padding bytes, never real control flow: a stray computed target
+            # landing in fill would otherwise walk the whole run as bogus "code"
+            # (`rst $38` for $FF, `nop` for $00). Stop the linear walk on a clear
+            # fill run: two `$FF` (rst $38;rst $38 is never real), or eight `$00`
+            # (real alignment is at most a couple of nops, never eight).
             if op == 0xFF and phys + 1 < len(rom) and rom[phys + 1] == 0xFF:
+                break
+            if op == 0x00 and rom[phys:phys + 8] == b"\x00" * 8:
                 break
             length = min(_ilen(rom, phys), len(rom) - phys)
             for i in range(length):
