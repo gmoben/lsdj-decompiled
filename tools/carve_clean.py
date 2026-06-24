@@ -34,8 +34,10 @@ ROM = ROOT / "lsdj9_4_0.gb"
 # legal opcodes but are really data).
 MANUAL: dict[int, list[tuple[int, int]]] = {
     # bitmask table, cartridge header, signed modulation LUTs (triangle/ramp/
-    # clamp tables at $0200; the leading fill run already covers up to $0206).
-    0x00: [(0x10, 0x20), (0x104, 0x150), (0x207, 0x2C0)],
+    # clamp tables at $0200; the leading fill run already covers up to $0206),
+    # instrument param-label/char tables ($0824), and a 16-bit offset LUT ($09B9).
+    0x00: [(0x10, 0x20), (0x104, 0x150), (0x207, 0x2C0),
+           (0x824, 0x908), (0x9B9, 0xA91)],
 }
 
 
