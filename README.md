@@ -123,11 +123,13 @@ lsdj-decompiled/
 │   ├── bank_map.md       # per-bank classification (generated)
 │   ├── functionality.md  # what the code does (interrupts, engines)
 │   ├── sync.md           # link cable sync protocol (serial IRQ, master/slave)
+│   ├── editors.md        # screen/editor architecture + carving plan
 │   ├── data_model.md     # song format: chains/phrases/instruments/tables/synths
 │   ├── save_format.md    # .sav filesystem, compression, kits, lsdsng
 │   └── toolchain.md      # Track 2: period GBDK 2.95 / SDCC 2.2.1 recovery
 ├── tools/
 │   ├── gen_baseline.py   # one-time bootstrap baseline generator
+│   ├── gen_main.py       # generate main.asm (INCLUDE carved banks, INCBIN rest)
 │   ├── disasm.py         # byte-exact SM83->RGBDS disassembler (self-tested)
 │   ├── bankmap.py        # classify all banks; detect/name sample kits
 │   ├── toolchain/        # fetch + run the period compiler (under Wine)
