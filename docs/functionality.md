@@ -76,10 +76,21 @@ reset rSCY/rSCX/rSTAT/rWY ; clear scroll, LCD status, window
 (WRAM addresses are not yet lifted into `constants/` symbols — that is the next
 labelling pass.)
 
+## Dispatch & embedded tables
+
+Bank 0 mixes code with **pointer/jump tables** that the first-pass linear
+disassembly currently shows as bogus instructions, e.g. near `$09FE` and `$0A84`
+(arrays of 16-bit little-endian bank-0 addresses such as `$029D`, `$02B0`,
+`$079C`) consumed by nearby `jp hl` dispatch. Marking these ranges as `--data`
+and decoding the address arrays is the refinement that will turn the `jp hl`
+sites into a readable call graph (and shrink the false "illegal opcode" counts).
+
 ## Next
 
-- Map the 16 `jp hl` jump tables to recover bank 0's full call graph.
-- Follow the 16 bank-switch trampolines to start carving the engines that live
-  in banks `$01`-`$3F`.
-- Lift the RAM/HRAM addresses above into a `constants/` include and substitute
-  them throughout (mirrors the hardware-register substitution).
+- Mark bank 0's embedded jump tables as data; resolve `jp hl` dispatch targets.
+- Follow the bank-switch trampolines to start carving the engines/editors in
+  banks `$01`-`$07` and `$1B`-`$1F`.
+- Locate the load/save/compress/format routines and the per-screen editors
+  (chain/phrase/instrument/table/groove/word, plus filename **text input**).
+- Lift the RAM/HRAM addresses above and the song offsets (`constants/song.inc`)
+  into the disassembly via symbol substitution (mirrors the hardware registers).
