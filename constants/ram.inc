@@ -18,6 +18,7 @@ DEF wProjectCursor2  EQU $C567
 DEF wStringSrc       EQU $C564  ; source pointer for DrawString (16-bit)
 DEF wVramCursor      EQU $C573  ; VRAM tilemap dest ($98xx-$9Bxx, 16-bit LE; $C574=hi); draw helpers auto-increment it
 DEF wInstrument      EQU $C576  ; current instrument number (index into instruments[64][16])
+DEF wStrBuffer       EQU $C6A9  ; shared text work buffer (StrCopy destination), used across banks
 DEF wDebugTrapped    EQU $C7AF  ; set by DebugTrap so it fires only once
 
 ; --- Playback / timing ------------------------------------------------------
