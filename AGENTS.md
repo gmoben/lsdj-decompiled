@@ -105,6 +105,7 @@ betting on C. Until that succeeds, treat C as unproven. See
 | `docs/reversal.md` | 100%-reversal methodology + the coverage metric |
 | `tools/gen_baseline.py` | One-time bootstrap baseline generator |
 | `tools/coverage.py` | Whole-ROM reachability/coverage analysis ("% reversed") |
+| `tools/carve_clean.py` | Re-carve banks with a trace-driven code/data split |
 | `tools/gen_main.py` | Generate `src/main.asm` (INCLUDE carved banks, INCBIN rest) |
 | `tools/disasm.py` | SM83→RGBDS disassembler (`--selftest`, labels, symbols, hw regs) |
 | `tools/bankmap.py` | Classify all banks; detect/name sample kits |
