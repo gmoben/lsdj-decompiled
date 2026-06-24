@@ -47,6 +47,7 @@
 0A91 ReadInstrByte      ; read instruments[instr][field]: SRAM bank1 $B080 + instr*$10 + field (asserts instr<$40, field<$10)
 0AE2 ReadCurInstrByte   ; ReadInstrByte([$C576] current instrument, field)
 0AF6 ReadSeqByte        ; read song sequence song[step][channel]: bank0 $B290 + step*4 + channel (step<$C0, channel<4)
+0C8F FarCallArg2        ; banked call passing two byte args: save bank, switch, jp hl to (addr), restore
 2106 ReadSeqByteRaw     ; ReadSeqByte via ReadSongByteRaw (bank0 $B290)
 1482 DebugTrap          ; assert/debug trap (ld b,b BGB marker + rst $38), fires once via $C7AF
 
@@ -62,6 +63,8 @@
 34F7 DisableInterrupts  ; di; ret
 34F9 SoftReset          ; a = boot id [$CBD9]; jp Start
 34FF SetInterruptEnable ; update rIE, ack rIF for newly-enabled interrupts
+33B9 GetTilemapAddr    ; (col,row 16-bit arg) -> BG map address $9800 + row*$20 + col
+3831 StrCopy           ; strcpy(dest=sp+2, src=sp+4): copy bytes until the null terminator
 3887 MemSetLoop        ; inner loop: fill de bytes at hl with value b
 388F MemSet            ; memset(dest=sp+4, value=sp+6, count=sp+7) -> MemSetLoop
 38A2 MulU8              ; SDCC runtime: 8-bit multiply (reads 2 byte args -> MulCharToInt)

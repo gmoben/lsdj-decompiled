@@ -152,12 +152,13 @@ def collect_entries(rom: bytes) -> dict[int, set[int]]:
             ent[bank].add(hit[0])
 
     # Banked-call helpers (farcall): caller pushes addr (ld bc/de/hl, nn; push)
-    # then bank (ld a, N; push af; inc sp), then `call $179A` (FarCall) or
-    # `call $17BB` (FarCallArg, which also pushes one byte arg in between). Both
-    # share the same bank/addr push convention, so one extractor handles both.
-    # This is LSDj's main cross-bank call mechanism.
+    # then bank (ld a, N; push af; inc sp), then `call $179A` (FarCall),
+    # `call $17BB` (FarCallArg, +1 byte arg) or `call $0C8F` (FarCallArg2, +2 byte
+    # args). All three share the same bank/addr push convention (bank pushed last,
+    # addr loaded as an immediate), so one extractor handles them. This is LSDj's
+    # main cross-bank call mechanism.
     nbanks = len(rom) // BANK
-    for helper in (0x179A, 0x17BB):
+    for helper in (0x179A, 0x17BB, 0x0C8F):
         farcall = bytes([0xCD, helper & 0xFF, helper >> 8])
         j = rom.find(farcall)
         while j >= 0:
