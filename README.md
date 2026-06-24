@@ -110,14 +110,16 @@ lsdj-decompiled/
 ├── lsdj9_4_0.sha1        # expected base-ROM checksum
 ├── src/
 │   ├── main.asm          # top level: INCLUDEs carved banks, INCBINs the rest
-│   └── bank00.asm        # disassembled bank 0 (entry, vectors, init) — carved
+│   ├── bank00.asm        # disassembled bank 0 (generated from ROM + symbols)
+│   └── bank00.sym        # bank 0 symbol map (addr -> routine name)
 ├── include/
 │   └── hardware.inc      # standard GB hardware definitions (gbdev, CC0)
 ├── constants/            # symbolic constants (RAM addrs, enums, …)
 ├── data/                 # extracted data tables (added as carved)
 ├── gfx/                  # graphics assets (added as carved)
 ├── docs/
-│   ├── rom_map.md        # reverse-engineering notes / memory map
+│   ├── rom_map.md        # ROM / memory map and per-bank notes
+│   ├── functionality.md  # what the code does (interrupts, engines, RAM map)
 │   └── toolchain.md      # Track 2: period GBDK 2.95 / SDCC 2.2.1 recovery
 ├── tools/
 │   ├── gen_baseline.py   # one-time bootstrap baseline generator

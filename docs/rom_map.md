@@ -77,6 +77,10 @@ dispatch-reached functions as data. Understanding these `jp hl` jump tables is
 the key to mapping bank 0's call graph. There is also a small bit-mask table at
 `$0010` (`80 40 20 10 08 04 02 01 01 02 04 08 10 20 40 80`).
 
+See [`functionality.md`](functionality.md) for the recovered behaviour
+(interrupt model, sound/sync/input/LCD engines, banking, RAM map). Named
+routines live in `src/bank00.sym`.
+
 ### Boot / init (`$0150`, reached via `jp` from `Entry`)
 
 ```

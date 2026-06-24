@@ -1,0 +1,14 @@
+; Bank 0 symbol map for tools/disasm.py (--symbols).
+; Format: ADDR Name   (hex address, then RGBDS label). ';' starts a comment.
+; Names verified by control-flow + hardware-register analysis; see
+; docs/functionality.md. Update here, then regenerate src/bank00.asm.
+
+0150 Start              ; init: di, stack=$E000, clear WRAM/HRAM, save boot regs
+0061 CallBank1_794B     ; trampoline: select ROM bank 1, jp $794B
+0391 TimerHandler       ; timer IRQ body: sound/playback engine tick
+0662 TimerHandlerReturn ; timer IRQ epilogue: restore regs, wait rSTAT, reti
+183A VBlankHandler      ; reloads rTIMA from tempo ($C578), can raise timer IRQ
+34BD SerialHandler      ; Game Boy sync RX: rSB -> $CBDD, mode in $CBDE
+18BF ReadJoypad         ; standard d-pad/button matrix read
+349B DisableLCD         ; wait for VBlank (rLY), then clear rLCDC bit 7
+34B2 OAMDMARoutine      ; OAM DMA (source $DD00); copied to HRAM and called there

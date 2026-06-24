@@ -88,13 +88,15 @@ betting on C. Until that succeeds, treat C as unproven. See
 | `rgbdscheck.asm` | Fails the build on an unsupported RGBDS version |
 | `lsdj9_4_0.sha1` | Expected base-ROM checksum |
 | `src/main.asm` | Top level: `INCLUDE`s carved banks, `INCBIN`s the rest |
-| `src/bank00.asm` | Disassembled bank 0 (entry, vectors, init) — carved |
+| `src/bank00.asm` | Disassembled bank 0 (generated from the ROM + symbols) |
+| `src/bank00.sym` | Hand-maintained bank 0 symbol map (addr → routine name) |
 | `include/hardware.inc` | Standard GB hardware defs (gbdev, CC0) — do not edit |
 | `constants/` | Symbolic constants (RAM map, enums, magic numbers) |
 | `data/`, `gfx/` | Extracted data tables and graphics (added as carved) |
-| `docs/rom_map.md` | Reverse-engineering notes and memory map |
+| `docs/rom_map.md` | ROM/memory map and per-bank notes |
+| `docs/functionality.md` | What the code does (interrupts, engines, RAM map) |
 | `tools/gen_baseline.py` | One-time bootstrap baseline generator |
-| `tools/disasm.py` | SM83→RGBDS disassembler (`--selftest`, labels, hw regs) |
+| `tools/disasm.py` | SM83→RGBDS disassembler (`--selftest`, labels, symbols, hw regs) |
 | `.githooks/pre-commit` | ROM-leak guard + `make compare` |
 
 ## Build & Verify
@@ -164,12 +166,18 @@ semantics afterwards.
 # Validate the opcode table against real rgbasm (run after any table change):
 tools/disasm.py --selftest
 
-# Disassemble a whole bank (auto SECTION header, labels, hardware-reg names):
-tools/disasm.py --rom lsdj9_4_0.gb --bank 0 --data 0x104:0x150 --comments -o src/bank00.asm
+# Regenerate bank 0 (symbols + known data tables) — this is the canonical command:
+tools/disasm.py --rom lsdj9_4_0.gb --bank 0 --symbols src/bank00.sym \
+    --data 0x10:0x20,0x104:0x150 --comments -o src/bank00.asm
 
 # Disassemble an explicit range at a given address:
 tools/disasm.py --rom lsdj9_4_0.gb --start 0x150 --end 0x200 --org 0x150
 ```
+
+To name a routine: add `ADDR Name` to `src/bank00.sym`, regenerate `bank00.asm`
+with the command above, then `make compare`. Names become labels and are
+substituted at all call/jump sites (byte-safe). Record what the routine *does*
+in `docs/functionality.md`.
 
 - `--data lo:hi[,lo:hi]` marks file-offset ranges as `db` (e.g. the header,
   graphics, tables) so they are not mis-decoded as code.
@@ -304,8 +312,10 @@ Always, before committing:
 **Phase 2 — asm skeleton (Track 1)**
 - [x] Byte-exact SM83→RGBDS disassembler (`tools/disasm.py`, opcode self-test)
 - [x] Carve bank 0 to real asm (entry, RST/interrupt vectors, init), labels + hw regs
-- [ ] Name the boot/init routine and core dispatch reached from `Entry`
-- [ ] Identify MBC5 bank-switching trampolines and the GBDK `crt0`
+- [x] Name the interrupt handlers, sound tick, sync, input, LCD, OAM DMA, init
+      (`src/bank00.sym`, `docs/functionality.md`)
+- [x] Identify MBC5 bank-switch trampolines (`ld [$2000], a`) and dispatch
+- [ ] Map the 16 `jp hl` jump tables to complete bank 0's call graph
 - [ ] Establish `constants/` RAM map (WRAM/HRAM/SRAM symbols)
 
 **Phase 3 — Engines (Track 1)**
