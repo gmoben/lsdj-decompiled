@@ -37,27 +37,28 @@ The current screen is `wCurrentScreen` = **`$C401`** (0–14). Each frame,
 15-entry `jp` table (`ScreenDrawTable`, `$2563`). Each target is a stub that
 selects the screen's ROM bank (`$FF8E` + `$2000`) and `call`s its draw routine:
 
-| `$C401` | Draw routine | Screen |
-|---------|--------------|--------|
-| 0 | — | (none) |
-| 1 | `$04:$4CE5` | TBD |
-| 2 | `$1D:$41DA` | TBD |
-| 3 | `$06:$5947` | TBD |
-| 4 | `$07:$4574` | TBD |
-| 5 | `$05:$4762` | TBD |
-| 6 | `$03:$4DE7` | TBD |
-| 7 | — | (none) |
-| 8 | `$06:$4F18` | TBD |
-| 9 | `$1B:$5C17` | **Project** (`DrawProjectScreen`) ✓ |
-| 10 | `$1D:$68AB` | TBD |
-| 12 | `$06:$41A2` | TBD |
-| 13 | `$1C:$57BB` | TBD |
-| 14 | `$1B:$4A62` | Help? (bank `$1B` holds the help text) |
+| `$C401` | Draw routine | Screen | Evidence |
+|---------|--------------|--------|----------|
+| 0 | — | (none) | blank slot |
+| 1 | `$04:$4CE5` | **Instrument** | reads `instruments` |
+| 2 | `$1D:$41DA` | **Groove** | reads `grooves` |
+| 3 | `$06:$5947` | **Chain** | reads `chain_transposes`, 2 columns |
+| 4 | `$07:$4574` | **Phrase** | reads `phrase_notes`, 4-col note grid |
+| 5 | `$05:$4762` | **Table** | reads `table_envelopes` |
+| 6 | `$03:$4DE7` | **Song** | by elimination (sequence is WRAM-cached) |
+| 7 | — | (none) | blank slot |
+| 8 | `$06:$4F18` | **Wave** | reads `wave_frames`; copy/paste ("CANCEL SELECT") |
+| 9 | `$1B:$5C17` | **Project** | `DrawProjectScreen` ✓ (sync/clone/look/clock) |
+| 10 | `$1D:$68AB` | **Synth** | reads softsynth params (`synth`) |
+| 12 | `$06:$41A2` | **Word / Speech** | reads `words`; draws "WORD" |
+| 13 | `$1C:$57BB` | **File** | "BLOCKS USED", "LOSE %u HOURS OF UNSAVED WORK?" |
+| 14 | `$1B:$4A62` | **Help** | bank `$1B` help text (`DrawHelpScreen`) |
 
-This table is the master index for carving editors: each screen's draw routine
-is now located by `bank:addr`. Identifying each (and its paired update handler)
-is a bounded task — disassemble that bank/address and see which song structure
-and VRAM region it touches.
+All 12 of LSDj's screens are now identified — a complete, coherent set. Each
+screen's draw routine is located by `bank:addr`; the indices are named in
+[`../constants/screens.inc`](../constants/screens.inc) and the bank-0 dispatch
+stubs in `src/bank00.sym` (`DrawDispatch_<Screen>`). Remaining work per editor:
+carve its draw routine's bank and name its input/edit handler.
 
 A **second** dispatch, `ScreenUpdateDispatch` (`$264B`), runs each frame for
 screens **1–5 only** (the active music editors) via its own 5-entry table
@@ -132,18 +133,23 @@ block and some graphics/jump tables still show as byte-safe code).
 
 ## Status
 
-| Screen / editor | Edits | Located | Carved | Named |
-|-----------------|-------|---------|--------|-------|
-| Song (sequence) | `$1290` | — | — | — |
-| Chain | `$2080`/`$2880` | — | — | — |
-| Phrase | notes/instr/fx | — | — | — |
-| Instrument | `$3080` | — | — | — |
-| Table | `$1690`/`$3480`/`$3680` | — | — | — |
-| Groove | `$1090` | — | — | — |
-| Synth (Wave) | `$3EB2`/`$6000` | — | — | — |
-| Word / Speech | `$1890` | — | — | — |
-| Project | properties `$3FB2` | `$1B:$5C17` (idx 9) | draw carved | `DrawProjectScreen`, `DrawSyncField`, `DrawSyncSubSetting` |
-| File (save/load) | SRAM filesystem | bank `$1B` (text) + `ReadSongByte` | first pass | — |
+All screens are now **located** (draw routine `bank:addr` + dispatch index).
+"Carved" = its bank is disassembled into the tree; "Named" = routines labelled.
+
+| Screen | idx | Draw routine | Edits | Carved | Named |
+|--------|-----|--------------|-------|--------|-------|
+| Song | 6 | `$03:$4DE7` | `sequence` `$1290` | — | dispatch stub |
+| Chain | 3 | `$06:$5947` | `chain_*` `$2080`/`$2880` | — | dispatch stub |
+| Phrase | 4 | `$07:$4574` | notes/instr/fx | — | dispatch stub |
+| Instrument | 1 | `$04:$4CE5` | `instruments` `$3080` | — | dispatch stub |
+| Table | 5 | `$05:$4762` | `table_*` | — | dispatch stub |
+| Groove | 2 | `$1D:$41DA` | `grooves` `$1090` | — | dispatch stub |
+| Wave | 8 | `$06:$4F18` | `wave_frames` `$6000` | — | dispatch stub |
+| Synth | 10 | `$1D:$68AB` | `synth` `$3EB2` | — | dispatch stub |
+| Word/Speech | 12 | `$06:$41A2` | `words` `$1890` | — | dispatch stub |
+| Project | 9 | `$1B:$5C17` | properties `$3FB2` | bank `$1B` | `DrawProjectScreen`, `DrawSyncField`, `DrawSyncSubSetting` |
+| File | 13 | `$1C:$57BB` | SRAM filesystem | — | dispatch stub |
+| Help | 14 | `$1B:$4A62` | (text) | bank `$1B` | `DrawHelpScreen` |
 
 Spine routines named: `MainLoop`, `Start`, `LoadSyncSetting`, `ReadSongByte`,
 `ScreenDrawDispatch` (+ `ScreenDrawTable`), the interrupt handlers, and the sync
