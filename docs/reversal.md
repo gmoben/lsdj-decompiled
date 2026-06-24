@@ -28,16 +28,17 @@ control-transfer entry point:
   a window byte's bank is implied by its physical offset, and `call/jp
   $4000-$7FFF` resolve against the pending bank set by the most recent `$2000`
   write — so the trace follows control flow **through** bank switches.
-- it follows direct branches/calls, **jump tables** (`jp hl` over a `jp`-list or
-  a 2-byte address array), and LSDj's **farcall helper** `L179A` (the caller
-  pushes `addr` then `bank`; the helper switches bank and calls). Every
-  `call $179A` site's `(bank, addr)` pair is extracted as an entry point.
+ - it follows direct branches/calls, **jump tables** (`jp hl` over a `jp`-list or
+   a 2-byte address array), and LSDj's two **farcall helpers** `FarCall` (`$179A`,
+   caller pushes `addr` then `bank`) and `FarCallArg` (`$17BB`, same but also
+   passes one byte argument). The helper switches bank and calls; every call
+   site's `(bank, addr)` pair is extracted as an entry point.
 - conservative throughout (jump-table targets must be in range and start on a
   legal opcode), so the figure is a sound lower bound.
 
 ### Current coverage
 
-Run `tools/coverage.py`. As of writing, **71%** of the code/data banks trace as
+Run `tools/coverage.py`. As of writing, **72%** of the code/data banks trace as
 reachable code:
 
 | bank | code% | | bank | code% |
@@ -45,15 +46,15 @@ reachable code:
 | `$00` | 89% | | `$1B` | 67% |
 | `$03` | 86% | | `$1C` | 76% |
 | `$04` | 93% | | `$1D` | 89% |
-| `$05` | 71% | | `$1E` | 28% |
+| `$05` | 76% | | `$1E` | 28% |
 | `$06` | 85% | | `$1F` | 12% |
-| `$07` | 88% | | `$01`/`$02` | 66% / 79% |
+| `$07` | 88% | | `$01`/`$02` | 71% / 79% |
 
 The text-heavy banks (`$1B`/`$1C` Project/File/Help) are legitimately lower (lots
 of string data). Progression: per-bank 42% → jump tables 56% → bank-aware trace
-60% → farcall 68% → **computed-farcall tables 71%**. `$1F` (12%) remains the
-outlier; some of its instrument-type dispatch is reached through tables not yet
-modelled.
+60% → farcall 68% → computed-farcall tables 71% → **second farcall helper
+(`FarCallArg`) 72%**. `$1F` (12%) remains the outlier; some of its instrument-type
+dispatch is reached through tables not yet modelled.
 
 The coverage tracer resolves the **computed-address farcall**: when a
 `call $179A` pushes an immediate `bank` but reads the `addr` from a pointer

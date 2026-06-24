@@ -33,6 +33,7 @@
 34B2 OAMDMARoutine      ; OAM DMA (source $DD00); copied to HRAM and called there
 14D1 ReadSongByte       ; (bank,addr): select SRAM bank + enable RAM, read [de]
 179A FarCall            ; banked call: caller pushes (addr, bank); switch ROM bank, call addr, restore
+17BB FarCallArg         ; like FarCall but also passes one byte argument to the callee
 1574 WriteSongByte      ; (bank,addr,val): select SRAM bank + enable RAM, write [de] (write side of ReadSongByte)
 ; --- screen-drawing helpers (VRAM cursor $C574/$C575, string src $C564/$C565) ---
 2F21 DrawString         ; draw a NUL/len string to the VRAM tilemap cursor

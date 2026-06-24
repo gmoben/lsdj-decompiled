@@ -151,44 +151,47 @@ def collect_entries(rom: bytes) -> dict[int, set[int]]:
         if hit:
             ent[bank].add(hit[0])
 
-    # Banked-call helper `L179A` (farcall): caller pushes addr (ld bc/de/hl, nn;
-    # push) then bank (ld a, N; push af; inc sp), then `call $179A`. Extract the
-    # (bank, addr) pair at each call site -- this is LSDj's main cross-bank call.
+    # Banked-call helpers (farcall): caller pushes addr (ld bc/de/hl, nn; push)
+    # then bank (ld a, N; push af; inc sp), then `call $179A` (FarCall) or
+    # `call $17BB` (FarCallArg, which also pushes one byte arg in between). Both
+    # share the same bank/addr push convention, so one extractor handles both.
+    # This is LSDj's main cross-bank call mechanism.
     nbanks = len(rom) // BANK
-    farcall = bytes([0xCD, 0x9A, 0x17])
-    j = rom.find(farcall)
-    while j >= 0:
-        caller_bank = j // BANK
-        win = rom[max(0, j - 40):j]
-        bank = imm_addr = last_hl = table = None
-        for k in range(len(win)):
-            if (k + 3 < len(win) and win[k] == 0x3E
-                    and win[k + 2] == 0xF5 and win[k + 3] == 0x33):
-                bank = win[k + 1]                          # bank arg (immediate)
-            if win[k] in (0x01, 0x11, 0x21) and k + 2 < len(win):
-                v = win[k + 1] | (win[k + 2] << 8)
-                if 0x4000 <= v <= 0x7FFF:
-                    imm_addr = v
-                    if win[k] == 0x21:
-                        last_hl = v
-            if win[k:k + 3] == bytes([0x2A, 0x66, 0x6F]):  # addr read from a table
-                table = last_hl
-        if bank is not None and bank < nbanks:
-            if table is not None:
-                # Pointer table lives in the caller's bank; targets run in `bank`.
-                tbase = (caller_bank * BANK + (table - 0x4000)) if table >= 0x4000 else table
-                for n in range(24):
-                    pe = tbase + 2 * n
-                    if pe + 2 > len(rom):
-                        break
-                    t = rom[pe] | (rom[pe + 1] << 8)
-                    tp = bank * BANK + (t - 0x4000)
-                    if not (0x4000 <= t <= 0x7FFF) or tp >= len(rom) or rom[tp] in disasm.ILLEGAL:
-                        break
-                    ent[bank].add(t)
-            elif imm_addr is not None:
-                ent[bank].add(imm_addr)
-        j = rom.find(farcall, j + 1)
+    for helper in (0x179A, 0x17BB):
+        farcall = bytes([0xCD, helper & 0xFF, helper >> 8])
+        j = rom.find(farcall)
+        while j >= 0:
+            caller_bank = j // BANK
+            win = rom[max(0, j - 40):j]
+            bank = imm_addr = last_hl = table = None
+            for k in range(len(win)):
+                if (k + 3 < len(win) and win[k] == 0x3E
+                        and win[k + 2] == 0xF5 and win[k + 3] == 0x33):
+                    bank = win[k + 1]                          # bank arg (immediate)
+                if win[k] in (0x01, 0x11, 0x21) and k + 2 < len(win):
+                    v = win[k + 1] | (win[k + 2] << 8)
+                    if 0x4000 <= v <= 0x7FFF:
+                        imm_addr = v
+                        if win[k] == 0x21:
+                            last_hl = v
+                if win[k:k + 3] == bytes([0x2A, 0x66, 0x6F]):  # addr read from a table
+                    table = last_hl
+            if bank is not None and bank < nbanks:
+                if table is not None:
+                    # Pointer table lives in the caller's bank; targets run in `bank`.
+                    tbase = (caller_bank * BANK + (table - 0x4000)) if table >= 0x4000 else table
+                    for n in range(24):
+                        pe = tbase + 2 * n
+                        if pe + 2 > len(rom):
+                            break
+                        t = rom[pe] | (rom[pe + 1] << 8)
+                        tp = bank * BANK + (t - 0x4000)
+                        if not (0x4000 <= t <= 0x7FFF) or tp >= len(rom) or rom[tp] in disasm.ILLEGAL:
+                            break
+                        ent[bank].add(t)
+                elif imm_addr is not None:
+                    ent[bank].add(imm_addr)
+            j = rom.find(farcall, j + 1)
 
     # Hand-named symbols (src/bankNN.sym) are known code starts.
     for sym in sorted((ROOT / "src").glob("bank*.sym")):
