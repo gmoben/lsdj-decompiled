@@ -67,16 +67,22 @@ unreached and data-like, so a real function after a padding gap still decodes as
 code even though the tracer stops short of it.
 
 `$1F` (12%) is a **metric artifact, not missing disassembly**. The bank is the
-instrument subsystem and carves as ~93% code (8977 instruction lines vs 146 `db`),
-but it is dominated by deep *computed* / RAM-indirect dispatch chains (the
-instrument-type handlers in §`$4000` switch on instrument field 0, then editor
-handlers call each other through pointers held in RAM). Static recursive-descent
-cannot follow a `jp hl`/`ret` whose address came from RAM, so whole subtrees read
-as unreached even though they are real, correctly-decoded code. The unreached runs
-were inspected (`$5413`, `$4A65`, `$7097` are `push bc; add sp,-N` prologues;
-`$77F5` is the "COPIED WORD"/"CUT WORD" string pool) and confirmed to interleave
-short label strings ("ATK", "ON", "0.5") with code, so forcing data ranges would
-risk *hiding* code — the conservative carve is correct here.
+instrument subsystem and carves as ~93% code (8977 instruction lines vs 146 `db`).
+A static dispatch audit (looking for the actual indirect-call mechanisms) found
+that the dispatch is **entirely ROM-based, not RAM-indirect**: bank `$1F` has only
+two real `jp hl` sites and both are ROM jump-tables (`$401B`, `$679D`); there are
+**no** RAM-fed `jp hl` and **no** `push addr; ret` trampolines. What the recursive
+tracer cannot fully chase is the **multi-hop** path: the master screen dispatch
+(`ScreenDrawDispatch` → jp-table `$2563` → `DrawDispatch_<screen>`) bank-switches
+into a per-screen handler (instrument draw lives in bank `$04` at `$4CE5`, reached
+via an inline `ld a,N; ld [$2000],a; call` trampoline), which then `FarCall`s and
+reads **computed per-instrument-type handler tables** to reach the bank-`$1F`
+leaves. Every hop is statically resolvable; the tracer just doesn't model the
+deepest computed tables yet, so subtrees read as unreached even though they are
+real, correctly-decoded code. The unreached runs were inspected (`$5413`, `$4A65`,
+`$7097` are `push bc; add sp,-N` prologues; `$77F5` is the "COPIED WORD"/"CUT WORD"
+string pool) and interleave short label strings ("ATK", "ON", "0.5") with code, so
+forcing data ranges would risk *hiding* code — the conservative carve is correct.
 
 The coverage tracer resolves the **computed-address farcall**: when a
 `call $179A` pushes an immediate `bank` but reads the `addr` from a pointer
