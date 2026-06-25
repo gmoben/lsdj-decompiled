@@ -30,6 +30,16 @@ BANK = 0x4000
 ROOT = Path(__file__).resolve().parents[1]
 ROM = ROOT / "lsdj9_4_0.gb"
 
+# Unconditional control-flow opcodes (jr/jp/call/ret variants) -- their density
+# distinguishes real code from graphics/table data. `$FF`/rst are excluded (the
+# fill byte would skew it); fill is handled separately.
+CTRL_FLOW = frozenset({
+    0x18, 0x20, 0x28, 0x30, 0x38,                      # jr
+    0xC3, 0xC2, 0xCA, 0xD2, 0xDA, 0xE9,                # jp / jp hl
+    0xCD, 0xC4, 0xCC, 0xD4, 0xDC,                      # call
+    0xC9, 0xC8, 0xC0, 0xD0, 0xD8, 0xD9,                # ret / reti
+})
+
 # Known data tables the content heuristic alone would miss (bytes that decode as
 # legal opcodes but are really data).
 MANUAL: dict[int, list[tuple[int, int]]] = {
@@ -42,13 +52,23 @@ MANUAL: dict[int, list[tuple[int, int]]] = {
 
 
 def data_like(seg: bytes) -> bool:
-    """Conservative: only true for clear data, never for code. SM83 code has many
-    opcodes in the ASCII range, so a plain printable ratio is NOT safe; instead
-    require a long run of consecutive printable bytes (real strings), or dense
-    illegal opcodes (graphics/random), or `$00`/`$FF` fill (padding)."""
+    """True for an *unreached* run that is data. Two tiers:
+
+    1. Strong, version-independent signals: dense illegal opcodes (graphics),
+       `$00`/`$FF` fill (padding), or a long printable run (text).
+    2. Coverage-assisted: with ~99.6% code coverage, an unreached run that does
+       NOT start with a function prologue is almost certainly data (tile
+       graphics, pointer/lookup tables) even though it decodes as legal opcodes.
+       Runs that *start* with an SDCC prologue (`push bc/de/af; add sp,-N` or
+       `; ld hl,sp+N`, or a bare `ld hl,sp+N`) are left as code -- this is what
+       protects the handful of not-yet-reached functions from being hidden.
+    """
     n = len(seg)
     if not n:
         return False
+    if (seg[0] in (0xC5, 0xD5, 0xF5) and n >= 2 and seg[1] in (0xE8, 0xF8)) \
+            or seg[0] == 0xF8:
+        return False                                   # function start -> code
     illegal = sum(1 for b in seg if b in disasm.ILLEGAL) / n
     fill = (seg.count(0) + seg.count(0xFF)) / n
     # Fraction of bytes inside a *long* printable run (>= 4) -- real text. Code's
@@ -64,19 +84,56 @@ def data_like(seg: bytes) -> bool:
             i = j
         else:
             i += 1
-    return illegal >= 0.06 or fill >= 0.60 or str_bytes / n >= 0.55
+    if illegal >= 0.06 or fill >= 0.60 or str_bytes / n >= 0.55:
+        return True
+    # Control-flow-opcode density cleanly separates code from graphics/tables:
+    # real SM83 code runs ~0.10-0.15 (jr/jp/call/ret everywhere); tile graphics
+    # and pointer/lookup tables run ~0.03-0.06. A long unreached run that low on
+    # control flow is data even though every byte decodes as a legal opcode.
+    cf = sum(b in CTRL_FLOW for b in seg) / n
+    return n >= 64 and cf <= 0.07
+
+
+def func_brackets(rom: bytes, lo: int, hi: int, code: set[int]) -> list[tuple[int, int]]:
+    """Locate SDCC functions in the *unreached* region [lo,hi): a prologue
+    `push bc/de/af; add sp,-N|ld hl,sp+N` bracketed by the matching epilogue
+    `pop bc/de/af; ret`. Used to keep a not-yet-reached function rendered as code
+    even when it sits mid-run inside what is otherwise data (the data_like
+    coverage heuristic only inspects a run's first byte)."""
+    POP = {0xC5: 0xC1, 0xD5: 0xD1, 0xF5: 0xF1}
+    out: list[tuple[int, int]] = []
+    o = lo
+    while o < hi - 1:
+        if o not in code and rom[o] in POP and rom[o + 1] in (0xE8, 0xF8):
+            pop, e, end = POP[rom[o]], o + 2, None
+            while e < min(o + 800, hi - 1):
+                if rom[e] == pop and rom[e + 1] == 0xC9:   # pop bc; ret
+                    end = e + 2
+                    break
+                e += 1
+            if end is not None:
+                out.append((o, end))
+                o = end
+                continue
+        o += 1
+    return out
 
 
 def data_runs(code: set[int], rom: bytes, bank: int, minlen: int = 4) -> list[tuple[int, int]]:
     lo, hi = bank * BANK, (bank + 1) * BANK
+    protect = func_brackets(rom, lo, hi, code)
+
+    def blocked(x: int) -> bool:        # reached, or inside a protected function
+        return x in code or any(a <= x < b for a, b in protect)
+
     runs: list[tuple[int, int]] = []
     o = lo
     while o < hi:
-        if o in code:
+        if blocked(o):
             o += 1
             continue
         s = o
-        while o < hi and o not in code:
+        while o < hi and not blocked(o):
             o += 1
         if o - s >= minlen and data_like(rom[s:o]):
             runs.append((s, o))
