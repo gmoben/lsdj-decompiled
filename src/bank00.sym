@@ -26,6 +26,7 @@
 0061 CallBank1_794B     ; trampoline: select ROM bank 1, jp $794B
 0391 TimerHandler       ; timer IRQ body: sound/playback engine tick
 0662 TimerHandlerReturn ; timer IRQ epilogue: restore regs, wait rSTAT, reti
+1CEA GetNextButtons     ; dequeue next button state from the input ring ($CE00[wButtonReadIdx++]) -> e; stops at wButtonWriteIdx
 183A VBlankHandler      ; reloads rTIMA from tempo ($C578), can raise timer IRQ
 34BD SerialHandler      ; Game Boy sync RX: rSB -> $CBDD, mode in $CBDE
 18BF ReadJoypad         ; standard d-pad/button matrix read

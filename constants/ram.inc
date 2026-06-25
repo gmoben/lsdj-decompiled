@@ -74,3 +74,8 @@ ENDC
 ; --- Main loop ---------------------------------------------------------------
 DEF wRedrawPending   EQU $C56C  ; MainLoop: nonzero -> run ScreenUpdateDispatch this frame
 DEF wSynthRenderIdx  EQU $C9F0  ; MainLoop idle: which softsynth wave to render (0-15)
+
+; --- Input (joypad queue: ReadJoypad enqueues, GetNextButtons dequeues) -------
+DEF wButtonRing      EQU $CE00  ; ring buffer of recent button states (for key-repeat + buffered input)
+DEF wButtonReadIdx   EQU $C56F  ; GetNextButtons read cursor into wButtonRing
+DEF wButtonWriteIdx  EQU $C570  ; ReadJoypad write cursor into wButtonRing
