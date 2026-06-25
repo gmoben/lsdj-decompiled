@@ -1,5 +1,10 @@
-; Bank $02 -- sound engine (per-channel playback; see constants/ram.inc wChan*) + a boot helper
+; Bank $02 -- sound engine. Per-tick, for each active channel (wChanActive
+; $C0E0+ch, 0-3 = PU1/PU2/WAV/NOI) it runs ProcessChannel: advance the phrase via
+; the channel cursors, read note/instrument/command, run the per-tick FX command
+; (DispatchFxCommand), and write the GB sound regs (rAUD1/2/3/4). Per-channel
+; state is a struct-of-arrays at $C0xx-$C3xx (see constants/ram.inc wChan*).
 24DD BankcallHelper02   ; called from boot (Start) early init
+494D ProcessChannel     ; per-channel sound tick (channel = hSoundCh); called per active channel
 4C2D AdvanceChanCursors ; advance the 3 phrase cursors (note/cmd, cmdval, instr) by c
 5151 ReadChanCursor     ; read byte via channel hSoundCh's 16-bit cursor (array base in hl); SRAM-guarded
 ; --- Per-tick FX command dispatch (command value in a -> FxCommandTable) -------

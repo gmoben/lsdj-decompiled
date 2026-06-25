@@ -35,6 +35,8 @@ DEF wSoundTick       EQU $C8F4  ; sound/playback tick counter (TimerHandler)
 ; 2=WAV/KIT (rAUD3, plays WAVE+KIT instruments), 3=NOI (rAUD4). The per-channel
 ; computed frequency near $C0F2 is written to rAUDxLOW/HIGH each frame.
 DEF wChanState       EQU $C0E0  ; start of the per-channel byte-state arrays
+DEF wChanActive      EQU $C0E0  ; [4] per-channel active flag; ProcessChannel runs only if nonzero
+DEF wChanNote        EQU $C170  ; [4] current note per channel (low 7 bits; high bit = flag)
 DEF wChanReadPtr     EQU $C110  ; [4] phrase read cursor: note col (bank0) / command col (bank2), same offset
 DEF wChanCmdValPtr   EQU $C128  ; [4] command-value cursor (bank2 phrase_fx_val, $AFxx)
 DEF wChanInstrPtr    EQU $C140  ; [4] instrument cursor (bank3 phrase_instruments, $B0xx)
