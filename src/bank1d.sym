@@ -1,4 +1,8 @@
 ; Bank $1D -- Groove / Synth screens
+; Groove editor: edits grooves[wGroove][16] at SRAM bank0 $B090 (song offset $1090).
+4000 WriteGrooveByte    ; write grooves[wGroove][step] (step in low nibble); 6 edit sites
+4058 ReadGrooveByte     ; read grooves[wGroove][step]
+40EA DrawGrooveSteps    ; draw the current groove's 16 step values (wGroove*16)
 41DA DrawGrooveScreen   ; screen idx 2: draws the groove steps
-68AB DrawSynthScreen    ; screen idx 10: draws softsynth params
 4215 GrooveScreenUpdate ; screen idx 2 per-frame update (from ScreenUpdateTable)
+68AB DrawSynthScreen    ; screen idx 10: draws softsynth params

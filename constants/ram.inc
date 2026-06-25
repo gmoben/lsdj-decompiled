@@ -13,6 +13,7 @@ DEF wCurrentScreen   EQU $C401  ; 0-14; indexes the screen draw/update dispatch
 DEF wIsCGB           EQU $C402  ; set at boot when running on a Game Boy Color
 DEF wProjectCursor   EQU $C566  ; Project screen cursor/selection (with $C567)
 DEF wProjectCursor2  EQU $C567
+DEF wGroove          EQU $C417  ; current groove number being edited (0-31, Groove screen)
 
 ; --- Drawing helpers (used by DrawString/DrawHexByte/... in bank 0) ----------
 DEF wStringSrc       EQU $C564  ; source pointer for DrawString (16-bit)
