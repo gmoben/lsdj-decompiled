@@ -75,12 +75,14 @@ def read(regions: list[tuple[int, bytes]], addr: int, n: int = 1) -> bytes | Non
 
 
 def parse_defs(path: Path) -> list[tuple[int, str, str]]:
+    # ram.inc uses hex ($C401); screens.inc uses decimal (6). Handle both.
     out = []
-    pat = re.compile(r"\s*DEF\s+(\w+)\s+EQU\s+\$([0-9A-Fa-f]+)\s*(?:;\s*(.*))?")
+    pat = re.compile(r"\s*DEF\s+(\w+)\s+EQU\s+(\$?)([0-9A-Fa-f]+)\s*(?:;\s*(.*))?")
     for line in path.read_text().splitlines():
         m = pat.match(line)
         if m:
-            out.append((int(m.group(2), 16), m.group(1), (m.group(3) or "").strip()))
+            val = int(m.group(3), 16 if m.group(2) else 10)
+            out.append((val, m.group(1), (m.group(4) or "").strip()))
     return out
 
 
