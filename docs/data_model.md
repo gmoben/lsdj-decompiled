@@ -111,7 +111,8 @@ Verified against a live RAM dump cross-checked with this map:
 
 | RAM var | Addr | Holds | Indexes |
 |---------|------|-------|---------|
-| `wChanChain` | `$C170` | current chain # | `song` (`$1290`) at the play row |
+| `wChanSongRow` | `$C200` | current song row | `song` (`$1290`), top of the hierarchy |
+| `wChanChain` | `$C170` | current chain # | `= song[songRow][ch]` |
 | `wChanChainRow` | `$C17C` | row in chain (0-15) | into `chain_phrases`/`chain_transposes` |
 | `wChanPhrase` | `$C168` | current phrase # | `= chain_phrases[chain][chainRow]` |
 | `wChanPhraseRow` | `$C16C` | note step in phrase (0-15) | into the phrase columns |
@@ -119,8 +120,10 @@ Verified against a live RAM dump cross-checked with this map:
 | `wChanCmdValPtr` | `$C128` | 16-bit SRAM cursor | `phrase_fx_val` (`$AFF0`+) |
 | `wChanInstrPtr` | `$C140` | 16-bit SRAM cursor | `phrase_instruments` (`$B000`+) |
 
-`ReadChainPhrase` (bank `$02` `$5E7C`) computes `wChanPhrase` from
-`chain_phrases[wChanChain*16 + wChanChainRow]` in SRAM bank 1.
+The bank `$02` walkers: `AdvanceSongRow` (`$48D2`) reloads `wChanChain` from
+`song` when a chain ends (with LSDj's loop-back scan); `ReadSongChain` (`$5EAD`)
+reads `song[wChanSongRow][ch]`; `ReadChainPhrase` (`$5E7C`) computes `wChanPhrase`
+from `chain_phrases[wChanChain*16 + wChanChainRow]` in SRAM bank 1.
 
 ## Sources / confidence
 

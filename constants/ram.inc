@@ -48,6 +48,7 @@ DEF wChanState       EQU $C0E0  ; start of the per-channel byte-state arrays
 DEF wChanActive      EQU $C0E0  ; [4] per-channel active flag; ProcessChannel runs only if nonzero
 ; Sequencer position (song row -> chain -> phrase -> note step). Verified against a
 ; live RAM dump cross-checked with the working-song SRAM map (see docs/save_format.md):
+DEF wChanSongRow     EQU $C200  ; [4] current song row, top of hierarchy (AdvanceSongRow walks this)
 DEF wChanChain       EQU $C170  ; [4] current chain number per channel (CHAIN_ASSIGNMENTS[songRow][ch])
 DEF wChanChainRow    EQU $C17C  ; [4] current row within the chain (0-15)
 DEF wChanPhrase      EQU $C168  ; [4] current phrase = CHAIN_PHRASES[chain][chainRow] (set by ReadChainPhrase)

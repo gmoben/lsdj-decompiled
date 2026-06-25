@@ -21,7 +21,9 @@
 5A27 SetupSoundPU2      ; PU2: stage wSoundParams -> env/duty/freq shadows + trigger
 5B0C SetupSoundWave     ; WAV/KIT: stage wSoundParams -> wave level/freq shadows + trigger
 5DB2 SetupSoundNoise    ; NOI: stage wSoundParams -> env/poly shadows + trigger
-; --- Sequencer: resolve the current chain row to a phrase number --------------
+; --- Sequencer: song row -> chain -> phrase resolution ------------------------
+48D2 AdvanceSongRow     ; on wChanChain[ch]==$FF, walk chain_assignments (loop-back) -> next chain
+5EAD ReadSongChain      ; e = chain_assignments[wChanSongRow[ch]][ch] ($B290 = song offset $1290)
 5E7C ReadChainPhrase    ; e = CHAIN_PHRASES[wChanChain[ch]*16 + wChanChainRow] (SRAM bank1 $A080) -> wChanPhrase
 ; --- Per-tick FX command dispatch (command value in a -> FxCommandTable) -------
 ; Command values index the same table as the mnemonics at $0824 ("-ABCDEFGH...").
