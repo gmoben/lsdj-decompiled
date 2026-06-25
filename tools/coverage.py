@@ -180,7 +180,8 @@ def collect_entries(rom: bytes) -> dict[int, set[int]]:
         while j >= 0:
             caller_bank = j // BANK
             win = rom[max(0, j - 40):j]
-            bank = imm_addr = last_hl = table = None
+            bank = last_hl = table = None
+            addrs = []    # (addr, feeds_push_or_jp) candidates seen in the window
             for k in range(len(win)):
                 if (k + 3 < len(win) and win[k] == 0x3E
                         and win[k + 2] == 0xF5 and win[k + 3] == 0x33):
@@ -188,21 +189,22 @@ def collect_entries(rom: bytes) -> dict[int, set[int]]:
                 if win[k] in (0x01, 0x11, 0x21) and k + 2 < len(win):
                     v = win[k + 1] | (win[k + 2] << 8)
                     if 0x4000 <= v <= 0x7FFF:
-                        imm_addr = v
+                        nxt = win[k + 3] if k + 3 < len(win) else 0
+                        addrs.append((v, nxt in (0xC5, 0xD5, 0xE5, 0xC3)))
                         if win[k] == 0x21:
                             last_hl = v
                 # split byte-loads building the addr in a pair: `ld c,lo; ld b,hi`
                 # (and de/hl, either order) -- e.g. `0e 08 06 71` = bc=$7108.
                 for lo_op, hi_op in ((0x0E, 0x06), (0x1E, 0x16), (0x2E, 0x26)):
                     if k + 3 < len(win):
+                        v = None
                         if win[k] == lo_op and win[k + 2] == hi_op:
                             v = win[k + 1] | (win[k + 3] << 8)
-                            if 0x4000 <= v <= 0x7FFF:
-                                imm_addr = v
                         elif win[k] == hi_op and win[k + 2] == lo_op:
                             v = win[k + 3] | (win[k + 1] << 8)
-                            if 0x4000 <= v <= 0x7FFF:
-                                imm_addr = v
+                        if v is not None and 0x4000 <= v <= 0x7FFF:
+                            nxt = win[k + 4] if k + 4 < len(win) else 0
+                            addrs.append((v, nxt in (0xC5, 0xD5, 0xE5, 0xC3)))
                 if win[k:k + 3] == bytes([0x2A, 0x66, 0x6F]):  # addr read from a table
                     table = last_hl
             if bank is not None and bank < nbanks:
@@ -218,8 +220,18 @@ def collect_entries(rom: bytes) -> dict[int, set[int]]:
                         if not (0x4000 <= t <= 0x7FFF) or tp >= len(rom) or rom[tp] in disasm.ILLEGAL:
                             break
                         ent[bank].add(t)
-                elif imm_addr is not None:
-                    ent[bank].add(imm_addr)
+                else:
+                    # Add every addr that feeds a push/jp -- the farcall-arg load
+                    # and the convergent dispatch where several `ld bc,addr; jp X`
+                    # paths share one `push bc; FarCall`. Fall back to the last
+                    # candidate. Validate the target starts on a legal opcode.
+                    cands = {v for v, q in addrs if q}
+                    if addrs:
+                        cands.add(addrs[-1][0])         # last load: original behavior
+                    for v in cands:
+                        tp = bank * BANK + (v - 0x4000)
+                        if tp < len(rom) and rom[tp] not in disasm.ILLEGAL:
+                            ent[bank].add(v)
             j = rom.find(farcall, j + 1)
 
     # Hand-named symbols (src/bankNN.sym) are known code starts.

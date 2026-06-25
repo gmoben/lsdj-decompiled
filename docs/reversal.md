@@ -38,30 +38,44 @@ control-transfer entry point:
 
 ### Current coverage
 
-Run `tools/coverage.py`. As of writing, **72%** of the code/data banks trace as
+Run `tools/coverage.py`. As of writing, **74%** of the code/data banks trace as
 reachable code:
 
 | bank | code% | | bank | code% |
 |------|-------|-|------|-------|
-| `$00` | 85% | | `$1B` | 58% |
+| `$00` | 86% | | `$1B` | 58% |
 | `$03` | 86% | | `$1C` | 76% |
 | `$04` | 93% | | `$1D` | 89% |
-| `$05` | 69% | | `$1E` | 10% |
-| `$06` | 85% | | `$1F` | 78% |
-| `$07` | 71% | | `$01`/`$02` | 51% / 78% |
+| `$05` | 76% | | `$1E` | 13% |
+| `$06` | 85% | | `$1F` | 84% |
+| `$07` | 71% | | `$01`/`$02` | 51% / 96% |
+
+What's left unreached is now almost entirely **data**, not unmodelled code: a
+classification of every unreached run finds it is `$00`/`$FF` fill, string pools,
+and graphics/tables (`$1E` is ~90% tile data, hence 13%) — only ~8 short code
+functions remain, behind dispatch not yet modelled. The code is effectively
+fully reached.
 
 The lower banks are legitimately data-heavy: `$1B`/`$1C` (Project/File/Help) are
 string-heavy, and `$01`/`$1E` carry large zero-padded data tables. Progression:
 per-bank 42% → jump tables 56% → bank-aware trace 60% → farcall 68% →
 computed-farcall tables 71% → second farcall helper (`FarCallArg`) 72% →
-fill-stop (honest) 64% → **split-load farcall addresses 72%**.
+fill-stop (honest) 64% → split-load farcall addresses 72% → jp-hl null-guard
+tables 73% → **convergent dispatch 74%**.
 
-That last step is the real one. Farcall targets passed as a *split* byte-load
-(`ld c,lo; ld b,hi`, the compiler's form for the instrument editor's per-type
-handlers) were invisible to the extractor, which only matched `ld bc, imm16`.
-Adding the split-load pattern lifted bank `$1F` from 12% to **78%** (and `$1C`
-65→76, `$01` 38→51), confirming end-to-end that the multi-hop dispatch is fully
-static and resolvable — exactly as the live-RAM analysis predicted.
+Those last three model the instrument editor / sound engine dispatch and lift
+bank `$1F` 12→**84%** and `$02` 78→**96%**:
+- **split-load addresses**: farcall targets passed as `ld c,lo; ld b,hi` (the
+  compiler's form), not `ld bc, imm16` — the per-instrument-type handlers.
+- **null-guard jp-hl tables**: an addr-array `jp hl` whose `2a 66 6f` read is
+  separated from the `jp hl` by an `or a,h; ret z` null check (the sound command
+  table at `$02:$47A2`).
+- **convergent dispatch**: several `ld bc,addr; jp X` paths sharing one
+  `push bc; FarCall` at `X` — the extractor now keeps every candidate that feeds
+  a push/jp, not just the last.
+
+Together they confirm end-to-end that the multi-hop dispatch is fully static and
+resolvable — exactly as the live-RAM analysis predicted (no RAM-indirect dispatch).
 
 The last step *lowered* the number on purpose. `rst $38` ($FF) and `nop` ($00)
 were not flow-terminators, so any stray computed target landing in padding made
