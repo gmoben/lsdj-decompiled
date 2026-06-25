@@ -250,6 +250,46 @@ def collect_entries(rom: bytes) -> dict[int, set[int]]:
     return ent
 
 
+def classify_unreached(rom: bytes, code: set[int], banks: list[int]):
+    """Bucket every unreached byte in `banks` into fill / text / graphics-data /
+    code-like, to show that the unreached remainder is mostly data."""
+    fill = text = gfx = codelike = 0
+    for b in banks:
+        base, end = b * BANK, (b + 1) * BANK
+        reached = {o for o in code if base <= o < end}
+        i = base
+        while i < end:
+            if i in reached:
+                i += 1
+                continue
+            j = i
+            while j < end and j not in reached:
+                j += 1
+            seg = rom[i:j]
+            n = j - i
+            f = (seg.count(0) + seg.count(0xFF)) / n
+            pr = k = 0
+            while k < n:
+                if 0x20 <= seg[k] < 0x7F:
+                    s = k
+                    while k < n and 0x20 <= seg[k] < 0x7F:
+                        k += 1
+                    if k - s >= 4:
+                        pr += k - s
+                else:
+                    k += 1
+            if f >= 0.6:
+                fill += n
+            elif pr / n >= 0.35:
+                text += n
+            elif n >= 40 and rom[i] == 0xC5 and rom[i + 1] in (0xE8, 0xF8):
+                codelike += n
+            else:
+                gfx += n
+            i = j
+    return fill, text, gfx, codelike
+
+
 def main() -> None:
     rom_path = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "lsdj9_4_0.gb"
     rom = rom_path.read_bytes()
@@ -267,6 +307,7 @@ def main() -> None:
 
     print(f"{'bank':5} {'code%':>6}  kind")
     tot_code = tot_size = 0
+    cd_banks: list[int] = []
     for b in range(nbanks):
         seg = rom[b * BANK:(b + 1) * BANK]
         if seg[:2] == bytes([0x60, 0x40]):
@@ -279,11 +320,19 @@ def main() -> None:
         if kind == "code/data":
             tot_code += bank_code[b]
             tot_size += BANK
+            cd_banks.append(b)
         mark = " *carved" if b in carved else ""
         if kind == "code/data":
             print(f"${b:02X}   {pct:>5}%  {kind}{mark}")
     print(f"\nReachable code in code/data banks: {tot_code}/{tot_size} "
           f"({100*tot_code//max(tot_size,1)}%)  [bank-aware global trace]")
+
+    fill, text, gfx, codelike = classify_unreached(rom, code, cd_banks)
+    unreached = tot_size - tot_code
+    print(f"unreached {unreached} = fill {fill} + text {text} + graphics/data "
+          f"{gfx} + code-like {codelike}")
+    print(f"code coverage excluding data (reached / (reached + code-like)): "
+          f"{100*tot_code/max(tot_code+codelike,1):.1f}%")
 
 
 if __name__ == "__main__":

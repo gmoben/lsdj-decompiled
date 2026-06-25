@@ -50,11 +50,13 @@ reachable code:
 | `$06` | 85% | | `$1F` | 84% |
 | `$07` | 71% | | `$01`/`$02` | 51% / 96% |
 
-What's left unreached is now almost entirely **data**, not unmodelled code: a
-classification of every unreached run finds it is `$00`/`$FF` fill, string pools,
-and graphics/tables (`$1E` is ~90% tile data, hence 13%) — only ~8 short code
-functions remain, behind dispatch not yet modelled. The code is effectively
-fully reached.
+That 74% is **of all code/data bank bytes**; ~25% of those banks is genuinely
+data. `tools/coverage.py` classifies every unreached byte and prints the split —
+of the 54007 unreached bytes: **26 KB `$00`/`$FF` fill + 8 KB text/strings + 19 KB
+graphics/data** (`$1E` is ~90% tile data, hence 13%), leaving just **616 bytes**
+("~8 short functions") that are plausibly unmodelled code. So **code coverage
+excluding data is 99.6%** — the reachable code is effectively fully traced; the
+remaining percentage points are data, not blind spots.
 
 The lower banks are legitimately data-heavy: `$1B`/`$1C` (Project/File/Help) are
 string-heavy, and `$01`/`$1E` carry large zero-padded data tables. Progression:
