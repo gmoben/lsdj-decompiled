@@ -163,6 +163,21 @@ read pointers match too (ch1 `$C110` = `$A0C5` = phrase `0C`×16 + step 5, and
 > SRAM bank *N* address `$Axxx` maps to `.sav` offset `N*0x2000 + (xxx-0x000)`.
 > No fresh capture is needed for static song data — it already resolved this lead.
 
+### RAM labels: validating against live dumps
+
+The `$C0xx`-`$C2xx` sound-engine RAM and the `$C8xx` channel pointers were
+labelled from live RAM dumps (`dumps/*.ram`) cross-checked with the working-song
+SRAM map: a name is only committed once the dumped value matches what the SRAM
+structure predicts. For example `wChanSongRow`=`02` selects `chain_assignments[2]`,
+which equals `wChanChain`=`01 05 04 00` across all four channels, and the read
+pointers and phrase/chain rows line up the same way. This pins the whole sequencer
+cursor set with high confidence.
+
+The UI/editor RAM (`$C3xx`-`$C5xx`) can't be validated this way -- its values are
+transient and screen-dependent -- so those names rest on engine-code usage instead
+(e.g. `$C36B` is confirmed as the command value by the code that writes it from the
+command-value cursor).
+
 ## Path to 100%
 
 1. **Code/data split (cleaner carves).** The unreached remainder in a bank is

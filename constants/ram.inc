@@ -75,6 +75,12 @@ DEF wChanTable       EQU $C204  ; [4] current table per channel
 DEF wChanTableRow1   EQU $C208  ; [4] table command-1 playback row
 DEF wChanTableRow2   EQU $C20C  ; [4] table command-2 playback row
 DEF wChanInstr       EQU $C210  ; [4] current instrument number per channel
+; Current-channel table-playback cursors (16-bit SRAM addresses):
+DEF wTableTransposePtr EQU $C10E ; -> table_transposes
+DEF wTableCmd1Ptr    EQU $C11E  ; -> table_cmd1
+DEF wTableCmd2Ptr    EQU $C126  ; -> table_cmd2
+DEF wTableCmd1ValPtr EQU $C136  ; -> table_cmd1 values
+DEF wTableCmd2ValPtr EQU $C13E  ; -> table_cmd2 values
 DEF wChanCmd         EQU $C365  ; [4] command read for the current step, per channel
 DEF wChanCmdVal      EQU $C36B  ; [4] command value for the current step, per channel
 ; Current-channel state pointers (16-bit; low byte seeded by InitSoundStatePtrs,
