@@ -42,6 +42,8 @@ DEF wSoundTick       EQU $C8F4  ; sound/playback tick counter (TimerHandler)
 ; hSoundCh maps to the GB hardware channels: 0=PU1 (rAUD1), 1=PU2 (rAUD2),
 ; 2=WAV/KIT (rAUD3, plays WAVE+KIT instruments), 3=NOI (rAUD4). The per-channel
 ; computed frequency near $C0F2 is written to rAUDxLOW/HIGH each frame.
+DEF wSoundParams     EQU $C0D0  ; staged sound-param buffer; SetupChannelSound copies the
+                                ; instrument from SRAM here, then distributes to the rAUDx shadows
 DEF wChanState       EQU $C0E0  ; start of the per-channel byte-state arrays
 DEF wChanActive      EQU $C0E0  ; [4] per-channel active flag; ProcessChannel runs only if nonzero
 DEF wChanNote        EQU $C170  ; [4] current note per channel (low 7 bits; high bit = flag)

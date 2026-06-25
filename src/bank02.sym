@@ -14,6 +14,12 @@
 60D1 TriggerWave        ; WAV note-on: rAUD3 level/freq + trigger
 6014 TriggerNoise       ; NOI note-on: rAUD4 len/env/poly + trigger
 5151 ReadChanCursor     ; read byte via channel hSoundCh's 16-bit cursor (array base in hl); SRAM-guarded
+; --- Note-on: load instrument from SRAM into wSoundParams, set up channel shadows -
+5934 SetupChannelSound  ; dispatch by hSoundCh to the per-channel setup block below
+5942 SetupSoundPU1      ; PU1: stage wSoundParams -> sweep/env/duty/freq shadows + trigger
+5A27 SetupSoundPU2      ; PU2: stage wSoundParams -> env/duty/freq shadows + trigger
+5B0C SetupSoundWave     ; WAV/KIT: stage wSoundParams -> wave level/freq shadows + trigger
+5DB2 SetupSoundNoise    ; NOI: stage wSoundParams -> env/poly shadows + trigger
 ; --- Per-tick FX command dispatch (command value in a -> FxCommandTable) -------
 ; Command values index the same table as the mnemonics at $0824 ("-ABCDEFGH...").
 ; B/D/G/H have null handlers here -- they act at note-trigger, not per tick.
