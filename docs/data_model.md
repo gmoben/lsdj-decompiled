@@ -103,10 +103,30 @@ So e.g. `chain_phrases` (`$2080`) is read at `$A080` after selecting SRAM bank 1
 these SRAM-bank selects. Symbolic offsets live in
 [`../constants/song.inc`](../constants/song.inc).
 
+## Runtime playback cursors (engine RAM ↔ this map)
+
+The bank `$02` sound engine walks the song tree once per channel; its per-channel
+state lives in the `$C1xx` WRAM page (see [`../constants/ram.inc`](../constants/ram.inc)).
+Verified against a live RAM dump cross-checked with this map:
+
+| RAM var | Addr | Holds | Indexes |
+|---------|------|-------|---------|
+| `wChanChain` | `$C170` | current chain # | `song` (`$1290`) at the play row |
+| `wChanChainRow` | `$C17C` | row in chain (0-15) | into `chain_phrases`/`chain_transposes` |
+| `wChanPhrase` | `$C168` | current phrase # | `= chain_phrases[chain][chainRow]` |
+| `wChanPhraseRow` | `$C16C` | note step in phrase (0-15) | into the phrase columns |
+| `wChanReadPtr` | `$C110` | 16-bit SRAM cursor | `phrase_notes`(b0)/`phrase_fx`(b2) |
+| `wChanCmdValPtr` | `$C128` | 16-bit SRAM cursor | `phrase_fx_val` (`$AFF0`+) |
+| `wChanInstrPtr` | `$C140` | 16-bit SRAM cursor | `phrase_instruments` (`$B000`+) |
+
+`ReadChainPhrase` (bank `$02` `$5E7C`) computes `wChanPhrase` from
+`chain_phrases[wChanChain*16 + wChanChainRow]` in SRAM bank 1.
+
 ## Sources / confidence
 
 - Structure & offsets: pylsdj `bread_spec`, liblsdj — **documented**, offsets
-  cross-validated against reserved markers.
+  cross-validated against reserved markers **and a live engine RAM dump** (the
+  `$C1xx` playback cursors above resolve to these tables exactly).
 - Sample kits at banks `$08`-`$1A`,`$20`-`$21`: **confirmed in this ROM**.
 - Mapping these structures to the specific bank-0 routines that read/write them
   is the next labelling pass.

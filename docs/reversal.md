@@ -134,7 +134,7 @@ tracer doesn't fully model — there is no RAM-indirect indirection to chase.
 ### Sound engine: note-on path (named) and open leads
 
 The per-tick engine (`ProcessChannel`, bank `$02`) reaches note-on via a write of
-the new note into `wChanNote[ch]` (`$4DD2`), then channel setup:
+the new chain number into `wChanChain[ch]` (`$4DD2`), then channel setup:
 
 - **`SetupChannelSound` (`$5934`)** — selects the instrument's SRAM bank, copies
   its parameters into the staging buffer **`wSoundParams` (`$C0D0`)**, then
@@ -144,20 +144,24 @@ the new note into `wChanNote[ch]` (`$4DD2`), then channel setup:
   and triggers the voice. The note→GB-period value arrives **pre-staged** in
   `wSoundParams`; it is computed upstream.
 
-**Open lead — note+step-indexed SRAM table read (`$5E7C`).** Called right after a
-note changes, this reads one byte from a working-song SRAM table (bank 1, base
-`$A080`) at offset `note*16 + step`, where `step = [$C17C]` (pointer low-byte
-`$7C` from `InitSoundStatePtrs`), and stores the result into per-channel state
-`$C168`. We resolved the region from the existing 128 KB `.sav` (SRAM bank 1
-`$A080` → `.sav` offset `0x2080`): it is **not** a period table or wave data, but
-**16-byte, `$FF`-padded rows of small indices** (e.g. note 7 = `0D`×8) — an LSDj
-song sub-table. Which sub-table (its 8 used columns map to some table/groove-class
-structure) still needs the `$C17C`/`$C168` index machinery traced further, so
-`$5E7C` is left unnamed rather than mislabelled.
+**Resolved — `ReadChainPhrase` (`$5E7C`) and a `wChanNote` correction.** This reads
+one byte from a working-song SRAM table (bank 1, base `$A080`) at `idx*16 + step`,
+where `step = [$C17C]` (pointer low-byte `$7C` from `InitSoundStatePtrs`), and
+stores the result into per-channel `$C168`. Mapping SRAM bank 1 `$A080` → `.sav`
+offset `0x2080` identifies the table as **`chain_phrases`** (the authoritative
+liblsdj `song_offsets.h` and our [`data_model.md`](data_model.md) agree). So the
+index `[$C170+ch]` is a **chain number**, not a note — my earlier `wChanNote $C170`
+label was wrong; it is **`wChanChain`**. A live-dump cross-check nails it: in
+`songplaying.ram`, `wChanChain` = `01 05 04 00` = exactly song-row 0 of
+`chain_assignments`, and `wChanPhrase` (`$C168`) = `chain_phrases[chain][chainRow]`
+for every channel (ch1: chain `05`, row `01` → phrase `0C` ✓). The per-channel
+read pointers match too (ch1 `$C110` = `$A0C5` = phrase `0C`×16 + step 5, and
+`$C16C` = that step). `$5E7C` is therefore the chain→phrase sequencer step:
+`wChanPhrase = chain_phrases[wChanChain*16 + wChanChainRow]`.
 
 > SRAM reference: the 128 KB `dumps/lsdj9_4_0.sav` is a full 16-bank SRAM image;
 > SRAM bank *N* address `$Axxx` maps to `.sav` offset `N*0x2000 + (xxx-0x000)`.
-> No fresh capture is needed for static song data.
+> No fresh capture is needed for static song data — it already resolved this lead.
 
 ## Path to 100%
 

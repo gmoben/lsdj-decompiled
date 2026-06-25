@@ -46,10 +46,16 @@ DEF wSoundParams     EQU $C0D0  ; staged sound-param buffer; SetupChannelSound c
                                 ; instrument from SRAM here, then distributes to the rAUDx shadows
 DEF wChanState       EQU $C0E0  ; start of the per-channel byte-state arrays
 DEF wChanActive      EQU $C0E0  ; [4] per-channel active flag; ProcessChannel runs only if nonzero
-DEF wChanNote        EQU $C170  ; [4] current note per channel (low 7 bits; high bit = flag)
-DEF wChanReadPtr     EQU $C110  ; [4] phrase read cursor: note col (bank0) / command col (bank2), same offset
-DEF wChanCmdValPtr   EQU $C128  ; [4] command-value cursor (bank2 phrase_fx_val, $AFxx)
-DEF wChanInstrPtr    EQU $C140  ; [4] instrument cursor (bank3 phrase_instruments, $B0xx)
+; Sequencer position (song row -> chain -> phrase -> note step). Verified against a
+; live RAM dump cross-checked with the working-song SRAM map (see docs/save_format.md):
+DEF wChanChain       EQU $C170  ; [4] current chain number per channel (CHAIN_ASSIGNMENTS[songRow][ch])
+DEF wChanChainRow    EQU $C17C  ; [4] current row within the chain (0-15)
+DEF wChanPhrase      EQU $C168  ; [4] current phrase = CHAIN_PHRASES[chain][chainRow] (set by ReadChainPhrase)
+DEF wChanPhraseRow   EQU $C16C  ; [4] current note step within the phrase (0-15)
+DEF wChanReadPtr     EQU $C110  ; [4] 16-bit SRAM cursor; PHRASE_NOTES (bank0) / PHRASE_COMMANDS (bank2),
+                                ; same offset $A000+phrase*16+step, selected by SRAM bank
+DEF wChanCmdValPtr   EQU $C128  ; [4] 16-bit cursor into PHRASE_COMMAND_VALUES (bank2 $AFF0+)
+DEF wChanInstrPtr    EQU $C140  ; [4] 16-bit cursor into PHRASE_INSTRUMENTS (bank3 $B000+)
 DEF wChanCmd         EQU $C365  ; [4] command read for the current step, per channel
 DEF wChanCmdVal      EQU $C36B  ; [4] command value for the current step, per channel
 ; Per-channel GB-sound register shadows, written to hardware by TriggerNote:
