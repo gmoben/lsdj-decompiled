@@ -18,6 +18,9 @@ DEF wChain           EQU $C418  ; current chain number being edited (0-127, Chai
 DEF wTable           EQU $C41B  ; current table number being edited (0-31, Table screen)
 DEF wSynth           EQU $C42A  ; current softsynth number being edited (0-15, Synth screen)
 
+DEF wCursorX         EQU $C40D  ; shared edit cursor X (column); reused by every screen
+DEF wCursorY         EQU $C40F  ; shared edit cursor Y (row/step); reused by every screen
+
 ; --- Drawing helpers (used by DrawString/DrawHexByte/... in bank 0) ----------
 DEF wStringSrc       EQU $C564  ; source pointer for DrawString (16-bit)
 DEF wVramCursor      EQU $C573  ; VRAM tilemap dest ($98xx-$9Bxx, 16-bit LE; $C574=hi); draw helpers auto-increment it
