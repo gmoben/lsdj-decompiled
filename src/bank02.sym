@@ -28,6 +28,7 @@
 4668 ProcessChannelTable ; advance/apply the channel's table (wChanTable/Played/Countdown); calls the column readers
 574B ReadTableEnvelope  ; read table_envelopes[wChanTable][row] (song $1690 = SRAM bank0 $B690)
 587D ReadTableTranspose ; read table_transposes[wChanTable][row] (song $3480 = SRAM bank1 $B480)
+487E ReadGroove         ; read grooves[wChanGroove][wChanGrooveRow] (song $1090 = SRAM bank0 $B090) via wPtrGroove/GrooveRow
 ; --- Sequencer: song row -> chain -> phrase resolution ------------------------
 48D2 AdvanceSongRow     ; on wChanChain[ch]==$FF, walk chain_assignments (loop-back) -> next chain
 5EAD ReadSongChain      ; e = chain_assignments[wChanSongRow[ch]][ch] ($B290 = song offset $1290)
