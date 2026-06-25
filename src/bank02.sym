@@ -6,6 +6,12 @@
 24DD BankcallHelper02   ; called from boot (Start) early init
 494D ProcessChannel     ; per-channel sound tick (channel = hSoundCh); called per active channel
 4C2D AdvanceChanCursors ; advance the 3 phrase cursors (note/cmd, cmdval, instr) by c
+; --- Note trigger: write the GB sound regs to start a note on the current channel
+6007 TriggerNote        ; dispatch by hSoundCh to the per-voice trigger below
+604B TriggerPU1         ; PU1 note-on: rAUD1 sweep/env/freq + trigger
+6091 TriggerPU2         ; PU2 note-on: rAUD2 env/freq + trigger
+60D1 TriggerWave        ; WAV note-on: rAUD3 level/freq + trigger
+6014 TriggerNoise       ; NOI note-on: rAUD4 len/env/poly + trigger
 5151 ReadChanCursor     ; read byte via channel hSoundCh's 16-bit cursor (array base in hl); SRAM-guarded
 ; --- Per-tick FX command dispatch (command value in a -> FxCommandTable) -------
 ; Command values index the same table as the mnemonics at $0824 ("-ABCDEFGH...").
