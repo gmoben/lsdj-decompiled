@@ -6,4 +6,6 @@
 4A62 DrawHelpScreen   ; Help screen (idx 14): renders the help/command-list text
 5C17 DrawProjectScreen ; Project screen draw: edits song-global properties at SRAM bank1 $BFB2+ (song offset $3FB2: tempo/transpose/sync/font/colorset/clone; see data_model.md)
 58B1 DrawSyncField   ; Project SYNC field: read $CB66, draw mode string to VRAM $9885
+59B7 SyncModeNames   ; sync-mode display names "OFF"/"LSDJ"/"MIDI"/... (7-byte stride)
+5D4F CloneModeNames  ; clone-mode display names "DEEP"/"SLIM" (5-byte stride)
 5B7A DrawSyncSubSetting ; draw PS/2 DELAY (KEYBD) or TICKS/STEP (analog) value beside SYNC
