@@ -4,6 +4,6 @@
 ; tables are still shown as code (byte-safe) and will be refined.
 
 4A62 DrawHelpScreen   ; Help screen (idx 14): renders the help/command-list text
-5C17 DrawProjectScreen ; Project screen draw: all fields (tempo/transpose/sync/clone/look/clock/menu)
+5C17 DrawProjectScreen ; Project screen draw: edits song-global properties at SRAM bank1 $BFB2+ (song offset $3FB2: tempo/transpose/sync/font/colorset/clone; see data_model.md)
 58B1 DrawSyncField   ; Project SYNC field: read $CB66, draw mode string to VRAM $9885
 5B7A DrawSyncSubSetting ; draw PS/2 DELAY (KEYBD) or TICKS/STEP (analog) value beside SYNC
