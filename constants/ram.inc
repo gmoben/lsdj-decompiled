@@ -31,6 +31,9 @@ DEF wSoundTick       EQU $C8F4  ; sound/playback tick counter (TimerHandler)
 ; (So the audio engine, like the screens, uses static dispatch + RAM data ptrs;
 ; LSDj has no RAM-indirect code dispatch. See docs/reversal.md.)
 ; Engine = bank $02; the current channel index (0-3) lives in HRAM (hSoundCh).
+; hSoundCh maps to the GB hardware channels: 0=PU1 (rAUD1), 1=PU2 (rAUD2),
+; 2=WAV/KIT (rAUD3, plays WAVE+KIT instruments), 3=NOI (rAUD4). The per-channel
+; computed frequency near $C0F2 is written to rAUDxLOW/HIGH each frame.
 DEF wChanState       EQU $C0E0  ; start of the per-channel byte-state arrays
 DEF wChanReadPtr     EQU $C110  ; [4] phrase read cursor: note col (bank0) / command col (bank2), same offset
 DEF wChanCmdValPtr   EQU $C128  ; [4] command-value cursor (bank2 phrase_fx_val, $AFxx)
