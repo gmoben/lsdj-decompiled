@@ -36,11 +36,12 @@
 183A VBlankHandler      ; reloads rTIMA from tempo ($C578), can raise timer IRQ
 34BD SerialHandler      ; Game Boy sync RX: rSB -> $CBDD, mode in $CBDE
 18BF ReadJoypad         ; standard d-pad/button matrix read
-349B DisableLCD         ; wait for VBlank (rLY), then clear rLCDC bit 7
+349B display_off       ; GBDK display_off: wait VBL (rLY), clear rLCDC bit7 (byte-exact match)
 34B2 OAMDMARoutine      ; OAM DMA (source $DD00); copied to HRAM and called there
 1500 ReadSongBytes      ; bulk copy from SRAM (bank, src) into a RAM dest buffer (e.g. a chain row)
 14D1 ReadSongByte       ; (bank,addr): di, select SRAM bank + enable RAM, read [de], reti
 14EB ReadSongByteRaw    ; like ReadSongByte but no di/reti (caller already holds IRQ off)
+158C WaitInterrupt     ; halt;nop;ret -- wait for the next interrupt (frame sync)
 179A FarCall            ; banked call: caller pushes (addr, bank); switch ROM bank, call addr, restore
 17BB FarCallArg         ; like FarCall but also passes one byte argument to the callee
 1574 WriteSongByte      ; (bank,addr,val): select SRAM bank + enable RAM, write [de] (write side of ReadSongByte)
