@@ -1,5 +1,7 @@
 ; Bank $05 -- Table screen. tables[wTable][16], 4 columns in SRAM:
 ; envelope $B690 (bank0), transpose $B480, cmd1 $B680, cmd2 $BA80 (bank1).
+4360 GetTableEnvelope  ; editor: read table_envelopes[wTable][step] (song $1690 / SRAM bank0 $B690)
+4491 GetTableTranspose ; editor: read table_transposes[wTable][step] (song $3480 / SRAM bank1 $B480)
 4668 ReadTableStep       ; read the 4 columns (env/transpose/cmd1/cmd2) for table[wTable][step]
 4762 DrawTableScreen     ; screen idx 5: draws the table (env/transpose/cmd cols)
 4967 TableScreenUpdate  ; per-frame visual update (screen idx 5)
