@@ -1,6 +1,8 @@
 ; Bank $06 -- Chain / Wave / Word screens
 ; Chain editor: chains[wChain] = phrase# + transpose per step (16); chain_phrases
 ; at SRAM bank1 $A080, chain_transposes at $A880.
+5677 GetChainTranspose  ; read chain_transposes[chain][step] (song $2880 / SRAM bank1 $A880)
+5908 SetChainPhrase     ; write chain_phrases[chain][step] (song $2080 / SRAM bank1 $A080)
 58FB LoadChainRow        ; load chain_phrases+chain_transposes[wChain][16] -> buffers $C46D/$C47D
 5626 WriteChainTranspose ; write chain_transposes[wChain][step]
 569C ReadChainTranspose  ; read chain_transposes[wChain][step]
