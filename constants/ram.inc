@@ -79,6 +79,16 @@ DEF wRedrawPending   EQU $C56C  ; MainLoop: nonzero -> run ScreenUpdateDispatch 
 DEF wSynthRenderIdx  EQU $C9F0  ; MainLoop idle: which softsynth wave to render (0-15)
 
 ; --- Input (joypad queue: ReadJoypad enqueues, GetNextButtons dequeues) -------
+DEF wButtons         EQU $C575  ; current button state (read 111x by every screen); bits below
 DEF wButtonRing      EQU $CE00  ; ring buffer of recent button states (for key-repeat + buffered input)
 DEF wButtonReadIdx   EQU $C56F  ; GetNextButtons read cursor into wButtonRing
 DEF wButtonWriteIdx  EQU $C570  ; ReadJoypad write cursor into wButtonRing
+; Button bits in wButtons (from ReadJoypad: buttons in low nibble, dirs in high):
+DEF BTN_A            EQU 0
+DEF BTN_B            EQU 1
+DEF BTN_SELECT       EQU 2
+DEF BTN_START        EQU 3
+DEF BTN_RIGHT        EQU 4
+DEF BTN_LEFT         EQU 5
+DEF BTN_UP           EQU 6
+DEF BTN_DOWN         EQU 7
