@@ -56,6 +56,21 @@ DEF SONG_PHRASE_INSTRUMENTS  EQU $7000  ; [255][16] instrument column
 DEF SONG_MEM_INIT_FLAG_3     EQU $7FF0  ; 'rb'
 DEF SONG_FORMAT_VERSION      EQU $7FFF
 
+; --- Instrument record layout (offsets within a 16-byte SONG_INSTRUMENTS entry) ---
+; Byte 0 low 2 bits = type (validated against this ROM's .sav for all four types).
+; The PULSE layout below is validated three ways (pylsdj + .sav + the engine's
+; SetupSoundPU1 reads: byte 4 -> sweep shadow, byte 3 -> length/trigger shadow).
+DEF INSTR_TYPE_OFS        EQU 0   ; & $03: 0=PULSE 1=WAVE 2=KIT 3=NOISE
+DEF INSTR_PU_ENVELOPE_OFS EQU 1   ; pulse envelope: hi nibble=volume, lo nibble=attack/decay
+DEF INSTR_PU_TRANSPOSE_OFS EQU 2  ; pulse phase/transpose
+DEF INSTR_PU_SOUNDLEN_OFS EQU 3   ; bit6=has length, bits5-0=length (else UNLIM); -> rAUDxHIGH shadow
+DEF INSTR_PU_SWEEP_OFS    EQU 4   ; pulse sweep -> rAUD1SWEEP shadow
+DEF INSTR_PU_AUTOMATE_OFS EQU 5   ; bit4=automate, bit3=automate2, bits2-0=vibrato type/dir
+DEF INSTR_TABLE_OFS       EQU 6   ; bit5=table on, bits4-0=table number
+DEF INSTR_WAVEPAN_OFS     EQU 7   ; pulse: bits7-6=duty, bits5-2=finetune; bits1-0=pan (L/R/LR)
+; WAVE/KIT/NOISE share byte 0 (type) and the table/pan bytes, but their 9.4.0
+; type-specific bytes differ from pylsdj's older layout -- validate before relying.
+
 ; --- SRAM banking: song offset -> (bank, $A000-relative address) ------------
 DEF SRAM_SONG_BASE     EQU $A000   ; song banks are mapped here ($A000-$BFFF)
 DEF SRAM_BANK_SIZE     EQU $2000
