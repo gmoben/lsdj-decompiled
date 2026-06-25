@@ -70,3 +70,7 @@ DEF hDrawParamLo     EQU $FF8C  ; scratch passed to screen draw helpers
 DEF hDrawParamHi     EQU $FF8D
 
 ENDC
+
+; --- Main loop ---------------------------------------------------------------
+DEF wRedrawPending   EQU $C56C  ; MainLoop: nonzero -> run ScreenUpdateDispatch this frame
+DEF wSynthRenderIdx  EQU $C9F0  ; MainLoop idle: which softsynth wave to render (0-15)

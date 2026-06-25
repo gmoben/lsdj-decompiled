@@ -1,4 +1,5 @@
-; Bank $1D -- Groove / Synth screens
+; Bank $1D -- Groove / Synth screens + softsynth renderer
+6035 RenderSynthWave    ; render a softsynth wave frame; called from MainLoop idle time (counter $C9F0, 0-15)
 ; Groove editor: edits grooves[wGroove][16] at SRAM bank0 $B090 (song offset $1090).
 4000 WriteGrooveByte    ; write grooves[wGroove][step] (step in low nibble); 6 edit sites
 4058 ReadGrooveByte     ; read grooves[wGroove][step]
