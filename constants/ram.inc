@@ -77,6 +77,16 @@ DEF wChanTableRow2   EQU $C20C  ; [4] table command-2 playback row
 DEF wChanInstr       EQU $C210  ; [4] current instrument number per channel
 DEF wChanCmd         EQU $C365  ; [4] command read for the current step, per channel
 DEF wChanCmdVal      EQU $C36B  ; [4] command value for the current step, per channel
+; Current-channel state pointers (16-bit; low byte seeded by InitSoundStatePtrs,
+; high byte set on channel select). These match the InitSoundStatePtrs cluster
+; ($C8DF=$7C->wChanChainRow, etc.):
+DEF wPtrChainRow     EQU $C8DE  ; -> wChanChainRow[curChan]
+DEF wPtrPhraseRow    EQU $C8E0  ; -> wChanPhraseRow[curChan]
+DEF wPtrNoteCountdown EQU $C8E2 ; -> wChanNoteCountdown[curChan]
+DEF wPtrGroove       EQU $C8E4  ; -> wChanGroove[curChan]
+DEF wPtrGrooveRow    EQU $C8E6  ; -> wChanGrooveRow[curChan]
+DEF wPtrPhrase       EQU $C8EA  ; -> wChanPhrase[curChan]
+DEF wPtrNote         EQU $C8EC  ; -> wChanNote[curChan]
 ; Per-channel GB-sound register shadows, written to hardware by TriggerNote:
 DEF wChanEnv         EQU $C2D8  ; [4] envelope value -> rAUDxENV (ch2/WAV = wave level rAUD3LEVEL)
 DEF wChanLenDuty     EQU $C2DC  ; [4] length/duty value -> rAUDxLEN
