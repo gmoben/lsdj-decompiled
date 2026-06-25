@@ -16,6 +16,13 @@
 # ...but hand-maintained source symbol maps (src/*.sym) ARE tracked:
 !src/*.sym
 
+# --- Live emulator RAM/state captures ---------------------------------------
+# Keep these OUTSIDE /build/ (which `make clean` wipes). Not ours to ship.
+/dumps/
+*.dump
+*.state
+*.sn[0-9]
+
 # --- Recovered period toolchain (downloaded; binaries are not ours to ship) --
 # GBDK 2.95 / SDCC 2.2.1 are fetched on demand by tools/toolchain/fetch_gbdk295.sh.
 /toolchain/
