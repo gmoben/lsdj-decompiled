@@ -48,19 +48,33 @@ DEF wNotePeriods     EQU $CF28  ; runtime 16-bit GB note-period table (computed 
 DEF wSoundParams     EQU $C0D0  ; raw 16-byte instrument copied here on note-on from SONG_INSTRUMENTS
                                 ; ($3080 = SRAM bank1 $B080 + instr*16); SetupChannelSound then
                                 ; distributes its bytes to the rAUDx register shadows
+; Per-channel sound state arrays (all [4] = PU1/PU2/WAV/NOI), derived from live
+; RAM dumps cross-checked with the working-song SRAM map (see docs/save_format.md).
+DEF wChanModFlag     EQU $C0A0  ; [4] modulation (vibrato/sweep) active flag
+DEF wChanModType     EQU $C0A4  ; [4] modulation type
+DEF wChanNote        EQU $C0CC  ; [4] current note value per channel
 DEF wChanState       EQU $C0E0  ; start of the per-channel byte-state arrays
 DEF wChanActive      EQU $C0E0  ; [4] per-channel active flag; ProcessChannel runs only if nonzero
 ; Sequencer position (song row -> chain -> phrase -> note step). Verified against a
-; live RAM dump cross-checked with the working-song SRAM map (see docs/save_format.md):
+; live RAM dump + the SRAM map (docs/save_format.md):
 DEF wChanSongRow     EQU $C200  ; [4] current song row, top of hierarchy (AdvanceSongRow walks this)
 DEF wChanChain       EQU $C170  ; [4] current chain number per channel (CHAIN_ASSIGNMENTS[songRow][ch])
 DEF wChanChainRow    EQU $C17C  ; [4] current row within the chain (0-15)
 DEF wChanPhrase      EQU $C168  ; [4] current phrase = CHAIN_PHRASES[chain][chainRow] (set by ReadChainPhrase)
 DEF wChanPhraseRow   EQU $C16C  ; [4] current note step within the phrase (0-15)
+DEF wChanNextPhrase  EQU $C100  ; [4] next chain row's phrase, prefetched
+DEF wChanNextSongRow EQU $C2FC  ; [4] next song row, prefetched
 DEF wChanReadPtr     EQU $C110  ; [4] 16-bit SRAM cursor; PHRASE_NOTES (bank0) / PHRASE_COMMANDS (bank2),
                                 ; same offset $A000+phrase*16+step, selected by SRAM bank
 DEF wChanCmdValPtr   EQU $C128  ; [4] 16-bit cursor into PHRASE_COMMAND_VALUES (bank2 $AFF0+)
 DEF wChanInstrPtr    EQU $C140  ; [4] 16-bit cursor into PHRASE_INSTRUMENTS (bank3 $B000+)
+DEF wChanGroove      EQU $C150  ; [4] current groove per channel
+DEF wChanGrooveRow   EQU $C158  ; [4] current row within the groove
+DEF wChanNoteCountdown EQU $C160 ; [4] ticks until the next note step
+DEF wChanTable       EQU $C204  ; [4] current table per channel
+DEF wChanTableRow1   EQU $C208  ; [4] table command-1 playback row
+DEF wChanTableRow2   EQU $C20C  ; [4] table command-2 playback row
+DEF wChanInstr       EQU $C210  ; [4] current instrument number per channel
 DEF wChanCmd         EQU $C365  ; [4] command read for the current step, per channel
 DEF wChanCmdVal      EQU $C36B  ; [4] command value for the current step, per channel
 ; Per-channel GB-sound register shadows, written to hardware by TriggerNote:
