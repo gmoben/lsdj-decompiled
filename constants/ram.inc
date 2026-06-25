@@ -99,11 +99,14 @@ DEF wBootAgbId       EQU $CBDA  ; boot B register (AGB id)
 DEF wOamBuffer       EQU $DD00  ; OAM shadow buffer (DMA source)
 
 ; --- HRAM -------------------------------------------------------------------
+DEF hOamRefresh      EQU $FF80  ; OAM-refresh flag
 DEF hSoundCh         EQU $FF8B  ; sound engine current channel index (0-3); indexes wChan* arrays
+DEF hBgPalette       EQU $FF8C  ; CGB BG-map attribute palette for draws
+DEF hBgDigitPalette  EQU $FF8D  ; CGB BG-map palette for digits
 DEF hCurrentBank     EQU $FF8E  ; shadow of the selected ROM bank ($2000)
-DEF hDrawParamLo     EQU $FF8C  ; scratch passed to screen draw helpers
-DEF hDrawParamHi     EQU $FF8D
 DEF hFxValue         EQU $FF8F  ; FX command value, staged before each FxCmd_* call (the handler's arg)
+DEF hGameboyType     EQU $FF90  ; 0=DMG 1=CGB; read by draw code for palettes
+DEF hOscilloscope    EQU $FFA0  ; oscilloscope sample buffer
 
 ENDC
 
