@@ -1,2 +1,8 @@
 ; Bank $1F -- instrument-editor helpers (called by bank $03) + Phrase screen update
+; Per-instrument-type parameter draw handlers, dispatched by DrawInstrumentScreen
+; ($03:$4F45) on the instrument's type (0=PULSE 1=WAVE 2=KIT 3=NOISE).
+423D DrawPulseInstr     ; draw PULSE instrument params (type 0)
+474E DrawWaveInstr      ; draw WAVE instrument params (type 1)
+44DD DrawKitInstr       ; draw KIT instrument params (type 2)
+4399 DrawNoiseInstr     ; draw NOISE instrument params (type 3)
 648F PhraseScreenUpdate ; per-frame visual update (screen idx 1 = Phrase)
