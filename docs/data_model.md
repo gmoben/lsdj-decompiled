@@ -132,6 +132,13 @@ tracks master tuning), and `WriteChannelFreq` writes `wChanFreq` to `rAUDxLOW/HI
 each tick. Verified against a live dump: `wChanFreq` = `$0706/$0672/$0511` for PU1/PU2/WAV,
 each value present in the `$CF28` table.
 
+**Instruments.** A phrase step's instrument number (read via `wChanInstrPtr` from
+`phrase_instruments`, `$7000`) selects a 16-byte record in `instruments` (`$3080`).
+On note-on the engine copies that record verbatim into `wSoundParams` (`$C0D0`),
+then `SetupChannelSound` distributes its bytes to the `rAUDx` register shadows
+(`$C2D8`+) per channel type. (The per-byte field layout is type-specific — see
+pylsdj/liblsdj for the bitfields.)
+
 ## Sources / confidence
 
 - Structure & offsets: pylsdj `bread_spec`, liblsdj — **documented**, offsets

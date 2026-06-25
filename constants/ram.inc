@@ -45,8 +45,9 @@ DEF wSoundTick       EQU $C8F4  ; sound/playback tick counter (TimerHandler)
 DEF wChanFreq        EQU $C0F4  ; [4] 16-bit GB period per channel; = wNotePeriods[note+xpose] -> rAUDxLOW/HIGH
 DEF wNoteTranspose   EQU $C4D3  ; transpose offset added to the note before the wNotePeriods lookup
 DEF wNotePeriods     EQU $CF28  ; runtime 16-bit GB note-period table (computed for tuning); NoteToPeriod indexes it
-DEF wSoundParams     EQU $C0D0  ; staged sound-param buffer; SetupChannelSound copies the
-                                ; instrument from SRAM here, then distributes to the rAUDx shadows
+DEF wSoundParams     EQU $C0D0  ; raw 16-byte instrument copied here on note-on from SONG_INSTRUMENTS
+                                ; ($3080 = SRAM bank1 $B080 + instr*16); SetupChannelSound then
+                                ; distributes its bytes to the rAUDx register shadows
 DEF wChanState       EQU $C0E0  ; start of the per-channel byte-state arrays
 DEF wChanActive      EQU $C0E0  ; [4] per-channel active flag; ProcessChannel runs only if nonzero
 ; Sequencer position (song row -> chain -> phrase -> note step). Verified against a
