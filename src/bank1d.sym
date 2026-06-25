@@ -9,3 +9,7 @@
 ; Synth editor: softsynth_params[wSynth][16] at SRAM bank1 $BEB2 (16 synths);
 ; params read via per-field getters ($6311/$68CC/... -> ReadSongByte on $BEB2).
 68AB DrawSynthScreen    ; screen idx 10: draws softsynth params (wave/filter/cutoff/dist/...)
+; --- synth-screen value-name tables (indexed by the synth param value) --------
+62F5 SynthPhaseNames    ; phase types " PINCH"/"  WARP"/"RESYNC" (7-byte stride)
+63F6 SynthFilterNames   ; filter types " LOWP"/"HIGHP"/"BANDP"/" ALLP" (6-byte stride)
+65B3 SynthDistNames     ; distortion types "CLIP"/"FOLD"/"WRAP" (5-byte stride)
