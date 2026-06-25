@@ -5,6 +5,7 @@
 5626 WriteChainTranspose ; write chain_transposes[wChain][step]
 569C ReadChainTranspose  ; read chain_transposes[wChain][step]
 5947 DrawChainScreen     ; screen idx 3: draws chain phrases + transposes
-4F18 DrawWaveScreen      ; screen idx 8: draws the waveform (synth wave frames)
+4A0A AccessWaveFrame     ; compute/access a wave_frames cell (SRAM bank3 $A000; 32 nibbles/frame)
+4F18 DrawWaveScreen      ; screen idx 8: draws the waveform; edits wave_frames (bank3 $A000) directly
 41A2 DrawWordScreen      ; screen idx 12: draws speech words
 5A62 ChainScreenUpdate  ; per-frame visual update (screen idx 3)
