@@ -50,6 +50,11 @@ DEF wChanCmdValPtr   EQU $C128  ; [4] command-value cursor (bank2 phrase_fx_val,
 DEF wChanInstrPtr    EQU $C140  ; [4] instrument cursor (bank3 phrase_instruments, $B0xx)
 DEF wChanCmd         EQU $C365  ; [4] command read for the current step, per channel
 DEF wChanCmdVal      EQU $C36B  ; [4] command value for the current step, per channel
+; Per-channel GB-sound register shadows, written to hardware by TriggerNote:
+DEF wChanEnv         EQU $C2D8  ; [4] envelope value -> rAUDxENV (ch2/WAV = wave level rAUD3LEVEL)
+DEF wChanLenDuty     EQU $C2DC  ; [4] length/duty value -> rAUDxLEN
+DEF wChanFreqHi      EQU $C2E0  ; [4] freq-high + trigger/length-enable bits -> rAUDxHIGH
+DEF wPU1Sweep        EQU $C2E4  ; PU1 sweep value -> rAUD1SWEEP
 
 ; --- Link cable sync (see docs/sync.md) -------------------------------------
 DEF wSyncMode        EQU $CB66  ; 0=OFF 1=LSDJ 3=MIDI 5=KEYBD 6=ANA.IN 7=AN.OUT
