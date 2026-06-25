@@ -102,7 +102,11 @@ def global_trace(rom: bytes, seeds: list[tuple[int, int]],
                 work.append((tgt, pbank))
 
             if op == 0xE9 and last_hl is not None:  # jp hl over a jump table
-                addr_form = phys >= 3 and rom[phys - 3:phys] == bytes([0x2A, 0x66, 0x6F])
+                # addr-array form = the entry is read with `ld a,[hl+]; ld h,[hl];
+                # ld l,a` (2A 66 6F). It is usually right before `jp hl`, but a
+                # null-entry guard (`or a,h; ret z`) can sit between, so search a
+                # small window rather than only the 3 bytes immediately before.
+                addr_form = bytes([0x2A, 0x66, 0x6F]) in rom[max(0, phys - 8):phys]
                 p = last_hl
                 for _ in range(128):
                     pe = p if p < 0x4000 else pbank * BANK + (p - 0x4000)
