@@ -8,6 +8,7 @@
 4215 GrooveScreenUpdate ; screen idx 2 per-frame update (from ScreenUpdateTable)
 ; Synth editor: softsynth_params[wSynth][16] at SRAM bank1 $BEB2 (16 synths);
 ; params read via per-field getters ($6311/$68CC/... -> ReadSongByte on $BEB2).
+6311 SynthParamAddr     ; -> &SYNTH_PARAMS[$C441]*16 + field (current synth's param block, song $3EB2/$BEB2)
 68AB DrawSynthScreen    ; screen idx 10: draws softsynth params (wave/filter/cutoff/dist/...)
 ; --- synth-screen value-name tables (indexed by the synth param value) --------
 62F5 SynthPhaseNames    ; phase types " PINCH"/"  WARP"/"RESYNC" (7-byte stride)
