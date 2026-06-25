@@ -23,6 +23,11 @@
 263E DrawDispatch_Help       ; idx 14 -> bank $1B:$4A62 (help text)
 264B ScreenUpdateDispatch ; per-frame per-screen update for screens 1-5 (table $268D)
 268D ScreenUpdateTable  ; 5x jp: screen 1-5 -> "select bank N; call update; ret"
+269C UpdateDispatch_Phrase ; idx 1 -> bank $1F:$648F (PhraseScreenUpdate)
+26AB UpdateDispatch_Groove ; idx 2 -> bank $1D:$4215 (GrooveScreenUpdate)
+26BA UpdateDispatch_Table  ; idx 5 -> bank $05:$4967 (TableScreenUpdate)
+26C9 UpdateDispatch_Chain  ; idx 3 -> bank $06:$5A62 (ChainScreenUpdate)
+26D8 UpdateDispatch_Song   ; idx 4 -> bank $07:$47AA (SongScreenUpdate)
 0061 CallBank1_794B     ; trampoline: select ROM bank 1, jp $794B
 0391 TimerHandler       ; timer IRQ body: sound/playback engine tick
 0662 TimerHandlerReturn ; timer IRQ epilogue: restore regs, wait rSTAT, reti
