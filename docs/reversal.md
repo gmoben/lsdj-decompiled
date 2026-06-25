@@ -131,6 +131,28 @@ So both subsystems use **static code dispatch + RAM *data* pointers**. The
 remaining unreached code is reachable through multi-hop *static* dispatch that the
 tracer doesn't fully model — there is no RAM-indirect indirection to chase.
 
+### Sound engine: note-on path (named) and open leads
+
+The per-tick engine (`ProcessChannel`, bank `$02`) reaches note-on via a write of
+the new note into `wChanNote[ch]` (`$4DD2`), then channel setup:
+
+- **`SetupChannelSound` (`$5934`)** — selects the instrument's SRAM bank, copies
+  its parameters into the staging buffer **`wSoundParams` (`$C0D0`)**, then
+  dispatches by `hSoundCh` to `SetupSoundPU1/PU2/Wave/Noise`, each of which
+  distributes the staged bytes into the `rAUDx` register shadows (`wChanEnv`
+  `$C2D8`, `wChanLenDuty` `$C2DC`, `wChanFreqHi` `$C2E0`, `wPU1Sweep` `$C2E4`)
+  and triggers the voice. The note→GB-period value arrives **pre-staged** in
+  `wSoundParams`; it is computed upstream.
+
+**Open lead — note-indexed SRAM table read (`$5E7C`).** Called right after a note
+changes, this reads one byte from a working-song SRAM region (bank 1, base
+`$A080`) at offset `note*16 + c` — i.e. a 16-byte-per-note slot, sub-indexed by
+`c = [$C100 + [$C8DF]]`. Triangulation puts `$A080` in the song's **wave data**
+(the bank `$1F` accessor at `$48EF` lives inside `DrawWaveInstr`; bank `$00`'s is
+generic song-byte access). Exact semantics (note-indexed, byte-at-a-time, runs
+for all channels) are unresolved and would need an **SRAM-bank-1 dump** to pin
+down, so `$5E7C` is left unnamed rather than mislabelled.
+
 ## Path to 100%
 
 1. **Code/data split (cleaner carves).** The unreached remainder in a bank is
