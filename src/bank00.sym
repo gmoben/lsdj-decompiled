@@ -31,6 +31,7 @@
 18BF ReadJoypad         ; standard d-pad/button matrix read
 349B DisableLCD         ; wait for VBlank (rLY), then clear rLCDC bit 7
 34B2 OAMDMARoutine      ; OAM DMA (source $DD00); copied to HRAM and called there
+1500 ReadSongBytes      ; bulk copy from SRAM (bank, src) into a RAM dest buffer (e.g. a chain row)
 14D1 ReadSongByte       ; (bank,addr): di, select SRAM bank + enable RAM, read [de], reti
 14EB ReadSongByteRaw    ; like ReadSongByte but no di/reti (caller already holds IRQ off)
 179A FarCall            ; banked call: caller pushes (addr, bank); switch ROM bank, call addr, restore

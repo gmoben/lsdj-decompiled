@@ -1,4 +1,9 @@
 ; Bank $06 -- Chain / Wave / Word screens
+; Chain editor: chains[wChain] = phrase# + transpose per step (16); chain_phrases
+; at SRAM bank1 $A080, chain_transposes at $A880.
+58FB LoadChainRow        ; load chain_phrases+chain_transposes[wChain][16] -> buffers $C46D/$C47D
+5626 WriteChainTranspose ; write chain_transposes[wChain][step]
+569C ReadChainTranspose  ; read chain_transposes[wChain][step]
 5947 DrawChainScreen     ; screen idx 3: draws chain phrases + transposes
 4F18 DrawWaveScreen      ; screen idx 8: draws the waveform (synth wave frames)
 41A2 DrawWordScreen      ; screen idx 12: draws speech words
