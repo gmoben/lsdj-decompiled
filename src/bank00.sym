@@ -79,8 +79,9 @@
 34F9 SoftReset          ; a = boot id [$CBD9]; jp Start
 34FF SetInterruptEnable ; update rIE, ack rIF for newly-enabled interrupts
 33B9 GetTilemapAddr    ; (col,row 16-bit arg) -> BG map address $9800 + row*$20 + col
-3831 StrCopy           ; strcpy(dest=sp+2, src=sp+4): copy bytes until the null terminator
+3831 strcpy            ; GBDK/SDCC strcpy(dest=sp+2, src=sp+4): copy until NUL (byte-exact match)
 3887 MemSetLoop        ; inner loop: fill de bytes at hl with value b
+38D8 set_bkg_palette    ; GBDK: write CGB BG palettes (first,nb,rgb_data) via rBGPI/rBGPD
 388F MemSet            ; memset(dest=sp+4, value=sp+6, count=sp+7) -> MemSetLoop
 38A2 MulU8              ; SDCC runtime: 8-bit multiply (reads 2 byte args -> MulCharToInt)
 38AE MulU16             ; SDCC runtime: 16-bit multiply (reads 2 word args -> MulInt)
