@@ -72,13 +72,12 @@ Sequence (song)            256 steps x 4 channels (PU1, PU2, WAV, NOI)
   steps; columns = note, instrument, command, command value (matches the Phrase
   screen).
 - **Instrument** (`$3080`, 16 bytes): byte 0 low 2 bits = type (0=pulse 1=wave
-  2=kit 3=noise). The **pulse** layout is validated (pylsdj + this ROM's `.sav` +
-  the engine's note-on reads) and captured in [`constants/song.inc`](../constants/song.inc):
-  `1`=envelope, `2`=transpose, `3`=`[has_len:1][len:6]`, `4`=sweep,
-  `5`=`[automate:2][vibrato:3]`, `6`=`[table_on:1][table:5]`, `7`=`[duty:2][finetune:4][pan:2]`.
-  Wave/kit/noise share the type byte and the table/pan bytes; their type-specific
-  bytes differ from pylsdj's older target in 9.4.0 (`SetupSoundWave`/`Noise` read
-  them) and still need per-byte validation.
+  2=kit 3=noise). Full per-type field/bit offsets are in
+  [`constants/song.inc`](../constants/song.inc), validated against this ROM's
+  `.sav`. Note 9.x differs from pylsdj's older
+  layout: **pulse** has a 3-stage envelope (`$1`/`$9`/`$a`), command-rate (`$8`)
+  and finetune (`$b`) where pylsdj saw padding. Shared bytes: `$6`=`[table_on:1][table:4]`,
+  `$7`=output/pan (+duty for pulse).
 - **Table** (`$1690` env, `$3480` transpose, `$3680`/`$3A80` two command cols):
   16-step macros run per tick; referenced by instruments.
 - **Synth (softsynth)** (`$3EB2`, 16 bytes): waveform, filter type/cutoff/Q,

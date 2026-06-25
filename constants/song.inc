@@ -57,19 +57,29 @@ DEF SONG_MEM_INIT_FLAG_3     EQU $7FF0  ; 'rb'
 DEF SONG_FORMAT_VERSION      EQU $7FFF
 
 ; --- Instrument record layout (offsets within a 16-byte SONG_INSTRUMENTS entry) ---
-; Byte 0 low 2 bits = type (validated against this ROM's .sav for all four types).
-; The PULSE layout below is validated three ways (pylsdj + .sav + the engine's
-; SetupSoundPU1 reads: byte 4 -> sweep shadow, byte 3 -> length/trigger shadow).
+; Offsets/bits for 9.x, validated against this ROM's .sav. NOTE: 9.x differs from
+; pylsdj's older layout -- pulse has a
+; 3-stage envelope (bytes 1/9/$a) and finetune at byte $b, NOT padding.
 DEF INSTR_TYPE_OFS        EQU 0   ; & $03: 0=PULSE 1=WAVE 2=KIT 3=NOISE
-DEF INSTR_PU_ENVELOPE_OFS EQU 1   ; pulse envelope: hi nibble=volume, lo nibble=attack/decay
-DEF INSTR_PU_TRANSPOSE_OFS EQU 2  ; pulse phase/transpose
-DEF INSTR_PU_SOUNDLEN_OFS EQU 3   ; bit6=has length, bits5-0=length (else UNLIM); -> rAUDxHIGH shadow
-DEF INSTR_PU_SWEEP_OFS    EQU 4   ; pulse sweep -> rAUD1SWEEP shadow
-DEF INSTR_PU_AUTOMATE_OFS EQU 5   ; bit4=automate, bit3=automate2, bits2-0=vibrato type/dir
-DEF INSTR_TABLE_OFS       EQU 6   ; bit5=table on, bits4-0=table number
-DEF INSTR_WAVEPAN_OFS     EQU 7   ; pulse: bits7-6=duty, bits5-2=finetune; bits1-0=pan (L/R/LR)
-; WAVE/KIT/NOISE share byte 0 (type) and the table/pan bytes, but their 9.4.0
-; type-specific bytes differ from pylsdj's older layout -- validate before relying.
+; Shared across types:
+DEF INSTR_TABLE_OFS       EQU 6   ; bit5 = table on, bits3-0 = table number
+DEF INSTR_OUTPUT_OFS      EQU 7   ; bits1-0 = output (L=bit0,R=bit1); pulse bits7-6 = duty
+; PULSE:
+DEF INSTR_PU_ENV1_OFS     EQU 1   ; envelope stage 1 (8 bits)
+DEF INSTR_PU_TRANSPOSE_OFS EQU 2  ; PU2 transpose (8 bits)
+DEF INSTR_PU_LENGTH_OFS   EQU 3   ; sound length (0=UNLIM, else $7F-value); -> rAUDxHIGH shadow
+DEF INSTR_PU_SWEEP_OFS    EQU 4   ; sweep -> rAUD1SWEEP shadow
+DEF INSTR_PU_PITCH_OFS    EQU 5   ; bits2-0 pitch shape, bit3 table-step, bit5 transpose, bits 4/6/7 pitch speed
+DEF INSTR_PU_CMDRATE_OFS  EQU 8   ; command rate (bits3-0)
+DEF INSTR_PU_ENV2_OFS     EQU 9   ; envelope stage 2 (8 bits)
+DEF INSTR_PU_ENV3_OFS     EQU 10  ; envelope stage 3 (8 bits)
+DEF INSTR_PU_FINETUNE_OFS EQU 11  ; finetune (8 bits)
+; WAVE: $01 volume(bits6-5), $02 loop-pos(bits3-0), $03 frame(8)/synth(bits7-4),
+;       $09 play(bits2-0), $0a length(bits3-0), $0b speed(8), $0c finetune(8)
+; KIT:  $02 kit1(bits5-0)/half-speed(bit6)/keep-attack(bit7), $03 kit1 length,
+;       $05 loop1(bit6)/loop2(bit7), $08 finetune, $09 kit2(bits5-0)/keep-attack2(bit7),
+;       $0a clip ($d0 hard/$d1 soft/$d2 fold/$d3 wrap), $0b kit2 len, $0c/$0d offsets
+; NOISE: $01 envelope, $02 bit0 pitch (0=free,1=safe), $04 default note, $06 table, $07 output
 
 ; --- SRAM banking: song offset -> (bank, $A000-relative address) ------------
 DEF SRAM_SONG_BASE     EQU $A000   ; song banks are mapped here ($A000-$BFFF)
