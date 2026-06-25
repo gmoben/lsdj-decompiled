@@ -1,2 +1,4 @@
-; Bank $02 -- boot / general helpers
+; Bank $02 -- sound engine (per-channel playback; see constants/ram.inc wChan*) + a boot helper
 24DD BankcallHelper02   ; called from boot (Start) early init
+4C2D AdvanceChanCursors ; advance the 3 phrase cursors (note/cmd, cmdval, instr) by c
+5151 ReadChanCursor     ; read byte via channel hSoundCh's 16-bit cursor (array base in hl); SRAM-guarded

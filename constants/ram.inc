@@ -30,10 +30,13 @@ DEF wSoundTick       EQU $C8F4  ; sound/playback tick counter (TimerHandler)
 ; 16-bit *data* pointers into the SRAM song ($A000-$BFFF) -- NOT code pointers.
 ; (So the audio engine, like the screens, uses static dispatch + RAM data ptrs;
 ; LSDj has no RAM-indirect code dispatch. See docs/reversal.md.)
+; Engine = bank $02; the current channel index (0-3) lives in HRAM (hSoundCh).
 DEF wChanState       EQU $C0E0  ; start of the per-channel byte-state arrays
-DEF wChanReadPtr     EQU $C110  ; [4] per-channel SRAM read cursor (-> $A0xx song data)
-DEF wChanPtrB        EQU $C128  ; [4] per-channel SRAM pointer (-> $AFxx/$B0xx)
-DEF wChanPtrC        EQU $C140  ; [4] per-channel SRAM pointer (-> $B0xx)
+DEF wChanReadPtr     EQU $C110  ; [4] phrase read cursor: note col (bank0) / command col (bank2), same offset
+DEF wChanCmdValPtr   EQU $C128  ; [4] command-value cursor (bank2 phrase_fx_val, $AFxx)
+DEF wChanInstrPtr    EQU $C140  ; [4] instrument cursor (bank3 phrase_instruments, $B0xx)
+DEF wChanCmd         EQU $C365  ; [4] command read for the current step, per channel
+DEF wChanCmdVal      EQU $C36B  ; [4] command value for the current step, per channel
 
 ; --- Link cable sync (see docs/sync.md) -------------------------------------
 DEF wSyncMode        EQU $CB66  ; 0=OFF 1=LSDJ 3=MIDI 5=KEYBD 6=ANA.IN 7=AN.OUT
@@ -51,6 +54,7 @@ DEF wBootAgbId       EQU $CBDA  ; boot B register (AGB id)
 DEF wOamBuffer       EQU $DD00  ; OAM shadow buffer (DMA source)
 
 ; --- HRAM -------------------------------------------------------------------
+DEF hSoundCh         EQU $FF8B  ; sound engine current channel index (0-3); indexes wChan* arrays
 DEF hCurrentBank     EQU $FF8E  ; shadow of the selected ROM bank ($2000)
 DEF hDrawParamLo     EQU $FF8C  ; scratch passed to screen draw helpers
 DEF hDrawParamHi     EQU $FF8D
