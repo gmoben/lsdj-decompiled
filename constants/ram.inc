@@ -25,6 +25,16 @@ DEF wDebugTrapped    EQU $C7AF  ; set by DebugTrap so it fires only once
 DEF wTimerReload     EQU $C578  ; tempo; copied to rTIMA each VBlank
 DEF wSoundTick       EQU $C8F4  ; sound/playback tick counter (TimerHandler)
 
+; --- Sound-engine channel state (struct-of-arrays, 4 channels: PU1/PU2/WAV/NOI)
+; Confirmed from a live RAM dump while playing: the driver keeps per-channel
+; 16-bit *data* pointers into the SRAM song ($A000-$BFFF) -- NOT code pointers.
+; (So the audio engine, like the screens, uses static dispatch + RAM data ptrs;
+; LSDj has no RAM-indirect code dispatch. See docs/reversal.md.)
+DEF wChanState       EQU $C0E0  ; start of the per-channel byte-state arrays
+DEF wChanReadPtr     EQU $C110  ; [4] per-channel SRAM read cursor (-> $A0xx song data)
+DEF wChanPtrB        EQU $C128  ; [4] per-channel SRAM pointer (-> $AFxx/$B0xx)
+DEF wChanPtrC        EQU $C140  ; [4] per-channel SRAM pointer (-> $B0xx)
+
 ; --- Link cable sync (see docs/sync.md) -------------------------------------
 DEF wSyncMode        EQU $CB66  ; 0=OFF 1=LSDJ 3=MIDI 5=KEYBD 6=ANA.IN 7=AN.OUT
 DEF wSyncMode2       EQU $CB67  ; secondary sync config (default 6)

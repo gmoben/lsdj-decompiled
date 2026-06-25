@@ -111,6 +111,8 @@ def main() -> None:
     print("regions: " + ", ".join(f"${b:04X}-${b+len(d)-1:04X}" for b, d in regions))
     print()
     for addr, name, comment in sorted(parse_defs(RAMINC)):
+        if addr < 0xA000:        # skip include-guard DEFs (e.g. RAM_INC EQU 1)
+            continue
         bs = read(regions, addr, 1)
         if bs is None:
             where = "(SRAM, see .sav)" if 0xA000 <= addr < 0xC000 else "(not in dump)"

@@ -89,6 +89,26 @@ The coverage tracer resolves the **computed-address farcall**: when a
 table (`ld a,[hl+]; ld h,[hl]; ld l,a`), it reads the table from the *caller's*
 bank and validates targets in the *callee's* bank.
 
+### No RAM-indirect dispatch (confirmed with live RAM)
+
+The early hypothesis that low-coverage banks hid behind *RAM-indirect* dispatch
+was **wrong**, and this is now confirmed dynamically, not just statically. Two
+WRAM dumps (BGB) — one idle on the instrument editor, one while a song plays —
+were checked with `tools/annotate_ram.py`:
+
+- They validated the corrected screen map (`wCurrentScreen` `$C401` = 6 →
+  Instrument idle, 4 → Song playing).
+- The sound engine's per-channel state (`$C0E0–$C200`, struct-of-arrays over the
+  4 channels) holds 16-bit pointers that are all **SRAM song-data** addresses
+  (`$A0xx`/`$B0xx`), never ROM code addresses.
+- A whole-WRAM scan for code-pointer arrays (aligned, distinct, stable `$4000–
+  $7FFF` words) found **none** — every candidate was a text/tile display buffer
+  or a data curve (e.g. the monotonic ramp at `$CD38`).
+
+So both subsystems use **static code dispatch + RAM *data* pointers**. The
+remaining unreached code is reachable through multi-hop *static* dispatch that the
+tracer doesn't fully model — there is no RAM-indirect indirection to chase.
+
 ## Path to 100%
 
 1. **Code/data split (cleaner carves).** The unreached remainder in a bank is
