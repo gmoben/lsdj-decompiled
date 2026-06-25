@@ -1,3 +1,4 @@
 ; Bank $03 -- Instrument screen (see docs/editors.md)
+4000 WriteCurrentInstrByte ; write value to field[arg] of the current instrument (wInstrument) via WriteInstrByte
 4DE7 DrawInstrumentScreen ; screen idx 6: draws instrument params (reads instruments[] 119x)
 4FC4 InstrTypeNames     ; [4][6] type names "PULSE"/" WAVE"/"  KIT"/"NOISE" (indexed by type*6)
