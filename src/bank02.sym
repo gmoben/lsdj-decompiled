@@ -22,6 +22,8 @@
 5A27 SetupSoundPU2      ; PU2: stage wSoundParams -> env/duty/freq shadows + trigger
 5B0C SetupSoundWave     ; WAV/KIT: stage wSoundParams -> wave level/freq shadows + trigger
 5DB2 SetupSoundNoise    ; NOI: stage wSoundParams -> env/poly shadows + trigger
+4F33 FillChan8         ; write a -> 8 consecutive bytes [hl] (clears a per-channel 16-bit array)
+4F37 FillChan4         ; write a -> 4 consecutive bytes [hl] (clears a per-channel [4] array)
 ; --- Table macro playback (per-channel; runs the instrument's table) ----------
 4668 ProcessChannelTable ; advance/apply the channel's table (wChanTable/Played/Countdown); calls the column readers
 574B ReadTableEnvelope  ; read table_envelopes[wChanTable][row] (song $1690 = SRAM bank0 $B690)
