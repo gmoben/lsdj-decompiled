@@ -1,4 +1,5 @@
 ; Bank $04 -- Phrase screen. phrase[wPhrase][16] in 4 SRAM columns: notes $A000
 ; (bank0), instr $B000 (bank3), fx $A000 (bank2), fx_val $AFF0 (bank2).
+4968 PhraseStepPtr      ; -> $A000 + step (phrase row base pre-selected in SRAM; step<16); phrase-editor cell helper
 4C14 LoadPhraseRow        ; load the 4 phrase columns for phrase[wPhrase] into row buffers
 4CE5 DrawPhraseScreen     ; screen idx 1: draws the phrase note/instr/cmd/val grid
