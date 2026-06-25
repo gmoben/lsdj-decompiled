@@ -22,6 +22,10 @@
 5A27 SetupSoundPU2      ; PU2: stage wSoundParams -> env/duty/freq shadows + trigger
 5B0C SetupSoundWave     ; WAV/KIT: stage wSoundParams -> wave level/freq shadows + trigger
 5DB2 SetupSoundNoise    ; NOI: stage wSoundParams -> env/poly shadows + trigger
+; --- Table macro playback (per-channel; runs the instrument's table) ----------
+4668 ProcessChannelTable ; advance/apply the channel's table (wChanTable/Played/Countdown); calls the column readers
+574B ReadTableEnvelope  ; read table_envelopes[wChanTable][row] (song $1690 = SRAM bank0 $B690)
+587D ReadTableTranspose ; read table_transposes[wChanTable][row] (song $3480 = SRAM bank1 $B480)
 ; --- Sequencer: song row -> chain -> phrase resolution ------------------------
 48D2 AdvanceSongRow     ; on wChanChain[ch]==$FF, walk chain_assignments (loop-back) -> next chain
 5EAD ReadSongChain      ; e = chain_assignments[wChanSongRow[ch]][ch] ($B290 = song offset $1290)
