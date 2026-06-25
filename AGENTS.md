@@ -374,6 +374,12 @@ Always, before committing:
 **Phase 5 — Toward 100% reversal (`docs/reversal.md`)**
 - [x] Coverage metric: whole-ROM reachability (`tools/coverage.py`)
 - [x] Tracer follows `jp`/address jump tables (42% → 56% reachable code)
+- [x] Reverse the bank `$02` sound engine, verified against live RAM/SRAM dumps:
+      sequencer cursors (`wChanSongRow`→`wChanChain`→`wChanPhrase`→note) with
+      `AdvanceSongRow`/`ReadSongChain`/`ReadChainPhrase`/`AdvanceChanCursors`;
+      pitch (`NoteToPeriod`, `wNotePeriods` `$CF28`, `wChanFreq`, `WriteChannelFreq`);
+      note-on (`SetupChannelSound`→per-channel + `rAUDx` shadows); FX dispatch
+      (`DispatchFxCommand`, all `FxCmd_*`, `hFxValue`, `ApplyPitchBend`)
 - [ ] Cross-bank entry discovery (banked-call helper) to cover `$1E`/`$1F`
 - [ ] Drive coverage toward 100%; mark data; name all routines
 
