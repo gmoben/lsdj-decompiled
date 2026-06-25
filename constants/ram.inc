@@ -70,7 +70,9 @@ DEF wChanCmdValPtr   EQU $C128  ; [4] 16-bit cursor into PHRASE_COMMAND_VALUES (
 DEF wChanInstrPtr    EQU $C140  ; [4] 16-bit cursor into PHRASE_INSTRUMENTS (bank3 $B000+)
 DEF wChanGroove      EQU $C150  ; [4] current groove per channel
 DEF wChanGrooveRow   EQU $C158  ; [4] current row within the groove
+DEF wChanTablePlayed EQU $C154  ; [4] flag: channel has played its table
 DEF wChanNoteCountdown EQU $C160 ; [4] ticks until the next note step
+DEF wChanTableCountdown EQU $C164 ; [4] ticks until the next table step
 DEF wChanTable       EQU $C204  ; [4] current table per channel
 DEF wChanTableRow1   EQU $C208  ; [4] table command-1 playback row
 DEF wChanTableRow2   EQU $C20C  ; [4] table command-2 playback row
