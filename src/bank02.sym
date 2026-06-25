@@ -14,6 +14,7 @@
 60D1 TriggerWave        ; WAV note-on: rAUD3 level/freq + trigger
 6014 TriggerNoise       ; NOI note-on: rAUD4 len/env/poly + trigger
 5151 ReadChanCursor     ; read byte via channel hSoundCh's 16-bit cursor (array base in hl); SRAM-guarded
+485A InitSoundStatePtrs ; set $C8xx to the low-bytes of the engine's $C1xx state ptrs
 ; --- Note-on: load instrument from SRAM into wSoundParams, set up channel shadows -
 5934 SetupChannelSound  ; dispatch by hSoundCh to the per-channel setup block below
 5942 SetupSoundPU1      ; PU1: stage wSoundParams -> sweep/env/duty/freq shadows + trigger

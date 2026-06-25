@@ -144,14 +144,20 @@ the new note into `wChanNote[ch]` (`$4DD2`), then channel setup:
   and triggers the voice. The note→GB-period value arrives **pre-staged** in
   `wSoundParams`; it is computed upstream.
 
-**Open lead — note-indexed SRAM table read (`$5E7C`).** Called right after a note
-changes, this reads one byte from a working-song SRAM region (bank 1, base
-`$A080`) at offset `note*16 + c` — i.e. a 16-byte-per-note slot, sub-indexed by
-`c = [$C100 + [$C8DF]]`. Triangulation puts `$A080` in the song's **wave data**
-(the bank `$1F` accessor at `$48EF` lives inside `DrawWaveInstr`; bank `$00`'s is
-generic song-byte access). Exact semantics (note-indexed, byte-at-a-time, runs
-for all channels) are unresolved and would need an **SRAM-bank-1 dump** to pin
-down, so `$5E7C` is left unnamed rather than mislabelled.
+**Open lead — note+step-indexed SRAM table read (`$5E7C`).** Called right after a
+note changes, this reads one byte from a working-song SRAM table (bank 1, base
+`$A080`) at offset `note*16 + step`, where `step = [$C17C]` (pointer low-byte
+`$7C` from `InitSoundStatePtrs`), and stores the result into per-channel state
+`$C168`. We resolved the region from the existing 128 KB `.sav` (SRAM bank 1
+`$A080` → `.sav` offset `0x2080`): it is **not** a period table or wave data, but
+**16-byte, `$FF`-padded rows of small indices** (e.g. note 7 = `0D`×8) — an LSDj
+song sub-table. Which sub-table (its 8 used columns map to some table/groove-class
+structure) still needs the `$C17C`/`$C168` index machinery traced further, so
+`$5E7C` is left unnamed rather than mislabelled.
+
+> SRAM reference: the 128 KB `dumps/lsdj9_4_0.sav` is a full 16-bank SRAM image;
+> SRAM bank *N* address `$Axxx` maps to `.sav` offset `N*0x2000 + (xxx-0x000)`.
+> No fresh capture is needed for static song data.
 
 ## Path to 100%
 
