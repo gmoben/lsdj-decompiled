@@ -134,10 +134,15 @@ tracer doesn't fully model — there is no RAM-indirect indirection to chase.
 ## Path to 100%
 
 1. **Code/data split (cleaner carves).** The unreached remainder in a bank is
-   data or not-yet-reached code. `tools/carve_clean.py` re-carves a bank marking
-   only the unreached runs that look like **data** (illegal-opcode-dense, ASCII,
-   or `$00`/`$FF` fill) as `db`, leaving ambiguous/code-like runs as
-   instructions — so graphics/strings/tables read as data without hiding code.
+   data or not-yet-reached code. `tools/carve_clean.py` marks an unreached run as
+   `db` when it is illegal-opcode-dense, `$00`/`$FF` fill, a long printable run, or
+   — since code coverage is ~99.6% — has **control-flow-opcode density** too low
+   to be code (≤0.07 vs ~0.10-0.15 for real SM83; catches tile graphics and
+   pointer tables that decode as legal opcodes). Two guards keep code intact: a
+   run starting with an SDCC prologue is never data, and `func_brackets()` excludes
+   mid-run `push bc; … pop bc; ret` functions — so a not-yet-reached function
+   embedded in data still reads as code. This split bank `$1E` (~90% tile data)
+   from ~12 k garbage instruction lines down to ~2.6 k.
 2. **More computed dispatch.** Keep modelling indirect dispatch (e.g. the rest of
    `$1F`).
 3. **Naming.** Replace auto `L*` labels with real names, routine by routine.
