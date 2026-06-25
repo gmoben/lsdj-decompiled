@@ -1,6 +1,7 @@
 ; Bank $07 -- Song screen. The arrangement: song[256][4] = chain# per channel per
 ; step ($FF=empty), sequence at SRAM bank0 $B290 (song offset $1290); read via
 ; ReadSeqByte, written via WriteSongByte(bank0, $B290+...).
+40D0 SongCellAddr       ; -> &chain_assignments[row*4+channel] (song $1290 / SRAM bank0 $B290); row<128
 7220 VramCopyByteSafe   ; spin until rSTAT mode<2 (VRAM free), then copy [de]->[hl], inc e/l
 4574 DrawSongScreen      ; screen idx 4: draws the song sequence (4 channels = PU1/PU2/WAV/NOI)
 47AA SongScreenUpdate   ; per-frame visual update (screen idx 4)
