@@ -5,4 +5,6 @@
 40EA DrawGrooveSteps    ; draw the current groove's 16 step values (wGroove*16)
 41DA DrawGrooveScreen   ; screen idx 2: draws the groove steps
 4215 GrooveScreenUpdate ; screen idx 2 per-frame update (from ScreenUpdateTable)
-68AB DrawSynthScreen    ; screen idx 10: draws softsynth params
+; Synth editor: softsynth_params[wSynth][16] at SRAM bank1 $BEB2 (16 synths);
+; params read via per-field getters ($6311/$68CC/... -> ReadSongByte on $BEB2).
+68AB DrawSynthScreen    ; screen idx 10: draws softsynth params (wave/filter/cutoff/dist/...)

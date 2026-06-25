@@ -16,6 +16,7 @@ DEF wProjectCursor2  EQU $C567
 DEF wGroove          EQU $C417  ; current groove number being edited (0-31, Groove screen)
 DEF wChain           EQU $C418  ; current chain number being edited (0-127, Chain screen)
 DEF wTable           EQU $C41B  ; current table number being edited (0-31, Table screen)
+DEF wSynth           EQU $C42A  ; current softsynth number being edited (0-15, Synth screen)
 
 ; --- Drawing helpers (used by DrawString/DrawHexByte/... in bank 0) ----------
 DEF wStringSrc       EQU $C564  ; source pointer for DrawString (16-bit)
