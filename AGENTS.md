@@ -249,8 +249,15 @@ LSDj is compiled C; labelling goes faster once you spot the patterns:
 - GBDK library routines (`set_sprite_*`, `gb/`-style hardware wrappers).
 - Compiler-emitted jump tables and switch dispatch.
 
-Name helpers after their GBDK/SDCC equivalents where identifiable (compare
-against the [GBDK 2.95 source](https://github.com/rbong/gbdk/tree/master/gbdk-2.95)).
+Name helpers after their GBDK/SDCC equivalents where identifiable. The GBDK 2.95
+source is fetched locally to `toolchain/gbdk-2.95` (gitignored); its `.s` sources
+(`libc/gb/*.s`, `libc/asm/gbz80/*.s`) give the canonical exported names and exact
+assembly, so library routines can be matched **byte-for-byte**. Found this way so
+far: `set_bkg_palette` (`cgb.s`), `strcpy` (`asm_string.s`), `display_off`
+(`crt0.s`), and the SDCC `mul` runtime. **Convention:** label GBDK/SDCC library
+functions with their canonical lowercase name (`set_bkg_palette`, `strcpy`);
+reserve PascalCase for LSDj's own routines. Note LSDj rolls its own for most code,
+so the library footprint is small.
 
 ## Tooling for Agents
 
