@@ -5,4 +5,10 @@
 474E DrawWaveInstr      ; draw WAVE instrument params (type 1)
 44DD DrawKitInstr       ; draw KIT instrument params (type 2)
 4399 DrawNoiseInstr     ; draw NOISE instrument params (type 3)
+; --- instrument-screen display strings ---------------------------------------
+408D StepRateStr       ; "STEP" (instrument cmd/table rate when byte5 bit3 set)
+4092 TickRateStr       ; "TICK" (instrument cmd/table rate when byte5 bit3 clear)
+44A3 LenUnlimStr       ; "UNLIM" (shown when sound-length byte3 bit6 = 0)
+44AD NoiseSafeStr      ; "SAFE" (noise S command, nonzero)
+44B2 NoiseFreeStr      ; "FREE" (noise S command, 0)
 648F PhraseScreenUpdate ; per-frame visual update (screen idx 1 = Phrase)
