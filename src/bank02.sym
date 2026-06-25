@@ -6,6 +6,7 @@
 24DD BankcallHelper02   ; called from boot (Start) early init
 494D ProcessChannel     ; per-channel sound tick (channel = hSoundCh); called per active channel
 4C2D AdvanceChanCursors ; advance the 3 phrase cursors (note/cmd, cmdval, instr) by c
+4AA3 WriteChannelFreq   ; write the current channel's frequency to rAUDxLOW/HIGH each tick (no retrigger; P/L/V pitch)
 ; --- Note trigger: write the GB sound regs to start a note on the current channel
 6007 TriggerNote        ; dispatch by hSoundCh to the per-voice trigger below
 604B TriggerPU1         ; PU1 note-on: rAUD1 sweep/env/freq + trigger
