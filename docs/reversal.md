@@ -38,23 +38,30 @@ control-transfer entry point:
 
 ### Current coverage
 
-Run `tools/coverage.py`. As of writing, **64%** of the code/data banks trace as
+Run `tools/coverage.py`. As of writing, **72%** of the code/data banks trace as
 reachable code:
 
 | bank | code% | | bank | code% |
 |------|-------|-|------|-------|
-| `$00` | 83% | | `$1B` | 54% |
-| `$03` | 86% | | `$1C` | 65% |
+| `$00` | 85% | | `$1B` | 58% |
+| `$03` | 86% | | `$1C` | 76% |
 | `$04` | 93% | | `$1D` | 89% |
-| `$05` | 69% | | `$1E` | 8% |
-| `$06` | 85% | | `$1F` | 12% |
-| `$07` | 73% | | `$01`/`$02` | 38% / 77% |
+| `$05` | 69% | | `$1E` | 10% |
+| `$06` | 85% | | `$1F` | 78% |
+| `$07` | 71% | | `$01`/`$02` | 51% / 78% |
 
 The lower banks are legitimately data-heavy: `$1B`/`$1C` (Project/File/Help) are
 string-heavy, and `$01`/`$1E` carry large zero-padded data tables. Progression:
 per-bank 42% → jump tables 56% → bank-aware trace 60% → farcall 68% →
 computed-farcall tables 71% → second farcall helper (`FarCallArg`) 72% →
-**fill-stop (honest) 64%**.
+fill-stop (honest) 64% → **split-load farcall addresses 72%**.
+
+That last step is the real one. Farcall targets passed as a *split* byte-load
+(`ld c,lo; ld b,hi`, the compiler's form for the instrument editor's per-type
+handlers) were invisible to the extractor, which only matched `ld bc, imm16`.
+Adding the split-load pattern lifted bank `$1F` from 12% to **78%** (and `$1C`
+65→76, `$01` 38→51), confirming end-to-end that the multi-hop dispatch is fully
+static and resolvable — exactly as the live-RAM analysis predicted.
 
 The last step *lowered* the number on purpose. `rst $38` ($FF) and `nop` ($00)
 were not flow-terminators, so any stray computed target landing in padding made
@@ -66,22 +73,21 @@ disassembly never *hides* code: carve marks bytes `db` only when they are **both
 unreached and data-like, so a real function after a padding gap still decodes as
 code even though the tracer stops short of it.
 
-`$1F` (12%) is a **metric artifact, not missing disassembly**. The bank is the
-instrument subsystem and carves as ~93% code (8977 instruction lines vs 146 `db`).
-A static dispatch audit (looking for the actual indirect-call mechanisms) found
-that the dispatch is **entirely ROM-based, not RAM-indirect**: bank `$1F` has only
-two real `jp hl` sites and both are ROM jump-tables (`$401B`, `$679D`); there are
-**no** RAM-fed `jp hl` and **no** `push addr; ret` trampolines. What the recursive
-tracer cannot fully chase is the **multi-hop** path: the master screen dispatch
-(`ScreenDrawDispatch` → jp-table `$2563` → `DrawDispatch_<screen>`) bank-switches
-into a per-screen handler (instrument draw lives in bank `$04` at `$4CE5`, reached
-via an inline `ld a,N; ld [$2000],a; call` trampoline), which then `FarCall`s and
-reads **computed per-instrument-type handler tables** to reach the bank-`$1F`
-leaves. Every hop is statically resolvable; the tracer just doesn't model the
-deepest computed tables yet, so subtrees read as unreached even though they are
-real, correctly-decoded code. The unreached runs were inspected (`$5413`, `$4A65`,
-`$7097` are `push bc; add sp,-N` prologues; `$77F5` is the "COPIED WORD"/"CUT WORD"
-string pool) and interleave short label strings ("ATK", "ON", "0.5") with code, so
+`$1F` (now 78%) is the instrument subsystem and carves as ~93% code (8977
+instruction lines vs 146 `db`). A static dispatch audit found the dispatch is
+**entirely ROM-based, not RAM-indirect**: bank `$1F` has only two real `jp hl`
+sites and both are ROM jump-tables (`$401B`, `$679D`); there are **no** RAM-fed
+`jp hl` and **no** `push addr; ret` trampolines. The reach is a **multi-hop static**
+path: the master screen dispatch (`ScreenDrawDispatch` → jp-table `$2563` →
+`DrawDispatch_<screen>`) bank-switches into a per-screen handler (the instrument
+editor lives in bank `$03` at `DrawInstrumentScreen $4DE7`, reached via an inline
+`ld a,N; ld [$2000],a; call` trampoline), which then `FarCall`s into bank-`$1F`
+per-instrument-type handlers. The last link was invisible only because those
+handler addresses are built with a **split** byte-load (`ld c,lo; ld b,hi`) rather
+than `ld bc, imm16`; teaching the extractor that pattern reached the lot
+(`$7108`, `$5413`, `$4A65`, `$7097` …). The remaining unreached runs are data:
+`$77F5` is the "COPIED WORD"/"CUT WORD" string pool, and others interleave short
+label strings ("ATK", "ON", "0.5") with code, so
 forcing data ranges would risk *hiding* code — the conservative carve is correct.
 
 The coverage tracer resolves the **computed-address farcall**: when a

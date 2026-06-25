@@ -187,6 +187,18 @@ def collect_entries(rom: bytes) -> dict[int, set[int]]:
                         imm_addr = v
                         if win[k] == 0x21:
                             last_hl = v
+                # split byte-loads building the addr in a pair: `ld c,lo; ld b,hi`
+                # (and de/hl, either order) -- e.g. `0e 08 06 71` = bc=$7108.
+                for lo_op, hi_op in ((0x0E, 0x06), (0x1E, 0x16), (0x2E, 0x26)):
+                    if k + 3 < len(win):
+                        if win[k] == lo_op and win[k + 2] == hi_op:
+                            v = win[k + 1] | (win[k + 3] << 8)
+                            if 0x4000 <= v <= 0x7FFF:
+                                imm_addr = v
+                        elif win[k] == hi_op and win[k + 2] == lo_op:
+                            v = win[k + 3] | (win[k + 1] << 8)
+                            if 0x4000 <= v <= 0x7FFF:
+                                imm_addr = v
                 if win[k:k + 3] == bytes([0x2A, 0x66, 0x6F]):  # addr read from a table
                     table = last_hl
             if bank is not None and bank < nbanks:
