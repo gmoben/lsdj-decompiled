@@ -41,7 +41,10 @@ DEF wSoundTick       EQU $C8F4  ; sound/playback tick counter (TimerHandler)
 ; Engine = bank $02; the current channel index (0-3) lives in HRAM (hSoundCh).
 ; hSoundCh maps to the GB hardware channels: 0=PU1 (rAUD1), 1=PU2 (rAUD2),
 ; 2=WAV/KIT (rAUD3, plays WAVE+KIT instruments), 3=NOI (rAUD4). The per-channel
-; computed frequency near $C0F2 is written to rAUDxLOW/HIGH each frame.
+; computed frequency (wChanFreq) is written to rAUDxLOW/HIGH each frame.
+DEF wChanFreq        EQU $C0F4  ; [4] 16-bit GB period per channel; = wNotePeriods[note+xpose] -> rAUDxLOW/HIGH
+DEF wNoteTranspose   EQU $C4D3  ; transpose offset added to the note before the wNotePeriods lookup
+DEF wNotePeriods     EQU $CF28  ; runtime 16-bit GB note-period table (computed for tuning); NoteToPeriod indexes it
 DEF wSoundParams     EQU $C0D0  ; staged sound-param buffer; SetupChannelSound copies the
                                 ; instrument from SRAM here, then distributes to the rAUDx shadows
 DEF wChanState       EQU $C0E0  ; start of the per-channel byte-state arrays

@@ -125,6 +125,13 @@ The bank `$02` walkers: `AdvanceSongRow` (`$48D2`) reloads `wChanChain` from
 reads `song[wChanSongRow][ch]`; `ReadChainPhrase` (`$5E7C`) computes `wChanPhrase`
 from `chain_phrases[wChanChain*16 + wChanChainRow]` in SRAM bank 1.
 
+**Pitch.** Notes read from `phrase_notes` are turned into GB periods by `NoteToPeriod`
+(bank `$02` `$49B7`): `wChanFreq[ch] (16-bit, $C0F4) = wNotePeriods[note + wNoteTranspose - 1]`.
+`wNotePeriods` (`$CF28`) is a 16-bit GB-period table built in WRAM at runtime (so it
+tracks master tuning), and `WriteChannelFreq` writes `wChanFreq` to `rAUDxLOW/HIGH`
+each tick. Verified against a live dump: `wChanFreq` = `$0706/$0672/$0511` for PU1/PU2/WAV,
+each value present in the `$CF28` table.
+
 ## Sources / confidence
 
 - Structure & offsets: pylsdj `bread_spec`, liblsdj — **documented**, offsets
