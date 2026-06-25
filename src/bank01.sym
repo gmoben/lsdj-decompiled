@@ -1,1 +1,3 @@
-; Bank $01 -- UI string table + helpers (mostly strings; see docs/editors.md)
+; Bank $01 -- UI string table + help text (incl. the FX command help popups)
+764C LoadCommandHelp    ; resolve command (sp+8) -> help string in wStrBuffer + wVramCursor; shown at screen top on double-A. B/F/H/S/W are context-cased (by $C41D), the rest via CommandHelpTable
+776E CommandHelpTable   ; [command] -> "X: DESCRIPTION" string pointer (index = command*2; 0 = context-cased above)

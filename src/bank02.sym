@@ -2,3 +2,22 @@
 24DD BankcallHelper02   ; called from boot (Start) early init
 4C2D AdvanceChanCursors ; advance the 3 phrase cursors (note/cmd, cmdval, instr) by c
 5151 ReadChanCursor     ; read byte via channel hSoundCh's 16-bit cursor (array base in hl); SRAM-guarded
+; --- Per-tick FX command dispatch (command value in a -> FxCommandTable) -------
+; Command values index the same table as the mnemonics at $0824 ("-ABCDEFGH...").
+; B/D/G/H have null handlers here -- they act at note-trigger, not per tick.
+4790 DispatchFxCommand  ; a = command value (<19); jp FxCommandTable[a]
+47A2 FxCommandTable     ; [19] per-tick command handler pointers (0 = no per-tick action)
+4679 FxCmd_A            ; A: table start/stop
+476C FxCmd_C            ; C: chord
+46D8 FxCmd_E            ; E: amplitude envelope
+46F7 FxCmd_F            ; F: wave frame / finetune
+4812 FxCmd_S            ; S: sweep / shape
+47C8 FxCmd_W            ; W: wave / duty cycle
+4286 FxCmd_L            ; L: slide (legato)
+6246 FxCmd_M            ; M: master volume
+665F FxCmd_O            ; O: output (panning)
+6646 FxCmd_P            ; P: pitch bend / shift
+6669 FxCmd_T            ; T: tempo
+649D FxCmd_R            ; R: retrig
+65F3 FxCmd_K            ; K: kill note
+7DD1 FxCmd_V            ; V: vibrato
