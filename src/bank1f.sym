@@ -1,2 +1,2 @@
-; Bank $1F -- Instrument screen update + helpers
-648F InstrumentScreenUpdate ; per-frame visual update (screen idx 1)
+; Bank $1F -- instrument-editor helpers (called by bank $03) + Phrase screen update
+648F PhraseScreenUpdate ; per-frame visual update (screen idx 1 = Phrase)

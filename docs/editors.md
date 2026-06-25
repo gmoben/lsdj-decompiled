@@ -40,12 +40,12 @@ selects the screen's ROM bank (`$FF8E` + `$2000`) and `call`s its draw routine:
 | `$C401` | Draw routine | Screen | Evidence |
 |---------|--------------|--------|----------|
 | 0 | — | (none) | blank slot |
-| 1 | `$04:$4CE5` | **Instrument** | reads `instruments` |
+| 1 | `$04:$4CE5` | **Phrase** | note/instr/cmd/val grid |
 | 2 | `$1D:$41DA` | **Groove** | reads `grooves` |
 | 3 | `$06:$5947` | **Chain** | reads `chain_transposes`, 2 columns |
-| 4 | `$07:$4574` | **Phrase** | reads `phrase_notes`, 4-col note grid |
+| 4 | `$07:$4574` | **Song** | reads `sequence` (`$1290`), 4 channels |
 | 5 | `$05:$4762` | **Table** | reads `table_envelopes` |
-| 6 | `$03:$4DE7` | **Song** | by elimination (sequence is WRAM-cached) |
+| 6 | `$03:$4DE7` | **Instrument** | reads `instruments` 119x; **live `$C401`=6 on Instrument** |
 | 7 | — | (none) | blank slot |
 | 8 | `$06:$4F18` | **Wave** | reads `wave_frames`; copy/paste ("CANCEL SELECT") |
 | 9 | `$1B:$5C17` | **Project** | `DrawProjectScreen` ✓ (sync/clone/look/clock) |
@@ -68,7 +68,7 @@ from the (interleaved) input-edit code. So `$C401` drives parallel *draw* and
 
 | Screen | Update handler | | Screen | Update handler |
 |--------|----------------|-|--------|----------------|
-| Instrument (1) | `InstrumentScreenUpdate` `$1F:$648F` | | Phrase (4) | `PhraseScreenUpdate` `$07:$47AA` |
+| Phrase (1) | `PhraseScreenUpdate` `$1F:$648F` | | Song (4) | `SongScreenUpdate` `$07:$47AA` |
 | Groove (2) | `GrooveScreenUpdate` `$1D:$4215` | | Table (5) | `TableScreenUpdate` `$05:$4967` |
 | Chain (3) | `ChainScreenUpdate` `$06:$5A62` | | | |
 
@@ -153,10 +153,10 @@ are the remaining refinement.
 
 | Screen | idx | Draw routine | Edits | Carved | Draw label |
 |--------|-----|--------------|-------|--------|-----------|
-| Song | 6 | `$03:$4DE7` | `sequence` `$1290` | ✓ `bank03.asm` | `DrawSongScreen` |
+| Instrument | 6 | `$03:$4DE7` | `instruments` `$3080` | ✓ `bank03.asm` | `DrawInstrumentScreen` |
 | Chain | 3 | `$06:$5947` | `chain_*` `$2080`/`$2880` | ✓ `bank06.asm` | `DrawChainScreen` |
-| Phrase | 4 | `$07:$4574` | notes/instr/fx | ✓ `bank07.asm` | `DrawPhraseScreen` |
-| Instrument | 1 | `$04:$4CE5` | `instruments` `$3080` | ✓ `bank04.asm` | `DrawInstrumentScreen` |
+| Song | 4 | `$07:$4574` | `sequence` `$1290` | ✓ `bank07.asm` | `DrawSongScreen` |
+| Phrase | 1 | `$04:$4CE5` | notes/instr/fx | ✓ `bank04.asm` | `DrawPhraseScreen` |
 | Table | 5 | `$05:$4762` | `table_*` | ✓ `bank05.asm` | `DrawTableScreen` |
 | Groove | 2 | `$1D:$41DA` | `grooves` `$1090` | ✓ `bank1d.asm` | `DrawGrooveScreen` |
 | Wave | 8 | `$06:$4F18` | `wave_frames` `$6000` | ✓ `bank06.asm` | `DrawWaveScreen` |

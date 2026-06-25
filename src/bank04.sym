@@ -1,2 +1,2 @@
-; Bank $04 -- Instrument screen
-4CE5 DrawInstrumentScreen ; screen idx 1: draws instrument params
+; Bank $04 -- Phrase screen
+4CE5 DrawPhraseScreen     ; screen idx 1: draws the phrase note/instr/cmd/val grid

@@ -8,12 +8,12 @@
 IF !DEF(SCREENS_INC)
 DEF SCREENS_INC EQU 1
 
-DEF SCREEN_INSTRUMENT EQU 1   ; bank $04:$4CE5
+DEF SCREEN_PHRASE     EQU 1   ; bank $04:$4CE5  (draws phrase note/instr/cmd grid)
 DEF SCREEN_GROOVE     EQU 2   ; bank $1D:$41DA
 DEF SCREEN_CHAIN      EQU 3   ; bank $06:$5947
-DEF SCREEN_PHRASE     EQU 4   ; bank $07:$4574
+DEF SCREEN_SONG       EQU 4   ; bank $07:$4574  (draws 4-channel sequence)
 DEF SCREEN_TABLE      EQU 5   ; bank $05:$4762
-DEF SCREEN_SONG       EQU 6   ; bank $03:$4DE7
+DEF SCREEN_INSTRUMENT EQU 6   ; bank $03:$4DE7  (reads instruments 119x; confirmed via live $C401=6)
 DEF SCREEN_WAVE       EQU 8   ; bank $06:$4F18
 DEF SCREEN_PROJECT    EQU 9   ; bank $1B:$5C17
 DEF SCREEN_SYNTH      EQU 10  ; bank $1D:$68AB

@@ -9,12 +9,12 @@
 254F ScreenDrawDispatch ; jp table $2563 indexed by wCurrentScreen ($C401): per-screen draw
 2563 ScreenDrawTable    ; 15x jp: screen index -> "select bank N; call draw; ret"
 ; --- per-screen draw dispatch stubs (select bank, call the screen's draw) ---
-2593 DrawDispatch_Instrument ; idx 1 -> bank $04:$4CE5 (reads instruments)
+2593 DrawDispatch_Phrase     ; idx 1 -> bank $04:$4CE5 (Phrase: note/instr/cmd/val grid)
 25A2 DrawDispatch_Groove     ; idx 2 -> bank $1D:$41DA (reads grooves)
 25B1 DrawDispatch_Chain      ; idx 3 -> bank $06:$5947 (chain_transp, 2 cols)
-25C0 DrawDispatch_Phrase     ; idx 4 -> bank $07:$4574 (phrase_notes, 4 cols)
+25C0 DrawDispatch_Song       ; idx 4 -> bank $07:$4574 (Song: 4-channel sequence)
 25CF DrawDispatch_Table      ; idx 5 -> bank $05:$4762 (table_env)
-25DE DrawDispatch_Song       ; idx 6 -> bank $03:$4DE7 (sequence, WRAM-cached)
+25DE DrawDispatch_Instrument ; idx 6 -> bank $03:$4DE7 (Instrument: reads instruments 119x)
 25F0 DrawDispatch_Wave       ; idx 8 -> bank $06:$4F18 (wave_frames, copy/paste)
 25FF DrawDispatch_Project    ; idx 9 -> bank $1B:$5C17 (DrawProjectScreen)
 260E DrawDispatch_Synth      ; idx 10 -> bank $1D:$68AB (synth params)
