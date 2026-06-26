@@ -19,3 +19,4 @@
 5128 InstrProc_5128         ; subroutine (purpose TBD) (2x)
 5181 InstrProc_5181         ; subroutine (purpose TBD) (6x)
 5231 InstrProc_5231         ; subroutine (purpose TBD) (6x)
+4540 InstrProc_4540         ; jp-reached subroutine (purpose TBD)

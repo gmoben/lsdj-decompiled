@@ -19,3 +19,5 @@
 5876 ProjProc_5876          ; subroutine (purpose TBD) (5x)
 5896 ProjProc_5896          ; subroutine (purpose TBD) (3x)
 7200 ProjProc_7200          ; subroutine (purpose TBD) (6x)
+5952 ProjProc_5952          ; jp-reached subroutine (purpose TBD)
+6988 ProjProc_6988          ; jp-reached subroutine (purpose TBD)

@@ -26,3 +26,4 @@
 6074 InstrProc_6074         ; subroutine (purpose TBD) (1x)
 6163 InstrProc_6163         ; subroutine (purpose TBD) (1x)
 7097 InstrBanked_7097       ; banked-call wrapper (4x)
+4085 InstrGetField6_4085    ; instrument field 0x6 read

@@ -7,3 +7,5 @@
 4000 UiProc_4000            ; subroutine (purpose TBD) (1x)
 5208 UiProc_5208            ; subroutine (purpose TBD) (1x)
 5331 UiProc_5331            ; subroutine (purpose TBD) (1x)
+5243 UiProc_5243            ; jp-reached subroutine (purpose TBD)
+7955 UiProc_7955            ; jp-reached subroutine (purpose TBD)

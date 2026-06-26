@@ -35,3 +35,4 @@
 7167 FileProc_7167          ; subroutine (purpose TBD) (1x)
 7426 FileProc_7426          ; subroutine (purpose TBD) (2x)
 7513 FileProc_7513          ; subroutine (purpose TBD) (1x)
+5892 FileProc_5892          ; jp-reached subroutine (purpose TBD)

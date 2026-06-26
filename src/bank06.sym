@@ -25,3 +25,8 @@
 7006 ChainProc_7006         ; subroutine (purpose TBD) (6x)
 7469 ChainProc_7469         ; subroutine (purpose TBD) (1x)
 7524 ChainProc_7524         ; subroutine (purpose TBD) (1x)
+4279 ChainProc_4279         ; jp-reached subroutine (purpose TBD)
+5804 ChainProc_5804         ; jp-reached subroutine (purpose TBD)
+5836 ChainProc_5836         ; jp-reached subroutine (purpose TBD)
+5868 ChainProc_5868         ; jp-reached subroutine (purpose TBD)
+7508 ChainProc_7508         ; jp-reached subroutine (purpose TBD)

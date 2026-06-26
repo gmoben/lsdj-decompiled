@@ -26,3 +26,5 @@
 7033 SongProc_7033          ; subroutine (purpose TBD) (3x)
 7276 SongProc_7276          ; subroutine (purpose TBD) (1x)
 7422 SongProc_7422          ; subroutine (purpose TBD) (1x)
+4366 SongProc_4366          ; jp-reached subroutine (purpose TBD)
+5929 SongProc_5929          ; jp-reached subroutine (purpose TBD)

@@ -77,3 +77,5 @@
 6904 SndProc_6904           ; subroutine (purpose TBD) (1x)
 7034 SndProc_7034           ; subroutine (purpose TBD) (1x)
 7362 SndProc_7362           ; subroutine (purpose TBD) (2x)
+6270 SndProc_6270           ; jp-reached subroutine (purpose TBD)
+6685 SndProc_6685           ; jp-reached subroutine (purpose TBD)
