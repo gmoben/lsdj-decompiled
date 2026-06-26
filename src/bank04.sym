@@ -3,14 +3,45 @@
 4968 PhraseStepPtr      ; -> $A000 + step (phrase row base pre-selected in SRAM; step<16); phrase-editor cell helper
 4C14 LoadPhraseRow        ; load the 4 phrase columns for phrase[wPhrase] into row buffers
 4CE5 DrawPhraseScreen     ; screen idx 1: draws the phrase note/instr/cmd/val grid
-; --- mechanically-named call-targets (interface-based; some purpose TBD) ---
 4000 PhraseBanked_4000      ; banked-call wrapper (5x)
-4071 PhraseProc_4071        ; subroutine (purpose TBD) (9x)
-4087 PhraseProc_4087        ; subroutine (purpose TBD) (3x)
-4106 PhraseProc_4106        ; subroutine (purpose TBD) (10x)
-4257 PhraseProc_4257        ; subroutine (purpose TBD) (7x)
-4811 PhraseProc_4811        ; subroutine (purpose TBD) (1x)
-4918 PhraseProc_4918        ; subroutine (purpose TBD) (10x)
-5136 PhraseProc_5136        ; subroutine (purpose TBD) (1x)
-5491 PhraseProc_5491        ; subroutine (purpose TBD) (1x)
 5533 PhraseBanked_5533      ; banked-call wrapper (1x)
+
+; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
+401B PhraseBanked_401B          ; banked-call wrapper
+402C PhraseDrawStr_402C         ; calls DrawStringIndexed
+405D PhraseFunc_405D            ; subroutine returns value; purpose TBD
+4071 PhraseProc_4071            ; subroutine; purpose TBD
+4087 PhraseFunc_4087            ; subroutine returns value; purpose TBD
+40B2 PhraseInstrWrite_40B2      ; calls WriteInstrByte
+4106 PhraseSongWrite_4106       ; calls WriteSongByte
+418F PhraseSongWrite_418F       ; calls WriteSongByte
+41F0 PhraseSongWrite_41F0       ; calls WriteSongByte
+4257 PhraseProc_4257            ; subroutine; purpose TBD
+42A8 PhraseBanked_42A8          ; banked-call wrapper
+43CD PhraseSongWrite_43CD       ; calls WriteSongByte
+457C PhraseSongWrite_457C       ; calls WriteSongByte
+470B PhraseSongWrite_470B       ; calls WriteSongByte
+4811 PhraseSongWrite_4811       ; calls WriteSongByte
+4918 PhrasePhraseCmdVal_4918    ; accesses PhraseCmdVal
+49C5 PhraseSongWrite_49C5       ; calls WriteSongByte
+4A30 PhraseSongWrite_4A30       ; calls WriteSongByte
+4A8F PhraseProc_4A8F            ; subroutine; purpose TBD
+4AEA PhraseFunc_4AEA            ; subroutine returns value; purpose TBD
+4B5B PhraseSongWrite_4B5B       ; calls WriteSongByte
+4C06 PhraseDrawStr_4C06         ; calls DrawString
+4C99 PhraseBanked_4C99          ; banked-call wrapper
+4CAA PhraseFunc_4CAA            ; subroutine returns value; purpose TBD
+4CC4 PhraseDrawStr_4CC4         ; calls DrawString
+510A PhraseFunc_510A            ; subroutine returns value; purpose TBD
+5136 PhraseFunc_5136            ; subroutine returns value; purpose TBD
+51AE PhraseProc_51AE            ; subroutine; purpose TBD
+5491 PhraseInstrWrite_5491      ; calls WriteInstrByte
+55EB PhraseBanked_55EB          ; banked-call wrapper
+567D PhraseFunc_567D            ; subroutine returns value; purpose TBD
+56BA PhraseProc_56BA            ; subroutine; purpose TBD
+572C PhraseDrawHex_572C         ; calls DrawHexByte
+58D9 PhraseFunc_58D9            ; subroutine returns value; purpose TBD
+597D PhraseFunc_597D            ; subroutine returns value; purpose TBD
+5A20 PhraseFunc_5A20            ; subroutine returns value; purpose TBD
+5AC7 PhraseFunc_5AC7            ; subroutine returns value; purpose TBD
+5B5E PhraseDrawHex_5B5E         ; calls DrawHexByte

@@ -3,9 +3,29 @@
 51F4 PitchSpeedNames    ; [4][5] pitch-speed display names "STEP"/"TICK"/"DRUM"/"FAST"
 764C LoadCommandHelp    ; resolve command (sp+8) -> help string in wStrBuffer + wVramCursor; shown at screen top on double-A. B/F/H/S/W are context-cased (by $C41D), the rest via CommandHelpTable
 776E CommandHelpTable   ; [command] -> "X: DESCRIPTION" string pointer (index = command*2; 0 = context-cased above)
-; --- mechanically-named call-targets (interface-based; some purpose TBD) ---
-4000 UiProc_4000            ; subroutine (purpose TBD) (1x)
-5208 UiProc_5208            ; subroutine (purpose TBD) (1x)
-5331 UiProc_5331            ; subroutine (purpose TBD) (1x)
-5243 UiProc_5243            ; jp-reached subroutine (purpose TBD)
-7955 UiProc_7955            ; jp-reached subroutine (purpose TBD)
+
+; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
+4000 UiProc_4000                ; subroutine; purpose TBD
+445A UiProc_445A                ; subroutine; purpose TBD
+493B UiStrCopy_493B             ; calls strcpy
+4A49 UiSongWrite_4A49           ; calls WriteSongByte
+4B15 UiProc_4B15                ; subroutine; purpose TBD
+4B5E UiMemFill_4B5E             ; calls MemSet
+4C61 UiPalette_4C61             ; calls set_bkg_palette
+4CFB UiSongWrite_4CFB           ; calls WriteSongByte
+500D UiInstrRead_500D           ; calls ReadCurInstrByte
+5208 UiDrawStr_5208             ; calls DrawStringIndexed
+5243 UiInstrRead_5243           ; calls ReadCurInstrByte
+52EB UiSongWrite_52EB           ; calls WriteSongByte
+5331 UiInstrRead_5331           ; calls ReadCurInstrByte
+55C9 UiInstrRead_55C9           ; calls ReadCurInstrByte
+6CD7 UiProc_6CD7                ; subroutine; purpose TBD
+6D23 UiFunc_6D23                ; subroutine returns value; purpose TBD
+6D53 UiDrawStr_6D53             ; calls DrawStringIndexed
+7955 UiDrawStr_7955             ; calls DrawStringIndexed
+7BDE UiBanked_7BDE              ; banked-call wrapper
+7DE9 UiPhraseNote_7DE9          ; accesses PhraseNote
+7DFB UiProc_7DFB                ; subroutine; purpose TBD
+7E4E UiProc_7E4E                ; subroutine; purpose TBD
+7E74 UiProc_7E74                ; subroutine; purpose TBD
+7ED3 UiProc_7ED3                ; subroutine; purpose TBD

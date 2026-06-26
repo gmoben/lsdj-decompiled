@@ -3,20 +3,68 @@
 4AB4 KitClipNames      ; [4][6] kit dist_type names " HARD"/" SOFT"/" FOLD"/" WRAP" (indexed by byte-$D0)
 4DE7 DrawInstrumentScreen ; screen idx 6: draws instrument params (reads instruments[] 119x)
 4FC4 InstrTypeNames     ; [4][6] type names "PULSE"/" WAVE"/"  KIT"/"NOISE" (indexed by type*6)
-; --- mechanically-named call-targets (interface-based; some purpose TBD) ---
 4105 InstrField9IsZero_4105 ; 1 if instr field 0x9 == 0 (12x)
 4118 InstrGetField6_4118    ; instrument field 0x6 read (2x)
 4133 InstrGetField6_4133    ; instrument field 0x6 read (2x)
 4170 InstrGetField0_4170    ; instrument field 0x0 read (10x)
 4257 InstrSetField5_4257    ; instrument field 0x5 write (2x)
 4293 InstrGetField5_4293    ; instrument field 0x5 read (3x)
-4638 InstrProc_4638         ; subroutine (purpose TBD) (2x)
 4679 InstrGetField0_4679    ; instrument field 0x0 read (6x)
 4741 InstrGetField8_4741    ; instrument field 0x8 read (3x)
 4769 InstrGetField8_4769    ; instrument field 0x8 read (3x)
 4924 InstrGetField6_4924    ; instrument field 0x6 read (4x)
-5002 InstrProc_5002         ; subroutine (purpose TBD) (3x)
-5128 InstrProc_5128         ; subroutine (purpose TBD) (2x)
-5181 InstrProc_5181         ; subroutine (purpose TBD) (6x)
-5231 InstrProc_5231         ; subroutine (purpose TBD) (6x)
-4540 InstrProc_4540         ; jp-reached subroutine (purpose TBD)
+
+; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
+40F8 InstrGetField9_40F8        ; instrument field 0x9 read
+414F InstrFunc_414F             ; subroutine returns value; purpose TBD
+427B InstrGetField5_427B        ; instrument field 0x5 read
+42AB InstrPhraseNote_42AB       ; accesses PhraseNote
+42FF InstrStrCopy_42FF          ; calls strcpy
+436D InstrGetField6_436D        ; instrument field 0x6 read
+43C0 InstrSetField3_43C0        ; instrument field 0x3 write
+441A InstrGetField3_441A        ; instrument field 0x3 read
+4540 InstrGetField3_4540        ; instrument field 0x3 read
+45A7 InstrBanked_45A7           ; banked-call wrapper
+45D3 InstrBanked_45D3           ; banked-call wrapper
+461B InstrProc_461B             ; subroutine; purpose TBD
+4638 InstrBanked_4638           ; banked-call wrapper
+47A2 InstrGetField5_47A2        ; instrument field 0x5 read
+482E InstrGetField5_482E        ; instrument field 0x5 read
+489D InstrGetField6_489D        ; instrument field 0x6 read
+48D6 InstrGetField6_48D6        ; instrument field 0x6 read
+495C InstrGetField6_495C        ; instrument field 0x6 read
+498B InstrDrawStr_498B          ; calls DrawStringIndexed
+49B7 InstrDrawHex_49B7          ; calls DrawHexByte
+49E7 InstrGetField2_49E7        ; instrument field 0x2 read
+49FD InstrDrawStr_49FD          ; calls DrawStringIndexed
+4A44 InstrDrawStr_4A44          ; calls DrawStringIndexed
+4ACF InstrGetFieldB_4ACF        ; instrument field 0xb read
+4AE0 InstrSetFieldB_4AE0        ; instrument field 0xb write
+4AF4 InstrGetFieldA_4AF4        ; instrument field 0xa read
+4B0A InstrSetFieldA_4B0A        ; instrument field 0xa write
+4B29 InstrGetField2_4B29        ; instrument field 0x2 read
+4B4C InstrGetField5_4B4C        ; instrument field 0x5 read
+4B5E InstrGetField5_4B5E        ; instrument field 0x5 read
+4BAC InstrProc_4BAC             ; subroutine; purpose TBD
+4BCB InstrProc_4BCB             ; subroutine; purpose TBD
+4BE9 InstrGetField0_4BE9        ; instrument field 0x0 read
+4BF9 InstrGetField5_4BF9        ; instrument field 0x5 read
+4C64 InstrGetField5_4C64        ; instrument field 0x5 read
+4CD9 InstrGetFieldC_4CD9        ; instrument field 0xc read
+4D15 InstrGetField3_4D15        ; instrument field 0x3 read
+4DD7 InstrBanked_4DD7           ; banked-call wrapper
+4FDC InstrDrawHex_4FDC          ; calls DrawHexByte
+5002 InstrInstrRead_5002        ; calls ReadCurInstrByte
+503A InstrInstrRead_503A        ; calls ReadCurInstrByte
+508C InstrInstrRead_508C        ; calls ReadCurInstrByte
+50DF InstrInstrRead_50DF        ; calls ReadCurInstrByte
+5128 InstrSetField0_5128        ; instrument field 0x0 write
+5181 InstrInstrRead_5181        ; calls ReadCurInstrByte
+51BC InstrInstrRead_51BC        ; calls ReadCurInstrByte
+51F4 InstrInstrRead_51F4        ; calls ReadCurInstrByte
+5231 InstrInstrRead_5231        ; calls ReadCurInstrByte
+526B InstrGetField3_526B        ; instrument field 0x3 read
+52BF InstrGetField3_52BF        ; instrument field 0x3 read
+531C InstrGetField3_531C        ; instrument field 0x3 read
+537A InstrGetField3_537A        ; instrument field 0x3 read
+53DE InstrGetField0_53DE        ; instrument field 0x0 read

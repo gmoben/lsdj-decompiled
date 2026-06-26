@@ -12,21 +12,56 @@
 405D AccessWord          ; words[word][32] cell at SRAM bank0 $B890 (42 words; allophone+length pairs)
 41A2 DrawWordScreen      ; screen idx 12: draws speech words; edits words ($B890) + word_names ($BDD0)
 5A62 ChainScreenUpdate  ; per-frame visual update (screen idx 3)
-; --- mechanically-named call-targets (interface-based; some purpose TBD) ---
-4000 ChainProc_4000         ; subroutine (purpose TBD) (5x)
-4026 ChainProc_4026         ; subroutine (purpose TBD) (2x)
-4306 ChainProc_4306         ; subroutine (purpose TBD) (2x)
-4901 ChainProc_4901         ; subroutine (purpose TBD) (1x)
-4992 ChainProc_4992         ; subroutine (purpose TBD) (11x)
-5398 ChainProc_5398         ; subroutine (purpose TBD) (1x)
 5511 ChainBanked_5511       ; banked-call wrapper (2x)
-5563 ChainProc_5563         ; subroutine (purpose TBD) (2x)
-5655 ChainProc_5655         ; subroutine (purpose TBD) (8x)
-7006 ChainProc_7006         ; subroutine (purpose TBD) (6x)
-7469 ChainProc_7469         ; subroutine (purpose TBD) (1x)
-7524 ChainProc_7524         ; subroutine (purpose TBD) (1x)
-4279 ChainProc_4279         ; jp-reached subroutine (purpose TBD)
-5804 ChainProc_5804         ; jp-reached subroutine (purpose TBD)
-5836 ChainProc_5836         ; jp-reached subroutine (purpose TBD)
-5868 ChainProc_5868         ; jp-reached subroutine (purpose TBD)
-7508 ChainProc_7508         ; jp-reached subroutine (purpose TBD)
+
+; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
+4000 ChainProc_4000             ; subroutine; purpose TBD
+4026 ChainDrawStr_4026          ; calls DrawString
+40B3 ChainSongWrite_40B3        ; calls WriteSongByte
+410E ChainProc_410E             ; subroutine; purpose TBD
+414F ChainProc_414F             ; subroutine; purpose TBD
+4279 ChainDrawHex_4279          ; calls DrawHexByte
+4306 ChainDrawHex_4306          ; calls DrawHexByte
+48AB ChainFunc_48AB             ; subroutine returns value; purpose TBD
+4901 ChainFunc_4901             ; subroutine returns value; purpose TBD
+493F ChainSongWrite_493F        ; calls WriteSongByte
+4992 ChainPhraseNote_4992       ; accesses PhraseNote
+4AB0 ChainProc_4AB0             ; subroutine; purpose TBD
+4B16 ChainProc_4B16             ; subroutine; purpose TBD
+4B40 ChainProc_4B40             ; subroutine; purpose TBD
+4BA7 ChainProc_4BA7             ; subroutine; purpose TBD
+4C55 ChainDrawByte_4C55         ; calls DrawByte
+4EAC ChainProc_4EAC             ; subroutine; purpose TBD
+4EBD ChainProc_4EBD             ; subroutine; purpose TBD
+4F02 ChainProc_4F02             ; subroutine; purpose TBD
+4F42 ChainProc_4F42             ; subroutine; purpose TBD
+4FA9 ChainProc_4FA9             ; subroutine; purpose TBD
+4FFB ChainProc_4FFB             ; subroutine; purpose TBD
+504E ChainBanked_504E           ; banked-call wrapper
+5398 ChainBanked_5398           ; banked-call wrapper
+546C ChainProc_546C             ; subroutine; purpose TBD
+54FA ChainSeqRead_54FA          ; calls ReadSeqByte
+5563 ChainSeqRead_5563          ; calls ReadSeqByte
+5655 ChainProc_5655             ; subroutine; purpose TBD
+56AA ChainChainTrans_56AA       ; accesses ChainTrans
+56F0 ChainSongWrite_56F0        ; calls WriteSongByte
+5804 ChainSongWrite_5804        ; calls WriteSongByte
+5836 ChainSongWrite_5836        ; calls WriteSongByte
+5868 ChainSongWrite_5868        ; calls WriteSongByte
+58A7 ChainProc_58A7             ; subroutine; purpose TBD
+5ABE ChainProc_5ABE             ; subroutine; purpose TBD
+5B00 ChainDrawHex_5B00          ; calls DrawHexByte
+6D55 ChainBanked_6D55           ; banked-call wrapper
+6F0D ChainBanked_6F0D           ; banked-call wrapper
+7006 ChainProc_7006             ; subroutine; purpose TBD
+71ED ChainDrawStr_71ED          ; calls DrawString
+73C0 ChainDrawStr_73C0          ; calls DrawString
+73DC ChainFunc_73DC             ; subroutine returns value; purpose TBD
+740C ChainProc_740C             ; subroutine; purpose TBD
+7469 ChainProc_7469             ; subroutine; purpose TBD
+7508 ChainProc_7508             ; subroutine; purpose TBD
+7524 ChainDrawStr_7524          ; calls DrawStringIndexed
+75BA ChainDrawStr_75BA          ; calls DrawStringIndexed
+784C ChainFunc_784C             ; subroutine returns value; purpose TBD
+786F ChainProc_786F             ; subroutine; purpose TBD
+78B8 ChainProc_78B8             ; subroutine; purpose TBD

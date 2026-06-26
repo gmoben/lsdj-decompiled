@@ -15,22 +15,57 @@
 62F5 SynthPhaseNames    ; phase types " PINCH"/"  WARP"/"RESYNC" (7-byte stride)
 63F6 SynthFilterNames   ; filter types " LOWP"/"HIGHP"/"BANDP"/" ALLP" (6-byte stride)
 65B3 SynthDistNames     ; distortion types "CLIP"/"FOLD"/"WRAP" (5-byte stride)
-; --- mechanically-named call-targets (interface-based; some purpose TBD) ---
-4394 SynthProc_4394         ; subroutine (purpose TBD) (3x)
-5190 SynthProc_5190         ; subroutine (purpose TBD) (4x)
-5323 SynthProc_5323         ; subroutine (purpose TBD) (1x)
-5695 SynthProc_5695         ; subroutine (purpose TBD) (1x)
-6115 SynthProc_6115         ; subroutine (purpose TBD) (1x)
-6144 SynthProc_6144         ; subroutine (purpose TBD) (1x)
-6193 SynthProc_6193         ; subroutine (purpose TBD) (6x)
-6414 SynthProc_6414         ; subroutine (purpose TBD) (5x)
-6503 SynthProc_6503         ; subroutine (purpose TBD) (5x)
-6577 SynthProc_6577         ; subroutine (purpose TBD) (3x)
-7111 SynthProc_7111         ; subroutine (purpose TBD) (3x)
-6709 SynthProc_6709         ; jp-reached subroutine (purpose TBD)
-6791 SynthProc_6791         ; jp-reached subroutine (purpose TBD)
-6819 SynthProc_6819         ; jp-reached subroutine (purpose TBD)
-6865 SynthProc_6865         ; jp-reached subroutine (purpose TBD)
-6935 SynthProc_6935         ; jp-reached subroutine (purpose TBD)
-6967 SynthProc_6967         ; jp-reached subroutine (purpose TBD)
-6997 SynthProc_6997         ; jp-reached subroutine (purpose TBD)
+
+; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
+40AE SynthProc_40AE             ; subroutine; purpose TBD
+425B SynthDrawStr_425B          ; calls DrawStringIndexed
+435D SynthProc_435D             ; subroutine; purpose TBD
+4394 SynthProc_4394             ; subroutine; purpose TBD
+43CF SynthDrawHex_43CF          ; calls DrawHexByte
+4B6C SynthBanked_4B6C           ; banked-call wrapper
+4C63 SynthProc_4C63             ; subroutine; purpose TBD
+4CDE SynthProc_4CDE             ; subroutine; purpose TBD
+4D81 SynthProc_4D81             ; subroutine; purpose TBD
+5190 SynthProc_5190             ; subroutine; purpose TBD
+5323 SynthProc_5323             ; subroutine; purpose TBD
+5695 SynthProc_5695             ; subroutine; purpose TBD
+58DA SynthFunc_58DA             ; subroutine returns value; purpose TBD
+58E6 SynthMemFill_58E6          ; calls MemSet
+5BBD SynthMemFill_5BBD          ; calls MemSet
+5E53 SynthProc_5E53             ; subroutine; purpose TBD
+5F00 SynthProc_5F00             ; subroutine; purpose TBD
+5F29 SynthSongWrite_5F29        ; calls WriteSongByte
+5F90 SynthProc_5F90             ; subroutine; purpose TBD
+60A7 SynthProc_60A7             ; subroutine; purpose TBD
+6115 SynthFunc_6115             ; subroutine returns value; purpose TBD
+6144 SynthSongWrite_6144        ; calls WriteSongByte
+6193 SynthProc_6193             ; subroutine; purpose TBD
+62A8 SynthDrawStr_62A8          ; calls DrawString
+636E SynthSynthParam_636E       ; calls SynthParamAddr
+6414 SynthSynthParam_6414       ; calls SynthParamAddr
+649F SynthProc_649F             ; subroutine; purpose TBD
+6503 SynthProc_6503             ; subroutine; purpose TBD
+6577 SynthDrawStr_6577          ; calls DrawString
+65C2 SynthDrawStr_65C2          ; calls DrawStringIndexed
+6709 SynthDrawHex_6709          ; calls DrawHexByte
+6791 SynthDrawHex_6791          ; calls DrawHexByte
+6819 SynthDrawHex_6819          ; calls DrawHexByte
+6865 SynthDrawHex_6865          ; calls DrawHexByte
+68F9 SynthSynth_68F9            ; accesses Synth
+6935 SynthProc_6935             ; subroutine; purpose TBD
+6967 SynthProc_6967             ; subroutine; purpose TBD
+6997 SynthProc_6997             ; subroutine; purpose TBD
+6B33 SynthDrawStr_6B33          ; calls DrawStringIndexed
+6D0F SynthProc_6D0F             ; subroutine; purpose TBD
+6D6F SynthDrawStr_6D6F          ; calls DrawString
+6E00 SynthBanked_6E00           ; banked-call wrapper
+6E11 SynthProc_6E11             ; subroutine; purpose TBD
+6E6E SynthSongWrite_6E6E        ; calls WriteSongByte
+6EB6 SynthDrawHex_6EB6          ; calls DrawHexByte
+6F3F SynthDrawHex_6F3F          ; calls DrawHexByte
+6FC4 SynthDrawHex_6FC4          ; calls DrawHexByte
+702B SynthDrawHex_702B          ; calls DrawHexByte
+708E SynthSynthParam_708E       ; calls SynthParamAddr
+70BC SynthSynthParam_70BC       ; calls SynthParamAddr
+70E4 SynthSynthParam_70E4       ; calls SynthParamAddr
+7111 SynthSynthParam_7111       ; calls SynthParamAddr

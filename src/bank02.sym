@@ -53,29 +53,108 @@
 649D FxCmd_R            ; R: retrig
 65F3 FxCmd_K            ; K: kill note
 7DD1 FxCmd_V            ; V: vibrato
-; --- mechanically-named call-targets (interface-based; some purpose TBD) ---
-4000 SndProc_4000           ; subroutine (purpose TBD) (3x)
-4033 SndProc_4033           ; subroutine (purpose TBD) (1x)
-4132 SndFunc_4132           ; subroutine (returns a value; purpose TBD) (1x)
-4208 SndProc_4208           ; subroutine (purpose TBD) (2x)
-4254 SndFunc_4254           ; subroutine (returns a value; purpose TBD) (1x)
-4276 SndProc_4276           ; subroutine (purpose TBD) (2x)
-4637 SndProc_4637           ; subroutine (purpose TBD) (6x)
-4753 SndProc_4753           ; subroutine (purpose TBD) (1x)
-5074 SndFunc_5074           ; subroutine (returns a value; purpose TBD) (2x)
-5119 SndProc_5119           ; subroutine (purpose TBD) (1x)
-5165 SndProc_5165           ; subroutine (purpose TBD) (4x)
-5345 SndProc_5345           ; subroutine (purpose TBD) (1x)
-5459 SndFunc_5459           ; subroutine (returns a value; purpose TBD) (1x)
-5477 SndFunc_5477           ; subroutine (returns a value; purpose TBD) (3x)
-5604 SndProc_5604           ; subroutine (purpose TBD) (1x)
-5657 SndProc_5657           ; subroutine (purpose TBD) (1x)
-5778 SndProc_5778           ; subroutine (purpose TBD) (1x)
-6479 SndProc_6479           ; subroutine (purpose TBD) (2x)
-6577 SndProc_6577           ; subroutine (purpose TBD) (2x)
-6694 SndProc_6694           ; subroutine (purpose TBD) (1x)
-6904 SndProc_6904           ; subroutine (purpose TBD) (1x)
-7034 SndProc_7034           ; subroutine (purpose TBD) (1x)
-7362 SndProc_7362           ; subroutine (purpose TBD) (2x)
-6270 SndProc_6270           ; jp-reached subroutine (purpose TBD)
-6685 SndProc_6685           ; jp-reached subroutine (purpose TBD)
+
+; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
+4000 SndProc_4000               ; subroutine; purpose TBD
+4033 SndProc_4033               ; subroutine; purpose TBD
+40E6 SndFunc_40E6               ; subroutine returns value; purpose TBD
+410C SndFunc_410C               ; subroutine returns value; purpose TBD
+4132 SndProc_4132               ; subroutine; purpose TBD
+4208 SndFunc_4208               ; subroutine returns value; purpose TBD
+422E SndFunc_422E               ; subroutine returns value; purpose TBD
+4254 SndProc_4254               ; subroutine; purpose TBD
+4276 SndProc_4276               ; subroutine; purpose TBD
+43CE SndProc_43CE               ; subroutine; purpose TBD
+4637 SndFunc_4637               ; subroutine returns value; purpose TBD
+46C7 SndProc_46C7               ; subroutine; purpose TBD
+472F SndFunc_472F               ; subroutine returns value; purpose TBD
+4753 SndProc_4753               ; subroutine; purpose TBD
+478D SndProc_478D               ; subroutine; purpose TBD
+483F SndProc_483F               ; subroutine; purpose TBD
+48AB SndGrooveStep_48AB         ; calls ReadGroove
+4B8A SndChainTrans_4B8A         ; accesses ChainTrans
+4BC5 SndFunc_4BC5               ; subroutine returns value; purpose TBD
+4C26 SndProc_4C26               ; subroutine; purpose TBD
+4C42 SndProc_4C42               ; subroutine; purpose TBD
+4C4E SndProc_4C4E               ; subroutine; purpose TBD
+4C68 SndProc_4C68               ; subroutine; purpose TBD
+4C9C SndProc_4C9C               ; subroutine; purpose TBD
+4CBF SndAdvanceSong_4CBF        ; calls AdvanceSongRow
+4D71 SndRunChannel_4D71         ; calls ProcessChannel
+4DA9 SndReadSongChain_4DA9      ; calls ReadSongChain
+4E17 SndFunc_4E17               ; subroutine returns value; purpose TBD
+4E2A SndFunc_4E2A               ; subroutine returns value; purpose TBD
+4E69 SndFunc_4E69               ; subroutine returns value; purpose TBD
+4E74 SndProc_4E74               ; subroutine; purpose TBD
+4EA3 SndProc_4EA3               ; subroutine; purpose TBD
+4F2B SndProc_4F2B               ; subroutine; purpose TBD
+4F2F SndProc_4F2F               ; subroutine; purpose TBD
+4F3C SndFunc_4F3C               ; subroutine returns value; purpose TBD
+4FC0 SndProc_4FC0               ; subroutine; purpose TBD
+503C SndFunc_503C               ; subroutine returns value; purpose TBD
+504A SndProc_504A               ; subroutine; purpose TBD
+5074 SndProc_5074               ; subroutine; purpose TBD
+507F SndProc_507F               ; subroutine; purpose TBD
+509C SndReadCursor_509C         ; calls ReadChanCursor
+50E1 SndReadCursor_50E1         ; calls ReadChanCursor
+5119 SndReadCursor_5119         ; calls ReadChanCursor
+5165 SndFunc_5165               ; subroutine returns value; purpose TBD
+5345 SndProc_5345               ; subroutine; purpose TBD
+5459 SndFunc_5459               ; subroutine returns value; purpose TBD
+5477 SndFunc_5477               ; subroutine returns value; purpose TBD
+54D7 SndTableTrans_54D7         ; calls ReadTableTranspose
+55AE SndFunc_55AE               ; subroutine returns value; purpose TBD
+55CB SndFunc_55CB               ; subroutine returns value; purpose TBD
+55EF SndFunc_55EF               ; subroutine returns value; purpose TBD
+5604 SndFunc_5604               ; subroutine returns value; purpose TBD
+561B SndProc_561B               ; subroutine; purpose TBD
+5657 SndTableTrans_5657         ; accesses TableTrans
+56E1 SndFunc_56E1               ; subroutine returns value; purpose TBD
+572B SndFunc_572B               ; subroutine returns value; purpose TBD
+5778 SndProc_5778               ; subroutine; purpose TBD
+583F SndProc_583F               ; subroutine; purpose TBD
+58C7 SndProc_58C7               ; subroutine; purpose TBD
+58EA SndInstr_58EA              ; accesses Instr
+5F5E SndFunc_5F5E               ; subroutine returns value; purpose TBD
+5FA7 SndProc_5FA7               ; subroutine; purpose TBD
+5FBE SndProc_5FBE               ; subroutine; purpose TBD
+5FDA SndFunc_5FDA               ; subroutine returns value; purpose TBD
+61A9 SndProc_61A9               ; subroutine; purpose TBD
+61F7 SndFunc_61F7               ; subroutine returns value; purpose TBD
+6270 SndTriggerWave_6270        ; calls TriggerWave
+6479 SndProc_6479               ; subroutine; purpose TBD
+6577 SndFunc_6577               ; subroutine returns value; purpose TBD
+6685 SndProc_6685               ; subroutine; purpose TBD
+6694 SndProc_6694               ; subroutine; purpose TBD
+66E7 SndTableEnv_66E7           ; calls ReadTableEnvelope
+6904 SndProc_6904               ; subroutine; purpose TBD
+69C3 SndProc_69C3               ; subroutine; purpose TBD
+69DF SndProc_69DF               ; subroutine; purpose TBD
+6A94 SndProc_6A94               ; subroutine; purpose TBD
+6B59 SndFunc_6B59               ; subroutine returns value; purpose TBD
+6B9B SndProc_6B9B               ; subroutine; purpose TBD
+6BBA SndSeqRead_6BBA            ; calls ReadSeqByte
+6D97 SndMemFill_6D97            ; calls MemSet
+6E0F SndProc_6E0F               ; subroutine; purpose TBD
+6E24 SndProc_6E24               ; subroutine; purpose TBD
+6EA7 SndProc_6EA7               ; subroutine; purpose TBD
+6F65 SndChainPhrase_6F65        ; accesses ChainPhrase
+6FB6 SndProc_6FB6               ; subroutine; purpose TBD
+7034 SndTriggerWave_7034        ; calls TriggerWave
+70FB SndProc_70FB               ; subroutine; purpose TBD
+710E SndProc_710E               ; subroutine; purpose TBD
+711F SndAdvanceSong_711F        ; calls AdvanceSongRow
+7362 SndFunc_7362               ; subroutine returns value; purpose TBD
+73B0 SndProc_73B0               ; subroutine; purpose TBD
+748E SndProc_748E               ; subroutine; purpose TBD
+75C6 SndProc_75C6               ; subroutine; purpose TBD
+77F0 SndProc_77F0               ; subroutine; purpose TBD
+786F SndProc_786F               ; subroutine; purpose TBD
+792B SndSeqRead_792B            ; calls ReadSeqByte
+7B31 SndProc_7B31               ; subroutine; purpose TBD
+7C4C SndMemFill_7C4C            ; calls MemSet
+7CFB SndProc_7CFB               ; subroutine; purpose TBD
+7F24 SndProc_7F24               ; subroutine; purpose TBD
+7F33 SndProc_7F33               ; subroutine; purpose TBD
+7F3E SndProc_7F3E               ; subroutine; purpose TBD
+7F49 SndProc_7F49               ; subroutine; purpose TBD

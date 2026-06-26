@@ -5,7 +5,23 @@
 4668 ReadTableStep       ; read the 4 columns (env/transpose/cmd1/cmd2) for table[wTable][step]
 4762 DrawTableScreen     ; screen idx 5: draws the table (env/transpose/cmd cols)
 4967 TableScreenUpdate  ; per-frame visual update (screen idx 5)
-; --- mechanically-named call-targets (interface-based; some purpose TBD) ---
-4000 TableProc_4000         ; subroutine (purpose TBD) (2x)
-4167 TableProc_4167         ; subroutine (purpose TBD) (4x)
-4930 TableProc_4930         ; subroutine (purpose TBD) (4x)
+
+; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
+4000 TableDrawStr_4000          ; calls DrawStringIndexed
+4167 TableProc_4167             ; subroutine; purpose TBD
+420C TableFunc_420C             ; subroutine returns value; purpose TBD
+421A TableBanked_421A           ; banked-call wrapper
+42A4 TableDrawStr_42A4          ; calls DrawStringIndexed
+42E7 TableFunc_42E7             ; subroutine returns value; purpose TBD
+43B7 TableSongWrite_43B7        ; calls WriteSongByte
+442A TableSongWrite_442A        ; calls WriteSongByte
+44E8 TableTableEnv_44E8         ; accesses TableEnv
+453B TableProc_453B             ; subroutine; purpose TBD
+459E TableTableTrans_459E       ; accesses TableTrans
+45F1 TableProc_45F1             ; subroutine; purpose TBD
+472B TableDrawStr_472B          ; calls DrawStringIndexed
+4930 TableFunc_4930             ; subroutine returns value; purpose TBD
+4AA8 TableDrawHex_4AA8          ; calls DrawHexByte
+61CA TableBanked_61CA           ; banked-call wrapper
+64A3 TableProc_64A3             ; subroutine; purpose TBD
+676A TableProc_676A             ; subroutine; purpose TBD

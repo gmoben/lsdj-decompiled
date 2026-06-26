@@ -5,26 +5,54 @@
 7220 VramCopyByteSafe   ; spin until rSTAT mode<2 (VRAM free), then copy [de]->[hl], inc e/l
 4574 DrawSongScreen      ; screen idx 4: draws the song sequence (4 channels = PU1/PU2/WAV/NOI)
 47AA SongScreenUpdate   ; per-frame visual update (screen idx 4)
-; --- mechanically-named call-targets (interface-based; some purpose TBD) ---
-4000 SongProc_4000          ; subroutine (purpose TBD) (2x)
-4084 SongProc_4084          ; subroutine (purpose TBD) (10x)
 4139 SongBanked_4139        ; banked-call wrapper (1x)
-4395 SongProc_4395          ; subroutine (purpose TBD) (8x)
-4463 SongProc_4463          ; subroutine (purpose TBD) (1x)
-4540 SongProc_4540          ; subroutine (purpose TBD) (3x)
-4657 SongProc_4657          ; subroutine (purpose TBD) (1x)
-4973 SongProc_4973          ; subroutine (purpose TBD) (1x)
-4998 SongProc_4998          ; subroutine (purpose TBD) (1x)
-5736 SongProc_5736          ; subroutine (purpose TBD) (3x)
-5739 SongProc_5739          ; subroutine (purpose TBD) (1x)
-5970 SongProc_5970          ; subroutine (purpose TBD) (1x)
-6320 SongProc_6320          ; subroutine (purpose TBD) (10x)
-6413 SongProc_6413          ; subroutine (purpose TBD) (1x)
-6543 SongProc_6543          ; subroutine (purpose TBD) (1x)
-6812 SongProc_6812          ; subroutine (purpose TBD) (7x)
-7012 SongProc_7012          ; subroutine (purpose TBD) (4x)
-7033 SongProc_7033          ; subroutine (purpose TBD) (3x)
-7276 SongProc_7276          ; subroutine (purpose TBD) (1x)
-7422 SongProc_7422          ; subroutine (purpose TBD) (1x)
-4366 SongProc_4366          ; jp-reached subroutine (purpose TBD)
-5929 SongProc_5929          ; jp-reached subroutine (purpose TBD)
+
+; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
+4000 SongProc_4000              ; subroutine; purpose TBD
+404B SongFunc_404B              ; subroutine returns value; purpose TBD
+4084 SongProc_4084              ; subroutine; purpose TBD
+4366 SongProc_4366              ; subroutine; purpose TBD
+4395 SongProc_4395              ; subroutine; purpose TBD
+43E4 SongProc_43E4              ; subroutine; purpose TBD
+4463 SongDrawHex_4463           ; calls DrawHexByte
+451E SongProc_451E              ; subroutine; purpose TBD
+4540 SongProc_4540              ; subroutine; purpose TBD
+4657 SongProc_4657              ; subroutine; purpose TBD
+47CF SongDrawStr_47CF           ; calls DrawStringIndexed
+492D SongProc_492D              ; subroutine; purpose TBD
+494E SongProc_494E              ; subroutine; purpose TBD
+4973 SongProc_4973              ; subroutine; purpose TBD
+4998 SongProc_4998              ; subroutine; purpose TBD
+49E7 SongFunc_49E7              ; subroutine returns value; purpose TBD
+4A25 SongProc_4A25              ; subroutine; purpose TBD
+4A79 SongFunc_4A79              ; subroutine returns value; purpose TBD
+4AB8 SongBanked_4AB8            ; banked-call wrapper
+4AFD SongDrawHex_4AFD           ; calls DrawHexByte
+5736 SongProc_5736              ; subroutine; purpose TBD
+5739 SongSeqRead_5739           ; calls ReadSeqByte
+5929 SongProc_5929              ; subroutine; purpose TBD
+5970 SongProc_5970              ; subroutine; purpose TBD
+5B1D SongSongWrite_5B1D         ; calls WriteSongByte
+627C SongPhraseCmdVal_627C      ; accesses PhraseCmdVal
+6320 SongPhraseCmdVal_6320      ; accesses PhraseCmdVal
+637C SongPhraseCmdVal_637C      ; accesses PhraseCmdVal
+63B5 SongPhraseCmdVal_63B5      ; accesses PhraseCmdVal
+6413 SongMemFill_6413           ; calls MemSet
+644F SongPhraseCmdVal_644F      ; accesses PhraseCmdVal
+64CA SongPhraseCmdVal_64CA      ; accesses PhraseCmdVal
+6543 SongDrawStr_6543           ; calls DrawStringIndexed
+672A SongFunc_672A              ; subroutine returns value; purpose TBD
+674D SongBanked_674D            ; banked-call wrapper
+6812 SongDrawStr_6812           ; calls DrawStringIndexed
+6E50 SongBanked_6E50            ; banked-call wrapper
+7012 SongFunc_7012              ; subroutine returns value; purpose TBD
+7033 SongSync_7033              ; calls SendSyncHandshake
+704E SongDrawStr_704E           ; calls DrawStringIndexed
+71BF SongProc_71BF              ; subroutine; purpose TBD
+720A SongDrawStr_720A           ; calls DrawStringIndexed
+722B SongVramCopy_722B          ; calls VramCopyByteSafe
+7276 SongVramCopy_7276          ; calls VramCopyByteSafe
+72C1 SongProc_72C1              ; subroutine; purpose TBD
+735B SongProc_735B              ; subroutine; purpose TBD
+73F5 SongProc_73F5              ; subroutine; purpose TBD
+7422 SongProc_7422              ; subroutine; purpose TBD

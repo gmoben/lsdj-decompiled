@@ -1,2 +1,7 @@
 ; Bank $1E -- screen pre-draw helper
 4000 ScreenPreDraw       ; called before most screen draws (ScreenDrawDispatch prologue)
+
+; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
+79FA GfxProc_79FA               ; subroutine; purpose TBD
+7A38 GfxFunc_7A38               ; subroutine returns value; purpose TBD
+7A4B GfxProc_7A4B               ; subroutine; purpose TBD
