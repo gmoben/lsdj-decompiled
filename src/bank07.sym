@@ -8,30 +8,30 @@
 4139 SongBanked_4139        ; banked-call wrapper (1x)
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
-4000 SongProc_4000              ; subroutine; purpose TBD
-404B SongFunc_404B              ; subroutine returns value; purpose TBD
-4084 SongProc_4084              ; subroutine; purpose TBD
-4366 SongProc_4366              ; subroutine; purpose TBD
-4395 SongProc_4395              ; subroutine; purpose TBD
-43E4 SongProc_43E4              ; subroutine; purpose TBD
+4000 SongCheckGlyphTables       ; bounds-checked indices into ROM glyph tables $4A70/$4D70 (DebugTrap on overflow)
+404B SongChanActiveMask         ; OR wChanActive[0..3] -> combined active flag
+4084 SongReadCellValue          ; read song-grid cell at col $c41d / row $c41e (SongPhraseCmdVal_6320)
+4366 SongShowCloneMsg           ; show "CLONED CHAIN" / "CLONED CHAIN+PHRASES" popup
+4395 SongDrawCellHw             ; draw song-grid cell (palette per hGameboyType)
+43E4 SongReadRow                ; read song row $c41c from SRAM ($B290, ReadSongBytes) -> $c46d (16 bytes)
 4463 SongDrawHex_4463           ; calls DrawHexByte
-451E SongProc_451E              ; subroutine; purpose TBD
-4540 SongProc_4540              ; subroutine; purpose TBD
-4657 SongProc_4657              ; subroutine; purpose TBD
+451E SongRedrawRow              ; SongReadRow + draw the row at VRAM $9842 (palettes, SongProc_71BF/4395)
+4540 SongScrollToCursor         ; clamp song top-row $c41c so cursor $c41e stays visible
+4657 SongUpdatePlayMarker       ; per-channel play-position markers from wChanSongRow/NextSongRow (<-SongScreenUpdate)
 47CF SongDrawStr_47CF           ; calls DrawStringIndexed
-492D SongProc_492D              ; subroutine; purpose TBD
-494E SongProc_494E              ; subroutine; purpose TBD
-4973 SongProc_4973              ; subroutine; purpose TBD
-4998 SongProc_4998              ; subroutine; purpose TBD
-49E7 SongFunc_49E7              ; subroutine returns value; purpose TBD
-4A25 SongProc_4A25              ; subroutine; purpose TBD
-4A79 SongFunc_4A79              ; subroutine returns value; purpose TBD
+492D SongDrawCursorRow          ; draw cursor-row string (GetTilemapAddr at $c41e-$c41c, SongDrawStr_47CF)
+494E SongDrawHeaderLeft         ; draw left header label at VRAM $9840 (hw VramCopy)
+4973 SongDrawHeaderRight        ; draw right header element (hw VramCopy)
+4998 SongFindNextRow            ; scan down 1..16 from cursor $c41e, wrapping at 0 -> $ff
+49E7 SongCursorPageDown         ; PgDn: advance song cursor $c41e by a page ($c413==4 guard)
+4A25 SongFindPrevRow            ; scan up 1..16 from cursor $c41e, wrapping
+4A79 SongCursorPageUp           ; PgUp: retreat song cursor $c41e by a page
 4AB8 SongBanked_4AB8            ; banked-call wrapper
 4AFD SongDrawHex_4AFD           ; calls DrawHexByte
-5736 SongProc_5736              ; subroutine; purpose TBD
+5736 SongStartSelection         ; framed entry to SongSeqRead_5739 (begin song selection/edit)
 5739 SongSeqRead_5739           ; calls ReadSeqByte
-5929 SongProc_5929              ; subroutine; purpose TBD
-5970 SongProc_5970              ; subroutine; purpose TBD
+5929 SongEndSelection           ; finish selection ($0dbc), restore cursor from $c40d/$c94b
+5970 SongCalcSelectionSpan      ; compute selection span from $c40d/$c40f/$c41d
 5B1D SongSongWrite_5B1D         ; calls WriteSongByte
 627C SongPhraseCmdVal_627C      ; accesses PhraseCmdVal
 6320 SongPhraseCmdVal_6320      ; accesses PhraseCmdVal
@@ -41,18 +41,18 @@
 644F SongPhraseCmdVal_644F      ; accesses PhraseCmdVal
 64CA SongPhraseCmdVal_64CA      ; accesses PhraseCmdVal
 6543 SongDrawStr_6543           ; calls DrawStringIndexed
-672A SongFunc_672A              ; subroutine returns value; purpose TBD
+672A SongHexDigit               ; return hex char "0123456789ABCDEF"[arg]
 674D SongBanked_674D            ; banked-call wrapper
 6812 SongDrawStr_6812           ; calls DrawStringIndexed
 6E50 SongBanked_6E50            ; banked-call wrapper
-7012 SongFunc_7012              ; subroutine returns value; purpose TBD
+7012 SongDequeueByte            ; wait on $cb7d, read next byte from $cb81 ring (index $cb80)
 7033 SongSync_7033              ; calls SendSyncHandshake
 704E SongDrawStr_704E           ; calls DrawStringIndexed
-71BF SongProc_71BF              ; subroutine; purpose TBD
+71BF SongDrawColumnValues       ; draw 16 song-row values into the column ($c46d, SongPhraseCmdVal_6320)
 720A SongDrawStr_720A           ; calls DrawStringIndexed
 722B SongVramCopy_722B          ; calls VramCopyByteSafe
 7276 SongVramCopy_7276          ; calls VramCopyByteSafe
-72C1 SongProc_72C1              ; subroutine; purpose TBD
-735B SongProc_735B              ; subroutine; purpose TBD
-73F5 SongProc_73F5              ; subroutine; purpose TBD
-7422 SongProc_7422              ; subroutine; purpose TBD
+72C1 SongScrollVramUp           ; shift VRAM rows up ($9a00 -> $9a20, 15 bytes, hblank-safe)
+735B SongScrollVramDown         ; shift VRAM rows down (counterpart of SongScrollVramUp)
+73F5 SongScanSram               ; read SRAM bytes (di-guarded) until pointer reaches $B590
+7422 SongWriteSramBytes         ; write N bytes (count arg) to SRAM (di, bank-select, $0a enable)
