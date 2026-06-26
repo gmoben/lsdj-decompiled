@@ -27,6 +27,11 @@ DEF wInstrField      EQU $C427  ; Instrument editor: current parameter/field ind
 DEF wTableCol        EQU $C92F  ; Table editor: current column/cursor state (bit7 = special)
 DEF wGrooveRow       EQU $C9D4  ; Groove editor: current step/row cursor (0-15)
 DEF wPlayMode        EQU $C4D2  ; sound playback mode: 0=stopped, 3/4/5=playing; main loop runs SndRunFrame only when nonzero
+; --- song (de)compression cursors (bank $1C; see docs/save_format.md) ----------
+DEF wCompBank        EQU $C979  ; SRAM bank used for compressed block I/O
+DEF wCompSrc         EQU $C97B  ; compressed-stream read pointer (decompress input), 16-bit
+DEF wCompDst         EQU $C97D  ; (de)compression output pointer into the working song, 16-bit
+DEF wDecompPos       EQU $C983  ; cursor into the $DA00 decompress scratch buffer
 
 ; --- Drawing helpers (used by DrawString/DrawHexByte/... in bank 0) ----------
 DEF wStringSrc       EQU $C564  ; source pointer for DrawString (16-bit)
