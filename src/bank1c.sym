@@ -47,36 +47,37 @@
 594A FileCheckNameLen           ; return whether ($c999-$c99b) exceeds $0b (name length)
 595F FileCalcCompressedSize     ; read 4 size bytes + MulU16 -> total compressed size
 59E6 FileDrawStr_59E6           ; calls DrawString
-60CC FileReadInstrByte          ; read an instrument byte (ReadInstrByte wrapper) for serialization
-60E0 FileInstrWrite_60E0        ; calls WriteInstrByte
-60F5 FileSerializeField         ; serialize bytes per a descriptor ptr + type code (core of instrument save)
-61D6 FileSaveInstrument         ; serialize one instrument (dispatch via FileSerializeField/ReadInstrByte/InstrWrite)
-621D FileSaveInstrEnvelope      ; (?) serialize instrument envelope section (descriptor $61e6)
-622D FileSongWrite_622D         ; calls WriteSongByte
-630F FileSaveInstrPulse         ; (?) serialize pulse-instrument fields (descriptors $628b/$62d3)
-6336 FileSongWrite_6336         ; calls WriteSongByte
-63C6 FileSaveInstrWave          ; (?) serialize wave-instrument fields
-640B FileSaveInstrField640B     ; (?) serialize an instrument field group (FileSerializeField)
-641B FileClassifyInstrByte      ; classify an instrument byte ($80/$b8/$bc/$f0 ranges)
-6503 FileSaveInstrKit           ; (?) serialize kit-instrument fields
-6530 FileSaveInstrNoise         ; (?) serialize noise-instrument fields
-656B FileSaveInstrField656B     ; (?) serialize an instrument field group
-6585 FileReadByte6585           ; read a byte (ReadSongByte) for serialization
-65B9 FileMemFill_65B9           ; calls MemSet
-669E FileSongWrite_669E         ; calls WriteSongByte
-68C5 FileSaveRunRLE             ; serialize a repeated run (recursive; FileReadInstrByte/InstrWrite)
-6959 FileSaveInstrField6959     ; (?) serialize an instrument field group
+60CC FileReadInstrByte          ; read byte[arg] of the instrument currently being iterated (for upgrade/migration)
+60E0 FileWriteInstrByte         ; write byte[arg] of the instrument currently being iterated
+60F5 FileForEachInstrType       ; for each of the 64 instruments whose byte-0 (type) == arg, invoke the callback ptr
+61D6 FileUpgradeV0              ; song upgrade step v0->v1: patch type-2 instruments (callback $6134)
+621D FileUpgradeV1              ; song upgrade step v1->v2: type-2 instruments, subtract 8 from fields 2 & 9 (callback $61e6)
+622D FileUpgradeV2              ; song upgrade step v2->v3: patch song data (WriteSongByte)
+630F FileUpgradeV3              ; song upgrade step v3->v4: patch instruments (FileForEachInstrType)
+6336 FileUpgradeV4              ; song upgrade step v4->v5: patch song data (WriteSongByte)
+63C6 FileUpgradeV5              ; song upgrade step v5->v6: patch instruments (FileForEachInstrType)
+640B FileUpgradeV6              ; song upgrade step v6->v7: patch instruments (FileForEachInstrType)
+641B FileUpgradeV7              ; song upgrade step v7->v8: reclassify instrument bytes ($80/$b8/$bc/$f0)
+6503 FileUpgradeV8              ; song upgrade step v8->v9: patch instruments (FileForEachInstrType)
+6530 FileUpgradeV9              ; song upgrade step v9->v10: patch instruments (FileForEachInstrType)
+656B FileUpgradeV10             ; song upgrade step v10->v11: patch instruments (FileForEachInstrType)
+6585 FileUpgradeReadByte        ; upgrade helper: read a working-song byte (ReadSongByte)
+65B9 FileUpgradeClearRange      ; upgrade helper: clear a range (MemSet; reads via FileReadByte6585)
+669E FileUpgradeV11             ; song upgrade step v11->v12: patch song data (+ FileMemFill_65B9 clear)
+68C5 FileUpgradeRemapBits       ; upgrade helper: recursive bit/nibble remap via ROM table $68f1
+6959 FileUpgradeV12             ; song upgrade step v12->v13: patch instruments (FileForEachInstrType)
 6973 FileCheckByte6973          ; classify a byte (cp $80)
-69A7 FilePhraseNote_69A7        ; accesses PhraseNote
-6A57 FileSaveRunRLE2            ; serialize a repeated run (recursive variant)
-6AD2 FileSaveInstrField6AD2     ; (?) serialize an instrument field group
-6B08 FileSaveInstrField6B08     ; (?) serialize an instrument field group
-6B18 FileCheckByte6B18          ; classify a byte ($90/$b8/$0f/$0e)
-6BA7 FileSongWrite_6BA7         ; calls WriteSongByte
-6C46 FileSaveInstrField6C46     ; (?) serialize an instrument field group
-6C56 FileSongWrite_6C56         ; calls WriteSongByte
-6EAC FileSongWrite_6EAC         ; calls WriteSongByte
-6F73 FileDrawStr_6F73           ; calls DrawString
+69A7 FileUpgradeV13             ; song upgrade step v13->v14: patch phrase data
+6A57 FileUpgradeClampNibble     ; upgrade helper: mask low nibble, conditional decrement; return in e
+6AD2 FileUpgradeV14             ; song upgrade step v14->v15: patch instruments (FileForEachInstrType)
+6B08 FileUpgradeV15             ; song upgrade step v15->v16: patch instruments (FileForEachInstrType)
+6B18 FileUpgradeV16             ; song upgrade step v16->v17: reclassify bytes ($90/$b8/$0f/$0e)
+6BA7 FileUpgradeV17             ; song upgrade step v17->v18: patch song data (+ FileUpgradeV17b)
+6C46 FileUpgradeV17b            ; v17 upgrade helper: patch instruments (FileForEachInstrType)
+6C56 FileUpgradeV18             ; song upgrade step v18->v19: patch song data (WriteSongByte)
+6EAC FileUpgradeV19             ; song upgrade step v19->v20: patch song data (WriteSongByte)
+6F73 FileUpgradeV21             ; song-format upgrade step for v21->v22: patch synth params (SRAM $beb2.. stride $10, write $03)
+6FC7 FileUpgradeSong            ; song-format migration: read stored version ($bfff[3]); if < $16 show "UPGRADING..." and run FileUpgradeV<n> for n=version..$15, then stamp version $16
 7109 FileClassifyToken          ; classify a byte for compression ($04/$10/$a0/$c0 tokens)
 7167 FileCompressRun            ; RLE-encode a run (WriteCompressedByte x2, ReadWorkingSongByte)
 719C FileSendSyncByte           ; send a sync byte (SendSyncByte, $3983; arg<$81)
