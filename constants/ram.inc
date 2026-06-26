@@ -25,7 +25,9 @@ DEF wCursorY         EQU $C40F  ; shared edit cursor Y (row/step); reused by eve
 DEF wPhraseRow       EQU $C416  ; active phrase step/row (0-15); shared by playback (bank $02) + Phrase editor
 DEF wInstrField      EQU $C427  ; Instrument editor: current parameter/field index (reset to 0 on screen draw)
 DEF wTableCol        EQU $C92F  ; Table editor: current column/cursor state (bit7 = special)
+DEF wTableRow        EQU $C930  ; Table editor: current row cursor (0-15); pairs with wTableCol
 DEF wGrooveRow       EQU $C9D4  ; Groove editor: current step/row cursor (0-15)
+DEF wSynthCursor     EQU $C442  ; Synth editor: current parameter/cursor index
 DEF wPlayMode        EQU $C4D2  ; sound playback mode: 0=stopped, 3/4/5=playing; main loop runs SndRunFrame only when nonzero
 DEF wRetrigger       EQU $C4CD  ; sound retrigger/hop flag (SndTick: nonzero -> rerun the channel chain this tick)
 ; Pitch-modulation accumulators $C4D4-$C4E3 (current channel): two 16-bit sweep
