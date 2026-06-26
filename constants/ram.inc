@@ -22,6 +22,8 @@ DEF wSynth           EQU $C42A  ; current softsynth number being edited (0-15, S
 
 DEF wCursorX         EQU $C40D  ; shared edit cursor X (column); reused by every screen
 DEF wCursorY         EQU $C40F  ; shared edit cursor Y (row/step); reused by every screen
+DEF wPhraseRow       EQU $C416  ; active phrase step/row (0-15); shared by playback (bank $02) + Phrase editor
+DEF wInstrField      EQU $C427  ; Instrument editor: current parameter/field index (reset to 0 on screen draw)
 
 ; --- Drawing helpers (used by DrawString/DrawHexByte/... in bank 0) ----------
 DEF wStringSrc       EQU $C564  ; source pointer for DrawString (16-bit)

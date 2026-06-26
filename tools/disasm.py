@@ -303,6 +303,34 @@ def _sub_hw_regs(text: str) -> str:
     return re.sub(r"\[\$(ff[0-9a-f]{2})\]", repl, text)
 
 
+def _load_ram_syms() -> dict[int, str]:
+    """Parse constants/ram.inc `DEF name EQU $addr` lines -> {addr: name}.
+    Used to render documented WRAM/HRAM addresses by name (byte-identical: the
+    name resolves to the same address via the INCLUDEd ram.inc)."""
+    syms: dict[int, str] = {}
+    path = Path(__file__).resolve().parent.parent / "constants" / "ram.inc"
+    if not path.is_file():
+        return syms
+    for line in path.read_text().splitlines():
+        m = re.match(r"\s*DEF\s+(\w+)\s+EQU\s+\$([0-9A-Fa-f]{2,4})\b", line)
+        if m:
+            syms[int(m.group(2), 16)] = m.group(1)
+    return syms
+
+
+RAM_SYMS = _load_ram_syms()
+
+
+def _sub_ram_syms(text: str) -> str:
+    """Replace `$XXXX` operands (bracketed or immediate) with documented RAM
+    var names. Only substitutes addresses present in ram.inc, so unknown
+    addresses stay hex. Runs on instruction text only (the trailing address
+    comment is appended afterwards), so it never corrupts the byte annotation."""
+    def repl(m: re.Match[str]) -> str:
+        return RAM_SYMS.get(int(m.group(1), 16), m.group(0))
+    return re.sub(r"\$([0-9a-f]{4})\b", repl, text)
+
+
 # A decoded row: (gb_addr, raw_bytes, asm_text, control_flow_target_or_None)
 Row = tuple[int, bytes, str, "int | None"]
 
@@ -557,6 +585,7 @@ def render(rows: list[Row], comments: bool,
                 tgt = enclosing.get(ref, "") + tgt
             text = text.replace(f"${ref:04x}", tgt)
         text = _sub_hw_regs(text)
+        text = _sub_ram_syms(text)
         if comments and not text.startswith('db "'):
             hexb = " ".join(f"{b:02x}" for b in raw)
             lines.append(f"\t{text:<28} ; ${addr:04x}: {hexb}")

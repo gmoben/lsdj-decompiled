@@ -32,6 +32,7 @@ def main() -> None:
         "; tools/disasm.py), then re-run tools/gen_main.py.",
         "",
         'INCLUDE "include/hardware.inc"',
+        'INCLUDE "constants/ram.inc"',
         "",
     ]
     carved = []
