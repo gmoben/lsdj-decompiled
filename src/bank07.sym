@@ -15,7 +15,7 @@
 4395 SongDrawCellHw             ; draw song-grid cell (palette per hGameboyType)
 43E4 SongReadRow                ; read song row $c41c from SRAM ($B290, ReadSongBytes) -> $c46d (16 bytes)
 4463 SongDrawHex_4463           ; calls DrawHexByte
-451E SongRedrawRow              ; SongReadRow + draw the row at VRAM $9842 (palettes, SongProc_71BF/4395)
+451E SongRedrawRow              ; SongReadRow + draw the row at VRAM $9842 (palettes, SongDrawColumnValues/4395)
 4540 SongScrollToCursor         ; clamp song top-row $c41c so cursor $c41e stays visible
 4657 SongUpdatePlayMarker       ; per-channel play-position markers from wChanSongRow/NextSongRow (<-SongScreenUpdate)
 47CF SongDrawStr_47CF           ; calls DrawStringIndexed

@@ -32,11 +32,11 @@
 4BA7 ChainDrawWaveform          ; draw wave samples from $400c.. (<-DrawWaveScreen)
 4C55 ChainDrawByte_4C55         ; calls DrawByte
 4EAC ChainDrawCursorByte        ; draw $c42b>>1 via ChainDrawByte_4C55
-4EBD ChainWriteWaveA            ; write wave data via ChainProc_4B40
+4EBD ChainWriteWaveA            ; write wave data via ChainWriteCursorPair
 4F02 ChainDrawRow16             ; draw 16 bytes via ChainDrawByte_4C55
-4F42 ChainWriteWaveB            ; write wave data via ChainProc_4B40 (variant)
-4FA9 ChainWriteWaveC            ; write wave data via ChainProc_4B40 (variant)
-4FFB ChainWriteWaveD            ; write wave data via ChainProc_4B40 (variant)
+4F42 ChainWriteWaveB            ; write wave data via ChainWriteCursorPair (variant)
+4FA9 ChainWriteWaveC            ; write wave data via ChainWriteCursorPair (variant)
+4FFB ChainWriteWaveD            ; write wave data via ChainWriteCursorPair (variant)
 504E ChainBanked_504E           ; banked-call wrapper
 5398 ChainBanked_5398           ; banked-call wrapper
 546C ChainReadCursorInput       ; read input ($07da) -> cursor $c93b

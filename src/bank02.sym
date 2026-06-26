@@ -99,7 +99,7 @@
 4F3C SndDecodeCmdNibbles        ; decode a command's nibbles ($01/$02 cases)
 4FC0 SndApplyTableCmd           ; (cp $02) SndReadSramByteVia then jp SndClampNoteRange
 503C SndReadSramByteVia         ; read [hl-pointer] from SRAM ($0a enable, di/reti) -> e
-504A SndRunTableStep            ; run a table step (SndDecodeCmdNibbles, SndProc_6904)
+504A SndRunTableStep            ; run a table step (SndDecodeCmdNibbles, SndTableStepDispatch)
 5074 SndBank0Call5074           ; call bank0 helpers $33f9 then $3758 (d=$0f)
 507F SndAdvanceStatePtrs        ; advance the 7 working sound-state pointers (low bytes $c8df/e1/e3/e5/e7/eb/ed) to the next channel's slot in the $C1xx tables (counterpart of InitSoundStatePtrs)
 509C SndReadCursor_509C         ; calls ReadChanCursor
@@ -111,8 +111,8 @@
 5477 SndApplyTablePitch         ; apply table transpose/pitch to a note (nibble masks)
 54D7 SndUpdateAllChannels       ; output phase of a tick: for each active channel (wChanActive $C0E0..7) set hSoundCh and call SndUpdateChannel (writes sound regs / runs tables)
 556A SndRunFrame                ; per-frame sound entry (called from main loop, bank00 $2317): tempo gate -- if $cb6f pending skip it; else run SndTick 1+$cb70 times this frame
-5583 SndApplyTableTranspose     ; jp target from SndStepTablePtrs: read table_transpose row, add to the channel note, apply (SndFunc_5477)
-55AE SndReadChanState55AE       ; read channel state via SndProc_748E
+5583 SndApplyTableTranspose     ; jp target from SndStepTablePtrs: read table_transpose row, add to the channel note, apply (SndApplyTablePitch)
+55AE SndReadChanState55AE       ; read channel state via SndAdvanceGrooveCursor
 55CB SndReadChainEnd            ; chain end-marker check (cp $ff)
 55EF SndDecodeTransA            ; SndApplyTablePitch / SndDecodeNibbles
 5604 SndDecodeTransB            ; SndApplyTablePitch / SndDecodeNibbles (variant)
@@ -124,15 +124,15 @@
 583F SndSplitPhraseNibbles      ; wChanPhrase[ch] -> hi/lo nibbles (compute phrase index)
 58C7 SndFillFF                  ; write $ff to a run of consecutive bytes [hl]
 58EA SndLoadInstrument          ; copy the 16-byte instrument record instruments[a] (SRAM bank1 $B080+a*16) into wSoundParams ($C0D0)
-5F5E SndSetupChanState5F5E      ; set $c14f/$c14d then SndProc_7F33
+5F5E SndSetupChanState5F5E      ; set $c14f/$c14d then SndSetupLfoWavNoi
 5FA7 SndSetChanState5FA7        ; set $c14e/$c319
-5FBE SndSetChanState5FBE        ; SndProc_5FA7 then $c69c
-5FDA SndSetChannelEnable        ; enable/disable this channel in rAUDENA (per hSoundCh; SndProc_61A9)
+5FBE SndSetChanState5FBE        ; SndSetChanState5FA7 then $c69c
+5FDA SndSetChannelEnable        ; enable/disable this channel in rAUDENA (per hSoundCh; SndWritePanning)
 61A9 SndWritePanning            ; set this channel's panning bits in rAUDTERM
 61F7 SndClearVoiceHram          ; clear $ffa0-$ffa3 (per-voice HRAM shadow regs)
 6270 SndTriggerWave_6270        ; calls TriggerWave
 6479 SndBank0Call6479           ; call bank0 helpers $33f9 then $3758
-6577 SndSetupWaveTrigger        ; wave/kit trigger helper (SndFunc_5F5E)
+6577 SndSetupWaveTrigger        ; wave/kit trigger helper (SndSetupChanState5F5E)
 6685 SndRunFxSlot               ; set hSoundCh = $c527 & 3, run SndSetupWaveTrigger
 6694 SndTableEnvDispatch        ; table-envelope command dispatch
 66E7 SndTableEnv_66E7           ; calls ReadTableEnvelope
@@ -144,7 +144,7 @@
 6B9B SndUpdateRetrig            ; SndCheckChanMode / SndCheckRetrigState (advance retrigger)
 6BBA SndSeqRead_6BBA            ; calls ReadSeqByte
 6D97 SndMemFill_6D97            ; calls MemSet
-6E0F SndStopAllIfIdle           ; if no channel active, stop (SndProc_6B9B, SndMemFill_6D97)
+6E0F SndStopAllIfIdle           ; if no channel active, stop (SndUpdateRetrig, SndMemFill_6D97)
 6E24 SndAdvanceRetrig           ; SndCheckChanMode (cp $ff)
 6EA7 SndChanStateMachine        ; per-channel state-machine dispatch (multiple branches)
 6F65 SndGetChainPhrase          ; bounds-checked chain_phrases[chain*16+row] lookup (chain=arg sp+6, row=arg sp+7 <$10; SRAM $A080); DebugTrap on out-of-range
@@ -155,10 +155,10 @@
 711F SndAdvanceSong_711F        ; calls AdvanceSongRow
 7362 SndBank0Call7362           ; bank0 $33f9 dispatch
 73B0 SndClearVoicePairs         ; recursive: SndBank0Call6479 x2 (clear voice state)
-748E SndAdvanceGrooveCursor     ; SndFunc_5459 + SndGrooveStep
+748E SndAdvanceGrooveCursor     ; SndReadCursorByte + SndGrooveStep
 75C6 SndUpdateChannel           ; per-channel processor (channel = hSoundCh): advance phrase cursor, resolve song/chain row, read note/cmd; called per active channel by SndUpdateAllChannels
 77F0 SndTick                    ; one engine tick: SndStepAllChannels (sequencer) then SndUpdateAllChannels (output); self-recurses on retrigger flag $c4cd / mode $cb66
-786F SndUpdateChanAltPath       ; per-channel alt update (SndProc_4C9C/4E74/5F5E)
+786F SndUpdateChanAltPath       ; per-channel alt update (SndReadChainRow/4E74/5F5E)
 792B SndSeqRead_792B            ; calls ReadSeqByte
 7B31 SndCheckSyncState          ; sync-state check (cp $01/$ff)
 7C4C SndMemFill_7C4C            ; calls MemSet

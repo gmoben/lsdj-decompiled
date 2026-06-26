@@ -40,8 +40,8 @@
 50A8 InstrHScanUsedPhrases      ; for each phrase 0..255 used (InstrBanked_5091), process via InstrHPhraseNote_4F49
 50CC InstrHCountUsedTables      ; count nonzero entries in used-table map $c47d[0..$1f]
 50F6 InstrHProcessUsedTables    ; count tables (50CC) then run InstrHTableCmd1_4FC5 per used
-513D InstrHMarkInstrTable       ; read instr field6; if bit5 set, mark its table used (InstrHFunc_4F04)
-515F InstrHScanInstrTables      ; for each instrument 0..63 used, mark its table (InstrHProc_4F2E/513D)
+513D InstrHMarkInstrTable       ; read instr field6; if bit5 set, mark its table used (InstrHMarkTableUsed)
+515F InstrHScanInstrTables      ; for each instrument 0..63 used, mark its table (InstrHReadPhraseRef/513D)
 5183 InstrHSongWrite_5183       ; calls WriteSongByte
 51B9 InstrHTableTrans_51B9      ; accesses TableTrans
 526B InstrHCollectUsedTables    ; gather used-table indices + pointers from map $c47d
@@ -62,7 +62,7 @@
 5E1D InstrHMemFill_5E1D         ; calls MemSet
 5F20 InstrHPhraseNote_5F20      ; accesses PhraseNote
 5F85 InstrHScanChainPhrases     ; scan the 16 phrase slots of a chain (arg*16) for usage
-5FC2 InstrHScanAllChainPhr      ; for 16 chains, scan their phrases (InstrHFunc_5F85)
+5FC2 InstrHScanAllChainPhr      ; for 16 chains, scan their phrases (InstrHScanChainPhrases)
 5FEC InstrHScanPhraseCmds       ; scan phrase command bytes from SRAM ($A0xx) for references
 6074 InstrHScanTableCmds        ; scan table command columns from SRAM ($B680/$BA80) for references
 614C InstrHAnyCmdRef            ; return 1 if InstrHScanPhraseCmds or InstrHScanTableCmds found a reference
@@ -73,8 +73,8 @@
 62BD InstrHDrawStr_62BD         ; calls DrawString
 6B3B InstrHDrawStr_6B3B         ; calls DrawStringIndexed
 6CA2 InstrHReadCursorCell       ; read cell via ROM table $64E1 + cursor offsets (args sp+7/sp+8)
-6EFE InstrHReadCursorCellAt     ; read cell at cursor $c415/$c416 (InstrHProc_6CA2)
+6EFE InstrHReadCursorCellAt     ; read cell at cursor $c415/$c416 (InstrHReadCursorCell)
 6F14 InstrHDrawStr_6F14         ; calls DrawStringIndexed
 70A8 InstrHGetParamPlus4        ; return $c429 + 4
-70B6 InstrHDrawParamField       ; draw a field from $c429 (parity-based) via InstrHFunc_70A8
+70B6 InstrHDrawParamField       ; draw a field from $c429 (parity-based) via InstrHGetParamPlus4
 70DF InstrHDrawStr_70DF         ; calls DrawStringIndexed
