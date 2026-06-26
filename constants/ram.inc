@@ -162,12 +162,14 @@ DEF wButtons         EQU $C575  ; current button state (read 111x by every scree
 DEF wButtonRing      EQU $CE00  ; ring buffer of recent button states (for key-repeat + buffered input)
 DEF wButtonReadIdx   EQU $C56F  ; GetNextButtons read cursor into wButtonRing
 DEF wButtonWriteIdx  EQU $C570  ; ReadJoypad write cursor into wButtonRing
-; Button bits in wButtons (from ReadJoypad: buttons in low nibble, dirs in high):
-DEF BTN_A            EQU 0
-DEF BTN_B            EQU 1
-DEF BTN_SELECT       EQU 2
-DEF BTN_START        EQU 3
-DEF BTN_RIGHT        EQU 4
-DEF BTN_LEFT         EQU 5
-DEF BTN_UP           EQU 6
-DEF BTN_DOWN         EQU 7
+; Button bits in wButtons -- DIRECTIONS in the low nibble, BUTTONS in the high
+; nibble (ReadJoypad $18BF builds dirs | (buttons<<4)). Verified against the code
+; AND live emulator input (Down->$08, A(x)->$10, B(z)->$20, Select->$40, Start->$80):
+DEF BTN_RIGHT        EQU 0
+DEF BTN_LEFT         EQU 1
+DEF BTN_UP           EQU 2
+DEF BTN_DOWN         EQU 3
+DEF BTN_A            EQU 4
+DEF BTN_B            EQU 5
+DEF BTN_SELECT       EQU 6
+DEF BTN_START        EQU 7
