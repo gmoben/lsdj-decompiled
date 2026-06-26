@@ -14,74 +14,74 @@
 589A FileActionNames    ; action names "LOAD"/"SAVE"/"ERASE" (5-byte stride, indexed by action type)
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
-4000 FileFunc_4000              ; subroutine returns value; purpose TBD
+4000 FileWriteCompressedSram    ; low-level compressed-output writer to SRAM (bank $c979, ptr $c97a; di-guarded)
 415A FileDrawByte_415A          ; calls DrawByte
-42D6 FileFunc_42D6              ; subroutine returns value; purpose TBD
-42E9 FileFunc_42E9              ; subroutine returns value; purpose TBD
-4335 FileFunc_4335              ; subroutine returns value; purpose TBD
+42D6 FileSlotHalfBase           ; return $40 or $c0 depending on $c56b (which save half)
+42E9 FileScanSlotNames          ; scan file-slot names in SRAM ($A140, bank4) from index $c958
+4335 FileGetNameChar            ; read $c959[arg] from the 32-char name buffer (bounds-checked)
 4352 FileStrCopy_4352           ; calls strcpy
-43C1 FileProc_43C1              ; subroutine; purpose TBD
+43C1 FileReadCompressedBlock    ; read a compressed block via ptr $c97d (bounds $800f); 16-step
 441F FilePhraseNote_441F        ; accesses PhraseNote
 46E3 FileDrawStr_46E3           ; calls DrawStringIndexed
 4778 FileDrawStr_4778           ; calls DrawString
-4862 FileFunc_4862              ; subroutine returns value; purpose TBD
+4862 FileFindSlotEnd            ; scan file slots in SRAM ($A141) for the $ff terminator
 48D4 FileMemFill_48D4           ; calls MemSet
-4969 FileFunc_4969              ; subroutine returns value; purpose TBD
+4969 FileListSlots              ; enumerate file slots for the browser (<-DrawFileScreen)
 49D4 FileSongWrite_49D4         ; calls WriteSongByte
 4A46 FileStrCopy_4A46           ; calls strcpy
 4C1A FileSongWrite_4C1A         ; calls WriteSongByte
 4D58 FileSongWrite_4D58         ; calls WriteSongByte
 4DD1 FileSongWrite_4DD1         ; calls WriteSongByte
-4FA5 FileFunc_4FA5              ; subroutine returns value; purpose TBD
-5077 FileProc_5077              ; subroutine; purpose TBD
-5098 FileFunc_5098              ; subroutine returns value; purpose TBD
+4FA5 FileLoadSlotInfo           ; load slot info for index (arg<$20 -> $c97f); calls FileScanSlotNames
+5077 FileClearChanState         ; zero the 8 wChanActive bytes ($C0E0..7) backward
+5098 FileStopSound              ; SetInterruptEnable + FileClearChanState (silence before load/save)
 50B3 FileDrawByte_50B3          ; calls DrawByte
 5361 FileDrawStr_5361           ; calls DrawStringIndexed
-5531 FileProc_5531              ; subroutine; purpose TBD
-5563 FileProc_5563              ; subroutine; purpose TBD
-5597 FileProc_5597              ; subroutine; purpose TBD
+5531 FileDrawField              ; DrawTextField wrapper
+5563 FileDrawFieldChecked       ; bounds-check (<$10) then DrawTextField
+5597 FileValidateName           ; validate a name (FileFindSlotEnd; char range $0a/$1f/$20 checks)
 55F1 FileDrawStr_55F1           ; calls DrawStringIndexed
 5892 FileDrawStr_5892           ; calls DrawString
-58C1 FileProc_58C1              ; subroutine; purpose TBD
-590B FileProc_590B              ; subroutine; purpose TBD
-594A FileFunc_594A              ; subroutine returns value; purpose TBD
-595F FileProc_595F              ; subroutine; purpose TBD
+58C1 FileMatchName              ; compare a slot name (ReadSongByte) against the name buffer (FileGetNameChar)
+590B FileCopyNameToBuf          ; copy a slot name from SRAM (ReadSongByte) into the name buffer
+594A FileCheckNameLen           ; return whether ($c999-$c99b) exceeds $0b (name length)
+595F FileCalcCompressedSize     ; read 4 size bytes + MulU16 -> total compressed size
 59E6 FileDrawStr_59E6           ; calls DrawString
-60CC FileProc_60CC              ; subroutine; purpose TBD
+60CC FileReadInstrByte          ; read an instrument byte (ReadInstrByte wrapper) for serialization
 60E0 FileInstrWrite_60E0        ; calls WriteInstrByte
-60F5 FileProc_60F5              ; subroutine; purpose TBD
-61D6 FileProc_61D6              ; subroutine; purpose TBD
-621D FileProc_621D              ; subroutine; purpose TBD
+60F5 FileSerializeField         ; serialize bytes per a descriptor ptr + type code (core of instrument save)
+61D6 FileSaveInstrument         ; serialize one instrument (dispatch via FileSerializeField/ReadInstrByte/InstrWrite)
+621D FileSaveInstrEnvelope      ; (?) serialize instrument envelope section (descriptor $61e6)
 622D FileSongWrite_622D         ; calls WriteSongByte
-630F FileProc_630F              ; subroutine; purpose TBD
+630F FileSaveInstrPulse         ; (?) serialize pulse-instrument fields (descriptors $628b/$62d3)
 6336 FileSongWrite_6336         ; calls WriteSongByte
-63C6 FileProc_63C6              ; subroutine; purpose TBD
-640B FileProc_640B              ; subroutine; purpose TBD
-641B FileProc_641B              ; subroutine; purpose TBD
-6503 FileProc_6503              ; subroutine; purpose TBD
-6530 FileProc_6530              ; subroutine; purpose TBD
-656B FileProc_656B              ; subroutine; purpose TBD
-6585 FileFunc_6585              ; subroutine returns value; purpose TBD
+63C6 FileSaveInstrWave          ; (?) serialize wave-instrument fields
+640B FileSaveInstrField640B     ; (?) serialize an instrument field group (FileSerializeField)
+641B FileClassifyInstrByte      ; classify an instrument byte ($80/$b8/$bc/$f0 ranges)
+6503 FileSaveInstrKit           ; (?) serialize kit-instrument fields
+6530 FileSaveInstrNoise         ; (?) serialize noise-instrument fields
+656B FileSaveInstrField656B     ; (?) serialize an instrument field group
+6585 FileReadByte6585           ; read a byte (ReadSongByte) for serialization
 65B9 FileMemFill_65B9           ; calls MemSet
 669E FileSongWrite_669E         ; calls WriteSongByte
-68C5 FileProc_68C5              ; subroutine; purpose TBD
-6959 FileProc_6959              ; subroutine; purpose TBD
-6973 FileProc_6973              ; subroutine; purpose TBD
+68C5 FileSaveRunRLE             ; serialize a repeated run (recursive; FileReadInstrByte/InstrWrite)
+6959 FileSaveInstrField6959     ; (?) serialize an instrument field group
+6973 FileCheckByte6973          ; classify a byte (cp $80)
 69A7 FilePhraseNote_69A7        ; accesses PhraseNote
-6A57 FileProc_6A57              ; subroutine; purpose TBD
-6AD2 FileProc_6AD2              ; subroutine; purpose TBD
-6B08 FileProc_6B08              ; subroutine; purpose TBD
-6B18 FileProc_6B18              ; subroutine; purpose TBD
+6A57 FileSaveRunRLE2            ; serialize a repeated run (recursive variant)
+6AD2 FileSaveInstrField6AD2     ; (?) serialize an instrument field group
+6B08 FileSaveInstrField6B08     ; (?) serialize an instrument field group
+6B18 FileCheckByte6B18          ; classify a byte ($90/$b8/$0f/$0e)
 6BA7 FileSongWrite_6BA7         ; calls WriteSongByte
-6C46 FileProc_6C46              ; subroutine; purpose TBD
+6C46 FileSaveInstrField6C46     ; (?) serialize an instrument field group
 6C56 FileSongWrite_6C56         ; calls WriteSongByte
 6EAC FileSongWrite_6EAC         ; calls WriteSongByte
 6F73 FileDrawStr_6F73           ; calls DrawString
-7109 FileProc_7109              ; subroutine; purpose TBD
-7167 FileProc_7167              ; subroutine; purpose TBD
-719C FileProc_719C              ; subroutine; purpose TBD
+7109 FileClassifyToken          ; classify a byte for compression ($04/$10/$a0/$c0 tokens)
+7167 FileCompressRun            ; RLE-encode a run (WriteCompressedByte x2, ReadWorkingSongByte)
+719C FileSendSyncByte           ; send a sync byte (SendSyncByte, $3983; arg<$81)
 72EE FileSync_72EE              ; calls SendSyncHandshake
-741D FileFunc_741D              ; subroutine returns value; purpose TBD
-7426 FileFunc_7426              ; subroutine returns value; purpose TBD
-749E FileFunc_749E              ; subroutine returns value; purpose TBD
-7513 FileProc_7513              ; subroutine; purpose TBD
+741D FilePutDecompByte          ; append decompressed byte to $DA00 buffer ($c983 cursor)
+7426 FileDecompNextBank         ; decompression: advance source / switch SRAM bank ($c97c, $c982)
+749E FileDecompressByte         ; decode one compressed byte ($c0/$e0 RLE tokens; FileProc_7513)
+7513 FileDecompressRun          ; decode an RLE run (ReadCompressedByte, FileFunc_7426)
