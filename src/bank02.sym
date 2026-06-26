@@ -81,8 +81,8 @@
 48AB SndGrooveStep_48AB         ; calls ReadGroove
 4B8A SndReadChainTranspose      ; read chain_transposes[wChanChain[ch]] from SRAM bank1 ($A880, di/ei guarded) -> per-channel shadow $c3fc[ch]
 4BC5 SndFunc_4BC5               ; subroutine returns value; purpose TBD
-4C26 SndProc_4C26               ; subroutine; purpose TBD
-4C42 SndProc_4C42               ; subroutine; purpose TBD
+4C26 AdvanceCurChanCursors      ; set de=hSoundCh*2, c=a (amount), then fall into AdvanceChanCursors (advance current channel's cursors by a)
+4C42 SndAnyChannelActive        ; scan the 8 wChanActive flags ($C0E0..7); return nz (flag in a) if any channel is active, z if none
 4C4E SndProc_4C4E               ; subroutine; purpose TBD
 4C68 SndLoadChannelInstr        ; read the channel's instrument number from SRAM bank3 via its $c140[ch] cursor -> wChanInstr shadow ($c0c8/$c210[ch]); then SndLoadInstrument
 4C9C SndProc_4C9C               ; subroutine; purpose TBD
@@ -94,8 +94,8 @@
 4E69 SndFunc_4E69               ; subroutine returns value; purpose TBD
 4E74 SndProc_4E74               ; subroutine; purpose TBD
 4EA3 SndProc_4EA3               ; subroutine; purpose TBD
-4F2B SndProc_4F2B               ; subroutine; purpose TBD
-4F2F SndProc_4F2F               ; subroutine; purpose TBD
+4F2B FillChan16                 ; write a -> 16 consecutive bytes [hl] (staggered entry into the FillChan8/4 unrolled memset)
+4F2F FillChan12                 ; write a -> 12 consecutive bytes [hl] (staggered entry into the FillChan8/4 unrolled memset)
 4F3C SndFunc_4F3C               ; subroutine returns value; purpose TBD
 4FC0 SndProc_4FC0               ; subroutine; purpose TBD
 503C SndFunc_503C               ; subroutine returns value; purpose TBD
