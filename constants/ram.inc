@@ -27,6 +27,7 @@ DEF wInstrField      EQU $C427  ; Instrument editor: current parameter/field ind
 DEF wTableCol        EQU $C92F  ; Table editor: current column/cursor state (bit7 = special)
 DEF wGrooveRow       EQU $C9D4  ; Groove editor: current step/row cursor (0-15)
 DEF wPlayMode        EQU $C4D2  ; sound playback mode: 0=stopped, 3/4/5=playing; main loop runs SndRunFrame only when nonzero
+DEF wRetrigger       EQU $C4CD  ; sound retrigger/hop flag (SndTick: nonzero -> rerun the channel chain this tick)
 ; --- song (de)compression cursors (bank $1C; see docs/save_format.md) ----------
 DEF wCompBank        EQU $C979  ; SRAM bank used for compressed block I/O
 DEF wCompSrc         EQU $C97B  ; compressed-stream read pointer (decompress input), 16-bit
@@ -114,6 +115,8 @@ DEF wChanFreqHi      EQU $C2E0  ; [4] freq-high + trigger/length-enable bits -> 
 DEF wPU1Sweep        EQU $C2E4  ; PU1 sweep value -> rAUD1SWEEP
 
 ; --- Link cable sync (see docs/sync.md) -------------------------------------
+DEF wFrameSkip       EQU $CB6F  ; SndRunFrame: frames to skip before the next sound tick (tempo/groove)
+DEF wTickRepeat      EQU $CB70  ; SndRunFrame: extra sound ticks to run this frame (tempo/groove)
 DEF wSyncMode        EQU $CB66  ; 0=OFF 1=LSDJ 3=MIDI 5=KEYBD 6=ANA.IN 7=AN.OUT
 DEF wSyncMode2       EQU $CB67  ; secondary sync config (default 6)
 DEF wSyncPosition    EQU $CBDB  ; sync position/index
