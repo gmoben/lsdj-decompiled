@@ -16,7 +16,7 @@
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 40F8 InstrGetField9_40F8        ; instrument field 0x9 read
-414F InstrFunc_414F             ; subroutine returns value; purpose TBD
+414F InstrCheckFieldOption      ; return 1 if option-table[c] (ROM $40F4) minus 1 == current field $c427, else 0
 427B InstrGetField5_427B        ; instrument field 0x5 read
 42AB InstrPhraseNote_42AB       ; accesses PhraseNote
 42FF InstrStrCopy_42FF          ; calls strcpy
@@ -26,7 +26,7 @@
 4540 InstrGetField3_4540        ; instrument field 0x3 read
 45A7 InstrBanked_45A7           ; banked-call wrapper
 45D3 InstrBanked_45D3           ; banked-call wrapper
-461B InstrProc_461B             ; subroutine; purpose TBD
+461B InstrAdjustNumber          ; adjust wInstrument (-16, clamp >$40 to 0, +1) then redraw via InstrBanked_45D3
 4638 InstrBanked_4638           ; banked-call wrapper
 47A2 InstrGetField5_47A2        ; instrument field 0x5 read
 482E InstrGetField5_482E        ; instrument field 0x5 read
@@ -45,8 +45,8 @@
 4B29 InstrGetField2_4B29        ; instrument field 0x2 read
 4B4C InstrGetField5_4B4C        ; instrument field 0x5 read
 4B5E InstrGetField5_4B5E        ; instrument field 0x5 read
-4BAC InstrProc_4BAC             ; subroutine; purpose TBD
-4BCB InstrProc_4BCB             ; subroutine; purpose TBD
+4BAC InstrField5Next            ; read instr field5, step +2 (wrap 6->1), write back via InstrGetField5_4B5E
+4BCB InstrField5Prev            ; read instr field5, step -2 (wrap <0 ->4), write back via InstrGetField5_4B5E
 4BE9 InstrGetField0_4BE9        ; instrument field 0x0 read
 4BF9 InstrGetField5_4BF9        ; instrument field 0x5 read
 4C64 InstrGetField5_4C64        ; instrument field 0x5 read
