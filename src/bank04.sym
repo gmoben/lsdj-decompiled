@@ -22,7 +22,7 @@
 457C PhraseSongWrite_457C       ; calls WriteSongByte
 470B PhraseSongWrite_470B       ; calls WriteSongByte
 4811 PhraseSongWrite_4811       ; calls WriteSongByte
-4918 PhrasePhraseCmdVal_4918    ; accesses PhraseCmdVal
+4918 PhraseReadCmdVal      ; read the phrase command-value cell (phrase arg, row arg); bounds-checked
 49C5 PhraseSongWrite_49C5       ; calls WriteSongByte
 4A30 PhraseSongWrite_4A30       ; calls WriteSongByte
 4A8F PhraseReadCmdSram          ; read phrase_cmd_val[phrase*16+row] from SRAM ($AFF0, ReadSongByte bank2); bounds-checked

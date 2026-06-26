@@ -15,9 +15,9 @@
 42E7 TableGetCellA              ; address table column-A cell: base ptr $c447 + wTable*32 + row(arg<16); bounds-checked
 43B7 TableSongWrite_43B7        ; calls WriteSongByte
 442A TableSongWrite_442A        ; calls WriteSongByte
-44E8 TableTableEnv_44E8         ; accesses TableEnv
+44E8 TableReadEnv          ; read table_envelopes[table][row<$10] from SRAM (bounds-checked)
 453B TableGetCellB              ; address table column-B cell: base ptr $c449 + wTable*32 + row(arg<16); bounds-checked
-459E TableTableTrans_459E       ; accesses TableTrans
+459E TableReadTrans        ; read table_transposes[table][row<$10] from SRAM (bounds-checked)
 45F1 TableColumnLookup     ; map table column $c92f via ROM tables $42D5/$42DB (uses $c930, $c413); called across the table screen
 472B TableDrawStr_472B          ; calls DrawStringIndexed
 4930 TableInputFlag             ; return e=flag derived from input code (arg sp+4: 4 or $0a) and column $c92f

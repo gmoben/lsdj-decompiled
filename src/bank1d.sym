@@ -51,7 +51,7 @@
 6791 SynthDrawHex_6791          ; calls DrawHexByte
 6819 SynthDrawHex_6819          ; calls DrawHexByte
 6865 SynthDrawHex_6865          ; calls DrawHexByte
-68F9 SynthSynth_68F9            ; accesses Synth
+68F9 SynthDataAddr         ; compute SRAM address of synth $c441 data (index*N + base)
 6935 SynthLoadWaveType          ; read 2 synth params from SRAM -> $c9ed, $c9e9 (wave type)
 6967 SynthLoadWaveTable         ; read packed param from SRAM, build wave table $ca94 (via SynthFillWaveRange)
 6997 SynthLoadFilterParams      ; read 2 synth params from SRAM -> $c9ee, $c9eb (filter)

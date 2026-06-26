@@ -18,7 +18,7 @@
 40F8 InstrGetField9_40F8        ; instrument field 0x9 read
 414F InstrCheckFieldOption      ; return 1 if option-table[c] (ROM $40F4) minus 1 == current field $c427, else 0
 427B InstrGetField5_427B        ; instrument field 0x5 read
-42AB InstrPhraseNote_42AB       ; accesses PhraseNote
+42AB InstrReadPhraseNote   ; read phrase_notes[arg] from SRAM ($A000-based) -- instrument preview
 42FF InstrStrCopy_42FF          ; calls strcpy
 436D InstrGetField6_436D        ; instrument field 0x6 read
 43C0 InstrSetField3_43C0        ; instrument field 0x3 write

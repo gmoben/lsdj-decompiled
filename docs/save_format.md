@@ -78,7 +78,7 @@ literals.
 
 | Routine | Addr | Role |
 |---------|------|------|
-| `CompressSong` | `$441E` | compress the 32 KiB working song into blocks; inits `$C97D=0`, reads the song from `$A000` |
+| `CompressSong` | `$441F` | compress the 32 KiB working song into blocks; inits `$C97D=0`, reads the song from `$A000` (`$441E` is the previous routine's `ret`) |
 | `WriteCompressedByte` | `$715B` | emit one byte to the compressed output stream |
 | `ReadWorkingSongByte` | `$711F` | read a byte of the working song (compressor input) |
 

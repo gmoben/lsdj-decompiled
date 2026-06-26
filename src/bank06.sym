@@ -25,7 +25,7 @@
 48AB ChainCalcSampleAddr        ; compute a sample address (arg<<5 + base) for ChainDrawByte_4C55
 4901 ChainCalcParamAddr         ; pick SRAM base $bfc4/$bfc5 by bit3 of arg (= SynthCalcParamAddr)
 493F ChainSongWrite_493F        ; calls WriteSongByte
-4992 ChainPhraseNote_4992       ; accesses PhraseNote
+4992 ChainReadPhraseNote   ; read phrase_notes[arg<$20] from SRAM (chain screen)
 4AB0 ChainScanCmd               ; scan 4 entries for command $0b with nonzero operand
 4B16 ChainSetCursorSprite       ; compute cursor sprite X/Y from $c42b/$c93b ($c413==4)
 4B40 ChainWriteCursorPair       ; store $c42b through two arg pointers
@@ -43,7 +43,7 @@
 54FA ChainSeqRead_54FA          ; calls ReadSeqByte
 5563 ChainSeqRead_5563          ; calls ReadSeqByte
 5655 ChainReadChainCell         ; bounds-checked chain[arg<$80][row<$10] read
-56AA ChainChainTrans_56AA       ; accesses ChainTrans
+56AA ChainReadTrans        ; read chain_transposes[chain<$80] from SRAM (bounds-checked)
 56F0 ChainSongWrite_56F0        ; calls WriteSongByte
 5804 ChainSongWrite_5804        ; calls WriteSongByte
 5836 ChainSongWrite_5836        ; calls WriteSongByte
