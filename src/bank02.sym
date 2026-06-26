@@ -102,7 +102,7 @@
 5345 SndProc_5345               ; subroutine; purpose TBD
 5459 SndFunc_5459               ; subroutine returns value; purpose TBD
 5477 SndFunc_5477               ; subroutine returns value; purpose TBD
-54D7 SndTableTrans_54D7         ; calls ReadTableTranspose
+54D7 SndUpdateAllChannels       ; per-frame: for each active channel (wChanActive $C0E0..7), set hSoundCh and call SndUpdateChannel; (.L_5570 sub-block = tick-repeat loop, .L_5583 = table-transpose step)
 55AE SndFunc_55AE               ; subroutine returns value; purpose TBD
 55CB SndFunc_55CB               ; subroutine returns value; purpose TBD
 55EF SndFunc_55EF               ; subroutine returns value; purpose TBD
@@ -147,7 +147,7 @@
 7362 SndFunc_7362               ; subroutine returns value; purpose TBD
 73B0 SndProc_73B0               ; subroutine; purpose TBD
 748E SndProc_748E               ; subroutine; purpose TBD
-75C6 SndProc_75C6               ; subroutine; purpose TBD
+75C6 SndUpdateChannel           ; per-channel processor (channel = hSoundCh): advance phrase cursor, resolve song/chain row, read note/cmd; called per active channel by SndUpdateAllChannels
 77F0 SndProc_77F0               ; subroutine; purpose TBD
 786F SndProc_786F               ; subroutine; purpose TBD
 792B SndSeqRead_792B            ; calls ReadSeqByte
