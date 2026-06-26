@@ -13,39 +13,39 @@
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 401B ProjDrawStr_401B           ; calls DrawString
-49F8 ProjProc_49F8              ; subroutine; purpose TBD
-4A4D ProjProc_4A4D              ; subroutine; purpose TBD
-4A79 ProjProc_4A79              ; subroutine; purpose TBD
-4AA6 ProjProc_4AA6              ; subroutine; purpose TBD
+49F8 ProjDrawHelpEntry          ; draw help-list line index $c934 (text via ROM tables $408E/$4058); palette by arg
+4A4D ProjRedrawHelpSel          ; if $c933==0, redraw current help entry (<-DrawHelpScreen)
+4A79 ProjHelpSelectNext         ; move help selection down: redraw old highlighted, inc $c934, redraw new normal
+4AA6 ProjHelpSelectPrev         ; move help selection up: redraw old highlighted, dec $c934, redraw new normal
 4AC5 ProjBanked_4AC5            ; banked-call wrapper
-4ADB ProjProc_4ADB              ; subroutine; purpose TBD
+4ADB ProjHelpReset              ; $c933=0, refresh ($17fb), DrawHelpScreen
 4AE7 ProjDrawStr_4AE7           ; calls DrawStringIndexed
-4B6D ProjFunc_4B6D              ; subroutine returns value; purpose TBD
-4C30 ProjProc_4C30              ; subroutine; purpose TBD
-4C96 ProjProc_4C96              ; subroutine; purpose TBD
+4B6D ProjHelpOpenSelected       ; activate selected help entry $c934: set $c933, load its string via ProjDrawStr_4AE7
+4C30 ProjDrawNameFieldHw        ; draw text field at $c42d/$c42e (palette per hGameboyType) via DrawTextField
+4C96 ProjDrawNameField          ; draw text field at $c42d/$c42e (palette 0) via DrawTextField
 4CBA ProjDrawStr_4CBA           ; calls DrawStringIndexed
 5303 ProjDrawStr_5303           ; calls DrawStringIndexed
 569C ProjDrawStr_569C           ; calls DrawStringIndexed
 5782 ProjSongWrite_5782         ; calls WriteSongByte
 5796 ProjDrawHex_5796           ; calls DrawHexByte
-57C1 ProjFunc_57C1              ; subroutine returns value; purpose TBD
+57C1 ProjSyncStateFlag          ; predicate combining wSyncMode (1/3) and $cb6b
 582C ProjSongWrite_582C         ; calls WriteSongByte
-5853 ProjProc_5853              ; subroutine; purpose TBD
-5861 ProjProc_5861              ; subroutine; purpose TBD
+5853 ProjCommitVram             ; $2bc4 -> $2c3c (commit a queued VRAM write)
+5861 ProjQueueVramWrite         ; spin until wRedrawPending<6, set wVramCursor=$9846, then ProjCommitVram
 5876 ProjDrawStr_5876           ; calls DrawStringIndexed
-5896 ProjFunc_5896              ; subroutine returns value; purpose TBD
+5896 ProjSyncModeIs567          ; return 1 if wSyncMode in {5,6,7}
 5952 ProjDrawHex_5952           ; calls DrawHexByte
-5A07 ProjFunc_5A07              ; subroutine returns value; purpose TBD
-5A42 ProjProc_5A42              ; subroutine; purpose TBD
-5A90 ProjProc_5A90              ; subroutine; purpose TBD
+5A07 ProjCalcFieldTile          ; compute a field tile/value from index $c9a4 (ROM $5776) + flag $c9a3
+5A42 ProjDrawSyncField          ; draw a project/sync field via ProjCalcFieldTile + DrawTextField (index $c9a4)
+5A90 ProjDrawSyncFieldHw        ; like ProjDrawSyncField but palette per hGameboyType
 5AE3 ProjDrawStr_5AE3           ; calls DrawStringIndexed
-5B09 ProjFunc_5B09              ; subroutine returns value; purpose TBD
+5B09 ProjSyncModeIs015          ; return 1 if wSyncMode in {0,1,5}
 5B23 ProjDrawStr_5B23           ; calls DrawString
-5B62 ProjFunc_5B62              ; subroutine returns value; purpose TBD
+5B62 ProjDrawSyncLabel          ; set wVramCursor=$992a, src $c566/$c567, then ProjDrawStr_5B23
 5D7C ProjDrawHex_5D7C           ; calls DrawHexByte
 6988 ProjBanked_6988            ; banked-call wrapper
-6A8C ProjProc_6A8C              ; subroutine; purpose TBD
+6A8C ProjScrollTextStep         ; marquee step: manage $c9aa/$c9ab state, shift 7-byte buffer $c9ac (via $3843)
 70B8 ProjInstrRead_70B8         ; calls ReadCurInstrByte
-7200 ProjProc_7200              ; subroutine; purpose TBD
+7200 ProjFillDaBuffer           ; append byte(s) into $DA00+ buffer up to index arg ($cbd8 cursor, <$40)
 726E ProjInstrRead_726E         ; calls ReadCurInstrByte
 74E4 ProjInstrRead_74E4         ; calls ReadCurInstrByte
