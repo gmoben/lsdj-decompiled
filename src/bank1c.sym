@@ -1,7 +1,6 @@
 ; Bank $1C -- File screen (save/load) + song (de)compression
 57BB DrawFileScreen      ; screen idx 13: draws the file/save-load browser
 ; --- song compressor (SAVE); see docs/save_format.md ---
-441E CompressSong        ; compress the 32 KiB working song into blocks
 715B WriteCompressedByte ; emit one byte to the compressed output stream
 711F ReadWorkingSongByte ; read a byte of the working song (input to compress)
 ; --- song decompressor (LOAD) ---
@@ -21,7 +20,7 @@
 4335 FileGetNameChar            ; read $c959[arg] from the 32-char name buffer (bounds-checked)
 4352 FileStrCopy_4352           ; calls strcpy
 43C1 FileReadCompressedBlock    ; read a compressed block via ptr $c97d (bounds $800f); 16-step
-441F FilePhraseNote_441F        ; accesses PhraseNote
+441F CompressSong               ; compress the 32 KiB working song ($A000) into the output stream: init ptrs $c97d/$c983, read via ReadSongByte, emit via WriteCompressedByte ($441E is the prior fn's ret)
 46E3 FileDrawStr_46E3           ; calls DrawStringIndexed
 4778 FileDrawStr_4778           ; calls DrawString
 4862 FileFindSlotEnd            ; scan file slots in SRAM ($A141) for the $ff terminator

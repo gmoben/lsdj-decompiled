@@ -24,7 +24,7 @@
 6D53 UiDrawStr_6D53             ; calls DrawStringIndexed
 7955 UiDrawStr_7955             ; calls DrawStringIndexed
 7BDE UiBanked_7BDE              ; banked-call wrapper
-7DE9 UiPhraseNote_7DE9          ; accesses PhraseNote
+7DE9 ClearSramWindow           ; zero the whole $A000-$BFFF SRAM window (8 bytes/iter until h==$c0); used during init/format
 7DFB UiDrawScreenCgb            ; copy 18x20 chars (arg ptr) -> $9800 with per-char CGB palette attribute (VBK1)
 7E4E UiDrawScreenDmg            ; copy 18x20 chars (arg ptr) -> $9800 (DMG, no palette attrs)
 7E74 UiDrawHelpStr              ; stage 20 bytes (arg) -> $c7b0 string buffer (save src ptr $c7c4/5), then UiDrawStr_7955
