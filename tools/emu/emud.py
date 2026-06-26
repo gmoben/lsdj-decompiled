@@ -132,6 +132,9 @@ def serve(rom):
             op, _, arg = data.partition(" ")
             op = op.upper()
             if op == "RAW":    reply = emu.raw(arg)
+            elif op == "DRAIN":                     # read pending pty (async break/watchpoint hits)
+                reply = emu._read(float(arg) if arg else 1.0)
+                if reply.rstrip().endswith(">"): emu.running = False
             elif op == "BREAK":reply = emu.brk()
             elif op == "CONT": reply = emu.cont()
             elif op == "STATE":reply = "running" if emu.running else "stopped"

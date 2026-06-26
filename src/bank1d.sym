@@ -21,8 +21,8 @@
 425B GrooveDrawStr_425B     ; draw a groove string (DrawStringIndexed)
 435D GrooveBuildCache       ; once ($c9d5 guard): build the 16-step groove display cache $c9d6 (via $405a)
 4394 GrooveDrawFieldHw      ; like GrooveDrawField but palette per hGameboyType
-43CF GrooveRender           ; Groove screen per-frame render (sets wDrawnScreen=SCREEN_GROOVE); draws the groove grid
-4B6C GrooveRenderHw         ; Groove render via banked draw (also sets wDrawnScreen=GROOVE)
+43CF GrooveScreen           ; Groove screen handler (input/draw/edit); sets wClipboardType=SCREEN_GROOVE on CUT
+4B6C GrooveScreenHw         ; Groove screen banked-draw path (sets wClipboardType=GROOVE on CUT)
 4C63 GrooveRefreshRows      ; redraw groove rows over cursor range $c40e..$c410
 4CDE GrooveRefreshRange     ; redraw groove value range around $c9d4/$c40e
 4D81 SynthRenderWaveA           ; render synth waveform segment using wave tables $4EF0/$50F0 ($c9e8/$c9ed)
