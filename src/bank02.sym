@@ -72,7 +72,7 @@
 478D SndProc_478D               ; subroutine; purpose TBD
 483F SndProc_483F               ; subroutine; purpose TBD
 48AB SndGrooveStep_48AB         ; calls ReadGroove
-4B8A SndChainTrans_4B8A         ; accesses ChainTrans
+4B8A SndReadChainTranspose      ; read chain_transposes[wChanChain[ch]] from SRAM bank1 ($A880, di/ei guarded) -> per-channel shadow $c3fc[ch]
 4BC5 SndFunc_4BC5               ; subroutine returns value; purpose TBD
 4C26 SndProc_4C26               ; subroutine; purpose TBD
 4C42 SndProc_4C42               ; subroutine; purpose TBD
@@ -108,13 +108,13 @@
 55EF SndFunc_55EF               ; subroutine returns value; purpose TBD
 5604 SndFunc_5604               ; subroutine returns value; purpose TBD
 561B SndProc_561B               ; subroutine; purpose TBD
-5657 SndTableTrans_5657         ; accesses TableTrans
+5657 SndStepTablePtrs           ; advance the channel's table step counter; on 16-step wrap rebuild SRAM read-pointers ($c1xx) for the table transpose ($B480) and command ($BA80) columns of wChanTable[ch]
 56E1 SndFunc_56E1               ; subroutine returns value; purpose TBD
 572B SndFunc_572B               ; subroutine returns value; purpose TBD
 5778 SndProc_5778               ; subroutine; purpose TBD
 583F SndProc_583F               ; subroutine; purpose TBD
 58C7 SndProc_58C7               ; subroutine; purpose TBD
-58EA SndInstr_58EA              ; accesses Instr
+58EA SndLoadInstrument          ; copy the 16-byte instrument record instruments[a] (SRAM bank1 $B080+a*16) into wSoundParams ($C0D0)
 5F5E SndFunc_5F5E               ; subroutine returns value; purpose TBD
 5FA7 SndProc_5FA7               ; subroutine; purpose TBD
 5FBE SndProc_5FBE               ; subroutine; purpose TBD
@@ -138,7 +138,7 @@
 6E0F SndProc_6E0F               ; subroutine; purpose TBD
 6E24 SndProc_6E24               ; subroutine; purpose TBD
 6EA7 SndProc_6EA7               ; subroutine; purpose TBD
-6F65 SndChainPhrase_6F65        ; accesses ChainPhrase
+6F65 SndGetChainPhrase          ; bounds-checked chain_phrases[chain*16+row] lookup (chain=arg sp+6, row=arg sp+7 <$10; SRAM $A080); DebugTrap on out-of-range
 6FB6 SndProc_6FB6               ; subroutine; purpose TBD
 7034 SndTriggerWave_7034        ; calls TriggerWave
 70FB SndProc_70FB               ; subroutine; purpose TBD
