@@ -17,34 +17,34 @@
 65B3 SynthDistNames     ; distortion types "CLIP"/"FOLD"/"WRAP" (5-byte stride)
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
-40AE SynthProc_40AE             ; subroutine; purpose TBD
+40AE SynthDrawParamField        ; draw synth param field at cursor $c9d4 (palette by bit1) via DrawTextField
 425B SynthDrawStr_425B          ; calls DrawStringIndexed
-435D SynthProc_435D             ; subroutine; purpose TBD
-4394 SynthProc_4394             ; subroutine; purpose TBD
+435D SynthBuildParamCache       ; once ($c9d5 guard): build 16-byte cache $c9d6 via $405a
+4394 SynthDrawParamFieldHw      ; like SynthDrawParamField but palette per hGameboyType
 43CF SynthDrawHex_43CF          ; calls DrawHexByte
 4B6C SynthBanked_4B6C           ; banked-call wrapper
-4C63 SynthProc_4C63             ; subroutine; purpose TBD
-4CDE SynthProc_4CDE             ; subroutine; purpose TBD
-4D81 SynthProc_4D81             ; subroutine; purpose TBD
-5190 SynthProc_5190             ; subroutine; purpose TBD
-5323 SynthProc_5323             ; subroutine; purpose TBD
-5695 SynthProc_5695             ; subroutine; purpose TBD
-58DA SynthFunc_58DA             ; subroutine returns value; purpose TBD
+4C63 SynthRefreshRows           ; redraw synth rows over cursor range $c40e..$c410 ($c411==2)
+4CDE SynthRefreshParamRange     ; redraw synth param range around $c9d4/$c40e ($c411==2)
+4D81 SynthRenderWaveA           ; render synth waveform segment using wave tables $4EF0/$50F0 ($c9e8/$c9ed)
+5190 SynthRenderWaveB           ; render synth waveform segment (variant of SynthRenderWaveA)
+5323 SynthComposeWave           ; main synth wave composition (wSynthRenderIdx, buffer $ca34); large
+5695 SynthRenderWaveType        ; dispatch waveform shape by type $c9e9 (jump table $56bd); buffer $ca94
+58DA SynthWrapIndex32           ; return (arg+1) & $1f (wave sample index wrap)
 58E6 SynthMemFill_58E6          ; calls MemSet
 5BBD SynthMemFill_5BBD          ; calls MemSet
-5E53 SynthProc_5E53             ; subroutine; purpose TBD
-5F00 SynthProc_5F00             ; subroutine; purpose TBD
+5E53 SynthFilterPass            ; filter/transform 32 wave samples using $c9ec
+5F00 SynthApplyFilter           ; dispatch filter by $c9eb (2->SynthMemFill_5BBD, 3->SynthFilterPass, else 58E6); gated $c9ec
 5F29 SynthSongWrite_5F29        ; calls WriteSongByte
-5F90 SynthProc_5F90             ; subroutine; purpose TBD
-60A7 SynthProc_60A7             ; subroutine; purpose TBD
-6115 SynthFunc_6115             ; subroutine returns value; purpose TBD
+5F90 SynthReadWaveSram          ; read synth wave bytes from SRAM $AF00 + $c441*32
+60A7 SynthCalcParamAddr         ; pick SRAM base $bfc4/$bfc5 by bit3 of arg -> synth param pointer
+6115 SynthReadParam             ; read synth param via SynthCalcParamAddr + ReadSongByte (bank1)
 6144 SynthSongWrite_6144        ; calls WriteSongByte
-6193 SynthProc_6193             ; subroutine; purpose TBD
+6193 SynthFillWaveRange         ; fill/interpolate a wave value range (16-step; <-SynthLoadWaveTable)
 62A8 SynthDrawStr_62A8          ; calls DrawString
 636E SynthSynthParam_636E       ; calls SynthParamAddr
 6414 SynthSynthParam_6414       ; calls SynthParamAddr
-649F SynthProc_649F             ; subroutine; purpose TBD
-6503 SynthProc_6503             ; subroutine; purpose TBD
+649F SynthLoadWaveDataA         ; read wave data via index $c442 + ROM table $60F5
+6503 SynthLoadWaveDataB         ; read wave data via index $c442 + ROM table $60F5 (variant)
 6577 SynthDrawStr_6577          ; calls DrawString
 65C2 SynthDrawStr_65C2          ; calls DrawStringIndexed
 6709 SynthDrawHex_6709          ; calls DrawHexByte
@@ -52,14 +52,14 @@
 6819 SynthDrawHex_6819          ; calls DrawHexByte
 6865 SynthDrawHex_6865          ; calls DrawHexByte
 68F9 SynthSynth_68F9            ; accesses Synth
-6935 SynthProc_6935             ; subroutine; purpose TBD
-6967 SynthProc_6967             ; subroutine; purpose TBD
-6997 SynthProc_6997             ; subroutine; purpose TBD
+6935 SynthLoadWaveType          ; read 2 synth params from SRAM -> $c9ed, $c9e9 (wave type)
+6967 SynthLoadWaveTable         ; read packed param from SRAM, build wave table $ca94 (via SynthFillWaveRange)
+6997 SynthLoadFilterParams      ; read 2 synth params from SRAM -> $c9ee, $c9eb (filter)
 6B33 SynthDrawStr_6B33          ; calls DrawStringIndexed
-6D0F SynthProc_6D0F             ; subroutine; purpose TBD
+6D0F SynthDrawWaveView          ; draw synth wave view; layout depends on $cb62 toggle
 6D6F SynthDrawStr_6D6F          ; calls DrawString
 6E00 SynthBanked_6E00           ; banked-call wrapper
-6E11 SynthProc_6E11             ; subroutine; purpose TBD
+6E11 SynthHandleViewKeys        ; synth-screen key dispatch ($c575: toggle views $cb61/$cb62, SynthBanked_6E00)
 6E6E SynthSongWrite_6E6E        ; calls WriteSongByte
 6EB6 SynthDrawHex_6EB6          ; calls DrawHexByte
 6F3F SynthDrawHex_6F3F          ; calls DrawHexByte
