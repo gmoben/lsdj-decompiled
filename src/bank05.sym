@@ -8,20 +8,20 @@
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 4000 TableDrawStr_4000          ; calls DrawStringIndexed
-4167 TableProc_4167             ; subroutine; purpose TBD
-420C TableFunc_420C             ; subroutine returns value; purpose TBD
+4167 TableSelectScreen          ; navigation: pick wCurrentScreen ($c401) from mode $c900 + state $c901/$c902 vs $c8ff + jump table $41bf
+420C TableResetScroll           ; store arg -> $c903, then zero rSCX/rSCY
 421A TableBanked_421A           ; banked-call wrapper
 42A4 TableDrawStr_42A4          ; calls DrawStringIndexed
-42E7 TableFunc_42E7             ; subroutine returns value; purpose TBD
+42E7 TableGetCellA              ; address table column-A cell: base ptr $c447 + wTable*32 + row(arg<16); bounds-checked
 43B7 TableSongWrite_43B7        ; calls WriteSongByte
 442A TableSongWrite_442A        ; calls WriteSongByte
 44E8 TableTableEnv_44E8         ; accesses TableEnv
-453B TableProc_453B             ; subroutine; purpose TBD
+453B TableGetCellB              ; address table column-B cell: base ptr $c449 + wTable*32 + row(arg<16); bounds-checked
 459E TableTableTrans_459E       ; accesses TableTrans
-45F1 TableProc_45F1             ; subroutine; purpose TBD
+45F1 TableColumnRangeCalc       ; (?) reads column $c92f / $c930 and ROM tables $42D5/$42DB/$42E1 to compute a range/extent
 472B TableDrawStr_472B          ; calls DrawStringIndexed
-4930 TableFunc_4930             ; subroutine returns value; purpose TBD
+4930 TableInputFlag             ; return e=flag derived from input code (arg sp+4: 4 or $0a) and column $c92f
 4AA8 TableDrawHex_4AA8          ; calls DrawHexByte
 61CA TableBanked_61CA           ; banked-call wrapper
-64A3 TableProc_64A3             ; subroutine; purpose TBD
-676A TableProc_676A             ; subroutine; purpose TBD
+64A3 TableHandleInput           ; table-screen input/cursor handler ($c411 mode, wCursorX/Y); large
+676A TableUpdateScreen          ; main table-screen update/draw (large; also entered from DrawTableScreen)
