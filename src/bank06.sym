@@ -15,53 +15,53 @@
 5511 ChainBanked_5511       ; banked-call wrapper (2x)
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
-4000 ChainProc_4000             ; subroutine; purpose TBD
+4000 ChainScaleValue            ; scale/clamp a display value (mask $0f, $374c) with +$19/+$05 offset
 4026 ChainDrawStr_4026          ; calls DrawString
 40B3 ChainSongWrite_40B3        ; calls WriteSongByte
-410E ChainProc_410E             ; subroutine; purpose TBD
-414F ChainProc_414F             ; subroutine; purpose TBD
+410E ChainDrawWaveCell          ; draw cell at cursor $c937/$c938 via ROM tables $4022/$4024
+414F ChainDrawWaveCellHw        ; like ChainDrawWaveCell but palette per hGameboyType
 4279 ChainDrawHex_4279          ; calls DrawHexByte
 4306 ChainDrawHex_4306          ; calls DrawHexByte
-48AB ChainFunc_48AB             ; subroutine returns value; purpose TBD
-4901 ChainFunc_4901             ; subroutine returns value; purpose TBD
+48AB ChainCalcSampleAddr        ; compute a sample address (arg<<5 + base) for ChainDrawByte_4C55
+4901 ChainCalcParamAddr         ; pick SRAM base $bfc4/$bfc5 by bit3 of arg (= SynthCalcParamAddr)
 493F ChainSongWrite_493F        ; calls WriteSongByte
 4992 ChainPhraseNote_4992       ; accesses PhraseNote
-4AB0 ChainProc_4AB0             ; subroutine; purpose TBD
-4B16 ChainProc_4B16             ; subroutine; purpose TBD
-4B40 ChainProc_4B40             ; subroutine; purpose TBD
-4BA7 ChainProc_4BA7             ; subroutine; purpose TBD
+4AB0 ChainScanCmd               ; scan 4 entries for command $0b with nonzero operand
+4B16 ChainSetCursorSprite       ; compute cursor sprite X/Y from $c42b/$c93b ($c413==4)
+4B40 ChainWriteCursorPair       ; store $c42b through two arg pointers
+4BA7 ChainDrawWaveform          ; draw wave samples from $400c.. (<-DrawWaveScreen)
 4C55 ChainDrawByte_4C55         ; calls DrawByte
-4EAC ChainProc_4EAC             ; subroutine; purpose TBD
-4EBD ChainProc_4EBD             ; subroutine; purpose TBD
-4F02 ChainProc_4F02             ; subroutine; purpose TBD
-4F42 ChainProc_4F42             ; subroutine; purpose TBD
-4FA9 ChainProc_4FA9             ; subroutine; purpose TBD
-4FFB ChainProc_4FFB             ; subroutine; purpose TBD
+4EAC ChainDrawCursorByte        ; draw $c42b>>1 via ChainDrawByte_4C55
+4EBD ChainWriteWaveA            ; write wave data via ChainProc_4B40
+4F02 ChainDrawRow16             ; draw 16 bytes via ChainDrawByte_4C55
+4F42 ChainWriteWaveB            ; write wave data via ChainProc_4B40 (variant)
+4FA9 ChainWriteWaveC            ; write wave data via ChainProc_4B40 (variant)
+4FFB ChainWriteWaveD            ; write wave data via ChainProc_4B40 (variant)
 504E ChainBanked_504E           ; banked-call wrapper
 5398 ChainBanked_5398           ; banked-call wrapper
-546C ChainProc_546C             ; subroutine; purpose TBD
+546C ChainReadCursorInput       ; read input ($07da) -> cursor $c93b
 54FA ChainSeqRead_54FA          ; calls ReadSeqByte
 5563 ChainSeqRead_5563          ; calls ReadSeqByte
-5655 ChainProc_5655             ; subroutine; purpose TBD
+5655 ChainReadChainCell         ; bounds-checked chain[arg<$80][row<$10] read
 56AA ChainChainTrans_56AA       ; accesses ChainTrans
 56F0 ChainSongWrite_56F0        ; calls WriteSongByte
 5804 ChainSongWrite_5804        ; calls WriteSongByte
 5836 ChainSongWrite_5836        ; calls WriteSongByte
 5868 ChainSongWrite_5868        ; calls WriteSongByte
-58A7 ChainProc_58A7             ; subroutine; purpose TBD
-5ABE ChainProc_5ABE             ; subroutine; purpose TBD
+58A7 ChainDrawCellLo            ; draw cell at cursor $c419/$c41a
+5ABE ChainDrawCellHw            ; draw cell at $c41a (palette per hGameboyType)
 5B00 ChainDrawHex_5B00          ; calls DrawHexByte
 6D55 ChainBanked_6D55           ; banked-call wrapper
 6F0D ChainBanked_6F0D           ; banked-call wrapper
-7006 ChainProc_7006             ; subroutine; purpose TBD
+7006 ChainHandleInput           ; main chain-screen input handler ($c411==3, $c419/$c40d); large
 71ED ChainDrawStr_71ED          ; calls DrawString
 73C0 ChainDrawStr_73C0          ; calls DrawString
-73DC ChainFunc_73DC             ; subroutine returns value; purpose TBD
-740C ChainProc_740C             ; subroutine; purpose TBD
-7469 ChainProc_7469             ; subroutine; purpose TBD
-7508 ChainProc_7508             ; subroutine; purpose TBD
+73DC ChainSyncStatusFlag        ; read $cb69, return status flag
+740C ChainDrawSyncStatus        ; draw sync status string from $cb6c/$cb6b (ChainDrawStr_73C0)
+7469 ChainDrawLeadStatus        ; draw LEAD/sync status via ChainSyncStatusFlag (ChainDrawStr_73C0)
+7508 ChainDrawStatusWord        ; draw a status word (SYNC/LEAD) via ChainDrawStr_73C0
 7524 ChainDrawStr_7524          ; calls DrawStringIndexed
 75BA ChainDrawStr_75BA          ; calls DrawStringIndexed
-784C ChainFunc_784C             ; subroutine returns value; purpose TBD
-786F ChainProc_786F             ; subroutine; purpose TBD
-78B8 ChainProc_78B8             ; subroutine; purpose TBD
+784C ChainShiftSamples          ; sla each of N bytes from de (scope/visualization helper)
+786F ChainDrawScopePoint        ; plot oscilloscope point (ChainShiftSamples + $cba. buffer)
+78B8 ChainUpdateScope           ; update scope from $cba2/$cba3/$cba4
