@@ -30,7 +30,9 @@ DEF wTableCol        EQU $C92F  ; Table editor: current column/cursor state (bit
 DEF wTableRow        EQU $C930  ; Table editor: current row cursor (0-15); pairs with wTableCol
 DEF wGrooveRow       EQU $C9D4  ; Groove editor: current step/row cursor (0-15)
 DEF wSynthCursor     EQU $C442  ; Synth editor: current parameter/cursor index
-DEF wPlayMode        EQU $C4D2  ; sound playback mode: 0=stopped, 3/4/5=playing; main loop runs SndRunFrame only when nonzero
+DEF wPlayMode        EQU $C4D2  ; sound playback mode: 0=stopped, nonzero=playing (value = play scope;
+                                ; verified in emulator: 4 when started from SONG, 1 from PHRASE). Main
+                                ; loop runs SndRunFrame only when nonzero.
 DEF wRetrigger       EQU $C4CD  ; sound retrigger/hop flag (SndTick: nonzero -> rerun the channel chain this tick)
 ; Pitch-modulation accumulators $C4D4-$C4E3 (current channel): two 16-bit sweep
 ; pairs. Acc A=$C4D4 steps by +$10 into $C4D6, clamped to limits $C4DC/$C4DE;
