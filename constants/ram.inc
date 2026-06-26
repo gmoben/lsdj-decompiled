@@ -24,6 +24,9 @@ DEF wCursorX         EQU $C40D  ; shared edit cursor X (column); reused by every
 DEF wCursorY         EQU $C40F  ; shared edit cursor Y (row/step); reused by every screen
 DEF wPhraseRow       EQU $C416  ; active phrase step/row (0-15); shared by playback (bank $02) + Phrase editor
 DEF wInstrField      EQU $C427  ; Instrument editor: current parameter/field index (reset to 0 on screen draw)
+DEF wTableCol        EQU $C92F  ; Table editor: current column/cursor state (bit7 = special)
+DEF wGrooveRow       EQU $C9D4  ; Groove editor: current step/row cursor (0-15)
+DEF wPlayMode        EQU $C4D2  ; sound playback mode: 0=stopped, 3/4/5=playing; main loop runs SndRunFrame only when nonzero
 
 ; --- Drawing helpers (used by DrawString/DrawHexByte/... in bank 0) ----------
 DEF wStringSrc       EQU $C564  ; source pointer for DrawString (16-bit)
