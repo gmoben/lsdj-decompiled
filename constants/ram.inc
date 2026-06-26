@@ -28,6 +28,11 @@ DEF wTableCol        EQU $C92F  ; Table editor: current column/cursor state (bit
 DEF wGrooveRow       EQU $C9D4  ; Groove editor: current step/row cursor (0-15)
 DEF wPlayMode        EQU $C4D2  ; sound playback mode: 0=stopped, 3/4/5=playing; main loop runs SndRunFrame only when nonzero
 DEF wRetrigger       EQU $C4CD  ; sound retrigger/hop flag (SndTick: nonzero -> rerun the channel chain this tick)
+; Pitch-modulation accumulators $C4D4-$C4E3 (current channel): two 16-bit sweep
+; pairs. Acc A=$C4D4 steps by +$10 into $C4D6, clamped to limits $C4DC/$C4DE;
+; Acc B=$C4D8 steps into $C4DA, clamped to $C4E0/$C4E2 (see SndStepAcc*/SndClampAcc*).
+DEF wPitchModA       EQU $C4D4  ; pitch-mod sweep accumulator A (16-bit)
+DEF wPitchModB       EQU $C4D8  ; pitch-mod sweep accumulator B (16-bit)
 ; --- song (de)compression cursors (bank $1C; see docs/save_format.md) ----------
 DEF wCompBank        EQU $C979  ; SRAM bank used for compressed block I/O
 DEF wCompSrc         EQU $C97B  ; compressed-stream read pointer (decompress input), 16-bit
