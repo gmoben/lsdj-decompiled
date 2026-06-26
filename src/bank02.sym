@@ -77,7 +77,7 @@
 4C26 SndProc_4C26               ; subroutine; purpose TBD
 4C42 SndProc_4C42               ; subroutine; purpose TBD
 4C4E SndProc_4C4E               ; subroutine; purpose TBD
-4C68 SndProc_4C68               ; subroutine; purpose TBD
+4C68 SndLoadChannelInstr        ; read the channel's instrument number from SRAM bank3 via its $c140[ch] cursor -> wChanInstr shadow ($c0c8/$c210[ch]); then SndLoadInstrument
 4C9C SndProc_4C9C               ; subroutine; purpose TBD
 4CBF SndAdvanceSong_4CBF        ; calls AdvanceSongRow
 4D71 SndStepAllChannels         ; run ProcessChannel (sequencer step: advance phrase, read note/cmd) for each active channel, order WAV,PU1,PU2,NOI
@@ -94,7 +94,7 @@
 503C SndFunc_503C               ; subroutine returns value; purpose TBD
 504A SndProc_504A               ; subroutine; purpose TBD
 5074 SndProc_5074               ; subroutine; purpose TBD
-507F SndProc_507F               ; subroutine; purpose TBD
+507F SndAdvanceStatePtrs        ; advance the 7 working sound-state pointers (low bytes $c8df/e1/e3/e5/e7/eb/ed) to the next channel's slot in the $C1xx tables (counterpart of InitSoundStatePtrs)
 509C SndReadCursor_509C         ; calls ReadChanCursor
 50E1 SndReadCursor_50E1         ; calls ReadChanCursor
 5119 SndReadCursor_5119         ; calls ReadChanCursor
