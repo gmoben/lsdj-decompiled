@@ -3,3 +3,14 @@
 4968 PhraseStepPtr      ; -> $A000 + step (phrase row base pre-selected in SRAM; step<16); phrase-editor cell helper
 4C14 LoadPhraseRow        ; load the 4 phrase columns for phrase[wPhrase] into row buffers
 4CE5 DrawPhraseScreen     ; screen idx 1: draws the phrase note/instr/cmd/val grid
+; --- mechanically-named call-targets (interface-based; some purpose TBD) ---
+4000 PhraseBanked_4000      ; banked-call wrapper (5x)
+4071 PhraseProc_4071        ; subroutine (purpose TBD) (9x)
+4087 PhraseProc_4087        ; subroutine (purpose TBD) (3x)
+4106 PhraseProc_4106        ; subroutine (purpose TBD) (10x)
+4257 PhraseProc_4257        ; subroutine (purpose TBD) (7x)
+4811 PhraseProc_4811        ; subroutine (purpose TBD) (1x)
+4918 PhraseProc_4918        ; subroutine (purpose TBD) (10x)
+5136 PhraseProc_5136        ; subroutine (purpose TBD) (1x)
+5491 PhraseProc_5491        ; subroutine (purpose TBD) (1x)
+5533 PhraseBanked_5533      ; banked-call wrapper (1x)

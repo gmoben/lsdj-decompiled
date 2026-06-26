@@ -53,3 +53,27 @@
 649D FxCmd_R            ; R: retrig
 65F3 FxCmd_K            ; K: kill note
 7DD1 FxCmd_V            ; V: vibrato
+; --- mechanically-named call-targets (interface-based; some purpose TBD) ---
+4000 SndProc_4000           ; subroutine (purpose TBD) (3x)
+4033 SndProc_4033           ; subroutine (purpose TBD) (1x)
+4132 SndFunc_4132           ; subroutine (returns a value; purpose TBD) (1x)
+4208 SndProc_4208           ; subroutine (purpose TBD) (2x)
+4254 SndFunc_4254           ; subroutine (returns a value; purpose TBD) (1x)
+4276 SndProc_4276           ; subroutine (purpose TBD) (2x)
+4637 SndProc_4637           ; subroutine (purpose TBD) (6x)
+4753 SndProc_4753           ; subroutine (purpose TBD) (1x)
+5074 SndFunc_5074           ; subroutine (returns a value; purpose TBD) (2x)
+5119 SndProc_5119           ; subroutine (purpose TBD) (1x)
+5165 SndProc_5165           ; subroutine (purpose TBD) (4x)
+5345 SndProc_5345           ; subroutine (purpose TBD) (1x)
+5459 SndFunc_5459           ; subroutine (returns a value; purpose TBD) (1x)
+5477 SndFunc_5477           ; subroutine (returns a value; purpose TBD) (3x)
+5604 SndProc_5604           ; subroutine (purpose TBD) (1x)
+5657 SndProc_5657           ; subroutine (purpose TBD) (1x)
+5778 SndProc_5778           ; subroutine (purpose TBD) (1x)
+6479 SndProc_6479           ; subroutine (purpose TBD) (2x)
+6577 SndProc_6577           ; subroutine (purpose TBD) (2x)
+6694 SndProc_6694           ; subroutine (purpose TBD) (1x)
+6904 SndProc_6904           ; subroutine (purpose TBD) (1x)
+7034 SndProc_7034           ; subroutine (purpose TBD) (1x)
+7362 SndProc_7362           ; subroutine (purpose TBD) (2x)

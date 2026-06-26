@@ -9,3 +9,13 @@
 59B7 SyncModeNames   ; sync-mode display names "OFF"/"LSDJ"/"MIDI"/... (7-byte stride)
 5D4F CloneModeNames  ; clone-mode display names "DEEP"/"SLIM" (5-byte stride)
 5B7A DrawSyncSubSetting ; draw PS/2 DELAY (KEYBD) or TICKS/STEP (analog) value beside SYNC
+; --- mechanically-named call-targets (interface-based; some purpose TBD) ---
+5126 ProjBanked_5126        ; banked-call wrapper (2x)
+5303 ProjProc_5303          ; subroutine (purpose TBD) (2x)
+5782 ProjProc_5782          ; subroutine (purpose TBD) (2x)
+5796 ProjProc_5796          ; subroutine (purpose TBD) (3x)
+5853 ProjProc_5853          ; subroutine (purpose TBD) (7x)
+5861 ProjProc_5861          ; subroutine (purpose TBD) (2x)
+5876 ProjProc_5876          ; subroutine (purpose TBD) (5x)
+5896 ProjProc_5896          ; subroutine (purpose TBD) (3x)
+7200 ProjProc_7200          ; subroutine (purpose TBD) (6x)

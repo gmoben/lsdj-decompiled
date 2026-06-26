@@ -3,3 +3,7 @@
 51F4 PitchSpeedNames    ; [4][5] pitch-speed display names "STEP"/"TICK"/"DRUM"/"FAST"
 764C LoadCommandHelp    ; resolve command (sp+8) -> help string in wStrBuffer + wVramCursor; shown at screen top on double-A. B/F/H/S/W are context-cased (by $C41D), the rest via CommandHelpTable
 776E CommandHelpTable   ; [command] -> "X: DESCRIPTION" string pointer (index = command*2; 0 = context-cased above)
+; --- mechanically-named call-targets (interface-based; some purpose TBD) ---
+4000 UiProc_4000            ; subroutine (purpose TBD) (1x)
+5208 UiProc_5208            ; subroutine (purpose TBD) (1x)
+5331 UiProc_5331            ; subroutine (purpose TBD) (1x)
