@@ -62,108 +62,108 @@
 7DD1 FxCmd_V            ; V: vibrato
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
-4000 SndProc_4000               ; subroutine; purpose TBD
-4033 SndProc_4033               ; subroutine; purpose TBD
-40E6 SndFunc_40E6               ; subroutine returns value; purpose TBD
-410C SndFunc_410C               ; subroutine returns value; purpose TBD
-4132 SndProc_4132               ; subroutine; purpose TBD
-4208 SndFunc_4208               ; subroutine returns value; purpose TBD
-422E SndFunc_422E               ; subroutine returns value; purpose TBD
-4254 SndProc_4254               ; subroutine; purpose TBD
-4276 SndProc_4276               ; subroutine; purpose TBD
-43CE SndProc_43CE               ; subroutine; purpose TBD
-4637 SndFunc_4637               ; subroutine returns value; purpose TBD
-46C7 SndProc_46C7               ; subroutine; purpose TBD
-472F SndFunc_472F               ; subroutine returns value; purpose TBD
-4753 SndProc_4753               ; subroutine; purpose TBD
-478D SndProc_478D               ; subroutine; purpose TBD
-483F SndProc_483F               ; subroutine; purpose TBD
+4000 SndFxParsePitchVal         ; parse an FX value (mask $80/$0f) -> SndSetVibratoParams
+4033 SndApplyVibratoStep        ; apply hFxValue high nibble to pitch acc $c4d6; clamp via SndClampAcc6Hi
+40E6 SndClampAcc6Hi             ; if pitch acc $c4d6:d7 >= limit $c4de:df, clamp to it & ret 0; else ret 1
+410C SndClampAcc4Hi             ; if pitch acc $c4d4:d5 >= limit $c4dc:dd, clamp to it & ret 0; else ret 1
+4132 SndStepAcc4                ; pitch acc $c4d6:d7 = $c4d4:d5 + $10 (16-bit, saturating compare)
+4208 SndClampAccAHi             ; clamp pitch acc $c4da:db to limit $c4e2:e3 (ret 0 if clamped)
+422E SndClampAcc8Hi             ; clamp pitch acc $c4d8:d9 to limit $c4e0:e1 (ret 0 if clamped)
+4254 SndStepAcc8                ; pitch acc $c4da:db = $c4d8:d9 + $10 (16-bit)
+4276 SndDivMod                  ; 16-bit hl / 8-bit c -> quotient in l, remainder in a (shift-subtract)
+43CE SndFxTableJump             ; FX dispatch via computed jump (jp hl region)
+4637 SndClampNoteRange          ; clamp a note value to playable range ($3c..$78) -> $c422
+46C7 SndClearChanFxSlots        ; clear this channel's 3 FX slots ($c2f0/$c2f4/$c2f8 + ch)
+472F SndRunTableColumn          ; dispatch one table column (-> SndRunFxSlot / SndTableEnv_66E7)
+4753 SndRunChannelFxSlots       ; iterate the 12-entry FX-slot table $c2f0, run SndRunTableColumn per active
+478D SndDispatchStoredFx        ; load command from $c8c4, fall into DispatchFxCommand
+483F SndAdvanceTableCursor      ; advance this channel's table read cursor ($c8e1 ptr + $c140[ch])
 48AB SndGrooveStep_48AB         ; calls ReadGroove
 4B8A SndReadChainTranspose      ; read chain_transposes[wChanChain[ch]] from SRAM bank1 ($A880, di/ei guarded) -> per-channel shadow $c3fc[ch]
-4BC5 SndFunc_4BC5               ; subroutine returns value; purpose TBD
+4BC5 SndCheckTableState         ; table-state checks ($03/$04)
 4C26 AdvanceCurChanCursors      ; set de=hSoundCh*2, c=a (amount), then fall into AdvanceChanCursors (advance current channel's cursors by a)
 4C42 SndAnyChannelActive        ; scan the 8 wChanActive flags ($C0E0..7); return nz (flag in a) if any channel is active, z if none
-4C4E SndProc_4C4E               ; subroutine; purpose TBD
+4C4E SndStartChannel            ; handle $c0e4 (re)start request: read seq (SndSeqRead_6BBA), set retrigger $c4cd, clear request
 4C68 SndLoadChannelInstr        ; read the channel's instrument number from SRAM bank3 via its $c140[ch] cursor -> wChanInstr shadow ($c0c8/$c210[ch]); then SndLoadInstrument
-4C9C SndProc_4C9C               ; subroutine; purpose TBD
+4C9C SndReadChainRow            ; read the current chain row (cp $ff = end-of-chain)
 4CBF SndAdvanceSong_4CBF        ; calls AdvanceSongRow
 4D71 SndStepAllChannels         ; run ProcessChannel (sequencer step: advance phrase, read note/cmd) for each active channel, order WAV,PU1,PU2,NOI
 4DA9 SndReadSongChain_4DA9      ; calls ReadSongChain
-4E17 SndFunc_4E17               ; subroutine returns value; purpose TBD
-4E2A SndFunc_4E2A               ; subroutine returns value; purpose TBD
-4E69 SndFunc_4E69               ; subroutine returns value; purpose TBD
-4E74 SndProc_4E74               ; subroutine; purpose TBD
-4EA3 SndProc_4EA3               ; subroutine; purpose TBD
+4E17 SndMaskLow5                ; return a & $1f
+4E2A SndDecodeNibbles           ; split a byte into hi/lo nibbles ($f0/$10/$0f)
+4E69 SndQueueSyncByte           ; store a byte to $cbdc / wSyncTxByte (sync transmit)
+4E74 SndDeactivateChannel       ; clear wChanActive[ch] and $c0e4[ch] (stop this channel)
+4EA3 SndResetFxState            ; clear retrigger $c4cd, $c8f4, $c4ce, $c552
 4F2B FillChan16                 ; write a -> 16 consecutive bytes [hl] (staggered entry into the FillChan8/4 unrolled memset)
 4F2F FillChan12                 ; write a -> 12 consecutive bytes [hl] (staggered entry into the FillChan8/4 unrolled memset)
-4F3C SndFunc_4F3C               ; subroutine returns value; purpose TBD
-4FC0 SndProc_4FC0               ; subroutine; purpose TBD
-503C SndFunc_503C               ; subroutine returns value; purpose TBD
-504A SndProc_504A               ; subroutine; purpose TBD
-5074 SndProc_5074               ; subroutine; purpose TBD
+4F3C SndDecodeCmdNibbles        ; decode a command's nibbles ($01/$02 cases)
+4FC0 SndApplyTableCmd           ; (cp $02) SndReadSramByteVia then jp SndClampNoteRange
+503C SndReadSramByteVia         ; read [hl-pointer] from SRAM ($0a enable, di/reti) -> e
+504A SndRunTableStep            ; run a table step (SndDecodeCmdNibbles, SndProc_6904)
+5074 SndBank0Call5074           ; call bank0 helpers $33f9 then $3758 (d=$0f)
 507F SndAdvanceStatePtrs        ; advance the 7 working sound-state pointers (low bytes $c8df/e1/e3/e5/e7/eb/ed) to the next channel's slot in the $C1xx tables (counterpart of InitSoundStatePtrs)
 509C SndReadCursor_509C         ; calls ReadChanCursor
 50E1 SndReadCursor_50E1         ; calls ReadChanCursor
 5119 SndReadCursor_5119         ; calls ReadChanCursor
-5165 SndFunc_5165               ; subroutine returns value; purpose TBD
-5345 SndProc_5345               ; subroutine; purpose TBD
-5459 SndFunc_5459               ; subroutine returns value; purpose TBD
-5477 SndFunc_5477               ; subroutine returns value; purpose TBD
+5165 SndReadCmdStream           ; read command-stream bytes ($c8fb; cp $ff = end)
+5345 SndSetupWaveChannel        ; ch2 (WAV/KIT): seed working ptrs ($c8ef/e3/e5/e7/fc), SndReadCmdStream
+5459 SndReadCursorByte          ; read a byte via $c110[ch] cursor + $c8ed (SRAM-guarded)
+5477 SndApplyTablePitch         ; apply table transpose/pitch to a note (nibble masks)
 54D7 SndUpdateAllChannels       ; output phase of a tick: for each active channel (wChanActive $C0E0..7) set hSoundCh and call SndUpdateChannel (writes sound regs / runs tables)
 556A SndRunFrame                ; per-frame sound entry (called from main loop, bank00 $2317): tempo gate -- if $cb6f pending skip it; else run SndTick 1+$cb70 times this frame
 5583 SndApplyTableTranspose     ; jp target from SndStepTablePtrs: read table_transpose row, add to the channel note, apply (SndFunc_5477)
-55AE SndFunc_55AE               ; subroutine returns value; purpose TBD
-55CB SndFunc_55CB               ; subroutine returns value; purpose TBD
-55EF SndFunc_55EF               ; subroutine returns value; purpose TBD
-5604 SndFunc_5604               ; subroutine returns value; purpose TBD
-561B SndProc_561B               ; subroutine; purpose TBD
+55AE SndReadChanState55AE       ; read channel state via SndProc_748E
+55CB SndReadChainEnd            ; chain end-marker check (cp $ff)
+55EF SndDecodeTransA            ; SndApplyTablePitch / SndDecodeNibbles
+5604 SndDecodeTransB            ; SndApplyTablePitch / SndDecodeNibbles (variant)
+561B SndReadGrooveOrSpeed       ; (cp $20) groove vs speed -> SndGrooveStep / $cbbf
 5657 SndStepTablePtrs           ; advance the channel's table step counter; on 16-step wrap rebuild SRAM read-pointers ($c1xx) for the table transpose ($B480) and command ($BA80) columns of wChanTable[ch]
-56E1 SndFunc_56E1               ; subroutine returns value; purpose TBD
-572B SndFunc_572B               ; subroutine returns value; purpose TBD
-5778 SndProc_5778               ; subroutine; purpose TBD
-583F SndProc_583F               ; subroutine; purpose TBD
-58C7 SndProc_58C7               ; subroutine; purpose TBD
+56E1 SndReadGrooveVal           ; (cp $20/$08) -> SndGrooveStep, $cbbf
+572B SndSetVibratoParams        ; set vibrato state $cbc6/$c2d9/$cbc7
+5778 SndSetKitParams            ; set kit state $c694/$c8f1/$c695
+583F SndSplitPhraseNibbles      ; wChanPhrase[ch] -> hi/lo nibbles (compute phrase index)
+58C7 SndFillFF                  ; write $ff to a run of consecutive bytes [hl]
 58EA SndLoadInstrument          ; copy the 16-byte instrument record instruments[a] (SRAM bank1 $B080+a*16) into wSoundParams ($C0D0)
-5F5E SndFunc_5F5E               ; subroutine returns value; purpose TBD
-5FA7 SndProc_5FA7               ; subroutine; purpose TBD
-5FBE SndProc_5FBE               ; subroutine; purpose TBD
-5FDA SndFunc_5FDA               ; subroutine returns value; purpose TBD
-61A9 SndProc_61A9               ; subroutine; purpose TBD
-61F7 SndFunc_61F7               ; subroutine returns value; purpose TBD
+5F5E SndSetupChanState5F5E      ; set $c14f/$c14d then SndProc_7F33
+5FA7 SndSetChanState5FA7        ; set $c14e/$c319
+5FBE SndSetChanState5FBE        ; SndProc_5FA7 then $c69c
+5FDA SndSetChannelEnable        ; enable/disable this channel in rAUDENA (per hSoundCh; SndProc_61A9)
+61A9 SndWritePanning            ; set this channel's panning bits in rAUDTERM
+61F7 SndClearVoiceHram          ; clear $ffa0-$ffa3 (per-voice HRAM shadow regs)
 6270 SndTriggerWave_6270        ; calls TriggerWave
-6479 SndProc_6479               ; subroutine; purpose TBD
-6577 SndFunc_6577               ; subroutine returns value; purpose TBD
-6685 SndProc_6685               ; subroutine; purpose TBD
-6694 SndProc_6694               ; subroutine; purpose TBD
+6479 SndBank0Call6479           ; call bank0 helpers $33f9 then $3758
+6577 SndSetupWaveTrigger        ; wave/kit trigger helper (SndFunc_5F5E)
+6685 SndRunFxSlot               ; set hSoundCh = $c527 & 3, run SndSetupWaveTrigger
+6694 SndTableEnvDispatch        ; table-envelope command dispatch
 66E7 SndTableEnv_66E7           ; calls ReadTableEnvelope
-6904 SndProc_6904               ; subroutine; purpose TBD
-69C3 SndProc_69C3               ; subroutine; purpose TBD
-69DF SndProc_69DF               ; subroutine; purpose TBD
-6A94 SndProc_6A94               ; subroutine; purpose TBD
-6B59 SndFunc_6B59               ; subroutine returns value; purpose TBD
-6B9B SndProc_6B9B               ; subroutine; purpose TBD
+6904 SndTableStepDispatch       ; table-step jump table (jp hl), SndClampNoteRange
+69C3 SndMapFxLow3               ; map hFxValue & 7 via ROM table $69d7
+69DF SndTriggerPU1Plus          ; TriggerPU1 then SndSetupLfo
+6A94 SndCheckRetrigState        ; retrigger-state checks (cp [hl], $03)
+6B59 SndCheckChanMode           ; channel-mode check (cp $04)
+6B9B SndUpdateRetrig            ; SndCheckChanMode / SndCheckRetrigState (advance retrigger)
 6BBA SndSeqRead_6BBA            ; calls ReadSeqByte
 6D97 SndMemFill_6D97            ; calls MemSet
-6E0F SndProc_6E0F               ; subroutine; purpose TBD
-6E24 SndProc_6E24               ; subroutine; purpose TBD
-6EA7 SndProc_6EA7               ; subroutine; purpose TBD
+6E0F SndStopAllIfIdle           ; if no channel active, stop (SndProc_6B9B, SndMemFill_6D97)
+6E24 SndAdvanceRetrig           ; SndCheckChanMode (cp $ff)
+6EA7 SndChanStateMachine        ; per-channel state-machine dispatch (multiple branches)
 6F65 SndGetChainPhrase          ; bounds-checked chain_phrases[chain*16+row] lookup (chain=arg sp+6, row=arg sp+7 <$10; SRAM $A080); DebugTrap on out-of-range
-6FB6 SndProc_6FB6               ; subroutine; purpose TBD
+6FB6 SndWaveRetrigDispatch      ; wave-channel retrigger dispatch (-> SndTriggerWave_7034)
 7034 SndTriggerWave_7034        ; calls TriggerWave
-70FB SndProc_70FB               ; subroutine; purpose TBD
-710E SndProc_710E               ; subroutine; purpose TBD
+70FB SndEnableLcdInts           ; SetInterruptEnable
+710E SndInitPlayState           ; copy $c401 -> $c4d2, clear $c528, SndMemFill_7C4C
 711F SndAdvanceSong_711F        ; calls AdvanceSongRow
-7362 SndFunc_7362               ; subroutine returns value; purpose TBD
-73B0 SndProc_73B0               ; subroutine; purpose TBD
-748E SndProc_748E               ; subroutine; purpose TBD
+7362 SndBank0Call7362           ; bank0 $33f9 dispatch
+73B0 SndClearVoicePairs         ; recursive: SndBank0Call6479 x2 (clear voice state)
+748E SndAdvanceGrooveCursor     ; SndFunc_5459 + SndGrooveStep
 75C6 SndUpdateChannel           ; per-channel processor (channel = hSoundCh): advance phrase cursor, resolve song/chain row, read note/cmd; called per active channel by SndUpdateAllChannels
 77F0 SndTick                    ; one engine tick: SndStepAllChannels (sequencer) then SndUpdateAllChannels (output); self-recurses on retrigger flag $c4cd / mode $cb66
-786F SndProc_786F               ; subroutine; purpose TBD
+786F SndUpdateChanAltPath       ; per-channel alt update (SndProc_4C9C/4E74/5F5E)
 792B SndSeqRead_792B            ; calls ReadSeqByte
-7B31 SndProc_7B31               ; subroutine; purpose TBD
+7B31 SndCheckSyncState          ; sync-state check (cp $01/$ff)
 7C4C SndMemFill_7C4C            ; calls MemSet
-7CFB SndProc_7CFB               ; subroutine; purpose TBD
-7F24 SndProc_7F24               ; subroutine; purpose TBD
-7F33 SndProc_7F33               ; subroutine; purpose TBD
-7F3E SndProc_7F3E               ; subroutine; purpose TBD
-7F49 SndProc_7F49               ; subroutine; purpose TBD
+7CFB SndCmdJumpTable            ; command jump table (jp hl)
+7F24 SndSetupLfo                ; dispatch by hSoundCh -> SndSetupLfoPU1/PU2/WavNoi (vibrato/LFO setup)
+7F33 SndSetupLfoWavNoi          ; LFO setup for ch2/3 (WAV/NOI): clear $cbcd, init from $c2db
+7F3E SndSetupLfoPU2             ; LFO setup for ch1 (PU2): clear $cbc6, init from $c2d9
+7F49 SndSetupLfoPU1             ; LFO setup for ch0 (PU1): $cbbf, call bank0 $2f9a
