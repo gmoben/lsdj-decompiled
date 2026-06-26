@@ -29,25 +29,25 @@
 44B7 InstrHDrawHex_44B7         ; calls DrawHexByte
 48C5 InstrHSongWrite_48C5       ; calls WriteSongByte
 492A InstrHInstrWrite_492A      ; calls WriteInstrByte
-4B00 InstrHFunc_4B00            ; subroutine returns value; purpose TBD
+4B00 InstrHReadTableRow         ; read a 16-byte row from SRAM (ReadSongBytes) -> $c46d, then scan it
 4B45 InstrHTableTrans_4B45      ; accesses TableTrans
 4CCD InstrHSongWrite_4CCD       ; calls WriteSongByte
-4F04 InstrHFunc_4F04            ; subroutine returns value; purpose TBD
-4F1C InstrHFunc_4F1C            ; subroutine returns value; purpose TBD
-4F2E InstrHProc_4F2E            ; subroutine; purpose TBD
+4F04 InstrHMarkTableUsed        ; if arg<$20, set $c47d[arg]=1 (mark table used)
+4F1C InstrHGetTableUsed         ; return $c47d[arg] (table-used flag)
+4F2E InstrHReadPhraseRef        ; read SRAM byte at $A040+arg (ReadSongByte bank1)
 4F49 InstrHPhraseNote_4F49      ; accesses PhraseNote
 4FC5 InstrHTableCmd1_4FC5       ; accesses TableCmd1
-50A8 InstrHProc_50A8            ; subroutine; purpose TBD
-50CC InstrHFunc_50CC            ; subroutine returns value; purpose TBD
-50F6 InstrHFunc_50F6            ; subroutine returns value; purpose TBD
-513D InstrHProc_513D            ; subroutine; purpose TBD
-515F InstrHProc_515F            ; subroutine; purpose TBD
+50A8 InstrHScanUsedPhrases      ; for each phrase 0..255 used (InstrBanked_5091), process via InstrHPhraseNote_4F49
+50CC InstrHCountUsedTables      ; count nonzero entries in used-table map $c47d[0..$1f]
+50F6 InstrHProcessUsedTables    ; count tables (50CC) then run InstrHTableCmd1_4FC5 per used
+513D InstrHMarkInstrTable       ; read instr field6; if bit5 set, mark its table used (InstrHFunc_4F04)
+515F InstrHScanInstrTables      ; for each instrument 0..63 used, mark its table (InstrHProc_4F2E/513D)
 5183 InstrHSongWrite_5183       ; calls WriteSongByte
 51B9 InstrHTableTrans_51B9      ; accesses TableTrans
-526B InstrHFunc_526B            ; subroutine returns value; purpose TBD
+526B InstrHCollectUsedTables    ; gather used-table indices + pointers from map $c47d
 52B3 InstrHMemFill_52B3         ; calls MemSet
 52DA InstrHSeqRead_52DA         ; calls ReadSeqByte
-5478 InstrHProc_5478            ; subroutine; purpose TBD
+5478 InstrHScanUsedChains       ; for each chain 0..127 used (InstrBanked_5461), process (InstrBanked_5413)
 549C InstrHPhraseNote_549C      ; accesses PhraseNote
 5644 InstrHChainPhrase_5644     ; accesses ChainPhrase
 573C InstrHTableTrans_573C      ; accesses TableTrans
@@ -57,24 +57,24 @@
 5BDE InstrHDrawHex_5BDE         ; calls DrawHexByte
 5C78 InstrHDrawHex_5C78         ; calls DrawHexByte
 5D18 InstrHDrawHex_5D18         ; calls DrawHexByte
-5DC9 InstrHFunc_5DC9            ; subroutine returns value; purpose TBD
-5DF3 InstrHFunc_5DF3            ; subroutine returns value; purpose TBD
+5DC9 InstrHCountUsedPhrases     ; count used phrases 0..255 (InstrBanked_5091)
+5DF3 InstrHCountUsedChains      ; count used chains 0..127 (InstrBanked_5461)
 5E1D InstrHMemFill_5E1D         ; calls MemSet
 5F20 InstrHPhraseNote_5F20      ; accesses PhraseNote
-5F85 InstrHFunc_5F85            ; subroutine returns value; purpose TBD
-5FC2 InstrHFunc_5FC2            ; subroutine returns value; purpose TBD
-5FEC InstrHFunc_5FEC            ; subroutine returns value; purpose TBD
-6074 InstrHFunc_6074            ; subroutine returns value; purpose TBD
-614C InstrHFunc_614C            ; subroutine returns value; purpose TBD
-6163 InstrHProc_6163            ; subroutine; purpose TBD
-619E InstrHProc_619E            ; subroutine; purpose TBD
-61C4 InstrHProc_61C4            ; subroutine; purpose TBD
-620F InstrHProc_620F            ; subroutine; purpose TBD
+5F85 InstrHScanChainPhrases     ; scan the 16 phrase slots of a chain (arg*16) for usage
+5FC2 InstrHScanAllChainPhr      ; for 16 chains, scan their phrases (InstrHFunc_5F85)
+5FEC InstrHScanPhraseCmds       ; scan phrase command bytes from SRAM ($A0xx) for references
+6074 InstrHScanTableCmds        ; scan table command columns from SRAM ($B680/$BA80) for references
+614C InstrHAnyCmdRef            ; return 1 if InstrHScanPhraseCmds or InstrHScanTableCmds found a reference
+6163 InstrHPhraseAddr           ; compute SRAM phrase address (arg*16 + base)
+619E InstrHScanChainRows        ; scan 16 rows of a chain (arg*16)
+61C4 InstrHSongAddr             ; compute SRAM song-area address (arg*16 + $B2xx)
+620F InstrHScanTableRows        ; scan 16 table rows from a pointer
 62BD InstrHDrawStr_62BD         ; calls DrawString
 6B3B InstrHDrawStr_6B3B         ; calls DrawStringIndexed
-6CA2 InstrHProc_6CA2            ; subroutine; purpose TBD
-6EFE InstrHProc_6EFE            ; subroutine; purpose TBD
+6CA2 InstrHReadCursorCell       ; read cell via ROM table $64E1 + cursor offsets (args sp+7/sp+8)
+6EFE InstrHReadCursorCellAt     ; read cell at cursor $c415/$c416 (InstrHProc_6CA2)
 6F14 InstrHDrawStr_6F14         ; calls DrawStringIndexed
-70A8 InstrHFunc_70A8            ; subroutine returns value; purpose TBD
-70B6 InstrHProc_70B6            ; subroutine; purpose TBD
+70A8 InstrHGetParamPlus4        ; return $c429 + 4
+70B6 InstrHDrawParamField       ; draw a field from $c429 (parity-based) via InstrHFunc_70A8
 70DF InstrHDrawStr_70DF         ; calls DrawStringIndexed
