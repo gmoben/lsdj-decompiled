@@ -17,14 +17,14 @@
 65B3 SynthDistNames     ; distortion types "CLIP"/"FOLD"/"WRAP" (5-byte stride)
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
-40AE SynthDrawParamField        ; draw synth param field at cursor $c9d4 (palette by bit1) via DrawTextField
-425B SynthDrawStr_425B          ; calls DrawStringIndexed
-435D SynthBuildParamCache       ; once ($c9d5 guard): build 16-byte cache $c9d6 via $405a
-4394 SynthDrawParamFieldHw      ; like SynthDrawParamField but palette per hGameboyType
-43CF SynthDrawHex_43CF          ; calls DrawHexByte
-4B6C SynthBanked_4B6C           ; banked-call wrapper
-4C63 SynthRefreshRows           ; redraw synth rows over cursor range $c40e..$c410 ($c411==2)
-4CDE SynthRefreshParamRange     ; redraw synth param range around $c9d4/$c40e ($c411==2)
+40AE GrooveDrawField        ; draw groove value field at cursor $c9d4 (palette by bit1) via DrawTextField
+425B GrooveDrawStr_425B     ; draw a groove string (DrawStringIndexed)
+435D GrooveBuildCache       ; once ($c9d5 guard): build the 16-step groove display cache $c9d6 (via $405a)
+4394 GrooveDrawFieldHw      ; like GrooveDrawField but palette per hGameboyType
+43CF GrooveRender           ; Groove screen per-frame render (sets wDrawnScreen=SCREEN_GROOVE); draws the groove grid
+4B6C GrooveRenderHw         ; Groove render via banked draw (also sets wDrawnScreen=GROOVE)
+4C63 GrooveRefreshRows      ; redraw groove rows over cursor range $c40e..$c410
+4CDE GrooveRefreshRange     ; redraw groove value range around $c9d4/$c40e
 4D81 SynthRenderWaveA           ; render synth waveform segment using wave tables $4EF0/$50F0 ($c9e8/$c9ed)
 5190 SynthRenderWaveB           ; render synth waveform segment (variant of SynthRenderWaveA)
 5323 SynthComposeWave           ; main synth wave composition (wSynthRenderIdx, buffer $ca34); large

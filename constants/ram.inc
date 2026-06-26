@@ -11,6 +11,8 @@ DEF RAM_INC EQU 1
 ; --- Screen / UI state ------------------------------------------------------
 DEF wCurrentScreen   EQU $C401  ; 0-14; indexes the screen draw/update dispatch
 DEF wIsCGB           EQU $C402  ; set at boot when running on a Game Boy Color
+DEF wDrawnScreen     EQU $C411  ; SCREEN_* index of the currently-rendered screen; each screen's
+                                ; draw routine stores its own index here (verified: values match SCREEN_*)
 DEF wProjectCursor   EQU $C566  ; Project screen cursor/selection (with $C567)
 DEF wProjectCursor2  EQU $C567
 DEF wGroove          EQU $C417  ; current groove number being edited (0-31, Groove screen)
