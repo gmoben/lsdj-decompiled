@@ -388,7 +388,11 @@ Always, before committing:
       note-on (`SetupChannelSound`→per-channel + `rAUDx` shadows); FX dispatch
       (`DispatchFxCommand`, all `FxCmd_*`, `hFxValue`, `ApplyPitchBend`)
 - [ ] Cross-bank entry discovery (banked-call helper) to cover `$1E`/`$1F`
-- [ ] Drive coverage toward 100%; mark data; name all routines
+- [x] Name all routines: 100% of function entries (call- and jp-reached) have
+      real global names; internal control flow is RGBDS local labels (`.L_xxxx`);
+      zero global `L0x_xxxx` auto-labels remain
+- [ ] Drive code-coverage toward 100% (mark remaining data); upgrade the
+      interface-only `<Screen>Func/Proc` names to understood ones
 
 **Phase 6 — Matching C decompilation (Track 2, if green-lit by Phase 1)**
 - [ ] Per-translation-unit match workflow (objdiff-style byte diff vs ROM)

@@ -192,7 +192,13 @@ command-value cursor).
    from ~12 k garbage instruction lines down to ~2.6 k.
 2. **More computed dispatch.** Keep modelling indirect dispatch (e.g. the rest of
    `$1F`).
-3. **Naming.** Replace auto `L*` labels with real names, routine by routine.
-4. **Track the number.** Re-run `tools/coverage.py` after each push.
+ 3. **Naming — done for functions.** Every function entry (call- *and* jp-reached)
+    now has a real global name; auto-generated **global** `L*` labels are gone.
+    Internal jr/jp targets are emitted as RGBDS **local** labels (`.L_xxxx`) scoped
+    to their function, so a bank reads as named functions + local control flow.
+    Names range from fully-understood (e.g. `ReadChainPhrase`) to interface-only
+    placeholders (`<Screen>Func`/`Proc`, marked "purpose TBD") for routines whose
+    exact role still needs tracing — i.e. **100% labelled, not yet 100% understood.**
+ 4. **Track the number.** Re-run `tools/coverage.py` after each push.
 
 Throughout, the invariant is non-negotiable: **`make compare` stays green.**
