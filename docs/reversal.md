@@ -192,13 +192,27 @@ command-value cursor).
    from ~12 k garbage instruction lines down to ~2.6 k.
 2. **More computed dispatch.** Keep modelling indirect dispatch (e.g. the rest of
    `$1F`).
- 3. **Naming — done for functions.** Every function entry (call- *and* jp-reached)
-    now has a real global name; auto-generated **global** `L*` labels are gone.
-    Internal jr/jp targets are emitted as RGBDS **local** labels (`.L_xxxx`) scoped
-    to their function, so a bank reads as named functions + local control flow.
-    Names range from fully-understood (e.g. `ReadChainPhrase`) to interface-only
-    placeholders (`<Screen>Func`/`Proc`, marked "purpose TBD") for routines whose
-    exact role still needs tracing — i.e. **100% labelled, not yet 100% understood.**
- 4. **Track the number.** Re-run `tools/coverage.py` after each push.
+  3. **Naming — every function has a behavioral name.** Every function entry
+     (call- *and* jp-reached) has a real global name; auto-generated **global**
+     `L*` labels are gone, and so are the `<Screen>Func`/`Proc` "purpose TBD"
+     placeholders — **all ~280 were given behavior-based names** derived by reading
+     each function (its dominant RAM/reg access, callees, return value, structure).
+     Internal jr/jp targets are RGBDS **local** labels (`.L_xxxx`) scoped to their
+     function. Names that retain a `_XXXX` address suffix (e.g. `InstrGetField5_4B4C`)
+     are accurate behavioral names where the stem repeats and the suffix only
+     disambiguates.
+  4. **Re-review pass (correctness).** After labelling, every bank's theme was
+     re-verified against the actual entry/dispatch code. This caught and fixed
+     several *systematic* mislabels from the earlier heuristic pass:
+     - bank `$1C` "FileSave*" cluster was actually the **song-format upgrader**
+       (`FileUpgradeSong`/`FileUpgradeV0..V21`, on-screen "UPGRADING…"), not save.
+     - bank `$03`: 20 `InstrGetFieldN` were **setters** (read-modify-write) → `InstrSetFieldN`.
+     - "incidental access" mislabels (the same class as the old `54D7`): a bulk
+       SRAM clear named for a `$a000` base → `ClearSramWindow`; `CompressSong`
+       mis-placed on the previous routine's `ret` (off-by-one) → moved to `$441F`.
+     Verified-correct themes: sound engine (`$02`), Phrase/Table/Chain/Song
+     editors, the `$1F` used-data scanner, the `$06` channel scope. The build
+     stayed byte-for-byte through every rename.
+  5. **Track the number.** Re-run `tools/coverage.py` after each push.
 
 Throughout, the invariant is non-negotiable: **`make compare` stays green.**
