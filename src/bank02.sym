@@ -80,7 +80,7 @@
 4C68 SndProc_4C68               ; subroutine; purpose TBD
 4C9C SndProc_4C9C               ; subroutine; purpose TBD
 4CBF SndAdvanceSong_4CBF        ; calls AdvanceSongRow
-4D71 SndRunChannel_4D71         ; calls ProcessChannel
+4D71 SndStepAllChannels         ; run ProcessChannel (sequencer step: advance phrase, read note/cmd) for each active channel, order WAV,PU1,PU2,NOI
 4DA9 SndReadSongChain_4DA9      ; calls ReadSongChain
 4E17 SndFunc_4E17               ; subroutine returns value; purpose TBD
 4E2A SndFunc_4E2A               ; subroutine returns value; purpose TBD
@@ -102,7 +102,9 @@
 5345 SndProc_5345               ; subroutine; purpose TBD
 5459 SndFunc_5459               ; subroutine returns value; purpose TBD
 5477 SndFunc_5477               ; subroutine returns value; purpose TBD
-54D7 SndUpdateAllChannels       ; per-frame: for each active channel (wChanActive $C0E0..7), set hSoundCh and call SndUpdateChannel; (.L_5570 sub-block = tick-repeat loop, .L_5583 = table-transpose step)
+54D7 SndUpdateAllChannels       ; output phase of a tick: for each active channel (wChanActive $C0E0..7) set hSoundCh and call SndUpdateChannel (writes sound regs / runs tables)
+556A SndRunFrame                ; per-frame sound entry (called from main loop, bank00 $2317): tempo gate -- if $cb6f pending skip it; else run SndTick 1+$cb70 times this frame
+5583 SndApplyTableTranspose     ; jp target from SndStepTablePtrs: read table_transpose row, add to the channel note, apply (SndFunc_5477)
 55AE SndFunc_55AE               ; subroutine returns value; purpose TBD
 55CB SndFunc_55CB               ; subroutine returns value; purpose TBD
 55EF SndFunc_55EF               ; subroutine returns value; purpose TBD
@@ -148,7 +150,7 @@
 73B0 SndProc_73B0               ; subroutine; purpose TBD
 748E SndProc_748E               ; subroutine; purpose TBD
 75C6 SndUpdateChannel           ; per-channel processor (channel = hSoundCh): advance phrase cursor, resolve song/chain row, read note/cmd; called per active channel by SndUpdateAllChannels
-77F0 SndProc_77F0               ; subroutine; purpose TBD
+77F0 SndTick                    ; one engine tick: SndStepAllChannels (sequencer) then SndUpdateAllChannels (output); self-recurses on retrigger flag $c4cd / mode $cb66
 786F SndProc_786F               ; subroutine; purpose TBD
 792B SndSeqRead_792B            ; calls ReadSeqByte
 7B31 SndProc_7B31               ; subroutine; purpose TBD
