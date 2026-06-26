@@ -68,6 +68,9 @@ DEF wChanModType     EQU $C0A4  ; [4] modulation type
 DEF wChanNote        EQU $C0CC  ; [4] current note value per channel
 DEF wChanState       EQU $C0E0  ; start of the per-channel byte-state arrays
 DEF wChanActive      EQU $C0E0  ; [4] per-channel active flag; ProcessChannel runs only if nonzero
+DEF wChanRestart     EQU $C0E4  ; [4] per-channel (re)start request; SndChanStateMachine sets, SndStartChannel consumes
+DEF wChanFxSlots     EQU $C2F0  ; [12] per-channel active FX-command slots (3 slots x 4 channels, column-major)
+DEF wChanChainTrans  EQU $C3FC  ; [4] per-channel chain-transpose shadow (from SndReadChainTranspose)
 ; Sequencer position (song row -> chain -> phrase -> note step). Verified against a
 ; live RAM dump + the SRAM map (docs/save_format.md):
 DEF wChanSongRow     EQU $C200  ; [4] current song row, top of hierarchy (AdvanceSongRow walks this)
