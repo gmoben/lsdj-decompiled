@@ -88,6 +88,23 @@ liblsdj model): it emits `$C0 $C0` / `$E0 $E0` (literal escapes), `$C0 v n`
 `$E0 $FF` (end). Compress (`$441E`+) and decompress (`$45xx`/`$46xx`) sit next to
 each other in bank `$1C` and share the loop tail at `$464F`.
 
+## Song-format upgrade (migration on load) — bank `$1C`
+
+Saved songs carry a format-version byte at working-song offset `$bfff` (byte 3
+of the synth-params/`'rb'` area). After a song is loaded, `FileUpgradeSong`
+(`$6FC7`) migrates it forward to the current version:
+
+- read the stored version `v` from `$bfff`; if `v >= $16` (22) it's current — skip.
+- otherwise draw "UPGRADING..." and, for `n = v .. $15`, run `FileUpgradeV<n>`
+  (a per-version data patch), then stamp the version byte to `$16`.
+
+Each `FileUpgradeV<n>` (`$61D6`-`$6F73`) applies that version's data change —
+mostly instrument-field fixups via `FileForEachInstrType` (`$60F5`: iterate the
+64 instruments whose type byte-0 matches a value and invoke a callback) plus
+`FileReadInstrByte`/`FileWriteInstrByte` (`$60CC`/`$60E0`). Version `$14` needs
+no change (no step). This is how old `.sav`/`.lsdsng` files keep working across
+LSDj releases.
+
 ## Sample-kit ROM format (confirmed in this ROM)
 
 Kits occupy one 16 KiB ROM bank each, mapped to `$4000` when selected. Banks
@@ -118,4 +135,6 @@ reads/writes these.
 
 - SRAM/header/compression: liblsdj, pylsdj, and the LSDj wiki — **documented**.
 - Kit banks, names, and magic: **confirmed in this ROM**.
-- ROM routines for load/save/compress/format: **not yet located** (TBD).
+- ROM routines: compressor/decompressor and the **song-format upgrader**
+  (`FileUpgradeSong $6FC7`) are located in bank `$1C` (above). Block
+  allocation-table management routines: not yet fully traced (TBD).
