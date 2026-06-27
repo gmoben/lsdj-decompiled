@@ -112,6 +112,12 @@ DEF wChanCmdStep     EQU $C34E  ; [4] per-tick step/phase counter for the cyclin
                                 ; wave-frame (FxCmd_F): reset by those handlers, incremented each tick by WriteChannelFreq
 DEF wChanVibShape    EQU $C35F  ; [4] vibrato waveform select: FxCmd_V picks table $7DB1 (nonzero) vs $7D91 (zero).
                                 ; For the WAV channel (ch2) seeded from the instrument's vib setting by SetupSoundWave
+; Per-channel instrument feature flags, decoded from instrument byte 5 by SetupSoundPU1
+; (ch0) / SetupSoundWave (ch2, writes base+2). The same byte yields wChanVibShape/Phase/
+; Type (bits 4/0/1-2). Named by their verified engine effect (the bit each consumer gates):
+DEF wChanSlideNoteSrc EQU $C330 ; [4] byte5 bit6: FxCmd_L slide reads the alt note source ($C0EC vs wChanOutNote) when set
+DEF wChanTableSkip    EQU $C333 ; [4] byte5 bit5: SndCheckTableState returns early (skips table-state update) when set
+DEF wChanWaveTrig     EQU $C35C ; [4] byte5 bit7: ApplyPitchBend triggers a wave (SndTriggerWave) instead of bending when set
 DEF wChanActiveInstr EQU $C0C8  ; [4] instrument currently loaded into the sound engine per channel ($FF=none);
                                 ; set by SndLoadChannelInstr, gates note processing in ProcessChannel/NoteToPeriod.
                                 ; Distinct from wChanInstr ($C210), the *sequenced* instrument from the phrase.
