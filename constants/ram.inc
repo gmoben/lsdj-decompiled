@@ -99,6 +99,13 @@ DEF wSoundParams     EQU $C0D0  ; raw 16-byte instrument copied here on note-on 
 ; RAM dumps cross-checked with the working-song SRAM map (see docs/save_format.md).
 DEF wChanModFlag     EQU $C0A0  ; [4] modulation (vibrato/sweep) active flag
 DEF wChanModType     EQU $C0A4  ; [4] modulation type
+; Vibrato state, per channel, from the V command (VXY: X=speed, Y=depth) in FxCmd_V.
+; For the WAV channel (ch 2) the type/phase slots are seeded from the instrument by
+; SetupSoundWave (which writes base+2 = channel 2's slot).
+DEF wChanVibSpeed    EQU $C314  ; [4] 16-bit signed vibrato increment (V high nibble via table; negated by dir)
+DEF wChanVibDepth    EQU $C324  ; [4] vibrato depth (V low nibble via table $7D81)
+DEF wChanVibType     EQU $C328  ; [4] vibrato type/shape (compared to 1 in FxCmd_V)
+DEF wChanVibPhase    EQU $C32C  ; [4] vibrato direction/phase (gates the speed negation with wChanVibType)
 DEF wChanActiveInstr EQU $C0C8  ; [4] instrument currently loaded into the sound engine per channel ($FF=none);
                                 ; set by SndLoadChannelInstr, gates note processing in ProcessChannel/NoteToPeriod.
                                 ; Distinct from wChanInstr ($C210), the *sequenced* instrument from the phrase.
@@ -106,6 +113,9 @@ DEF wChanNote        EQU $C0CC  ; [4] current note value per channel
 DEF wChanState       EQU $C0E0  ; start of the per-channel byte-state arrays
 DEF wChanActive      EQU $C0E0  ; [4] per-channel active flag; ProcessChannel runs only if nonzero
 DEF wChanRestart     EQU $C0E4  ; [4] per-channel (re)start request; SndChanStateMachine sets, SndStartChannel consumes
+DEF wChanOutNote     EQU $C0E8  ; [4] effective note used for frequency: bank0 L1BA7 looks up the period as
+                                ; wNotePeriods[wChanOutNote + $7F + offset]. Set = wChanNote each tick by
+                                ; WriteChannelFreq; read/adjusted by the pitch-slide command (FxCmd_L)
 DEF wChanNoteTrigger EQU $C0F0  ; [4] per-channel "advance to next note step" flag: set nonzero when the note
                                 ; countdown expires (SndReadChanState/SndReadChainEnd), consumed by ProcessChannel
                                 ; which clears it and reads+plays the next note/command. Verified live (watchpoint).
