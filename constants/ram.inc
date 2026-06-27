@@ -152,6 +152,12 @@ DEF wPtrGrooveRow    EQU $C8E6  ; -> wChanGrooveRow[curChan]
 DEF wPtrPhrase       EQU $C8EA  ; -> wChanPhrase[curChan]
 DEF wPtrNote         EQU $C8EC  ; -> wChanNote[curChan]
 ; Per-channel GB-sound register shadows, written to hardware by TriggerNote:
+; Pitch-bend / slide state (per channel, 16-bit). The command handlers set a
+; target + rate; the freq code (bank0 L19A6) steps the current pitch toward the
+; target each tick by the rate and clamps on arrival. Reset on note-on.
+DEF wChanPitchTarget EQU $C248  ; [4] 16-bit pitch-bend target period (0 = no bend active); set by FxCmd_L
+DEF wChanPitchRate   EQU $C2D0  ; [4] 16-bit signed per-tick pitch step toward the target (sign in hi byte
+                                ; $C2D1); set by ApplyPitchBend from the FX value; cleared on note-on
 DEF wChanEnv         EQU $C2D8  ; [4] envelope value -> rAUDxENV (ch2/WAV = wave level rAUD3LEVEL)
 DEF wChanLenDuty     EQU $C2DC  ; [4] length/duty value -> rAUDxLEN
 DEF wChanFreqHi      EQU $C2E0  ; [4] freq-high + trigger/length-enable bits -> rAUDxHIGH
