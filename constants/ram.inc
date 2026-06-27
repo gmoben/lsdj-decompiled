@@ -79,6 +79,8 @@ DEF wDebugTrapped    EQU $C7AF  ; set by DebugTrap so it fires only once
 ; --- Playback / timing ------------------------------------------------------
 DEF wTimerReload     EQU $C578  ; tempo; copied to rTIMA each VBlank
 DEF wSoundTick       EQU $C8F4  ; sound/playback tick counter (TimerHandler)
+DEF wFxCommand       EQU $C8C4  ; current FX command index (0-$12) being processed for the channel; argument in
+                                ; hFxValue. Set from wChanCmd, dispatched via the jump table at $47A2 (DispatchFxCommand)
 
 ; --- Sound-engine channel state (struct-of-arrays, 4 channels: PU1/PU2/WAV/NOI)
 ; Confirmed from a live RAM dump while playing: the driver keeps per-channel
@@ -106,6 +108,8 @@ DEF wChanVibSpeed    EQU $C314  ; [4] 16-bit signed vibrato increment (V high ni
 DEF wChanVibDepth    EQU $C324  ; [4] vibrato depth (V low nibble via table $7D81)
 DEF wChanVibType     EQU $C328  ; [4] vibrato type/shape (compared to 1 in FxCmd_V)
 DEF wChanVibPhase    EQU $C32C  ; [4] vibrato direction/phase (gates the speed negation with wChanVibType)
+DEF wChanCmdStep     EQU $C34E  ; [4] per-tick step/phase counter for the cycling commands chord (FxCmd_C) and
+                                ; wave-frame (FxCmd_F): reset by those handlers, incremented each tick by WriteChannelFreq
 DEF wChanActiveInstr EQU $C0C8  ; [4] instrument currently loaded into the sound engine per channel ($FF=none);
                                 ; set by SndLoadChannelInstr, gates note processing in ProcessChannel/NoteToPeriod.
                                 ; Distinct from wChanInstr ($C210), the *sequenced* instrument from the phrase.
@@ -143,6 +147,7 @@ DEF wChanTable       EQU $C204  ; [4] current table per channel
 DEF wChanTableRow1   EQU $C208  ; [4] table command-1 playback row
 DEF wChanTableRow2   EQU $C20C  ; [4] table command-2 playback row
 DEF wChanInstr       EQU $C210  ; [4] current instrument number per channel
+DEF wChanChord       EQU $C218  ; [4] chord command value (CXY: X/Y semitone offsets); 0 = off. Set by FxCmd_C
 ; Current-channel table-playback cursors (16-bit SRAM addresses):
 DEF wTableTransposePtr EQU $C10E ; -> table_transposes
 DEF wTableCmd1Ptr    EQU $C11E  ; -> table_cmd1
