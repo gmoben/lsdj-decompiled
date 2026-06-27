@@ -19,6 +19,9 @@ setsid -f python3 tools/emu/emud.py "$PWD/lsdj9_4_0.gb" </dev/null >/tmp/opencod
 sleep 8 && python3 tools/emu/emu.py CONT          # resume (LSDj boots, visible)
 
 python3 tools/emu/emu.py read c401 1              # read N bytes  -> hex
+python3 tools/emu/emu.py read wKeyDelay 2         # ...by NAME (resolved from constants/ram.inc)
+python3 tools/emu/emu.py write wKeyDelay 00       # POKE byte(s) deterministically (name or hex addr)
+python3 tools/emu/emu.py keyrepeat off            # named setter: disable key-repeat (see PARAMS)
 python3 tools/emu/emu.py RAW 'x $c401'            # raw SameBoy debugger command
 python3 tools/emu/emu.py RAW 'watch $c411'        # write-watchpoint (find writers)
 python3 tools/emu/emu.py KEY 'select+right'       # input: names a/b/start/select/up/down/left/right (+ chords)
@@ -26,10 +29,27 @@ python3 tools/emu/emu.py SHOT /tmp/s.png          # screenshot the framebuffer
 python3 tools/emu/emu.py BREAK | CONT | STATE | WID | QUIT
 ```
 
+## Deterministic memory writes
+SameBoy has no `poke` command, but its expression evaluator writes memory via a
+dereferenced assignment: **`print [$addr] = $val`** (one byte per expression).
+`emu.py write`/`read` wrap this and are **symbol-aware** — the address may be a
+bare hex value *or* a variable name from `constants/ram.inc` (e.g. `wKeyDelay`).
+
+Higher-level **named setters** live in the `PARAMS` table in `emu.py`; extend it
+as more useful live state is identified. Current entries:
+- `keyrepeat on|off` — toggles `wKeyDelay` ($C52B, +working timer $C406). `off`
+  (delay 0) makes held keys register **exactly once**, so scripted input is
+  deterministic (no off-by-one from autorepeat). Run it once after boot.
+
 ## Verified keymap (this SameBoy build)
 arrows = D-pad, `x`=A, `z`=B, `Return`=Start, `BackSpace`=Select.
 `wButtons` ($C575) bit layout (dirs low / buttons high): Right0 Left1 Up2 Down3
 A4 B5 Select6 Start7.
+
+Screen navigation is `SELECT`+direction (chord, e.g. `KEY select+down`); the
+lower-right nav map shows the current screen and which direction reaches each
+neighbour. Verified: PROJECT `09` --down--> SONG `04` --right--> CHAIN `03`. The
+first chord after a batch of non-`KEY` ops can miss (focus warmup) — re-send it.
 
 ## Notes
 - `emud.py` keeps one persistent debugger session (SameBoy quits on debugger

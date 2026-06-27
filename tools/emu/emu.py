@@ -4,11 +4,16 @@ Usage: emu.py <OP> [args...]
   emu.py RAW "x $c401"       emu.py BREAK      emu.py CONT
   emu.py STATE               emu.py SHOT /tmp/s.png
   emu.py KEY Return          emu.py WID        emu.py QUIT
-Higher-level helpers:
-  emu.py read <hexaddr> <len>   -> break, x, parse bytes, (resume if was running)
+Higher-level helpers (addr may be a hex address OR a name from constants/ram.inc):
+  emu.py read  <addr> <len>          -> break, x, parse bytes, (resume if was running)
+  emu.py write <addr> <hexbyte>...   -> break, poke byte(s), (resume if was running)
+        deterministic memory write via SameBoy `print [$addr] = $val` (1 byte/expr)
+  emu.py keyrepeat <on|off>          -> deterministic key-repeat toggle (wKeyDelay)
+Named deterministic setters live in PARAMS (extend as more state is identified).
 """
-import socket, sys, re, time
+import socket, sys, re, time, os
 SOCK = "/tmp/opencode/emu.sock"
+RAM_INC = os.path.join(os.path.dirname(__file__), "..", "..", "constants", "ram.inc")
 
 def call(msg, t=15):
     s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM); s.settimeout(t)
@@ -41,10 +46,56 @@ def read_mem(addr, length):
     if was: call("CONT")
     return vals
 
+def write_mem(addr, bytevals):
+    """Break (if running), poke consecutive bytes from addr, resume.
+    SameBoy has no poke command; `print [$addr] = $val` writes one byte."""
+    was = call("STATE").strip() == "running"
+    if was: call("BREAK")
+    a = int(addr, 16) if isinstance(addr, str) else addr
+    for i, v in enumerate(bytevals):
+        call(f"RAW print [${a+i:04x}] = ${v & 0xff:02x}")
+    if was: call("CONT")
+    return [v & 0xff for v in bytevals]
+
+def load_syms():
+    """Map RAM/HRAM var names (lowercased) -> address, parsed from constants/ram.inc.
+    Only memory addresses (>= $8000) so bit/enum constants (e.g. BTN_*) are ignored."""
+    syms = {}
+    try:
+        with open(RAM_INC) as f:
+            for line in f:
+                m = re.match(r"\s*DEF\s+(\w+)\s+EQU\s+\$([0-9A-Fa-f]+)", line)
+                if m and int(m.group(2), 16) >= 0x8000:
+                    syms[m.group(1).lower()] = int(m.group(2), 16)
+    except OSError:
+        pass
+    return syms
+
+def resolve(token):
+    """A var name from ram.inc, or a bare hex address -> int address."""
+    return load_syms().get(token.lower()) or int(token, 16)
+
+# Named deterministic setters: name -> {mode/value -> [(addr, byte), ...]}.
+# Add entries here as more useful live state is identified.
+def _keyrepeat(mode):
+    d = 0 if mode == "off" else 7            # wKeyDelay; 0 disables (timer underflows)
+    return [(resolve("wKeyDelay"), d), (resolve("wKeyDelayTimer"), d)]
+PARAMS = {"keyrepeat": _keyrepeat}
+
 if __name__ == "__main__":
     if len(sys.argv) >= 2 and sys.argv[1] == "read":
-        addr, length = sys.argv[2], int(sys.argv[3])
+        addr, length = resolve(sys.argv[2]), int(sys.argv[3])
         vals = read_mem(addr, length)
         print(" ".join(f"{v:02x}" for v in vals))
+    elif len(sys.argv) >= 2 and sys.argv[1] == "write":
+        addr, bytevals = resolve(sys.argv[2]), [int(x, 16) for x in sys.argv[3:]]
+        write_mem(addr, bytevals)
+        print(" ".join(f"{v:02x}" for v in bytevals))
+    elif len(sys.argv) >= 3 and sys.argv[1] in PARAMS:
+        writes = PARAMS[sys.argv[1]](sys.argv[2].lower())
+        for addr, val in writes:
+            write_mem(addr, [val])
+        print(f"{sys.argv[1]} {sys.argv[2].lower()}: " +
+              " ".join(f"${a:04x}=${v:02x}" for a, v in writes))
     else:
         print(call(" ".join(sys.argv[1:])), end="")
