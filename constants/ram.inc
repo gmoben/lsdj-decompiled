@@ -22,9 +22,19 @@ DEF wChain           EQU $C418  ; current chain number being edited (0-127, Chai
 DEF wTable           EQU $C41B  ; current table number being edited (0-31, Table screen)
 DEF wSynth           EQU $C42A  ; current softsynth number being edited (0-15, Synth screen)
 
-DEF wCursorX         EQU $C40D  ; shared edit cursor X (column); reused by every screen
-DEF wCursorY         EQU $C40F  ; shared edit cursor Y (row/step); reused by every screen
-DEF wPhraseRow       EQU $C416  ; active phrase step/row (0-15); shared by playback (bank $02) + Phrase editor
+; Cut/copy SELECTION rectangle in grid coords ($C40D-$C410), then wClipboardType.
+; Set to the cursor cell on CUT (A+B) / COPY; read by cut/copy/paste/clone. Verified
+; in emulator: (wSelLeft,wSelTop) = cursor (col,row), (wSelRight,wSelBottom) = far
+; corner (e.g. SONG cut at col 2 -> 2,0,3,1; PHRASE cut at col1/row7 -> 1,7,3,8).
+; These were mislabeled wCursorX/wCursorY -- they are the selection's X1/X2 *columns*,
+; NOT a live cursor. The live edit cursor is per-screen (col/row): SONG $C41D/wSongRow,
+; PHRASE wPhraseCol/wPhraseRow, etc.
+DEF wSelLeft         EQU $C40D  ; selection rect left column (x1)
+DEF wSelTop          EQU $C40E  ; selection rect top row (y1)
+DEF wSelRight        EQU $C40F  ; selection rect right column (x2, exclusive)
+DEF wSelBottom       EQU $C410  ; selection rect bottom row (y2, exclusive)
+DEF wPhraseCol       EQU $C415  ; Phrase editor cursor column (0=NOTE 1=INSTR 2=CMD-type 3=CMD-param)
+DEF wPhraseRow       EQU $C416  ; active phrase step/row (0-15); Phrase cursor row + playback position (bank $02)
 DEF wInstrField      EQU $C427  ; Instrument editor: current parameter/field index (reset to 0 on screen draw)
 DEF wTableCol        EQU $C92F  ; Table editor: current column/cursor state (bit7 = special)
 DEF wTableRow        EQU $C930  ; Table editor: current row cursor (0-15); pairs with wTableCol
