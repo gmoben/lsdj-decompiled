@@ -99,6 +99,9 @@ DEF wSoundParams     EQU $C0D0  ; raw 16-byte instrument copied here on note-on 
 ; RAM dumps cross-checked with the working-song SRAM map (see docs/save_format.md).
 DEF wChanModFlag     EQU $C0A0  ; [4] modulation (vibrato/sweep) active flag
 DEF wChanModType     EQU $C0A4  ; [4] modulation type
+DEF wChanActiveInstr EQU $C0C8  ; [4] instrument currently loaded into the sound engine per channel ($FF=none);
+                                ; set by SndLoadChannelInstr, gates note processing in ProcessChannel/NoteToPeriod.
+                                ; Distinct from wChanInstr ($C210), the *sequenced* instrument from the phrase.
 DEF wChanNote        EQU $C0CC  ; [4] current note value per channel
 DEF wChanState       EQU $C0E0  ; start of the per-channel byte-state arrays
 DEF wChanActive      EQU $C0E0  ; [4] per-channel active flag; ProcessChannel runs only if nonzero
