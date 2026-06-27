@@ -176,6 +176,16 @@ DEF wButtons         EQU $C575  ; current button state (read 111x by every scree
 DEF wButtonRing      EQU $CE00  ; ring buffer of recent button states (for key-repeat + buffered input)
 DEF wButtonReadIdx   EQU $C56F  ; GetNextButtons read cursor into wButtonRing
 DEF wButtonWriteIdx  EQU $C570  ; ReadJoypad write cursor into wButtonRing
+; Key-repeat (autorepeat). ProcessInput ($11BE/$11C2) copies the two settings into
+; the working timers on a fresh press, decrements the delay timer each frame, and
+; only re-emits a held button once it reaches 0. Shown on PROJECT as "KEY DELAY/
+; REPEAT 7/3". Verified in emulator: wKeyDelay=0 disables repeat (timer dec's 0 ->
+; $FF => ~255-frame delay); wKeyRepeat sets only the post-delay rate (does not gate
+; the first repeat). Changing the leading "7" is what turns repeat off.
+DEF wKeyDelayTimer   EQU $C406  ; working countdown to the first repeat (reloads from wKeyDelay)
+DEF wKeyRepeatTimer  EQU $C407  ; working countdown between repeats (reloads from wKeyRepeat)
+DEF wKeyDelay        EQU $C52B  ; KEY DELAY setting: frames before a held button first repeats (0 = off)
+DEF wKeyRepeat       EQU $C52C  ; KEY REPEAT setting: frames between repeats after the initial delay
 ; Button bits in wButtons -- DIRECTIONS in the low nibble, BUTTONS in the high
 ; nibble (ReadJoypad $18BF builds dirs | (buttons<<4)). Verified against the code
 ; AND live emulator input (Down->$08, A(x)->$10, B(z)->$20, Select->$40, Start->$80):
