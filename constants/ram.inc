@@ -195,6 +195,11 @@ DEF wKeyDelayTimer   EQU $C406  ; working countdown to the first repeat (reloads
 DEF wKeyRepeatTimer  EQU $C407  ; working countdown between repeats (reloads from wKeyRepeat)
 DEF wKeyDelay        EQU $C52B  ; KEY DELAY setting: frames before a held button first repeats (0 = off)
 DEF wKeyRepeat       EQU $C52C  ; KEY REPEAT setting: frames between repeats after the initial delay
+; PROJECT-screen settings (working copies of song properties; loaded from SRAM
+; $BFxx at screen entry -- see SONG_PROPERTIES). Verified in emulator by editing
+; the PROJECT line and watching the byte + on-screen label change.
+DEF wColorSet        EQU $C52F  ; LOOK colorset/palette (e.g. AIRY/KIWI); from SRAM $BFBE; clamped <=3 on DMG
+DEF wCloneMode       EQU $C531  ; CLONE mode: 0=DEEP, 1=SLIM; from SRAM $BFC0
 ; Button bits in wButtons -- DIRECTIONS in the low nibble, BUTTONS in the high
 ; nibble (ReadJoypad $18BF builds dirs | (buttons<<4)). Verified against the code
 ; AND live emulator input (Down->$08, A(x)->$10, B(z)->$20, Select->$40, Start->$80):
