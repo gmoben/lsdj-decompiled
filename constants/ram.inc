@@ -108,6 +108,8 @@ DEF wChanVibSpeed    EQU $C314  ; [4] 16-bit signed vibrato increment (V high ni
 DEF wChanVibDepth    EQU $C324  ; [4] vibrato depth (V low nibble via table $7D81)
 DEF wChanVibType     EQU $C328  ; [4] vibrato type/shape (compared to 1 in FxCmd_V)
 DEF wChanVibPhase    EQU $C32C  ; [4] vibrato direction/phase (gates the speed negation with wChanVibType)
+DEF wChanPan         EQU $C352  ; [4] panning: instrument OUTPUT param (byte 7, L=bit0/R=bit1); NoteToPeriod passes it
+                                ; to SndWritePanning (-> rNR51). The duty bits (6-7) of the same byte feed wChanLenDuty
 DEF wChanCmdStep     EQU $C34E  ; [4] per-tick step/phase counter for the cycling commands chord (FxCmd_C) and
                                 ; wave-frame (FxCmd_F): reset by those handlers, incremented each tick by WriteChannelFreq
 DEF wChanVibShape    EQU $C35F  ; [4] vibrato waveform select: FxCmd_V picks table $7DB1 (nonzero) vs $7D91 (zero).
