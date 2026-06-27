@@ -110,6 +110,8 @@ DEF wChanVibType     EQU $C328  ; [4] vibrato type/shape (compared to 1 in FxCmd
 DEF wChanVibPhase    EQU $C32C  ; [4] vibrato direction/phase (gates the speed negation with wChanVibType)
 DEF wChanCmdStep     EQU $C34E  ; [4] per-tick step/phase counter for the cycling commands chord (FxCmd_C) and
                                 ; wave-frame (FxCmd_F): reset by those handlers, incremented each tick by WriteChannelFreq
+DEF wChanVibShape    EQU $C35F  ; [4] vibrato waveform select: FxCmd_V picks table $7DB1 (nonzero) vs $7D91 (zero).
+                                ; For the WAV channel (ch2) seeded from the instrument's vib setting by SetupSoundWave
 DEF wChanActiveInstr EQU $C0C8  ; [4] instrument currently loaded into the sound engine per channel ($FF=none);
                                 ; set by SndLoadChannelInstr, gates note processing in ProcessChannel/NoteToPeriod.
                                 ; Distinct from wChanInstr ($C210), the *sequenced* instrument from the phrase.
