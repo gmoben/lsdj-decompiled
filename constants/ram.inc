@@ -183,6 +183,8 @@ DEF wPtrNote         EQU $C8EC  ; -> wChanNote[curChan]
 DEF wChanPitchTarget EQU $C248  ; [4] 16-bit pitch-bend target period (0 = no bend active); set by FxCmd_L
 DEF wChanPitchRate   EQU $C2D0  ; [4] 16-bit signed per-tick pitch step toward the target (sign in hi byte
                                 ; $C2D1); set by ApplyPitchBend from the FX value; cleared on note-on
+DEF wChanPitchCur    EQU $C337  ; [4] 16-bit current pitch value (default $0080) that L19A6 slides toward
+                                ; wChanPitchTarget by wChanPitchRate each tick, clamping on arrival; reset by WriteChannelFreq
 DEF wChanEnv         EQU $C2D8  ; [4] envelope value -> rAUDxENV (ch2/WAV = wave level rAUD3LEVEL)
 DEF wChanLenDuty     EQU $C2DC  ; [4] length/duty value -> rAUDxLEN
 DEF wChanFreqHi      EQU $C2E0  ; [4] freq-high + trigger/length-enable bits -> rAUDxHIGH
