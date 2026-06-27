@@ -303,31 +303,57 @@ def _sub_hw_regs(text: str) -> str:
     return re.sub(r"\[\$(ff[0-9a-f]{2})\]", repl, text)
 
 
-def _load_ram_syms() -> dict[int, str]:
-    """Parse constants/ram.inc `DEF name EQU $addr` lines -> {addr: name}.
-    Used to render documented WRAM/HRAM addresses by name (byte-identical: the
-    name resolves to the same address via the INCLUDEd ram.inc)."""
-    syms: dict[int, str] = {}
+def _load_ram_syms() -> tuple[dict[int, str], dict[int, str]]:
+    """Parse constants/ram.inc `DEF name EQU $addr  ; comment` lines.
+
+    Returns (exact, offsets):
+      exact   {addr: name}                 -- documented base addresses
+      offsets {addr: "name + N"}           -- *interior* addresses of a
+              documented multi-byte var/array, so a mid-array access renders
+              as `wChanFreq + 4` instead of a raw `$c0f8` (byte-identical: the
+              expression resolves to the same address). Extents come from the
+              `; [N]` array-count and `16-bit` (stride 2) annotations, and are
+              capped at the next named symbol so they can never swallow it."""
+    exact: dict[int, str] = {}
+    spans: list[tuple[int, int, str]] = []   # (base, byte_len, name)
     path = Path(__file__).resolve().parent.parent / "constants" / "ram.inc"
     if not path.is_file():
-        return syms
+        return exact, {}
     for line in path.read_text().splitlines():
-        m = re.match(r"\s*DEF\s+(\w+)\s+EQU\s+\$([0-9A-Fa-f]{2,4})\b", line)
-        if m:
-            syms[int(m.group(2), 16)] = m.group(1)
-    return syms
+        m = re.match(r"\s*DEF\s+(\w+)\s+EQU\s+\$([0-9A-Fa-f]{2,4})\b(.*)", line)
+        if not m:
+            continue
+        name, addr, rest = m.group(1), int(m.group(2), 16), m.group(3)
+        exact[addr] = name
+        comment = rest.split(";", 1)[1] if ";" in rest else ""
+        cnt = re.match(r"\s*\[(\d+)\]", comment)        # array count at comment start
+        count = int(cnt.group(1)) if cnt else 1
+        stride = 2 if re.search(r"16-bit", comment) else 1
+        blen = count * stride
+        if blen > 1:
+            spans.append((addr, blen, name))
+    nexts = sorted(exact)                                # all named addresses
+    offsets: dict[int, str] = {}
+    for base, blen, name in sorted(spans):               # ascending: nearest base wins
+        nxt = next((a for a in nexts if a > base), base + blen)
+        end = min(base + blen, nxt)                      # cap at next named symbol
+        for a in range(base + 1, end):
+            offsets[a] = f"{name} + {a - base}"
+    return exact, offsets
 
 
-RAM_SYMS = _load_ram_syms()
+RAM_SYMS, RAM_OFFSETS = _load_ram_syms()
 
 
 def _sub_ram_syms(text: str) -> str:
     """Replace `$XXXX` operands (bracketed or immediate) with documented RAM
-    var names. Only substitutes addresses present in ram.inc, so unknown
-    addresses stay hex. Runs on instruction text only (the trailing address
-    comment is appended afterwards), so it never corrupts the byte annotation."""
+    var names, including `base + N` for interior array addresses. Only known
+    addresses are substituted, so unknown ones stay hex. Runs on instruction
+    text only (the trailing address comment is appended afterwards), so it
+    never corrupts the byte annotation."""
     def repl(m: re.Match[str]) -> str:
-        return RAM_SYMS.get(int(m.group(1), 16), m.group(0))
+        a = int(m.group(1), 16)
+        return RAM_SYMS.get(a) or RAM_OFFSETS.get(a, m.group(0))
     return re.sub(r"\$([0-9a-f]{4})\b", repl, text)
 
 
