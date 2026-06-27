@@ -115,8 +115,10 @@ DEF wChanVibShape    EQU $C35F  ; [4] vibrato waveform select: FxCmd_V picks tab
 ; Per-channel instrument feature flags, decoded from instrument byte 5 by SetupSoundPU1
 ; (ch0) / SetupSoundWave (ch2, writes base+2). The same byte yields wChanVibShape/Phase/
 ; Type (bits 4/0/1-2). Named by their verified engine effect (the bit each consumer gates):
+DEF wChanTableStep    EQU $C33F ; [4] byte5 bit3 = instrument TABLE-STEP param; gates the table-setup branch in SetupSoundPU1
 DEF wChanSlideNoteSrc EQU $C330 ; [4] byte5 bit6: FxCmd_L slide reads the alt note source ($C0EC vs wChanOutNote) when set
-DEF wChanTableSkip    EQU $C333 ; [4] byte5 bit5: SndCheckTableState returns early (skips table-state update) when set
+DEF wChanTranspose    EQU $C333 ; [4] byte5 bit5 = instrument TRANSPOSE param (bit set = transpose OFF). When set,
+                                ; SndTransposeNote skips adding wChanChainTrans to the note. Verified in our code.
 DEF wChanWaveTrig     EQU $C35C ; [4] byte5 bit7: ApplyPitchBend triggers a wave (SndTriggerWave) instead of bending when set
 DEF wChanActiveInstr EQU $C0C8  ; [4] instrument currently loaded into the sound engine per channel ($FF=none);
                                 ; set by SndLoadChannelInstr, gates note processing in ProcessChannel/NoteToPeriod.

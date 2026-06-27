@@ -80,7 +80,7 @@
 483F SndAdvanceTableCursor      ; advance this channel's table read cursor ($c8e1 ptr + $c140[ch])
 48AB SndGrooveStep_48AB         ; calls ReadGroove
 4B8A SndReadChainTranspose      ; read chain_transposes[wChanChain[ch]] from SRAM bank1 ($A880, di/ei guarded) -> per-channel shadow $c3fc[ch]
-4BC5 SndCheckTableState         ; table-state checks ($03/$04)
+4BC5 SndTransposeNote           ; add chain transpose (wChanChainTrans, song/chain mode) + global transpose to the note; skip if wChanTranspose set
 4C26 AdvanceCurChanCursors      ; set de=hSoundCh*2, c=a (amount), then fall into AdvanceChanCursors (advance current channel's cursors by a)
 4C42 SndAnyChannelActive        ; scan the 8 wChanActive flags ($C0E0..7); return nz (flag in a) if any channel is active, z if none
 4C4E SndStartChannel            ; handle $c0e4 (re)start request: read seq (SndSeqRead_6BBA), set retrigger $c4cd, clear request
