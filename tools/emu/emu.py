@@ -9,6 +9,10 @@ Higher-level helpers (addr may be a hex address OR a name from constants/ram.inc
   emu.py write <addr> <hexbyte>...   -> break, poke byte(s), (resume if was running)
         deterministic memory write via SameBoy `print [$addr] = $val` (1 byte/expr)
   emu.py keyrepeat <on|off>          -> deterministic key-repeat toggle (wKeyDelay)
+  emu.py clearwatch                  -> remove ALL breakpoints/watchpoints, resume
+        (SameBoy's unwatch/delete take an *id*, not an address; clearing by
+        address silently no-ops and leaves stale watchpoints that re-stop the
+        game on every resume -- looks "stuck". clearwatch when done with traces.)
 Named deterministic setters live in PARAMS (extend as more state is identified).
 """
 import socket, sys, re, time, os
@@ -91,6 +95,23 @@ if __name__ == "__main__":
         addr, bytevals = resolve(sys.argv[2]), [int(x, 16) for x in sys.argv[3:]]
         write_mem(addr, bytevals)
         print(" ".join(f"{v:02x}" for v in bytevals))
+    elif len(sys.argv) >= 2 and sys.argv[1] == "clearwatch":
+        # SameBoy `unwatch`/`delete` take an *id*, not an address; clearing by
+        # address silently no-ops and leaves stale watchpoints that re-stop the
+        # game every resume (looks "stuck"). Loop-remove all, then resume.
+        was = call("STATE").strip() == "running"
+        call("BREAK")
+        call("RAW delete")                       # all breakpoints
+        for _ in range(64):
+            lst = call("RAW list")
+            ids = re.findall(r"^\s*(\d+)\.\s", lst, re.M)   # ids stay stable (no renumber)
+            if not ids:
+                break
+            for i in ids:
+                call(f"RAW unwatch {i}")
+        print(" ".join(call("RAW list").split()))
+        if was:
+            call("CONT")
     elif len(sys.argv) >= 3 and sys.argv[1] in PARAMS:
         writes = PARAMS[sys.argv[1]](sys.argv[2].lower())
         for addr, val in writes:

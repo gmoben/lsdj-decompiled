@@ -24,6 +24,7 @@ python3 tools/emu/emu.py write wKeyDelay 00       # POKE byte(s) deterministical
 python3 tools/emu/emu.py keyrepeat off            # named setter: disable key-repeat (see PARAMS)
 python3 tools/emu/emu.py RAW 'x $c401'            # raw SameBoy debugger command
 python3 tools/emu/emu.py RAW 'watch $c411'        # write-watchpoint (find writers)
+python3 tools/emu/emu.py clearwatch               # remove ALL break/watchpoints (do this when done!)
 python3 tools/emu/emu.py KEY 'select+right'       # input: names a/b/start/select/up/down/left/right (+ chords)
 python3 tools/emu/emu.py SHOT /tmp/s.png          # screenshot the framebuffer
 python3 tools/emu/emu.py BREAK | CONT | STATE | WID | QUIT
@@ -55,3 +56,7 @@ first chord after a batch of non-`KEY` ops can miss (focus warmup) — re-send i
 - `emud.py` keeps one persistent debugger session (SameBoy quits on debugger
   disconnect); stateless callers talk to it via the socket.
 - Reads auto-`BREAK` then resume; the game keeps running between inspections.
+- Watchpoints: `unwatch`/`delete` take a watchpoint **id** (see `list`), *not* an
+  address. Clearing by address silently no-ops, leaving stale watchpoints that
+  re-stop the game on every resume (looks frozen). Run `emu.py clearwatch` when
+  done tracing to remove them all.
