@@ -61,6 +61,8 @@ DEF wKbdCursorRow    EQU $C42E  ; keyboard cursor row
 DEF wSampleNoteString EQU $C43A ; shared text buffer for a sample/kit note name (Phrase/Chain/Song note draws)
 DEF wTableCol        EQU $C92F  ; Table editor: current column/cursor state (bit7 = special)
 DEF wTableRow        EQU $C930  ; Table editor: current row cursor (0-15); pairs with wTableCol
+DEF wDefaultNotes     EQU $C904  ; table/array of default note values (InstrGetField0)
+DEF wHelpCursorRow   EQU $C934  ; HELP/word screen cursor row (ProjHelpSelectPrev/Next/OpenSelected)
 ; Table editor cell base pointers (16-bit) into the working table command data;
 ; TableGetCellA/B read [ptr + wTable*32 + row] to fetch a CMD1/CMD2 cell byte.
 DEF wTableCellAPtr   EQU $C447  ; 16-bit base ptr for TABLE command column A (CMD1); TableGetCellA
@@ -79,6 +81,7 @@ DEF wPitchModA       EQU $C4D4  ; pitch-mod sweep accumulator A (16-bit)
 DEF wPitchModB       EQU $C4D8  ; pitch-mod sweep accumulator B (16-bit)
 ; --- song (de)compression cursors (bank $1C; see docs/save_format.md) ----------
 DEF wFileCursorRestrict EQU $C999 ; File screen: restricts/limits the file-list cursor (File* draw/validate). Cross-checked
+DEF wIsSelectingFile  EQU $C995  ; File screen: nonzero while choosing a file from the list (FileDrawStr)
 DEF wCompBank        EQU $C979  ; SRAM bank used for compressed block I/O
 DEF wCompSrc         EQU $C97B  ; compressed-stream read pointer (decompress input), 16-bit
 DEF wCompDst         EQU $C97D  ; (de)compression output pointer into the working song, 16-bit
@@ -113,7 +116,10 @@ DEF wFxCommand       EQU $C8C4  ; current FX command index (0-$12) being process
 ; 2=WAV/KIT (rAUD3, plays WAVE+KIT instruments), 3=NOI (rAUD4). The per-channel
 ; computed frequency (wChanFreq) is written to rAUDxLOW/HIGH each frame.
 DEF wChanFreq        EQU $C0F4  ; [4] 16-bit GB period per channel; = wNotePeriods[note+xpose] -> rAUDxLOW/HIGH
-DEF wNoteTranspose   EQU $C4D3  ; transpose offset added to the note before the wNotePeriods lookup
+DEF wSongTranspose   EQU $C444  ; global/project TRANSPOSE (working copy of the SRAM song property); SndTransposeNote
+                                ; adds it to every note; displayed/edited on the PROJECT screen (ProjDrawHex)
+DEF wSongTransposeDisp EQU $C446 ; displayed form of the song transpose (ProjDrawHex / ProcessInput)
+DEF wNoteTranspose   EQU $C4D3  ; PU2 instrument transpose (from instrument PU2_TRANSPOSE param), added before the period lookup
 DEF wNotePeriods     EQU $CF28  ; runtime 16-bit GB note-period table (computed for tuning); NoteToPeriod indexes it
 DEF wSoundParams     EQU $C0D0  ; raw 16-byte instrument copied here on note-on from SONG_INSTRUMENTS
                                 ; ($3080 = SRAM bank1 $B080 + instr*16); SetupChannelSound then
@@ -277,6 +283,7 @@ DEF wKeyDelayTimer   EQU $C406  ; working countdown to the first repeat (reloads
 DEF wKeyRepeatTimer  EQU $C407  ; working countdown between repeats (reloads from wKeyRepeat)
 ; Input edge/modifier state (set by ProcessInput / L2B8D, read by the screens):
 DEF wButtonsSame     EQU $C408  ; 1 if wButtons unchanged since last frame, 0 if changed; ProcessInput gates the
+DEF wAPressEnabled    EQU $C409  ; 1 = an A-press is allowed (set on button release, cleared while a button is held). ProcessInput
                                 ; key-repeat timer reload on it (changed -> reload). Verified by tracing ProcessInput
 DEF wSelectHeld      EQU $C40A  ; nonzero while SELECT is held alone (set by L2B8D); read by screens as the SELECT modifier
 DEF wBHeld           EQU $C40B  ; nonzero while B is held alone (set by L2B8D); e.g. disables song-cursor left/right
