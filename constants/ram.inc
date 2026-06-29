@@ -44,7 +44,9 @@ DEF wSongScroll      EQU $C41C  ; SONG screen scroll = top visible row (on-scree
 DEF wSongCol         EQU $C41D  ; SONG cursor column = channel (0=PU1 1=PU2 2=WAV 3=NOI); indexes per-channel song
                                 ; arrays (e.g. [$C453+col]). RIGHT/LEFT move it. Also reused as scratch by some draws
 DEF wSongRow         EQU $C41E  ; SONG cursor row (0-255); DOWN/UP move it (drives wSongScroll)
-DEF wInstrField      EQU $C427  ; Instrument editor: current parameter/field index (reset to 0 on screen draw)
+DEF wInstrField      EQU $C427  ; Instrument editor: current parameter/field index (reset to 0 on screen draw) = cursor row
+DEF wInstrCursorCol  EQU $C428  ; Instrument editor cursor column (pairs with wInstrField as the row)
+DEF wSpeechCursorRow EQU $C429  ; Speech (word) instrument editor cursor row (DrawWordScreen)
 DEF wTableCol        EQU $C92F  ; Table editor: current column/cursor state (bit7 = special)
 DEF wTableRow        EQU $C930  ; Table editor: current row cursor (0-15); pairs with wTableCol
 ; Table editor cell base pointers (16-bit) into the working table command data;
@@ -63,6 +65,7 @@ DEF wRetrigger       EQU $C4CD  ; sound retrigger/hop flag (SndTick: nonzero -> 
 DEF wPitchModA       EQU $C4D4  ; pitch-mod sweep accumulator A (16-bit)
 DEF wPitchModB       EQU $C4D8  ; pitch-mod sweep accumulator B (16-bit)
 ; --- song (de)compression cursors (bank $1C; see docs/save_format.md) ----------
+DEF wFileCursorRestrict EQU $C999 ; File screen: restricts/limits the file-list cursor (File* draw/validate). Cross-checked
 DEF wCompBank        EQU $C979  ; SRAM bank used for compressed block I/O
 DEF wCompSrc         EQU $C97B  ; compressed-stream read pointer (decompress input), 16-bit
 DEF wCompDst         EQU $C97D  ; (de)compression output pointer into the working song, 16-bit
@@ -255,6 +258,13 @@ DEF wButtonWriteIdx  EQU $C570  ; ReadJoypad write cursor into wButtonRing
 ; the first repeat). Changing the leading "7" is what turns repeat off.
 DEF wKeyDelayTimer   EQU $C406  ; working countdown to the first repeat (reloads from wKeyDelay)
 DEF wKeyRepeatTimer  EQU $C407  ; working countdown between repeats (reloads from wKeyRepeat)
+; Input edge/modifier state (set by ProcessInput / L2B8D, read by the screens):
+DEF wButtonsSame     EQU $C408  ; 1 if wButtons unchanged since last frame, 0 if changed; ProcessInput gates the
+                                ; key-repeat timer reload on it (changed -> reload). Verified by tracing ProcessInput
+DEF wSelectHeld      EQU $C40A  ; nonzero while SELECT is held alone (set by L2B8D); read by screens as the SELECT modifier
+DEF wBHeld           EQU $C40B  ; nonzero while B is held alone (set by L2B8D); e.g. disables song-cursor left/right
+DEF wAHeld           EQU $C40C  ; nonzero while A is held alone (set by L2B8D)
+DEF wCursorButtonHold EQU $C467 ; cursor button-hold state (ProcessInput / editor cursors)
 DEF wKeyDelay        EQU $C52B  ; KEY DELAY setting: frames before a held button first repeats (0 = off)
 DEF wKeyRepeat       EQU $C52C  ; KEY REPEAT setting: frames between repeats after the initial delay
 ; PROJECT-screen settings (working copies of song properties; loaded from SRAM
