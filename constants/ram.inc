@@ -100,6 +100,8 @@ DEF wFileRedrawCount  EQU $C992  ; File screen: count of fields still to redraw;
 DEF wCompBank        EQU $C979  ; SRAM bank used for compressed block I/O
 DEF wCompSrc         EQU $C97B  ; compressed-stream read pointer (decompress input), 16-bit
 DEF wCompDst         EQU $C97D  ; (de)compression output pointer into the working song, 16-bit
+DEF wCompByte        EQU $C97F  ; current byte being processed in song (de)compression: loaded via ReadSongByte and
+                                ; compared against RLE markers ($20, $ff, run counts); set to $ff as a sentinel
 DEF wDecompPos       EQU $C983  ; cursor into the $DA00 decompress scratch buffer
 
 ; --- Drawing helpers (used by DrawString/DrawHexByte/... in bank 0) ----------
