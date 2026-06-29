@@ -201,25 +201,27 @@ one thing in the game, diff WRAM, and read the on-screen result.
   command/FX/table engine is processing, set from `hSoundCh`; some FX OR in
   bit2/3 flags) and `wWavLevel $C8F3` (WAV ch-2 output level -> `rAUD3LEVEL`).
 
-**What most of the *remaining* unnamed WRAM is.** LSDj is SDCC-compiled C, so
-beyond the genuine globals a large share of the still-raw `$cXXX` operands are
-**compiler scratch**, not hand-named variables. Two flavours:
-- *per-routine locals* at fixed addresses, written/read only inside one
-  `*DrawHex`/`*DrawStr`/`Draw*Screen`/`Synth*` function (SDCC also uses real stack
-  locals via `add sp,-N`), often a 16-bit VRAM pointer holding `$98xx`/`$9axx`
-  tilemap addresses -- e.g. `$c938` (Chain draw), `$c9a4` (Proj sync draw),
-  `$c998` (File/Proj draw ptr), `$c9e8` (Synth render), `$c431`, `$c405`;
-- *shared draw-helper scratch* used by **every** draw routine -- e.g. the
-  `$c7a9/$c7aa` text-draw cursor/pointer (50+ refs) that `UiDrawStr` checks and
-  the flush routine resets. This one is a real global and nameable with a deeper
-  trace of the draw pipeline; the per-routine locals should be recognised *as
-  locals* rather than force-named.
+**What the *remaining* unnamed WRAM is — checked against the actual compiler.**
+LSDj is SDCC-compiled C (GBDK 2.95 / SDCC 2.2.1, the period toolchain in
+`toolchain/`). I compiled probe functions with that exact compiler
+(`tools/match/match_function.py --show-asm`) to settle how it allocates storage:
+**function locals go on the stack** — the codegen is a `lda sp,-N(sp)` frame with
+`lda hl,N(sp)` (= `add sp,-N` / `ld hl, sp+N`) accesses, and the `_OVERLAY` area
+is **empty**. LSDj's own code uses those exact stack-local patterns. Therefore:
 
-**Meaningful globals still worth verified names** (do the driving action, don't
-guess): per-frame sound flags such as `$c8f5` (gates vibrato/wave-trigger/freq
-writes; bit7 set on trigger, bit1 tested -- verify by observing during real
-playback), MIDI/clock-sync runtime state around `wSyncMode $cb66` (`$cb67`-`$cb6b`
--- verify by changing SYNC), and the `$c7a9/$c7aa` draw cursor above.
+> **Every fixed-address `ld hl, $cXXX` access is a real global or `static`
+> variable, not transient compiler scratch.** The earlier guess that the
+> draw-routine `$cXXX` bytes were "compiler locals" was *wrong* — the compiler
+> check disproved it.
+
+So the still-raw `$cXXX` operands are genuine variables worth naming; they're just
+module-level state rather than per-frame globals: draw-module VRAM pointers and
+cursors (`$c998` holds `$98xx`/`$9axx` tilemap addrs; `$c938`/`$c9a4`/`$c9e8` are
+per-screen draw state), plus intricate subsystem state whose algorithm must be
+reversed first to label it correctly (`$c4d4-$c4e3` pitch-mod sweep — its
+accumulator/target relationships are subtler than they look; `$c8f5` sound flags;
+`$cb67-$cb6b` MIDI sync). Name by tracing each variable's role (and, where a UI
+action drives it, confirm with the SameBoy harness above).
 
 ## Path to 100%
 
