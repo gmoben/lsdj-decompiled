@@ -79,6 +79,9 @@ DEF wDebugTrapped    EQU $C7AF  ; set by DebugTrap so it fires only once
 ; --- Playback / timing ------------------------------------------------------
 DEF wTimerReload     EQU $C578  ; tempo; copied to rTIMA each VBlank
 DEF wSoundTick       EQU $C8F4  ; sound/playback tick counter (TimerHandler)
+DEF wChanCmdRate     EQU $C8C6  ; [4] command/table step rate = instrument COMMAND_RATE (byte 8); reload value for the countdown
+DEF wChanCmdCountdown EQU $C8CA ; [4] ticks until the next command/table step; SndRunTableStep decrements it, and on 0
+                                ; reloads it from wChanCmdRate and runs the step (SndDecodeCmdNibbles / SndTableStepDispatch)
 DEF wFxCommand       EQU $C8C4  ; current FX command index (0-$12) being processed for the channel; argument in
                                 ; hFxValue. Set from wChanCmd, dispatched via the jump table at $47A2 (DispatchFxCommand)
 
