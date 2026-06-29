@@ -87,7 +87,9 @@ DEF wStrBuffer       EQU $C6A9  ; shared text work buffer (StrCopy destination),
 DEF wDebugTrapped    EQU $C7AF  ; set by DebugTrap so it fires only once
 
 ; --- Playback / timing ------------------------------------------------------
-DEF wTimerReload     EQU $C578  ; tempo; copied to rTIMA each VBlank
+DEF wTempo           EQU $C529  ; song tempo in BPM (verified: PROJECT TEMPO 124->134 on edit). Also set by the
+                                ; T command (FxCmd_T). wTimerReload is derived from it
+DEF wTimerReload     EQU $C578  ; timer reload derived from wTempo; copied to rTIMA each VBlank
 DEF wSoundTick       EQU $C8F4  ; sound/playback tick counter (TimerHandler)
 DEF wChanCmdRate     EQU $C8C6  ; [4] command/table step rate = instrument COMMAND_RATE (byte 8); reload value for the countdown
 DEF wChanCmdCountdown EQU $C8CA ; [4] ticks until the next command/table step; SndRunTableStep decrements it, and on 0
