@@ -40,6 +40,7 @@
 34B2 OAMDMARoutine      ; OAM DMA (source $DD00); copied to HRAM and called there
 3154 SetOAMByte         ; write byte (sp+6) to wOamBuffer+offset(sp+4) only if changed; set wOamDirty (-> OAM DMA next frame)
 1500 ReadSongBytes      ; bulk copy from SRAM (bank, src) into a RAM dest buffer (e.g. a chain row)
+3A33 ResetWorkState     ; reset all runtime state to defaults: per-channel sequencer ptrs (read ptr=$0140, rows=$FF, instr/table/groove=0) + editor cursors + wCurrentScreen=SONG; e.g. when a song load comes back empty
 14D1 ReadSongByte       ; (bank,addr): di, select SRAM bank + enable RAM, read [de], reti
 14EB ReadSongByteRaw    ; like ReadSongByte but no di/reti (caller already holds IRQ off)
 158C WaitInterrupt     ; halt;nop;ret -- wait for the next interrupt (frame sync)
@@ -52,6 +53,8 @@
 2E33 DrawHexByte        ; draw byte A as two hex digits at the cursor
 2E6D DrawByte           ; draw a byte (stack arg) at the cursor
 1298 DrawTextField      ; draw a positioned text field
+39CD CopyToBgTilemap    ; copy a tile block from a source ptr into the active BG tilemap (stack args: col, row, src, len) -> CopyToBgTilemapCore
+39F2 CopyToBgTilemapCore ; worker: dest = active BG map ($9800/$9C00 per rLCDC bit3) at (col d,row e); rSTAT-gated byte copy from bc
 ; --- defensive checks ---
 0953 WriteInstrByte     ; write value (sp+8, <4) to instruments[instr][field]: bank1 $B080 + instr*$10 + field
 0A91 ReadInstrByte      ; read instruments[instr][field]: SRAM bank1 $B080 + instr*$10 + field (asserts instr<$40, field<$10)
