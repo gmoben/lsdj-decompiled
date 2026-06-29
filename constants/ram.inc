@@ -16,8 +16,14 @@ DEF wClipboardType   EQU $C411  ; SCREEN_* data-type held in the cut/copy clipbo
                                 ; CUT (A+B) / COPY on each screen to that screen's id, checked by PASTE
                                 ; (SEL+A). Verified in emulator: 0 -> $04 after cutting a SONG chain (and it
                                 ; is unchanged by navigation) -- NOT the drawn screen.
-DEF wProjectCursor   EQU $C566  ; Project screen cursor/selection (with $C567)
-DEF wProjectCursor2  EQU $C567
+; CGB BG-map attribute palettes copied to hBgDigitPalette/hBgPalette before a draw.
+; Two contexts: dimmed/shadowed ($C566/7) and selected/highlighted ($C568/9). Verified:
+; the draw helper copies $C568->hBgDigitPalette and $C569->hBgPalette. (These four were
+; previously mislabeled wProjectCursor -- they are draw palette config, not a cursor.)
+DEF wShadowDigitPal  EQU $C566  ; BG digit-palette attribute, dimmed/normal context
+DEF wShadowPal       EQU $C567  ; BG tile-palette attribute, dimmed/normal context
+DEF wSelectDigitPal  EQU $C568  ; BG digit-palette attribute, selected/highlighted context (-> hBgDigitPalette)
+DEF wSelectPal       EQU $C569  ; BG tile-palette attribute, selected/highlighted context (-> hBgPalette)
 DEF wGroove          EQU $C417  ; current groove number being edited (0-31, Groove screen)
 DEF wChain           EQU $C418  ; current chain number being edited (0-127, Chain screen)
 DEF wTable           EQU $C41B  ; current table number being edited (0-31, Table screen)
