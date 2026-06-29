@@ -96,6 +96,9 @@ DEF wStrBuffer       EQU $C6A9  ; shared text work buffer (StrCopy destination),
 DEF wDebugTrapped    EQU $C7AF  ; set by DebugTrap so it fires only once
 
 ; --- Playback / timing ------------------------------------------------------
+DEF wLiveMode        EQU $C528  ; SONG-screen LIVE mode flag, 0=SONG / 1=LIVE (verified: SELECT+LEFT on SONG
+                                ; toggles it, title + nav letter switch SONG<->LIVE). Boolean toggle at bank07 $4eda;
+                                ; the playback engine branches on it. Cleared by SndInitPlayState
 DEF wTempo           EQU $C529  ; song tempo in BPM (verified: PROJECT TEMPO 124->134 on edit). Also set by the
                                 ; T command (FxCmd_T). wTimerReload is derived from it
 DEF wTimerReload     EQU $C578  ; timer reload derived from wTempo; copied to rTIMA each VBlank
