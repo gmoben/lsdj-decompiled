@@ -223,6 +223,33 @@ accumulator/target relationships are subtler than they look; `$c8f5` sound flags
 `$cb67-$cb6b` MIDI sync). Name by tracing each variable's role (and, where a UI
 action drives it, confirm with the SameBoy harness above).
 
+### Subsystem-by-subsystem pass — and a refinement of "what's left"
+
+DFS through whole subsystems (verified static + dynamic) named, beyond the
+sound-struct/cursor work: `wRng`, `wFrameCounter(Hi)`, the serial **send clock**
+(`wSyncSendAccum/Rate`) and **sync state machine** (`wSyncTick/Run/Handshake/
+SendGate`), the **work-time clock** (`wWorkTimeAccum/Ticks` -> SRAM secs/mins),
+the **oscilloscope** wave-display (`wOscActive/BankA-B/LoopA-B`), `wWaveCursor`,
+`wWavMode`, `wFileScroll`, `wCompByte`, `wSongReadBuf`. Two structural findings:
+
+1. **Overlay:** `$c4d4-$c4f9` is shared between the pitch-mod stepper (`c8f5`-gated)
+   and the oscilloscope wave-display (`c8f6`-gated, bank00 `$03d8`) — same RAM,
+   two mutually-exclusive features. Don't name the shared pointers for one use.
+2. **The remaining ~1800 raw `$cXXX` refs are NOT mostly single-purpose globals.**
+   They split three ways, and only the third is cleanly nameable:
+   - *Shared work buffers* whose **address is passed** to helpers (e.g. `wSongReadBuf`
+     -> `ReadSongBytes`, `wStrBuffer` -> `StrCopy`; `c431/c457/c405/c555` similar).
+     General scratch, not a specific global — name generically at best.
+   - *Transient draw/render scratch* — **zeroed between uses** (read `$c9e8`/`$c9ed`
+     on the SYNTH screen: all `00`), i.e. SDCC static locals for one routine
+     (`c9e8/c9ed` synth render, `c938` chain draw, `c9a4` proj draw). Naming needs
+     the routine's algorithm reversed; the name is that routine's local, not a global.
+   - *Subsystem state* (sync/oscilloscope/clock/file flags & counters) — the genuinely
+     nameable globals, and where the verified names above came from.
+
+   So "nameable globals remaining" is far smaller than 1800; target subsystem-state
+   vars, recognise the scratch, and don't force names onto buffers/transients.
+
 ## Path to 100%
 
 1. **Code/data split (cleaner carves).** The unreached remainder in a bank is
