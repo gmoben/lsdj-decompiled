@@ -178,6 +178,49 @@ transient and screen-dependent -- so those names rest on engine-code usage inste
 (e.g. `$C36B` is confirmed as the command value by the code that writes it from the
 command-value cursor).
 
+### RAM labels: dynamic verification (SameBoy harness)
+
+UI/editor RAM that can't be pinned from static dumps is now verified *dynamically*
+by driving the ROM in SameBoy (`tools/emu/`, cookbook in `ANALYSIS.md`): change
+one thing in the game, diff WRAM, and read the on-screen result.
+
+- **`tools/emu/nav.py`** is a verified screen-graph pathfinder. The SELECT+dir map
+  is a 5x3 grid whose top/bottom rows are *column-spanning stateful hubs*
+  (PROJECT/SYNTH/WAVE on top, GROOVE on the bottom span all columns and remember
+  the column you entered from), so a flat `(screen,dir)->screen` graph is wrong;
+  `goto` localises then routes via the unique row-0 screens, reaching any editor
+  deterministically. (NB: SELECT+LEFT on SONG toggles LIVE mode -- a real side
+  effect, never a no-op.)
+- **diffstate-on-action** found e.g. `wLiveMode $C528`: SELECT+LEFT on SONG flips
+  it `0<->1` and only that byte toggles+reverts; the title and nav-map letter
+  switch SONG<->LIVE (confirmed by screenshot).
+- **screenshots** map a value to meaning: one INSTR shot enumerates the
+  `wInstrField` rows (NAME/TYPE/ENV/WAVE/OUTPUT/LENGTH/SWEEP/PITCH/TRANSP/PU2 TSP/
+  FINETUNE/CMD-RATE/TABLE). `Read` the PNG directly.
+- Engine-code reading still settles sound names: `wFxChannel $C527` (channel the
+  command/FX/table engine is processing, set from `hSoundCh`; some FX OR in
+  bit2/3 flags) and `wWavLevel $C8F3` (WAV ch-2 output level -> `rAUD3LEVEL`).
+
+**What most of the *remaining* unnamed WRAM is.** LSDj is SDCC-compiled C, so
+beyond the genuine globals a large share of the still-raw `$cXXX` operands are
+**compiler scratch**, not hand-named variables. Two flavours:
+- *per-routine locals* at fixed addresses, written/read only inside one
+  `*DrawHex`/`*DrawStr`/`Draw*Screen`/`Synth*` function (SDCC also uses real stack
+  locals via `add sp,-N`), often a 16-bit VRAM pointer holding `$98xx`/`$9axx`
+  tilemap addresses -- e.g. `$c938` (Chain draw), `$c9a4` (Proj sync draw),
+  `$c998` (File/Proj draw ptr), `$c9e8` (Synth render), `$c431`, `$c405`;
+- *shared draw-helper scratch* used by **every** draw routine -- e.g. the
+  `$c7a9/$c7aa` text-draw cursor/pointer (50+ refs) that `UiDrawStr` checks and
+  the flush routine resets. This one is a real global and nameable with a deeper
+  trace of the draw pipeline; the per-routine locals should be recognised *as
+  locals* rather than force-named.
+
+**Meaningful globals still worth verified names** (do the driving action, don't
+guess): per-frame sound flags such as `$c8f5` (gates vibrato/wave-trigger/freq
+writes; bit7 set on trigger, bit1 tested -- verify by observing during real
+playback), MIDI/clock-sync runtime state around `wSyncMode $cb66` (`$cb67`-`$cb6b`
+-- verify by changing SYNC), and the `$c7a9/$c7aa` draw cursor above.
+
 ## Path to 100%
 
 1. **Code/data split (cleaner carves).** The unreached remainder in a bank is
