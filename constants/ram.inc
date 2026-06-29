@@ -112,6 +112,9 @@ DEF wWavLevel        EQU $C8F3  ; WAV channel (ch 2) output level: staged here, 
 DEF wSndUpdateFlags  EQU $C8F5  ; current channel's per-frame sound-update gate: nonzero -> run the vibrato/pitch-mod
                                 ; stepper, wave-trigger and freq-write (each `or a,[hl]; ret z`); reset on channel
                                 ; setup, bit7 set on note trigger, bit1 tested
+DEF wFrameCounter    EQU $C553  ; per-frame counter (verified: increments every frame; `inc [hl]`), overflows into
+                                ; wFrameCounterHi; consumed as `&$03` (4-phase UI animation) and `cp $0a`; reset on sound stop
+DEF wFrameCounterHi  EQU $C552  ; high byte of wFrameCounter (incremented when wFrameCounter wraps)
 DEF wWavMode         EQU $C500  ; WAV channel wave-source mode, set from the wave instrument in SetupSoundWave;
                                 ; 0 gates the wave-frame updater off (`ret z`), 1/2 select modes
 DEF wSndDataPtr      EQU $C8E9  ; 16-bit working pointer the sound command/table reader (SndReadCmdStream) walks;
