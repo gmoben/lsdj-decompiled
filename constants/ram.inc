@@ -211,6 +211,7 @@ DEF wChanNoteTrigger EQU $C0F0  ; [4] per-channel "advance to next note step" fl
                                 ; countdown expires (SndReadChanState/SndReadChainEnd), consumed by ProcessChannel
                                 ; which clears it and reads+plays the next note/command. Verified live (watchpoint).
 DEF wChanFxSlots     EQU $C2F0  ; [12] per-channel active FX-command slots (3 slots x 4 channels, column-major)
+DEF wChanPitchModActive EQU $C3F9 ; [3] per-channel "pitch is modulating" flag (PU1/PU2/WAV); set by SndUpdatePitchModFlag*, gates per-frame SndStepPitchVib+SndWriteFreq at $0584
 DEF wChanChainTrans  EQU $C3FC  ; [4] per-channel chain-transpose shadow (from SndReadChainTranspose)
 DEF wRng             EQU $C400  ; RNG state (verified: random value every frame, song stopped & no input);
                                 ; read-modify-written (ld hl,wRng / sub a,[hl] / ld [hl],e). Used by the probability
