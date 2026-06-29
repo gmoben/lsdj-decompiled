@@ -28,6 +28,8 @@ DEF wGroove          EQU $C417  ; current groove number being edited (0-31, Groo
 DEF wChain           EQU $C418  ; current chain number being edited (0-127, Chain screen)
 DEF wTable           EQU $C41B  ; current table number being edited (0-31, Table screen)
 DEF wSynth           EQU $C42A  ; current softsynth number being edited (0-15, Synth screen)
+DEF wWaveCursor      EQU $C42B  ; WAVE editor horizontal cursor = wave-frame position (verified: ranges 0..F as
+                                ; LEFT/RIGHT move it); x4 in the draw for frame addressing. NB: not wSynth+1
 
 ; Cut/copy SELECTION rectangle in grid coords ($C40D-$C410), then wClipboardType.
 ; Set to the cursor cell on CUT (A+B) / COPY; read by cut/copy/paste/clone. Verified
