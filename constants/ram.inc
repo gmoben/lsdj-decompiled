@@ -109,6 +109,9 @@ DEF wSoundTick       EQU $C8F4  ; sound/playback tick counter (TimerHandler)
 DEF wWavLevel        EQU $C8F3  ; WAV channel (ch 2) output level: staged here, then written to rAUD3LEVEL + wChanEnv+2
 DEF wWavMode         EQU $C500  ; WAV channel wave-source mode, set from the wave instrument in SetupSoundWave;
                                 ; 0 gates the wave-frame updater off (`ret z`), 1/2 select modes
+DEF wSndDataPtr      EQU $C8E9  ; 16-bit working pointer the sound command/table reader (SndReadCmdStream) walks;
+                                ; pointed at &wChanTableRow1[ch] (stride $04) or instrument-mode data (stride $40)
+DEF wSndDataStride   EQU $C8FB  ; advance stride for wSndDataPtr ($04 = per-channel arrays, $40 = instrument mode)
 DEF wFxChannel       EQU $C527  ; channel (0-3) the command/FX/table engine is processing (set from hSoundCh); some
                                 ; FX OR in bit2/bit3 as mode flags (tested via `and $fc` before using it as an index)
 DEF wChanCmdRate     EQU $C8C6  ; [4] command/table step rate = instrument COMMAND_RATE (byte 8); reload value for the countdown
