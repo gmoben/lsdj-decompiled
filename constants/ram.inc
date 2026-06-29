@@ -191,6 +191,9 @@ DEF wChanPitchCur    EQU $C337  ; [4] 16-bit current pitch value (default $0080)
                                 ; wChanPitchTarget by wChanPitchRate each tick, clamping on arrival; reset by WriteChannelFreq
 DEF wChanFinetune    EQU $C696  ; per-pulse-channel finetune (PU1 $C696, PU2 $C697); L1BA7 subtracts it as a
                                 ; fine (low-byte) pitch adjustment in the period calc. From instrument finetune param (byte $B)
+DEF wChanPeriodTablePtr EQU $C356 ; [4] 16-bit per-channel pointer to the note-period table for pitch interpolation
+                                ; (L1B28). NoteToPeriod sets it to wNotePeriods ($CF28), or an alt table when
+                                ; wChanSlideNoteSrc is set. Pitched channels only (ch0-2; noise excluded)
 DEF wChanEnv         EQU $C2D8  ; [4] envelope value -> rAUDxENV (ch2/WAV = wave level rAUD3LEVEL)
 ; Per-channel software-envelope working struct, 7 bytes/channel (channel N at base + N*7:
 ; PU1 $CBBC, PU2 $CBC3, WAV $CBCA, NOI $CBD1; set up by SetupSoundPU1/PU2/...). The three
