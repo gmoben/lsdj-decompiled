@@ -275,9 +275,12 @@ DEF wChanPeriodTablePtr EQU $C356 ; [4] 16-bit per-channel pointer to the note-p
                                 ; wChanSlideNoteSrc is set. Pitched channels only (ch0-2; noise excluded)
 DEF wChanEnv         EQU $C2D8  ; [4] envelope value -> rAUDxENV (ch2/WAV = wave level rAUD3LEVEL)
 ; Per-channel software-envelope working struct, 7 bytes/channel (channel N at base + N*7:
-; PU1 $CBBC, PU2 $CBC3, WAV $CBCA, NOI $CBD1; set up by SetupSoundPU1/PU2/...). The three
+; PU1 $CBBC, PU2 $CBC3, WAV $CBCA; set up by SetupSoundPU1/PU2/...). The three
 ; stage bytes are the instrument ENV params (bytes 1/9/A); SndTableEnv takes a stage's
 ; volume (hi nibble) into wChanEnv and steps the fade (lo nibble). Verified live + static.
+; (The +N*7 slot for noise would land on $CBD1, but that byte is wOamDirty below -- the
+; noise channel has no software-envelope struct here.)
+DEF wOamDirty        EQU $CBD1  ; OAM shadow dirty flag: timer ($185F) calls hOamRefresh (OAM DMA) when nonzero; set by OAM-buffer writers (SetOAMByte, screen redraws)
 DEF wChanEnvStage1   EQU $CBBC  ; env stage 1: volume (hi nibble) / fade (lo nibble); from instrument byte 1
 DEF wChanEnvStage2   EQU $CBBD  ; env stage 2 (from instrument byte 9)
 DEF wChanEnvStage3   EQU $CBBE  ; env stage 3 (from instrument byte $A)

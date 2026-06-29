@@ -38,6 +38,7 @@
 18BF ReadJoypad         ; standard d-pad/button matrix read
 349B display_off       ; GBDK display_off: wait VBL (rLY), clear rLCDC bit7 (byte-exact match)
 34B2 OAMDMARoutine      ; OAM DMA (source $DD00); copied to HRAM and called there
+3154 SetOAMByte         ; write byte (sp+6) to wOamBuffer+offset(sp+4) only if changed; set wOamDirty (-> OAM DMA next frame)
 1500 ReadSongBytes      ; bulk copy from SRAM (bank, src) into a RAM dest buffer (e.g. a chain row)
 14D1 ReadSongByte       ; (bank,addr): di, select SRAM bank + enable RAM, read [de], reti
 14EB ReadSongByteRaw    ; like ReadSongByte but no di/reti (caller already holds IRQ off)
