@@ -11,11 +11,15 @@ and serves a line protocol over a Unix socket so stateless callers can:
   KEY <keys>    - send key(s) to the SameBoy window (xdotool), space-separated
   WID           - report the X window id
   QUIT          - kill SameBoy and exit the daemon
-Usage: emud.py /abs/path/rom.gb   (run detached; talk to /tmp/opencode/emu.sock)
+Usage: emud.py /abs/path/rom.gb   (run detached; talk to .emu/emu.sock)
 """
-import os, sys, pty, select, time, socket, subprocess, signal
+import os, sys, pty, select, time, socket, subprocess, signal, pathlib
 
-SOCK = "/tmp/opencode/emu.sock"
+# Runtime dir lives under the repo (gitignored /.emu/) so nothing is left in
+# /tmp; override with EMU_RUNDIR. Holds the control socket (+ caller's ROM/logs).
+RUNDIR = os.environ.get("EMU_RUNDIR") or str(pathlib.Path(__file__).resolve().parents[2] / ".emu")
+os.makedirs(RUNDIR, exist_ok=True)
+SOCK = os.path.join(RUNDIR, "emu.sock")
 DISPLAY = os.environ.get("EMU_DISPLAY", ":1")  # :1 = Xvnc (watch via VNC :5901)
 
 class Emu:

@@ -14,8 +14,9 @@ catches them).
 
 ## Usage
 ```sh
-# start (detached); spawns SameBoy on :1, serves /tmp/opencode/emu.sock
-setsid -f python3 tools/emu/emud.py "$PWD/lsdj9_4_0.gb" </dev/null >/tmp/opencode/emud.log 2>&1
+# start (detached); spawns SameBoy on :1, serves .emu/emu.sock (gitignored, in-repo)
+mkdir -p .emu
+setsid -f python3 tools/emu/emud.py "$PWD/lsdj9_4_0.gb" </dev/null >.emu/emud.log 2>&1
 sleep 8 && python3 tools/emu/emu.py CONT          # resume (LSDj boots, visible)
 
 python3 tools/emu/emu.py read c401 1              # read N bytes  -> hex
@@ -26,7 +27,7 @@ python3 tools/emu/emu.py RAW 'x $c401'            # raw SameBoy debugger command
 python3 tools/emu/emu.py RAW 'watch $c411'        # write-watchpoint (find writers)
 python3 tools/emu/emu.py clearwatch               # remove ALL break/watchpoints (do this when done!)
 python3 tools/emu/emu.py KEY 'select+right'       # input: names a/b/start/select/up/down/left/right (+ chords)
-python3 tools/emu/emu.py SHOT /tmp/s.png          # screenshot the framebuffer
+python3 tools/emu/emu.py SHOT .emu/s.png          # screenshot the framebuffer
 python3 tools/emu/emu.py BREAK | CONT | STATE | WID | QUIT
 ```
 

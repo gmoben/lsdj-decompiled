@@ -5,23 +5,26 @@ deterministically, instead of guessing. Companion to `README.md` (which covers
 the harness itself). Everything here is verified against this ROM (9.4.0).
 
 The golden rule: **change something in the game, then diff memory** — or poke a
-candidate byte and watch the screen. Cross-check static analysis and the private
-another disasm reference against what the running ROM actually does.
+candidate byte and watch the screen. Treat static analysis and any externally
+suggested name as a *hypothesis*; confirm it against what the running ROM does.
 
 ---
 
 ## 1. Bring-up
 
 ```sh
-# writable copy of the BUILT rom + its song save (so a real song autoloads)
-cp build/lsdj9_4_0.gb  /tmp/opencode/lsdj_song.gb
-cp build/lsdj9_4_0.sav /tmp/opencode/lsdj_song.sav && chmod u+w /tmp/opencode/lsdj_song.sav
-setsid -f python3 tools/emu/emud.py /tmp/opencode/lsdj_song.gb </dev/null >/tmp/opencode/emud.log 2>&1
+# writable copy of the BUILT rom + its song save (so a real song autoloads),
+# kept under the repo in the gitignored .emu/ dir (the daemon serves
+# .emu/emu.sock there too) -- nothing is left in /tmp.
+mkdir -p .emu
+cp build/lsdj9_4_0.gb  .emu/lsdj_song.gb
+cp build/lsdj9_4_0.sav .emu/lsdj_song.sav && chmod u+w .emu/lsdj_song.sav
+setsid -f python3 tools/emu/emud.py "$PWD/.emu/lsdj_song.gb" </dev/null >.emu/emud.log 2>&1
 sleep 8 && python3 tools/emu/emu.py CONT          # boot (visible on Xvnc :1 -> VNC localhost:5901)
 sleep 11                                          # LSDj boots + autoloads the song
 ```
 The top-level `lsdj9_4_0.gb` has NO useful song; the `build/` save does. Never
-commit the ROM or `.sav`.
+commit the ROM or `.sav` (the whole `.emu/` dir is gitignored).
 
 ---
 
@@ -118,36 +121,36 @@ to the producer/consumer. `watch/r` and `watch/w` set read/write; conditional:
 
 ---
 
-## 7. Cross-referencing the another disasm reference (verify, don't trust)
+## 7. Names from other-version disassemblies (verify, don't trust)
 
-another disasm (`/tmp/opencode/another disasm`, a another-version disassembly) names ~291 WRAM syms —
-a great **hypothesis source**, but it is for a *different version* and is wrong in
-places. Always confirm against our code/emulator. Two pitfalls found:
-- **Layout shift**: our `$c0-$c3` matches another disasm 1:1, but `$c4-$cb` is **+1**
-  (another disasm name for our addr `A` is at `A+1`). Verified on `wKeyDelayTimer`,
-  `wSongRow`, `wInstrField`, `wColorSet`, `wButtons`, `wTempo`, `$c900`.
-- The shift does **not** hold everywhere in `$c8xx` (the current-channel pointer
-  cluster is laid out differently between versions). Our init code is
-  authoritative there — read it.
-- It also *mislabels* things our consumers contradict (e.g. it calls `$cbbc`
-  ENV_STAGE_1 — correct; but its byte-meaning notes must be checked: `$c333` is
-  TRANSPOSE, our code proves it).
-- Use its **instrument param constants** (byte layout: byte5 = PITCH_SHAPE/
-  TABLE_STEP/PITCH_SPEED/TRANSPOSE, byte7 = OUTPUT/pan, byte8 = COMMAND_RATE,
-  byteB = FINETUNE) — but verify each bit against `SetupSoundPU1`'s masks.
+Public disassemblies of *other* LSDj versions can suggest WRAM names, but they're
+for different builds and are wrong in places — treat each as a hypothesis only and
+confirm it against our code and the running ROM. Recurring pitfalls:
+- **Address drift**: a name can be off by a byte or two between versions. We've
+  seen a consistent **+1** across the `$c4-$cb` block (the name for our address
+  `A` sits at `A+1` there), but it does **not** hold in the `$c8xx` pointer
+  cluster (laid out differently). Our init code is authoritative — read where
+  each var is actually written.
+- **Wrong meaning**: a label can contradict what our consumers actually do
+  (e.g. `$c333` is the per-channel TRANSPOSE — our table code proves it).
+- **Bit layouts** (instrument param bytes: byte5 = PITCH_SHAPE/TABLE_STEP/
+  PITCH_SPEED/TRANSPOSE, byte7 = OUTPUT/pan, byte8 = COMMAND_RATE, byteB =
+  FINETUNE) must be re-checked bit-for-bit against `SetupSoundPU1`'s masks.
 
-NEVER reference the another disasm repo in our repo's files/commits/comments.
+Keep this repo self-contained: never cite or link an external disassembly in our
+files, commits, or comments — fold only *verified* facts back in, in our terms.
 
 ---
 
-## 8. Helper scripts
+## 8. Helper scripts (all in-repo)
 
 - `tools/emu/diffstate.py <start> <len> [op...]` — label-aware diff-on-action
-  (§4). The main verification tool; lives in the repo.
-- In `/tmp/opencode` (ephemeral; recreate if needed): `findvar.py` (older region
-  diff, no labels), `snddump.py` (annotated `[4]` sound snapshot), `statevar.py
-  <addr...>` (static: who writes/reads an addr + values — note its `hl`-tracking
-  can misattribute address-arithmetic as writes, so verify the sites).
+  (§4). The main verification tool. (Supersedes the old unlabelled region diff.)
+- `tools/emu/snddump.py <start> <len>` — annotated snapshot of the sound block,
+  4/row with the per-channel `[4]` array names (live RAM via `emu.py`).
+- `tools/statevar.py <addr...>` — static: which functions write/read an address
+  and with what values. Its `hl`-tracking is heuristic and can misattribute
+  address arithmetic as a write, so verify the cited sites.
 - `emu.py` ops: `read/write <addr|name> ...`, `keyrepeat on|off`, `clearwatch`,
   `RAW <cmd>`, `BREAK/CONT/STATE/DRAIN/SHOT/KEY/WID/QUIT`. `read`/`write` resolve
   names from `ram.inc`.

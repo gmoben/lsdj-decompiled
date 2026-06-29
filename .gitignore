@@ -23,6 +23,10 @@
 *.state
 *.sn[0-9]
 
+# --- Live emulator runtime dir (control socket, ROM/sav copy, logs, shots) ---
+# Self-contained under the repo so nothing is left in /tmp; never committed.
+/.emu/
+
 # --- Recovered period toolchain (downloaded; binaries are not ours to ship) --
 # GBDK 2.95 / SDCC 2.2.1 are fetched on demand by tools/toolchain/fetch_gbdk295.sh.
 /toolchain/

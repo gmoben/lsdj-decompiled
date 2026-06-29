@@ -2,7 +2,7 @@
 r"""Thin client for the SameBoy debugger daemon (emud.py).
 Usage: emu.py <OP> [args...]
   emu.py RAW "x $c401"       emu.py BREAK      emu.py CONT
-  emu.py STATE               emu.py SHOT /tmp/s.png
+  emu.py STATE               emu.py SHOT .emu/s.png
   emu.py KEY Return          emu.py WID        emu.py QUIT
 Higher-level helpers (addr may be a hex address OR a name from constants/ram.inc):
   emu.py read  <addr> <len>          -> break, x, parse bytes, (resume if was running)
@@ -16,7 +16,10 @@ Higher-level helpers (addr may be a hex address OR a name from constants/ram.inc
 Named deterministic setters live in PARAMS (extend as more state is identified).
 """
 import socket, sys, re, time, os
-SOCK = "/tmp/opencode/emu.sock"
+# Control socket in the gitignored .emu/ dir under the repo (matches emud.py);
+# override with EMU_RUNDIR. Keeps runtime state in-repo instead of /tmp.
+RUNDIR = os.environ.get("EMU_RUNDIR") or os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", ".emu")
+SOCK = os.path.join(RUNDIR, "emu.sock")
 RAM_INC = os.path.join(os.path.dirname(__file__), "..", "..", "constants", "ram.inc")
 
 def call(msg, t=15):
