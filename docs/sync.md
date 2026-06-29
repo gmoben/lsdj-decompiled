@@ -121,6 +121,33 @@ runs at startup.
 | `$66` | boot preload byte ('f') |
 | `$FD`-`$FF` | transport commands in the received stream |
 
+## Transport, per-tick dispatch, and mode configuration
+
+Recovered from bank 0 (verified by control flow + the `rIE`/`wSyncSendGate`
+writes); these tie the serial primitives above to playback transport.
+
+- `SyncApplyMode` (`$1F06`) — apply the current `wSyncMode` ($CB66) to the
+  hardware: `di`, `wSyncRun=0`, then a `cp` chain selects per mode →
+  `SyncSetSendMode`/`SyncSetRecvMode` (plus gate/handshake tweaks for
+  KEYBD/ANA.IN). Called by `LoadSyncSetting` and when the SYNC setting changes.
+- `SyncSetSendMode` (`$1EC8`) — leader/output config: `wSyncSendGate=1`,
+  `$CB6D=0`, enable VBlank IRQ and **disable** the serial-receive IRQ.
+- `SyncSetRecvMode` (`$1EE3`) — follower/input config: `wSyncSendGate=0`,
+  `$CB6D=8`, **enable** the serial-receive IRQ, `wSyncTick=$FF`, then
+  `SendSyncHandshake`.
+- `SyncStartTransport` (`$1D29`) — on play-start (LSDJ/MIDI): if LSDJ and idle
+  (`wSyncTick=$FF`), become leader (`wSyncRun=1`, `SyncSetSendMode`); otherwise
+  announce with `wSyncHandshake=1` + `SendSyncHandshake`.
+- `SyncStopTransport` (`$1D6C`) — on play-stop: LSDJ/MIDI reset
+  (`wSyncRun=0`, `wSyncTick=$FF`, `wSyncHandshake=0`, `SyncSetRecvMode`);
+  AN.OUT writes `$CB68=3`.
+- `DispatchSyncClock` (`$1E93`) — runs each sync tick: `wSyncTick=$FF`, and if
+  playing dispatch by mode → `SyncTickLSDJ` (1) or `SyncTickMidi` (3),
+  preserving the ROM bank.
+- `SyncTickLSDJ` (`$1D9D`) / `SyncTickMidi` (`$1E75`) — the per-tick handlers;
+  in live mode they reset per-channel play state and redraw the SONG-screen row
+  indicators (via bank 2 `$5F5E`), otherwise advance playback (bank 2 `$7C4C`).
+
 ## Related system helpers (found alongside)
 
 `EnableInterrupts` (`$34F5`, `ei;ret`), `DisableInterrupts` (`$34F7`,
