@@ -186,13 +186,15 @@ DEF wChanCmdVal      EQU $C36B  ; [4] command value for the current step, per ch
 ; Current-channel state pointers (16-bit; low byte seeded by InitSoundStatePtrs,
 ; high byte set on channel select). These match the InitSoundStatePtrs cluster
 ; ($C8DF=$7C->wChanChainRow, etc.):
-DEF wPtrChainRow     EQU $C8DE  ; -> wChanChainRow[curChan]
-DEF wPtrPhraseRow    EQU $C8E0  ; -> wChanPhraseRow[curChan]
-DEF wPtrNoteCountdown EQU $C8E2 ; -> wChanNoteCountdown[curChan]
-DEF wPtrGroove       EQU $C8E4  ; -> wChanGroove[curChan]
-DEF wPtrGrooveRow    EQU $C8E6  ; -> wChanGrooveRow[curChan]
-DEF wPtrPhrase       EQU $C8EA  ; -> wChanPhrase[curChan]
-DEF wPtrNote         EQU $C8EC  ; -> wChanNote[curChan]
+; (addresses verified against the authoritative pointer-init block in bank0 @ $3C6F)
+DEF wPtrChainRow     EQU $C8DF  ; -> wChanChainRow[curChan]
+DEF wPtrPhraseRow    EQU $C8E1  ; -> wChanPhraseRow[curChan]
+DEF wPtrNoteCountdown EQU $C8E3 ; -> wChanNoteCountdown[curChan]
+DEF wPtrGroove       EQU $C8E5  ; -> wChanGroove[curChan]
+DEF wPtrGrooveRow    EQU $C8E7  ; -> wChanGrooveRow[curChan]
+DEF wPtrPhrase       EQU $C8EB  ; -> wChanPhrase[curChan]
+DEF wPtrNote         EQU $C8ED  ; -> wChanNote[curChan]
+DEF wPtrTableStep    EQU $C8FC  ; -> wChanTableStep[curChan]
 ; Per-channel GB-sound register shadows, written to hardware by TriggerNote:
 ; Pitch-bend / slide state (per channel, 16-bit). The command handlers set a
 ; target + rate; the freq code (bank0 L19A6) steps the current pitch toward the
