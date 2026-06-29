@@ -271,6 +271,7 @@ DEF wSynthRenderIdx  EQU $C9F0  ; MainLoop idle: which softsynth wave to render 
 ; --- Input (joypad queue: ReadJoypad enqueues, GetNextButtons dequeues) -------
 DEF wButtons         EQU $C575  ; current button state (read 111x by every screen); bits below
 DEF wButtonRing      EQU $CE00  ; ring buffer of recent button states (for key-repeat + buffered input)
+DEF wPrelisten       EQU $C56E  ; PRELISTEN on/off setting (verified: poking 0 -> PROJECT shows OFF on redraw). Project setting
 DEF wButtonReadIdx   EQU $C56F  ; GetNextButtons read cursor into wButtonRing
 DEF wButtonWriteIdx  EQU $C570  ; ReadJoypad write cursor into wButtonRing
 ; Key-repeat (autorepeat). ProcessInput ($11BE/$11C2) copies the two settings into
