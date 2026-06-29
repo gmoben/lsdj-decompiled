@@ -91,6 +91,8 @@ DEF wOscBankB        EQU $C4F5  ; ROM bank for channel B's oscilloscope wave dat
 DEF wOscLoopA        EQU $C4E4  ; channel A loop flag: 0 -> stop (clear wOscActive bit0); else reload read ptr to start
 DEF wOscLoopB        EQU $C4E5  ; channel B loop flag
 ; --- song (de)compression cursors (bank $1C; see docs/save_format.md) ----------
+DEF wFileScroll       EQU $C99B  ; File screen: file-list scroll offset (top visible index). Screen row = wFileCursorRestrict
+                                 ; - wFileScroll, bounded to 0..F (16 visible rows; DebugTrap otherwise). FileDrawFieldChecked
 DEF wFileCursorRestrict EQU $C999 ; File screen: restricts/limits the file-list cursor (File* draw/validate). Cross-checked
 DEF wIsSelectingFile  EQU $C995  ; File screen: nonzero while choosing a file from the list (FileDrawStr)
 DEF wFileRedrawCount  EQU $C992  ; File screen: count of fields still to redraw; while >0, FileDrawField is called
