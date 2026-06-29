@@ -82,6 +82,8 @@ DEF wPitchModB       EQU $C4D8  ; pitch-mod sweep accumulator B (16-bit)
 ; --- song (de)compression cursors (bank $1C; see docs/save_format.md) ----------
 DEF wFileCursorRestrict EQU $C999 ; File screen: restricts/limits the file-list cursor (File* draw/validate). Cross-checked
 DEF wIsSelectingFile  EQU $C995  ; File screen: nonzero while choosing a file from the list (FileDrawStr)
+DEF wFileRedrawCount  EQU $C992  ; File screen: count of fields still to redraw; while >0, FileDrawField is called
+                                 ; once per field and it decrements to 0 (entry value 1/2 also selects which fields)
 DEF wCompBank        EQU $C979  ; SRAM bank used for compressed block I/O
 DEF wCompSrc         EQU $C97B  ; compressed-stream read pointer (decompress input), 16-bit
 DEF wCompDst         EQU $C97D  ; (de)compression output pointer into the working song, 16-bit
