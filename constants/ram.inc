@@ -120,6 +120,10 @@ DEF wFrameCounterHi  EQU $C552  ; high byte of wFrameCounter (incremented when w
 DEF wSyncSendAccum   EQU $C956  ; 16-bit serial/sync send-clock accumulator (TimerHandler, gated by $cb6e==1): -=8 each
                                 ; timer tick; on underflow adds wSyncSendRate and calls SendByteStep. Reset on sound stop
 DEF wSyncSendRate    EQU $C954  ; 16-bit reload added to wSyncSendAccum on underflow (sets the serial/sync byte-send rate)
+DEF wWorkTimeAccum   EQU $C69D  ; 16-bit sub-second accumulator for the song work-time clock; wraps every $0e00 to add a
+                                ; whole-second tick to wWorkTimeTicks (verified: c69d advances during playback)
+DEF wWorkTimeTicks   EQU $C577  ; pending whole-second ticks for the work-time clock; bank01 $50a0 applies each to the
+                                ; song clock in SRAM (seconds @ $bfb3 carry to minutes @ $bfb2 at 60) and decrements this
 DEF wWavMode         EQU $C500  ; WAV channel wave-source mode, set from the wave instrument in SetupSoundWave;
                                 ; 0 gates the wave-frame updater off (`ret z`), 1/2 select modes
 DEF wSndDataPtr      EQU $C8E9  ; 16-bit working pointer the sound command/table reader (SndReadCmdStream) walks;
