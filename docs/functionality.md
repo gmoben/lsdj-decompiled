@@ -42,6 +42,21 @@ reset rSCY/rSCX/rSTAT/rWY ; clear scroll, LCD status, window
   around `$0662`/`$06A5`/`$066D`. Writes the audio registers (`rAUD1*`-`rAUD4*`,
   `rAUDVOL`/`rAUDTERM`/`rAUDENA`) and wave RAM (`rAUD3WAVE_*`). Reads a tick
   counter at `$C8F4` and an HRAM flag `$FF90`.
+  - *Per-channel pitch / vibrato / frequency* (bank 0): each frame
+    `SndStepPitchVib{PU1,PU2,Wav,Noi}` (`$19A6`/`$1A26`/`$1AA7`/`$1CBA`) advance
+    the pitch slide (`wChanPitchRate`→`wChanPitchCur`, clamped to
+    `wChanPitchTarget`) and the vibrato phase, the latter via the shared waveform
+    evaluator `SndCalcVibOffset` (`$1986`, ctrl table `$0200` + dispatch `$0300`).
+    `SndWriteFreq{PU1,PU2,Wav}` (`$1BA7`/`$1BF6`/`$1C3D`) then fold note +
+    transpose + finetune + vibrato + pitch into a 16-bit period via
+    `SndInterpPeriod` (`$1B28`, period-table lookup with fractional interpolation)
+    and write `wChanFreq` + `rAUD{1,2,3}LOW/HIGH/LEN`.
+    `SndUpdatePitchModFlag{PU1,PU2,Wav}` (`$1CA8`/`$1C96`/`$1C84`, dispatched by
+    `SndUpdatePitchModFlagCur` `$1C7C`) cache a "pitch is modulating" flag at
+    `$C3F9`-`$C3FB`.
+  - *Work-time clock* — `TickWorkTimeClock` (`$1815`) advances `wWorkTimeAccum`
+    (`$C69D`), wrapping at `$0E00` into `wWorkTimeTicks` (drives the song's
+    play-time counter in SRAM).
 - **Video / LCD** — `DisableLCD` (`$349B`): waits for VBlank via `rLY` then
   clears `rLCDC` bit 7. `OAMDMARoutine` (`$34B2`): triggers OAM DMA from the
   shadow buffer at `$DD00`; copied into HRAM and called there (DMA requires
@@ -50,8 +65,9 @@ reset rSCY/rSCX/rSTAT/rWY ; clear scroll, LCD status, window
   buttons via `rJOYP`), returns a combined button bitmask.
 - **Sync (link cable)** — `SerialHandler` (`$34BD`), `SerialInit` (`$01AA`),
   `SendSyncByte`/`SendSyncHandshake` (`$3467`/`$347A`), `ProcessSyncByte`
-  (`$234D`). Master/slave clock sync over the serial port — **fully written up
-  in [`sync.md`](sync.md)**.
+  (`$234D`). Each sync tick `DispatchSyncClock` (`$1E93`) resets `wSyncTick` and
+  routes to the active mode handler (LSDJ/MIDI). Master/slave clock sync over the
+  serial port — **fully written up in [`sync.md`](sync.md)**.
 - **Song data access** — `ReadSongByte` (`$14D1`): an SDCC function
   `(bank, addr)` that `di`s, selects the SRAM bank (`$4000`), enables RAM
   (`$0A`→`$0000`), reads `[addr]`, then disables RAM. This is how the engine

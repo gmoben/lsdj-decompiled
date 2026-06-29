@@ -67,7 +67,25 @@
 2106 ReadSeqByteRaw     ; ReadSeqByte via ReadSongByteRaw (bank0 $B290)
 1482 DebugTrap          ; assert/debug trap (ld b,b BGB marker + rst $38), fires once via $C7AF
 
+; --- Sound engine: per-channel pitch slide / vibrato / frequency (TimerHandler tick) ---
+1815 TickWorkTimeClock   ; bump saturating counter $C9AA (<$80), advance wWorkTimeAccum ($C69D); wrap at $0E00 -> wWorkTimeTicks ($C577), clear $C68B
+1986 SndCalcVibOffset    ; eval vibrato/mod waveform: (phase>>2)+e indexes ctrl table $0200; bit7 -> negate; dispatch via $0300 -> signed offset in hl
+19A1 SndCalcVibOffsetNeg ; SndCalcVibOffset bit7-set helper: complement A then dispatch via $0300
+19A6 SndStepPitchVibPU1  ; ch0: accumulate wChanPitchRate->wChanPitchCur, clamp to wChanPitchTarget (-> SndUpdatePitchModFlagPU1); advance vib phase $C308 -> wChanVibOffset
+1A26 SndStepPitchVibPU2  ; ch1: as PU1 for +2/+3 offsets (-> SndUpdatePitchModFlagPU2); vib phase $C30A -> wChanVibOffset+2
+1AA7 SndStepPitchVibWav  ; ch2: as PU1 for +4/+5 offsets (-> SndUpdatePitchModFlagWav); vib phase $C30C -> wChanVibOffset+4
+1CBA SndStepPitchVibNoi  ; ch3 (noise): vibrato via SndCalcVibOffset then >>5 scale; advance vib phase $C30E (no period table)
+1B28 SndInterpPeriod     ; note(d)+frac(e) -> 16-bit period(de) from table at wChanPeriodTablePtr(bc), fractional interpolation; octave-wrap special cases ($6C/$B6/$F8/$FF)
+1BA7 SndWriteFreqPU1     ; ch0: wChanOutNote+transpose[$C174]+finetune+vib+pitch -> SndInterpPeriod -> wChanFreq + rAUD1LOW/HIGH/LEN
+1BF6 SndWriteFreqPU2     ; ch1: like PU1 -> wChanFreq+2 + rAUD2LOW/HIGH/LEN
+1C3D SndWriteFreqWav     ; ch2: like PU1 -> wChanFreq+4 + rAUD3LOW/HIGH (rAUD3LEN=0)
+1C7C SndUpdatePitchModFlagCur ; dispatch by hSoundCh -> SndUpdatePitchModFlag{PU1 (ch0),PU2 (ch1),Wav (>=2)}
+1C84 SndUpdatePitchModFlagWav ; ch2: $C3FB = (wChanPitchRate+4|+5 | wChanVibSpeed+5)!=0, skipped if wChanVibShape+2 set
+1C96 SndUpdatePitchModFlagPU2 ; ch1: $C3FA = (wChanPitchRate+2|+3 | wChanVibSpeed+3)!=0, skipped if wChanVibShape+1 set
+1CA8 SndUpdatePitchModFlagPU1 ; ch0: $C3F9 = (wChanPitchRate+0|+1 | wChanVibSpeed+1)!=0, skipped if wChanVibShape set
+
 ; --- Link cable sync (see docs/sync.md) ---
+1E93 DispatchSyncClock   ; per sync tick: reset wSyncTick=$FF; if playing, dispatch by wSyncMode (1=LSDJ->L1D9D, 3=MIDI->L1E75); preserves ROM bank
 01AA SerialInit         ; boot: arm rSC=$80 (slave), preload rSB=$66
 14B9 SerialHandlerTail  ; serial IRQ tail: sync bookkeeping -> TimerHandlerReturn
 3467 SendSyncByte       ; master: $CBDE=1, send $CBDC, rSC=$81 (internal clock)
