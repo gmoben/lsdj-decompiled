@@ -85,6 +85,13 @@
 1C96 SndUpdatePitchModFlagPU2 ; ch1: $C3FA = (wChanPitchRate+2|+3 | wChanVibSpeed+3)!=0, skipped if wChanVibShape+1 set
 1CA8 SndUpdatePitchModFlagPU1 ; ch0: $C3F9 = (wChanPitchRate+0|+1 | wChanVibSpeed+1)!=0, skipped if wChanVibShape set
 
+; --- Sound: software envelope (DMG "zombie mode" volume via NRx2 rewrites) ---
+2FC3 FadeEnvStep      ; step volume at [hl] one unit toward target a; equal->ret; up->NRx2 ([c])=$08; down->FadeEnvStepDown
+2F9A FadeEnvStepDown  ; volume-decrease path: dec level, rewrite NRx2 ([c]) with $09/$11/$18; near level $0E wait for rDIV phase (anti-click), CGB vs DMG
+2FCC UpdateEnvPU1     ; per-tick PU1 software envelope: FadeEnvStep wChanEnv toward target [$CBC2] via rAUD1ENV, then advance env stage
+2FE2 UpdateEnvPU2     ; per-tick PU2 software envelope: wChanEnv+1 toward [$CBC9] via rAUD2ENV
+2FF8 UpdateEnvNoi     ; per-tick NOI software envelope: wChanEnv+3 toward [$CBD0] via rAUD4ENV
+
 ; --- Link cable sync (see docs/sync.md) ---
 1E93 DispatchSyncClock   ; per sync tick: reset wSyncTick=$FF; if playing, dispatch by wSyncMode (1=LSDJ->SyncTickLSDJ, 3=MIDI->SyncTickMidi); preserves ROM bank
 1D29 SyncStartTransport  ; on play-start (LSDJ/MIDI): if LSDJ idle (wSyncTick=$FF) become leader (wSyncRun=1, SyncSetSendMode) else send handshake
