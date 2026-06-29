@@ -105,6 +105,8 @@ DEF wChanModType     EQU $C0A4  ; [4] modulation type
 ; For the WAV channel (ch 2) the type/phase slots are seeded from the instrument by
 ; SetupSoundWave (which writes base+2 = channel 2's slot).
 DEF wChanVibSpeed    EQU $C314  ; [4] 16-bit signed vibrato increment (V high nibble via table; negated by dir)
+DEF wChanVibOffset   EQU $C31C  ; [4] 16-bit current vibrato pitch displacement; L1BA7 adds it to the period
+                                ; when vibrato is active (wChanVibSpeed != 0). Verified live (residual $FFD8 on a vib channel)
 DEF wChanVibDepth    EQU $C324  ; [4] vibrato depth (V low nibble via table $7D81)
 DEF wChanVibType     EQU $C328  ; [4] vibrato type/shape (compared to 1 in FxCmd_V)
 DEF wChanVibPhase    EQU $C32C  ; [4] vibrato direction/phase (gates the speed negation with wChanVibType)
@@ -187,6 +189,8 @@ DEF wChanPitchRate   EQU $C2D0  ; [4] 16-bit signed per-tick pitch step toward t
                                 ; $C2D1); set by ApplyPitchBend from the FX value; cleared on note-on
 DEF wChanPitchCur    EQU $C337  ; [4] 16-bit current pitch value (default $0080) that L19A6 slides toward
                                 ; wChanPitchTarget by wChanPitchRate each tick, clamping on arrival; reset by WriteChannelFreq
+DEF wChanFinetune    EQU $C696  ; per-pulse-channel finetune (PU1 $C696, PU2 $C697); L1BA7 subtracts it as a
+                                ; fine (low-byte) pitch adjustment in the period calc. From instrument finetune param (byte $B)
 DEF wChanEnv         EQU $C2D8  ; [4] envelope value -> rAUDxENV (ch2/WAV = wave level rAUD3LEVEL)
 ; Per-channel software-envelope working struct, 7 bytes/channel (channel N at base + N*7:
 ; PU1 $CBBC, PU2 $CBC3, WAV $CBCA, NOI $CBD1; set up by SetupSoundPU1/PU2/...). The three
