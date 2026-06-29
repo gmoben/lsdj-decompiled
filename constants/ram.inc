@@ -110,6 +110,8 @@ DEF wVramCursor      EQU $C573  ; VRAM tilemap dest ($98xx-$9Bxx, 16-bit LE; $C5
 DEF wPhrase          EQU $C414  ; current phrase number being edited ($FF=none, Phrase screen)
 DEF wInstrument      EQU $C576  ; current instrument number (index into instruments[64][16])
 DEF wStrBuffer       EQU $C6A9  ; shared text work buffer (StrCopy destination), used across banks
+DEF wSongReadBuf     EQU $C46D  ; shared scratch buffer that ReadSongBytes fills with song data (its address is passed
+                                ; in across banks); editors read a row/set (e.g. groove steps, cp $10) into it then render
 DEF wMsgTimer        EQU $C7A9  ; frame countdown for the transient message (set 10/50/100/150, dec'd; gates its draw)
 DEF wMsgStrPtr       EQU $C7AA  ; 16-bit pointer to a transient on-screen message string (set to wStrBuffer / the
                                 ; command-help strings). While nonzero the main screen-redraw dispatcher skips a full redraw
