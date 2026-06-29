@@ -11,6 +11,7 @@ DEF RAM_INC EQU 1
 ; --- Screen / UI state ------------------------------------------------------
 DEF wCurrentScreen   EQU $C401  ; 0-14; indexes the screen draw/update dispatch
 DEF wIsCGB           EQU $C402  ; set at boot when running on a Game Boy Color
+DEF wCursorMode      EQU $C413  ; editor cursor mode (read across screens; cp $04 commonly). Cross-checked
 DEF wClipboardType   EQU $C411  ; SCREEN_* data-type held in the cut/copy clipboard (0 = empty). Set by
                                 ; CUT (A+B) / COPY on each screen to that screen's id, checked by PASTE
                                 ; (SEL+A). Verified in emulator: 0 -> $04 after cutting a SONG chain (and it
@@ -47,6 +48,11 @@ DEF wSongRow         EQU $C41E  ; SONG cursor row (0-255); DOWN/UP move it (driv
 DEF wInstrField      EQU $C427  ; Instrument editor: current parameter/field index (reset to 0 on screen draw) = cursor row
 DEF wInstrCursorCol  EQU $C428  ; Instrument editor cursor column (pairs with wInstrField as the row)
 DEF wSpeechCursorRow EQU $C429  ; Speech (word) instrument editor cursor row (DrawWordScreen)
+; On-screen keyboard for entering the project/song name (ProjDrawNameField):
+DEF wKbdLetterPos    EQU $C42C  ; keyboard: index of the letter being edited in the name
+DEF wKbdCursorCol    EQU $C42D  ; keyboard cursor column
+DEF wKbdCursorRow    EQU $C42E  ; keyboard cursor row
+DEF wSampleNoteString EQU $C43A ; shared text buffer for a sample/kit note name (Phrase/Chain/Song note draws)
 DEF wTableCol        EQU $C92F  ; Table editor: current column/cursor state (bit7 = special)
 DEF wTableRow        EQU $C930  ; Table editor: current row cursor (0-15); pairs with wTableCol
 ; Table editor cell base pointers (16-bit) into the working table command data;
@@ -54,6 +60,7 @@ DEF wTableRow        EQU $C930  ; Table editor: current row cursor (0-15); pairs
 DEF wTableCellAPtr   EQU $C447  ; 16-bit base ptr for TABLE command column A (CMD1); TableGetCellA
 DEF wTableCellBPtr   EQU $C449  ; 16-bit base ptr for TABLE command column B (CMD2); TableGetCellB
 DEF wGrooveRow       EQU $C9D4  ; Groove editor: current step/row cursor (0-15)
+DEF wSynthScreen     EQU $C441  ; Synth editor: current synth screen/sub-state (pairs with wSynthCursor); Synth* owned
 DEF wSynthCursor     EQU $C442  ; Synth editor: current parameter/cursor index
 DEF wPlayMode        EQU $C4D2  ; sound playback mode: 0=stopped, nonzero=playing (value = play scope;
                                 ; verified in emulator: 4 when started from SONG, 1 from PHRASE). Main
