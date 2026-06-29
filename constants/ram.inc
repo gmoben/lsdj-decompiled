@@ -93,6 +93,9 @@ DEF wVramCursor      EQU $C573  ; VRAM tilemap dest ($98xx-$9Bxx, 16-bit LE; $C5
 DEF wPhrase          EQU $C414  ; current phrase number being edited ($FF=none, Phrase screen)
 DEF wInstrument      EQU $C576  ; current instrument number (index into instruments[64][16])
 DEF wStrBuffer       EQU $C6A9  ; shared text work buffer (StrCopy destination), used across banks
+DEF wMsgTimer        EQU $C7A9  ; frame countdown for the transient message (set 10/50/100/150, dec'd; gates its draw)
+DEF wMsgStrPtr       EQU $C7AA  ; 16-bit pointer to a transient on-screen message string (set to wStrBuffer / the
+                                ; command-help strings). While nonzero the main screen-redraw dispatcher skips a full redraw
 DEF wDebugTrapped    EQU $C7AF  ; set by DebugTrap so it fires only once
 
 ; --- Playback / timing ------------------------------------------------------
@@ -104,6 +107,8 @@ DEF wTempo           EQU $C529  ; song tempo in BPM (verified: PROJECT TEMPO 124
 DEF wTimerReload     EQU $C578  ; timer reload derived from wTempo; copied to rTIMA each VBlank
 DEF wSoundTick       EQU $C8F4  ; sound/playback tick counter (TimerHandler)
 DEF wWavLevel        EQU $C8F3  ; WAV channel (ch 2) output level: staged here, then written to rAUD3LEVEL + wChanEnv+2
+DEF wWavMode         EQU $C500  ; WAV channel wave-source mode, set from the wave instrument in SetupSoundWave;
+                                ; 0 gates the wave-frame updater off (`ret z`), 1/2 select modes
 DEF wFxChannel       EQU $C527  ; channel (0-3) the command/FX/table engine is processing (set from hSoundCh); some
                                 ; FX OR in bit2/bit3 as mode flags (tested via `and $fc` before using it as an index)
 DEF wChanCmdRate     EQU $C8C6  ; [4] command/table step rate = instrument COMMAND_RATE (byte 8); reload value for the countdown
