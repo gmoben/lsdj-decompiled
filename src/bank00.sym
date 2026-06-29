@@ -52,6 +52,8 @@
 2F6A DrawStringIndexed  ; draw from the string source at a byte offset
 2E33 DrawHexByte        ; draw byte A as two hex digits at the cursor
 2E6D DrawByte           ; draw a byte (stack arg) at the cursor
+352A DrawNumber         ; draw 16-bit value (sp+4) in base (sp+6) with optional minus sign (sp+8); recursive (high digit first), digit table $35B1 "0123456789ABCDEF"
+35C2 DrawFormat         ; printf-style draw of format string (sp+7) + varargs to the VRAM cursor: %c char, %d/%u signed/unsigned decimal & %x hex (via DrawNumber), %s string
 1298 DrawTextField      ; draw a positioned text field
 39CD CopyToBgTilemap    ; copy a tile block from a source ptr into the active BG tilemap (stack args: col, row, src, len) -> CopyToBgTilemapCore
 39F2 CopyToBgTilemapCore ; worker: dest = active BG map ($9800/$9C00 per rLCDC bit3) at (col d,row e); rSTAT-gated byte copy from bc
