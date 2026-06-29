@@ -113,6 +113,7 @@ class Emu:
         # Each token's keys are pressed together and HELD ~hold s so LSDj's
         # once-per-frame joypad poll reliably catches them. Names or raw keysyms.
         if not self._focus(): return "no-window"
+        time.sleep(0.12)                      # let SDL settle the FocusIn before keys
         for tok in keys.split():
             syms = [(self.KEYMAP.get(p.lower()) or p) for p in tok.split("+")]
             for ks in syms:
