@@ -79,8 +79,17 @@ DEF wRetrigger       EQU $C4CD  ; sound retrigger/hop flag (SndTick: nonzero -> 
 ; Pitch-modulation accumulators $C4D4-$C4E3 (current channel): two 16-bit sweep
 ; pairs. Acc A=$C4D4 steps by +$10 into $C4D6, clamped to limits $C4DC/$C4DE;
 ; Acc B=$C4D8 steps into $C4DA, clamped to $C4E0/$C4E2 (see SndStepAcc*/SndClampAcc*).
-DEF wPitchModA       EQU $C4D4  ; pitch-mod sweep accumulator A (16-bit)
-DEF wPitchModB       EQU $C4D8  ; pitch-mod sweep accumulator B (16-bit)
+DEF wPitchModA       EQU $C4D4  ; pitch-mod sweep accumulator A (16-bit). NB: OVERLAID -- the oscilloscope consumer
+                                ; (bank00 $03d8, gated by wOscActive) reuses $C4D4-$C4F9 as wave-display pointers,
+                                ; reloading its read pointer from here. Same RAM, two mutually-exclusive features.
+DEF wPitchModB       EQU $C4D8  ; pitch-mod sweep accumulator B (16-bit); also the B-side oscilloscope start ptr (overlay)
+; Oscilloscope wave-display (bank00 $03d8): streams wave data from a banked pointer (16 bytes/frame) to
+; hOscilloscope. These vars are oscilloscope-only (not used by the pitch-mod stepper):
+DEF wOscActive       EQU $C8F6  ; oscilloscope active bits: bit0 = channel A, bit1 = channel B
+DEF wOscBankA        EQU $C4F4  ; ROM bank selected (-> $2000) to read channel A's wave data for the oscilloscope
+DEF wOscBankB        EQU $C4F5  ; ROM bank for channel B's oscilloscope wave data
+DEF wOscLoopA        EQU $C4E4  ; channel A loop flag: 0 -> stop (clear wOscActive bit0); else reload read ptr to start
+DEF wOscLoopB        EQU $C4E5  ; channel B loop flag
 ; --- song (de)compression cursors (bank $1C; see docs/save_format.md) ----------
 DEF wFileCursorRestrict EQU $C999 ; File screen: restricts/limits the file-list cursor (File* draw/validate). Cross-checked
 DEF wIsSelectingFile  EQU $C995  ; File screen: nonzero while choosing a file from the list (FileDrawStr)
