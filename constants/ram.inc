@@ -185,6 +185,9 @@ DEF wChanNoteTrigger EQU $C0F0  ; [4] per-channel "advance to next note step" fl
                                 ; which clears it and reads+plays the next note/command. Verified live (watchpoint).
 DEF wChanFxSlots     EQU $C2F0  ; [12] per-channel active FX-command slots (3 slots x 4 channels, column-major)
 DEF wChanChainTrans  EQU $C3FC  ; [4] per-channel chain-transpose shadow (from SndReadChainTranspose)
+DEF wRng             EQU $C400  ; RNG state (verified: random value every frame, song stopped & no input);
+                                ; read-modify-written (ld hl,wRng / sub a,[hl] / ld [hl],e). Used by the probability
+                                ; commands (B "maybe play note", H "maybe hop", R retrig). NB: not wChanChainTrans+4
 ; Sequencer position (song row -> chain -> phrase -> note step). Verified against a
 ; live RAM dump + the SRAM map (docs/save_format.md):
 DEF wChanSongRow     EQU $C200  ; [4] current song row, top of hierarchy (AdvanceSongRow walks this)
