@@ -188,6 +188,13 @@ DEF wChanPitchRate   EQU $C2D0  ; [4] 16-bit signed per-tick pitch step toward t
 DEF wChanPitchCur    EQU $C337  ; [4] 16-bit current pitch value (default $0080) that L19A6 slides toward
                                 ; wChanPitchTarget by wChanPitchRate each tick, clamping on arrival; reset by WriteChannelFreq
 DEF wChanEnv         EQU $C2D8  ; [4] envelope value -> rAUDxENV (ch2/WAV = wave level rAUD3LEVEL)
+; Per-channel software-envelope working struct, 7 bytes/channel (channel N at base + N*7:
+; PU1 $CBBC, PU2 $CBC3, WAV $CBCA, NOI $CBD1; set up by SetupSoundPU1/PU2/...). The three
+; stage bytes are the instrument ENV params (bytes 1/9/A); SndTableEnv takes a stage's
+; volume (hi nibble) into wChanEnv and steps the fade (lo nibble). Verified live + static.
+DEF wChanEnvStage1   EQU $CBBC  ; env stage 1: volume (hi nibble) / fade (lo nibble); from instrument byte 1
+DEF wChanEnvStage2   EQU $CBBD  ; env stage 2 (from instrument byte 9)
+DEF wChanEnvStage3   EQU $CBBE  ; env stage 3 (from instrument byte $A)
 DEF wChanLenDuty     EQU $C2DC  ; [4] length/duty value -> rAUDxLEN
 DEF wChanFreqHi      EQU $C2E0  ; [4] freq-high + trigger/length-enable bits -> rAUDxHIGH
 DEF wPU1Sweep        EQU $C2E4  ; PU1 sweep value -> rAUD1SWEEP
