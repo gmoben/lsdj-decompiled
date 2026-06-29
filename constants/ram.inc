@@ -109,6 +109,9 @@ DEF wTempo           EQU $C529  ; song tempo in BPM (verified: PROJECT TEMPO 124
 DEF wTimerReload     EQU $C578  ; timer reload derived from wTempo; copied to rTIMA each VBlank
 DEF wSoundTick       EQU $C8F4  ; sound/playback tick counter (TimerHandler)
 DEF wWavLevel        EQU $C8F3  ; WAV channel (ch 2) output level: staged here, then written to rAUD3LEVEL + wChanEnv+2
+DEF wSndUpdateFlags  EQU $C8F5  ; current channel's per-frame sound-update gate: nonzero -> run the vibrato/pitch-mod
+                                ; stepper, wave-trigger and freq-write (each `or a,[hl]; ret z`); reset on channel
+                                ; setup, bit7 set on note trigger, bit1 tested
 DEF wWavMode         EQU $C500  ; WAV channel wave-source mode, set from the wave instrument in SetupSoundWave;
                                 ; 0 gates the wave-frame updater off (`ret z`), 1/2 select modes
 DEF wSndDataPtr      EQU $C8E9  ; 16-bit working pointer the sound command/table reader (SndReadCmdStream) walks;
