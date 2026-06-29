@@ -103,6 +103,9 @@ DEF wTempo           EQU $C529  ; song tempo in BPM (verified: PROJECT TEMPO 124
                                 ; T command (FxCmd_T). wTimerReload is derived from it
 DEF wTimerReload     EQU $C578  ; timer reload derived from wTempo; copied to rTIMA each VBlank
 DEF wSoundTick       EQU $C8F4  ; sound/playback tick counter (TimerHandler)
+DEF wWavLevel        EQU $C8F3  ; WAV channel (ch 2) output level: staged here, then written to rAUD3LEVEL + wChanEnv+2
+DEF wFxChannel       EQU $C527  ; channel (0-3) the command/FX/table engine is processing (set from hSoundCh); some
+                                ; FX OR in bit2/bit3 as mode flags (tested via `and $fc` before using it as an index)
 DEF wChanCmdRate     EQU $C8C6  ; [4] command/table step rate = instrument COMMAND_RATE (byte 8); reload value for the countdown
 DEF wChanCmdCountdown EQU $C8CA ; [4] ticks until the next command/table step; SndRunTableStep decrements it, and on 0
                                 ; reloads it from wChanCmdRate and runs the step (SndDecodeCmdNibbles / SndTableStepDispatch)
