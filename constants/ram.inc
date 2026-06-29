@@ -283,6 +283,12 @@ DEF wFrameSkip       EQU $CB6F  ; SndRunFrame: frames to skip before the next so
 DEF wTickRepeat      EQU $CB70  ; SndRunFrame: extra sound ticks to run this frame (tempo/groove)
 DEF wSyncMode        EQU $CB66  ; 0=OFF 1=LSDJ 3=MIDI 5=KEYBD 6=ANA.IN 7=AN.OUT
 DEF wSyncMode2       EQU $CB67  ; secondary sync config (default 6)
+DEF wSyncTick        EQU $CB69  ; sync tick counter: $ff = idle; counts up and at 12 fires the sync pulse (L1E93).
+                                ; Verified live: $ff while LSDJ sync is idle (no partner)
+DEF wSyncRun         EQU $CB6B  ; sync running flag: 1 = sync clock active, 0 = stopped (set by the sync start/stop
+                                ; handlers; also gated to the SONG screen in LSDJ mode). Verified live: 0 while idle
+DEF wSyncHandshake   EQU $CB6C  ; set =1 before SendSyncHandshake (handshake pending); cleared on sync stop
+DEF wSyncSendGate    EQU $CB6E  ; TimerHandler sync transport: 1 = run the wSyncSendAccum byte-send clock; >=2 = alt path
 DEF wSyncPosition    EQU $CBDB  ; sync position/index
 DEF wSyncTxByte      EQU $CBDC  ; byte to transmit (master)
 DEF wSyncRxByte      EQU $CBDD  ; last byte received (<$FD data, >=$FD transport)
