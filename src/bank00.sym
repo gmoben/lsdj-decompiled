@@ -106,3 +106,19 @@
 38AE MulU16             ; SDCC runtime: 16-bit multiply (reads 2 word args -> MulInt)
 38BF MulCharToInt      ; zero-extend 8-bit operands (b=0,d=0) then fall into MulInt
 38C2 MulInt            ; core 16x16->16 shift-and-add multiply (hl = bc * de)
+
+; --- SDCC runtime: 8/16-bit signed+unsigned division & modulo (Div does the ---
+; --- quotient move; Mod returns the remainder; both share a restoring core) ---
+3715 DivS8       ; signed 8-bit divide -> quotient in e (DivModS8 then move c->e)
+3721 ModS8       ; signed 8-bit modulo -> remainder in e (DivModS8)
+372C DivS16      ; signed 16-bit divide -> quotient in de (DivModS16 then bc->de)
+373D ModS16      ; signed 16-bit modulo -> remainder in de (DivModS16)
+374C DivU8       ; unsigned 8-bit divide -> quotient in e (DivModU8 then move c->e)
+3758 ModU8       ; unsigned 8-bit modulo -> remainder in e (DivModU8)
+3763 DivU16      ; unsigned 16-bit divide -> quotient in de (DivModU16 then bc->de)
+3774 ModU16      ; unsigned 16-bit modulo -> remainder in de (DivModU16)
+3783 DivModS8    ; sign-extend 8-bit operands (c->bc, e->de), fall into DivModS16
+378B DivModS16   ; signed divide core: save/apply operand signs, DivModU16, restore quotient & remainder signs
+37C1 DivModU8    ; zero-extend 8-bit operands (b=0,d=0), fall into DivModU16
+37C4 DivModU16   ; unsigned divide core: dividend bc / divisor de -> quotient bc, remainder de; div-by-zero -> 0 + carry; 16x DivStep
+380F DivStep     ; one restoring-division shift/subtract bit-step (called 16x by DivModU16)
