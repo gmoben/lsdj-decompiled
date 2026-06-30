@@ -304,6 +304,8 @@ DEF wTickRepeat      EQU $CB70  ; SndRunFrame: extra sound ticks to run this fra
 DEF wSyncMode        EQU $CB66  ; 0=OFF 1=LSDJ 3=MIDI 5=KEYBD 6=ANA.IN 7=AN.OUT
 DEF wSyncMode2       EQU $CB67  ; secondary sync config (default 6); also the AN.OUT pulse period (TICKS/STEP) reloaded into wAnalogOutTimer
 DEF wAnalogOutTimer  EQU $CB68  ; AN.OUT clock pulse-period countdown (SyncSendAnalogClock): reloaded from wSyncMode2; while >= 3 it emits $FF (pulse high) else $00; SyncStopTransport sets it to 3
+DEF wSyncInPulses    EQU $CB77  ; AN.IN: received clock-pulse counter (incremented per nonzero rSB in SyncReceiveAnalogClock), reset relative to wSyncMode2 (TICKS/STEP) when a sequencer tick advances
+DEF wSyncInGate      EQU $CB78  ; AN.IN: when nonzero, SyncReceiveAnalogClock skips processing the incoming pulse (gate/hold)
 DEF wSyncTick        EQU $CB69  ; sync tick counter: $ff = idle; counts up and at 12 fires the sync pulse (L1E93).
                                 ; Verified live: $ff while LSDJ sync is idle (no partner)
 DEF wSyncRun         EQU $CB6B  ; sync running flag: 1 = sync clock active, 0 = stopped (set by the sync start/stop
