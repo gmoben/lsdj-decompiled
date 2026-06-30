@@ -305,6 +305,12 @@ DEF wSyncTxByte      EQU $CBDC  ; byte to transmit (master)
 DEF wSyncRxByte      EQU $CBDD  ; last byte received (<$FD data, >=$FD transport)
 DEF wSyncState       EQU $CBDE  ; serial state machine (0 idle/1 handshake/2 data)
 
+; --- dynamic VRAM tile loader (LoadTilesToVram / CopyTileData / ResetTileLoader) ---
+DEF wTileLoadSlot    EQU $CBE1  ; current tile-load request: destination VRAM tile slot (CopyTileData writes $9000 + slot*16)
+DEF wTileLoadSrc     EQU $CBE2  ; [16-bit] current tile-load request: source pointer to the 16-byte tile graphics
+DEF wTileSlotAlloc   EQU $CBE4  ; running VRAM tile-slot allocator: stored as each request's id, advanced by its tile count
+DEF wTileReqTable    EQU $CBE6  ; tile-load request queue base: up to 6 entries x 4 bytes (source ptr + params), scanned by LoadTilesToVram
+
 ; --- Boot identity ----------------------------------------------------------
 DEF wBootHwId        EQU $CBD9  ; boot A register (DMG/CGB id), saved at init
 DEF wBootAgbId       EQU $CBDA  ; boot B register (AGB id)
