@@ -185,6 +185,7 @@ DEF wChanModType     EQU $C0A4  ; [4] modulation type
 ; Vibrato state, per channel, from the V command (VXY: X=speed, Y=depth) in FxCmd_V.
 ; For the WAV channel (ch 2) the type/phase slots are seeded from the instrument by
 ; SetupSoundWave (which writes base+2 = channel 2's slot).
+DEF wChanVibAccum    EQU $C308  ; [4] 16-bit per-channel vibrato LFO phase accumulator (advanced by wChanVibSpeed each step; high byte indexes the vib waveform via SndCalcVibOffset -> wChanVibOffset)
 DEF wChanVibSpeed    EQU $C314  ; [4] 16-bit signed vibrato increment (V high nibble via table; negated by dir)
 DEF wChanVibOffset   EQU $C31C  ; [4] 16-bit current vibrato pitch displacement; L1BA7 adds it to the period
                                 ; when vibrato is active (wChanVibSpeed != 0). Verified live (residual $FFD8 on a vib channel)
