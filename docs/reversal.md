@@ -254,8 +254,8 @@ the **oscilloscope** wave-display (`wOscActive/BankA-B/LoopA-B`), `wWaveCursor`,
 
 A later pass targeted the remaining auto-generated `L<hex>` entries in bank `$00`
 (the SDCC-style helpers and runtime that the per-bank thematic pass left
-unnamed): **74 → 13**, each verified by reading the code + confirming cross-bank
-callers (and, for the tempo cluster, the running ROM), build byte-identical
+unnamed): **74 → 6**, each verified by reading the code + confirming cross-bank
+callers (and, for the tempo/sprite clusters, the running ROM), build byte-identical
 throughout. Clusters named:
 
 - **Sound engine**: per-channel pitch-slide/vibrato steppers, period interpolation,
@@ -274,24 +274,25 @@ throughout. Clusters named:
   (47 callers), `SetOAMByte`, the marker-sprite `SetSprite*`/`ClearMarkerSprites`,
   `RedrawScreen`, `ResetScreenSprites`, `CopyToBgTilemap`, `ClearBgTilemap`,
   `SwitchToDoubleSpeed`.
-- **Boot/misc**: `InitAndLoadSong` (2nd-stage boot), `TickWorkTimeClock`,
-  `ChecksumRomBank`, `TestSram`, `ReadChainByte`.
+- **Dynamic VRAM tile loader** (`$CBE1-$CBFC` LCD-off subsystem, confirmed at
+  runtime to build a `$CBE6` request table of source pointers like bank-2 `$462A`):
+  `LoadTilesToVram`, `SetTileLoadReq`, `CopyTileData` ( -> VRAM tile data
+  `$9000+slot*16`), `ReinitDisplay`, `ResetTileLoader`. This also corrected the
+  mislabeled `wSyncPosition` -> **`wTileLoadNow`** (`$CBDB` is the loader's
+  immediate-copy flag, only ever 0/2; its `GetSyncPosition` getter is dead code).
+- **Boot/misc**: `InitAndLoadSong` (2nd-stage boot), `HandleTooBusy` (the CPU-
+  overload "TOO BUSY!" handler), `PositionWavSprites` (the WAV wave-display sprites,
+  runtime-confirmed), `TickWorkTimeClock`, `ChecksumRomBank`, `TestSram`,
+  `ReadChainByte`.
 - New RAM vars from the same work: `wChanPitchModActive` (`$C3F9`), `wOamDirty`
   (`$CBD1`, which also corrected a wrong "NOI envelope" comment), `wTempoMode`
-  (`$C52A`).
+  (`$C52A`), `wTileLoadNow` (`$CBDB`).
 
-The **remaining 13** bank-0 `L<hex>` are deliberately left until they can be named
-without guessing, triaged by what's still needed:
-
-- *Emulator/runtime trace*: the `$CBE1-$CBFC` LCD-off subsystem (`L32E3`, `L3370`,
-  `L332B`, `L33D5`, `L33EC`) — confirmed at runtime to build a 6-entry **address
-  table** ($CBE6, registering pointers like a bank-2 `$462A`) driven by bank-2
-  chain iteration; purpose (deferred-draw queue vs. pointer cache) still open.
-- *Cross-bank / multi-function tracing*: `L20DB` (bank-2 `$710E` + `ShowMessage`
-  of a fixed bank-1 string) and `L217C` (per-channel sync-position routine).
-- *Font/var context*: `L1478` (value→tile remap), `L17E1` (`$C423-6` flag test),
-  `L3176` (positions sprites 0-2 when WAV active), `L2EAD` (UI box/line drawer),
-  `L2F68` (single indexed tile). `L1AFF` is an internal jr-tail (not a function).
+The **remaining 6** bank-0 `L<hex>` are deliberately left until they can be named
+without guessing: `L1478` (value→tile remap, needs the font/tileset), `L17E1`
+(`$C423-6` per-channel flag test), `L217C` (per-channel sync-position seek), `L2EAD`
+(UI box/line drawer), `L2F68` (draw one indexed tile). `L1AFF` is an internal
+jr-tail (a vibrato-stepper continuation), not a real function entry.
 
 ## Path to 100%
 
