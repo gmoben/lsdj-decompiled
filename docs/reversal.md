@@ -254,8 +254,9 @@ the **oscilloscope** wave-display (`wOscActive/BankA-B/LoopA-B`), `wWaveCursor`,
 
 A later pass targeted the remaining auto-generated `L<hex>` entries in bank `$00`
 (the SDCC-style helpers and runtime that the per-bank thematic pass left
-unnamed): **74 → 22**, each verified by reading the code + confirming cross-bank
-callers, build byte-identical throughout. Clusters named:
+unnamed): **74 → 13**, each verified by reading the code + confirming cross-bank
+callers (and, for the tempo cluster, the running ROM), build byte-identical
+throughout. Clusters named:
 
 - **Sound engine**: per-channel pitch-slide/vibrato steppers, period interpolation,
   `SndWriteFreq{PU1,PU2,Wav}`, pitch-mod flags, the software-envelope ("zombie
@@ -264,24 +265,33 @@ callers, build byte-identical throughout. Clusters named:
   `DivStep`, `memcpy`, `StrCompare` (rgbasm reserves `strcmp`!), `joypad`,
   `delay`/`DelayLoop`, `Abs16`, `CallHL`.
 - **Sync**: `DispatchSyncClock`, `SyncTick{LSDJ,Midi}`, `Sync{Start,Stop}Transport`,
-  `SyncSet{Send,Recv}Mode`, `SyncApplyMode`, `SyncSendAnalogClock` (see sync.md).
-- **Video/UI/OAM**: `DrawFormat` (printf, 23 callers) + `DrawNumber`, `SetOAMByte`,
-  the marker-sprite `SetSprite*`/`ClearMarkerSprites`, `RedrawScreen`,
-  `ResetScreenSprites`, `CopyToBgTilemap`, `ClearBgTilemap`, `SwitchToDoubleSpeed`.
-- **Misc**: `TickWorkTimeClock`, `ChecksumRomBank`, `TestSram`, `ReadChainByte`.
+  `SyncSet{Send,Recv}Mode`, `SyncApplyMode`, `SyncSend`/`ReceiveAnalogClock`
+  (AN.OUT/AN.IN) — see sync.md.
+- **Input**: `HandleButtonEvent` → `HandleInputCombos` + `DispatchScreenInput`
+  (the per-event chain from the main loop).
+- **Video/UI/OAM**: `DrawFormat` (printf, 23 callers) + `DrawNumber`, `DrawTempo`
+  (+ `GetTempoTimerValue`, var `wTempoMode`), `DrawPulseDuty`, `ShowMessage`
+  (47 callers), `SetOAMByte`, the marker-sprite `SetSprite*`/`ClearMarkerSprites`,
+  `RedrawScreen`, `ResetScreenSprites`, `CopyToBgTilemap`, `ClearBgTilemap`,
+  `SwitchToDoubleSpeed`.
+- **Boot/misc**: `InitAndLoadSong` (2nd-stage boot), `TickWorkTimeClock`,
+  `ChecksumRomBank`, `TestSram`, `ReadChainByte`.
 - New RAM vars from the same work: `wChanPitchModActive` (`$C3F9`), `wOamDirty`
-  (`$CBD1`, which also corrected a wrong "NOI envelope" comment).
+  (`$CBD1`, which also corrected a wrong "NOI envelope" comment), `wTempoMode`
+  (`$C52A`).
 
-The **remaining ~22** bank-0 `L<hex>` are deliberately left until they can be named
+The **remaining 13** bank-0 `L<hex>` are deliberately left until they can be named
 without guessing, triaged by what's still needed:
 
 - *Emulator/runtime trace*: the `$CBE1-$CBFC` LCD-off subsystem (`L32E3`, `L3370`,
-  `L332B`, `L33D5`, `L33EC` — a 6-entry address table driven by bank-2 chain
-  iteration) and the `$DA00`→VRAM-tile graphics rasterizer (`$3261`/`$3298`).
-- *Cross-bank / multi-function tracing*: the editor input-combo handlers (`L271A`,
-  `L2A71`, `L2B8D`, `L2BC4`), and the `L0DBC`/`L0DDB`/`L20DB`/`L217C` action wrappers.
-- *Font/var context*: `L1478` (value→tile remap), `L2C3C` (`$C52A`-mode label),
-  `L17E1` (`$C423-6` flag test), `L3176` (positions sprites 0-2 when WAV active).
+  `L332B`, `L33D5`, `L33EC`) — confirmed at runtime to build a 6-entry **address
+  table** ($CBE6, registering pointers like a bank-2 `$462A`) driven by bank-2
+  chain iteration; purpose (deferred-draw queue vs. pointer cache) still open.
+- *Cross-bank / multi-function tracing*: `L20DB` (bank-2 `$710E` + `ShowMessage`
+  of a fixed bank-1 string) and `L217C` (per-channel sync-position routine).
+- *Font/var context*: `L1478` (value→tile remap), `L17E1` (`$C423-6` flag test),
+  `L3176` (positions sprites 0-2 when WAV active), `L2EAD` (UI box/line drawer),
+  `L2F68` (single indexed tile). `L1AFF` is an internal jr-tail (not a function).
 
 ## Path to 100%
 
