@@ -38,6 +38,7 @@
 2A71 DispatchScreenInput ; jump table by wCurrentScreen (0-$0E, table $2A86) -> the current screen's input handler in its bank
 2BC4 GetTempoTimerValue ; -> de = tempo timer value: wTempoMode 1/2/3 -> fixed CGB/DMG presets, else derived from wTempo (BPM)
 2C3C DrawTempo          ; draw the tempo at the VRAM cursor: special label for wTempoMode 1/2/3, else the BPM number (DrawFormat "%d", wTempo)
+2D22 DrawPulseDuty      ; draw the pulse WAVE/duty field (top 2 bits of the instr byte) as one of 4 two-tile waveform glyphs
 183A VBlankHandler      ; reloads rTIMA from tempo ($C578), can raise timer IRQ
 34BD SerialHandler      ; Game Boy sync RX: rSB -> $CBDD, mode in $CBDE
 18BF ReadJoypad         ; standard d-pad/button matrix read
@@ -134,6 +135,7 @@
 234D ProcessSyncByte    ; consume received $CBDD: <$FD position / >=$FD transport
 227C SendByteStep       ; one step of the multi-byte (MIDI) send loop
 1F9A SyncSendAnalogClock ; AN.OUT mode: emit clock pulse byte ($FF/$00 by $CB68 ticks/step, reloaded from wSyncMode2) via SendSyncByte
+23CA SyncReceiveAnalogClock ; AN.IN mode (wSyncSendGate>=2): process the incoming clock pulse byte (rSB), counting via $CB77-79 to advance the sequencer
 34F0 GetSyncPosition    ; e = [$CBDB]
 34F5 EnableInterrupts   ; ei; ret
 34F7 DisableInterrupts  ; di; ret
