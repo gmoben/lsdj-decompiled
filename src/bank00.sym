@@ -76,6 +76,10 @@
 35C2 DrawFormat         ; printf-style draw of format string (sp+7) + varargs to the VRAM cursor: %c char, %d/%u signed/unsigned decimal & %x hex (via DrawNumber), %s string
 1298 DrawTextField      ; draw a positioned text field
 17FB ClearBgTilemap     ; fill the visible 20x18 BG tilemap ($9800) with tile 0, rSTAT-gated
+; --- dynamic VRAM tile loader: queue of tile-graphics load requests ($CBE6 table, $CBE4 slot counter) ---
+32E3 LoadTilesToVram    ; LCD off: register a tile-graphics source (de) in a free $CBE6 slot, alloc VRAM tile slots ($CBE4), load via CopyTileData, restore LCD
+3370 SetTileLoadReq     ; store a 3-byte tile-load request from [hl]: $CBE1 slot/flags, $CBE2:3 source pointer
+332B CopyTileData       ; copy a queued tile's 16-byte graphics to VRAM tile data ($9000 + $CBE1*16), rSTAT-gated (falls into the $32AD copy loop)
 39CD CopyToBgTilemap    ; copy a tile block from a source ptr into the active BG tilemap (stack args: col, row, src, len) -> CopyToBgTilemapCore
 39F2 CopyToBgTilemapCore ; worker: dest = active BG map ($9800/$9C00 per rLCDC bit3) at (col d,row e); rSTAT-gated byte copy from bc
 ; --- defensive checks ---
