@@ -311,6 +311,7 @@ DEF wSyncTick        EQU $CB69  ; sync tick counter: $ff = idle; counts up and a
 DEF wSyncRun         EQU $CB6B  ; sync running flag: 1 = sync clock active, 0 = stopped (set by the sync start/stop
                                 ; handlers; also gated to the SONG screen in LSDJ mode). Verified live: 0 while idle
 DEF wSyncHandshake   EQU $CB6C  ; set =1 before SendSyncHandshake (handshake pending); cleared on sync stop
+DEF wSyncRxPos       EQU $CB71  ; received sync position/row: ProcessSyncByte stores an incoming <$FD value here, and SyncSeekSongPos seeks playback to it (LSDJ mode)
 DEF wSyncSendGate    EQU $CB6E  ; TimerHandler sync transport: 1 = run the wSyncSendAccum byte-send clock; >=2 = alt path
 DEF wTileLoadNow     EQU $CBDB  ; tile-loader flag, bit1 = copy tiles immediately vs defer (set to 2 by ResetTileLoader, checked by LoadTilesToVram). NOT a sync position: only ever 0/2, and the GetTileLoadNow getter ($34F0) is dead code.
 DEF wSyncTxByte      EQU $CBDC  ; byte to transmit (master)
