@@ -52,12 +52,16 @@ $(TARGET): $(OBJ)
 	$(RGBFIX) $(RGBFIXFLAGS) $@
 
 # --- Symbol file for emulator-assisted debugging ---------------------------
-# rgblink emits a BANK:ADDR Name .sym (BGB / SameBoy / Emulicious format) with
-# every named routine. Copy it next to your ROM (as lsdj9_4_0.sym) to debug LSDj
-# with named labels -- the fastest way to identify and name more routines.
+# rgblink's $(SYM) lists every named routine (BGB / SameBoy / Emulicious format)
+# but NOT our RAM variables (EQU constants are not exported). `make sym` merges
+# the routines with constants/ram.inc into a comprehensive FULLSYM and drops it
+# next to the ROM(s) so the debugger shows named labels for both code and WRAM.
+FULLSYM := lsdj9_4_0.sym
 sym: $(TARGET)
-	@printf '==> %s  (%s symbols)\n' "$(SYM)" "$$(wc -l < $(SYM))"
-	@echo "    Copy next to your ROM as lsdj9_4_0.sym for named emulator debugging."
+	tools/gen_sym.py $(SYM) constants/ram.inc -o $(FULLSYM)
+	@if [ -e .emu/lsdj_song.gb ]; then cp $(FULLSYM) .emu/lsdj_song.sym; \
+	  echo "    copied next to running emulator ROM -> .emu/lsdj_song.sym"; fi
+	@echo "    Auto-loaded by Emulicious/BGB/SameBoy from beside the ROM ($(FULLSYM))."
 
 # --- Verification ----------------------------------------------------------
 # `compare` is the core invariant: the build must equal the original ROM,

@@ -319,6 +319,27 @@ confirmed by a dedicated bank-02 sound-engine pass + live emulator tracing:
 These are named only where ALL readers/writers (or live observation) pin down one
 purpose; the rest are left raw rather than guessed.
 
+### Emulator symbols: exporting the names back into the debugger
+
+The names are only useful for live analysis if the emulator can see them. The
+link step already emits `build/lsdj9_4_0.sym` (rgblink `-n`, the BGB / SameBoy /
+Emulicious `BANK:ADDR Name` format) with **all 7151 routine symbols** — but
+rgblink exports *only* section labels, **not `EQU` constants**, so every one of
+our 230 `constants/ram.inc` WRAM/HRAM variables was missing and the debugger
+showed raw addresses for memory accesses. (Confirmed: the link `.sym` has 0
+symbols in the `$c000`–`$dfff`/`$ff80`+ range.)
+
+`tools/gen_sym.py` closes the gap: it merges the link `.sym` (routines + `.L_xxxx`
+locals) with the `ram.inc` variables into one comprehensive file, tagging each RAM
+symbol with the correct bank (`$c000`–`$cfff`/HRAM → `00`, `$d000`–`$dfff` WRAMX →
+`01`). `make sym` regenerates it and drops it next to the ROM(s) — repo-root
+`lsdj9_4_0.sym` beside your supplied ROM, and `.emu/lsdj_song.sym` beside the
+running emulator copy — where Emulicious/BGB/SameBoy auto-load it by basename. The
+result (7151 routines + 230 variables = 7381 symbols) means the debugger now names
+both code *and* state, which is exactly what makes the iterative
+diff-WRAM-while-driving-the-ROM loop above fast. The generator only reads build
+output + source, so the ROM stays byte-for-byte identical.
+
 ## Path to 100%
 
 1. **Code/data split (cleaner carves).** The unreached remainder in a bank is
