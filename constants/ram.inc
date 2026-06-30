@@ -65,6 +65,8 @@ DEF wTableCol        EQU $C92F  ; Table editor: current column/cursor state (bit
 DEF wTableRow        EQU $C930  ; Table editor: current row cursor (0-15); pairs with wTableCol
 DEF wDefaultNotes     EQU $C904  ; table/array of default note values (InstrGetField0)
 DEF wHelpCursorRow   EQU $C934  ; HELP/word screen cursor row (ProjHelpSelectPrev/Next/OpenSelected)
+DEF wWordEditRow     EQU $C937  ; Word/speech editor: cursor row within the current word (inc/dec by nav); AccessWord indexes word data at +wWordEditRow*2
+DEF wWordEditCol     EQU $C938  ; Word/speech editor: cursor column (0/1) within the row; AccessWord byte offset within the 2-byte unit
 ; Table editor cell base pointers (16-bit) into the working table command data;
 ; TableGetCellA/B read [ptr + wTable*32 + row] to fetch a CMD1/CMD2 cell byte.
 DEF wTableCellAPtr   EQU $C447  ; 16-bit base ptr for TABLE command column A (CMD1); TableGetCellA
