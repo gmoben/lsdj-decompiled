@@ -250,6 +250,7 @@ DEF wChanTableCountdown EQU $C164 ; [4] ticks until the next table step
 DEF wChanTable       EQU $C204  ; [4] current table per channel
 DEF wChanTableRow1   EQU $C208  ; [4] table command-1 playback row
 DEF wChanTableRow2   EQU $C20C  ; [4] table command-2 playback row
+DEF wChanNoteStep    EQU $C21C  ; [4] per-channel step counter since note-on (reset to 0 by SetupSound*); incremented each tick, with the first values (0/1/2) gating note-onset behavior
 DEF wChanInstr       EQU $C210  ; [4] current instrument number per channel
 DEF wChanChord       EQU $C218  ; [4] chord command value (CXY: X/Y semitone offsets); 0 = off. Set by FxCmd_C
 ; Current-channel table-playback cursors (16-bit SRAM addresses):
