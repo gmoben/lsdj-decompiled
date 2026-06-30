@@ -236,6 +236,8 @@ DEF wChanReadPtr     EQU $C110  ; [4] 16-bit SRAM cursor; PHRASE_NOTES (bank0) /
                                 ; same offset $A000+phrase*16+step, selected by SRAM bank
 DEF wChanCmdValPtr   EQU $C128  ; [4] 16-bit cursor into PHRASE_COMMAND_VALUES (bank2 $AFF0+)
 DEF wChanInstrPtr    EQU $C140  ; [4] 16-bit cursor into PHRASE_INSTRUMENTS (bank3 $B000+)
+DEF wChanRetrigTimer EQU $C148  ; [4] per-channel retrigger countdown; decremented each sound tick, and on 0 reloads from wChanRetrigRate and retriggers the channel (rewrite NRx2 envelope + trigger note via rAUDxHIGH|$80)
+DEF wChanRetrigRate  EQU $C14C  ; [4] per-channel retrigger period (0 = no retrigger); reloaded into wChanRetrigTimer
 DEF wChanGroove      EQU $C150  ; [4] current groove per channel
 DEF wChanGrooveRow   EQU $C158  ; [4] current row within the groove
 DEF wChanTablePlayed EQU $C154  ; [4] flag: channel has played its table
