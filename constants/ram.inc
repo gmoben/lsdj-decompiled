@@ -136,6 +136,8 @@ DEF wFrameCounterHi  EQU $C552  ; high byte of wFrameCounter (incremented when w
 DEF wSyncSendAccum   EQU $C956  ; 16-bit serial/sync send-clock accumulator (TimerHandler, gated by $cb6e==1): -=8 each
                                 ; timer tick; on underflow adds wSyncSendRate and calls SendByteStep. Reset on sound stop
 DEF wSyncSendRate    EQU $C954  ; 16-bit reload added to wSyncSendAccum on underflow (sets the serial/sync byte-send rate)
+DEF wIdleHalt        EQU $C68B  ; power-save idle/halt flag: set when MainLoop idle-halts (wIdleFrames>7); while set, VBlankHandler only ticks the work clock; cleared by activity (work-clock wrap, SerialHandler) or input
+DEF wIdleFrames      EQU $C68C  ; frames since last activity (redraw/work/sync/input reset it to 0); when it exceeds 7, MainLoop enters the idle halt
 DEF wWorkTimeAccum   EQU $C69D  ; 16-bit sub-second accumulator for the song work-time clock; wraps every $0e00 to add a
                                 ; whole-second tick to wWorkTimeTicks (verified: c69d advances during playback)
 DEF wWorkTimeTicks   EQU $C577  ; pending whole-second ticks for the work-time clock; bank01 $50a0 applies each to the
