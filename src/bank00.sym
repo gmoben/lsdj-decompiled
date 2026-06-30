@@ -53,6 +53,7 @@
 14D1 ReadSongByte       ; (bank,addr): di, select SRAM bank + enable RAM, read [de], reti
 14EB ReadSongByteRaw    ; like ReadSongByte but no di/reti (caller already holds IRQ off)
 158C WaitInterrupt     ; halt;nop;ret -- wait for the next interrupt (frame sync)
+1799 CallHL             ; `jp hl` trampoline (gbz80 has no `call hl`); FarCall uses it to call the target in hl
 179A FarCall            ; banked call: caller pushes (addr, bank); switch ROM bank, call addr, restore
 17BB FarCallArg         ; like FarCall but also passes one byte argument to the callee
 1574 WriteSongByte      ; (bank,addr,val): select SRAM bank + enable RAM, write [de] (write side of ReadSongByte)
@@ -64,6 +65,7 @@
 352A DrawNumber         ; draw 16-bit value (sp+4) in base (sp+6) with optional minus sign (sp+8); recursive (high digit first), digit table $35B1 "0123456789ABCDEF"
 35C2 DrawFormat         ; printf-style draw of format string (sp+7) + varargs to the VRAM cursor: %c char, %d/%u signed/unsigned decimal & %x hex (via DrawNumber), %s string
 1298 DrawTextField      ; draw a positioned text field
+17FB ClearBgTilemap     ; fill the visible 20x18 BG tilemap ($9800) with tile 0, rSTAT-gated
 39CD CopyToBgTilemap    ; copy a tile block from a source ptr into the active BG tilemap (stack args: col, row, src, len) -> CopyToBgTilemapCore
 39F2 CopyToBgTilemapCore ; worker: dest = active BG map ($9800/$9C00 per rLCDC bit3) at (col d,row e); rSTAT-gated byte copy from bc
 ; --- defensive checks ---
@@ -83,6 +85,7 @@
 1482 DebugTrap          ; assert/debug trap (ld b,b BGB marker + rst $38), fires once via $C7AF
 
 ; --- Sound engine: per-channel pitch slide / vibrato / frequency (TimerHandler tick) ---
+066D SndModWavFreq      ; WAV ch direct-frequency modulation: wChanFreq+4 += wChanPitchRate+4; if vibrato active apply wChanVibOffset+4 (steps WAV vib L1AFF, then halved offset)
 1815 TickWorkTimeClock   ; bump saturating counter $C9AA (<$80), advance wWorkTimeAccum ($C69D); wrap at $0E00 -> wWorkTimeTicks ($C577), clear $C68B
 1986 SndCalcVibOffset    ; eval vibrato/mod waveform: (phase>>2)+e indexes ctrl table $0200; bit7 -> negate; dispatch via $0300 -> signed offset in hl
 19A1 SndCalcVibOffsetNeg ; SndCalcVibOffset bit7-set helper: complement A then dispatch via $0300
