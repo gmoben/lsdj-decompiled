@@ -254,8 +254,10 @@ the **oscilloscope** wave-display (`wOscActive/BankA-B/LoopA-B`), `wWaveCursor`,
 
 A later pass targeted the remaining auto-generated `L<hex>` entries in bank `$00`
 (the SDCC-style helpers and runtime that the per-bank thematic pass left
-unnamed): **74 → 6**, each verified by reading the code + confirming cross-bank
-callers (and, for the tempo/sprite clusters, the running ROM), build byte-identical
+unnamed): **74 → 0 — every function entry across all 13 carved banks now has a
+behavioral name; no auto-generated `L<hex>`/`L<bank>_<hex>` labels remain.** Each
+was verified by reading the code + confirming cross-bank callers (and, for the
+tempo/sprite/tile-loader clusters, the running ROM), build byte-identical
 throughout. Clusters named:
 
 - **Sound engine**: per-channel pitch-slide/vibrato steppers, period interpolation,
@@ -280,19 +282,28 @@ throughout. Clusters named:
   `$9000+slot*16`), `ReinitDisplay`, `ResetTileLoader`. This also corrected the
   mislabeled `wSyncPosition` -> **`wTileLoadNow`** (`$CBDB` is the loader's
   immediate-copy flag, only ever 0/2; its `GetSyncPosition` getter is dead code).
-- **Boot/misc**: `InitAndLoadSong` (2nd-stage boot), `HandleTooBusy` (the CPU-
-  overload "TOO BUSY!" handler), `PositionWavSprites` (the WAV wave-display sprites,
-  runtime-confirmed), `TickWorkTimeClock`, `ChecksumRomBank`, `TestSram`,
-  `ReadChainByte`.
+- **Kit (sample bank) subsystem**: `KitIndexToBank` (kit index -> ROM bank, +8 with
+  a +5 gap to skip the code banks `$1B-$1F`), `KitExists`, `ReadKitName`. This
+  corrected a mislabel: `$0CFE` "FarCallByteAlt" is the kit-presence check (reads
+  `[$4000:01]==$6040`), not a FarCall variant.
+- **Sync / sound tail**: `SyncSeekSongPos`, `SndApplyWavVibrato`.
+- **Final UI helpers** (glyphs decoded from VRAM): `DrawTileRun` (run of cursor `►`
+  / blank / solid `█` tiles), `DrawStringTile20`, `AnyChanFlagSet`.
 - New RAM vars from the same work: `wChanPitchModActive` (`$C3F9`), `wOamDirty`
   (`$CBD1`, which also corrected a wrong "NOI envelope" comment), `wTempoMode`
-  (`$C52A`), `wTileLoadNow` (`$CBDB`).
+  (`$C52A`), `wTileLoadNow` (`$CBDB`), the tile-loader state (`wTileLoadSlot`/`Src`/
+  `wTileSlotAlloc`/`wTileReqTable`, `$CBE1-6`), the power-save idle (`wIdleHalt`/
+  `wIdleFrames`, `$C68B-C`), and the word-editor cursor (`wWordEditRow`/`Col`,
+  `$C937-8`).
 
-The **remaining 6** bank-0 `L<hex>` are deliberately left until they can be named
-without guessing: `L1478` (value→tile remap, needs the font/tileset), `L17E1`
-(`$C423-6` per-channel flag test), `L217C` (per-channel sync-position seek), `L2EAD`
-(UI box/line drawer), `L2F68` (draw one indexed tile). `L1AFF` is an internal
-jr-tail (a vibrato-stepper continuation), not a real function entry.
+**Function labeling is now 100%.** RAM-var naming continues as the next frontier:
+the remaining ~1.8 k raw var references are (a) per-screen editor state in the
+`$C9xx`/`$C4xx` ranges (cursors, scroll, counters — nameable, but each needs a
+per-screen RE pass and several resist a confident single-purpose name, e.g. the
+PROJECT sync-field counter `$C9A4`), and (b) address-passed work buffers
+(`$C431`/`$C457`/`$C405`/`$C555`, …) and SDCC transient scratch that are reused
+across routines and so are not cleanly globally nameable. These are named only
+where ALL readers/writers pin down one purpose.
 
 ## Path to 100%
 
