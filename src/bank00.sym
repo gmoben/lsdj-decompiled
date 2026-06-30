@@ -130,6 +130,8 @@
 343F Abs16              ; 16-bit absolute value: returns |arg(sp+4)| in de
 33B9 GetTilemapAddr    ; (col,row 16-bit arg) -> BG map address $9800 + row*$20 + col
 3831 strcpy            ; GBDK/SDCC strcpy(dest=sp+2, src=sp+4): copy until NUL (byte-exact match)
+3843 memcpy            ; SDCC memcpy(dest=sp+4, src=sp+6, n=sp+8): copy n bytes (16-bit count)
+3863 StrCompare        ; SDCC strcmp(s1=sp+2, s2=sp+4): byte compare NUL-terminated -> de = 0 (equal) / +1 / -1 (named StrCompare; 'strcmp' is an rgbasm keyword)
 391B joypad            ; GBDK joypad(): read P1 d-pad (P14) + buttons (P15) matrix -> combined active-high byte in e
 3983 delay             ; GBDK delay(d): 16-bit count from stack -> DelayTicks
 3949 DelayTicks        ; busy-wait de units (DelayLoop) plus a fixed tail loop (delay impl)
