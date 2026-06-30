@@ -46,6 +46,8 @@
 321C SetSpriteTile3     ; OAM tile of sprite (arg) = $03
 3233 SetSpriteTile4     ; OAM tile of sprite (arg) = $04
 324A SetSpriteAttr      ; OAM attr of sprite (arg) = value (arg2)
+30DD ClearSprites012    ; zero OAM Y of sprites 0,1,2 (wOamBuffer +0/+4/+8)
+30EC ClearMarkerSprites ; zero OAM Y of the marker sprite group (sprites 3+, wOamBuffer $0C+) before a redraw
 1500 ReadSongBytes      ; bulk copy from SRAM (bank, src) into a RAM dest buffer (e.g. a chain row)
 3A33 ResetWorkState     ; reset all runtime state to defaults: per-channel sequencer ptrs (read ptr=$0140, rows=$FF, instr/table/groove=0) + editor cursors + wCurrentScreen=SONG; e.g. when a song load comes back empty
 14D1 ReadSongByte       ; (bank,addr): di, select SRAM bank + enable RAM, read [de], reti
@@ -124,6 +126,8 @@
 34F7 DisableInterrupts  ; di; ret
 34F9 SoftReset          ; a = boot id [$CBD9]; jp Start
 34FF SetInterruptEnable ; update rIE, ack rIF for newly-enabled interrupts
+3424 SwitchToDoubleSpeed ; CGB KEY1 speed switch to double-speed (no-op if rSPD bit7 already set): disable IRQs, rJOYP=$30, rSPD=1, stop, restore rIE
+343F Abs16              ; 16-bit absolute value: returns |arg(sp+4)| in de
 33B9 GetTilemapAddr    ; (col,row 16-bit arg) -> BG map address $9800 + row*$20 + col
 3831 strcpy            ; GBDK/SDCC strcpy(dest=sp+2, src=sp+4): copy until NUL (byte-exact match)
 3887 MemSetLoop        ; inner loop: fill de bytes at hl with value b
