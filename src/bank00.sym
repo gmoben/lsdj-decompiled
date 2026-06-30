@@ -67,6 +67,7 @@
 ; --- screen-drawing helpers (VRAM cursor $C574/$C575, string src $C564/$C565) ---
 24DD RedrawScreen       ; full redraw of the current screen: ResetScreenSprites, clear tilemap (CGB), then per-screen draw passes across banks (1 $6CD7, 5 $4040, ...) by wCurrentScreen
 24A8 ResetScreenSprites ; before a redraw: clear marker sprites (ClearSprites012 + ClearMarkerSprites), or position sprites 0/1/2 (L3176) when the WAV channel is active
+0DBC ShowMessage        ; copy the string arg into wStrBuffer and trigger the on-screen message/popup (bank1 $74F7 sets wMsgStrPtr -> wStrBuffer); 47 callers
 2F21 DrawString         ; draw a NUL/len string to the VRAM tilemap cursor
 2F6A DrawStringIndexed  ; draw from the string source at a byte offset
 2E33 DrawHexByte        ; draw byte A as two hex digits at the cursor
