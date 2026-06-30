@@ -36,6 +36,8 @@
 2B8D HandleButtonEvent  ; process one button event: latch A/B/Select held flags (wAHeld/wBHeld/wSelectHeld) from wButtons, then HandleInputCombos + DispatchScreenInput, OR their results
 271A HandleInputCombos  ; global/B-held button-combo handling before per-screen dispatch (skipped on screens 7/8/9/$0D/$0E) -> e
 2A71 DispatchScreenInput ; jump table by wCurrentScreen (0-$0E, table $2A86) -> the current screen's input handler in its bank
+2BC4 GetTempoTimerValue ; -> de = tempo timer value: wTempoMode 1/2/3 -> fixed CGB/DMG presets, else derived from wTempo (BPM)
+2C3C DrawTempo          ; draw the tempo at the VRAM cursor: special label for wTempoMode 1/2/3, else the BPM number (DrawFormat "%d", wTempo)
 183A VBlankHandler      ; reloads rTIMA from tempo ($C578), can raise timer IRQ
 34BD SerialHandler      ; Game Boy sync RX: rSB -> $CBDD, mode in $CBDE
 18BF ReadJoypad         ; standard d-pad/button matrix read
