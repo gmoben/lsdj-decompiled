@@ -302,7 +302,8 @@ DEF wPU1Sweep        EQU $C2E4  ; PU1 sweep value -> rAUD1SWEEP
 DEF wFrameSkip       EQU $CB6F  ; SndRunFrame: frames to skip before the next sound tick (tempo/groove)
 DEF wTickRepeat      EQU $CB70  ; SndRunFrame: extra sound ticks to run this frame (tempo/groove)
 DEF wSyncMode        EQU $CB66  ; 0=OFF 1=LSDJ 3=MIDI 5=KEYBD 6=ANA.IN 7=AN.OUT
-DEF wSyncMode2       EQU $CB67  ; secondary sync config (default 6)
+DEF wSyncMode2       EQU $CB67  ; secondary sync config (default 6); also the AN.OUT pulse period (TICKS/STEP) reloaded into wAnalogOutTimer
+DEF wAnalogOutTimer  EQU $CB68  ; AN.OUT clock pulse-period countdown (SyncSendAnalogClock): reloaded from wSyncMode2; while >= 3 it emits $FF (pulse high) else $00; SyncStopTransport sets it to 3
 DEF wSyncTick        EQU $CB69  ; sync tick counter: $ff = idle; counts up and at 12 fires the sync pulse (L1E93).
                                 ; Verified live: $ff while LSDJ sync is idle (no partner)
 DEF wSyncRun         EQU $CB6B  ; sync running flag: 1 = sync clock active, 0 = stopped (set by the sync start/stop
