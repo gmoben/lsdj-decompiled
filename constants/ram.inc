@@ -219,6 +219,8 @@ DEF wChanOutNote     EQU $C0E8  ; [4] effective note used for frequency: bank0 L
 DEF wChanNoteTrigger EQU $C0F0  ; [4] per-channel "advance to next note step" flag: set nonzero when the note
                                 ; countdown expires (SndReadChanState/SndReadChainEnd), consumed by ProcessChannel
                                 ; which clears it and reads+plays the next note/command. Verified live (watchpoint).
+DEF wFxSlotCmdTimer  EQU $C230  ; [12] per-FX-slot command-step countdown (SndRunTableColumn, indexed by wFxChannel); when it hits 0, SndRunFxSlot runs the slot's command
+DEF wFxSlotEnvTimer  EQU $C23C  ; [12] per-FX-slot envelope-step countdown (SndRunTableColumn); when it hits 0, SndTableEnv runs the table envelope step
 DEF wChanFxSlots     EQU $C2F0  ; [12] per-channel active FX-command slots (3 slots x 4 channels, column-major)
 DEF wChanPitchModActive EQU $C3F9 ; [3] per-channel "pitch is modulating" flag (PU1/PU2/WAV); set by SndUpdatePitchModFlag*, gates per-frame SndStepPitchVib+SndWriteFreq at $0584
 DEF wChanChainTrans  EQU $C3FC  ; [4] per-channel chain-transpose shadow (from SndReadChainTranspose)
