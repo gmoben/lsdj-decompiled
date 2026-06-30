@@ -69,6 +69,8 @@
 24DD RedrawScreen       ; full redraw of the current screen: ResetScreenSprites, clear tilemap (CGB), then per-screen draw passes across banks (1 $6CD7, 5 $4040, ...) by wCurrentScreen
 24A8 ResetScreenSprites ; before a redraw: clear marker sprites (ClearSprites012 + ClearMarkerSprites), or position sprites 0/1/2 (L3176) when the WAV channel is active
 0DBC ShowMessage        ; copy the string arg into wStrBuffer and trigger the on-screen message/popup (bank1 $74F7 sets wMsgStrPtr -> wStrBuffer); 47 callers
+2EAD DrawTileRun        ; draw a run of `count` UI tiles at (col,row): type 0 = cursor arrow (tile $03), 1 = blank (tile $48), else solid block (tile $8D)
+2F68 DrawStringTile20   ; DrawStringIndexed entry with offset $20: draw the tile at wStringSrc+$20 to the VRAM cursor
 2F21 DrawString         ; draw a NUL/len string to the VRAM tilemap cursor
 2F6A DrawStringIndexed  ; draw from the string source at a byte offset
 2E33 DrawHexByte        ; draw byte A as two hex digits at the cursor
@@ -76,6 +78,7 @@
 352A DrawNumber         ; draw 16-bit value (sp+4) in base (sp+6) with optional minus sign (sp+8); recursive (high digit first), digit table $35B1 "0123456789ABCDEF"
 35C2 DrawFormat         ; printf-style draw of format string (sp+7) + varargs to the VRAM cursor: %c char, %d/%u signed/unsigned decimal & %x hex (via DrawNumber), %s string
 1298 DrawTextField      ; draw a positioned text field
+17E1 AnyChanFlagSet     ; e = nonzero if any of the 4 per-channel bytes $C423-$C426 is set (chain-screen per-channel state; caller resets the $C68C idle counter on activity)
 17FB ClearBgTilemap     ; fill the visible 20x18 BG tilemap ($9800) with tile 0, rSTAT-gated
 ; --- dynamic VRAM tile loader: queue of tile-graphics load requests ($CBE6 table, $CBE4 slot counter) ---
 32E3 LoadTilesToVram    ; LCD off: register a tile-graphics source (de) in a free $CBE6 slot, alloc VRAM tile slots ($CBE4), load via CopyTileData, restore LCD
@@ -106,7 +109,8 @@
 
 ; --- Sound engine: per-channel pitch slide / vibrato / frequency (TimerHandler tick) ---
 0762 LoadWaveRam        ; fast-copy the 16-byte staged waveform (hOscilloscope $FFA0) into WAV wave RAM ($FF30) with rAUD3 off (SP-pop trick), then re-enable + retrigger rAUD3 and restore freq
-066D SndModWavFreq      ; WAV ch direct-frequency modulation: wChanFreq+4 += wChanPitchRate+4; if vibrato active apply wChanVibOffset+4 (steps WAV vib L1AFF, then halved offset)
+066D SndModWavFreq      ; WAV ch direct-frequency modulation: wChanFreq+4 += wChanPitchRate+4; if vibrato active apply wChanVibOffset+4 (steps WAV vib via SndApplyWavVibrato, then halved offset)
+1AFF SndApplyWavVibrato ; apply WAV-channel vibrato: if wChanVibSpeed+5, compute offset (SndCalcVibOffset) -> wChanVibOffset+4/5 and advance vib phase $C30C; shared by SndStepPitchVibWav + SndModWavFreq
 1815 TickWorkTimeClock   ; bump saturating counter $C9AA (<$80), advance wWorkTimeAccum ($C69D); wrap at $0E00 -> wWorkTimeTicks ($C577), clear $C68B
 20DB HandleTooBusy       ; CPU-overload handler (redraw backlog overflowed while playing): reset playback (bank2 $710E: exit live mode + sound reinit) and ShowMessage "TOO BUSY!"
 1986 SndCalcVibOffset    ; eval vibrato/mod waveform: (phase>>2)+e indexes ctrl table $0200; bit7 -> negate; dispatch via $0300 -> signed offset in hl
