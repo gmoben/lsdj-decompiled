@@ -81,6 +81,8 @@
 32E3 LoadTilesToVram    ; LCD off: register a tile-graphics source (de) in a free $CBE6 slot, alloc VRAM tile slots ($CBE4), load via CopyTileData, restore LCD
 3370 SetTileLoadReq     ; store a 3-byte tile-load request from [hl]: $CBE1 slot/flags, $CBE2:3 source pointer
 332B CopyTileData       ; copy a queued tile's 16-byte graphics to VRAM tile data ($9000 + $CBE1*16), rSTAT-gated (falls into the $32AD copy loop)
+33D5 ReinitDisplay      ; ensure LCD on with standard rLCDC config (cycle off via display_off if needed; BG on, $9800 map, $8800 tiles) + ResetTileLoader
+33EC ResetTileLoader    ; reset tile-loader state: clear $CBF7/$CBF8, set wTileLoadNow=2 (immediate-copy mode)
 39CD CopyToBgTilemap    ; copy a tile block from a source ptr into the active BG tilemap (stack args: col, row, src, len) -> CopyToBgTilemapCore
 39F2 CopyToBgTilemapCore ; worker: dest = active BG map ($9800/$9C00 per rLCDC bit3) at (col d,row e); rSTAT-gated byte copy from bc
 ; --- defensive checks ---
@@ -144,7 +146,7 @@
 227C SendByteStep       ; one step of the multi-byte (MIDI) send loop
 1F9A SyncSendAnalogClock ; AN.OUT mode: emit clock pulse byte ($FF/$00 by $CB68 ticks/step, reloaded from wSyncMode2) via SendSyncByte
 23CA SyncReceiveAnalogClock ; AN.IN mode (wSyncSendGate>=2): process the incoming clock pulse byte (rSB), counting via $CB77-79 to advance the sequencer
-34F0 GetSyncPosition    ; e = [$CBDB]
+34F0 GetTileLoadNow     ; e = wTileLoadNow ($CBDB tile-loader flag); unused (dead code; was mislabeled GetSyncPosition)
 34F5 EnableInterrupts   ; ei; ret
 34F7 DisableInterrupts  ; di; ret
 34F9 SoftReset          ; a = boot id [$CBD9]; jp Start

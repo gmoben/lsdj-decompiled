@@ -300,7 +300,7 @@ DEF wSyncRun         EQU $CB6B  ; sync running flag: 1 = sync clock active, 0 = 
                                 ; handlers; also gated to the SONG screen in LSDJ mode). Verified live: 0 while idle
 DEF wSyncHandshake   EQU $CB6C  ; set =1 before SendSyncHandshake (handshake pending); cleared on sync stop
 DEF wSyncSendGate    EQU $CB6E  ; TimerHandler sync transport: 1 = run the wSyncSendAccum byte-send clock; >=2 = alt path
-DEF wSyncPosition    EQU $CBDB  ; sync position/index
+DEF wTileLoadNow     EQU $CBDB  ; tile-loader flag, bit1 = copy tiles immediately vs defer (set to 2 by ResetTileLoader, checked by LoadTilesToVram). NOT a sync position: only ever 0/2, and the GetTileLoadNow getter ($34F0) is dead code.
 DEF wSyncTxByte      EQU $CBDC  ; byte to transmit (master)
 DEF wSyncRxByte      EQU $CBDD  ; last byte received (<$FD data, >=$FD transport)
 DEF wSyncState       EQU $CBDE  ; serial state machine (0 idle/1 handshake/2 data)

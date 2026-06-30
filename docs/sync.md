@@ -97,7 +97,7 @@ Runs from the IRQ tail when GB-sync is active (`$CB66==1`, `$CB6B==0`,
 
 | Addr | Meaning |
 |------|---------|
-| `$CBDB` | sync position/index (`GetSyncPosition` `$34F0` reads it) |
+| ~~`$CBDB`~~ | *(removed)* — `$CBDB` is **not** a sync position; it is `wTileLoadNow`, the dynamic VRAM tile-loader's immediate-copy flag (only ever 0/2). Its getter `$34F0` is dead code. |
 | `$CBDC` | byte to transmit (master) |
 | `$CBDD` | last byte received (slave); `<$FD` data, `>=$FD` transport |
 | `$CBDE` | serial state machine (0 idle / 1 handshake / 2 data / 4 error) |
