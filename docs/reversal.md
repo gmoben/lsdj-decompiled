@@ -250,6 +250,39 @@ the **oscilloscope** wave-display (`wOscActive/BankA-B/LoopA-B`), `wWaveCursor`,
    So "nameable globals remaining" is far smaller than 1800; target subsystem-state
    vars, recognise the scratch, and don't force names onto buffers/transients.
 
+### bank 0 helper/runtime naming sweep
+
+A later pass targeted the remaining auto-generated `L<hex>` entries in bank `$00`
+(the SDCC-style helpers and runtime that the per-bank thematic pass left
+unnamed): **74 → 22**, each verified by reading the code + confirming cross-bank
+callers, build byte-identical throughout. Clusters named:
+
+- **Sound engine**: per-channel pitch-slide/vibrato steppers, period interpolation,
+  `SndWriteFreq{PU1,PU2,Wav}`, pitch-mod flags, the software-envelope ("zombie
+  mode") volume engine (`FadeEnvStep`/`UpdateEnv*`), `LoadWaveRam`, `SndModWavFreq`.
+- **SDCC/GBDK runtime**: the whole 8/16-bit signed+unsigned `Div`/`Mod` family +
+  `DivStep`, `memcpy`, `StrCompare` (rgbasm reserves `strcmp`!), `joypad`,
+  `delay`/`DelayLoop`, `Abs16`, `CallHL`.
+- **Sync**: `DispatchSyncClock`, `SyncTick{LSDJ,Midi}`, `Sync{Start,Stop}Transport`,
+  `SyncSet{Send,Recv}Mode`, `SyncApplyMode`, `SyncSendAnalogClock` (see sync.md).
+- **Video/UI/OAM**: `DrawFormat` (printf, 23 callers) + `DrawNumber`, `SetOAMByte`,
+  the marker-sprite `SetSprite*`/`ClearMarkerSprites`, `RedrawScreen`,
+  `ResetScreenSprites`, `CopyToBgTilemap`, `ClearBgTilemap`, `SwitchToDoubleSpeed`.
+- **Misc**: `TickWorkTimeClock`, `ChecksumRomBank`, `TestSram`, `ReadChainByte`.
+- New RAM vars from the same work: `wChanPitchModActive` (`$C3F9`), `wOamDirty`
+  (`$CBD1`, which also corrected a wrong "NOI envelope" comment).
+
+The **remaining ~22** bank-0 `L<hex>` are deliberately left until they can be named
+without guessing, triaged by what's still needed:
+
+- *Emulator/runtime trace*: the `$CBE1-$CBFC` LCD-off subsystem (`L32E3`, `L3370`,
+  `L332B`, `L33D5`, `L33EC` — a 6-entry address table driven by bank-2 chain
+  iteration) and the `$DA00`→VRAM-tile graphics rasterizer (`$3261`/`$3298`).
+- *Cross-bank / multi-function tracing*: the editor input-combo handlers (`L271A`,
+  `L2A71`, `L2B8D`, `L2BC4`), and the `L0DBC`/`L0DDB`/`L20DB`/`L217C` action wrappers.
+- *Font/var context*: `L1478` (value→tile remap), `L2C3C` (`$C52A`-mode label),
+  `L17E1` (`$C423-6` flag test), `L3176` (positions sprites 0-2 when WAV active).
+
 ## Path to 100%
 
 1. **Code/data split (cleaner carves).** The unreached remainder in a bank is
