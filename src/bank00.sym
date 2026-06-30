@@ -39,6 +39,13 @@
 349B display_off       ; GBDK display_off: wait VBL (rLY), clear rLCDC bit7 (byte-exact match)
 34B2 OAMDMARoutine      ; OAM DMA (source $DD00); copied to HRAM and called there
 3154 SetOAMByte         ; write byte (sp+6) to wOamBuffer+offset(sp+4) only if changed; set wOamDirty (-> OAM DMA next frame)
+; marker/cursor sprite field setters (sprite group at OAM byte $0C+; offset = index*4 + field), used by every editor screen's draw code
+31E3 SetSpriteY         ; OAM Y of sprite (arg) = row*8 + $20, clamped to $FC when off-screen
+31B5 SetSpriteX         ; OAM X of sprite (arg) = col*8 + $08
+319E ClearSpriteY       ; OAM Y of sprite (arg) = 0 (move off-screen / hide)
+321C SetSpriteTile3     ; OAM tile of sprite (arg) = $03
+3233 SetSpriteTile4     ; OAM tile of sprite (arg) = $04
+324A SetSpriteAttr      ; OAM attr of sprite (arg) = value (arg2)
 1500 ReadSongBytes      ; bulk copy from SRAM (bank, src) into a RAM dest buffer (e.g. a chain row)
 3A33 ResetWorkState     ; reset all runtime state to defaults: per-channel sequencer ptrs (read ptr=$0140, rows=$FF, instr/table/groove=0) + editor cursors + wCurrentScreen=SONG; e.g. when a song load comes back empty
 14D1 ReadSongByte       ; (bank,addr): di, select SRAM bank + enable RAM, read [de], reti
