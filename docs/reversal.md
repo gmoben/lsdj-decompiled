@@ -296,14 +296,28 @@ throughout. Clusters named:
   `wIdleFrames`, `$C68B-C`), and the word-editor cursor (`wWordEditRow`/`Col`,
   `$C937-8`).
 
-**Function labeling is now 100%.** RAM-var naming continues as the next frontier:
-the remaining ~1.8 k raw var references are (a) per-screen editor state in the
-`$C9xx`/`$C4xx` ranges (cursors, scroll, counters — nameable, but each needs a
-per-screen RE pass and several resist a confident single-purpose name, e.g. the
-PROJECT sync-field counter `$C9A4`), and (b) address-passed work buffers
-(`$C431`/`$C457`/`$C405`/`$C555`, …) and SDCC transient scratch that are reused
-across routines and so are not cleanly globally nameable. These are named only
-where ALL readers/writers pin down one purpose.
+**Function labeling is 100%; RAM-var naming was then pushed to its verified limit.**
+A var-naming pass added ~12 more (all byte-identical): `wDrawStep` (`$C405`,
+multi-frame redraw step — *not* a buffer), `wTransposeDirty`, `wChanRetrigTimer`/
+`Rate`, `wPlayMarkerTimer`, `wAnalogOutTimer`, `wSyncInPulses`/`wSyncInGate`,
+`wSyncRxPos`, `wChanVibAccum`, `wFxNoiseNote`, `wChanNoteStep`, `wWordEditRow`/`Col`,
+`wIdleHalt`/`wIdleFrames`, the tile-loader state, and the FX-slot/table step
+countdowns (`wFxSlotCmdTimer`/`wFxSlotEnvTimer`, computed-addressed so doc-only).
+
+The remaining unnamed var references are then **two provably-unnameable classes**,
+confirmed by a dedicated bank-02 sound-engine pass + live emulator tracing:
+
+- *Unexercised-feature state* — a memory diff across song playback showed **every
+  sound var that changes is already named** (`wChanReadPtr`/`CmdValPtr`/`InstrPtr`,
+  `wChanFreq`, `wChanOutNote`, …). The unnamed bank-02 vars (`$C347`/`$C34B`,
+  `$C310`, `$C0D5`, `$C15C`, …) stay 0/static because the demo song doesn't use
+  their features (FX commands, vibrato, tables); naming them needs constructed
+  feature-rich song states, and several are computed-addressed (doc-only) anyway.
+- *Multi-purpose scratch & address-passed buffers* — `$C431`/`$C457`/`$C555`/`$C938`-
+  class work buffers reused across routines, with no single global purpose.
+
+These are named only where ALL readers/writers (or live observation) pin down one
+purpose; the rest are left raw rather than guessed.
 
 ## Path to 100%
 
