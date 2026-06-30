@@ -170,6 +170,7 @@ DEF wFxCommand       EQU $C8C4  ; current FX command index (0-$12) being process
 DEF wChanFreq        EQU $C0F4  ; [4] 16-bit GB period per channel; = wNotePeriods[note+xpose] -> rAUDxLOW/HIGH
 DEF wSongTranspose   EQU $C444  ; global/project TRANSPOSE (working copy of the SRAM song property); SndTransposeNote
                                 ; adds it to every note; displayed/edited on the PROJECT screen (ProjDrawHex)
+DEF wTransposeDirty  EQU $C445  ; transpose edit/commit flag: set by the PROJECT screen after refreshing wSongTransposeDisp; when set, ProcessInput commits wSongTransposeDisp -> wSongTranspose and saves it to SRAM ($BFB5), then clears it
 DEF wSongTransposeDisp EQU $C446 ; displayed form of the song transpose (ProjDrawHex / ProcessInput)
 DEF wNoteTranspose   EQU $C4D3  ; PU2 instrument transpose (from instrument PU2_TRANSPOSE param), added before the period lookup
 DEF wNotePeriods     EQU $CF28  ; runtime 16-bit GB note-period table (computed for tuning); NoteToPeriod indexes it
