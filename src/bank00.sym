@@ -33,6 +33,9 @@
 0662 TimerHandlerReturn ; timer IRQ epilogue: restore regs, wait rSTAT, reti
 0ED6 ProcessInput       ; MainLoop input handler: drain the button queue (GetNextButtons) and dispatch to the current screen
 1CEA GetNextButtons     ; dequeue next button state from the input ring ($CE00[wButtonReadIdx++]) -> e; stops at wButtonWriteIdx
+2B8D HandleButtonEvent  ; process one button event: latch A/B/Select held flags (wAHeld/wBHeld/wSelectHeld) from wButtons, then HandleInputCombos + DispatchScreenInput, OR their results
+271A HandleInputCombos  ; global/B-held button-combo handling before per-screen dispatch (skipped on screens 7/8/9/$0D/$0E) -> e
+2A71 DispatchScreenInput ; jump table by wCurrentScreen (0-$0E, table $2A86) -> the current screen's input handler in its bank
 183A VBlankHandler      ; reloads rTIMA from tempo ($C578), can raise timer IRQ
 34BD SerialHandler      ; Game Boy sync RX: rSB -> $CBDD, mode in $CBDE
 18BF ReadJoypad         ; standard d-pad/button matrix read
