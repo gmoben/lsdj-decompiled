@@ -130,6 +130,10 @@
 343F Abs16              ; 16-bit absolute value: returns |arg(sp+4)| in de
 33B9 GetTilemapAddr    ; (col,row 16-bit arg) -> BG map address $9800 + row*$20 + col
 3831 strcpy            ; GBDK/SDCC strcpy(dest=sp+2, src=sp+4): copy until NUL (byte-exact match)
+391B joypad            ; GBDK joypad(): read P1 d-pad (P14) + buttons (P15) matrix -> combined active-high byte in e
+3983 delay             ; GBDK delay(d): 16-bit count from stack -> DelayTicks
+3949 DelayTicks        ; busy-wait de units (DelayLoop) plus a fixed tail loop (delay impl)
+3966 DelayLoop         ; calibrated inner busy-wait: decrement de to 0 (jr+0 cycle-padding chain)
 3887 MemSetLoop        ; inner loop: fill de bytes at hl with value b
 38D8 set_bkg_palette    ; GBDK: write CGB BG palettes (first,nb,rgb_data) via rBGPI/rBGPD
 388F MemSet            ; memset(dest=sp+4, value=sp+6, count=sp+7) -> MemSetLoop
