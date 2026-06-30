@@ -4,6 +4,7 @@
 ; docs/functionality.md. Update here, then regenerate src/bank00.asm.
 
 0150 Start              ; init: di, stack=$E000, clear WRAM/HRAM, save boot regs
+0DDB InitAndLoadSong    ; second-stage boot (runs once before MainLoop): SwitchToDoubleSpeed, ClearBgTilemap, init subsystems, load the working song (bank1 $4CF1/$4848) or ResetWorkState if empty, set palettes + load song properties
 1377 MainLoop           ; poll ready flags, then process a frame (-> L0ED6)
 1CFF LoadSyncSetting    ; read song sync property ($BFBD) -> $CB66/$CB67
 254F ScreenDrawDispatch ; jp table $2563 indexed by wCurrentScreen ($C401): per-screen draw
