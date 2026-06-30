@@ -300,6 +300,7 @@ DEF wChanEnvStage3   EQU $CBBE  ; env stage 3 (from instrument byte $A)
 DEF wChanLenDuty     EQU $C2DC  ; [4] length/duty value -> rAUDxLEN
 DEF wChanFreqHi      EQU $C2E0  ; [4] freq-high + trigger/length-enable bits -> rAUDxHIGH
 DEF wPU1Sweep        EQU $C2E4  ; PU1 sweep value -> rAUD1SWEEP
+DEF wFxNoiseNote     EQU $C2E7  ; noise channel's note (note-1) captured during FX-command setup (ch3); used as the base in SndClampNoteRange note math and the noise FX commands (mirrors $C4FD)
 
 ; --- Link cable sync (see docs/sync.md) -------------------------------------
 DEF wFrameSkip       EQU $CB6F  ; SndRunFrame: frames to skip before the next sound tick (tempo/groove)
