@@ -53,6 +53,7 @@
 321C SetSpriteTile3     ; OAM tile of sprite (arg) = $03
 3233 SetSpriteTile4     ; OAM tile of sprite (arg) = $04
 324A SetSpriteAttr      ; OAM attr of sprite (arg) = value (arg2)
+3176 PositionWavSprites ; set OAM Y=$68 for sprites 0,1,2 -- the WAV channel's on-screen wave display (right edge, tiles $00-$02); only when the WAV channel is active (ResetScreenSprites)
 30DD ClearSprites012    ; zero OAM Y of sprites 0,1,2 (wOamBuffer +0/+4/+8)
 30EC ClearMarkerSprites ; zero OAM Y of the marker sprite group (sprites 3+, wOamBuffer $0C+) before a redraw
 1500 ReadSongBytes      ; bulk copy from SRAM (bank, src) into a RAM dest buffer (e.g. a chain row)
