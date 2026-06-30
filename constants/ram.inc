@@ -11,6 +11,7 @@ DEF RAM_INC EQU 1
 ; --- Screen / UI state ------------------------------------------------------
 DEF wCurrentScreen   EQU $C401  ; 0-14; indexes the screen draw/update dispatch
 DEF wIsCGB           EQU $C402  ; set at boot when running on a Game Boy Color
+DEF wDrawStep        EQU $C405  ; multi-frame screen-redraw step: each screen's per-frame draw reads it, draws that step's part (cp 0/1/...), then increments; reset to 0 restarts a full redraw. Shared by all editor screens.
 DEF wCursorMode      EQU $C413  ; editor cursor mode (read across screens; cp $04 commonly). Cross-checked
 DEF wClipboardType   EQU $C411  ; SCREEN_* data-type held in the cut/copy clipboard (0 = empty). Set by
                                 ; CUT (A+B) / COPY on each screen to that screen's id, checked by PASTE
