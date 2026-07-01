@@ -24,6 +24,7 @@ live check -- keep this annotation honest as each is confirmed.
 """
 from __future__ import annotations
 
+import re
 import subprocess
 import sys
 import time
@@ -64,6 +65,38 @@ VARS = {
     "instrument": "c576", "groove": "c417",
 }
 
+# Working song = 32 KiB in SRAM banks 0-3 at $A000 (docs/data_model.md). Each
+# entry: (byte offset in the 32 KiB song, row stride). offset -> SRAM address:
+#   bank = offset >> 13 ; cpu = $A000 + (offset & $1FFF).
+SONG = {
+    "phrase_notes":       (0x0000, 16),   # [255][16]
+    "grooves":            (0x1090, 16),   # [32][16]
+    "sequence":           (0x1290, 4),    # [256][4]  chain# per (row, channel)
+    "table_env":          (0x1690, 16),   # [32][16]
+    "chain_phrases":      (0x2080, 16),   # [128][16]
+    "chain_transposes":   (0x2880, 16),   # [128][16]
+    "instruments":        (0x3080, 16),   # [64][16]
+    "table_transpose":    (0x3480, 16),   # [32][16]
+    "table_cmd1":         (0x3680, 16),   # [32][16]
+    "table_cmd2":         (0x3A80, 16),   # [32][16]
+    "synth_params":       (0x3EB2, 16),   # [16][16]
+    "properties":         (0x3FB2, 1),
+    "phrase_fx":          (0x4000, 16),   # [255][16]
+    "phrase_fx_val":      (0x4FF0, 16),   # [255][16]
+    "wave_frames":        (0x6000, 32),   # [16][16][32] nibbles
+    "phrase_instruments": (0x7000, 16),   # [255][16]
+}
+
+_X_RE = re.compile(r"^[0-9a-fA-F]{4}:\s+((?:[0-9a-fA-F]{2}\s+)+)")
+
+
+def _parse_x(text: str) -> list[int]:
+    for line in text.splitlines():
+        m = _X_RE.match(line.strip())
+        if m:
+            return [int(b, 16) for b in m.group(1).split()]
+    return []
+
 
 def _emu(*args: str, timeout: int = 30) -> str:
     return subprocess.run(["python3", EMU, *args], capture_output=True,
@@ -92,6 +125,58 @@ class LSDj:
 
     def shot(self, path: str = ".emu/song.png") -> str:
         return _emu("SHOT", path).strip()
+
+    # ------- working song in SRAM (V) -------------------------------------
+    def _raw(self, cmd: str) -> str:
+        return _emu("RAW", cmd)
+
+    def sram_read(self, offset: int, n: int = 1) -> list[int]:
+        """Read `n` bytes of the 32 KiB working song at `offset` ($0-$7FFF) via
+        MBC5 SRAM banking. Pauses, enables cart RAM (LSDj leaves it disabled
+        between accesses), reads across bank boundaries, resumes if it was
+        running. See docs/data_model.md for the offset map."""
+        was = _emu("STATE").strip() == "running"
+        if was:
+            _emu("BREAK")
+        self._raw("print [$0000] = $0a")            # MBC RAM enable
+        out: list[int] = []
+        o = offset
+        while len(out) < n:
+            self._raw(f"print [$4000] = ${(o >> 13) & 0xf:x}")   # select SRAM bank
+            vals = _parse_x(self._raw(f"x ${0xA000 + (o & 0x1FFF):04x}"))
+            avail = 0x2000 - (o & 0x1FFF)           # bytes left in this bank
+            take = min(16, avail, n - len(out))
+            out.extend(vals[:take])
+            o += take
+        if was:
+            _emu("CONT")
+        return out
+
+    def sram_write(self, offset: int, data: list[int]) -> None:
+        """Write bytes into the working song at `offset` (SRAM). NB: does not
+        touch allocation tables or redraw -- exercise or re-enter the screen to
+        reflect changes; for authentic edits prefer the input-driven helpers."""
+        was = _emu("STATE").strip() == "running"
+        if was:
+            _emu("BREAK")
+        self._raw("print [$0000] = $0a")
+        for i, v in enumerate(data):
+            o = offset + i
+            self._raw(f"print [$4000] = ${(o >> 13) & 0xf:x}")
+            self._raw(f"print [${0xA000 + (o & 0x1FFF):04x}] = ${v & 0xff:02x}")
+        if was:
+            _emu("CONT")
+
+    def row(self, struct: str, index: int) -> list[int]:
+        """Read one indexed record of a song structure, e.g. row('instruments',5)
+        or row('chain_phrases', chain). Returns `stride` bytes."""
+        base, stride = SONG[struct]
+        return self.sram_read(base + index * stride, stride)
+
+    def seq(self, row: int, channel: int) -> int:
+        """sequence[row][channel] -- the chain number ($FF = empty)."""
+        base, stride = SONG["sequence"]
+        return self.sram_read(base + row * stride + channel, 1)[0]
 
     # ------- screen / navigation (V) --------------------------------------
     def at(self) -> str:
