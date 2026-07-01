@@ -7,6 +7,14 @@
 5C17 DrawProjectScreen ; Project screen draw: edits song-global properties at SRAM bank1 $BFB2+ (song offset $3FB2: tempo/transpose/sync/font/colorset/clone; see data_model.md)
 58B1 DrawSyncField   ; Project SYNC field: read $CB66, draw mode string to VRAM $9885
 59B7 SyncModeNames   ; sync-mode display names "OFF"/"LSDJ"/"MIDI"/... (7-byte stride)
+
+; --- Project/File data tables + strings ---
+4C6A AlnumChars      ; "0123456789ABCDEF..." digit/letter table (hex + filename display)
+5117 TxtSaveAs       ; "SAVE AS:"/"NAME:" prompts
+52D8 TxtSaving       ; "SAVING..."/"FAIL!"
+5C03 TxtClockLabels  ; "PLAY %d:"/"WORKED %d:" (total/work-time clock)
+6A5C CloneModeNames2 ; "SLIM"/"DEEP" + "RESET CART..." (reset-cartridge menu)
+6C38 ProjScreenGfx   ; 1152-byte tile/graphics block copied to WRAM $D000 by $6B88
 5D4F CloneModeNames  ; clone-mode display names "DEEP"/"SLIM" (5-byte stride)
 5B7A DrawSyncSubSetting ; draw PS/2 DELAY (KEYBD) or TICKS/STEP (analog) value beside SYNC
 5126 ProjBanked_5126        ; banked-call wrapper (2x)
