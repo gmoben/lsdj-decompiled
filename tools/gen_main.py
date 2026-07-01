@@ -73,17 +73,32 @@ def main() -> None:
         "",
     ]
     rom = (ROOT / ROM_NAME).read_bytes() if (ROOT / ROM_NAME).is_file() else b""
+
+    # Resolve kit labels from ROM content (works on kits a user patched with an
+    # external tool). Disambiguate collisions: if a patched ROM names two kits the
+    # same, append the bank so labels stay unique (else rgbasm sees dup symbols).
+    kit_tokens: dict[int, tuple[str, str]] = {}
+    for bank in range(NUM_BANKS):
+        if rom and bank != 0 and not (SRC / f"bank{bank:02x}.asm").is_file():
+            k = kit_of(rom, bank)
+            if k:
+                kit_tokens[bank] = k
+    dup = {t for t in (tok for tok, _ in kit_tokens.values())
+           if sum(tk == t for tk, _ in kit_tokens.values()) > 1}
+    for b, (t, n) in list(kit_tokens.items()):
+        if t in dup:
+            kit_tokens[b] = (f"{t}_{b:02X}", n)
+
     carved, kits = [], []
     for bank in range(NUM_BANKS):
         asm = SRC / f"bank{bank:02x}.asm"
         offset = bank * BANK_SIZE
-        kit = kit_of(rom, bank) if (rom and not asm.is_file() and bank != 0) else None
         if asm.is_file():
             carved.append(bank)
             lines.append(f'INCLUDE "src/bank{bank:02x}.asm"')
-        elif kit is not None:
+        elif bank in kit_tokens:
             kits.append(bank)
-            lines.extend(kit_section(bank, *kit))
+            lines.extend(kit_section(bank, *kit_tokens[bank]))
         elif bank == 0:
             lines.append('SECTION "ROM Bank $000", ROM0[$0000]')
             lines.append(f'INCBIN "{ROM_NAME}", ${offset:06X}, ${BANK_SIZE:04X}')
