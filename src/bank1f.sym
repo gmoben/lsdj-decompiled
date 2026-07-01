@@ -4,11 +4,11 @@
 
 ; --- data tables + strings (db; instrument-editor + word/phrase helpers) ---
 4236 TxtDashTemplate    ; "/--/--" (value display template)
-491A Lut491A            ; byte LUT (71 32 33 44...)
-4A02 DefaultInstr       ; 16-byte default instrument template
+491A DefaultWaveFrame    ; [16] default wave frame (32-nibble ramp), memcpy'd into wave_frames by $6163
+4A02 DefaultInstrument       ; 16-byte default instrument template
 4ACE TxtOutOfMemory1F     ; "OUT OF MEMORY. CLEAN SONG DATA IN PROJECT SCREEN"
 4C11 TxtOutOfTables     ; "OUT OF TABLES!"
-61FF Table61FF          ; small config table ([$10,$ff] pattern)
+61FF DefaultSynthParams  ; [16] default softsynth params, memcpy'd into synth_params ($3EB2) by $61E1
 637D TxtDeDupe          ; "DE-DUPE..."
 644D TxtDeDupe2         ; "DE-DUPE..." (second instance)
 723F TxtTypeSpeech      ; "TYPE   SPEECH" (instrument-type field)

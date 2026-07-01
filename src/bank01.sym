@@ -17,10 +17,9 @@
 7945 TxtBlank5          ; 5 spaces + NUL (blank/clear string)
 
 ; --- data tables (were decoded as code) ---
-40EA Lut40EA            ; byte[16] + 16-bit rising table (to $07fc); read by $47E5
-42A0 Lut42A0            ; rising byte curve 2..107 (log-ish) after a $07fb header
-57BF Zeros57BF          ; zero region (ld de source at $5619)
-7498 Zeros7498          ; zero region (referenced at $6D98)
+40EA DefaultWaveFrameB1  ; [16] default wave frame (32-nibble ramp), memcpy'd into wave_frames by $47E5
+57BF TxtBlankString    ; 17 zero bytes = a blank display string (string-dispatch at $5619)
+7498 TxtBlankString2   ; blank (zero) display string (ref $6D98)
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 4000 UiTestSramLo               ; cartridge RAM test, SRAM banks 0-3: write/read-back pattern via $33f9 (part of CartridgeTest)
