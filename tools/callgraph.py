@@ -27,6 +27,7 @@ SYM = ROOT / "build" / "lsdj9_4_0.sym"
 
 CF_RE = re.compile(r"\b(?:call|jp|jr)(?: n?[zc],)? \$([0-9a-f]{4})\b")
 ADDR_RE = re.compile(r";\s*\$([0-9a-f]{4})\b")
+CODE_RE = re.compile(r";\s*\$([0-9a-f]{4}):")   # instruction (has ": bytes"); db has no colon
 
 
 def load_symbols() -> set[tuple[int, int]]:
@@ -63,6 +64,9 @@ def collect() -> dict[tuple[int, int], int]:
             if not m:
                 continue
             a = int(m.group(1), 16)
+            if a >= 0x8000:
+                continue                     # not a ROM address (RAM/SRAM): the
+                                             # caller line is mis-carved data
             if a < 0x4000:
                 tb = 0                       # home bank -- unambiguous
             elif bank != 0:
@@ -72,7 +76,16 @@ def collect() -> dict[tuple[int, int], int]:
                                              # unknown (ambiguous) -- skip
             targets[(tb, a)] += 1
     syms = load_symbols()
-    return {k: v for k, v in targets.items() if k not in syms}
+    # A real function target is a *code* address (instruction) in its bank; a
+    # target that lands in a `db` region is a jump-table-into-data phantom.
+    code: dict[int, set[int]] = {}
+    for p in sorted(SRC.glob("bank*.asm")):
+        bank = int(p.stem[4:6], 16)
+        code[bank] = {int(m.group(1), 16)
+                      for line in p.read_text().splitlines()
+                      if (m := CODE_RE.search(line))}
+    return {(b, a): v for (b, a), v in targets.items()
+            if (b, a) not in syms and a in code.get(b, set())}
 
 
 def main() -> None:
