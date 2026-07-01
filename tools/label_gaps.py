@@ -168,8 +168,8 @@ def analyze_bank(bank: int, symbols: SymMap, index: dict[int, BankInfo],
         if op in MEM_OPS:                    # real memory access: always a data ref
             if (tb, operand) not in symbols:
                 g.data.setdefault((tb, operand), []).append(site)
-        else:                                # immediate load: only if a region start
-            add_ptr(tb, operand, site)
+        elif operand >= 0x0010:              # immediate load -> pointer if a region
+            add_ptr(tb, operand, site)       # start; skip <$0010 (loop counts, flags)
     return g
 
 
@@ -179,6 +179,8 @@ def main() -> None:
     ap.add_argument("--bank", type=lambda s: int(s, 0), help="detail one bank")
     ap.add_argument("--kind", choices=["label", "data", "data_ambig"],
                     help="in --bank detail, list only this kind")
+    ap.add_argument("--dump", action="store_true",
+                    help="in --bank data detail, show each target's bytes (hex+ascii)")
     args = ap.parse_args()
 
     data = ROM.read_bytes()
@@ -215,14 +217,26 @@ def main() -> None:
 
     r = results[args.bank]
 
+    def target_bytes(tb: int, taddr: int, n: int = 20) -> str:
+        """hex + ascii of a resolved target, to classify it at a glance."""
+        off = tb * 0x4000 + (taddr - (0 if taddr < 0x4000 else 0x4000))
+        raw = data[off:off + n]
+        hexs = " ".join(f"{x:02x}" for x in raw[:8])
+        txt = "".join(chr(x) if 32 <= x <= 0x7E else "." for x in raw)
+        return f"{hexs}  |{txt}|"
+
     def show(kind: str, items: dict[Any, Sites], is_data: bool) -> None:
         if (args.kind and kind != args.kind) or not items:
             return
         print(f"\n--- {kind} ({len(items)}) ---")
         for key, sites in sorted(items.items()):
             refs = " ".join(f"{ra:04X}" for ra, _t in sites[:4])
-            loc = f"{key[0]:02X}:{key[1]:04X}" if is_data else f"{key:04X}"
-            print(f"  {loc}  <- {refs}")
+            if is_data:
+                tb, taddr = key
+                extra = f"  {target_bytes(tb, taddr)}" if args.dump else ""
+                print(f"  {tb:02X}:{taddr:04X}  <- {refs}{extra}")
+            else:
+                print(f"  {key:04X}  <- {refs}")
 
     show("label", r.label, False)
     show("data", r.data, True)
