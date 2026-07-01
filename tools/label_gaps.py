@@ -165,9 +165,11 @@ def analyze_bank(bank: int, symbols: SymMap, index: dict[int, BankInfo],
         if tb is None:                       # $4000-$7FFF from bank 0: ambiguous bank
             g.data_ambig.setdefault(operand, []).append(site)
             continue
-        if op in MEM_OPS:                    # real memory access: always a data ref
+        if op == 0xFA:                       # ld a,[nn]: a real ROM data read
             if (tb, operand) not in symbols:
                 g.data.setdefault((tb, operand), []).append(site)
+        elif op in (0x08, 0xEA):             # ld [nn],sp/a WRITES to ROM = MBC
+            pass                             # bank/RAM control (or mis-carved), not data
         elif operand >= 0x0100:              # immediate load -> pointer if a region
             add_ptr(tb, operand, site)       # start; skip low page ($00xx = vectors,
                                              # labeled BitMasks, fill -> constants)
