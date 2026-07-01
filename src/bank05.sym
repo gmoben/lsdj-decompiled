@@ -1,3 +1,8 @@
+; --- Table-screen clipboard strings (db) ---
+61B5 TxtCancelSelect05  ; "CANCEL SELECT"
+6764 TxtPaste05         ; "PASTE"
+72A3 TxtSignalWave      ; "SIGNAL WAVE" (W command / FX usage help)
+
 ; Bank $05 -- Table screen. tables[wTable][16], 4 columns in SRAM:
 ; envelope $B690 (bank0), transpose $B480, cmd1 $B680, cmd2 $BA80 (bank1).
 4360 GetTableEnvelope  ; editor: read table_envelopes[wTable][step] (song $1690 / SRAM bank0 $B690)
