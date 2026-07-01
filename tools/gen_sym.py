@@ -34,6 +34,10 @@ ROOT = Path(__file__).resolve().parent.parent
 DEF_RE = re.compile(r"^DEF\s+(\w+)\s+EQU\s+\$([0-9A-Fa-f]{4})\b")
 # Lines already in the link .sym: "BB:AAAA Name".
 SYM_RE = re.compile(r"^([0-9A-Fa-f]{2,3}):([0-9A-Fa-f]{4})\b")
+# Marker beginning our appended RAM section. Everything from this line on is
+# dropped when re-reading, so the tool is idempotent even when OUT == input
+# (i.e. enriching rgblink's build/lsdj9_4_0.sym in place).
+RAM_SECTION_MARKER = "; --- RAM/HRAM variables"
 
 
 def ram_bank(addr: int) -> int:
@@ -73,7 +77,12 @@ def main() -> int:
     if not ram_inc.is_file():
         sys.exit(f"error: ram.inc not found: {ram_inc}")
 
-    link_lines = build_sym.read_text().splitlines()
+    # Drop any RAM section from a previous run so enriching in place is idempotent.
+    link_lines: list[str] = []
+    for line in build_sym.read_text().splitlines():
+        if line.startswith(RAM_SECTION_MARKER):
+            break
+        link_lines.append(line)
     # Addresses already present in the link .sym, to avoid duplicate entries.
     present: set[tuple[str, str]] = set()
     n_routines = 0
@@ -93,7 +102,7 @@ def main() -> int:
 
     out_lines: list[str] = []
     out_lines.extend(link_lines)
-    out_lines.append("; --- RAM/HRAM variables (constants/ram.inc) ---")
+    out_lines.append(f"{RAM_SECTION_MARKER} (constants/ram.inc) ---")
     out_lines.extend(ram_lines)
 
     out = Path(args.out)

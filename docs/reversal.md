@@ -329,19 +329,19 @@ our 230 `constants/ram.inc` WRAM/HRAM variables was missing and the debugger
 showed raw addresses for memory accesses. (Confirmed: the link `.sym` has 0
 symbols in the `$c000`–`$dfff`/`$ff80`+ range.)
 
-`tools/gen_sym.py` closes the gap: it merges the link `.sym` (routines + `.L_xxxx`
-locals) with the `ram.inc` variables into one comprehensive file, tagging each RAM
-symbol with the correct bank (`$c000`–`$cfff`/HRAM → `00`, `$d000`–`$dfff` WRAMX →
-`01`). `make sym` writes the canonical merged file as a build output
-(`build/lsdj9_4_0.full.sym`, wiped by `make clean`) and then **deploys a copy
-beside each ROM you open** — repo-root `lsdj9_4_0.sym` and `.emu/lsdj_song.sym`.
-The copies are unavoidable: Emulicious/BGB/SameBoy auto-load a `.sym` only from
-*beside the ROM, matching its basename*, and the ROMs you open aren't in `build/`
-(they're your supplied original at the repo root and the daemon's `.emu/` copy).
-The result (7151 routines + 230 variables = 7381 symbols) means the debugger now
-names both code *and* state, which is exactly what makes the iterative
-diff-WRAM-while-driving-the-ROM loop above fast. The generator only reads build
-output + source, so the ROM stays byte-for-byte identical.
+`tools/gen_sym.py` closes the gap: it appends the `ram.inc` variables to the link
+`.sym` (routines + `.L_xxxx` locals), tagging each RAM symbol with the correct
+bank (`$c000`–`$cfff`/HRAM → `00`, `$d000`–`$dfff` WRAMX → `01`). `make sym`
+enriches `build/lsdj9_4_0.sym` **in place** (idempotently — a prior RAM section is
+stripped before re-appending), so there is a single comprehensive symbol file that
+is already correct beside the built ROM, and then **deploys a copy beside each
+other ROM you open** — repo-root `lsdj9_4_0.sym` and `.emu/lsdj_song.sym`. Those
+copies are unavoidable: Emulicious/BGB/SameBoy auto-load a `.sym` only from *beside
+the ROM, matching its basename*, and the root ROM (your supplied original) and the
+daemon's `.emu/` copy aren't in `build/`. The result (7151 routines + 230 variables
+= 7381 symbols) means the debugger now names both code *and* state, which is
+exactly what makes the iterative diff-WRAM-while-driving-the-ROM loop above fast.
+The generator only touches the `.sym`, so the ROM stays byte-for-byte identical.
 
 ## Path to 100%
 

@@ -53,19 +53,20 @@ $(TARGET): $(OBJ)
 
 # --- Symbol file for emulator-assisted debugging ---------------------------
 # rgblink's $(SYM) lists every named routine (BGB / SameBoy / Emulicious format)
-# but NOT our RAM variables (EQU constants are not exported). `make sym` merges
-# the routines with constants/ram.inc into the canonical FULLSYM (a build output,
-# wiped by `make clean`), then deploys a copy beside each ROM you actually open.
-# The copies are required: the debugger auto-loads a .sym only from beside the
-# ROM, matching its basename -- and the ROMs you open (root + .emu) aren't in build/.
-FULLSYM := $(BUILD)/lsdj9_4_0.full.sym
-ROMSYM  := $(BASEROM:.gb=.sym)
+# but NOT our RAM variables (EQU constants are not exported). `make sym` enriches
+# $(SYM) in place with constants/ram.inc (idempotent), so build/lsdj9_4_0.sym is
+# the single comprehensive symbol file -- correct next to the built ROM -- and
+# then deploys a copy beside each other ROM you open. The copies are required:
+# the debugger auto-loads a .sym only from beside the ROM, matching its basename,
+# and the root + .emu ROMs aren't in build/. (A later relink resets $(SYM) to
+# routines-only; re-run `make sym`.)
+ROMSYM := $(BASEROM:.gb=.sym)
 sym: $(TARGET)
-	tools/gen_sym.py $(SYM) constants/ram.inc -o $(FULLSYM)
-	cp $(FULLSYM) $(ROMSYM)
-	@if [ -e .emu/lsdj_song.gb ]; then cp $(FULLSYM) .emu/lsdj_song.sym; \
+	tools/gen_sym.py $(SYM) constants/ram.inc -o $(SYM)
+	cp $(SYM) $(ROMSYM)
+	@if [ -e .emu/lsdj_song.gb ]; then cp $(SYM) .emu/lsdj_song.sym; \
 	  echo "    deployed beside emulator ROM -> .emu/lsdj_song.sym"; fi
-	@printf '==> %s (canonical) -> %s\n' "$(FULLSYM)" "$(ROMSYM)"
+	@printf '==> %s (routines + RAM vars) -> %s\n' "$(SYM)" "$(ROMSYM)"
 	@echo "    Auto-loaded by Emulicious/BGB/SameBoy from beside the ROM."
 
 # --- Verification ----------------------------------------------------------
@@ -86,11 +87,12 @@ baseline: | $(BASEROM)
 	tools/gen_baseline.py $(BASEROM) -o src/main.asm
 
 # --- Housekeeping ----------------------------------------------------------
+# `clean` also removes the deployed root symbol copy (.emu/ is gitignored runtime).
 clean:
-	rm -rf $(BUILD)
+	rm -rf $(BUILD) $(ROMSYM)
 
 tidy:
-	rm -f $(OBJ) $(BUILD)/rgbdscheck.o $(SYM) $(MAP)
+	rm -f $(OBJ) $(BUILD)/rgbdscheck.o $(SYM) $(MAP) $(ROMSYM)
 
 # Helpful message if the user has not supplied the ROM yet.
 $(BASEROM):
