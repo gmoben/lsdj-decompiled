@@ -56,6 +56,7 @@
 665F FxCmd_O            ; O: output (panning)
 6646 FxCmd_P            ; P: pitch bend / shift
 45D8 ApplyPitchBend     ; FxCmd_P tonal-channel impl: set up pitch bend from hFxValue (per-chan accum $C248)
+43D8 PitchBendTable     ; [256] 16-bit exponential pitch curve; ApplyPitchBend reads [$43D8 + 2*hFxValue]
 6669 FxCmd_T            ; T: tempo
 649D FxCmd_R            ; R: retrig
 65F3 FxCmd_K            ; K: kill note
