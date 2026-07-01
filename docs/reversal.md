@@ -332,11 +332,14 @@ symbols in the `$c000`–`$dfff`/`$ff80`+ range.)
 `tools/gen_sym.py` closes the gap: it merges the link `.sym` (routines + `.L_xxxx`
 locals) with the `ram.inc` variables into one comprehensive file, tagging each RAM
 symbol with the correct bank (`$c000`–`$cfff`/HRAM → `00`, `$d000`–`$dfff` WRAMX →
-`01`). `make sym` regenerates it and drops it next to the ROM(s) — repo-root
-`lsdj9_4_0.sym` beside your supplied ROM, and `.emu/lsdj_song.sym` beside the
-running emulator copy — where Emulicious/BGB/SameBoy auto-load it by basename. The
-result (7151 routines + 230 variables = 7381 symbols) means the debugger now names
-both code *and* state, which is exactly what makes the iterative
+`01`). `make sym` writes the canonical merged file as a build output
+(`build/lsdj9_4_0.full.sym`, wiped by `make clean`) and then **deploys a copy
+beside each ROM you open** — repo-root `lsdj9_4_0.sym` and `.emu/lsdj_song.sym`.
+The copies are unavoidable: Emulicious/BGB/SameBoy auto-load a `.sym` only from
+*beside the ROM, matching its basename*, and the ROMs you open aren't in `build/`
+(they're your supplied original at the repo root and the daemon's `.emu/` copy).
+The result (7151 routines + 230 variables = 7381 symbols) means the debugger now
+names both code *and* state, which is exactly what makes the iterative
 diff-WRAM-while-driving-the-ROM loop above fast. The generator only reads build
 output + source, so the ROM stays byte-for-byte identical.
 

@@ -54,14 +54,19 @@ $(TARGET): $(OBJ)
 # --- Symbol file for emulator-assisted debugging ---------------------------
 # rgblink's $(SYM) lists every named routine (BGB / SameBoy / Emulicious format)
 # but NOT our RAM variables (EQU constants are not exported). `make sym` merges
-# the routines with constants/ram.inc into a comprehensive FULLSYM and drops it
-# next to the ROM(s) so the debugger shows named labels for both code and WRAM.
-FULLSYM := lsdj9_4_0.sym
+# the routines with constants/ram.inc into the canonical FULLSYM (a build output,
+# wiped by `make clean`), then deploys a copy beside each ROM you actually open.
+# The copies are required: the debugger auto-loads a .sym only from beside the
+# ROM, matching its basename -- and the ROMs you open (root + .emu) aren't in build/.
+FULLSYM := $(BUILD)/lsdj9_4_0.full.sym
+ROMSYM  := $(BASEROM:.gb=.sym)
 sym: $(TARGET)
 	tools/gen_sym.py $(SYM) constants/ram.inc -o $(FULLSYM)
+	cp $(FULLSYM) $(ROMSYM)
 	@if [ -e .emu/lsdj_song.gb ]; then cp $(FULLSYM) .emu/lsdj_song.sym; \
-	  echo "    copied next to running emulator ROM -> .emu/lsdj_song.sym"; fi
-	@echo "    Auto-loaded by Emulicious/BGB/SameBoy from beside the ROM ($(FULLSYM))."
+	  echo "    deployed beside emulator ROM -> .emu/lsdj_song.sym"; fi
+	@printf '==> %s (canonical) -> %s\n' "$(FULLSYM)" "$(ROMSYM)"
+	@echo "    Auto-loaded by Emulicious/BGB/SameBoy from beside the ROM."
 
 # --- Verification ----------------------------------------------------------
 # `compare` is the core invariant: the build must equal the original ROM,
