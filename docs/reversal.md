@@ -408,15 +408,32 @@ address-name (an address-name is worse than an honest gap). Cross-bank duplicate
 need unique names (one link namespace); `make compare`'s assembler catches
 collisions.
 
-**Carved-bank tables — progress.** Worked bank by bank with `label_gaps.py`:
-bank `$00` `BitMasks` (`$0010`, single-bit masks) + `FxMnemonics` (`$0824`,
-`"-ABCDEFGHKLMOPRSTVWZ"`, the command-letter table); bank `$02` `PitchBendTable`,
-`VibDepthTable`/`VibRateTableA`/`VibRateTableB` (`FxCmd_V` reads them by the V
-value's low/high nibble), and `EvenSpreadTable` (`$7EAC`, a triangular spread-N-
-over-16 table). `_DATA_` total ~133 → ~123 and falling; the `_LABEL_` count still
-over-approximates (it flags `ld hl,CodeAddr` pointers into named functions and, at
-data-table starts whose bytes decode as a valid `ld [nn],sp`, the byte's operand),
-so trust `_DATA_` and read `_LABEL_` as a worklist.
+**Carved-bank tables — progress.** Worked every program bank with `label_gaps.py`
+(refined so its `_DATA_` count is trustworthy: it skips low-page immediates —
+`ld hl,$00xx` constants — and ROM *writes* `ld [nn],a/sp`, which are MBC5
+bank/RAM control, not data). `_DATA_` fell from ~133 to **~14** (the residue is
+mostly the analyzer decoding a *labeled* data table's bytes as code, plus a few
+deferred tables below). Named intuitively (never `Lut<addr>`):
+- sound `$02`: `PitchBendTable`, `VibDepthTable`/`VibRateTableA`/`VibRateTableB`
+  (`FxCmd_V`), `EvenSpreadTable`; home `$00`: `BitMasks`, `FxMnemonics`.
+- defaults copied into SRAM on init: `DefaultWaveFrame` (ramp → `wave_frames`,
+  in banks `$01`/`$1C`/`$1F`), `DefaultSynthParams` (→ `synth_params $3EB2`),
+  `DefaultInstrument`.
+- display tables: `NoteNames` (chromatic), `PanNames`/`ChannelNames` (song),
+  `SynthFilterNames`/`SynthWaveTypeNames`/`SineTable`/`SynthDispatchJumps` (synth),
+  `WaveSourceNames`/`InstrOptionNames`/`InstrParamJumps` (instrument),
+  `AlnumChars`/`TxtClockLabels`/`CloneModeNames`/`SyncModeNames` (project), and
+  ~50 UI message strings (`TxtCopiedInstr`, `TxtOutOfMemory`, …; cross-bank
+  duplicates get a bank/`2` suffix since the link is one namespace).
+- **Deferred** (honest gap > address-name): bank `$04` `$50D8`/`$54E3` (phrase
+  flag/config tables), `$07` `$662A` (a table added to sync var `$CB91`) and
+  `$676A` (a mis-carved phantom), `$1E` `$42C8`/`$7550` — each needs the using
+  algorithm reversed before it can be named truthfully.
+
+The `_LABEL_` count is a loose worklist, not a metric: it over-counts `ld
+hl,CodeAddr` pointers into named functions (Emulicious shows `Func+N`) and labeled
+data tables whose bytes decode as instructions. Refining it is the next tooling
+task.
 
 **Dynamic driver — `tools/emu/song.py`.** A verified editing layer that also reads
 and writes the working song directly in SRAM (`sram_read`/`sram_write` +
