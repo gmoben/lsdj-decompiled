@@ -138,11 +138,14 @@ class LSDj:
         was = _emu("STATE").strip() == "running"
         if was:
             _emu("BREAK")
-        self._raw("print [$0000] = $0a")            # MBC RAM enable
         out: list[int] = []
         o = offset
         while len(out) < n:
-            self._raw(f"print [$4000] = ${(o >> 13) & 0xf:x}")   # select SRAM bank
+            # Re-enable RAM + select the bank right before each read: LSDj's own
+            # code toggles RAM-enable/bank constantly, and a single up-front enable
+            # can be undone, giving open-bus ($8d) reads for later banks.
+            self._raw("print [$0000] = $0a")                    # MBC RAM enable
+            self._raw(f"print [$4000] = ${(o >> 13) & 0xf:x}")  # select SRAM bank
             vals = _parse_x(self._raw(f"x ${0xA000 + (o & 0x1FFF):04x}"))
             avail = 0x2000 - (o & 0x1FFF)           # bytes left in this bank
             take = min(16, avail, n - len(out))
@@ -182,8 +185,9 @@ class LSDj:
     # A phrase-note byte's *meaning/rendering depends on the row's instrument
     # type* (phrase_instruments -> instruments[n] byte0 & 3):
     #   PULSE(0)/WAVE(1): a tonal pitch, 1 = C-2, each semitone +1 (verified).
-    #   KIT(2):   selects a kit sample -- the Phrase screen shows the SAMPLE NAME
-    #             (e.g. BD-/SD-/CHH from the kit's $4022 table), not a pitch.
+    #   KIT(2):   the Phrase screen shows TWO NOTE columns (confirmed) -- the two
+    #             kit slots -- each a SAMPLE NAME from the kit's $4022 table, not a
+    #             pitch; the note byte packs both selections (bit layout TBD).
     #   NOISE(3): a noise value, rendered on its own scheme (not a chromatic pitch).
     # note_val/note_str below are the TONAL (PULSE/WAVE) codec only.
     NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
