@@ -1,3 +1,10 @@
+; --- Phrase-screen clipboard strings (db) ---
+548B TxtPaste04         ; "PASTE"
+55D1 TxtCannotClone     ; "CANNOT CLONE"
+571F TxtClonedTable04   ; "CLONED TABLE"
+7D49 TxtCancelSelect04  ; "CANCEL SELECT"
+; (data gaps $50D8/$54E3 are flag/config tables -- left unnamed pending RE)
+
 ; Bank $04 -- Phrase screen. phrase[wPhrase][16] in 4 SRAM columns: notes $A000
 ; (bank0), instr $B000 (bank3), fx $A000 (bank2), fx_val $AFF0 (bank2).
 4968 PhraseStepPtr      ; -> $A000 + step (phrase row base pre-selected in SRAM; step<16); phrase-editor cell helper
