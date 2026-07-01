@@ -2,6 +2,20 @@
 ; Chain editor: chains[wChain] = phrase# + transpose per step (16); chain_phrases
 ; at SRAM bank1 $A080, chain_transposes at $A880.
 5677 GetChainTranspose  ; read chain_transposes[chain][step] (song $2880 / SRAM bank1 $A880)
+
+; --- UI strings + note-name table (db "..."; referenced by draw/clipboard code) ---
+76E4 NoteNames          ; chromatic note-name display table "---C 2C#2..." (C-2..B, all octaves)
+42FB TxtWord            ; "WORD " (word/speech screen)
+5383 TxtCancelSelect    ; "CANCEL SELECT"
+5467 TxtCopy            ; "COPY"
+54F4 TxtPaste           ; "PASTE"
+5899 TxtClonedPhrase    ; "CLONED PHRASE"
+6D40 TxtCancelSelect2   ; "CANCEL SELECT" (second instance)
+6F03 TxtCut             ; "CUT "
+7000 TxtPaste2          ; "PASTE" (second instance)
+7455 TxtWait            ; "WAIT" (sync status)
+749E TxtSync            ; "SYNC" (sync status)
+7510 TxtSync2           ; "SYNC" (second instance)
 5908 SetChainPhrase     ; write chain_phrases[chain][step] (song $2080 / SRAM bank1 $A080)
 58FB LoadChainRow        ; load chain_phrases+chain_transposes[wChain][16] -> buffers $C46D/$C47D
 5626 WriteChainTranspose ; write chain_transposes[wChain][step]
