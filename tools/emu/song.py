@@ -210,10 +210,28 @@ class LSDj:
         v = val - 1
         return f"{LSDj.NOTE_NAMES[v % 12]}-{v // 12 + 2}"
 
+    # Phrase/table command byte -> letter, from the mnemonic table at ROM $0824
+    # (index 0 = '-' = no command). Verified against FxCommandTable [19].
+    FX_CMDS = "-ABCDEFGHKLMOPRSTVWZ"
+
+    @classmethod
+    def fx_val(cls, letter: str) -> int:
+        return cls.FX_CMDS.index(letter.upper())
+
+    @classmethod
+    def fx_str(cls, val: int) -> str:
+        return cls.FX_CMDS[val] if 0 <= val < len(cls.FX_CMDS) else "?"
+
     def get_phrase(self, phrase: int) -> dict[str, list[int]]:
         """All four columns of a phrase (notes/instr/fx/fx_val), 16 rows each."""
         return {k: self.row(f"phrase_{k}", phrase)
                 for k in ("notes", "instruments", "fx", "fx_val")}
+
+    def set_fx(self, phrase: int, row: int, cmd: int | str, val: int = 0) -> None:
+        """DSL: write an FX command (letter or byte) + value into a phrase row."""
+        c = cmd if isinstance(cmd, int) else self.fx_val(cmd)
+        self.set_cell("phrase_fx", phrase, row, c)
+        self.set_cell("phrase_fx_val", phrase, row, val)
 
     def set_note(self, phrase: int, row: int, note, instr: int | None = None) -> None:
         """DSL fast path: write a note straight to SRAM. `note` = a ('C',4) tuple,
