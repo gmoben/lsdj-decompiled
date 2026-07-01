@@ -15,12 +15,49 @@ Run with no args after adding/removing a src/bankNN.asm.
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 BANK_SIZE = 0x4000
 ROM_NAME = "lsdj9_4_0.gb"
-SRC = Path(__file__).resolve().parents[1] / "src"
+ROOT = Path(__file__).resolve().parents[1]
+SRC = ROOT / "src"
 NUM_BANKS = 64
+
+# LSDj sample-kit bank layout (each kit is a full 16 KiB ROMX bank at $4000):
+#   $4000 +$22  sample offset table: 16 x 2-byte start pointers (+ $6040 marker)
+#   $4022 +$30  16 x 3-char sample names
+#   $4052 +$0E  6-char kit name (+ padding)
+#   $4060 +$3FA0 4-bit PCM sample data
+# Labelling these (instead of one opaque INCBIN) gives the debugger a symbol for
+# every referenced kit address -- the sample player's reads then show as offsets
+# from KitNAME_Samples instead of _DATA_. Byte-identical (contiguous INCBINs).
+KIT_PARTS = [
+    (0x00, 0x22, "Ptrs", "sample offset table (16 x 2-byte ptrs) + $6040 marker"),
+    (0x22, 0x30, "Names", "16 x 3-char sample names"),
+    (0x52, 0x0E, "KitName", "6-char kit name + pad"),
+    (0x60, 0x3FA0, "Samples", "4-bit PCM sample data"),
+]
+
+
+def kit_of(rom: bytes, bank: int) -> tuple[str, str] | None:
+    """If `bank` is a sample kit (has the $6040 marker), return (label_token,
+    display_name); else None. The token is a label-safe form of the kit name."""
+    base = bank * BANK_SIZE
+    if rom[base] != 0x60 or rom[base + 1] != 0x40:
+        return None
+    name = bytes(rom[base + 0x52:base + 0x58]).decode("ascii", "replace").strip()
+    token = re.sub(r"[^0-9A-Za-z]", "", name) or f"{bank:02X}"
+    return token, name
+
+
+def kit_section(bank: int, token: str, name: str) -> list[str]:
+    off = bank * BANK_SIZE
+    out = [f'SECTION "ROM Bank ${bank:03X} (kit {name})", ROMX[$4000], BANK[${bank:03X}]']
+    for rel, size, part, comment in KIT_PARTS:
+        out.append(f"Kit{token}_{part}:: ; {comment}")
+        out.append(f'INCBIN "{ROM_NAME}", ${off + rel:06X}, ${size:04X}')
+    return out
 
 
 def main() -> None:
@@ -35,13 +72,18 @@ def main() -> None:
         'INCLUDE "constants/ram.inc"',
         "",
     ]
-    carved = []
+    rom = (ROOT / ROM_NAME).read_bytes() if (ROOT / ROM_NAME).is_file() else b""
+    carved, kits = [], []
     for bank in range(NUM_BANKS):
         asm = SRC / f"bank{bank:02x}.asm"
         offset = bank * BANK_SIZE
+        kit = kit_of(rom, bank) if (rom and not asm.is_file() and bank != 0) else None
         if asm.is_file():
             carved.append(bank)
             lines.append(f'INCLUDE "src/bank{bank:02x}.asm"')
+        elif kit is not None:
+            kits.append(bank)
+            lines.extend(kit_section(bank, *kit))
         elif bank == 0:
             lines.append('SECTION "ROM Bank $000", ROM0[$0000]')
             lines.append(f'INCBIN "{ROM_NAME}", ${offset:06X}, ${BANK_SIZE:04X}')
@@ -54,6 +96,9 @@ def main() -> None:
     (SRC / "main.asm").write_text("\n".join(lines) + "\n")
     print(f"wrote src/main.asm; carved banks: "
           + (", ".join(f"${b:02X}" for b in carved) or "(none)"))
+    if kits:
+        print(f"labelled {len(kits)} kit banks: "
+              + ", ".join(f"${b:02X}" for b in kits))
 
 
 if __name__ == "__main__":
