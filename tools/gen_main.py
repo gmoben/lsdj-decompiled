@@ -32,12 +32,18 @@ NUM_BANKS = 64
 # Labelling these (instead of one opaque INCBIN) gives the debugger a symbol for
 # every referenced kit address -- the sample player's reads then show as offsets
 # from KitNAME_Samples instead of _DATA_. Byte-identical (contiguous INCBINs).
-KIT_PARTS = [
+# Header parts (before the sample data at $4060). The sample data is split per
+# named sample from the pointer table -- see kit_sample_chunks.
+KIT_HEADER = [
     (0x00, 0x22, "Ptrs", "sample offset table (16 x 2-byte ptrs) + $6040 marker"),
     (0x22, 0x30, "Names", "16 x 3-char sample names"),
     (0x52, 0x0E, "KitName", "6-char kit name + pad"),
-    (0x60, 0x3FA0, "Samples", "4-bit PCM sample data"),
 ]
+
+
+def _token(raw: bytes, fallback: str) -> str:
+    """ASCII bytes -> a label-safe token (alnum only), or `fallback` if empty."""
+    return re.sub(r"[^0-9A-Za-z]", "", raw.decode("ascii", "replace")) or fallback
 
 
 def kit_of(rom: bytes, bank: int) -> tuple[str, str] | None:
@@ -47,15 +53,45 @@ def kit_of(rom: bytes, bank: int) -> tuple[str, str] | None:
     if rom[base] != 0x60 or rom[base + 1] != 0x40:
         return None
     name = bytes(rom[base + 0x52:base + 0x58]).decode("ascii", "replace").strip()
-    token = re.sub(r"[^0-9A-Za-z]", "", name) or f"{bank:02X}"
-    return token, name
+    return _token(bytes(rom[base + 0x52:base + 0x58]), f"{bank:02X}"), name
 
 
-def kit_section(bank: int, token: str, name: str) -> list[str]:
+def kit_sample_chunks(rom: bytes, bank: int, token: str) -> list[tuple[int, int, str]]:
+    """Split the sample-data region ($4060-$8000) at each *named* sample start
+    from the pointer table, returning (rel_offset, size, label). Sample names come
+    from the ROM ($4022), so a kit renamed by an external tool labels correctly;
+    duplicates within a kit get a numeric suffix. The last sample runs to $8000
+    (trailing pad folds in). Byte-identical: the chunks are contiguous."""
+    base = bank * BANK_SIZE
+    starts: list[tuple[int, str]] = []
+    for i in range(16):
+        p = rom[base + 2 * i] | (rom[base + 2 * i + 1] << 8)
+        nm = _token(bytes(rom[base + 0x22 + 3 * i:base + 0x22 + 3 * i + 3]), "")
+        if 0x4060 <= p < 0x8000 and nm:
+            starts.append((p, nm))
+    starts.sort()
+    chunks: list[tuple[int, int, str]] = []
+    used: dict[str, int] = {}
+    for j, (s, nm) in enumerate(starts):
+        e = starts[j + 1][0] if j + 1 < len(starts) else 0x8000
+        used[nm] = used.get(nm, -1) + 1
+        label = f"Kit{token}_{nm}" + (f"_{used[nm]}" if used[nm] else "")
+        chunks.append((s - 0x4000, e - s, label))
+    if not chunks:                                   # no named samples: one blob
+        return [(0x60, 0x3FA0, f"Kit{token}_Samples")]
+    if chunks[0][0] != 0x60:                         # data before the first sample
+        chunks.insert(0, (0x60, chunks[0][0] - 0x60, f"Kit{token}_Samples"))
+    return chunks
+
+
+def kit_section(rom: bytes, bank: int, token: str, name: str) -> list[str]:
     off = bank * BANK_SIZE
     out = [f'SECTION "ROM Bank ${bank:03X} (kit {name})", ROMX[$4000], BANK[${bank:03X}]']
-    for rel, size, part, comment in KIT_PARTS:
+    for rel, size, part, comment in KIT_HEADER:
         out.append(f"Kit{token}_{part}:: ; {comment}")
+        out.append(f'INCBIN "{ROM_NAME}", ${off + rel:06X}, ${size:04X}')
+    for rel, size, label in kit_sample_chunks(rom, bank, token):
+        out.append(f"{label}::")
         out.append(f'INCBIN "{ROM_NAME}", ${off + rel:06X}, ${size:04X}')
     return out
 
@@ -98,7 +134,7 @@ def main() -> None:
             lines.append(f'INCLUDE "src/bank{bank:02x}.asm"')
         elif bank in kit_tokens:
             kits.append(bank)
-            lines.extend(kit_section(bank, *kit_tokens[bank]))
+            lines.extend(kit_section(rom, bank, *kit_tokens[bank]))
         elif bank == 0:
             lines.append('SECTION "ROM Bank $000", ROM0[$0000]')
             lines.append(f'INCBIN "{ROM_NAME}", ${offset:06X}, ${BANK_SIZE:04X}')

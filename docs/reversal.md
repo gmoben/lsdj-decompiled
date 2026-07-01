@@ -384,11 +384,16 @@ as ~250 lines of garbage code and is now the `PitchBendTable` data block (bank
 the same way.
 
 The **21 sample-kit banks** (`$08`–`$1A`, `$20`–`$21`) are done: `gen_main.py`
-detects a kit by its `$6040` marker and emits a labeled section per kit
-(`Kit<NAME>_Ptrs` `$4000` offset table, `_Names` `$4022`, `_KitName` `$4052`,
-`_Samples` `$4060`) instead of one opaque `INCBIN` — 84 symbols (TR-606…TT-ZZ,
-read live from the INSTR editor's KIT selector and from each bank's `$4052`), so
-the sample player's reads resolve to `Kit<NAME>_Samples+off` rather than `_DATA_`.
+detects a kit by its `$6040` marker and emits a labeled section per kit instead of
+one opaque `INCBIN`. All names are read from the ROM **at build time**, so a kit or
+sample renamed with an external tool labels correctly: `Kit<NAME>_Ptrs` (`$4000`
+offset table), `_Names` (`$4022`), `_KitName` (`$4052`), then the sample data split
+at each pointer-table boundary into `Kit<NAME>_<SAMPLE>` using the 3-char sample
+names (e.g. `KitTR808_BD/SD/CHH/…/CLP`). **312 symbols** (TR-606…TT-ZZ; the kit
+name matches the INSTR editor's KIT selector). Collisions are disambiguated — a
+duplicate kit name gets the bank appended, a duplicate sample name within a kit a
+numeric suffix — so patched ROMs never produce duplicate labels. Now the sample
+player's reads resolve to `Kit<NAME>_<SAMPLE>+off` rather than `_DATA_`.
 Byte-identical (contiguous INCBINs). The empty banks (`$22`–`$3F`) are `$00`/`$FF`
 fill and unreferenced.
 
