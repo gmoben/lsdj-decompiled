@@ -11,6 +11,10 @@
 158F SelectOscBank      ; switch the ROM bank to the oscilloscope's (wOscBankA -> hCurrentBank/$2000)
 1676 SelectOscBankB     ; switch ROM bank to oscilloscope bank B (wOscBankB); reads wOscLoopB/wChanNote
 339A ResetDisplayState   ; ReinitDisplay, then clear tile-loader alloc + state ($cbe5/$cbfb/$cbfc)
+337D LoadTilesDispatch   ; route a tile-slot arg to LoadTilesToVram / SetTileLoadReq
+148B DebugNop            ; `ld b,b; ret` -- no$gmb/BGB debug marker (no-op at runtime)
+0908 GetScreenScratchCell  ; return &($C57A screen-scratch buffer)[42*row]; bounds row<6, col<42
+07DA GetScreenScratchCell2 ; duplicate accessor of the $C57A scratch buffer
 3298 UploadTilesToVram  ; rSTAT-gated copy of 128 tile bytes ($DA40 -> VRAM $8060)
 2CC6 DrawChannelHeader   ; draw the channel/column header at VRAM $9811, dispatched on wSongCol (0-3)
 0150 Start              ; init: di, stack=$E000, clear WRAM/HRAM, save boot regs
