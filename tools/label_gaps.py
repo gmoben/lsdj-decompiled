@@ -34,13 +34,19 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-# Load the sibling disasm.py by path (tools/ is a script dir, not a package), so
-# this works whether run as a script or imported, without a relative-import.
-_spec = importlib.util.spec_from_file_location(
-    "disasm", Path(__file__).resolve().parent / "disasm.py")
-assert _spec and _spec.loader
-disasm = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(disasm)
+# Load sibling tools by path (tools/ is a script dir, not a package), so this
+# works whether run as a script or imported, without a relative-import.
+def _load(name: str):
+    spec = importlib.util.spec_from_file_location(
+        name, Path(__file__).resolve().parent / f"{name}.py")
+    assert spec and spec.loader
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+disasm = _load("disasm")
+carve = _load("carve_clean")   # reuse the REAL code/data split (+ carve.cov)
 
 ROOT = Path(__file__).resolve().parent.parent
 ROM = ROOT / "lsdj9_4_0.gb"
@@ -104,22 +110,22 @@ def _bank_geom(bank: int) -> tuple[int, int, int, int]:
     return start, start + 0x4000, (0x0000 if bank == 0 else 0x4000), 0x4000
 
 
-def scan_bank(data: bytes, bank: int, symbols: SymMap) -> tuple[BankInfo, Rows]:
-    """Pass 1: recursive-descent from known symbols; return (BankInfo, rows)."""
+def scan_bank(data: bytes, bank: int, symbols: SymMap,
+              code: set[int]) -> tuple[BankInfo, Rows]:
+    """Pass 1: decode a bank with the SAME code/data split the carve produces
+    (whole-ROM coverage trace + carve_clean.data_runs), so the analyzer reflects
+    the real disassembly -- a table marked as data (e.g. PitchBendTable) is not
+    re-traced as code and its bytes are not mistaken for references."""
     start, end, org, size = _bank_geom(bank)
-    seeds = [start + (a - org) for (b, a) in symbols
-             if b == bank and org <= a < org + size]
-    if bank == 0:
-        seeds += [start + a for a in (0x100, 0x40, 0x48, 0x50, 0x58, 0x60, 0x00, 0x08)]
-    code = disasm.trace_code(data, start, end, org, seeds) if seeds else set()
-    data_ranges = disasm.complement_ranges(code, start, end)
+    data_ranges = carve.data_runs(code, data, bank)
     anchors = {start + (a - org) for (b, a) in symbols
                if b == bank and org <= a < org + size}
     rows = disasm.disassemble(data, start, end, org, data_ranges, anchors)
+    bank_code = sum(1 for o in range(start, end) if o in code)
     info = BankInfo(
         instr_starts={a for a, _r, t, _ref in rows if not t.startswith("db")},
         data_starts={org + (lo - start) for lo, _hi in data_ranges},
-        code_pct=100 * len(code) // size,
+        code_pct=100 * bank_code // size,
     )
     return info, rows
 
@@ -179,11 +185,17 @@ def main() -> None:
     symbols = load_symbols()
     banks = [args.bank] if args.bank is not None else list(range(0x40))
 
+    # Whole-ROM reachability once (same seeds/trace as the carve), so each bank's
+    # code/data split matches src/bankNN.asm.
+    ent = carve.cov.collect_entries(data)
+    seeds = [(b, a) for b, addrs in ent.items() for a in addrs]
+    code, _ = carve.cov.global_trace(data, seeds)
+
     # Pass 1: index every bank's code/data layout (so cross-bank refs classify).
     index: dict[int, BankInfo] = {}
     bank_rows: dict[int, Rows] = {}
     for b in range(0x40):
-        index[b], bank_rows[b] = scan_bank(data, b, symbols)
+        index[b], bank_rows[b] = scan_bank(data, b, symbols, code)
 
     # Pass 2: classify referenced-but-unnamed addresses per bank.
     tot_label = tot_data = 0
