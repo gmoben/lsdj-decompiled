@@ -6,6 +6,7 @@
 0010 BitMasks           ; [8]+[8] single-bit masks 1<<(7-i) then 1<<i (bit select; used by bank02 $637C/$63A7)
 1760 ReadKitSampleName  ; (kitbank, sampleIdx) -> copy the 3-char sample name at [kitBank $4022 + idx*3] into wSampleNoteString (switches ROM bank)
 2CA4 DrawTempoField     ; set VRAM cursor $9891 + BG/digit palettes, then draw the tempo (GetTempoTimerValue)
+17EC WriteVramByteSafe  ; (vramAddr, value) -> spin until rSTAT allows VRAM access, then [vramAddr]=value
 0150 Start              ; init: di, stack=$E000, clear WRAM/HRAM, save boot regs
 0824 FxMnemonics        ; "-ABCDEFGHKLMOPRSTVWZ": phrase/table command letters indexed by command byte (0='-'=none); FxCommandTable order
 0DDB InitAndLoadSong    ; second-stage boot (runs once before MainLoop): SwitchToDoubleSpeed, ClearBgTilemap, init subsystems, load the working song (bank1 $4CF1/$4848) or ResetWorkState if empty, set palettes + load song properties
