@@ -20,6 +20,7 @@
 3826 SetCbf9Index        ; store a 16-bit value from a pointer arg into $cbf9:$cbfa
 0B54 LoadBank1EBlock     ; page in bank $1E and process 32 items from a pointer arg
 338B RequestTileSlot     ; wrap SetTileLoadReq for a tile-slot arg
+36DD StringLength              ; return the length of the NUL-terminated string at a pointer arg (16-bit)
 3261 OrBitsIntoDaBuffer  ; OR flag bits into the $DA00/$DA4F allocation buffer
 3055 UpdateSprite0       ; map $cbc0 through table $300f into the OAM sprite pair
 309C UpdateSprite1       ; same for $cbc7
