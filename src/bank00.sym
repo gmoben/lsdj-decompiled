@@ -9,6 +9,8 @@
 17EC WriteVramByteSafe  ; (vramAddr, value) -> spin until rSTAT allows VRAM access, then [vramAddr]=value
 2D7E DrawFieldValue     ; draw a value formatted by its type: string / hex byte (DrawHexByte) / pulse duty (DrawPulseDuty)
 158F SelectOscBank      ; switch the ROM bank to the oscilloscope's (wOscBankA -> hCurrentBank/$2000)
+1676 SelectOscBankB     ; switch ROM bank to oscilloscope bank B (wOscBankB); reads wOscLoopB/wChanNote
+339A ResetDisplayState   ; ReinitDisplay, then clear tile-loader alloc + state ($cbe5/$cbfb/$cbfc)
 3298 UploadTilesToVram  ; rSTAT-gated copy of 128 tile bytes ($DA40 -> VRAM $8060)
 2CC6 DrawChannelHeader   ; draw the channel/column header at VRAM $9811, dispatched on wSongCol (0-3)
 0150 Start              ; init: di, stack=$E000, clear WRAM/HRAM, save boot regs
