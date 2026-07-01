@@ -381,9 +381,16 @@ First application: bank `$02` `$43D8` is a 256-entry 16-bit exponential pitch
 curve read by `ApplyPitchBend` (`FxCmd_P`) as `[$43D8 + 2*hFxValue]`; it decoded
 as ~250 lines of garbage code and is now the `PitchBendTable` data block (bank
 `$02` gaps 7→4 `LABEL`, 10→8 `DATA`). The remaining carved-bank tables are worked
-the same way; the 21 kit sample banks (`$08`–`$1A`, `$20`–`$21`) get structural
-labels (pointer table `$4000`, sample names `$4022`, kit name `$4052`, sample
-blocks) and the empty banks (`$22`–`$3F`) are fill.
+the same way.
+
+The **21 sample-kit banks** (`$08`–`$1A`, `$20`–`$21`) are done: `gen_main.py`
+detects a kit by its `$6040` marker and emits a labeled section per kit
+(`Kit<NAME>_Ptrs` `$4000` offset table, `_Names` `$4022`, `_KitName` `$4052`,
+`_Samples` `$4060`) instead of one opaque `INCBIN` — 84 symbols (TR-606…TT-ZZ,
+read live from the INSTR editor's KIT selector and from each bank's `$4052`), so
+the sample player's reads resolve to `Kit<NAME>_Samples+off` rather than `_DATA_`.
+Byte-identical (contiguous INCBINs). The empty banks (`$22`–`$3F`) are `$00`/`$FF`
+fill and unreferenced.
 
 ## Path to 100%
 
