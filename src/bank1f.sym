@@ -1,6 +1,18 @@
 ; Bank $1F -- instrument-editor helpers (called by bank $03) + Phrase screen update
 ; Per-instrument-type parameter draw handlers, dispatched by DrawInstrumentScreen
 ; ($03:$4F45) on the instrument's type (0=PULSE 1=WAVE 2=KIT 3=NOISE).
+
+; --- data tables + strings (db; instrument-editor + word/phrase helpers) ---
+4236 TxtDashTemplate    ; "/--/--" (value display template)
+491A Lut491A            ; byte LUT (71 32 33 44...)
+4A02 DefaultInstr       ; 16-byte default instrument template
+4ACE TxtOutOfMemory1F     ; "OUT OF MEMORY. CLEAN SONG DATA IN PROJECT SCREEN"
+4C11 TxtOutOfTables     ; "OUT OF TABLES!"
+61FF Table61FF          ; small config table ([$10,$ff] pattern)
+637D TxtDeDupe          ; "DE-DUPE..."
+644D TxtDeDupe2         ; "DE-DUPE..." (second instance)
+723F TxtTypeSpeech      ; "TYPE   SPEECH" (instrument-type field)
+77F5 TxtCopiedWord      ; "COPIED WORD"
 423D DrawPulseInstr     ; draw PULSE instrument params (type 0)
 474E DrawWaveInstr      ; draw WAVE instrument params (type 1)
 44DD DrawKitInstr       ; draw KIT instrument params (type 2)
