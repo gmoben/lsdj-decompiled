@@ -343,6 +343,48 @@ daemon's `.emu/` copy aren't in `build/`. The result (7151 routines + 230 variab
 exactly what makes the iterative diff-WRAM-while-driving-the-ROM loop above fast.
 The generator only touches the `.sym`, so the ROM stays byte-for-byte identical.
 
+### Driving out the debugger's `_LABEL_`/`_DATA_` auto-labels
+
+Even with every routine + RAM var exported, Emulicious still shows
+`_LABEL_bb_aaaa` for a **code** address that is a branch/call/pointer target with
+no symbol, and `_DATA_bb_aaaa` for a **data** address referenced by an operand
+with no symbol. Reaching "no auto-labels" means giving every *referenced* address
+a symbol. The machinery:
+
+- **Measure — `tools/label_gaps.py`.** Reproduces the classification statically
+  (two-pass: index every bank's code/data region starts by recursive-descent from
+  the known symbols, then flag each referenced-but-unnamed address as `LABEL` /
+  `DATA` / ambiguous-bank `DATA?`). Immediate `ld rr,nn` loads only count when the
+  target is a real region start, so loop-count constants aren't mistaken for
+  pointers. The `DATA` count is reliable; the `LABEL` count is an over-approx
+  (it also flags mid-named-function code pointers Emulicious would show as
+  `Func+N`) — treat it as a worklist, not gospel. Baseline: ~175 `LABEL`, ~225
+  `DATA` across the carved banks (kit + empty banks extra).
+- **Understand — static first, then the emulator.** Read the referencing
+  instruction (`--bank N` prints each gap with its ref sites) and the target
+  bytes; when the role is unclear, drive the feature live (`tools/emu/song.py`)
+  and/or set a read-watchpoint (ANALYSIS.md §6) to catch the consumer.
+- **Two big gap classes, both byte-neutral to fix.** (1) *Mis-carved data tables*
+  — a `dw`/`db` table the trace decoded as instructions; its bytes read as bogus
+  operands, which the analyzer surfaces. Mark it data (`MANUAL[bank]` in
+  `carve_clean.py`) + name it (`src/bankNN.sym`). (2) *Real data tables* referenced
+  by `ld hl,TABLE` — just name them. Unreached code (`_LABEL_`) is re-seeded so it
+  decodes as code + gets a name.
+- **Render — `disasm.build_labels` now emits a user symbol at any row start**
+  (code *or* data), so a table marked `db` still shows its label. (Previously
+  labels only attached to instruction addresses, so a data label silently
+  vanished the moment the region was marked data.)
+- **Verify — `make compare` stays byte-identical** every step (code↔data
+  re-rendering never changes bytes), then `make sym` re-deploys the symbols.
+
+First application: bank `$02` `$43D8` is a 256-entry 16-bit exponential pitch
+curve read by `ApplyPitchBend` (`FxCmd_P`) as `[$43D8 + 2*hFxValue]`; it decoded
+as ~250 lines of garbage code and is now the `PitchBendTable` data block (bank
+`$02` gaps 7→4 `LABEL`, 10→8 `DATA`). The remaining carved-bank tables are worked
+the same way; the 21 kit sample banks (`$08`–`$1A`, `$20`–`$21`) get structural
+labels (pointer table `$4000`, sample names `$4022`, kit name `$4052`, sample
+blocks) and the empty banks (`$22`–`$3F`) are fill.
+
 ## Path to 100%
 
 1. **Code/data split (cleaner carves).** The unreached remainder in a bank is
