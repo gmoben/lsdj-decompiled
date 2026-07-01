@@ -3,7 +3,9 @@
 ; Names verified by control-flow + hardware-register analysis; see
 ; docs/functionality.md. Update here, then regenerate src/bank00.asm.
 
+0010 BitMasks           ; [8]+[8] single-bit masks 1<<(7-i) then 1<<i (bit select; used by bank02 $637C/$63A7)
 0150 Start              ; init: di, stack=$E000, clear WRAM/HRAM, save boot regs
+0824 FxMnemonics        ; "-ABCDEFGHKLMOPRSTVWZ": phrase/table command letters indexed by command byte (0='-'=none); FxCommandTable order
 0DDB InitAndLoadSong    ; second-stage boot (runs once before MainLoop): SwitchToDoubleSpeed, ClearBgTilemap, init subsystems, load the working song (bank1 $4CF1/$4848) or ResetWorkState if empty, set palettes + load song properties
 1377 MainLoop           ; poll ready flags, then process a frame (-> L0ED6)
 1CFF LoadSyncSetting    ; read song sync property ($BFBD) -> $CB66/$CB67

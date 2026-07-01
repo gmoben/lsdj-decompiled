@@ -48,9 +48,10 @@ MANUAL: dict[int, list[tuple[int, int]]] = {
     # instrument param-label/char tables ($0824), and a 16-bit offset LUT ($09B9).
     0x00: [(0x10, 0x20), (0x104, 0x150), (0x207, 0x2C0),
            (0x824, 0x908), (0x9B9, 0xA91)],
-    # PitchBendTable: 256 x 16-bit exponential pitch curve ($43D8-$45D8) read by
-    # ApplyPitchBend ($45D8, FxCmd_P) as [$43D8 + 2*hFxValue]; was decoded as code.
-    0x02: [(0x3D8, 0x5D8)],
+    # PitchBendTable ($43D8-$45D8, read by ApplyPitchBend) and the vibrato tables
+    # ($7D81-$7DD1: VibDepthTable[16] + VibRateTableA/B[16 x 16-bit], read by
+    # FxCmd_V) -- both were decoded as garbage code (data tables).
+    0x02: [(0x3D8, 0x5D8), (0x3D81, 0x3DD1)],
 }
 
 
