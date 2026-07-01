@@ -144,6 +144,17 @@ files, commits, or comments — fold only *verified* facts back in, in our terms
 
 ## 8. Helper scripts (all in-repo)
 
+- `tools/emu/song.py` — **editing driver**: a verified layer over `emu.py`/`nav.py`
+  that drives the editors so features actually run (turning `_LABEL_`/`_DATA_`
+  auto-labels into reverse-engineered code/tables). Every mutation is confirmed
+  against the per-screen cursor RAM. Verified-live primitives: screen `goto`,
+  `moveto(col,row)` (seeks + verifies the cursor var), `place`/`clear`/`inc`/`dec`
+  (A / A+B / A+up / A+down), PHRASE `note(row,steps,instr)` (places a note + steps
+  pitch), `fx(row,steps)` (places an FX command). CLI mirrors the API
+  (`song.py note 5 4`, `song.py goto phrase`, `song.py moveto 1 3`). Findings from
+  building it: PHRASE `wPhraseCol` is **1=NOTE 2=INSTR 3=CMD 4=CMD-value** (col 0
+  unreachable — ram.inc was off by one); A+up on a note raises pitch ~1 octave.
+  SONG/CHAIN/INSTR/TABLE/SYNTH/WAVE primitives are being extended + verified.
 - `tools/emu/diffstate.py <start> <len> [op...]` — label-aware diff-on-action
   (§4). The main verification tool. (Supersedes the old unlabelled region diff.)
 - `tools/emu/snddump.py <start> <len>` — annotated snapshot of the sound block,

@@ -43,7 +43,7 @@ DEF wSelLeft         EQU $C40D  ; selection rect left column (x1)
 DEF wSelTop          EQU $C40E  ; selection rect top row (y1)
 DEF wSelRight        EQU $C40F  ; selection rect right column (x2, exclusive)
 DEF wSelBottom       EQU $C410  ; selection rect bottom row (y2, exclusive)
-DEF wPhraseCol       EQU $C415  ; Phrase editor cursor column (0=NOTE 1=INSTR 2=CMD-type 3=CMD-param)
+DEF wPhraseCol       EQU $C415  ; Phrase editor cursor column (1=NOTE 2=INSTR 3=CMD-type 4=CMD-param; col 0 unreachable -- verified live via tools/emu/song.py)
 DEF wPhraseRow       EQU $C416  ; active phrase step/row (0-15); Phrase cursor row + playback position (bank $02)
 ; Per-screen edit cursors (col/row), verified live in the emulator by moving the cursor
 ; and watching the byte change. SONG columns are the 4 channels (PU1/PU2/WAV/NOI).
