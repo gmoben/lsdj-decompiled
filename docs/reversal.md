@@ -397,6 +397,25 @@ player's reads resolve to `Kit<NAME>_<SAMPLE>+off` rather than `_DATA_`.
 Byte-identical (contiguous INCBINs). The empty banks (`$22`–`$3F`) are `$00`/`$FF`
 fill and unreferenced.
 
+**Carved-bank tables — progress.** Worked bank by bank with `label_gaps.py`:
+bank `$00` `BitMasks` (`$0010`, single-bit masks) + `FxMnemonics` (`$0824`,
+`"-ABCDEFGHKLMOPRSTVWZ"`, the command-letter table); bank `$02` `PitchBendTable`,
+`VibDepthTable`/`VibRateTableA`/`VibRateTableB` (`FxCmd_V` reads them by the V
+value's low/high nibble), and `EvenSpreadTable` (`$7EAC`, a triangular spread-N-
+over-16 table). `_DATA_` total ~133 → ~123 and falling; the `_LABEL_` count still
+over-approximates (it flags `ld hl,CodeAddr` pointers into named functions and, at
+data-table starts whose bytes decode as a valid `ld [nn],sp`, the byte's operand),
+so trust `_DATA_` and read `_LABEL_` as a worklist.
+
+**Dynamic driver — `tools/emu/song.py`.** A verified editing layer that also reads
+and writes the working song directly in SRAM (`sram_read`/`sram_write` +
+`data_model.md` offset map): named getters/setters (`row`, `seq`, `set_note`,
+`set_fx`, `set_cell`), value codecs (`note_val`/`note_str`, `fx_val`/`fx_str`),
+`set_instr_type`, and screen/cursor nav — enough to script song production and to
+exercise any feature on demand. Caveat folded in: a phrase-note byte renders per
+its row's instrument **type** (PULSE/WAVE tonal; KIT shows two sample-name columns
+from the kit; NOISE its own scheme).
+
 ## Path to 100%
 
 1. **Code/data split (cleaner carves).** The unreached remainder in a bank is
