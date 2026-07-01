@@ -168,8 +168,9 @@ def analyze_bank(bank: int, symbols: SymMap, index: dict[int, BankInfo],
         if op in MEM_OPS:                    # real memory access: always a data ref
             if (tb, operand) not in symbols:
                 g.data.setdefault((tb, operand), []).append(site)
-        elif operand >= 0x0010:              # immediate load -> pointer if a region
-            add_ptr(tb, operand, site)       # start; skip <$0010 (loop counts, flags)
+        elif operand >= 0x0100:              # immediate load -> pointer if a region
+            add_ptr(tb, operand, site)       # start; skip low page ($00xx = vectors,
+                                             # labeled BitMasks, fill -> constants)
     return g
 
 
