@@ -140,19 +140,22 @@ class LSDj:
     def clear(self) -> None:      # A+B: clear the cell under the cursor (V)
         self.key("a+b")
 
-    def inc(self, n: int = 1) -> None:   # A+up: raise value (V)
+    # A+dir edits the value under the cursor. Verified on the NOTE cell:
+    #   A+up/down  = octave +/-1      A+left/right = semitone -/+1
+    # On hex value fields A+up/down = +/-1 and A+left/right = +/-$10 (coarse).
+    def inc(self, n: int = 1) -> None:   # A+up  (note: +1 octave) (V)
         for _ in range(n):
             self.key("a+up")
 
-    def dec(self, n: int = 1) -> None:   # A+down: lower value (V)
+    def dec(self, n: int = 1) -> None:   # A+down (note: -1 octave) (V)
         for _ in range(n):
             self.key("a+down")
 
-    def nudge_right(self, n: int = 1) -> None:  # A+right: +$10 on many fields (BE)
+    def semi_up(self, n: int = 1) -> None:   # A+right (note: +1 semitone) (V)
         for _ in range(n):
             self.key("a+right")
 
-    def nudge_left(self, n: int = 1) -> None:   # A+left (BE)
+    def semi_down(self, n: int = 1) -> None:  # A+left (note: -1 semitone) (V)
         for _ in range(n):
             self.key("a+left")
 
@@ -165,21 +168,19 @@ class LSDj:
         self.place()
         return self.rd(VARS["chain"])
 
-    # ------- PHRASE (V: place/step/instr; exact pitch = relative stepping) --
-    def note(self, row: int | None = None, steps: int = 0,
+    # ------- PHRASE (V) ---------------------------------------------------
+    def note(self, row: int | None = None, octaves: int = 0, semitones: int = 0,
              instr: int | None = None) -> dict[str, Any]:
-        """PHRASE: place a note at `row` (or current row) on the NOTE column and
-        raise/lower its pitch `steps` times (A+up/-down; observed ~1 octave per
-        press). Optionally set the instrument column with `instr` inc/decs.
-        `place()` alone already runs the note-on path; stepping exercises the
-        pitch/transpose code. Returns the observed cursor cell."""
+        """PHRASE: place a note at `row` (or current row) on the NOTE column, then
+        shift it by `octaves` (A+up/down) and `semitones` (A+right/left) to reach
+        an exact pitch relative to the placed default. Optionally set the
+        instrument column with `instr` inc/decs. Exercises the note-on + pitch/
+        transpose engine. Returns the observed cursor cell."""
         self.goto("PHRASE")
         self.moveto(PH_NOTE, row)
         self.place()                                 # enter last-used note
-        if steps > 0:
-            self.inc(steps)
-        elif steps < 0:
-            self.dec(-steps)
+        self.inc(octaves) if octaves > 0 else self.dec(-octaves)
+        self.semi_up(semitones) if semitones > 0 else self.semi_down(-semitones)
         res: dict[str, Any] = {"phrase": self.rd(VARS["phrase"]),
                                "cursor": self.cursor()}
         if instr is not None:
@@ -220,11 +221,12 @@ def _cli() -> None:
         d.inc(int(a[1]) if len(a) > 1 else 1)
     elif a[0] == "dec":
         d.dec(int(a[1]) if len(a) > 1 else 1)
-    elif a[0] == "note":     # note [row] [semitones] [instr]
+    elif a[0] == "note":     # note [row] [octaves] [semitones] [instr]
         row = int(a[1]) if len(a) > 1 else None
-        semis = int(a[2]) if len(a) > 2 else 0
-        instr = int(a[3]) if len(a) > 3 else None
-        print(d.note(row, semis, instr))
+        octs = int(a[2]) if len(a) > 2 else 0
+        semis = int(a[3]) if len(a) > 3 else 0
+        instr = int(a[4]) if len(a) > 4 else None
+        print(d.note(row, octs, semis, instr))
     elif a[0] == "addchain":
         print("chain:", d.addchain())
     elif a[0] == "fx":

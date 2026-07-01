@@ -153,7 +153,9 @@ files, commits, or comments — fold only *verified* facts back in, in our terms
   pitch), `fx(row,steps)` (places an FX command). CLI mirrors the API
   (`song.py note 5 4`, `song.py goto phrase`, `song.py moveto 1 3`). Findings from
   building it: PHRASE `wPhraseCol` is **1=NOTE 2=INSTR 3=CMD 4=CMD-value** (col 0
-  unreachable — ram.inc was off by one); A+up on a note raises pitch ~1 octave.
+  unreachable — ram.inc was off by one). Note-edit keys (verified): **A+up/down =
+  octave ±1, A+left/right = semitone ±1**; `place` (A) enters the last-used note,
+  so `note()` reaches an exact pitch by octave+semitone steps from that default.
   SONG/CHAIN/INSTR/TABLE/SYNTH/WAVE primitives are being extended + verified.
 - `tools/emu/diffstate.py <start> <len> [op...]` — label-aware diff-on-action
   (§4). The main verification tool. (Supersedes the old unlabelled region diff.)
