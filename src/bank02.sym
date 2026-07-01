@@ -64,6 +64,7 @@
 7D81 VibDepthTable      ; [16] vibrato depth curve, FxCmd_V reads [$7D81 + (hFxValue & $0f)]
 7D91 VibRateTableA      ; [16] 16-bit vibrato rate (type A); [$7D91 + 2*(hFxValue>>4)]
 7DB1 VibRateTableB      ; [16] 16-bit vibrato rate (type B); selected by wChanVibType
+7EAC EvenSpreadTable    ; triangular: row N (via +tri(N-1)) = N values summing to ~$10 -- spread N events over ~16 ticks; read at $57B4 indexed by [$C8C2]
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 4000 SndFxParsePitchVal         ; parse an FX value (mask $80/$0f) -> SndSetVibratoParams
