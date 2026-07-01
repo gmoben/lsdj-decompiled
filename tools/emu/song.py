@@ -178,6 +178,68 @@ class LSDj:
         base, stride = SONG["sequence"]
         return self.sram_read(base + row * stride + channel, 1)[0]
 
+    # ------- song value encoding + named get/set (DSL foundation) ----------
+    # A phrase-note byte's *meaning/rendering depends on the row's instrument
+    # type* (phrase_instruments -> instruments[n] byte0 & 3):
+    #   PULSE(0)/WAVE(1): a tonal pitch, 1 = C-2, each semitone +1 (verified).
+    #   KIT(2):   selects a kit sample -- the Phrase screen shows the SAMPLE NAME
+    #             (e.g. BD-/SD-/CHH from the kit's $4022 table), not a pitch.
+    #   NOISE(3): a noise value, rendered on its own scheme (not a chromatic pitch).
+    # note_val/note_str below are the TONAL (PULSE/WAVE) codec only.
+    NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+
+    @staticmethod
+    def note_val(name: str, octave: int) -> int:
+        """('C', 4) -> tonal phrase-note byte (PULSE/WAVE). 1 = C-2, semitone +1."""
+        return 12 * (octave - 2) + LSDj.NOTE_NAMES.index(name.upper()) + 1
+
+    @staticmethod
+    def note_str(val: int, instr_type: int = 0) -> str:
+        """Tonal decode (PULSE/WAVE). For KIT/NOISE the byte isn't a chromatic
+        pitch, so return a raw form until those encodings are pinned."""
+        if val in (0, 0xFF):
+            return "---"
+        if instr_type == 2:
+            return f"kit:{val:02x}"      # sample index/pitch -- shows a name on-screen
+        if instr_type == 3:
+            return f"noi:{val:02x}"      # noise value
+        v = val - 1
+        return f"{LSDj.NOTE_NAMES[v % 12]}-{v // 12 + 2}"
+
+    def get_phrase(self, phrase: int) -> dict[str, list[int]]:
+        """All four columns of a phrase (notes/instr/fx/fx_val), 16 rows each."""
+        return {k: self.row(f"phrase_{k}", phrase)
+                for k in ("notes", "instruments", "fx", "fx_val")}
+
+    def set_note(self, phrase: int, row: int, note, instr: int | None = None) -> None:
+        """DSL fast path: write a note straight to SRAM. `note` = a ('C',4) tuple,
+        a raw byte, or None (clear). Call redraw()/re-enter the screen to see it."""
+        val = 0 if note is None else (note if isinstance(note, int)
+                                      else self.note_val(*note))
+        base, stride = SONG["phrase_notes"]
+        self.sram_write(base + phrase * stride + row, [val])
+        if instr is not None:
+            b, s = SONG["phrase_instruments"]
+            self.sram_write(b + phrase * s + row, [instr])
+
+    def set_cell(self, struct: str, index: int, col: int, value: int) -> None:
+        """Generic DSL setter: struct[index] byte `col` = value (SRAM write).
+        e.g. set_cell('instruments', 5, 0, 3) -> instr 5 type NOISE;
+             set_cell('sequence', row, ch, chain); set_cell('phrase_fx', ph, row, cmd)."""
+        base, stride = SONG[struct]
+        self.sram_write(base + index * stride + col, [value])
+
+    def set_seq(self, row: int, channel: int, chain: int) -> None:
+        """sequence[row][channel] = chain number (SONG screen cell)."""
+        self.set_cell("sequence", row, channel, chain)
+
+    def redraw(self) -> str:
+        """Force the current screen to repaint from song data (SELECT down+up).
+        (Routes through the neighbouring screen briefly; the value is reread.)"""
+        self.key("select+down")
+        self.key("select+up")
+        return self.at()
+
     # ------- screen / navigation (V) --------------------------------------
     def at(self) -> str:
         return SCREENS.get(self.rd(VARS["screen"]), "?")

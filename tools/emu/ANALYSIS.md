@@ -154,9 +154,19 @@ files, commits, or comments — fold only *verified* facts back in, in our terms
   (`song.py note 5 4`, `song.py goto phrase`, `song.py moveto 1 3`). Findings from
   building it: PHRASE `wPhraseCol` is **1=NOTE 2=INSTR 3=CMD 4=CMD-value** (col 0
   unreachable — ram.inc was off by one). Note-edit keys (verified): **A+up/down =
-  octave ±1, A+left/right = semitone ±1**; `place` (A) enters the last-used note,
-  so `note()` reaches an exact pitch by octave+semitone steps from that default.
-  SONG/CHAIN/INSTR/TABLE/SYNTH/WAVE primitives are being extended + verified.
+  octave ±1, A+left/right = semitone ±1**; `place` (A) enters the last-used note.
+  `set_instr_type` reaches any TYPE deterministically (a+left×4 clamp to PULSE,
+  a+right×N) — used to drive an instrument to KIT and read kit names.
+  **Working-song access (SRAM):** `sram_read/sram_write` reach any of the 32 KiB
+  song cells (data_model.md) by enabling cart RAM + MBC5 bank-switching; `row()`,
+  `seq()`, `get_phrase()` are named getters and `set_note`/`set_cell`/`set_seq`
+  write them (a fast DSL path — `redraw()` repaints from song data). A phrase-note
+  byte's meaning is **instrument-type dependent**: PULSE/WAVE = tonal pitch
+  (`12·(oct−2)+semitone+1`, 1 = C-2; `note_val`/`note_str` convert), but KIT rows
+  render the kit's **sample name** and NOISE rows a noise value — so decode a note
+  by the type of `instruments[phrase_instruments[row]]`. Verified live against
+  known song content. So a script can both drive the editors by input *and*
+  read/write the song structure directly.
 - `tools/emu/diffstate.py <start> <len> [op...]` — label-aware diff-on-action
   (§4). The main verification tool. (Supersedes the old unlabelled region diff.)
 - `tools/emu/snddump.py <start> <len>` — annotated snapshot of the sound block,
