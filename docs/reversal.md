@@ -397,6 +397,17 @@ player's reads resolve to `Kit<NAME>_<SAMPLE>+off` rather than `_DATA_`.
 Byte-identical (contiguous INCBINs). The empty banks (`$22`–`$3F`) are `$00`/`$FF`
 fill and unreferenced.
 
+**Naming standard.** Data-table labels are **intuitive/semantic**, reverse-engineered
+from the using code — never `Lut<addr>`/`Table<addr>`. Determine what a table *is*
+(what reads it, how it's indexed, where its result goes) before naming: e.g. the
+recurring 16-byte ramp copied into `wave_frames` is `DefaultWaveFrame` (not
+`Lut491A`); the 16 bytes copied to `synth_params $3EB2` are `DefaultSynthParams`;
+an all-zero display string is `TxtBlankString`. If a table's purpose can't be
+pinned after a reasonable look, leave it a documented gap rather than an
+address-name (an address-name is worse than an honest gap). Cross-bank duplicates
+need unique names (one link namespace); `make compare`'s assembler catches
+collisions.
+
 **Carved-bank tables — progress.** Worked bank by bank with `label_gaps.py`:
 bank `$00` `BitMasks` (`$0010`, single-bit masks) + `FxMnemonics` (`$0824`,
 `"-ABCDEFGHKLMOPRSTVWZ"`, the command-letter table); bank `$02` `PitchBendTable`,
