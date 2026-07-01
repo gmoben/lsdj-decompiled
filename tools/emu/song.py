@@ -14,7 +14,7 @@ Library (import) or CLI. Examples:
     python3 tools/emu/song.py goto phrase
     python3 tools/emu/song.py moveto 0 3          # cursor col 0 row 3 (current screen)
     python3 tools/emu/song.py place               # A (place default value at cursor)
-    python3 tools/emu/song.py inc 5               # A+up x5 (raise value)
+    python3 tools/emu/song.py aup 5               # A+up x5 (raise value under cursor)
     python3 tools/emu/song.py note C 3            # PHRASE: enter note C-3 at cursor row
     python3 tools/emu/song.py addchain            # SONG: create a chain under the cursor
     python3 tools/emu/song.py shot .emu/x.png
@@ -140,24 +140,32 @@ class LSDj:
     def clear(self) -> None:      # A+B: clear the cell under the cursor (V)
         self.key("a+b")
 
-    # A+dir edits the value under the cursor. Verified on the NOTE cell:
-    #   A+up/down  = octave +/-1      A+left/right = semitone -/+1
-    # On hex value fields A+up/down = +/-1 and A+left/right = +/-$10 (coarse).
-    def inc(self, n: int = 1) -> None:   # A+up  (note: +1 octave) (V)
+    # A+direction edits the value under the cursor. The chord is generic; its
+    # effect depends on the field, so these are named for the KEY, not the effect:
+    #   NOTE cell : A+up/down = octave +/-1,  A+left/right = semitone -/+1
+    #   hex field : A+up/down = +/-1,         A+left/right = +/-$10 (coarse)
+    #   TYPE field: A+left/right cycles PULSE<WAVE<KIT<NOISE (clamped)
+    def a_up(self, n: int = 1) -> None:      # A+up (V)
         for _ in range(n):
             self.key("a+up")
 
-    def dec(self, n: int = 1) -> None:   # A+down (note: -1 octave) (V)
+    def a_down(self, n: int = 1) -> None:    # A+down (V)
         for _ in range(n):
             self.key("a+down")
 
-    def semi_up(self, n: int = 1) -> None:   # A+right (note: +1 semitone) (V)
+    def a_right(self, n: int = 1) -> None:   # A+right (V)
         for _ in range(n):
             self.key("a+right")
 
-    def semi_down(self, n: int = 1) -> None:  # A+left (note: -1 semitone) (V)
+    def a_left(self, n: int = 1) -> None:    # A+left (V)
         for _ in range(n):
             self.key("a+left")
+
+    def a_vert(self, n: int) -> None:        # signed A+up/down (n>0 up, n<0 down)
+        self.a_up(n) if n > 0 else self.a_down(-n)
+
+    def a_horiz(self, n: int) -> None:       # signed A+right/left (n>0 right, n<0 left)
+        self.a_right(n) if n > 0 else self.a_left(-n)
 
     # ------- SONG (BE) ----------------------------------------------------
     def addchain(self, col: int = 0, row: int = 0) -> int:
@@ -174,19 +182,18 @@ class LSDj:
         """PHRASE: place a note at `row` (or current row) on the NOTE column, then
         shift it by `octaves` (A+up/down) and `semitones` (A+right/left) to reach
         an exact pitch relative to the placed default. Optionally set the
-        instrument column with `instr` inc/decs. Exercises the note-on + pitch/
+        instrument column with `instr` A+up steps. Exercises the note-on + pitch/
         transpose engine. Returns the observed cursor cell."""
         self.goto("PHRASE")
         self.moveto(PH_NOTE, row)
         self.place()                                 # enter last-used note
-        self.inc(octaves) if octaves > 0 else self.dec(-octaves)
-        self.semi_up(semitones) if semitones > 0 else self.semi_down(-semitones)
+        self.a_vert(octaves)                         # A+up/down = octave
+        self.a_horiz(semitones)                      # A+right/left = semitone
         res: dict[str, Any] = {"phrase": self.rd(VARS["phrase"]),
                                "cursor": self.cursor()}
         if instr is not None:
             self.moveto(PH_INSTR, row)
-            if instr > 0:
-                self.inc(instr)
+            self.a_up(instr)                         # A+up = +1 on the hex instr field
             res["instr_cursor"] = self.cursor()
         return res
 
@@ -196,8 +203,7 @@ class LSDj:
         self.goto("PHRASE")
         self.moveto(PH_CMD, row)
         self.place()
-        if steps > 0:
-            self.inc(steps)
+        self.a_up(steps)
         return {"cursor": self.cursor()}
 
     # ------- INSTR (V: TYPE via clamp; field nav). Fields (wInstrField $C427):
@@ -215,8 +221,8 @@ class LSDj:
         idx = t if isinstance(t, int) else self.ITYPE[t.upper()]
         self.goto("INSTR")
         self.moveto(0, 1)               # TYPE field (wInstrField=1)
-        self.semi_down(4)               # a+left x4: clamp down to PULSE(0)
-        self.semi_up(idx)               # a+right x idx: step up to target
+        self.a_left(4)                  # a+left x4: clamp down to PULSE(0)
+        self.a_right(idx)               # a+right x idx: step up to target
         return self.INAME.get(idx, "?")
 
     def instr_field(self, row: int, col: int = 0) -> tuple[int | None, int | None]:
@@ -241,10 +247,8 @@ def _cli() -> None:
         d.place(); print(d.cursor())
     elif a[0] == "clear":
         d.clear(); print(d.cursor())
-    elif a[0] == "inc":
-        d.inc(int(a[1]) if len(a) > 1 else 1)
-    elif a[0] == "dec":
-        d.dec(int(a[1]) if len(a) > 1 else 1)
+    elif a[0] in ("aup", "adown", "aleft", "aright"):   # A+dir x N
+        getattr(d, "a_" + a[0][1:])(int(a[1]) if len(a) > 1 else 1)
     elif a[0] == "note":     # note [row] [octaves] [semitones] [instr]
         row = int(a[1]) if len(a) > 1 else None
         octs = int(a[2]) if len(a) > 2 else 0
