@@ -200,6 +200,30 @@ class LSDj:
             self.inc(steps)
         return {"cursor": self.cursor()}
 
+    # ------- INSTR (V: TYPE via clamp; field nav). Fields (wInstrField $C427):
+    # 0=NAME 1=TYPE 2=ENV... (layout below TYPE changes with the type). KIT type
+    # shows a KIT selector (index+name), VOLUME/PITCH/FINETUNE/OFFSET/LEN/LOOP/
+    # SPEED/CLIP. -------------------------------------------------------------
+    ITYPE = {"PULSE": 0, "WAVE": 1, "KIT": 2, "NOISE": 3}
+    INAME = {v: k for k, v in ITYPE.items()}
+
+    def set_instr_type(self, t: int | str) -> str:
+        """INSTR: set the current instrument's TYPE. It cycles PULSE<WAVE<KIT<NOISE
+        and CLAMPS at both ends (verified), so a+left x4 -> PULSE, then a+right x N
+        lands on type N deterministically. NB: changing type rewrites the
+        instrument's params -- edit a scratch instrument. Returns the type name."""
+        idx = t if isinstance(t, int) else self.ITYPE[t.upper()]
+        self.goto("INSTR")
+        self.moveto(0, 1)               # TYPE field (wInstrField=1)
+        self.semi_down(4)               # a+left x4: clamp down to PULSE(0)
+        self.semi_up(idx)               # a+right x idx: step up to target
+        return self.INAME.get(idx, "?")
+
+    def instr_field(self, row: int, col: int = 0) -> tuple[int | None, int | None]:
+        """INSTR: move the field cursor to (col,row) = (wInstrCursorCol,wInstrField)."""
+        self.goto("INSTR")
+        return self.moveto(col, row)
+
 
 def _cli() -> None:
     d = LSDj()
