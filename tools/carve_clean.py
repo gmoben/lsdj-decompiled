@@ -55,6 +55,8 @@ MANUAL: dict[int, list[tuple[int, int]]] = {
     # ($7D81-$7DD1: VibDepthTable[16] + VibRateTableA/B[16 x 16-bit], read by
     # FxCmd_V) -- both were decoded as garbage code (data tables).
     0x02: [(0x3D8, 0x5D8), (0x3D81, 0x3DD1)],
+    # bank 1C: an [8][8] rising value table ($6E3C) decoded as code.
+    0x1C: [(0x2E3C, 0x2E7C)],
 }
 
 

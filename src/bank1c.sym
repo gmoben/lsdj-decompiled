@@ -1,5 +1,17 @@
 ; Bank $1C -- File screen (save/load) + song (de)compression
 57BB DrawFileScreen      ; screen idx 13: draws the file/save-load browser
+
+; --- File-screen strings + a LUT (db; referenced by the draw/save-load code) ---
+4047 Lut4047            ; byte[16] + 16-bit table (same shape as bank01 Lut40EA)
+43B9 TxtEmpty           ; "[EMPTY]" (empty file slot)
+47A3 TxtVerify          ; "VERIFY..."
+4C11 TxtEmpty2          ; "[EMPTY] "
+534E TxtLoading         ; "LOADING...1/"
+57AC TxtEmpty3          ; "[EMPTY]      0"
+5AD4 TxtLoseMinutes     ; "LOSE %u MINUTES" (unsaved-work warning)
+60A9 TxtFileErased      ; "FILE ERASED!"
+70F9 TxtUpgrading        ; "UPGRADING..."
+6E3C Table6E3C           ; [8][8] rising value table (row R = 4R+1,+2,+3,+4,+6,+8,+12,+16)
 ; --- song compressor (SAVE); see docs/save_format.md ---
 715B WriteCompressedByte ; emit one byte to the compressed output stream
 711F ReadWorkingSongByte ; read a byte of the working song (input to compress)
