@@ -81,9 +81,11 @@ def collect() -> dict[tuple[int, int], int]:
     code: dict[int, set[int]] = {}
     for p in sorted(SRC.glob("bank*.asm")):
         bank = int(p.stem[4:6], 16)
+        # Code line: has "; $XXXX:" and its instruction is not `db` (hex db lines
+        # also carry the ": bytes" annotation, so the colon alone isn't enough).
         code[bank] = {int(m.group(1), 16)
                       for line in p.read_text().splitlines()
-                      if (m := CODE_RE.search(line))}
+                      if (m := CODE_RE.search(line)) and not line.lstrip().startswith("db")}
     return {(b, a): v for (b, a), v in targets.items()
             if (b, a) not in syms and a in code.get(b, set())}
 
