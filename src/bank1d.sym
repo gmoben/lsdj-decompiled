@@ -4,8 +4,8 @@
 ; --- synth data tables + strings ---
 4EF0 SineTable          ; signed sine waveform (synth source): 0..$3f..0..-$3f..
 62BB SynthDispatchJumps ; jp-table for synth command dispatch (jp $62C7/$62D3/...)
-63F0 FilterNameNone     ; "-----" no-filter entry (SynthFilterNames list follows at $63F6)
-6DDD SynthWaveTypeNames ; synth wave-mode names "OVERWRITE"/"HAND-DRAWN"/...
+63F0 TxtFilterNone              ; "-----"
+6DDD TxtOverwrite               ; "OVERWRITE"
 41CD TxtGrooveRowBlank  ; " --    " groove/synth row template
 4B57 TxtCancelSelect1D  ; "CANCEL SELECT"
 4CD8 TxtPaste1D         ; "PASTE"
@@ -23,12 +23,12 @@
 68AB DrawSynthScreen    ; screen idx 10: draws softsynth params (wave/filter/cutoff/dist/...)
 ; --- synth-screen value-name tables (indexed by the synth param value) --------
 62F5 SynthPhaseNames    ; phase types " PINCH"/"  WARP"/"RESYNC" (7-byte stride)
-63F6 SynthFilterNames   ; filter types " LOWP"/"HIGHP"/"BANDP"/" ALLP" (6-byte stride)
-65B3 SynthDistNames     ; distortion types "CLIP"/"FOLD"/"WRAP" (5-byte stride)
+63F6 TxtLowp                    ; " LOWP"
+65B3 TxtClip                    ; "CLIP"
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 40AE GrooveDrawField        ; draw groove value field at cursor $c9d4 (palette by bit1) via DrawTextField
-425B GrooveDrawStr_425B     ; draw a groove string (DrawStringIndexed)
+425B DrawGrooveRow              ; draw one groove row (step<16; ticks via ReadGrooveStep, state $c9d5/$c9d6)
 435D GrooveBuildCache       ; once ($c9d5 guard): build the 16-step groove display cache $c9d6 (via $405a)
 4394 GrooveDrawFieldHw      ; like GrooveDrawField but palette per hGameboyType
 43CF GrooveScreen           ; Groove screen handler (input/draw/edit); sets wClipboardType=SCREEN_GROOVE on CUT
@@ -40,45 +40,45 @@
 5323 SynthComposeWave           ; main synth wave composition (wSynthRenderIdx, buffer $ca34); large
 5695 SynthRenderWaveType        ; dispatch waveform shape by type $c9e9 (jump table $56bd); buffer $ca94
 58DA SynthWrapIndex32           ; return (arg+1) & $1f (wave sample index wrap)
-58E6 SynthMemFill_58E6          ; calls MemSet
-5BBD SynthMemFill_5BBD          ; calls MemSet
+58E6 ClearSynthWaveBufs         ; clear the two 64-byte synth wave work buffers ($cab8/$caf8)
+5BBD ClearSynthWaveBufs2        ; duplicate of ClearSynthWaveBufs (second compile)
 5E53 SynthFilterPass            ; filter/transform 32 wave samples using $c9ec
 5F00 SynthApplyFilter           ; dispatch filter by $c9eb (2->SynthMemFill_5BBD, 3->SynthFilterPass, else 58E6); gated $c9ec
-5F29 SynthSongWrite_5F29        ; calls WriteSongByte
+5F29 SynthWriteWaveCol          ; write an edited wave column (<$20) from the edit state ($cb60) into song data
 5F90 SynthReadWaveSram          ; read synth wave bytes from SRAM $AF00 + $c441*32
 60A7 SynthCalcParamAddr         ; pick SRAM base $bfc4/$bfc5 by bit3 of arg -> synth param pointer
 6115 SynthReadParam             ; read synth param via SynthCalcParamAddr + ReadSongByte (bank1)
-6144 SynthSongWrite_6144        ; calls WriteSongByte
+6144 SynthCopyParam             ; copy one synth parameter byte (SynthCalcParamAddr src->dst)
 6193 SynthFillWaveRange         ; fill/interpolate a wave value range (16-step; <-SynthLoadWaveTable)
-62A8 SynthDrawStr_62A8          ; calls DrawString
-636E SynthSynthParam_636E       ; calls SynthParamAddr
-6414 SynthSynthParam_6414       ; calls SynthParamAddr
+62A8 DrawSynthField             ; draw a synth field (jp-table $62bb dispatch by field type)
+636E DrawSynthFilterField       ; draw the FILTER type field (" LOWP"...; "-----" empty; jp-table $63a6)
+6414 DrawSynthWaveField         ; draw the waveform type row (glyph strings "iiii"/"mmmm"; jp-table $6437)
 649F SynthLoadWaveDataA         ; read wave data via index $c442 + ROM table $60F5
 6503 SynthLoadWaveDataB         ; read wave data via index $c442 + ROM table $60F5 (variant)
-6577 SynthDrawStr_6577          ; calls DrawString
-65C2 SynthDrawStr_65C2          ; calls DrawStringIndexed
-6709 SynthDrawHex_6709          ; calls DrawHexByte
-6791 SynthDrawHex_6791          ; calls DrawHexByte
-6819 SynthDrawHex_6819          ; calls DrawHexByte
-6865 SynthDrawHex_6865          ; calls DrawHexByte
+6577 DrawSynthDistField         ; draw the DIST field: "CLIP"/"FOLD"/"WRAP"
+65C2 DrawSynthNumber            ; draw the synth number header (wSynthScreen)
+6709 DrawSynthHexRowA           ; draw a START/END hex pair row of the synth screen (section A; "--" empty)
+6791 DrawSynthHexRowB           ; draw a START/END hex pair row (section B)
+6819 DrawSynthHexRowC           ; draw a START/END hex pair row (section C)
+6865 DrawSynthHexRowD           ; draw a START/END hex pair row (section D), then SynthLoadWaveDataB re-render
 68F9 SynthDataAddr         ; compute SRAM address of synth $c441 data (index*N + base)
 6935 SynthLoadWaveType          ; read 2 synth params from SRAM -> $c9ed, $c9e9 (wave type)
 6967 SynthLoadWaveTable         ; read packed param from SRAM, build wave table $ca94 (via SynthFillWaveRange)
 6997 SynthLoadFilterParams      ; read 2 synth params from SRAM -> $c9ee, $c9eb (filter)
-6B33 SynthDrawStr_6B33          ; calls DrawStringIndexed
+6B33 BuildOverwritePrompt       ; build the OVERWRITE prompt string (wStringSrc)
 6D0F SynthDrawWaveView          ; draw synth wave view; layout depends on $cb62 toggle
-6D6F SynthDrawStr_6D6F          ; calls DrawString
-6E00 SynthBanked_6E00           ; banked-call wrapper
+6D6F SynthOverwriteWaves        ; "OVERWRITE": render the synth into the wave frames ($cb61/$cb62 range)
+6E00 RedrawScreenFar            ; FarCall home RedrawScreen ($24dd)
 6E11 SynthHandleViewKeys        ; synth-screen key dispatch ($c575: toggle views $cb61/$cb62, SynthBanked_6E00)
-6E6E SynthSongWrite_6E6E        ; calls WriteSongByte
-6EB6 SynthDrawHex_6EB6          ; calls DrawHexByte
-6F3F SynthDrawHex_6F3F          ; calls DrawHexByte
-6FC4 SynthDrawHex_6FC4          ; calls DrawHexByte
-702B SynthDrawHex_702B          ; calls DrawHexByte
-708E SynthSynthParam_708E       ; calls SynthParamAddr
-70BC SynthSynthParam_70BC       ; calls SynthParamAddr
-70E4 SynthSynthParam_70E4       ; calls SynthParamAddr
-7111 SynthSynthParam_7111       ; calls SynthParamAddr
+6E6E WriteSynthParam            ; synth_params[wSynthScreen*16+n] = value (song $3EB2); 24 uses
+6EB6 ReadSynthParamPair         ; read a synth param byte (variant 1 of the row accessors)
+6F3F ReadSynthParamPair2        ; read a synth param byte (variant 2)
+6FC4 DrawSynthParamPair         ; read + DrawHexByte a synth param (variant 1)
+702B DrawSynthParamPair2        ; read + DrawHexByte a synth param (variant 2)
+708E SynthFieldIncHi            ; current synth field: +$10 on the hi nibble (clamp $f0), WriteSynthParam
+70BC SynthFieldIncLo            ; current synth field: +1 on the lo nibble (clamp $0f)
+70E4 SynthFieldDecHi            ; current synth field: -$10 on the hi nibble
+7111 SynthFieldDecLo            ; current synth field: -1 on the lo nibble
 ; --- functions called from bank 0 (this bank paged in) ---
 7138 ScreenInput1D      ; screen input (wButtons)
 4D58 GrooveStateClear   ; clear groove state ($c9d5)
@@ -90,3 +90,7 @@
 4EF0 SynthShapeTableA   ; signed seed samples for synth wave rendering (selected when the shape flag is 0)
 50F0 SynthShapeTableB   ; second shape bank (SynthShapeTableA+$200)
 405A ReadGrooveStep     ; e = groove data[wGroove*16 + step] (song $1090); asserts step & wGroove<$20
+6489 TxtWaveGlyphI              ; "iiii" waveform glyph row
+648E TxtWaveGlyphM              ; "mmmm" waveform glyph row
+65B8 TxtFold1D                  ; "FOLD"
+65BD TxtWrap1D                  ; "WRAP"
