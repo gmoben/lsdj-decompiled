@@ -482,6 +482,22 @@ numeric constants that look like addresses (`ld de,$0400` as a copy length) and
 `Func+N` interior pointers, which Emulicious renders as `Symbol+offset`, never
 as `_LABEL_`.
 
+**De-placeholdering pass.** Every address-suffixed placeholder (`SongBanked_674D`
+class, 209 labels) and vague `Func`/`Helper` name was reverse-engineered and
+renamed to a functional name, bank by bank, each verified against the function
+body (build stays byte-identical): the sound-engine advance/read chain
+(`SndAdvanceGroove`/`SndAdvanceChainRow`/`SndReadPhraseCmd`…), the per-screen
+edit dispatchers (`SongScreenEdit`/`PhraseScreenEdit`/`ChainScreenEdit` with
+their A+direction quartets mapped via the wButtons byte values), the file
+subsystem (`DecompressBlock`, `FindFreeBlock`, `EraseFile`…), the CLEAN/de-dupe
+pipeline (`FindDupPhrase/Chain/Table`, `Remap*Refs`, `RebuildPhraseAllocMap`),
+the synth/groove screens, and the instrument byte accessors named from the
+liblsdj-documented format (`Get/SetInstrType/Env/Len/Flags5/Table`…). The last
+`_LABEL_` Emulicious showed (`_LABEL_9F52_` = bank 02:$5F52) was a function
+hidden mid-misdecoded-data: `SetNoisePoly` + its 120-byte `NoiseFreqTable` —
+the same class also yielded `DrawInstrName` (bank 04) and `ReadGrooveStep`
+(bank 1D), found by auditing raw `call $xxxx` sites with no label.
+
 **Dynamic driver — `tools/emu/song.py`.** A verified editing layer that also reads
 and writes the working song directly in SRAM (`sram_read`/`sram_write` +
 `data_model.md` offset map): named getters/setters (`row`, `seq`, `set_note`,
