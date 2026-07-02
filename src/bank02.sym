@@ -166,9 +166,10 @@
 786F SndUpdateChanAltPath       ; per-channel alt update (SndReadChainRow/4E74/5F5E)
 792B SndSeqRead_792B            ; calls ReadSeqByte
 7B31 SndCheckSyncState          ; sync-state check (cp $01/$ff)
-7C4C SndMemFill_7C4C            ; calls MemSet
+7C4C StopPlayback               ; stop for current screen context: audio off, wPlayMode=0, clear channel state; LIVE -> SndStopAllIfIdle
 7CFB SndCmdJumpTable            ; command jump table (jp hl)
 7F24 SndSetupLfo                ; dispatch by hSoundCh -> SndSetupLfoPU1/PU2/WavNoi (vibrato/LFO setup)
 7F33 SndSetupLfoWavNoi          ; LFO setup for ch2/3 (WAV/NOI): clear $cbcd, init from $c2db
 7F3E SndSetupLfoPU2             ; LFO setup for ch1 (PU2): clear $cbc6, init from $c2d9
 7F49 SndSetupLfoPU1             ; LFO setup for ch0 (PU1): $cbbf, call bank0 $2f9a
+78C4 StopAllPlayback            ; stop playback in screen context AND song context (temporarily forces wCurrentScreen=SONG); LIVE -> SndAdvanceRetrig

@@ -60,8 +60,12 @@ MANUAL: dict[int, list[tuple[int, int]]] = {
     # ($7D81-$7DD1: VibDepthTable[16] + VibRateTableA/B[16 x 16-bit], read by
     # FxCmd_V) -- both were decoded as garbage code (data tables).
     0x02: [(0x3D8, 0x5D8), (0x3D81, 0x3DD1)],
-    # bank 1C: an [8][8] rising value table ($6E3C) decoded as code.
-    0x1C: [(0x2E3C, 0x2E7C)],
+    # bank 1C: an [8][8] rising value table ($6E3C) decoded as code, and
+    # DefaultWaveFrameB1C ($4047, 16 bytes -- hides the $4057 magic check).
+    0x1C: [(0x47, 0x57), (0x2E3C, 0x2E7C)],
+    # bank 1F: OOM-instr + OUT OF TABLES + DE-DUPE panel strings, the
+    # phrase-column layout table ($64E1, hides $64FF), and "TYPE   SPEECH".
+    0x1F: [(2766, 2816), (3089, 3104), (9085, 9137), (9293, 9355), (9441, 9471), (12863, 12877)],
     # bank 7: DMG+CGB tempo timer tables ($5E49/$6049, 256 x dw each), the PS/2
     # keyboard note/function maps ($662A/$66AA), and the keyboard-calibration
     # screen strings ($7171-$71BF).

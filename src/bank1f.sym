@@ -86,7 +86,7 @@
 6B3B InstrHDrawStr_6B3B         ; calls DrawStringIndexed
 6CA2 InstrHReadCursorCell       ; read cell via ROM table $64E1 + cursor offsets (args sp+7/sp+8)
 6EFE InstrHReadCursorCellAt     ; read cell at cursor $c415/$c416 (InstrHReadCursorCell)
-6F14 InstrHDrawStr_6F14         ; calls DrawStringIndexed
+6F14 DrawChanStatus            ; draw channel status cell at (16, ch+6) from wChanModFlag[ch]
 70A8 InstrHGetParamPlus4        ; return $c429 + 4
 70B6 InstrHDrawParamField       ; draw a field from $c429 (parity-based) via InstrHGetParamPlus4
 70DF InstrHDrawStr_70DF         ; calls DrawStringIndexed
@@ -94,3 +94,34 @@
 4A26 WordHelper         ; word/speech helper
 7801 TxtCutWord        ; "CUT WORD"
 780A TxtPastedWord     ; "PASTED WORD"
+
+; --- allocation / clean / phrase-screen helpers (FarCall targets) ---
+4A65 AllocNextFreeInstr         ; scan instr-alloc table (song $2040) for a free slot, place into phrase (bank04 $41f0); full -> OOM msg, e=$40
+4BD9 FindFreeTable              ; first unused table 0-$1f; none -> ShowMessage(TxtOutOfTables), e=$ff
+4C20 IsSongChainUsed            ; test chain-alloc bit for the chain under the song cursor col ($c44f+wSongCol; $80+ -> 0)
+62DD CleanSongData              ; project CLEAN: de-dupe chains+phrases, DE-DUPE/FREEING progress panel
+63B1 CleanInstrData             ; project CLEAN: de-dupe instruments/tables, DE-DUPE/FREEING progress panel
+64FF CanEnterSongCol            ; e=1 if song column (arg<4) can take the cursor (channel active/enterable)
+6656 HasEnterableColRight       ; e=1 if any song column right of wSongCol is enterable (phrase-screen '>' arrow)
+6677 HasEnterableColLeft        ; e=1 if any song column left of wSongCol is enterable ('<' arrow)
+6C1E DrawPhraseCursor           ; draw the phrase cursor cell: InstrHDrawStr_6B3B(wPhraseCol, wPhraseRow) via PhraseColLayout
+6D58 PastePhraseSelection       ; wClipboardType==1: normalize sel rect vs cursor, write clipboard cells into the phrase
+7072 DrawAllChanStatus          ; draw the 4 channel status cells (DrawChanStatus 0-3)
+7108 DrawSpeechInstrScreen      ; instrument screen for SPEECH type: "TYPE   SPEECH" + word list (pseudo-screen $0b)
+724D WordScreenInput            ; word/speech editor input dispatch (wButtons); edits words at song $3DD0 ($bdd0)
+; --- data ---
+4ACE TxtOutOfMemInstr           ; "OUT OF MEMORY. CLEAN INSTR DATA IN PROJECT SCREEN!"
+64E1 PhraseColLayout            ; per-phrase-column draw metrics (x pos / width / flags), 6 rows x 5 cols
+637D TxtDedupe                  ; "DE-DUPE..."
+6388 TxtFreeing                 ; "FREEING:"
+6391 TxtChainsFill              ; "CHAINS...."
+639C TxtPctD                    ; "%d"
+639F TxtPhrasesFill             ; "PHRASES..."
+63AA TxtPctD2                   ; "%d"
+63AD TxtOk2                     ; "OK!"
+644D TxtDedupe2                 ; "DE-DUPE..."
+6458 TxtFreeing2                ; "FREEING:"
+6461 TxtInstrsFill              ; "INSTRS...."
+646C TxtPctD3                   ; "%d"
+646F TxtTablesFill              ; "TABLES...."
+723F TxtTypeSpeech              ; "TYPE   SPEECH"

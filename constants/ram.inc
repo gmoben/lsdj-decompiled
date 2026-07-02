@@ -408,3 +408,8 @@ DEF wSavedSelRight   EQU $CBD6  ; saved wSelRight
 ; --- PS/2 keyboard (bank 7) ---
 DEF wKbdHeldNote     EQU $CB7E  ; note currently held on the PS/2 keyboard (0=none)
 DEF wKbdTranspose    EQU $CB91  ; keyboard octave/transpose offset added to KeyboardNoteMap notes
+
+; --- name editor (bank 1b OpenNameEditor) ---
+DEF wNameReturnScreen EQU $C42F ; screen to return to when the name editor closes
+DEF wNameEditIsInstr  EQU $C430 ; nonzero = editing an instrument name
+DEF wNameEditBuf      EQU $C431 ; 5-char name being edited (instr/file/word/kit-sample)

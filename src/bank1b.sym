@@ -62,3 +62,6 @@
 5DBF ProjectDrawField   ; project field draw ($c9a4)
 53E8 ProjectHelper      ; project helper
 4BC3 ProjectStateRead   ; read project state ($c933)
+
+4E8A OpenNameEditor             ; save screen -> wNameReturnScreen, init letter input (wKbdLetterPos) for instr/file/word names
+754F UpdateInstrEnvelope        ; envelope-bearing types only (PULSE/NOISE): recompute envelope data after instrument edit

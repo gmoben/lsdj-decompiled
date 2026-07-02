@@ -61,8 +61,12 @@ def scan(path):
         site = int(m.group(1), 16) if m else None
         # look back a small window for the immediate bank + address
         lo = hi = bank = full = None
+        swapped = False   # `ld l, b / ld h, c` moves b->lo, c->hi (FarCallByte hl arg)
         for j in range(i - 1, max(i - 9, -1), -1):
             pj = lines[j]
+            if re.match(r'^\tld l, b\b', pj) or re.match(r'^\tld h, c\b', pj):
+                swapped = True
+                continue
             mb = LD_A.match(pj)
             if mb and bank is None:
                 bank = int(mb.group(1), 16); continue
@@ -78,7 +82,7 @@ def scan(path):
         if full is not None:
             target = full
         elif lo is not None and hi is not None:
-            target = (hi << 8) | lo
+            target = (lo << 8) | hi if swapped else (hi << 8) | lo
         else:
             target = None
         if bank is not None and target is not None:

@@ -100,4 +100,8 @@
 ; --- functions called from bank 0 (this bank paged in) ---
 7310 FileCursorFunc     ; file cursor handling (wCursorMode)
 5B0C FileStateFunc      ; file state ($c997)
-40F2 FileWrapper        ; wraps $4057
+40F2 CheckFileMagicAll          ; e=0 if the SRAM file space is initialized: 64K 'rb' set, else 'jk' + 128K marker set
+
+4057 CheckFileMagic64           ; e=1 if the 'rb' format markers are missing (SRAM banks 4/5/7)
+47B1 FormatFileSpace            ; zero filenames+versions (bank4 $a000-$a13f), reset the block alloc table
+71CD CopySelection              ; copy the selection rect (wSelLeft/Top/Right/Bottom) into the clipboard scratch
