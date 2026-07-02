@@ -87,3 +87,15 @@
 431D DrawSelectDigit    ; draw select-palette digit (wSelectDigitPal)
 5391 TxtSelect         ; "SELECT" (pairs with TxtCancelSelect)
 6D4E TxtSelect2        ; "SELECT" (second instance; pairs with TxtCancelSelect2)
+4024 Unused4024                 ; unreached pair $03,$02 between ChainScaleValue and DrawSampleNameCell
+550F Unused550F                 ; unreached pair $02,$05 before ChainLoadCursorPhrase
+5A5E TxtDashes2                 ; " --" (blank transpose display)
+745A TxtLead                    ; "LEAD"
+745F TxtSync3                   ; "SYNC" (third instance)
+7464 TxtBlank4a                 ; "    "
+74A3 TxtWait2                   ; "WAIT" (second instance)
+74A8 TxtBlank4b                 ; "    "
+7515 TxtBlank4c                 ; "    "
+751A TxtLead2                   ; "LEAD" (second instance)
+751F TxtBlank4d                 ; "    "
+4022 Unused4022                 ; unreached bytes $02,$06 after the ret at $4021

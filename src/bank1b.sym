@@ -72,3 +72,32 @@
 5716 ColorSetNames              ; 5-char COLOR SET names ("AIRY"...; indexed wColorSet*5)
 6FFE ScrollStepTable            ; scroll index-step table (ProjScrollTextStep)
 703C EnvVolumeRamps             ; 8-byte volume ramp rows (envelope precalc family; computed base from ScrollStepTable region)
+4058 HelpMenuPtrs               ; dw pointers to the 16 help-menu line strings
+4098 TxtHelpTitle               ; "HELP / V9.4.0"
+40A6 TxtHelpBlank1              ; "" empty help line
+40A7 TxtHelpScreens             ; "SCREENS:"
+40B0 TxtHelpBlank2              ; "" empty help line
+40B1 TxtHelpSong                ; "SONG"
+40B6 TxtHelpChain               ; "CHAIN"
+40BC TxtHelpPhrase              ; "PHRASE"
+40C3 TxtHelpInstr               ; "INSTR"
+40C9 TxtHelpGroove              ; "GROOVE"
+40D0 TxtHelpWave                ; "WAVE"
+40D5 TxtHelpBlank3              ; "" empty help line
+40D6 TxtHelpCmdList             ; "COMMAND LIST"
+40E3 TxtHelpBlank4              ; "" empty help line
+40E4 TxtHelpLiveMode            ; "LIVE MODE"
+40EE TxtHelpSelCopy             ; "SELECT/COPY/PASTE"
+4100 TxtHelpMuteSolo            ; "MUTE/SOLO/PAN"
+4078 HelpPagePtrs               ; dw -> the 11 help content pages (entry 0 = none)
+408E HelpSelectLines            ; selectable help-menu line indexes (SONG..MUTE/SOLO/PAN)
+410E TxtHelpPageSong            ; "SONG SCREEN" help page
+4248 TxtHelpPageLive            ; "LIVE MODE" help page
+430E TxtHelpPageChain           ; "CHAIN SCREEN" help page
+441A TxtHelpPagePhrase          ; "PHRASE SCREEN" help page
+4529 TxtHelpPageInstr           ; "INSTR SCREEN" help page
+4613 TxtHelpPageGroove          ; "GROOVE SCREEN" help page
+467F TxtHelpPageWave            ; "WAVE SCREEN" help page
+472F TxtHelpPageCmds            ; "COMMAND LIST" help page (<A> RUN TABLE...)
+482B TxtHelpPageCopy            ; "SELECT/COPY/PASTE" help page
+4971 TxtHelpPageMute            ; "MUTE/SOLO/PAN" help page

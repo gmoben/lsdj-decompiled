@@ -61,11 +61,61 @@ def data_line_span(lines, addr2line, target):
             return base == target and False
     return False
 
+def audit_runs():
+    """Second audit class: every data-run start (db/dw after code) must carry a
+    symbol -- Emulicious statically segments these and emits _DATA_ otherwise.
+    Pure $00/$ff fill runs are skipped (bank-end padding is not labeled)."""
+    rom = open('build/lsdj9_4_0.gb', 'rb').read()
+    total = 0
+    for p in sorted(glob.glob('src/bank*.asm')):
+        b = int(os.path.basename(p)[4:6], 16)
+        syms = set()
+        sp = p[:-4] + '.sym'
+        if os.path.exists(sp):
+            for ln in open(sp):
+                m = re.match(r'([0-9A-Fa-f]{4})\s+\S+', ln)
+                if m:
+                    syms.add(int(m.group(1), 16))
+        lines = open(p).read().splitlines()
+        prev_db = False
+        out = []
+        for ln in lines:
+            t = ln.lstrip()
+            is_db = t.startswith('db ') or t.startswith('dw ')
+            if is_db:
+                if not prev_db:
+                    m2 = re.search(r'; \$([0-9a-f]{4})', ln)
+                    if m2:
+                        a = int(m2.group(1), 16)
+                        if a not in syms:
+                            out.append(a)
+                prev_db = True
+            elif re.match(r'^[A-Za-z_.;]', t) or not t:
+                pass
+            else:
+                prev_db = False
+        real = []
+        for a in out:
+            off = a if b == 0 else b * 0x4000 + (a - 0x4000)
+            seg = rom[off:off + 16]
+            if len(set(seg)) == 1 and seg[0] in (0, 0xff):
+                continue
+            real.append(a)
+        if real:
+            total += len(real)
+            print(f'bank{b:02x}: ' + ' '.join(f'${a:04x}' for a in real))
+    print(f'unlabeled data-run starts: {total}')
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--bank')
     ap.add_argument('--all', action='store_true')
+    ap.add_argument('--runs', action='store_true', help='audit unlabeled data-run starts instead')
     a = ap.parse_args()
+    if a.runs:
+        audit_runs()
+        return
 
     banks = {}
     for p in sorted(glob.glob('src/bank*.asm')):

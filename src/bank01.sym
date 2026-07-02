@@ -161,3 +161,8 @@
 689F ScreenPalSynth             ; CGB palette block: SYNTH screen
 6A07 ScreenPalWord              ; CGB palette block: WORD screen
 6B6F ScreenPalFile              ; CGB palette block: FILE screen
+4144 NoteFreq37                 ; NoteFreqTable entry 37 (period $0714) -- exact symbol for Emulicious's interior split
+4247 NoteFreqD58Hi              ; hi byte of NoteFreqDeltaTable entry 58 (interior split)
+4F44 CodeByte4F44               ; last byte of the jp at $4F42 inside AllocNextFreePhrase (Emulicious walker artifact)
+5099 TxtPctDColon               ; "%d:"
+509D TxtPctD01                  ; "%d"

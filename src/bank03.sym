@@ -89,3 +89,4 @@
 409C InstrFieldYKit             ; kit-type Y row (direct base)
 40B1 InstrFieldW                ; per-field cursor widths (per-type rows)
 40F4 InstrFieldCounts           ; fields per instrument type: PULSE 16, WAVE 15, KIT 18, NOISE 13
+4015 DefaultWaveFrameB3         ; default wave frame (16 bytes, bank-3 copy)
