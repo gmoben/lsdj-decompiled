@@ -273,3 +273,8 @@
 6F1F .onGroove            ; wCurrentScreen == case in DrawTopBar
 76A7 .notPhrase           ; wButtons == case in LoadCommandHelp
 76C5 .notPhrase2          ; wButtons == case in LoadCommandHelp
+4ED1 .haveStart                 ; starting phrase resolved ($ff cache -> 0)
+4F0A .maskBit                   ; shift the bit mask into place for the candidate's alloc bit
+4F29 .found                     ; free phrase found and claimed -> return it in e
+4F2F .nextCandidate             ; alloc bit set: advance (wrap $fe -> 0)
+4F3C .checkWrapped              ; back at the start? -> all phrases used, OOM
