@@ -320,3 +320,11 @@
 005D Unused005D          ; $ff fill, Serial vector tail
 005E Unused005E          ; $ff fill, Serial vector tail
 005F Unused005F          ; $ff fill, Serial vector tail
+1BA1 SndInterpResume            ; resume point pushed by the manual call at $1B99 (SndInterpPeriod)
+2020 CodeByte2020               ; instruction byte inside CheckRomChecksum (Emulicious walker artifact)
+2030 CodeByte2030               ; instruction byte inside CheckRomChecksum (walker artifact)
+2D12 TxtNoi                     ; "NOI"
+2D16 TxtPu1                     ; "PU1"
+2D1A TxtPu2                     ; "PU2"
+2D1E TxtWav                     ; "WAV"
+2D20 TxtWavTail                 ; last char of TxtWav (walker split)

@@ -95,3 +95,8 @@
 65B8 TxtFold1D                  ; "FOLD"
 65BD TxtWrap1D                  ; "WRAP"
 60E6 SynthFieldLayout           ; per-synth-field {x,y,width} layout (16 fields x 3)
+435A TxtPctD1D                  ; "%d"
+6DE7 TxtHandDrawn               ; "HAND-DRAWN"
+6DF2 TxtWavesQ                  ; "WAVES?"
+6DF9 TxtYes1D                   ; "YES"
+6DFD TxtNo1D                    ; "NO"

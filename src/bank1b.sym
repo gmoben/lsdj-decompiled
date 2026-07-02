@@ -101,3 +101,30 @@
 472F TxtHelpPageCmds            ; "COMMAND LIST" help page (<A> RUN TABLE...)
 482B TxtHelpPageCopy            ; "SELECT/COPY/PASTE" help page
 4971 TxtHelpPageMute            ; "MUTE/SOLO/PAN" help page
+4146 TxtHelpSongCont1           ; SONG help page text continuation (scroll split)
+414E TxtHelpSongCont2           ; SONG help page text continuation
+4153 TxtHelpSongCont3           ; SONG help page text continuation
+4241 TxtHelpSongTail            ; tail of the SONG help page ("...UP/DOWN")
+454B TxtHelpInstrCont1          ; INSTR help page text continuation
+4552 TxtHelpInstrCont2          ; INSTR help page text continuation
+4559 TxtHelpInstrCont3          ; INSTR help page text continuation
+464F TxtHelpGrooveCont1         ; GROOVE help page text continuation
+494D TxtHelpCopyCont1           ; SELECT/COPY/PASTE help page continuation
+4C75 NameRowsAJ                 ; name-editor letter row "ABCDEFGHIJ"
+4C80 NameRowsKT                 ; name-editor letter row "KLMNOPQRST"
+4C8B NameRowsUZ                 ; name-editor letter row "UVWXYZ" + edit glyphs (x, space, >, w)
+5120 TxtNameColon               ; "NAME:"
+52E2 TxtFail1B                  ; "FAIL!"
+52E8 TxtOutOfMemory1B           ; "OUT OF MEMORY!"
+52F7 TxtOk1B                    ; "OK!  "
+59C5 TxtSyncMidi                ; "MIDI  " sync mode name
+59CC TxtSyncKeybd               ; "KEYBD " sync mode name
+59D3 TxtSyncAnaIn               ; "ANA.IN" sync mode name
+59DA TxtSyncAnOut               ; "AN.OUT" sync mode name
+59E1 TxtSyncPs2                 ; "PS/2 " sync mode name
+5C0C TxtWorkedFmt               ; "WORKED %d:" total-work-time display
+5D75 TxtClockFmt                ; "%d:%d:" clock format
+6A66 TxtResetCartridge          ; "RESET CARTRIDGE?"
+6A77 TxtYes1B                   ; "YES"
+6A7B TxtNo1B                    ; "NO"
+6A7E TxtResetMemory             ; "RESET MEMORY!"

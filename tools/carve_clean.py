@@ -46,7 +46,7 @@ MANUAL: dict[int, list[tuple[int, int]]] = {
     # bitmask table, cartridge header, signed modulation LUTs (triangle/ramp/
     # clamp tables at $0200; the leading fill run already covers up to $0206),
     # instrument param-label/char tables ($0824), and a 16-bit offset LUT ($09B9).
-    0x00: [(0x10, 0x20), (0x104, 0x150), (0x207, 0x2C0), (0x300F, 0x301F),
+    0x00: [(0x10, 0x20), (0x104, 0x150), (0x207, 0x2C0), (0x2D12, 0x2D22), (0x300F, 0x301F),
            (0x824, 0x908), (0x9B9, 0xA91)],
     # bank 1 (UI): two LUTs decoded as code (byte+16-bit table at $40EA; a rising
     # byte curve at $42A0), one small zero-source region, the FX-command help
@@ -63,8 +63,12 @@ MANUAL: dict[int, list[tuple[int, int]]] = {
     # FxCmd_V), and NoiseFreqTable ($5EDA, hides SetNoisePoly at $5F52).
     0x02: [(0x3D8, 0x5D8), (0x1EDA, 0x1F52), (0x3D81, 0x3DD1), (0x3EAC, 0x4000)],
     # bank 1B: SAVING... + %d + ON/OFF/N/A project strings.
-    0x1B: [(0x58, 0x98), (0x12D8, 0x12E2), (0x1716, 0x1725), (0x1B06, 0x1B09), (0x1B56, 0x1B62),
+    0x1B: [(0x58, 0x98), (0xC75, 0xC96), (0x1120, 0x1126), (0x12D8, 0x12E2),
+           (0x12E2, 0x12FB), (0x19C5, 0x19E7), (0x1C0C, 0x1C17), (0x1D75, 0x1D7C),
+           (0x2A66, 0x2A8D), (0x1716, 0x1725), (0x1B06, 0x1B09), (0x1B56, 0x1B62),
            (0x2FFE, 0x30B8)],
+    # bank 1C: file-screen prompt strings.
+    0x1C: [(0x189F, 0x18C1), (0x1AD6, 0x1B0C), (0x20BE, 0x20CC)],
     # bank 1C: an [8][8] rising value table ($6E3C) decoded as code, and
     # DefaultWaveFrameB1C ($4047, 16 bytes -- hides the $4057 magic check).
     0x1C: [(0x47, 0x57), (0x2E3C, 0x2E7C)],
@@ -78,7 +82,7 @@ MANUAL: dict[int, list[tuple[int, int]]] = {
     # bank 04: phrase-row CGB attribute rows + the $01 step table.
     0x04: [(0xC10, 0xC14), (0xCE1, 0xCE5), (0x10D8, 0x10FF), (0x14E3, 0x1500), (0x15D1, 0x15DE)],
     # bank 1D: softsynth shape banks ($4EF0/$50F0) decoded as code.
-    0x1D: [(0xEF0, 0x1190), (0x20E6, 0x2116)],
+    0x1D: [(0x35A, 0x35D), (0xEF0, 0x1190), (0x20E6, 0x2116), (0x2DE7, 0x2E00)],
     # bank 1E: everything between ScreenPreDraw and GfxFillVramRegions is
     # data (font/UI tile blocks + synth waveform tables + a blank string).
     0x1E: [(0x2C8, 0x39FA)],
