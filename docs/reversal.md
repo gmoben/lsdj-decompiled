@@ -511,7 +511,16 @@ map-column metrics, the bank-1D `SynthFieldLayout`, the bank-1F
 `FxCmdRefTable`) and the full per-screen CGB palette block set
 (`ScreenPalSong`…`ScreenPalInstrNoise`) resolved from `GetScreenPalette`'s
 dispatch. `data_refs.py` now reports **0**; every referenced ROM data address
-carries an exact functional symbol. The sweep also added ~27 session-evidenced
+carries an exact functional symbol. One final Emulicious-specific class remained
+(verified by screenshot): the **vector page**. Emulicious statically segments
+the RST/interrupt slots ($0000-$0068) and emits `_DATA_` labels for every data
+run *and* every accessed interior offset there, without symbol+offset binding —
+`_DATA_11_` appeared *inside* the labeled `BitMasks` table. The bulletproof fix
+is per-byte symbols across every non-code byte of the page: the two mask sets
+named per bit (`BitMaskBit6..Bit0` for the descending `$80>>n` row,
+`BitMasksAsc`/`BitMaskAsc1..7` for the ascending `1<<n` row) and the `$ff`
+filler bytes as `UnusedXXXX` (positional names are the honest ones for unused
+fill; they are data with no function beyond their location). The sweep also added ~27 session-evidenced
 RAM names (`wColChain`, `wPlayChanFirst/Last`, `wLfoStatePU1/PU2/WavNoi`,
 `wFileNameBuf`, `wDecompBuf`, …) to `ram.inc`.
 

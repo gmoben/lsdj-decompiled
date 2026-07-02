@@ -238,3 +238,85 @@
 01E0 SyncModeStubs              ; 4 x 4-byte jp-hl slots from SendSyncHandshake ((mode&3)*4); only slot 0 (ret) populated
 0200 TimesTwoTable              ; [n] -> 2n byte ramp (FileUpgradeRemapBits, synth draw)
 0255 SignedRampTable            ; signed ramp -12..+15 (modulation LUT block; read by UiLoadHwTables)
+
+; --- vector page ($0000-$0068): Emulicious segments the RST/interrupt slots
+; and creates _DATA_ labels for every data run/accessed offset, ignoring
+; symbol+offset -- so every non-code byte gets its own symbol. ---
+0011 BitMaskBit6         ; bit mask $40 (BitMasks descending set)
+0012 BitMaskBit5         ; bit mask $20 (BitMasks descending set)
+0013 BitMaskBit4         ; bit mask $10 (BitMasks descending set)
+0014 BitMaskBit3         ; bit mask $08 (BitMasks descending set)
+0015 BitMaskBit2         ; bit mask $04 (BitMasks descending set)
+0016 BitMaskBit1         ; bit mask $02 (BitMasks descending set)
+0017 BitMaskBit0         ; bit mask $01 (BitMasks descending set)
+0018 BitMasksAsc         ; ascending bit masks: [$0018+n] = 1<<n (this byte: bit 0)
+0019 BitMaskAsc1         ; bit mask $02 (ascending set)
+001A BitMaskAsc2         ; bit mask $04 (ascending set)
+001B BitMaskAsc3         ; bit mask $08 (ascending set)
+001C BitMaskAsc4         ; bit mask $10 (ascending set)
+001D BitMaskAsc5         ; bit mask $20 (ascending set)
+001E BitMaskAsc6         ; bit mask $40 (ascending set)
+001F BitMaskAsc7         ; bit mask $80 (ascending set)
+0001 Unused0001          ; $ff fill, RST $00 slot tail / unused RST $08 slot
+0002 Unused0002          ; $ff fill, RST $00 slot tail / unused RST $08 slot
+0003 Unused0003          ; $ff fill, RST $00 slot tail / unused RST $08 slot
+0004 Unused0004          ; $ff fill, RST $00 slot tail / unused RST $08 slot
+0005 Unused0005          ; $ff fill, RST $00 slot tail / unused RST $08 slot
+0006 Unused0006          ; $ff fill, RST $00 slot tail / unused RST $08 slot
+0007 Unused0007          ; $ff fill, RST $00 slot tail / unused RST $08 slot
+0008 Unused0008          ; $ff fill, RST $00 slot tail / unused RST $08 slot
+0009 Unused0009          ; $ff fill, RST $00 slot tail / unused RST $08 slot
+000A Unused000A          ; $ff fill, RST $00 slot tail / unused RST $08 slot
+000B Unused000B          ; $ff fill, RST $00 slot tail / unused RST $08 slot
+000C Unused000C          ; $ff fill, RST $00 slot tail / unused RST $08 slot
+000D Unused000D          ; $ff fill, RST $00 slot tail / unused RST $08 slot
+000E Unused000E          ; $ff fill, RST $00 slot tail / unused RST $08 slot
+000F Unused000F          ; $ff fill, RST $00 slot tail / unused RST $08 slot
+0020 Unused0020          ; $ff fill, unused RST $20/$28/$30 slots
+0021 Unused0021          ; $ff fill, unused RST $20/$28/$30 slots
+0022 Unused0022          ; $ff fill, unused RST $20/$28/$30 slots
+0023 Unused0023          ; $ff fill, unused RST $20/$28/$30 slots
+0024 Unused0024          ; $ff fill, unused RST $20/$28/$30 slots
+0025 Unused0025          ; $ff fill, unused RST $20/$28/$30 slots
+0026 Unused0026          ; $ff fill, unused RST $20/$28/$30 slots
+0027 Unused0027          ; $ff fill, unused RST $20/$28/$30 slots
+0028 Unused0028          ; $ff fill, unused RST $20/$28/$30 slots
+0029 Unused0029          ; $ff fill, unused RST $20/$28/$30 slots
+002A Unused002A          ; $ff fill, unused RST $20/$28/$30 slots
+002B Unused002B          ; $ff fill, unused RST $20/$28/$30 slots
+002C Unused002C          ; $ff fill, unused RST $20/$28/$30 slots
+002D Unused002D          ; $ff fill, unused RST $20/$28/$30 slots
+002E Unused002E          ; $ff fill, unused RST $20/$28/$30 slots
+002F Unused002F          ; $ff fill, unused RST $20/$28/$30 slots
+0030 Unused0030          ; $ff fill, unused RST $20/$28/$30 slots
+0031 Unused0031          ; $ff fill, unused RST $20/$28/$30 slots
+0032 Unused0032          ; $ff fill, unused RST $20/$28/$30 slots
+0033 Unused0033          ; $ff fill, unused RST $20/$28/$30 slots
+0034 Unused0034          ; $ff fill, unused RST $20/$28/$30 slots
+0035 Unused0035          ; $ff fill, unused RST $20/$28/$30 slots
+0036 Unused0036          ; $ff fill, unused RST $20/$28/$30 slots
+0037 Unused0037          ; $ff fill, unused RST $20/$28/$30 slots
+003C Unused003C          ; $ff fill, RST $38 slot tail
+003D Unused003D          ; $ff fill, RST $38 slot tail
+003E Unused003E          ; $ff fill, RST $38 slot tail
+003F Unused003F          ; $ff fill, RST $38 slot tail
+0045 Unused0045          ; $ff fill, VBlank vector tail
+0046 Unused0046          ; $ff fill, VBlank vector tail
+0047 Unused0047          ; $ff fill, VBlank vector tail
+0049 Unused0049          ; $ff fill, STAT vector tail
+004A Unused004A          ; $ff fill, STAT vector tail
+004B Unused004B          ; $ff fill, STAT vector tail
+004C Unused004C          ; $ff fill, STAT vector tail
+004D Unused004D          ; $ff fill, STAT vector tail
+004E Unused004E          ; $ff fill, STAT vector tail
+004F Unused004F          ; $ff fill, STAT vector tail
+0053 Unused0053          ; $ff fill, Timer vector tail
+0054 Unused0054          ; $ff fill, Timer vector tail
+0055 Unused0055          ; $ff fill, Timer vector tail
+0056 Unused0056          ; $ff fill, Timer vector tail
+0057 Unused0057          ; $ff fill, Timer vector tail
+005B Unused005B          ; $ff fill, Serial vector tail
+005C Unused005C          ; $ff fill, Serial vector tail
+005D Unused005D          ; $ff fill, Serial vector tail
+005E Unused005E          ; $ff fill, Serial vector tail
+005F Unused005F          ; $ff fill, Serial vector tail
