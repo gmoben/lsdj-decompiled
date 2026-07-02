@@ -27,52 +27,52 @@
 4000 InstrGetField0_4000    ; instrument field 0x0 read (4x)
 4157 InstrGetField1_4157    ; instrument field 0x1 read (2x)
 4169 InstrGetField9_4169    ; instrument field 0x9 read (1x)
-5091 InstrBanked_5091       ; banked-call wrapper (5x)
-5413 InstrBanked_5413       ; banked-call wrapper (1x)
-5461 InstrBanked_5461       ; banked-call wrapper (4x)
-7097 InstrBanked_7097       ; banked-call wrapper (4x)
+5091 IsPhraseUsedFar            ; FarCall bank01 IsPhraseUsed
+5413 MarkChainPhrasesUsed       ; mark all phrases of chain arg used (rows<16, $ff skipped)
+5461 IsChainUsedFar             ; FarCall bank01 IsChainUsed
+7097 RedrawScreenFar1F          ; FarCall home RedrawScreen ($24dd) with bank 4 arg
 4085 InstrGetField6_4085    ; instrument field 0x6 read
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 409C InstrGetField6_409C        ; instrument field 0x6 read
 40CA InstrGetField5_40CA        ; instrument field 0x5 read
-411F InstrHDrawStr_411F         ; calls DrawStringIndexed
+411F DrawTableFlag              ; draw the instr TABLE on/off state glyph (field 5) with palettes
 418A InstrGetField1_418A        ; instrument field 0x1 read
-44B7 InstrHDrawHex_44B7         ; calls DrawHexByte
-48C5 InstrHSongWrite_48C5       ; calls WriteSongByte
-492A InstrHInstrWrite_492A      ; calls WriteInstrByte
+44B7 DrawKitNameCell            ; kit number (hex) + 6-char kit name (ReadKitName)
+48C5 WriteChainPhrase           ; chains[chain*16+row] = phrase (song $2080 region)
+492A ClaimInstrSlot             ; read+mark the instr-alloc entry (song $2040); returns prior state
 4B00 InstrHReadTableRow         ; read a 16-byte row from SRAM (ReadSongBytes) -> $c46d, then scan it
-4B45 InstrHTableTrans_4B45      ; accesses TableTrans
-4CCD InstrHSongWrite_4CCD       ; calls WriteSongByte
+4B45 IsTableFree                ; e=1 if table n has no data in its env/cmd rows (used by FindFreeTable)
+4CCD MarkInstrUsed              ; set the instr-alloc entry for instrument arg (<$40)
 4F04 InstrHMarkTableUsed        ; if arg<$20, set $c47d[arg]=1 (mark table used)
 4F1C InstrHGetTableUsed         ; return $c47d[arg] (table-used flag)
 4F2E InstrHReadPhraseRef        ; read SRAM byte at $A040+arg (ReadSongByte bank1)
-4F49 InstrHPhraseNote_4F49      ; accesses PhraseNote
+4F49 ComparePhraseToWork        ; compare phrase rows against the $0FF0 work row (dedupe comparator)
 4FC5 InstrHTableCmd1_4FC5       ; accesses TableCmd1
 50A8 InstrHScanUsedPhrases      ; for each phrase 0..255 used (InstrBanked_5091), process via InstrHPhraseNote_4F49
 50CC InstrHCountUsedTables      ; count nonzero entries in used-table map $c47d[0..$1f]
 50F6 InstrHProcessUsedTables    ; count tables (50CC) then run InstrHTableCmd1_4FC5 per used
 513D InstrHMarkInstrTable       ; read instr field6; if bit5 set, mark its table used (InstrHMarkTableUsed)
 515F InstrHScanInstrTables      ; for each instrument 0..63 used, mark its table (InstrHReadPhraseRef/513D)
-5183 InstrHSongWrite_5183       ; calls WriteSongByte
-51B9 InstrHTableTrans_51B9      ; accesses TableTrans
+5183 ClearTableRow              ; zero 16 bytes of one table column region (row arg <$10)
+51B9 ClearTable                 ; wipe table n (<$20) across all five column regions ($3480..$3C80)
 526B InstrHCollectUsedTables    ; gather used-table indices + pointers from map $c47d
-52B3 InstrHMemFill_52B3         ; calls MemSet
-52DA InstrHSeqRead_52DA         ; calls ReadSeqByte
+52B3 BuildUsedTablesMap         ; rebuild the used-tables map ($c47d, 32 slots): scan instrs, phrases, tables
+52DA RemapSeqChains             ; walk the 4 sequence columns remapping chain refs (CleanSongData step)
 5478 InstrHScanUsedChains       ; for each chain 0..127 used (InstrBanked_5461), process (InstrBanked_5413)
-549C InstrHPhraseNote_549C      ; accesses PhraseNote
-5644 InstrHChainPhrase_5644     ; accesses ChainPhrase
-573C InstrHTableTrans_573C      ; accesses TableTrans
-5996 InstrHChainPhrase_5996     ; accesses ChainPhrase
-5A12 InstrHSong_5A12            ; accesses Song
-5A8E InstrHInstrWrite_5A8E      ; calls WriteInstrByte
-5BDE InstrHDrawHex_5BDE         ; calls DrawHexByte
-5C78 InstrHDrawHex_5C78         ; calls DrawHexByte
-5D18 InstrHDrawHex_5D18         ; calls DrawHexByte
+549C FindDupPhrase              ; scan phrase-note rows ($0000) for a duplicate of the candidate
+5644 FindDupChain               ; scan chain rows ($2080) for a duplicate
+573C FindDupTable               ; scan table rows ($3680) for a duplicate
+5996 RemapPhraseRefs            ; walk all chains ($2080..) replacing dup phrase refs with the canonical one
+5A12 RemapTableRefs             ; walk instruments/table-env ($3290..) replacing dup table refs
+5A8E RemapCmdTableRefs          ; walk phrase/table cmd values replacing dup table refs (A command)
+5BDE DrawFreedPhrases           ; count freed phrases (IsPhraseUsedFar) + draw the DE-DUPE counter ($c9c8)
+5C78 DrawFreedChains            ; count freed chains (IsChainUsedFar) + draw the DE-DUPE counter ($c9ca)
+5D18 DrawFreedTables            ; count free tables (IsTableFree) + draw the DE-DUPE counter
 5DC9 InstrHCountUsedPhrases     ; count used phrases 0..255 (InstrBanked_5091)
 5DF3 InstrHCountUsedChains      ; count used chains 0..127 (InstrBanked_5461)
-5E1D InstrHMemFill_5E1D         ; calls MemSet
-5F20 InstrHPhraseNote_5F20      ; accesses PhraseNote
+5E1D RebuildPhraseAllocMap      ; clear the phrase-alloc bitmap ($3E82, 32B) + rescan via used chains
+5F20 MarkPhraseDataUsed         ; per-phrase used-scan helper (reads rows, dispatch table $491a)
 5F85 InstrHScanChainPhrases     ; scan the 16 phrase slots of a chain (arg*16) for usage
 5FC2 InstrHScanAllChainPhr      ; for 16 chains, scan their phrases (InstrHScanChainPhrases)
 5FEC InstrHScanPhraseCmds       ; scan phrase command bytes from SRAM ($A0xx) for references
@@ -82,14 +82,14 @@
 619E InstrHScanChainRows        ; scan 16 rows of a chain (arg*16)
 61C4 InstrHSongAddr             ; compute SRAM song-area address (arg*16 + $B2xx)
 620F InstrHScanTableRows        ; scan 16 table rows from a pointer
-62BD InstrHDrawStr_62BD         ; calls DrawString
-6B3B InstrHDrawStr_6B3B         ; calls DrawStringIndexed
+62BD TableIsReferenced          ; e=1 if table n is referenced by any instrument or A command (CleanInstrData)
+6B3B DrawPhraseCellValue        ; draw the cell under the phrase cursor ($fe/$ff specials, $c90c state)
 6CA2 InstrHReadCursorCell       ; read cell via ROM table $64E1 + cursor offsets (args sp+7/sp+8)
 6EFE InstrHReadCursorCellAt     ; read cell at cursor $c415/$c416 (InstrHReadCursorCell)
 6F14 DrawChanStatus            ; draw channel status cell at (16, ch+6) from wChanModFlag[ch]
 70A8 InstrHGetParamPlus4        ; return $c429 + 4
 70B6 InstrHDrawParamField       ; draw a field from $c429 (parity-based) via InstrHGetParamPlus4
-70DF InstrHDrawStr_70DF         ; calls DrawStringIndexed
+70DF DrawInstrParamField        ; draw an instrument parameter text field (InstrHGetParamPlus4 + DrawTextField)
 ; --- functions called from bank 0 (this bank paged in) ---
 4A26 WordHelper         ; word/speech helper
 7801 TxtCutWord        ; "CUT WORD"
