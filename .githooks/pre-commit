@@ -20,13 +20,25 @@ if [[ -n "$blocked" ]]; then
     exit 1
 fi
 
+# The carved disassembly is the ROM re-encoded as text -- also never committed.
+blocked=$(git diff --cached --name-only --diff-filter=A \
+    | grep -E '^src/.*\.asm$' || true)
+if [[ -n "$blocked" ]]; then
+    echo "error: refusing to commit generated disassembly (ROM-derived):" >&2
+    echo "$blocked" >&2
+    echo "src/*.asm is regenerated from your ROM by 'make'; only src/*.sym" >&2
+    echo "curation is tracked. Remove from the index: git restore --staged <file>" >&2
+    exit 1
+fi
+
 # --- 2. Verify the build still matches the original ROM ---------------------
-if [[ -f lsdj9_4_0.gb ]]; then
+ROM="${BASEROM:-lsdj9_4_0.gb}"
+if [[ -f "$ROM" ]]; then
     echo "==> make compare"
     make compare
 else
     echo "==> base ROM not present; skipping 'make compare'." >&2
-    echo "    Supply lsdj9_4_0.gb to enable byte-for-byte verification." >&2
+    echo "    Supply the base ROM to enable byte-for-byte verification." >&2
 fi
 
 echo "==> pre-commit checks passed."

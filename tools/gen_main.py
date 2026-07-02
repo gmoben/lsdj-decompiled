@@ -19,7 +19,11 @@ import re
 from pathlib import Path
 
 BANK_SIZE = 0x4000
-ROM_NAME = "lsdj9_4_0.gb"
+# The base ROM: override with LSDJ_BASEROM=/path/to/rom.gb (the Makefile passes
+# BASEROM through). The generated main.asm INCBINs this exact path, so a ROM
+# outside the repo root works too (main.asm is generated, never committed).
+import os as _os
+ROM_NAME = _os.environ.get("LSDJ_BASEROM", "lsdj9_4_0.gb")
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
 NUM_BANKS = 64
@@ -108,7 +112,8 @@ def main() -> None:
         'INCLUDE "constants/ram.inc"',
         "",
     ]
-    rom = (ROOT / ROM_NAME).read_bytes() if (ROOT / ROM_NAME).is_file() else b""
+    rom_path = Path(ROM_NAME) if Path(ROM_NAME).is_absolute() else ROOT / ROM_NAME
+    rom = rom_path.read_bytes() if rom_path.is_file() else b""
 
     # Resolve kit labels from ROM content (works on kits a user patched with an
     # external tool). Disambiguate collisions: if a patched ROM names two kits the

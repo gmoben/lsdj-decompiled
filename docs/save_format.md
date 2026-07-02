@@ -128,7 +128,7 @@ for user kits (added by LSDPatcher).
 ## `.lsdsng` (single-song export)
 
 `name` (8 bytes) + `version` (1 byte) + the compressed song blocks (same codec,
-without the SRAM directory). See [`gmolsdj`](../../gmolsdj) for tooling that
+without the SRAM directory). See external tooling (e.g. liblsdj/lsdsng) that
 reads/writes these.
 
 ## Sources / confidence

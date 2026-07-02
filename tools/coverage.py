@@ -17,6 +17,7 @@ Usage: tools/coverage.py [ROM]
 
 from __future__ import annotations
 
+import os
 import re
 import sys
 from collections import defaultdict
@@ -291,7 +292,9 @@ def classify_unreached(rom: bytes, code: set[int], banks: list[int]):
 
 
 def main() -> None:
-    rom_path = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "lsdj9_4_0.gb"
+    _env = os.environ.get("LSDJ_BASEROM", "lsdj9_4_0.gb")
+    rom_path = Path(sys.argv[1]) if len(sys.argv) > 1 else (
+        Path(_env) if Path(_env).is_absolute() else ROOT / _env)
     rom = rom_path.read_bytes()
     nbanks = len(rom) // BANK
     ent = collect_entries(rom)

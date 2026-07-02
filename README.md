@@ -14,9 +14,6 @@ a modified GBDK 2.95).
 LSDj is a music tracker for the original Game Boy with a deep, decades-long
 chiptune community. A reproducible source-level understanding of the ROM
 enables preservation, documentation, bug archaeology, and study of the engine.
-This repository is a sibling to [`gmolsdj`](../gmolsdj) — where `gmolsdj`
-manages an *archive* of LSDj saves and ROMs, this project takes one of those
-ROMs apart.
 
 ## Legal: the ROM is not included
 
@@ -52,13 +49,19 @@ On Arch/Manjaro: `sudo pacman -S rgbds make python`.
 ## Quick start
 
 ```bash
-# 1. Put your legally-obtained LSDj 9.4.0 ROM in the repo root:
+# 1. Point the build at your legally-obtained LSDj 9.4.0 ROM. Either copy it
+#    into the repo root:
 cp /path/to/your/lsdj9_4_0.gb .
+#    ...or leave it where it is and pass the path to every make invocation:
+#    make BASEROM=/path/to/your/lsdj9_4_0.gb <target>
 
 # 2. Confirm it is the exact expected revision:
 make verify-rom
 
-# 3. Build and verify the reproduction is byte-for-byte identical:
+# 3. Build and verify the reproduction is byte-for-byte identical. The first
+#    build generates the disassembly (src/*.asm) from your ROM and the tracked
+#    symbol maps; this is the point of the design -- the repo ships no ROM
+#    bytes in any form, only the names, comments and carve metadata.
 make compare
 ```
 
@@ -70,26 +73,32 @@ A successful `make compare` prints:
 
 ## How it works
 
-A from-scratch disassembly of a 1 MiB ROM is a long road, so the build starts
-from a **verified baseline** and is refined incrementally:
+The repository deliberately contains **no ROM content, not even as assembly
+text** — a byte-exact disassembly is just the ROM re-encoded, so `src/*.asm`
+is generated locally and git-ignored. What *is* tracked is the part that took
+the work:
 
-1. **Bootstrap** — `src/main.asm` begins as one `INCBIN` per 16 KiB bank of the
-   base ROM (generated once by `tools/gen_baseline.py`). This reassembles to an
-   identical ROM, so `make compare` is green from commit one.
-2. **Carve** — replace `INCBIN` ranges with real disassembled code and data, one
-   routine/table at a time, labelling and commenting as you go.
-3. **Verify** — `make compare` must stay green after *every* change. If the
-   bytes drift, the change is wrong.
+- `src/bankNN.sym` — per-bank symbol maps: several thousand hand-verified
+  routine, table and string names with comments.
+- `constants/ram.inc` — the RAM variable map.
+- the code/data split metadata inside `tools/carve_clean.py`.
+- `docs/` — the write-ups (memory map, song format, save filesystem, sound
+  engine, sync protocol, editor architecture, methodology).
 
-This keeps the project always-buildable and always-correct while the
-human-readable surface area grows.
+The pipeline: `tools/coverage.py` traces reachable code from the vectors,
+bank-switch trampolines and every named symbol; `tools/carve_clean.py` +
+`tools/gen_main.py` then emit `src/bankNN.asm` and `src/main.asm` from your
+ROM with all names applied; RGBDS assembles it back; `make compare` asserts
+the result equals your original, byte for byte. If the bytes drift, the
+change was wrong — that invariant has held through every commit.
 
 ## Strategy: asm now, matching C later
 
 The project runs on **two tracks** (details in [`AGENTS.md`](AGENTS.md)):
 
-- **Track 1 — byte-matching asm disassembly (active).** The carving loop above.
-  The asm tree is the source of truth and the verification harness.
+- **Track 1 — byte-matching asm disassembly (active).** The symbol maps and
+  carve metadata are the source of truth; the generated asm tree is the
+  verification harness.
 - **Track 2 — matching C decompilation (the goal, gated).** LSDj is C built with
   a *modified GBDK 2.95* (SDCC). The end goal is **matching** C — source that,
   compiled with the original toolchain, produces byte-identical code — replacing
@@ -109,12 +118,13 @@ lsdj-decompiled/
 ├── rgbdscheck.asm        # RGBDS version guard
 ├── lsdj9_4_0.sha1        # expected base-ROM checksum
 ├── src/
-│   ├── main.asm          # top level: INCLUDEs carved banks, INCBINs the rest
-│   ├── bankNN.asm        # disassembled carved banks (00, 1b, …)
-│   └── bankNN.sym        # per-bank symbol maps (addr -> routine name)
+│   ├── bankNN.sym        # per-bank symbol maps (tracked; the curation)
+│   ├── bankNN.asm        # generated disassembly (git-ignored, from your ROM)
+│   └── main.asm          # generated top level (git-ignored)
 ├── include/
 │   └── hardware.inc      # standard GB hardware definitions (gbdev, CC0)
 ├── constants/            # symbolic constants
+│   ├── ram.inc           # RAM variable map (hundreds of named wXxx/hXxx vars)
 │   └── song.inc          # song-data memory map (offsets, counts)
 ├── data/                 # extracted data tables (added as carved)
 ├── gfx/                  # graphics assets (added as carved)
@@ -126,12 +136,17 @@ lsdj-decompiled/
 │   ├── editors.md        # screen/editor architecture + carving plan
 │   ├── data_model.md     # song format: chains/phrases/instruments/tables/synths
 │   ├── save_format.md    # .sav filesystem, compression, kits, lsdsng
+│   ├── reversal.md       # methodology + the road to full symbol coverage
 │   └── toolchain.md      # Track 2: period GBDK 2.95 / SDCC 2.2.1 recovery
 ├── tools/
-│   ├── gen_baseline.py   # one-time bootstrap baseline generator
-│   ├── gen_main.py       # generate main.asm (INCLUDE carved banks, INCBIN rest)
 │   ├── disasm.py         # byte-exact SM83->RGBDS disassembler (self-tested)
-│   ├── bankmap.py        # classify all banks; detect/name sample kits
+│   ├── coverage.py       # whole-ROM reachability tracing
+│   ├── carve_clean.py    # regenerate src/bankNN.asm (code/data split + symbols)
+│   ├── gen_main.py       # generate main.asm (INCLUDE carved banks, INCBIN kits)
+│   ├── gen_sym.py        # build the debugger symbol file (routines + RAM vars)
+│   ├── callgraph.py, farcall_targets.py, find_orphans.py, label_gaps.py,
+│   │   data_refs.py      # audits that drove symbol coverage to 100%
+│   ├── emu/              # SameBoy-based live-verification harness
 │   ├── toolchain/        # fetch + run the period compiler (under Wine)
 │   └── match/            # matching-decompilation harness (compile C, diff vs ROM)
 └── .githooks/pre-commit  # ROM-leak guard + `make compare`
@@ -159,8 +174,11 @@ make clean      # remove build/
 ```
 
 `make sym` writes a `BANK:ADDR Name` symbol file (`build/lsdj9_4_0.sym`,
-BGB/SameBoy/Emulicious format) with every named routine — copy it next to your
-ROM as `lsdj9_4_0.sym` to debug LSDj with named labels.
+BGB/SameBoy/Emulicious format) and deploys a copy beside the ROM. Every
+routine, data table, string and RAM variable is named — in Emulicious the
+symbol tree resolves completely, with no `_LABEL_`/`_DATA_` auto-labels left.
+This file is arguably the most useful artifact of the whole project even if
+you never read the assembly.
 
 See [`AGENTS.md`](AGENTS.md) for the full contributor/agent workflow, coding
 conventions, and the carving methodology.
@@ -189,7 +207,7 @@ the way for Game Boy disassemblies.
 
 ## License
 
-The original LSDj ROM is **not** covered by this repository's license and is not
-included. The disassembly tooling, build scripts, and documentation authored
-here are released under the MIT License (see `LICENSE` when added).
+The original LSDj ROM is **not** covered by this repository's license and is
+not included in any form. The tooling, symbol maps, build scripts and
+documentation authored here are MIT-licensed (see [`LICENSE`](LICENSE)).
 `include/hardware.inc` is CC0 (gbdev).

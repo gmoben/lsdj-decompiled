@@ -16,6 +16,11 @@
 # ...but hand-maintained source symbol maps (src/*.sym) ARE tracked:
 !src/*.sym
 
+# --- Generated disassembly ---------------------------------------------------
+# The carved .asm IS the ROM re-encoded as text, so it is never committed.
+# `make` regenerates it from your ROM + the tracked src/*.sym curation.
+/src/*.asm
+
 # --- Live emulator RAM/state captures ---------------------------------------
 # Keep these OUTSIDE /build/ (which `make clean` wipes). Not ours to ship.
 /dumps/

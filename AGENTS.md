@@ -45,8 +45,8 @@ written in C and compiled with a **modified GBDK 2.95**, so the machine code is
 SDCC/GBDK-flavoured, not hand-written assembly. The long-term goal is a clean,
 commented asm tree that can seed a C decompilation.
 
-Sibling project: [`gmolsdj`](../gmolsdj) (LSDj archive manager). This repo is the
-"take one ROM apart" counterpart to gmolsdj's "manage many saves/ROMs".
+This repo is the "take one ROM apart" kind of project: a single ROM, taken to
+pieces, with the pieces named.
 
 ## Strategy: asm baseline → matching C decompilation
 

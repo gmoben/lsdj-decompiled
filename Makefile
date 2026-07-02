@@ -23,8 +23,12 @@ RGBFIXFLAGS  ?= -v
 
 # --- Files -----------------------------------------------------------------
 # BASEROM: your supplied original (input). TARGET: what we build (output).
-BASEROM  := lsdj9_4_0.gb
+# Either copy your ROM into the repo root as lsdj9_4_0.gb, or point BASEROM at
+# it anywhere on disk:  make BASEROM=/path/to/your/lsdj9_4_0.gb compare
+BASEROM  ?= lsdj9_4_0.gb
 ROM_SHA1 := 58ba2e44c726c61d8c91423ec82152319dddc2ca
+# The generators (carve/main.asm) read the same path via this env var.
+export LSDJ_BASEROM := $(BASEROM)
 
 BUILD  := build
 TARGET := $(BUILD)/lsdj9_4_0.gb
@@ -32,10 +36,23 @@ OBJ    := $(BUILD)/main.o
 SYM    := $(BUILD)/lsdj9_4_0.sym
 MAP    := $(BUILD)/lsdj9_4_0.map
 
-.PHONY: all compare verify-rom sym clean tidy baseline
+.PHONY: all compare verify-rom sym carve clean tidy baseline
 .SECONDARY:
 
 all: $(TARGET)
+
+# --- Carve: generate the disassembly from your ROM + the tracked symbol maps -
+# src/bankNN.asm and src/main.asm are GENERATED (they are the ROM re-encoded as
+# text, so they are never committed). A fresh clone builds them here from your
+# ROM and the hand-curated src/bankNN.sym + carve metadata.
+CARVED_ASM := $(wildcard src/bank*.sym)
+carve: | $(BASEROM)
+	tools/carve_clean.py
+
+# Auto-carve on a fresh clone: main.asm is the linker entry point; if it is
+# missing, generate the whole tree first.
+src/main.asm: $(CARVED_ASM) tools/carve_clean.py tools/gen_main.py | $(BASEROM)
+	tools/carve_clean.py
 
 # --- Assemble + link + fix -------------------------------------------------
 $(OBJ): src/main.asm include/hardware.inc $(BUILD)/rgbdscheck.o | $(BASEROM)

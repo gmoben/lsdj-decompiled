@@ -20,6 +20,7 @@ from __future__ import annotations
 import subprocess
 import sys
 from importlib import import_module
+import os
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -28,7 +29,8 @@ disasm = import_module("disasm")
 
 BANK = 0x4000
 ROOT = Path(__file__).resolve().parents[1]
-ROM = ROOT / "lsdj9_4_0.gb"
+_rom_env = os.environ.get("LSDJ_BASEROM", "lsdj9_4_0.gb")
+ROM = Path(_rom_env) if Path(_rom_env).is_absolute() else ROOT / _rom_env
 
 # Unconditional control-flow opcodes (jr/jp/call/ret variants) -- their density
 # distinguishes real code from graphics/table data. `$FF`/rst are excluded (the
@@ -202,7 +204,7 @@ def main() -> None:
             continue
         runs = data_runs(code, rom, b)
         data_arg = ",".join(f"0x{s:X}:0x{e:X}" for s, e in runs)
-        cmd = ["python3", "tools/disasm.py", "--rom", "lsdj9_4_0.gb",
+        cmd = ["python3", "tools/disasm.py", "--rom", str(ROM),
                "--bank", f"0x{b:02x}", "--symbols", f"src/bank{b:02x}.sym",
                "--comments", "-o", f"src/bank{b:02x}.asm"]
         if b != 0:
