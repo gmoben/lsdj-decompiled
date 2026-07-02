@@ -348,3 +348,9 @@
 7CE7 .sndCheckSyncState
 7CED .syncStopTransport
 7D5D .setLfoStateWavNoi
+49C3 .lookupNote                ; per-channel note path: build period-table + slide-src pointers
+49E0 .useNoteTable              ; slide-src set: use the full note->period table (wNotePeriodLo)
+4A01 .computeFreq               ; compute channel period from note (+PU2 transpose), store to wChanFreq
+4A1A .noTranspose               ; non-PU2: transpose = 0
+4A1B .addTranspose              ; add note+transpose, index the period table
+4A22 .storeFreq                 ; write the resolved period to wChanFreq
