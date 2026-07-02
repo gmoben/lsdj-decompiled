@@ -62,6 +62,8 @@ MANUAL: dict[int, list[tuple[int, int]]] = {
     # ($7D81-$7DD1: VibDepthTable[16] + VibRateTableA/B[16 x 16-bit], read by
     # FxCmd_V), and NoiseFreqTable ($5EDA, hides SetNoisePoly at $5F52).
     0x02: [(0x3D8, 0x5D8), (0x1EDA, 0x1F52), (0x3D81, 0x3DD1)],
+    # bank 1B: SAVING... + %d + ON/OFF/N/A project strings.
+    0x1B: [(0x12D8, 0x12E2), (0x1B06, 0x1B09), (0x1B56, 0x1B62)],
     # bank 1C: an [8][8] rising value table ($6E3C) decoded as code, and
     # DefaultWaveFrameB1C ($4047, 16 bytes -- hides the $4057 magic check).
     0x1C: [(0x47, 0x57), (0x2E3C, 0x2E7C)],
