@@ -26,38 +26,38 @@
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 4000 FileWriteCompressedSram    ; low-level compressed-output writer to SRAM (bank $c979, ptr $c97a; di-guarded)
-415A FileDrawByte_415A          ; calls DrawByte
+415A FindFreeBlock              ; scan the block alloc table ($a141+) for a free block ($c56b selects the SRAM half)
 42D6 FileSlotHalfBase           ; return $40 or $c0 depending on $c56b (which save half)
 42E9 FileScanSlotNames          ; scan file-slot names in SRAM ($A140, bank4) from index $c958
 4335 FileGetNameChar            ; read $c959[arg] from the 32-char name buffer (bounds-checked)
-4352 FileStrCopy_4352           ; calls strcpy
+4352 CopyFileName               ; copy the 8-char filename of slot arg (<$20) into the $c987 buffer
 43C1 FileReadCompressedBlock    ; read a compressed block via ptr $c97d (bounds $800f); 16-step
 441F CompressSong               ; compress the 32 KiB working song ($A000) into the output stream: init ptrs $c97d/$c983, read via ReadSongByte, emit via WriteCompressedByte ($441E is the prior fn's ret)
-46E3 FileDrawStr_46E3           ; calls DrawStringIndexed
-4778 FileDrawStr_4778           ; calls DrawString
+46E3 DecompressBlock            ; LSDj block decompressor: RLE $c0, special $e0/$f0 (default wave) /$f1 (default instr) /$ff EOF
+4778 DrawVerifyPanel            ; "VERIFY..." save-verification panel + slot info
 4862 FileFindSlotEnd            ; scan file slots in SRAM ($A141) for the $ff terminator
-48D4 FileMemFill_48D4           ; calls MemSet
+48D4 CountFileBlocks            ; rebuild the per-file block-count map ($c959, 32 slots) from the alloc table
 4969 FileListSlots              ; enumerate file slots for the browser (<-DrawFileScreen)
-49D4 FileSongWrite_49D4         ; calls WriteSongByte
-4A46 FileStrCopy_4A46           ; calls strcpy
-4C1A FileSongWrite_4C1A         ; calls WriteSongByte
-4D58 FileSongWrite_4D58         ; calls WriteSongByte
-4DD1 FileSongWrite_4DD1         ; calls WriteSongByte
+49D4 FreeFileBlocks             ; release all blocks of file arg in the alloc table ($a141+)
+4A46 LoadFileListState          ; read active-file marker ($bfc1) + init map, cursor restrict, block counts
+4C1A EraseFileName              ; clear the 8-char filename slot in the $a000 name table
+4D58 EraseFile                  ; FILE erase action: FreeFileBlocks + EraseFileName + refresh (TxtFileErased)
+4DD1 MigrateTempoProps          ; copy legacy property bytes $bfb2/$bfb3 -> $bfca/$bfcb (format fixup)
 4FA5 FileLoadSlotInfo           ; load slot info for index (arg<$20 -> $c97f); calls FileScanSlotNames
 5077 FileClearChanState         ; zero the 8 wChanActive bytes ($C0E0..7) backward
 5098 FileStopSound              ; SetInterruptEnable + FileClearChanState (silence before load/save)
-50B3 FileDrawByte_50B3          ; calls DrawByte
-5361 FileDrawStr_5361           ; calls DrawStringIndexed
+50B3 LoadInputSyncProps         ; load KEY DELAY/REPEAT ($bfba/bb) + sync modes ($bfbd/$bfbf) from song properties
+5361 DrawFileTextField          ; draw a file-screen text field (highlight-aware) at computed coords
 5531 FileDrawField              ; DrawTextField wrapper
 5563 FileDrawFieldChecked       ; bounds-check (<$10) then DrawTextField
 5597 FileValidateName           ; validate a name (FileFindSlotEnd; char range $0a/$1f/$20 checks)
-55F1 FileDrawStr_55F1           ; calls DrawStringIndexed
-5892 FileDrawStr_5892           ; calls DrawString
+55F1 DrawFileList               ; draw the visible file slots (wFileScroll window, names + block counts)
+5892 DrawLoadLabel              ; draw the "LOAD" prompt string
 58C1 FileMatchName              ; compare a slot name (ReadSongByte) against the name buffer (FileGetNameChar)
 590B FileCopyNameToBuf          ; copy a slot name from SRAM (ReadSongByte) into the name buffer
 594A FileCheckNameLen           ; return whether ($c999-$c99b) exceeds $0b (name length)
 595F FileCalcCompressedSize     ; read 4 size bytes + MulU16 -> total compressed size
-59E6 FileDrawStr_59E6           ; calls DrawString
+59E6 DrawBlocksUsed             ; BLOCKS USED/FREE panel (FileCalcCompressedSize, 33-block bound)
 60CC FileReadInstrByte          ; read byte[arg] of the instrument currently being iterated (for upgrade/migration)
 60E0 FileWriteInstrByte         ; write byte[arg] of the instrument currently being iterated
 60F5 FileForEachInstrType       ; for each of the 64 instruments whose byte-0 (type) == arg, invoke the callback ptr
@@ -92,7 +92,7 @@
 7109 FileClassifyToken          ; classify a byte for compression ($04/$10/$a0/$c0 tokens)
 7167 FileCompressRun            ; RLE-encode a run (WriteCompressedByte x2, ReadWorkingSongByte)
 719C FileSendSyncByte           ; send a sync byte (SendSyncByte, $3983; arg<$81)
-72EE FileSync_72EE              ; calls SendSyncHandshake
+72EE SyncTransferByte           ; link-port byte exchange step (wSyncState, joypad, SendSyncHandshake)
 741D FilePutDecompByte          ; append decompressed byte to $DA00 buffer ($c983 cursor)
 7426 FileDecompNextBank         ; decompression: advance source / switch SRAM bank ($c97c, $c982)
 749E FileDecompressByte         ; decode one compressed byte ($c0/$e0 RLE tokens; FileDecompressRun)
