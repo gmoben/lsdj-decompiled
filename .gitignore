@@ -22,6 +22,7 @@
 /src/*.asm
 # Disassembly text exported from the debugger (same reasoning):
 /emulicious.out
+/build/listing.asm
 
 # --- Live emulator RAM/state captures ---------------------------------------
 # Keep these OUTSIDE /build/ (which `make clean` wipes). Not ours to ship.

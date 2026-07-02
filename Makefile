@@ -37,7 +37,7 @@ OBJ    := $(BUILD)/main.o
 SYM    := $(BUILD)/lsdj9_4_0.sym
 MAP    := $(BUILD)/lsdj9_4_0.map
 
-.PHONY: all compare verify-rom sym carve clean tidy baseline
+.PHONY: all compare verify-rom sym carve listing audit clean tidy baseline
 .SECONDARY:
 
 all: $(TARGET)
@@ -90,6 +90,16 @@ sym: $(TARGET)
 # --- Verification ----------------------------------------------------------
 # `compare` is the core invariant: the build must equal the original ROM,
 # byte for byte. Keep this green through every disassembly change.
+# Full annotated disassembly in one file -- the local stand-in for pasting the
+# Emulicious debugger view (regenerate any time; git-ignored).
+listing: src/main.asm
+	tools/gen_listing.py -o $(BUILD)/listing.asm
+
+# Cross-check a pasted Emulicious export against our symbols: prints only the
+# actionable gaps (unsymboled code/data) vs cosmetic operand-quirks.
+audit: sym
+	tools/audit_export.py emulicious.out
+
 compare: $(TARGET) | $(BASEROM)
 	cmp $(BASEROM) $(TARGET)
 	@printf '%s  %s\n' "$(ROM_SHA1)" "$(TARGET)" | sha1sum -c -

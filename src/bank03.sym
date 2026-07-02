@@ -154,3 +154,16 @@
 581D .right               ; wButtons == case in InstrScreenInput
 592E .aRight              ; wButtons == case in InstrScreenInput
 6202 .aLeft               ; wButtons == case in InstrScreenInput
+6725 InstrParamKit              ; param handler: kit select (KitSelectNext) + DrawKitNameField
+6734 InstrParamByte1Hi          ; param handler: instrument byte 1 bits 5-6
+67AD InstrParamByte7Lo          ; param handler: instrument byte 7 bits 0-1
+67ED InstrParamByte8            ; param handler: instrument byte 8 (hex)
+6813 InstrParamByte2Lo7         ; param handler: instrument byte 2 bits 0-6
+6873 InstrParamByte9Lo7         ; param handler: instrument byte 9 bits 0-6
+68D3 InstrParamColA             ; param handler: field selected by wInstrCursorCol (variant A)
+691C InstrParamColB             ; param handler: field selected by wInstrCursorCol (variant B)
+697B InstrParamByte2Alt         ; param handler: instrument byte 2 (alternate draw)
+69A2 InstrParamByte10           ; param handler: instrument byte 10 (kit distortion $d0-$d3)
+69F1 InstrParamTablePrev        ; table field handler: InstrField5Prev + SetInstrFlags52/Table5
+69F7 InstrParamTableSet         ; table field handler: SetInstrFlags52 + SetInstrTable5
+69FD InstrParamTableSet2        ; table field handler: SetInstrTable5 entry

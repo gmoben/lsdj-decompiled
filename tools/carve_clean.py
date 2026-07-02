@@ -90,7 +90,7 @@ MANUAL: dict[int, list[tuple[int, int]]] = {
     0x1E: [(0x2C8, 0x39FA)],
     # bank 1F: OOM-instr + OUT OF TABLES + DE-DUPE panel strings, the
     # phrase-column layout table ($64E1, hides $64FF), and "TYPE   SPEECH".
-    0x1F: [(0x91A, 0xA26), (0xACE, 0xB00), (0xC11, 0xC20), (0x237D, 0x23B1), (0x244D, 0x248F),
+    0x1F: [(0x91A, 0x92A), (0xACE, 0xB00), (0xC11, 0xC20), (0x237D, 0x23B1), (0x244D, 0x248F),
            (0x24E1, 0x24FF), (0x2B32, 0x2B3B), (0x323F, 0x324D)],
     # bank 7: DMG+CGB tempo timer tables ($5E49/$6049, 256 x dw each), the PS/2
     # keyboard note/function maps ($662A/$66AA), and the keyboard-calibration

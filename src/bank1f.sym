@@ -4,7 +4,7 @@
 
 ; --- data tables + strings (db; instrument-editor + word/phrase helpers) ---
 4236 TxtDashTemplate    ; "/--/--" (value display template)
-491A FxCmdRefTable              ; per-FX-command reference descriptors (what each cmd value points at; CLEAN scans)
+491A DefaultWaveFrameB1F        ; default wave frame (16 bytes; MarkPhraseDataUsed compares phrase rows against it)
 4A02 DefaultInstrument       ; 16-byte default instrument template
 4ACE TxtOutOfMemory1F     ; "OUT OF MEMORY. CLEAN SONG DATA IN PROJECT SCREEN"
 4C11 TxtOutOfTables     ; "OUT OF TABLES!"
