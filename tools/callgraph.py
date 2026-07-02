@@ -54,26 +54,42 @@ def index_by_addr(lines: list[str]) -> dict[int, int]:
     return idx
 
 
+A_IMM = re.compile(r"\bld a, \$([0-9a-f]{2})\b")
+HL2000 = re.compile(r"\bld hl, \$2000\b")
+HLSET = re.compile(r"\bld \[hl\], \$([0-9a-f]{2})\b")
+BANKW = re.compile(r"ldh \[hCurrentBank\], a|ld \[\$2000\], a")
+
+
 def collect() -> dict[tuple[int, int], int]:
-    """(target_bank, addr) -> reference count, for unlabeled CF targets."""
+    """(target_bank, addr) -> reference count, for unlabeled CF targets.
+
+    Tracks the bank mapped at $4000-$7FFF by following `ld [$2000],N` writes, so a
+    `call $4xxx` from bank 0 resolves to the bank paged in just before it (LSDj's
+    dispatcher pattern: `ld [$2000],$01; call $4cf1`)."""
     targets: Counter[tuple[int, int]] = Counter()
     for p in sorted(SRC.glob("bank*.asm")):
         bank = int(p.stem[4:6], 16)
+        cur = bank                           # bank mapped at $4000-$7FFF
+        last_a: int | None = None
+        hl_is_2000 = False
         for line in p.read_text().splitlines():
-            m = CF_RE.search(line)
-            if not m:
+            t = line.split(";", 1)[0]
+            if (m := A_IMM.search(t)):
+                last_a = int(m.group(1), 16)
+            if HL2000.search(t):
+                hl_is_2000 = True
+            elif "ld hl," in t:
+                hl_is_2000 = False
+            if (m := HLSET.search(t)) and hl_is_2000:
+                cur = int(m.group(1), 16)    # ld hl,$2000; ld [hl],N
+            elif BANKW.search(t) and last_a is not None:
+                cur = last_a                 # ld a,N; ld [$2000],a / ldh [hCurrentBank],a
+            if not (m := CF_RE.search(t)):
                 continue
             a = int(m.group(1), 16)
             if a >= 0x8000:
-                continue                     # not a ROM address (RAM/SRAM): the
-                                             # caller line is mis-carved data
-            if a < 0x4000:
-                tb = 0                       # home bank -- unambiguous
-            elif bank != 0:
-                tb = bank                    # $4000-$7FFF from ROMX -> same bank
-            else:
-                continue                     # $4000-$7FFF from bank 0: mapped bank
-                                             # unknown (ambiguous) -- skip
+                continue                     # not ROM (mis-carved data byte)
+            tb = 0 if a < 0x4000 else cur    # home, else the mapped bank
             targets[(tb, a)] += 1
     syms = load_symbols()
     # A real function target is a *code* address (instruction) in its bank; a
