@@ -414,3 +414,4 @@ DEF wNameReturnScreen EQU $C42F ; screen to return to when the name editor close
 DEF wNameEditIsInstr  EQU $C430 ; nonzero = editing an instrument name
 DEF wNameEditBuf      EQU $C431 ; 5-char name being edited (instr/file/word/kit-sample)
 DEF wFont            EQU $C52E  ; UI font selection 0-2 (project screen FONT; picks the TilesFontN blocks)
+DEF wKbdInstrument   EQU $CB93  ; instrument played by the PS/2 keyboard (shown with name on the song screen)

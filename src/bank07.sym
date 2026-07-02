@@ -3,7 +3,7 @@
 ; ReadSeqByte, written via WriteSongByte(bank0, $B290+...).
 
 ; --- Song-screen strings + display tables (db; clipboard/output/channel) ---
-6889 PanNames           ; output-pan display strings "O7-8"/"O6-7"/"O5-6"/...
+6889 TxtOct78                   ; "O7-8"
 6E2C ChannelNames       ; channel display names "PU1"/"PU2"/"PU1+2"/...
 4373 TxtClonedChain     ; "CLONED CHAIN"
 56FE TxtCancelSelect07  ; "CANCEL SELECT"
@@ -14,7 +14,7 @@
 7220 VramCopyByteSafe   ; spin until rSTAT mode<2 (VRAM free), then copy [de]->[hl], inc e/l
 4574 DrawSongScreen      ; screen idx 4: draws the song sequence (4 channels = PU1/PU2/WAV/NOI)
 47AA SongScreenUpdate   ; per-frame visual update (screen idx 4)
-4139 SongBanked_4139        ; banked-call wrapper (1x)
+4139 SongEnterChain             ; cache chain -> $c44f+wSongCol column cache, cancel selection, IsSongChainUsed check
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 4000 SongCheckGlyphTables       ; bounds-checked indices into ROM glyph tables $4A70/$4D70 (DebugTrap on overflow)
@@ -23,25 +23,25 @@
 4366 SongShowCloneMsg           ; show "CLONED CHAIN" / "CLONED CHAIN+PHRASES" popup
 4395 SongDrawCellHw             ; draw song-grid cell (palette per hGameboyType)
 43E4 SongReadRow                ; read song row $c41c from SRAM ($B290, ReadSongBytes) -> $c46d (16 bytes)
-4463 SongDrawHex_4463           ; calls DrawHexByte
+4463 SongDrawRowNum             ; draw a song row number + bookmark marker (wSongScroll window, 18 rows)
 451E SongRedrawRow              ; SongReadRow + draw the row at VRAM $9842 (palettes, SongDrawColumnValues/4395)
 4540 SongScrollToCursor         ; clamp song top-row $c41c so cursor $c41e stays visible
 4657 SongUpdatePlayMarker       ; per-channel play-position markers from wChanSongRow/NextSongRow (<-SongScreenUpdate)
-47CF SongDrawStr_47CF           ; calls DrawStringIndexed
-492D SongDrawCursorRow          ; draw cursor-row string (GetTilemapAddr at $c41e-$c41c, SongDrawStr_47CF)
+47CF SongRowPalettes            ; pick row draw palettes (cursor/bookmark-aware)
+492D SongDrawCursorRow          ; draw cursor-row string (GetTilemapAddr at $c41e-$c41c, SongRowPalettes)
 494E SongDrawHeaderLeft         ; draw left header label at VRAM $9840 (hw VramCopy)
 4973 SongDrawHeaderRight        ; draw right header element (hw VramCopy)
 4998 SongFindNextRow            ; scan down 1..16 from cursor $c41e, wrapping at 0 -> $ff
 49E7 SongCursorPageDown         ; PgDn: advance song cursor $c41e by a page ($c413==4 guard)
 4A25 SongFindPrevRow            ; scan up 1..16 from cursor $c41e, wrapping
 4A79 SongCursorPageUp           ; PgUp: retreat song cursor $c41e by a page
-4AB8 SongBanked_4AB8            ; banked-call wrapper
-4AFD SongDrawHex_4AFD           ; calls DrawHexByte
+4AB8 SongBeginSelection         ; SaveSelectionState, seed wSel* rect from the song cursor
+4AFD SongLoadCursorChain        ; read seq[wSongRow,wSongCol] ($ff -> empty path), validate+cache via SongEnterChain
 5736 SongStartSelection         ; framed entry to SongSeqRead_5739 (begin song selection/edit)
-5739 SongSeqRead_5739           ; calls ReadSeqByte
+5739 PasteSongSelection         ; write clipboard rows into the song grid (clipType 4; unreferenced variant)
 5929 SongEndSelection           ; finish selection ($0dbc), restore cursor from $c40d/$c94b
 5970 SongCalcSelectionSpan      ; compute selection span from $c40d/$c40f/$c41d
-5B1D SongSongWrite_5B1D         ; calls WriteSongByte
+5B1D SongEditSelection          ; apply the current edit op across the selection rect (clipType 4; 7 uses in SongScreenEdit)
 627C SortBookmarks              ; bubble-sort the 16-byte song bookmarks row ($aff0, song offset $0FF0)
 6320 IsBookmarked               ; -> e=1 if song row (arg) is in the bookmarks list, else 0
 637C AddBookmark                ; append song row to bookmarks; full -> ShowMax16Marks
@@ -49,25 +49,25 @@
 6413 ToggleBookmark             ; song row in list ? RemoveBookmark : AddBookmark
 644F AdjustBookmarksOnDelete    ; song rows [lo,hi) removed: drop bookmarks inside, shift later ones up, re-sort
 64CA AdjustBookmarksOnInsert    ; song rows shifted (src->dst): rebase bookmarks, drop wrapped, re-sort
-6543 SongDrawStr_6543           ; calls DrawStringIndexed
+6543 DrawKbdInstrState          ; keyboard state cell (arrows by $cb7f) + instrument hex (wKbdInstrument) at row 12
 672A SongHexDigit               ; return hex char "0123456789ABCDEF"[arg]
-674D SongBanked_674D            ; banked-call wrapper
-6812 SongDrawStr_6812           ; calls DrawStringIndexed
-6E50 SongBanked_6E50            ; banked-call wrapper
+674D DrawKbdInstrName           ; DrawKbdInstrState + instrument name via CopyInstrName -> wSampleNoteString
+6812 DrawKbdOctave              ; draw the keyboard octave range ("O3-4".."O7-8") from wKbdTranspose
+6E50 ProcessKbdNote             ; PS/2 keyboard note -> play/preview on the channel (wKbdHeldNote; screen/col aware)
 7012 SongDequeueByte            ; wait on $cb7d, read next byte from $cb81 ring (index $cb80)
-7033 SongSync_7033              ; calls SendSyncHandshake
-704E SongDrawStr_704E           ; calls DrawStringIndexed
+7033 KbdReadByte                ; link handshake + dequeue one keyboard byte ($cb7d queue)
+704E KbdPollScancode            ; read+decode PS/2 scancodes (break/ext codes; calibration checks)
 71BF SongDrawColumnValues       ; draw 16 song-row values into the column ($c46d, SongPhraseCmdVal_6320)
-720A SongDrawStr_720A           ; calls DrawStringIndexed
-722B SongVramCopy_722B          ; calls VramCopyByteSafe
-7276 SongVramCopy_7276          ; calls VramCopyByteSafe
+720A DrawHexOrDashes            ; draw space then [bc]: bit7 ? "--" : hex byte
+722B VramCopyRowDown            ; copy tilemap row 2 -> row 3 (VBK-aware, calib screen)
+7276 VramCopyRowUp              ; copy tilemap row 17 -> row 16 (VBK-aware, calib screen)
 72C1 SongScrollVramUp           ; shift VRAM rows up ($9a00 -> $9a20, 15 bytes, hblank-safe)
 735B SongScrollVramDown         ; shift VRAM rows down (counterpart of SongScrollVramUp)
 73F5 SongScanSram               ; read SRAM bytes (di-guarded) until pointer reaches $B590
 7422 SongWriteSramBytes         ; write N bytes (count arg) to SRAM (di, bank-select, $0a enable)
 ; --- functions called from bank 0 (this bank paged in) ---
-68A2 SongSyncFunc       ; song-screen sync state ($cb80)
-4B3B SongRowFunc        ; song-row access (wSongRow)
+68A2 ProcessLinkQueue           ; drain the link-port ring buffer ($cb81+, head $cb80): keyboard scancodes / sync bytes
+4B3B SongScreenEdit             ; song-screen edit dispatcher (single cell or selection via SongEditSelection)
 
 ; --- bookmarks / tempo / PS/2 keyboard ---
 6249 WriteBookmarkByte          ; bounds-checked ($aff0-$afff) WriteSongByte into the bookmarks row
@@ -84,3 +84,7 @@
 71AA TxtManyTimes               ; "MANY TIMES"
 71B5 TxtFail                    ; "FAIL!"
 71BB TxtOk                      ; "OK!"
+688E TxtOct67                   ; "O6-7"
+6893 TxtOct56                   ; "O5-6"
+6898 TxtOct45                   ; "O4-5"
+689D TxtOct34                   ; "O3-4"

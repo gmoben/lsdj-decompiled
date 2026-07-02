@@ -53,9 +53,11 @@ MANUAL: dict[int, list[tuple[int, int]]] = {
     # strings + message-bar attr row + screen-name strings ($6FB8-$74F7), the
     # ShowMessage strings between their Show* wrappers, and CommandHelpTable +
     # the three S-command help strings ($776E-$781F).
-    0x01: [(0xEA, 0x1D2), (0x2A0, 0x316), (0x17BF, 0x17D0),
+    0x01: [(0xEA, 0x1D2), (0x2A0, 0x316), (0x11EE, 0x1208), (0x124B, 0x1253),
+           (0x17BF, 0x17D0),
            (0x2FB8, 0x34F7), (0x35C7, 0x35F8), (0x3602, 0x3616),
-           (0x3620, 0x3635), (0x363F, 0x364C), (0x376E, 0x381F)],
+           (0x3620, 0x3635), (0x363F, 0x364C), (0x376E, 0x381F),
+           (0x3B7A, 0x3BDE)],
     # PitchBendTable ($43D8-$45D8, read by ApplyPitchBend), the vibrato tables
     # ($7D81-$7DD1: VibDepthTable[16] + VibRateTableA/B[16 x 16-bit], read by
     # FxCmd_V), and NoiseFreqTable ($5EDA, hides SetNoisePoly at $5F52).
@@ -79,7 +81,7 @@ MANUAL: dict[int, list[tuple[int, int]]] = {
     # bank 7: DMG+CGB tempo timer tables ($5E49/$6049, 256 x dw each), the PS/2
     # keyboard note/function maps ($662A/$66AA), and the keyboard-calibration
     # screen strings ($7171-$71BF).
-    0x07: [(0x1E49, 0x2249), (0x262A, 0x272A), (0x3171, 0x31BF)],
+    0x07: [(0x1E49, 0x2249), (0x262A, 0x272A), (0x2889, 0x28A2), (0x3171, 0x31BF)],
 }
 
 
