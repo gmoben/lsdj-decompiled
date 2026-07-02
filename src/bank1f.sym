@@ -24,20 +24,20 @@
 44AD NoiseSafeStr      ; "SAFE" (noise S command, nonzero)
 44B2 NoiseFreeStr      ; "FREE" (noise S command, 0)
 648F PhraseScreenUpdate ; per-frame visual update (screen idx 1 = Phrase)
-4000 InstrGetField0_4000    ; instrument field 0x0 read (4x)
-4157 InstrGetField1_4157    ; instrument field 0x1 read (2x)
-4169 InstrGetField9_4169    ; instrument field 0x9 read (1x)
+4000 GetInstrType1F                           ; read instrument byte 0 = type (0=PULSE 1=WAVE 2=KIT 3=NOISE)
+4157 GetInstrEnv1F                             ; read instrument byte 1 = envelope/volume
+4169 GetInstrByte1F9                         ; read instrument byte 9 (kit row gate: 0 -> dashes)
 5091 IsPhraseUsedFar            ; FarCall bank01 IsPhraseUsed
 5413 MarkChainPhrasesUsed       ; mark all phrases of chain arg used (rows<16, $ff skipped)
 5461 IsChainUsedFar             ; FarCall bank01 IsChainUsed
 7097 RedrawScreenFar1F          ; FarCall home RedrawScreen ($24dd) with bank 4 arg
-4085 InstrGetField6_4085    ; instrument field 0x6 read
+4085 GetInstrTable1F                         ; read instrument byte 6 = table (bits0-4) + enable (bit5)
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
-409C InstrGetField6_409C        ; instrument field 0x6 read
-40CA InstrGetField5_40CA        ; instrument field 0x5 read
+409C GetInstrTable1F2                       ; read instrument byte 6 = table (bits0-4) + enable (bit5)
+40CA GetInstrFlags1F5                       ; read instrument byte 5 flags (bit3 = table STEP/AUTOMATE mode, vibrato bits)
 411F DrawTableFlag              ; draw the instr TABLE on/off state glyph (field 5) with palettes
-418A InstrGetField1_418A        ; instrument field 0x1 read
+418A GetInstrEnv1F2                           ; read instrument byte 1 = envelope/volume
 44B7 DrawKitNameCell            ; kit number (hex) + 6-char kit name (ReadKitName)
 48C5 WriteChainPhrase           ; chains[chain*16+row] = phrase (song $2080 region)
 492A ClaimInstrSlot             ; read+mark the instr-alloc entry (song $2040); returns prior state
@@ -48,7 +48,7 @@
 4F1C InstrHGetTableUsed         ; return $c47d[arg] (table-used flag)
 4F2E InstrHReadPhraseRef        ; read SRAM byte at $A040+arg (ReadSongByte bank1)
 4F49 ComparePhraseToWork        ; compare phrase rows against the $0FF0 work row (dedupe comparator)
-4FC5 InstrHTableCmd1_4FC5       ; accesses TableCmd1
+4FC5 ReadTableRowCmds           ; gather one table row's cmd1/val1/cmd2 bytes ($3680/$3880/$3A80 regions)
 50A8 InstrHScanUsedPhrases      ; for each phrase 0..255 used (InstrBanked_5091), process via InstrHPhraseNote_4F49
 50CC InstrHCountUsedTables      ; count nonzero entries in used-table map $c47d[0..$1f]
 50F6 InstrHProcessUsedTables    ; count tables (50CC) then run InstrHTableCmd1_4FC5 per used

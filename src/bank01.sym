@@ -143,3 +143,4 @@
 7BD1 TxtGba                     ; "GBA"
 7BD5 TxtSynColon                ; "SYN:"
 7BDA TxtAst                     ; "AST"
+794B CrashHandler               ; crash entry: di, dump state, DrawCrashScreen ("DONT PANIC!")

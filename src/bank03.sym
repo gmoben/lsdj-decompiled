@@ -10,71 +10,71 @@
 4AB4 TxtHard                    ; " HARD"
 4DE7 DrawInstrumentScreen ; screen idx 6: draws instrument params (reads instruments[] 119x)
 4FC4 InstrTypeNames     ; [4][6] type names "PULSE"/" WAVE"/"  KIT"/"NOISE" (indexed by type*6)
-4105 InstrField9IsZero_4105 ; 1 if instr field 0x9 == 0 (12x)
-4118 InstrGetField6_4118    ; instrument field 0x6 read (2x)
-4133 InstrSetField6_4133    ; instrument field 0x6 read (2x)
-4170 InstrGetField0_4170    ; instrument field 0x0 read (10x)
-4257 InstrSetField5_4257    ; instrument field 0x5 write (2x)
-4293 InstrGetField5_4293    ; instrument field 0x5 read (3x)
-4679 InstrGetField0_4679    ; instrument field 0x0 read (6x)
-4741 InstrSetField8_4741    ; instrument field 0x8 read (3x)
-4769 InstrSetField8_4769    ; instrument field 0x8 read (3x)
-4924 InstrSetField6_4924    ; instrument field 0x6 read (4x)
+4105 InstrByte9IsZero           ; 1 if instrument byte 9 == 0 (kit row dashes gate; 12 uses)
+4118 GetInstrTable              ; read instrument byte 6 = table (bits0-4) + enable (bit5)
+4133 SetInstrTable              ; write instrument byte 6 = table (bits0-4) + enable (bit5)
+4170 GetInstrType               ; read instrument byte 0 = type (0=PULSE 1=WAVE 2=KIT 3=NOISE)
+4257 SetInstrFlags5             ; write instrument byte 5 flags (bit3 = table STEP/AUTOMATE mode, vibrato bits)
+4293 GetInstrFlags5             ; read instrument byte 5 flags (bit3 = table STEP/AUTOMATE mode, vibrato bits)
+4679 GetInstrType2              ; read instrument byte 0 = type (0=PULSE 1=WAVE 2=KIT 3=NOISE)
+4741 SetInstrByte8              ; write instrument byte 8 (kit pitch / pulse finetune)
+4769 SetInstrByte82             ; write instrument byte 8 (kit pitch / pulse finetune)
+4924 SetInstrTable2             ; write instrument byte 6 = table (bits0-4) + enable (bit5)
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
-40F8 InstrGetField9_40F8        ; instrument field 0x9 read
+40F8 GetInstrByte9              ; read instrument byte 9 (kit row gate: 0 -> dashes)
 414F InstrCheckFieldOption      ; return 1 if option-table[c] (ROM $40F4) minus 1 == current field $c427, else 0
-427B InstrGetField5_427B        ; instrument field 0x5 read
+427B GetInstrFlags52            ; read instrument byte 5 flags (bit3 = table STEP/AUTOMATE mode, vibrato bits)
 42AB InstrReadPhraseNote   ; read phrase_notes[arg] from SRAM ($A000-based) -- instrument preview
 42FF ShowOutOfSynths            ; "OUT OF SYNTHS!..." -> wStrBuffer + DrawMessageBar (16-synth limit hit)
-436D InstrSetField6_436D        ; instrument field 0x6 read
-43C0 InstrSetField3_43C0        ; instrument field 0x3 write
-441A InstrSetField3_441A        ; instrument field 0x3 read
-4540 InstrSetField3_4540        ; instrument field 0x3 read
+436D SetInstrTable3             ; write instrument byte 6 = table (bits0-4) + enable (bit5)
+43C0 SetInstrLen                ; write instrument byte 3 = length (bit6=limited, bits0-5; wave v16+: synth<<4)
+441A SetInstrLen2               ; write instrument byte 3 = length (bit6=limited, bits0-5; wave v16+: synth<<4)
+4540 SetInstrLen3               ; write instrument byte 3 = length (bit6=limited, bits0-5; wave v16+: synth<<4)
 45A7 InstrScreenFrame           ; shared instrument-screen frame draw (map row, tempo field, marker sprites)
 45D3 InstrScreenRefresh         ; reload current instrument + DrawInstrumentScreen
 461B InstrAdjustNumber          ; adjust wInstrument (-16, clamp >$40 to 0, +1) then redraw via InstrBanked_45D3
 4638 InstrScreenEnter           ; enter the instrument screen (speech $40 special-cased) + DrawInstrumentScreen
-47A2 InstrSetField5_47A2        ; instrument field 0x5 read
-482E InstrSetField5_482E        ; instrument field 0x5 read
-489D InstrSetField6_489D        ; instrument field 0x6 read
-48D6 InstrSetField6_48D6        ; instrument field 0x6 read
-495C InstrSetField6_495C        ; instrument field 0x6 read
+47A2 SetInstrFlags52            ; write instrument byte 5 flags (bit3 = table STEP/AUTOMATE mode, vibrato bits)
+482E SetInstrFlags53            ; write instrument byte 5 flags (bit3 = table STEP/AUTOMATE mode, vibrato bits)
+489D SetInstrTable4             ; write instrument byte 6 = table (bits0-4) + enable (bit5)
+48D6 SetInstrTable5             ; write instrument byte 6 = table (bits0-4) + enable (bit5)
+495C SetInstrTable6             ; write instrument byte 6 = table (bits0-4) + enable (bit5)
 498B DrawInstrByte10            ; draw the instr byte-10 field cell at row 14 (dashes gate via InstrField9IsZero)
 49B7 DrawInstrByte11            ; draw the instr byte-11 field cell ("--" when byte 9 is zero)
-49E7 InstrGetField2_49E7        ; instrument field 0x2 read
+49E7 GetInstrByte2              ; read instrument byte 2 (pulse tune / kit half-speed+keep-attack / wave synth pre-v16)
 49FD DrawInstrRow14             ; draw the type-dependent row-14 fields (dispatch by byte 9 = 2/3/4)
 4A44 DrawKitDistName            ; draw the kit DIST mode: $d0-$d3 -> " HARD"/" SOFT"/" FOLD"/" WRAP"
 4ACF GetInstrByte11             ; read current instrument byte 11
 4AE0 SetInstrByte11             ; write current instrument byte 11
 4AF4 GetInstrByte10             ; read current instrument byte 10 (KIT: dist mode $d0-$d3)
 4B0A SetInstrByte10             ; write current instrument byte 10 (nibble-asserted path)
-4B29 InstrSetField2_4B29        ; instrument field 0x2 read
-4B4C InstrGetField5_4B4C        ; instrument field 0x5 read
-4B5E InstrSetField5_4B5E        ; instrument field 0x5 read
+4B29 SetInstrByte2              ; write instrument byte 2 (pulse tune / kit half-speed+keep-attack / wave synth pre-v16)
+4B4C GetInstrFlags53            ; read instrument byte 5 flags (bit3 = table STEP/AUTOMATE mode, vibrato bits)
+4B5E SetInstrFlags54            ; write instrument byte 5 flags (bit3 = table STEP/AUTOMATE mode, vibrato bits)
 4BAC InstrField5Next            ; read instr field5, step +2 (wrap 6->1), write back via InstrSetField5_4B5E
 4BCB InstrField5Prev            ; read instr field5, step -2 (wrap <0 ->4), write back via InstrSetField5_4B5E
-4BE9 InstrGetField0_4BE9        ; instrument field 0x0 read
-4BF9 InstrSetField5_4BF9        ; instrument field 0x5 read
-4C64 InstrSetField5_4C64        ; instrument field 0x5 read
+4BE9 GetInstrType3              ; read instrument byte 0 = type (0=PULSE 1=WAVE 2=KIT 3=NOISE)
+4BF9 SetInstrFlags55            ; write instrument byte 5 flags (bit3 = table STEP/AUTOMATE mode, vibrato bits)
+4C64 SetInstrFlags56            ; write instrument byte 5 flags (bit3 = table STEP/AUTOMATE mode, vibrato bits)
 4CD9 DrawInstrByte12            ; read instr byte 12 + draw label/hex pair
-4D15 InstrGetField3_4D15        ; instrument field 0x3 read
+4D15 GetInstrLen                ; read instrument byte 3 = length (bit6=limited, bits0-5; wave v16+: synth<<4)
 4DD7 InstrEnvelopeChanged       ; FarCall bank1b UpdateInstrEnvelope after a field edit
 4FDC DrawKitNameField           ; draw kit number (hex) + 6-char kit name (ReadKitName -> wSampleNoteString)
 5002 WriteKitNumber             ; write kit# into the field's low 6 bits (top flag bits preserved via $c0 mask)
 503A KitSelectNext              ; step to the next existing kit bank (KitExists scan), WriteKitNumber
 508C KitSelectPrev              ; step to the previous existing kit (bound $3f), WriteKitNumber
 50DF KitSelectEnsure            ; ensure the kit field points at an existing kit, else fix up
-5128 InstrSetField0_5128        ; instrument field 0x0 write
+5128 SetInstrType               ; write instrument byte 0 = type (0=PULSE 1=WAVE 2=KIT 3=NOISE)
 5181 InstrFieldIncLo            ; current field byte: +1 on the lo nibble (clamp $0f), redraw + InstrEnvelopeChanged
 51BC InstrFieldDecLo            ; current field byte: -1 on the lo nibble (clamp 0)
 51F4 InstrFieldIncHi            ; current field byte: +$10 on the hi nibble (clamp $f0)
 5231 InstrFieldDecHi            ; current field byte: -$10 on the hi nibble
-526B InstrSetField3_526B        ; instrument field 0x3 read
-52BF InstrSetField3_52BF        ; instrument field 0x3 read
-531C InstrSetField3_531C        ; instrument field 0x3 read
-537A InstrSetField3_537A        ; instrument field 0x3 read
-53DE InstrGetField0_53DE        ; instrument field 0x0 read
+526B SetInstrLen4               ; write instrument byte 3 = length (bit6=limited, bits0-5; wave v16+: synth<<4)
+52BF SetInstrLen5               ; write instrument byte 3 = length (bit6=limited, bits0-5; wave v16+: synth<<4)
+531C SetInstrLen6               ; write instrument byte 3 = length (bit6=limited, bits0-5; wave v16+: synth<<4)
+537A SetInstrLen7               ; write instrument byte 3 = length (bit6=limited, bits0-5; wave v16+: synth<<4)
+53DE GetInstrType4              ; read instrument byte 0 = type (0=PULSE 1=WAVE 2=KIT 3=NOISE)
 ; --- functions called from bank 0 (this bank paged in) ---
 541F InstrScreenInput           ; instrument-screen input entry (speech $40 -> WordScreenInput via FarCallByte)
 4790 GetInstrByte5Flag8 ; read current instr byte 5 & $08 (table AUTOMATE-class flag; unreferenced)

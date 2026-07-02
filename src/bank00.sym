@@ -54,7 +54,7 @@
 26BA UpdateDispatch_Table  ; idx 5 -> bank $05:$4967 (TableScreenUpdate)
 26C9 UpdateDispatch_Chain  ; idx 3 -> bank $06:$5A62 (ChainScreenUpdate)
 26D8 UpdateDispatch_Song   ; idx 4 -> bank $07:$47AA (SongScreenUpdate)
-0061 CallBank1_794B     ; trampoline: select ROM bank 1, jp $794B
+0061 CrashTrampoline            ; trampoline: select ROM bank 1, jp CrashHandler ($794B)
 0391 TimerHandler       ; timer IRQ body: sound/playback engine tick
 0662 TimerHandlerReturn ; timer IRQ epilogue: restore regs, wait rSTAT, reti
 0ED6 ProcessInput       ; MainLoop input handler: drain the button queue (GetNextButtons) and dispatch to the current screen
