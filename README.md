@@ -26,16 +26,15 @@ LSDj is a music tracker for the original Game Boy with a deep, decades-long
 chiptune community. A reproducible source-level understanding of the ROM
 enables preservation, documentation, bug archaeology, and study of the engine.
 
-## Legal: the ROM is not included
+## Getting the ROM
 
-**LSDj is commercial software. No ROM is distributed here, under any name.**
-This repository contains only the source and tooling needed to reconstruct the
-ROM from a copy *you* legally own. `*.gb` files are git-ignored and a
-pre-commit hook actively refuses to commit them.
-
-- Buy/obtain LSDj from <https://www.littlesounddj.com/>.
-- Read the [LSDj license](https://www.littlesounddj.com/lsd/latest/rom_images/LICENSE.txt).
-- This is the same posture pret takes (supply your own ROM).
+The repo doesn't include the ROM — grab it from
+<https://www.littlesounddj.com/>, where the ROM images are a free download
+and the [license](https://www.littlesounddj.com/lsd/latest/rom_images/LICENSE.txt)
+allows personal use. LSDj is Johan Kotlinski's work and this project doesn't
+redistribute any of it; you point the build at your copy and everything is
+generated from there (`*.gb` is git-ignored, and a pre-commit hook refuses
+ROMs as a belt-and-braces measure).
 
 ## Target ROM
 
@@ -60,19 +59,17 @@ On Arch/Manjaro: `sudo pacman -S rgbds make python`.
 ## Quick start
 
 ```bash
-# 1. Point the build at your legally-obtained LSDj 9.4.0 ROM. Either copy it
+# 1. Download LSDj 9.4.0 from littlesounddj.com, then either copy the ROM
 #    into the repo root:
-cp /path/to/your/lsdj9_4_0.gb .
-#    ...or leave it where it is and pass the path to every make invocation:
-#    make BASEROM=/path/to/your/lsdj9_4_0.gb <target>
+cp /path/to/lsdj9_4_0.gb .
+#    ...or leave it where it is and pass the path:
+#    make BASEROM=/path/to/lsdj9_4_0.gb <target>
 
 # 2. Confirm it is the exact expected revision:
 make verify-rom
 
-# 3. Build and verify the reproduction is byte-for-byte identical. The first
-#    build generates the disassembly (src/*.asm) from your ROM and the tracked
-#    symbol maps; this is the point of the design -- the repo ships no ROM
-#    bytes in any form, only the names, comments and carve metadata.
+# 3. Generate the disassembly from your ROM, build it, and verify the result
+#    is byte-for-byte identical to the original:
 make compare
 ```
 
@@ -84,10 +81,10 @@ A successful `make compare` prints:
 
 ## How it works
 
-The repository deliberately contains **no ROM content, not even as assembly
-text** — a byte-exact disassembly is just the ROM re-encoded, so `src/*.asm`
-is generated locally and git-ignored. What *is* tracked is the part that took
-the work:
+The disassembly itself (`src/*.asm`) is generated on your machine and
+git-ignored — a byte-exact disassembly is just the ROM in another encoding,
+so there's no point tracking it and no need to ship it. What's tracked is the
+part that took the work:
 
 - `src/bankNN.sym` — per-bank symbol maps: several thousand hand-verified
   routine, table and string names with comments.

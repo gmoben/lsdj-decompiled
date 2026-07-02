@@ -10,19 +10,20 @@ purpose is a byte-for-byte reproduction of the original ROM. If a change makes
 the build differ from the original, the change is wrong — not the ROM. Verify
 before you commit; never commit a red build.
 
-## Copyrighted Material and Sensitive Data
+## The ROM stays out of the repo
 
-LSDj is **commercial software**. Treat the ROM the way you would treat a secret:
+The ROM is a free download for personal use from littlesounddj.com, but it is
+still Johan Kotlinski's work and this repo does not redistribute it:
 
-- **NEVER commit a ROM or save** (`*.gb`, `*.gbc`, `*.gba`, `*.sav`, `*.srm`).
-  They are git-ignored, and `.githooks/pre-commit` will reject them — do not
+- **Never commit a ROM or save** (`*.gb`, `*.gbc`, `*.gba`, `*.sav`, `*.srm`).
+  They are git-ignored, and `.githooks/pre-commit` rejects them — do not
   defeat these guards.
 - **Do not paste large ROM dumps** (raw hex of big regions) into commits, issues,
   chat, or generated files. Small, relevant byte snippets needed to document a
   routine are fine; wholesale dumps are not.
-- The repository must only contain the *means to reconstruct* the ROM from a
-  legally-owned copy, plus original documentation/labels. This mirrors the pret
-  posture exactly.
+- The repository contains the *means to regenerate* the disassembly from a
+  downloaded ROM, plus original documentation and labels — the same shape as
+  the pret projects.
 - When you need to confirm the ROM is present/correct, use `make verify-rom`
   (checks the sha1) rather than printing ROM contents.
 

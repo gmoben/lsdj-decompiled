@@ -13,9 +13,9 @@ The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
 
 This license covers the tooling, symbol maps, and documentation authored in
-this repository. It does NOT cover Little Sound Dj itself: LSDj is commercial
-software by Johan Kotlinski, no part of the LSDj ROM is included here, and
-nothing in this license grants any rights to it.
+this repository. It does not cover Little Sound Dj itself, which is Johan
+Kotlinski's work, distributed at littlesounddj.com under its own license; no
+part of the LSDj ROM is included here.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,

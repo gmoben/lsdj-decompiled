@@ -1,6 +1,6 @@
-# --- Copyrighted material: NEVER commit ROMs or saves -----------------------
-# LSDj is commercial software. This repo only contains the means to rebuild the
-# ROM from a copy you supply yourself. Do not commit the ROM under any name.
+# --- ROMs and saves are never committed --------------------------------------
+# The build regenerates everything from a ROM you download yourself
+# (littlesounddj.com); the ROM stays out of the repo under any name.
 *.gb
 *.gbc
 *.gba

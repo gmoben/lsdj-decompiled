@@ -4,8 +4,9 @@
 # assembly that links into a byte-for-byte reproduction of the original ROM,
 # verified with `make compare`.
 #
-# The original ROM is copyrighted and is NEVER committed. You must supply your
-# own legally-obtained copy as `lsdj9_4_0.gb` in the repo root (see README.md).
+# The ROM itself is not committed. Download it from littlesounddj.com (free
+# for personal use) and drop it in the repo root as `lsdj9_4_0.gb`, or pass
+# BASEROM=/path/to/it on the make command line (see README.md).
 
 # --- RGBDS toolchain -------------------------------------------------------
 # Override RGBDS to point at a local toolchain, e.g. `make RGBDS=rgbds-1.0.1/`.
@@ -114,8 +115,7 @@ tidy:
 # Helpful message if the user has not supplied the ROM yet.
 $(BASEROM):
 	@echo "error: base ROM not found: $(BASEROM)"; \
-	echo "LSDj is commercial software and is not distributed with this repo."; \
-	echo "Place your legally-obtained LSDj 9.4.0 ROM here as '$(BASEROM)'."; \
-	echo "Expected sha1: $(ROM_SHA1)"; \
-	echo "See README.md for details."; \
+	echo "Download LSDj 9.4.0 from https://www.littlesounddj.com/ (free for"; \
+	echo "personal use) and place it here as '$(BASEROM)', or pass"; \
+	echo "BASEROM=/path/to/your/rom.gb. Expected sha1: $(ROM_SHA1)"; \
 	exit 1
