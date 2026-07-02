@@ -908,3 +908,4 @@
 39FE .cont
 3A01 .cont_2
 3A0D .readSTAT
+0300 VibOffsetJumps             ; jp-hl dispatch table of per-shape vibrato-offset fragments (SndCalcVibOffset via $0300)

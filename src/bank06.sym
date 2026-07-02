@@ -648,3 +648,9 @@
 76CC .drawStringIndexed
 76D7 .drawString_7
 7890 .setKbdInstrument
+7830 NoteNameC5                 ; note-name entry "C 5" (referenced directly)
+7834 NoteNameF5                 ; note-name entry "F 5"
+7838 NoteNameC6                 ; note-name entry "C 6"
+783C NoteNameC7                 ; note-name entry "C 7"
+7844 NoteNameHi1                ; note-name entry (high range)
+7848 NoteNameHi2                ; note-name entry (high range)

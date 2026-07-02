@@ -541,3 +541,22 @@
 7288 .cont_8
 7290 .cont_9
 7298 .showMessage
+6FB9 TxtHelpTransposePu2        ; "TRANSPOSE FOR PU2"
+6FE4 TxtHelpDetune              ; "DETUNE UP/DOWN"
+6FF3 TxtHelpWaveToPlay          ; "WAVE TO PLAY"
+70C0 TxtHelpNumSteps            ; "NUMBER OF STEPS"
+70D0 TxtHelpFirstLoopStep       ; "FIRST STEP TO LOOP"
+7114 TxtHelpStartLoop           ; "START POSITION/LOOP POINT"
+712E TxtHelpSoundLength         ; "SOUND LENGTH; ALL=PLAY ALL"
+7149 TxtHelpKitLoopMode         ; "OFF=NO LOOP; ON=LOOP..."
+718F TxtHelpSpeed               ; "FULL/HALF SPEED"
+719F TxtHelpSampleMix           ; "SAMPLE MIX MODE..."
+71CE TxtHelpSafeMode            ; "SAFE=AVOID RANDOM MUTE..."
+71F4 TxtHelpVibShape            ; "V CMD VIBRATO SHAPE"
+72D9 TxtHelpFilterType          ; "LOW-PASS, HIGH-PASS..."
+7304 TxtHelpDistMode            ; "DISTORTION. CLIP..."
+7361 TxtHelpCompress            ; "COMPRESS WAVE HORIZONTALLY"
+737C TxtHelpSignalVol           ; "SIGNAL VOLUME"
+738A TxtHelpCutoff              ; "FILTER CUTOFF FREQUENCY"
+73A2 TxtHelpResonance           ; "RESONANCE CONTROL..."
+73EA TxtHelpLimit               ; "LIMIT SIGNAL VERTICALLY..."
