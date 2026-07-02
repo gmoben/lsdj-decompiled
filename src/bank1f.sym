@@ -279,3 +279,21 @@
 7669 .loop5               ; loop head in WordScreenInput
 7729 .loop6               ; loop head in WordScreenInput
 77F1 .done                ; common exit of WordScreenInput
+
+; --- structural local names (loop heads / common exits) ---
+729D .a                   ; wButtons == case in WordScreenInput
+7356 .up                  ; wButtons == case in WordScreenInput
+7372 .down                ; wButtons == case in WordScreenInput
+738F .selDown             ; wButtons == case in WordScreenInput
+73AC .selUp               ; wButtons == case in WordScreenInput
+73C9 .selRight            ; wButtons == case in WordScreenInput
+73E6 .selLeft             ; wButtons == case in WordScreenInput
+7403 .aB                  ; wButtons == case in WordScreenInput
+7425 .notSelB             ; wButtons == case in WordScreenInput
+74A0 .notAB               ; wButtons == case in WordScreenInput
+760A .notAB2              ; wButtons == case in WordScreenInput
+760F .selA                ; wButtons == case in WordScreenInput
+778D .bLeft               ; wButtons == case in WordScreenInput
+779F .bDown               ; wButtons == case in WordScreenInput
+77B1 .selStart            ; wButtons == case in WordScreenInput
+77CC .start               ; wButtons == case in WordScreenInput

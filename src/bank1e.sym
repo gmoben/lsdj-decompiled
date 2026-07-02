@@ -30,3 +30,12 @@
 7A39 .loop                ; loop head in GfxReadVramByte
 7A52 .loop                ; loop head in GfxCopyVramRegion
 7A9C .done                ; common exit of GfxCopyVramRegion
+
+; --- structural local names (loop heads / common exits) ---
+400D .notWave             ; wButtons == case in ScreenPreDraw
+4066 .onPhrase            ; wCurrentScreen == case in ScreenPreDraw
+413F .onChain             ; wCurrentScreen == case in ScreenPreDraw
+4176 .onTable             ; wCurrentScreen == case in ScreenPreDraw
+41D9 .onGroove            ; wCurrentScreen == case in ScreenPreDraw
+4211 .onWord              ; wCurrentScreen == case in ScreenPreDraw
+4248 .onSong              ; wCurrentScreen == case in ScreenPreDraw

@@ -129,3 +129,31 @@
 71CA .loop11              ; loop head in PhraseScreenEdit
 7244 .loop12              ; loop head in PhraseScreenEdit
 7D45 .done                ; common exit of PhraseScreenEdit
+
+; --- structural local names (loop heads / common exits) ---
+5BE7 .notA                ; wButtons == case in PhraseScreenEdit
+5C3E .notSelRightLeft     ; wButtons == case in PhraseScreenEdit
+5FE6 .notRight            ; wButtons == case in PhraseScreenEdit
+6068 .notLeft             ; wButtons == case in PhraseScreenEdit
+6133 .notUp               ; wButtons == case in PhraseScreenEdit
+61F9 .notDown             ; wButtons == case in PhraseScreenEdit
+664A .notARight           ; wButtons == case in PhraseScreenEdit
+6AC5 .notAUp              ; wButtons == case in PhraseScreenEdit
+6F94 .notALeft            ; wButtons == case in PhraseScreenEdit
+7495 .notADown            ; wButtons == case in PhraseScreenEdit
+74BE .notBRight           ; wButtons == case in PhraseScreenEdit
+74E7 .notBLeft            ; wButtons == case in PhraseScreenEdit
+7561 .notBUp              ; wButtons == case in PhraseScreenEdit
+75CE .notBDown            ; wButtons == case in PhraseScreenEdit
+78B9 .notAB               ; wButtons == case in PhraseScreenEdit
+78D3 .right               ; wButtons == case in PhraseScreenEdit
+79A8 .notSelA             ; wButtons == case in PhraseScreenEdit
+79BF .notSelAB            ; wButtons == case in PhraseScreenEdit
+79E8 .notSelStart         ; wButtons == case in PhraseScreenEdit
+7A27 .notStart            ; wButtons == case in PhraseScreenEdit
+7A5D .notSelLeft          ; wButtons == case in PhraseScreenEdit
+7AD0 .notSelDown          ; wButtons == case in PhraseScreenEdit
+7B06 .notSelUp            ; wButtons == case in PhraseScreenEdit
+7C01 .notSelRight         ; wButtons == case in PhraseScreenEdit
+7C35 .notB                ; wButtons == case in PhraseScreenEdit
+7D43 .notSelB             ; wButtons == case in PhraseScreenEdit

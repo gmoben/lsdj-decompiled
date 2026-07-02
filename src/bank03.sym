@@ -145,3 +145,12 @@
 6EC8 .loop                ; loop head in InstrParamJumps
 74C9 .loop2               ; loop head in InstrParamJumps
 7A77 .done                ; common exit of InstrParamJumps
+
+; --- structural local names (loop heads / common exits) ---
+546F .notA                ; wButtons == case in InstrScreenInput
+551A .up                  ; wButtons == case in InstrScreenInput
+5627 .down                ; wButtons == case in InstrScreenInput
+576C .left                ; wButtons == case in InstrScreenInput
+581D .right               ; wButtons == case in InstrScreenInput
+592E .aRight              ; wButtons == case in InstrScreenInput
+6202 .aLeft               ; wButtons == case in InstrScreenInput

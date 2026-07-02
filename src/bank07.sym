@@ -188,3 +188,35 @@
 73D9 .loop14              ; loop head in SongScrollVramDown
 73FE .loop                ; loop head in SongScanSram
 742E .loop                ; loop head in SongWriteSramBytes
+
+; --- structural local names (loop heads / common exits) ---
+4D22 .rightLeft           ; wButtons == case in SongScreenEdit
+
+; --- structural local names (loop heads / common exits) ---
+4B7C .notA                ; wButtons == case in SongScreenEdit
+4B94 .notB                ; wButtons == case in SongScreenEdit
+4BF0 .notSelRightLeft     ; wButtons == case in SongScreenEdit
+4D5D .notRight            ; wButtons == case in SongScreenEdit
+4DB1 .notLeft             ; wButtons == case in SongScreenEdit
+4E2A .notUp               ; wButtons == case in SongScreenEdit
+4E97 .notDown             ; wButtons == case in SongScreenEdit
+4EA7 .notBDown            ; wButtons == case in SongScreenEdit
+4EB7 .notBUp              ; wButtons == case in SongScreenEdit
+4FDA .notSelLeft          ; wButtons == case in SongScreenEdit
+5037 .notARight           ; wButtons == case in SongScreenEdit
+5095 .notAUp              ; wButtons == case in SongScreenEdit
+50F4 .notALeft            ; wButtons == case in SongScreenEdit
+516D .notADown            ; wButtons == case in SongScreenEdit
+51A3 .notSelUp            ; wButtons == case in SongScreenEdit
+51D9 .notSelDown          ; wButtons == case in SongScreenEdit
+52E9 .notAB               ; wButtons == case in SongScreenEdit
+5300 .notRight2           ; wButtons == case in SongScreenEdit
+5371 .notSelA             ; wButtons == case in SongScreenEdit
+5389 .notSelAB            ; wButtons == case in SongScreenEdit
+53FA .notSelStart         ; wButtons == case in SongScreenEdit
+5472 .notStart            ; wButtons == case in SongScreenEdit
+548B .notStartLeft        ; wButtons == case in SongScreenEdit
+553E .notSelRight         ; wButtons == case in SongScreenEdit
+56F8 .notSelB             ; wButtons == case in SongScreenEdit
+6EC8 .notPhrase           ; wButtons == case in ProcessKbdNote
+6FFE .notPhrase2          ; wButtons == case in ProcessKbdNote

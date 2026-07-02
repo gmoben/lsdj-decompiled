@@ -246,3 +246,30 @@
 7E5C .loop2               ; loop head in UiDrawScreenDmg
 7E5E .loop3               ; loop head in UiDrawScreenDmg
 7EE9 .loop                ; loop head in UiLoadObjPalette
+
+; --- structural local names (loop heads / common exits) ---
+560D .onPhrase            ; wCurrentScreen == case in GetScreenPalette
+5613 .onGroove            ; wCurrentScreen == case in GetScreenPalette
+5619 .onChain             ; wCurrentScreen == case in GetScreenPalette
+561F .onSong              ; wCurrentScreen == case in GetScreenPalette
+5625 .onTable             ; wCurrentScreen == case in GetScreenPalette
+562B .onInstr             ; wCurrentScreen == case in GetScreenPalette
+567E .onWave              ; wCurrentScreen == case in GetScreenPalette
+5684 .onProject           ; wCurrentScreen == case in GetScreenPalette
+568A .onSynth             ; wCurrentScreen == case in GetScreenPalette
+5690 .onSpeech            ; wCurrentScreen == case in GetScreenPalette
+5696 .onWord              ; wCurrentScreen == case in GetScreenPalette
+569C .onFile              ; wCurrentScreen == case in GetScreenPalette
+6D7B .notFile             ; wButtons == case in DrawTopBar
+6DB1 .onProject           ; wCurrentScreen == case in DrawTopBar
+6DF4 .onSong              ; wCurrentScreen == case in DrawTopBar
+6E20 .onChain             ; wCurrentScreen == case in DrawTopBar
+6E37 .onPhrase            ; wCurrentScreen == case in DrawTopBar
+6E4E .onTable             ; wCurrentScreen == case in DrawTopBar
+6E65 .onProject2          ; wCurrentScreen == case in DrawTopBar
+6EDA .onInstr             ; wCurrentScreen == case in DrawTopBar
+6EF1 .onWave              ; wCurrentScreen == case in DrawTopBar
+6F08 .onSynth             ; wCurrentScreen == case in DrawTopBar
+6F1F .onGroove            ; wCurrentScreen == case in DrawTopBar
+76A7 .notPhrase           ; wButtons == case in LoadCommandHelp
+76C5 .notPhrase2          ; wButtons == case in LoadCommandHelp

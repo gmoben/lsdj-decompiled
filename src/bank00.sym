@@ -440,3 +440,20 @@
 3A09 .loop                ; loop head in CopyToBgTilemapCore
 3A15 .loop2               ; loop head in CopyToBgTilemapCore
 3A32 .done                ; common exit of CopyToBgTilemapCore
+
+; --- structural local names (loop heads / common exits) ---
+1E28 .notSong             ; wButtons == case in SyncTickLSDJ
+22EE .notProject          ; wButtons == case in SendByteStep
+24D5 .onWave              ; wCurrentScreen == case in ResetScreenSprites
+2520 .onInstr             ; wCurrentScreen == case in RedrawScreen
+2535 .onPhrase            ; wCurrentScreen == case in RedrawScreen
+273A .onWave              ; wCurrentScreen == case in HandleInputCombos
+273F .notHelp             ; wButtons == case in HandleInputCombos
+2767 .notSelB             ; wButtons == case in HandleInputCombos
+2793 .bRight              ; wButtons == case in HandleInputCombos
+27A5 .notSong             ; wButtons == case in HandleInputCombos
+2937 .notStartB           ; wButtons == case in HandleInputCombos
+2A6B .notB                ; wButtons == case in HandleInputCombos
+2BA9 .a                   ; wButtons == case in HandleButtonEvent
+2BB1 .b                   ; wButtons == case in HandleButtonEvent
+2BB6 .notSel              ; wButtons == case in HandleButtonEvent

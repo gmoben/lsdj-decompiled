@@ -96,3 +96,10 @@
 6957 .loop4               ; loop head in TableUpdateScreen
 69B9 .done                ; common exit of TableUpdateScreen
 6D21 .done                ; common exit of DrawInstrFieldHelp
+
+; --- structural local names (loop heads / common exits) ---
+4B85 .notA                ; wButtons == case in TableHighlightCell
+4E70 .right               ; wButtons == case in TableHighlightCell
+4E89 .left                ; wButtons == case in TableHighlightCell
+4EA1 .up                  ; wButtons == case in TableHighlightCell
+4EBB .down                ; wButtons == case in TableHighlightCell

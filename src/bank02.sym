@@ -253,3 +253,11 @@
 7C73 .loop                ; loop head in StopPlayback
 7CF7 .done                ; common exit of StopPlayback
 7D7F .done                ; common exit of SndCmdJumpTable
+
+; --- structural local names (loop heads / common exits) ---
+6AC1 .onChain             ; wCurrentScreen == case in SndCheckRetrigState
+6AEF .notPhrase           ; wButtons == case in SndCheckRetrigState
+78D0 .notSong             ; wButtons == case in StopAllPlayback
+7B51 .notSong             ; wButtons == case in SndCheckSyncState
+7B8F .onChain             ; wCurrentScreen == case in SndCheckSyncState
+7C0D .notSong2            ; wButtons == case in SndCheckSyncState

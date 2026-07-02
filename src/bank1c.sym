@@ -247,3 +247,9 @@
 74FC .loop                ; loop head in WriteDecompByte
 7502 .loop2               ; loop head in WriteDecompByte
 7528 .loop                ; loop head in FileDecompressRun
+
+; --- structural local names (loop heads / common exits) ---
+5EAB .left                ; wButtons == case in FileScreenInput
+5F32 .right               ; wButtons == case in FileScreenInput
+5FBE .down                ; wButtons == case in FileScreenInput
+6034 .up                  ; wButtons == case in FileScreenInput

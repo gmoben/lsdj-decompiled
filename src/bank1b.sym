@@ -171,3 +171,23 @@
 74EB .loop                ; loop head in UpdateEnvSprites
 754B .done                ; common exit of UpdateEnvSprites
 756E .done                ; common exit of UpdateInstrEnvelope
+
+; --- structural local names (loop heads / common exits) ---
+4BED .down                ; wButtons == case in ProjectInitLatch
+4BF8 .up                  ; wButtons == case in ProjectInitLatch
+4C03 .a                   ; wButtons == case in ProjectInitLatch
+4C16 .b                   ; wButtons == case in ProjectInitLatch
+4EF4 .notFile             ; wButtons == case in OpenNameEditor
+5450 .a                   ; wButtons == case in NameEditorInput
+558E .sel                 ; wButtons == case in NameEditorInput
+55A1 .start               ; wButtons == case in NameEditorInput
+55A9 .down                ; wButtons == case in NameEditorInput
+55DE .right               ; wButtons == case in NameEditorInput
+5613 .up                  ; wButtons == case in NameEditorInput
+5647 .left                ; wButtons == case in NameEditorInput
+567B .b                   ; wButtons == case in NameEditorInput
+5DFF .notA                ; wButtons == case in ProjectDrawField
+5EE1 .right               ; wButtons == case in ProjectDrawField
+5EEE .left                ; wButtons == case in ProjectDrawField
+64FB .down                ; wButtons == case in ProjectDrawField
+6587 .up                  ; wButtons == case in ProjectDrawField

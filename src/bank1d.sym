@@ -205,3 +205,32 @@
 7D47 .loop4               ; loop head in SynthScreenInput
 7D87 .done                ; common exit of SynthScreenInput
 7DB3 .loop                ; loop head in TxtPastedSynth
+
+; --- structural local names (loop heads / common exits) ---
+44CF .selRightLeft        ; wButtons == case in DrawGrooveCursor
+4526 .a                   ; wButtons == case in DrawGrooveCursor
+456F .up                  ; wButtons == case in DrawGrooveCursor
+4592 .down                ; wButtons == case in DrawGrooveCursor
+45CE .aRight              ; wButtons == case in DrawGrooveCursor
+4684 .aLeft               ; wButtons == case in DrawGrooveCursor
+4735 .aUp                 ; wButtons == case in DrawGrooveCursor
+47E0 .notAUp              ; wButtons == case in DrawGrooveCursor
+4864 .bRight              ; wButtons == case in DrawGrooveCursor
+487E .bUp                 ; wButtons == case in DrawGrooveCursor
+48A2 .bDown               ; wButtons == case in DrawGrooveCursor
+48C6 .bLeft               ; wButtons == case in DrawGrooveCursor
+48DF .aB                  ; wButtons == case in DrawGrooveCursor
+49A0 .selA                ; wButtons == case in DrawGrooveCursor
+49E3 .selStart            ; wButtons == case in DrawGrooveCursor
+49FE .start               ; wButtons == case in DrawGrooveCursor
+4A49 .selUp               ; wButtons == case in DrawGrooveCursor
+4A71 .b                   ; wButtons == case in DrawGrooveCursor
+4A90 .selB                ; wButtons == case in DrawGrooveCursor
+6E3C .left                ; wButtons == case in SynthHandleViewKeys
+6E47 .right               ; wButtons == case in SynthHandleViewKeys
+6E52 .a                   ; wButtons == case in SynthHandleViewKeys
+7196 .notA                ; wButtons == case in SynthScreenInput
+7231 .up                  ; wButtons == case in SynthScreenInput
+7285 .down                ; wButtons == case in SynthScreenInput
+72E8 .left                ; wButtons == case in SynthScreenInput
+732F .right               ; wButtons == case in SynthScreenInput

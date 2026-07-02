@@ -93,10 +93,111 @@ def analyze(asm_path, sym_path):
     return out
 
 
+BTN = {1: 'Right', 2: 'Left', 4: 'Up', 8: 'Down',
+       0x10: 'A', 0x20: 'B', 0x40: 'Sel', 0x80: 'Start'}
+SCREEN = {1: 'Phrase', 2: 'Groove', 3: 'Chain', 4: 'Song', 5: 'Table',
+          6: 'Instr', 8: 'Wave', 9: 'Project', 0xA: 'Synth', 0xB: 'Speech',
+          0xC: 'Word', 0xD: 'File', 0xE: 'Help'}
+
+
+def btn_name(v):
+    """Compose a .name from a wButtons compare value, mods first."""
+    parts = [n for b, n in ((0x40, 'Sel'), (0x80, 'Start'), (0x10, 'A'), (0x20, 'B'))
+             if v & b]
+    parts += [n for b, n in ((1, 'Right'), (2, 'Left'), (4, 'Up'), (8, 'Down'))
+              if v & b]
+    if not parts or v & ~0xFF:
+        return None
+    name = parts[0].lower() + ''.join(parts[1:])
+    return '.' + name
+
+
+def dispatch_names(asm_path, sym_path):
+    """Name locals that are `jp/jr z` targets of `cp a, $XX` right after
+    loading a known enum variable (wButtons -> button combo, wCurrentScreen ->
+    screen name). Honest: the branch IS the handler for that exact value."""
+    lines = open(asm_path).read().splitlines()
+    curated = set()
+    for ln in open(sym_path):
+        m = re.match(r'([0-9A-Fa-f]{4})\s+\.', ln)
+        if m:
+            curated.add(int(m.group(1), 16))
+    cur = None
+    var = None           # 'btn' | 'screen' currently in A
+    cmp_val = None
+    hl_slot = None       # sp+N that hl currently points at
+    slots = {}           # per-function: sp+N -> 'btn'/'screen'
+    props = {}           # local addr -> proposed base name
+    owner = {}           # local addr -> function
+    for ln in lines:
+        g = GLOBAL.match(ln)
+        if g:
+            cur = g.group(1); var = None; cmp_val = None
+            hl_slot = None; slots = {}
+            continue
+        lm = LOCAL.match(ln)
+        if lm and cur:
+            # a label interrupts straight-line flow -- reset the A tracking but
+            # keep the slot map (the value parked on the stack survives)
+            var = None; cmp_val = None; hl_slot = None
+            continue
+        if re.search(r'ld hl, wButtons\b', ln) or re.search(r'ld a, \[wButtons\]', ln):
+            var = 'btn'; cmp_val = None; hl_slot = None; continue
+        if re.search(r'ld hl, wCurrentScreen\b', ln) or re.search(r'ld a, \[wCurrentScreen\]', ln):
+            var = 'screen'; cmp_val = None; hl_slot = None; continue
+        m = re.search(r'\tld hl, sp\+(\d+)', ln)
+        if m:
+            hl_slot = int(m.group(1)); continue
+        if re.search(r'\tld \[hl\], a', ln):
+            if var and hl_slot is not None:
+                slots[hl_slot] = var      # parked the tracked value
+            continue
+        if re.search(r'\tld a, \[hl\]', ln):
+            if hl_slot is not None:
+                var = slots.get(hl_slot)  # reloaded from a tracked slot (or None)
+                cmp_val = None
+            continue                      # wButtons/wCurrentScreen deref keeps var
+        m = re.search(r'\tcp a, \$([0-9a-f]{2})', ln)
+        if m and var:
+            cmp_val = int(m.group(1), 16); continue
+        m = re.search(r'\t(?:jp|jr) (n?)z, \.L_([0-9A-F]{4})', ln)
+        if m and var and cmp_val is not None:
+            inv = m.group(1) == 'n'
+            a = int(m.group(2), 16)
+            if a not in curated:
+                nm = None
+                if var == 'btn':
+                    base = btn_name(cmp_val)
+                    if base:
+                        nm = ('.not' + base[1].upper() + base[2:]) if inv else base
+                elif var == 'screen' and cmp_val in SCREEN:
+                    nm = ('.not' if inv else '.on') + SCREEN[cmp_val]
+                if nm:
+                    props.setdefault(a, nm)
+                    owner[a] = cur
+            continue
+        # anything else that writes A invalidates the tracked variable
+        if re.search(r'\t(ld a, |ldh a, |xor a|or a, |and a, |add a|sub a|inc a|dec a|call |rla|rra|swap a|pop af)', ln):
+            var = None; cmp_val = None
+
+    # uniqueness per function
+    out = []
+    used = {}
+    for a, nm in sorted(props.items()):
+        fn = owner[a]
+        key = (fn, nm)
+        used[key] = used.get(key, 0) + 1
+        final = nm if used[key] == 1 else f'{nm}{used[key]}'
+        out.append((a, final, f'{("wButtons" if not nm.startswith(".on") else "wCurrentScreen")} == case in {fn}'))
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--bank')
     ap.add_argument('--dry-run', action='store_true')
+    ap.add_argument('--dispatch', action='store_true',
+                    help='name cp-dispatch targets (buttons/screens) instead')
     args = ap.parse_args()
     paths = sorted(glob.glob('src/bank*.asm'))
     if args.bank:
@@ -105,7 +206,7 @@ def main():
     total = 0
     for p in paths:
         sp = p[:-4] + '.sym'
-        ents = analyze(p, sp)
+        ents = analyze(p, sp) if not args.dispatch else dispatch_names(p, sp)
         total += len(ents)
         print(f'{os.path.basename(p)}: {len(ents)} structural locals')
         if not args.dry_run and ents:
