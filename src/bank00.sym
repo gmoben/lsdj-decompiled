@@ -222,3 +222,4 @@
 ; --- indirect (FarCall) targets, resolved by tools/farcall_targets.py ---
 24DD RedrawScreen ; full screen repaint: ResetScreenSprites, ClearBgTilemap (CGB), then dispatch per-screen draw handlers by wCurrentScreen (18+ FarCall sites)
 39E1 CopyToWindowTilemap ; pick window tilemap base from rLCDC bit6 ($9800/$9c00), tail-call CopyToBgTilemapCore
+1FD5 CheckRomChecksum ; sum ROM bytes vs header global checksum ($014E/$014F) -- SRAM/boot self-test path

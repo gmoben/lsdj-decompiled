@@ -12,10 +12,10 @@
 4967 TableScreenUpdate  ; per-frame visual update (screen idx 5)
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
-4000 TableDrawStr_4000          ; calls DrawStringIndexed
-4167 TableSelectScreen          ; navigation: pick wCurrentScreen ($c401) from mode $c900 + state $c901/$c902 vs $c8ff + jump table $41bf
-420C TableResetScroll           ; store arg -> $c903, then zero rSCX/rSCY
-421A TableBanked_421A           ; banked-call wrapper
+4000 MapUpdateTopRow            ; recompute wMapProjectCol/wMapSynthCol from wMapCol when on the map middle row
+4167 MapEnterScreen             ; SEL+B screen map: set wCurrentScreen from wMapRow/wMapCol (row0=PROJECT/WAVE/SYNTH, row1=SONG CHAIN PHRASE INSTR TABLE, row2=GROOVE)
+420C MapStartTransition         ; store move direction (1=up 2=right 3=down 4=left) -> wMapMoveDir, reset rSCX/rSCY
+421A MapCancelSelection         ; if select mode (wCursorMode==4) restore pre-selection state before leaving the screen
 42A4 TableDrawStr_42A4          ; calls DrawStringIndexed
 42E7 TableGetCellA              ; address table column-A cell: base ptr $c447 + wTable*32 + row(arg<16); bounds-checked
 43B7 TableSongWrite_43B7        ; calls WriteSongByte
@@ -32,5 +32,14 @@
 676A TableUpdateScreen          ; main table-screen update/draw (large; also entered from DrawTableScreen)
 ; --- functions called from bank 0 (this bank paged in) ---
 4B5D TableFieldFunc     ; table-field access (wTable)
-4040 TableDrawDigit     ; draw a table digit (hBgDigitPalette)
+4040 MapDrawTopRow      ; draw the map top-row entries (PROJECT + WAVE/SYNTH) at wMapProjectCol/wMapSynthCol, screen row 15
 61C3 TxtSelect05       ; "SELECT" (pairs with TxtCancelSelect05)
+
+; --- screen-map navigation (SEL+direction) + selection save ---
+4233 MapMoveLeft        ; dec wMapCol, MapEnterScreen, MapStartTransition(4), MapDrawTopRow
+4253 MapMoveRight       ; inc wMapCol, MapEnterScreen, MapStartTransition(2), MapUpdateTopRow
+426A MapMoveUp          ; dec wMapRow, MapEnterScreen, MapStartTransition(1)
+4287 MapMoveDown        ; inc wMapRow (max 2), MapEnterScreen, MapStartTransition(3)
+7208 GetSynthFieldHelp  ; -> bc = help string for the selected synth field (jump table by wSynthCursor)
+743F SaveSelectionState ; wCursorMode/wClipboardType/wSelLeft/Top/Right/... -> $cbd2 save area
+747D RestoreSelectionState ; $cbd2 save area -> wCursorMode/wClipboardType/wSel*

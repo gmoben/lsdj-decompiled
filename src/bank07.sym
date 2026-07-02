@@ -42,13 +42,13 @@
 5929 SongEndSelection           ; finish selection ($0dbc), restore cursor from $c40d/$c94b
 5970 SongCalcSelectionSpan      ; compute selection span from $c40d/$c40f/$c41d
 5B1D SongSongWrite_5B1D         ; calls WriteSongByte
-627C SongPhraseCmdVal_627C      ; accesses PhraseCmdVal
-6320 SongPhraseCmdVal_6320      ; accesses PhraseCmdVal
-637C SongPhraseCmdVal_637C      ; accesses PhraseCmdVal
-63B5 SongPhraseCmdVal_63B5      ; accesses PhraseCmdVal
-6413 SongMemFill_6413           ; calls MemSet
-644F SongPhraseCmdVal_644F      ; accesses PhraseCmdVal
-64CA SongPhraseCmdVal_64CA      ; accesses PhraseCmdVal
+627C SortBookmarks              ; bubble-sort the 16-byte song bookmarks row ($aff0, song offset $0FF0)
+6320 IsBookmarked               ; -> e=1 if song row (arg) is in the bookmarks list, else 0
+637C AddBookmark                ; append song row to bookmarks; full -> ShowMax16Marks
+63B5 RemoveBookmark             ; delete song row from bookmarks list, re-sort
+6413 ToggleBookmark             ; song row in list ? RemoveBookmark : AddBookmark
+644F AdjustBookmarksOnDelete    ; song rows [lo,hi) removed: drop bookmarks inside, shift later ones up, re-sort
+64CA AdjustBookmarksOnInsert    ; song rows shifted (src->dst): rebase bookmarks, drop wrapped, re-sort
 6543 SongDrawStr_6543           ; calls DrawStringIndexed
 672A SongHexDigit               ; return hex char "0123456789ABCDEF"[arg]
 674D SongBanked_674D            ; banked-call wrapper
@@ -68,3 +68,19 @@
 ; --- functions called from bank 0 (this bank paged in) ---
 68A2 SongSyncFunc       ; song-screen sync state ($cb80)
 4B3B SongRowFunc        ; song-row access (wSongRow)
+
+; --- bookmarks / tempo / PS/2 keyboard ---
+6249 WriteBookmarkByte          ; bounds-checked ($aff0-$afff) WriteSongByte into the bookmarks row
+643D ClearBookmarks             ; MemSet($aff0, $ff, 16)
+5DD8 GetTempoTimerValue7        ; bank-7 copy of GetTempoTimerValue: wTempoMode presets or BPM->timer via tables
+5E49 TempoTimerTableDmg         ; [BPM byte] -> 16-bit tempo timer value (DMG), 256 x dw
+6049 TempoTimerTableCgb         ; [BPM byte] -> 16-bit tempo timer value (CGB double-speed), 256 x dw
+662A KeyboardNoteMap            ; [PS/2 scancode & $7f] -> note (0=none), + wKbdTranspose octave offset
+66AA KeyboardFnMap              ; [PS/2 scancode & $7f] -> function code (channel mutes/cursor keys)
+7097 DrawKeyboardCalibScreen    ; PS/2 "KEYBOARD CALIBRATION" screen (tap down-arrow prompt)
+7171 TxtKeyboardCalibration     ; "KEYBOARD CALIBRATION"
+7186 TxtTapDownArrowKey         ; "TAP DOWN ARROW KEY"
+7199 TxtOnPs2Keyboard           ; "ON PS/2 KEYBOARD"
+71AA TxtManyTimes               ; "MANY TIMES"
+71B5 TxtFail                    ; "FAIL!"
+71BB TxtOk                      ; "OK!"

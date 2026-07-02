@@ -63,3 +63,56 @@
 ; --- indirect (FarCall) target ---
 75BD ShowOutOfMemory ; push TxtOutOfMemory, call ShowMessage
 75F8 ShowTapAddChain ; push TxtTapAddChain, call ShowMessage
+
+; --- song-data allocation, clipboard, message bar (FarCall targets) ---
+4E43 FreeChain          ; clear chain-alloc bit (song $3EA2 bitmap) and write back
+4EB3 AllocNextFreePhrase ; scan phrase-alloc bitmap ($3E82) from current phrase, mark first free; full -> ShowOutOfMemory, ret $ff
+5253 CopyInstrument     ; "COPIED INSTR": wClipboardType=6, copy 16 instr bytes -> screen scratch
+546E CloneInstrTable    ; on instr TABLE field: alloc table copy (bank1f), "CLONED TABLE", write #|$20
+5503 PasteInstrument    ; if select-held + clipboardType==6: paste 16 bytes back into instrument
+74F7 DrawMessageBar     ; render wStrBuffer (20 ch) to tilemap row 0 + CGB attrs (MsgBarAttrRow)
+7616 ShowTapAddPhrase   ; push TxtTapAddPhrase, call ShowMessage
+7635 ShowMax16Marks     ; push TxtMax16Marks, call ShowMessage
+781F ClearMessageBar    ; zero wMsgStrPtr, fill top bar with spaces
+7C86 LoadProjectSettings ; audio off; read key-repeat/sync/clone/colorset from song properties ($bfbc+), clamp, re-init palettes
+
+; --- FX command help strings (CommandHelpTable targets; shown on double-A) ---
+6FB8 TxtHelpA           ; "A: RUN TABLE [00-1F=PLAY, 20=STOP]"
+6FDB TxtHelpBNote       ; "B: MAYBE PLAY NOTE; ..." (phrase screen)
+7016 TxtHelpBHop        ; "B: MAYBE HOP; ..." (table screen)
+705E TxtHelpC           ; "C: CHORD [EACH DIGIT=SEMITONES TO ADD]"
+7085 TxtHelpD           ; "D: DELAY NOTE [TICKS]"
+709B TxtHelpE           ; "E: VOLUME ENVELOPE; ..."
+7123 TxtHelpFTune       ; "F: FINETUNE [PU2 TUNE,FINETUNE]"
+7143 TxtHelpFOffset     ; "F: KIT/SYNTH OFFSET; 01-7F=INCREASE, FF-80=DECREASE"
+7177 TxtHelpG           ; "G: SET GROOVE [00-1F]"
+718D TxtHelpHPhrase     ; "H0X: HOP TO NEXT PHRASE; ..." (phrase screen)
+71EF TxtHelpHTable      ; "H: HOP TO STEP; ..." (table screen)
+723A TxtHelpK           ; "K: KILL NOTE AFTER N TICKS"
+7255 TxtHelpL           ; "L: SLIDE TO NOTE, DIGITS=TIME. ..."
+72AE TxtHelpM           ; "M: MASTER VOLUME [LEFT,RIGHT] ..."
+730A TxtHelpO           ; "O: SET OUTPUT [LEFT/RIGHT]"
+7325 TxtHelpP           ; "P: PITCH BEND [01-7F=UP, FF-80=DOWN, 00=OFF]"
+7352 TxtHelpR           ; "R: RETRIG; ..."
+73BC TxtHelpT           ; "T: SET TEMPO; 28-FF=40-255 BPM, 00-27=256-295 BPM"
+73EE TxtHelpV           ; "V: VIBRATO [SPEED,DEPTH]; V00=STOP"
+7411 TxtHelpWShort      ; "W: WAVE"
+7419 TxtHelpW           ; "W: WAVE [SPEED,LENGTH] 0=NO CHANGE"
+743C TxtHelpZ           ; "Z: RANDOMIZE; ..."
+7796 TxtHelpSKit        ; "S: MOVE KIT LOOP POINTS; ..." (kit instr)
+77DF TxtHelpSNoise      ; "S: ADD TO NOISE SHAPE; DIGITS ARE INDEPENDENT"
+780D TxtHelpSSweep      ; "S: SET PU1 SWEEP" (pulse 1)
+
+; --- message bar attributes + screen name strings ---
+7484 MsgBarAttrRow      ; 20 x $04: CGB attribute row for the top message bar
+74AC TxtScreenLive      ; "LIVE"
+74B1 TxtScreenSong      ; "SONG"
+74B6 TxtScreenChain     ; "CHAIN "
+74BD TxtScreenPhrase    ; "PHRASE "
+74C5 TxtScreenTable     ; "TABLE "
+74CC TxtScreenProject   ; "PROJECT "
+74D5 TxtScreenFile      ; "FILE "
+74DB TxtScreenInstr     ; "INSTR "
+74E2 TxtScreenWave      ; "WAVE "
+74E8 TxtScreenSynth     ; "SYNTH "
+74EF TxtScreenGroove    ; "GROOVE "

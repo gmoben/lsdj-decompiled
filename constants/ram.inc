@@ -392,3 +392,19 @@ DEF BTN_A            EQU 4
 DEF BTN_B            EQU 5
 DEF BTN_SELECT       EQU 6
 DEF BTN_START        EQU 7
+
+; --- screen map (SEL+direction navigation, bank 5 $4000-$42B2) ---
+DEF wMapCol          EQU $C8FF  ; screen-map column 0-4 (middle row: SONG CHAIN PHRASE INSTR TABLE)
+DEF wMapRow          EQU $C900  ; screen-map row 0-2 (0=PROJECT/WAVE/SYNTH, 1=main, 2=GROOVE)
+DEF wMapProjectCol   EQU $C901  ; column where the PROJECT map entry currently sits
+DEF wMapSynthCol     EQU $C902  ; column where the WAVE/SYNTH map entry currently sits
+DEF wMapMoveDir      EQU $C903  ; last map move direction: 1=up 2=right 3=down 4=left
+; --- selection save area (bank 5 Save/RestoreSelectionState) ---
+DEF wSavedCursorMode EQU $CBD2  ; saved wCursorMode across screen-map navigation
+DEF wSavedClipType   EQU $CBD3  ; saved wClipboardType
+DEF wSavedSelLeft    EQU $CBD4  ; saved wSelLeft
+DEF wSavedSelTop     EQU $CBD5  ; saved wSelTop
+DEF wSavedSelRight   EQU $CBD6  ; saved wSelRight
+; --- PS/2 keyboard (bank 7) ---
+DEF wKbdHeldNote     EQU $CB7E  ; note currently held on the PS/2 keyboard (0=none)
+DEF wKbdTranspose    EQU $CB91  ; keyboard octave/transpose offset added to KeyboardNoteMap notes

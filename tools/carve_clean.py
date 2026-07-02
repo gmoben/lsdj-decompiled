@@ -49,14 +49,23 @@ MANUAL: dict[int, list[tuple[int, int]]] = {
     0x00: [(0x10, 0x20), (0x104, 0x150), (0x207, 0x2C0),
            (0x824, 0x908), (0x9B9, 0xA91)],
     # bank 1 (UI): two LUTs decoded as code (byte+16-bit table at $40EA; a rising
-    # byte curve at $42A0) + two small zero-source regions.
-    0x01: [(0xEA, 0x1D2), (0x2A0, 0x316), (0x17BF, 0x17D0), (0x3498, 0x34A9)],
+    # byte curve at $42A0), one small zero-source region, the FX-command help
+    # strings + message-bar attr row + screen-name strings ($6FB8-$74F7), the
+    # ShowMessage strings between their Show* wrappers, and CommandHelpTable +
+    # the three S-command help strings ($776E-$781F).
+    0x01: [(0xEA, 0x1D2), (0x2A0, 0x316), (0x17BF, 0x17D0),
+           (0x2FB8, 0x34F7), (0x35C7, 0x35F8), (0x3602, 0x3616),
+           (0x3620, 0x3635), (0x363F, 0x364C), (0x376E, 0x381F)],
     # PitchBendTable ($43D8-$45D8, read by ApplyPitchBend) and the vibrato tables
     # ($7D81-$7DD1: VibDepthTable[16] + VibRateTableA/B[16 x 16-bit], read by
     # FxCmd_V) -- both were decoded as garbage code (data tables).
     0x02: [(0x3D8, 0x5D8), (0x3D81, 0x3DD1)],
     # bank 1C: an [8][8] rising value table ($6E3C) decoded as code.
     0x1C: [(0x2E3C, 0x2E7C)],
+    # bank 7: DMG+CGB tempo timer tables ($5E49/$6049, 256 x dw each), the PS/2
+    # keyboard note/function maps ($662A/$66AA), and the keyboard-calibration
+    # screen strings ($7171-$71BF).
+    0x07: [(0x1E49, 0x2249), (0x262A, 0x272A), (0x3171, 0x31BF)],
 }
 
 
