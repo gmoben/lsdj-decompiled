@@ -175,3 +175,4 @@
 5EDA NoiseFreqTable             ; [noise note] -> NR43 poly/divisor byte (120 entries)
 5F52 SetNoisePoly               ; a = NoiseFreqTable[a] -> rAUD4POLY (NR43); noise-channel pitch
 7FF0 WavFreqTable               ; WAV channel sample-rate steps (SndUpdateWavFreq)
+7F51 StepEnvToTarget            ; step channel volume [hl] toward e via zombie mode ($08 nudge up / FadeEnvStepDown); c = rAUDxENV; shared tail of SndSetupLfo*

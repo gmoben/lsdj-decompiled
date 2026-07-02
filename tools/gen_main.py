@@ -41,7 +41,8 @@ NUM_BANKS = 64
 KIT_HEADER = [
     (0x00, 0x22, "Ptrs", "sample offset table (16 x 2-byte ptrs) + $6040 marker"),
     (0x22, 0x30, "Names", "16 x 3-char sample names"),
-    (0x52, 0x0E, "KitName", "6-char kit name + pad"),
+    (0x52, 0x06, "KitName", "6-char kit name"),
+    (0x58, 0x08, "KitMeta", "kit header tail: pad + flags/loop bytes"),
 ]
 
 

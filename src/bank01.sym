@@ -166,3 +166,10 @@
 5099 TxtPctDColon               ; "%d:"
 509D TxtPctD01                  ; "%d"
 4F44 AllocNextFreePhraseMid ; @deploy-only: operand byte of the jp at $4F42 (walker artifact)
+6F8E TxtVersion                 ; "V9.4.0  (c) 2000 JOHAN KOTLINSKI" (chars drawn individually by DrawCrashScreen)
+6F91 TxtVerMinor                ; '4' minor version digit (string continues)
+6FAE TxtTooBusy                 ; "TOO BUSY!" (CPU overload message)
+6F8F TxtVerMajor                ; '9' major version digit
+6F90 TxtVerDot1                 ; '.'
+6F92 TxtVerDot2                 ; '.'
+6F93 TxtVerPatch                ; '0' patch digit + "  (c) 2000 JOHAN KOTLINSKI"
