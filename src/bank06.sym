@@ -85,3 +85,5 @@
 5BD0 ChainFieldFunc     ; chain-field access (wChain)
 507F ScreenInput06      ; screen input handler (wButtons)
 431D DrawSelectDigit    ; draw select-palette digit (wSelectDigitPal)
+5391 TxtSelect         ; "SELECT" (pairs with TxtCancelSelect)
+6D4E TxtSelect2        ; "SELECT" (second instance; pairs with TxtCancelSelect2)

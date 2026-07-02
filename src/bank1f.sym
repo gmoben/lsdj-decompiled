@@ -92,3 +92,5 @@
 70DF InstrHDrawStr_70DF         ; calls DrawStringIndexed
 ; --- functions called from bank 0 (this bank paged in) ---
 4A26 WordHelper         ; word/speech helper
+7801 TxtCutWord        ; "CUT WORD"
+780A TxtPastedWord     ; "PASTED WORD"

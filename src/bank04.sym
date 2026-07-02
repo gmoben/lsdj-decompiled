@@ -55,3 +55,5 @@
 5B5E PhraseDrawHex_5B5E         ; calls DrawHexByte
 ; --- functions called from bank 0 (this bank paged in) ---
 5BA6 PhraseBulkFunc     ; phrase operation (44-byte frame)
+55DE TxtClonedInstr    ; "CLONED INSTR"
+7D57 TxtSelect04       ; "SELECT" (pairs with TxtCancelSelect04)

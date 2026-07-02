@@ -33,3 +33,4 @@
 ; --- functions called from bank 0 (this bank paged in) ---
 4B5D TableFieldFunc     ; table-field access (wTable)
 4040 TableDrawDigit     ; draw a table digit (hBgDigitPalette)
+61C3 TxtSelect05       ; "SELECT" (pairs with TxtCancelSelect05)

@@ -83,3 +83,5 @@
 7138 ScreenInput1D      ; screen input (wButtons)
 4D58 GrooveStateClear   ; clear groove state ($c9d5)
 4451 GrooveRowFunc      ; groove-row access (wGrooveRow)
+4B65 TxtSelect1D       ; "SELECT" (pairs with TxtCancelSelect1D)
+7D98 TxtPastedSynth    ; "PASTED SYNTH"
