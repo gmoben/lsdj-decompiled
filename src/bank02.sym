@@ -78,7 +78,7 @@
 43CE SndFxTableJump             ; FX dispatch via computed jump (jp hl region)
 4637 SndClampNoteRange          ; clamp a note value to playable range ($3c..$78) -> $c422
 46C7 SndClearChanFxSlots        ; clear this channel's 3 FX slots ($c2f0/$c2f4/$c2f8 + ch)
-472F SndRunTableColumn          ; dispatch one table column (-> SndRunFxSlot / SndTableEnv_66E7)
+472F SndRunTableColumn          ; dispatch one table column (-> SndRunFxSlot / SndResetPitchState)
 4753 SndRunChannelFxSlots       ; iterate the 12-entry FX-slot table $c2f0, run SndRunTableColumn per active
 478D SndDispatchStoredFx        ; load command from $c8c4, fall into DispatchFxCommand
 483F SndAdvanceTableCursor      ; advance this channel's table read cursor ($c8e1 ptr + $c140[ch])
@@ -87,7 +87,7 @@
 4BC5 SndTransposeNote           ; add chain transpose (wChanChainTrans, song/chain mode) + global transpose to the note; skip if wChanTranspose set
 4C26 AdvanceCurChanCursors      ; set de=hSoundCh*2, c=a (amount), then fall into AdvanceChanCursors (advance current channel's cursors by a)
 4C42 SndAnyChannelActive        ; scan the 8 wChanActive flags ($C0E0..7); return nz (flag in a) if any channel is active, z if none
-4C4E SndStartChannel            ; handle $c0e4 (re)start request: read seq (SndSeqRead_6BBA), set retrigger $c4cd, clear request
+4C4E SndStartChannel            ; handle $c0e4 (re)start request: read seq (SndStartChanFromRow), set retrigger $c4cd, clear request
 4C68 SndLoadChannelInstr        ; read the channel's instrument number from SRAM bank3 via its $c140[ch] cursor -> wChanInstr shadow ($c0c8/$c210[ch]); then SndLoadInstrument
 4C9C SndReadChainRow            ; read the current chain row (cp $ff = end-of-chain)
 4CBF SndAdvanceChainRow         ; advance the chain row, load that row's phrase; end-of-chain handling at row 16/$ff
@@ -148,14 +148,14 @@
 6B9B SndUpdateRetrig            ; SndCheckChanMode / SndCheckRetrigState (advance retrigger)
 6BBA SndStartChanFromRow        ; start this channel playing from wChanNextSongRow ($ff -> stop path)
 6D97 SndStartChannels           ; start channels [$c8dd..$c8de] from wSongRow (per-screen playback entry)
-6E0F SndStopAllIfIdle           ; if no channel active, stop (SndUpdateRetrig, SndMemFill_6D97)
+6E0F SndStopAllIfIdle           ; if no channel active, stop (SndUpdateRetrig, SndStartChannels)
 6E24 SndAdvanceRetrig           ; SndCheckChanMode (cp $ff)
 6EA7 SndChanStateMachine        ; per-channel state-machine dispatch (multiple branches)
 6F65 SndGetChainPhrase          ; bounds-checked chain_phrases[chain*16+row] lookup (chain=arg sp+6, row=arg sp+7 <$10; SRAM $A080); DebugTrap on out-of-range
-6FB6 SndWaveRetrigDispatch      ; wave-channel retrigger dispatch (-> SndTriggerWave_7034)
+6FB6 SndWaveRetrigDispatch      ; wave-channel retrigger dispatch (-> SndLoadWaveFrame)
 7034 SndLoadWaveFrame           ; stream the next synth wave frame ([$c4d0] ptr, SRAM bank 0) to the WAV channel
 70FB SndEnableLcdInts           ; SetInterruptEnable
-710E SndInitPlayState           ; copy $c401 -> $c4d2, clear $c528, SndMemFill_7C4C
+710E SndInitPlayState           ; copy $c401 -> $c4d2, clear $c528, StopPlayback
 711F SndAdvanceChanPos          ; per-frame position advance inside SndUpdateChannel; state $ff -> SndInitPlayState
 7362 SndBank0Call7362           ; bank0 $33f9 dispatch
 73B0 SndClearVoicePairs         ; recursive: SndBank0Call6479 x2 (clear voice state)

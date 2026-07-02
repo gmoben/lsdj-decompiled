@@ -33,7 +33,7 @@
 4540 SetInstrLen3               ; write instrument byte 3 = length (bit6=limited, bits0-5; wave v16+: synth<<4)
 45A7 InstrScreenFrame           ; shared instrument-screen frame draw (map row, tempo field, marker sprites)
 45D3 InstrScreenRefresh         ; reload current instrument + DrawInstrumentScreen
-461B InstrAdjustNumber          ; adjust wInstrument (-16, clamp >$40 to 0, +1) then redraw via InstrBanked_45D3
+461B InstrAdjustNumber          ; adjust wInstrument (-16, clamp >$40 to 0, +1) then redraw via InstrScreenRefresh
 4638 InstrScreenEnter           ; enter the instrument screen (speech $40 special-cased) + DrawInstrumentScreen
 47A2 SetInstrFlags52            ; write instrument byte 5 flags (bit3 = table STEP/AUTOMATE mode, vibrato bits)
 482E SetInstrFlags53            ; write instrument byte 5 flags (bit3 = table STEP/AUTOMATE mode, vibrato bits)
@@ -52,8 +52,8 @@
 4B29 SetInstrByte2              ; write instrument byte 2 (pulse tune / kit half-speed+keep-attack / wave synth pre-v16)
 4B4C GetInstrFlags53            ; read instrument byte 5 flags (bit3 = table STEP/AUTOMATE mode, vibrato bits)
 4B5E SetInstrFlags54            ; write instrument byte 5 flags (bit3 = table STEP/AUTOMATE mode, vibrato bits)
-4BAC InstrField5Next            ; read instr field5, step +2 (wrap 6->1), write back via InstrSetField5_4B5E
-4BCB InstrField5Prev            ; read instr field5, step -2 (wrap <0 ->4), write back via InstrSetField5_4B5E
+4BAC InstrField5Next            ; read instr field5, step +2 (wrap 6->1), write back via SetInstrFlags54
+4BCB InstrField5Prev            ; read instr field5, step -2 (wrap <0 ->4), write back via SetInstrFlags54
 4BE9 GetInstrType3              ; read instrument byte 0 = type (0=PULSE 1=WAVE 2=KIT 3=NOISE)
 4BF9 SetInstrFlags55            ; write instrument byte 5 flags (bit3 = table STEP/AUTOMATE mode, vibrato bits)
 4C64 SetInstrFlags56            ; write instrument byte 5 flags (bit3 = table STEP/AUTOMATE mode, vibrato bits)

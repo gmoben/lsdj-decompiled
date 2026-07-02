@@ -49,9 +49,9 @@
 4F2E InstrHReadPhraseRef        ; read SRAM byte at $A040+arg (ReadSongByte bank1)
 4F49 ComparePhraseToWork        ; compare phrase rows against the $0FF0 work row (dedupe comparator)
 4FC5 ReadTableRowCmds           ; gather one table row's cmd1/val1/cmd2 bytes ($3680/$3880/$3A80 regions)
-50A8 InstrHScanUsedPhrases      ; for each phrase 0..255 used (InstrBanked_5091), process via InstrHPhraseNote_4F49
+50A8 InstrHScanUsedPhrases      ; for each phrase 0..255 used (IsPhraseUsedFar), process via ComparePhraseToWork
 50CC InstrHCountUsedTables      ; count nonzero entries in used-table map $c47d[0..$1f]
-50F6 InstrHProcessUsedTables    ; count tables (50CC) then run InstrHTableCmd1_4FC5 per used
+50F6 InstrHProcessUsedTables    ; count tables (50CC) then run ReadTableRowCmds per used
 513D InstrHMarkInstrTable       ; read instr field6; if bit5 set, mark its table used (InstrHMarkTableUsed)
 515F InstrHScanInstrTables      ; for each instrument 0..63 used, mark its table (InstrHReadPhraseRef/513D)
 5183 ClearTableRow              ; zero 16 bytes of one table column region (row arg <$10)
@@ -59,7 +59,7 @@
 526B InstrHCollectUsedTables    ; gather used-table indices + pointers from map $c47d
 52B3 BuildUsedTablesMap         ; rebuild the used-tables map ($c47d, 32 slots): scan instrs, phrases, tables
 52DA RemapSeqChains             ; walk the 4 sequence columns remapping chain refs (CleanSongData step)
-5478 InstrHScanUsedChains       ; for each chain 0..127 used (InstrBanked_5461), process (InstrBanked_5413)
+5478 InstrHScanUsedChains       ; for each chain 0..127 used (IsChainUsedFar), process (MarkChainPhrasesUsed)
 549C FindDupPhrase              ; scan phrase-note rows ($0000) for a duplicate of the candidate
 5644 FindDupChain               ; scan chain rows ($2080) for a duplicate
 573C FindDupTable               ; scan table rows ($3680) for a duplicate
@@ -69,8 +69,8 @@
 5BDE DrawFreedPhrases           ; count freed phrases (IsPhraseUsedFar) + draw the DE-DUPE counter ($c9c8)
 5C78 DrawFreedChains            ; count freed chains (IsChainUsedFar) + draw the DE-DUPE counter ($c9ca)
 5D18 DrawFreedTables            ; count free tables (IsTableFree) + draw the DE-DUPE counter
-5DC9 InstrHCountUsedPhrases     ; count used phrases 0..255 (InstrBanked_5091)
-5DF3 InstrHCountUsedChains      ; count used chains 0..127 (InstrBanked_5461)
+5DC9 InstrHCountUsedPhrases     ; count used phrases 0..255 (IsPhraseUsedFar)
+5DF3 InstrHCountUsedChains      ; count used chains 0..127 (IsChainUsedFar)
 5E1D RebuildPhraseAllocMap      ; clear the phrase-alloc bitmap ($3E82, 32B) + rescan via used chains
 5F20 MarkPhraseDataUsed         ; per-phrase used-scan helper (reads rows, dispatch table $491a)
 5F85 InstrHScanChainPhrases     ; scan the 16 phrase slots of a chain (arg*16) for usage
@@ -104,7 +104,7 @@
 64FF CanEnterSongCol            ; e=1 if song column (arg<4) can take the cursor (channel active/enterable)
 6656 HasEnterableColRight       ; e=1 if any song column right of wSongCol is enterable (phrase-screen '>' arrow)
 6677 HasEnterableColLeft        ; e=1 if any song column left of wSongCol is enterable ('<' arrow)
-6C1E DrawPhraseCursor           ; draw the phrase cursor cell: InstrHDrawStr_6B3B(wPhraseCol, wPhraseRow) via PhraseColLayout
+6C1E DrawPhraseCursor           ; draw the phrase cursor cell: DrawPhraseCellValue(wPhraseCol, wPhraseRow) via PhraseColLayout
 6D58 PastePhraseSelection       ; wClipboardType==1: normalize sel rect vs cursor, write clipboard cells into the phrase
 7072 DrawAllChanStatus          ; draw the 4 channel status cells (DrawChanStatus 0-3)
 7108 DrawSpeechInstrScreen      ; instrument screen for SPEECH type: "TYPE   SPEECH" + word list (pseudo-screen $0b)

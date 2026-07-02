@@ -50,7 +50,7 @@
 52EB CopySong16                 ; copy a 16-byte song-data row src->dst via Read/WriteSongByte
 5331 CopyTableData              ; copy table src->dst across the table column regions (song $3680/$3880/$3A80)
 55C9 GetScreenPalette           ; -> de = CGB BG palette block for wCurrentScreen (INSTR varies by instr type)
-6CD7 UiDrawTextHw               ; read instrument (UiInstrRead_55C9); draw via CGB path (UiDrawScreenCgb) or DMG path (UiDrawScreenDmg) per hGameboyType
+6CD7 UiDrawTextHw               ; read instrument (GetScreenPalette); draw via CGB path (UiDrawScreenCgb) or DMG path (UiDrawScreenDmg) per hGameboyType
 6D23 UiClearBgMap               ; clear BG tilemap from $9800 (VBK-aware: bank1 attrs on CGB)
 6D53 DrawTopBar                 ; top status bar: active message (wMsgStrPtr) or screen title + hex number
 7955 DrawCrashScreen            ; "DONT PANIC!" crash/diagnostic screen (ROM/STK/PLY/CVW dumps)
@@ -58,7 +58,7 @@
 7DE9 ClearSramWindow           ; zero the whole $A000-$BFFF SRAM window (8 bytes/iter until h==$c0); used during init/format
 7DFB UiDrawScreenCgb            ; copy 18x20 chars (arg ptr) -> $9800 with per-char CGB palette attribute (VBK1)
 7E4E UiDrawScreenDmg            ; copy 18x20 chars (arg ptr) -> $9800 (DMG, no palette attrs)
-7E74 UiDrawHelpStr              ; stage 20 bytes (arg) -> $c7b0 string buffer (save src ptr $c7c4/5), then UiDrawStr_7955
+7E74 UiDrawHelpStr              ; stage 20 bytes (arg) -> $c7b0 string buffer (save src ptr $c7c4/5), then DrawCrashScreen
 7ED3 UiLoadObjPalette           ; upload object palette: write rOBPI/rOBPD from [bc], index/count from args
 ; --- indirect (FarCall) target ---
 75BD ShowOutOfMemory ; push TxtOutOfMemory, call ShowMessage

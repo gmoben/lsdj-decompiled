@@ -19,7 +19,7 @@
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 4000 SongCheckGlyphTables       ; bounds-checked indices into ROM glyph tables $4A70/$4D70 (DebugTrap on overflow)
 404B SongChanActiveMask         ; OR wChanActive[0..3] -> combined active flag
-4084 SongReadCellValue          ; read song-grid cell at col $c41d / row $c41e (SongPhraseCmdVal_6320)
+4084 SongReadCellValue          ; read song-grid cell at col $c41d / row $c41e (IsBookmarked)
 4366 SongShowCloneMsg           ; show "CLONED CHAIN" / "CLONED CHAIN+PHRASES" popup
 4395 SongDrawCellHw             ; draw song-grid cell (palette per hGameboyType)
 43E4 SongReadRow                ; read song row $c41c from SRAM ($B290, ReadSongBytes) -> $c46d (16 bytes)
@@ -37,7 +37,7 @@
 4A79 SongCursorPageUp           ; PgUp: retreat song cursor $c41e by a page
 4AB8 SongBeginSelection         ; SaveSelectionState, seed wSel* rect from the song cursor
 4AFD SongLoadCursorChain        ; read seq[wSongRow,wSongCol] ($ff -> empty path), validate+cache via SongEnterChain
-5736 SongStartSelection         ; framed entry to SongSeqRead_5739 (begin song selection/edit)
+5736 SongStartSelection         ; framed entry to PasteSongSelection (begin song selection/edit)
 5739 PasteSongSelection         ; write clipboard rows into the song grid (clipType 4; unreferenced variant)
 5929 SongEndSelection           ; finish selection ($0dbc), restore cursor from $c40d/$c94b
 5970 SongCalcSelectionSpan      ; compute selection span from $c40d/$c40f/$c41d
@@ -57,7 +57,7 @@
 7012 SongDequeueByte            ; wait on $cb7d, read next byte from $cb81 ring (index $cb80)
 7033 KbdReadByte                ; link handshake + dequeue one keyboard byte ($cb7d queue)
 704E KbdPollScancode            ; read+decode PS/2 scancodes (break/ext codes; calibration checks)
-71BF SongDrawColumnValues       ; draw 16 song-row values into the column ($c46d, SongPhraseCmdVal_6320)
+71BF SongDrawColumnValues       ; draw 16 song-row values into the column ($c46d, IsBookmarked)
 720A DrawHexOrDashes            ; draw space then [bc]: bit7 ? "--" : hex byte
 722B VramCopyRowDown            ; copy tilemap row 2 -> row 3 (VBK-aware, calib screen)
 7276 VramCopyRowUp              ; copy tilemap row 17 -> row 16 (VBK-aware, calib screen)

@@ -43,7 +43,7 @@
 58E6 ClearSynthWaveBufs         ; clear the two 64-byte synth wave work buffers ($cab8/$caf8)
 5BBD ClearSynthWaveBufs2        ; duplicate of ClearSynthWaveBufs (second compile)
 5E53 SynthFilterPass            ; filter/transform 32 wave samples using $c9ec
-5F00 SynthApplyFilter           ; dispatch filter by $c9eb (2->SynthMemFill_5BBD, 3->SynthFilterPass, else 58E6); gated $c9ec
+5F00 SynthApplyFilter           ; dispatch filter by $c9eb (2->ClearSynthWaveBufs2, 3->SynthFilterPass, else 58E6); gated $c9ec
 5F29 SynthWriteWaveCol          ; write an edited wave column (<$20) from the edit state ($cb60) into song data
 5F90 SynthReadWaveSram          ; read synth wave bytes from SRAM $AF00 + $c441*32
 60A7 SynthCalcParamAddr         ; pick SRAM base $bfc4/$bfc5 by bit3 of arg -> synth param pointer
@@ -69,7 +69,7 @@
 6D0F SynthDrawWaveView          ; draw synth wave view; layout depends on $cb62 toggle
 6D6F SynthOverwriteWaves        ; "OVERWRITE": render the synth into the wave frames ($cb61/$cb62 range)
 6E00 RedrawScreenFar            ; FarCall home RedrawScreen ($24dd)
-6E11 SynthHandleViewKeys        ; synth-screen key dispatch ($c575: toggle views $cb61/$cb62, SynthBanked_6E00)
+6E11 SynthHandleViewKeys        ; synth-screen key dispatch ($c575: toggle views $cb61/$cb62, RedrawScreenFar)
 6E6E WriteSynthParam            ; synth_params[wSynthScreen*16+n] = value (song $3EB2); 24 uses
 6EB6 ReadSynthParamPair         ; read a synth param byte (variant 1 of the row accessors)
 6F3F ReadSynthParamPair2        ; read a synth param byte (variant 2)

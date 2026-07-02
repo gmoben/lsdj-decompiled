@@ -18,7 +18,7 @@
 401B DrawPhraseCursorFar        ; FarCall bank1f DrawPhraseCursor
 402C DrawPhraseTile             ; draw one indexed tile/char at the VRAM cursor (DrawStringIndexed wrapper)
 405D PhraseModeTile             ; return tile $78 or $6c depending on mode $c41d
-4071 PhraseReadCmdValCursor     ; read phrase cmd-value at cursor row $c416 (PhrasePhraseCmdVal_4918, wPhrase)
+4071 PhraseReadCmdValCursor     ; read phrase cmd-value at cursor row $c416 (PhraseReadCmdVal, wPhrase)
 4087 PhraseFindNoteFromCursor   ; scan up from row $c416 for first cmd-value <= $40; return it or $ff
 40B2 PhraseResolveCursorNote    ; resolve note+instrument under the cursor (PhraseFindNoteFromCursor; $40=none; select-mode aware)
 4106 SetColInstrument           ; cache the last-used instrument per channel column (wColInstrument+wSongCol; WAV specials)
@@ -48,10 +48,10 @@
 567D PhraseCursorOnEditCell     ; return 1 if cursor is on the active cmd cell ($c416==$c40e and $c415==wCursorX)
 56BA PhraseCloneTableCmd        ; command action handler incl. cloning a table ("CLONED TABLE" message)
 572C PrelistenCursorRow         ; play the note/instr under the cursor while editing (wPrelisten gate)
-58D9 PhraseCellFlagA       ; phrase-cell predicate OR-ed in PhraseDrawHex_5B5E: note<$40 & instrument type==2 (kit) test
-597D PhraseCellFlagB       ; phrase-cell predicate OR-ed in PhraseDrawHex_5B5E (inc-row variant)
-5A20 PhraseCellFlagC       ; phrase-cell predicate OR-ed in PhraseDrawHex_5B5E (note<$10 / $f0-offset variant)
-5AC7 PhraseCellFlagD       ; phrase-cell predicate OR-ed in PhraseDrawHex_5B5E ($30/$10-offset, adjacent-compare variant)
+58D9 PhraseCellFlagA       ; phrase-cell predicate OR-ed in PrelistenEditedCell: note<$40 & instrument type==2 (kit) test
+597D PhraseCellFlagB       ; phrase-cell predicate OR-ed in PrelistenEditedCell (inc-row variant)
+5A20 PhraseCellFlagC       ; phrase-cell predicate OR-ed in PrelistenEditedCell (note<$10 / $f0-offset variant)
+5AC7 PhraseCellFlagD       ; phrase-cell predicate OR-ed in PrelistenEditedCell ($30/$10-offset, adjacent-compare variant)
 5B5E PrelistenEditedCell        ; preview the just-edited cell (kit instruments special-cased)
 ; --- functions called from bank 0 (this bank paged in) ---
 5BA6 PhraseScreenEdit           ; phrase-screen edit dispatcher: A+dir ops, plain-A place, selection seeding (wSel* from cursor)
