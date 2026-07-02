@@ -70,7 +70,7 @@ MANUAL: dict[int, list[tuple[int, int]]] = {
     # bank 03: OUT OF SYNTHS string + kit DIST mode names.
     0x03: [(0x33B, 0x36E), (0xAB4, 0xACC)],
     # bank 04: phrase-row CGB attribute rows + the $01 step table.
-    0x04: [(0x10D8, 0x10FF), (0x14E3, 0x1500)],
+    0x04: [(0xC10, 0xC14), (0xCE1, 0xCE5), (0x10D8, 0x10FF), (0x14E3, 0x1500), (0x15D1, 0x15DE)],
     # bank 1D: softsynth shape banks ($4EF0/$50F0) decoded as code.
     0x1D: [(0xEF0, 0x1190)],
     # bank 1E: everything between ScreenPreDraw and GfxFillVramRegions is
