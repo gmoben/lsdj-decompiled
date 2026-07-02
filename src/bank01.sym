@@ -6,11 +6,11 @@
 
 ; --- UI functions called from bank 0 (bank $01 paged in) ---
 4CF1 UiInitScreen        ; screen setup: UiPalette + UiMemFill + UiLoadHwTables
-4487 UiDrawStr_4487      ; draw a string at VRAM $9820
+4487 DrawCartTest               ; boot CARTRIDGE TEST screen (ROM checksum + SRAM self-test)
 4FEC UiSetPlayMode       ; access wPlayMode, clear $c6a8, jp into UiInstrRead
 7860 UiShowMessage       ; set up the timed status message (wMsgTimer / wMsgStrPtr)
 7878 UiUpdateMessage     ; timed message + wSelectHeld handling
-4811 UiCheckSongByte_4811 ; ReadSongByte $a13e, compare $6a
+4811 CheckJkMarker              ; check the 'jk' SRAM-init marker at $a13e/$a13f (unreferenced)
 4848 CheckSongInitFlag   ; ReadSongByte $be78/$be79 ('rb' memory-init marker)
 50A0 UiReadSongProp      ; ReadSongByte $bfb3 (song property), compare $3c
 48D4 WriteSongInitFlag   ; WriteSongByte $be78 (set the 'rb' init marker)
@@ -19,8 +19,8 @@
 45D1 UiClearSram         ; enable SRAM + ClearSramWindow
 
 ; --- UI message / status strings (db "..."; referenced by the draw code) ---
-4557 TxtCartridgeTest   ; "CARTRIDGE TEST" (self-test screen title)
-4A44 TxtSpch            ; "SPCH" (SPEECH type abbreviation)
+4557 TxtCartridgeTest           ; "CARTRIDGE TEST"
+4A44 TxtSpch                    ; "SPCH" default speech-instrument name
 52DE TxtCopiedInstr     ; "COPIED INSTR"
 54F6 TxtClonedTable     ; "CLONED TABLE"
 55BC TxtPastedInstr     ; "PASTED INSTR"
@@ -38,23 +38,23 @@
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 4000 UiTestSramLo               ; cartridge RAM test, SRAM banks 0-3: write/read-back pattern via $33f9 (part of CartridgeTest)
 445A UiTestSramHi               ; probe SRAM banks 4-15 (enable $0a, select bank, call $20c4); jp CartridgeTest on mismatch
-493B UiStrCopy_493B             ; calls strcpy
-4A49 UiSongWrite_4A49           ; calls WriteSongByte
+493B CopyInstrName              ; copy instrument arg's 5-char name -> wNameEditBuf (speech $40 -> "SPCH")
+4A49 WriteInstrName             ; wNameEditBuf -> instrument name storage ($be7a + instr*5)
 4B15 UiLoadHwTables             ; load CGB/DMG-specific tables: palette-ish -> $cd28, 216-byte note-period table -> wNotePeriods ($cf28)
-4B5E UiMemFill_4B5E             ; calls MemSet
-4C61 UiPalette_4C61             ; calls set_bkg_palette
-4CFB UiSongWrite_4CFB           ; calls WriteSongByte
-500D UiInstrRead_500D           ; calls ReadCurInstrByte
-5208 UiDrawStr_5208             ; calls DrawStringIndexed
-5243 UiInstrRead_5243           ; calls ReadCurInstrByte
-52EB UiSongWrite_52EB           ; calls WriteSongByte
-5331 UiInstrRead_5331           ; calls ReadCurInstrByte
-55C9 UiInstrRead_55C9           ; calls ReadCurInstrByte
+4B5E ClearOamBuffer             ; MemSet(wOamBuffer,0,$a0) + sprite state reset
+4C61 ApplyColorSet              ; load the wColorSet CGB BG+OBJ palettes (hw $11 check, set_bkg_palette)
+4CFB MarkPhraseUsed             ; set the phrase-alloc bit (song $3E82 bitmap) for phrase arg
+500D UpdateWorkClock            ; 60-frame tick: advance the TOTAL WORK time clock counters ($c6a8...)
+5208 DrawSpeedGlyph             ; draw the 2-tile speed icon (SpeedGlyphTiles[value&7])
+5243 DrawStringBC               ; draw the string pointed to by bc (shared tail of the flag-name drawers)
+52EB CopySong16                 ; copy a 16-byte song-data row src->dst via Read/WriteSongByte
+5331 CopyTableData              ; copy table src->dst across the table column regions (song $3680/$3880/$3A80)
+55C9 GetScreenPalette           ; -> de = CGB BG palette block for wCurrentScreen (INSTR varies by instr type)
 6CD7 UiDrawTextHw               ; read instrument (UiInstrRead_55C9); draw via CGB path (UiDrawScreenCgb) or DMG path (UiDrawScreenDmg) per hGameboyType
 6D23 UiClearBgMap               ; clear BG tilemap from $9800 (VBK-aware: bank1 attrs on CGB)
-6D53 UiDrawStr_6D53             ; calls DrawStringIndexed
-7955 UiDrawStr_7955             ; calls DrawStringIndexed
-7BDE UiBanked_7BDE              ; banked-call wrapper
+6D53 DrawTopBar                 ; top status bar: active message (wMsgStrPtr) or screen title + hex number
+7955 DrawCrashScreen            ; "DONT PANIC!" crash/diagnostic screen (ROM/STK/PLY/CVW dumps)
+7BDE ResetEditorState           ; clear selection rect, clipboard type, cursor mode (+$c412)
 7DE9 ClearSramWindow           ; zero the whole $A000-$BFFF SRAM window (8 bytes/iter until h==$c0); used during init/format
 7DFB UiDrawScreenCgb            ; copy 18x20 chars (arg ptr) -> $9800 with per-char CGB palette attribute (VBK1)
 7E4E UiDrawScreenDmg            ; copy 18x20 chars (arg ptr) -> $9800 (DMG, no palette attrs)
@@ -129,3 +129,17 @@
 522D DrawOnOffName      ; draw " ON"/"OFF" by arg bit 5 (unreferenced)
 524B TxtOff             ; "OFF"
 524F TxtOn              ; " ON"
+4566 TxtRomDots                 ; "ROM..."
+51EE SpeedGlyphTiles            ; 6 tile indices for the speed icon pairs
+7B7A TxtDontPanic               ; "DONT PANIC!"
+7B86 TxtPleaseMailThis          ; "PLEASE MAIL THIS"
+7B97 TxtDataToInfoAt            ; "DATA TO INFO AT"
+7BA7 TxtLittleSoundDj           ; "LITTLESOUNDDJ.COM"
+7BB9 TxtRomColon                ; "ROM:"
+7BBE TxtStkColon                ; "STK:"
+7BC3 TxtPlyColon                ; "PLY:"
+7BC8 TxtCvwColon                ; "CVW:"
+7BCD TxtCgb                     ; "CGB"
+7BD1 TxtGba                     ; "GBA"
+7BD5 TxtSynColon                ; "SYN:"
+7BDA TxtAst                     ; "AST"

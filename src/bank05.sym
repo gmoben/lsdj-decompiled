@@ -16,18 +16,18 @@
 4167 MapEnterScreen             ; SEL+B screen map: set wCurrentScreen from wMapRow/wMapCol (row0=PROJECT/WAVE/SYNTH, row1=SONG CHAIN PHRASE INSTR TABLE, row2=GROOVE)
 420C MapStartTransition         ; store move direction (1=up 2=right 3=down 4=left) -> wMapMoveDir, reset rSCX/rSCY
 421A MapCancelSelection         ; if select mode (wCursorMode==4) restore pre-selection state before leaving the screen
-42A4 TableDrawStr_42A4          ; calls DrawStringIndexed
+42A4 DrawCmdLetter              ; draw an FX command letter cell (FxMnemonics char via DrawStringIndexed; >$13 asserted)
 42E7 TableGetCellA              ; address table column-A cell: base ptr $c447 + wTable*32 + row(arg<16); bounds-checked
-43B7 TableSongWrite_43B7        ; calls WriteSongByte
-442A TableSongWrite_442A        ; calls WriteSongByte
+43B7 WriteTableCmd1             ; write cmd (arg<=$13) into the table CMD1 column via wTableCellAPtr (row<16, table<32 asserted)
+442A WriteTableCmd2             ; write cmd into the table CMD2 column via wTableCellBPtr
 44E8 TableReadEnv          ; read table_envelopes[table][row<$10] from SRAM (bounds-checked)
 453B TableGetCellB              ; address table column-B cell: base ptr $c449 + wTable*32 + row(arg<16); bounds-checked
 459E TableReadTrans        ; read table_transposes[table][row<$10] from SRAM (bounds-checked)
 45F1 TableColumnLookup     ; map table column $c92f via ROM tables $42D5/$42DB (uses $c930, $c413); called across the table screen
-472B TableDrawStr_472B          ; calls DrawStringIndexed
+472B DrawTableEnv               ; draw a table envelope cell (lo-nibble $F -> hi-nibble + release glyph)
 4930 TableInputFlag             ; return e=flag derived from input code (arg sp+4: 4 or $0a) and column $c92f
-4AA8 TableDrawHex_4AA8          ; calls DrawHexByte
-61CA TableBanked_61CA           ; banked-call wrapper
+4AA8 TableDrawCursor            ; refresh the table cursor cell (select mode -> TableUpdateScreen; palette by CGB)
+61CA CutCopyTableSelection      ; arg? "CUT" (copy+clear) : "COPY": table selection -> clipboard (clipType 5)
 64A3 TableHandleInput           ; table-screen input/cursor handler ($c411 mode, wCursorX/Y); large
 676A TableUpdateScreen          ; main table-screen update/draw (large; also entered from DrawTableScreen)
 ; --- functions called from bank 0 (this bank paged in) ---
@@ -45,3 +45,5 @@
 747D RestoreSelectionState ; $cbd2 save area -> wCursorMode/wClipboardType/wSel*
 69BD DrawInstrFieldHelp ; pick + draw the instr-screen bottom help string by wInstrField/arg (TYPE -> TxtHelpInstrType)
 6F38 TxtHelpInstrType   ; "USE PULSE IN PU1/PU2; WAVE/KIT IN WAV; NOISE IN NOI"
+649A TxtCut05                   ; "CUT"
+649E TxtCopy05                  ; "COPY"
