@@ -173,3 +173,5 @@
 7F3E SndSetupLfoPU2             ; LFO setup for ch1 (PU2): clear $cbc6, init from $c2d9
 7F49 SndSetupLfoPU1             ; LFO setup for ch0 (PU1): $cbbf, call bank0 $2f9a
 78C4 StopAllPlayback            ; stop playback in screen context AND song context (temporarily forces wCurrentScreen=SONG); LIVE -> SndAdvanceRetrig
+5EDA NoiseFreqTable             ; [noise note] -> NR43 poly/divisor byte (120 entries)
+5F52 SetNoisePoly               ; a = NoiseFreqTable[a] -> rAUD4POLY (NR43); noise-channel pitch

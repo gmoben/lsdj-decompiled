@@ -56,10 +56,10 @@ MANUAL: dict[int, list[tuple[int, int]]] = {
     0x01: [(0xEA, 0x1D2), (0x2A0, 0x316), (0x17BF, 0x17D0),
            (0x2FB8, 0x34F7), (0x35C7, 0x35F8), (0x3602, 0x3616),
            (0x3620, 0x3635), (0x363F, 0x364C), (0x376E, 0x381F)],
-    # PitchBendTable ($43D8-$45D8, read by ApplyPitchBend) and the vibrato tables
+    # PitchBendTable ($43D8-$45D8, read by ApplyPitchBend), the vibrato tables
     # ($7D81-$7DD1: VibDepthTable[16] + VibRateTableA/B[16 x 16-bit], read by
-    # FxCmd_V) -- both were decoded as garbage code (data tables).
-    0x02: [(0x3D8, 0x5D8), (0x3D81, 0x3DD1)],
+    # FxCmd_V), and NoiseFreqTable ($5EDA, hides SetNoisePoly at $5F52).
+    0x02: [(0x3D8, 0x5D8), (0x1EDA, 0x1F52), (0x3D81, 0x3DD1)],
     # bank 1C: an [8][8] rising value table ($6E3C) decoded as code, and
     # DefaultWaveFrameB1C ($4047, 16 bytes -- hides the $4057 magic check).
     0x1C: [(0x47, 0x57), (0x2E3C, 0x2E7C)],
