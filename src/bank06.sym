@@ -26,56 +26,56 @@
 405D AccessWord          ; words[word][32] cell at SRAM bank0 $B890 (42 words; allophone+length pairs)
 41A2 DrawWordScreen      ; screen idx 12: draws speech words; edits words ($B890) + word_names ($BDD0)
 5A62 ChainScreenUpdate  ; per-frame visual update (screen idx 3)
-5511 ChainBanked_5511       ; banked-call wrapper (2x)
+5511 ChainLoadCursorPhrase      ; read the phrase at (wChain, wChainRow) via FarCallArg2; $ff -> empty path
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 4000 ChainScaleValue            ; scale/clamp a display value (mask $0f, $374c) with +$19/+$05 offset
-4026 ChainDrawStr_4026          ; calls DrawString
-40B3 ChainSongWrite_40B3        ; calls WriteSongByte
+4026 DrawSampleNameCell         ; draw a kit sample-name cell (ChainScaleValue + ReadKitSampleName -> wSampleNoteString)
+40B3 WriteWordCell              ; write to the speech-word data under the word cursor (wWordEditRow/Col, $b890 region)
 410E ChainDrawWaveCell          ; draw cell at cursor $c937/$c938 via ROM tables $4022/$4024
 414F ChainDrawWaveCellHw        ; like ChainDrawWaveCell but palette per hGameboyType
-4279 ChainDrawHex_4279          ; calls DrawHexByte
-4306 ChainDrawHex_4306          ; calls DrawHexByte
+4279 DrawSampleNameFull         ; sample name + extras draw (unreferenced variant of DrawSampleNameCell)
+4306 DrawWaveCellPair           ; draw a wave cell in both variants (ChainDrawWaveCell + Hw) for the row
 48AB ChainCalcSampleAddr        ; compute a sample address (arg<<5 + base) for ChainDrawByte_4C55
 4901 ChainCalcParamAddr         ; pick SRAM base $bfc4/$bfc5 by bit3 of arg (= SynthCalcParamAddr)
-493F ChainSongWrite_493F        ; calls WriteSongByte
+493F CopySynthParam             ; copy one synth parameter byte (ChainCalcParamAddr src->dst)
 4992 ChainReadPhraseNote   ; read phrase_notes[arg<$20] from SRAM (chain screen)
 4AB0 ChainScanCmd               ; scan 4 entries for command $0b with nonzero operand
 4B16 ChainSetCursorSprite       ; compute cursor sprite X/Y from $c42b/$c93b ($c413==4)
 4B40 ChainWriteCursorPair       ; store $c42b through two arg pointers
 4BA7 ChainDrawWaveform          ; draw wave samples from $400c.. (<-DrawWaveScreen)
-4C55 ChainDrawByte_4C55         ; calls DrawByte
+4C55 LoadKitSampleInfo          ; resolve the kit sample pair for the cursor note (ChainCalcSampleAddr; clears $c93d..+8)
 4EAC ChainDrawCursorByte        ; draw $c42b>>1 via ChainDrawByte_4C55
 4EBD ChainWriteWaveA            ; write wave data via ChainWriteCursorPair
 4F02 ChainDrawRow16             ; draw 16 bytes via ChainDrawByte_4C55
 4F42 ChainWriteWaveB            ; write wave data via ChainWriteCursorPair (variant)
 4FA9 ChainWriteWaveC            ; write wave data via ChainWriteCursorPair (variant)
 4FFB ChainWriteWaveD            ; write wave data via ChainWriteCursorPair (variant)
-504E ChainBanked_504E           ; banked-call wrapper
-5398 ChainBanked_5398           ; banked-call wrapper
+504E DrawWaveCursor             ; draw the wave-screen cursor nibbles (AccessWaveFrame + ChainDrawCursorByte x2)
+5398 CopyWaveSelection          ; wave-screen COPY: selection -> clipboard (clipType 8), shows "COPY"
 546C ChainReadCursorInput       ; read input ($07da) -> cursor $c93b
-54FA ChainSeqRead_54FA          ; calls ReadSeqByte
-5563 ChainSeqRead_5563          ; calls ReadSeqByte
+54FA GetCursorChain             ; read the chain number under the song cursor (ReadSeqByte(wSongRow,wSongCol))
+5563 ChainScreenEnter           ; enter the chain screen for the cursor chain (LIVE-mode aware, clears message)
 5655 ChainReadChainCell         ; bounds-checked chain[arg<$80][row<$10] read
 56AA ChainReadTrans        ; read chain_transposes[chain<$80] from SRAM (bounds-checked)
-56F0 ChainSongWrite_56F0        ; calls WriteSongByte
-5804 ChainSongWrite_5804        ; calls WriteSongByte
-5836 ChainSongWrite_5836        ; calls WriteSongByte
-5868 ChainSongWrite_5868        ; calls WriteSongByte
+56F0 ClonePhraseAtCursor        ; chain screen deep-clone: new phrase + copy rows, "CLONED PHRASE"
+5804 CopyPhraseNotes            ; copy 16 phrase-note bytes src->dst phrase (clone helper)
+5836 CopyPhraseFx               ; copy 16 phrase-fx bytes src->dst phrase
+5868 CopyPhraseInstrs           ; copy 16 phrase-instrument bytes src->dst phrase
 58A7 ChainDrawCellLo            ; draw cell at cursor $c419/$c41a
 5ABE ChainDrawCellHw            ; draw cell at $c41a (palette per hGameboyType)
-5B00 ChainDrawHex_5B00          ; calls DrawHexByte
-6D55 ChainBanked_6D55           ; banked-call wrapper
-6F0D ChainBanked_6F0D           ; banked-call wrapper
+5B00 ChainOpenPhrase            ; open the phrase under the chain cursor (RestoreSelectionState, load phrase)
+6D55 PasteChainSelection        ; write clipboard cells into the chain grid (clipType 3)
+6F0D ChainNormalizeSelection    ; normalize the chain-screen selection rect (wSel*)
 7006 ChainHandleInput           ; main chain-screen input handler ($c411==3, $c419/$c40d); large
-71ED ChainDrawStr_71ED          ; calls DrawString
-73C0 ChainDrawStr_73C0          ; calls DrawString
+71ED DrawOscSampleNames         ; draw the playing kit sample names (wOscBankA/B) at the tilemap position
+73C0 DrawStringAtCursor         ; set wVramCursor + DrawString (9-use draw helper)
 73DC ChainSyncStatusFlag        ; read $cb69, return status flag
 740C ChainDrawSyncStatus        ; draw sync status string from $cb6c/$cb6b (ChainDrawStr_73C0)
 7469 ChainDrawLeadStatus        ; draw LEAD/sync status via ChainSyncStatusFlag (ChainDrawStr_73C0)
 7508 ChainDrawStatusWord        ; draw a status word (SYNC/LEAD) via ChainDrawStr_73C0
-7524 ChainDrawStr_7524          ; calls DrawStringIndexed
-75BA ChainDrawStr_75BA          ; calls DrawStringIndexed
+7524 DrawTileHexCell            ; draw two indexed tiles + a hex byte
+75BA DrawChainCell              ; draw one chain-row cell: "---" empty or phrase hex (+bookmark tile via $ff88)
 784C ChainShiftSamples          ; sla each of N bytes from de (scope/visualization helper)
 786F ChainDrawScopePoint        ; plot oscilloscope point (ChainShiftSamples + $cba. buffer)
 78B8 ChainUpdateScope           ; update scope from $cba2/$cba3/$cba4
