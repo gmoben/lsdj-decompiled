@@ -5,9 +5,9 @@
 4DCB WaveSourceNames  ; "WAVE"/"SYNTH" (wave-instrument source)
 66F5 InstrParamJumps  ; jp-table for per-param draw dispatch (jp $6725/$6734/...)
 7A7B InstrOptionNames ; instrument param value strings "ON"/"ATK"/"OFF"/"SAFE"/...
-433B TxtOutOfSynths   ; "OUT OF SYNTHS!..."
+433B TxtOutOfSynths             ; "OUT OF SYNTHS! CLEAN INSTR DATA IN PROJECT SCREEN"
 459A TxtClonedSynth   ; "CLONED SYNTH"
-4AB4 KitClipNames      ; [4][6] kit dist_type names " HARD"/" SOFT"/" FOLD"/" WRAP" (indexed by byte-$D0)
+4AB4 TxtHard                    ; " HARD"
 4DE7 DrawInstrumentScreen ; screen idx 6: draws instrument params (reads instruments[] 119x)
 4FC4 InstrTypeNames     ; [4][6] type names "PULSE"/" WAVE"/"  KIT"/"NOISE" (indexed by type*6)
 4105 InstrField9IsZero_4105 ; 1 if instr field 0x9 == 0 (12x)
@@ -26,29 +26,29 @@
 414F InstrCheckFieldOption      ; return 1 if option-table[c] (ROM $40F4) minus 1 == current field $c427, else 0
 427B InstrGetField5_427B        ; instrument field 0x5 read
 42AB InstrReadPhraseNote   ; read phrase_notes[arg] from SRAM ($A000-based) -- instrument preview
-42FF InstrStrCopy_42FF          ; calls strcpy
+42FF ShowOutOfSynths            ; "OUT OF SYNTHS!..." -> wStrBuffer + DrawMessageBar (16-synth limit hit)
 436D InstrSetField6_436D        ; instrument field 0x6 read
 43C0 InstrSetField3_43C0        ; instrument field 0x3 write
 441A InstrSetField3_441A        ; instrument field 0x3 read
 4540 InstrSetField3_4540        ; instrument field 0x3 read
-45A7 InstrBanked_45A7           ; banked-call wrapper
-45D3 InstrBanked_45D3           ; banked-call wrapper
+45A7 InstrScreenFrame           ; shared instrument-screen frame draw (map row, tempo field, marker sprites)
+45D3 InstrScreenRefresh         ; reload current instrument + DrawInstrumentScreen
 461B InstrAdjustNumber          ; adjust wInstrument (-16, clamp >$40 to 0, +1) then redraw via InstrBanked_45D3
-4638 InstrBanked_4638           ; banked-call wrapper
+4638 InstrScreenEnter           ; enter the instrument screen (speech $40 special-cased) + DrawInstrumentScreen
 47A2 InstrSetField5_47A2        ; instrument field 0x5 read
 482E InstrSetField5_482E        ; instrument field 0x5 read
 489D InstrSetField6_489D        ; instrument field 0x6 read
 48D6 InstrSetField6_48D6        ; instrument field 0x6 read
 495C InstrSetField6_495C        ; instrument field 0x6 read
-498B InstrDrawStr_498B          ; calls DrawStringIndexed
-49B7 InstrDrawHex_49B7          ; calls DrawHexByte
+498B DrawInstrByte10            ; draw the instr byte-10 field cell at row 14 (dashes gate via InstrField9IsZero)
+49B7 DrawInstrByte11            ; draw the instr byte-11 field cell ("--" when byte 9 is zero)
 49E7 InstrGetField2_49E7        ; instrument field 0x2 read
-49FD InstrDrawStr_49FD          ; calls DrawStringIndexed
-4A44 InstrDrawStr_4A44          ; calls DrawStringIndexed
-4ACF InstrGetFieldB_4ACF        ; instrument field 0xb read
-4AE0 InstrSetFieldB_4AE0        ; instrument field 0xb write
-4AF4 InstrGetFieldA_4AF4        ; instrument field 0xa read
-4B0A InstrSetFieldA_4B0A        ; instrument field 0xa write
+49FD DrawInstrRow14             ; draw the type-dependent row-14 fields (dispatch by byte 9 = 2/3/4)
+4A44 DrawKitDistName            ; draw the kit DIST mode: $d0-$d3 -> " HARD"/" SOFT"/" FOLD"/" WRAP"
+4ACF GetInstrByte11             ; read current instrument byte 11
+4AE0 SetInstrByte11             ; write current instrument byte 11
+4AF4 GetInstrByte10             ; read current instrument byte 10 (KIT: dist mode $d0-$d3)
+4B0A SetInstrByte10             ; write current instrument byte 10 (nibble-asserted path)
 4B29 InstrSetField2_4B29        ; instrument field 0x2 read
 4B4C InstrGetField5_4B4C        ; instrument field 0x5 read
 4B5E InstrSetField5_4B5E        ; instrument field 0x5 read
@@ -57,19 +57,19 @@
 4BE9 InstrGetField0_4BE9        ; instrument field 0x0 read
 4BF9 InstrSetField5_4BF9        ; instrument field 0x5 read
 4C64 InstrSetField5_4C64        ; instrument field 0x5 read
-4CD9 InstrGetFieldC_4CD9        ; instrument field 0xc read
+4CD9 DrawInstrByte12            ; read instr byte 12 + draw label/hex pair
 4D15 InstrGetField3_4D15        ; instrument field 0x3 read
-4DD7 InstrBanked_4DD7           ; banked-call wrapper
-4FDC InstrDrawHex_4FDC          ; calls DrawHexByte
-5002 InstrInstrRead_5002        ; calls ReadCurInstrByte
-503A InstrInstrRead_503A        ; calls ReadCurInstrByte
-508C InstrInstrRead_508C        ; calls ReadCurInstrByte
-50DF InstrInstrRead_50DF        ; calls ReadCurInstrByte
+4DD7 InstrEnvelopeChanged       ; FarCall bank1b UpdateInstrEnvelope after a field edit
+4FDC DrawKitNameField           ; draw kit number (hex) + 6-char kit name (ReadKitName -> wSampleNoteString)
+5002 WriteKitNumber             ; write kit# into the field's low 6 bits (top flag bits preserved via $c0 mask)
+503A KitSelectNext              ; step to the next existing kit bank (KitExists scan), WriteKitNumber
+508C KitSelectPrev              ; step to the previous existing kit (bound $3f), WriteKitNumber
+50DF KitSelectEnsure            ; ensure the kit field points at an existing kit, else fix up
 5128 InstrSetField0_5128        ; instrument field 0x0 write
-5181 InstrInstrRead_5181        ; calls ReadCurInstrByte
-51BC InstrInstrRead_51BC        ; calls ReadCurInstrByte
-51F4 InstrInstrRead_51F4        ; calls ReadCurInstrByte
-5231 InstrInstrRead_5231        ; calls ReadCurInstrByte
+5181 InstrFieldIncLo            ; current field byte: +1 on the lo nibble (clamp $0f), redraw + InstrEnvelopeChanged
+51BC InstrFieldDecLo            ; current field byte: -1 on the lo nibble (clamp 0)
+51F4 InstrFieldIncHi            ; current field byte: +$10 on the hi nibble (clamp $f0)
+5231 InstrFieldDecHi            ; current field byte: -$10 on the hi nibble
 526B InstrSetField3_526B        ; instrument field 0x3 read
 52BF InstrSetField3_52BF        ; instrument field 0x3 read
 531C InstrSetField3_531C        ; instrument field 0x3 read
@@ -78,3 +78,6 @@
 ; --- functions called from bank 0 (this bank paged in) ---
 541F InstrFieldFunc     ; instrument-field access (wInstrument)
 4790 GetInstrByte5Flag8 ; read current instr byte 5 & $08 (table AUTOMATE-class flag; unreferenced)
+4ABA TxtSoft                    ; " SOFT"
+4AC0 TxtFold                    ; " FOLD"
+4AC6 TxtWrap                    ; " WRAP"

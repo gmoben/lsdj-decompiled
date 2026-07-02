@@ -67,6 +67,8 @@ MANUAL: dict[int, list[tuple[int, int]]] = {
     0x1C: [(0x47, 0x57), (0x2E3C, 0x2E7C)],
     # bank 05: table-screen CUT/COPY strings.
     0x05: [(0x249A, 0x24A3)],
+    # bank 03: OUT OF SYNTHS string + kit DIST mode names.
+    0x03: [(0x33B, 0x36E), (0xAB4, 0xACC)],
     # bank 04: phrase-row CGB attribute rows + the $01 step table.
     0x04: [(0x10D8, 0x10FF), (0x14E3, 0x1500)],
     # bank 1D: softsynth shape banks ($4EF0/$50F0) decoded as code.
