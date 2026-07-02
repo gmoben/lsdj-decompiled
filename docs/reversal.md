@@ -498,6 +498,23 @@ hidden mid-misdecoded-data: `SetNoisePoly` + its 120-byte `NoiseFreqTable` —
 the same class also yielded `DrawInstrName` (bank 04) and `ReadGrooveStep`
 (bank 1D), found by auditing raw `call $xxxx` sites with no label.
 
+**`_DATA_` to zero — `tools/data_refs.py`.** The final data pass audits every
+operand-referenced ROM address (direct `ld a,[$nnnn]` accesses plus pointer
+loads that land on data) against the `.sym` files, filtering the
+constant classes (arithmetic values `<$100`, MBC control writes, uniform-fill
+and header/logo targets, FarCall immediates). It exposed one wrong pair of
+labels — `GetTempoTimerValue` returns its mode-preset "pointers" *in de as
+numeric timer values*, so the `$0380/$0396` "functions" were deleted — plus
+five more misdecoded table regions (kit/wav pitch tables at the bank-2 tail,
+the bank-3 instrument-field cursor layout `InstrFieldX/Y/W/Counts`, the bank-5
+map-column metrics, the bank-1D `SynthFieldLayout`, the bank-1F
+`FxCmdRefTable`) and the full per-screen CGB palette block set
+(`ScreenPalSong`…`ScreenPalInstrNoise`) resolved from `GetScreenPalette`'s
+dispatch. `data_refs.py` now reports **0**; every referenced ROM data address
+carries an exact functional symbol. The sweep also added ~27 session-evidenced
+RAM names (`wColChain`, `wPlayChanFirst/Last`, `wLfoStatePU1/PU2/WavNoi`,
+`wFileNameBuf`, `wDecompBuf`, …) to `ram.inc`.
+
 **Dynamic driver — `tools/emu/song.py`.** A verified editing layer that also reads
 and writes the working song directly in SRAM (`sram_read`/`sram_write` +
 `data_model.md` offset map): named getters/setters (`row`, `seq`, `set_note`,

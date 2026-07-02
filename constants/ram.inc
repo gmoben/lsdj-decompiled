@@ -416,3 +416,32 @@ DEF wNameEditBuf      EQU $C431 ; 5-char name being edited (instr/file/word/kit-
 DEF wFont            EQU $C52E  ; UI font selection 0-2 (project screen FONT; picks the TilesFontN blocks)
 DEF wKbdInstrument   EQU $CB93  ; instrument played by the PS/2 keyboard (shown with name on the song screen)
 DEF wColInstrument   EQU $C468  ; last-used instrument per channel column (4 bytes, set by SetColInstrument)
+
+; --- session-evidenced RAM (readers named in parentheses) ---
+DEF wColChain        EQU $C44F  ; chain under cursor per song column, 4 bytes (SongEnterChain / IsSongChainUsed)
+DEF wColPhrase       EQU $C453  ; phrase per song column, 4 bytes (AllocNextFreePhrase scan start)
+DEF wUsedTableMap    EQU $C47D  ; 32-slot used-tables map (BuildUsedTablesMap)
+DEF wTopBarStr       EQU $C555  ; top-bar/title string buffer (DrawTopBar draws it directly)
+DEF wClockFrame60    EQU $C6A8  ; 60-frame divider feeding the TOTAL WORK clock (UpdateWorkClock)
+DEF wHelpStrBuf      EQU $C7B0  ; 20-byte staged help/scroll string (UiDrawHelpStr)
+DEF wHelpSrcPtr      EQU $C7C4  ; source pointer of the staged help string, 2 bytes
+DEF wPlayChanFirst   EQU $C8DD  ; first channel to start playing (SndStartChannels)
+DEF wPlayChanLast    EQU $C8DE  ; last channel to start playing
+DEF wSavedScreen     EQU $C8FE  ; wCurrentScreen saved around song-context stop (StopAllPlayback)
+DEF wFileBlockCounts EQU $C959  ; per-file block counts, 32 slots (CountFileBlocks)
+DEF wFileNameBuf     EQU $C987  ; 8-char filename buffer (CopyFileName)
+DEF wProjStrBuf      EQU $C998  ; project-screen field string buffer (DrawProjTextField, CloseNameEditor)
+DEF wProjCursor      EQU $C9A4  ; project-screen cursor row (ProjCalcFieldTile index)
+DEF wSynthBufA       EQU $CAB8  ; 64-byte synth wave work buffer A (ClearSynthWaveBufs)
+DEF wSynthBufB       EQU $CAF8  ; 64-byte synth wave work buffer B
+DEF wOverwriteStart  EQU $CB61  ; first wave frame for synth OVERWRITE (SynthOverwriteWaves)
+DEF wOverwriteEnd    EQU $CB62  ; last wave frame for synth OVERWRITE
+DEF wKbdQueueHead    EQU $CB7D  ; PS/2 keyboard byte-queue head (KbdReadByte)
+DEF wLinkQueueHead   EQU $CB80  ; link-port ring buffer head (ProcessLinkQueue)
+DEF wLinkQueueBuf    EQU $CB81  ; link-port ring buffer (ProcessLinkQueue)
+DEF wLfoStatePU1     EQU $CBBF  ; LFO state block, PU1 (SndSetupLfoPU1)
+DEF wLfoStatePU2     EQU $CBC6  ; LFO state block, PU2 (SndSetupLfoPU2)
+DEF wLfoStateWavNoi  EQU $CBCD  ; LFO state block, WAV/NOI (SndSetupLfoWavNoi)
+DEF wSavedSelBottom  EQU $CBD7  ; saved wSelBottom (Save/RestoreSelectionState)
+DEF wDecompBuf       EQU $DA00  ; 256-byte block staging buffer (FileWriteCompressedSram)
+DEF wSpriteDefs      EQU $DD00  ; sprite definition/staging entries, 4-byte stride (ClearOamBuffer init)
