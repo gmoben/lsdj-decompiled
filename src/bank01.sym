@@ -4,6 +4,20 @@
 764C LoadCommandHelp    ; resolve command (sp+8) -> help string in wStrBuffer + wVramCursor; shown at screen top on double-A. B/F/H/S/W are context-cased (by $C41D), the rest via CommandHelpTable
 776E CommandHelpTable   ; [command] -> "X: DESCRIPTION" string pointer (index = command*2; 0 = context-cased above)
 
+; --- UI functions called from bank 0 (bank $01 paged in) ---
+4CF1 UiInitScreen        ; screen setup: UiPalette + UiMemFill + UiLoadHwTables
+4487 UiDrawStr_4487      ; draw a string at VRAM $9820
+4FEC UiSetPlayMode       ; access wPlayMode, clear $c6a8, jp into UiInstrRead
+7860 UiShowMessage       ; set up the timed status message (wMsgTimer / wMsgStrPtr)
+7878 UiUpdateMessage     ; timed message + wSelectHeld handling
+4811 UiCheckSongByte_4811 ; ReadSongByte $a13e, compare $6a
+4848 CheckSongInitFlag   ; ReadSongByte $be78/$be79 ('rb' memory-init marker)
+50A0 UiReadSongProp      ; ReadSongByte $bfb3 (song property), compare $3c
+48D4 WriteSongInitFlag   ; WriteSongByte $be78 (set the 'rb' init marker)
+4D67 UiValidateByte      ; bounds-check a value < $80 (DebugTrap otherwise)
+4EA3 WriteSongByteWrap   ; thin WriteSongByte wrapper
+45D1 UiClearSram         ; enable SRAM + ClearSramWindow
+
 ; --- UI message / status strings (db "..."; referenced by the draw code) ---
 4557 TxtCartridgeTest   ; "CARTRIDGE TEST" (self-test screen title)
 4A44 TxtSpch            ; "SPCH" (SPEECH type abbreviation)
