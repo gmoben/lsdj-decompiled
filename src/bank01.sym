@@ -116,3 +116,16 @@
 74E2 TxtScreenWave      ; "WAVE "
 74E8 TxtScreenSynth     ; "SYNTH "
 74EF TxtScreenGroove    ; "GROOVE "
+
+; --- unreferenced allocation/draw helpers (linked but dead) ---
+4DD3 FreePhrase         ; clear phrase-alloc bit (song $3E82 bitmap) and write back (unreferenced)
+4F59 IsChainUsed        ; e = chain-alloc bit for chain arg <$80 (unreferenced)
+4F99 IsPhraseUsed       ; e = phrase-alloc bit for phrase arg != $ff (unreferenced)
+518C DrawSpeedModeName  ; draw "STEP"/"TICK"/"DRUM"/"FAST" by arg flag bits (unreferenced)
+51F4 TxtStep            ; "STEP"
+51F9 TxtTick            ; "TICK"
+51FE TxtDrum            ; "DRUM"
+5203 TxtFast            ; "FAST"
+522D DrawOnOffName      ; draw " ON"/"OFF" by arg bit 5 (unreferenced)
+524B TxtOff             ; "OFF"
+524F TxtOn              ; " ON"

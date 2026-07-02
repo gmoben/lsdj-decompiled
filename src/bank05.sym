@@ -43,3 +43,5 @@
 7208 GetSynthFieldHelp  ; -> bc = help string for the selected synth field (jump table by wSynthCursor)
 743F SaveSelectionState ; wCursorMode/wClipboardType/wSelLeft/Top/Right/... -> $cbd2 save area
 747D RestoreSelectionState ; $cbd2 save area -> wCursorMode/wClipboardType/wSel*
+69BD DrawInstrFieldHelp ; pick + draw the instr-screen bottom help string by wInstrField/arg (TYPE -> TxtHelpInstrType)
+6F38 TxtHelpInstrType   ; "USE PULSE IN PU1/PU2; WAVE/KIT IN WAV; NOISE IN NOI"

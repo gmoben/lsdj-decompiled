@@ -105,3 +105,18 @@
 4057 CheckFileMagic64           ; e=1 if the 'rb' format markers are missing (SRAM banks 4/5/7)
 47B1 FormatFileSpace            ; zero filenames+versions (bank4 $a000-$a13f), reset the block alloc table
 71CD CopySelection              ; copy the selection rect (wSelLeft/Top/Right/Bottom) into the clipboard scratch
+
+; --- per-instrument-type migration callbacks (passed to FileForEachInstrType) ---
+6134 FileUpgradeV0Kit    ; V0 kit-instrument field migration (callback)
+61E6 FileUpgradeV1Kit    ; V1 kit-instrument field migration (callback)
+628B FileUpgradeV3Pulse  ; V3 pulse-instrument field migration (callback)
+62D3 FileUpgradeV3Kit    ; V3 kit-instrument field migration (callback)
+6395 FileUpgradeV5Wave   ; V5 wave-instrument field migration (callback)
+63D6 FileUpgradeV6Wave   ; V6 wave-instrument field migration (callback)
+64E7 FileUpgradeV8Wave   ; V8 wave-instrument field migration (callback)
+6513 FileUpgradeV9Wave   ; V9 wave-instrument field migration (callback)
+6540 FileUpgradeV10Pulse ; V10 pulse-instrument field migration (callback)
+6A72 FileUpgradeV14Pulse ; V14 pulse-instrument field migration (callback)
+6AEC FileUpgradeV15Wave  ; V15 wave-instrument field migration (callback)
+6C29 FileUpgradeV17bPulse ; V17b pulse-instrument field migration (callback)
+4E10 ClearFileName      ; zero the 8-byte filename slot n<32 at file-space +n*8 (unreferenced)

@@ -125,3 +125,7 @@
 646C TxtPctD3                   ; "%d"
 646F TxtTablesFill              ; "TABLES...."
 723F TxtTypeSpeech              ; "TYPE   SPEECH"
+6698 CutCopyPhraseSelection ; arg!=0 -> "CUT" (copy+clear) else "COPY": phrase selection -> clipboard (clipType 1)
+6B32 TxtCut1F           ; "CUT"
+6B36 TxtCopy1F          ; "COPY"
+6C34 DrawWordRow        ; draw the 3 allophone chars of word row (arg-1); 0 -> spaces

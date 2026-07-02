@@ -77,3 +77,4 @@
 53DE InstrGetField0_53DE        ; instrument field 0x0 read
 ; --- functions called from bank 0 (this bank paged in) ---
 541F InstrFieldFunc     ; instrument-field access (wInstrument)
+4790 GetInstrByte5Flag8 ; read current instr byte 5 & $08 (table AUTOMATE-class flag; unreferenced)
