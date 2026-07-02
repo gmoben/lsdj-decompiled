@@ -102,6 +102,19 @@ def main() -> int:
 
     out_lines: list[str] = []
     out_lines.extend(link_lines)
+    # deploy-only entries from src/bank*.sym (tagged @deploy-only): symbols at
+    # mid-instruction addresses that must not anchor the carve but should
+    # resolve in the debugger.
+    import glob as _glob
+    import re as _re
+    for sp in sorted(_glob.glob("src/bank*.sym")):
+        bank = int(Path(sp).stem[4:6], 16)
+        for ln in Path(sp).read_text().splitlines():
+            if "@deploy-only" not in ln:
+                continue
+            m = _re.match(r"([0-9A-Fa-f]{4})\s+(\S+)", ln)
+            if m:
+                out_lines.append(f"{bank:02X}:{m.group(1).upper()} {m.group(2)}")
     out_lines.append(f"{RAM_SECTION_MARKER} (constants/ram.inc) ---")
     out_lines.extend(ram_lines)
 

@@ -527,6 +527,8 @@ def parse_symbols(path: Path) -> dict[int, str]:
     or `BANK:ADDR`); `;` starts a comment. Blank/short lines are ignored."""
     syms: dict[int, str] = {}
     for line in path.read_text().splitlines():
+        if "@deploy-only" in line:
+            continue        # deployed-symbol-only entries never anchor the carve
         line = line.split(";", 1)[0].strip()
         parts = line.split()
         if len(parts) < 2:

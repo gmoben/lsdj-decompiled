@@ -120,8 +120,6 @@
 6AEC FileUpgradeV15Wave  ; V15 wave-instrument field migration (callback)
 6C29 FileUpgradeV17bPulse ; V17b pulse-instrument field migration (callback)
 4E10 ClearFileName      ; zero the 8-byte filename slot n<32 at file-space +n*8 (unreferenced)
-4559 CodeByte4559               ; instruction bytes inside CompressSong (walker artifact)
-4F4C CodeByte4F4C               ; instruction bytes inside the file-name code (walker artifact)
 589F TxtSave                    ; "SAVE"
 58A4 TxtErase                   ; "ERASE"
 58AA TxtBlocksUsed              ; "BLOCKS USED: %x/"
@@ -137,3 +135,5 @@
 60C9 TxtNo1Cb                   ; "NO"
 743C FlushBlockToSram           ; copy the 256-byte staging page (wDecompBuf) to SRAM [wBlockDstPage]<<8; wrap $c0->$a0, bank++
 746E VerifyBlockAgainstSram     ; compare the staging page with the SRAM block (save VERIFY step)
+4559 CompressSongMid ; @deploy-only: interior of CompressSong (walker artifact)
+4F4C ClearFileNameMid ; @deploy-only: interior of ClearFileName (walker artifact)
