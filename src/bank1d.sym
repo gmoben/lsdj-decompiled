@@ -80,9 +80,9 @@
 70E4 SynthFieldDecHi            ; current synth field: -$10 on the hi nibble
 7111 SynthFieldDecLo            ; current synth field: -1 on the lo nibble
 ; --- functions called from bank 0 (this bank paged in) ---
-7138 ScreenInput1D      ; screen input (wButtons)
-4D58 GrooveStateClear   ; clear groove state ($c9d5)
-4451 GrooveRowFunc      ; groove-row access (wGrooveRow)
+7138 SynthScreenInput           ; synth-screen input dispatch (wButtons + SynthReadParam)
+4D58 GrooveResetState           ; reset groove screen state ($c9d5=0 + 16-slot loop)
+4451 DrawGrooveCursor           ; groove cursor-row highlight (wGrooveRow, select palettes)
 4B65 TxtSelect1D       ; "SELECT" (pairs with TxtCancelSelect1D)
 7D98 TxtPastedSynth    ; "PASTED SYNTH"
 

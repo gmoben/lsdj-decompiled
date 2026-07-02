@@ -31,7 +31,7 @@
 64A3 TableHandleInput           ; table-screen input/cursor handler ($c411 mode, wCursorX/Y); large
 676A TableUpdateScreen          ; main table-screen update/draw (large; also entered from DrawTableScreen)
 ; --- functions called from bank 0 (this bank paged in) ---
-4B5D TableFieldFunc     ; table-field access (wTable)
+4B5D TableHighlightCell         ; table cursor cell highlight (wTable asserted, select palettes)
 4040 MapDrawTopRow      ; draw the map top-row entries (PROJECT + WAVE/SYNTH) at wMapProjectCol/wMapSynthCol, screen row 15
 61C3 TxtSelect05       ; "SELECT" (pairs with TxtCancelSelect05)
 

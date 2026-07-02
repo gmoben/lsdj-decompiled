@@ -80,10 +80,10 @@
 786F ChainDrawScopePoint        ; plot oscilloscope point (ChainShiftSamples + $cba. buffer)
 78B8 ChainUpdateScope           ; update scope from $cba2/$cba3/$cba4
 ; --- functions called from bank 0 (this bank paged in) ---
-74AD SyncModeFunc       ; wSyncMode handler
-72C4 WordDrawDigit      ; draw a digit (wShadowDigitPal)
-5BD0 ChainFieldFunc     ; chain-field access (wChain)
-507F ScreenInput06      ; screen input handler (wButtons)
+74AD DrawSyncStatus             ; draw the sync/lead status by wSyncMode (1/3/6/7 cases)
+72C4 DrawShadowDigit            ; draw a digit cell with the shadow palettes
+5BD0 ChainScreenEdit            ; chain-screen edit dispatcher (wButtons; wChain asserted)
+507F WaveScreenInput            ; wave-screen input dispatch (wButtons)
 431D DrawSelectDigit    ; draw select-palette digit (wSelectDigitPal)
 5391 TxtSelect         ; "SELECT" (pairs with TxtCancelSelect)
 6D4E TxtSelect2        ; "SELECT" (second instance; pairs with TxtCancelSelect2)

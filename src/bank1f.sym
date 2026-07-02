@@ -91,7 +91,7 @@
 70B6 InstrHDrawParamField       ; draw a field from $c429 (parity-based) via InstrHGetParamPlus4
 70DF DrawInstrParamField        ; draw an instrument parameter text field (InstrHGetParamPlus4 + DrawTextField)
 ; --- functions called from bank 0 (this bank paged in) ---
-4A26 WordHelper         ; word/speech helper
+4A26 InitRemapTable             ; fill $c9b8..+16 with identity 0..15 (remap table for clone/dedupe)
 7801 TxtCutWord        ; "CUT WORD"
 780A TxtPastedWord     ; "PASTED WORD"
 

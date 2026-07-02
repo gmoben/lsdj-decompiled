@@ -60,8 +60,8 @@
 ; --- functions called from bank 0 (this bank paged in) ---
 6B7A LoadSongData       ; load the working song (called by InitAndLoadSong)
 5DBF ProjectDrawField   ; project field draw ($c9a4)
-53E8 ProjectHelper      ; project helper
-4BC3 ProjectStateRead   ; read project state ($c933)
+53E8 NameEditorInput            ; name-editor per-frame input (letter select; FILE save flow aware)
+4BC3 ProjectInitLatch           ; latch $c933 (project screen one-time init flag)
 
 4E8A OpenNameEditor             ; save screen -> wNameReturnScreen, init letter input (wKbdLetterPos) for instr/file/word names
 754F UpdateInstrEnvelope        ; envelope-bearing types only (PULSE/NOISE): recompute envelope data after instrument edit

@@ -98,8 +98,8 @@
 749E FileDecompressByte         ; decode one compressed byte ($c0/$e0 RLE tokens; FileDecompressRun)
 7513 FileDecompressRun          ; decode an RLE run (ReadCompressedByte, FileDecompNextBank)
 ; --- functions called from bank 0 (this bank paged in) ---
-7310 FileCursorFunc     ; file cursor handling (wCursorMode)
-5B0C FileStateFunc      ; file state ($c997)
+7310 EnableSerialSync           ; cursorMode=1, $cb65=1, enable the serial interrupt, SendSyncHandshake
+5B0C FileScreenInput            ; file-screen input dispatch (wButtons; clears $c997)
 40F2 CheckFileMagicAll          ; e=0 if the SRAM file space is initialized: 64K 'rb' set, else 'jk' + 128K marker set
 
 4057 CheckFileMagic64           ; e=1 if the 'rb' format markers are missing (SRAM banks 4/5/7)

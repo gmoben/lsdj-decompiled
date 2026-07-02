@@ -10,7 +10,6 @@
 ; Per-channel state is a struct-of-arrays at $C0xx-$C3xx (see constants/ram.inc wChan*);
 ; working read-cursors are 16-bit ptrs whose low bytes live at $C8xx (InitSoundStatePtrs
 ; sets them to channel 0, SndAdvanceStatePtrs steps to the next channel).
-24DD BankcallHelper02   ; called from boot (Start) early init
 494D ProcessChannel     ; per-channel sound tick (channel = hSoundCh); called per active channel
 49B7 NoteToPeriod       ; wChanFreq[ch] = wNotePeriods[note+wNoteTranspose-1] (alt linear table at bank0 $09B9)
 4C2D AdvanceChanCursors ; advance the 3 phrase cursors (note/cmd, cmdval, instr) by c
