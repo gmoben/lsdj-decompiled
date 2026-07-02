@@ -7,3 +7,17 @@
 7A4B GfxCopyVramRegion          ; copy bytes between VRAM regions (GfxReadVramByte -> $17ec writer), 16-step outer loop
 ; --- indirect (FarCall) target ---
 7AA0 InitScreenPalettes ; ResetDisplayState, then set wShadow/SelectDigitPal + wShadow/SelectPal (CGB), load palette data
+
+; --- tile data blocks (LoadTilesDispatch streams) + synth waveforms ---
+42C8 TilesUiIcons       ; UI/icon tile block loaded on every palette init
+462A TilesFont2A        ; font 2 (wFont==2) tile block A
+4B1C TilesFont2B        ; font 2 tile block B (DMG path)
+4FEE TilesFont2C        ; font 2 tile block C (DMG path)
+54C0 TilesFont0A        ; font 0 (default) tile block A
+59B2 TilesFont0B        ; font 0 tile block B (DMG path)
+5E84 TilesFont0C        ; font 0 tile block C (DMG path)
+6356 TilesFont1A        ; font 1 (wFont==1) tile block A
+6848 TilesFont1B        ; font 1 tile block B (DMG path)
+6D1A TilesFont1C        ; font 1 tile block C (DMG path)
+720C SynthWaveTables    ; bandlimited 32-byte signed waveform cycles (softsynth preview/render)
+79EC TxtSpaces13        ; 13-space blank string

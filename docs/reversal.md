@@ -460,6 +460,28 @@ hl,CodeAddr` pointers into named functions (Emulicious renders `Func+N`) — but
 together they are now a **precise, deduplicated worklist** for the indirect code
 targets, replacing the earlier loose grep.
 
+**Worklists driven to zero.** As of this pass every tracked class is empty:
+`callgraph.py` 0 (direct cross-bank calls), `farcall_targets.py` 0 (indirect
+FarCall/FarCallByte immediates, including the swapped `ld l,b/ld h,c` sites),
+`find_orphans.py --code-only` 0 (jump-table callbacks, dead-but-linked
+utilities), and `label_gaps.py` **`_DATA_` 0** (every referenced data address
+labeled). Highlights of the final sweeps: the bank 5 **screen-map navigation**
+subsystem (`MapMoveLeft/Right/Up/Down`, `MapEnterScreen`, wMapCol/wMapRow), the
+bank 7 **song bookmarks** ($0FF0) and **PS/2 keyboard** subsystems, the
+bank 1C **file-format migration callbacks** (`FileUpgradeVnType` passed to
+`FileForEachInstrType`), the **FX-command help strings** (`TxtHelpA..Z` + the
+B/F/H/S/W screen variants) behind `CommandHelpTable`, the bank 1E **font tile
+blocks** (`TilesFontNA/B/C`, selected by `wFont` `$C52E`) and **synth waveform
+tables**, and the phrase/chain/instr **allocation bitmap** functions
+(`AllocNextFreePhrase`/`FreeChain`/`AllocNextFreeInstr`/`FindFreeTable`…).
+Several functions were *hidden by misalignment* — strings/tables carved as code
+swallowed the next function's first bytes (`ShowTapAddPhrase`, `CheckFileMagic64`,
+`CanEnterSongCol`) — fixed by adding the data ranges to `carve_clean.py` MANUAL.
+The residual `_LABEL_` count (~365) is entirely the benign classes: 16-bit
+numeric constants that look like addresses (`ld de,$0400` as a copy length) and
+`Func+N` interior pointers, which Emulicious renders as `Symbol+offset`, never
+as `_LABEL_`.
+
 **Dynamic driver — `tools/emu/song.py`.** A verified editing layer that also reads
 and writes the working song directly in SRAM (`sram_read`/`sram_write` +
 `data_model.md` offset map): named getters/setters (`row`, `seq`, `set_note`,

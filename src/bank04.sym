@@ -57,3 +57,9 @@
 5BA6 PhraseBulkFunc     ; phrase operation (44-byte frame)
 55DE TxtClonedInstr    ; "CLONED INSTR"
 7D57 TxtSelect04       ; "SELECT" (pairs with TxtCancelSelect04)
+
+; --- phrase-screen render/edit tables ---
+50D8 PhraseRowAttrs0    ; 13-byte CGB BG-attribute row for phrase rows (variant 0; picked via PhraseCheckColFD)
+50E5 PhraseRowAttrs1    ; 13-byte CGB BG-attribute row (variant 1)
+50F2 PhraseRowAttrs2    ; 13-byte CGB BG-attribute row (variant 2; $c90c==0 path)
+54E3 PhraseStepOnes     ; constant $01 table read by the four phrase edit handlers (per-index step/enable)

@@ -63,6 +63,13 @@ MANUAL: dict[int, list[tuple[int, int]]] = {
     # bank 1C: an [8][8] rising value table ($6E3C) decoded as code, and
     # DefaultWaveFrameB1C ($4047, 16 bytes -- hides the $4057 magic check).
     0x1C: [(0x47, 0x57), (0x2E3C, 0x2E7C)],
+    # bank 04: phrase-row CGB attribute rows + the $01 step table.
+    0x04: [(0x10D8, 0x10FF), (0x14E3, 0x1500)],
+    # bank 1D: softsynth shape banks ($4EF0/$50F0) decoded as code.
+    0x1D: [(0xEF0, 0x1190)],
+    # bank 1E: everything between ScreenPreDraw and GfxFillVramRegions is
+    # data (font/UI tile blocks + synth waveform tables + a blank string).
+    0x1E: [(0x2C8, 0x39FA)],
     # bank 1F: OOM-instr + OUT OF TABLES + DE-DUPE panel strings, the
     # phrase-column layout table ($64E1, hides $64FF), and "TYPE   SPEECH".
     0x1F: [(0xACE, 0xB00), (0xC11, 0xC20), (0x237D, 0x23B1), (0x244D, 0x248B),

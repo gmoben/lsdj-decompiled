@@ -85,3 +85,7 @@
 4451 GrooveRowFunc      ; groove-row access (wGrooveRow)
 4B65 TxtSelect1D       ; "SELECT" (pairs with TxtCancelSelect1D)
 7D98 TxtPastedSynth    ; "PASTED SYNTH"
+
+; --- softsynth shape banks (SynthRenderWaveB and $4db1 reader) ---
+4EF0 SynthShapeTableA   ; signed seed samples for synth wave rendering (selected when the shape flag is 0)
+50F0 SynthShapeTableB   ; second shape bank (SynthShapeTableA+$200)
