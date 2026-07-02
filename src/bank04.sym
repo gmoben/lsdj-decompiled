@@ -159,6 +159,8 @@
 7D43 .notSelB             ; wButtons == case in PhraseScreenEdit
 
 
+
+
 ; --- first-action / assert local names ---
 4113 .ok
 41AF .ok
@@ -198,9 +200,9 @@
 4CF4 .ok
 4F65 .drawStringTile20
 4FBD .drawStringTile20b
-4FC0 .clearGameboyType
+4FC0 .checkGameboyType
 502A .drawStringTile20c
-5088 .clearPhraseCol
+5088 .checkPhraseCol
 50A6 .checkCursorMode
 50B5 .drawPhraseCursorFar
 5158 .clearSelLeft
@@ -215,7 +217,7 @@
 546E .loadSelBottom
 56D1 .checkPhraseCol
 56E2 .checkPhraseColb
-5772 .clearPlayMode
+5772 .checkPlayMode
 578F .loadLiveMode
 58BB .prelistenCursorRow
 5B6D .phraseReadCmdValCursor
@@ -262,7 +264,7 @@
 73F4 .checkSongCold
 7411 .checkSongCole
 7546 .drawPhraseScreen
-754C .clearAPressEnabled
+754C .checkAPressEnabled
 758E .loadChainRow
 75E4 .setAPressEnabled
 7630 .setSelLeft

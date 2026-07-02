@@ -461,6 +461,8 @@
 
 
 
+
+
 ; --- first-action / assert local names ---
 05AD .sndStepPitchVibWav
 07E8 .ok
@@ -476,26 +478,26 @@
 0B0F .okb
 0EAB .setTimerReload
 0F13 .getNextButtons
-0F4A .clearButtons
-0F5A .clearSelHoldFrames
+0F4A .checkButtons
+0F5A .checkSelHoldFrames
 0F6B .loadButtons
-1033 .clearTransposeDirty
+1033 .checkTransposeDirty
 107E .checkCursorButtonHold
 10B2 .ok
 1152 .setCursorButtonHold
 11B6 .setButtonsSame
-11FA .clearKeyDelayTimer
+11FA .checkKeyDelayTimer
 1206 .checkKeyRepeat
-1234 .clearKeyRepeatTimer
+1234 .checkKeyRepeatTimer
 1240 .loadKeyRepeat
 1258 .setAPressEnabled
-1269 .clearButtonsb
+1269 .checkButtonsb
 12B4 .ok
 1324 .setIsCGB
 13A5 .decRedrawPending
 13CC .setIdleFrames
 13D1 .screenUpdateDispatch
-140D .clearRedrawPending
+140D .checkRedrawPending
 141B .setIdleFramesb
 1420 .incIdleFrames
 1453 .setIdleHalt
@@ -518,7 +520,7 @@
 1E56 .loadCurrentScreen
 1EB3 .checkSyncMode
 1F2E .syncSetSendMode
-1F54 .clearPlayMode
+1F54 .checkPlayMode
 1F67 .syncSetRecvMode
 1F6D .syncSetRecvModeb
 1FA8 .ok
@@ -526,23 +528,23 @@
 1FCF .decAnalogOutTimer
 2273 .setPlayMode
 22F5 .setSyncRxPos
-22FA .clearPlayMode
-2321 .clearSyncRun
+22FA .checkPlayMode
+2321 .checkSyncRun
 2336 .ok
-2378 .clearPlayMode
+2378 .checkPlayMode
 2398 .setSyncHandshake
 23A0 .checkSyncRxByte
 23C2 .sendSyncHandshake
 23C5 .sendByteStep
-2444 .clearSyncInPulses
+2444 .checkSyncInPulses
 24D8 .clearMarkerSprites
-26E4 .clearRedrawPending
-283C .clearBHeld
+26E4 .checkRedrawPending
+283C .checkBHeld
 28E1 .loadSongCol
 2945 .checkButtons
-2BDB .clearIsCGB
-2BF1 .clearIsCGBb
-2C07 .clearIsCGBc
+2BDB .checkIsCGB
+2BF1 .checkIsCGBb
+2C07 .checkIsCGBc
 2C1D .checkTempo
 2DA7 .checkSongCol
 30A1 .checkLfoStateWavNoi

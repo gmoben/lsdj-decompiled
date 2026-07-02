@@ -52,6 +52,11 @@ def propose(body, prev_is_assert):
     g = re.search(r'\tldh \[(r[A-Z]\w+)\], a', b0)
     if g:
         return '.set' + g.group(1)
+    # xor a ; ld hl, wVar ; or a,[hl]  -> zero-test of that var
+    if re.search(r'\txor a, a', b0):
+        g = re.search(r'ld hl, ((?:w|h)[A-Z][A-Za-z]+)\b', body[1] if len(body) > 1 else '')
+        if g and re.search(r'or a, \[hl\]', ' '.join(body[1:4])):
+            return '.check' + var(g.group(1))
     # xor a ; ld [wVar]/ld hl,wVar  -> clear
     if re.search(r'\txor a, a', b0):
         for l in body[1:3]:

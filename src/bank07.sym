@@ -222,6 +222,8 @@
 6FFE .notPhrase2          ; wButtons == case in ProcessKbdNote
 
 
+
+
 ; --- first-action / assert local names ---
 400F .ok
 401E .okb
@@ -238,7 +240,7 @@
 469D .loadPlayMarkerTimer
 4803 .loadSelectDigitPal
 480F .loadSongRow
-48BC .clearGameboyType
+48BC .checkGameboyType
 495C .setVramCursor
 4981 .setVramCursor
 49D3 .loadSongRow
@@ -260,13 +262,13 @@
 4D55 .songDrawCellHw
 4D85 .decSongCol
 4DA9 .songDrawCellHwb
-4DE1 .clearSongRow
+4DE1 .checkSongRow
 4DF8 .decSongRow
-4E4D .checkSongRow
+4E4D .checkSongRowb
 4E65 .incSongRow
-4ECD .clearButtonsSame
-4EDA .clearLiveMode
-4EFF .clearLiveModeb
+4ECD .checkButtonsSame
+4EDA .checkLiveMode
+4EFF .checkLiveModeb
 4FC3 .setPlayMode
 4FC8 .drawSongScreen
 51F7 .setBHeld
@@ -274,14 +276,14 @@
 534D .songLoadCursorChain
 5355 .checkClipboardType
 5363 .songReadCellValue
-53AF .clearLiveModec
-53D1 .clearPlayMode
-5426 .clearLiveModed
+53AF .checkLiveModec
+53D1 .checkPlayMode
+5426 .checkLiveModed
 543F .checkSyncMode
 54A1 .loadSongRowc
-5586 .clearAPressEnabled
-55A5 .clearAPressEnabledb
-55CD .clearSelectHeld
+5586 .checkAPressEnabled
+55A5 .checkAPressEnabledb
+55CD .checkSelectHeld
 563D .setSelLeft
 5682 .loadSongScroll
 5745 .setCursorMode
@@ -312,7 +314,7 @@
 5D28 .okc
 5D33 .okd
 5D45 .oke
-5DFB .clearIsCGB
+5DFB .checkIsCGB
 6258 .ok
 6267 .okb
 640C .sortBookmarks
@@ -328,8 +330,8 @@
 6A2A .setMsgStrPtr
 6B1F .setBHeld
 6B29 .setBHeldb
-6BAB .clearKbdInstrument
-6BC4 .checkKbdInstrument
+6BAB .checkKbdInstrument
+6BC4 .checkKbdInstrumentb
 6CA9 .checkKbdTranspose
 6CBD .checkKbdTransposeb
 6D5B .setMsgStrPtrb

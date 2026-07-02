@@ -41,5 +41,6 @@
 4248 .onSong              ; wCurrentScreen == case in ScreenPreDraw
 
 
+
 ; --- first-action / assert local names ---
 40E4 .setVramCursor

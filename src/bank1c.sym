@@ -255,6 +255,8 @@
 6034 .up                  ; wButtons == case in FileScreenInput
 
 
+
+
 ; --- first-action / assert local names ---
 400D .ok
 41A1 .ok
@@ -285,43 +287,43 @@
 5721 .loadVramCursor
 5788 .drawStringTile20
 57E2 .loadShadowDigitPal
-5846 .clearGameboyType
+5846 .checkGameboyType
 585D .setVramCursor
 58F9 .setFileCursorRestrict
 58FD .checkFileCursorRestrict
 5938 .setFileCursorRestrict
 593C .checkFileCursorRestrict
 5A68 .setVramCursor
-5B5E .clearAPressEnabled
-5B6B .clearIsSelectingFile
+5B5E .checkAPressEnabled
+5B6B .checkIsSelectingFile
 5BA2 .loadFileCursorRestrict
 5C17 .drawFileScreen
-5C1D .clearProjStrBuf
+5C1D .checkProjStrBuf
 5C43 .drawBlocksUsed
 5CC8 .setNameEditIsInstr
 5CE5 .loadFileCursorRestrictb
-5D82 .clearGameboyType
+5D82 .checkGameboyType
 5D8D .setProjStrBuf
 5D98 .loadFileRedrawCount
 5DAA .loadFileRedrawCountb
 5DE9 .checkFileCursorRestrict
 5DF5 .ok
-5E27 .clearAPressEnabledb
-5E34 .clearIsSelectingFileb
+5E27 .checkAPressEnabledb
+5E34 .checkIsSelectingFileb
 5E3C .setIsSelectingFile
 5E4C .setProjStrBufb
-5E65 .clearProjStrBufb
+5E65 .checkProjStrBufb
 5E95 .setCurrentScreen
-5EFB .clearProjStrBufc
-5F82 .clearProjStrBufd
+5EFB .checkProjStrBufc
+5F82 .checkProjStrBufd
 5FF2 .fileMatchName
 5FF5 .checkFileCursorRestrictb
 6001 .okb
-601A .clearGameboyTypeb
+601A .checkGameboyTypeb
 6064 .fileCopyNameToBuf
 6067 .checkFileCursorRestrictc
 6073 .okc
-608C .clearGameboyTypec
+608C .checkGameboyTypec
 6FDF .setVramCursor
 7061 .fileUpgradeV0
 7067 .fileUpgradeV1

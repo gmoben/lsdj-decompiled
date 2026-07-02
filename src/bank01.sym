@@ -280,6 +280,8 @@
 4F3C .checkWrapped              ; back at the start? -> all phrases used, OOM
 
 
+
+
 ; --- first-action / assert local names ---
 44F8 .setVramCursor
 494A .ok
@@ -290,19 +292,19 @@
 4E51 .ok
 4F65 .ok
 4FA7 .ok
-5031 .clearPlayMode
+5031 .checkPlayMode
 5075 .checkFrameCounter
 528A .loadInstrument
 52BA .setSelLeft
 5512 .checkCursorMode
-551E .clearSelectHeld
+551E .checkSelectHeld
 5552 .writeInstrByte
 5588 .loadInstrument
 559E .uiDrawTextHw
 6CF2 .setMsgStrPtr
 6ED1 .drawStringTile20
 6F67 .checkCurrentScreen
-7549 .clearGameboyType
+7549 .checkGameboyType
 756E .loadSelectDigitPal
 766B .ok
 7696 .checkCurrentScreen
@@ -313,9 +315,9 @@
 78CD .setMsgTimer
 78FC .loadMsgStrPtr
 7907 .decMsgTimer
-790E .clearMsgTimer
+790E .checkMsgTimer
 7940 .drawTopBar
-7A44 .clearBootAgbId
+7A44 .checkBootAgbId
 7A5D .setVramCursor
 7B17 .setVramCursorb
 7CBA .loadSyncSetting

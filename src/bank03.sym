@@ -169,8 +169,10 @@
 69FD InstrParamTableSet2        ; table field handler: SetInstrTable5 entry
 
 
+
+
 ; --- first-action / assert local names ---
-41BE .clearGameboyType
+41BE .checkGameboyType
 4630 .incInstrument
 47F0 .loadSelectDigitPal
 4812 .loadShadowDigitPal
@@ -222,7 +224,7 @@
 570F .checkInstrFieldh
 5723 .checkInstrFieldi
 572C .incInstrFielde
-5733 .clearInstrCursorCol
+5733 .checkInstrCursorCol
 5742 .checkInstrFieldj
 5758 .setInstrFieldd
 5760 .incInstrFieldf
@@ -249,7 +251,7 @@
 5926 .getInstrTyped
 59C7 .checkInstrFieldt
 5AB9 .setInstrLen4
-5AED .clearButtonsSame
+5AED .checkButtonsSame
 5AFB .getInstrFlags5
 5B01 .setInstrByte8
 5B55 .setInstrFlags53
@@ -265,23 +267,23 @@
 5E05 .setInstrTable4b
 5E0B .checkInstrFieldv
 5E59 .kitSelectPrev
-5FF9 .clearInstrCursorColb
-6043 .clearInstrCursorColc
+5FF9 .checkInstrCursorColb
+6043 .checkInstrCursorColc
 6064 .drawStringTile20
-60F2 .clearAHeld
+60F2 .checkAHeld
 6106 .instrField5Nextb
 610C .setInstrFlags53c
 6112 .setInstrTable4c
 6118 .checkInstrFieldw
 61BB .setInstrLen4b
-61C1 .clearButtonsSameb
+61C1 .checkButtonsSameb
 61E8 .getInstrFlags5c
 61EE .setInstrByte8c
 61F4 .setInstrFlags53d
 61FA .setInstrTable4d
 629B .checkInstrFieldx
 638F .setInstrLen5
-63C2 .clearButtonsSamec
+63C2 .checkButtonsSamec
 63D0 .getInstrFlags52
 63D6 .setInstrByte82
 642A .setInstrFlags52
@@ -297,11 +299,11 @@
 66CB .setInstrFlags52b
 66D1 .setInstrTable5b
 66D7 .checkInstrFieldz
-695C .clearInstrCursorCol
-69DD .clearAHeld
+695C .checkInstrCursorCol
+69DD .checkAHeld
 6A03 .checkInstrField
 6AA6 .setInstrLen5
-6AAC .clearButtonsSame
+6AAC .checkButtonsSame
 6AD3 .getInstrFlags52
 6AD9 .setInstrByte82
 6ADF .setInstrFlags52
@@ -321,10 +323,10 @@
 6E66 .checkInstrFieldd
 6E9A .checkInstrFielde
 6EAE .checkInstrFieldf
-6F42 .clearInstrCursorCol
-6F9B .clearInstrCursorColb
+6F42 .checkInstrCursorCol
+6F9B .checkInstrCursorColb
 6FCB .drawStringTile20
-704B .clearAHeld
+704B .checkAHeld
 705F .setInstrFlags56c
 7065 .setInstrFlags53c
 7079 .setInstrTable2c
@@ -347,10 +349,10 @@
 7467 .checkInstrFieldj
 749B .checkInstrFieldk
 74AF .checkInstrFieldl
-7543 .clearInstrCursorColc
-759B .clearInstrCursorCold
-75EA .clearInstrCursorCole
-765D .clearAHeldb
+7543 .checkInstrCursorColc
+759B .checkInstrCursorCold
+75EA .checkInstrCursorCole
+765D .checkAHeldb
 7671 .setInstrFlags55c
 7677 .setInstrFlags52d
 768B .setInstrTable6c
@@ -358,7 +360,7 @@
 76FC .setInstrLen7b
 7702 .setInstrFlags52e
 7716 .setInstrTable6d
-771E .clearAPressEnabled
+771E .checkAPressEnabled
 7744 .incDrawStep
 77F6 .checkDrawStep
 7891 .loadSelectDigitPal
@@ -367,14 +369,14 @@
 78BF .loadInstrument
 78CF .instrScreenEnterb
 78D7 .instrAdjustNumber
-78DF .clearButtonsSameb
-7927 .clearButtonsSamec
-794D .clearButtonsSamed
-7975 .clearButtonsSamee
-79B5 .clearSelectHeld
+78DF .checkButtonsSameb
+7927 .checkButtonsSamec
+794D .checkButtonsSamed
+7975 .checkButtonsSamee
+79B5 .checkSelectHeld
 79DE .drawInstrumentScreen
 79EB .setSelectHeld
-7A03 .clearButtonsSamef
-7A23 .clearButtonsSameg
-7A4B .clearSelectHeldb
+7A03 .checkButtonsSamef
+7A23 .checkButtonsSameg
+7A4B .checkSelectHeldb
 7A58 .setSelectHeldb

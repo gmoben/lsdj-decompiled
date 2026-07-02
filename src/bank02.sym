@@ -263,6 +263,8 @@
 7C0D .notSong2            ; wButtons == case in SndCheckSyncState
 
 
+
+
 ; --- first-action / assert local names ---
 404F .sndClampAcc6Hi
 406E .sndClampAcc8Hi
@@ -330,13 +332,13 @@
 762C .sndSplitPhraseNibbles
 77E9 .sndAdvanceGrooveCursor
 780F .sndStepAllChannels
-782C .clearWavMode
+782C .checkWavMode
 7840 .sndUpdateAllChannels
 785B .sndTick
 78DE .checkSyncMode
 78EC .setSyncTick
-78F1 .clearPlayMode
-7902 .clearSavedScreen
+78F1 .checkPlayMode
+7902 .checkSavedScreen
 790D .ok
 7B52 .setSyncRun
 7B59 .loadButtons

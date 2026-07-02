@@ -299,6 +299,8 @@
 77CC .start               ; wButtons == case in WordScreenInput
 
 
+
+
 ; --- first-action / assert local names ---
 4027 .setVramCursor
 4032 .setVramCursorb
@@ -322,7 +324,7 @@
 5D00 .setVramCursor
 5DB1 .setVramCursor
 62D0 .instrHScanTableRows
-649C .clearPlayMode
+649C .checkPlayMode
 650D .ok
 658A .loadSongRow
 65A8 .loadChainRow
@@ -333,14 +335,14 @@
 683E .checkSelRightc
 6AF4 .checkSelRightd
 6B5B .ok
-6B8D .clearGameboyType
-6BCF .clearGameboyTypeb
+6B8D .checkGameboyType
+6BCF .checkGameboyTypeb
 6CD7 .loadPhraseRow
 6CE5 .ok
 6D84 .loadSelLeft
 6D94 .clearSelTop
 6DB3 .loadSelTop
-702C .clearGameboyType
+702C .checkGameboyType
 70EF .instrHGetParamPlus4
 7238 .drawInstrParamField
 7363 .instrHDrawParamField

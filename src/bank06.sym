@@ -241,6 +241,8 @@
 6D3A .notSelB             ; wButtons == case in ChainScreenEdit
 
 
+
+
 ; --- first-action / assert local names ---
 421F .drawTempoField
 42C4 .loadShadowDigitPal
@@ -257,10 +259,10 @@
 49A0 .ok
 4A18 .ok
 4C4E .chainSetCursorSprite
-4CF3 .clearGameboyType
-4D26 .clearGameboyTypeb
-4D6C .clearGameboyTypec
-4DC1 .clearGameboyTyped
+4CF3 .checkGameboyType
+4D26 .checkGameboyTypeb
+4D6C .checkGameboyTypec
+4DC1 .checkGameboyTyped
 4E4C .loadSelectDigitPal
 4FA2 .chainWriteWaveA
 4FF4 .chainWriteWaveA
@@ -270,10 +272,10 @@
 5266 .checkSynth
 52D5 .setSelectHeld
 531B .chainSetCursorSprite
-5331 .clearAPressEnabled
+5331 .checkAPressEnabled
 533E .copyWaveSelection
 5357 .checkClipboardType
-5365 .clearSelectHeld
+5365 .checkSelectHeld
 5372 .setSelectHeldb
 53A7 .ok
 557F .ok
@@ -312,10 +314,10 @@
 68A7 .drawChainScreenc
 68C5 .setAPressEnabled
 69A9 .drawChainScreend
-69D6 .clearSelectHeld
+69D6 .checkSelectHeld
 6A1B .chainOpenPhrase
 6A23 .chainDrawCellLo
-6A9E .clearPlayMode
+6A9E .checkPlayMode
 6B1F .chainLoadCursorPhrase
 6BA7 .chainLoadCursorPhraseb
 6C9B .setSelTop
@@ -328,13 +330,13 @@
 7032 .loadSelLeft
 7042 .clearSelTop
 7061 .loadSelTop
-7124 .clearGameboyType
+7124 .checkGameboyType
 73AA .loadTempo
 73B5 .chainUpdateScope
-7421 .clearSyncRun
+7421 .checkSyncRun
 7435 .chainSyncStatusFlag
-747F .clearPlayMode
+747F .checkPlayMode
 74C9 .chainDrawSyncStatus
 74CF .chainDrawLeadStatus
-74D5 .clearPlayMode
-74F3 .clearPlayModeb
+74D5 .checkPlayMode
+74F3 .checkPlayModeb

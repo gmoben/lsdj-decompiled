@@ -105,8 +105,9 @@
 4EBB .down                ; wButtons == case in TableHighlightCell
 
 
+
 ; --- first-action / assert local names ---
-400C .clearMapCol
+400C .checkMapCol
 4028 .setMapProjectCol
 4035 .setMapProjectColb
 417D .checkMapProjectCol
@@ -146,7 +147,7 @@
 4949 .checkTableCol
 49C6 .loadSongCol
 49E3 .loadSongColb
-4ABA .clearGameboyType
+4ABA .checkGameboyType
 4B06 .checkTableCol
 4B36 .setTableCellAPtr
 4B49 .setTableCellAPtrb
@@ -154,7 +155,7 @@
 4B90 .checkButtons
 4C0B .checkCursorMode
 4C54 .drawTableScreen
-4C68 .clearAPressEnabled
+4C68 .checkAPressEnabled
 4CBB .setTableCellAPtr
 4CCB .checkTableCol
 4D61 .checkTableColb
@@ -190,15 +191,15 @@
 5B5E .checkSongCold
 5BBE .checkTable
 5BC8 .setMsgStrPtr
-5BD8 .clearTable
+5BD8 .checkTableb
 5BE1 .setMsgStrPtrb
-5BF1 .checkTableb
+5BF1 .checkTablec
 5C00 .setTable
 5C05 .setMsgStrPtrc
 5C15 .loadTable
 5C24 .setTableb
 5C29 .setMsgStrPtrd
-5C39 .clearAPressEnabledb
+5C39 .checkAPressEnabledb
 5C90 .setSelLeft
 5CD3 .setSelLeftb
 5D16 .setSelLeftc
@@ -206,15 +207,15 @@
 5E41 .drawTableScreenb
 5E49 .checkCursorModef
 5E74 .checkClipboardType
-5E82 .clearTableCol
+5E82 .checkTableColg
 5E92 .tableColumnLookup
-5EA0 .clearButtonsSame
-5EC0 .clearButtonsSameb
-5EE8 .clearButtonsSamec
-5F0F .clearButtonsSamed
-606F .clearButtonsSamee
+5EA0 .checkButtonsSame
+5EC0 .checkButtonsSameb
+5EE8 .checkButtonsSamec
+5F0F .checkButtonsSamed
+606F .checkButtonsSamee
 6097 .checkCursorModeg
-60B6 .clearSelectHeld
+60B6 .checkSelectHeld
 6115 .setSelTop
 6155 .setSelLefte
 616C .setSelectHeld
