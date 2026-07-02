@@ -457,3 +457,95 @@
 2BA9 .a                   ; wButtons == case in HandleButtonEvent
 2BB1 .b                   ; wButtons == case in HandleButtonEvent
 2BB6 .notSel              ; wButtons == case in HandleButtonEvent
+
+
+
+
+; --- first-action / assert local names ---
+05AD .sndStepPitchVibWav
+07E8 .ok
+07F3 .okb
+0916 .ok
+0921 .okb
+0961 .ok
+096C .okb
+097E .okc
+0A9F .ok
+0AAA .okb
+0B04 .ok
+0B0F .okb
+0EAB .setTimerReload
+0F13 .getNextButtons
+0F4A .clearButtons
+0F5A .clearSelHoldFrames
+0F6B .loadButtons
+1033 .clearTransposeDirty
+107E .checkCursorButtonHold
+10B2 .ok
+1152 .setCursorButtonHold
+11B6 .setButtonsSame
+11FA .clearKeyDelayTimer
+1206 .checkKeyRepeat
+1234 .clearKeyRepeatTimer
+1240 .loadKeyRepeat
+1258 .setAPressEnabled
+1269 .clearButtonsb
+12B4 .ok
+1324 .setIsCGB
+13A5 .decRedrawPending
+13CC .setIdleFrames
+13D1 .screenUpdateDispatch
+140D .clearRedrawPending
+141B .setIdleFramesb
+1420 .incIdleFrames
+1453 .setIdleHalt
+148D .checkKbdQueueHead
+166A .clearOscLoopA
+1754 .clearOscLoopB
+181F .incWorkTimeAccum
+1834 .tickWorkTimeClock
+1903 .incButtonWriteIdx
+190F .tickWorkTimeClock
+1953 .setrSCX
+1960 .setrSCXb
+196D .setrSCY
+197A .setrSCYb
+1D25 .syncApplyMode
+1D62 .setSyncHandshake
+1D82 .setSyncRun
+1D97 .setAnalogOutTimer
+1E31 .setVramCursor
+1E56 .loadCurrentScreen
+1EB3 .checkSyncMode
+1F2E .syncSetSendMode
+1F54 .clearPlayMode
+1F67 .syncSetRecvMode
+1F6D .syncSetRecvModeb
+1FA8 .ok
+1FB8 .setSyncTxByte
+1FCF .decAnalogOutTimer
+2273 .setPlayMode
+22F5 .setSyncRxPos
+22FA .clearPlayMode
+2321 .clearSyncRun
+2336 .ok
+2378 .clearPlayMode
+2398 .setSyncHandshake
+23A0 .checkSyncRxByte
+23C2 .sendSyncHandshake
+23C5 .sendByteStep
+2444 .clearSyncInPulses
+24D8 .clearMarkerSprites
+26E4 .clearRedrawPending
+283C .clearBHeld
+28E1 .loadSongCol
+2945 .checkButtons
+2BDB .clearIsCGB
+2BF1 .clearIsCGBb
+2C07 .clearIsCGBc
+2C1D .checkTempo
+2DA7 .checkSongCol
+30A1 .checkLfoStateWavNoi
+33DF .resetTileLoader
+34DF .storeSyncState
+37A3 .divModU16

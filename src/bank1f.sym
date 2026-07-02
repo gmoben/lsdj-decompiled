@@ -297,3 +297,59 @@
 779F .bDown               ; wButtons == case in WordScreenInput
 77B1 .selStart            ; wButtons == case in WordScreenInput
 77CC .start               ; wButtons == case in WordScreenInput
+
+
+; --- first-action / assert local names ---
+4027 .setVramCursor
+4032 .setVramCursorb
+403D .setVramCursorc
+4048 .setVramCursord
+42C8 .setVramCursor
+4388 .getInstrTable1F2
+4403 .setVramCursor
+449C .getInstrTable1F2
+46FD .setVramCursor
+4737 .getInstrTable1F2
+48BE .getInstrTable1F2
+48D3 .ok
+48DE .okb
+4938 .ok
+4C9D .ok
+5120 .instrHCountUsedTables
+51D8 .ok
+5379 .incSongCol
+5C66 .setVramCursor
+5D00 .setVramCursor
+5DB1 .setVramCursor
+62D0 .instrHScanTableRows
+649C .clearPlayMode
+650D .ok
+658A .loadSongRow
+65A8 .loadChainRow
+6615 .instrHReadCursorCellAt
+6706 .checkSelRight
+6714 .checkSelRightb
+672F .incSelRight
+683E .checkSelRightc
+6AF4 .checkSelRightd
+6B5B .ok
+6B8D .clearGameboyType
+6BCF .clearGameboyTypeb
+6CD7 .loadPhraseRow
+6CE5 .ok
+6D84 .loadSelLeft
+6D94 .clearSelTop
+6DB3 .loadSelTop
+702C .clearGameboyType
+70EF .instrHGetParamPlus4
+7238 .drawInstrParamField
+7363 .instrHDrawParamField
+7380 .instrHDrawParamFieldb
+7410 .checkButtons
+742E .setClipboardType
+755A .checkButtonsb
+761C .checkClipboardType
+767F .ok
+76BB .okb
+773F .okc
+777F .drawStringTile20

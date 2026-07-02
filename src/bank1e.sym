@@ -39,3 +39,7 @@
 41D9 .onGroove            ; wCurrentScreen == case in ScreenPreDraw
 4211 .onWord              ; wCurrentScreen == case in ScreenPreDraw
 4248 .onSong              ; wCurrentScreen == case in ScreenPreDraw
+
+
+; --- first-action / assert local names ---
+40E4 .setVramCursor
