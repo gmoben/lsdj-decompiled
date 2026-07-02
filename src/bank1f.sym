@@ -90,3 +90,5 @@
 70A8 InstrHGetParamPlus4        ; return $c429 + 4
 70B6 InstrHDrawParamField       ; draw a field from $c429 (parity-based) via InstrHGetParamPlus4
 70DF InstrHDrawStr_70DF         ; calls DrawStringIndexed
+; --- functions called from bank 0 (this bank paged in) ---
+4A26 WordHelper         ; word/speech helper

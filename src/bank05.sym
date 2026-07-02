@@ -30,3 +30,6 @@
 61CA TableBanked_61CA           ; banked-call wrapper
 64A3 TableHandleInput           ; table-screen input/cursor handler ($c411 mode, wCursorX/Y); large
 676A TableUpdateScreen          ; main table-screen update/draw (large; also entered from DrawTableScreen)
+; --- functions called from bank 0 (this bank paged in) ---
+4B5D TableFieldFunc     ; table-field access (wTable)
+4040 TableDrawDigit     ; draw a table digit (hBgDigitPalette)

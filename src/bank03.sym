@@ -75,3 +75,5 @@
 531C InstrSetField3_531C        ; instrument field 0x3 read
 537A InstrSetField3_537A        ; instrument field 0x3 read
 53DE InstrGetField0_53DE        ; instrument field 0x0 read
+; --- functions called from bank 0 (this bank paged in) ---
+541F InstrFieldFunc     ; instrument-field access (wInstrument)

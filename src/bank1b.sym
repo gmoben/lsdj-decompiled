@@ -57,3 +57,8 @@
 7200 ProjFillDaBuffer           ; append byte(s) into $DA00+ buffer up to index arg ($cbd8 cursor, <$40)
 726E ProjInstrRead_726E         ; calls ReadCurInstrByte
 74E4 ProjInstrRead_74E4         ; calls ReadCurInstrByte
+; --- functions called from bank 0 (this bank paged in) ---
+6B7A LoadSongData       ; load the working song (called by InitAndLoadSong)
+5DBF ProjectDrawField   ; project field draw ($c9a4)
+53E8 ProjectHelper      ; project helper
+4BC3 ProjectStateRead   ; read project state ($c933)

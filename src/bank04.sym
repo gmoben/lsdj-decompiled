@@ -53,3 +53,5 @@
 5A20 PhraseCellFlagC       ; phrase-cell predicate OR-ed in PhraseDrawHex_5B5E (note<$10 / $f0-offset variant)
 5AC7 PhraseCellFlagD       ; phrase-cell predicate OR-ed in PhraseDrawHex_5B5E ($30/$10-offset, adjacent-compare variant)
 5B5E PhraseDrawHex_5B5E         ; calls DrawHexByte
+; --- functions called from bank 0 (this bank paged in) ---
+5BA6 PhraseBulkFunc     ; phrase operation (44-byte frame)

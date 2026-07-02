@@ -79,3 +79,9 @@
 784C ChainShiftSamples          ; sla each of N bytes from de (scope/visualization helper)
 786F ChainDrawScopePoint        ; plot oscilloscope point (ChainShiftSamples + $cba. buffer)
 78B8 ChainUpdateScope           ; update scope from $cba2/$cba3/$cba4
+; --- functions called from bank 0 (this bank paged in) ---
+74AD SyncModeFunc       ; wSyncMode handler
+72C4 WordDrawDigit      ; draw a digit (wShadowDigitPal)
+5BD0 ChainFieldFunc     ; chain-field access (wChain)
+507F ScreenInput06      ; screen input handler (wButtons)
+431D DrawSelectDigit    ; draw select-palette digit (wSelectDigitPal)

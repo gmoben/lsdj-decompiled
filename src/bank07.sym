@@ -65,3 +65,6 @@
 735B SongScrollVramDown         ; shift VRAM rows down (counterpart of SongScrollVramUp)
 73F5 SongScanSram               ; read SRAM bytes (di-guarded) until pointer reaches $B590
 7422 SongWriteSramBytes         ; write N bytes (count arg) to SRAM (di, bank-select, $0a enable)
+; --- functions called from bank 0 (this bank paged in) ---
+68A2 SongSyncFunc       ; song-screen sync state ($cb80)
+4B3B SongRowFunc        ; song-row access (wSongRow)

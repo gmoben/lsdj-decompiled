@@ -79,3 +79,7 @@
 70BC SynthSynthParam_70BC       ; calls SynthParamAddr
 70E4 SynthSynthParam_70E4       ; calls SynthParamAddr
 7111 SynthSynthParam_7111       ; calls SynthParamAddr
+; --- functions called from bank 0 (this bank paged in) ---
+7138 ScreenInput1D      ; screen input (wButtons)
+4D58 GrooveStateClear   ; clear groove state ($c9d5)
+4451 GrooveRowFunc      ; groove-row access (wGrooveRow)

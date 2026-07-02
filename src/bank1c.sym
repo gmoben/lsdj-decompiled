@@ -97,3 +97,7 @@
 7426 FileDecompNextBank         ; decompression: advance source / switch SRAM bank ($c97c, $c982)
 749E FileDecompressByte         ; decode one compressed byte ($c0/$e0 RLE tokens; FileDecompressRun)
 7513 FileDecompressRun          ; decode an RLE run (ReadCompressedByte, FileDecompNextBank)
+; --- functions called from bank 0 (this bank paged in) ---
+7310 FileCursorFunc     ; file cursor handling (wCursorMode)
+5B0C FileStateFunc      ; file state ($c997)
+40F2 FileWrapper        ; wraps $4057
