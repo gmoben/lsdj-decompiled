@@ -1,13 +1,24 @@
 # lsdj-decompiled
 
-A work-in-progress **disassembly of Little Sound Dj (LSDj) 9.4.0** for the
-Nintendo Game Boy, in the style of the [pret](https://github.com/pret) projects
-(`pokered`, `pokecrystal`, …).
+A **disassembly of Little Sound Dj (LSDj) 9.4.0** for the Nintendo Game Boy,
+in the style of the [pret](https://github.com/pret) projects (`pokered`,
+`pokecrystal`, …).
 
-The goal is a fully commented [RGBDS](https://rgbds.gbdev.io/) source tree that
-**reassembles into a byte-for-byte identical copy of the original ROM**, as a
-foundation for an eventual C decompilation (LSDj is written in C and built with
-a modified GBDK 2.95).
+The [RGBDS](https://rgbds.gbdev.io/) source tree **reassembles into a
+byte-for-byte identical copy of the original ROM**, with the long-term goal of
+a matching C decompilation (LSDj is written in C and built with a modified
+GBDK 2.95).
+
+Current state:
+
+- byte-for-byte reproduction, verified on every commit
+- full symbol coverage: ~8,000 named routines, tables, strings and RAM
+  variables across all 13 program banks and the 21 sample kits — a debugger
+  loading the generated `.sym` resolves everything, no auto-labels left
+- ~290 named RAM variables in `constants/ram.inc`, most verified live in an
+  emulator
+- the C decompilation track is gated on reproducing the original GBDK 2.95 /
+  SDCC toolchain (see `docs/toolchain.md`)
 
 ## Why
 
