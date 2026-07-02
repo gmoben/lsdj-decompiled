@@ -128,3 +128,46 @@
 6A77 TxtYes1B                   ; "YES"
 6A7B TxtNo1B                    ; "NO"
 6A7E TxtResetMemory             ; "RESET MEMORY!"
+
+; --- structural local names (loop heads / common exits) ---
+4022 .loop                ; loop head in DrawStringAtXY
+4054 .done                ; common exit of DrawStringAtXY
+4A61 .done                ; common exit of ProjRedrawHelpSel
+4AA4 .done                ; common exit of ProjHelpSelectNext
+4AC4 .done                ; common exit of ProjHelpSelectPrev
+4AF9 .loop                ; loop head in DrawNameEditArrows
+4B69 .done                ; common exit of DrawNameEditArrows
+4CD7 .loop                ; loop head in DrawProjTextField
+4D18 .loop2               ; loop head in DrawProjTextField
+4EB9 .loop                ; loop head in OpenNameEditor
+4F94 .loop2               ; loop head in OpenNameEditor
+51BC .loop                ; loop head in CloseNameEditor
+51C5 .loop2               ; loop head in CloseNameEditor
+520D .loop3               ; loop head in CloseNameEditor
+5216 .loop4               ; loop head in CloseNameEditor
+5698 .done                ; common exit of NameEditorInput
+58B0 .done                ; common exit of ProjSyncModeIs567
+59B5 .done                ; common exit of DrawSyncModeField
+5B22 .done                ; common exit of ProjSyncModeIs015
+5B54 .done                ; common exit of DrawPrelistenField
+5C01 .done                ; common exit of DrawSyncSubSetting
+5D7D .loop                ; loop head in ProjectScreenRefresh
+5D86 .loop2               ; loop head in ProjectScreenRefresh
+6A5A .done                ; common exit of ApplySettingsAndRedraw
+6AF8 .loop                ; loop head in ProjScrollTextStep
+6B2A .loop2               ; loop head in ProjScrollTextStep
+6B76 .done                ; common exit of ProjScrollTextStep
+6B99 .loop                ; loop head in LoadSongData
+6BAA .loop2               ; loop head in LoadSongData
+720E .loop                ; loop head in ProjFillDaBuffer
+72BF .loop                ; loop head in ComputeEnvelope
+7318 .loop2               ; loop head in ComputeEnvelope
+7333 .loop3               ; loop head in ComputeEnvelope
+73A7 .loop4               ; loop head in ComputeEnvelope
+73CF .loop5               ; loop head in ComputeEnvelope
+7429 .loop6               ; loop head in ComputeEnvelope
+7458 .loop7               ; loop head in ComputeEnvelope
+749D .loop8               ; loop head in ComputeEnvelope
+74EB .loop                ; loop head in UpdateEnvSprites
+754B .done                ; common exit of UpdateEnvSprites
+756E .done                ; common exit of UpdateInstrEnvelope

@@ -90,3 +90,58 @@
 40B1 InstrFieldW                ; per-field cursor widths (per-type rows)
 40F4 InstrFieldCounts           ; fields per instrument type: PULSE 16, WAVE 15, KIT 18, NOISE 13
 4015 DefaultWaveFrameB3         ; default wave frame (16 bytes, bank-3 copy)
+
+; --- structural local names (loop heads / common exits) ---
+4253 .done                ; common exit of GetInstrType
+42BE .loop                ; loop head in InstrReadPhraseNote
+42FB .done                ; common exit of InstrReadPhraseNote
+4302 .loop                ; loop head in ShowOutOfSynths
+4339 .done                ; common exit of ShowOutOfSynths
+43BE .done                ; common exit of SetInstrTable3
+4416 .done                ; common exit of SetInstrLen
+4466 .loop                ; loop head in SetInstrLen2
+4596 .done                ; common exit of SetInstrLen3
+45E4 .loop                ; loop head in InstrScreenRefresh
+4619 .done                ; common exit of InstrScreenRefresh
+4637 .done                ; common exit of InstrAdjustNumber
+4641 .loop                ; loop head in InstrScreenEnter
+473D .done                ; common exit of GetInstrType2
+4767 .done                ; common exit of SetInstrByte8
+478E .done                ; common exit of SetInstrByte82
+482C .done                ; common exit of SetInstrFlags52
+489B .done                ; common exit of SetInstrFlags53
+48D4 .done                ; common exit of SetInstrTable4
+4922 .done                ; common exit of SetInstrTable5
+495A .done                ; common exit of SetInstrTable2
+4989 .done                ; common exit of SetInstrTable6
+49B5 .done                ; common exit of DrawInstrByte10
+49E2 .done                ; common exit of DrawInstrByte11
+4A42 .done                ; common exit of DrawInstrRow14
+4AB3 .done                ; common exit of DrawKitDistName
+4BC9 .done                ; common exit of InstrField5Next
+4BE7 .done                ; common exit of InstrField5Prev
+4C60 .done                ; common exit of SetInstrFlags55
+4D13 .done                ; common exit of DrawInstrByte12
+4DC9 .done                ; common exit of GetInstrLen
+4EC6 .loop                ; loop head in DrawInstrumentScreen
+4F9D .loop2               ; loop head in DrawInstrumentScreen
+4FC0 .done                ; common exit of DrawInstrumentScreen
+4FF2 .done                ; common exit of DrawKitNameField
+5060 .loop                ; loop head in KitSelectNext
+5088 .done                ; common exit of KitSelectNext
+50B2 .loop                ; loop head in KitSelectPrev
+50DB .done                ; common exit of KitSelectPrev
+50E4 .loop                ; loop head in KitSelectEnsure
+5124 .done                ; common exit of KitSelectEnsure
+517D .done                ; common exit of SetInstrType
+51BA .done                ; common exit of InstrFieldIncLo
+51F2 .done                ; common exit of InstrFieldDecLo
+522F .done                ; common exit of InstrFieldIncHi
+5269 .done                ; common exit of InstrFieldDecHi
+52B9 .done                ; common exit of SetInstrLen4
+5316 .done                ; common exit of SetInstrLen5
+5374 .done                ; common exit of SetInstrLen6
+53D8 .done                ; common exit of SetInstrLen7
+6EC8 .loop                ; loop head in InstrParamJumps
+74C9 .loop2               ; loop head in InstrParamJumps
+7A77 .done                ; common exit of InstrParamJumps

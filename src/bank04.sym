@@ -66,3 +66,66 @@
 57D4 DrawInstrName      ; FarCall bank1 CopyInstrName(instr) -> wSampleNoteString, draw the 5-char name
 4C10 TxtNoteEmpty               ; "---"
 4CE1 TxtNoteOff                 ; "OFF"
+
+; --- structural local names (loop heads / common exits) ---
+408C .loop                ; loop head in PhraseFindNoteFromCursor
+40B0 .done                ; common exit of PhraseFindNoteFromCursor
+4104 .done                ; common exit of PhraseResolveCursorNote
+418D .done                ; common exit of SetColInstrument
+41C5 .loop                ; loop head in WritePhraseNote
+4224 .loop                ; loop head in WritePhraseInstrument
+4377 .loop                ; loop head in PhraseInstrEntered
+440A .loop                ; loop head in PhraseEditUp
+4508 .loop2               ; loop head in PhraseEditUp
+4525 .loop3               ; loop head in PhraseEditUp
+4578 .done                ; common exit of PhraseEditUp
+45B9 .loop                ; loop head in PhraseEditDown
+4696 .loop2               ; loop head in PhraseEditDown
+46B8 .loop3               ; loop head in PhraseEditDown
+4707 .done                ; common exit of PhraseEditDown
+4745 .loop                ; loop head in PhraseEditRight
+480D .done                ; common exit of PhraseEditRight
+484B .loop                ; loop head in PhraseEditLeft
+4914 .done                ; common exit of PhraseEditLeft
+493A .loop                ; loop head in PhraseReadCmdVal
+499E .loop                ; loop head in PhraseStepPtr
+4A05 .loop                ; loop head in WritePhraseNoteRaw
+4A64 .loop                ; loop head in WriteWorkRow
+4AC3 .loop                ; loop head in PhraseReadCmdSram
+4B1E .loop                ; loop head in PhraseReadNoteSram
+4B93 .loop                ; loop head in PhraseEditPlace
+4C02 .done                ; common exit of PhraseEditPlace
+4C24 .loop                ; loop head in LoadPhraseRow
+4D34 .loop                ; loop head in DrawPhraseScreen
+4D5C .loop2               ; loop head in DrawPhraseScreen
+4D93 .loop3               ; loop head in DrawPhraseScreen
+4DFC .loop4               ; loop head in DrawPhraseScreen
+4E84 .loop5               ; loop head in DrawPhraseScreen
+51AC .done                ; common exit of PhraseCheckEditContext
+521F .loop                ; loop head in PhraseHandleInput
+5233 .loop2               ; loop head in PhraseHandleInput
+5487 .done                ; common exit of PhraseHandleInput
+5494 .loop                ; loop head in CopyInstrBytes
+55CD .done                ; common exit of CloneInstrAtCursor
+5679 .done                ; common exit of CloneTableAtCursor
+571D .done                ; common exit of PhraseCloneTableCmd
+57BE .done                ; common exit of PrelistenCursorRow
+57F2 .loop                ; loop head in DrawInstrName
+5979 .done                ; common exit of PhraseCellFlagA
+5A1C .done                ; common exit of PhraseCellFlagB
+5AC3 .done                ; common exit of PhraseCellFlagC
+5B5A .done                ; common exit of PhraseCellFlagD
+5BA4 .done                ; common exit of PrelistenEditedCell
+624A .loop                ; loop head in PhraseScreenEdit
+6403 .loop2               ; loop head in PhraseScreenEdit
+669B .loop3               ; loop head in PhraseScreenEdit
+685C .loop4               ; loop head in PhraseScreenEdit
+6B16 .loop5               ; loop head in PhraseScreenEdit
+6BC8 .loop6               ; loop head in PhraseScreenEdit
+6CEC .loop7               ; loop head in PhraseScreenEdit
+6D66 .loop8               ; loop head in PhraseScreenEdit
+6FE5 .loop9               ; loop head in PhraseScreenEdit
+7098 .loop10              ; loop head in PhraseScreenEdit
+71CA .loop11              ; loop head in PhraseScreenEdit
+7244 .loop12              ; loop head in PhraseScreenEdit
+7D45 .done                ; common exit of PhraseScreenEdit

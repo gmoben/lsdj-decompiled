@@ -21,3 +21,12 @@
 6D1A TilesFont1C        ; font 1 tile block C (DMG path)
 720C SynthWaveTables    ; bandlimited 32-byte signed waveform cycles (softsynth preview/render)
 79EC TxtSpaces13        ; 13-space blank string
+
+; --- structural local names (loop heads / common exits) ---
+42C6 .done                ; common exit of ScreenPreDraw
+79FE .loop                ; loop head in GfxFillVramRegions
+7A1B .loop2               ; loop head in GfxFillVramRegions
+7A36 .done                ; common exit of GfxFillVramRegions
+7A39 .loop                ; loop head in GfxReadVramByte
+7A52 .loop                ; loop head in GfxCopyVramRegion
+7A9C .done                ; common exit of GfxCopyVramRegion

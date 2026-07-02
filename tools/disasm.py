@@ -555,6 +555,11 @@ def build_labels(rows: list[Row], lo: int, hi: int,
     auto-labels. `render()` full-paths (`Func.L_xxxx`) any cross-function ref.
     Labels never change bytes."""
     symbols = symbols or {}
+    # Dot-named user symbols (`4015 .loop`) are LOCAL name overrides: they
+    # replace the auto `.L_xxxx` at that address (or name a sub-data row /
+    # non-branch address) and never become globals.
+    user_locals = {a: n for a, n in symbols.items() if n.startswith(".")}
+    symbols = {a: n for a, n in symbols.items() if not n.startswith(".")}
     instr_addrs = {addr for addr, _raw, text, _ref in rows if not text.startswith("db")}
     # Every row-start address (code or data): a user symbol renders on any of
     # these, so a table marked as `db` still gets its label (data labels).
@@ -582,16 +587,22 @@ def build_labels(rows: list[Row], lo: int, hi: int,
     enclosing: dict[int, int | None] = {}
     cur: int | None = None
     for addr, _raw, text, _ref in rows:
-        if addr in labels:
+        if addr in labels and not labels[addr].startswith("."):
             cur = addr
         enclosing[addr] = cur
     for ref in branch_targets:
         if ref in labels:
             continue
         if enclosing.get(ref) is not None:
-            labels[ref] = f".L_{ref:04X}"
+            labels[ref] = user_locals.get(ref, f".L_{ref:04X}")
         else:
             labels[ref] = f"{prefix}{ref:04X}"
+    # Remaining user locals (sub-data rows, fallthrough points): render wherever
+    # a row starts under an enclosing global.
+    for a, name in user_locals.items():
+        if lo <= a < hi and a in row_addrs and a not in labels \
+                and enclosing.get(a) is not None:
+            labels[a] = name
     return labels
 
 
