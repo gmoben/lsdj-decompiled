@@ -4,7 +4,7 @@
 
 ; --- data tables + strings (db; instrument-editor + word/phrase helpers) ---
 4236 TxtDashTemplate    ; "/--/--" (value display template)
-491A DefaultWaveFrame    ; [16] default wave frame (32-nibble ramp), memcpy'd into wave_frames by $6163
+491A FxCmdRefTable              ; per-FX-command reference descriptors (what each cmd value points at; CLEAN scans)
 4A02 DefaultInstrument       ; 16-byte default instrument template
 4ACE TxtOutOfMemory1F     ; "OUT OF MEMORY. CLEAN SONG DATA IN PROJECT SCREEN"
 4C11 TxtOutOfTables     ; "OUT OF TABLES!"
@@ -129,3 +129,6 @@
 6B32 TxtCut1F           ; "CUT"
 6B36 TxtCopy1F          ; "COPY"
 6C34 DrawWordRow        ; draw the 3 allophone chars of word row (arg-1); 0 -> spaces
+647A TxtPctD4                   ; "%d"
+647D TxtSynthsFill              ; "SYNTHS...."
+6488 TxtPctD5                   ; "%d"

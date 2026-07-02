@@ -94,3 +94,4 @@
 648E TxtWaveGlyphM              ; "mmmm" waveform glyph row
 65B8 TxtFold1D                  ; "FOLD"
 65BD TxtWrap1D                  ; "WRAP"
+60E6 SynthFieldLayout           ; per-synth-field {x,y,width} layout (16 fields x 3)

@@ -32,7 +32,7 @@
 
 ; --- data tables (were decoded as code) ---
 40EA DefaultWaveFrameB1  ; [16] default wave frame (32-nibble ramp), memcpy'd into wave_frames by $47E5
-57BF TxtBlankString    ; 17 zero bytes = a blank display string (string-dispatch at $5619)
+57BF ScreenPalChain             ; CGB palette block: CHAIN screen
 7498 TxtBlankString2   ; blank (zero) display string (ref $6D98)
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
@@ -144,3 +144,20 @@
 7BD5 TxtSynColon                ; "SYN:"
 7BDA TxtAst                     ; "AST"
 794B CrashHandler               ; crash entry: di, dump state, DrawCrashScreen ("DONT PANIC!")
+40FA NoteFreqTable              ; [semitone 0-107] -> GB frequency period (108 x dw, copied by UiLoadHwTables)
+41D2 NoteFreqDeltaTable         ; companion 108 x dw pitch table (finetune/delta variant, UiLoadHwTables)
+42AA PitchCurve                 ; rising pitch-response curve (UiLoadHwTables)
+5927 ScreenPalTable             ; CGB palette block: TABLE screen
+5A8F ScreenPalPhrase            ; CGB palette block: PHRASE screen
+5BF7 ScreenPalGroove            ; CGB palette block: GROOVE screen
+5D5F ScreenPalProject           ; CGB palette block: PROJECT screen
+5EC7 ScreenPalSong              ; CGB palette block: SONG screen
+602F ScreenPalInstrPulse        ; CGB palette block: INSTR screen, PULSE type
+6197 ScreenPalInstrWave         ; CGB palette block: INSTR screen, WAVE type
+62FF ScreenPalInstrKit          ; CGB palette block: INSTR screen, KIT type
+6467 ScreenPalInstrNoise        ; CGB palette block: INSTR screen, NOISE type
+65CF ScreenPalSpeech            ; CGB palette block: SPEECH instrument / word list
+6737 ScreenPalWave              ; CGB palette block: WAVE screen
+689F ScreenPalSynth             ; CGB palette block: SYNTH screen
+6A07 ScreenPalWord              ; CGB palette block: WORD screen
+6B6F ScreenPalFile              ; CGB palette block: FILE screen

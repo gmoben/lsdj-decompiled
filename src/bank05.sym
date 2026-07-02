@@ -47,3 +47,6 @@
 6F38 TxtHelpInstrType   ; "USE PULSE IN PU1/PU2; WAVE/KIT IN WAV; NOISE IN NOI"
 649A TxtCut05                   ; "CUT"
 649E TxtCopy05                  ; "COPY"
+42D5 MapColXTable               ; per-map-column X positions (6 entries, TableUpdateScreen transition)
+42DB MapColWidthTable           ; per-map-column widths/steps (6 entries)
+42E1 MapColFlagTable            ; per-map-column flags (6 entries)

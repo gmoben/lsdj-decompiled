@@ -69,3 +69,6 @@
 5B56 TxtOn1B                    ; "ON "
 5B5A TxtOff1B                   ; "OFF"
 5B5E TxtNA                      ; "N/A"
+5716 ColorSetNames              ; 5-char COLOR SET names ("AIRY"...; indexed wColorSet*5)
+6FFE ScrollStepTable            ; scroll index-step table (ProjScrollTextStep)
+703C EnvVolumeRamps             ; 8-byte volume ramp rows (envelope precalc family; computed base from ScrollStepTable region)

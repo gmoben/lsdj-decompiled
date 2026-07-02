@@ -226,10 +226,15 @@
 154B ReadSongByteDi ; di + SRAM enable + bank select + read + reti (unreferenced variant of ReadSongByte)
 34E9 SendSyncHandshakeByte ; alt-entry into SendSyncHandshake with hl=arg (unreferenced)
 1E70 TxtBlank4 ; "    " 4-space blank field string
-0380 TempoScaleHelper ; hl = (a*2+e)*8 -- installed via pointer by GetTempoTimerValue (variant A)
-0396 TempoTickIsr ; push-all tempo tick handler (reads $c8f4, dispatches $0662) -- installed via pointer by GetTempoTimerValue (variant B)
 0C1B FarCallByteResume ; continuation address pushed before the FarCallByte jp hl
 0C4A FarCallResume2 ; continuation pushed by the $0c43 far-call variant
 0C80 FarCallResume3 ; continuation pushed by the $0c79 far-call variant
 0CB5 FarCallResume4 ; continuation pushed by the $0cae far-call variant
 0CEF FarCallResume5 ; continuation pushed by the $0ce8 far-call variant
+014E HeaderChecksumHi           ; ROM header global checksum (hi byte), read by CheckRomChecksum
+014F HeaderChecksumLo           ; ROM header global checksum (lo byte)
+300F ExpoCurve16                ; 16-entry exponential curve $00..$73 (depth/response LUT next to the LFO tick code)
+08C8 IdentityCharMap            ; identity tile-index map (loaded into wStringSrc for raw-tile draws)
+01E0 SyncModeStubs              ; 4 x 4-byte jp-hl slots from SendSyncHandshake ((mode&3)*4); only slot 0 (ret) populated
+0200 TimesTwoTable              ; [n] -> 2n byte ramp (FileUpgradeRemapBits, synth draw)
+0255 SignedRampTable            ; signed ramp -12..+15 (modulation LUT block; read by UiLoadHwTables)

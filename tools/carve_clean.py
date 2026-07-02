@@ -46,7 +46,7 @@ MANUAL: dict[int, list[tuple[int, int]]] = {
     # bitmask table, cartridge header, signed modulation LUTs (triangle/ramp/
     # clamp tables at $0200; the leading fill run already covers up to $0206),
     # instrument param-label/char tables ($0824), and a 16-bit offset LUT ($09B9).
-    0x00: [(0x10, 0x20), (0x104, 0x150), (0x207, 0x2C0),
+    0x00: [(0x10, 0x20), (0x104, 0x150), (0x207, 0x2C0), (0x300F, 0x301F),
            (0x824, 0x908), (0x9B9, 0xA91)],
     # bank 1 (UI): two LUTs decoded as code (byte+16-bit table at $40EA; a rising
     # byte curve at $42A0), one small zero-source region, the FX-command help
@@ -61,26 +61,27 @@ MANUAL: dict[int, list[tuple[int, int]]] = {
     # PitchBendTable ($43D8-$45D8, read by ApplyPitchBend), the vibrato tables
     # ($7D81-$7DD1: VibDepthTable[16] + VibRateTableA/B[16 x 16-bit], read by
     # FxCmd_V), and NoiseFreqTable ($5EDA, hides SetNoisePoly at $5F52).
-    0x02: [(0x3D8, 0x5D8), (0x1EDA, 0x1F52), (0x3D81, 0x3DD1)],
+    0x02: [(0x3D8, 0x5D8), (0x1EDA, 0x1F52), (0x3D81, 0x3DD1), (0x3EAC, 0x4000)],
     # bank 1B: SAVING... + %d + ON/OFF/N/A project strings.
-    0x1B: [(0x12D8, 0x12E2), (0x1B06, 0x1B09), (0x1B56, 0x1B62)],
+    0x1B: [(0x12D8, 0x12E2), (0x1716, 0x1725), (0x1B06, 0x1B09), (0x1B56, 0x1B62),
+           (0x2FFE, 0x30B8)],
     # bank 1C: an [8][8] rising value table ($6E3C) decoded as code, and
     # DefaultWaveFrameB1C ($4047, 16 bytes -- hides the $4057 magic check).
     0x1C: [(0x47, 0x57), (0x2E3C, 0x2E7C)],
     # bank 05: table-screen CUT/COPY strings.
-    0x05: [(0x249A, 0x24A3)],
+    0x05: [(0x2D5, 0x2E7), (0x249A, 0x24A3)],
     # bank 03: OUT OF SYNTHS string + kit DIST mode names.
-    0x03: [(0x33B, 0x36E), (0xAB4, 0xACC)],
+    0x03: [(0x25, 0xF8), (0x33B, 0x36E), (0xAB4, 0xACC)],
     # bank 04: phrase-row CGB attribute rows + the $01 step table.
     0x04: [(0xC10, 0xC14), (0xCE1, 0xCE5), (0x10D8, 0x10FF), (0x14E3, 0x1500), (0x15D1, 0x15DE)],
     # bank 1D: softsynth shape banks ($4EF0/$50F0) decoded as code.
-    0x1D: [(0xEF0, 0x1190)],
+    0x1D: [(0xEF0, 0x1190), (0x20E6, 0x2116)],
     # bank 1E: everything between ScreenPreDraw and GfxFillVramRegions is
     # data (font/UI tile blocks + synth waveform tables + a blank string).
     0x1E: [(0x2C8, 0x39FA)],
     # bank 1F: OOM-instr + OUT OF TABLES + DE-DUPE panel strings, the
     # phrase-column layout table ($64E1, hides $64FF), and "TYPE   SPEECH".
-    0x1F: [(0xACE, 0xB00), (0xC11, 0xC20), (0x237D, 0x23B1), (0x244D, 0x248B),
+    0x1F: [(0x91A, 0xA26), (0xACE, 0xB00), (0xC11, 0xC20), (0x237D, 0x23B1), (0x244D, 0x248B),
            (0x24E1, 0x24FF), (0x2B32, 0x2B3B), (0x323F, 0x324D)],
     # bank 7: DMG+CGB tempo timer tables ($5E49/$6049, 256 x dw each), the PS/2
     # keyboard note/function maps ($662A/$66AA), and the keyboard-calibration

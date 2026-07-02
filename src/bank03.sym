@@ -81,3 +81,11 @@
 4ABA TxtSoft                    ; " SOFT"
 4AC0 TxtFold                    ; " FOLD"
 4AC6 TxtWrap                    ; " WRAP"
+4025 TxtUnlim                   ; "UNLIM"
+402B InstrFieldX                ; per-field cursor X positions (per-type rows)
+4046 InstrFieldXKit             ; kit-type X row (direct base)
+406E InstrFieldY                ; per-field cursor Y positions (per-type rows)
+4089 InstrFieldYWave            ; wave-type Y row (direct base)
+409C InstrFieldYKit             ; kit-type Y row (direct base)
+40B1 InstrFieldW                ; per-field cursor widths (per-type rows)
+40F4 InstrFieldCounts           ; fields per instrument type: PULSE 16, WAVE 15, KIT 18, NOISE 13
