@@ -60,3 +60,6 @@
 7E4E UiDrawScreenDmg            ; copy 18x20 chars (arg ptr) -> $9800 (DMG, no palette attrs)
 7E74 UiDrawHelpStr              ; stage 20 bytes (arg) -> $c7b0 string buffer (save src ptr $c7c4/5), then UiDrawStr_7955
 7ED3 UiLoadObjPalette           ; upload object palette: write rOBPI/rOBPD from [bc], index/count from args
+; --- indirect (FarCall) target ---
+75BD ShowOutOfMemory ; push TxtOutOfMemory, call ShowMessage
+75F8 ShowTapAddChain ; push TxtTapAddChain, call ShowMessage

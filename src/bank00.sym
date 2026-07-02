@@ -218,3 +218,7 @@
 37C1 DivModU8    ; zero-extend 8-bit operands (b=0,d=0), fall into DivModU16
 37C4 DivModU16   ; unsigned divide core: dividend bc / divisor de -> quotient bc, remainder de; div-by-zero -> 0 + carry; 16x DivStep
 380F DivStep     ; one restoring-division shift/subtract bit-step (called 16x by DivModU16)
+
+; --- indirect (FarCall) targets, resolved by tools/farcall_targets.py ---
+24DD RedrawScreen ; full screen repaint: ResetScreenSprites, ClearBgTilemap (CGB), then dispatch per-screen draw handlers by wCurrentScreen (18+ FarCall sites)
+39E1 CopyToWindowTilemap ; pick window tilemap base from rLCDC bit6 ($9800/$9c00), tail-call CopyToBgTilemapCore

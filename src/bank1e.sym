@@ -5,3 +5,5 @@
 79FA GfxFillVramRegions         ; write $ff to VRAM $9480-$97FF and $8800-$88CF (via $17ec vblank tile writer)
 7A38 GfxReadVramByte            ; wait for safe LCD access (rSTAT mode), read [de], return byte in e
 7A4B GfxCopyVramRegion          ; copy bytes between VRAM regions (GfxReadVramByte -> $17ec writer), 16-step outer loop
+; --- indirect (FarCall) target ---
+7AA0 InitScreenPalettes ; ResetDisplayState, then set wShadow/SelectDigitPal + wShadow/SelectPal (CGB), load palette data

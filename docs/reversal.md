@@ -430,10 +430,35 @@ deferred tables below). Named intuitively (never `Lut<addr>`):
   `$676A` (a mis-carved phantom), `$1E` `$42C8`/`$7550` — each needs the using
   algorithm reversed before it can be named truthfully.
 
-The `_LABEL_` count is a loose worklist, not a metric: it over-counts `ld
-hl,CodeAddr` pointers into named functions (Emulicious shows `Func+N`) and labeled
-data tables whose bytes decode as instructions. Refining it is the next tooling
-task.
+**The indirect-`_LABEL_` class — FarCall dispatch (`tools/farcall_targets.py`).**
+The code `_LABEL_`s that survive `callgraph.py` (direct cross-bank calls) are
+functions reached only *indirectly*, and LSDj's dominant indirect mechanism is
+its far-call trampolines `FarCall` (`$179a`) and `FarCallByte` (`$0bfe`): the
+caller pushes an immediate bank + address (`ld c,LO; ld b,HI; push bc; ld
+a,BANK; push af; inc sp; call FarCall`) and the trampoline pages the bank and
+`jp hl`s to it. Because nothing emits a direct `call TARGET`, the per-bank
+labeler never names it. `farcall_targets.py` scans all ~280 call sites, resolves
+the immediate bank+addr (home-bank fix for targets `<$4000`; drops the ~7
+register-computed sites whose back-scan yields an impossible `≥$8000`), and lists
+every target with no label — **the precise indirect worklist** (46→ and
+shrinking), each with its caller sites for context. First names off it:
+`RedrawScreen` (`$24dd`, the 18-caller full-screen repaint that dispatches
+per-screen draw by `wCurrentScreen`), `CopyToWindowTilemap` (`$39e1`),
+`InitScreenPalettes` (`$1E:$7aa0`), and the `ShowMessage` wrappers
+`ShowOutOfMemory`/`ShowTapAddChain` (a whole sub-class: `ld hl,Txt…; push hl;
+call ShowMessage; ret` → name `Show<TxtName>`).
+
+**Orphan finder (`tools/find_orphans.py`).** Complementary static view: an
+instruction that starts right after an unconditional terminator (`ret`/`jp`/`jr`)
+with no label is an orphan function-start. Raw count is inflated by data carved
+as code (strings like `43 55 54`="CUT"), so `--code-only` keeps just orphans
+opening with an SDCC prologue (`push bc`/`add sp,-N`): 674→**43** genuine
+functions, the same set `farcall_targets.py` reaches from the caller side.
+
+Neither count is a coverage *metric* — `_LABEL_` still over-counts `ld
+hl,CodeAddr` pointers into named functions (Emulicious renders `Func+N`) — but
+together they are now a **precise, deduplicated worklist** for the indirect code
+targets, replacing the earlier loose grep.
 
 **Dynamic driver — `tools/emu/song.py`.** A verified editing layer that also reads
 and writes the working song directly in SRAM (`sram_read`/`sram_write` +
