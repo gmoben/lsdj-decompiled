@@ -10,6 +10,8 @@ This tool merges the two sources into one .sym:
 
   * build/lsdj9_4_0.sym  -- every named routine (+ .L_xxxx locals) from the link
   * constants/ram.inc    -- `DEF wXxx EQU $AAAA` -> WRAM/HRAM variable symbols
+  * SRAM_MAP (below)     -- working-song SRAM structures (docs/data_model.md),
+                            emitted as bank:addr since SRAM is banked
 
 Bank prefix for RAM symbols (per the BGB/no$gmb/Emulicious convention):
   * $C000-$CFFF (WRAM0) and $FF80-$FFFE (HRAM) -> bank 00
@@ -45,6 +47,41 @@ def ram_bank(addr: int) -> int:
     if 0xD000 <= addr <= 0xDFFF:
         return 1  # WRAMX: default switchable bank
     return 0  # WRAM0 ($C000-$CFFF) and HRAM ($FF80-$FFFE)
+
+
+# LSDj working-song SRAM structures (docs/data_model.md). SRAM is 4 banks of
+# 8 KiB mapped at $A000-$BFFF; offset -> (bank = off>>13, cpu = $A000 + off&$1FFF).
+# The debugger addresses SRAM by (bank, cpu-addr), so emit `bank:addr`.
+SRAM_MAP: list[tuple[int, str]] = [
+    (0x0000, "SramPhraseNotes"),      (0x0FF0, "SramBookmarks"),
+    (0x1090, "SramGrooves"),          (0x1290, "SramSequence"),
+    (0x1690, "SramTableEnvelopes"),   (0x1890, "SramWords"),
+    (0x1DD0, "SramWordNames"),        (0x1E78, "SramInitFlag1"),
+    (0x1E7A, "SramInstrNames"),       (0x2020, "SramTableAlloc"),
+    (0x2040, "SramInstrAlloc"),       (0x2080, "SramChainPhrases"),
+    (0x2880, "SramChainTransposes"),  (0x3080, "SramInstruments"),
+    (0x3480, "SramTableTransposes"),  (0x3680, "SramTableCmd1"),
+    (0x3A80, "SramTableCmd2"),        (0x3E80, "SramInitFlag2"),
+    (0x3E82, "SramPhraseAlloc"),      (0x3EA2, "SramChainAlloc"),
+    (0x3EB2, "SramSynthParams"),      (0x3FB2, "SramProperties"),
+    # song-property fields (verified in code)
+    (0x3FB4, "SramPropTempo"),        (0x3FBA, "SramPropKeyDelay"),
+    (0x3FBB, "SramPropKeyRepeat"),    (0x3FBC, "SramPropPrelisten"),
+    (0x3FBD, "SramPropSyncMode"),     (0x3FBE, "SramPropColorSet"),
+    (0x3FBF, "SramPropSyncMode2"),    (0x3FC0, "SramPropCloneMode"),
+    (0x3FC1, "SramPropActiveFile"),   (0x3FCC, "SramPropTempoMode"),
+    (0x4000, "SramPhraseFx"),         (0x4FF0, "SramPhraseFxVal"),
+    (0x6000, "SramWaveFrames"),       (0x7000, "SramPhraseInstruments"),
+    (0x7FF0, "SramInitFlag3"),
+]
+
+
+def sram_syms() -> list[tuple[int, int, str]]:
+    """(sram_bank, cpu_addr, name) for each working-song SRAM structure."""
+    out = []
+    for off, name in SRAM_MAP:
+        out.append((off >> 13, 0xA000 + (off & 0x1FFF), name))
+    return out
 
 
 def parse_ram_vars(ram_inc: Path) -> list[tuple[int, int, str]]:
@@ -98,6 +135,9 @@ def main() -> int:
         key = (f"{bank:02x}", f"{addr:04x}")
         if key in present:
             continue
+        ram_lines.append(f"{bank:02X}:{addr:04X} {name}")
+    # SRAM working-song structures (bank:addr in $A000-$BFFF)
+    for bank, addr, name in sram_syms():
         ram_lines.append(f"{bank:02X}:{addr:04X} {name}")
 
     out_lines: list[str] = []
