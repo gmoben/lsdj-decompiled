@@ -22,12 +22,12 @@
 6014 TriggerNoise       ; NOI note-on: rAUD4 len/env/poly + trigger
 5151 ReadChanCursor     ; read byte via channel hSoundCh's 16-bit cursor (array base in hl); SRAM-guarded
 485A InitSoundStatePtrs ; set $C8xx to the low-bytes of the engine's $C1xx state ptrs
-; --- Note-on: load instrument from SRAM into wSoundParams, set up channel shadows -
+; --- Note-on: load instrument from SRAM into wCurInstr, set up channel shadows -
 5934 SetupChannelSound  ; dispatch by hSoundCh to the per-channel setup block below
-5942 SetupSoundPU1      ; PU1: stage wSoundParams -> sweep/env/duty/freq shadows + trigger
-5A27 SetupSoundPU2      ; PU2: stage wSoundParams -> env/duty/freq shadows + trigger
-5B0C SetupSoundWave     ; WAV/KIT: stage wSoundParams -> wave level/freq shadows + trigger
-5DB2 SetupSoundNoise    ; NOI: stage wSoundParams -> env/poly shadows + trigger
+5942 SetupSoundPU1      ; PU1: stage wCurInstr -> sweep/env/duty/freq shadows + trigger
+5A27 SetupSoundPU2      ; PU2: stage wCurInstr -> env/duty/freq shadows + trigger
+5B0C SetupSoundWave     ; WAV/KIT: stage wCurInstr -> wave level/freq shadows + trigger
+5DB2 SetupSoundNoise    ; NOI: stage wCurInstr -> env/poly shadows + trigger
 4F33 FillChan8         ; write a -> 8 consecutive bytes [hl] (clears a per-channel 16-bit array)
 4F37 FillChan4         ; write a -> 4 consecutive bytes [hl] (clears a per-channel [4] array)
 ; --- Table macro playback (per-channel; runs the instrument's table) ----------
@@ -127,7 +127,7 @@
 5778 SndSetKitParams            ; set kit state $c694/$c8f1/$c695
 583F SndSplitPhraseNibbles      ; wChanPhrase[ch] -> hi/lo nibbles (compute phrase index)
 58C7 SndFillFF                  ; write $ff to a run of consecutive bytes [hl]
-58EA SndLoadInstrument          ; copy the 16-byte instrument record instruments[a] (SRAM bank1 $B080+a*16) into wSoundParams ($C0D0)
+58EA SndLoadInstrument          ; copy the 16-byte instrument record instruments[a] (SRAM bank1 $B080+a*16) into wCurInstr ($C0D0)
 5F5E SndSetupChanState5F5E      ; set $c14f/$c14d then SndSetupLfoWavNoi
 5FA7 SndSetChanState5FA7        ; set $c14e/$c319
 5FBE SndSetChanState5FBE        ; SndSetChanState5FA7 then $c69c

@@ -120,7 +120,7 @@ Verified against a live RAM dump cross-checked with this map:
 | `wChanChainRow` | `$C17C` | row in chain (0-15) | into `chain_phrases`/`chain_transposes` |
 | `wChanPhrase` | `$C168` | current phrase # | `= chain_phrases[chain][chainRow]` |
 | `wChanPhraseRow` | `$C16C` | note step in phrase (0-15) | into the phrase columns |
-| `wChanReadPtr` | `$C110` | 16-bit SRAM cursor | `phrase_notes`(b0)/`phrase_fx`(b2) |
+| `wPhraseCmdPtr` | `$C110` | 16-bit SRAM cursor | `phrase_notes`(b0)/`phrase_fx`(b2) |
 | `wChanCmdValPtr` | `$C128` | 16-bit SRAM cursor | `phrase_fx_val` (`$AFF0`+) |
 | `wChanInstrPtr` | `$C140` | 16-bit SRAM cursor | `phrase_instruments` (`$B000`+) |
 
@@ -138,7 +138,7 @@ each value present in the `$CF28` table.
 
 **Instruments.** A phrase step's instrument number (read via `wChanInstrPtr` from
 `phrase_instruments`, `$7000`) selects a 16-byte record in `instruments` (`$3080`).
-On note-on the engine copies that record verbatim into `wSoundParams` (`$C0D0`),
+On note-on the engine copies that record verbatim into `wCurInstr` (`$C0D0`),
 then `SetupChannelSound` distributes its bytes to the `rAUDx` register shadows
 (`$C2D8`+) per channel type. (The per-byte field layout is type-specific — see
 pylsdj/liblsdj for the bitfields.)
