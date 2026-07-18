@@ -37,6 +37,22 @@ def ram_section():
     return "\n".join(out)
 
 
+def sram_section():
+    """Render the working-song SRAM map (Emulicious cannot symbol-resolve SRAM
+    -- verified against its disassembler: _SRAM_/sram_ names are hardcoded --
+    so this listing is where those addresses read semantically)."""
+    import sys as _sys
+    _sys.path.insert(0, os.path.join(os.path.dirname(__file__)))
+    from gen_sym import SRAM_MAP
+    out = ["", "; " + "=" * 72,
+           "; SRAM working-song structures (docs/data_model.md; 4 banks at $A000)",
+           "; " + "=" * 72]
+    for off, name in sorted(SRAM_MAP):
+        bank, cpu = off >> 13, 0xA000 + (off & 0x1FFF)
+        out.append(f'{name}:: ; SRAM bank {bank}, ${cpu:04X} (file offset ${off:04X})')
+    return "\n".join(out)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("-o", "--output", default="build/listing.asm")
@@ -54,6 +70,7 @@ def main():
         parts.append(f"; {'=' * 72}\n; {os.path.basename(p)}\n; {'=' * 72}")
         parts.append(open(p).read().rstrip())
     parts.append(ram_section())
+    parts.append(sram_section())
     text = "\n".join(parts) + "\n"
     open(a.output, "w").write(text)
     ins = sum(1 for _ in re.finditer(r"; \$[0-9a-f]{4}:", text))
