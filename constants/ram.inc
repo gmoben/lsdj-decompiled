@@ -234,7 +234,7 @@ DEF wChanChain       EQU $C170  ; [4] current chain number per channel (CHAIN_AS
 DEF wChanChainRow    EQU $C17C  ; [4] current row within the chain (0-15)
 DEF wChanPhrase      EQU $C168  ; [4] current phrase = CHAIN_PHRASES[chain][chainRow] (set by ReadChainPhrase)
 DEF wChanPhraseRow   EQU $C16C  ; [4] current note step within the phrase (0-15)
-DEF wChanNextPhrase  EQU $C100  ; [4] next chain row's phrase, prefetched
+DEF wChanRowQueue    EQU $C100  ; queued chain-row value, PU1 (consumed at phrase end: moved to [$C1xx + wPtrChainRow], then cleared)
 DEF wChanNextSongRow EQU $C2FC  ; [4] next song row, prefetched
 DEF wPhraseCmdPtr    EQU $C110  ; SRAM read ptr: phrase FX command, PU1 (SndReadPhraseCmd; init $0140)
                                 ; same offset $A000+phrase*16+step, selected by SRAM bank
@@ -250,11 +250,11 @@ DEF wChanTableCountdown EQU $C164 ; [4] ticks until the next table step
 DEF wChanTable       EQU $C204  ; [4] current table per channel
 DEF wChanTableRow1   EQU $C208  ; [4] table command-1 playback row
 DEF wChanTableRow2   EQU $C20C  ; [4] table command-2 playback row
-DEF wChanNoteStep    EQU $C21C  ; [4] per-channel step counter since note-on (reset to 0 by SetupSound*); incremented each tick, with the first values (0/1/2) gating note-onset behavior
+DEF wChanChordPhase  EQU $C21C  ; chord arp phase counter, PU1 (0/1/2: which chord nibble is active; SndDecodeCmdNibbles)
 DEF wChanInstr       EQU $C210  ; [4] current instrument number per channel
 DEF wChanChord       EQU $C218  ; [4] chord command value (CXY: X/Y semitone offsets); 0 = off. Set by FxCmd_C
 ; Current-channel table-playback cursors (16-bit SRAM addresses):
-DEF wTableTransposePtr EQU $C10E ; -> table_transposes
+DEF wTableNotePtrNoi EQU $C10E  ; SRAM read ptr: table NOTE column, NOI
 DEF wTableCmd1PtrNoi EQU $C11E  ; SRAM read ptr: table CMD1 column, NOI
 DEF wTableCmd2PtrNoi EQU $C126  ; SRAM read ptr: table CMD2 column, NOI
 DEF wTableCmd1ValPtrNoi EQU $C136  ; SRAM read ptr: table CMD1 value, NOI
@@ -483,9 +483,9 @@ DEF wChanFreqPu2Hi   EQU $C0F7  ; channel frequency shadow, PU2 hi
 DEF wChanFreqWav     EQU $C0F8  ; channel frequency shadow, WAV lo (rAUD3LOW)
 DEF wChanFreqWavHi   EQU $C0F9  ; channel frequency shadow, WAV hi
 DEF wChanGrooveTicks EQU $C0FC  ; ticks left in groove step, PU1: 0 -> wChanNoteTrigger + advance groove (SndReadChanState55AE)
-DEF wChanNextPhrase_p8 EQU $C108  ; wChanNextPhrase+8
-DEF wChanNextPhrase_p10 EQU $C10A  ; wChanNextPhrase+10
-DEF wChanNextPhrase_p12 EQU $C10C  ; wChanNextPhrase+12
+DEF wTableNotePtr    EQU $C108  ; SRAM read ptr: table NOTE column, PU1 (lo nibble = table row; hop cmd writes it, SndApplyTablePitch)
+DEF wTableNotePtrPu2 EQU $C10A  ; SRAM read ptr: table NOTE column, PU2
+DEF wTableNotePtrWav EQU $C10C  ; SRAM read ptr: table NOTE column, WAV
 DEF wPhraseCmdPtrPu2 EQU $C112  ; SRAM read ptr: phrase FX command, PU2
 DEF wPhraseCmdPtrWav EQU $C114  ; SRAM read ptr: phrase FX command, WAV
 DEF wPhraseCmdPtrNoi EQU $C116  ; SRAM read ptr: phrase FX command, NOI
@@ -522,9 +522,9 @@ DEF wChanTableCountdownNoi  EQU $C167  ; wChanTableCountdown[3] = Noi channel
 DEF wChanPhraseRowPu2  EQU $C16D  ; wChanPhraseRow[1] = Pu2 channel
 DEF wChanPhraseRowWav  EQU $C16E  ; wChanPhraseRow[2] = Wav channel
 DEF wChanPhraseRowNoi  EQU $C16F  ; wChanPhraseRow[3] = Noi channel
-DEF wChanChain_p4 EQU $C174  ; wChanChain+4
-DEF wChanChain_p5 EQU $C175  ; wChanChain+5
-DEF wChanChain_p6 EQU $C176  ; wChanChain+6
+DEF wChanNoteOffset  EQU $C174  ; semitone offset added to the output note at freq computation, PU1 (SndWriteFreqPU1)
+DEF wChanNoteOffsetPu2 EQU $C175  ; semitone note offset, PU2
+DEF wChanNoteOffsetWav EQU $C176  ; semitone note offset, WAV
 DEF wChanChain_p8 EQU $C178  ; wChanChain+8
 DEF wChanChainRow_p1 EQU $C17D  ; wChanChainRow+1
 DEF wChanChainRow_p2 EQU $C17E  ; wChanChainRow+2
@@ -550,13 +550,13 @@ DEF wChanInstrWav EQU $C214  ; wChanInstr[2]  (Wav)
 DEF wChanChordPu2     EQU $C219  ; wChanChord[1] = Pu2 channel
 DEF wChanChordWav     EQU $C21A  ; wChanChord[2] = Wav channel
 DEF wChanChordNoi     EQU $C21B  ; wChanChord[3] = Noi channel
-DEF wChanNoteStep_p1 EQU $C21D  ; wChanNoteStep+1
-DEF wChanNoteStep_p2 EQU $C21E  ; wChanNoteStep+2
-DEF wChanNoteStep_p3 EQU $C21F  ; wChanNoteStep+3
-DEF wChanNoteStep_p4 EQU $C220  ; wChanNoteStep+4
-DEF wChanNoteStep_p5 EQU $C221  ; wChanNoteStep+5
-DEF wChanNoteStep_p6 EQU $C222  ; wChanNoteStep+6
-DEF wChanNoteStep_p7 EQU $C223  ; wChanNoteStep+7
+DEF wChanChordPhasePu2 EQU $C21D  ; chord arp phase counter, PU2
+DEF wChanChordPhaseWav EQU $C21E  ; chord arp phase counter, WAV
+DEF wChanChordPhaseNoi EQU $C21F  ; chord arp phase counter, NOI
+DEF wChanTableLatch  EQU $C220  ; table number latched at note-on, PU1
+DEF wChanTableLatchPu2 EQU $C221  ; table number latched at note-on, PU2
+DEF wChanTableLatchWav EQU $C222  ; table number latched at note-on, WAV
+DEF wChanTableLatchNoi EQU $C223  ; table number latched at note-on, NOI
 DEF wChanNoteStep_p8 EQU $C224  ; wChanNoteStep+8
 DEF wChanPitchTarget_p2 EQU $C24A  ; wChanPitchTarget+2
 DEF wChanPitchTarget_p4 EQU $C24C  ; wChanPitchTarget+4
@@ -572,25 +572,25 @@ DEF wChanEnvNoi       EQU $C2DB  ; wChanEnv[3] = Noi channel
 DEF wChanLenDutyPu2   EQU $C2DD  ; wChanLenDuty[1] = Pu2 channel
 DEF wChanFreqHiPu2    EQU $C2E1  ; wChanFreqHi[1] = Pu2 channel
 DEF wChanFreqHiNoi    EQU $C2E3  ; wChanFreqHi[3] = Noi channel
-DEF wFxNoiseNote_p1 EQU $C2E8  ; wFxNoiseNote+1
-DEF wFxNoiseNote_p2 EQU $C2E9  ; wFxNoiseNote+2
-DEF wFxNoiseNote_p3 EQU $C2EA  ; wFxNoiseNote+3
-DEF wFxNoiseNote_p4 EQU $C2EB  ; wFxNoiseNote+4
-DEF wFxNoiseNote_p5 EQU $C2EC  ; wFxNoiseNote+5
-DEF wFxNoiseNote_p6 EQU $C2ED  ; wFxNoiseNote+6
-DEF wFxNoiseNote_p7 EQU $C2EE  ; wFxNoiseNote+7
-DEF wFxNoiseNote_p8 EQU $C2EF  ; wFxNoiseNote+8
+DEF wChanTableActive EQU $C2E8  ; table engaged at note-on, PU1 (set 1 in Setup* .storeChanTable)
+DEF wChanTableActivePu2 EQU $C2E9  ; table engaged at note-on, PU2
+DEF wChanTableActiveWav EQU $C2EA  ; table engaged at note-on, WAV
+DEF wChanTableActiveNoi EQU $C2EB  ; table engaged at note-on, NOI
+DEF wChanTableFresh  EQU $C2EC  ; table freshly (re)started, PU1: buffers FF-filled, rows reset
+DEF wChanTableFreshPu2 EQU $C2ED  ; table freshly restarted, PU2
+DEF wChanTableFreshWav EQU $C2EE  ; table freshly restarted, WAV
+DEF wChanTableFreshNoi EQU $C2EF  ; table freshly restarted, NOI
 DEF wChanNextSongRowPu1Hi EQU $C2FD  ; wChanNextSongRow[0] hi byte (Pu1)
 DEF wChanNextSongRowPu2 EQU $C2FE  ; wChanNextSongRow[1]  (Pu2)
 DEF wChanNextSongRowPu2Hi EQU $C2FF  ; wChanNextSongRow[1] hi byte (Pu2)
 DEF wChanNextSongRowWav EQU $C300  ; wChanNextSongRow[2]  (Wav)
-DEF wChanVibAccum_p1 EQU $C309  ; wChanVibAccum+1
-DEF wChanVibAccum_p2 EQU $C30A  ; wChanVibAccum+2
-DEF wChanVibAccum_p3 EQU $C30B  ; wChanVibAccum+3
-DEF wChanVibAccum_p4 EQU $C30C  ; wChanVibAccum+4
-DEF wChanVibAccum_p5 EQU $C30D  ; wChanVibAccum+5
-DEF wChanVibAccum_p6 EQU $C30E  ; wChanVibAccum+6
-DEF wChanVibAccum_p7 EQU $C30F  ; wChanVibAccum+7
+DEF wChanVibAccumPu1Hi EQU $C309  ; vibrato phase accumulator hi, PU1 (16-bit += wChanVibSpeed)
+DEF wChanVibAccumPu2 EQU $C30A  ; vibrato phase accumulator lo, PU2
+DEF wChanVibAccumPu2Hi EQU $C30B  ; vibrato phase accumulator hi, PU2
+DEF wChanVibAccumWav EQU $C30C  ; vibrato phase accumulator lo, WAV
+DEF wChanVibAccumWavHi EQU $C30D  ; vibrato phase accumulator hi, WAV
+DEF wChanVibAccumNoi EQU $C30E  ; vibrato phase accumulator lo, NOI
+DEF wChanVibAccumNoiHi EQU $C30F  ; vibrato phase accumulator hi, NOI
 DEF wChanVibAccum_p8 EQU $C310  ; wChanVibAccum+8
 DEF wChanVibAccum_p9 EQU $C311  ; wChanVibAccum+9
 DEF wChanVibAccum_p10 EQU $C312  ; wChanVibAccum+10
@@ -629,9 +629,9 @@ DEF wChanPitchCurWavHi EQU $C33C  ; wChanPitchCur[2] hi byte (Wav)
 DEF wChanTableStep_p1 EQU $C340  ; wChanTableStep+1
 DEF wChanTableStep_p2 EQU $C341  ; wChanTableStep+2
 DEF wChanTableStep_p3 EQU $C342  ; wChanTableStep+3
-DEF wChanTableStep_p4 EQU $C343  ; wChanTableStep+4
-DEF wChanTableStep_p5 EQU $C344  ; wChanTableStep+5
-DEF wChanTableStep_p6 EQU $C345  ; wChanTableStep+6
+DEF wChanChordOffset EQU $C343  ; current chord transpose (semitones), PU1 -- cycled by wChanChordPhase from the C-cmd nibbles
+DEF wChanChordOffsetPu2 EQU $C344  ; current chord transpose, PU2
+DEF wChanChordOffsetWav EQU $C345  ; current chord transpose, WAV
 DEF wChanTableStep_p8 EQU $C347  ; wChanTableStep+8
 DEF wChanTableStep_p9 EQU $C348  ; wChanTableStep+9
 DEF wChanTableStep_p10 EQU $C349  ; wChanTableStep+10
@@ -687,13 +687,13 @@ DEF wTableCellBPtr_p2 EQU $C44B  ; wTableCellBPtr+2
 DEF wTableCellBPtr_p3 EQU $C44C  ; wTableCellBPtr+3
 DEF wTableCellBPtr_p4 EQU $C44D  ; wTableCellBPtr+4
 DEF wTableCellBPtr_p5 EQU $C44E  ; wTableCellBPtr+5
-DEF wColChain_p1 EQU $C450  ; wColChain+1
-DEF wColChain_p2 EQU $C451  ; wColChain+2
-DEF wColChain_p3 EQU $C452  ; wColChain+3
-DEF wColPhrase_p1 EQU $C454  ; wColPhrase+1
-DEF wColPhrase_p2 EQU $C455  ; wColPhrase+2
-DEF wColPhrase_p3 EQU $C456  ; wColPhrase+3
-DEF wColInstrument_p3 EQU $C46B  ; wColInstrument+3
+DEF wColChainPu2     EQU $C450  ; chain under cursor, song column PU2
+DEF wColChainWav     EQU $C451  ; chain under cursor, song column WAV
+DEF wColChainNoi     EQU $C452  ; chain under cursor, song column NOI
+DEF wColPhrasePu2    EQU $C454  ; phrase under cursor, song column PU2
+DEF wColPhraseWav    EQU $C455  ; phrase under cursor, song column WAV
+DEF wColPhraseNoi    EQU $C456  ; phrase under cursor, song column NOI
+DEF wColInstrumentNoi EQU $C46B  ; instrument cache, song column NOI
 DEF wColInstrument_p4 EQU $C46C  ; wColInstrument+4
 DEF wUsedTableMap_p16 EQU $C48D  ; wUsedTableMap+16
 DEF wRetrigger_p1 EQU $C4CE  ; wRetrigger+1
@@ -1046,3 +1046,10 @@ DEF wChanGrooveTicksNoi EQU $C0FF  ; ticks left in groove step, NOI
 DEF wCurInstrB4      EQU $C0D4  ; instrument byte 4
 DEF wCurInstrB9      EQU $C0D9  ; instrument byte 9: envelope node 2 (pulse)
 DEF wCurInstrB11     EQU $C0DB  ; instrument byte 11: finetune (-> wChanFinetune)
+DEF wChanRowQueuePu2 EQU $C101  ; queued chain-row value, PU2
+DEF wChanRowQueueWav EQU $C102  ; queued chain-row value, WAV
+DEF wChanRowQueueNoi EQU $C103  ; queued chain-row value, NOI
+DEF wChanChordOffsetNoi EQU $C346  ; current chord transpose, NOI
+DEF wChanNoteOffsetNoi EQU $C177  ; semitone note offset, NOI
+DEF wColInstrumentPu2 EQU $C469  ; instrument cache, song column PU2
+DEF wColInstrumentWav EQU $C46A  ; instrument cache, song column WAV
