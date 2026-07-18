@@ -15,9 +15,11 @@ Current state:
 - full symbol coverage: ~8,800 named routines, tables, strings and variables
   across all 13 program banks and the 21 sample kits — a debugger loading the
   generated `.sym` resolves everything, no auto-labels left
-- every WRAM/HRAM byte the ROM touches is named (~860 addresses in
-  `constants/ram.inc`, most verified live in an emulator), plus the banked
-  SRAM working-song structures (`SramPhraseNotes`, `SramInstruments`, …)
+- every WRAM/HRAM byte the ROM touches is named: ~820 semantic addresses in
+  `constants/ram.inc` (arrays carry `[N]` size tags and interior accesses
+  render as `base + N`), plus the banked SRAM working-song structures
+  (`SramPhraseNotes`, `SramInstruments`, …); only 10 bytes remain as
+  honestly-annotated unknowns
 - the C decompilation track is gated on reproducing the original GBDK 2.95 /
   SDCC toolchain (see `docs/toolchain.md`)
 
