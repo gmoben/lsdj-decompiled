@@ -85,7 +85,11 @@ ROMSYM := $(BASEROM:.gb=.sym)
 sym: $(TARGET)
 	tools/gen_sym.py $(SYM) constants/ram.inc -o $(SYM)
 	cp $(SYM) $(ROMSYM)
-	cp $(MAP) $(ROMSYM:.sym=.map)
+	@# Deploy a SECTIONS-ONLY map: Emulicious prefers <rom>.map over .sym as
+	@# its single symbols source, but falls back to the .sym (which carries
+	@# our curated comments) iff the map contributes zero symbols. Stripping
+	@# the "$$addr = name" lines keeps the named sections AND the rich .sym.
+	sed '/ = /d' $(MAP) > $(ROMSYM:.sym=.map)
 	@if [ -e .emu/lsdj_song.gb ]; then cp $(SYM) .emu/lsdj_song.sym; \
 	  echo "    deployed beside emulator ROM -> .emu/lsdj_song.sym"; fi
 	@printf '==> %s (+ map with named RAM/SRAM sections) -> %s\n' "$(SYM)" "$(ROMSYM)"

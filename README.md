@@ -190,9 +190,11 @@ make clean      # remove build/
 ```
 
 `make sym` writes a `BANK:ADDR Name` symbol file (`build/lsdj9_4_0.sym`,
-BGB/SameBoy/Emulicious format) and deploys it — plus the linker `.map`, which
-gives Emulicious *named* WRAM/SRAM section nodes instead of `wram_XXXX` —
-beside the ROM. Every
+BGB/SameBoy/Emulicious format) and deploys it beside the ROM, plus a
+*sections-only* copy of the linker `.map` (symbol lines stripped): Emulicious
+treats a map with symbols as its sole symbol source, but a symbol-less map
+attaches the named WRAM/SRAM sections and still falls back to the `.sym` —
+so you get real section names *and* the curated per-symbol comments. Every
 routine, data table, string, RAM variable and SRAM song structure is named —
 in Emulicious the symbol tree resolves completely, with no
 `_LABEL_`/`_DATA_` auto-labels left. This file is arguably the most useful
