@@ -344,7 +344,7 @@ DEF hBgDigitPalette  EQU $FF8D  ; CGB BG-map palette for digits
 DEF hCurrentBank     EQU $FF8E  ; shadow of the selected ROM bank ($2000)
 DEF hFxValue         EQU $FF8F  ; FX command value, staged before each FxCmd_* call (the handler's arg)
 DEF hGameboyType     EQU $FF90  ; 0=DMG 1=CGB; read by draw code for palettes
-DEF hOscilloscope    EQU $FFA0  ; oscilloscope sample buffer
+DEF hWavUploadBuf    EQU $FFA0  ; [16] staged waveform pop-streamed into WAV RAM $FF30 (TimerHandler/LoadWaveRam)
 
 ENDC
 
@@ -423,7 +423,7 @@ DEF wColPhrase       EQU $C453  ; phrase per song column, 4 bytes (AllocNextFree
 DEF wUsedTableMap    EQU $C47D  ; 32-slot used-tables map (BuildUsedTablesMap)
 DEF wTopBarStr       EQU $C555  ; top-bar/title string buffer (DrawTopBar draws it directly)
 DEF wClockFrame60    EQU $C6A8  ; 60-frame divider feeding the TOTAL WORK clock (UpdateWorkClock)
-DEF wHelpStrBuf      EQU $C7B0  ; 20-byte staged help/scroll string (UiDrawHelpStr)
+DEF wHelpStrBuf      EQU $C7B0  ; [20] help/status string buffer (UiDrawHelpStr unrolled copy; wHelpSrcPtr follows)
 DEF wHelpSrcPtr      EQU $C7C4  ; source pointer of the staged help string, 2 bytes
 DEF wPlayChanFirst   EQU $C8DD  ; first channel to start playing (SndStartChannels)
 DEF wPlayChanLast    EQU $C8DE  ; last channel to start playing
@@ -770,25 +770,6 @@ DEF wChanFinetuneNoi EQU $C69C  ; wChanFinetune[3]  (Noi)
 DEF wWorkTimeAccum_p2 EQU $C69F  ; wWorkTimeAccum+2
 DEF wMsgStrPtr_p2 EQU $C7AC  ; wMsgStrPtr+2
 DEF wMsgStrPtr_p3 EQU $C7AD  ; wMsgStrPtr+3
-DEF wHelpStrBuf_p1 EQU $C7B1  ; wHelpStrBuf+1
-DEF wHelpStrBuf_p2 EQU $C7B2  ; wHelpStrBuf+2
-DEF wHelpStrBuf_p3 EQU $C7B3  ; wHelpStrBuf+3
-DEF wHelpStrBuf_p4 EQU $C7B4  ; wHelpStrBuf+4
-DEF wHelpStrBuf_p5 EQU $C7B5  ; wHelpStrBuf+5
-DEF wHelpStrBuf_p6 EQU $C7B6  ; wHelpStrBuf+6
-DEF wHelpStrBuf_p7 EQU $C7B7  ; wHelpStrBuf+7
-DEF wHelpStrBuf_p8 EQU $C7B8  ; wHelpStrBuf+8
-DEF wHelpStrBuf_p9 EQU $C7B9  ; wHelpStrBuf+9
-DEF wHelpStrBuf_p10 EQU $C7BA  ; wHelpStrBuf+10
-DEF wHelpStrBuf_p11 EQU $C7BB  ; wHelpStrBuf+11
-DEF wHelpStrBuf_p12 EQU $C7BC  ; wHelpStrBuf+12
-DEF wHelpStrBuf_p13 EQU $C7BD  ; wHelpStrBuf+13
-DEF wHelpStrBuf_p14 EQU $C7BE  ; wHelpStrBuf+14
-DEF wHelpStrBuf_p15 EQU $C7BF  ; wHelpStrBuf+15
-DEF wHelpStrBuf_p16 EQU $C7C0  ; wHelpStrBuf+16
-DEF wHelpStrBuf_p17 EQU $C7C1  ; wHelpStrBuf+17
-DEF wHelpStrBuf_p18 EQU $C7C2  ; wHelpStrBuf+18
-DEF wHelpStrBuf_p19 EQU $C7C3  ; wHelpStrBuf+19
 DEF wHelpSrcPtr_p1 EQU $C7C5  ; wHelpSrcPtr+1
 DEF wFxCommand_p1 EQU $C8C5  ; wFxCommand+1
 DEF wChanCmdRatePu2   EQU $C8C7  ; wChanCmdRate[1] = Pu2 channel
@@ -905,24 +886,24 @@ DEF wSyncInGate_p3 EQU $CB7B  ; wSyncInGate+3
 DEF wSyncInGate_p4 EQU $CB7C  ; wSyncInGate+4
 DEF wKbdHeldNote_p1 EQU $CB7F  ; wKbdHeldNote+1
 DEF wKbdTranspose_p1 EQU $CB92  ; wKbdTranspose+1
-DEF wKbdInstrument_p1 EQU $CB94  ; wKbdInstrument+1
-DEF wKbdInstrument_p2 EQU $CB95  ; wKbdInstrument+2
-DEF wKbdInstrument_p3 EQU $CB96  ; wKbdInstrument+3
-DEF wKbdInstrument_p4 EQU $CB97  ; wKbdInstrument+4
-DEF wKbdInstrument_p6 EQU $CB99  ; wKbdInstrument+6
-DEF wKbdInstrument_p7 EQU $CB9A  ; wKbdInstrument+7
-DEF wKbdInstrument_p8 EQU $CB9B  ; wKbdInstrument+8
-DEF wKbdInstrument_p9 EQU $CB9C  ; wKbdInstrument+9
-DEF wKbdInstrument_p10 EQU $CB9D  ; wKbdInstrument+10
-DEF wKbdInstrument_p11 EQU $CB9E  ; wKbdInstrument+11
-DEF wKbdInstrument_p12 EQU $CB9F  ; wKbdInstrument+12
-DEF wKbdInstrument_p13 EQU $CBA0  ; wKbdInstrument+13
-DEF wKbdInstrument_p14 EQU $CBA1  ; wKbdInstrument+14
-DEF wKbdInstrument_p15 EQU $CBA2  ; wKbdInstrument+15
-DEF wKbdInstrument_p16 EQU $CBA3  ; wKbdInstrument+16
-DEF wKbdInstrument_p17 EQU $CBA4  ; wKbdInstrument+17
-DEF wKbdInstrument_p25 EQU $CBAC  ; wKbdInstrument+25
-DEF wKbdInstrument_p33 EQU $CBB4  ; wKbdInstrument+33
+DEF wKbdArmed        EQU $CB94  ; keyboard note-active / instrument-armed flag
+DEF wKbdInstrument2  EQU $CB95  ; keyboard voice-2 instrument number
+DEF wKbdChanState    EQU $CB96  ; [4] per-sound-channel keyboard-active state
+DEF wKbdChanStatePu2 EQU $CB97  ; keyboard-active state, PU2
+DEF wKbdChanStateNoi EQU $CB99  ; keyboard-active state, NOI
+DEF wKbdActionCh     EQU $CB9A  ; pending keyboard action target channel ($ff = none)
+DEF wKbdChanTrigger  EQU $CB9B  ; [4] per-channel pending kbd note trigger (instr | $80)
+DEF wKbdChanTriggerPu2 EQU $CB9C  ; pending kbd note trigger, PU2
+DEF wKbdChanTriggerWav EQU $CB9D  ; pending kbd note trigger, WAV
+DEF wKbdChanTriggerNoi EQU $CB9E  ; pending kbd note trigger, NOI
+DEF wKbdCmdModifier  EQU $CB9F  ; kbd/link command modifier latch (ProcessLinkQueue)
+DEF wKbdSustain      EQU $CBA0  ; kbd/link sustain/held latch ($80)
+DEF wKbdCmdAccum     EQU $CBA1  ; kbd/link command accumulator
+DEF wScopeDirty      EQU $CBA2  ; scope bitmap redraw-pending flag (VBlank uploads to VRAM $8000, then clears)
+DEF wScopeRefresh    EQU $CBA3  ; scope refresh trigger (1 = redraw after WAV refresh, 2 = reinit)
+DEF wScopeBitmap     EQU $CBA4  ; [8] scope tile bitmap row 0 (3 rows x 8 bytes; ChainUpdateScope draws)
+DEF wScopeBitmapRow1 EQU $CBAC  ; scope tile bitmap row 1
+DEF wScopeBitmapRow2 EQU $CBB4  ; scope tile bitmap row 2
 DEF wEnvSpeedPu1     EQU $CBC0  ; active envelope fade speed, PU1 (current node lo-nibble)
 DEF wEnvCounterPu1   EQU $CBC1  ; envelope fade countdown, PU1 (reloaded from wEnvSpeedPu1)
 DEF wEnvTargetPu1    EQU $CBC2  ; envelope fade target volume, PU1 (FadeEnvStep b arg)
@@ -977,27 +958,11 @@ DEF wSpriteCursor2X  EQU $DD35  ; selection cursor sprite 13 X
 DEF wSpriteCursor3X  EQU $DD39  ; selection cursor sprite 14 X
 DEF wSpriteCursor4X  EQU $DD3D  ; selection cursor sprite 15 X
 DEF hOamRefresh_p1 EQU $FF81  ; hOamRefresh+1
-DEF hOscilloscope_p1 EQU $FFA1  ; hOscilloscope+1
-DEF hOscilloscope_p2 EQU $FFA2  ; hOscilloscope+2
-DEF hOscilloscope_p3 EQU $FFA3  ; hOscilloscope+3
-DEF hOscilloscope_p4 EQU $FFA4  ; hOscilloscope+4
-DEF hOscilloscope_p5 EQU $FFA5  ; hOscilloscope+5
-DEF hOscilloscope_p6 EQU $FFA6  ; hOscilloscope+6
-DEF hOscilloscope_p7 EQU $FFA7  ; hOscilloscope+7
-DEF hOscilloscope_p8 EQU $FFA8  ; hOscilloscope+8
-DEF hOscilloscope_p9 EQU $FFA9  ; hOscilloscope+9
-DEF hOscilloscope_p10 EQU $FFAA  ; hOscilloscope+10
-DEF hOscilloscope_p11 EQU $FFAB  ; hOscilloscope+11
-DEF hOscilloscope_p12 EQU $FFAC  ; hOscilloscope+12
-DEF hOscilloscope_p13 EQU $FFAD  ; hOscilloscope+13
-DEF hOscilloscope_p14 EQU $FFAE  ; hOscilloscope+14
-DEF hOscilloscope_p15 EQU $FFAF  ; hOscilloscope+15
-DEF hOscilloscope_p16 EQU $FFB0  ; hOscilloscope+16
-DEF hOscilloscope_p17 EQU $FFB1  ; hOscilloscope+17
-DEF hOscilloscope_p18 EQU $FFB2  ; hOscilloscope+18
-DEF hOscilloscope_p19 EQU $FFB3  ; hOscilloscope+19
-DEF hOscilloscope_p20 EQU $FFB4  ; hOscilloscope+20
-DEF hOscilloscope_p41 EQU $FFC9  ; hOscilloscope+41
+DEF hWavFreqSaveLo   EQU $FFB0  ; saved WAV channel freq lo, restored to rAUD3LOW after wave upload
+DEF hWavFreqSaveHi   EQU $FFB1  ; saved WAV channel freq hi -> rAUD3HIGH
+DEF hSavedSPLo       EQU $FFB2  ; saved stack pointer lo (ld sp,hWavUploadBuf pop-stream trick)
+DEF hSavedSPHi       EQU $FFB3  ; saved stack pointer hi
+DEF hSavedAudTerm    EQU $FFB4  ; saved rAUDTERM (panning) across the AUD3 off/retrigger window
 
 ; --- orphan RAM addresses from the debugger export, named from their readers ---
 DEF wNoteOctave      EQU $C693  ; octave/fine index stored by NoteToPeriod; indexes wNoteFineTable-1 (WriteChannelFreq)

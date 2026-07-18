@@ -133,7 +133,7 @@
 1482 DebugTrap          ; assert/debug trap (ld b,b BGB marker + rst $38), fires once via $C7AF
 
 ; --- Sound engine: per-channel pitch slide / vibrato / frequency (TimerHandler tick) ---
-0762 LoadWaveRam        ; fast-copy the 16-byte staged waveform (hOscilloscope $FFA0) into WAV wave RAM ($FF30) with rAUD3 off (SP-pop trick), then re-enable + retrigger rAUD3 and restore freq
+0762 LoadWaveRam        ; fast-copy the 16-byte staged waveform (hWavUploadBuf $FFA0) into WAV wave RAM ($FF30) with rAUD3 off (SP-pop trick), then re-enable + retrigger rAUD3 and restore freq
 066D SndModWavFreq      ; WAV ch direct-frequency modulation: wChanFreq+4 += wChanPitchRate+4; if vibrato active apply wChanVibOffset+4 (steps WAV vib via SndApplyWavVibrato, then halved offset)
 1AFF SndApplyWavVibrato ; apply WAV-channel vibrato: if wChanVibSpeed+5, compute offset (SndCalcVibOffset) -> wChanVibOffset+4/5 and advance vib phase $C30C; shared by SndStepPitchVibWav + SndModWavFreq
 1815 TickWorkTimeClock   ; bump saturating counter $C9AA (<$80), advance wWorkTimeAccum ($C69D); wrap at $0E00 -> wWorkTimeTicks ($C577), clear $C68B
