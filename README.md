@@ -153,6 +153,7 @@ lsdj-decompiled/
 │   ├── carve_clean.py    # regenerate src/bankNN.asm (code/data split + symbols)
 │   ├── gen_main.py       # generate main.asm (INCLUDE carved banks, INCBIN kits)
 │   ├── gen_sym.py        # build the debugger symbol file (code + RAM + SRAM)
+│   ├── gen_ram_sections.py  # named WRAM/SRAM sections for the linker map
 │   ├── gen_listing.py    # emit build/listing.asm — whole ROM as one annotated file
 │   ├── audit_export.py   # diff a pasted debugger export against our symbols
 │   ├── name_locals_full.py  # semantic naming of function-local labels
@@ -189,7 +190,9 @@ make clean      # remove build/
 ```
 
 `make sym` writes a `BANK:ADDR Name` symbol file (`build/lsdj9_4_0.sym`,
-BGB/SameBoy/Emulicious format) and deploys a copy beside the ROM. Every
+BGB/SameBoy/Emulicious format) and deploys it — plus the linker `.map`, which
+gives Emulicious *named* WRAM/SRAM section nodes instead of `wram_XXXX` —
+beside the ROM. Every
 routine, data table, string, RAM variable and SRAM song structure is named —
 in Emulicious the symbol tree resolves completely, with no
 `_LABEL_`/`_DATA_` auto-labels left. This file is arguably the most useful

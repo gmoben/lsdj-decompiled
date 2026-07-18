@@ -56,7 +56,10 @@ src/main.asm: $(CARVED_ASM) tools/carve_clean.py tools/gen_main.py | $(BASEROM)
 	tools/carve_clean.py
 
 # --- Assemble + link + fix -------------------------------------------------
-$(OBJ): src/main.asm include/hardware.inc $(BUILD)/rgbdscheck.o | $(BASEROM)
+src/ramsections.asm: constants/ram.inc tools/gen_ram_sections.py tools/gen_sym.py
+	tools/gen_ram_sections.py
+
+$(OBJ): src/main.asm src/ramsections.asm include/hardware.inc $(BUILD)/rgbdscheck.o | $(BASEROM)
 	@mkdir -p $(@D)
 	$(RGBASM) $(RGBASMFLAGS) -o $@ $<
 
@@ -82,9 +85,10 @@ ROMSYM := $(BASEROM:.gb=.sym)
 sym: $(TARGET)
 	tools/gen_sym.py $(SYM) constants/ram.inc -o $(SYM)
 	cp $(SYM) $(ROMSYM)
+	cp $(MAP) $(ROMSYM:.sym=.map)
 	@if [ -e .emu/lsdj_song.gb ]; then cp $(SYM) .emu/lsdj_song.sym; \
 	  echo "    deployed beside emulator ROM -> .emu/lsdj_song.sym"; fi
-	@printf '==> %s (routines + RAM vars) -> %s\n' "$(SYM)" "$(ROMSYM)"
+	@printf '==> %s (+ map with named RAM/SRAM sections) -> %s\n' "$(SYM)" "$(ROMSYM)"
 	@echo "    Auto-loaded by Emulicious/BGB/SameBoy from beside the ROM."
 
 # --- Verification ----------------------------------------------------------

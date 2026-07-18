@@ -111,6 +111,8 @@ def main() -> None:
         "",
         'INCLUDE "include/hardware.inc"',
         'INCLUDE "constants/ram.inc"',
+        '; named WRAM/HRAM/SRAM sections for the linker map (no labels/bytes)',
+        'INCLUDE "src/ramsections.asm"',
         "",
     ]
     rom_path = Path(ROM_NAME) if Path(ROM_NAME).is_absolute() else ROOT / ROM_NAME
