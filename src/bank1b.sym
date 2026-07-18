@@ -54,7 +54,7 @@
 6988 ApplySettingsAndRedraw     ; delay, LoadProjectSettings(0), clear, redraw frame -- 63 call sites
 6A8C ProjScrollTextStep         ; marquee step: manage $c9aa/$c9ab state, shift 7-byte buffer $c9ac (via $3843)
 70B8 GetInstrEnvBytes           ; read the instrument's envelope input bytes (x2 ReadCurInstrByte)
-7200 ProjFillDaBuffer           ; append byte(s) into $DA00+ buffer up to index arg ($cbd8 cursor, <$40)
+7200 PlotEnvCurve               ; plot env-graph column y at x into wDecompBuf, filling gap from wEnvPlotX (<$40)
 726E ComputeEnvelope            ; precompute envelope data for the current instrument (UpdateInstrEnvelope core)
 74E4 UpdateEnvSprites           ; write the envelope OAM markers (SetOAMByte x2, 8-slot bound)
 ; --- functions called from bank 0 (this bank paged in) ---
@@ -159,7 +159,7 @@
 6B76 .done                ; common exit of ProjScrollTextStep
 6B99 .loop                ; loop head in LoadSongData
 6BAA .loop2               ; loop head in LoadSongData
-720E .loop                ; loop head in ProjFillDaBuffer
+720E .loop                ; loop head in PlotEnvCurve
 72BF .loop                ; loop head in ComputeEnvelope
 7318 .loop2               ; loop head in ComputeEnvelope
 7333 .loop3               ; loop head in ComputeEnvelope

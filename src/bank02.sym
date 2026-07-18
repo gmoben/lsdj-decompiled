@@ -66,7 +66,7 @@
 7EAC KitPitchTable              ; per-pitch kit sample step deltas (SndSetKitParams)
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
-4000 SndFxParsePitchVal         ; parse an FX value (mask $80/$0f) -> SndSetVibratoParams
+4000 SndFxParsePitchVal         ; parse an FX value (mask $80/$0f) -> SndInitEnvelope
 4033 SndApplyVibratoStep        ; apply hFxValue high nibble to pitch acc $c4d6; clamp via SndClampAcc6Hi
 40E6 SndClampAcc6Hi             ; if pitch acc $c4d6:d7 >= limit $c4de:df, clamp to it & ret 0; else ret 1
 410C SndClampAcc4Hi             ; if pitch acc $c4d4:d5 >= limit $c4dc:dd, clamp to it & ret 0; else ret 1
@@ -123,7 +123,7 @@
 561B SndReadGrooveOrSpeed       ; (cp $20) groove vs speed -> SndGrooveStep / $cbbf
 5657 SndStepTablePtrs           ; advance the channel's table step counter; on 16-step wrap rebuild SRAM read-pointers ($c1xx) for the table transpose ($B480) and command ($BA80) columns of wChanTable[ch]
 56E1 SndReadGrooveVal           ; (cp $20/$08) -> SndGrooveStep, $cbbf
-572B SndSetVibratoParams        ; set vibrato state $cbc6/$c2d9/$cbc7
+572B SndInitEnvelope            ; init 3-node envelope for hSoundCh channel (WAV: none); stage=0, node1 -> vol+speed
 5778 SndSetKitParams            ; set kit state $c694/$c8f1/$c695
 583F SndSplitPhraseNibbles      ; wChanPhrase[ch] -> hi/lo nibbles (compute phrase index)
 58C7 SndFillFF                  ; write $ff to a run of consecutive bytes [hl]
@@ -298,7 +298,7 @@
 5532 .sndAdvanceStatePtrsd
 5545 .sndAdvanceStatePtrse
 5558 .sndAdvanceStatePtrsf
-5715 .clearLfoStateWavNoi
+5715 .initEnvNoi
 5CB2 .storeChanFinetuneWavHi
 5CC0 .storeChanFinetuneWavHib
 5CDA .storeChanFinetuneWavHic
@@ -497,7 +497,7 @@
 564B .readSoundCh
 56A8 .testBit4
 56F8 .branch
-56FF .storeLfoStatePU1
+56FF .initEnvPu1
 5798 .loadFxWaveParam
 57AB .storeWavMode
 57C7 .loadFxWaveParam_2

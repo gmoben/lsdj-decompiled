@@ -28,7 +28,9 @@ def ram_section():
                   "WRAMX" if addr >= 0xD000 else
                   "WRAM0" if addr >= 0xC000 else "SRAM")
         if prev is None or addr != prev + 1:
-            out.append(f'\nSECTION "ram_{addr:04x}", {region}[${addr:04X}]')
+            # Name the section after its first symbol so grouping is
+            # content-reflective (Emulicious hardcodes wram_<addr> here).
+            out.append(f'\nSECTION "{name}", {region}[${addr:04X}]')
         tail = f"  ; {cmt}" if cmt else ""
         out.append(f"{name}:: db{tail}")
         prev = addr

@@ -295,9 +295,9 @@ DEF wChanEnv         EQU $C2D8  ; [4] envelope value -> rAUDxENV (ch2/WAV = wave
 ; (The +N*7 slot for noise would land on $CBD1, but that byte is wOamDirty below -- the
 ; noise channel has no software-envelope struct here.)
 DEF wOamDirty        EQU $CBD1  ; OAM shadow dirty flag: timer ($185F) calls hOamRefresh (OAM DMA) when nonzero; set by OAM-buffer writers (SetOAMByte, screen redraws)
-DEF wChanEnvStage1   EQU $CBBC  ; env stage 1: volume (hi nibble) / fade (lo nibble); from instrument byte 1
-DEF wChanEnvStage2   EQU $CBBD  ; env stage 2 (from instrument byte 9)
-DEF wChanEnvStage3   EQU $CBBE  ; env stage 3 (from instrument byte $A)
+DEF wEnvNode1Pu1     EQU $CBBC  ; envelope node 1, PU1: vol hi-nibble / fade-speed lo-nibble (SndInitEnvelope)
+DEF wEnvNode2Pu1     EQU $CBBD  ; envelope node 2, PU1 (stage 1 target/speed)
+DEF wEnvNode3Pu1     EQU $CBBE  ; envelope node 3, PU1 (stage 2 target/speed)
 DEF wChanLenDuty     EQU $C2DC  ; [4] length/duty value -> rAUDxLEN
 DEF wChanFreqHi      EQU $C2E0  ; [4] freq-high + trigger/length-enable bits -> rAUDxHIGH
 DEF wPU1Sweep        EQU $C2E4  ; PU1 sweep value -> rAUD1SWEEP
@@ -327,7 +327,7 @@ DEF wSyncState       EQU $CBDE  ; serial state machine (0 idle/1 handshake/2 dat
 DEF wTileLoadSlot    EQU $CBE1  ; current tile-load request: destination VRAM tile slot (CopyTileData writes $9000 + slot*16)
 DEF wTileLoadSrc     EQU $CBE2  ; [16-bit] current tile-load request: source pointer to the 16-byte tile graphics
 DEF wTileSlotAlloc   EQU $CBE4  ; running VRAM tile-slot allocator: stored as each request's id, advanced by its tile count
-DEF wTileReqTable    EQU $CBE6  ; tile-load request queue base: up to 6 entries x 4 bytes (source ptr + params), scanned by LoadTilesToVram
+DEF wTileReqTable    EQU $CBE6  ; entry-0 source ptr of the tile-load request table (scan anchor: LoadTilesToVram walks 6 entries, stride 3)
 
 ; --- Boot identity ----------------------------------------------------------
 DEF wBootHwId        EQU $CBD9  ; boot A register (DMG/CGB id), saved at init
@@ -439,9 +439,9 @@ DEF wOverwriteEnd    EQU $CB62  ; last wave frame for synth OVERWRITE
 DEF wKbdQueueHead    EQU $CB7D  ; PS/2 keyboard byte-queue head (KbdReadByte)
 DEF wLinkQueueHead   EQU $CB80  ; link-port ring buffer head (ProcessLinkQueue)
 DEF wLinkQueueBuf    EQU $CB81  ; link-port ring buffer (ProcessLinkQueue)
-DEF wLfoStatePU1     EQU $CBBF  ; LFO state block, PU1 (SndSetupLfoPU1)
-DEF wLfoStatePU2     EQU $CBC6  ; LFO state block, PU2 (SndSetupLfoPU2)
-DEF wLfoStateWavNoi  EQU $CBCD  ; LFO state block, WAV/NOI (SndSetupLfoWavNoi)
+DEF wEnvStagePu1     EQU $CBBF  ; current envelope stage 0-2, PU1 (UpdateEnvPU1 advances)
+DEF wEnvStagePu2     EQU $CBC6  ; current envelope stage 0-2, PU2
+DEF wEnvStageNoi     EQU $CBCD  ; current envelope stage 0-2, NOI (WAV has no envelope)
 DEF wSavedSelBottom  EQU $CBD7  ; saved wSelBottom (Save/RestoreSelectionState)
 DEF wDecompBuf       EQU $DA00  ; 256-byte block staging buffer (FileWriteCompressedSram)
 DEF wSpriteDefs      EQU $DD00  ; sprite definition/staging entries, 4-byte stride (ClearOamBuffer init)
@@ -938,30 +938,30 @@ DEF wKbdInstrument_p16 EQU $CBA3  ; wKbdInstrument+16
 DEF wKbdInstrument_p17 EQU $CBA4  ; wKbdInstrument+17
 DEF wKbdInstrument_p25 EQU $CBAC  ; wKbdInstrument+25
 DEF wKbdInstrument_p33 EQU $CBB4  ; wKbdInstrument+33
-DEF wLfoStatePU1_p1 EQU $CBC0  ; wLfoStatePU1+1
-DEF wLfoStatePU1_p2 EQU $CBC1  ; wLfoStatePU1+2
-DEF wLfoStatePU1_p3 EQU $CBC2  ; wLfoStatePU1+3
-DEF wLfoStatePU1_p4 EQU $CBC3  ; wLfoStatePU1+4
-DEF wLfoStatePU1_p5 EQU $CBC4  ; wLfoStatePU1+5
-DEF wLfoStatePU1_p6 EQU $CBC5  ; wLfoStatePU1+6
-DEF wLfoStatePU2_p1 EQU $CBC7  ; wLfoStatePU2+1
-DEF wLfoStatePU2_p2 EQU $CBC8  ; wLfoStatePU2+2
-DEF wLfoStatePU2_p3 EQU $CBC9  ; wLfoStatePU2+3
-DEF wLfoStatePU2_p4 EQU $CBCA  ; wLfoStatePU2+4
-DEF wLfoStatePU2_p5 EQU $CBCB  ; wLfoStatePU2+5
-DEF wLfoStatePU2_p6 EQU $CBCC  ; wLfoStatePU2+6
-DEF wLfoStateWavNoi_p1 EQU $CBCE  ; wLfoStateWavNoi+1
-DEF wLfoStateWavNoi_p2 EQU $CBCF  ; wLfoStateWavNoi+2
-DEF wLfoStateWavNoi_p3 EQU $CBD0  ; wLfoStateWavNoi+3
-DEF wSavedSelBottom_p1 EQU $CBD8  ; wSavedSelBottom+1
+DEF wEnvSpeedPu1     EQU $CBC0  ; active envelope fade speed, PU1 (current node lo-nibble)
+DEF wEnvCounterPu1   EQU $CBC1  ; envelope fade countdown, PU1 (reloaded from wEnvSpeedPu1)
+DEF wEnvTargetPu1    EQU $CBC2  ; envelope fade target volume, PU1 (FadeEnvStep b arg)
+DEF wEnvNode1Pu2     EQU $CBC3  ; envelope node 1, PU2
+DEF wEnvNode2Pu2     EQU $CBC4  ; envelope node 2, PU2
+DEF wEnvNode3Pu2     EQU $CBC5  ; envelope node 3, PU2
+DEF wEnvSpeedPu2     EQU $CBC7  ; active envelope fade speed, PU2
+DEF wEnvCounterPu2   EQU $CBC8  ; envelope fade countdown, PU2
+DEF wEnvTargetPu2    EQU $CBC9  ; envelope fade target volume, PU2
+DEF wEnvNode1Noi     EQU $CBCA  ; envelope node 1, NOI
+DEF wEnvNode2Noi     EQU $CBCB  ; envelope node 2, NOI
+DEF wEnvNode3Noi     EQU $CBCC  ; envelope node 3, NOI
+DEF wEnvSpeedNoi     EQU $CBCE  ; active envelope fade speed, NOI
+DEF wEnvCounterNoi   EQU $CBCF  ; envelope fade countdown, NOI
+DEF wEnvTargetNoi    EQU $CBD0  ; envelope fade target volume, NOI
+DEF wEnvPlotX        EQU $CBD8  ; last plotted env-graph column 0-$3F (PlotEnvCurve -> wDecompBuf)
 DEF wTileLoadSrc_p1 EQU $CBE3  ; wTileLoadSrc+1
-DEF wTileSlotAlloc_p1 EQU $CBE5  ; wTileSlotAlloc+1
-DEF wTileReqTable_p17 EQU $CBF7  ; wTileReqTable+17
-DEF wTileReqTable_p18 EQU $CBF8  ; wTileReqTable+18
-DEF wTileReqTable_p19 EQU $CBF9  ; wTileReqTable+19
-DEF wTileReqTable_p20 EQU $CBFA  ; wTileReqTable+20
-DEF wTileReqTable_p21 EQU $CBFB  ; wTileReqTable+21
-DEF wTileReqTable_p22 EQU $CBFC  ; wTileReqTable+22
+DEF wTileReqSlot0    EQU $CBE5  ; tile-load request table: 6 entries x [slot, ptrLo, ptrHi] at $CBE5-$CBF6 (this = entry-0 slot)
+DEF wUnusedCBF7      EQU $CBF7  ; zeroed by ResetTileLoader, never read
+DEF wUnusedCBF8      EQU $CBF8  ; zeroed by ResetTileLoader, never read
+DEF wRngSeedHi       EQU $CBF9  ; RNG seed hi byte (Random16: seed = seed*17 + $5C93)
+DEF wRngSeedLo       EQU $CBFA  ; RNG seed lo byte (SeedRandom16 sets)
+DEF wUnusedCBFB      EQU $CBFB  ; set to $03 at display reinit, never read
+DEF wUnusedCBFC      EQU $CBFC  ; set to $00 at display reinit, never read
 DEF wDecompBuf_p64 EQU $DA40  ; wDecompBuf+64
 DEF wSpriteDefs_p1 EQU $DD01  ; wSpriteDefs+1
 DEF wSpriteDefs_p4 EQU $DD04  ; wSpriteDefs+4

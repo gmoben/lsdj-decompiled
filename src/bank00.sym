@@ -16,8 +16,8 @@
 0908 GetScreenScratchCell  ; return &($C57A screen-scratch buffer)[42*row]; bounds row<6, col<42
 07DA GetScreenScratchCell2 ; duplicate accessor of the $C57A scratch buffer
 0D8B ComparePtrBytes     ; read the bytes at two 16-bit pointer args and compare (sbc)
-33F9 Index16FromCbf9     ; return ($cbf9:$cbfa) << 4 (16-byte-record address)
-3826 SetCbf9Index        ; store a 16-bit value from a pointer arg into $cbf9:$cbfa
+33F9 Random16            ; 16-bit LCG: seed = seed*17 + $5C93 (wRngSeedHi/Lo); returns de
+3826 SeedRandom16        ; seed the Random16 LCG from a 16-bit stack arg
 0B54 LoadBank1EBlock     ; page in bank $1E and process 32 items from a pointer arg
 338B RequestTileSlot     ; wrap SetTileLoadReq for a tile-slot arg
 36DD StringLength              ; return the length of the NUL-terminated string at a pointer arg (16-bit)
@@ -547,7 +547,7 @@
 2C07 .checkIsCGBc
 2C1D .checkTempo
 2DA7 .checkSongCol
-30A1 .checkLfoStateWavNoi
+30A1 .advanceEnvNoi
 33DF .resetTileLoader
 34DF .storeSyncState
 37A3 .divModU16
@@ -829,19 +829,19 @@
 2F63 .cont
 2F80 .loadBgPalette
 2FAA .readGameboyType
-301F .checkLfoStatePU1
-302E .loadChanEnvStage2
-3042 .loadChanEnvStage3
+301F .advanceEnvPu1
+302E .stage2
+3042 .stage3
 304F .loadLfoStatePU1
 3058 .cont
 3061 .cont_2
-3066 .checkLfoStatePU2
-3075 .loadLfoStatePU1
-3089 .loadLfoStatePU1_2
-3096 .loadLfoStatePU2
-30B0 .loadLfoStatePU2
-30C4 .loadLfoStatePU2_2
-30D1 .loadLfoStateWav
+3066 .advanceEnvPu2
+3075 .stage2
+3089 .stage3
+3096 .checkSpeed
+30B0 .stage2
+30C4 .stage3
+30D1 .checkSpeed
 316B .setOamDirty
 31F1 .cont
 3286 .step
