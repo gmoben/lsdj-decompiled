@@ -12,11 +12,12 @@ GBDK 2.95).
 Current state:
 
 - byte-for-byte reproduction, verified on every commit
-- full symbol coverage: ~8,000 named routines, tables, strings and RAM
-  variables across all 13 program banks and the 21 sample kits — a debugger
-  loading the generated `.sym` resolves everything, no auto-labels left
-- ~290 named RAM variables in `constants/ram.inc`, most verified live in an
-  emulator
+- full symbol coverage: ~8,800 named routines, tables, strings and variables
+  across all 13 program banks and the 21 sample kits — a debugger loading the
+  generated `.sym` resolves everything, no auto-labels left
+- every WRAM/HRAM byte the ROM touches is named (~860 addresses in
+  `constants/ram.inc`, most verified live in an emulator), plus the banked
+  SRAM working-song structures (`SramPhraseNotes`, `SramInstruments`, …)
 - the C decompilation track is gated on reproducing the original GBDK 2.95 /
   SDCC toolchain (see `docs/toolchain.md`)
 
@@ -151,7 +152,11 @@ lsdj-decompiled/
 │   ├── coverage.py       # whole-ROM reachability tracing
 │   ├── carve_clean.py    # regenerate src/bankNN.asm (code/data split + symbols)
 │   ├── gen_main.py       # generate main.asm (INCLUDE carved banks, INCBIN kits)
-│   ├── gen_sym.py        # build the debugger symbol file (routines + RAM vars)
+│   ├── gen_sym.py        # build the debugger symbol file (code + RAM + SRAM)
+│   ├── gen_listing.py    # emit build/listing.asm — whole ROM as one annotated file
+│   ├── audit_export.py   # diff a pasted debugger export against our symbols
+│   ├── name_locals_full.py  # semantic naming of function-local labels
+│   ├── show_func.py      # dump one function's disassembly by bank:addr
 │   ├── callgraph.py, farcall_targets.py, find_orphans.py, label_gaps.py,
 │   │   data_refs.py      # audits that drove symbol coverage to 100%
 │   ├── emu/              # SameBoy-based live-verification harness
@@ -178,15 +183,17 @@ make            # build build/lsdj9_4_0.gb
 make compare    # build, then assert it equals the original ROM
 make verify-rom # check your supplied ROM is the right revision
 make sym        # emit the BANK:ADDR symbol file for emulator debugging
+make listing    # emit build/listing.asm — the whole ROM as one annotated file
+make audit      # diff a pasted debugger export (emulicious.out) vs our symbols
 make clean      # remove build/
 ```
 
 `make sym` writes a `BANK:ADDR Name` symbol file (`build/lsdj9_4_0.sym`,
 BGB/SameBoy/Emulicious format) and deploys a copy beside the ROM. Every
-routine, data table, string and RAM variable is named — in Emulicious the
-symbol tree resolves completely, with no `_LABEL_`/`_DATA_` auto-labels left.
-This file is arguably the most useful artifact of the whole project even if
-you never read the assembly.
+routine, data table, string, RAM variable and SRAM song structure is named —
+in Emulicious the symbol tree resolves completely, with no
+`_LABEL_`/`_DATA_` auto-labels left. This file is arguably the most useful
+artifact of the whole project even if you never read the assembly.
 
 See [`AGENTS.md`](AGENTS.md) for the full contributor/agent workflow, coding
 conventions, and the carving methodology.
