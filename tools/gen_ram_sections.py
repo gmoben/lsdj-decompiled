@@ -49,15 +49,26 @@ def contiguous_runs(ram_inc: Path):
         defs.append((addr, m.group(1)))
     defs.sort()
 
+    p_re = re.compile(r"^(\w+?)_p\d+$")
     runs: list[tuple[int, int, str, str, int | None]] = []
+    bases_in_run: set[str] = set()
     for addr, name in defs:
         region, bank = region_of(addr)
         assert region is not None
-        if runs and addr == runs[-1][1] + 1 and region == runs[-1][3]:
+        m = p_re.match(name)
+        base = m.group(1) if m else name
+        # Continue the current run if adjacent, OR if this is a _pN member of
+        # a family whose base is already in the run (arrays are only DEF'd at
+        # referenced elements; the interior bytes still belong to the array).
+        if runs and region == runs[-1][3] and (
+                addr == runs[-1][1] + 1
+                or (name != base and base in bases_in_run)):
             start, _, first, reg, bk = runs[-1]
             runs[-1] = (start, addr, first, reg, bk)
         else:
             runs.append((addr, addr, name, region, bank))
+            bases_in_run = set()
+        bases_in_run.add(base)
     return runs
 
 

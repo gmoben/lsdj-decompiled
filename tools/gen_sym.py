@@ -39,7 +39,8 @@ SYM_RE = re.compile(r"^([0-9A-Fa-f]{2,3}):([0-9A-Fa-f]{4})\b")
 # Marker beginning our appended RAM section. Everything from this line on is
 # dropped when re-reading, so the tool is idempotent even when OUT == input
 # (i.e. enriching rgblink's build/lsdj9_4_0.sym in place).
-RAM_SECTION_MARKER = "; --- RAM/HRAM variables"
+RAM_SECTION_MARKER = "; no$gmb --- RAM/HRAM variables"
+OLD_MARKERS = ("; --- RAM/HRAM variables",)
 
 
 def ram_bank(addr: int) -> int:
@@ -84,9 +85,9 @@ def sram_syms() -> list[tuple[int, int, str]]:
     return out
 
 
-def parse_ram_vars(ram_inc: Path) -> list[tuple[int, int, str]]:
-    """Return (bank, addr, name) for every literal-address DEF in ram.inc."""
-    out: list[tuple[int, int, str]] = []
+def parse_ram_vars(ram_inc: Path) -> list[tuple[int, int, str, str]]:
+    """(bank, addr, name, comment) for every literal-address DEF in ram.inc."""
+    out: list[tuple[int, int, str, str]] = []
     for line in ram_inc.read_text().splitlines():
         m = DEF_RE.match(line.strip())
         if not m:
@@ -95,7 +96,23 @@ def parse_ram_vars(ram_inc: Path) -> list[tuple[int, int, str]]:
         addr = int(hex4, 16)
         if addr < 0x8000:
             continue  # not a RAM/HRAM address; skip defensively
-        out.append((ram_bank(addr), addr, name))
+        cmt = line.split(";", 1)[1].strip() if ";" in line else ""
+        out.append((ram_bank(addr), addr, name, cmt))
+    return out
+
+
+def parse_bank_comments() -> dict[tuple[int, int], str]:
+    """(bank, addr) -> curated comment from src/bankNN.sym (globals + locals)."""
+    import glob
+    out: dict[tuple[int, int], str] = {}
+    line_re = re.compile(r"^([0-9A-Fa-f]{4})\s+(\S+)\s*;\s*(.+)$")
+    for sp in sorted(glob.glob("src/bank*.sym")):
+        bank = int(Path(sp).stem[4:], 16)
+        for raw in Path(sp).read_text().splitlines():
+            m = line_re.match(raw.strip())
+            if not m or "@deploy-only" in raw:
+                continue
+            out[(bank, int(m.group(1), 16))] = m.group(3).strip()
     return out
 
 
@@ -117,7 +134,7 @@ def main() -> int:
     # Drop any RAM section from a previous run so enriching in place is idempotent.
     link_lines: list[str] = []
     for line in build_sym.read_text().splitlines():
-        if line.startswith(RAM_SECTION_MARKER):
+        if line.startswith(RAM_SECTION_MARKER) or line.startswith(OLD_MARKERS):
             break
         link_lines.append(line)
     # Addresses already present in the link .sym, to avoid duplicate entries.
@@ -131,14 +148,24 @@ def main() -> int:
 
     ram_vars = parse_ram_vars(ram_inc)
     ram_lines: list[str] = []
-    for bank, addr, name in sorted(ram_vars):
+    for bank, addr, name, cmt in sorted(ram_vars):
         key = (f"{bank:02x}", f"{addr:04x}")
         if key in present:
             continue
-        ram_lines.append(f"{bank:02X}:{addr:04X} {name}")
+        tail = f" ; {cmt}" if cmt else ""
+        ram_lines.append(f"{bank:02X}:{addr:04X} {name}{tail}")
     # SRAM working-song structures (bank:addr in $A000-$BFFF)
     for bank, addr, name in sram_syms():
         ram_lines.append(f"{bank:02X}:{addr:04X} {name}")
+    # Attach curated per-routine comments (Emulicious shows them inline).
+    bank_comments = parse_bank_comments()
+    for i, line in enumerate(link_lines):
+        m = SYM_RE.match(line)
+        if not m or ";" in line:
+            continue
+        cmt = bank_comments.get((int(m.group(1), 16), int(m.group(2), 16)))
+        if cmt:
+            link_lines[i] = f"{line} ; {cmt}"
 
     out_lines: list[str] = []
     out_lines.extend(link_lines)
