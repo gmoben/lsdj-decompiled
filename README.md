@@ -5,9 +5,7 @@ in the style of the [pret](https://github.com/pret) projects (`pokered`,
 `pokecrystal`, …).
 
 The [RGBDS](https://rgbds.gbdev.io/) source tree **reassembles into a
-byte-for-byte identical copy of the original ROM**, with the long-term goal of
-a matching C decompilation (LSDj is written in C and built with a modified
-GBDK 2.95).
+byte-for-byte identical copy of the original ROM**.
 
 Current state:
 
@@ -57,7 +55,7 @@ See [`docs/rom_map.md`](docs/rom_map.md) for the decoded header and memory map.
 - `make`
 - `python3` (bootstrap/codegen helpers in `tools/`)
 
-On Arch/Manjaro: `sudo pacman -S rgbds make python`.
+On Arch: `sudo pacman -S rgbds make python`.
 
 ## Quick start
 
