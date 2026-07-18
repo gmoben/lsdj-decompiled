@@ -557,7 +557,7 @@ DEF wChanTableLatch  EQU $C220  ; table number latched at note-on, PU1
 DEF wChanTableLatchPu2 EQU $C221  ; table number latched at note-on, PU2
 DEF wChanTableLatchWav EQU $C222  ; table number latched at note-on, WAV
 DEF wChanTableLatchNoi EQU $C223  ; table number latched at note-on, NOI
-DEF wChanNoteStep_p8 EQU $C224  ; wChanNoteStep+8
+DEF wChanEnvVolOffset EQU $C224  ; signed volume delta (<<4) applied to the env-node triplet, PU1 (SndFxParsePitchVal -> SndInitEnvelope)
 DEF wChanPitchTarget_p2 EQU $C24A  ; wChanPitchTarget+2
 DEF wChanPitchTarget_p4 EQU $C24C  ; wChanPitchTarget+4
 DEF wChanPitchTarget_p8 EQU $C250  ; wChanPitchTarget+8
@@ -1053,3 +1053,6 @@ DEF wChanChordOffsetNoi EQU $C346  ; current chord transpose, NOI
 DEF wChanNoteOffsetNoi EQU $C177  ; semitone note offset, NOI
 DEF wColInstrumentPu2 EQU $C469  ; instrument cache, song column PU2
 DEF wColInstrumentWav EQU $C46A  ; instrument cache, song column WAV
+DEF wChanEnvVolOffsetPu2 EQU $C225  ; env volume delta, PU2
+DEF wChanEnvVolOffsetWav EQU $C226  ; env volume delta, WAV
+DEF wChanEnvVolOffsetNoi EQU $C227  ; env volume delta, NOI
