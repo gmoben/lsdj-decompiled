@@ -161,7 +161,7 @@
 7174 .loop3               ; loop head in ChainHandleInput
 7190 .loop4               ; loop head in ChainHandleInput
 71E9 .done                ; common exit of ChainHandleInput
-72C0 .done                ; common exit of DrawOscSampleNames
+72C0 .done                ; common exit of DrawKitSampleNames
 72D7 .loop                ; loop head in DrawShadowDigit
 7453 .done                ; common exit of ChainDrawSyncStatus
 749C .done                ; common exit of ChainDrawLeadStatus
