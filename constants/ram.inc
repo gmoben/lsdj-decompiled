@@ -696,10 +696,10 @@ DEF wColPhraseNoi    EQU $C456  ; phrase under cursor, song column NOI
 DEF wColInstrumentNoi EQU $C46B  ; instrument cache, song column NOI
 DEF wColInstrument_p4 EQU $C46C  ; wColInstrument+4
 DEF wUsedTableMap_p16 EQU $C48D  ; wUsedTableMap+16
-DEF wRetrigger_p1 EQU $C4CE  ; wRetrigger+1
-DEF wRetrigger_p2 EQU $C4CF  ; wRetrigger+2
-DEF wRetrigger_p3 EQU $C4D0  ; wRetrigger+3
-DEF wRetrigger_p4 EQU $C4D1  ; wRetrigger+4
+DEF wSpeechWord      EQU $C4CE  ; word being spoken (-> wChanNoteWav at speech note-on)
+DEF wSpeechFrameTicks EQU $C4CF  ; frames left in current allophone frame; 0 -> stream next (SndLoadWaveFrame)
+DEF wSpeechPtr       EQU $C4D0  ; allophone stream read ptr lo (SramWords $B890 base)
+DEF wSpeechPtrHi     EQU $C4D1  ; allophone stream read ptr hi
 DEF wPitchModA_p1 EQU $C4D5  ; wPitchModA+1
 DEF wPitchModA_p2 EQU $C4D6  ; wPitchModA+2
 DEF wPitchModA_p3 EQU $C4D7  ; wPitchModA+3
@@ -755,10 +755,10 @@ DEF wVramCursor_p1 EQU $C574  ; wVramCursor+1
 DEF wTimerReload_p1 EQU $C579  ; wTimerReload+1
 DEF wTimerReload_p2 EQU $C57A  ; wTimerReload+2
 DEF wTimerReload_p3 EQU $C57B  ; wTimerReload+3
-DEF wIdleFrames_p2 EQU $C68E  ; wIdleFrames+2
-DEF wIdleFrames_p3 EQU $C68F  ; wIdleFrames+3
-DEF wIdleFrames_p4 EQU $C690  ; wIdleFrames+4
-DEF wIdleFrames_p5 EQU $C691  ; wIdleFrames+5
+DEF wFxSlideTargetNote EQU $C68E  ; slide (L cmd) destination note, clamped to $6C
+DEF wFxSlideNote     EQU $C68F  ; slide base-note scratch (current note or wNoteOctave source)
+DEF wFxSlidePitch    EQU $C690  ; slide start pitch lo (-> wChanPitchCur)
+DEF wFxSlidePitchHi  EQU $C691  ; slide start pitch hi
 DEF wIdleFrames_p6 EQU $C692  ; wIdleFrames+6
 DEF wIdleFrames_p8 EQU $C694  ; wIdleFrames+8
 DEF wIdleFrames_p9 EQU $C695  ; wIdleFrames+9
@@ -1056,3 +1056,4 @@ DEF wColInstrumentWav EQU $C46A  ; instrument cache, song column WAV
 DEF wChanEnvVolOffsetPu2 EQU $C225  ; env volume delta, PU2
 DEF wChanEnvVolOffsetWav EQU $C226  ; env volume delta, WAV
 DEF wChanEnvVolOffsetNoi EQU $C227  ; env volume delta, NOI
+DEF wFileNameTmp     EQU $C6A0  ; 8-char filename scratch (memcpy'd from the file table)
