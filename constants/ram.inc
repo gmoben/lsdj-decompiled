@@ -334,7 +334,7 @@ DEF wBootHwId        EQU $CBD9  ; boot A register (DMG/CGB id), saved at init
 DEF wBootAgbId       EQU $CBDA  ; boot B register (AGB id)
 
 ; --- Buffers ----------------------------------------------------------------
-DEF wOamBuffer       EQU $DD00  ; OAM shadow buffer (DMA source)
+DEF wOamBuffer       EQU $DD00  ; [160] OAM shadow: 40 sprites x 4 bytes, DMA-copied by OAMDMARoutine
 
 ; --- HRAM -------------------------------------------------------------------
 DEF hOamRefresh      EQU $FF80  ; OAM-refresh flag
@@ -444,7 +444,7 @@ DEF wEnvStagePu2     EQU $CBC6  ; current envelope stage 0-2, PU2
 DEF wEnvStageNoi     EQU $CBCD  ; current envelope stage 0-2, NOI (WAV has no envelope)
 DEF wSavedSelBottom  EQU $CBD7  ; saved wSelBottom (Save/RestoreSelectionState)
 DEF wDecompBuf       EQU $DA00  ; 256-byte block staging buffer (FileWriteCompressedSram)
-DEF wSpriteDefs      EQU $DD00  ; sprite definition/staging entries, 4-byte stride (ClearOamBuffer init)
+DEF wSpriteWavY      EQU $DD00  ; WAV display sprite 0 Y (ClearSprites012 / PositionWavSprites)
 DEF wBlockDstPage    EQU $C97E  ; SRAM dest page hi byte for block save ($a0-$bf; FlushBlockToSram)
 DEF wBlockDstBank    EQU $C97C  ; SRAM dest bank counter for block save (bumped on page wrap)
 
@@ -822,19 +822,19 @@ DEF wTableRow_p2 EQU $C932  ; wTableRow+2
 DEF wTableRow_p3 EQU $C933  ; wTableRow+3
 DEF wHelpCursorRow_p1 EQU $C935  ; wHelpCursorRow+1
 DEF wHelpCursorRow_p2 EQU $C936  ; wHelpCursorRow+2
-DEF wWordEditCol_p1 EQU $C939  ; wWordEditCol+1
-DEF wWordEditCol_p3 EQU $C93B  ; wWordEditCol+3
-DEF wWordEditCol_p4 EQU $C93C  ; wWordEditCol+4
-DEF wWordEditCol_p13 EQU $C945  ; wWordEditCol+13
-DEF wWordEditCol_p14 EQU $C946  ; wWordEditCol+14
-DEF wWordEditCol_p15 EQU $C947  ; wWordEditCol+15
-DEF wWordEditCol_p16 EQU $C948  ; wWordEditCol+16
-DEF wWordEditCol_p18 EQU $C94A  ; wWordEditCol+18
-DEF wWordEditCol_p19 EQU $C94B  ; wWordEditCol+19
-DEF wWordEditCol_p20 EQU $C94C  ; wWordEditCol+20
-DEF wWordEditCol_p21 EQU $C94D  ; wWordEditCol+21
-DEF wWordEditCol_p22 EQU $C94E  ; wWordEditCol+22
-DEF wWordEditCol_p23 EQU $C94F  ; wWordEditCol+23
+DEF wWordClipPtr     EQU $C939  ; 16-bit scratch ptr walking the 4-byte word clipboard (copy/paste)
+DEF wWaveSelStart    EQU $C93B  ; wave editor selection anchor (frame index; pairs with wWaveCursor)
+DEF wWaveSelEnd      EQU $C93C  ; wave editor selection other endpoint
+DEF wChainCellValue  EQU $C945  ; chain-screen phrase value under cursor (working copy -> DrawHexByte)
+DEF wChainCellEmpty  EQU $C946  ; chain cursor cell reads $FF flag
+DEF wChainTempoShadow EQU $C947  ; cached wTempo for the chain-screen tempo field (redraw-if-changed)
+DEF wChainScratchPtr EQU $C948  ; 16-bit scratch ptr from per-channel table $75A6 (bank06)
+DEF wSongSelScroll   EQU $C94A  ; saved wSongScroll: song-screen selection anchor
+DEF wSongSelRow      EQU $C94B  ; saved wSongRow: song-screen selection anchor
+DEF wPlayStartChan   EQU $C94C  ; playback start channel (= wSongCol at play; seeds the engine)
+DEF wPlayStartRow    EQU $C94D  ; playback start song row (seeds wChanNextSongRow)
+DEF wSongPasteCol    EQU $C94E  ; saved wSongCol during song selection paste
+DEF wSongPasteRow    EQU $C94F  ; saved wSongRow during song selection paste
 DEF wPlayMarkerTimer_p1 EQU $C951  ; wPlayMarkerTimer+1
 DEF wPlayMarkerTimer_p2 EQU $C952  ; wPlayMarkerTimer+2
 DEF wPlayMarkerTimer_p3 EQU $C953  ; wPlayMarkerTimer+3
@@ -858,50 +858,35 @@ DEF wFileScroll_p2 EQU $C99D  ; wFileScroll+2
 DEF wFileScroll_p6 EQU $C9A1  ; wFileScroll+6
 DEF wFileScroll_p7 EQU $C9A2  ; wFileScroll+7
 DEF wFileScroll_p8 EQU $C9A3  ; wFileScroll+8
-DEF wProjCursor_p1 EQU $C9A5  ; wProjCursor+1
-DEF wProjCursor_p2 EQU $C9A6  ; wProjCursor+2
-DEF wProjCursor_p3 EQU $C9A7  ; wProjCursor+3
-DEF wProjCursor_p4 EQU $C9A8  ; wProjCursor+4
-DEF wProjCursor_p5 EQU $C9A9  ; wProjCursor+5
-DEF wProjCursor_p6 EQU $C9AA  ; wProjCursor+6
-DEF wProjCursor_p7 EQU $C9AB  ; wProjCursor+7
-DEF wProjCursor_p16 EQU $C9B4  ; wProjCursor+16
-DEF wProjCursor_p17 EQU $C9B5  ; wProjCursor+17
-DEF wProjCursor_p18 EQU $C9B6  ; wProjCursor+18
-DEF wProjCursor_p19 EQU $C9B7  ; wProjCursor+19
-DEF wProjCursor_p20 EQU $C9B8  ; wProjCursor+20
-DEF wProjCursor_p21 EQU $C9B9  ; wProjCursor+21
-DEF wProjCursor_p22 EQU $C9BA  ; wProjCursor+22
-DEF wProjCursor_p23 EQU $C9BB  ; wProjCursor+23
-DEF wProjCursor_p24 EQU $C9BC  ; wProjCursor+24
-DEF wProjCursor_p25 EQU $C9BD  ; wProjCursor+25
-DEF wProjCursor_p26 EQU $C9BE  ; wProjCursor+26
-DEF wProjCursor_p27 EQU $C9BF  ; wProjCursor+27
-DEF wProjCursor_p28 EQU $C9C0  ; wProjCursor+28
-DEF wProjCursor_p29 EQU $C9C1  ; wProjCursor+29
-DEF wProjCursor_p30 EQU $C9C2  ; wProjCursor+30
-DEF wProjCursor_p31 EQU $C9C3  ; wProjCursor+31
-DEF wProjCursor_p32 EQU $C9C4  ; wProjCursor+32
-DEF wProjCursor_p33 EQU $C9C5  ; wProjCursor+33
-DEF wProjCursor_p34 EQU $C9C6  ; wProjCursor+34
-DEF wProjCursor_p35 EQU $C9C7  ; wProjCursor+35
-DEF wProjCursor_p36 EQU $C9C8  ; wProjCursor+36
-DEF wProjCursor_p37 EQU $C9C9  ; wProjCursor+37
-DEF wProjCursor_p38 EQU $C9CA  ; wProjCursor+38
-DEF wProjCursor_p39 EQU $C9CB  ; wProjCursor+39
-DEF wProjCursor_p40 EQU $C9CC  ; wProjCursor+40
-DEF wProjCursor_p41 EQU $C9CD  ; wProjCursor+41
-DEF wProjCursor_p46 EQU $C9D2  ; wProjCursor+46
-DEF wGrooveRow_p1 EQU $C9D5  ; wGrooveRow+1
-DEF wGrooveRow_p18 EQU $C9E6  ; wGrooveRow+18
-DEF wGrooveRow_p20 EQU $C9E8  ; wGrooveRow+20
-DEF wGrooveRow_p21 EQU $C9E9  ; wGrooveRow+21
-DEF wGrooveRow_p22 EQU $C9EA  ; wGrooveRow+22
-DEF wGrooveRow_p23 EQU $C9EB  ; wGrooveRow+23
-DEF wGrooveRow_p24 EQU $C9EC  ; wGrooveRow+24
-DEF wGrooveRow_p25 EQU $C9ED  ; wGrooveRow+25
-DEF wGrooveRow_p26 EQU $C9EE  ; wGrooveRow+26
-DEF wGrooveRow_p27 EQU $C9EF  ; wGrooveRow+27
+DEF wProjMenuActive  EQU $C9A5  ; project screen: bottom LOAD/SAVE menu focused
+DEF wProjMenuItem    EQU $C9A6  ; project screen: menu item index (0/1)
+DEF wProjDrawScratch EQU $C9A7  ; transient tile-value scratch (Proj/clock digit draw; also bank01)
+DEF wProjDrawScratch2 EQU $C9A8  ; draw scratch (ProjDrawSyncField)
+DEF wProjDrawScratch3 EQU $C9A9  ; draw scratch (ProjDrawSyncFieldHw)
+DEF wWorkClockSubFrame EQU $C9AA  ; frame counter mod 128 feeding the WORK-time clock (TickWorkTimeClock)
+DEF wProjScrollCount EQU $C9AB  ; project scroll/average queue fill count (0-8)
+DEF wVramCopyScratch EQU $C9B4  ; VRAM byte-copy scratch (bank1e InitScreenPalettes path)
+DEF wTileSlotPtr     EQU $C9B5  ; 16-bit scratch ptr (LoadTilesDispatch -> RequestTileSlot)
+DEF wTileSlotPtrHi   EQU $C9B6  ; hi byte of wTileSlotPtr
+DEF wInstrRemapDirty EQU $C9B7  ; instrument remap table populated/dirty flag
+DEF wInstrRemapTable EQU $C9B8  ; [16] instrument-slot remap/claim table ($FF = empty; InitRemapTable)
+DEF wPhraseDedupScratch EQU $C9C8  ; scratch: IsPhraseUsedFar result (bank1f dedup)
+DEF wPhraseDedupScratch2 EQU $C9C9  ; scratch: FindDupPhrase result
+DEF wPhraseDedupScratch3 EQU $C9CA  ; scratch (bank1f phrase dedup)
+DEF wPhraseDedupScratch4 EQU $C9CB  ; scratch (bank1f phrase dedup)
+DEF wPhraseDedupScratch5 EQU $C9CC  ; scratch (bank1f phrase dedup)
+DEF wDrawTextScratch EQU $C9CD  ; transient tile-value scratch for DrawTextField (bank1f)
+DEF wDedupPtr        EQU $C9D2  ; 16-bit scratch ptr into the $C9CE local array (bank1f)
+DEF wGrooveCacheValid EQU $C9D5  ; groove step-cache built flag (GrooveBuildCache sets, GrooveResetState clears)
+DEF wGrooveCachePtr  EQU $C9E6  ; [1] 16-bit scratch ptr walking wGrooveStepCache (GrooveBuildCache)
+DEF wSynthSegLen1    EQU $C9E8  ; synth param: segment length/fill count -> curve buf $CA74 (field TBD)
+DEF wSynthWaveShape  EQU $C9E9  ; synth waveform shape type (jump-table selector, SynthRenderWaveType)
+DEF wSynthSegLen2    EQU $C9EA  ; synth param: fill count -> curve buf $CA54 (field TBD)
+DEF wSynthFilterType EQU $C9EB  ; synth filter type (2=clear, 3=SynthFilterPass)
+DEF wSynthFilterCutoff EQU $C9EC  ; synth filter cutoff (value<<3 & $F8, SynthFilterPass)
+DEF wSynthSignalType EQU $C9ED  ; synth wave source select (2 -> SineTable vs SynthShapeTableB)
+DEF wSynthFilterParam EQU $C9EE  ; synth filter group byte (likely resonance/Q; field TBD)
+DEF wSynthSegLen3    EQU $C9EF  ; synth param: fill count -> curve buf $CA84 (field TBD)
 DEF wSynthRenderIdx_p1 EQU $C9F1  ; wSynthRenderIdx+1
 DEF wSynthRenderIdx_p2 EQU $C9F2  ; wSynthRenderIdx+2
 DEF wSynthBufB_p64 EQU $CB38  ; wSynthBufB+64
@@ -963,34 +948,34 @@ DEF wRngSeedLo       EQU $CBFA  ; RNG seed lo byte (SeedRandom16 sets)
 DEF wUnusedCBFB      EQU $CBFB  ; set to $03 at display reinit, never read
 DEF wUnusedCBFC      EQU $CBFC  ; set to $00 at display reinit, never read
 DEF wDecompBuf_p64 EQU $DA40  ; wDecompBuf+64
-DEF wSpriteDefs_p1 EQU $DD01  ; wSpriteDefs+1
-DEF wSpriteDefs_p4 EQU $DD04  ; wSpriteDefs+4
-DEF wSpriteDefs_p5 EQU $DD05  ; wSpriteDefs+5
-DEF wSpriteDefs_p6 EQU $DD06  ; wSpriteDefs+6
-DEF wSpriteDefs_p8 EQU $DD08  ; wSpriteDefs+8
-DEF wSpriteDefs_p9 EQU $DD09  ; wSpriteDefs+9
-DEF wSpriteDefs_p10 EQU $DD0A  ; wSpriteDefs+10
-DEF wSpriteDefs_p12 EQU $DD0C  ; wSpriteDefs+12
-DEF wSpriteDefs_p15 EQU $DD0F  ; wSpriteDefs+15
-DEF wSpriteDefs_p16 EQU $DD10  ; wSpriteDefs+16
-DEF wSpriteDefs_p19 EQU $DD13  ; wSpriteDefs+19
-DEF wSpriteDefs_p20 EQU $DD14  ; wSpriteDefs+20
-DEF wSpriteDefs_p23 EQU $DD17  ; wSpriteDefs+23
-DEF wSpriteDefs_p24 EQU $DD18  ; wSpriteDefs+24
-DEF wSpriteDefs_p27 EQU $DD1B  ; wSpriteDefs+27
-DEF wSpriteDefs_p28 EQU $DD1C  ; wSpriteDefs+28
-DEF wSpriteDefs_p31 EQU $DD1F  ; wSpriteDefs+31
-DEF wSpriteDefs_p32 EQU $DD20  ; wSpriteDefs+32
-DEF wSpriteDefs_p35 EQU $DD23  ; wSpriteDefs+35
-DEF wSpriteDefs_p36 EQU $DD24  ; wSpriteDefs+36
-DEF wSpriteDefs_p39 EQU $DD27  ; wSpriteDefs+39
-DEF wSpriteDefs_p40 EQU $DD28  ; wSpriteDefs+40
-DEF wSpriteDefs_p43 EQU $DD2B  ; wSpriteDefs+43
-DEF wSpriteDefs_p45 EQU $DD2D  ; wSpriteDefs+45
-DEF wSpriteDefs_p49 EQU $DD31  ; wSpriteDefs+49
-DEF wSpriteDefs_p53 EQU $DD35  ; wSpriteDefs+53
-DEF wSpriteDefs_p57 EQU $DD39  ; wSpriteDefs+57
-DEF wSpriteDefs_p61 EQU $DD3D  ; wSpriteDefs+61
+DEF wSpriteWavX      EQU $DD01  ; WAV display sprite 0 X (=$90, ClearOamBuffer)
+DEF wSpriteWav1Y     EQU $DD04  ; WAV display sprite 1 Y
+DEF wSpriteWav1X     EQU $DD05  ; WAV display sprite 1 X (=$98)
+DEF wSpriteWav1Tile  EQU $DD06  ; WAV display sprite 1 tile (=$01)
+DEF wSpriteWav2Y     EQU $DD08  ; WAV display sprite 2 Y
+DEF wSpriteWav2X     EQU $DD09  ; WAV display sprite 2 X (=$A0)
+DEF wSpriteWav2Tile  EQU $DD0A  ; WAV display sprite 2 tile (=$02)
+DEF wSpriteMark0Y    EQU $DD0C  ; sprite pool slot 3 Y: play markers / env graph (screen-multiplexed; ClearMarkerSprites)
+DEF wSpriteMark0Attr EQU $DD0F  ; sprite pool slot 3 attr
+DEF wSpriteMark1Y    EQU $DD10  ; sprite pool slot 4 Y
+DEF wSpriteMark1Attr EQU $DD13  ; sprite pool slot 4 attr
+DEF wSpriteMark2Y    EQU $DD14  ; sprite pool slot 5 Y
+DEF wSpriteMark2Attr EQU $DD17  ; sprite pool slot 5 attr
+DEF wSpriteMark3Y    EQU $DD18  ; sprite pool slot 6 Y
+DEF wSpriteMark3Attr EQU $DD1B  ; sprite pool slot 6 attr
+DEF wSpriteMark4Y    EQU $DD1C  ; sprite pool slot 7 Y
+DEF wSpriteMark4Attr EQU $DD1F  ; sprite pool slot 7 attr
+DEF wSpriteMark5Y    EQU $DD20  ; sprite pool slot 8 Y
+DEF wSpriteMark5Attr EQU $DD23  ; sprite pool slot 8 attr
+DEF wSpriteMark6Y    EQU $DD24  ; sprite pool slot 9 Y
+DEF wSpriteMark6Attr EQU $DD27  ; sprite pool slot 9 attr
+DEF wSpriteMark7Y    EQU $DD28  ; sprite pool slot 10 Y
+DEF wSpriteMark7Attr EQU $DD2B  ; sprite pool slot 10 attr
+DEF wSpriteCursor0X  EQU $DD2D  ; selection/edit-cursor column sprite 11 X (ChainScanCmd)
+DEF wSpriteCursor1X  EQU $DD31  ; selection cursor sprite 12 X
+DEF wSpriteCursor2X  EQU $DD35  ; selection cursor sprite 13 X
+DEF wSpriteCursor3X  EQU $DD39  ; selection cursor sprite 14 X
+DEF wSpriteCursor4X  EQU $DD3D  ; selection cursor sprite 15 X
 DEF hOamRefresh_p1 EQU $FF81  ; hOamRefresh+1
 DEF hOscilloscope_p1 EQU $FFA1  ; hOscilloscope+1
 DEF hOscilloscope_p2 EQU $FFA2  ; hOscilloscope+2
@@ -1030,9 +1015,9 @@ DEF wNotePeriodLo    EQU $CD28  ; RAM copy of the note->period table (NoteToPeri
 DEF wNoteFineTable   EQU $CD94  ; RAM copy of the finetune/delta table (WriteChannelFreq, index wNoteOctave-1)
 DEF wMasterVolTable  EQU $D400  ; master-volume transition LUT (FxCmd_M indexes by rAUDVOL & $70)
 DEF wOscBufEnd       EQU $DA4F  ; last byte of the $DA00 buffer (OrBitsIntoDaBuffer bound; buffer reused by save staging)
-DEF wSpriteDefs_p65  EQU $DD41  ; wSpriteDefs+65
-DEF wSpriteDefs_p69  EQU $DD45  ; wSpriteDefs+69
-DEF wSpriteDefs_p73  EQU $DD49  ; wSpriteDefs+73
+DEF wSpriteCursor5X  EQU $DD41  ; selection cursor sprite 16 X
+DEF wSpriteCursor6X  EQU $DD45  ; selection cursor sprite 17 X
+DEF wSpriteCursor7X  EQU $DD49  ; selection cursor sprite 18 X
 DEF wStackTop        EQU $DFFF  ; top of WRAM / initial stack area (Start clears $20 bytes downward)
 DEF wPhraseNotePtrPu2 EQU $C0BE  ; SRAM read ptr: note column, PU2
 DEF wPhraseNotePtrWav EQU $C0C0  ; SRAM read ptr: note column, WAV
@@ -1057,3 +1042,5 @@ DEF wChanEnvVolOffsetPu2 EQU $C225  ; env volume delta, PU2
 DEF wChanEnvVolOffsetWav EQU $C226  ; env volume delta, WAV
 DEF wChanEnvVolOffsetNoi EQU $C227  ; env volume delta, NOI
 DEF wFileNameTmp     EQU $C6A0  ; 8-char filename scratch (memcpy'd from the file table)
+DEF wGrooveStepCache EQU $C9D6  ; [16] groove-step display cache (GrooveBuildCache fills, DrawGrooveRow reads)
+DEF wProjScrollBuf   EQU $C9AC  ; [8] sample queue averaged by ProjScrollTextStep
