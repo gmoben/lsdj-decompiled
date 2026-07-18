@@ -68,7 +68,7 @@
 6D55 PasteChainSelection        ; write clipboard cells into the chain grid (clipType 3)
 6F0D ChainNormalizeSelection    ; normalize the chain-screen selection rect (wSel*)
 7006 ChainHandleInput           ; main chain-screen input handler ($c411==3, $c419/$c40d); large
-71ED DrawOscSampleNames         ; draw the playing kit sample names (wOscBankA/B) at the tilemap position
+71ED DrawKitSampleNames         ; draw the playing kit sample names (wKit1Bank/wKit2Bank) at the tilemap position
 73C0 DrawStringAtCursor         ; set wVramCursor + DrawString (9-use draw helper)
 73DC ChainSyncStatusFlag        ; read $cb69, return status flag
 740C ChainDrawSyncStatus        ; draw sync status string from $cb6c/$cb6b (DrawStringAtCursor)

@@ -67,7 +67,7 @@
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 4000 SndFxParsePitchVal         ; parse an FX value (mask $80/$0f) -> SndInitEnvelope
-4033 SndApplyVibratoStep        ; apply hFxValue high nibble to pitch acc $c4d6; clamp via SndClampAcc6Hi
+4033 SndKitStepLoopWin1         ; kit S cmd, voice 1: nibble-step the loop window (start/end +/- digit*16, min $10); falls into voice-2 twin
 40E6 SndClampAcc6Hi             ; if pitch acc $c4d6:d7 >= limit $c4de:df, clamp to it & ret 0; else ret 1
 410C SndClampAcc4Hi             ; if pitch acc $c4d4:d5 >= limit $c4dc:dd, clamp to it & ret 0; else ret 1
 4132 SndStepAcc4                ; pitch acc $c4d6:d7 = $c4d4:d5 + $10 (16-bit, saturating compare)
@@ -180,7 +180,7 @@
 
 ; --- structural local names (loop heads / common exits) ---
 4010 .loop                ; loop head in SndFxParsePitchVal
-40E3 .done                ; common exit of SndApplyVibratoStep
+40E3 .done                ; common exit of SndKitStepLoopWin1
 4205 .done                ; common exit of SndStepAcc4
 4279 .loop                ; loop head in SndDivMod
 4303 .loop                ; loop head in FxCmd_L
@@ -371,7 +371,7 @@
 412F .cont
 4142 .loadPitchModA
 4150 .storePitchModA
-4154 .loadSndUpdateFlags
+4154 .voice2
 4184 .cont
 4186 .setPitchModB
 41A4 .checkPitchModB
