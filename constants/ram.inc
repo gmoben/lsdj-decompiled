@@ -168,14 +168,14 @@ DEF wFxCommand       EQU $C8C4  ; current FX command index (0-$12) being process
 ; hSoundCh maps to the GB hardware channels: 0=PU1 (rAUD1), 1=PU2 (rAUD2),
 ; 2=WAV/KIT (rAUD3, plays WAVE+KIT instruments), 3=NOI (rAUD4). The per-channel
 ; computed frequency (wChanFreq) is written to rAUDxLOW/HIGH each frame.
-DEF wChanFreq        EQU $C0F4  ; [4] 16-bit GB period per channel; = wNotePeriods[note+xpose] -> rAUDxLOW/HIGH
+DEF wChanFreq        EQU $C0F4  ; channel frequency shadow, PU1 lo (rAUD1LOW)
 DEF wSongTranspose   EQU $C444  ; global/project TRANSPOSE (working copy of the SRAM song property); SndTransposeNote
                                 ; adds it to every note; displayed/edited on the PROJECT screen (ProjDrawHex)
 DEF wTransposeDirty  EQU $C445  ; transpose edit/commit flag: set by the PROJECT screen after refreshing wSongTransposeDisp; when set, ProcessInput commits wSongTransposeDisp -> wSongTranspose and saves it to SRAM ($BFB5), then clears it
 DEF wSongTransposeDisp EQU $C446 ; displayed form of the song transpose (ProjDrawHex / ProcessInput)
 DEF wNoteTranspose   EQU $C4D3  ; PU2 instrument transpose (from instrument PU2_TRANSPOSE param), added before the period lookup
 DEF wNotePeriods     EQU $CF28  ; runtime 16-bit GB note-period table (computed for tuning); NoteToPeriod indexes it
-DEF wSoundParams     EQU $C0D0  ; raw 16-byte instrument copied here on note-on from SONG_INSTRUMENTS
+DEF wCurInstr        EQU $C0D0  ; current instrument record byte 0 = type (0 pulse, 1 wav, 2 kit, 3 noise); 16B staged from SramInstruments $B080+instr*16
                                 ; ($3080 = SRAM bank1 $B080 + instr*16); SetupChannelSound then
                                 ; distributes its bytes to the rAUDx register shadows
 ; Per-channel sound state arrays (all [4] = PU1/PU2/WAV/NOI), derived from live
@@ -236,9 +236,9 @@ DEF wChanPhrase      EQU $C168  ; [4] current phrase = CHAIN_PHRASES[chain][chai
 DEF wChanPhraseRow   EQU $C16C  ; [4] current note step within the phrase (0-15)
 DEF wChanNextPhrase  EQU $C100  ; [4] next chain row's phrase, prefetched
 DEF wChanNextSongRow EQU $C2FC  ; [4] next song row, prefetched
-DEF wChanReadPtr     EQU $C110  ; [4] 16-bit SRAM cursor; PHRASE_NOTES (bank0) / PHRASE_COMMANDS (bank2),
+DEF wPhraseCmdPtr    EQU $C110  ; SRAM read ptr: phrase FX command, PU1 (SndReadPhraseCmd; init $0140)
                                 ; same offset $A000+phrase*16+step, selected by SRAM bank
-DEF wChanCmdValPtr   EQU $C128  ; [4] 16-bit cursor into PHRASE_COMMAND_VALUES (bank2 $AFF0+)
+DEF wPhraseCmdValPtr EQU $C128  ; SRAM read ptr: phrase FX value, PU1
 DEF wChanInstrPtr    EQU $C140  ; [4] 16-bit cursor into PHRASE_INSTRUMENTS (bank3 $B000+)
 DEF wChanRetrigTimer EQU $C148  ; [4] per-channel retrigger countdown; decremented each sound tick, and on 0 reloads from wChanRetrigRate and retriggers the channel (rewrite NRx2 envelope + trigger note via rAUDxHIGH|$80)
 DEF wChanRetrigRate  EQU $C14C  ; [4] per-channel retrigger period (0 = no retrigger); reloaded into wChanRetrigTimer
@@ -255,10 +255,10 @@ DEF wChanInstr       EQU $C210  ; [4] current instrument number per channel
 DEF wChanChord       EQU $C218  ; [4] chord command value (CXY: X/Y semitone offsets); 0 = off. Set by FxCmd_C
 ; Current-channel table-playback cursors (16-bit SRAM addresses):
 DEF wTableTransposePtr EQU $C10E ; -> table_transposes
-DEF wTableCmd1Ptr    EQU $C11E  ; -> table_cmd1
-DEF wTableCmd2Ptr    EQU $C126  ; -> table_cmd2
-DEF wTableCmd1ValPtr EQU $C136  ; -> table_cmd1 values
-DEF wTableCmd2ValPtr EQU $C13E  ; -> table_cmd2 values
+DEF wTableCmd1PtrNoi EQU $C11E  ; SRAM read ptr: table CMD1 column, NOI
+DEF wTableCmd2PtrNoi EQU $C126  ; SRAM read ptr: table CMD2 column, NOI
+DEF wTableCmd1ValPtrNoi EQU $C136  ; SRAM read ptr: table CMD1 value, NOI
+DEF wTableCmd2ValPtrNoi EQU $C13E  ; SRAM read ptr: table CMD2 value, NOI
 DEF wChanCmd         EQU $C365  ; [4] command read for the current step, per channel
 DEF wChanCmdVal      EQU $C36B  ; [4] command value for the current step, per channel
 ; Current-channel state pointers (16-bit; low byte seeded by InitSoundStatePtrs,
@@ -271,7 +271,7 @@ DEF wPtrNoteCountdown EQU $C8E3 ; -> wChanNoteCountdown[curChan]
 DEF wPtrGroove       EQU $C8E5  ; -> wChanGroove[curChan]
 DEF wPtrGrooveRow    EQU $C8E7  ; -> wChanGrooveRow[curChan]
 DEF wPtrPhrase       EQU $C8EB  ; -> wChanPhrase[curChan]
-DEF wPtrNote         EQU $C8ED  ; -> wChanNote[curChan]
+DEF wPtrNoteSrc      EQU $C8ED  ; ptr to current channel's note-column SRAM-ptr slot (wPhraseNotePtr + ch*2; repointed in table mode)
 DEF wPtrTableStep    EQU $C8FC  ; -> wChanTableStep[curChan]
 ; Per-channel GB-sound register shadows, written to hardware by TriggerNote:
 ; Pitch-bend / slide state (per channel, 16-bit). The command handlers set a
@@ -454,19 +454,19 @@ DEF wChanModFlagPu2   EQU $C0A1  ; wChanModFlag[1] = Pu2 channel
 DEF wChanModFlagWav   EQU $C0A2  ; wChanModFlag[2] = Wav channel
 DEF wChanModFlagNoi   EQU $C0A3  ; wChanModFlag[3] = Noi channel
 DEF wChanModType_p4 EQU $C0A8  ; wChanModType+4
-DEF wChanModType_p24 EQU $C0BC  ; wChanModType+24
-DEF wChanModType_p32 EQU $C0C4  ; wChanModType+32
+DEF wPhraseNotePtr   EQU $C0BC  ; SRAM read ptr (16-bit): note column, PU1 -- phrase/table row source (reader: base+ch*2)
+DEF wChanStepCountdown EQU $C0C4  ; steps until next note read, PU1 ($ff = halted; via wPtrStepCountdown)
 DEF wChanNoteWav      EQU $C0CE  ; wChanNote[2] = Wav channel
 DEF wChanNoteNoi      EQU $C0CF  ; wChanNote[3] = Noi channel
-DEF wSoundParams_p1 EQU $C0D1  ; wSoundParams+1
-DEF wSoundParams_p2 EQU $C0D2  ; wSoundParams+2
-DEF wSoundParams_p3 EQU $C0D3  ; wSoundParams+3
-DEF wSoundParams_p5 EQU $C0D5  ; wSoundParams+5
-DEF wSoundParams_p6 EQU $C0D6  ; wSoundParams+6
-DEF wSoundParams_p7 EQU $C0D7  ; wSoundParams+7
-DEF wSoundParams_p8 EQU $C0D8  ; wSoundParams+8
-DEF wSoundParams_p10 EQU $C0DA  ; wSoundParams+10
-DEF wSoundParams_p12 EQU $C0DC  ; wSoundParams+12
+DEF wCurInstrB1      EQU $C0D1  ; instrument byte 1: pulse = envelope; wav/kit = volume (-> wWavLevel)
+DEF wCurInstrB2      EQU $C0D2  ; instrument byte 2: pulse = transpose enable/flags (-> wNoteTranspose)
+DEF wCurInstrB3      EQU $C0D3  ; instrument byte 3 (-> wChanFreqHi* on setup)
+DEF wCurInstrB5      EQU $C0D5  ; instrument byte 5
+DEF wCurInstrB6      EQU $C0D6  ; instrument byte 6
+DEF wCurInstrB7      EQU $C0D7  ; instrument byte 7: pan (bits 0-1) | length bits (-> wChanPan/wChanLenDuty)
+DEF wCurInstrB8      EQU $C0D8  ; instrument byte 8: table cmd rate (-> wChanCmdRate)
+DEF wCurInstrB10     EQU $C0DA  ; instrument byte 10: envelope node 3 (pulse)
+DEF wCurInstrB12     EQU $C0DC  ; instrument byte 12
 DEF wChanActivePu2    EQU $C0E1  ; wChanActive[1] = Pu2 channel
 DEF wChanActiveWav    EQU $C0E2  ; wChanActive[2] = Wav channel
 DEF wChanActiveNoi    EQU $C0E3  ; wChanActive[3] = Noi channel
@@ -477,26 +477,26 @@ DEF wChanOutNotePu1Hi EQU $C0E9  ; wChanOutNote[0] hi byte (Pu1)
 DEF wChanOutNotePu2 EQU $C0EA  ; wChanOutNote[1]  (Pu2)
 DEF wChanOutNotePu2Hi EQU $C0EB  ; wChanOutNote[1] hi byte (Pu2)
 DEF wChanOutNoteWav EQU $C0EC  ; wChanOutNote[2]  (Wav)
-DEF wChanFreq_p1 EQU $C0F5  ; wChanFreq+1
-DEF wChanFreq_p2 EQU $C0F6  ; wChanFreq+2
-DEF wChanFreq_p3 EQU $C0F7  ; wChanFreq+3
-DEF wChanFreq_p4 EQU $C0F8  ; wChanFreq+4
-DEF wChanFreq_p5 EQU $C0F9  ; wChanFreq+5
-DEF wChanFreq_p8 EQU $C0FC  ; wChanFreq+8
+DEF wChanFreqPu1Hi   EQU $C0F5  ; channel frequency shadow, PU1 hi (|$80 -> rAUD1HIGH on retrigger)
+DEF wChanFreqPu2     EQU $C0F6  ; channel frequency shadow, PU2 lo
+DEF wChanFreqPu2Hi   EQU $C0F7  ; channel frequency shadow, PU2 hi
+DEF wChanFreqWav     EQU $C0F8  ; channel frequency shadow, WAV lo (rAUD3LOW)
+DEF wChanFreqWavHi   EQU $C0F9  ; channel frequency shadow, WAV hi
+DEF wChanGrooveTicks EQU $C0FC  ; ticks left in groove step, PU1: 0 -> wChanNoteTrigger + advance groove (SndReadChanState55AE)
 DEF wChanNextPhrase_p8 EQU $C108  ; wChanNextPhrase+8
 DEF wChanNextPhrase_p10 EQU $C10A  ; wChanNextPhrase+10
 DEF wChanNextPhrase_p12 EQU $C10C  ; wChanNextPhrase+12
-DEF wChanReadPtr_p2 EQU $C112  ; wChanReadPtr+2
-DEF wChanReadPtr_p4 EQU $C114  ; wChanReadPtr+4
-DEF wChanReadPtr_p6 EQU $C116  ; wChanReadPtr+6
-DEF wChanReadPtr_p8 EQU $C118  ; wChanReadPtr+8
-DEF wChanReadPtr_p10 EQU $C11A  ; wChanReadPtr+10
-DEF wChanReadPtr_p12 EQU $C11C  ; wChanReadPtr+12
-DEF wTableCmd1Ptr_p2 EQU $C120  ; wTableCmd1Ptr+2
-DEF wTableCmd1Ptr_p4 EQU $C122  ; wTableCmd1Ptr+4
-DEF wTableCmd1Ptr_p6 EQU $C124  ; wTableCmd1Ptr+6
-DEF wChanCmdValPtr_p8 EQU $C130  ; wChanCmdValPtr+8
-DEF wTableCmd1ValPtr_p2 EQU $C138  ; wTableCmd1ValPtr+2
+DEF wPhraseCmdPtrPu2 EQU $C112  ; SRAM read ptr: phrase FX command, PU2
+DEF wPhraseCmdPtrWav EQU $C114  ; SRAM read ptr: phrase FX command, WAV
+DEF wPhraseCmdPtrNoi EQU $C116  ; SRAM read ptr: phrase FX command, NOI
+DEF wTableCmd1Ptr    EQU $C118  ; SRAM read ptr: table CMD1 column, PU1 (SndReadTableCmd1)
+DEF wTableCmd1PtrPu2 EQU $C11A  ; SRAM read ptr: table CMD1 column, PU2
+DEF wTableCmd1PtrWav EQU $C11C  ; SRAM read ptr: table CMD1 column, WAV
+DEF wTableCmd2Ptr    EQU $C120  ; SRAM read ptr: table CMD2 column, PU1 (SndReadTableCmd2)
+DEF wTableCmd2PtrPu2 EQU $C122  ; SRAM read ptr: table CMD2 column, PU2
+DEF wTableCmd2PtrWav EQU $C124  ; SRAM read ptr: table CMD2 column, WAV
+DEF wTableCmd1ValPtr EQU $C130  ; SRAM read ptr: table CMD1 value, PU1
+DEF wTableCmd2ValPtr EQU $C138  ; SRAM read ptr: table CMD2 value, PU1
 DEF wChanRetrigTimerPu2  EQU $C149  ; wChanRetrigTimer[1] = Pu2 channel
 DEF wChanRetrigTimerWav  EQU $C14A  ; wChanRetrigTimer[2] = Wav channel
 DEF wChanRetrigTimerNoi  EQU $C14B  ; wChanRetrigTimer[3] = Noi channel
@@ -653,12 +653,12 @@ DEF wChanVibShapePu2 EQU $C361  ; wChanVibShape[1]  (Pu2)
 DEF wChanVibShapePu2Hi EQU $C362  ; wChanVibShape[1] hi byte (Pu2)
 DEF wChanVibShapeWav EQU $C363  ; wChanVibShape[2]  (Wav)
 DEF wChanVibShapeWavHi EQU $C364  ; wChanVibShape[2] hi byte (Wav)
-DEF wChanCmdWav EQU $C369  ; wChanCmd[2]  (Wav)
-DEF wChanCmdWavHi EQU $C36A  ; wChanCmd[2] hi byte (Wav)
+DEF wTableCmd1       EQU $C369  ; current-channel table CMD1 command (scratch)
+DEF wTableCmd2       EQU $C36A  ; current-channel table CMD2 command (scratch)
 DEF wChanCmdValPu2 EQU $C36D  ; wChanCmdVal[1]  (Pu2)
 DEF wChanCmdValPu2Hi EQU $C36E  ; wChanCmdVal[1] hi byte (Pu2)
-DEF wChanCmdValWav EQU $C36F  ; wChanCmdVal[2]  (Wav)
-DEF wChanCmdValWavHi EQU $C370  ; wChanCmdVal[2] hi byte (Wav)
+DEF wTableCmd1Val    EQU $C36F  ; current-channel table CMD1 value (scratch)
+DEF wTableCmd2Val    EQU $C370  ; current-channel table CMD2 value (scratch)
 DEF wChanPitchModActivePu2  EQU $C3FA  ; wChanPitchModActive[1] = Pu2 channel
 DEF wChanPitchModActiveWav  EQU $C3FB  ; wChanPitchModActive[2] = Wav channel
 DEF wIsCGB_p1 EQU $C403  ; wIsCGB+1
@@ -800,7 +800,7 @@ DEF wChanCmdCountdown_p3 EQU $C8CD  ; wChanCmdCountdown+3
 DEF wChanCmdCountdown_p16 EQU $C8DA  ; wChanCmdCountdown+16
 DEF wChanCmdCountdown_p17 EQU $C8DB  ; wChanCmdCountdown+17
 DEF wChanCmdCountdown_p18 EQU $C8DC  ; wChanCmdCountdown+18
-DEF wPtrNote_p2 EQU $C8EF  ; wPtrNote+2
+DEF wPtrStepCountdown EQU $C8EF  ; ptr to current channel's step-countdown byte (wChanStepCountdown + ch)
 DEF wPtrNote_p4 EQU $C8F1  ; wPtrNote+4
 DEF wPtrNote_p5 EQU $C8F2  ; wPtrNote+5
 DEF wOscActive_p1 EQU $C8F7  ; wOscActive+1
@@ -1034,3 +1034,15 @@ DEF wSpriteDefs_p65  EQU $DD41  ; wSpriteDefs+65
 DEF wSpriteDefs_p69  EQU $DD45  ; wSpriteDefs+69
 DEF wSpriteDefs_p73  EQU $DD49  ; wSpriteDefs+73
 DEF wStackTop        EQU $DFFF  ; top of WRAM / initial stack area (Start clears $20 bytes downward)
+DEF wPhraseNotePtrPu2 EQU $C0BE  ; SRAM read ptr: note column, PU2
+DEF wPhraseNotePtrWav EQU $C0C0  ; SRAM read ptr: note column, WAV
+DEF wPhraseNotePtrNoi EQU $C0C2  ; SRAM read ptr: note column, NOI
+DEF wChanStepCountdownPu2 EQU $C0C5  ; steps until next note read, PU2
+DEF wChanStepCountdownWav EQU $C0C6  ; steps until next note read, WAV
+DEF wChanStepCountdownNoi EQU $C0C7  ; steps until next note read, NOI
+DEF wChanGrooveTicksPu2 EQU $C0FD  ; ticks left in groove step, PU2
+DEF wChanGrooveTicksWav EQU $C0FE  ; ticks left in groove step, WAV
+DEF wChanGrooveTicksNoi EQU $C0FF  ; ticks left in groove step, NOI
+DEF wCurInstrB4      EQU $C0D4  ; instrument byte 4
+DEF wCurInstrB9      EQU $C0D9  ; instrument byte 9: envelope node 2 (pulse)
+DEF wCurInstrB11     EQU $C0DB  ; instrument byte 11: finetune (-> wChanFinetune)
