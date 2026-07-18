@@ -22,9 +22,9 @@
 338B RequestTileSlot     ; wrap SetTileLoadReq for a tile-slot arg
 36DD StringLength              ; return the length of the NUL-terminated string at a pointer arg (16-bit)
 3261 OrBitsIntoDaBuffer  ; OR flag bits into the $DA00/$DA4F allocation buffer
-3055 UpdateSprite0       ; map $cbc0 through table $300f into the OAM sprite pair
-309C UpdateSprite1       ; same for $cbc7
-30D7 UpdateSprite2       ; same for $cbce (ClearSprites012 group)
+3055 ReloadEnvCounterPu1 ; wEnvCounterPu1 = ExpoCurve16[wEnvSpeedPu1] (de = speed ptr, counter = de+1)
+309C ReloadEnvCounterPu2 ; wEnvCounterPu2 = ExpoCurve16[wEnvSpeedPu2]
+30D7 ReloadEnvCounterNoi ; wEnvCounterNoi = ExpoCurve16[wEnvSpeedNoi]
 3298 UploadTilesToVram  ; rSTAT-gated copy of 128 tile bytes ($DA40 -> VRAM $8060)
 2CC6 DrawChannelHeader   ; draw the channel/column header at VRAM $9811, dispatched on wSongCol (0-3)
 0150 Start              ; init: di, stack=$E000, clear WRAM/HRAM, save boot regs
@@ -233,7 +233,7 @@
 0CEF FarCallResume5 ; continuation pushed by the $0ce8 far-call variant
 014E HeaderChecksumHi           ; ROM header global checksum (hi byte), read by CheckRomChecksum
 014F HeaderChecksumLo           ; ROM header global checksum (lo byte)
-300F ExpoCurve16                ; 16-entry exponential curve $00..$73 (depth/response LUT next to the LFO tick code)
+300F ExpoCurve16                ; 16-entry exponential curve $00..$73: envelope speed -> frame count
 08C8 IdentityCharMap            ; identity tile-index map (loaded into wStringSrc for raw-tile draws)
 01E0 SyncModeStubs              ; 4 x 4-byte jp-hl slots from SendSyncHandshake ((mode&3)*4); only slot 0 (ret) populated
 0200 TimesTwoTable              ; [n] -> 2n byte ramp (FileUpgradeRemapBits, synth draw)
@@ -404,9 +404,9 @@
 2FA0 .loop                ; loop head in FadeEnvStepDown
 2FAF .loop2               ; loop head in FadeEnvStepDown
 2FB9 .loop3               ; loop head in FadeEnvStepDown
-3029 .loop                ; loop head in ExpoCurve16
-3070 .loop                ; loop head in UpdateSprite0
-30AB .loop                ; loop head in UpdateSprite1
+3029 .resetEnv            ; speed 0 / stage overflow: stage = 0, envelope done
+3070 .resetEnv            ; stage = 0, envelope done (PU2)
+30AB .resetEnv            ; stage = 0, envelope done (NOI)
 3174 .done                ; common exit of SetOAMByte
 3267 .loop                ; loop head in OrBitsIntoDaBuffer
 3269 .loop2               ; loop head in OrBitsIntoDaBuffer
@@ -574,9 +574,9 @@
 05D1 .decChanRetrigTimer_2
 05ED .decChanRetrigTimer_3
 0600 .decChanRetrigTimer_4
-0619 .loadLfoStatePU1
-0626 .loadLfoStatePU2
-0633 .loadLfoStateWav
+0619 .tickEnvPu1
+0626 .tickEnvPu2
+0633 .tickEnvNoi
 0640 .checkSyncSendGate
 064C .setSyncSendAccum
 06A5 .readDIV
@@ -832,7 +832,7 @@
 301F .advanceEnvPu1
 302E .stage2
 3042 .stage3
-304F .loadLfoStatePU1
+304F .checkSpeed
 3058 .cont
 3061 .cont_2
 3066 .advanceEnvPu2

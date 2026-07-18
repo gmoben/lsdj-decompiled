@@ -305,13 +305,13 @@
 5CE8 .storeChanFinetuneWavHid
 5F87 .sndSetChanState5FA7
 5F95 .storeChanRetrigRate
-6486 .index16FromCbf9
+6486 .rand
 6570 .sndResetPitchState
 663F .sndSetupWaveTrigger
 665B .applyPitchBend
 67A6 .checkFxChannel
 6851 .triggerNote
-6A6C .setLfoStateWavNoi
+6A6C .startEnvNoi
 6B92 .loadSelLeft
 6DD1 .sndAnyChannelActive
 6E1F .sndStartChannels
@@ -347,7 +347,7 @@
 7C3F .loadCurrentScreen
 7CE7 .sndCheckSyncState
 7CED .syncStopTransport
-7D5D .setLfoStateWavNoi
+7D5D .stopEnvNoi
 49C3 .lookupNote                ; per-channel note path: build period-table + slide-src pointers
 49E0 .useNoteTable              ; slide-src set: use the full note->period table (wNotePeriodLo)
 4A01 .computeFreq               ; compute channel period from note (+PU2 transpose), store to wChanFreq
@@ -599,9 +599,9 @@
 69ED .cont
 69EF .cont_2
 69F2 .testBit6
-6A00 .setLfoStatePU1
+6A00 .startEnvPu1
 6A28 .testBit6_2
-6A36 .setLfoStatePU2
+6A36 .startEnvPu2
 6A5E .testBit6_3
 6ADD .loadChainRow
 6AFB .add16
@@ -639,7 +639,7 @@
 732B .setPtrPhrase
 735C .cont_2
 7373 .loadChanCmdVal
-7377 .index16FromCbf9
+7377 .rand
 739B .sndApplyTablePitch
 73AA .cont
 743E .readSoundCh
@@ -687,8 +687,8 @@
 7C8D .readSoundCh
 7C96 .memSet
 7CF0 .setSongRow
-7D29 .setLfoStatePU1
-7D36 .setLfoStatePU2
+7D29 .stopEnvPu1
+7D36 .stopEnvPu2
 7D43 .cont
 7D67 .readSoundCh
 7DE4 .cont

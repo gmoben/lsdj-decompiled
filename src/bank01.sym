@@ -325,9 +325,9 @@
 
 ; --- full local naming (block signature) ---
 403C .cont
-403D .index16FromCbf9
+403D .random16
 4066 .cont_2
-406C .setCbf9Index
+406C .seedRng
 40A0 .cont_3
 40A1 .cont_4
 40BF .cont_5
