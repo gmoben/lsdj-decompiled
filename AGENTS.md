@@ -423,7 +423,7 @@ Always, before committing:
 - [ ] Match a large editor function (a screen input handler) to grow the rule set
 - [x] Matched C feeds the RGBDS build: `make match` writes the bytes, the carve
       INCBINs them (ROM slice without Wine), `make compare` is the gate
-- [x] Go/no-go on Track 2: **go** — seven functions in four banks; the rule set
+- [x] Go/no-go on Track 2: **go** — ten functions in four banks; the rule set
       still grows with new functions (`docs/toolchain.md`)
 
 **Phase 2 — asm skeleton (Track 1)**
@@ -501,7 +501,7 @@ Always, before committing:
 - [ ] Reproduce the original bank/link layout under the recovered toolchain
       (only needed to build banks from C wholesale)
 - [x] Replace asm functions with matching C, keeping `make compare` green —
-      the mechanism is in place (seven functions); now it is a grind: bank by
+      the mechanism is in place (ten functions); now it is a grind: bank by
       bank, editor code first, asm functions stay asm
 - [ ] Recover C structures/types toward a full, readable C source tree
 

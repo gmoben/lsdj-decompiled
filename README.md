@@ -26,7 +26,7 @@ Current state:
   classifies as fill/text/graphics, with no code-like bytes unexplained. Known
   fidelity gaps — e.g. bank 0's bank-switched call targets still printed as raw
   addresses — are listed in [`docs/reversal.md`](docs/reversal.md) → *Current status*
-- matching C works: seven LSDj functions in [`c/`](c) — a message renderer,
+- matching C works: ten LSDj functions in [`c/`](c) — a message renderer,
   two `switch`es, a 16-bit SRAM accessor, … — compile byte-for-byte with the
   original GBDK 2.95-3 / SDCC 2.2.1 plus peephole rules recovered from the
   ROM, LSDj's "modified GBDK", and the ROM build takes those functions' bytes
@@ -130,7 +130,7 @@ The project runs on **two tracks** (details in [`AGENTS.md`](AGENTS.md)):
 
 Track 2 is gated behind a **toolchain-recovery spike**: pin a period-correct
 GBDK 2.95 + SDCC and reproduce real LSDj functions byte-for-byte before
-committing to C. That spike is done: seven functions match, the recovered
+committing to C. That spike is done: ten functions match, the recovered
 compiler model is 39 peephole rules with ROM-wide evidence, and matched C
 feeds the ROM build (`INCBIN` of the compiled bytes, gated by `make compare`).
 See [`docs/toolchain.md`](docs/toolchain.md), and try it:

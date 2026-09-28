@@ -17,11 +17,23 @@
   "len": 130,
   "src": "c/bank06/DrawTileHexCell.c"
  },
+ "ReadCurInstrByte": {
+  "bank": "00",
+  "addr": "0AE2",
+  "len": 20,
+  "src": "c/bank00/InstrByte.c"
+ },
  "ReadInstrByte": {
   "bank": "00",
   "addr": "0A91",
   "len": 81,
-  "src": "c/bank00/ReadInstrByte.c"
+  "src": "c/bank00/InstrByte.c"
+ },
+ "ReadSeqByte": {
+  "bank": "00",
+  "addr": "0AF6",
+  "len": 94,
+  "src": "c/bank00/ReadSeqByte.c"
  },
  "ScreenDrawDispatch": {
   "bank": "00",
@@ -40,5 +52,11 @@
   "addr": "75F8",
   "len": 10,
   "src": "c/bank01/ShowMessages.c"
+ },
+ "WriteInstrByte": {
+  "bank": "00",
+  "addr": "0953",
+  "len": 102,
+  "src": "c/bank00/InstrByte.c"
  }
 }

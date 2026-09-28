@@ -12,7 +12,7 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 | What compiled LSDj? | **GBDK 2.95-3** (19 Aug 2000) → **SDCC 2.2.1** (`gbz80` target), default `asxxxx` assembler/linker, small memory model — **plus an accumulator-tracking optimisation stock SDCC lacks** (the "modified GBDK"), modelled here as 39 peephole rules in six families (below) |
 | Can we run it today? | **Yes** — the period `sdcc.exe` runs under **Wine** (32-bit PE; re-verified on wine-11.17); `tools/toolchain/fetch_gbdk295.sh` downloads it |
 | Is it the right toolchain? | **Yes, for the code generator**: LSDj's instruction selection, register allocation and frame idioms are SDCC 2.2.1's line for line, and GBDK 2.95 library code in the ROM is byte-identical to its sources (`display_off` ← `crt0.s`, `strcpy` ← `asm_string.s`, `set_bkg_palette` ← `cgb.s`, `set_bkg_tiles` ← `set_bk_t.s` + `set_xy_t.s`, the SDCC `mul` runtime). Stock output does **not** match on its own: LSDj's build also ran peephole rules that stock 2.95-3 lacks |
-| Matched real LSDj functions? | **Yes — seven**, in four banks: a message renderer, two wrappers, a 15-case `switch`, a sparse `switch`, a 16-bit SRAM accessor, a two-branch draw helper. `make match` re-verifies them all in ~3 s, and **their bytes in the ROM build come from the compiled C** (below) |
+| Matched real LSDj functions? | **Yes — ten**, in four banks: a message renderer, two wrappers, a 15-case `switch`, a sparse `switch`, a 16-bit SRAM accessor, a two-branch draw helper. `make match` re-verifies them all in ~3 s, and **their bytes in the ROM build come from the compiled C** (below) |
 | Is all of LSDj C? | **No.** ~130 functions (7% of the instructions) are hand-written assembly — the interrupt handlers, sound tick, envelope/pitch and tile-loader code in bank 0, and the sequencer core in bank `$02` (`tools/match/code_kind.py`). Those stay asm; the ~830 others (every editor) are Track 2 targets |
 | Go/no-go on Track 2? | **Go, with the rule set still growing.** Every function tried has matched (each new one has cost a few rules so far), the C feeds the ROM build with `make compare` as the gate, and the hand-written asm (7%) is mapped and excluded |
 
@@ -23,8 +23,10 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 | `DrawMessageBar` | `$01:$74F7` | 198 B | globals, `sfr` HRAM stores, two loops, calls | [`c/bank01/DrawMessageBar.c`](../c/bank01/DrawMessageBar.c) |
 | `ShowOutOfMemory`, `ShowTapAddChain` | `$01:$75BD`, `$01:$75F8` | 10 B each | one-line wrappers, 16-bit argument | [`c/bank01/ShowMessages.c`](../c/bank01/ShowMessages.c) |
 | `ScreenDrawDispatch` | `$00:$254F` | 252 B | 15-case `switch` → `jp hl` table, bank switching, cross-bank calls | [`c/bank00/ScreenDrawDispatch.c`](../c/bank00/ScreenDrawDispatch.c) |
-| `ReadInstrByte` | `$00:$0A91` | 81 B | byte args, pointer local, 16-bit shift loop, asserts, return value | [`c/bank00/ReadInstrByte.c`](../c/bank00/ReadInstrByte.c) |
+| `ReadInstrByte` | `$00:$0A91` | 81 B | byte args, pointer local, 16-bit shift loop, asserts, return value | [`c/bank00/InstrByte.c`](../c/bank00/InstrByte.c) |
 | `DrawTileHexCell` | `$06:$7524` | 130 B | consecutive updates of a stack local, sign test, `-t`, pointer table | [`c/bank06/DrawTileHexCell.c`](../c/bank06/DrawTileHexCell.c) |
+| `WriteInstrByte`, `ReadCurInstrByte` | `$00:$0953`, `$00:$0AE2` | 102 B, 20 B | 3-arg call, compound assert, `p + (unsigned int)field`; a one-line forwarder | [`c/bank00/InstrByte.c`](../c/bank00/InstrByte.c) |
+| `ReadSeqByte` | `$00:$0AF6` | 94 B | `?:` on bit 7 of a call result | [`c/bank00/ReadSeqByte.c`](../c/bank00/ReadSeqByte.c) |
 | `DrawSyncField` | `$1B:$58B1` | 262 B | sparse `switch` (`cp` chain), if/else, a pointer local chosen by a condition, 4-arg calls | [`c/bank1b/DrawSyncField.c`](../c/bank1b/DrawSyncField.c) |
 
 ```sh
@@ -77,7 +79,7 @@ behaviour looks less like text rules and more like the code generator tracking
 what `a` holds; the textual rules reproduce it for the shapes seen so far.
 Expect `lsdj.peep` to keep growing: `DrawMessageBar` needed 6 rules,
 `DrawTileHexCell` added 10, `ReadInstrByte` 2, `DrawSyncField` 11 (ten of
-them the compare-chain positions), the other three none.
+them the compare-chain positions); the other six needed none.
 
 Two limits of SDCC 2.2.1's own rule matcher shaped how the rules are applied:
 a `%n` variable never spans a comma (`cp %1` cannot match `cp a,#1`), and a
@@ -133,7 +135,12 @@ stub, GBDK library routines, and bank `$02`'s note/period/sequencer core
 - **Empty `case N: break;`** produce their own `jp end` trampolines in source
   order — the ROM has them, so spell the empty cases out.
 - **16-bit shifts need the promotion**: `(unsigned int)instr << 4` is the
-  `rl c / rl b` loop; `instr << 4` alone is shifted in 8 bits.
+  `rl c / rl b` loop; `instr << 4` alone is shifted in 8 bits. Likewise
+  `p + field` and `p + (unsigned int)field` are different code (hl/de add vs
+  the byte extended into bc first); the ROM uses both.
+- **Zero tests**: `x == 0` on a stack byte is `ld a,(hl); or a,a`, `!x` is
+  `xor a; or a,(hl)`; on a pointer target `!*p` is direct and `*p == 0` goes
+  through a trampoline.
 - **Statement shape is codegen shape**: `t = v + 1; t >>= 2; t -= 9;` (one
   store, thanks to the dead-store rules) vs `t = ((v+1) >> 2) - 9` (shift in
   `b`); `if (!x)` / `if (t & 0x80)` test in place, `x == 0` / `t < 0` go
