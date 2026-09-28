@@ -3,7 +3,7 @@
 55D1 TxtCannotClone             ; "CANNOT CLONE"
 571F TxtClonedTable04   ; "CLONED TABLE"
 7D49 TxtCancelSelect04  ; "CANCEL SELECT"
-50D8 PhraseAttrHighlight ; CGB tile-attribute row (CopyToBgTilemap -> VRAM bank1) highlighting phrase columns; one of a group ($50D8/$50E5/$50F2)
+50D8 PhraseAttrHighlight ; CGB tile-attribute row (set_bkg_tiles -> VRAM bank1) highlighting phrase columns; one of a group ($50D8/$50E5/$50F2)
 ; ($54E3 all-$01 table -- left unnamed pending RE of its indexing)
 
 ; Bank $04 -- Phrase screen. phrase[wPhrase][16] in 4 SRAM columns: notes $A000

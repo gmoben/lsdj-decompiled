@@ -328,7 +328,8 @@ throughout. Clusters named:
 - **Video/UI/OAM**: `DrawFormat` (printf, 23 callers) + `DrawNumber`, `DrawTempo`
   (+ `GetTempoTimerValue`, var `wTempoMode`), `DrawPulseDuty`, `ShowMessage`
   (47 callers), `SetOAMByte`, the marker-sprite `SetSprite*`/`ClearMarkerSprites`,
-  `RedrawScreen`, `ResetScreenSprites`, `CopyToBgTilemap`, `ClearBgTilemap`,
+  `RedrawScreen`, `ResetScreenSprites`, `CopyToBgTilemap` (since identified as
+  GBDK's `set_bkg_tiles`), `ClearBgTilemap`,
   `SwitchToDoubleSpeed`.
 - **Dynamic VRAM tile loader** (`$CBE1-$CBFC` LCD-off subsystem, confirmed at
   runtime to build a `$CBE6` request table of source pointers like bank-2 `$462A`):
@@ -521,7 +522,8 @@ register-computed sites whose back-scan yields an impossible `≥$8000`), and li
 every target with no label — **the precise indirect worklist** (46→ and
 shrinking), each with its caller sites for context. First names off it:
 `RedrawScreen` (`$24dd`, the 18-caller full-screen repaint that dispatches
-per-screen draw by `wCurrentScreen`), `CopyToWindowTilemap` (`$39e1`),
+per-screen draw by `wCurrentScreen`), `CopyToWindowTilemap` (`$39e1`; since
+identified as GBDK's `.set_xy_wtt`, now `set_xy_wtt`),
 `InitScreenPalettes` (`$1E:$7aa0`), and the `ShowMessage` wrappers
 `ShowOutOfMemory`/`ShowTapAddChain` (a whole sub-class: `ld hl,Txt…; push hl;
 call ShowMessage; ret` → name `Show<TxtName>`).

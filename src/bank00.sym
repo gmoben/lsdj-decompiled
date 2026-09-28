@@ -111,8 +111,8 @@
 332B CopyTileData       ; copy a queued tile's 16-byte graphics to VRAM tile data ($9000 + $CBE1*16), rSTAT-gated (falls into the $32AD copy loop)
 33D5 ReinitDisplay      ; ensure LCD on with standard rLCDC config (cycle off via display_off if needed; BG on, $9800 map, $8800 tiles) + ResetTileLoader
 33EC ResetTileLoader    ; reset tile-loader state: clear $CBF7/$CBF8, set wTileLoadNow=2 (immediate-copy mode)
-39CD CopyToBgTilemap    ; copy a tile block from a source ptr into the active BG tilemap (stack args: col, row, src, len) -> CopyToBgTilemapCore
-39F2 CopyToBgTilemapCore ; worker: dest = active BG map ($9800/$9C00 per rLCDC bit3) at (col d,row e); rSTAT-gated byte copy from bc
+39CD set_bkg_tiles      ; GBDK set_bkg_tiles(x, y, w, h, tiles) (set_bk_t.s, byte-exact): unpack the stack args -> set_xy_btt
+39F2 set_xy_btt         ; GBDK .set_xy_btt (set_xy_t.s): BG map base from rLCDC bit3 ($9800/$9C00), then set_xy_tt
 ; --- defensive checks ---
 0953 WriteInstrByte     ; write value (sp+8, <4) to instruments[instr][field]: bank1 $B080 + instr*$10 + field
 0A91 ReadInstrByte      ; read instruments[instr][field]: SRAM bank1 $B080 + instr*$10 + field (asserts instr<$40, field<$10)
@@ -221,7 +221,7 @@
 
 ; --- indirect (FarCall) targets, resolved by tools/farcall_targets.py ---
 24DD RedrawScreen ; full screen repaint: ResetScreenSprites, ClearBgTilemap (CGB), then dispatch per-screen draw handlers by wCurrentScreen (18+ FarCall sites)
-39E1 CopyToWindowTilemap ; pick window tilemap base from rLCDC bit6 ($9800/$9c00), tail-call CopyToBgTilemapCore
+39E1 set_xy_wtt         ; GBDK .set_xy_wtt (set_xy_t.s): window map base from rLCDC bit6 ($9800/$9C00), then set_xy_tt
 1FD5 CheckRomChecksum ; sum ROM bytes vs header global checksum ($014E/$014F) -- SRAM/boot self-test path
 154B ReadSongByteDi ; di + SRAM enable + bank select + read + reti (unreferenced variant of ReadSongByte)
 34E9 SendSyncHandshakeByte ; alt-entry into SendSyncHandshake with hl=arg (unreferenced)
@@ -437,9 +437,9 @@
 396C .loop                ; loop head in DelayLoop
 398C .loop                ; loop head in delay
 39BE .loop2               ; loop head in delay
-3A09 .loop                ; loop head in CopyToBgTilemapCore
-3A15 .loop2               ; loop head in CopyToBgTilemapCore
-3A32 .done                ; common exit of CopyToBgTilemapCore
+3A09 .loop                ; loop head in set_xy_tt
+3A15 .loop2               ; loop head in set_xy_tt
+3A32 .done                ; common exit of set_xy_tt
 
 ; --- structural local names (loop heads / common exits) ---
 1E28 .notSong             ; wButtons == case in SyncTickLSDJ
@@ -906,6 +906,6 @@
 39B8 .readSTAT
 39ED .cont
 39FE .cont
-3A01 .cont_2
+3A01 set_xy_tt          ; GBDK .set_xy_tt (set_xy_t.s): copy a w x h tile block from bc to (x d, y e) of the map at hl, rSTAT-gated
 3A0D .readSTAT
 0300 VibOffsetJumps             ; jp-hl dispatch table of per-shape vibrato-offset fragments (SndCalcVibOffset via $0300)
