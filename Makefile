@@ -50,9 +50,35 @@ CARVED_ASM := $(wildcard src/bank*.sym)
 carve: | $(BASEROM)
 	tools/carve_clean.py
 
+# --- Matching C (Track 2) --------------------------------------------------
+# Functions under c/bankNN/*.c compile byte-for-byte with the period GBDK
+# 2.95-3 / SDCC 2.2.1 (under Wine; tools/toolchain/fetch_gbdk295.sh) plus
+# tools/match/lsdj.peep. `make match` verifies them all, writes their bytes to
+# build/c/ and the manifest c/matched.json; the carve then renders those ROM
+# ranges as INCBINs of the compiled bytes -- so the C is the source of those
+# bytes and a C file that stops matching fails the build. Without wine the
+# same ranges INCBIN the ROM, so `compare` works everywhere.
+C_SRCS := $(wildcard c/bank*/*.c)
+C_TOOLS := tools/match/verify_all.py tools/match/match_function.py tools/match/peep.py tools/match/lsdj.peep
+HAVE_C_TOOLCHAIN := $(shell command -v wine >/dev/null 2>&1 && { test -f toolchain/gbdk-2.95-3/bin/sdcc.exe || test -f toolchain/gbdk-2.95/bin/sdcc.exe; } && echo 1)
+ifeq ($(HAVE_C_TOOLCHAIN),1)
+C_STAMP := $(BUILD)/c/.stamp
+# Not an intermediate: `.SECONDARY:` above makes every target one, and make
+# would then never rebuild a *missing* stamp whose dependents look up to date.
+.NOTINTERMEDIATE: $(C_STAMP)
+$(C_STAMP): $(C_SRCS) $(C_TOOLS) $(CARVED_ASM) | $(BASEROM)
+	@mkdir -p $(@D)
+	tools/match/verify_all.py --write $(BUILD)/c
+	@touch $@
+endif
+
+match: | $(BASEROM)
+	tools/match/verify_all.py --write $(BUILD)/c
+	@mkdir -p $(BUILD)/c && touch $(BUILD)/c/.stamp
+
 # Auto-carve on a fresh clone: main.asm is the linker entry point; if it is
 # missing, generate the whole tree first.
-src/main.asm: $(CARVED_ASM) tools/carve_clean.py tools/gen_main.py | $(BASEROM)
+src/main.asm: $(CARVED_ASM) tools/carve_clean.py tools/gen_main.py c/matched.json $(C_STAMP) | $(BASEROM)
 	tools/carve_clean.py
 
 # --- Assemble + link + fix -------------------------------------------------
@@ -113,15 +139,6 @@ compare: $(TARGET) | $(BASEROM)
 	@printf '%s  %s\n' "$(ROM_SHA1)" "$(TARGET)" | sha1sum -c -
 	@echo "==> compare OK: build matches the original ROM byte-for-byte."
 
-# --- Matching C (Track 2) --------------------------------------------------
-# Compile every c/bankNN/*.c with the period GBDK 2.95-3 / SDCC 2.2.1 (under
-# Wine; tools/toolchain/fetch_gbdk295.sh) plus tools/match/lsdj.peep, link each
-# function at its ROM address and assert the bytes are identical. Not part of
-# `compare` (needs wine); the C sources are the regression suite for the
-# recovered compiler model.
-match: | $(BASEROM)
-	tools/match/verify_all.py
-
 # Confirm a supplied base ROM is the exact expected revision.
 verify-rom: | $(BASEROM)
 	@printf '%s  %s\n' "$(ROM_SHA1)" "$(BASEROM)" | sha1sum -c -
@@ -132,9 +149,10 @@ baseline: | $(BASEROM)
 	tools/gen_baseline.py $(BASEROM) -o src/main.asm
 
 # --- Housekeeping ----------------------------------------------------------
-# `clean` also removes the deployed root symbol copy (.emu/ is gitignored runtime).
+# `clean` also removes the deployed root symbol copy (.emu/ is gitignored
+# runtime) and the generated disassembly, which may INCBIN build/c/ bytes.
 clean:
-	rm -rf $(BUILD) $(ROMSYM)
+	rm -rf $(BUILD) $(ROMSYM) src/bank*.asm src/main.asm src/ramsections.asm
 
 tidy:
 	rm -f $(OBJ) $(BUILD)/rgbdscheck.o $(SYM) $(MAP) $(ROMSYM)

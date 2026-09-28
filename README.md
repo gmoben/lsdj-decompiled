@@ -26,10 +26,11 @@ Current state:
   classifies as fill/text/graphics, with no code-like bytes unexplained. Known
   fidelity gaps — e.g. bank 0's bank-switched call targets still printed as raw
   addresses — are listed in [`docs/reversal.md`](docs/reversal.md) → *Current status*
-- matching C works: six LSDj functions in [`c/`](c) — a message renderer, a
-  15-case `switch`, a 16-bit SRAM accessor, … — compile byte-for-byte with the
+- matching C works: seven LSDj functions in [`c/`](c) — a message renderer,
+  two `switch`es, a 16-bit SRAM accessor, … — compile byte-for-byte with the
   original GBDK 2.95-3 / SDCC 2.2.1 plus peephole rules recovered from the
-  ROM, LSDj's "modified GBDK" (`make match`; see
+  ROM, LSDj's "modified GBDK", and the ROM build takes those functions' bytes
+  from the compiled C (`make match`; see
   [`docs/toolchain.md`](docs/toolchain.md)). About 130 functions — the sound
   tick and sequencer core — are hand-written asm and stay that way
 
@@ -129,10 +130,10 @@ The project runs on **two tracks** (details in [`AGENTS.md`](AGENTS.md)):
 
 Track 2 is gated behind a **toolchain-recovery spike**: pin a period-correct
 GBDK 2.95 + SDCC and reproduce real LSDj functions byte-for-byte before
-committing to C. The spike has its first matches — six functions, with 28
-recovered peephole rules — so it's a provisional go, pending a large editor
-function and a way to feed C into the RGBDS build. See
-[`docs/toolchain.md`](docs/toolchain.md) for status, and try it:
+committing to C. That spike is done: seven functions match, the recovered
+compiler model is 39 peephole rules with ROM-wide evidence, and matched C
+feeds the ROM build (`INCBIN` of the compiled bytes, gated by `make compare`).
+See [`docs/toolchain.md`](docs/toolchain.md), and try it:
 
 ```bash
 tools/toolchain/fetch_gbdk295.sh     # period toolchain (needs curl, unzip, wine)
@@ -154,7 +155,8 @@ lsdj-decompiled/
 │   ├── ramsections.asm   # generated named RAM sections (git-ignored)
 │   └── main.asm          # generated top level (git-ignored)
 ├── c/
-│   └── bankNN/*.c        # matching C (byte-identical under the period compiler)
+│   ├── bankNN/*.c        # matching C (byte-identical under the period compiler)
+│   └── matched.json      # the C-owned ROM ranges (written by make match)
 ├── include/
 │   └── hardware.inc      # standard GB hardware definitions (gbdev, CC0)
 ├── constants/            # symbolic constants
@@ -217,7 +219,7 @@ make verify-rom # check your supplied ROM is the right revision
 make sym        # emit the BANK:ADDR symbol file for emulator debugging
 make listing    # emit build/listing.asm — the whole ROM as one annotated file
 make audit      # diff a pasted debugger export (emulicious.out) vs our symbols
-make match      # compile c/bankNN/*.c with the period compiler, assert byte-identical (needs wine)
+make match      # compile c/bankNN/*.c with the period compiler, assert byte-identical, write build/c/ (needs wine)
 make clean      # remove build/
 ```
 

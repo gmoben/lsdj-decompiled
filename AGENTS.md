@@ -125,9 +125,9 @@ asm functions (sound tick, sequencer core) stay asm. See
 | `tools/show_func.py`, `annotate_ram.py`, `statevar.py`, `bankmap.py` | Inspection helpers (dump a function, annotate a RAM dump, …) |
 | `tools/emu/` | SameBoy-based live-verification harness (see `tools/emu/README.md`) |
 | `tools/toolchain/` | Fetch + run the period GBDK 2.95-3 / SDCC 2.2.1 under Wine |
-| `tools/match/` | Track 2: `match_function.py --target` (compile C, link at the ROM address, diff), `verify_all.py` (`make match`), `code_kind.py` (which functions are C vs hand-written asm) |
+| `tools/match/` | Track 2: `match_function.py --target` (compile C, link at the ROM address, diff), `verify_all.py` (`make match`), `peep.py` (our peephole matcher), `code_kind.py` (which functions are C vs hand-written asm) |
 | `tools/match/lsdj.peep` | Peephole rules recovered from LSDj's code — the "modified GBDK" part (`docs/toolchain.md`) |
-| `c/bankNN/*.c` | **Matching C** sources: byte-identical to the ROM when compiled with the period toolchain + `lsdj.peep`; verified by `make match`, not yet linked into the ROM build |
+| `c/bankNN/*.c` | **Matching C** sources: byte-identical to the ROM when compiled with the period toolchain + `lsdj.peep`. Their bytes feed the ROM build (`c/matched.json`, written by `make match`, lists the C-owned ranges; the carve INCBINs `build/c/` or the ROM) |
 | `tools/gen_baseline.py` | Historical one-time bootstrap baseline generator |
 | `.githooks/pre-commit` | ROM-leak guard + `make compare` |
 
@@ -143,7 +143,7 @@ make carve      # force-regenerate src/bankNN.asm + src/main.asm (tools/carve_cl
 make sym        # enrich build/lsdj9_4_0.sym (code+RAM+SRAM) and deploy it (+ a sections-only .map) beside the ROMs
 make listing    # build/listing.asm: the whole ROM as one annotated file
 make audit      # diff a pasted Emulicious export (emulicious.out) against our symbols
-make match      # compile every c/bankNN/*.c with the period compiler and assert it matches the ROM (needs wine)
+make match      # compile every c/bankNN/*.c with the period compiler, assert it matches, write build/c/ + c/matched.json (needs wine)
 make clean      # remove build/ (and the deployed root .sym); `make tidy` removes only link outputs
 make baseline   # historical: the original INCBIN bootstrap — clobbers src/main.asm
 ```
@@ -194,6 +194,27 @@ Tips:
 - Consult [Pan Docs](https://gbdev.io/pandocs/) for hardware/memory-map context
   and the [GB Complete Technical Reference](https://gekkio.fi/files/gb-docs/gbctr.pdf)
   for exact instruction semantics/timing when analysing a routine.
+
+### The matching-C workflow (Track 2)
+
+1. Pick a C-tagged function (`tools/match/code_kind.py --list` shows the
+   asm-tagged ones to avoid); read its disassembly (`tools/show_func.py`).
+2. Write it in `c/bankNN/Name.c` (one file per function or small group; the
+   file's function names must be `src/*.sym` names) following
+   `docs/toolchain.md` → *Writing C that matches*, and iterate with
+   `tools/match/match_function.py --c FILE --target Name` (`--show-asm`,
+   `--dump` for a full byte diff, `--stock` to see what the rules do).
+3. When a remaining difference is a compiler behaviour rather than a source
+   form, add a rule to `tools/match/lsdj.peep` **only with ROM-wide evidence**
+   (count the stock "before" shape and the rewritten shape over the code
+   banks, as in `docs/toolchain.md`), then `make match` to confirm every earlier
+   function still matches.
+4. `make compare` (which now runs `make match`'s compile when Wine is present)
+   must stay green; commit the C, the `.sym` fixes it uncovered, and
+   `c/matched.json`.
+
+Keep work-in-progress C outside `c/` (e.g. `/tmp`): a non-matching file under
+`c/` fails the build by design.
 
 ### The disassembler (`tools/disasm.py`)
 
@@ -400,8 +421,10 @@ Always, before committing:
 - [x] Map what is C at all: `tools/match/code_kind.py` — ~130 functions are
       hand-written asm (sound tick, envelope/pitch, tile loader, sequencer core)
 - [ ] Match a large editor function (a screen input handler) to grow the rule set
-- [ ] Decide how matched C enters the RGBDS build; go/no-go on Track 2
-      (provisional go)
+- [x] Matched C feeds the RGBDS build: `make match` writes the bytes, the carve
+      INCBINs them (ROM slice without Wine), `make compare` is the gate
+- [x] Go/no-go on Track 2: **go** — seven functions in four banks; the rule set
+      still grows with new functions (`docs/toolchain.md`)
 
 **Phase 2 — asm skeleton (Track 1)**
 - [x] Byte-exact SM83→RGBDS disassembler (`tools/disasm.py`, opcode self-test)
@@ -474,9 +497,12 @@ Always, before committing:
       `$D480`, and the ramp table at `$00:$09B9`; resolve the ~13 `TBD` RAM roles
 
 **Phase 6 — Matching C decompilation (Track 2, if green-lit by Phase 1)**
-- [ ] Per-translation-unit match workflow (objdiff-style byte diff vs ROM)
+- [x] Per-function match workflow (`match_function.py --target`, `make match`)
 - [ ] Reproduce the original bank/link layout under the recovered toolchain
-- [ ] Replace asm functions with matching C, keeping `make compare` green
+      (only needed to build banks from C wholesale)
+- [x] Replace asm functions with matching C, keeping `make compare` green —
+      the mechanism is in place (seven functions); now it is a grind: bank by
+      bank, editor code first, asm functions stay asm
 - [ ] Recover C structures/types toward a full, readable C source tree
 
 ## References

@@ -13,7 +13,8 @@ all code disassembled with meaningful labels, all data structured.
 | Functions | every entry has a behavioral name; no global auto-labels |
 | Symbols (`make sym` output) | 8,723: 1,833 ROM globals, 6,045 function-local labels, 808 WRAM/HRAM, 37 SRAM |
 | Referenced data (`tools/data_refs.py`) | every operand-referenced ROM data address labeled |
-| C vs hand-written asm (`tools/match/code_kind.py`) | 678 functions clearly C, 149 ambiguous leaves, 132 hand-written asm (7% of instructions: bank 0's interrupt/sound-tick/tile-loader code, bank `$02`'s sequencer core); six functions matched in C so far ([`toolchain.md`](toolchain.md)) |
+| C vs hand-written asm (`tools/match/code_kind.py`) | 678 functions clearly C, 149 ambiguous leaves, 132 hand-written asm (7% of instructions: bank 0's interrupt/sound-tick/tile-loader code, bank `$02`'s sequencer core) |
+| Matching C ([`toolchain.md`](toolchain.md)) | seven functions in four banks are C in `c/`; their bytes in the ROM build come from the compiled C (`INCBIN` of `build/c/`, ROM slice without Wine) |
 
 Known gaps — asm fidelity/readability, none affect the bytes:
 
@@ -493,7 +494,8 @@ deferred tables below). Named intuitively (never `Lut<addr>`):
 - display tables: `NoteNames` (chromatic), `ChannelNames` (song),
   `SineTable`/`SynthDispatchJumps` (synth),
   `WaveSourceNames`/`InstrOptionNames`/`InstrParamJumps` (instrument),
-  `AlnumChars`/`TxtClockLabels`/`CloneModeNames`/`SyncModeNames` (project), and
+  `AlnumChars`/`TxtClockLabels`/`CloneModeNames`/`SyncModeNames` (project; the
+  last since split into `TxtSyncOff`…`TxtSyncAnOut`, six separate strings), and
   ~50 UI message strings (`TxtCopiedInstr`, `TxtOutOfMemory`, …; cross-bank
   duplicates get a bank/`2` suffix since the link is one namespace).
   (Three names from this pass were later corrected when their readers were

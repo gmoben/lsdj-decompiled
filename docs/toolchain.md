@@ -9,12 +9,12 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 
 | Question | Answer |
 |----------|--------|
-| What compiled LSDj? | **GBDK 2.95-3** (19 Aug 2000) → **SDCC 2.2.1** (`gbz80` target), default `asxxxx` assembler/linker, small memory model — **plus extra peephole rules** (the "modified GBDK"; 28 rules in five families recovered so far, below) |
+| What compiled LSDj? | **GBDK 2.95-3** (19 Aug 2000) → **SDCC 2.2.1** (`gbz80` target), default `asxxxx` assembler/linker, small memory model — **plus an accumulator-tracking optimisation stock SDCC lacks** (the "modified GBDK"), modelled here as 39 peephole rules in six families (below) |
 | Can we run it today? | **Yes** — the period `sdcc.exe` runs under **Wine** (32-bit PE; re-verified on wine-11.17); `tools/toolchain/fetch_gbdk295.sh` downloads it |
 | Is it the right toolchain? | **Yes, for the code generator**: LSDj's instruction selection, register allocation and frame idioms are SDCC 2.2.1's line for line, and GBDK 2.95 library code in the ROM is byte-identical to its sources (`display_off` ← `crt0.s`, `strcpy` ← `asm_string.s`, `set_bkg_palette` ← `cgb.s`, `set_bkg_tiles` ← `set_bk_t.s` + `set_xy_t.s`, the SDCC `mul` runtime). Stock output does **not** match on its own: LSDj's build also ran peephole rules that stock 2.95-3 lacks |
-| Matched real LSDj functions? | **Yes — six**, in three banks: a message renderer, two wrappers, a 15-case `switch`, a 16-bit SRAM accessor, a two-branch draw helper. `make match` re-verifies them all in ~3 s |
+| Matched real LSDj functions? | **Yes — seven**, in four banks: a message renderer, two wrappers, a 15-case `switch`, a sparse `switch`, a 16-bit SRAM accessor, a two-branch draw helper. `make match` re-verifies them all in ~3 s, and **their bytes in the ROM build come from the compiled C** (below) |
 | Is all of LSDj C? | **No.** ~130 functions (7% of the instructions) are hand-written assembly — the interrupt handlers, sound tick, envelope/pitch and tile-loader code in bank 0, and the sequencer core in bank `$02` (`tools/match/code_kind.py`). Those stay asm; the ~830 others (every editor) are Track 2 targets |
-| Go/no-go on Track 2? | **Provisional go.** Every function tried so far has been matched; the compiler model is still growing (each of the last two functions needed new rules), and how C gets into the RGBDS build is undecided |
+| Go/no-go on Track 2? | **Go, with the rule set still growing.** Every function tried has matched (each new one has cost a few rules so far), the C feeds the ROM build with `make compare` as the gate, and the hand-written asm (7%) is mapped and excluded |
 
 ## Matched functions
 
@@ -25,6 +25,7 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 | `ScreenDrawDispatch` | `$00:$254F` | 252 B | 15-case `switch` → `jp hl` table, bank switching, cross-bank calls | [`c/bank00/ScreenDrawDispatch.c`](../c/bank00/ScreenDrawDispatch.c) |
 | `ReadInstrByte` | `$00:$0A91` | 81 B | byte args, pointer local, 16-bit shift loop, asserts, return value | [`c/bank00/ReadInstrByte.c`](../c/bank00/ReadInstrByte.c) |
 | `DrawTileHexCell` | `$06:$7524` | 130 B | consecutive updates of a stack local, sign test, `-t`, pointer table | [`c/bank06/DrawTileHexCell.c`](../c/bank06/DrawTileHexCell.c) |
+| `DrawSyncField` | `$1B:$58B1` | 262 B | sparse `switch` (`cp` chain), if/else, a pointer local chosen by a condition, 4-arg calls | [`c/bank1b/DrawSyncField.c`](../c/bank1b/DrawSyncField.c) |
 
 ```sh
 make match                      # every c/bankNN/*.c linked at its ROM address and compared
@@ -33,7 +34,12 @@ tools/match/match_function.py --c c/bank01/DrawMessageBar.c --target DrawMessage
 ```
 
 The C sources are the regression suite for the compiler model: a rule change
-that breaks an earlier match shows up in `make match`.
+that breaks an earlier match shows up in `make match` — and in `make compare`,
+since the build takes those functions' bytes from the compiled C (see *How
+matched C enters the build*). Matching `DrawSyncField` also fixed the symbol
+map: its second half had been labelled as a separate routine
+(`DrawSyncModeField`), but the `push bc` there is an argument push and the
+`pop bc; ret` is `DrawSyncField`'s epilogue.
 
 ## The "modified GBDK": recovered peephole rules
 
@@ -52,6 +58,7 @@ common (byte-pattern counts over banks `$01`-`$07`, `$1B`-`$1F`):
 | Reload of a computed value | *ALU op*; `ld (hl),a`; `ld a,(hl)` → reload dropped; **kept** after a pointer read (`ld a,(de)`; `ld hl,sp+N`; `ld (hl),a`; `ld a,(hl)` survives 30/30) | 0 | 31 |
 | Dead stores | `ld X,a`; *a-only ops*; `ld X,a` → first store dropped (X a register or `(hl)`, also when the first store is followed by its reload) | 0 | (small; e.g. `and 3; add a,a; ld c,a` ×2) |
 | Constant reuse | `ld a,N` / `push af; inc sp` / `ld a,N` → reload dropped, also across `ldh (n),a` + `ld hl,nn; push hl`; `xor a` / `ld hl,sp+N` / `ld a,#0` → reload dropped | 0 | 10, 5, 2 |
+| Compare chains | a sparse `switch` re-reads its global before every `cp` in stock output; LSDj loads it once (one rule per chain position, so the pattern always carries the variable). SDCC's `==` trampoline `jp cc,T; jr F; T: jp X; F:` → `jp cc,X` (the only survivor in the ROM is inside GBDK's stock-compiled `gprintf`) | 0, 1 (library) | 72 |
 
 The one register reload LSDj keeps without a label in the way is
 `ld a,(bc); ld c,a; ld a,c` (`DrawTileHexCell`, `$06:$7553`): the pointer
@@ -69,7 +76,17 @@ not (46 survive), so LSDj's set is its own. The dead-store and reload-after-ALU
 behaviour looks less like text rules and more like the code generator tracking
 what `a` holds; the textual rules reproduce it for the shapes seen so far.
 Expect `lsdj.peep` to keep growing: `DrawMessageBar` needed 6 rules,
-`DrawTileHexCell` added 10, `ReadInstrByte` 2, the other three none.
+`DrawTileHexCell` added 10, `ReadInstrByte` 2, `DrawSyncField` 11 (ten of
+them the compare-chain positions), the other three none.
+
+Two limits of SDCC 2.2.1's own rule matcher shaped how the rules are applied:
+a `%n` variable never spans a comma (`cp %1` cannot match `cp a,#1`), and a
+source line is compared *with* its trailing comment (`ld a,(hl) ; 2`), which
+no rule can name because `;` opens a comment in the rule file. That is one
+more sign LSDj's compiler did this in its code generator, not in text rules.
+The harness therefore applies `lsdj.peep` twice: once inside SDCC
+(`--peep-file`) and once afterwards with our own matcher
+(`tools/match/peep.py`, same syntax, comments stripped).
 
 ## Compiler versions checked
 
@@ -170,6 +187,7 @@ script the tools yourself.
 
 ```
 file.c --[sdcc -mgbz80 -S --peep-file lsdj.peep]--> file.asm
+       --[tools/match/peep.py lsdj.peep]--> file.asm  (rules SDCC's matcher can't apply)
        --[as-gbz80 -l -o]--> file.o + file.lst
 --target NAME|BB:AAAA:
        --[link-gbz80 -i -b_CODE=<addr> -b_HOME=<addr> -g_<sym>=<addr> ...]--> file.ihx
@@ -187,6 +205,24 @@ differing bytes and the listing lines around them; `--dump` writes the linked
 bytes for a full diff. `tools/match/verify_all.py` (`make match`) runs every
 function defined under `c/` the same way.
 
+## How matched C enters the build
+
+`make match` (`tools/match/verify_all.py --write build/c`) compiles every
+`c/bankNN/*.c`, links each function at its ROM address, and on a match writes
+the bytes to `build/c/bankNN/Name.bin` and records the function in the
+tracked manifest `c/matched.json` (bank, address, length, source). The carve
+(`tools/carve_clean.py` → `tools/disasm.py --incbin`) then renders each such
+range not as instructions but as `INCBIN` slices of the compiled bytes — split
+at every symbol inside the range, so `ScreenDrawTable`, `.loop` and friends
+keep their labels and still reach the debugger `.sym`. With Wine and the
+toolchain present, `src/main.asm` depends on those bytes: change a C file and
+`make compare` recompiles it, re-carves, and fails if it no longer matches.
+Without Wine the same ranges `INCBIN` the ROM itself, so `compare` works
+everywhere. `make listing` disassembles the slices back inline.
+
+This is the pret loop for this project: asm functions are replaced by
+matching C one at a time while `make compare` stays green.
+
 ## What's still unknown
 
 1. **The complete rule set.** 28 rules from six functions; the last two
@@ -202,12 +238,8 @@ function defined under `c/` the same way.
    order within a bank, string literals and `const` tables after their
    functions, as `DrawTileHexCell`'s table shows) is only needed to build
    banks from C wholesale.
-4. **Getting C into the build.** `make compare` is RGBDS; C objects are
-   asxxxx. Options: SDCC's `--asm=rgbds` backend (2000-era RGBDS syntax, and
-   the rules would need rgbds-syntax twins), or splicing the linked bytes of
-   each matched function into the generated bank as an `INCBIN` produced by
-   `make match` (falling back to the ROM's bytes when Wine is absent, so
-   `compare` still works everywhere). Not started.
+4. **Building whole banks from C.** Solved per function (below); building a
+   bank from C wholesale would additionally need LSDj's link order.
 
 ## Next steps
 
@@ -216,10 +248,14 @@ function defined under `c/` the same way.
       math + locals + asserts (`ReadInstrByte`), the register-reload exception
       (`DrawTileHexCell`) — all matched; rule set 6 → 28.
 - [x] `make match` regression suite; `code_kind.py` C/asm map.
-- [ ] A large editor function (a screen input handler, 300+ instructions) to
-      shake out more rules in one go.
-- [ ] Decide how matched C enters the RGBDS build (see *unknown 4*), then make
-      the Track 2 go/no-go call.
+- [x] Matched C feeds the ROM build (`INCBIN` of the compiled bytes, ROM slice
+      without Wine; `make compare` is the gate).
+- [x] A larger, branchier function: `DrawSyncField` (262 B).
+- [ ] A screen input handler (300+ instructions) to shake out more rules in one
+      go; then generalise the accumulator-tracking rules into one pass if the
+      per-shape rules keep multiplying.
+- [ ] Grow the C tree bank by bank (editor code first; the asm functions
+      stay asm).
 
 ## References
 

@@ -17,6 +17,7 @@ Usage: tools/carve_clean.py            # re-carve every src/bankNN.asm
 
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 from importlib import import_module
@@ -231,6 +232,30 @@ def merge_ranges(runs: list[tuple[int, int]]) -> list[tuple[int, int]]:
     return out
 
 
+def c_incbins(bank: int) -> list[tuple[int, int, str, int]]:
+    """ROM ranges owned by matching C (c/matched.json, written by `make match`):
+    (lo, hi, path, offset) for disasm.py --incbin. The bytes come from the
+    compiled function (build/c/bankNN/Name.bin) when it is present with the
+    right size, otherwise from the ROM itself -- so the build is identical
+    either way, and a C file that stops matching breaks `make compare`."""
+    manifest = ROOT / "c" / "matched.json"
+    if not manifest.is_file():
+        return []
+    rom_name = os.environ.get("LSDJ_BASEROM", "lsdj9_4_0.gb")
+    out = []
+    for name, m in json.loads(manifest.read_text()).items():
+        if int(m["bank"], 16) != bank:
+            continue
+        addr, n = int(m["addr"], 16), int(m["len"])
+        lo = bank * BANK + (addr - (0x4000 if bank else 0))
+        binf = ROOT / "build" / "c" / f"bank{bank:02x}" / f"{name}.bin"
+        if binf.is_file() and binf.stat().st_size == n:
+            out.append((lo, lo + n, binf.relative_to(ROOT).as_posix(), 0))
+        else:
+            out.append((lo, lo + n, rom_name, lo))
+    return sorted(out)
+
+
 def main() -> None:
     rom = ROM.read_bytes()
     ent = cov.collect_entries(rom)
@@ -251,9 +276,13 @@ def main() -> None:
             cmd += ["--globals", "src/bank00.sym"]
         if data_arg:
             cmd += ["--data", data_arg]
+        incbins = c_incbins(b)
+        if incbins:
+            cmd += ["--incbin", ",".join(f"0x{lo:X}:0x{hi:X}:{p}:0x{off:X}" for lo, hi, p, off in incbins)]
         subprocess.run(cmd, cwd=ROOT, check=True)
         db = sum(e - s for s, e in runs)
-        print(f"bank ${b:02X}: {len(runs)} data run(s), {db} bytes marked db")
+        extra = f", {len(incbins)} function(s) from matching C" if incbins else ""
+        print(f"bank ${b:02X}: {len(runs)} data run(s), {db} bytes marked db{extra}")
 
     subprocess.run(["python3", "tools/gen_main.py"], cwd=ROOT, check=True)
 

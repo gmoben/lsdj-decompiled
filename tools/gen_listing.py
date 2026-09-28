@@ -7,9 +7,39 @@ round-tripping exactly; this concatenates them plus a WRAM/HRAM section built
 from constants/ram.inc, so you get one greppable listing without opening an
 emulator. Regenerate any time with `make listing`.
 
+Functions that now come from matching C are INCBINs in the bank .asm (their
+bytes are the compiled C, or the ROM's); the listing disassembles those bytes
+back inline so the view stays instruction-level.
+
 Usage: tools/gen_listing.py [-o build/listing.asm]
 """
-import argparse, glob, os, re
+import argparse, glob, importlib, os, re, sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+disasm = importlib.import_module("disasm")
+
+INCBIN = re.compile(r'^\tINCBIN "([^"]+)", \$([0-9a-fA-F]+), \$([0-9a-fA-F]+)\s*; \$([0-9a-fA-F]{4})')
+
+
+def expand_incbins(asm_text: str) -> str:
+    """Replace `INCBIN "file", off, len ; $addr` rows (matching-C ranges) with
+    the disassembly of those bytes, so the listing stays readable."""
+    out = []
+    for line in asm_text.splitlines():
+        m = INCBIN.match(line)
+        if not m:
+            out.append(line)
+            continue
+        path, off, n, addr = m.group(1), int(m.group(2), 16), int(m.group(3), 16), int(m.group(4), 16)
+        try:
+            data = open(path, "rb").read()[off:off + n]
+        except OSError:
+            out.append(line)
+            continue
+        rows = disasm.disassemble(data, 0, len(data), addr, [])
+        out.append(f"\t; {n} bytes from {path} (matching C):")
+        out.append(disasm.render(rows, comments=True))
+    return "\n".join(out)
 
 
 def ram_section():
@@ -68,7 +98,7 @@ def main():
     ]
     for p in banks:
         parts.append(f"; {'=' * 72}\n; {os.path.basename(p)}\n; {'=' * 72}")
-        parts.append(open(p).read().rstrip())
+        parts.append(expand_incbins(open(p).read().rstrip()))
     parts.append(ram_section())
     parts.append(sram_section())
     text = "\n".join(parts) + "\n"

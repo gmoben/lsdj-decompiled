@@ -1,0 +1,44 @@
+{
+ "DrawMessageBar": {
+  "bank": "01",
+  "addr": "74F7",
+  "len": 198,
+  "src": "c/bank01/DrawMessageBar.c"
+ },
+ "DrawSyncField": {
+  "bank": "1B",
+  "addr": "58B1",
+  "len": 262,
+  "src": "c/bank1b/DrawSyncField.c"
+ },
+ "DrawTileHexCell": {
+  "bank": "06",
+  "addr": "7524",
+  "len": 130,
+  "src": "c/bank06/DrawTileHexCell.c"
+ },
+ "ReadInstrByte": {
+  "bank": "00",
+  "addr": "0A91",
+  "len": 81,
+  "src": "c/bank00/ReadInstrByte.c"
+ },
+ "ScreenDrawDispatch": {
+  "bank": "00",
+  "addr": "254F",
+  "len": 252,
+  "src": "c/bank00/ScreenDrawDispatch.c"
+ },
+ "ShowOutOfMemory": {
+  "bank": "01",
+  "addr": "75BD",
+  "len": 10,
+  "src": "c/bank01/ShowMessages.c"
+ },
+ "ShowTapAddChain": {
+  "bank": "01",
+  "addr": "75F8",
+  "len": 10,
+  "src": "c/bank01/ShowMessages.c"
+ }
+}

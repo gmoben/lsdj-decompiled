@@ -361,29 +361,49 @@ def _sub_ram_syms(text: str) -> str:
 Row = tuple[int, bytes, str, "int | None"]
 
 
+IncBin = tuple[int, int, str, int]   # (lo, hi) file offsets, source path, offset in it
+
+
 def disassemble(data: bytes, start: int, end: int, org: int,
                 data_ranges: list[tuple[int, int]],
-                anchors: set[int] | None = None) -> list[Row]:
+                anchors: set[int] | None = None,
+                incbins: list[IncBin] | None = None) -> list[Row]:
     """Return decoded rows covering file offsets [start, end).
 
     `anchors` is a set of file offsets that are known code-instruction starts
     (e.g. from a symbol map). The decoder never lets an instruction cross an
     anchor, so it re-syncs there: every anchor becomes a clean boundary, which
-    guarantees labels attach and repairs alignment after embedded data."""
+    guarantees labels attach and repairs alignment after embedded data.
+
+    `incbins` are ranges whose bytes come from another file -- a function that
+    now has matching C (tools/match): the range renders as `INCBIN` slices,
+    split at every anchor inside it so each symbol still gets its label."""
     anchors = anchors or set()
+    incbins = incbins or []
 
     def next_data_edge(o: int) -> int:
         edges = [hi if lo <= o < hi else lo for lo, hi in data_ranges if o < hi]
+        edges += [hi if lo <= o < hi else lo for lo, hi, _p, _f in incbins if o < hi]
         edges += [a for a in anchors if a > o]
         return min((e for e in edges if e > o), default=end)
 
     def in_data(o: int) -> bool:
         return any(lo <= o < hi for lo, hi in data_ranges)
 
+    def in_incbin(o: int) -> IncBin | None:
+        return next((ib for ib in incbins if ib[0] <= o < ib[1]), None)
+
     out: list[Row] = []
     o = start
     while o < end:
         addr = org + (o - start)
+        ib = in_incbin(o)
+        if ib is not None:
+            edge = min(next_data_edge(o), ib[1], end)
+            text = f'INCBIN "{ib[2]}", ${ib[3] + (o - ib[0]):06x}, ${edge - o:04x}'
+            out.append((addr, data[o:edge], text, None))
+            o = edge
+            continue
         if in_data(o):
             edge = min(next_data_edge(o), end)
             out.extend(_emit_data(data, o, edge, addr))
@@ -560,7 +580,8 @@ def build_labels(rows: list[Row], lo: int, hi: int,
     # non-branch address) and never become globals.
     user_locals = {a: n for a, n in symbols.items() if n.startswith(".")}
     symbols = {a: n for a, n in symbols.items() if not n.startswith(".")}
-    instr_addrs = {addr for addr, _raw, text, _ref in rows if not text.startswith("db")}
+    instr_addrs = {addr for addr, _raw, text, _ref in rows
+                   if not text.startswith(("db", "INCBIN"))}
     # Every row-start address (code or data): a user symbol renders on any of
     # these, so a table marked as `db` still gets its label (data labels).
     row_addrs = {addr for addr, _raw, _text, _ref in rows}
@@ -626,9 +647,10 @@ def render(rows: list[Row], comments: bool,
                 # cross-function reference to a local label -> full path
                 tgt = enclosing.get(ref, "") + tgt
             text = text.replace(f"${ref:04x}", tgt)
-        text = _sub_hw_regs(text)
-        text = _sub_ram_syms(text)
-        if comments and not text.startswith('db "'):
+        if not text.startswith("INCBIN"):
+            text = _sub_hw_regs(text)
+            text = _sub_ram_syms(text)
+        if comments and not text.startswith(('db "', "INCBIN")):
             hexb = " ".join(f"{b:02x}" for b in raw)
             lines.append(f"\t{text:<28} ; ${addr:04x}: {hexb}")
         elif comments:
@@ -695,6 +717,9 @@ def main() -> None:
     ap.add_argument("--org", type=lambda s: int(s, 0), help="GB address of --start")
     ap.add_argument("--data", default="",
                     help="comma-separated lo:hi file-offset ranges to emit as db")
+    ap.add_argument("--incbin", default="",
+                    help="comma-separated lo:hi:PATH:OFF ranges to emit as INCBIN "
+                         "from PATH at OFF (a function that has matching C)")
     ap.add_argument("--trace", action="store_true",
                     help="recursive-descent: only decode reachable code as code, "
                          "rest as data (auto-seeds vectors/entry for --bank 0)")
@@ -734,6 +759,10 @@ def main() -> None:
     for part in filter(None, (p.strip() for p in args.data.split(","))):
         lo, hi = (int(x, 0) for x in part.split(":"))
         explicit_data.append((lo, hi))
+    incbins: list[IncBin] = []
+    for part in filter(None, (p.strip() for p in args.incbin.split(","))):
+        lo_s, hi_s, path, off_s = part.split(":")
+        incbins.append((int(lo_s, 0), int(hi_s, 0), path, int(off_s, 0)))
 
     if args.trace:
         seeds: list[int] = []
@@ -761,7 +790,7 @@ def main() -> None:
     # ROMX banks all share $4000-$7FFF, so prefix their auto-labels with the
     # bank to keep them globally unique once every bank is INCLUDEd together.
     prefix = "L" if args.bank in (0, None) else f"L{args.bank:02X}_"
-    rows = disassemble(data, start, end, org, data_ranges, anchors)
+    rows = disassemble(data, start, end, org, data_ranges, anchors, incbins)
     labels = ({} if args.no_labels
               else build_labels(rows, org, org + size, symbols, prefix))
     # Name cross-bank calls into home (bank 0): substitute references to home
