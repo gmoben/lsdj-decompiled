@@ -69,11 +69,12 @@ MANUAL: dict[int, list[tuple[int, int]]] = {
            (0x12E2, 0x12FB), (0x19C5, 0x19E7), (0x1C0C, 0x1C17), (0x1D75, 0x1D7C),
            (0x2A66, 0x2A8D), (0x1716, 0x1725), (0x1B06, 0x1B09), (0x1B56, 0x1B62),
            (0x2FFE, 0x30B8)],
-    # bank 1C: file-screen prompt strings.
-    0x1C: [(0x189F, 0x18C1), (0x1AD6, 0x1B0C), (0x20BE, 0x20CC)],
-    # bank 1C: an [8][8] rising value table ($6E3C) decoded as code, and
-    # DefaultWaveFrameB1C ($4047, 16 bytes -- hides the $4057 magic check).
-    0x1C: [(0x47, 0x57), (0x2E3C, 0x2E7C)],
+    # bank 1C: file-screen prompt strings, an [8][8] rising value table ($6E3C)
+    # decoded as code, and DefaultWaveFrameB1C ($4047, 16 bytes -- hides the
+    # $4057 magic check). (These were two dict entries once; the second silently
+    # replaced the first, so the prompt strings were never marked.)
+    0x1C: [(0x189F, 0x18C1), (0x1AD6, 0x1B0C), (0x20BE, 0x20CC),
+           (0x47, 0x57), (0x2E3C, 0x2E7C)],
     # bank 05: table-screen CUT/COPY strings.
     0x05: [(0x2D5, 0x2E7), (0x249A, 0x24A3), (0x2F38, 0x3208), (0x32A3, 0x343F)],
     # bank 06: sync-status strings + small unreached pairs + " --".
@@ -185,10 +186,49 @@ def data_runs(code: set[int], rom: bytes, bank: int, minlen: int = 4) -> list[tu
             o += 1
         if o - s >= minlen and data_like(rom[s:o]):
             runs.append((s, o))
-    # Union with manual ranges (file offsets).
+    # Union with manual ranges (file offsets) and the named data symbols.
     for ca, cb in MANUAL.get(bank, []):
         runs.append((bank * BANK + ca, bank * BANK + cb))
-    return sorted(runs)
+    runs += data_symbol_ranges(rom, bank, code)
+    return merge_ranges(runs)
+
+
+def data_symbol_ranges(rom: bytes, bank: int, code: set[int]) -> list[tuple[int, int]]:
+    """File-offset extents of the bank's named data symbols (see
+    coverage.is_data_symbol): from the symbol to the next global symbol. The
+    trace no longer seeds these, so without this they would render as whatever
+    their bytes happen to decode to. Safety net: stop early at an unnamed SDCC
+    prologue the trace reached (real code following a table without a label)."""
+    sym = ROOT / "src" / f"bank{bank:02x}.sym"
+    if not sym.is_file():
+        return []
+    rows = cov.read_sym(sym)
+    lo_cpu = 0x4000 if bank else 0
+    globs = sorted({a for a, n, _ in rows if not n.startswith(".")})
+    out: list[tuple[int, int]] = []
+    for addr, name, comment in rows:
+        if not cov.is_data_symbol(name, comment):
+            continue
+        nxt = next((g for g in globs if g > addr), lo_cpu + BANK)
+        s, e = bank * BANK + (addr - lo_cpu), bank * BANK + (nxt - lo_cpu)
+        for o in range(s + 1, e - 1):
+            if o in code and rom[o] in (0xC5, 0xD5, 0xF5) and rom[o + 1] in (0xE8, 0xF8):
+                e = o
+                break
+        if e > s:
+            out.append((s, e))
+    return out
+
+
+def merge_ranges(runs: list[tuple[int, int]]) -> list[tuple[int, int]]:
+    """Sort and coalesce overlapping/adjacent [s, e) ranges."""
+    out: list[tuple[int, int]] = []
+    for s, e in sorted(runs):
+        if out and s <= out[-1][1]:
+            out[-1] = (out[-1][0], max(out[-1][1], e))
+        else:
+            out.append((s, e))
+    return out
 
 
 def main() -> None:

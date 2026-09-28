@@ -22,10 +22,10 @@ Current state:
   left: one byte (`$CB64`) still accessed unnamed, ~40 addresses that appear
   only as raw 16-bit immediates (mostly buffer bases passed to helpers), and
   ~13 named variables whose exact role is marked `TBD`
-- code coverage: 79% of the program banks trace as reachable code and the rest
+- code coverage: 77% of the program banks trace as reachable code and the rest
   classifies as fill/text/graphics, with no code-like bytes unexplained. Known
-  fidelity gaps — e.g. ~100 named strings/tables still rendered as instructions
-  — are listed in [`docs/reversal.md`](docs/reversal.md) → *Current status*
+  fidelity gaps — e.g. bank 0's bank-switched call targets still printed as raw
+  addresses — are listed in [`docs/reversal.md`](docs/reversal.md) → *Current status*
 - matching C works: the first three LSDj functions (`DrawMessageBar` and two
   message wrappers, in [`c/bank01/`](c/bank01)) compile byte-for-byte with the
   original GBDK 2.95 / SDCC 2.2.1 plus peephole rules recovered from the ROM —

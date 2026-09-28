@@ -242,8 +242,10 @@ in `docs/functionality.md`.
   dispatch or cross-bank calls. The canonical carve (`carve_clean.py`) instead
   uses `tools/coverage.py`'s bank-aware global trace, which follows jump tables,
   trampolines and the `FarCall*` helpers, and marks bytes `db` only when they
-  are both unreached and data-like. Caveat: it seeds every `.sym` name as code,
-  so a named data table must also be listed in `MANUAL` to render as data.
+  are both unreached and data-like. Symbols the naming convention marks as
+  data (below) are not seeded and always render as `db` up to the next global
+  symbol; a data table with a name outside the convention must be listed in
+  `carve_clean.py`'s `MANUAL` (or renamed) to render as data.
 - **Re-run `--selftest` after any opcode-table change**, and `make compare`
   after every carve.
 
@@ -255,6 +257,12 @@ in `docs/functionality.md`.
 - **Labels.** `PascalCase` for routines/data (`UpdateSoundChannel`,
   `WaveTableData`); local labels with a leading `.` (`.loop`, `.done`);
   exported/shared symbols use `::`.
+- **Data symbols.** The tools tell data from code by the name/comment in the
+  `.sym`: a `Txt`/`Tiles`/`Default`/`ScreenPal`/`Unused` prefix, a comment
+  that opens with a string literal (`"OUT OF MEMORY..."`) or an `[N]` size
+  tag, or a `*Names` table whose comment quotes its strings
+  (`coverage.is_data_symbol`). Name data that way and it is never traced or
+  rendered as instructions.
 - **Constants.** `SCREAMING_SNAKE_CASE` via `EQU`/`DEF` in `constants/`
   (`rRAMG`, `SOUND_CHANNEL_COUNT`). Use `hardware.inc` names for MMIO registers
   rather than raw `$FFxx` literals.
@@ -445,8 +453,10 @@ Always, before committing:
       WRAM/HRAM variable accessed by memory operand named except `$CB64`
 
 **Phase 5b — Fidelity polish (Track 1; details in `docs/reversal.md` → *Current status*)**
-- [ ] Stop seeding named data as code in `coverage.py` and add those ranges to
-      `MANUAL` (~100 named strings/tables currently render as instructions)
+- [x] Stop seeding named data as code: `coverage.is_data_symbol` (the naming
+      convention below) is skipped by the trace and rendered as `db` by
+      `carve_clean.py` — all 415 named data symbols now render as data
+      (coverage 79% → an honest 77%, still 0 code-like bytes)
 - [ ] Render bank 0's 79 inline-trampoline call targets by name (disasm.py
       tracking the `$2000` bank write, as `coverage.py` already does)
 - [ ] Re-verify/rename the five draw-named per-screen input handlers and

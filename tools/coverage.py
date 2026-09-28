@@ -35,6 +35,35 @@ def fileoff(bank: int, cpu: int) -> int:
     return bank * BANK + (cpu - 0x4000 if bank else cpu)
 
 
+# --- symbol maps (src/bankNN.sym) --------------------------------------------
+
+SYM_LINE = re.compile(r"^\s*\$?([0-9A-Fa-f]{4})\s+([A-Za-z_.][\w.]*)\s*(?:;\s*(.*))?$")
+# The convention that marks a hand-named symbol as *data* (AGENTS.md): a
+# Txt/Tiles/Default/ScreenPal/Unused name, a comment opening with a string
+# literal or an `[N]` size tag, or a `*Names` table whose comment quotes its
+# strings. Everything else is treated as code.
+DATA_NAME = re.compile(r"^(Txt|Tiles|Default|ScreenPal|Unused)")
+DATA_COMMENT = re.compile(r'^("|\[\w+\])')
+
+
+def read_sym(path: Path) -> list[tuple[int, str, str]]:
+    """(cpu address, name, comment) for every entry of a src/bankNN.sym file."""
+    rows: list[tuple[int, str, str]] = []
+    for line in path.read_text().splitlines():
+        m = SYM_LINE.match(line)
+        if m:
+            rows.append((int(m.group(1), 16), m.group(2), (m.group(3) or "").strip()))
+    return rows
+
+
+def is_data_symbol(name: str, comment: str) -> bool:
+    """True if the symbol labels data (a string, table, tile block, filler)."""
+    if name.startswith("."):
+        return False
+    return bool(DATA_NAME.match(name) or DATA_COMMENT.match(comment)
+                or (name.endswith("Names") and '"' in comment))
+
+
 def _ilen(rom: bytes, phys: int) -> int:
     op = rom[phys]
     if op == 0xCB:
@@ -235,19 +264,17 @@ def collect_entries(rom: bytes) -> dict[int, set[int]]:
                             ent[bank].add(v)
             j = rom.find(farcall, j + 1)
 
-    # Hand-named symbols (src/bankNN.sym) are known code starts.
+    # Hand-named symbols (src/bankNN.sym) are known code starts -- except the
+    # ones the naming convention marks as data (strings, tables, tile blocks):
+    # seeding those would walk the table as code and inflate the metric.
     for sym in sorted((ROOT / "src").glob("bank*.sym")):
         m = re.match(r"bank([0-9a-fA-F]{2})\.sym", sym.name)
         if not m:
             continue
         bank = int(m.group(1), 16)
-        for line in sym.read_text().splitlines():
-            line = line.split(";", 1)[0].split()
-            if len(line) >= 2:
-                try:
-                    ent[bank].add(int(line[0].lstrip("$"), 16))
-                except ValueError:
-                    pass
+        for addr, name, comment in read_sym(sym):
+            if not is_data_symbol(name, comment):
+                ent[bank].add(addr)
     return ent
 
 

@@ -9,19 +9,13 @@ all code disassembled with meaningful labels, all data structured.
 | Measure | Now |
 |---------|-----|
 | Byte-for-byte reproduction | ✓ `make compare`, including from a fresh clone + ROM |
-| Reachable code (`tools/coverage.py`) | 79% of the 13 code/data banks (77.8% net of named data seeded as code — see below); the unreached rest classifies as fill/text/graphics, **0** code-like bytes |
+| Reachable code (`tools/coverage.py`) | 77% of the 13 code/data banks (164,955 / 212,992 bytes; named data is not seeded, see below); the unreached rest classifies as fill/text/graphics, **0** code-like bytes |
 | Functions | every entry has a behavioral name; no global auto-labels |
 | Symbols (`make sym` output) | 8,723: 1,833 ROM globals, 6,045 function-local labels, 808 WRAM/HRAM, 37 SRAM |
 | Referenced data (`tools/data_refs.py`) | every operand-referenced ROM data address labeled |
 
 Known gaps — asm fidelity/readability, none affect the bytes:
 
-- **Named data rendered as code.** ~100 named strings/tables (e.g.
-  `TxtCartridgeTest`, `FxCommandTable`, `WaveSourceNames`, the tail of
-  `PitchCurve`) decode as instructions because `coverage.py` seeds every `.sym`
-  name as code and their ranges aren't in `carve_clean.py`'s `MANUAL`. Fix:
-  skip data symbols when seeding (or mark them in the `.sym`) and add their
-  ranges to `MANUAL`.
 - **Raw RAM operands.** One byte is still accessed by a raw memory operand
   (`$CB64`, 3 sites in bank `$1C` near `$7167`); ~40 addresses appear only as
   16-bit immediates — mostly buffer bases handed to helpers (`ld de, $c457`
@@ -78,40 +72,43 @@ control-transfer entry point:
 ### Current coverage
 
 Run `tools/coverage.py` (it seeds from the vectors, trampolines, dispatch tables
-and every name in `src/*.sym`). Current result: **79%** of the code/data banks
-(169,515 / 212,992 bytes) trace as reachable code:
+and every *code* name in `src/*.sym`). Current result: **77%** of the code/data
+banks (164,955 / 212,992 bytes) trace as reachable code:
 
 | bank | code% | | bank | code% |
 |------|-------|-|------|-------|
-| `$00` | 89% | | `$1B` | 76% |
-| `$03` | 89% | | `$1C` | 83% |
-| `$04` | 94% | | `$1D` | 94% |
-| `$05` | 79% | | `$1E` | 14% |
-| `$06` | 89% | | `$1F` | 86% |
-| `$07` | 75% | | `$01`/`$02` | 62% / 98% |
+| `$00` | 88% | | `$1B` | 75% |
+| `$03` | 87% | | `$1C` | 81% |
+| `$04` | 94% | | `$1D` | 92% |
+| `$05` | 76% | | `$1E` | 13% |
+| `$06` | 86% | | `$1F` | 84% |
+| `$07` | 74% | | `$01`/`$02` | 53% / 97% |
 
-That 79% is **of all code/data bank bytes**; the rest is genuinely data.
+That 77% is **of all code/data bank bytes**; the rest is genuinely data.
 `tools/coverage.py` classifies every unreached byte and prints the split — of
-the 43,477 unreached bytes: **25.7 KB `$00`/`$FF` fill + 3.5 KB text/strings +
-14.2 KB graphics/data** (`$1E` is ~90% tile data, hence 14%), and **0 bytes**
+the 48,037 unreached bytes: **25.9 KB `$00`/`$FF` fill + 5.7 KB text/strings +
+16.4 KB graphics/data** (`$1E` is ~90% tile data, hence 13%), and **0 bytes**
 of plausibly-unmodelled code. So **code coverage excluding data is 100%**.
-One caveat on the headline number: the trace seeds *every* `.sym` name as a
-code entry, including named strings/tables that `carve_clean.py`'s `MANUAL`
-list doesn't cover, so ~3.8 KB of data is walked as code — with data-looking
-symbols (`Txt*`/`Tiles*`/`Default*`, quoted or `[N]` comments) left unseeded
-the figure is **77.8%**, still with 0 code-like bytes. The same bytes are why
-~100 named data symbols render as instructions (see *Current status*). (When
-this section was first written the figures were 74% and 616 code-like bytes,
-~8 short functions; the later sweeps below, which named hidden and
-indirectly-reached functions, also seed the trace, since every `.sym` name is
-an entry point.)
+
+**Data symbols are not seeded.** The naming convention marks a symbol as data
+(`Txt*`/`Tiles*`/`Default*`/`ScreenPal*`/`Unused*`, a comment opening with a
+string literal or an `[N]` size tag, or a `*Names` table whose comment quotes
+its strings — `coverage.is_data_symbol`); the trace skips those, and
+`carve_clean.py` renders each one's extent (to the next global symbol) as `db`
+without it having to be listed in `MANUAL`. Until this was done every `.sym`
+name was seeded, which walked ~4.5 KB of tables as code (the figure read 79%)
+and rendered ~100 named strings/tables as instructions; now all 415 named data
+symbols render as data. (When this section was first written the figures were
+74% and 616 code-like bytes, ~8 short functions; the naming sweeps below, which
+found hidden and indirectly-reached functions, also seed the trace.)
 
 The lower banks are legitimately data-heavy: `$1B`/`$1C` (Project/File/Help) are
 string-heavy, and `$01`/`$1E` carry large zero-padded data tables. Progression:
 per-bank 42% → jump tables 56% → bank-aware trace 60% → farcall 68% →
 computed-farcall tables 71% → second farcall helper (`FarCallArg`) 72% →
 fill-stop (honest) 64% → split-load farcall addresses 72% → jp-hl null-guard
-tables 73% → convergent dispatch 74% → (later naming sweeps) **79%**.
+tables 73% → convergent dispatch 74% → (later naming sweeps) 79% → data
+symbols unseeded (honest) **77%**.
 
 Those last three model the instrument editor / sound engine dispatch and lift
 bank `$1F` 12→**84%** and `$02` 78→**96%**:
@@ -628,9 +625,9 @@ from the kit; NOISE its own scheme).
    mid-run `push bc; … pop bc; ret` functions — so a not-yet-reached function
    embedded in data still reads as code. This split bank `$1E` (~90% tile data)
    from ~12 k garbage instruction lines down to ~2.6 k.
-2. **More computed dispatch.** Done for code: no code-like bytes remain
-   unreached. The remaining work is the reverse problem — stop seeding named
-   *data* as code (see *Current status*).
+2. **More computed dispatch.** Done: no code-like bytes remain unreached, and
+   the reverse problem — named *data* seeded as code — is closed too (see the
+   coverage section).
   3. **Naming — every function has a behavioral name.** Every function entry
      (call- *and* jp-reached) has a real global name; auto-generated **global**
      `L*` labels are gone, and so are the `<Screen>Func`/`Proc` "purpose TBD"
