@@ -28,7 +28,7 @@
 4930 TableInputFlag             ; return e=flag derived from input code (arg sp+4: 4 or $0a) and column $c92f
 4AA8 TableDrawCursor            ; refresh the table cursor cell (select mode -> TableUpdateScreen; palette by CGB)
 61CA CutCopyTableSelection      ; arg? "CUT" (copy+clear) : "COPY": table selection -> clipboard (clipType 5)
-64A3 TableHandleInput           ; table-screen input/cursor handler ($c411 mode, wCursorX/Y); large
+64A3 TableHandleInput           ; table-screen input/cursor handler ($c411 mode, wSelLeft/wSelTop); large
 676A TableUpdateScreen          ; main table-screen update/draw (large; also entered from DrawTableScreen)
 ; --- functions called from bank 0 (this bank paged in) ---
 4B5D TableHighlightCell         ; table cursor cell highlight (wTable asserted, select palettes)

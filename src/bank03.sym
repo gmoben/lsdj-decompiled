@@ -40,7 +40,7 @@
 489D SetInstrTable4             ; write instrument byte 6 = table (bits0-4) + enable (bit5)
 48D6 SetInstrTable5             ; write instrument byte 6 = table (bits0-4) + enable (bit5)
 495C SetInstrTable6             ; write instrument byte 6 = table (bits0-4) + enable (bit5)
-498B DrawInstrByte10            ; draw the instr byte-10 field cell at row 14 (dashes gate via InstrField9IsZero)
+498B DrawInstrByte10            ; draw the instr byte-10 field cell at row 14 (dashes gate via InstrByte9IsZero)
 49B7 DrawInstrByte11            ; draw the instr byte-11 field cell ("--" when byte 9 is zero)
 49E7 GetInstrByte2              ; read instrument byte 2 (pulse tune / kit half-speed+keep-attack / wave synth pre-v16)
 49FD DrawInstrRow14             ; draw the type-dependent row-14 fields (dispatch by byte 9 = 2/3/4)

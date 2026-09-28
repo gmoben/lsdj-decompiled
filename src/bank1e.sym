@@ -6,7 +6,7 @@
 7A38 GfxReadVramByte            ; wait for safe LCD access (rSTAT mode), read [de], return byte in e
 7A4B GfxCopyVramRegion          ; copy bytes between VRAM regions (GfxReadVramByte -> $17ec writer), 16-step outer loop
 ; --- indirect (FarCall) target ---
-7AA0 InitScreenPalettes ; ResetDisplayState, then set wShadow/SelectDigitPal + wShadow/SelectPal (CGB), load palette data
+7AA0 InitScreenPalettes ; ResetDisplayState, then set wShadowDigitPal/wSelectDigitPal + wShadowPal/wSelectPal (CGB), load palette data
 
 ; --- tile data blocks (LoadTilesDispatch streams) + synth waveforms ---
 42C8 TilesUiIcons       ; UI/icon tile block loaded on every palette init

@@ -26,7 +26,7 @@
 4463 SongDrawRowNum             ; draw a song row number + bookmark marker (wSongScroll window, 18 rows)
 451E SongRedrawRow              ; SongReadRow + draw the row at VRAM $9842 (palettes, SongDrawColumnValues/4395)
 4540 SongScrollToCursor         ; clamp song top-row $c41c so cursor $c41e stays visible
-4657 SongUpdatePlayMarker       ; per-channel play-position markers from wChanSongRow/NextSongRow (<-SongScreenUpdate)
+4657 SongUpdatePlayMarker       ; per-channel play-position markers from wChanSongRow/wChanNextSongRow (<-SongScreenUpdate)
 47CF SongRowPalettes            ; pick row draw palettes (cursor/bookmark-aware)
 492D SongDrawCursorRow          ; draw cursor-row string (GetTilemapAddr at $c41e-$c41c, SongRowPalettes)
 494E SongDrawHeaderLeft         ; draw left header label at VRAM $9840 (hw VramCopy)

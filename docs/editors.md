@@ -1,38 +1,49 @@
 # Editors / screens — architecture and carving plan
 
 LSDj's UI is a set of **screens** (editors) navigated with SELECT+direction.
-This documents how the screen system is wired and the systematic method for
-carving each editor out of the ROM. (Spine confirmed in bank 0; per-editor
-routines are being located/named iteratively — status table at the end.)
+This documents how the screen system is wired and how each editor was carved
+out of the ROM. (All screens are located, carved and named — status table at
+the end.)
 
 ## Control-flow spine (confirmed)
 
 ```
-Entry $0100 -> Start $0150 (init) -> ... -> MainLoop $1377
-  MainLoop: poll ready flags ($C56C, $C9F1); when a frame is due ->
-    process-frame (L13A5): L0ED6 (frame/queue processor) + bookkeeping
-      L0ED6 -> banked handlers (bank set via $FF8E shadow + $2000 register)
-  ScreenDrawDispatch $254F: jp ($2563 + 3*wCurrentScreen) -> the active
-      screen's draw routine (selects its bank, calls it) -- see index below
+Entry $0100 -> Start $0150 (init) -> InitAndLoadSong $0DDB -> MainLoop $1377
+  MainLoop: when wRedrawPending ($C56C) says a frame is due ->
+    ProcessInput $0ED6: drain the button queue (GetNextButtons); per event
+      HandleButtonEvent $2B8D -> HandleInputCombos + DispatchScreenInput
+      ($2A71, jp table $2A86 by wCurrentScreen -> the screen's input handler)
+    ScreenUpdateDispatch $264B (screens 1-5), then a bank-1 UI tail
+      (UiSetPlayMode, UiReadSongProp, UiShowMessage)
+  otherwise, while wSynthRenderActive ($C9F1): one RenderSynthWave step
+      (bank $1D) per pass, 16 steps
+  ScreenDrawDispatch $254F (via RedrawScreen): jp ($2563 + 3*wCurrentScreen)
+      -> the active screen's draw routine (selects its bank, calls it)
 ```
 
 Key mechanisms:
-- **Bank switching**: write the bank number to HRAM shadow `$FF8E` *and* the
-  MBC5 register `$2000`. Editors live in the switchable window `$4000`-`$7FFF`.
+- **Bank switching**: write the bank number to HRAM shadow `hCurrentBank`
+  (`$FF8E`) *and* the MBC5 register `$2000`. Editors live in the switchable
+  window `$4000`-`$7FFF`.
 - **Banked calls**: bank 0 sets the bank then `call`s the `$4000`-`$7FFF`
-  routine; results come back in `e`/`de` (SDCC convention). Trampolines like
-  `CallBank1_794B` ($0061) wrap this.
+  routine; results come back in `e`/`de` (SDCC convention). Inline stubs (the
+  `DrawDispatch_<Screen>` entries, `CrashTrampoline` `$0061`) and the far-call
+  helpers `FarCall`/`FarCallArg`/`FarCallByte` wrap this. (In the generated
+  asm, bank 0's inline-stub call targets still print as raw `$4000`-`$7FFF`
+  addresses — 79 sites; the debugger resolves them at runtime.)
 - **Song access**: editors read/write the working song via `ReadSongByte`
   ($14D1) and SRAM banking — see [`data_model.md`](data_model.md).
 - **UI text**: a **string table lives in bank 1** (e.g. `$6F7E` =
   "LITTLE SOUND DJ V9.4.0 © 2000 JOHAN KOTLINSKI", plus "TOO BUSY!",
-  "A: RUN …"). `L0DBC` copies strings into the display buffer (`$C6A9`).
+  "A: RUN …"). `ShowMessage` (`$0DBC`) copies a string into `wStrBuffer`
+  (`$C6A9`) and triggers the on-screen message; bank 1's `DrawMessageBar`
+  (`$74F7`) renders that buffer onto the top tilemap row.
 - **Config**: `LoadSyncSetting` ($1CFF) pulls song properties (e.g. sync) from
-  SRAM into WRAM mirrors (`$CB66`…).
+  SRAM into WRAM mirrors (`wSyncMode` `$CB66`, `wSyncMode2` `$CB67`).
 
 ## Screen dispatch — the editor index (bank 0)
 
-The current screen is `wCurrentScreen` = **`$C401`** (0–14). Each frame,
+The current screen is `wCurrentScreen` = **`$C401`** (0–14).
 `ScreenDrawDispatch` (`$254F`) does `hl = $2563 + 3*screen; jp hl` into a
 15-entry `jp` table (`ScreenDrawTable`, `$2563`). Each target is a stub that
 selects the screen's ROM bank (`$FF8E` + `$2000`) and `call`s its draw routine:
@@ -54,11 +65,30 @@ selects the screen's ROM bank (`$FF8E` + `$2000`) and `call`s its draw routine:
 | 13 | `$1C:$57BB` | **File** | "BLOCKS USED", "LOSE %u HOURS OF UNSAVED WORK?" |
 | 14 | `$1B:$4A62` | **Help** | bank `$1B` help text (`DrawHelpScreen`) |
 
-All 12 of LSDj's screens are now identified — a complete, coherent set. Each
+All 12 of LSDj's screens are identified — a complete, coherent set. Each
 screen's draw routine is located by `bank:addr`; the indices are named in
 [`../constants/screens.inc`](../constants/screens.inc) and the bank-0 dispatch
-stubs in `src/bank00.sym` (`DrawDispatch_<Screen>`). Remaining work per editor:
-carve its draw routine's bank and name its input/edit handler.
+stubs in `src/bank00.sym` (`DrawDispatch_<Screen>`).
+
+Input has its own index: `DispatchScreenInput` (`$2A71`) jumps through a
+15-entry table at `$2A86` to each screen's input handler (resolved from the
+stubs' bank + call target):
+
+| `$C401` | Input handler | | `$C401` | Input handler |
+|---------|---------------|-|---------|---------------|
+| 1 Phrase | `PhraseScreenEdit` `$04:$5BA6` | | 8 Wave | `WaveScreenInput` `$06:$507F` |
+| 2 Groove | `DrawGrooveCursor`* `$1D:$4451` | | 9 Project | `ProjectDrawField`* `$1B:$5DBF` |
+| 3 Chain | `ChainScreenEdit` `$06:$5BD0` | | 10 Synth | `SynthScreenInput` `$1D:$7138` |
+| 4 Song | `SongScreenEdit` `$07:$4B3B` | | 12 Word | `DrawSelectDigit`* `$06:$431D` |
+| 5 Table | `TableHighlightCell`* `$05:$4B5D` | | 13 File | `FileScreenInput` `$1C:$5B0C` |
+| 6 Instrument | `InstrScreenInput` `$03:$541F` | | 14 Help | `ProjectInitLatch`* `$1B:$4BC3` |
+| 7 (name editor) | `NameEditorInput` `$1B:$53E8` | | 0, 11 | — |
+
+\* These five are the screens' real input entry points, but their names (and
+`.sym` comments) describe only a first action such as a cursor highlight —
+they predate the July rename passes and are due a re-verification/rename.
+Index 7 has no draw routine but does have an input handler: the on-screen
+name keyboard used by the Project/File screens.
 
 A **second** dispatch, `ScreenUpdateDispatch` (`$264B`), runs each frame for
 screens **1–5 only** (the active music editors) via its own 5-entry table
@@ -88,20 +118,22 @@ Project, and File — each edits the corresponding song structure in
 grid from song data into VRAM/the OAM-shadow) and an **input/edit** routine
 (applies button presses to the song structure).
 
-## Systematic carving method (per editor)
+## Carving method (per editor — as used; all editor banks are done)
 
 1. **Locate.** Find the screen-dispatch table (the index mapping the current
    screen to its handler bank:addr) — reached from the frame processor. Then
    follow the bank trampoline to the handler.
-2. **Carve the bank.** `tools/disasm.py --bank N --symbols src/bankNN.sym
-   --data <tables> -o src/bankNN.asm`, then `tools/gen_main.py`, then
-   `make compare` (must stay green). Mark string/data tables with `--data`.
+2. **Carve the bank.** Create `src/bankNN.sym`, then `make compare`:
+   `tools/carve_clean.py` regenerates every bank that has a `.sym` (coverage
+   trace → code/data split → `tools/disasm.py`) and `tools/gen_main.py`
+   INCLUDEs it. Data tables the trace can't classify go in `carve_clean.py`'s
+   `MANUAL` dict.
 3. **Name.** Add `addr Name` lines to `src/bankNN.sym` for the editor's draw/
-   input routines and the song fields they touch; regenerate; `make compare`.
+   input routines and the song fields they touch; `make compare` again.
 4. **Document.** Record behaviour here and in `functionality.md`.
 
-`tools/gen_main.py` makes step 2 systematic: any bank with a `src/bankNN.asm`
-is INCLUDEd; the rest stay INCBIN. `make compare` is the invariant throughout.
+Banks without a `.sym` stay `INCBIN` (the sample kits get labeled sections
+from the ROM itself). `make compare` is the invariant throughout.
 
 ## Bank → role (from `bank_map.md`)
 
@@ -109,23 +141,23 @@ is INCLUDEd; the rest stay INCBIN. `make compare` is the invariant throughout.
 - Bank `$01`: UI **string table** (+ code).
 - Sample kits: `$08`-`$1A`, `$20`-`$21`. Empty: `$22`-`$3F`.
 
-## Project editor (in progress)
+## Project editor
 
 The Project screen holds whole-song settings. Its **value strings and field-draw
-helpers live in bank `$1B`** (now carved → `src/bank1b.asm`, `src/bank1b.sym`):
+helpers live in bank `$1B`** (`src/bank1b.sym`):
 
 | Field | Value source | Strings (bank `$1B`) |
 |-------|--------------|----------------------|
 | TEMPO | song `$3FB4` (BPM) | numeric |
-| TRANSPOSE | song property | numeric |
-| **SYNC** | `$CB66` (song `$3FBD`) | `$59B7` table — see [`sync.md`](sync.md) |
-| └ sub-setting | PS/2 DELAY / TICKS/STEP | `$59E1` / `$59ED` |
-| CLONE | deep/slim | `DEEP`/`SLIM` (`$5D4F`, `$6A5C`) |
-| LOOK | font + colorset | colorset names `$5707` (Y2K/ZERO/KIKO/…/GOOD) |
+| TRANSPOSE | `wSongTranspose` (song property) | numeric |
+| **SYNC** | `wSyncMode` `$CB66` (song `$3FBD`) | `SyncModeNames` `$59B7` — see [`sync.md`](sync.md) |
+| └ sub-setting | PS/2 DELAY / TICKS/STEP | `TxtSyncPs2` `$59E1` / `$59ED` |
+| CLONE | deep/slim | `DEEP`/`SLIM` (`CloneModeNames` `$5D4F`, `CloneModeNames2` `$6A5C`) |
+| LOOK | font (`wFont`) + colorset (`wColorSet`) | `ColorSetNames` `$5716` (5-char names, indexed `wColorSet*5`) |
 | KEY DELAY/REPEAT | settings | numeric |
 | PRELISTEN | flag | on/off |
-| clock | total/work time | `PLAY %d:` / `WORKED %d:` (`$5C03`) |
-| menu | — | `LOAD/SAVE SONG`, `RESET MEMORY` (`$5D59`), `RESET CARTRIDGE?` (`$6A66`) |
+| clock | total/work time | `PLAY %d:` / `WORKED %d:` (`TxtClockLabels` `$5C03`) |
+| menu | — | `LOAD/SAVE SONG`, `RESET MEMORY` (`$5D59`), `RESET CARTRIDGE?` (`TxtResetCartridge` `$6A66`) |
 
 Confirmed routines (bank `$1B`):
 
@@ -133,23 +165,24 @@ Confirmed routines (bank `$1B`):
   9). Paints each field at a fixed tilemap address via helpers, e.g. the
   LOAD/SAVE-SONG vs RESET-MEMORY menu line, then the SYNC value, then song
   properties read with `ReadSongByte`.
-- **`DrawSyncField` (`$58B1`)** — reads `$CB66`, selects the mode string via an
-  explicit `cp` chain (`0,1,3,5,6,7`), draws it to VRAM `$9885`.
+- **`DrawSyncField` (`$58B1`)** — reads `wSyncMode`, selects the mode string via
+  an explicit `cp` chain (`0,1,3,5,6,7`), draws it to VRAM `$9885`.
 - **`DrawSyncSubSetting` (`$5B7A`)** — the PS/2 DELAY / TICKS/STEP value beside
-  SYNC. Other field-draw helpers: `$5853`, `$569C` (TBD), `$2E33` (numbers).
+  SYNC. Other field helpers: `ProjCommitVram` (`$5853`, commit a queued VRAM
+  write), `DrawFontColorFields` (`$569C`, the FONT and COLOR SET rows), and
+  bank 0's `DrawHexByte` (`$2E33`, numbers).
 
-The Project cursor/selection state is `$C566`/`$C567`. The field *labels*
-(TEMPO, SYNC, …) are tiles, not ASCII. Remaining: the Project **input handler**
-(edits a field on A+CURSOR — the input-dispatch counterpart of
-`ScreenDrawDispatch`) and naming the remaining field helpers. Bank `$1B` is a
-**first-pass carve** (SYNC/clock/clone/reset tables marked as data; the help-text
-block and some graphics/jump tables still show as byte-safe code).
+The Project cursor row is `wProjCursor` (`$C9A4`). (`$C566`-`$C569` were once
+taken for cursor state; they are the BG-attribute draw palettes
+`wShadowDigitPal`/`wShadowPal`/`wSelectDigitPal`/`wSelectPal`.) The field
+*labels* (TEMPO, SYNC, …) are tiles, not ASCII. The Project input handler is
+the index-9 entry of `DispatchScreenInput` (`ProjectDrawField`, `$5DBF` — see
+the naming caveat above).
 
 ## Status
 
-Every screen is **located and its bank carved** into the source tree (byte-for-
-byte). "Named" lists the draw routine label; the per-field input/edit handlers
-are the remaining refinement.
+Every screen is **located, carved and named** in the source tree (byte-for-
+byte): draw routines below, input handlers in the input-index table above.
 
 | Screen | idx | Draw routine | Edits | Carved | Draw label |
 |--------|-----|--------------|-------|--------|-----------|
@@ -166,13 +199,13 @@ are the remaining refinement.
 | File | 13 | `$1C:$57BB` | SRAM filesystem | ✓ `bank1c.asm` | `DrawFileScreen` |
 | Help | 14 | `$1B:$4A62` | (text) | ✓ `bank1b.asm` | `DrawHelpScreen` |
 
-Carved code banks: `$00`, `$03`-`$07`, `$1B`, `$1C`, `$1D` (9 of 64). The
-remaining `INCBIN` banks are sample kits (`$08`-`$1A`, `$20`-`$21`), empty space
-(`$22`-`$3F`), the UI string/helper banks (`$01`, `$02`), and the pre-draw /
-update helper banks (`$1E`, `$1F`).
+All 13 program banks (`$00`-`$07`, `$1B`-`$1F`) are carved; the only `INCBIN`s
+left are the 21 sample kits (`$08`-`$1A`, `$20`-`$21`, emitted as labeled
+per-kit/per-sample sections) and the 30 empty banks (`$22`-`$3F`).
 
-Spine routines named: `MainLoop`, `Start`, `LoadSyncSetting`, `ReadSongByte`,
-`ScreenDrawDispatch` (+ `ScreenDrawTable`), the interrupt handlers, and the sync
-subsystem ([`sync.md`](sync.md)). The **screen-dispatch index is now mapped**
-(above); next: identify each `bank:addr` draw routine's screen, then carve them
-and the matching input handlers, working down the table.
+The whole screen system is named: the spine (`MainLoop`, `ProcessInput`,
+`HandleButtonEvent`, `DispatchScreenInput`, `ScreenDrawDispatch` +
+`ScreenDrawTable`, `ScreenUpdateDispatch` + `ScreenUpdateTable`,
+`RedrawScreen`), every draw/update/input handler, the per-field helpers, and
+the sync subsystem ([`sync.md`](sync.md)). Open items: re-verify the five
+draw-named input handlers (\* above).

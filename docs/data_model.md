@@ -121,7 +121,7 @@ Verified against a live RAM dump cross-checked with this map:
 | `wChanPhrase` | `$C168` | current phrase # | `= chain_phrases[chain][chainRow]` |
 | `wChanPhraseRow` | `$C16C` | note step in phrase (0-15) | into the phrase columns |
 | `wPhraseCmdPtr` | `$C110` | 16-bit SRAM cursor | `phrase_notes`(b0)/`phrase_fx`(b2) |
-| `wChanCmdValPtr` | `$C128` | 16-bit SRAM cursor | `phrase_fx_val` (`$AFF0`+) |
+| `wPhraseCmdValPtr` | `$C128` | 16-bit SRAM cursor | `phrase_fx_val` (`$AFF0`+) |
 | `wChanInstrPtr` | `$C140` | 16-bit SRAM cursor | `phrase_instruments` (`$B000`+) |
 
 The bank `$02` walkers: `AdvanceSongRow` (`$48D2`) reloads `wChanChain` from
@@ -149,5 +149,9 @@ pylsdj/liblsdj for the bitfields.)
   cross-validated against reserved markers **and a live engine RAM dump** (the
   `$C1xx` playback cursors above resolve to these tables exactly).
 - Sample kits at banks `$08`-`$1A`,`$20`-`$21`: **confirmed in this ROM**.
-- Mapping these structures to the specific bank-0 routines that read/write them
-  is the next labelling pass.
+- The routines that read/write these structures are named throughout the
+  disassembly (e.g. `ReadSongByte`, the bank `$02` walkers above, the per-screen
+  editors), and the working-song structures themselves are exported as debugger
+  symbols by `tools/gen_sym.py` (37 `Sram*` names: `SramPhraseNotes`,
+  `SramGrooves`, `SramSequence`, `SramInstruments`, …) so SRAM accesses resolve
+  by name in Emulicious/BGB/SameBoy.

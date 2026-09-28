@@ -11,8 +11,9 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 |----------|--------|
 | What compiled LSDj? | **GBDK 2.95** → **SDCC 2.2.1** (`gbz80` target), default `asxxxx` assembler/linker |
 | Can we run it today? | **Yes** — the period `sdcc.exe` runs under **Wine** (32-bit PE) |
-| Can we reproduce its codegen? | **Yes** — C → SDCC 2.2.1 asm → bytes, via `tools/match/match_function.py` |
-| Matched a real LSDj function yet? | **Not yet** — harness proven on a synthetic function; real match needs the exact build flags + a chosen target (next steps below) |
+| Can we reproduce its codegen? | **Yes** — C → SDCC 2.2.1 asm → bytes, via `tools/match/match_function.py` (re-verified under wine-11.17: `add8` still compiles to the bytes below) |
+| Is it the right toolchain? | **Strong evidence**: GBDK 2.95 library code in the ROM is byte-identical to the library sources (`display_off` ← `crt0.s`, `strcpy` ← `asm_string.s`, `set_bkg_palette` ← `cgb.s`, the SDCC `mul` runtime), and LSDj's code uses exactly the stack-frame idioms this compiler emits (below) |
+| Matched a real LSDj function yet? | **Not yet** — the first target is chosen: **`DrawMessageBar`** (`$01:$74F7`, see *Goal*) |
 | Go/no-go on Track 2? | **Promising, not yet proven.** Stay asm-first; pursue a first real match before betting on C |
 
 ## What we confirmed
@@ -24,6 +25,12 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 - GBDK 2.95 ships both `asxxxx` (default `as-gbz80`/`link-gbz80`) and `rgbds`
   output libs. LSDj was almost certainly built with the default `asxxxx`
   toolchain, so the match harness uses that path (not RGBDS) for fidelity.
+- **Storage allocation** (compiler probes, `--show-asm` on small test units
+  modelled on LSDj routines): function locals live **on the stack** — a
+  `lda sp,-N(sp)` frame (`add sp,-N`) with `lda hl,N(sp)` (`ld hl,sp+N`)
+  accesses — and the `_OVERLAY` area stays empty. LSDj's code uses exactly these
+  patterns, so every fixed-address `$Cxxx` access in the ROM is a real global
+  or `static`, not compiler scratch (details in [`reversal.md`](reversal.md)).
 
 Example — SDCC 2.2.1 codegen for `unsigned char add8(unsigned char a, unsigned char b)`:
 
@@ -92,12 +99,34 @@ a link step (a follow-up).
    attempt first — found by tracing control flow from the entry point
    (`0x150`), or a GBDK library routine known to be linked into the ROM.
 
+## Goal: first real match — `DrawMessageBar` (`$01:$74F7`)
+
+Track 1 is complete enough that every function is a concrete byte target. The
+first one to match in C is `DrawMessageBar`, bank `$01` `$74F7`-`$75BC`
+(198 bytes): it pads `wStrBuffer` to 20 characters with spaces +
+NUL, points `wMsgStrPtr` at it, on CGB writes the attribute row
+`MsgBarAttrRow` to the top tilemap row (VRAM bank 1), sets the draw palettes,
+draws the 20 characters to `$9800` with `DrawStringIndexed`, and arms
+`wMsgTimer` (50 frames). Why this one:
+
+- mid-sized and self-contained: two loops, one `if`, two callees
+  (`CopyToBgTilemap`, `DrawStringIndexed`), no `switch`/jump table;
+- idiomatic SDCC 2.2.1: `push bc` / `add sp,-2` frame, loop counter in `c`,
+  1-byte args pushed with `push af; inc sp`, `adc a,$00` array indexing;
+- it exercises what a real match needs beyond a leaf: references to globals,
+  HRAM stores via `ldh`, and calls — i.e. it forces the harness's link step.
+
 ## Next steps
 
-- [ ] Carve one leaf function in asm (Track 1) to get a concrete byte target.
-- [ ] Sweep plausible SDCC flag sets; use `--search` to see if any compiled
-      candidate appears in the ROM.
-- [ ] Add an optional link step to the harness for non-leaf functions.
+- [x] Carve one leaf function in asm (Track 1) to get a concrete byte target —
+      superseded: every function is now carved and named.
+- [ ] Add a link step to the harness so functions that reference globals and
+      call other functions can be compared (relocations resolved against our
+      symbol maps, code placed at the target address).
+- [ ] Write `DrawMessageBar` in C and iterate to a byte match (flags, types,
+      statement forms).
+- [ ] Sweep plausible SDCC flag sets if the default codegen doesn't match; use
+      `--search` to see if any compiled candidate appears in the ROM.
 - [ ] Record the first byte-exact match here, then make the Track 2 go/no-go call.
 
 ## References

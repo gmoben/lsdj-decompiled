@@ -5,9 +5,9 @@
 776E CommandHelpTable   ; [command] -> "X: DESCRIPTION" string pointer (index = command*2; 0 = context-cased above)
 
 ; --- UI functions called from bank 0 (bank $01 paged in) ---
-4CF1 UiInitScreen        ; screen setup: UiPalette + UiMemFill + UiLoadHwTables
+4CF1 UiInitScreen        ; screen setup: ApplyColorSet + ClearOamBuffer + UiLoadHwTables
 4487 DrawCartTest               ; boot CARTRIDGE TEST screen (ROM checksum + SRAM self-test)
-4FEC UiSetPlayMode       ; access wPlayMode, clear $c6a8, jp into UiInstrRead
+4FEC UiSetPlayMode       ; access wPlayMode, clear $c6a8, tail-jump into UpdateWorkClock.done
 7860 UiShowMessage       ; set up the timed status message (wMsgTimer / wMsgStrPtr)
 7878 UiUpdateMessage     ; timed message + wSelectHeld handling
 4811 CheckJkMarker              ; check the 'jk' SRAM-init marker at $a13e/$a13f (unreferenced)

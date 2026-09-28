@@ -13,10 +13,10 @@ vectors) plus hardware-register usage (the disassembly renders `$FFxx` as
 
 | Vector | Addr | Handler | Role |
 |--------|------|---------|------|
-| VBlank | `$40` | `VBlankHandler` (`$183A`) | reloads `rTIMA` from tempo `$C578`; can raise the timer IRQ (`set 2, [rIF]`); frame timing |
+| VBlank | `$40` | `VBlankHandler` (`$183A`) | reloads `rTIMA` from `wTimerReload` (`$C578`, derived from the tempo); can raise the timer IRQ (`set 2, [rIF]`); frame timing |
 | LCD STAT | `$48` | — | unused (`reti`) |
 | Timer | `$50` | `TimerHandler` (`$0391`) | **sound / playback engine tick**; exits via `TimerHandlerReturn` (`$0662`) |
-| Serial | `$58` | `SerialHandler` (`$34BD`) | Game Boy **sync** receive: `rSB` → `$CBDD`, mode in `$CBDE` |
+| Serial | `$58` | `SerialHandler` (`$34BD`) | Game Boy **sync** receive: `rSB` → `wSyncRxByte` (`$CBDD`), state machine in `wSyncState` (`$CBDE`) |
 | Joypad | `$60` | — | unused (`reti`) |
 
 The tempo system is the VBlank/Timer pair: each VBlank reloads `rTIMA` from a
@@ -29,19 +29,25 @@ song. This is why playback is rock-steady regardless of frame workload.
 di                       ; no interrupts during setup
 ld sp, $e000             ; stack at top of WRAM
 clear WRAM $C000-$DFFF, HRAM $FF80-$FFFF
-$CBD9 <- boot A          ; CGB/DMG hardware id (from boot ROM)
-$CBDA <- boot B          ; AGB id
-call DisableLCD          ; safe to touch VRAM
+wBootHwId  ($CBD9) <- boot A  ; CGB/DMG hardware id (from boot ROM)
+wBootAgbId ($CBDA) <- boot B  ; AGB id
+call display_off         ; GBDK library routine; safe to touch VRAM
 reset rSCY/rSCX/rSTAT/rWY ; clear scroll, LCD status, window
 ...
 ```
 
 ## Subsystems
 
-- **Sound engine** — timer-driven, entry `TimerHandler` (`$0391`) with helpers
-  around `$0662`/`$06A5`/`$066D`. Writes the audio registers (`rAUD1*`-`rAUD4*`,
-  `rAUDVOL`/`rAUDTERM`/`rAUDENA`) and wave RAM (`rAUD3WAVE_*`). Reads a tick
-  counter at `$C8F4` and an HRAM flag `$FF90`.
+- **Sound engine** — timer-driven, entry `TimerHandler` (`$0391`), exiting via
+  `TimerHandlerReturn` (`$0662`); `SndModWavFreq` (`$066D`) applies WAV-channel
+  frequency modulation. Writes the audio registers (`rAUD1*`-`rAUD4*`,
+  `rAUDVOL`/`rAUDTERM`/`rAUDENA`) and wave RAM (`rAUD3WAVE_*`). Reads the tick
+  counter `wSoundTick` (`$C8F4`) and `hGameboyType` (`$FF90`). The same handler
+  streams **kit samples**: each tick an active kit voice copies 16 bytes from its
+  banked ROM read pointer into `hWavUploadBuf` (→ WAV RAM), looping or stopping
+  at the loop end (`wKitVoicesActive`, `wKit1*`/`wKit2*` in `constants/ram.inc`).
+  The sequencer/FX/instrument side of the engine lives in bank `$02` — see
+  [`reversal.md`](reversal.md) and [`data_model.md`](data_model.md).
   - *Per-channel pitch / vibrato / frequency* (bank 0): each frame
     `SndStepPitchVib{PU1,PU2,Wav,Noi}` (`$19A6`/`$1A26`/`$1AA7`/`$1CBA`) advance
     the pitch slide (`wChanPitchRate`→`wChanPitchCur`, clamped to
@@ -57,9 +63,10 @@ reset rSCY/rSCX/rSTAT/rWY ; clear scroll, LCD status, window
   - *Work-time clock* — `TickWorkTimeClock` (`$1815`) advances `wWorkTimeAccum`
     (`$C69D`), wrapping at `$0E00` into `wWorkTimeTicks` (drives the song's
     play-time counter in SRAM).
-- **Video / LCD** — `DisableLCD` (`$349B`): waits for VBlank via `rLY` then
-  clears `rLCDC` bit 7. `OAMDMARoutine` (`$34B2`): triggers OAM DMA from the
-  shadow buffer at `$DD00`; copied into HRAM and called there (DMA requires
+- **Video / LCD** — `display_off` (`$349B`, GBDK 2.95 library routine,
+  byte-identical to its `crt0.s`): waits for VBlank via `rLY` then clears
+  `rLCDC` bit 7. `OAMDMARoutine` (`$34B2`): triggers OAM DMA from the shadow
+  buffer `wOamBuffer` (`$DD00`); copied into HRAM and called there (DMA requires
   HRAM execution).
 - **Input** — `ReadJoypad` (`$18BF`): standard two-pass matrix read (d-pad then
   buttons via `rJOYP`), returns a combined button bitmask.
@@ -74,41 +81,46 @@ reset rSCY/rSCX/rSTAT/rWY ; clear scroll, LCD status, window
   reads the working song out of SRAM banks 0-3. See
   [`data_model.md`](data_model.md) for the song structures it indexes and
   [`save_format.md`](save_format.md) for the `.sav` filesystem.
-- **Banking / dispatch** — MBC5 ROM bank register at `$2000`. Bank 0 contains
-  16 bank-switch sites; cross-bank calls use the trampoline pattern
-  `ld a, N` / `ld [$2000], a` / `jp|call $4000-$7FFF`, e.g.
-  `CallBank1_794B` (`$0061`) selects bank 1 and jumps to `$794B`. In-bank
-  dispatch additionally uses 16 `jp hl` jump tables (SDCC `switch`).
+- **Banking / dispatch** — MBC5 ROM bank register at `$2000`, shadowed in
+  `hCurrentBank` (`$FF8E`). Cross-bank calls use either an inline trampoline
+  (`ld a, N` / `ld [$2000], a` / `jp|call $4000-$7FFF`, e.g. the per-screen
+  `DrawDispatch_<Screen>` stubs, or `CrashTrampoline` (`$0061`), which selects
+  bank 1 and jumps to `CrashHandler` `$794B`, the "DONT PANIC!" crash screen),
+  or — the dominant form — the far-call helpers `FarCall` (`$179A`),
+  `FarCallArg` (`$17BB`) and `FarCallByte` (`$0BFE`): the caller pushes an
+  immediate address + bank and the helper pages the bank and `jp hl`s. In-bank
+  dispatch uses `jp hl` jump tables (SDCC `switch`); all of them are resolved
+  and followed by `tools/coverage.py` (see [`reversal.md`](reversal.md)).
 
-## Provisional RAM / HRAM map
+## RAM / HRAM map
 
-| Addr | Meaning |
-|------|---------|
-| `$C578` | timer reload (tempo); copied to `rTIMA` each VBlank |
-| `$C8F4` | sound tick counter (decremented in `TimerHandler`) |
-| `$CBD9` / `$CBDA` | boot hardware id (CGB/DMG, AGB) saved at init |
-| `$CBDD` | last received sync byte; `$CBDE` sync mode |
-| `$DD00` | OAM shadow buffer (OAM DMA source) |
-| `$FF90` | HRAM flag tested by `TimerHandler` |
+WRAM/HRAM variables are named in
+[`../constants/ram.inc`](../constants/ram.inc) (~800 addresses, arrays tagged
+`[N]`; the few raw addresses left are listed in [`reversal.md`](reversal.md)).
+The addresses first identified on this page:
 
-(WRAM addresses are not yet lifted into `constants/` symbols — that is the next
-labelling pass.)
+| Addr | Name | Meaning |
+|------|------|---------|
+| `$C578` | `wTimerReload` | timer reload derived from the tempo; copied to `rTIMA` each VBlank |
+| `$C8F4` | `wSoundTick` | sound/playback tick counter (`TimerHandler`) |
+| `$CBD9` / `$CBDA` | `wBootHwId` / `wBootAgbId` | boot hardware ids (CGB/DMG, AGB) saved at init |
+| `$CBDD` / `$CBDE` | `wSyncRxByte` / `wSyncState` | last received sync byte / serial state machine |
+| `$DD00` | `wOamBuffer` | OAM shadow buffer (OAM DMA source) |
+| `$FF8E` | `hCurrentBank` | shadow of the selected ROM bank |
+| `$FF90` | `hGameboyType` | 0 = DMG, 1 = CGB |
 
-## Dispatch & embedded tables
+## Embedded tables
 
-Bank 0 mixes code with **pointer/jump tables** that the first-pass linear
-disassembly currently shows as bogus instructions, e.g. near `$09FE` and `$0A84`
-(arrays of 16-bit little-endian bank-0 addresses such as `$029D`, `$02B0`,
-`$079C`) consumed by nearby `jp hl` dispatch. Marking these ranges as `--data`
-and decoding the address arrays is the refinement that will turn the `jp hl`
-sites into a readable call graph (and shrink the false "illegal opcode" counts).
+The jump/pointer tables that the first linear disassembly showed as bogus
+instructions are now carved as data (`db`) by `tools/carve_clean.py` and
+resolved by the coverage trace. One correction to the original guess here: the
+bytes at `$09B9`-`$0A90` (between `WriteInstrByte` and `ReadInstrByte`) are
+**not** a jump table but a 108-entry 16-bit ramp (`$0000`, `$0013`, `$0026`, …
+`$07FC`); it is carved as data but has no label yet.
 
-## Next
+## Where to go next
 
-- Mark bank 0's embedded jump tables as data; resolve `jp hl` dispatch targets.
-- Follow the bank-switch trampolines to start carving the engines/editors in
-  banks `$01`-`$07` and `$1B`-`$1F`.
-- Locate the load/save/compress/format routines and the per-screen editors
-  (chain/phrase/instrument/table/groove/word, plus filename **text input**).
-- Lift the RAM/HRAM addresses above and the song offsets (`constants/song.inc`)
-  into the disassembly via symbol substitution (mirrors the hardware registers).
+Function- and variable-level coverage is complete (see
+[`reversal.md`](reversal.md) for the metric and method). What remains on the
+asm side is naming refinement; the next project milestone is the matching-C
+spike in [`toolchain.md`](toolchain.md).

@@ -4,6 +4,45 @@ The build already reproduces the ROM **100% byte-for-byte** (`make compare`).
 "100% reversal" is the stronger goal: every byte classified as code or data,
 all code disassembled with meaningful labels, all data structured.
 
+## Current status
+
+| Measure | Now |
+|---------|-----|
+| Byte-for-byte reproduction | ✓ `make compare`, including from a fresh clone + ROM |
+| Reachable code (`tools/coverage.py`) | 79% of the 13 code/data banks (77.8% net of named data seeded as code — see below); the unreached rest classifies as fill/text/graphics, **0** code-like bytes |
+| Functions | every entry has a behavioral name; no global auto-labels |
+| Symbols (`make sym` output) | 8,723: 1,833 ROM globals, 6,045 function-local labels, 808 WRAM/HRAM, 37 SRAM |
+| Referenced data (`tools/data_refs.py`) | every operand-referenced ROM data address labeled |
+
+Known gaps — asm fidelity/readability, none affect the bytes:
+
+- **Named data rendered as code.** ~100 named strings/tables (e.g.
+  `TxtCartridgeTest`, `FxCommandTable`, `WaveSourceNames`, the tail of
+  `PitchCurve`) decode as instructions because `coverage.py` seeds every `.sym`
+  name as code and their ranges aren't in `carve_clean.py`'s `MANUAL`. Fix:
+  skip data symbols when seeding (or mark them in the `.sym`) and add their
+  ranges to `MANUAL`.
+- **Raw RAM operands.** One byte is still accessed by a raw memory operand
+  (`$CB64`, 3 sites in bank `$1C` near `$7167`); ~40 addresses appear only as
+  16-bit immediates — mostly buffer bases handed to helpers (`ld de, $c457`
+  ×21, `$C90D`, `$CA34`, …), some probably signed constants (`ld hl, $fffe`).
+  ~13 named variables still carry `TBD` notes on their exact role.
+- **Code in WRAM.** The kit streamer calls `$D480` (`call $d480` at
+  `$00:$04C1`, with `h = wKitDistType`) — apparently a routine executed from
+  WRAM; where it is copied from is not yet traced. (The `jp z, $d7ca/$d786` at
+  `$01:$4375`/`$43EF` are just the mis-decoded `PitchCurve` tail above.)
+- **Cross-bank call targets.** Bank 0's 79 inline-trampoline `call`/`jp`
+  targets in `$4000`-`$7FFF` print as raw addresses: the bank comes from the
+  preceding `$2000` write, which `coverage.py` tracks but `disasm.py` doesn't.
+- **Stale names.** Five per-screen input handlers carry draw-ish names (see
+  [`editors.md`](editors.md)); `SndReadGrooveOrSpeed` actually steps table
+  pointers; generated local labels still echo pre-July RAM names (e.g.
+  `.loadOscActive_2` in `TimerHandler`, from the old "oscilloscope" reading);
+  `$04:$50D8` carries two names (`PhraseAttrHighlight` and the newer
+  `PhraseRowAttrs0`).
+- **Unlabeled table.** The 108-entry 16-bit ramp at `$00:$09B9` is carved as
+  data but has no name.
+
 ## What counts
 
 The 1 MiB ROM is 64 × 16 KiB banks:
@@ -38,32 +77,41 @@ control-transfer entry point:
 
 ### Current coverage
 
-Run `tools/coverage.py`. As of writing, **74%** of the code/data banks trace as
-reachable code:
+Run `tools/coverage.py` (it seeds from the vectors, trampolines, dispatch tables
+and every name in `src/*.sym`). Current result: **79%** of the code/data banks
+(169,515 / 212,992 bytes) trace as reachable code:
 
 | bank | code% | | bank | code% |
 |------|-------|-|------|-------|
-| `$00` | 86% | | `$1B` | 58% |
-| `$03` | 86% | | `$1C` | 76% |
-| `$04` | 93% | | `$1D` | 89% |
-| `$05` | 76% | | `$1E` | 13% |
-| `$06` | 85% | | `$1F` | 84% |
-| `$07` | 71% | | `$01`/`$02` | 51% / 96% |
+| `$00` | 89% | | `$1B` | 76% |
+| `$03` | 89% | | `$1C` | 83% |
+| `$04` | 94% | | `$1D` | 94% |
+| `$05` | 79% | | `$1E` | 14% |
+| `$06` | 89% | | `$1F` | 86% |
+| `$07` | 75% | | `$01`/`$02` | 62% / 98% |
 
-That 74% is **of all code/data bank bytes**; ~25% of those banks is genuinely
-data. `tools/coverage.py` classifies every unreached byte and prints the split —
-of the 54007 unreached bytes: **26 KB `$00`/`$FF` fill + 8 KB text/strings + 19 KB
-graphics/data** (`$1E` is ~90% tile data, hence 13%), leaving just **616 bytes**
-("~8 short functions") that are plausibly unmodelled code. So **code coverage
-excluding data is 99.6%** — the reachable code is effectively fully traced; the
-remaining percentage points are data, not blind spots.
+That 79% is **of all code/data bank bytes**; the rest is genuinely data.
+`tools/coverage.py` classifies every unreached byte and prints the split — of
+the 43,477 unreached bytes: **25.7 KB `$00`/`$FF` fill + 3.5 KB text/strings +
+14.2 KB graphics/data** (`$1E` is ~90% tile data, hence 14%), and **0 bytes**
+of plausibly-unmodelled code. So **code coverage excluding data is 100%**.
+One caveat on the headline number: the trace seeds *every* `.sym` name as a
+code entry, including named strings/tables that `carve_clean.py`'s `MANUAL`
+list doesn't cover, so ~3.8 KB of data is walked as code — with data-looking
+symbols (`Txt*`/`Tiles*`/`Default*`, quoted or `[N]` comments) left unseeded
+the figure is **77.8%**, still with 0 code-like bytes. The same bytes are why
+~100 named data symbols render as instructions (see *Current status*). (When
+this section was first written the figures were 74% and 616 code-like bytes,
+~8 short functions; the later sweeps below, which named hidden and
+indirectly-reached functions, also seed the trace, since every `.sym` name is
+an entry point.)
 
 The lower banks are legitimately data-heavy: `$1B`/`$1C` (Project/File/Help) are
 string-heavy, and `$01`/`$1E` carry large zero-padded data tables. Progression:
 per-bank 42% → jump tables 56% → bank-aware trace 60% → farcall 68% →
 computed-farcall tables 71% → second farcall helper (`FarCallArg`) 72% →
 fill-stop (honest) 64% → split-load farcall addresses 72% → jp-hl null-guard
-tables 73% → **convergent dispatch 74%**.
+tables 73% → convergent dispatch 74% → (later naming sweeps) **79%**.
 
 Those last three model the instrument editor / sound engine dispatch and lift
 bank `$1F` 12→**84%** and `$02` 78→**96%**:
@@ -137,12 +185,13 @@ The per-tick engine (`ProcessChannel`, bank `$02`) reaches note-on via a write o
 the new chain number into `wChanChain[ch]` (`$4DD2`), then channel setup:
 
 - **`SetupChannelSound` (`$5934`)** — selects the instrument's SRAM bank, copies
-  its parameters into the staging buffer **`wSoundParams` (`$C0D0`)**, then
+  its parameters into the staging buffer **`wCurInstr` (`$C0D0`**, first named
+  `wSoundParams`), then
   dispatches by `hSoundCh` to `SetupSoundPU1/PU2/Wave/Noise`, each of which
   distributes the staged bytes into the `rAUDx` register shadows (`wChanEnv`
   `$C2D8`, `wChanLenDuty` `$C2DC`, `wChanFreqHi` `$C2E0`, `wPU1Sweep` `$C2E4`)
   and triggers the voice. The note→GB-period value arrives **pre-staged** in
-  `wSoundParams`; it is computed upstream.
+  `wCurInstr`; it is computed upstream.
 
 **Resolved — `ReadChainPhrase` (`$5E7C`) and a `wChanNote` correction.** This reads
 one byte from a working-song SRAM table (bank 1, base `$A080`) at `idx*16 + step`,
@@ -229,26 +278,31 @@ DFS through whole subsystems (verified static + dynamic) named, beyond the
 sound-struct/cursor work: `wRng`, `wFrameCounter(Hi)`, the serial **send clock**
 (`wSyncSendAccum/Rate`) and **sync state machine** (`wSyncTick/Run/Handshake/
 SendGate`), the **work-time clock** (`wWorkTimeAccum/Ticks` -> SRAM secs/mins),
-the **oscilloscope** wave-display (`wOscActive/BankA-B/LoopA-B`), `wWaveCursor`,
-`wWavMode`, `wFileScroll`, `wCompByte`, `wSongReadBuf`. Two structural findings:
+the **kit sample streamer** (`wKitVoicesActive`, `wKit1Bank`/`wKit2Bank`,
+`wKit1LoopEnabled`/`wKit2LoopEnabled` — first misread as an "oscilloscope",
+`wOscActive/BankA-B/LoopA-B`; corrected in the July rename passes), `wWaveCursor`,
+`wWavPlayMode`, `wFileScroll`, `wCompByte`, `wSongReadBuf`. Two structural findings:
 
 1. **Overlay:** `$c4d4-$c4f9` is shared between the pitch-mod stepper (`c8f5`-gated)
-   and the oscilloscope wave-display (`c8f6`-gated, bank00 `$03d8`) — same RAM,
-   two mutually-exclusive features. Don't name the shared pointers for one use.
+   and the kit sample streamer (`wKitVoicesActive`/`c8f6`-gated, bank00 `$03d8`) —
+   same RAM, two mutually-exclusive features. Don't name the shared pointers for
+   one use.
 2. **The remaining ~1800 raw `$cXXX` refs are NOT mostly single-purpose globals.**
    They split three ways, and only the third is cleanly nameable:
    - *Shared work buffers* whose **address is passed** to helpers (e.g. `wSongReadBuf`
-     -> `ReadSongBytes`, `wStrBuffer` -> `StrCopy`; `c431/c457/c405/c555` similar).
+     -> `ReadSongBytes`, `wStrBuffer` -> `strcpy`; `c431/c457/c405/c555` similar).
      General scratch, not a specific global — name generically at best.
    - *Transient draw/render scratch* — **zeroed between uses** (read `$c9e8`/`$c9ed`
      on the SYNTH screen: all `00`), i.e. SDCC static locals for one routine
      (`c9e8/c9ed` synth render, `c938` chain draw, `c9a4` proj draw). Naming needs
      the routine's algorithm reversed; the name is that routine's local, not a global.
-   - *Subsystem state* (sync/oscilloscope/clock/file flags & counters) — the genuinely
+   - *Subsystem state* (sync/kit-streamer/clock/file flags & counters) — the genuinely
      nameable globals, and where the verified names above came from.
 
    So "nameable globals remaining" is far smaller than 1800; target subsystem-state
    vars, recognise the scratch, and don't force names onto buffers/transients.
+   (Historical count — today ~40 addresses remain raw, almost all as 16-bit
+   immediates; see *Current status*.)
 
 ### bank 0 helper/runtime naming sweep
 
@@ -267,7 +321,7 @@ throughout. Clusters named:
   `DivStep`, `memcpy`, `StrCompare` (rgbasm reserves `strcmp`!), `joypad`,
   `delay`/`DelayLoop`, `Abs16`, `CallHL`.
 - **Sync**: `DispatchSyncClock`, `SyncTick{LSDJ,Midi}`, `Sync{Start,Stop}Transport`,
-  `SyncSet{Send,Recv}Mode`, `SyncApplyMode`, `SyncSend`/`ReceiveAnalogClock`
+  `SyncSet{Send,Recv}Mode`, `SyncApplyMode`, `Sync{Send,Receive}AnalogClock`
   (AN.OUT/AN.IN) — see sync.md.
 - **Input**: `HandleButtonEvent` → `HandleInputCombos` + `DispatchScreenInput`
   (the per-event chain from the main loop).
@@ -281,7 +335,8 @@ throughout. Clusters named:
   `LoadTilesToVram`, `SetTileLoadReq`, `CopyTileData` ( -> VRAM tile data
   `$9000+slot*16`), `ReinitDisplay`, `ResetTileLoader`. This also corrected the
   mislabeled `wSyncPosition` -> **`wTileLoadNow`** (`$CBDB` is the loader's
-  immediate-copy flag, only ever 0/2; its `GetSyncPosition` getter is dead code).
+  immediate-copy flag, only ever 0/2; its getter, now `GetTileLoadNow`, ex-
+  `GetSyncPosition`, is dead code).
 - **Kit (sample bank) subsystem**: `KitIndexToBank` (kit index -> ROM bank, +8 with
   a +5 gap to skip the code banks `$1B-$1F`), `KitExists`, `ReadKitName`. This
   corrected a mislabel: `$0CFE` "FarCallByteAlt" is the kit-presence check (reads
@@ -300,7 +355,8 @@ throughout. Clusters named:
 A var-naming pass added ~12 more (all byte-identical): `wDrawStep` (`$C405`,
 multi-frame redraw step — *not* a buffer), `wTransposeDirty`, `wChanRetrigTimer`/
 `Rate`, `wPlayMarkerTimer`, `wAnalogOutTimer`, `wSyncInPulses`/`wSyncInGate`,
-`wSyncRxPos`, `wChanVibAccum`, `wFxNoiseNote`, `wChanNoteStep`, `wWordEditRow`/`Col`,
+`wSyncRxPos`, `wChanVibAccum`, `wFxNoiseNote` (now `wNoiNote`), `wChanNoteStep`
+(now `wChanChordPhase`), `wWordEditRow`/`Col`,
 `wIdleHalt`/`wIdleFrames`, the tile-loader state, and the FX-slot/table step
 countdowns (`wFxSlotCmdTimer`/`wFxSlotEnvTimer`, computed-addressed so doc-only).
 
@@ -308,7 +364,8 @@ The remaining unnamed var references are then **two provably-unnameable classes*
 confirmed by a dedicated bank-02 sound-engine pass + live emulator tracing:
 
 - *Unexercised-feature state* — a memory diff across song playback showed **every
-  sound var that changes is already named** (`wChanReadPtr`/`CmdValPtr`/`InstrPtr`,
+  sound var that changes is already named** (`wPhraseCmdPtr`/`wPhraseCmdValPtr`/
+  `wChanInstrPtr`, then `wChanReadPtr`/`CmdValPtr`/`InstrPtr`,
   `wChanFreq`, `wChanOutNote`, …). The unnamed bank-02 vars (`$C347`/`$C34B`,
   `$C310`, `$C0D5`, `$C15C`, …) stay 0/static because the demo song doesn't use
   their features (FX commands, vibrato, tables); naming them needs constructed
@@ -318,6 +375,13 @@ confirmed by a dedicated bank-02 sound-engine pass + live emulator tracing:
 
 These are named only where ALL readers/writers (or live observation) pin down one
 purpose; the rest are left raw rather than guessed.
+
+> **Update (July passes):** most of these were subsequently named after all —
+> struct-of-array state got `[N]` size tags so interior accesses render as
+> `base + N` (412 positional aliases resolved, down to ~10 honest unknowns),
+> and whole subsystems were re-read (kit streamer, envelope engine, WAV frame
+> sequencer, speech, OAM roles). What is still raw is listed under
+> *Current status* at the top.
 
 ### Emulator symbols: exporting the names back into the debugger
 
@@ -339,9 +403,13 @@ other ROM you open** — repo-root `lsdj9_4_0.sym` and `.emu/lsdj_song.sym`. Tho
 copies are unavoidable: Emulicious/BGB/SameBoy auto-load a `.sym` only from *beside
 the ROM, matching its basename*, and the root ROM (your supplied original) and the
 daemon's `.emu/` copy aren't in `build/`. The result (7151 routines + 230 variables
-= 7381 symbols) means the debugger now names both code *and* state, which is
-exactly what makes the iterative diff-WRAM-while-driving-the-ROM loop above fast.
-The generator only touches the `.sym`, so the ROM stays byte-for-byte identical.
+= 7381 symbols at the time) means the debugger now names both code *and* state,
+which is exactly what makes the iterative diff-WRAM-while-driving-the-ROM loop
+above fast. The generator only touches the `.sym`, so the ROM stays
+byte-for-byte identical. (Today the enriched file carries 8,723 symbols — see
+*Current status* — and `make sym` also deploys a *sections-only* copy of the
+linker `.map`, which gives Emulicious named WRAM/SRAM sections while it still
+reads the per-symbol comments from the `.sym`.)
 
 ### Driving out the debugger's `_LABEL_`/`_DATA_` auto-labels
 
@@ -400,9 +468,12 @@ fill and unreferenced.
 **Naming standard.** Data-table labels are **intuitive/semantic**, reverse-engineered
 from the using code — never `Lut<addr>`/`Table<addr>`. Determine what a table *is*
 (what reads it, how it's indexed, where its result goes) before naming: e.g. the
-recurring 16-byte ramp copied into `wave_frames` is `DefaultWaveFrame` (not
-`Lut491A`); the 16 bytes copied to `synth_params $3EB2` are `DefaultSynthParams`;
-an all-zero display string is `TxtBlankString`. If a table's purpose can't be
+recurring 16-byte ramp copied into `wave_frames` is `DefaultWaveFrame…` (one copy
+per bank: `DefaultWaveFrameB1`/`B3`/`B1C`/`B1F` — not `Lut491A`); the 16 bytes
+copied to `synth_params $3EB2` are `DefaultSynthParams`. Names get corrected as
+understanding improves: bank 1's `$57BF`, first named `TxtBlankString` (it
+*looked* like an all-zero display string), turned out to be the Chain screen's
+CGB palette block, `ScreenPalChain`. If a table's purpose can't be
 pinned after a reasonable look, leave it a documented gap rather than an
 address-name (an address-name is worse than an honest gap). Cross-bank duplicates
 need unique names (one link namespace); `make compare`'s assembler catches
@@ -415,20 +486,27 @@ bank/RAM control, not data). `_DATA_` fell from ~133 to **~14** (the residue is
 mostly the analyzer decoding a *labeled* data table's bytes as code, plus a few
 deferred tables below). Named intuitively (never `Lut<addr>`):
 - sound `$02`: `PitchBendTable`, `VibDepthTable`/`VibRateTableA`/`VibRateTableB`
-  (`FxCmd_V`), `EvenSpreadTable`; home `$00`: `BitMasks`, `FxMnemonics`.
-- defaults copied into SRAM on init: `DefaultWaveFrame` (ramp → `wave_frames`,
-  in banks `$01`/`$1C`/`$1F`), `DefaultSynthParams` (→ `synth_params $3EB2`),
-  `DefaultInstrument`.
-- display tables: `NoteNames` (chromatic), `PanNames`/`ChannelNames` (song),
-  `SynthFilterNames`/`SynthWaveTypeNames`/`SineTable`/`SynthDispatchJumps` (synth),
+  (`FxCmd_V`), `KitPitchTable` (first named `EvenSpreadTable`); home `$00`:
+  `BitMasks`, `FxMnemonics`.
+- defaults copied into SRAM on init: `DefaultWaveFrame…` (ramp → `wave_frames`,
+  per-bank copies in `$01`/`$03`/`$1C`/`$1F`), `DefaultSynthParams`
+  (→ `synth_params $3EB2`), `DefaultInstrument`.
+- display tables: `NoteNames` (chromatic), `ChannelNames` (song),
+  `SineTable`/`SynthDispatchJumps` (synth),
   `WaveSourceNames`/`InstrOptionNames`/`InstrParamJumps` (instrument),
   `AlnumChars`/`TxtClockLabels`/`CloneModeNames`/`SyncModeNames` (project), and
   ~50 UI message strings (`TxtCopiedInstr`, `TxtOutOfMemory`, …; cross-bank
   duplicates get a bank/`2` suffix since the link is one namespace).
+  (Three names from this pass were later corrected when their readers were
+  re-read: `PanNames` → `TxtOct78` (the string "O7-8"),
+  `SynthFilterNames` → `TxtLowp`, `SynthWaveTypeNames` → `TxtOverwrite`.)
 - **Deferred** (honest gap > address-name): bank `$04` `$50D8`/`$54E3` (phrase
   flag/config tables), `$07` `$662A` (a table added to sync var `$CB91`) and
   `$676A` (a mis-carved phantom), `$1E` `$42C8`/`$7550` — each needs the using
-  algorithm reversed before it can be named truthfully.
+  algorithm reversed before it can be named truthfully. *Since resolved:*
+  `PhraseRowAttrs0`, `PhraseStepOnes`, `KeyboardNoteMap` (PS/2 scancode →
+  note, offset by `wKbdTranspose`) and `TilesUiIcons`; `$07:$676A` and
+  `$1E:$7550` no longer need a label of their own.
 
 **The indirect-`_LABEL_` class — FarCall dispatch (`tools/farcall_targets.py`).**
 The code `_LABEL_`s that survive `callgraph.py` (direct cross-bank calls) are
@@ -468,10 +546,11 @@ utilities), and `label_gaps.py` **`_DATA_` 0** (every referenced data address
 labeled). Highlights of the final sweeps: the bank 5 **screen-map navigation**
 subsystem (`MapMoveLeft/Right/Up/Down`, `MapEnterScreen`, wMapCol/wMapRow), the
 bank 7 **song bookmarks** ($0FF0) and **PS/2 keyboard** subsystems, the
-bank 1C **file-format migration callbacks** (`FileUpgradeVnType` passed to
-`FileForEachInstrType`), the **FX-command help strings** (`TxtHelpA..Z` + the
-B/F/H/S/W screen variants) behind `CommandHelpTable`, the bank 1E **font tile
-blocks** (`TilesFontNA/B/C`, selected by `wFont` `$C52E`) and **synth waveform
+bank 1C **file-format migration callbacks** (`FileUpgradeV<n><Type>`, e.g.
+`FileUpgradeV0Kit`, passed to `FileForEachInstrType`), the **FX-command help
+strings** (`TxtHelpA..Z` + the B/F/H/S/W screen variants) behind
+`CommandHelpTable`, the bank 1E **font tile blocks** (`TilesFont0A`…`TilesFont2C`,
+selected by `wFont` `$C52E`) and **synth waveform
 tables**, and the phrase/chain/instr **allocation bitmap** functions
 (`AllocNextFreePhrase`/`FreeChain`/`AllocNextFreeInstr`/`FindFreeTable`…).
 Several functions were *hidden by misalignment* — strings/tables carved as code
@@ -507,8 +586,9 @@ labels — `GetTempoTimerValue` returns its mode-preset "pointers" *in de as
 numeric timer values*, so the `$0380/$0396` "functions" were deleted — plus
 five more misdecoded table regions (kit/wav pitch tables at the bank-2 tail,
 the bank-3 instrument-field cursor layout `InstrFieldX/Y/W/Counts`, the bank-5
-map-column metrics, the bank-1D `SynthFieldLayout`, the bank-1F
-`FxCmdRefTable`) and the full per-screen CGB palette block set
+map-column metrics, the bank-1D `SynthFieldLayout`, and bank-1F `$491A` —
+named `FxCmdRefTable` in this pass, later corrected back to the default wave
+frame, `DefaultWaveFrameB1F`) and the full per-screen CGB palette block set
 (`ScreenPalSong`…`ScreenPalInstrNoise`) resolved from `GetScreenPalette`'s
 dispatch. `data_refs.py` now reports **0**; every referenced ROM data address
 carries an exact functional symbol. One final Emulicious-specific class remained
@@ -521,7 +601,8 @@ named per bit (`BitMaskBit6..Bit0` for the descending `$80>>n` row,
 `BitMasksAsc`/`BitMaskAsc1..7` for the ascending `1<<n` row) and the `$ff`
 filler bytes as `UnusedXXXX` (positional names are the honest ones for unused
 fill; they are data with no function beyond their location). The sweep also added ~27 session-evidenced
-RAM names (`wColChain`, `wPlayChanFirst/Last`, `wLfoStatePU1/PU2/WavNoi`,
+RAM names (`wColChain`, `wPlayChanFirst/Last`, `wLfoStatePU1/PU2/WavNoi` — later
+found to be envelope state, now `wEnvStagePu1/Pu2/Noi`,
 `wFileNameBuf`, `wDecompBuf`, …) to `ram.inc`.
 
 **Dynamic driver — `tools/emu/song.py`.** A verified editing layer that also reads
@@ -538,30 +619,33 @@ from the kit; NOISE its own scheme).
 1. **Code/data split (cleaner carves).** The unreached remainder in a bank is
    data or not-yet-reached code. `tools/carve_clean.py` marks an unreached run as
    `db` when it is illegal-opcode-dense, `$00`/`$FF` fill, a long printable run, or
-   — since code coverage is ~99.6% — has **control-flow-opcode density** too low
+   — since code coverage (excluding data) is ~100% — has **control-flow-opcode density** too low
    to be code (≤0.07 vs ~0.10-0.15 for real SM83; catches tile graphics and
    pointer tables that decode as legal opcodes). Two guards keep code intact: a
    run starting with an SDCC prologue is never data, and `func_brackets()` excludes
    mid-run `push bc; … pop bc; ret` functions — so a not-yet-reached function
    embedded in data still reads as code. This split bank `$1E` (~90% tile data)
    from ~12 k garbage instruction lines down to ~2.6 k.
-2. **More computed dispatch.** Keep modelling indirect dispatch (e.g. the rest of
-   `$1F`).
+2. **More computed dispatch.** Done for code: no code-like bytes remain
+   unreached. The remaining work is the reverse problem — stop seeding named
+   *data* as code (see *Current status*).
   3. **Naming — every function has a behavioral name.** Every function entry
      (call- *and* jp-reached) has a real global name; auto-generated **global**
      `L*` labels are gone, and so are the `<Screen>Func`/`Proc` "purpose TBD"
      placeholders — **all ~280 were given behavior-based names** derived by reading
      each function (its dominant RAM/reg access, callees, return value, structure).
      Internal jr/jp targets are RGBDS **local** labels (`.L_xxxx`) scoped to their
-     function. Names that retain a `_XXXX` address suffix (e.g. `InstrGetField5_4B4C`)
-     are accurate behavioral names where the stem repeats and the suffix only
-     disambiguates.
+     function. Names that kept a `_XXXX` address suffix (e.g. `InstrGetField5_4B4C`)
+     were accurate behavioral names where the stem repeated and the suffix only
+     disambiguated; none remain — the instrument accessors were renamed from the
+     liblsdj-documented format (`InstrGetField5_4B4C` → `GetInstrFlags53`).
   4. **Re-review pass (correctness).** After labelling, every bank's theme was
      re-verified against the actual entry/dispatch code. This caught and fixed
      several *systematic* mislabels from the earlier heuristic pass:
      - bank `$1C` "FileSave*" cluster was actually the **song-format upgrader**
        (`FileUpgradeSong`/`FileUpgradeV0..V21`, on-screen "UPGRADING…"), not save.
-     - bank `$03`: 20 `InstrGetFieldN` were **setters** (read-modify-write) → `InstrSetFieldN`.
+     - bank `$03`: 20 `InstrGetFieldN` were **setters** (read-modify-write) → `InstrSetFieldN`
+       (both families since renamed from the documented format: `GetInstr*`/`SetInstr*`).
      - "incidental access" mislabels (the same class as the old `54D7`): a bulk
        SRAM clear named for a `$a000` base → `ClearSramWindow`; `CompressSong`
        mis-placed on the previous routine's `ret` (off-by-one) → moved to `$441F`.

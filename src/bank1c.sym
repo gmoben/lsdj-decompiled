@@ -73,7 +73,7 @@
 6530 FileUpgradeV9              ; song upgrade step v9->v10: patch instruments (FileForEachInstrType)
 656B FileUpgradeV10             ; song upgrade step v10->v11: patch instruments (FileForEachInstrType)
 6585 FileUpgradeReadByte        ; upgrade helper: read a working-song byte (ReadSongByte)
-65B9 FileUpgradeClearRange      ; upgrade helper: clear a range (MemSet; reads via FileReadByte6585)
+65B9 FileUpgradeClearRange      ; upgrade helper: clear a range (MemSet; reads via FileUpgradeReadByte)
 669E FileUpgradeV11             ; song upgrade step v11->v12: patch song data (+ FileUpgradeClearRange clear)
 68C5 FileUpgradeRemapBits       ; upgrade helper: recursive bit/nibble remap via ROM table $68f1
 6959 FileUpgradeV12             ; song upgrade step v12->v13: patch instruments (FileForEachInstrType)

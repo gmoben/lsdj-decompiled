@@ -41,11 +41,11 @@
 4CAA PhraseCheckColFD           ; return whether [$c90d + arg] == $fd
 4CC4 DrawNoteCell               ; draw wSampleNoteString (note name) or "OFF"
 510A PhraseCurNoteIsKit         ; find note (PhraseFindNoteFromCursor); return 1 if its instrument type (ReadInstrByte)==2
-5136 PhraseCheckEditContext     ; predicate over mode $c41d / col $c415 / wCursorX / PhraseCurNoteIsKit
-51AE PhraseHandleInput          ; main phrase-screen cursor/edit handler ($c411 mode, wCursorX/Y); large
+5136 PhraseCheckEditContext     ; predicate over mode $c41d / col $c415 / wSelLeft / PhraseCurNoteIsKit
+51AE PhraseHandleInput          ; main phrase-screen cursor/edit handler ($c411 mode, wSelLeft/wSelTop); large
 5491 CopyInstrBytes             ; copy 16 instrument bytes src->dst (+name/table FarCalls)
 55EB CloneTableAtCursor         ; clone the table referenced by the cmd value under the cursor (FindFreeTable+CopyTableData)
-567D PhraseCursorOnEditCell     ; return 1 if cursor is on the active cmd cell ($c416==$c40e and $c415==wCursorX)
+567D PhraseCursorOnEditCell     ; return 1 if cursor is on the active cmd cell ($c416==wSelTop and $c415==wSelLeft)
 56BA PhraseCloneTableCmd        ; command action handler incl. cloning a table ("CLONED TABLE" message)
 572C PrelistenCursorRow         ; play the note/instr under the cursor while editing (wPrelisten gate)
 58D9 PhraseCellFlagA       ; phrase-cell predicate OR-ed in PrelistenEditedCell: note<$40 & instrument type==2 (kit) test

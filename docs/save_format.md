@@ -63,7 +63,7 @@ runs of `$00`/`$FF` (empty phrases/chains).
 
 | Routine | Addr | Role |
 |---------|------|------|
-| `DecompressCommand` | `$46E1` | read a byte and act: `$E0` (escape→literal), `$F0` (default-wave run), `$F1` (default-instrument run), `$FF` (end), else literal |
+| `DecompressSpecial` | `$46E1` | handle an `$E0`-escape sub-command: `$F0` (default-wave run), `$F1` (default-instrument run), `$FF` (end), else a literal `$E0` |
 | `ReadCompressedByte` | `$7402` | fetch the next stream byte via the SRAM block pointer (`$C97B`/`$C97C`) |
 | `WriteSongByte` | `$74E0` | write a decompressed byte into the working song |
 | `EmitDefaultWave` | `$753E` | `$F0` run: emit a default wavetable frame |

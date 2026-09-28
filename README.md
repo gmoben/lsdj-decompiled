@@ -9,17 +9,26 @@ byte-for-byte identical copy of the original ROM**.
 
 Current state:
 
-- byte-for-byte reproduction, verified on every commit
-- full symbol coverage: ~8,800 named routines, tables, strings and variables
-  across all 13 program banks and the 21 sample kits — a debugger loading the
-  generated `.sym` resolves everything, no auto-labels left
-- every WRAM/HRAM byte the ROM touches is named: ~820 semantic addresses in
-  `constants/ram.inc` (arrays carry `[N]` size tags and interior accesses
-  render as `base + N`), plus the banked SRAM working-song structures
-  (`SramPhraseNotes`, `SramInstruments`, …); only 10 bytes remain as
-  honestly-annotated unknowns
-- the C decompilation track is gated on reproducing the original GBDK 2.95 /
-  SDCC toolchain (see `docs/toolchain.md`)
+- byte-for-byte reproduction, verified on every commit — and from a fresh
+  clone plus your ROM in a few seconds
+- full symbol coverage: ~8,700 names — 1,833 routines/tables/strings, 6,045
+  function-local labels, 808 WRAM/HRAM variables and 37 SRAM song structures —
+  across all 13 program banks and the 21 sample kits. Every function is named,
+  every referenced data address is labeled, and a debugger loading the
+  generated `.sym` shows no auto-labels
+- RAM: ~800 semantic addresses in `constants/ram.inc` (arrays carry `[N]` size
+  tags and interior accesses render as `base + N`), plus the banked SRAM
+  working-song structures (`SramPhraseNotes`, `SramInstruments`, …). What's
+  left: one byte (`$CB64`) still accessed unnamed, ~40 addresses that appear
+  only as raw 16-bit immediates (mostly buffer bases passed to helpers), and
+  ~13 named variables whose exact role is marked `TBD`
+- code coverage: 79% of the program banks trace as reachable code and the rest
+  classifies as fill/text/graphics, with no code-like bytes unexplained. Known
+  fidelity gaps — e.g. ~100 named strings/tables still rendered as instructions
+  — are listed in [`docs/reversal.md`](docs/reversal.md) → *Current status*
+- the C decompilation track (matching C under the original GBDK 2.95 / SDCC
+  2.2.1) has a working toolchain and harness; the first real target,
+  `DrawMessageBar`, is set in [`docs/toolchain.md`](docs/toolchain.md)
 
 ## Why
 
@@ -129,11 +138,13 @@ lsdj-decompiled/
 ├── src/
 │   ├── bankNN.sym        # per-bank symbol maps (tracked; the curation)
 │   ├── bankNN.asm        # generated disassembly (git-ignored, from your ROM)
+│   ├── ramsections.asm   # generated named RAM sections (git-ignored)
 │   └── main.asm          # generated top level (git-ignored)
 ├── include/
 │   └── hardware.inc      # standard GB hardware definitions (gbdev, CC0)
 ├── constants/            # symbolic constants
-│   ├── ram.inc           # RAM variable map (hundreds of named wXxx/hXxx vars)
+│   ├── ram.inc           # RAM variable map (~800 named wXxx/hXxx vars)
+│   ├── screens.inc       # screen indices (wCurrentScreen) -> editor
 │   └── song.inc          # song-data memory map (offsets, counts)
 ├── data/                 # extracted data tables (added as carved)
 ├── gfx/                  # graphics assets (added as carved)
@@ -160,6 +171,8 @@ lsdj-decompiled/
 │   ├── show_func.py      # dump one function's disassembly by bank:addr
 │   ├── callgraph.py, farcall_targets.py, find_orphans.py, label_gaps.py,
 │   │   data_refs.py      # audits that drove symbol coverage to 100%
+│   ├── bankmap.py, annotate_ram.py, statevar.py, name_locals.py,
+│   │   name_firstaction.py, gen_baseline.py  # smaller/historical helpers
 │   ├── emu/              # SameBoy-based live-verification harness
 │   ├── toolchain/        # fetch + run the period compiler (under Wine)
 │   └── match/            # matching-decompilation harness (compile C, diff vs ROM)
@@ -182,6 +195,7 @@ Common commands:
 ```bash
 make            # build build/lsdj9_4_0.gb
 make compare    # build, then assert it equals the original ROM
+make carve      # force-regenerate the disassembly from your ROM + src/*.sym
 make verify-rom # check your supplied ROM is the right revision
 make sym        # emit the BANK:ADDR symbol file for emulator debugging
 make listing    # emit build/listing.asm — the whole ROM as one annotated file

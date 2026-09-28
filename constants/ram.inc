@@ -64,7 +64,7 @@ DEF wKbdCursorRow    EQU $C42E  ; keyboard cursor row
 DEF wSampleNoteString EQU $C43A  ; [7] shared text buffer for a sample/kit note name (Phrase/Chain/Song note draws)
 DEF wTableCol        EQU $C92F  ; Table editor: current column/cursor state (bit7 = special)
 DEF wTableRow        EQU $C930  ; Table editor: current row cursor (0-15); pairs with wTableCol
-DEF wDefaultNotes     EQU $C904  ; table/array of default note values (InstrGetField0)
+DEF wDefaultNotes     EQU $C904  ; table/array of default note values (InstrScreenInput / InstrParamByte10 / InstrParamTableSet2; reset in ResetWorkState)
 DEF wHelpCursorRow   EQU $C934  ; HELP/word screen cursor row (ProjHelpSelectPrev/Next/OpenSelected)
 DEF wWordEditRow     EQU $C937  ; Word/speech editor: cursor row within the current word (inc/dec by nav); AccessWord indexes word data at +wWordEditRow*2
 DEF wWordEditCol     EQU $C938  ; Word/speech editor: cursor column (0/1) within the row; AccessWord byte offset within the 2-byte unit
@@ -87,15 +87,17 @@ DEF wKit1LoopStart   EQU $C4D4  ; kit voice 1 loop-window start ptr lo (sample s
                                 ; (bank00 $03d8, gated by wKitVoicesActive) streams via the wKit1*/wKit2* state,
                                 ; reloading its read pointer from here. Same RAM, two mutually-exclusive features.
 DEF wKit2LoopStart   EQU $C4D8  ; kit voice 2 loop-window start ptr lo
-; Oscilloscope wave-display (bank00 $03d8): streams wave data from a banked pointer (16 bytes/frame) to
-; hOscilloscope. These vars are oscilloscope-only (not used by the pitch-mod stepper):
+; Kit sample streaming (TimerHandler, bank00 $03d8): each tick an active kit voice copies 16 sample bytes
+; from its banked ROM read pointer into hWavUploadBuf (-> WAV RAM), then loops (reload from wKit1LoopStart/wKit2LoopStart)
+; or stops at its loop end. (First mislabeled an "oscilloscope"/hOscilloscope.) Kit-streamer only, not
+; used by the pitch-mod stepper:
 DEF wKitVoicesActive EQU $C8F6  ; kit streaming active bits: bit0 = voice 1, bit1 = voice 2 (TimerHandler gates)
 DEF wKit1Bank        EQU $C4F4  ; kit voice 1 active ROM bank (selected before streaming)
 DEF wKit2Bank        EQU $C4F5  ; kit voice 2 active ROM bank (speech: $19+n allophone bank)
 DEF wKit1LoopEnabled EQU $C4E4  ; kit voice 1 loop flag (from kit bank loop-bits / instr B5 bit6)
 DEF wKit2LoopEnabled EQU $C4E5  ; kit voice 2 loop flag
 ; --- song (de)compression cursors (bank $1C; see docs/save_format.md) ----------
-DEF wFileScroll       EQU $C99B  ; File screen: file-list scroll offset (top visible index). Screen row = wFileCursorRestrict
+DEF wFileScroll       EQU $C99B  ; File screen: file-list scroll offset (top visible index). Screen row = wFileCursor
                                  ; - wFileScroll, bounded to 0..F (16 visible rows; DebugTrap otherwise). FileDrawFieldChecked
 DEF wFileCursor      EQU $C999  ; file-list cursor index (0-$1F)
 DEF wFilePromptActive EQU $C995  ; YES/NO prompt shown
@@ -113,7 +115,7 @@ DEF wStringSrc       EQU $C564  ; source pointer for DrawString (16-bit)
 DEF wVramCursor      EQU $C573  ; [1] 16-bit VRAM tilemap dest ($98xx-$9Bxx, 16-bit LE; $C574=hi); draw helpers auto-increment it
 DEF wPhrase          EQU $C414  ; current phrase number being edited ($FF=none, Phrase screen)
 DEF wInstrument      EQU $C576  ; current instrument number (index into instruments[64][16])
-DEF wStrBuffer       EQU $C6A9  ; shared text work buffer (StrCopy destination), used across banks
+DEF wStrBuffer       EQU $C6A9  ; shared text work buffer (strcpy destination), used across banks
 DEF wSongReadBuf     EQU $C46D  ; shared scratch buffer that ReadSongBytes fills with song data (its address is passed
                                 ; in across banks); editors read a row/set (e.g. groove steps, cp $10) into it then render
 DEF wMsgTimer        EQU $C7A9  ; frame countdown for the transient message (set 10/50/100/150, dec'd; gates its draw)
@@ -170,9 +172,9 @@ DEF wFxCommand       EQU $C8C4  ; current FX command index (0-$12) being process
 ; computed frequency (wChanFreq) is written to rAUDxLOW/HIGH each frame.
 DEF wChanFreq        EQU $C0F4  ; channel frequency shadow, PU1 lo (rAUD1LOW)
 DEF wSongTranspose   EQU $C444  ; global/project TRANSPOSE (working copy of the SRAM song property); SndTransposeNote
-                                ; adds it to every note; displayed/edited on the PROJECT screen (ProjDrawHex)
+                                ; adds it to every note; displayed/edited on the PROJECT screen (ProjectDrawField)
 DEF wTransposeDirty  EQU $C445  ; transpose edit/commit flag: set by the PROJECT screen after refreshing wSongTransposeDisp; when set, ProcessInput commits wSongTransposeDisp -> wSongTranspose and saves it to SRAM ($BFB5), then clears it
-DEF wSongTransposeDisp EQU $C446 ; displayed form of the song transpose (ProjDrawHex / ProcessInput)
+DEF wSongTransposeDisp EQU $C446 ; displayed form of the song transpose (ProjectDrawField / ProcessInput)
 DEF wNoteTranspose   EQU $C4D3  ; PU2 instrument transpose (from instrument PU2_TRANSPOSE param), added before the period lookup
 DEF wNotePeriods     EQU $CF28  ; runtime 16-bit GB note-period table (computed for tuning); NoteToPeriod indexes it
 DEF wCurInstr        EQU $C0D0  ; current instrument record byte 0 = type (0 pulse, 1 wav, 2 kit, 3 noise); 16B staged from SramInstruments $B080+instr*16
@@ -187,7 +189,7 @@ DEF wChanModType     EQU $C0A4  ; [4] modulation type
 ; SetupSoundWave (which writes base+2 = channel 2's slot).
 DEF wChanVibAccum    EQU $C308  ; [4] 16-bit per-channel vibrato LFO phase accumulator (advanced by wChanVibSpeed each step; high byte indexes the vib waveform via SndCalcVibOffset -> wChanVibOffset)
 DEF wChanVibSpeed    EQU $C314  ; [4] 16-bit signed vibrato increment (V high nibble via table; negated by dir)
-DEF wChanVibOffset   EQU $C31C  ; [4] 16-bit current vibrato pitch displacement; L1BA7 adds it to the period
+DEF wChanVibOffset   EQU $C31C  ; [4] 16-bit current vibrato pitch displacement; SndWriteFreqPU1 adds it to the period
                                 ; when vibrato is active (wChanVibSpeed != 0). Verified live (residual $FFD8 on a vib channel)
 DEF wChanVibDepth    EQU $C324  ; [4] vibrato depth (V low nibble via table $7D81)
 DEF wChanVibType     EQU $C328  ; [4] vibrato type/shape (compared to 1 in FxCmd_V)
@@ -205,7 +207,7 @@ DEF wChanTableStep    EQU $C33F ; [4] byte5 bit3 = instrument TABLE-STEP param; 
 DEF wChanSlideNoteSrc EQU $C330 ; [4] byte5 bit6: FxCmd_L slide reads the alt note source ($C0EC vs wChanOutNote) when set
 DEF wChanTranspose    EQU $C333 ; [4] byte5 bit5 = instrument TRANSPOSE param (bit set = transpose OFF). When set,
                                 ; SndTransposeNote skips adding wChanChainTrans to the note. Verified in our code.
-DEF wChanWaveTrig     EQU $C35C ; [4] byte5 bit7: ApplyPitchBend triggers a wave (SndTriggerWave) instead of bending when set
+DEF wChanWaveTrig     EQU $C35C ; [4] byte5 bit7: when set, ApplyPitchBend jumps to SndUpdateWavFreq instead of bending
 DEF wChanActiveInstr EQU $C0C8  ; [4] instrument currently loaded into the sound engine per channel ($FF=none);
                                 ; set by SndLoadChannelInstr, gates note processing in ProcessChannel/NoteToPeriod.
                                 ; Distinct from wChanInstr ($C210), the *sequenced* instrument from the phrase.
@@ -213,7 +215,7 @@ DEF wChanNote        EQU $C0CC  ; [4] current note value per channel
 DEF wChanState       EQU $C0E0  ; start of the per-channel byte-state arrays
 DEF wChanActive      EQU $C0E0  ; [4] per-channel active flag; ProcessChannel runs only if nonzero
 DEF wChanRestart     EQU $C0E4  ; [4] per-channel (re)start request; SndChanStateMachine sets, SndStartChannel consumes
-DEF wChanOutNote     EQU $C0E8  ; [4] effective note used for frequency: bank0 L1BA7 looks up the period as
+DEF wChanOutNote     EQU $C0E8  ; [4] effective note used for frequency: bank0 SndWriteFreqPU1 looks up the period as
                                 ; wNotePeriods[wChanOutNote + $7F + offset]. Set = wChanNote each tick by
                                 ; WriteChannelFreq; read/adjusted by the pitch-slide command (FxCmd_L)
 DEF wChanNoteTrigger EQU $C0F0  ; [4] per-channel "advance to next note step" flag: set nonzero when the note
@@ -275,17 +277,17 @@ DEF wPtrNoteSrc      EQU $C8ED  ; ptr to current channel's note-column SRAM-ptr 
 DEF wPtrTableStep    EQU $C8FC  ; -> wChanTableStep[curChan]
 ; Per-channel GB-sound register shadows, written to hardware by TriggerNote:
 ; Pitch-bend / slide state (per channel, 16-bit). The command handlers set a
-; target + rate; the freq code (bank0 L19A6) steps the current pitch toward the
+; target + rate; the freq code (bank0 SndStepPitchVibPU1) steps the current pitch toward the
 ; target each tick by the rate and clamps on arrival. Reset on note-on.
 DEF wChanPitchTarget EQU $C248  ; [4] 16-bit pitch-bend target period (0 = no bend active); set by FxCmd_L
 DEF wChanPitchRate   EQU $C2D0  ; [4] 16-bit signed per-tick pitch step toward the target (sign in hi byte
                                 ; $C2D1); set by ApplyPitchBend from the FX value; cleared on note-on
-DEF wChanPitchCur    EQU $C337  ; [4] 16-bit current pitch value (default $0080) that L19A6 slides toward
+DEF wChanPitchCur    EQU $C337  ; [4] 16-bit current pitch value (default $0080) that SndStepPitchVibPU1 slides toward
                                 ; wChanPitchTarget by wChanPitchRate each tick, clamping on arrival; reset by WriteChannelFreq
-DEF wChanFinetune    EQU $C696  ; per-pulse-channel finetune (PU1 $C696, PU2 $C697); L1BA7 subtracts it as a
+DEF wChanFinetune    EQU $C696  ; per-pulse-channel finetune (PU1 $C696, PU2 $C697); SndWriteFreqPU1 subtracts it as a
                                 ; fine (low-byte) pitch adjustment in the period calc. From instrument finetune param (byte $B)
 DEF wChanPeriodTablePtr EQU $C356 ; [4] 16-bit per-channel pointer to the note-period table for pitch interpolation
-                                ; (L1B28). NoteToPeriod sets it to wNotePeriods ($CF28), or an alt table when
+                                ; (SndInterpPeriod). NoteToPeriod sets it to wNotePeriods ($CF28), or an alt table when
                                 ; wChanSlideNoteSrc is set. Pitched channels only (ch0-2; noise excluded)
 DEF wChanEnv         EQU $C2D8  ; [4] envelope value -> rAUDxENV (ch2/WAV = wave level rAUD3LEVEL)
 ; Per-channel software-envelope working struct, 7 bytes/channel (channel N at base + N*7:
@@ -311,7 +313,7 @@ DEF wSyncMode2       EQU $CB67  ; secondary sync config (default 6); also the AN
 DEF wAnalogOutTimer  EQU $CB68  ; AN.OUT clock pulse-period countdown (SyncSendAnalogClock): reloaded from wSyncMode2; while >= 3 it emits $FF (pulse high) else $00; SyncStopTransport sets it to 3
 DEF wSyncInPulses    EQU $CB77  ; AN.IN: received clock-pulse counter (incremented per nonzero rSB in SyncReceiveAnalogClock), reset relative to wSyncMode2 (TICKS/STEP) when a sequencer tick advances
 DEF wSyncInGate      EQU $CB78  ; AN.IN: when nonzero, SyncReceiveAnalogClock skips processing the incoming pulse (gate/hold)
-DEF wSyncTick        EQU $CB69  ; sync tick counter: $ff = idle; counts up and at 12 fires the sync pulse (L1E93).
+DEF wSyncTick        EQU $CB69  ; sync tick counter: $ff = idle; counts up and at 12 fires the sync pulse (DispatchSyncClock).
                                 ; Verified live: $ff while LSDJ sync is idle (no partner)
 DEF wSyncRun         EQU $CB6B  ; sync running flag: 1 = sync clock active, 0 = stopped (set by the sync start/stop
                                 ; handlers; also gated to the SONG screen in LSDJ mode). Verified live: 0 while idle
@@ -366,13 +368,13 @@ DEF wButtonWriteIdx  EQU $C570  ; ReadJoypad write cursor into wButtonRing
 ; the first repeat). Changing the leading "7" is what turns repeat off.
 DEF wKeyDelayTimer   EQU $C406  ; working countdown to the first repeat (reloads from wKeyDelay)
 DEF wKeyRepeatTimer  EQU $C407  ; working countdown between repeats (reloads from wKeyRepeat)
-; Input edge/modifier state (set by ProcessInput / L2B8D, read by the screens):
+; Input edge/modifier state (set by ProcessInput / HandleButtonEvent, read by the screens):
 DEF wButtonsSame     EQU $C408  ; 1 if wButtons unchanged since last frame, 0 if changed; ProcessInput gates the
 DEF wAPressEnabled    EQU $C409  ; 1 = an A-press is allowed (set on button release, cleared while a button is held). ProcessInput
                                 ; key-repeat timer reload on it (changed -> reload). Verified by tracing ProcessInput
-DEF wSelectHeld      EQU $C40A  ; nonzero while SELECT is held alone (set by L2B8D); read by screens as the SELECT modifier
-DEF wBHeld           EQU $C40B  ; nonzero while B is held alone (set by L2B8D); e.g. disables song-cursor left/right
-DEF wAHeld           EQU $C40C  ; nonzero while A is held alone (set by L2B8D)
+DEF wSelectHeld      EQU $C40A  ; nonzero while SELECT is held alone (set by HandleButtonEvent); read by screens as the SELECT modifier
+DEF wBHeld           EQU $C40B  ; nonzero while B is held alone (set by HandleButtonEvent); e.g. disables song-cursor left/right
+DEF wAHeld           EQU $C40C  ; nonzero while A is held alone (set by HandleButtonEvent)
 DEF wCursorButtonHold EQU $C467 ; cursor button-hold state (ProcessInput / editor cursors)
 DEF wKeyDelay        EQU $C52B  ; KEY DELAY setting: frames before a held button first repeats (0 = off)
 DEF wKeyRepeat       EQU $C52C  ; KEY REPEAT setting: frames between repeats after the initial delay

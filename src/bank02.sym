@@ -34,7 +34,7 @@
 4668 ProcessChannelTable ; advance/apply the channel's table (wChanTable/Played/Countdown); calls the column readers
 574B ReadTableEnvelope  ; read table_envelopes[wChanTable][row] (song $1690 = SRAM bank0 $B690)
 587D ReadTableTranspose ; read table_transposes[wChanTable][row] (song $3480 = SRAM bank1 $B480)
-487E ReadGroove         ; read grooves[wChanGroove][wChanGrooveRow] (song $1090 = SRAM bank0 $B090) via wPtrGroove/GrooveRow
+487E ReadGroove         ; read grooves[wChanGroove][wChanGrooveRow] (song $1090 = SRAM bank0 $B090) via wPtrGroove/wPtrGrooveRow
 ; --- Sequencer: song row -> chain -> phrase resolution ------------------------
 48D2 AdvanceSongRow     ; on wChanChain[ch]==$FF, walk chain_assignments (loop-back) -> next chain
 5EAD ReadSongChain      ; e = chain_assignments[wChanSongRow[ch]][ch] ($B290 = song offset $1290)
@@ -120,9 +120,9 @@
 55CB SndReadChainEnd            ; chain end-marker check (cp $ff)
 55EF SndDecodeTransA            ; SndApplyTablePitch / SndDecodeNibbles
 5604 SndDecodeTransB            ; SndApplyTablePitch / SndDecodeNibbles (variant)
-561B SndReadGrooveOrSpeed       ; (cp $20) groove vs speed -> SndGrooveStep / $cbbf
+561B SndReadGrooveOrSpeed       ; NB misnomer (no groove/speed access): if wChanTableFresh[ch], clear it (NOI: also wNoiTableNotePrev); else when wChanTableStep[ch]==0 step the 5 table read ptrs (wTableNotePtr, wTableCmd1Ptr, wTableCmd2Ptr, wTableCmd1ValPtr, wTableCmd2ValPtr) to the next row
 5657 SndStepTablePtrs           ; advance the channel's table step counter; on 16-step wrap rebuild SRAM read-pointers ($c1xx) for the table transpose ($B480) and command ($BA80) columns of wChanTable[ch]
-56E1 SndReadGrooveVal           ; (cp $20/$08) -> SndGrooveStep, $cbbf
+56E1 SndReadGrooveVal           ; table step 0 -> jp SndAdvanceGroove unless the groove byte is $20; step 8 -> mark it $ff. (The trailing .initEnvPu1/.initEnvNoi stubs, zeroing wEnvStagePu1/Noi = ex-$cbbf, are separate entries.)
 572B SndInitEnvelope            ; init 3-node envelope for hSoundCh channel (WAV: none); stage=0, node1 -> vol+speed
 5778 SndSetKitParams            ; set kit state $c694/$c8f1/$c695
 583F SndSplitPhraseNibbles      ; wChanPhrase[ch] -> hi/lo nibbles (compute phrase index)
@@ -159,7 +159,7 @@
 711F SndAdvanceChanPos          ; per-frame position advance inside SndUpdateChannel; state $ff -> SndInitPlayState
 7362 SndBank0Call7362           ; bank0 $33f9 dispatch
 73B0 SndClearVoicePairs         ; recursive: SndBank0Call6479 x2 (clear voice state)
-748E SndAdvanceGrooveCursor     ; SndReadCursorByte + SndGrooveStep
+748E SndAdvanceGrooveCursor     ; SndReadCursorByte + SndAdvanceGroove
 75C6 SndUpdateChannel           ; per-channel processor (channel = hSoundCh): advance phrase cursor, resolve song/chain row, read note/cmd; called per active channel by SndUpdateAllChannels
 77F0 SndTick                    ; one engine tick: SndStepAllChannels (sequencer) then SndUpdateAllChannels (output); self-recurses on retrigger flag $c4cd / mode $cb66
 786F SndUpdateChanAltPath       ; per-channel alt update (SndReadChainRow/4E74/5F5E)
