@@ -227,3 +227,283 @@ replace restart {
 	ld	c,e
 	lda	sp,%1
 }
+replace restart {
+	jp	%1,%2
+	jr	%3
+%2:
+	jp	%4
+%3:
+} by {
+	jp	%1,%4
+%3:
+}
+replace restart {
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+	or	a,a
+	jp	%3,%4
+%6:
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+} by {
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+	or	a,a
+	jp	%3,%4
+%6:
+}
+replace restart {
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+	or	a,a
+	jp	%3,%4
+%6:
+	cp	a,#%7
+	jp	%8,%9
+%10:
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+} by {
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+	or	a,a
+	jp	%3,%4
+%6:
+	cp	a,#%7
+	jp	%8,%9
+%10:
+}
+replace restart {
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+	or	a,a
+	jp	%3,%4
+%6:
+	cp	a,#%7
+	jp	%8,%9
+%10:
+	cp	a,#%11
+	jp	%12,%13
+%14:
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+} by {
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+	or	a,a
+	jp	%3,%4
+%6:
+	cp	a,#%7
+	jp	%8,%9
+%10:
+	cp	a,#%11
+	jp	%12,%13
+%14:
+}
+replace restart {
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+	or	a,a
+	jp	%3,%4
+%6:
+	cp	a,#%7
+	jp	%8,%9
+%10:
+	cp	a,#%11
+	jp	%12,%13
+%14:
+	cp	a,#%15
+	jp	%16,%17
+%18:
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+} by {
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+	or	a,a
+	jp	%3,%4
+%6:
+	cp	a,#%7
+	jp	%8,%9
+%10:
+	cp	a,#%11
+	jp	%12,%13
+%14:
+	cp	a,#%15
+	jp	%16,%17
+%18:
+}
+replace restart {
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+	or	a,a
+	jp	%3,%4
+%6:
+	cp	a,#%7
+	jp	%8,%9
+%10:
+	cp	a,#%11
+	jp	%12,%13
+%14:
+	cp	a,#%15
+	jp	%16,%17
+%18:
+	cp	a,#%19
+	jp	%20,%21
+%22:
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+} by {
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+	or	a,a
+	jp	%3,%4
+%6:
+	cp	a,#%7
+	jp	%8,%9
+%10:
+	cp	a,#%11
+	jp	%12,%13
+%14:
+	cp	a,#%15
+	jp	%16,%17
+%18:
+	cp	a,#%19
+	jp	%20,%21
+%22:
+}
+replace restart {
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+	cp	a,#%5
+	jp	%3,%4
+%6:
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+} by {
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+	cp	a,#%5
+	jp	%3,%4
+%6:
+}
+replace restart {
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+	cp	a,#%5
+	jp	%3,%4
+%6:
+	cp	a,#%7
+	jp	%8,%9
+%10:
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+} by {
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+	cp	a,#%5
+	jp	%3,%4
+%6:
+	cp	a,#%7
+	jp	%8,%9
+%10:
+}
+replace restart {
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+	cp	a,#%5
+	jp	%3,%4
+%6:
+	cp	a,#%7
+	jp	%8,%9
+%10:
+	cp	a,#%11
+	jp	%12,%13
+%14:
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+} by {
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+	cp	a,#%5
+	jp	%3,%4
+%6:
+	cp	a,#%7
+	jp	%8,%9
+%10:
+	cp	a,#%11
+	jp	%12,%13
+%14:
+}
+replace restart {
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+	cp	a,#%5
+	jp	%3,%4
+%6:
+	cp	a,#%7
+	jp	%8,%9
+%10:
+	cp	a,#%11
+	jp	%12,%13
+%14:
+	cp	a,#%15
+	jp	%16,%17
+%18:
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+} by {
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+	cp	a,#%5
+	jp	%3,%4
+%6:
+	cp	a,#%7
+	jp	%8,%9
+%10:
+	cp	a,#%11
+	jp	%12,%13
+%14:
+	cp	a,#%15
+	jp	%16,%17
+%18:
+}
+replace restart {
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+	cp	a,#%5
+	jp	%3,%4
+%6:
+	cp	a,#%7
+	jp	%8,%9
+%10:
+	cp	a,#%11
+	jp	%12,%13
+%14:
+	cp	a,#%15
+	jp	%16,%17
+%18:
+	cp	a,#%19
+	jp	%20,%21
+%22:
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+} by {
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+	cp	a,#%5
+	jp	%3,%4
+%6:
+	cp	a,#%7
+	jp	%8,%9
+%10:
+	cp	a,#%11
+	jp	%12,%13
+%14:
+	cp	a,#%15
+	jp	%16,%17
+%18:
+	cp	a,#%19
+	jp	%20,%21
+%22:
+}

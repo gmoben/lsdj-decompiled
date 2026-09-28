@@ -5,8 +5,9 @@
 
 4A62 DrawHelpScreen   ; Help screen (idx 14): renders the help/command-list text
 5C17 DrawProjectScreen ; Project screen draw: edits song-global properties at SRAM bank1 $BFB2+ (song offset $3FB2: tempo/transpose/sync/font/colorset/clone; see data_model.md)
-58B1 DrawSyncField   ; Project SYNC field: read $CB66, draw mode string to VRAM $9885
-59B7 SyncModeNames   ; sync-mode display names "OFF"/"LSDJ"/"MIDI"/... (7-byte stride)
+58B1 DrawSyncField   ; Project SYNC field ($58B1-$59B6): draw the wSyncMode name (TxtSyncOff..TxtSyncAnOut) at VRAM $9885, then at $98A0 either the sub-setting label (PS/2 DELAY / TICKS/STEP, ProjSyncModeIs567) + wSyncMode2 in hex, or a blank; CGB attribute row via DrawTextField. Matched in C: c/bank1b/DrawSyncField.c
+59B7 TxtSyncOff      ; "OFF   " sync-mode name (six consecutive 7-byte strings, each its own symbol: DrawSyncField pushes them as plain addresses)
+59BE TxtSyncLsdj     ; "LSDJ  "
 
 ; --- Project/File data tables + strings ---
 4C6A AlnumChars      ; "0123456789ABCDEF..." digit/letter table (hex + filename display)
@@ -42,7 +43,7 @@
 5861 ProjQueueVramWrite         ; spin until wRedrawPending<6, set wVramCursor=$9846, then ProjCommitVram
 5876 DrawKeyRepeatField         ; draw the KEY DELAY/REPEAT values (wKeyDelay/wKeyRepeat)
 5896 ProjSyncModeIs567          ; return 1 if wSyncMode in {5,6,7}
-5952 DrawSyncModeField          ; draw the SYNC mode field (palettes + DrawTextField)
+5952 .drawSubSetting            ; (was mislabeled as a function DrawSyncModeField: its `push bc` is the DrawString argument, its `pop bc; ret` DrawSyncField's epilogue)
 5A07 ProjCalcFieldTile          ; compute a field tile/value from index $c9a4 (ROM $5776) + flag $c9a3
 5A42 ProjDrawSyncField          ; draw a project/sync field via ProjCalcFieldTile + DrawTextField (index $c9a4)
 5A90 ProjDrawSyncFieldHw        ; like ProjDrawSyncField but palette per hGameboyType
@@ -121,7 +122,9 @@
 59CC TxtSyncKeybd               ; "KEYBD " sync mode name
 59D3 TxtSyncAnaIn               ; "ANA.IN" sync mode name
 59DA TxtSyncAnOut               ; "AN.OUT" sync mode name
-59E1 TxtSyncPs2                 ; "PS/2 " sync mode name
+59E1 TxtSyncPs2                 ; "PS/2 DELAY " sync sub-setting label (KEYBD mode)
+59ED TxtSyncTicksStep           ; "TICKS/STEP " sync sub-setting label (ANA.IN / AN.OUT)
+59F9 TxtBlank13                 ; 13 spaces + NUL (clears the sub-setting field)
 5C0C TxtWorkedFmt               ; "WORKED %d:" total-work-time display
 5D75 TxtClockFmt                ; "%d:%d:" clock format
 6A66 TxtResetCartridge          ; "RESET CARTRIDGE?"
@@ -147,7 +150,7 @@
 5216 .loop4               ; loop head in CloseNameEditor
 5698 .done                ; common exit of NameEditorInput
 58B0 .done                ; common exit of ProjSyncModeIs567
-59B5 .done                ; common exit of DrawSyncModeField
+59B5 .done                ; common exit of DrawSyncField
 5B22 .done                ; common exit of ProjSyncModeIs015
 5B54 .done                ; common exit of DrawPrelistenField
 5C01 .done                ; common exit of DrawSyncSubSetting
@@ -426,10 +429,7 @@
 590E .drawString_5
 591A .drawString_6
 594D .cont
-598F .drawString
-59BE .cont
-59ED .cont
-59F9 .cont_2
+598F .drawBlank
 5A1D .cont
 5A1F .cont_2
 5A21 .cont_3

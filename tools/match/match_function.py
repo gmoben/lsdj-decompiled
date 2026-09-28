@@ -46,6 +46,7 @@ from contextlib import contextmanager
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(Path(__file__).resolve().parent))   # tools/match/peep.py
 
 
 def _default_gbdk() -> Path:
@@ -156,6 +157,13 @@ def compile_unit(work: Path, env: dict[str, str], c_path: Path,
                     "constructs, e.g. testing *(UBYTE *)0xFFxx in an if -- "
                     "see docs/toolchain.md.".format(rc))
         sys.exit("error: sdcc produced no assembly." + hint)
+    if peep is not None:
+        # Second application with our own matcher: SDCC's cannot see past a
+        # line's trailing comment or bind a variable across a comma (peep.py).
+        peep_mod = importlib.import_module("peep")
+        rules = peep_mod.parse_rules(peep.read_text())
+        lines, _ = peep_mod.apply(rules, asm.read_text(errors="replace").splitlines())
+        asm.write_text("\n".join(lines) + "\n")
     _run_wine("as-gbz80.exe", ["-l", "-o", "unit.o", "unit.asm"], work, env)
     lst = work / "unit.lst"
     if not lst.is_file() or not (work / "unit.o").is_file():

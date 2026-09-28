@@ -151,7 +151,7 @@ helpers live in bank `$1B`** (`src/bank1b.sym`):
 |-------|--------------|----------------------|
 | TEMPO | song `$3FB4` (BPM) | numeric |
 | TRANSPOSE | `wSongTranspose` (song property) | numeric |
-| **SYNC** | `wSyncMode` `$CB66` (song `$3FBD`) | `SyncModeNames` `$59B7` — see [`sync.md`](sync.md) |
+| **SYNC** | `wSyncMode` `$CB66` (song `$3FBD`) | `TxtSyncOff`…`TxtSyncAnOut` `$59B7` (six 7-byte strings) — see [`sync.md`](sync.md) |
 | └ sub-setting | PS/2 DELAY / TICKS/STEP | `TxtSyncPs2` `$59E1` / `$59ED` |
 | CLONE | deep/slim | `DEEP`/`SLIM` (`CloneModeNames` `$5D4F`, `CloneModeNames2` `$6A5C`) |
 | LOOK | font (`wFont`) + colorset (`wColorSet`) | `ColorSetNames` `$5716` (5-char names, indexed `wColorSet*5`) |
@@ -166,8 +166,11 @@ Confirmed routines (bank `$1B`):
   9). Paints each field at a fixed tilemap address via helpers, e.g. the
   LOAD/SAVE-SONG vs RESET-MEMORY menu line, then the SYNC value, then song
   properties read with `ReadSongByte`.
-- **`DrawSyncField` (`$58B1`)** — reads `wSyncMode`, selects the mode string via
-  an explicit `cp` chain (`0,1,3,5,6,7`), draws it to VRAM `$9885`.
+- **`DrawSyncField` (`$58B1`-`$59B6`)** — reads `wSyncMode`, selects the mode
+  string via a sparse `switch` (`cp` chain over `0,1,3,5,6,7`), draws it to
+  VRAM `$9885`, then the sub-setting label + `wSyncMode2` (or a blank) at
+  `$98A0`. Its second half was once labelled as a separate `DrawSyncModeField`;
+  matching it in C (`c/bank1b/DrawSyncField.c`) showed it is one function.
 - **`DrawSyncSubSetting` (`$5B7A`)** — the PS/2 DELAY / TICKS/STEP value beside
   SYNC. Other field helpers: `ProjCommitVram` (`$5853`, commit a queued VRAM
   write), `DrawFontColorFields` (`$569C`, the FONT and COLOR SET rows), and
