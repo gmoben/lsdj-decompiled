@@ -78,10 +78,12 @@ verify C. Track 2 cannot start for a region before Track 1 covers it.
 **The hard prerequisite: toolchain recovery.** Matching C requires the *exact*
 original compiler — a period-correct, modified **GBDK 2.95 + its SDCC build**, and
 a matching bank/link layout. SDCC matching is less-trodden than the MIPS/ARM/PPC
-decomp scene, and "modified GBDK" is an unknown, so Track 2 is **gated behind a
-toolchain-recovery spike**: reproduce *one* real LSDj function byte-for-byte before
-betting on C. Until that succeeds, treat C as unproven. See
-[`docs/toolchain.md`](docs/toolchain.md).
+decomp scene, and "modified GBDK" was an unknown, so Track 2 is **gated behind a
+toolchain-recovery spike**: reproduce real LSDj functions byte-for-byte before
+betting on C. **Status:** the first three functions now match (`c/bank01/`),
+using stock GBDK 2.95 / SDCC 2.2.1 plus peephole rules recovered from the ROM
+(`tools/match/lsdj.peep`) — a provisional go, pending validation on harder
+functions. See [`docs/toolchain.md`](docs/toolchain.md).
 
 ## Repository Structure
 
@@ -121,7 +123,9 @@ betting on C. Until that succeeds, treat C as unproven. See
 | `tools/show_func.py`, `annotate_ram.py`, `statevar.py`, `bankmap.py` | Inspection helpers (dump a function, annotate a RAM dump, …) |
 | `tools/emu/` | SameBoy-based live-verification harness (see `tools/emu/README.md`) |
 | `tools/toolchain/` | Fetch + run the period GBDK 2.95 / SDCC 2.2.1 under Wine |
-| `tools/match/` | Track 2 match harness: compile C, diff against the ROM |
+| `tools/match/` | Track 2 match harness: compile C, link at the ROM address, diff (`match_function.py --target`) |
+| `tools/match/lsdj.peep` | Peephole rules recovered from LSDj's code — the "modified GBDK" part (`docs/toolchain.md`) |
+| `c/bankNN/*.c` | **Matching C** sources: byte-identical to the ROM when compiled with the period toolchain + `lsdj.peep` (not yet part of `make`) |
 | `tools/gen_baseline.py` | Historical one-time bootstrap baseline generator |
 | `.githooks/pre-commit` | ROM-leak guard + `make compare` |
 
@@ -271,12 +275,19 @@ LSDj is compiled C; labelling goes faster once you spot the patterns:
 - GBDK library routines (`set_sprite_*`, `gb/`-style hardware wrappers).
 - Compiler-emitted jump tables and switch dispatch.
 
+When writing *matching C*, the source forms matter as much as the logic —
+`extern volatile sfr` for bytes stored with `ldh`, `nonbanked` prototypes for
+bank-0 callees, `if (!x)` rather than `== 0`, `&buf[0]` for address loads; see
+[`docs/toolchain.md`](docs/toolchain.md) → *Writing C that matches*.
+
 Name helpers after their GBDK/SDCC equivalents where identifiable. The GBDK 2.95
 source is fetched locally to `toolchain/gbdk-2.95` (gitignored); its `.s` sources
 (`libc/gb/*.s`, `libc/asm/gbz80/*.s`) give the canonical exported names and exact
 assembly, so library routines can be matched **byte-for-byte**. Found this way so
 far: `set_bkg_palette` (`cgb.s`), `strcpy` (`asm_string.s`), `display_off`
-(`crt0.s`), and the SDCC `mul` runtime. **Convention:** label GBDK/SDCC library
+(`crt0.s`), `set_bkg_tiles` (`set_bk_t.s`) with its internal
+`set_xy_btt`/`set_xy_wtt`/`set_xy_tt` (`set_xy_t.s`, GBDK's `.set_xy_*` minus
+the dot), and the SDCC `mul` runtime. **Convention:** label GBDK/SDCC library
 functions with their canonical lowercase name (`set_bkg_palette`, `strcpy`);
 reserve PascalCase for LSDj's own routines. Note LSDj rolls its own for most code,
 so the library footprint is small.
@@ -365,10 +376,15 @@ Always, before committing:
       the rbong mirror — whether LSDj's "modified" GBDK differs is still open)
 - [x] Stand up a one-function match harness (compile C → diff bytes vs ROM region)
       — proven on a synthetic leaf function
-- [ ] Add a link step so non-leaf functions (globals, calls) can be compared
-- [ ] **Goal:** byte-match `DrawMessageBar` (`$01:$74F7`) in C; log findings in
-      `docs/toolchain.md`
-- [ ] Go/no-go decision on Track 2 (matching C) vs asm-only
+- [x] Add a link step so non-leaf functions (globals, calls) can be compared
+      (`match_function.py --target NAME`)
+- [x] **Goal:** byte-match `DrawMessageBar` (`$01:$74F7`) in C — matched, plus
+      `ShowOutOfMemory`/`ShowTapAddChain`; the "modified GBDK" turned out to be
+      extra peephole rules, six recovered so far (`tools/match/lsdj.peep`)
+- [ ] Validate `lsdj.peep` on harder functions (jump tables, 16-bit math,
+      locals, R3's known exception `DrawTileHexCell`)
+- [ ] Decide how matched C enters the RGBDS build; go/no-go on Track 2
+      (provisional go)
 
 **Phase 2 — asm skeleton (Track 1)**
 - [x] Byte-exact SM83→RGBDS disassembler (`tools/disasm.py`, opcode self-test)

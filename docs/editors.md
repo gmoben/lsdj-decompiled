@@ -37,7 +37,8 @@ Key mechanisms:
   "LITTLE SOUND DJ V9.4.0 © 2000 JOHAN KOTLINSKI", plus "TOO BUSY!",
   "A: RUN …"). `ShowMessage` (`$0DBC`) copies a string into `wStrBuffer`
   (`$C6A9`) and triggers the on-screen message; bank 1's `DrawMessageBar`
-  (`$74F7`) renders that buffer onto the top tilemap row.
+  (`$74F7`) renders that buffer onto the top tilemap row. (`DrawMessageBar` is
+  also the first function matched in C: `c/bank01/DrawMessageBar.c`.)
 - **Config**: `LoadSyncSetting` ($1CFF) pulls song properties (e.g. sync) from
   SRAM into WRAM mirrors (`wSyncMode` `$CB66`, `wSyncMode2` `$CB67`).
 

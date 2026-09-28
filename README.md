@@ -26,9 +26,10 @@ Current state:
   classifies as fill/text/graphics, with no code-like bytes unexplained. Known
   fidelity gaps — e.g. ~100 named strings/tables still rendered as instructions
   — are listed in [`docs/reversal.md`](docs/reversal.md) → *Current status*
-- the C decompilation track (matching C under the original GBDK 2.95 / SDCC
-  2.2.1) has a working toolchain and harness; the first real target,
-  `DrawMessageBar`, is set in [`docs/toolchain.md`](docs/toolchain.md)
+- matching C works: the first three LSDj functions (`DrawMessageBar` and two
+  message wrappers, in [`c/bank01/`](c/bank01)) compile byte-for-byte with the
+  original GBDK 2.95 / SDCC 2.2.1 plus peephole rules recovered from the ROM —
+  LSDj's "modified GBDK" (see [`docs/toolchain.md`](docs/toolchain.md))
 
 ## Why
 
@@ -125,8 +126,17 @@ The project runs on **two tracks** (details in [`AGENTS.md`](AGENTS.md)):
   (which would emit generated native C + a runtime and never rebuild the ROM).
 
 Track 2 is gated behind a **toolchain-recovery spike**: pin a period-correct
-GBDK 2.95 + SDCC and reproduce one real LSDj function byte-for-byte before
-committing to C. See [`docs/toolchain.md`](docs/toolchain.md) for status.
+GBDK 2.95 + SDCC and reproduce real LSDj functions byte-for-byte before
+committing to C. The spike has its first matches — three functions, with six
+recovered peephole rules — so it's a provisional go, pending harder functions
+and a way to feed C into the RGBDS build. See
+[`docs/toolchain.md`](docs/toolchain.md) for status, and try it:
+
+```bash
+tools/toolchain/fetch_gbdk295.sh     # period toolchain (needs wine)
+tools/match/match_function.py --c c/bank01/DrawMessageBar.c --target DrawMessageBar
+# ==> MATCH: byte-identical to ROM $01:$74F7-$75BC
+```
 
 ## Repository layout
 
@@ -140,6 +150,8 @@ lsdj-decompiled/
 │   ├── bankNN.asm        # generated disassembly (git-ignored, from your ROM)
 │   ├── ramsections.asm   # generated named RAM sections (git-ignored)
 │   └── main.asm          # generated top level (git-ignored)
+├── c/
+│   └── bank01/*.c        # matching C (byte-identical under the period compiler)
 ├── include/
 │   └── hardware.inc      # standard GB hardware definitions (gbdev, CC0)
 ├── constants/            # symbolic constants
@@ -175,7 +187,8 @@ lsdj-decompiled/
 │   │   name_firstaction.py, gen_baseline.py  # smaller/historical helpers
 │   ├── emu/              # SameBoy-based live-verification harness
 │   ├── toolchain/        # fetch + run the period compiler (under Wine)
-│   └── match/            # matching-decompilation harness (compile C, diff vs ROM)
+│   └── match/            # matching-decompilation harness (compile C, link at the
+│                         #   ROM address, diff) + lsdj.peep (recovered rules)
 └── .githooks/pre-commit  # ROM-leak guard + `make compare`
 ```
 

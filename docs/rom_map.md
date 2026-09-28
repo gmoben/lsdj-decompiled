@@ -52,7 +52,10 @@ LSDj is written in C and built with a **modified GBDK 2.95** (see References in
 `README.md`). Expect compiler-emitted patterns: the SDCC/GBDK calling
 convention, `__sdcc`-style runtime helpers, banked-call trampolines, and library
 routines from `crt0`/`libc`. Recognising these idioms is the fastest way to
-label large stretches of the disassembly.
+label large stretches of the disassembly. The "modified" part has turned out to
+be extra peephole rules on top of SDCC 2.2.1's code generator — recovered well
+enough to compile the first functions back to identical bytes
+([`toolchain.md`](toolchain.md)).
 
 ## Bank map
 

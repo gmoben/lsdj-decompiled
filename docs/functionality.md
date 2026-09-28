@@ -122,5 +122,6 @@ bytes at `$09B9`-`$0A90` (between `WriteInstrByte` and `ReadInstrByte`) are
 
 Function- and variable-level coverage is complete (see
 [`reversal.md`](reversal.md) for the metric and method). What remains on the
-asm side is naming refinement; the next project milestone is the matching-C
-spike in [`toolchain.md`](toolchain.md).
+asm side is naming refinement. The matching-C spike has its first matches
+(`DrawMessageBar` and two wrappers, `c/bank01/`); next is validating it on
+harder functions — see [`toolchain.md`](toolchain.md).
