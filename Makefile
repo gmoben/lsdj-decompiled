@@ -37,7 +37,7 @@ OBJ    := $(BUILD)/main.o
 SYM    := $(BUILD)/lsdj9_4_0.sym
 MAP    := $(BUILD)/lsdj9_4_0.map
 
-.PHONY: all compare verify-rom sym carve listing audit clean tidy baseline
+.PHONY: all compare verify-rom sym carve listing audit match clean tidy baseline
 .SECONDARY:
 
 all: $(TARGET)
@@ -112,6 +112,15 @@ compare: $(TARGET) | $(BASEROM)
 	cmp $(BASEROM) $(TARGET)
 	@printf '%s  %s\n' "$(ROM_SHA1)" "$(TARGET)" | sha1sum -c -
 	@echo "==> compare OK: build matches the original ROM byte-for-byte."
+
+# --- Matching C (Track 2) --------------------------------------------------
+# Compile every c/bankNN/*.c with the period GBDK 2.95-3 / SDCC 2.2.1 (under
+# Wine; tools/toolchain/fetch_gbdk295.sh) plus tools/match/lsdj.peep, link each
+# function at its ROM address and assert the bytes are identical. Not part of
+# `compare` (needs wine); the C sources are the regression suite for the
+# recovered compiler model.
+match: | $(BASEROM)
+	tools/match/verify_all.py
 
 # Confirm a supplied base ROM is the exact expected revision.
 verify-rom: | $(BASEROM)

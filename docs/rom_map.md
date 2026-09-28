@@ -53,9 +53,12 @@ LSDj is written in C and built with a **modified GBDK 2.95** (see References in
 convention, `__sdcc`-style runtime helpers, banked-call trampolines, and library
 routines from `crt0`/`libc`. Recognising these idioms is the fastest way to
 label large stretches of the disassembly. The "modified" part has turned out to
-be extra peephole rules on top of SDCC 2.2.1's code generator — recovered well
-enough to compile the first functions back to identical bytes
-([`toolchain.md`](toolchain.md)).
+be extra peephole rules on top of GBDK 2.95-3's SDCC 2.2.1 — recovered well
+enough to compile six functions back to identical bytes
+([`toolchain.md`](toolchain.md)). Not everything is C: bank `$02`'s sequencer
+core and bank 0's interrupt handlers, sound tick, envelope/pitch steppers and
+tile loader (~130 functions, 7% of the instructions) are hand-written assembly
+(`tools/match/code_kind.py`).
 
 ## Bank map
 

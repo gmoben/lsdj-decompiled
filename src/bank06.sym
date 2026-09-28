@@ -74,7 +74,12 @@
 740C ChainDrawSyncStatus        ; draw sync status string from $cb6c/$cb6b (DrawStringAtCursor)
 7469 ChainDrawLeadStatus        ; draw LEAD/sync status via ChainSyncStatusFlag (DrawStringAtCursor)
 7508 ChainDrawStatusWord        ; draw a status word (SYNC/LEAD) via DrawStringAtCursor
-7524 DrawTileHexCell            ; draw two indexed tiles + a hex byte
+7524 DrawTileHexCell            ; (v): t = ((v-60)+1)>>2 - 9; prefix = HexCellPrefixPtrs[v&3]; t<0 -> prefix[0], '-', DrawByte(-t); else DrawString(prefix), DrawByte(t). Matched in C: c/bank06/DrawTileHexCell.c
+75A6 HexCellPrefixPtrs          ; [4] dw -> the 2-char prefix strings below, indexed by (v & 3) in DrawTileHexCell (also parked in wChainScratchPtr)
+75AE TxtHexCellPrefix0          ; "D "
+75B1 TxtHexCellPrefix1          ; "F "
+75B4 TxtHexCellPrefix2          ; "G#"
+75B7 TxtHexCellPrefix3          ; "C "
 75BA DrawChainCell              ; draw one chain-row cell: "---" empty or phrase hex (+bookmark tile via $ff88)
 784C ChainShiftSamples          ; sla each of N bytes from de (scope/visualization helper)
 786F ChainDrawScopePoint        ; plot oscilloscope point (ChainShiftSamples + $cba. buffer)
@@ -633,8 +638,6 @@
 74EA .drawStringAtCursor
 7503 .cont_2
 7574 .cont
-75B1 .cont_2
-75B4 .cont_3
 75D0 .checkArg
 75F0 .cont
 7625 .drawString

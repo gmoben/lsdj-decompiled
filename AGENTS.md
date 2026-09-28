@@ -80,16 +80,18 @@ original compiler — a period-correct, modified **GBDK 2.95 + its SDCC build**,
 a matching bank/link layout. SDCC matching is less-trodden than the MIPS/ARM/PPC
 decomp scene, and "modified GBDK" was an unknown, so Track 2 is **gated behind a
 toolchain-recovery spike**: reproduce real LSDj functions byte-for-byte before
-betting on C. **Status:** the first three functions now match (`c/bank01/`),
-using stock GBDK 2.95 / SDCC 2.2.1 plus peephole rules recovered from the ROM
-(`tools/match/lsdj.peep`) — a provisional go, pending validation on harder
-functions. See [`docs/toolchain.md`](docs/toolchain.md).
+betting on C. **Status:** six functions match (`c/`, `make match`) — including
+a 15-case `switch` and 16-bit SRAM addressing — using stock GBDK 2.95-3 /
+SDCC 2.2.1 plus peephole rules recovered from the ROM (`tools/match/lsdj.peep`).
+A provisional go: the rule set is still growing, and the ~130 hand-written
+asm functions (sound tick, sequencer core) stay asm. See
+[`docs/toolchain.md`](docs/toolchain.md).
 
 ## Repository Structure
 
 | Path | Role |
 |------|------|
-| `Makefile` | Build, `compare`, `verify-rom`, `sym`, `carve`, `listing`, `audit`, `clean`/`tidy`, `baseline` |
+| `Makefile` | Build, `compare`, `verify-rom`, `sym`, `carve`, `listing`, `audit`, `match`, `clean`/`tidy`, `baseline` |
 | `rgbdscheck.asm` | Fails the build on an unsupported RGBDS version (requires ≥ 1.0; developed on 1.0.1, also verified on 1.0.3) |
 | `lsdj9_4_0.sha1` | Expected base-ROM checksum |
 | `src/main.asm` | **Generated** (git-ignored) by `tools/gen_main.py`: INCLUDE carved banks, labeled INCBIN sections for the kits |
@@ -122,10 +124,10 @@ functions. See [`docs/toolchain.md`](docs/toolchain.md).
 | `tools/name_locals_full.py`, `name_locals.py`, `name_firstaction.py` | Semantic naming of function-local labels (generated into the `.sym`) |
 | `tools/show_func.py`, `annotate_ram.py`, `statevar.py`, `bankmap.py` | Inspection helpers (dump a function, annotate a RAM dump, …) |
 | `tools/emu/` | SameBoy-based live-verification harness (see `tools/emu/README.md`) |
-| `tools/toolchain/` | Fetch + run the period GBDK 2.95 / SDCC 2.2.1 under Wine |
-| `tools/match/` | Track 2 match harness: compile C, link at the ROM address, diff (`match_function.py --target`) |
+| `tools/toolchain/` | Fetch + run the period GBDK 2.95-3 / SDCC 2.2.1 under Wine |
+| `tools/match/` | Track 2: `match_function.py --target` (compile C, link at the ROM address, diff), `verify_all.py` (`make match`), `code_kind.py` (which functions are C vs hand-written asm) |
 | `tools/match/lsdj.peep` | Peephole rules recovered from LSDj's code — the "modified GBDK" part (`docs/toolchain.md`) |
-| `c/bankNN/*.c` | **Matching C** sources: byte-identical to the ROM when compiled with the period toolchain + `lsdj.peep` (not yet part of `make`) |
+| `c/bankNN/*.c` | **Matching C** sources: byte-identical to the ROM when compiled with the period toolchain + `lsdj.peep`; verified by `make match`, not yet linked into the ROM build |
 | `tools/gen_baseline.py` | Historical one-time bootstrap baseline generator |
 | `.githooks/pre-commit` | ROM-leak guard + `make compare` |
 
@@ -141,6 +143,7 @@ make carve      # force-regenerate src/bankNN.asm + src/main.asm (tools/carve_cl
 make sym        # enrich build/lsdj9_4_0.sym (code+RAM+SRAM) and deploy it (+ a sections-only .map) beside the ROMs
 make listing    # build/listing.asm: the whole ROM as one annotated file
 make audit      # diff a pasted Emulicious export (emulicious.out) against our symbols
+make match      # compile every c/bankNN/*.c with the period compiler and assert it matches the ROM (needs wine)
 make clean      # remove build/ (and the deployed root .sym); `make tidy` removes only link outputs
 make baseline   # historical: the original INCBIN bootstrap — clobbers src/main.asm
 ```
@@ -284,9 +287,13 @@ LSDj is compiled C; labelling goes faster once you spot the patterns:
 - Compiler-emitted jump tables and switch dispatch.
 
 When writing *matching C*, the source forms matter as much as the logic —
-`extern volatile sfr` for bytes stored with `ldh`, `nonbanked` prototypes for
-bank-0 callees, `if (!x)` rather than `== 0`, `&buf[0]` for address loads; see
-[`docs/toolchain.md`](docs/toolchain.md) → *Writing C that matches*.
+`extern volatile sfr` for bytes stored with `ldh`, MBC registers as variables
+(`rROMB0 = n`), `if (!x)` rather than `== 0`, `&buf[0]` for address loads,
+`(unsigned int)x << 4` for a 16-bit shift, one statement per update of a
+local; see [`docs/toolchain.md`](docs/toolchain.md) → *Writing C that matches*.
+Check `tools/match/code_kind.py` first: ~130 functions (the interrupt
+handlers, sound tick, bank `$02`'s sequencer core) are hand-written asm and
+are not C targets.
 
 Name helpers after their GBDK/SDCC equivalents where identifiable. The GBDK 2.95
 source is fetched locally to `toolchain/gbdk-2.95` (gitignored); its `.s` sources
@@ -380,17 +387,19 @@ Always, before committing:
 - [x] Vendored `hardware.inc`, RGBDS version guard, ROM map seed
 
 **Phase 1 — Toolchain-recovery spike (the current Track 2 milestone)**
-- [x] Fetch/pin a period-correct GBDK 2.95 + its SDCC 2.2.1 (`tools/toolchain/`;
-      the rbong mirror — whether LSDj's "modified" GBDK differs is still open)
-- [x] Stand up a one-function match harness (compile C → diff bytes vs ROM region)
-      — proven on a synthetic leaf function
-- [x] Add a link step so non-leaf functions (globals, calls) can be compared
-      (`match_function.py --target NAME`)
-- [x] **Goal:** byte-match `DrawMessageBar` (`$01:$74F7`) in C — matched, plus
-      `ShowOutOfMemory`/`ShowTapAddChain`; the "modified GBDK" turned out to be
-      extra peephole rules, six recovered so far (`tools/match/lsdj.peep`)
-- [ ] Validate `lsdj.peep` on harder functions (jump tables, 16-bit math,
-      locals, R3's known exception `DrawTileHexCell`)
+- [x] Fetch/pin the period compiler: GBDK 2.95-3 / SDCC 2.2.1 (`tools/toolchain/`,
+      SourceForge Win32 release; its default small model is LSDj's calling
+      convention). The "modified" part is extra peephole rules, recovered
+      from the ROM into `tools/match/lsdj.peep` (28 rules, five families)
+- [x] Match harness with a link step (`match_function.py --target NAME`) and a
+      regression suite (`make match`)
+- [x] **Goal:** byte-match `DrawMessageBar` (`$01:$74F7`) in C — matched, then
+      `ShowOutOfMemory`/`ShowTapAddChain`, `ScreenDrawDispatch` (`switch`),
+      `ReadInstrByte` (16-bit math, asserts) and `DrawTileHexCell` (the
+      register-reload exception): six functions, three banks
+- [x] Map what is C at all: `tools/match/code_kind.py` — ~130 functions are
+      hand-written asm (sound tick, envelope/pitch, tile loader, sequencer core)
+- [ ] Match a large editor function (a screen input handler) to grow the rule set
 - [ ] Decide how matched C enters the RGBDS build; go/no-go on Track 2
       (provisional go)
 

@@ -790,7 +790,7 @@ DEF wWaveSelEnd      EQU $C93C  ; wave editor selection other endpoint
 DEF wChainCellValue  EQU $C945  ; chain-screen phrase value under cursor (working copy -> DrawHexByte)
 DEF wChainCellEmpty  EQU $C946  ; chain cursor cell reads $FF flag
 DEF wChainTempoShadow EQU $C947  ; cached wTempo for the chain-screen tempo field (redraw-if-changed)
-DEF wChainScratchPtr EQU $C948  ; 16-bit scratch ptr from per-channel table $75A6 (bank06)
+DEF wChainScratchPtr EQU $C948  ; 16-bit scratch ptr: DrawTileHexCell parks HexCellPrefixPtrs[v&3] (bank06 $75A6) here before DrawString
 DEF wSongSelScroll   EQU $C94A  ; saved wSongScroll: song-screen selection anchor
 DEF wSongSelRow      EQU $C94B  ; saved wSongRow: song-screen selection anchor
 DEF wPlayStartChan   EQU $C94C  ; playback start channel (= wSongCol at play; seeds the engine)

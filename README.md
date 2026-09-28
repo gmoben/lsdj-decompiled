@@ -26,10 +26,12 @@ Current state:
   classifies as fill/text/graphics, with no code-like bytes unexplained. Known
   fidelity gaps — e.g. bank 0's bank-switched call targets still printed as raw
   addresses — are listed in [`docs/reversal.md`](docs/reversal.md) → *Current status*
-- matching C works: the first three LSDj functions (`DrawMessageBar` and two
-  message wrappers, in [`c/bank01/`](c/bank01)) compile byte-for-byte with the
-  original GBDK 2.95 / SDCC 2.2.1 plus peephole rules recovered from the ROM —
-  LSDj's "modified GBDK" (see [`docs/toolchain.md`](docs/toolchain.md))
+- matching C works: six LSDj functions in [`c/`](c) — a message renderer, a
+  15-case `switch`, a 16-bit SRAM accessor, … — compile byte-for-byte with the
+  original GBDK 2.95-3 / SDCC 2.2.1 plus peephole rules recovered from the
+  ROM, LSDj's "modified GBDK" (`make match`; see
+  [`docs/toolchain.md`](docs/toolchain.md)). About 130 functions — the sound
+  tick and sequencer core — are hand-written asm and stay that way
 
 ## Why
 
@@ -127,13 +129,14 @@ The project runs on **two tracks** (details in [`AGENTS.md`](AGENTS.md)):
 
 Track 2 is gated behind a **toolchain-recovery spike**: pin a period-correct
 GBDK 2.95 + SDCC and reproduce real LSDj functions byte-for-byte before
-committing to C. The spike has its first matches — three functions, with six
-recovered peephole rules — so it's a provisional go, pending harder functions
-and a way to feed C into the RGBDS build. See
+committing to C. The spike has its first matches — six functions, with 28
+recovered peephole rules — so it's a provisional go, pending a large editor
+function and a way to feed C into the RGBDS build. See
 [`docs/toolchain.md`](docs/toolchain.md) for status, and try it:
 
 ```bash
-tools/toolchain/fetch_gbdk295.sh     # period toolchain (needs wine)
+tools/toolchain/fetch_gbdk295.sh     # period toolchain (needs curl, unzip, wine)
+make match                           # every c/bankNN/*.c vs the ROM, ~3 s
 tools/match/match_function.py --c c/bank01/DrawMessageBar.c --target DrawMessageBar
 # ==> MATCH: byte-identical to ROM $01:$74F7-$75BC
 ```
@@ -151,7 +154,7 @@ lsdj-decompiled/
 │   ├── ramsections.asm   # generated named RAM sections (git-ignored)
 │   └── main.asm          # generated top level (git-ignored)
 ├── c/
-│   └── bank01/*.c        # matching C (byte-identical under the period compiler)
+│   └── bankNN/*.c        # matching C (byte-identical under the period compiler)
 ├── include/
 │   └── hardware.inc      # standard GB hardware definitions (gbdev, CC0)
 ├── constants/            # symbolic constants
@@ -188,7 +191,8 @@ lsdj-decompiled/
 │   ├── emu/              # SameBoy-based live-verification harness
 │   ├── toolchain/        # fetch + run the period compiler (under Wine)
 │   └── match/            # matching-decompilation harness (compile C, link at the
-│                         #   ROM address, diff) + lsdj.peep (recovered rules)
+│                         #   ROM address, diff), verify_all (make match), code_kind
+│                         #   (C vs asm map) + lsdj.peep (recovered rules)
 └── .githooks/pre-commit  # ROM-leak guard + `make compare`
 ```
 
@@ -213,6 +217,7 @@ make verify-rom # check your supplied ROM is the right revision
 make sym        # emit the BANK:ADDR symbol file for emulator debugging
 make listing    # emit build/listing.asm — the whole ROM as one annotated file
 make audit      # diff a pasted debugger export (emulicious.out) vs our symbols
+make match      # compile c/bankNN/*.c with the period compiler, assert byte-identical (needs wine)
 make clean      # remove build/
 ```
 
