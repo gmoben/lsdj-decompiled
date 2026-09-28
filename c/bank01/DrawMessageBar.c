@@ -1,7 +1,7 @@
 /*
  * DrawMessageBar -- LSDj 9.4.0, ROM bank $01:$74F7-$75BC (198 bytes)
  *
- * MATCHING C: compiled with the period GBDK 2.95 / SDCC 2.2.1 plus the
+ * MATCHING C: compiled with the period GBDK 2.95-3 / SDCC 2.2.1 plus the
  * recovered LSDj peephole rules (tools/match/lsdj.peep), assembled with
  * as-gbz80 and linked at $74F7, this is byte-identical to the ROM. Verify:
  *
@@ -20,17 +20,16 @@
  *    `ld de,#0xFFxx; ld (de),a`, and testing one in an `if` crashes SDCC 2.2.1.
  *  - hGameboyType is read through hl (`xor a; ld hl,...; or a,(hl)`), i.e. an
  *    ordinary extern variable that the link places at $FF90, not an sfr.
- *  - Callees are `nonbanked` (direct `call`, not `call banked_call`); the
- *    attribute-row write is GBDK's own set_bkg_tiles().
+ *  - The attribute-row write is GBDK's own set_bkg_tiles(). Calls are direct
+ *    (GBDK 2.95-3's default small model; plain 2.95 needs `nonbanked`).
  *  - `&wStrBuffer[0]` (or a cast) makes SDCC load the address into de first,
  *    as the ROM does; plain `wStrBuffer` stores it as two immediates.
  *  - `if (!wStrBuffer[i])` gives the ROM's direct `jp nz` to the loop step;
  *    `== 0` produces a jp/jr trampoline instead.
  */
 
-#ifdef __clang__  /* editor tooling only: SDCC 2.2.1 keywords (never set by SDCC) */
+#ifdef __clang__  /* editor tooling only: SDCC 2.2.1 keyword (never set by SDCC) */
 #define sfr
-#define nonbanked
 #endif
 
 typedef unsigned char UBYTE;
@@ -50,8 +49,8 @@ extern UBYTE *wVramCursor;                  /* $C573 */
 extern UBYTE MsgBarAttrRow[];               /* $01:$7484, 20 x $04 */
 
 /* GBDK 2.95 <gb/gb.h>; bank 0 $39CD is the library routine, byte-exact */
-void set_bkg_tiles(UBYTE x, UBYTE y, UBYTE w, UBYTE h, unsigned char *tiles) nonbanked;
-void DrawStringIndexed(UBYTE c) nonbanked;
+void set_bkg_tiles(UBYTE x, UBYTE y, UBYTE w, UBYTE h, unsigned char *tiles);
+void DrawStringIndexed(UBYTE c);
 
 void DrawMessageBar(void)
 {

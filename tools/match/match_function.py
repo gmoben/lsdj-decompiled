@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Matching-decompilation harness for LSDj (Track 2).
 
-Compile a C function with the *period* GBDK 2.95 / SDCC 2.2.1 toolchain (the
-compiler LSDj was built with) and compare the emitted machine code against the
-original ROM:
+Compile a C function with the *period* GBDK 2.95-3 / SDCC 2.2.1 toolchain (the
+compiler LSDj was built with; small model = direct calls, args at sp+4) and
+compare the emitted machine code against the original ROM:
 
   * --target NAME|BB:AAAA : link the function at its ROM address (every extern
                             resolved from our symbol maps) and diff it against
@@ -35,6 +35,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import importlib
 import os
 import re
 import shutil
@@ -45,7 +46,17 @@ from contextlib import contextmanager
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-GBDK = Path(os.environ.get("GBDK_295", REPO_ROOT / "toolchain" / "gbdk-2.95"))
+
+
+def _default_gbdk() -> Path:
+    """GBDK 2.95-3 (small model by default, like LSDj); plain 2.95 as fallback."""
+    for name in ("gbdk-2.95-3", "gbdk-2.95"):
+        if (REPO_ROOT / "toolchain" / name / "bin" / "sdcc.exe").is_file():
+            return REPO_ROOT / "toolchain" / name
+    return REPO_ROOT / "toolchain" / "gbdk-2.95-3"
+
+
+GBDK = Path(os.environ["GBDK_295"]) if os.environ.get("GBDK_295") else _default_gbdk()
 WINEPREFIX = Path(os.environ.get("WINEPREFIX", REPO_ROOT / "toolchain" / ".wine"))
 DEFAULT_PEEP = REPO_ROOT / "tools" / "match" / "lsdj.peep"
 BANK_SIZE = 0x4000
@@ -60,32 +71,46 @@ def _wine_env() -> dict[str, str]:
     env["WINEDEBUG"] = "-all"
     # A crashing sdcc.exe must fail fast instead of hanging in winedbg.
     env["WINEDLLOVERRIDES"] = "winedbg.exe=d"
-    try:
-        winpath = subprocess.run(
-            ["winepath", "-w", str(GBDK / "bin")],
-            capture_output=True, text=True, env=env, check=True,
-        ).stdout.strip()
-        if winpath:
-            env["WINEPATH"] = winpath
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        pass
     return env
 
 
+def _run(cmd: list[str], cwd: Path | None, env: dict[str, str]) -> tuple[int, str]:
+    """Run a Wine client and return (exit code, combined output).
+
+    Never through pipes: the first client of a Wine session spawns the
+    session's background services (services.exe, explorer.exe, ...), which
+    inherit its stdout/stderr and outlive it -- a captured pipe would then
+    block until they exit (seconds without a persistent wineserver, forever
+    with one). Output goes to a file instead.
+    """
+    with tempfile.TemporaryFile("w+") as out:
+        try:
+            proc = subprocess.run(cmd, cwd=None if cwd is None else str(cwd), env=env,
+                                  stdin=subprocess.DEVNULL, stdout=out,
+                                  stderr=subprocess.STDOUT, timeout=TOOL_TIMEOUT)
+        except subprocess.TimeoutExpired:
+            sys.exit(f"error: {cmd[0]} {cmd[1] if len(cmd) > 1 else ''} timed out "
+                     f"after {TOOL_TIMEOUT}s.")
+        out.seek(0)
+        return proc.returncode, out.read()
+
+
 def _run_wine(exe: str, args: list[str], cwd: Path, env: dict[str, str]) -> int:
-    try:
-        proc = subprocess.run(
-            ["wine", str(GBDK / "bin" / exe), *args],
-            cwd=str(cwd), env=env, capture_output=True, text=True,
-            timeout=TOOL_TIMEOUT,
-        )
-    except subprocess.TimeoutExpired:
-        sys.exit(f"error: {exe} timed out after {TOOL_TIMEOUT}s.")
-    err = "\n".join(l for l in (proc.stdout + proc.stderr).splitlines()
-                    if not _NOISE.search(l))
-    if proc.returncode != 0 and err.strip():
+    rc, text = _run(["wine", str(GBDK / "bin" / exe), *args], cwd, env)
+    err = "\n".join(l for l in text.splitlines() if not _NOISE.search(l))
+    if rc != 0 and err.strip():
         sys.stderr.write(err + "\n")
-    return proc.returncode
+    return rc
+
+
+def _hold_wineserver(env: dict[str, str]) -> None:
+    """Keep a wineserver alive for 60 s after the last client, so the Wine
+    session (and its ~1 s service start-up) is shared by consecutive runs."""
+    try:
+        subprocess.run(["wineserver", "-p60"], env=env, stdin=subprocess.DEVNULL,
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=30)
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        pass
 
 
 def _preflight() -> None:
@@ -104,8 +129,12 @@ def workdir():
     env = _wine_env()
     drive_c = WINEPREFIX / "drive_c"
     drive_c.mkdir(parents=True, exist_ok=True)
+    _hold_wineserver(env)
     if not (drive_c / "windows").exists():
-        subprocess.run(["wineboot", "-i"], env=env, capture_output=True, text=True)
+        _run(["wineboot", "-i"], None, env)
+    rc, winpath = _run(["winepath", "-w", str(GBDK / "bin")], None, env)
+    if rc == 0 and winpath.strip():
+        env["WINEPATH"] = winpath.strip().splitlines()[-1]
     with tempfile.TemporaryDirectory(dir=str(drive_c), prefix="match-") as tmp:
         yield Path(tmp), env
 
@@ -212,10 +241,21 @@ def load_symbols() -> dict[str, tuple[int | None, int]]:
             m = re.match(r"_(\w+)::", line)
             if m and org is not None:
                 syms[m.group(1)] = (None, org)
-    # Our WRAM/HRAM map.
-    for m in re.finditer(r"^\s*DEF\s+(\w+)\s+EQU\s+\$([0-9A-Fa-f]{4})",
-                         (REPO_ROOT / "constants" / "ram.inc").read_text(), re.M):
-        syms[m.group(1)] = (None, int(m.group(2), 16))
+    # Our WRAM/HRAM map, and the hardware registers (MBC control writes such
+    # as rROMB0 at $2000 appear in LSDj's C as plain variables).
+    for inc in (REPO_ROOT / "include" / "hardware.inc", REPO_ROOT / "constants" / "ram.inc"):
+        for m in re.finditer(r"^\s*DEF\s+(\w+)\s+EQU\s+\$([0-9A-Fa-f]{4})\b",
+                             inc.read_text(errors="replace"), re.M | re.I):
+            syms[m.group(1)] = (None, int(m.group(2), 16))
+    # The working-song SRAM structures (SramInstruments = bank 1 $B080, ...),
+    # from tools/gen_sym.py's map; these are CPU addresses in the $A000 window.
+    try:
+        sys.path.insert(0, str(REPO_ROOT / "tools"))
+        gen_sym = importlib.import_module("gen_sym")
+        for off, name in gen_sym.SRAM_MAP:
+            syms[name] = (None, 0xA000 + (off & 0x1FFF))
+    except Exception:  # noqa: BLE001 - the harness must still work without it
+        pass
     # Our ROM symbol maps (global names only; one link namespace, so unique).
     for p in sorted((REPO_ROOT / "src").glob("bank*.sym")):
         bank = int(p.stem[4:], 16)
@@ -255,7 +295,7 @@ def link_function(work: Path, env: dict[str, str], asm: str, lst: str,
     name, start, end = function_span(lst, func)
     defined = set(re.findall(r"^(_\w+)::?", asm, re.M))
     externs = sorted(set(re.findall(r"^\s*\.globl\s+(_\w+)", asm, re.M)) - defined)
-    gargs, missing = [], []
+    gargs, missing, other_bank = [], [], []
     for sym in externs:
         plain = sym[1:]
         if plain in defines:
@@ -263,20 +303,24 @@ def link_function(work: Path, env: dict[str, str], asm: str, lst: str,
         elif plain in syms:
             sbank, val = syms[plain]
             if sbank not in (None, 0, bank):
-                print(f"warning: {plain} lives in ROM bank ${sbank:02X}, not "
-                      f"reachable from bank ${bank:02X} without a far call",
-                      file=sys.stderr)
+                other_bank.append(f"{plain} (${sbank:02X})")
         else:
             missing.append(plain)
             continue
         gargs.append(f"-g{sym}=0x{val:04X}")
     if missing:
         sys.exit("error: unresolved externs: " + ", ".join(missing) +
-                 "\n(name them in src/*.sym / constants/ram.inc, or pass "
-                 "--define NAME=ADDR)")
+                 "\n(name them in src/*.sym / constants/ram.inc / "
+                 "include/hardware.inc, or pass --define NAME=ADDR)")
+    if other_bank:
+        print("note: callees in other ROM banks (the function must page them in): "
+              + ", ".join(other_bank), file=sys.stderr)
     base = addr - start
+    # Functions land in _CODE, or in _HOME when declared `nonbanked`; a unit
+    # uses one or the other, so both areas are based at the same address.
     _run_wine("link-gbz80.exe",
-              ["-n", "--", "-i", "-m", "unit.ihx", f"-b_CODE=0x{base:04X}", *gargs, "unit.o"],
+              ["-n", "--", "-i", "-m", "unit.ihx", f"-b_CODE=0x{base:04X}",
+               f"-b_HOME=0x{base:04X}", *gargs, "unit.o"],
               work, env)
     ihx = work / "unit.ihx"
     if not ihx.is_file():
@@ -355,6 +399,8 @@ def main() -> None:
     ap.add_argument("--peep", type=Path, default=DEFAULT_PEEP,
                     help="peephole rule file (default: tools/match/lsdj.peep)")
     ap.add_argument("--show-asm", action="store_true", help="print the SDCC asm")
+    ap.add_argument("--dump", type=Path, metavar="FILE",
+                    help="with --target: also write the linked function bytes to FILE")
     args = ap.parse_args()
 
     if not args.c.is_file():
@@ -388,6 +434,8 @@ def main() -> None:
             off = rom_offset(bank, addr)
             target = rom[off:off + len(code)]
             extent = rom_extent(syms, bank, addr)
+            if args.dump:
+                args.dump.write_bytes(code)
             print(f"linked {name} at ${bank:02X}:${addr:04X}: {len(code)} bytes"
                   + (f" (ROM routine spans {extent} bytes to the next symbol)"
                      if extent is not None else "")
@@ -399,7 +447,7 @@ def main() -> None:
                 sys.exit(2)
             print(f"==> MATCH: byte-identical to ROM ${bank:02X}:${addr:04X}-"
                   f"${addr + len(code) - 1:04X}"
-                  + ("" if extent in (None, len(code)) else
+                  + ("" if extent is None or extent <= len(code) else
                      f" (NB: {extent - len(code)} more ROM byte(s) before the next symbol)"))
             return
 

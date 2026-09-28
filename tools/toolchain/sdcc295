@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
-# Run the period GBDK 2.95 SDCC (2.2.1, gbz80) under Wine, robustly.
+# Run the period GBDK 2.95-3 SDCC (2.2.1, gbz80) under Wine, robustly.
 #
 # This is the compiler LSDj was built with; use it for matching-decompilation
-# experiments (Track 2). All arguments pass through to sdcc.exe.
+# experiments (Track 2). All arguments pass through to sdcc.exe. (Note: sdcc
+# also assembles when given -S, leaving .lst/.o/.sym/.cdb beside the input;
+# tools/match/match_function.py works in a temp dir instead.)
 #
 # Wine quirks this wrapper handles for you:
 #   * sdcpp/as-gbz80 must be findable -> bin dir is added via WINEPATH.
@@ -10,9 +12,11 @@
 #     from Wine's writable C: drive (else you get "undocumented I/O error").
 #   * file arguments are resolved to absolute paths so they still open after the
 #     working-directory switch.
+#   * a crashing sdcc.exe would hang in winedbg; it is disabled so the crash
+#     returns immediately.
 #
 # Env:
-#   GBDK_295   GBDK 2.95 tree (default: <repo>/toolchain/gbdk-2.95)
+#   GBDK_295   GBDK tree (default: <repo>/toolchain/gbdk-2.95-3, else gbdk-2.95)
 #   WINEPREFIX wine prefix (default: <repo>/toolchain/.wine)
 #
 # Examples:
@@ -22,8 +26,12 @@ set -o errexit
 set -o pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-GBDK_295="${GBDK_295:-$repo_root/toolchain/gbdk-2.95}"
+if [[ -z "${GBDK_295:-}" ]]; then
+    GBDK_295="$repo_root/toolchain/gbdk-2.95-3"
+    [[ -d "$GBDK_295" ]] || GBDK_295="$repo_root/toolchain/gbdk-2.95"
+fi
 sdcc_exe="$GBDK_295/bin/sdcc.exe"
+export WINEDLLOVERRIDES="${WINEDLLOVERRIDES:-winedbg.exe=d}"
 
 if [[ ! -f "$sdcc_exe" ]]; then
     echo "error: $sdcc_exe not found. Run tools/toolchain/fetch_gbdk295.sh first." >&2
