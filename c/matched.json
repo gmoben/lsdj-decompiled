@@ -1265,6 +1265,12 @@
   "len": 26,
   "src": "c/bank04/PhraseScreen.c"
  },
+ "PhraseDrawCursorGlyph": {
+  "bank": "04",
+  "addr": "4257",
+  "len": 71,
+  "src": "c/bank04/PhraseScreen.c"
+ },
  "PhraseModeTile": {
   "bank": "04",
   "addr": "405D",
@@ -1923,6 +1929,12 @@
   "bank": "04",
   "addr": "49C5",
   "len": 107,
+  "src": "c/bank04/PhraseScreen.c"
+ },
+ "WritePhraseFxVal": {
+  "bank": "04",
+  "addr": "4A30",
+  "len": 95,
   "src": "c/bank04/PhraseScreen.c"
  },
  "WritePhraseInstrument": {

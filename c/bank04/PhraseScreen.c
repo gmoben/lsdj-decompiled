@@ -7,9 +7,13 @@
 
 #include "lsdj.h"
 
+extern UBYTE wPhraseCol;                    /* $C415 */
 extern UBYTE wPhraseColLast[];              /* $C907, [4] */
+extern UBYTE wPhraseDrawMode;               /* $C90C */
 extern UBYTE wInstrIsKit;                   /* $C90B */
 extern UBYTE wPhraseRowFlags[];             /* $C90D, [16] */
+extern UBYTE PhraseColX0[];                 /* $04:$429E */
+extern UBYTE PhraseColX1[];                 /* $04:$42A3 */
 
 void DrawChainCell(void);                   /* bank 6 */
 void DrawPhraseCursor(void);                /* bank $1F */
@@ -105,6 +109,16 @@ void WritePhraseInstrument(UBYTE phrase, UBYTE row, UBYTE instr)
     WriteSongByte(3, p + row, instr);
 }
 
+void PhraseDrawCursorGlyph(UBYTE row)
+{
+    UBYTE y;
+    UBYTE *tbl;
+
+    y = row + 2;
+    tbl = wPhraseDrawMode ? PhraseColX1 : PhraseColX0;
+    GetTilemapAddr(tbl[wPhraseCol], y);
+}
+
 UBYTE ReadPhraseInstr(UBYTE phrase, UBYTE row)
 {
     UBYTE *p;
@@ -143,6 +157,19 @@ void WritePhraseFx(UBYTE phrase, UBYTE row, UBYTE cmd)
         DebugTrap();
     p += (UWORD)phrase << 4;
     WriteSongByte(2, (UBYTE *)p, cmd);
+}
+
+void WritePhraseFxVal(UBYTE phrase, UBYTE row, UBYTE v)
+{
+    UWORD p;
+
+    p = (UWORD)(SramPhraseFxVal + (unsigned int)row);
+    if (phrase == 0xFF)
+        DebugTrap();
+    if (row >= 0x10)
+        DebugTrap();
+    p += (UWORD)phrase << 4;
+    WriteSongByte(2, (UBYTE *)p, v);
 }
 
 UBYTE PhraseReadFxVal(UBYTE phrase, UBYTE row)

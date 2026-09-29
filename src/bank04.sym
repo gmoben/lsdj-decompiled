@@ -32,7 +32,7 @@
 4811 PhraseEditLeft             ; A+LEFT edit on the cursor cell (-semitone / -1)
 4918 ReadPhraseInstr            ; read phrase_instruments[phrase][row] (SRAM bank 3 $B000); asserts phrase != $FF, row < $10
 49C5 WritePhraseFx              ; write phrase_fx[phrase][row] = cmd (SRAM bank 2 $A000); asserts cmd <= $13
-4A30 WriteWorkRow               ; write byte n (n<16) of the song work/bookmarks row ($0FF0 = phrase $ff slot)
+4A30 WritePhraseFxVal           ; write phrase_fx_val[phrase][row] = v (SRAM bank 2 $AFF0); asserts phrase != $FF, row < $10
 4A8F PhraseReadFxVal            ; read phrase_fx_val[phrase][row] (SRAM bank 2 $AFF0); asserts phrase != $FF, row < $10
 4AEA PhraseReadFx               ; read phrase_fx[phrase][row] (SRAM bank 2 $A000); 0 unless a command (<= $13)
 4B5B PhraseEditPlace            ; plain-A: place/repeat a value into the empty cursor cell
@@ -90,7 +90,7 @@
 493A .loop                ; loop head in ReadPhraseInstr
 499E .loop                ; loop head in PhraseReadNote
 4A05 .loop                ; loop head in WritePhraseFx
-4A64 .loop                ; loop head in WriteWorkRow
+4A64 .loop                ; loop head in WritePhraseFxVal
 4AC3 .loop                ; loop head in PhraseReadFxVal
 4B1E .loop                ; loop head in PhraseReadFx
 4B93 .loop                ; loop head in PhraseEditPlace
@@ -657,3 +657,5 @@
 7C4B .checkClipboardType_3
 7CB7 .cont_64
 7D13 .farCall_8
+429E PhraseColX0        ; x of the phrase screen columns, draw mode 0 (2 2 6 9 10)
+42A3 PhraseColX1        ; the same with wPhraseDrawMode set (2 5 9 12 13)
