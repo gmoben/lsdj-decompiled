@@ -81,7 +81,7 @@ match: | $(BASEROM)
 
 # Auto-carve on a fresh clone: main.asm is the linker entry point; if it is
 # missing, generate the whole tree first.
-src/main.asm: $(CARVED_ASM) tools/carve_clean.py tools/gen_main.py c/matched.json $(C_STAMP) | $(BASEROM)
+src/main.asm: $(CARVED_ASM) constants/ram.inc tools/carve_clean.py tools/gen_main.py c/matched.json $(C_STAMP) | $(BASEROM)
 	tools/carve_clean.py
 
 # --- Assemble + link + fix -------------------------------------------------

@@ -7,8 +7,11 @@
 
 #include "lsdj.h"
 
+extern UBYTE wCursorMode;                   /* $C413 */
 extern UBYTE wPhrase;                       /* $C414, the phrase being edited */
 extern UBYTE wPhraseRow;                    /* $C416 */
+extern UBYTE wPhraseColLast[];              /* $C907, [4] */
+extern UBYTE wInstrIsKit;                   /* $C90B */
 extern UBYTE wPhraseRowFlags[];             /* $C90D, [16] */
 extern UBYTE FxMnemonics[];                 /* $00:$0824, the command letters */
 
@@ -16,6 +19,8 @@ void FarCallArg2V(UBYTE bank, void (*fn)(void), UBYTE a, UBYTE b);   /* bank 0 *
 void DrawChainCell(void);                   /* bank 6 */
 void DrawPhraseCursor(void);                /* bank $1F */
 void PastePhraseSelection(void);            /* bank $1F */
+void CopyInstrName(void);                   /* bank 1 */
+void WriteInstrName(void);                  /* bank 1 */
 UBYTE ReadPhraseInstr(UBYTE phrase, UBYTE row);
 UBYTE FindCursorInstr(void);
 
@@ -64,6 +69,18 @@ UBYTE FindCursorInstr(void)
             return v;
     }
     return 0xFF;
+}
+
+void PhraseResolveCursorNote(UBYTE v)
+{
+    UBYTE instr;
+
+    wPhraseColLast[wSongCol] = v;
+    if (wSongCol == 3 && wCursorMode != 4) {
+        instr = FindCursorInstr();
+        if (instr < 0x40 && ReadInstrByte(instr, 0) == 3)
+            WriteInstrByte(instr, 4, v);
+    }
 }
 
 void WritePhraseNote(UBYTE row, UBYTE v)
@@ -197,4 +214,28 @@ UBYTE CursorInstrIsKit(void)
     else
         r = 0;
     return r;
+}
+
+void CopyInstrBytes(UBYTE src, UBYTE dst)
+{
+    UBYTE i;
+
+    for (i = 0; i < 0x10; i++)
+        WriteInstrByte(dst, i, ReadInstrByte(src, i));
+    FarCallArg(1, (UWORD)CopyInstrName, src);
+    FarCallArg(1, (UWORD)WriteInstrName, dst);
+}
+
+UBYTE PrelistenEditedCell(void)
+{
+    UBYTE i;
+
+    if (wSongCol != 2)
+        return 0;
+    i = ReadCursorInstr();
+    if (i > 0x40)
+        return wInstrIsKit;
+    if (i == 0x40)
+        return 0;
+    return ReadInstrByte(i, 0) == 2;
 }

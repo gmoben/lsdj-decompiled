@@ -41,6 +41,12 @@
   "len": 18,
   "src": "c/bank07/SongScreen.c"
  },
+ "CopyInstrBytes": {
+  "bank": "04",
+  "addr": "5491",
+  "len": 82,
+  "src": "c/bank04/PhraseScreen.c"
+ },
  "CursorInstrIsKit": {
   "bank": "04",
   "addr": "510A",
@@ -953,11 +959,23 @@
   "len": 93,
   "src": "c/bank04/PhraseScreen.c"
  },
+ "PhraseResolveCursorNote": {
+  "bank": "04",
+  "addr": "40B2",
+  "len": 84,
+  "src": "c/bank04/PhraseScreen.c"
+ },
  "PhraseScreenUpdate": {
   "bank": "1F",
   "addr": "648F",
   "len": 82,
   "src": "c/bank1f/InstrHelpers.c"
+ },
+ "PrelistenEditedCell": {
+  "bank": "04",
+  "addr": "5B5E",
+  "len": 72,
+  "src": "c/bank04/PhraseScreen.c"
  },
  "ProjDrawNameField": {
   "bank": "1B",

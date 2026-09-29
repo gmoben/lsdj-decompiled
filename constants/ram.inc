@@ -772,9 +772,7 @@ DEF wKbdNoteInjected EQU $C8F9  ; kbd note injected into phrase ptr this tick (c
 DEF wKitNoteNibbleMask EQU $C8FA  ; masks which kit-voice nibbles of the note survive ($ff at chain end)
 DEF wInstrFieldCount EQU $C905  ; instrument screen: fields on current row (wInstrField clamps to -1)
 DEF wInstrEditLatch  EQU $C906  ; instrument screen edit latch (cleared on entry/input; role approximate)
-DEF wDefaultNotes_p3 EQU $C907  ; init-only (1 at reset); no other references found
-DEF wDefaultNotes_p4 EQU $C908  ; init-only (1 at reset); no other references found
-DEF wDefaultNotes_p5 EQU $C909  ; init-only (1 at reset); no other references found
+DEF wPhraseColLast   EQU $C907  ; [4] the last value entered per phrase column, by wSongCol (PhraseResolveCursorNote; set to 1 at reset); [3] is wPhraseInstrCache
 DEF wPhraseInstrCache EQU $C90A  ; phrase screen: ReadInstrByte cache during phrase note write
 DEF wInstrIsKit      EQU $C90B  ; current instrument type == KIT cache (phrase screen)
 DEF wPhraseDrawMode  EQU $C90C  ; phrase draw variant selector (jump-table $42A3 vs $429E)
