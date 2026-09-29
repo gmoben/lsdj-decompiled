@@ -754,3 +754,29 @@ replace restart {
 	jp	%1,%4
 %3:
 }
+replace restart {
+	xor	a,a
+	ld	hl,#%1 + %2
+	or	a,(hl)
+	jp	%3,%4
+%5:
+	ld	hl,#%1 + %2
+} by {
+	xor	a,a
+	ld	hl,#%1 + %2
+	or	a,(hl)
+	jp	%3,%4
+%5:
+} if labelRefCount %5 0
+replace restart {
+	xor	a,a
+	ld	hl,#%1 + %2
+	or	a,(hl)
+	jp	%3,%4
+	ld	hl,#%1 + %2
+} by {
+	xor	a,a
+	ld	hl,#%1 + %2
+	or	a,(hl)
+	jp	%3,%4
+}

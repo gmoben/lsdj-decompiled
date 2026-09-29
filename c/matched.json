@@ -17,6 +17,12 @@
   "len": 37,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "DrawGrooveScreen": {
+  "bank": "1D",
+  "addr": "41DA",
+  "len": 59,
+  "src": "c/bank1d/SynthScreen.c"
+ },
  "DrawInstrByte10": {
   "bank": "03",
   "addr": "498B",
@@ -94,6 +100,18 @@
   "addr": "58B1",
   "len": 262,
   "src": "c/bank1b/DrawSyncField.c"
+ },
+ "DrawSynthDistField": {
+  "bank": "1D",
+  "addr": "6577",
+  "len": 60,
+  "src": "c/bank1d/SynthScreen.c"
+ },
+ "DrawSynthField": {
+  "bank": "1D",
+  "addr": "62A8",
+  "len": 77,
+  "src": "c/bank1d/SynthScreen.c"
  },
  "DrawTableFlag": {
   "bank": "1F",
@@ -358,6 +376,30 @@
   "addr": "53DE",
   "len": 65,
   "src": "c/bank03/InstrScreen.c"
+ },
+ "GrooveBuildCache": {
+  "bank": "1D",
+  "addr": "435D",
+  "len": 55,
+  "src": "c/bank1d/SynthScreen.c"
+ },
+ "GrooveDrawFieldHw": {
+  "bank": "1D",
+  "addr": "4394",
+  "len": 59,
+  "src": "c/bank1d/SynthScreen.c"
+ },
+ "GrooveResetState": {
+  "bank": "1D",
+  "addr": "4D58",
+  "len": 41,
+  "src": "c/bank1d/SynthScreen.c"
+ },
+ "GrooveScreenUpdate": {
+  "bank": "1D",
+  "addr": "4215",
+  "len": 70,
+  "src": "c/bank1d/SynthScreen.c"
  },
  "HasEnterableColLeft": {
   "bank": "1F",
@@ -689,6 +731,12 @@
   "len": 20,
   "src": "c/bank00/InstrByte.c"
  },
+ "ReadGrooveStep": {
+  "bank": "1D",
+  "addr": "405A",
+  "len": 84,
+  "src": "c/bank1d/SynthScreen.c"
+ },
  "ReadInstrByte": {
   "bank": "00",
   "addr": "0A91",
@@ -700,6 +748,18 @@
   "addr": "0AF6",
   "len": 94,
   "src": "c/bank00/ReadSeqByte.c"
+ },
+ "ReadSynthParam": {
+  "bank": "1D",
+  "addr": "6311",
+  "len": 67,
+  "src": "c/bank1d/SynthScreen.c"
+ },
+ "RedrawScreenFar": {
+  "bank": "1D",
+  "addr": "6E00",
+  "len": 17,
+  "src": "c/bank1d/SynthScreen.c"
  },
  "RedrawScreenFar1F": {
   "bank": "1F",
@@ -815,11 +875,59 @@
   "len": 10,
   "src": "c/bank01/ShowMessages.c"
  },
+ "SynthApplyFilter": {
+  "bank": "1D",
+  "addr": "5F00",
+  "len": 41,
+  "src": "c/bank1d/SynthScreen.c"
+ },
+ "SynthCalcParamAddr": {
+  "bank": "1D",
+  "addr": "60A7",
+  "len": 62,
+  "src": "c/bank1d/SynthScreen.c"
+ },
+ "SynthFieldDecHi": {
+  "bank": "1D",
+  "addr": "70E4",
+  "len": 45,
+  "src": "c/bank1d/SynthScreen.c"
+ },
+ "SynthFieldDecLo": {
+  "bank": "1D",
+  "addr": "7111",
+  "len": 39,
+  "src": "c/bank1d/SynthScreen.c"
+ },
+ "SynthFieldIncHi": {
+  "bank": "1D",
+  "addr": "708E",
+  "len": 46,
+  "src": "c/bank1d/SynthScreen.c"
+ },
+ "SynthFieldIncLo": {
+  "bank": "1D",
+  "addr": "70BC",
+  "len": 40,
+  "src": "c/bank1d/SynthScreen.c"
+ },
+ "SynthSignalIsFrame": {
+  "bank": "1D",
+  "addr": "6354",
+  "len": 26,
+  "src": "c/bank1d/SynthScreen.c"
+ },
  "SynthWavesModified": {
   "bank": "03",
   "addr": "42AB",
   "len": 84,
   "src": "c/bank03/InstrScreen.c"
+ },
+ "SynthWrapIndex32": {
+  "bank": "1D",
+  "addr": "58DA",
+  "len": 12,
+  "src": "c/bank1d/SynthScreen.c"
  },
  "TableIsReferenced": {
   "bank": "1F",
@@ -839,6 +947,12 @@
   "len": 21,
   "src": "c/bank03/InstrScreen.c"
  },
+ "WriteGrooveByte": {
+  "bank": "1D",
+  "addr": "4000",
+  "len": 88,
+  "src": "c/bank1d/SynthScreen.c"
+ },
  "WriteInstrByte": {
   "bank": "00",
   "addr": "0953",
@@ -850,5 +964,11 @@
   "addr": "5002",
   "len": 56,
   "src": "c/bank03/InstrScreen.c"
+ },
+ "WriteSynthParam": {
+  "bank": "1D",
+  "addr": "6E6E",
+  "len": 72,
+  "src": "c/bank1d/SynthScreen.c"
  }
 }

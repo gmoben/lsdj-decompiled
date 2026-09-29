@@ -10,3 +10,4 @@ FileCheckByte6973  $1C:$6973 -- pointer param copied to a local (frame 3), deref
 ClearTableRow      $1F:$5183 -- pointer param copied to b,c before the call, then incremented in place on the stack after it; p++ / post-increment / a local copy don't give that
 GetInstrFlags1F5   $1F:$40CA -- `v = f() & 0x80; if (v)` (ROM: and; ld c,a; or a,c; jp z) makes SDCC 2.2.1 assert (gen.c 3215, genAnd single-bit + ifx); no crash-free spelling found yet
 MarkPhraseDataUsed $1F:$5F20 -- frame 3 with i at sp+0 and p at sp+1, call first, p copied to b,c for the push; ours keeps i in c (call-first) or evaluates the table first
+GrooveDrawField    $1D:$40AE -- `(wGrooveRow & 2) ? 0 : 1`: stock SDCC copies the global (`ld c,(hl); ld a,c; bit 1,a`), the ROM tests it directly (`ld a,(hl); bit`, 34 global sites vs 7 copies); opPreservesA-accepts-literals variant breaks 10 matched functions

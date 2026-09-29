@@ -19,7 +19,7 @@
 ; Synth editor: softsynth_params[wSynth][16] at SRAM bank1 $BEB2 (16 synths);
 ; params read via per-field getters ($6311/$68CC/... -> ReadSongByte on $BEB2).
 6354 SynthSignalIsFrame ; -> 1 if synth signal type (param 0) == 3 (FRAME mode), else 0
-6311 SynthParamAddr     ; -> &SYNTH_PARAMS[$C441]*16 + field (current synth's param block, song $3EB2/$BEB2)
+6311 ReadSynthParam             ; the current synth's param byte n: synth_params[wSynthScreen*16 + n] (song $3EB2)
 68AB DrawSynthScreen    ; screen idx 10: draws softsynth params (wave/filter/cutoff/dist/...)
 ; --- synth-screen value-name tables (indexed by the synth param value) --------
 62F5 SynthPhaseNames    ; phase types " PINCH"/"  WARP"/"RESYNC" (7-byte stride)
@@ -50,7 +50,7 @@
 6115 SynthReadParam             ; read synth param via SynthCalcParamAddr + ReadSongByte (bank1)
 6144 SynthCopyParam             ; copy one synth parameter byte (SynthCalcParamAddr src->dst)
 6193 SynthFillWaveRange         ; fill/interpolate a wave value range (16-step; <-SynthLoadWaveTable)
-62A8 DrawSynthField             ; draw a synth field (jp-table $62bb dispatch by field type)
+62A8 DrawSynthField             ; draw the synth PHASE field: switch (jp-table $62bb) -> " PINCH"/"  WARP"/"RESYNC"/"RESYN2"
 636E DrawSynthFilterField       ; draw the FILTER type field (" LOWP"...; "-----" empty; jp-table $63a6)
 6414 DrawSynthWaveField         ; draw the waveform type row (glyph strings "iiii"/"mmmm"; jp-table $6437)
 649F SynthLoadWaveDataA         ; read wave data via index $c442 + ROM table $60F5
@@ -100,10 +100,6 @@
 6DF2 TxtWavesQ                  ; "WAVES?"
 6DF9 TxtYes1D                   ; "YES"
 6DFD TxtNo1D                    ; "NO"
-62C7 DrawPhasePinch             ; synth PHASE field case: draw " PINCH"
-62D3 DrawPhaseWarp              ; synth PHASE field case: draw "  WARP"
-62DF DrawPhaseResync            ; synth PHASE field case: draw "RESYNC"
-62EB DrawPhaseResyn2            ; synth PHASE field case: draw "RESYN2"
 62FC TxtPhaseWarp               ; "  WARP"
 6303 TxtPhaseResync             ; "RESYNC"
 630A TxtPhaseResyn2             ; "RESYN2"
@@ -178,8 +174,12 @@
 622B .loop3               ; loop head in SynthFillWaveRange
 6264 .loop4               ; loop head in SynthFillWaveRange
 62A4 .done                ; common exit of SynthFillWaveRange
-62F4 .done                ; common exit of DrawPhaseResyn2
-631E .loop                ; loop head in SynthParamAddr
+62C7 .pinch               ; case 0 (was DrawPhasePinch)
+62D3 .warp                ; case 1 (was DrawPhaseWarp)
+62DF .resync              ; case 2 (was DrawPhaseResync)
+62EB .resyn2              ; case 3 (was DrawPhaseResyn2)
+62F4 .done                ; common exit of DrawSynthField
+631E .loop                ; loop head in ReadSynthParam
 63EE .done                ; common exit of DrawSynthFilterField
 6487 .done                ; common exit of DrawSynthWaveField
 64B3 .loop                ; loop head in SynthLoadWaveDataA
