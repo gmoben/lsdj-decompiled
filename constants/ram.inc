@@ -778,6 +778,7 @@ DEF wDefaultNotes_p5 EQU $C909  ; init-only (1 at reset); no other references fo
 DEF wPhraseInstrCache EQU $C90A  ; phrase screen: ReadInstrByte cache during phrase note write
 DEF wInstrIsKit      EQU $C90B  ; current instrument type == KIT cache (phrase screen)
 DEF wPhraseDrawMode  EQU $C90C  ; phrase draw variant selector (jump-table $42A3 vs $429E)
+DEF wPhraseRowFlags  EQU $C90D  ; [16] per-step state DrawPhraseScreen sets for the phrase grid: a value, or $FE/$FF sentinels (PhraseCheckColFD tests > $FD)
 DEF wPhraseNoteIsKitA EQU $C92D  ; phrase edit: current note is-kit cache
 DEF wPhraseNoteIsKitB EQU $C92E  ; phrase edit: adjacent note is-kit cache
 DEF wTableEnvCache   EQU $C931  ; table screen: cached TableReadEnv at cursor

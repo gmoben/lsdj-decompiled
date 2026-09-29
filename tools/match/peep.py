@@ -461,6 +461,81 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
     return out, dropped
 
 
+# --- the return register -----------------------------------------------------
+#
+# The same knowledge for `e`, which holds call results and return values:
+# after `ld c,e` (a call's result kept in c), a later `return c` -- SDCC's
+# `ld e,c` -- is dropped while neither register changed and no jump target
+# intervened (`FindCursorInstr` returns the value it just read that way).
+
+_WRITES_ALL = {"call", "rst", "ret", "reti"}
+
+
+def _written(mn: str, ops: list[str]) -> set[str]:
+    """Registers an instruction may write (8-bit names; `a` included)."""
+    if mn in ("push", "cp", "bit", "nop", "halt", "di", "ei"):
+        return set()
+    if mn in ("jp", "jr"):
+        return set()
+    if mn in ("ld", "lda", "ldh", "pop", "inc", "dec", "add", "adc", "sub", "sbc", "and",
+              "or", "xor", "rl", "rr", "rlc", "rrc", "sla", "sra", "srl", "swap", "res",
+              "set", "rla", "rra", "rlca", "rrca", "cpl"):
+        out: set[str] = set()
+        if mn in ("rla", "rra", "rlca", "rrca", "cpl") or not ops:
+            return {"a"}
+        dest = ops[1] if mn in ("res", "set") and len(ops) == 2 else ops[0]
+        if dest in _PAIRS:
+            out |= set(_PAIRS[dest]) if dest != "af" else {"a"}
+        elif dest in _REGS or dest == "a":
+            out.add(dest)
+        for o in ops:
+            if o in ("(hl+)", "(hl-)"):
+                out |= {"h", "l"}
+        if mn in ("sub", "sbc", "and", "or", "xor", "adc") and len(ops) == 2 and ops[0] == "a":
+            out = {"a"}
+        return out
+    return set("abcdehl")
+
+
+def track_e(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
+    """Drop `ld e,r` while `e` already equals r (b, c or d)."""
+    out: list[str] = []
+    eq: set[str] = set()          # registers equal to e
+    dropped = 0
+    scope = 0
+    for raw in lines:
+        t = _strip(raw).strip()
+        if not t:
+            out.append(raw)
+            continue
+        if t.endswith(":"):
+            if not _LOCAL.fullmatch(t[:-1]):
+                scope += 1
+                eq = set()
+            elif f"{scope}:{t[:-1]}" in jump_targets:
+                eq = set()
+            out.append(raw)
+            continue
+        mn, ops = _ops(t)
+        if mn == "ld" and len(ops) == 2 and ops[0] == "e" and ops[1] in ("b", "c", "d"):
+            if ops[1] in eq:
+                dropped += 1
+                continue
+            eq = {ops[1]}
+        elif mn == "ld" and len(ops) == 2 and ops[1] == "e" and ops[0] in ("b", "c", "d"):
+            eq.add(ops[0])
+        elif mn in _WRITES_ALL or (mn in ("jp", "jr") and len(ops) == 1):
+            eq = set()
+        else:
+            w = _written(mn, ops)
+            if "e" in w:
+                eq = set()
+            else:
+                eq -= w
+        out.append(raw)
+    return out, dropped
+
+
 # --- dead register stores ----------------------------------------------------
 #
 # Within a basic block LSDj's compiler never left `ld r,a` (r = b..e) that a

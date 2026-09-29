@@ -16,11 +16,11 @@
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 401B DrawPhraseCursorFar        ; FarCall bank1f DrawPhraseCursor
-402C DrawPhraseTile             ; draw one indexed tile/char at the VRAM cursor (DrawStringIndexed wrapper)
+402C DrawPhraseCmdLetter        ; draw FX command letter cmd (FxMnemonics), "?" past $13
 405D PhraseModeTile             ; return tile $78 or $6c depending on mode $c41d
-4071 PhraseReadCmdValCursor     ; read phrase cmd-value at cursor row $c416 (PhraseReadCmdVal, wPhrase)
-4087 PhraseFindNoteFromCursor   ; scan up from row $c416 for first cmd-value <= $40; return it or $ff
-40B2 PhraseResolveCursorNote    ; resolve note+instrument under the cursor (PhraseFindNoteFromCursor; $40=none; select-mode aware)
+4071 ReadCursorInstr            ; ReadPhraseInstr(wPhrase, wPhraseRow)
+4087 FindCursorInstr            ; the instrument in effect at the cursor: the nearest step at or above wPhraseRow with one (<= $40), else $FF
+40B2 PhraseResolveCursorNote    ; resolve note+instrument under the cursor (FindCursorInstr; $40=none; select-mode aware)
 4106 SetColInstrument           ; cache the last-used instrument per channel column (wColInstrument+wSongCol; WAV specials)
 418F WritePhraseNote            ; phrase_notes[wPhrase*16+row] = value (row<16, wPhrase!=$ff asserted)
 41F0 WritePhraseInstrument      ; phrase_instruments (song $7000) [phrase*16+row] = instr
@@ -30,7 +30,7 @@
 457C PhraseEditDown             ; A+DOWN edit on the cursor cell (-octave / -$10)
 470B PhraseEditRight            ; A+RIGHT edit on the cursor cell (+semitone / +1)
 4811 PhraseEditLeft             ; A+LEFT edit on the cursor cell (-semitone / -1)
-4918 PhraseReadCmdVal      ; read the phrase command-value cell (phrase arg, row arg); bounds-checked
+4918 ReadPhraseInstr            ; read phrase_instruments[phrase][row] (SRAM bank 3 $B000); asserts phrase != $FF, row < $10
 49C5 WritePhraseNoteRaw         ; phrase-notes write at an explicit song offset ($0000 region)
 4A30 WriteWorkRow               ; write byte n (n<16) of the song work/bookmarks row ($0FF0 = phrase $ff slot)
 4A8F PhraseReadCmdSram          ; read phrase_cmd_val[phrase*16+row] from SRAM ($AFF0, ReadSongByte bank2); bounds-checked
@@ -38,10 +38,10 @@
 4B5B PhraseEditPlace            ; plain-A: place/repeat a value into the empty cursor cell
 4C06 DrawEmptyNote              ; draw "---" empty note cell
 4C99 PastePhraseSelectionFar    ; FarCall bank1f PastePhraseSelection
-4CAA PhraseCheckColFD           ; return whether [$c90d + arg] == $fd
+4CAA PhraseCheckColFD           ; return wPhraseRowFlags[arg] > $FD (a $FE/$FF sentinel)
 4CC4 DrawNoteCell               ; draw wSampleNoteString (note name) or "OFF"
-510A PhraseCurNoteIsKit         ; find note (PhraseFindNoteFromCursor); return 1 if its instrument type (ReadInstrByte)==2
-5136 PhraseCheckEditContext     ; predicate over mode $c41d / col $c415 / wSelLeft / PhraseCurNoteIsKit
+510A CursorInstrIsKit           ; 1 if the instrument in effect at the cursor (FindCursorInstr) is a kit
+5136 PhraseCheckEditContext     ; predicate over mode $c41d / col $c415 / wSelLeft / CursorInstrIsKit
 51AE PhraseHandleInput          ; main phrase-screen cursor/edit handler ($c411 mode, wSelLeft/wSelTop); large
 5491 CopyInstrBytes             ; copy 16 instrument bytes src->dst (+name/table FarCalls)
 55EB CloneTableAtCursor         ; clone the table referenced by the cmd value under the cursor (FindFreeTable+CopyTableData)
@@ -68,8 +68,8 @@
 4CE1 TxtNoteOff                 ; "OFF"
 
 ; --- structural local names (loop heads / common exits) ---
-408C .loop                ; loop head in PhraseFindNoteFromCursor
-40B0 .done                ; common exit of PhraseFindNoteFromCursor
+408C .loop                ; loop head in FindCursorInstr
+40B0 .done                ; common exit of FindCursorInstr
 4104 .done                ; common exit of PhraseResolveCursorNote
 418D .done                ; common exit of SetColInstrument
 41C5 .loop                ; loop head in WritePhraseNote
@@ -87,7 +87,7 @@
 480D .done                ; common exit of PhraseEditRight
 484B .loop                ; loop head in PhraseEditLeft
 4914 .done                ; common exit of PhraseEditLeft
-493A .loop                ; loop head in PhraseReadCmdVal
+493A .loop                ; loop head in ReadPhraseInstr
 499E .loop                ; loop head in PhraseStepPtr
 4A05 .loop                ; loop head in WritePhraseNoteRaw
 4A64 .loop                ; loop head in WriteWorkRow

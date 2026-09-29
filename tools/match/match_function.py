@@ -230,6 +230,7 @@ def compile_unit(work: Path, env: dict[str, str], c_path: Path,
         lines, _ = peep_mod.apply(rules, lines)
         if not os.environ.get("LSDJ_NO_TRACK"):
             lines, _ = peep_mod.track_a(lines, targets)
+            lines, _ = peep_mod.track_e(lines, targets)
             lines, _ = peep_mod.dead_stores(lines, targets)
         asm.write_text("\n".join(lines) + "\n")
     _run_wine("as-gbz80.exe", ["-l", "-o", "unit.o", "unit.asm"], work, env)
@@ -278,8 +279,10 @@ def function_span(lst_text: str, func: str | None) -> tuple[str, int, int]:
         if not available:
             sys.exit("error: no function boundary labels found; pass --func.")
         name = available[0]
-    start = _label_addr(lst_text, f"___{name}_start")
-    end = _label_addr(lst_text, f"___{name}_end")
+    # as-gbz80 keeps 32 characters of a symbol (NCPS): `___<name>_start` of a
+    # name over 23 characters is listed truncated
+    start = _label_addr(lst_text, f"___{name}_start"[:32])
+    end = _label_addr(lst_text, f"___{name}_end"[:32])
     if start is None or end is None:
         sys.exit(f"error: function '{name}' not found. "
                  f"Available: {', '.join(available) or '(none)'}")

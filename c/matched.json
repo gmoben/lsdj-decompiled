@@ -41,11 +41,23 @@
   "len": 18,
   "src": "c/bank07/SongScreen.c"
  },
+ "CursorInstrIsKit": {
+  "bank": "04",
+  "addr": "510A",
+  "len": 44,
+  "src": "c/bank04/PhraseScreen.c"
+ },
  "DrawAllChanStatus": {
   "bank": "1F",
   "addr": "7072",
   "len": 37,
   "src": "c/bank1f/InstrHelpers.c"
+ },
+ "DrawChainCellFar": {
+  "bank": "04",
+  "addr": "4000",
+  "len": 27,
+  "src": "c/bank04/PhraseScreen.c"
  },
  "DrawCmdLetter": {
   "bank": "05",
@@ -58,6 +70,12 @@
   "addr": "5AE3",
   "len": 35,
   "src": "c/bank1b/ProjectScreen.c"
+ },
+ "DrawEmptyNote": {
+  "bank": "04",
+  "addr": "4C06",
+  "len": 10,
+  "src": "c/bank04/PhraseScreen.c"
  },
  "DrawGrooveScreen": {
   "bank": "1D",
@@ -149,11 +167,29 @@
   "len": 198,
   "src": "c/bank01/DrawMessageBar.c"
  },
+ "DrawNoteCell": {
+  "bank": "04",
+  "addr": "4CC4",
+  "len": 29,
+  "src": "c/bank04/PhraseScreen.c"
+ },
+ "DrawPhraseCmdLetter": {
+  "bank": "04",
+  "addr": "402C",
+  "len": 49,
+  "src": "c/bank04/PhraseScreen.c"
+ },
  "DrawPhraseCursor": {
   "bank": "1F",
   "addr": "6C1E",
   "len": 22,
   "src": "c/bank1f/InstrHelpers.c"
+ },
+ "DrawPhraseCursorFar": {
+  "bank": "04",
+  "addr": "401B",
+  "len": 17,
+  "src": "c/bank04/PhraseScreen.c"
  },
  "DrawPrelistenField": {
   "bank": "1B",
@@ -400,6 +436,12 @@
   "addr": "60E0",
   "len": 21,
   "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FindCursorInstr": {
+  "bank": "04",
+  "addr": "4087",
+  "len": 43,
+  "src": "c/bank04/PhraseScreen.c"
  },
  "FindFreeSynth": {
   "bank": "03",
@@ -875,6 +917,24 @@
   "len": 78,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "PastePhraseSelectionFar": {
+  "bank": "04",
+  "addr": "4C99",
+  "len": 17,
+  "src": "c/bank04/PhraseScreen.c"
+ },
+ "PhraseCheckColFD": {
+  "bank": "04",
+  "addr": "4CAA",
+  "len": 26,
+  "src": "c/bank04/PhraseScreen.c"
+ },
+ "PhraseModeTile": {
+  "bank": "04",
+  "addr": "405D",
+  "len": 20,
+  "src": "c/bank04/PhraseScreen.c"
+ },
  "PhraseScreenUpdate": {
   "bank": "1F",
   "addr": "648F",
@@ -953,6 +1013,12 @@
   "len": 20,
   "src": "c/bank00/InstrByte.c"
  },
+ "ReadCursorInstr": {
+  "bank": "04",
+  "addr": "4071",
+  "len": 22,
+  "src": "c/bank04/PhraseScreen.c"
+ },
  "ReadGrooveStep": {
   "bank": "1D",
   "addr": "405A",
@@ -964,6 +1030,12 @@
   "addr": "0A91",
   "len": 81,
   "src": "c/bank00/InstrByte.c"
+ },
+ "ReadPhraseInstr": {
+  "bank": "04",
+  "addr": "4918",
+  "len": 80,
+  "src": "c/bank04/PhraseScreen.c"
  },
  "ReadSeqByte": {
   "bank": "00",
