@@ -5,6 +5,18 @@
   "len": 57,
   "src": "c/bank07/SongScreen.c"
  },
+ "AdjustBookmarksOnDelete": {
+  "bank": "07",
+  "addr": "644F",
+  "len": 123,
+  "src": "c/bank07/SongScreen.c"
+ },
+ "AdjustBookmarksOnInsert": {
+  "bank": "07",
+  "addr": "64CA",
+  "len": 121,
+  "src": "c/bank07/SongScreen.c"
+ },
  "AllocNextFreeInstr": {
   "bank": "1F",
   "addr": "4A65",

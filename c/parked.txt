@@ -7,7 +7,7 @@ FileUpgradeV3Kit   $1C:$62D3 -- with `(char)v` casts all but one byte matches: t
 FileUpgradeV0Kit   $1C:$6134 -- all 5 byte locals + a 16-bit temp on the stack (frame 7); ours keeps 2 in registers, 8-bit clear (~0x20 folds)
 FileUpgradeV2      $1C:$622D -- only an `ld hl,sp+0` reload after `or a,a; jp z` (&& chain on a named local): ROM keeps hl there, but reloads in switch chains
 GetInstrFlags1F5   $1F:$40CA -- `v = f() & 0x80; if (v)` (ROM: and; ld c,a; or a,c; jp z) makes SDCC 2.2.1 assert (gen.c 3215, genAnd single-bit + ifx); no crash-free spelling found yet
-RemoveBookmark     $07:$63B5 -- pushes its pointer to ReadSongByte and WriteBookmarkByte straight from the stack (no conversion copy), though both take UWORD addresses and the sum is pointer arithmetic (i fetched into de)
+RemoveBookmark     $07:$63B5 -- the ROM spills i (sp+2) and keeps each call result in c; ours keeps i in c. A UWORD p removes the conversion copy but not that; declaration order, an early return and a named result don't change it
 CopySynthParam     $06:$493F -- ROM keeps s = wSynth >> 4 in c, packs ChainCalcParamAddr's result straight into p (sp+0) and stores a copy of s to sp+2 before the mask; UWORD/pointer p and three mask spellings tried
 ChainWriteWaveB    $06:$4F42 -- reverses the selection; ROM spills the first ChainReadPhraseNote result (sp+2) and keeps the second in b, where SDCC pushes the second straight from e and keeps the first in b
 PlotEnvCurve       $1B:$7200 -- matches except register naming: the ROM keeps every temporary in b (the end pointer as b/c, low byte in b), as if c were busy for the whole function; ours uses c. The $DA00 buffer is addressed as a literal pointer ((char *)0xDA00)

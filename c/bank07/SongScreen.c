@@ -338,3 +338,45 @@ void ClearBookmarks(void)
 {
     MemSet(SramBookmarks, 0xFF, 0x10);
 }
+
+void AdjustBookmarksOnDelete(UBYTE lo, UBYTE hi)
+{
+    UBYTE i, v;
+    UBYTE *p;
+
+    i = 15;
+    do {
+        p = SramBookmarks + i;
+        v = ReadSongByte(0, p);
+        if (v != 0xFF && v >= lo) {
+            if (v < hi) {
+                WriteBookmarkByte(p, 0xFF);
+            } else {
+                v -= hi;
+                v += lo;
+                WriteBookmarkByte(p, v);
+            }
+        }
+    } while (i--);
+    SortBookmarks();
+}
+
+void AdjustBookmarksOnInsert(UBYTE from, UBYTE to)
+{
+    UBYTE i, v;
+    UBYTE *p;
+
+    i = 15;
+    do {
+        p = SramBookmarks + i;
+        v = ReadSongByte(0, p);
+        if (v != 0xFF && v >= from) {
+            v -= from;
+            v += to;
+            if (v > from)
+                WriteBookmarkByte(p, v);
+            else
+                WriteBookmarkByte(p, 0xFF);
+        }
+    } while (i--);
+}
