@@ -1,5 +1,5 @@
 ; Bank $01 -- UI string table + help text (incl. the FX command help popups)
-4485 CartridgeTest      ; hardware self-test screen: ROM/SRAM checks ("CARTRIDGE TEST"/"FAIL!")
+4485 .done                ; (was CartridgeTest) common exit
 51F4 PitchSpeedNames    ; [4][5] pitch-speed display names "STEP"/"TICK"/"DRUM"/"FAST"
 764C LoadCommandHelp    ; resolve command (sp+8) -> help string in wStrBuffer + wVramCursor; shown at screen top on double-A. B/F/H/S/W are context-cased (by $C41D), the rest via CommandHelpTable
 776E CommandHelpTable   ; [command] -> "X: DESCRIPTION" string pointer (index = command*2; 0 = context-cased above)
@@ -37,7 +37,7 @@
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 4000 UiTestSramLo               ; cartridge RAM test, SRAM banks 0-3: write/read-back pattern via $33f9 (part of CartridgeTest)
-445A UiTestSramHi               ; probe SRAM banks 4-15 (enable $0a, select bank, call $20c4); jp CartridgeTest on mismatch
+445A UiTestSramHi               ; probe SRAM banks 4-15 (enable $0a, select bank, call $20c4); jp UiTestSramHi.done on mismatch
 493B CopyInstrName              ; copy instrument arg's 5-char name -> wNameEditBuf (speech $40 -> "SPCH")
 4A49 WriteInstrName             ; wNameEditBuf -> instrument name storage ($be7a + instr*5)
 4B15 UiLoadHwTables             ; load CGB/DMG-specific tables: palette-ish -> $cd28, 216-byte note-period table -> wNotePeriods ($cf28)

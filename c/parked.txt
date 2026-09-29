@@ -16,3 +16,6 @@ RemoveBookmark     $07:$63B5 -- same spill shape as IsBookmarked without the cop
 CopySynthParam     $06:$493F -- ROM keeps s = wSynth >> 4 in c, packs ChainCalcParamAddr's result straight into p (sp+0) and stores a copy of s to sp+2 before the mask; UWORD/pointer p and three mask spellings tried
 ChainReadPhraseNote $06:$4992 -- reads a wave-frame nibble; ROM adds i >> 1 as pointer arithmetic (ld l,c; ld h,0) yet pushes the pointer through a bc copy (a conversion); UWORD and pointer p, double casts tried
 ChainWriteWaveB    $06:$4F42 -- reverses the selection; ROM spills the first ChainReadPhraseNote result (sp+2) and keeps the second in b, where SDCC pushes the second straight from e and keeps the first in b
+FreeChain          $01:$4E43 -- with FreePhrase/IsPhraseUsed: the bitmap byte address is packed into one stack pointer (sp+2), copied byte-wise into a second (sp+0, a cast?) that both calls use; the read value and mask stay in b/c; char*/UWORD/q = p and inline-read forms tried
+FreePhrase         $01:$4DD3 -- FreeChain's shape on the phrase bitmap
+IsPhraseUsed       $01:$4F99 -- FreeChain's shape: pointer pushed through a b/c (reversed) conversion copy

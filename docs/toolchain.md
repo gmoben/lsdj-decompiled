@@ -12,7 +12,7 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 | What compiled LSDj? | **GBDK 2.95-3** (19 Aug 2000) → **SDCC 2.2.1** (`gbz80` target), default `asxxxx` assembler/linker, small memory model — **plus an accumulator-tracking optimisation stock SDCC lacks** (the "modified GBDK"), modelled here as an accumulator-tracking pass plus 68 peephole rules (below) |
 | Can we run it today? | **Yes, natively.** SDCC 2.2.1 + `sdcpp`/`as-gbz80`/`link-gbz80` build from the GBDK 2.95-2 sources (`tools/toolchain/build_sdcc221.sh`, ~15 s) and emit **byte-identical** asm, objects, listings and images to GBDK 2.95-3's Win32 binaries — which still run under Wine (`fetch_gbdk295.sh`), but crash on large units (below) |
 | Is it the right toolchain? | **Yes, for the code generator**: LSDj's instruction selection, register allocation and frame idioms are SDCC 2.2.1's line for line, and GBDK 2.95 library code in the ROM is byte-identical to its sources (`display_off` ← `crt0.s`, `strcpy` ← `asm_string.s`, `set_bkg_palette` ← `cgb.s`, `set_bkg_tiles` ← `set_bk_t.s` + `set_xy_t.s`, the SDCC `mul` runtime). Stock output does **not** match on its own: LSDj's build also ran peephole rules that stock 2.95-3 lacks |
-| Matched real LSDj functions? | **Yes — 280**, in eleven banks (the list: [`c/matched.json`](../c/matched.json)): a message renderer, a 15-case `switch`, a sparse `switch`, the SRAM accessors, and the instrument screen's field accessors and draw helpers. `make match` re-verifies them all (cached: only changed sources reach the compiler), and **their bytes in the ROM build come from the compiled C** (below) |
+| Matched real LSDj functions? | **Yes — 284**, in eleven banks (the list: [`c/matched.json`](../c/matched.json)): a message renderer, a 15-case `switch`, a sparse `switch`, the SRAM accessors, and the instrument screen's field accessors and draw helpers. `make match` re-verifies them all (cached: only changed sources reach the compiler), and **their bytes in the ROM build come from the compiled C** (below) |
 | Is all of LSDj C? | **No.** ~130 functions (7% of the instructions) are hand-written assembly — the interrupt handlers, sound tick, envelope/pitch and tile-loader code in bank 0, and the sequencer core in bank `$02` (`tools/match/code_kind.py`). Those stay asm; the ~830 others (every editor) are Track 2 targets |
 | Go/no-go on Track 2? | **Go, with the rule set still growing.** Every function tried has matched (each new one has cost a few rules so far), the C feeds the ROM build with `make compare` as the gate, and the hand-written asm (7%) is mapped and excluded |
 
@@ -24,7 +24,8 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 | [`c/bank00/ReadSeqByte.c`](../c/bank00/ReadSeqByte.c) | `ReadSeqByte` | `?:` on bit 7 of a call result |
 | [`c/bank00/ScreenDrawDispatch.c`](../c/bank00/ScreenDrawDispatch.c) | `ScreenDrawDispatch` (252 B) | 15-case `switch` → `jp hl` table, bank switching, cross-bank calls |
 | [`c/bank01/DrawMessageBar.c`](../c/bank01/DrawMessageBar.c) | `DrawMessageBar` (198 B) | globals, `sfr` HRAM stores, two loops, calls |
-| [`c/bank01/UiHelpers.c`](../c/bank01/UiHelpers.c) | 3 functions: small UI helpers | `?:` over string literals, a `char` local (its dead `ld b,c` copy), a glyph table |
+| [`c/bank01/SongAlloc.c`](../c/bank01/SongAlloc.c) | 1 function: song allocation bitmaps | a bit test on the chain bitmap (`1 << (chain & 7)`, whose shift count dies to `ld b,#1`) |
+| [`c/bank01/UiHelpers.c`](../c/bank01/UiHelpers.c) | 6 functions: small UI helpers | `?:` over string literals, a `char` local (its dead `ld b,c` copy), a glyph table |
 | [`c/bank01/ShowMessages.c`](../c/bank01/ShowMessages.c) | `ShowOutOfMemory`, `ShowTapAddChain` | one-line wrappers, 16-bit argument |
 | [`c/bank03/InstrScreen.c`](../c/bank03/InstrScreen.c) | 62 functions of the instrument screen | field get/set/step helpers, `FarCall` in both address forms, SRAM literal addresses, a string literal placed after its function, `hl` kept across a `!=` compare |
 | [`c/bank1c/FileUpgrade.c`](../c/bank1c/FileUpgrade.c) | 28 functions: the song-format upgrades | per-type instrument callbacks through a function pointer (`FileForEachInstrType`), the upgrade steps' field fix-ups, a 16-bit `\|` forced by an `int` constant |
@@ -105,8 +106,9 @@ reload, 30/30). `dead_stores` removes `ld r,a` that a later `ld r,a`
 rewrites, within a basic block, before anything reads r: none of the 1999
 `ld r,a` in the ROM's compiled code is such a store, while stock SDCC
 emits them (the low byte of a 16-bit `&` rewritten by the `|` after it).
-Stores killed any other way (`pop bc`, `ld r,#n`, or across a call or a
-branch) survive in the ROM, so the pass stops there.
+A store overwritten by `ld r,#n` goes too: no unread `ld r,a` dies to a
+constant load in the ROM either (`IsChainUsed`'s shift count). Stores killed
+by `pop bc` or across a call or a branch survive, so the pass stops there.
 
 `track_e` does the same for `e`, which carries call results and return
 values: after `ld c,e` (a result kept in `c`) a later `ld e,c` (returning
@@ -425,6 +427,9 @@ shape.
 | `CopySynthParam` | `$06:$493F` | ROM keeps s = wSynth >> 4 in c, packs ChainCalcParamAddr's result straight into p (sp+0) and stores a copy of s to sp+2 before the mask; UWORD/pointer p and three mask spellings tried |
 | `ChainReadPhraseNote` | `$06:$4992` | reads a wave-frame nibble; ROM adds i >> 1 as pointer arithmetic (ld l,c; ld h,0) yet pushes the pointer through a bc copy (a conversion); UWORD and pointer p, double casts tried |
 | `ChainWriteWaveB` | `$06:$4F42` | reverses the selection; ROM spills the first ChainReadPhraseNote result (sp+2) and keeps the second in b, where SDCC pushes the second straight from e and keeps the first in b |
+| `FreeChain` | `$01:$4E43` | with FreePhrase/IsPhraseUsed: the bitmap byte address is packed into one stack pointer (sp+2), copied byte-wise into a second (sp+0, a cast?) that both calls use; the read value and mask stay in b/c; char*/UWORD/q = p and inline-read forms tried |
+| `FreePhrase` | `$01:$4DD3` | FreeChain's shape on the phrase bitmap |
+| `IsPhraseUsed` | `$01:$4F99` | FreeChain's shape: pointer pushed through a b/c (reversed) conversion copy |
 
 ## What's still unknown
 
