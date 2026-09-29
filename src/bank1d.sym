@@ -61,10 +61,10 @@
 6791 .rowB                ; (was DrawSynthHexRowB) draw a START/END hex pair row (section B)
 6819 .rowC                ; (was DrawSynthHexRowC) draw a START/END hex pair row (section C)
 6865 .rowD                ; (was DrawSynthHexRowD) draw a START/END hex pair row (section D), then SynthLoadWaveDataB re-render
-68F9 SynthDataAddr         ; compute SRAM address of synth $c441 data (index*N + base)
-6935 SynthLoadWaveType          ; read 2 synth params from SRAM -> $c9ed, $c9e9 (wave type)
-6967 SynthLoadWaveTable         ; read packed param from SRAM, build wave table $ca94 (via SynthFillWaveRange)
-6997 SynthLoadFilterParams      ; read 2 synth params from SRAM -> $c9ee, $c9eb (filter)
+68F9 SynthLoadParams            ; load the edited synth's parameters from SRAM ($BEB2 + wSynthScreen*16) into the render state: wave type, wave table, filter
+6935 .loadWaveType        ; (was SynthLoadWaveType) read 2 synth params from SRAM -> $c9ed, $c9e9 (wave type)
+6967 .loadWaveTable       ; (was SynthLoadWaveTable) read packed param from SRAM, build wave table $ca94 (via SynthFillWaveRange)
+6997 .loadFilterParams    ; (was SynthLoadFilterParams) read 2 synth params from SRAM -> $c9ee, $c9eb (filter)
 6B33 BuildOverwritePrompt       ; build the OVERWRITE prompt string (wStringSrc)
 6D0F DrawOverwriteChoice        ; highlight the OVERWRITE? prompt choice (wOverwriteEnd) on row 9
 6D6F SynthOverwriteWaves        ; "OVERWRITE": render the synth into the wave frames ($cb61/$cb62 range)
@@ -188,7 +188,7 @@
 6573 .done                ; common exit of SynthLoadWaveDataB
 65B2 .done                ; common exit of DrawSynthDistField
 65CF .loop                ; loop head in DrawSynthNumber
-6911 .loop                ; loop head in SynthDataAddr
+6911 .loop                ; loop head in SynthLoadParams
 6B3A .loop                ; loop head in BuildOverwritePrompt
 6B82 .loop2               ; loop head in BuildOverwritePrompt
 6E6D .done                ; common exit of OverwritePromptInput
@@ -529,7 +529,7 @@
 683F .readSongByte_rowC
 6919 .step
 694E .readSongByte
-69B0 .readSongByte
+69B0 .readSongByte_loadFilterParams
 69C9 .readSongByte_2
 69E2 .readSongByte_3
 69FB .readSongByte_4
