@@ -17,6 +17,28 @@ void WriteSongInitFlag(void)
     WriteSongByte(3, SramInitFlag3 + 1, 'b');
 }
 
+void FreePhrase(UBYTE phrase)
+{
+    UBYTE *p;
+
+    if (phrase == 0xFF)
+        DebugTrap();
+    p = SramPhraseAlloc + (phrase >> 3);
+    phrase &= 7;
+    WriteSongByte(1, p, ReadSongByte(1, p) & (0xFF - (1 << phrase)));
+}
+
+void FreeChain(UBYTE chain)
+{
+    UBYTE *p;
+
+    if (chain >= 0x80)
+        DebugTrap();
+    p = SramChainAlloc + (chain >> 3);
+    chain &= 7;
+    WriteSongByte(1, p, ReadSongByte(1, p) & (0xFF - (1 << chain)));
+}
+
 UBYTE IsChainUsed(UBYTE chain)
 {
     UBYTE v, m;
@@ -26,6 +48,17 @@ UBYTE IsChainUsed(UBYTE chain)
     v = ReadSongByte(1, SramChainAlloc + (chain >> 3));
     m = 1 << (chain & 7);
     return v & m;
+}
+
+UBYTE IsPhraseUsed(UBYTE phrase)
+{
+    UBYTE *p;
+
+    if (phrase == 0xFF)
+        DebugTrap();
+    p = SramPhraseAlloc + (phrase >> 3);
+    phrase &= 7;
+    return ReadSongByte(1, p) & (1 << phrase);
 }
 
 void CopySong16(UBYTE bank, UWORD src, UWORD dst)

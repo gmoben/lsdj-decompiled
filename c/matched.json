@@ -455,6 +455,12 @@
   "len": 52,
   "src": "c/bank1c/FileScreen.c"
  },
+ "FileFindSlotEnd": {
+  "bank": "1C",
+  "addr": "4862",
+  "len": 114,
+  "src": "c/bank1c/FileScreen.c"
+ },
  "FileForEachInstrType": {
   "bank": "1C",
   "addr": "60F5",
@@ -647,6 +653,12 @@
   "len": 29,
   "src": "c/bank1c/FileUpgrade.c"
  },
+ "FileValidateName": {
+  "bank": "1C",
+  "addr": "5597",
+  "len": 90,
+  "src": "c/bank1c/FileScreen.c"
+ },
  "FileWriteInstrByte": {
   "bank": "1C",
   "addr": "60E0",
@@ -670,6 +682,18 @@
   "addr": "4BD9",
   "len": 56,
   "src": "c/bank1f/InstrHelpers.c"
+ },
+ "FreeChain": {
+  "bank": "01",
+  "addr": "4E43",
+  "len": 112,
+  "src": "c/bank01/SongAlloc.c"
+ },
+ "FreePhrase": {
+  "bank": "01",
+  "addr": "4DD3",
+  "len": 112,
+  "src": "c/bank01/SongAlloc.c"
  },
  "GetCursorChain": {
   "bank": "06",
@@ -1049,6 +1073,12 @@
   "len": 24,
   "src": "c/bank03/InstrScreen.c"
  },
+ "IsBookmarked": {
+  "bank": "07",
+  "addr": "6320",
+  "len": 92,
+  "src": "c/bank07/SongScreen.c"
+ },
  "IsChainUsed": {
   "bank": "01",
   "addr": "4F59",
@@ -1072,6 +1102,12 @@
   "addr": "4118",
   "len": 27,
   "src": "c/bank03/InstrScreen.c"
+ },
+ "IsPhraseUsed": {
+  "bank": "01",
+  "addr": "4F99",
+  "len": 83,
+  "src": "c/bank01/SongAlloc.c"
  },
  "IsPhraseUsedFar": {
   "bank": "1F",

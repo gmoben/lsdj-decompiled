@@ -60,6 +60,25 @@ UBYTE GetFileBlockCount(UBYTE i)
     return wFileBlockCounts[i];
 }
 
+UBYTE FileFindSlotEnd(void)
+{
+    UWORD p;
+    UBYTE m, v;
+
+    p = 0xA141;
+    m = 0xFF;
+    for (; p < 0xA200; p = p + 1) {
+        v = ReadSongByte(4, p);
+        if (v < 0x20) {
+            if (m == 0xFF)
+                m = v;
+            else if (m < v)
+                m = v;
+        }
+    }
+    return m;
+}
+
 void MigrateTempoProps(void)
 {
     WriteSongByte(1, (UBYTE *)0xBFCB, ReadSongByte(1, (UBYTE *)0xBFB3));
@@ -96,6 +115,25 @@ void FileDrawFieldChecked(UBYTE pal)
     if (r >= 0x10)
         DebugTrap();
     DrawTextField(3, wFileCursor + 4 - wFileScroll, 0x0E, pal);
+}
+
+void FileValidateName(void)
+{
+    UBYTE e, d;
+
+    e = FileFindSlotEnd();
+    if (e < wFileCursor)
+        wFileCursor = e;
+    d = wFileCursor - wFileScroll;
+    if (d > 0x0A) {
+        wFileScroll = wFileCursor;
+        while ((d = wFileCursor - wFileScroll) < 0x0A && wFileScroll)
+            wFileScroll--;
+    }
+    if (wFileCursor == 0x1F)
+        wFileScroll = 0x14;
+    if (wFileCursor >= 0x20)
+        DebugTrap();
 }
 
 void FileMatchName(void)

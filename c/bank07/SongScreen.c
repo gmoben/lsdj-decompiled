@@ -264,6 +264,26 @@ void WriteBookmarkByte(UWORD p, UBYTE v)
     WriteSongByte(0, p, v);
 }
 
+UBYTE IsBookmarked(UBYTE row)
+{
+    UBYTE i = 0;
+    UBYTE v;
+    UBYTE *p;
+
+    if (row == 0xFF)
+        return 0;
+    do {
+        p = SramBookmarks + i;
+        v = ReadSongByte(0, p);
+        if (row < v)
+            return 0;
+        if (row == v)
+            return 1;
+        i++;
+    } while (i < 0x10);
+    return 0;
+}
+
 void AddBookmark(UBYTE row)
 {
     if (ReadSongByte(0, SramBookmarks + 15) != 0xFF) {
