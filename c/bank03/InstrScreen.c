@@ -88,9 +88,9 @@ void InstrTransposeOff(void)
 
 UBYTE SynthWavesModified(UBYTE synth)
 {
-    UBYTE *p;
+    UWORD p;
 
-    p = SramWaveFrames + ((UWORD)synth << 8);
+    p = (UWORD)SramWaveFrames + ((UWORD)synth << 8);
     do {
         if (ReadSongByte(3, p) != DefaultWaveFrameB3[(UBYTE)p & 0x0F])
             return 1;

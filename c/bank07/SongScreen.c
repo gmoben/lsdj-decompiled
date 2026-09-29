@@ -27,7 +27,7 @@ void VramCopyRowUp(void);
 void VramCopyRowDown(void);
 void SongFindNextRow(void);
 void SongFindPrevRow(void);
-void WriteBookmarkByte(UBYTE *p, UBYTE v);
+void WriteBookmarkByte(UWORD p, UBYTE v);
 void SortBookmarks(void);
 UBYTE IsBookmarked(UBYTE row);
 void AddBookmark(UBYTE row);
@@ -255,11 +255,11 @@ void SongLoadCursorChain(void)
     SongDrawCursor();
 }
 
-void WriteBookmarkByte(UBYTE *p, UBYTE v)
+void WriteBookmarkByte(UWORD p, UBYTE v)
 {
-    if (p < SramBookmarks)
+    if (p < (UWORD)0xAFF0)
         DebugTrap();
-    if (p >= (UBYTE *)0xB000)
+    if (p >= (UWORD)0xB000)
         DebugTrap();
     WriteSongByte(0, p, v);
 }

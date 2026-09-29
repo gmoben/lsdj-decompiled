@@ -437,6 +437,12 @@
   "len": 27,
   "src": "c/bank1c/FileScreen.c"
  },
+ "FileCopyNameToBuf": {
+  "bank": "1C",
+  "addr": "590B",
+  "len": 63,
+  "src": "c/bank1c/FileScreen.c"
+ },
  "FileDrawField": {
   "bank": "1C",
   "addr": "5531",
@@ -455,11 +461,29 @@
   "len": 63,
   "src": "c/bank1c/FileUpgrade.c"
  },
+ "FileMatchName": {
+  "bank": "1C",
+  "addr": "58C1",
+  "len": 74,
+  "src": "c/bank1c/FileScreen.c"
+ },
  "FileReadInstrByte": {
   "bank": "1C",
   "addr": "60CC",
   "len": 20,
   "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileScanSlotNames": {
+  "bank": "1C",
+  "addr": "42E9",
+  "len": 76,
+  "src": "c/bank1c/FileScreen.c"
+ },
+ "FileSendSyncByte": {
+  "bank": "1C",
+  "addr": "719C",
+  "len": 49,
+  "src": "c/bank1c/FileScreen.c"
  },
  "FileSlotHalfBase": {
   "bank": "1C",
@@ -1126,6 +1150,12 @@
   "addr": "5413",
   "len": 78,
   "src": "c/bank1f/InstrHelpers.c"
+ },
+ "MigrateTempoProps": {
+  "bank": "1C",
+  "addr": "4DD1",
+  "len": 63,
+  "src": "c/bank1c/FileScreen.c"
  },
  "PastePhraseSelectionFar": {
   "bank": "04",

@@ -142,8 +142,8 @@ UBYTE FarCallByte(UBYTE bank, void (*fn)(void));    /* returns fn's byte result 
 #define FAR_FN(f) ((void (*)(void))(UWORD)(f))
 
 /* song data access */
-UBYTE ReadSongByte(UBYTE bank, UBYTE *addr);
-void WriteSongByte(UBYTE bank, UBYTE *addr, UBYTE val);
+UBYTE ReadSongByte(UBYTE bank, UWORD addr);
+void WriteSongByte(UBYTE bank, UWORD addr, UBYTE val);
 void ReadSongBytes(UBYTE bank, UBYTE *src, UBYTE *dst);  /* 16 bytes */
 void WriteInstrByte(UBYTE instr, UBYTE field, UBYTE val);
 UBYTE ReadInstrByte(UBYTE instr, UBYTE field);

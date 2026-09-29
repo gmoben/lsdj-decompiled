@@ -156,9 +156,9 @@ void DrawSynthField(UBYTE v)
 
 UBYTE ReadSynthParam(UBYTE field)
 {
-    UBYTE *p;
+    UWORD p;
 
-    p = SramSynthParams + ((UWORD)wSynthScreen << 4);
+    p = (UWORD)SramSynthParams + ((UWORD)wSynthScreen << 4);
     p += (UWORD)field;
     return ReadSongByte(1, p);
 }
@@ -190,9 +190,9 @@ void RedrawScreenFar(void)
 
 void WriteSynthParam(UBYTE field, UBYTE v)
 {
-    UBYTE *p;
+    UWORD p;
 
-    p = SramSynthParams + ((UWORD)wSynthScreen << 4);
+    p = (UWORD)SramSynthParams + ((UWORD)wSynthScreen << 4);
     p += (UWORD)field;
     WriteSongByte(1, p, v);
 }

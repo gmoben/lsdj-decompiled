@@ -28,7 +28,7 @@ UBYTE IsChainUsed(UBYTE chain)
     return v & m;
 }
 
-void CopySong16(UBYTE bank, UBYTE *src, UBYTE *dst)
+void CopySong16(UBYTE bank, UWORD src, UWORD dst)
 {
     UBYTE i, v;
 

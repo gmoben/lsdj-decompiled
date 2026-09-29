@@ -54,7 +54,7 @@
 55F1 DrawFileList               ; draw the visible file slots (wFileScroll window, names + block counts)
 5892 .drawLabel           ; (was DrawLoadLabel) draw the "LOAD" prompt string
 58C1 FileMatchName              ; compare a slot name (ReadSongByte) against the name buffer (GetFileBlockCount)
-590B FileCopyNameToBuf          ; copy a slot name from SRAM (ReadSongByte) into the name buffer
+590B FileCopyNameToBuf          ; move wFileCursor back to the previous slot that is empty or the open file (SRAM bank 4 $A140); asserts < $20
 594A FileCheckNameLen           ; return whether ($c999-$c99b) exceeds $0b (name length)
 595F FileCalcCompressedSize     ; read 4 size bytes + MulU16 -> total compressed size
 59E6 DrawBlocksUsed             ; BLOCKS USED/FREE panel (FileCalcCompressedSize, 33-block bound)

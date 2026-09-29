@@ -64,9 +64,9 @@ void DrawSampleNameCell(UBYTE v)
 
 UBYTE ReadWordCell(void)
 {
-    UBYTE *p;
+    UWORD p;
 
-    p = SramWords + ((UWORD)wSpeechCursorRow << 5);
+    p = (UWORD)SramWords + ((UWORD)wSpeechCursorRow << 5);
     p += (unsigned int)wWordEditCol;
     p += (unsigned int)(wWordEditRow << 1);
     return ReadSongByte(0, p);
@@ -74,9 +74,9 @@ UBYTE ReadWordCell(void)
 
 void WriteWordCell(UBYTE v)
 {
-    UBYTE *p;
+    UWORD p;
 
-    p = SramWords + ((UWORD)wSpeechCursorRow << 5);
+    p = (UWORD)SramWords + ((UWORD)wSpeechCursorRow << 5);
     p += (unsigned int)wWordEditCol;
     p += (unsigned int)(wWordEditRow << 1);
     WriteSongByte(0, p, v);

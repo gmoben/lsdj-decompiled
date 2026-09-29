@@ -9,12 +9,16 @@
 
 extern volatile sfr UBYTE IE_REG;           /* $FFFF */
 extern volatile sfr UBYTE NR52_REG;         /* $FF26 */
+extern volatile sfr UBYTE SC_REG;           /* $FF02 */
 extern UBYTE wChanActive[];                 /* $C0E0, [8] */
 extern UBYTE wFsCheckResult;                /* $C56B */
+extern UBYTE wFileBlockIdx;                 /* $C958 */
 extern UBYTE wFileBlockCounts[];            /* $C959, [32] */
+extern UBYTE wCompByte;                     /* $C97F */
 extern UBYTE wFileField;                    /* $C992 */
 extern UBYTE wFileCursor;                   /* $C999 */
 extern UBYTE wFileScroll;                   /* $C99B */
+extern UBYTE wSyncTxByte;                   /* $CBDC */
 extern UBYTE wSyncRxByte;                   /* $CBDD */
 extern UBYTE wSyncState;                    /* $CBDE */
 extern UBYTE FileFieldX[];                  /* $1C:$5092 */
@@ -23,6 +27,12 @@ extern UBYTE FileFieldWidth[];              /* $1C:$5095 */
 void SetInterruptEnable(UBYTE ie);          /* bank 0 */
 UBYTE joypad(void);                         /* bank 0 */
 void SendSyncHandshake(void);               /* bank 0 */
+void SendSyncByte(void);                    /* bank 0 */
+void delay(UWORD d);                        /* bank 0 (GBDK) */
+UBYTE GetFileBlockCount(UBYTE i);
+UBYTE FileFindSlotEnd(void);
+UBYTE FileSlotHalfBase(void);
+void WriteDecompByte(UBYTE v);
 void FileClearChanState(void);
 
 UBYTE FileSlotHalfBase(void)
@@ -30,11 +40,30 @@ UBYTE FileSlotHalfBase(void)
     return wFsCheckResult ? 0x40 : 0xC0;
 }
 
+UBYTE FileScanSlotNames(void)
+{
+    wFileBlockIdx = 1;
+    do {
+        if (wCompByte == ReadSongByte(4, (UBYTE *)0xA140 + (unsigned int)wFileBlockIdx)) {
+            WriteDecompByte(wFileBlockIdx);
+            return 1;
+        }
+        wFileBlockIdx++;
+    } while (wFileBlockIdx < FileSlotHalfBase());
+    return 0;
+}
+
 UBYTE GetFileBlockCount(UBYTE i)
 {
     if (i >= 0x20)
         DebugTrap();
     return wFileBlockCounts[i];
+}
+
+void MigrateTempoProps(void)
+{
+    WriteSongByte(1, (UBYTE *)0xBFCB, ReadSongByte(1, (UBYTE *)0xBFB3));
+    WriteSongByte(1, (UBYTE *)0xBFCA, ReadSongByte(1, (UBYTE *)0xBFB2));
 }
 
 void FileClearChanState(void)
@@ -69,12 +98,56 @@ void FileDrawFieldChecked(UBYTE pal)
     DrawTextField(3, wFileCursor + 4 - wFileScroll, 0x0E, pal);
 }
 
+void FileMatchName(void)
+{
+    UBYTE i;
+
+    i = wFileCursor;
+    while (++i < 0x20) {
+        if (FileFindSlotEnd() + 1 < i)
+            break;
+        if (ReadSongByte(4, (UBYTE *)0xA140) == i || GetFileBlockCount(i) == 0) {
+            wFileCursor = i;
+            break;
+        }
+    }
+    if (wFileCursor >= 0x20)
+        DebugTrap();
+}
+
+void FileCopyNameToBuf(void)
+{
+    UBYTE i;
+
+    i = wFileCursor;
+    while (--i != 0xFF) {
+        if (ReadSongByte(4, (UBYTE *)0xA140) == i || GetFileBlockCount(i) == 0) {
+            wFileCursor = i;
+            break;
+        }
+    }
+    if (wFileCursor >= 0x20)
+        DebugTrap();
+}
+
 UBYTE FileCheckNameLen(void)
 {
     UBYTE d;
 
     d = wFileCursor - wFileScroll;
     return d > 0x0B;
+}
+
+void FileSendSyncByte(UBYTE v)
+{
+    UBYTE s;
+
+    s = SC_REG & 0x81;
+    if (s == 0x81)
+        DebugTrap();
+    wSyncTxByte = v;
+    SendSyncByte();
+    delay(hGameboyType ? 6 : 3);
 }
 
 void SyncTransferByte(UBYTE *out)
