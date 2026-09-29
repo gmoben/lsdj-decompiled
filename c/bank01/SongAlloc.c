@@ -7,6 +7,16 @@
 
 #include "lsdj.h"
 
+void WriteSongInitFlag(void)
+{
+    WriteSongByte(0, SramInitFlag1, 'r');
+    WriteSongByte(0, SramInitFlag1 + 1, 'b');
+    WriteSongByte(1, SramInitFlag2, 'r');
+    WriteSongByte(1, SramInitFlag2 + 1, 'b');
+    WriteSongByte(3, SramInitFlag3, 'r');
+    WriteSongByte(3, SramInitFlag3 + 1, 'b');
+}
+
 UBYTE IsChainUsed(UBYTE chain)
 {
     UBYTE v, m;

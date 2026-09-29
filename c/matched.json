@@ -1715,6 +1715,12 @@
   "len": 105,
   "src": "c/bank07/SongScreen.c"
  },
+ "WriteSongInitFlag": {
+  "bank": "01",
+  "addr": "48D4",
+  "len": 103,
+  "src": "c/bank01/SongAlloc.c"
+ },
  "WriteSynthParam": {
   "bank": "1D",
   "addr": "6E6E",
