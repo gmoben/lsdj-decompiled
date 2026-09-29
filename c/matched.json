@@ -23,6 +23,18 @@
   "len": 62,
   "src": "c/bank06/Screens.c"
  },
+ "ChainDrawCellHw": {
+  "bank": "06",
+  "addr": "5ABE",
+  "len": 66,
+  "src": "c/bank06/Screens.c"
+ },
+ "ChainDrawCellLo": {
+  "bank": "06",
+  "addr": "58A7",
+  "len": 84,
+  "src": "c/bank06/Screens.c"
+ },
  "ChainDrawCursorByte": {
   "bank": "06",
   "addr": "4EAC",
@@ -45,6 +57,18 @@
   "bank": "06",
   "addr": "740C",
   "len": 73,
+  "src": "c/bank06/Screens.c"
+ },
+ "ChainDrawWaveCell": {
+  "bank": "06",
+  "addr": "410E",
+  "len": 65,
+  "src": "c/bank06/Screens.c"
+ },
+ "ChainDrawWaveCellHw": {
+  "bank": "06",
+  "addr": "414F",
+  "len": 83,
   "src": "c/bank06/Screens.c"
  },
  "ChainReadTrans": {
@@ -1323,6 +1347,18 @@
   "bank": "07",
   "addr": "4084",
   "len": 76,
+  "src": "c/bank07/SongScreen.c"
+ },
+ "SongFindNextRow": {
+  "bank": "07",
+  "addr": "4998",
+  "len": 79,
+  "src": "c/bank07/SongScreen.c"
+ },
+ "SongFindPrevRow": {
+  "bank": "07",
+  "addr": "4A25",
+  "len": 84,
   "src": "c/bank07/SongScreen.c"
  },
  "SongLoadCursorChain": {

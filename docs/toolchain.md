@@ -12,7 +12,7 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 | What compiled LSDj? | **GBDK 2.95-3** (19 Aug 2000) → **SDCC 2.2.1** (`gbz80` target), default `asxxxx` assembler/linker, small memory model — **plus an accumulator-tracking optimisation stock SDCC lacks** (the "modified GBDK"), modelled here as an accumulator-tracking pass plus 68 peephole rules (below) |
 | Can we run it today? | **Yes, natively.** SDCC 2.2.1 + `sdcpp`/`as-gbz80`/`link-gbz80` build from the GBDK 2.95-2 sources (`tools/toolchain/build_sdcc221.sh`, ~15 s) and emit **byte-identical** asm, objects, listings and images to GBDK 2.95-3's Win32 binaries — which still run under Wine (`fetch_gbdk295.sh`), but crash on large units (below) |
 | Is it the right toolchain? | **Yes, for the code generator**: LSDj's instruction selection, register allocation and frame idioms are SDCC 2.2.1's line for line, and GBDK 2.95 library code in the ROM is byte-identical to its sources (`display_off` ← `crt0.s`, `strcpy` ← `asm_string.s`, `set_bkg_palette` ← `cgb.s`, `set_bkg_tiles` ← `set_bk_t.s` + `set_xy_t.s`, the SDCC `mul` runtime). Stock output does **not** match on its own: LSDj's build also ran peephole rules that stock 2.95-3 lacks |
-| Matched real LSDj functions? | **Yes — 259**, in eleven banks (the list: [`c/matched.json`](../c/matched.json)): a message renderer, a 15-case `switch`, a sparse `switch`, the SRAM accessors, and the instrument screen's field accessors and draw helpers. `make match` re-verifies them all (cached: only changed sources reach the compiler), and **their bytes in the ROM build come from the compiled C** (below) |
+| Matched real LSDj functions? | **Yes — 265**, in eleven banks (the list: [`c/matched.json`](../c/matched.json)): a message renderer, a 15-case `switch`, a sparse `switch`, the SRAM accessors, and the instrument screen's field accessors and draw helpers. `make match` re-verifies them all (cached: only changed sources reach the compiler), and **their bytes in the ROM build come from the compiled C** (below) |
 | Is all of LSDj C? | **No.** ~130 functions (7% of the instructions) are hand-written assembly — the interrupt handlers, sound tick, envelope/pitch and tile-loader code in bank 0, and the sequencer core in bank `$02` (`tools/match/code_kind.py`). Those stay asm; the ~830 others (every editor) are Track 2 targets |
 | Go/no-go on Track 2? | **Go, with the rule set still growing.** Every function tried has matched (each new one has cost a few rules so far), the C feeds the ROM build with `make compare` as the gate, and the hand-written asm (7%) is mapped and excluded |
 
@@ -31,9 +31,9 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 | [`c/bank1f/InstrHelpers.c`](../c/bank1f/InstrHelpers.c) | 42 functions: bank $1F helpers | the used-table/phrase/chain scans and counters (one template, four limits), SRAM resets bracketed by `_asm di _endasm;` and MBC register writes, a function that returns `e` by accident (no `return`) |
 | [`c/bank04/PhraseScreen.c`](../c/bank04/PhraseScreen.c) | 21 functions: phrase screen | far-call wrappers (`FarCallArg2V`), the phrase instrument reader and the backward search for the instrument in effect (a return through `e`, `track_e`), `?:` returns |
 | [`c/bank05/TableScreen.c`](../c/bank05/TableScreen.c) | 20 functions: table screen and screen map | table step accessors through column pointers held in `UWORD` globals, the map moves, materialized `<=` tests, a two-case `switch` |
-| [`c/bank06/Screens.c`](../c/bank06/Screens.c) | 18 functions: chain, wave and word screens | an early `return` under `==` (SDCC's `jp nz,L; jp end; L:`), the chain row buffers through `ReadSongBytes`, `?:` over string literals as an argument |
+| [`c/bank06/Screens.c`](../c/bank06/Screens.c) | 22 functions: chain, wave and word screens | an early `return` under `==` (SDCC's `jp nz,L; jp end; L:`), the chain row buffers through `ReadSongBytes`, `?:` over string literals as an argument |
 | [`c/bank06/DrawTileHexCell.c`](../c/bank06/DrawTileHexCell.c) | `DrawTileHexCell` (130 B) | consecutive updates of a stack local, sign test, `-t`, pointer table |
-| [`c/bank07/SongScreen.c`](../c/bank07/SongScreen.c) | 18 functions: song screen and bookmarks | page-up/down scroll arithmetic, bookmark add/toggle in SRAM, `WriteBookmarkByte`'s pointer-range asserts (16-bit compares: `ld hl,#-lit; add hl,de`), a `!=` sprite loop |
+| [`c/bank07/SongScreen.c`](../c/bank07/SongScreen.c) | 20 functions: song screen and bookmarks | page-up/down scroll arithmetic, bookmark add/toggle in SRAM, `WriteBookmarkByte`'s pointer-range asserts (16-bit compares: `ld hl,#-lit; add hl,de`), a `!=` sprite loop |
 | [`c/bank1b/ProjectScreen.c`](../c/bank1b/ProjectScreen.c) | 20 functions: project and help screens | property writes to SRAM, a busy-wait on a global, `(UWORD)x == 9` (a 16-bit compare: one `jp nz` per byte through one trampoline), `?:` string arguments, a NULL-terminated pointer table |
 | [`c/bank1b/DrawSyncField.c`](../c/bank1b/DrawSyncField.c) | `DrawSyncField` (262 B) | sparse `switch` (`cp` chain), if/else, a pointer local chosen by a condition, 4-arg calls |
 
@@ -213,6 +213,14 @@ stub, GBDK library routines, and bank `$02`'s note/period/sequencer core
 - **A comparison kept as a value**: `ok = v <= 0x13; if (!ok) …` stores the
   0/1 (`ld a,#0; rla`) and its negation before testing it; the same test
   written inside the `if` compiles to a plain `cp` / `jp` (`DrawCmdLetter`).
+- **Spill victims**: when registers run out, SDCC 2.2.1 spills a *named*
+  local (it has a spill location) before any unnamed temporary, and among
+  named ones the least used (a use inside a loop counts 3, one in a block
+  that leaves the loop counts 1). So a value the ROM keeps in a register
+  while a named local goes to the stack was an expression in the source:
+  `if (IsBookmarked(i + wSongRow)) wSongRow = i + wSongRow;` (one CSE'd
+  temporary; `SongFindNextRow`), `DrawTextField(…, c && hGameboyType)`
+  (`ChainDrawCellLo`).
 - **A repeated expression is one temporary**: `for (i = 0; T[i]; i++)
   DrawString(T[i]);` loads `T[i]` once; SDCC keeps it in `bc` and spills `i`
   to the stack. Naming it (`s = T[i]`) makes `s` the spilled one
@@ -407,10 +415,8 @@ shape.
 | `GetInstrFlags1F5` | `$1F:$40CA` | `v = f() & 0x80; if (v)` (ROM: and; ld c,a; or a,c; jp z) makes SDCC 2.2.1 assert (gen.c 3215, genAnd single-bit + ifx); no crash-free spelling found yet |
 | `MarkPhraseDataUsed` | `$1F:$5F20` | frame 3 with i at sp+0 and p at sp+1, call first, p copied to b,c for the push; ours keeps i in c (call-first) or evaluates the table first |
 | `GrooveDrawField` | `$1D:$40AE` | `(wGrooveRow & 2) ? 0 : 1`: stock SDCC copies the global (`ld c,(hl); ld a,c; bit 1,a`), the ROM tests it directly (`ld a,(hl); bit`, 34 global sites vs 7 copies); opPreservesA-accepts-literals variant breaks 10 matched functions |
-| `IsBookmarked` | `$07:$6320` | ROM spills the loop counter (sp+2) and the pointer (sp+0) and pushes the pointer through a b/c copy (low byte in b); ours keeps i in c and spills only the pointer (UWORD/char* pointer, CSE'd and do-while forms tried) |
+| `IsBookmarked` | `$07:$6320` | ROM spills i (sp+2) and the pointer (sp+0), then pushes the pointer through a b/c copy (low byte in b): a real conversion temporary at the call, yet the sum itself is pointer arithmetic (i fetched straight into de); char*/UWORD pointers, casts and CSE'd forms tried |
 | `RemoveBookmark` | `$07:$63B5` | same spill shape as IsBookmarked without the copy: i at sp+2, pointer at sp+0, the read byte in c; ours keeps i in c |
-| `SongFindNextRow` | `$07:$4998` | ROM spills the loop counter and keeps r in b, the IsBookmarked result in c; 2.2.1 spills r (used 7: its `wSongRow = r; return` block is outside the loop) rather than i (used 9) |
-| `SongFindPrevRow` | `$07:$4A25` | same spill choice as SongFindNextRow |
 
 ## What's still unknown
 
@@ -430,10 +436,12 @@ shape.
    dead-store families are probably one codegen mechanism (tracking what `a`
    holds) that we model textually; the overlapping-pointer exception rests on
    one site.
-   Spill choices are the other open front: in four loops of bank `$07`
+   Spill choices were the other open front: in four loops of bank `$07`
    (`IsBookmarked`, `RemoveBookmark`, `SongFindNextRow`/`SongFindPrevRow`)
-   LSDj's compiler spills the loop counter where SDCC 2.2.1 spills the other
-   value. 2.2.1 spills the least `used` live range, a use counting
+   LSDj's compiler spills the loop counter where our first C spilled the
+   other value. For the two row finders the source repeats the expression
+   instead of naming it (see Writing C: spill victims); the bookmark pair is
+   still open. 2.2.1 spills the least `used` live range, a use counting
    `2^depth + 1`, and a use in a block that leaves the loop by `return` counts
    1, which is what decides these (`--dumpregassign` shows it). GBDK 2.96a's
    SDCC 2.3.1 is not LSDj's compiler either: it has the 16-bit compare

@@ -153,6 +153,25 @@ void SongScrollDown(void)
     wPartialRedrawDone = 1;
 }
 
+void SongFindNextRow(void)
+{
+    UBYTE i;
+
+    for (i = 1; i < 0x10; i++) {
+        if (i + wSongRow == 0) {
+            wSongRow = 0xFF;
+            return;
+        }
+        if (IsBookmarked(i + wSongRow)) {
+            wSongRow = i + wSongRow;
+            return;
+        }
+    }
+    wSongRow += 0x10;
+    if (wSongRow > 0xBF)
+        wSongRow = 0xBF;
+}
+
 UBYTE SongCursorPageDown(void)
 {
     UBYTE d;
@@ -172,6 +191,25 @@ UBYTE SongCursorPageDown(void)
         SongDrawCursor();
     }
     return 1;
+}
+
+void SongFindPrevRow(void)
+{
+    UBYTE i;
+
+    for (i = 1; i < 0x10; i++) {
+        if (wSongRow - i == 0xFF) {
+            wSongRow = 0;
+            return;
+        }
+        if (IsBookmarked(wSongRow - i)) {
+            wSongRow = wSongRow - i;
+            return;
+        }
+    }
+    wSongRow -= 0x10;
+    if (wSongRow == 0xFF)
+        wSongRow = 0;
 }
 
 UBYTE SongCursorPageUp(void)

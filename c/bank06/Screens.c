@@ -10,12 +10,17 @@
 extern UBYTE wChain;                        /* $C418, the chain being edited */
 extern UBYTE wWaveCursor;                   /* $C42B */
 extern UBYTE wCursorMode;                   /* $C413 */
+extern UBYTE wChainCol;                     /* $C419 */
 extern UBYTE wChainRow;                     /* $C41A */
 extern UBYTE wWordClipCell0[];              /* $C935 */
 extern UBYTE wWordEditRow;                  /* $C937 */
+extern UBYTE wWordEditCol;                  /* $C938 */
 extern UBYTE wWaveSelStart;                 /* $C93B */
 extern UBYTE wSyncRun;                      /* $CB6B */
 extern UBYTE wSyncHandshake;                /* $CB6C */
+extern UBYTE WordColX[];                  /* the word editor's two columns: x */
+extern UBYTE WordColWidth[];                  /* width */
+extern UBYTE ChainColX[];                  /* the chain screen's two columns: x */
 
 void LoadKitSampleInfo(UBYTE i);
 void ChainDrawWaveCell(void);
@@ -50,6 +55,16 @@ void DrawSampleNameCell(UBYTE v)
     m = t % 15 + 1;
     ReadKitSampleName(ChainScaleValue(t), m);
     DrawString(wSampleNoteString);
+}
+
+void ChainDrawWaveCell(void)
+{
+    DrawTextField(WordColX[wWordEditCol], wWordEditRow + 2, WordColWidth[wWordEditCol], wWordEditCol);
+}
+
+void ChainDrawWaveCellHw(void)
+{
+    DrawTextField(WordColX[wWordEditCol], wWordEditRow + 2, WordColWidth[wWordEditCol], hGameboyType ? 3 : 2);
 }
 
 void DrawWaveCellPair(void)
@@ -157,6 +172,17 @@ UBYTE ChainReadTrans(UBYTE chain, UBYTE step)
     return ReadSongByte(1, p + step);
 }
 
+void ChainDrawCellLo(void)
+{
+    UBYTE r, c;
+
+    r = wChainRow;
+    if (r & 0xF0)
+        DebugTrap();
+    c = wChainCol;
+    DrawTextField(ChainColX[wChainCol], wChainRow + 2, 2, c && hGameboyType);
+}
+
 void LoadChainRow(void)
 {
     UBYTE *p, *q;
@@ -165,6 +191,11 @@ void LoadChainRow(void)
     q = SramChainTransposes + ((UWORD)wChain << 4);
     ReadSongBytes(1, p, wSongReadBuf);
     ReadSongBytes(1, q, wUsedTableMap);
+}
+
+void ChainDrawCellHw(void)
+{
+    DrawTextField(ChainColX[wChainCol], wChainRow + 2, 2, hGameboyType ? 3 : 2);
 }
 
 void DrawStringAtCursor(char *s)
