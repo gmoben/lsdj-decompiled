@@ -401,12 +401,6 @@
   "len": 77,
   "src": "c/bank1d/SynthScreen.c"
  },
- "DrawSynthParamPair": {
-  "bank": "1D",
-  "addr": "6FC4",
-  "len": 103,
-  "src": "c/bank1d/SynthScreen.c"
- },
  "DrawSynthScreen": {
   "bank": "1D",
   "addr": "68AB",
@@ -1791,6 +1785,24 @@
   "bank": "1D",
   "addr": "70BC",
   "len": 40,
+  "src": "c/bank1d/SynthScreen.c"
+ },
+ "SynthLoadWaveDataA": {
+  "bank": "1D",
+  "addr": "649F",
+  "len": 100,
+  "src": "c/bank1d/SynthScreen.c"
+ },
+ "SynthParamDecTo0": {
+  "bank": "1D",
+  "addr": "702B",
+  "len": 99,
+  "src": "c/bank1d/SynthScreen.c"
+ },
+ "SynthParamIncTo": {
+  "bank": "1D",
+  "addr": "6FC4",
+  "len": 103,
   "src": "c/bank1d/SynthScreen.c"
  },
  "SynthSignalIsFrame": {

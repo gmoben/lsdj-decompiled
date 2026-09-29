@@ -53,7 +53,7 @@
 62A8 DrawSynthField             ; draw the synth PHASE field: switch (jp-table $62bb) -> " PINCH"/"  WARP"/"RESYNC"/"RESYN2"
 636E DrawSynthFilterField       ; draw the FILTER type field (" LOWP"...; "-----" empty; jp-table $63a6)
 6414 DrawSynthWaveField         ; draw the waveform type row (glyph strings "iiii"/"mmmm"; jp-table $6437)
-649F SynthLoadWaveDataA         ; read wave data via index $c442 + ROM table $60F5
+649F SynthLoadWaveDataA         ; palette 1 over the cells of the cursor field (SynthFieldX/Width/Layout[wSynthCursor])
 6503 SynthLoadWaveDataB         ; read wave data via index $c442 + ROM table $60F5 (variant)
 6577 DrawSynthDistField         ; draw the DIST field: "CLIP"/"FOLD"/"WRAP"
 65C2 DrawSynthNumber            ; draw the synth number header (wSynthScreen)
@@ -73,8 +73,8 @@
 6E6E WriteSynthParam            ; synth_params[wSynthScreen*16+n] = value (song $3EB2); 24 uses
 6EB6 ReadSynthParamPair         ; read a synth param byte (variant 1 of the row accessors)
 6F3F ReadSynthParamPair2        ; read a synth param byte (variant 2)
-6FC4 DrawSynthParamPair         ; read + DrawHexByte a synth param (variant 1)
-702B DrawSynthParamPair2        ; read + DrawHexByte a synth param (variant 2)
+6FC4 SynthParamIncTo            ; increment the edited synth's param field unless it equals max; draw it (hex) and store it
+702B SynthParamDecTo0           ; decrement the edited synth's param field unless 0; draw it (hex) and store it
 708E SynthFieldIncHi            ; current synth field: +$10 on the hi nibble (clamp $f0), WriteSynthParam
 70BC SynthFieldIncLo            ; current synth field: +1 on the lo nibble (clamp $0f)
 70E4 SynthFieldDecHi            ; current synth field: -$10 on the hi nibble
@@ -94,7 +94,7 @@
 648E TxtWaveGlyphM              ; "mmmm" waveform glyph row
 65B8 TxtFold1D                  ; "FOLD"
 65BD TxtWrap1D                  ; "WRAP"
-60E6 SynthFieldLayout           ; per-synth-field {x,y,width} layout (16 fields x 3)
+60E5 SynthFieldLayout           ; per-synth-field layout, 16 fields each: rows here, then SynthFieldX, SynthFieldWidth
 435A TxtPctD1D                  ; "%d"
 6DE7 TxtHandDrawn               ; "HAND-DRAWN"
 6DF2 TxtWavesQ                  ; "WAVES?"
@@ -195,10 +195,10 @@
 6E7B .loop                ; loop head in WriteSynthParam
 6EC3 .loop                ; loop head in ReadSynthParamPair
 6F4C .loop                ; loop head in ReadSynthParamPair2
-6FD1 .loop                ; loop head in DrawSynthParamPair
-7027 .done                ; common exit of DrawSynthParamPair
-7038 .loop                ; loop head in DrawSynthParamPair2
-708A .done                ; common exit of DrawSynthParamPair2
+6FD1 .loop                ; loop head in SynthParamIncTo
+7027 .done                ; common exit of SynthParamIncTo
+7038 .loop                ; loop head in SynthParamDecTo0
+708A .done                ; common exit of SynthParamDecTo0
 7C95 .loop                ; loop head in SynthScreenInput
 7CAA .loop2               ; loop head in SynthScreenInput
 7D31 .loop3               ; loop head in SynthScreenInput
@@ -661,3 +661,5 @@
 7D74 .synthDataAddr_2
 7D85 .cont
 7DB9 .cont
+60F5 SynthFieldX        ; x of the 16 synth screen fields
+6105 SynthFieldWidth    ; their widths

@@ -13,6 +13,10 @@ extern UBYTE *wGrooveCachePtr;              /* $C9E6 */
 extern UBYTE wSynthFilterType;              /* $C9EB */
 extern UBYTE wSynthFilterCutoff;            /* $C9EC */
 extern UBYTE wSynth;                        /* $C42A */
+extern UBYTE wSynthCursor;                  /* $C442 */
+extern UBYTE SynthFieldLayout[];            /* $1D:$60E5, rows of the 16 fields */
+extern UBYTE SynthFieldX[];                 /* $1D:$60F5 */
+extern UBYTE SynthFieldWidth[];             /* $1D:$6105 */
 extern UBYTE wSynthScreen;                  /* $C441, the synth being edited */
 extern UBYTE wOverwriteStart;               /* $CB61 */
 extern UBYTE wOverwriteEnd;                 /* $CB62 */
@@ -188,6 +192,14 @@ UBYTE SynthSignalIsFrame(void)
     return ReadSynthParam(0) == 3;
 }
 
+void SynthLoadWaveDataA(void)
+{
+    UBYTE x;
+
+    for (x = SynthFieldX[wSynthCursor]; x < SynthFieldX[wSynthCursor] + SynthFieldWidth[wSynthCursor]; x++)
+        DrawTextField(x, SynthFieldLayout[wSynthCursor], 1, 1);
+}
+
 void DrawSynthDistField(UBYTE v)
 {
     switch (v) {
@@ -273,7 +285,7 @@ void WriteSynthParam(UBYTE field, UBYTE v)
     WriteSongByte(1, p, v);
 }
 
-void DrawSynthParamPair(UBYTE field, UBYTE max)
+void SynthParamIncTo(UBYTE field, UBYTE max)
 {
     UWORD p;
     UBYTE v;
@@ -283,6 +295,21 @@ void DrawSynthParamPair(UBYTE field, UBYTE max)
     v = ReadSongByte(1, p);
     if (v != max) {
         v++;
+        DrawHexByte(v);
+        WriteSongByte(1, p, v);
+    }
+}
+
+void SynthParamDecTo0(UBYTE field)
+{
+    UWORD p;
+    UBYTE v;
+
+    p = (UWORD)SramSynthParams + ((UWORD)wSynthScreen << 4);
+    p += (UWORD)field;
+    v = ReadSongByte(1, p);
+    if (v) {
+        v--;
         DrawHexByte(v);
         WriteSongByte(1, p, v);
     }
