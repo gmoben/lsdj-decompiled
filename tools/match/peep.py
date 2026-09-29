@@ -319,14 +319,16 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
     hl = None                     # ("stk", N - level) | ("imm", text) | None
     level = 0                     # bytes pushed since the block began
     a_alu = False                 # `a` holds a fresh ALU result
+    hl_reg = None                 # b..e whose value the byte at (hl) equals (`ld (hl),e`)
     dropped = 0
     code = [i for i, l in enumerate(lines) if _strip(l).strip()]
     nxt = {code[k]: code[k + 1] for k in range(len(code) - 1)}
     scope = 0
 
     def forget_hl() -> None:
-        nonlocal hl
+        nonlocal hl, hl_reg
         hl = None
+        hl_reg = None
         eq.discard("(hl)")
 
     for i, raw in enumerate(lines):
@@ -345,6 +347,19 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
             out.append(raw)
             continue
         mn, ops = _ops(t)
+        # --- (hl) == a register: after `ld (hl),e` the byte at hl is e until
+        # either changes (183 ROM sites reread it as `ld a,e`, 1 from (hl))
+        if hl_reg is not None:
+            w = _written(mn, ops)
+            if hl_reg in w or {"h", "l"} & w or mn in _WRITES_ALL or (mn in ("jp", "jr") and len(ops) == 1) \
+                    or (mn == "ld" and ops and ops[0].startswith("(")) \
+                    or (mn in ("inc", "dec") and ops == ["(hl)"]):
+                hl_reg = None
+        if mn == "ld" and len(ops) == 2 and ops[0] == "(hl)" and ops[1] in ("b", "c", "d", "e"):
+            eq.discard("(hl)")
+            hl_reg = ops[1]
+            out.append(raw)
+            continue
         # --- hl ---
         # hl is followed (for the `(hl)` reload below) but its own reloads
         # are left alone: whether LSDj's compiler kept hl across a compare
@@ -372,12 +387,23 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
             if "(hl)" in eq:
                 dropped += 1
                 continue
-            eq, a_alu = {"(hl)"}, False
+            if hl_reg is not None:
+                raw = raw.replace("(hl)", hl_reg, 1)
+                eq, a_alu = {"(hl)", hl_reg}, False
+            else:
+                eq, a_alu = {"(hl)"}, False
         elif mn == "xor" and ops == ["a", "a"]:
             n = nxt.get(i)
             follow = _ops(_strip(lines[n]).strip()) if n is not None else ("", [])
             if follow[0] == "or" and len(follow[1]) == 2 and follow[1][0] == "a" and follow[1][1] in eq:
                 dropped += 1          # `or a,r` alone: `a` already equals r
+                continue
+            if follow[0] == "or" and follow[1] == ["a", "(hl)"] and hl_reg is not None:
+                # testing the byte just stored from a register: `ld a,e; or a,e`
+                # (31 + 5 such tests in the ROM, each after `ld (hl),e` / `ld (hl),b`)
+                lines[n] = lines[n].replace("(hl)", hl_reg, 1)
+                out.append(f"\tld\ta,{hl_reg}")
+                eq, a_alu = {hl_reg, "(hl)"}, False
                 continue
             eq, a_alu = {"#0x00"}, False
         elif mn == "ld" and len(ops) == 2 and ops[1] == "(hl)" and ops[0] in ("b", "c", "d", "e") \

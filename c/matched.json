@@ -131,6 +131,12 @@
   "len": 83,
   "src": "c/bank06/Screens.c"
  },
+ "CheckFileMagicAll": {
+  "bank": "1C",
+  "addr": "40F2",
+  "len": 104,
+  "src": "c/bank1c/FileScreen.c"
+ },
  "CheckJkMarker": {
   "bank": "01",
   "addr": "4811",
@@ -160,6 +166,12 @@
   "addr": "5491",
   "len": 82,
   "src": "c/bank04/PhraseScreen.c"
+ },
+ "CopyFileName": {
+  "bank": "1C",
+  "addr": "4352",
+  "len": 103,
+  "src": "c/bank1c/FileScreen.c"
  },
  "CopySong16": {
   "bank": "01",
@@ -425,6 +437,12 @@
   "len": 182,
   "src": "c/bank03/InstrScreen.c"
  },
+ "EraseFile": {
+  "bank": "1C",
+  "addr": "4D58",
+  "len": 121,
+  "src": "c/bank1c/FileScreen.c"
+ },
  "EraseInstrCursor": {
   "bank": "03",
   "addr": "4679",
@@ -478,6 +496,12 @@
   "addr": "60F5",
   "len": 63,
   "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileListSlots": {
+  "bank": "1C",
+  "addr": "4969",
+  "len": 107,
+  "src": "c/bank1c/FileScreen.c"
  },
  "FileMatchName": {
   "bank": "1C",
@@ -617,6 +641,12 @@
   "len": 55,
   "src": "c/bank1c/FileUpgrade.c"
  },
+ "FileUpgradeV21": {
+  "bank": "1C",
+  "addr": "6F73",
+  "len": 84,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
  "FileUpgradeV3": {
   "bank": "1C",
   "addr": "630F",
@@ -712,6 +742,12 @@
   "addr": "4E43",
   "len": 112,
   "src": "c/bank01/SongAlloc.c"
+ },
+ "FreeFileBlocks": {
+  "bank": "1C",
+  "addr": "49D4",
+  "len": 114,
+  "src": "c/bank1c/FileScreen.c"
  },
  "FreePhrase": {
   "bank": "01",

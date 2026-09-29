@@ -19,6 +19,8 @@ extern UBYTE wCompBank;                     /* $C979 */
 extern UWORD wCompSrc;                      /* $C97A, an SRAM address */
 extern UWORD wCompDst;                      /* $C97D, a working-song offset */
 extern UBYTE wDecompPos;                    /* $C983 */
+extern char wFileNameBuf[];                 /* $C987, [8] */
+extern UBYTE wFileNameTerm[];               /* $C98F, its NUL */
 extern UBYTE wDecompBuf[];                  /* $DA00, [256] */
 extern UBYTE DefaultWaveFrameB1C[];         /* $1C:$4047 */
 extern UBYTE wFileField;                    /* $C992 */
@@ -40,6 +42,9 @@ UBYTE FileFindSlotEnd(void);
 UBYTE FileSlotHalfBase(void);
 void WriteDecompByte(UBYTE v);
 UBYTE FileClassifyToken(void);              /* asm */
+UBYTE CheckFileMagic64(void);
+void FreeFileBlocks(UBYTE f);
+void EraseFileName(UBYTE f);
 UBYTE ReadWorkingSongByte(UWORD addr);      /* asm */
 void FileClearChanState(void);
 
@@ -59,6 +64,16 @@ void FileWriteCompressedSram(void)
     _endasm;
     wCompSrc += 0x100;
     wDecompPos = 0;
+}
+
+UBYTE CheckFileMagicAll(void)
+{
+    if (!CheckFileMagic64())
+        return 0;
+    if (ReadSongByte(0x0C, 0xA13E) == 'j' && ReadSongByte(0x0C, 0xA13F) == 'k'
+            && ReadSongByte(8, 0xBE78) == 'r' && ReadSongByte(8, 0xBE79) == 'b')
+        return 1;
+    return 0;
 }
 
 UBYTE FileSlotHalfBase(void)
@@ -84,6 +99,30 @@ UBYTE GetFileBlockCount(UBYTE i)
     if (i >= 0x20)
         DebugTrap();
     return wFileBlockCounts[i];
+}
+
+void CopyFileName(UBYTE f)
+{
+    UBYTE *p;
+
+    if (f >= 0x20)
+        DebugTrap();
+    if (GetFileBlockCount(f)) {
+        p = (UBYTE *)0xA000 + (unsigned int)(UBYTE)(f << 3);
+        _asm
+            di
+        _endasm;
+        rRAMB = 4;
+        rRAMG = 0x0A;
+        memcpy((UBYTE *)wFileNameBuf, p, 8);
+        rRAMG = 0;
+        _asm
+            ei
+        _endasm;
+        wFileNameTerm[0] = 0;
+    } else {
+        strcpy(wFileNameBuf, "[EMPTY]");
+    }
 }
 
 UBYTE FileReadCompressedBlock(void)
@@ -116,6 +155,51 @@ UBYTE FileFindSlotEnd(void)
         }
     }
     return m;
+}
+
+UBYTE FileListSlots(void)
+{
+    UWORD p;
+    UBYTE n;
+
+    p = 0xA141;
+    n = 0;
+    while (p != 0xA200) {
+        if (ReadSongByte(4, p++) != 0xFF)
+            n++;
+    }
+    return n;
+}
+
+void FreeFileBlocks(UBYTE f)
+{
+    UWORD p;
+
+    p = 0xA141;
+    if (f >= 0x20)
+        DebugTrap();
+    for (; p < 0xA200; p = p + 1) {
+        if (f == ReadSongByte(4, p))
+            WriteSongByte(4, p, 0xFF);
+    }
+}
+
+void EraseFile(UBYTE f)
+{
+    if (f >= 0x20)
+        DebugTrap();
+    FreeFileBlocks(f);
+    EraseFileName(f);
+    wCompByte = ReadSongByte(4, 0xA140);
+    if (wCompByte != 0xFF) {
+        if (wCompByte == f)
+            wCompByte = 0xFF;
+        else if (f < wCompByte)
+            wCompByte--;
+    }
+    if (wCompByte >= 0x20 && wCompByte != 0xFF)
+        DebugTrap();
+    WriteSongByte(4, 0xA140, wCompByte);
 }
 
 void MigrateTempoProps(void)

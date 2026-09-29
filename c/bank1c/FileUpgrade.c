@@ -218,3 +218,16 @@ void FileUpgradeV17b(void)
 {
     FileForEachInstrType(0, FileUpgradeV17bPulse);
 }
+
+void FileUpgradeV21(void)
+{
+    UBYTE v;
+    UWORD q, p;
+
+    for (p = 0xBEB2; p != (UWORD)0xBFB2; p += 16) {
+        q = p + 4;
+        v = ReadSongByte(1, q);
+        if (v)
+            WriteSongByte(1, q, 3);
+    }
+}
