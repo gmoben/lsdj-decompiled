@@ -41,7 +41,7 @@
   "len": 18,
   "src": "c/bank07/SongScreen.c"
  },
- "CopyInstrBytes": {
+ "CloneInstrument": {
   "bank": "04",
   "addr": "5491",
   "len": 82,

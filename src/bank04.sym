@@ -12,7 +12,7 @@
 4C14 LoadPhraseRow        ; load the 4 phrase columns for phrase[wPhrase] into row buffers
 4CE5 DrawPhraseScreen     ; screen idx 1: draws the phrase note/instr/cmd/val grid
 4000 DrawChainCellFar           ; FarCall bank06 DrawChainCell(wSongCol, row) -- chain info cell on the phrase screen
-5533 CloneInstrAtCursor         ; clone the instrument under the cursor: alloc+CopyInstrBytes; fail -> "CANNOT CLONE"
+5533 CloneInstrAtCursor         ; clone the instrument under the cursor: alloc+CloneInstrument; fail -> "CANNOT CLONE"
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 401B DrawPhraseCursorFar        ; FarCall bank1f DrawPhraseCursor
@@ -20,7 +20,7 @@
 405D PhraseModeTile             ; return tile $78 or $6c depending on mode $c41d
 4071 ReadCursorInstr            ; ReadPhraseInstr(wPhrase, wPhraseRow)
 4087 FindCursorInstr            ; the instrument in effect at the cursor: the nearest step at or above wPhraseRow with one (<= $40), else $FF
-40B2 PhraseResolveCursorNote    ; resolve note+instrument under the cursor (FindCursorInstr; $40=none; select-mode aware)
+40B2 PhraseResolveCursorNote    ; remember v as wPhraseColLast[wSongCol]; in column 3 (not selecting) also write it to field 4 of a type-3 instrument in effect
 4106 SetColInstrument           ; cache the last-used instrument per channel column (wColInstrument+wSongCol; WAV specials)
 418F WritePhraseNote            ; write phrase_notes[wPhrase][row] = v (SRAM bank 0 $A000); asserts row < $10, wPhrase != $FF
 41F0 WritePhraseInstrument      ; write phrase_instruments[phrase][row] = instr (SRAM bank 3 $B000); asserts instr <= $40 or $FF
@@ -43,7 +43,7 @@
 510A CursorInstrIsKit           ; 1 if the instrument in effect at the cursor (FindCursorInstr) is a kit
 5136 PhraseCheckEditContext     ; predicate over mode $c41d / col $c415 / wSelLeft / CursorInstrIsKit
 51AE PhraseHandleInput          ; main phrase-screen cursor/edit handler ($c411 mode, wSelLeft/wSelTop); large
-5491 CopyInstrBytes             ; copy 16 instrument bytes src->dst (+name/table FarCalls)
+5491 CloneInstrument            ; copy instrument src to dst: its 16 bytes, then its name (CopyInstrName / WriteInstrName)
 55EB CloneTableAtCursor         ; clone the table referenced by the cmd value under the cursor (FindFreeTable+CopyTableData)
 567D PhraseCursorOnEditCell     ; return 1 if cursor is on the active cmd cell ($c416==wSelTop and $c415==wSelLeft)
 56BA PhraseCloneTableCmd        ; command action handler incl. cloning a table ("CLONED TABLE" message)
@@ -105,7 +105,7 @@
 521F .loop                ; loop head in PhraseHandleInput
 5233 .loop2               ; loop head in PhraseHandleInput
 5487 .done                ; common exit of PhraseHandleInput
-5494 .loop                ; loop head in CopyInstrBytes
+5494 .loop                ; loop head in CloneInstrument
 55CD .done                ; common exit of CloneInstrAtCursor
 5679 .done                ; common exit of CloneTableAtCursor
 571D .done                ; common exit of PhraseCloneTableCmd

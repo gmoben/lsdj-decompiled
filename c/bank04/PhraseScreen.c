@@ -216,7 +216,7 @@ UBYTE CursorInstrIsKit(void)
     return r;
 }
 
-void CopyInstrBytes(UBYTE src, UBYTE dst)
+void CloneInstrument(UBYTE src, UBYTE dst)
 {
     UBYTE i;
 
