@@ -7,12 +7,9 @@
 
 #include "lsdj.h"
 
-extern UBYTE wClipboardType;                /* $C411 */
-
-extern UBYTE wSelBottom;                    /* $C410 */
-
 extern UBYTE wSelTop;                       /* $C40E */
-
+extern UBYTE wSelBottom;                    /* $C410 */
+extern UBYTE wClipboardType;                /* $C411 */
 extern UBYTE wGrooveCacheValid;             /* $C9D5 */
 extern UBYTE wGrooveStepCache[];            /* $C9D6, [16] */
 extern UBYTE *wGrooveCachePtr;              /* $C9E6 */
@@ -43,7 +40,6 @@ void SynthFilterPass(void);
 void SetSpriteX(UBYTE sprite, UBYTE col);
 void SetSpriteTile3(UBYTE sprite);
 void DrawGrooveSteps(void);
-UBYTE GetScreenScratchCell2(UBYTE a, UBYTE b);   /* bank 0 */
 void DrawAllChanStatus(void);
 void DrawSynthNumber(void);
 void RedrawScreenFar(void);
@@ -154,7 +150,7 @@ void PasteGrooveSelection(void)
     if ((UBYTE)(wSelBottom - wSelTop) > 1)
         ShowMessage("PASTE");
     for (i = wSelTop; i < wSelBottom; i++) {
-        WriteGrooveByte(wGrooveRow, GetScreenScratchCell2(0, i));
+        WriteGrooveByte(wGrooveRow, ReadClipboardCell(0, i));
         if (++wGrooveRow == 0x10)
             wGrooveRow = 0;
     }

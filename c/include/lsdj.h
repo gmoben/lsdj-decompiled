@@ -43,7 +43,7 @@ extern volatile sfr UBYTE hBgPalette;       /* $FF8C */
 extern volatile sfr UBYTE hBgDigitPalette;  /* $FF8D */
 extern volatile sfr UBYTE hCurrentBank;     /* $FF8E */
 extern UBYTE hGameboyType;                  /* $FF90 */
-extern UBYTE rROMB0;                        /* $2000, the MBC5 ROM bank register */
+extern volatile UBYTE rROMB0;               /* $2000, the MBC5 ROM bank register */
 extern UBYTE rRAMG;                         /* $0000, MBC5 SRAM enable ($0A on) */
 extern UBYTE rRAMB;                         /* $4000, MBC5 SRAM bank */
 
@@ -168,6 +168,8 @@ void memcpy(UBYTE *dst, UBYTE *src, UWORD n);
 
 /* misc */
 void SortBytePair(UBYTE *a, UBYTE *b);               /* swap so *a <= *b */
+UBYTE ReadClipboardCell(UBYTE col, UBYTE row);         /* wClipboardBuf[col*42 + row] */
+void WriteClipboardCell(UBYTE col, UBYTE row, UBYTE v);
 
 /* --- the screens' draw entry points (ScreenDrawDispatch, bank 0) ----------- */
 

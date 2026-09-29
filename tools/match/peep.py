@@ -319,7 +319,7 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
     hl = None                     # ("stk", N - level) | ("imm", text) | None
     level = 0                     # bytes pushed since the block began
     a_alu = False                 # `a` holds a fresh ALU result
-    hl_reg = None                 # b..e whose value the byte at (hl) equals (`ld (hl),e`)
+    hl_reg = None                 # b..e the byte at (hl) equals (`ld (hl),e` / `ld e,(hl)`)
     dropped = 0
     code = [i for i, l in enumerate(lines) if _strip(l).strip()]
     nxt = {code[k]: code[k + 1] for k in range(len(code) - 1)}
@@ -347,7 +347,7 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
             out.append(raw)
             continue
         mn, ops = _ops(t)
-        # --- (hl) == a register: after `ld (hl),e` the byte at hl is e until
+        # --- (hl) == a register: after `ld (hl),e` (or a load) the byte at hl is e until
         # either changes (183 ROM sites reread it as `ld a,e`, 1 from (hl))
         if hl_reg is not None:
             w = _written(mn, ops)
@@ -360,6 +360,11 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
             hl_reg = ops[1]
             out.append(raw)
             continue
+        if mn == "ld" and len(ops) == 2 and ops[1] == "(hl)" and ops[0] in ("b", "c", "d", "e"):
+            # a load sets up the same equality: after `ld c,(hl)` the ROM
+            # never rereads the byte (171 `ld a,c`, 0 `ld a,(hl)`); stock
+            # genCast's sign extension does (LoadSynthShape)
+            hl_reg = ops[0]
         # --- hl ---
         # hl is followed (for the `(hl)` reload below) but its own reloads
         # are left alone: whether LSDj's compiler kept hl across a compare
@@ -398,7 +403,7 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
             if follow[0] == "or" and len(follow[1]) == 2 and follow[1][0] == "a" and follow[1][1] in eq:
                 dropped += 1          # `or a,r` alone: `a` already equals r
                 continue
-            if follow[0] == "or" and follow[1] == ["a", "(hl)"] and hl_reg is not None:
+            if follow[0] == "or" and follow[1] == ["a", "(hl)"] and hl_reg is not None and n is not None:
                 # testing the byte just stored from a register: `ld a,e; or a,e`
                 # (31 + 5 such tests in the ROM, each after `ld (hl),e` / `ld (hl),b`)
                 lines[n] = lines[n].replace("(hl)", hl_reg, 1)

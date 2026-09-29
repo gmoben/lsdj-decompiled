@@ -26,7 +26,6 @@ UBYTE PhraseCursorOnEditCell(void);
 void CloneInstrAtCursor(void);
 UBYTE CloneTableAtCursor(void);
 UBYTE PhraseReadFx(UBYTE phrase, UBYTE row);
-UBYTE GetScreenScratchCell2(UBYTE a, UBYTE b);   /* bank 0 */
 UBYTE FindCursorInstr(void);
 
 void DrawChainCellFar(UBYTE x)
@@ -256,7 +255,7 @@ UBYTE PhraseCheckEditContext(UBYTE x)
         return 0;
     if (wPhraseCol == 0)
         return wSelLeft == 1;
-    return GetScreenScratchCell2(1, x) == 0xFF;
+    return ReadClipboardCell(1, x) == 0xFF;
 }
 
 void CloneInstrument(UBYTE src, UBYTE dst)

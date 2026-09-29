@@ -13,12 +13,12 @@
 339A ResetDisplayState   ; ReinitDisplay, then clear tile-loader alloc + state ($cbe5/$cbfb/$cbfc)
 337D LoadTilesDispatch   ; route a tile-slot arg to LoadTilesToVram / SetTileLoadReq
 148B DebugNop            ; `ld b,b; ret` -- no$gmb/BGB debug marker (no-op at runtime)
-0908 GetScreenScratchCell  ; return &($C57A screen-scratch buffer)[42*row]; bounds row<6, col<42
-07DA GetScreenScratchCell2 ; duplicate accessor of the $C57A scratch buffer
+0908 WriteClipboardCell         ; wClipboardBuf[col*42 + row] = v (asserts col < 6, row < 42)
+07DA ReadClipboardCell          ; return wClipboardBuf[col*42 + row] (asserts col < 6, row < 42)
 0D8B SortBytePair               ; order the bytes at two pointers: swap them so *a <= *b
 33F9 Random16            ; 16-bit LCG: seed = seed*17 + $5C93 (wRngSeedHi/Lo); returns de
 3826 SeedRandom16        ; seed the Random16 LCG from a 16-bit stack arg
-0B54 LoadBank1EBlock     ; page in bank $1E and process 32 items from a pointer arg
+0B54 LoadSynthShape             ; page in bank $1E and sign-extend the 32 signed seed bytes at the pointer arg into wSynthShapeBuf
 338B RequestTileSlot     ; wrap SetTileLoadReq for a tile-slot arg
 36DD StringLength              ; return the length of the NUL-terminated string at a pointer arg (16-bit)
 3261 OrBitsIntoDaBuffer  ; OR flag bits into the $DA00/$DA4F allocation buffer
@@ -340,7 +340,7 @@
 0987 .loop                ; loop head in WriteInstrByte
 0AB3 .loop                ; loop head in ReadInstrByte
 0B18 .loop                ; loop head in ReadSeqByte
-0B69 .loop                ; loop head in LoadBank1EBlock
+0B69 .loop                ; loop head in LoadSynthShape
 0D48 .done                ; common exit of KitExists
 0DB8 .done                ; common exit of SortBytePair
 0EEF .loop                ; loop head in ProcessInput

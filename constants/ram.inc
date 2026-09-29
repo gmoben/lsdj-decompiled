@@ -737,7 +737,7 @@ DEF wPartialRedrawDone EQU $C56D  ; partial row redraw done; ScreenUpdateDispatc
 DEF wLiveStartCol    EQU $C571  ; LIVE queued start column ($FF = none; saves wLiveMode)
 DEF wSavedLiveMode   EQU $C572  ; saved wLiveMode across queued LIVE start
 DEF wTimerTickInc    EQU $C579  ; per-tick work-time increment ($0C CGB / $06 DMG)
-DEF wClipboardBuf    EQU $C57A  ; [2] clipboard data buffer (word cut/paste uses first two bytes; link transfer indexes it)
+DEF wClipboardBuf    EQU $C57A  ; [252] clipboard buffer, 6 columns of 42 cells (ReadClipboardCell/WriteClipboardCell index col*42 + row; word cut/paste uses first two bytes; link transfer indexes it)
 DEF wFxSlideTargetNote EQU $C68E  ; slide (L cmd) destination note, clamped to $6C
 DEF wFxSlideNote     EQU $C68F  ; slide base-note scratch (current note or wNoteOctave source)
 DEF wFxSlidePitch    EQU $C690  ; slide start pitch lo (-> wChanPitchCur)
@@ -849,6 +849,7 @@ DEF wSynthFilterParam EQU $C9EE  ; synth filter group byte (likely resonance/Q; 
 DEF wSynthSegLen3    EQU $C9EF  ; synth param: fill count -> curve buf $CA84 (field TBD)
 DEF wSynthRenderActive EQU $C9F1  ; idle synth render in progress (cleared at frame $10)
 DEF wSynthRenderDst  EQU $C9F2  ; 16-bit SRAM dest ptr for rendered waves ($A0xx)
+DEF wSynthShapeBuf  EQU $C9F4  ; [32] words: the current shape's signed seed samples, sign-extended from a bank-$1E table by LoadSynthShape; SynthRenderWaveA/B read them
 DEF wSynthBufPtr     EQU $CB38  ; 16-bit scratch ptr into wSynthBufA (render/smoothing)
 DEF wSynthNavSide    EQU $CB63  ; synth screen: last horizontal nav direction (cursor column side)
 DEF wSyncXferActive  EQU $CB65  ; link song-transfer in progress (skips ProcessSyncByte)

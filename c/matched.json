@@ -1217,6 +1217,12 @@
   "len": 23,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "KitExists": {
+  "bank": "00",
+  "addr": "0CFE",
+  "len": 78,
+  "src": "c/bank00/Helpers.c"
+ },
  "KitSelectEnsure": {
   "bank": "03",
   "addr": "50DF",
@@ -1240,6 +1246,12 @@
   "addr": "58FB",
   "len": 76,
   "src": "c/bank06/Screens.c"
+ },
+ "LoadSynthShape": {
+  "bank": "00",
+  "addr": "0B54",
+  "len": 170,
+  "src": "c/bank00/Helpers.c"
  },
  "MapCancelSelection": {
   "bank": "05",
@@ -1475,6 +1487,12 @@
   "len": 67,
   "src": "c/bank1b/ProjectScreen.c"
  },
+ "ReadClipboardCell": {
+  "bank": "00",
+  "addr": "07DA",
+  "len": 74,
+  "src": "c/bank00/Helpers.c"
+ },
  "ReadCurInstrByte": {
   "bank": "00",
   "addr": "0AE2",
@@ -1498,6 +1516,12 @@
   "addr": "0A91",
   "len": 81,
   "src": "c/bank00/InstrByte.c"
+ },
+ "ReadKitName": {
+  "bank": "00",
+  "addr": "0D4C",
+  "len": 63,
+  "src": "c/bank00/Helpers.c"
  },
  "ReadPhraseInstr": {
   "bank": "04",
@@ -1667,6 +1691,12 @@
   "len": 10,
   "src": "c/bank01/ShowMessages.c"
  },
+ "ShowMessage": {
+  "bank": "00",
+  "addr": "0DBC",
+  "len": 31,
+  "src": "c/bank00/Helpers.c"
+ },
  "ShowOutOfMemory": {
   "bank": "01",
   "addr": "75BD",
@@ -1774,6 +1804,12 @@
   "addr": "494E",
   "len": 37,
   "src": "c/bank07/SongScreen.c"
+ },
+ "SortBytePair": {
+  "bank": "00",
+  "addr": "0D8B",
+  "len": 49,
+  "src": "c/bank00/Helpers.c"
  },
  "SyncTransferByte": {
   "bank": "1C",
@@ -1996,6 +2032,12 @@
   "addr": "48C5",
   "len": 85,
   "src": "c/bank1f/InstrHelpers.c"
+ },
+ "WriteClipboardCell": {
+  "bank": "00",
+  "addr": "0908",
+  "len": 75,
+  "src": "c/bank00/Helpers.c"
  },
  "WriteCurrentInstrByte": {
   "bank": "03",
