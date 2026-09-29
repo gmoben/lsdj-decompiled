@@ -875,16 +875,22 @@
   "len": 59,
   "src": "c/bank1d/SynthScreen.c"
  },
- "GrooveRefreshRows": {
+ "GrooveDrawSelection": {
   "bank": "1D",
-  "addr": "4C63",
-  "len": 117,
+  "addr": "4CDE",
+  "len": 122,
   "src": "c/bank1d/SynthScreen.c"
  },
  "GrooveResetState": {
   "bank": "1D",
   "addr": "4D58",
   "len": 41,
+  "src": "c/bank1d/SynthScreen.c"
+ },
+ "GrooveRowPalettes": {
+  "bank": "1D",
+  "addr": "43CF",
+  "len": 130,
   "src": "c/bank1d/SynthScreen.c"
  },
  "GrooveScreenUpdate": {
@@ -1293,6 +1299,12 @@
   "bank": "1D",
   "addr": "6E11",
   "len": 93,
+  "src": "c/bank1d/SynthScreen.c"
+ },
+ "PasteGrooveSelection": {
+  "bank": "1D",
+  "addr": "4C63",
+  "len": 117,
   "src": "c/bank1d/SynthScreen.c"
  },
  "PastePhraseSelectionFar": {
@@ -1787,6 +1799,18 @@
   "len": 79,
   "src": "c/bank1d/SynthScreen.c"
  },
+ "SynthDrawCursor": {
+  "bank": "1D",
+  "addr": "6503",
+  "len": 116,
+  "src": "c/bank1d/SynthScreen.c"
+ },
+ "SynthEraseCursor": {
+  "bank": "1D",
+  "addr": "649F",
+  "len": 100,
+  "src": "c/bank1d/SynthScreen.c"
+ },
  "SynthFieldDecHi": {
   "bank": "1D",
   "addr": "70E4",
@@ -1809,18 +1833,6 @@
   "bank": "1D",
   "addr": "70BC",
   "len": 40,
-  "src": "c/bank1d/SynthScreen.c"
- },
- "SynthLoadWaveDataA": {
-  "bank": "1D",
-  "addr": "649F",
-  "len": 100,
-  "src": "c/bank1d/SynthScreen.c"
- },
- "SynthLoadWaveDataB": {
-  "bank": "1D",
-  "addr": "6503",
-  "len": 116,
   "src": "c/bank1d/SynthScreen.c"
  },
  "SynthParamDecTo0": {

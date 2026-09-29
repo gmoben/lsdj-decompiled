@@ -126,7 +126,26 @@ void GrooveDrawFieldHw(void)
     DrawTextField(2, wGrooveRow + 2, 2, hGameboyType ? 3 : 2);
 }
 
-void GrooveRefreshRows(void)
+void GrooveRowPalettes(UBYTE row)
+{
+    UBYTE a, b;
+
+    a = (wCursorMode == 4) ? wSelTop : wGrooveRow;
+    b = wGrooveRow;
+    SortBytePair(&a, &b);
+    if (row >= a && b >= row) {
+        hBgDigitPalette = wSelectDigitPal;
+        hBgPalette = wSelectPal;
+    } else if (row & 2) {
+        hBgDigitPalette = 4;
+        hBgPalette = 1;
+    } else {
+        hBgDigitPalette = wShadowDigitPal;
+        hBgPalette = wShadowPal;
+    }
+}
+
+void PasteGrooveSelection(void)
 {
     UBYTE i;
 
@@ -140,6 +159,27 @@ void GrooveRefreshRows(void)
             wGrooveRow = 0;
     }
     DrawGrooveSteps();
+}
+
+void GrooveDrawSelection(void)
+{
+    UBYTE end, y, i;
+
+    if (wClipboardType != 2)
+        return;
+    if (wSelTop < wGrooveRow) {
+        i = wSelTop;
+        end = wGrooveRow + 1;
+    } else {
+        end = wSelTop + 1;
+        i = wGrooveRow;
+    }
+    for (; i < end; i++) {
+        y = i + 2;
+        if (i & 0xF0)
+            DebugTrap();
+        DrawTextField(2, y, 2, hGameboyType ? 3 : 2);
+    }
 }
 
 void GrooveResetState(void)
@@ -275,7 +315,7 @@ void DrawSynthWaveField(void)
     }
 }
 
-void SynthLoadWaveDataA(void)
+void SynthEraseCursor(void)
 {
     UBYTE x;
 
@@ -283,7 +323,7 @@ void SynthLoadWaveDataA(void)
         DrawTextField(x, SynthFieldLayout[wSynthCursor], 1, 1);
 }
 
-void SynthLoadWaveDataB(void)
+void SynthDrawCursor(void)
 {
     UBYTE x;
 

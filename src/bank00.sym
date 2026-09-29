@@ -15,7 +15,7 @@
 148B DebugNop            ; `ld b,b; ret` -- no$gmb/BGB debug marker (no-op at runtime)
 0908 GetScreenScratchCell  ; return &($C57A screen-scratch buffer)[42*row]; bounds row<6, col<42
 07DA GetScreenScratchCell2 ; duplicate accessor of the $C57A scratch buffer
-0D8B ComparePtrBytes     ; read the bytes at two 16-bit pointer args and compare (sbc)
+0D8B SortBytePair               ; order the bytes at two pointers: swap them so *a <= *b
 33F9 Random16            ; 16-bit LCG: seed = seed*17 + $5C93 (wRngSeedHi/Lo); returns de
 3826 SeedRandom16        ; seed the Random16 LCG from a 16-bit stack arg
 0B54 LoadBank1EBlock     ; page in bank $1E and process 32 items from a pointer arg
@@ -342,7 +342,7 @@
 0B18 .loop                ; loop head in ReadSeqByte
 0B69 .loop                ; loop head in LoadBank1EBlock
 0D48 .done                ; common exit of KitExists
-0DB8 .done                ; common exit of ComparePtrBytes
+0DB8 .done                ; common exit of SortBytePair
 0EEF .loop                ; loop head in ProcessInput
 1089 .loop2               ; loop head in ProcessInput
 1294 .done                ; common exit of ProcessInput

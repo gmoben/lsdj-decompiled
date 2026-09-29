@@ -166,6 +166,9 @@ char *strcpy(char *dest, char *src);
 void MemSet(UBYTE *dest, UBYTE value, UWORD count);
 void memcpy(UBYTE *dst, UBYTE *src, UWORD n);
 
+/* misc */
+void SortBytePair(UBYTE *a, UBYTE *b);               /* swap so *a <= *b */
+
 /* --- the screens' draw entry points (ScreenDrawDispatch, bank 0) ----------- */
 
 void RedrawScreen(void);                    /* $24DD: full repaint of the current screen */

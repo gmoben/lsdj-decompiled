@@ -31,10 +31,10 @@
 425B DrawGrooveRow              ; draw one groove row (step<16; ticks via ReadGrooveStep, state $c9d5/$c9d6)
 435D GrooveBuildCache       ; once ($c9d5 guard): build the 16-step groove display cache $c9d6 (via $405a)
 4394 GrooveDrawFieldHw      ; like GrooveDrawField but palette per hGameboyType
-43CF GrooveScreen           ; Groove screen handler (input/draw/edit); sets wClipboardType=SCREEN_GROOVE on CUT
+43CF GrooveRowPalettes          ; pick a groove row's draw palettes: select colours inside the sorted wSelTop..wGrooveRow range (select mode) or on the cursor row, 4/1 stripe on rows with bit 1, else shadow
 4B6C GrooveScreenHw         ; Groove screen banked-draw path (sets wClipboardType=GROOVE on CUT)
-4C63 GrooveRefreshRows      ; redraw groove rows over cursor range $c40e..$c410
-4CDE GrooveRefreshRange     ; redraw groove value range around $c9d4/$c40e
+4C63 PasteGrooveSelection       ; write the clipboard steps into the groove from the cursor (clipType 2), advancing wGrooveRow and wrapping at 16; PASTE message
+4CDE GrooveDrawSelection        ; clipType 2: highlight the rows between the anchor wSelTop and the cursor (palette 3 on CGB, 2 on DMG)
 4D81 SynthRenderWaveA           ; render synth waveform segment using wave tables $4EF0/$50F0 ($c9e8/$c9ed)
 5190 SynthRenderWaveB           ; render synth waveform segment (variant of SynthRenderWaveA)
 5323 SynthComposeWave           ; main synth wave composition (wSynthRenderIdx, buffer $ca34); large
@@ -53,14 +53,14 @@
 62A8 DrawSynthField             ; draw the synth PHASE field: switch (jp-table $62bb) -> " PINCH"/"  WARP"/"RESYNC"/"RESYN2"
 636E DrawSynthFilterField       ; draw the FILTER type field (" LOWP"...; "-----" empty; jp-table $63a6)
 6414 DrawSynthWaveField         ; draw the waveform type row (glyph strings "iiii"/"mmmm"; jp-table $6437)
-649F SynthLoadWaveDataA         ; palette 1 over the cells of the cursor field (SynthFieldX/Width/Layout[wSynthCursor])
-6503 SynthLoadWaveDataB         ; read wave data via index $c442 + ROM table $60F5 (variant)
+649F SynthEraseCursor           ; restore palette 1 over the cursor field's cells (SynthFieldX/Width/Layout[wSynthCursor])
+6503 SynthDrawCursor            ; highlight the cursor field's cells (palette 3 on CGB, 2 on DMG)
 6577 DrawSynthDistField         ; draw the DIST field: "CLIP"/"FOLD"/"WRAP"
 65C2 DrawSynthNumber            ; draw the synth number header (wSynthScreen)
 6709 .rowA                ; (was DrawSynthHexRowA) draw a START/END hex pair row of the synth screen (section A; "--" empty)
 6791 .rowB                ; (was DrawSynthHexRowB) draw a START/END hex pair row (section B)
 6819 .rowC                ; (was DrawSynthHexRowC) draw a START/END hex pair row (section C)
-6865 .rowD                ; (was DrawSynthHexRowD) draw a START/END hex pair row (section D), then SynthLoadWaveDataB re-render
+6865 .rowD                ; (was DrawSynthHexRowD) draw a START/END hex pair row (section D), then SynthDrawCursor re-render
 68F9 SynthLoadParams            ; load the edited synth's parameters from SRAM ($BEB2 + wSynthScreen*16) into the render state: wave type, wave table, filter
 6935 .loadWaveType        ; (was SynthLoadWaveType) read 2 synth params from SRAM -> $c9ed, $c9e9 (wave type)
 6967 .loadWaveTable       ; (was SynthLoadWaveTable) read packed param from SRAM, build wave table $ca94 (via SynthFillWaveRange)
@@ -114,7 +114,7 @@
 4356 .done                ; common exit of DrawGrooveRow
 436A .loop                ; loop head in GrooveBuildCache
 4392 .done                ; common exit of GrooveBuildCache
-444D .done                ; common exit of GrooveScreen
+444D .done                ; common exit of GrooveRowPalettes
 462B .loop                ; loop head in DrawGrooveCursor
 46DE .loop2               ; loop head in DrawGrooveCursor
 4799 .loop3               ; loop head in DrawGrooveCursor
@@ -123,10 +123,10 @@
 4B53 .done                ; common exit of DrawGrooveCursor
 4BE6 .loop                ; loop head in GrooveScreenHw
 4C56 .done                ; common exit of GrooveScreenHw
-4C92 .loop                ; loop head in GrooveRefreshRows
-4CD4 .done                ; common exit of GrooveRefreshRows
-4D14 .loop                ; loop head in GrooveRefreshRange
-4D54 .done                ; common exit of GrooveRefreshRange
+4C92 .loop                ; loop head in PasteGrooveSelection
+4CD4 .done                ; common exit of PasteGrooveSelection
+4D14 .loop                ; loop head in GrooveDrawSelection
+4D54 .done                ; common exit of GrooveDrawSelection
 4D60 .loop                ; loop head in GrooveResetState
 4D7F .done                ; common exit of GrooveResetState
 4DDD .loop                ; loop head in SynthRenderWaveA
@@ -182,10 +182,10 @@
 631E .loop                ; loop head in ReadSynthParam
 63EE .done                ; common exit of DrawSynthFilterField
 6487 .done                ; common exit of DrawSynthWaveField
-64B3 .loop                ; loop head in SynthLoadWaveDataA
-64FF .done                ; common exit of SynthLoadWaveDataA
-6517 .loop                ; loop head in SynthLoadWaveDataB
-6573 .done                ; common exit of SynthLoadWaveDataB
+64B3 .loop                ; loop head in SynthEraseCursor
+64FF .done                ; common exit of SynthEraseCursor
+6517 .loop                ; loop head in SynthDrawCursor
+6573 .done                ; common exit of SynthDrawCursor
 65B2 .done                ; common exit of DrawSynthDistField
 65CF .loop                ; loop head in DrawSynthNumber
 6911 .loop                ; loop head in SynthLoadParams
