@@ -10,10 +10,10 @@
  * (which copies the string into wStrBuffer; DrawMessageBar then renders it).
  */
 
+#include "lsdj.h"
+
 extern char TxtOutOfMemory[];   /* $01:$75C7 "OUT OF MEMORY. CLEAN SONG DATA IN PROJECT SCREEN" */
 extern char TxtTapAddChain[];   /* $01:$7602 "TAP A TO ADD CHAIN!" */
-
-void ShowMessage(char *text);
 
 void ShowOutOfMemory(void)
 {

@@ -130,14 +130,15 @@ The project runs on **two tracks** (details in [`AGENTS.md`](AGENTS.md)):
 
 Track 2 is gated behind a **toolchain-recovery spike**: pin a period-correct
 GBDK 2.95 + SDCC and reproduce real LSDj functions byte-for-byte before
-committing to C. That spike is done: ten functions match, the recovered
-compiler model is 39 peephole rules with ROM-wide evidence, and matched C
-feeds the ROM build (`INCBIN` of the compiled bytes, gated by `make compare`).
+committing to C. That spike is done and the grind has begun: 44 functions
+match, the recovered compiler model is 42 peephole rules with ROM-wide
+evidence, and matched C feeds the ROM build (`INCBIN` of the compiled bytes,
+gated by `make compare`).
 See [`docs/toolchain.md`](docs/toolchain.md), and try it:
 
 ```bash
 tools/toolchain/fetch_gbdk295.sh     # period toolchain (needs curl, unzip, wine)
-make match                           # every c/bankNN/*.c vs the ROM, ~3 s
+make match                           # every c/bankNN/*.c vs the ROM (cached)
 tools/match/match_function.py --c c/bank01/DrawMessageBar.c --target DrawMessageBar
 # ==> MATCH: byte-identical to ROM $01:$74F7-$75BC
 ```

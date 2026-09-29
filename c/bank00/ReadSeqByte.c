@@ -10,12 +10,7 @@
  * marker normalised: any value with bit 7 set reads as $FF.
  */
 
-typedef unsigned char UBYTE;
-
-extern UBYTE SramSequence[];                /* SRAM bank 0, $B290: 192 x 4 bytes */
-
-void DebugTrap(void);
-UBYTE ReadSongByte(UBYTE bank, UBYTE *addr);
+#include "lsdj.h"
 
 UBYTE ReadSeqByte(UBYTE channel, UBYTE step)
 {

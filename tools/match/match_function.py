@@ -13,12 +13,12 @@ compare the emitted machine code against the original ROM:
   * --search              : scan the whole ROM for the unlinked byte pattern
   * (none of these)       : just print the compiled bytes (harness self-check)
 
-The compiler also loads tools/match/lsdj.peep, the peephole rules recovered
-from LSDj's own code (see docs/toolchain.md); pass --stock to compile with the
-stock GBDK 2.95 rules only.
+The compiler's output is then rewritten with tools/match/lsdj.peep, the
+peephole rules recovered from LSDj's own code (see docs/toolchain.md), by
+tools/match/peep.py; pass --stock for the stock GBDK 2.95 rules only.
 
 Pipeline (faithful to how LSDj was actually built -- asxxxx, not RGBDS):
-    file.c --[sdcc -mgbz80 -S --peep-file lsdj.peep]--> file.asm
+    file.c --[sdcc -mgbz80 -S]--> file.asm --[peep.py lsdj.peep]--> file.asm
            --[as-gbz80 -l -o]--> file.o + file.lst
            --[link-gbz80 -i -b_CODE=<addr> -g_<sym>=<addr>...]--> file.ihx
     -> the function's bytes (between ___<func>_start / ___<func>_end) vs ROM.
@@ -60,6 +60,7 @@ def _default_gbdk() -> Path:
 GBDK = Path(os.environ["GBDK_295"]) if os.environ.get("GBDK_295") else _default_gbdk()
 WINEPREFIX = Path(os.environ.get("WINEPREFIX", REPO_ROOT / "toolchain" / ".wine"))
 DEFAULT_PEEP = REPO_ROOT / "tools" / "match" / "lsdj.peep"
+INCLUDE_DIR = REPO_ROOT / "c" / "include"   # shared prototypes/externs (lsdj.h)
 BANK_SIZE = 0x4000
 TOOL_TIMEOUT = 120  # seconds per compiler/assembler/linker run
 
@@ -140,15 +141,40 @@ def workdir():
         yield Path(tmp), env
 
 
+def repair_globls(asm: str) -> str:
+    """Undo SDCC 2.2.1's corruption of the public-symbol list in large units.
+
+    With many symbols in a unit, sdcc.exe overwrites some of its `.globl`
+    names with garbage bytes (`.globl '\xef\xbf\xbd`), dropping those
+    functions from the exported names. The code is unaffected, but the
+    garbage line is an assembler error and a function missing its `.globl`
+    is a local label (which breaks `isolate`). Drop malformed names and
+    re-declare every function the unit defines."""
+    out = [l for l in asm.splitlines()
+           if not (re.match(r"\s*\.globl\b", l)
+                   and not re.fullmatch(r"\s*\.globl\s+[A-Za-z_$.][\w$.]*\s*", l))]
+    have = set(re.findall(r"^\s*\.globl\s+(\S+)", "\n".join(out), re.M))
+    missing = [f"\t.globl _{n}" for n in re.findall(r"^___(\w+?)_start:", asm, re.M)
+               if f"_{n}" not in have]
+    if missing:
+        at = next((i for i, l in enumerate(out) if re.match(r"\s*\.globl\b", l)), 0)
+        out[at:at] = missing
+    return "\n".join(out) + "\n"
+
+
 def compile_unit(work: Path, env: dict[str, str], c_path: Path,
                  peep: Path | None) -> tuple[str, str]:
     """C -> asxxxx asm -> object + listing in `work`. Returns (asm, lst) text."""
+    for stale in ("unit.asm", "unit.o", "unit.lst", "unit.ihx"):   # reused work dir
+        (work / stale).unlink(missing_ok=True)
     shutil.copyfile(c_path, work / "unit.c")
-    args = ["-mgbz80", "-S"]
-    if peep is not None:
-        shutil.copyfile(peep, work / "rules.peep")
-        args += ["--peep-file", "rules.peep"]
-    rc = _run_wine("sdcc.exe", [*args, "unit.c"], work, env)
+    for h in INCLUDE_DIR.glob("*.h"):      # `#include "lsdj.h"` resolves beside the unit
+        shutil.copyfile(h, work / h.name)
+    # SDCC runs with its stock rules only: lsdj.peep is applied afterwards by
+    # peep.py. SDCC 2.2.1's own matcher cannot see past a line's trailing
+    # comment or bind a variable across a comma, and it crashes (exit 5) on
+    # larger units when rules with a variable mnemonic (`%1 a`) are loaded.
+    rc = _run_wine("sdcc.exe", ["-mgbz80", "-S", "unit.c"], work, env)
     asm = work / "unit.asm"
     if not asm.is_file():
         hint = ""
@@ -157,9 +183,8 @@ def compile_unit(work: Path, env: dict[str, str], c_path: Path,
                     "constructs, e.g. testing *(UBYTE *)0xFFxx in an if -- "
                     "see docs/toolchain.md.".format(rc))
         sys.exit("error: sdcc produced no assembly." + hint)
+    asm.write_text(repair_globls(asm.read_text(errors="replace")))
     if peep is not None:
-        # Second application with our own matcher: SDCC's cannot see past a
-        # line's trailing comment or bind a variable across a comma (peep.py).
         peep_mod = importlib.import_module("peep")
         rules = peep_mod.parse_rules(peep.read_text())
         lines, _ = peep_mod.apply(rules, asm.read_text(errors="replace").splitlines())
@@ -295,11 +320,40 @@ def rom_extent(syms: dict[str, tuple[int | None, int]], bank: int, addr: int) ->
     return min(nxt) - addr if nxt else None
 
 
-def link_function(work: Path, env: dict[str, str], asm: str, lst: str,
-                  func: str | None, bank: int, addr: int,
-                  syms: dict[str, tuple[int | None, int]],
-                  defines: dict[str, int]) -> tuple[str, bytes, int]:
-    """Link the unit so `func` lands at `addr`; return (name, bytes, start)."""
+def isolate(asm: str, func: str) -> str:
+    """The unit's asm with every *other* function definition renamed away, so
+    that `func`'s calls to its neighbours become externs -- resolved to their
+    ROM addresses like any other callee -- instead of binding to the copies
+    in this unit (which the link places wherever `func`'s address puts them).
+    Returns `asm` itself when `func` references no neighbour."""
+    name = func.lstrip("_")
+    body = re.search(rf"^___{re.escape(name)}_start:(.*?)^___{re.escape(name)}_end:", asm, re.M | re.S)
+    others = [d for d in re.findall(r"^___(\w+?)_start:", asm, re.M) if d != name]
+    if not body or not others:
+        return asm
+    used = [d for d in others if re.search(rf"\b_{re.escape(d)}\b", body.group(1))]
+    for d in used:
+        asm = re.sub(rf"^_{re.escape(d)}(::?)", rf"_{d}__iso\1", asm, flags=re.M)
+    return asm
+
+
+def assemble(work: Path, env: dict[str, str], asm: str) -> str:
+    """Assemble `asm` as unit.o in `work`; return the new listing."""
+    for stale in ("unit.o", "unit.lst"):
+        (work / stale).unlink(missing_ok=True)
+    (work / "unit.asm").write_text(asm)
+    _run_wine("as-gbz80.exe", ["-l", "-o", "unit.o", "unit.asm"], work, env)
+    if not (work / "unit.lst").is_file() or not (work / "unit.o").is_file():
+        sys.exit("error: as-gbz80 produced no object/listing (see errors above).")
+    return (work / "unit.lst").read_text(errors="replace")
+
+
+def link_plan(asm: str, lst: str, func: str | None, bank: int, addr: int,
+              syms: dict[str, tuple[int | None, int]],
+              defines: dict[str, int]) -> tuple[str, int, int, list[str], list[str]]:
+    """Everything the link of `func` at `addr` depends on, without running it:
+    (name, start, end, linker -g arguments, notes). Exits on unresolved externs.
+    verify_all.py keys its link cache on this."""
     name, start, end = function_span(lst, func)
     defined = set(re.findall(r"^(_\w+)::?", asm, re.M))
     externs = sorted(set(re.findall(r"^\s*\.globl\s+(_\w+)", asm, re.M)) - defined)
@@ -313,17 +367,34 @@ def link_function(work: Path, env: dict[str, str], asm: str, lst: str,
             if sbank not in (None, 0, bank):
                 other_bank.append(f"{plain} (${sbank:02X})")
         else:
-            missing.append(plain)
+            # A header's extern that this unit never uses still gets a .globl;
+            # only a *referenced* unknown name is an error.
+            if re.search(rf"\b{re.escape(sym)}\b", re.sub(r"^\s*\.globl.*$", "", asm, flags=re.M)):
+                missing.append(plain)
             continue
         gargs.append(f"-g{sym}=0x{val:04X}")
     if missing:
         sys.exit("error: unresolved externs: " + ", ".join(missing) +
                  "\n(name them in src/*.sym / constants/ram.inc / "
                  "include/hardware.inc, or pass --define NAME=ADDR)")
+    notes = []
     if other_bank:
-        print("note: callees in other ROM banks (the function must page them in): "
-              + ", ".join(other_bank), file=sys.stderr)
+        notes.append("note: callees in other ROM banks (the function must page them in): "
+                     + ", ".join(other_bank))
+    return name, start, end, gargs, notes
+
+
+def link_function(work: Path, env: dict[str, str], asm: str, lst: str,
+                  func: str | None, bank: int, addr: int,
+                  syms: dict[str, tuple[int | None, int]],
+                  defines: dict[str, int], quiet: bool = False) -> tuple[str, bytes, int]:
+    """Link the unit so `func` lands at `addr`; return (name, bytes, start)."""
+    name, start, end, gargs, notes = link_plan(asm, lst, func, bank, addr, syms, defines)
+    if not quiet:
+        for n in notes:
+            print(n, file=sys.stderr)
     base = addr - start
+    (work / "unit.ihx").unlink(missing_ok=True)   # the work dir may be reused
     # Functions land in _CODE, or in _HOME when declared `nonbanked`; a unit
     # uses one or the other, so both areas are based at the same address.
     _run_wine("link-gbz80.exe",
@@ -386,6 +457,32 @@ def report_diff(code: bytes, target: bytes, addr: int) -> list[int]:
     return diffs
 
 
+def asm_diff(code: bytes, target: bytes, addr: int) -> None:
+    """Disassemble ours and the ROM's bytes and print them aligned side by
+    side (difflib on the instruction text), `<<` marking differing rows."""
+    import difflib
+    sys.path.insert(0, str(REPO_ROOT / "tools"))
+    disasm = importlib.import_module("disasm")
+
+    def rows(b: bytes) -> list[str]:
+        return [f"{r[2]}" for r in disasm.disassemble(b, 0, len(b), addr, [])]
+
+    ours, rom = rows(code), rows(target)
+    sm = difflib.SequenceMatcher(None, rom, ours, autojunk=False)
+    print(f"    {'ROM':34s} {'ours'}")
+    for tag, i1, i2, j1, j2 in sm.get_opcodes():
+        n = max(i2 - i1, j2 - j1)
+        for k in range(n):
+            a = rom[i1 + k] if i1 + k < i2 else ""
+            b = ours[j1 + k] if j1 + k < j2 else ""
+            mark = "  " if tag == "equal" else "<<"
+            if tag == "equal" and n > 6 and 2 < k < n - 3:
+                if k == 3:
+                    print(f"    {'...':34s} ...")
+                continue
+            print(f"  {mark}{a:34s} {b}")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -407,6 +504,8 @@ def main() -> None:
     ap.add_argument("--peep", type=Path, default=DEFAULT_PEEP,
                     help="peephole rule file (default: tools/match/lsdj.peep)")
     ap.add_argument("--show-asm", action="store_true", help="print the SDCC asm")
+    ap.add_argument("--diff", action="store_true",
+                    help="with --target: on a mismatch, print both disassemblies aligned")
     ap.add_argument("--dump", type=Path, metavar="FILE",
                     help="with --target: also write the linked function bytes to FILE")
     args = ap.parse_args()
@@ -437,6 +536,8 @@ def main() -> None:
             syms = load_symbols()
             label, bank, addr = parse_target(args.target, syms)
             func = args.func or (label if not label.startswith("$") else None)
+            if func and (iso := isolate(asm, func)) != asm:
+                asm, lst = iso, assemble(work, env, iso)
             name, code, start = link_function(work, env, asm, lst, func, bank,
                                               addr, syms, defines)
             off = rom_offset(bank, addr)
@@ -448,6 +549,10 @@ def main() -> None:
                   + (f" (ROM routine spans {extent} bytes to the next symbol)"
                      if extent is not None else "")
                   + ("" if peep is None else f"; rules: {peep.name}"))
+            if args.diff and code != target:
+                # compare the ROM over the same span plus a little slack
+                asm_diff(code, rom[off:off + max(len(code), (extent or 0))], addr)
+                sys.exit(2)
             if report_diff(code, target, addr):
                 for line in listing_near(lst, start + next(
                         i for i in range(len(code)) if i >= len(target) or code[i] != target[i])):

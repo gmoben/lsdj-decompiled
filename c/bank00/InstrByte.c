@@ -26,14 +26,7 @@
  * where LSDj's compiler drops the `ld c,e ... ld e,c` round trip.
  */
 
-typedef unsigned char UBYTE;
-
-extern UBYTE SramInstruments[];             /* SRAM bank 1, $B080: 64 x 16 bytes */
-extern UBYTE wInstrument;                   /* $C576, the instrument being edited */
-
-void DebugTrap(void);
-UBYTE ReadSongByte(UBYTE bank, UBYTE *addr);
-void WriteSongByte(UBYTE bank, UBYTE *addr, UBYTE val);
+#include "lsdj.h"
 
 void WriteInstrByte(UBYTE instr, UBYTE field, UBYTE val)
 {

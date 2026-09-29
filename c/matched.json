@@ -1,4 +1,28 @@
 {
+ "DrawInstrByte10": {
+  "bank": "03",
+  "addr": "498B",
+  "len": 44,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "DrawInstrByte11": {
+  "bank": "03",
+  "addr": "49B7",
+  "len": 45,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "DrawInstrByte12": {
+  "bank": "03",
+  "addr": "4CD9",
+  "len": 60,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "DrawKitNameField": {
+  "bank": "03",
+  "addr": "4FDC",
+  "len": 38,
+  "src": "c/bank03/InstrScreen.c"
+ },
  "DrawMessageBar": {
   "bank": "01",
   "addr": "74F7",
@@ -16,6 +40,144 @@
   "addr": "7524",
   "len": 130,
   "src": "c/bank06/DrawTileHexCell.c"
+ },
+ "GetInstrByte10": {
+  "bank": "03",
+  "addr": "4AF4",
+  "len": 22,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "GetInstrByte11": {
+  "bank": "03",
+  "addr": "4ACF",
+  "len": 17,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "GetInstrByte2": {
+  "bank": "03",
+  "addr": "49E7",
+  "len": 22,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "GetInstrByte5Flag8": {
+  "bank": "03",
+  "addr": "4790",
+  "len": 18,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "GetInstrByte9": {
+  "bank": "03",
+  "addr": "40F8",
+  "len": 13,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "GetInstrFlags53": {
+  "bank": "03",
+  "addr": "4B4C",
+  "len": 18,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "GetInstrType3": {
+  "bank": "03",
+  "addr": "4BE9",
+  "len": 16,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "InstrByte9IsZero": {
+  "bank": "03",
+  "addr": "4105",
+  "len": 19,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "InstrCheckFieldOption": {
+  "bank": "03",
+  "addr": "414F",
+  "len": 33,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "InstrEnvelopeChanged": {
+  "bank": "03",
+  "addr": "4DD7",
+  "len": 16,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "InstrField5Next": {
+  "bank": "03",
+  "addr": "4BAC",
+  "len": 31,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "InstrField5Prev": {
+  "bank": "03",
+  "addr": "4BCB",
+  "len": 30,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "InstrScreenFrame": {
+  "bank": "03",
+  "addr": "45A7",
+  "len": 44,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "InstrSelectNextUsed": {
+  "bank": "03",
+  "addr": "4638",
+  "len": 65,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "InstrSelectPrevPage": {
+  "bank": "03",
+  "addr": "461B",
+  "len": 29,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "InstrSelectPrevUsed": {
+  "bank": "03",
+  "addr": "45D3",
+  "len": 72,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "InstrTableAdd16": {
+  "bank": "03",
+  "addr": "4924",
+  "len": 56,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "InstrTableNext": {
+  "bank": "03",
+  "addr": "489D",
+  "len": 57,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "InstrTableOn": {
+  "bank": "03",
+  "addr": "4133",
+  "len": 28,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "InstrTableSub16": {
+  "bank": "03",
+  "addr": "495C",
+  "len": 47,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "InstrTransposeOff": {
+  "bank": "03",
+  "addr": "4293",
+  "len": 24,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "InstrTransposeOn": {
+  "bank": "03",
+  "addr": "427B",
+  "len": 24,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "IsInstrTableOn": {
+  "bank": "03",
+  "addr": "4118",
+  "len": 27,
+  "src": "c/bank03/InstrScreen.c"
  },
  "ReadCurInstrByte": {
   "bank": "00",
@@ -41,6 +203,42 @@
   "len": 252,
   "src": "c/bank00/ScreenDrawDispatch.c"
  },
+ "SetInstrByte10": {
+  "bank": "03",
+  "addr": "4B0A",
+  "len": 31,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "SetInstrByte11": {
+  "bank": "03",
+  "addr": "4AE0",
+  "len": 20,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "SetInstrByte2": {
+  "bank": "03",
+  "addr": "4B29",
+  "len": 35,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "SetInstrByte8": {
+  "bank": "03",
+  "addr": "4741",
+  "len": 40,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "SetInstrByte82": {
+  "bank": "03",
+  "addr": "4769",
+  "len": 39,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "SetInstrPitchByte": {
+  "bank": "03",
+  "addr": "4257",
+  "len": 36,
+  "src": "c/bank03/InstrScreen.c"
+ },
  "ShowOutOfMemory": {
   "bank": "01",
   "addr": "75BD",
@@ -52,6 +250,12 @@
   "addr": "75F8",
   "len": 10,
   "src": "c/bank01/ShowMessages.c"
+ },
+ "WriteCurrentInstrByte": {
+  "bank": "03",
+  "addr": "4000",
+  "len": 21,
+  "src": "c/bank03/InstrScreen.c"
  },
  "WriteInstrByte": {
   "bank": "00",

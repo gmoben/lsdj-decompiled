@@ -28,29 +28,9 @@
  *    `== 0` produces a jp/jr trampoline instead.
  */
 
-#ifdef __clang__  /* editor tooling only: SDCC 2.2.1 keyword (never set by SDCC) */
-#define sfr
-#endif
+#include "lsdj.h"
 
-typedef unsigned char UBYTE;
-
-extern volatile sfr UBYTE VBK_REG;          /* $FF4F rVBK */
-extern volatile sfr UBYTE hBgPalette;       /* $FF8C */
-extern volatile sfr UBYTE hBgDigitPalette;  /* $FF8D */
-extern UBYTE hGameboyType;                  /* $FF90 */
-
-extern UBYTE wStrBuffer[];                  /* $C6A9, 20 chars + NUL */
-extern UBYTE *wMsgStrPtr;                   /* $C7AA */
-extern UBYTE wMsgPanelShown;                /* $C7AC */
-extern UBYTE wMsgTimer;                     /* $C7A9 */
-extern UBYTE wSelectDigitPal;               /* $C568 */
-extern UBYTE wSelectPal;                    /* $C569 */
-extern UBYTE *wVramCursor;                  /* $C573 */
 extern UBYTE MsgBarAttrRow[];               /* $01:$7484, 20 x $04 */
-
-/* GBDK 2.95 <gb/gb.h>; bank 0 $39CD is the library routine, byte-exact */
-void set_bkg_tiles(UBYTE x, UBYTE y, UBYTE w, UBYTE h, unsigned char *tiles);
-void DrawStringIndexed(UBYTE c);
 
 void DrawMessageBar(void)
 {

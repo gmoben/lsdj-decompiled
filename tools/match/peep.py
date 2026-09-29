@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """Apply SDCC-style peephole rules to an asxxxx assembly file, our way.
 
-SDCC 2.2.1 loads tools/match/lsdj.peep through --peep-file, but its matcher
-has two limits that hide some of the shapes LSDj's compiler rewrites: a `%n`
-variable never spans a comma, and a source line is compared *with* its
-trailing comment (`ld a,(hl) ; 2`), which no rule can name because `;` starts
-a comment in the rule file. LSDj's compiler evidently tracked what `a` held in
-its code generator, not in text rules -- so the harness applies the same rule
-file a second time here, after SDCC, with comments stripped.
+The harness compiles with SDCC 2.2.1's stock rules and then applies
+tools/match/lsdj.peep -- the rewrites LSDj's compiler made on top -- here.
+SDCC's own matcher is unusable for them: a `%n` variable never spans a comma,
+a source line is compared *with* its trailing comment (`ld a,(hl) ; 2`),
+which no rule can name because `;` starts a comment in the rule file, and it
+crashes (exit 5) on larger units once rules with a variable mnemonic
+(`%1 a`) are loaded. LSDj's compiler evidently tracked what `a` (and `hl`)
+held in its code generator, not in text rules; the rules reproduce that.
 
 Rule syntax is SDCC's:
 
@@ -17,10 +18,15 @@ Rule syntax is SDCC's:
         <line>...
     }
 
+    } [if labelRefCount %n K]
+
 Lines are compared token by token (whitespace-separated); `%n` binds one
 token, consistently within a rule; a `label:` line matches a label line.
 Comment-only and blank lines in the source are skipped while matching.
 Case-sensitive, like SDCC (so `LD a,c` stays out of reach of `ld a,%1`).
+The optional condition (later SDCC's syntax) requires the label bound to
+`%n` to be referenced exactly K times in the file outside its definition --
+e.g. a label the trampoline collapse left behind, which no jump reaches.
 
 Usage: tools/match/peep.py RULES.peep FILE.asm      # rewrites FILE.asm in place
 """
@@ -31,16 +37,26 @@ import re
 import sys
 from pathlib import Path
 
-Rule = tuple[list[list[str]], list[str], bool]   # (pattern token-lines, replacement lines, restart)
+# (pattern token-lines, replacement lines, restart, condition or None)
+Rule = tuple[list[list[str]], list[str], bool, "tuple[str, int] | None"]
 
 
 def parse_rules(text: str) -> list[Rule]:
     rules: list[Rule] = []
-    for m in re.finditer(r"replace(\s+restart)?\s*\{(.*?)\}\s*by\s*\{(.*?)\}", text, re.S):
+    for m in re.finditer(r"replace(\s+restart)?\s*\{(.*?)\}\s*by\s*\{(.*?)\}"
+                         r"(?:[ \t]*if[ \t]+labelRefCount[ \t]+(%\d+)[ \t]+(\d+))?", text, re.S):
         pat = [l.strip() for l in m.group(2).splitlines() if l.strip() and not l.strip().startswith(";")]
         rep = [l.rstrip() for l in m.group(3).splitlines() if l.strip()]
-        rules.append(([p.split() for p in pat], rep, bool(m.group(1))))
+        cond = (m.group(4), int(m.group(5))) if m.group(4) else None
+        rules.append(([p.split() for p in pat], rep, bool(m.group(1)), cond))
     return rules
+
+
+def _label_refs(lines: list[str], label: str) -> int:
+    """References to `label` outside its own definition line."""
+    pat = re.compile(rf"(?<![\w$]){re.escape(label)}(?![\w$])")
+    return sum(len(pat.findall(_strip(l))) for l in lines
+               if not _strip(l).strip().startswith(label + ":"))
 
 
 def _strip(line: str) -> str:
@@ -85,7 +101,7 @@ def apply(rules: list[Rule], lines: list[str]) -> tuple[list[str], int]:
     restart = True
     while restart:
         restart = False
-        for pat, rep, do_restart in rules:
+        for pat, rep, do_restart, cond in rules:
             i = 0
             while i < len(lines):
                 # candidate instruction/label lines from i, skipping comments/blanks
@@ -101,6 +117,9 @@ def apply(rules: list[Rule], lines: list[str]) -> tuple[list[str], int]:
                         break
                     idx.append(j)
                     j += 1
+                if ok and idx and cond is not None:
+                    label = binds.get(cond[0], "")
+                    ok = bool(label) and _label_refs(lines, label) == cond[1]
                 if not ok or not idx:
                     i += 1
                     continue

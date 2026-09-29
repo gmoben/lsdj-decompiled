@@ -16,34 +16,7 @@
  * everything in LSDj); the link step resolves them from src/bankNN.sym.
  */
 
-#ifdef __clang__  /* editor tooling only: SDCC 2.2.1 keyword (never set by SDCC) */
-#define sfr
-#endif
-
-typedef unsigned char UBYTE;
-
-extern volatile sfr UBYTE hCurrentBank;     /* $FF8E */
-extern UBYTE wCurrentScreen;                /* $C401 */
-extern UBYTE rROMB0;                        /* $2000, the MBC5 ROM bank register */
-
-/* GBDK's SWITCH_ROM_MBC1 is `*(UBYTE *)0x2000 = n`, which SDCC compiles through
- * de (`ld de,#0x2000; ld a,#n; ld (de),a`); the ROM has the named-variable form
- * (`ld hl,#0x2000; ld (hl),#n`), so LSDj wrote the register as a variable. It
- * also keeps the HRAM shadow the far-call helpers rely on. */
-#define SWITCH_ROM(n) hCurrentBank = (n); rROMB0 = (n)
-
-void DrawPhraseScreen(void);        /* $04:$4CE5 */
-void DrawGrooveScreen(void);        /* $1D:$41DA */
-void DrawChainScreen(void);         /* $06:$5947 */
-void DrawSongScreen(void);          /* $07:$4574 */
-void DrawTableScreen(void);         /* $05:$4762 */
-void DrawInstrumentScreen(void);    /* $03:$4DE7 */
-void DrawWaveScreen(void);          /* $06:$4F18 */
-void DrawProjectScreen(void);       /* $1B:$5C17 */
-void DrawSynthScreen(void);         /* $1D:$68AB */
-void DrawWordScreen(void);          /* $06:$41A2 */
-void DrawFileScreen(void);          /* $1C:$57BB */
-void DrawHelpScreen(void);          /* $1B:$4A62 */
+#include "lsdj.h"
 
 void ScreenDrawDispatch(void)
 {

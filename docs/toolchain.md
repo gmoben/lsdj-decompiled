@@ -9,25 +9,29 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 
 | Question | Answer |
 |----------|--------|
-| What compiled LSDj? | **GBDK 2.95-3** (19 Aug 2000) → **SDCC 2.2.1** (`gbz80` target), default `asxxxx` assembler/linker, small memory model — **plus an accumulator-tracking optimisation stock SDCC lacks** (the "modified GBDK"), modelled here as 39 peephole rules in six families (below) |
+| What compiled LSDj? | **GBDK 2.95-3** (19 Aug 2000) → **SDCC 2.2.1** (`gbz80` target), default `asxxxx` assembler/linker, small memory model — **plus an accumulator-tracking optimisation stock SDCC lacks** (the "modified GBDK"), modelled here as 42 peephole rules in six families (below) |
 | Can we run it today? | **Yes** — the period `sdcc.exe` runs under **Wine** (32-bit PE; re-verified on wine-11.17); `tools/toolchain/fetch_gbdk295.sh` downloads it |
 | Is it the right toolchain? | **Yes, for the code generator**: LSDj's instruction selection, register allocation and frame idioms are SDCC 2.2.1's line for line, and GBDK 2.95 library code in the ROM is byte-identical to its sources (`display_off` ← `crt0.s`, `strcpy` ← `asm_string.s`, `set_bkg_palette` ← `cgb.s`, `set_bkg_tiles` ← `set_bk_t.s` + `set_xy_t.s`, the SDCC `mul` runtime). Stock output does **not** match on its own: LSDj's build also ran peephole rules that stock 2.95-3 lacks |
-| Matched real LSDj functions? | **Yes — ten**, in four banks: a message renderer, two wrappers, a 15-case `switch`, a sparse `switch`, a 16-bit SRAM accessor, a two-branch draw helper. `make match` re-verifies them all in ~3 s, and **their bytes in the ROM build come from the compiled C** (below) |
+| Matched real LSDj functions? | **Yes — 44**, in five banks (the list: [`c/matched.json`](../c/matched.json)): a message renderer, a 15-case `switch`, a sparse `switch`, the SRAM accessors, and the instrument screen's field accessors and draw helpers. `make match` re-verifies them all (cached: only changed sources reach the compiler), and **their bytes in the ROM build come from the compiled C** (below) |
 | Is all of LSDj C? | **No.** ~130 functions (7% of the instructions) are hand-written assembly — the interrupt handlers, sound tick, envelope/pitch and tile-loader code in bank 0, and the sequencer core in bank `$02` (`tools/match/code_kind.py`). Those stay asm; the ~830 others (every editor) are Track 2 targets |
 | Go/no-go on Track 2? | **Go, with the rule set still growing.** Every function tried has matched (each new one has cost a few rules so far), the C feeds the ROM build with `make compare` as the gate, and the hand-written asm (7%) is mapped and excluded |
 
 ## Matched functions
 
-| Function | Where | Size | What it exercises | Source |
-|----------|-------|------|-------------------|--------|
-| `DrawMessageBar` | `$01:$74F7` | 198 B | globals, `sfr` HRAM stores, two loops, calls | [`c/bank01/DrawMessageBar.c`](../c/bank01/DrawMessageBar.c) |
-| `ShowOutOfMemory`, `ShowTapAddChain` | `$01:$75BD`, `$01:$75F8` | 10 B each | one-line wrappers, 16-bit argument | [`c/bank01/ShowMessages.c`](../c/bank01/ShowMessages.c) |
-| `ScreenDrawDispatch` | `$00:$254F` | 252 B | 15-case `switch` → `jp hl` table, bank switching, cross-bank calls | [`c/bank00/ScreenDrawDispatch.c`](../c/bank00/ScreenDrawDispatch.c) |
-| `ReadInstrByte` | `$00:$0A91` | 81 B | byte args, pointer local, 16-bit shift loop, asserts, return value | [`c/bank00/InstrByte.c`](../c/bank00/InstrByte.c) |
-| `DrawTileHexCell` | `$06:$7524` | 130 B | consecutive updates of a stack local, sign test, `-t`, pointer table | [`c/bank06/DrawTileHexCell.c`](../c/bank06/DrawTileHexCell.c) |
-| `WriteInstrByte`, `ReadCurInstrByte` | `$00:$0953`, `$00:$0AE2` | 102 B, 20 B | 3-arg call, compound assert, `p + (unsigned int)field`; a one-line forwarder | [`c/bank00/InstrByte.c`](../c/bank00/InstrByte.c) |
-| `ReadSeqByte` | `$00:$0AF6` | 94 B | `?:` on bit 7 of a call result | [`c/bank00/ReadSeqByte.c`](../c/bank00/ReadSeqByte.c) |
-| `DrawSyncField` | `$1B:$58B1` | 262 B | sparse `switch` (`cp` chain), if/else, a pointer local chosen by a condition, 4-arg calls | [`c/bank1b/DrawSyncField.c`](../c/bank1b/DrawSyncField.c) |
+| Source | Functions | What they exercise |
+|--------|-----------|--------------------|
+| [`c/bank00/InstrByte.c`](../c/bank00/InstrByte.c) | `WriteInstrByte`, `ReadInstrByte`, `ReadCurInstrByte` | byte args, pointer local, 16-bit shift loop, asserts (one compound), both forms of pointer + byte |
+| [`c/bank00/ReadSeqByte.c`](../c/bank00/ReadSeqByte.c) | `ReadSeqByte` | `?:` on bit 7 of a call result |
+| [`c/bank00/ScreenDrawDispatch.c`](../c/bank00/ScreenDrawDispatch.c) | `ScreenDrawDispatch` (252 B) | 15-case `switch` → `jp hl` table, bank switching, cross-bank calls |
+| [`c/bank01/DrawMessageBar.c`](../c/bank01/DrawMessageBar.c) | `DrawMessageBar` (198 B) | globals, `sfr` HRAM stores, two loops, calls |
+| [`c/bank01/ShowMessages.c`](../c/bank01/ShowMessages.c) | `ShowOutOfMemory`, `ShowTapAddChain` | one-line wrappers, 16-bit argument |
+| [`c/bank03/InstrScreen.c`](../c/bank03/InstrScreen.c) | 34 functions of the instrument screen | field get/set/step helpers, `FarCall` in both address forms, SRAM literal addresses, a string literal placed after its function, `hl` kept across a `!=` compare |
+| [`c/bank06/DrawTileHexCell.c`](../c/bank06/DrawTileHexCell.c) | `DrawTileHexCell` (130 B) | consecutive updates of a stack local, sign test, `-t`, pointer table |
+| [`c/bank1b/DrawSyncField.c`](../c/bank1b/DrawSyncField.c) | `DrawSyncField` (262 B) | sparse `switch` (`cp` chain), if/else, a pointer local chosen by a condition, 4-arg calls |
+
+Shared prototypes, variables and the SRAM layout live in
+[`c/include/lsdj.h`](../c/include/lsdj.h); a signature is part of the match, so
+it is settled there once.
 
 ```sh
 make match                      # every c/bankNN/*.c linked at its ROM address and compared
@@ -61,6 +65,7 @@ common (byte-pattern counts over banks `$01`-`$07`, `$1B`-`$1F`):
 | Dead stores | `ld X,a`; *a-only ops*; `ld X,a` → first store dropped (X a register or `(hl)`, also when the first store is followed by its reload) | 0 | (small; e.g. `and 3; add a,a; ld c,a` ×2) |
 | Constant reuse | `ld a,N` / `push af; inc sp` / `ld a,N` → reload dropped, also across `ldh (n),a` + `ld hl,nn; push hl`; `xor a` / `ld hl,sp+N` / `ld a,#0` → reload dropped | 0 | 10, 5, 2 |
 | Compare chains | a sparse `switch` re-reads its global before every `cp` in stock output; LSDj loads it once (one rule per chain position, so the pattern always carries the variable). SDCC's `==` trampoline `jp cc,T; jr F; T: jp X; F:` → `jp cc,X` (the only survivor in the ROM is inside GBDK's stock-compiled `gprintf`) | 0, 1 (library) | 72 |
+| Kept across a test | `ld a,r` / `bit n,a` / `jp cc` / `ld a,r` → reload dropped; `ld hl,#x` / `ld a,(hl)` / `cp a,#n` / `jp z,F` / *(dead label)* / `ld hl,#x` → reload dropped (a `!=` test; stock SDCC's Rule 5 leaves the trampoline's label behind, which makes its codegen forget `hl`); `xor a` / `ld a,#0` → `xor a` | 0, 1 (a real jump target in between), 0 | 68, 7, 6 |
 
 The one register reload LSDj keeps without a label in the way is
 `ld a,(bc); ld c,a; ld a,c` (`DrawTileHexCell`, `$06:$7553`): the pointer
@@ -81,14 +86,21 @@ Expect `lsdj.peep` to keep growing: `DrawMessageBar` needed 6 rules,
 `DrawTileHexCell` added 10, `ReadInstrByte` 2, `DrawSyncField` 11 (ten of
 them the compare-chain positions); the other six needed none.
 
-Two limits of SDCC 2.2.1's own rule matcher shaped how the rules are applied:
-a `%n` variable never spans a comma (`cp %1` cannot match `cp a,#1`), and a
-source line is compared *with* its trailing comment (`ld a,(hl) ; 2`), which
-no rule can name because `;` opens a comment in the rule file. That is one
+The `==`/`!=` asymmetry is telling: for `if (x == N) x--;` the ROM keeps the
+`hl` reload (17 sites), for `if (x != N) x++;` it drops it (7 sites; the one
+`jp z` site that keeps it has a real jump target in between). Stock SDCC
+reloads in both; the rule needs `if labelRefCount %5 0` (later SDCC's
+syntax), which `peep.py` implements.
+
+SDCC 2.2.1's own rule matcher can't apply these rules: a `%n` variable never
+spans a comma (`cp %1` cannot match `cp a,#1`), a source line is compared
+*with* its trailing comment (`ld a,(hl) ; 2`), which no rule can name because
+`;` opens a comment in the rule file, and with rules whose mnemonic is a
+variable (`%1 a`) loaded it crashes (exit 5) on larger units. That is one
 more sign LSDj's compiler did this in its code generator, not in text rules.
-The harness therefore applies `lsdj.peep` twice: once inside SDCC
-(`--peep-file`) and once afterwards with our own matcher
-(`tools/match/peep.py`, same syntax, comments stripped).
+The harness therefore compiles with SDCC's stock rules and applies
+`lsdj.peep` afterwards with its own matcher (`tools/match/peep.py`, same
+syntax, comments stripped).
 
 ## Compiler versions checked
 
@@ -149,6 +161,23 @@ stub, GBDK library routines, and bank `$02`'s note/period/sequencer core
   plain `array` stores the two immediate bytes directly.
 - Byte arguments are pushed right-to-left with `push af; inc sp`; a 16-bit
   argument with `push hl`. Return values come back in `e`.
+- **SRAM is addressed with numbers.** `(UBYTE *)0xA040 + (UWORD)i` computes
+  `i` first and adds the constant (`ld a,c; add a,$40; …; adc a,$a0`): SDCC
+  swaps a *literal* left operand of `+` to the right, but an extern's address
+  stays left (`ld a,#<sym; add a,c`). So the `SramXxx` names in `lsdj.h` are
+  literal-pointer macros, not linker symbols. `(UWORD)i + ptr` does not help:
+  pointer arithmetic is canonicalised to `ptr + int`.
+- **Banked calls** (`FarCall(bank, fn)`, `FarCallArg(bank, fn, arg)`): passing
+  the function loads it with `ld bc,#fn`; some call sites instead load it
+  byte-wise (`ld c,#<fn; ld b,#>fn`), which is a cast through an integer
+  (`FAR_FN(fn)` in `lsdj.h`). FarCallArg's address parameter is a `UWORD`
+  (`(UWORD)fn` at its call sites). A cast to another pointer type, `banked`
+  or `nonbanked` all fold away.
+- **String literals** are emitted right after the function that uses them, as
+  in the ROM (`DrawInstrByte11`'s `"--"` at `$03:$49E4`).
+- **SDCC 2.2.1 corrupts its public-symbol list in large units** (a `.globl`
+  of garbage bytes replacing some function names); the code is unaffected.
+  The harness drops the garbage and re-declares every defined function.
 - With 2.95-3 no `nonbanked` is needed; with plain 2.95 every definition and
   prototype needs it.
 
@@ -193,8 +222,8 @@ script the tools yourself.
 `tools/match/match_function.py`:
 
 ```
-file.c --[sdcc -mgbz80 -S --peep-file lsdj.peep]--> file.asm
-       --[tools/match/peep.py lsdj.peep]--> file.asm  (rules SDCC's matcher can't apply)
+file.c --[sdcc -mgbz80 -S]--> file.asm           (stock rules; .globl list repaired)
+       --[tools/match/peep.py lsdj.peep]--> file.asm
        --[as-gbz80 -l -o]--> file.o + file.lst
 --target NAME|BB:AAAA:
        --[link-gbz80 -i -b_CODE=<addr> -b_HOME=<addr> -g_<sym>=<addr> ...]--> file.ihx
@@ -204,13 +233,21 @@ without --target (leaf functions only, no relocations):
 ```
 
 Every extern is resolved from GBDK's `libc/gb/sfr.s` register names,
-`include/hardware.inc` (`rROMB0` …), `constants/ram.inc`, the working-song
-SRAM structures (`SramInstruments` …, from `tools/gen_sym.py`) and
-`src/bank*.sym` (a note lists callees that live in other ROM banks);
-`--define NAME=ADDR` adds or overrides one. On a mismatch it prints the first
-differing bytes and the listing lines around them; `--dump` writes the linked
-bytes for a full diff. `tools/match/verify_all.py` (`make match`) runs every
-function defined under `c/` the same way.
+`include/hardware.inc` (`rROMB0` …), `constants/ram.inc` and `src/bank*.sym`
+(a note lists callees that live in other ROM banks); `--define NAME=ADDR` adds
+or overrides one, and a header extern the unit never references needn't
+resolve. A unit may define several functions: each is linked at its own
+address, and calls between them are *isolated* (the neighbours' definitions
+renamed away, so the calls link to their ROM addresses). On a mismatch it
+prints the first differing bytes and the listing lines around them; `--diff`
+prints both disassemblies aligned, `--dump` writes the linked bytes.
+
+`tools/match/verify_all.py` (`make match`) runs every function defined under
+`c/` the same way, caching compiler output by source/rules/header hash and
+linked bytes by address and extern values under `build/match-cache/`; given
+file arguments (work in progress may live outside `c/`) it checks just those
+and prints where each mismatch starts. `tools/match/shapes.py` lists the
+not-yet-matched C functions by size or groups them by instruction shape.
 
 ## How matched C enters the build
 
@@ -232,8 +269,8 @@ matching C one at a time while `make compare` stays green.
 
 ## What's still unknown
 
-1. **The complete rule set.** 28 rules from six functions; the last two
-   functions each added some, so more will surface. The reload-after-ALU and
+1. **The complete rule set.** 42 rules so far; most new functions need
+   none, but each new idiom can surface one. The reload-after-ALU and
    dead-store families are probably one codegen mechanism (tracking what `a`
    holds) that we model textually; the overlapping-pointer exception rests on
    one site.
@@ -258,6 +295,8 @@ matching C one at a time while `make compare` stays green.
 - [x] Matched C feeds the ROM build (`INCBIN` of the compiled bytes, ROM slice
       without Wine; `make compare` is the gate).
 - [x] A larger, branchier function: `DrawSyncField` (262 B).
+- [x] Shared header, cached batch verification, multi-function units
+      (`c/bank03/InstrScreen.c`: 34 functions).
 - [ ] A screen input handler (300+ instructions) to shake out more rules in one
       go; then generalise the accumulator-tracking rules into one pass if the
       per-shape rules keep multiplying.

@@ -507,3 +507,33 @@ replace restart {
 	jp	%20,%21
 %22:
 }
+replace restart {
+	ld	a,%1
+	bit	%2,a
+	jp	%3,%4
+	ld	a,%1
+} by {
+	ld	a,%1
+	bit	%2,a
+	jp	%3,%4
+}
+replace restart {
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+	cp	a,#%3
+	jp	z,%4
+%5:
+	ld	hl,#%1 + %2
+} by {
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+	cp	a,#%3
+	jp	z,%4
+%5:
+} if labelRefCount %5 0
+replace restart {
+	xor	a,a
+	ld	a,#0x00
+} by {
+	xor	a,a
+}

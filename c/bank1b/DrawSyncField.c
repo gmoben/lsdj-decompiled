@@ -20,21 +20,8 @@
  * this match showed the `push bc` there to be an argument push.
  */
 
-#ifdef __clang__  /* editor tooling only: SDCC 2.2.1 keyword (never set by SDCC) */
-#define sfr
-#endif
+#include "lsdj.h"
 
-typedef unsigned char UBYTE;
-
-extern volatile sfr UBYTE hBgPalette;       /* $FF8C */
-extern volatile sfr UBYTE hBgDigitPalette;  /* $FF8D */
-extern UBYTE hGameboyType;                  /* $FF90 */
-
-extern UBYTE *wVramCursor;                  /* $C573 */
-extern UBYTE wSyncMode;                     /* $CB66 */
-extern UBYTE wSyncMode2;                    /* $CB67 */
-extern UBYTE wShadowDigitPal;               /* $C566 */
-extern UBYTE wShadowPal;                    /* $C567 */
 extern char TxtSyncOff[];                   /* $1B:$59B7 "OFF   " -- six 7-byte strings, each its own symbol */
 extern char TxtSyncLsdj[];                  /* $1B:$59BE */
 extern char TxtSyncMidi[];                  /* $1B:$59C5 */
@@ -44,11 +31,6 @@ extern char TxtSyncAnOut[];                 /* $1B:$59DA */
 extern char TxtSyncPs2[];                   /* $1B:$59E1 "PS/2 DELAY " */
 extern char TxtSyncTicksStep[];             /* $1B:$59ED "TICKS/STEP " */
 extern char TxtBlank13[];                   /* $1B:$59F9 */
-
-void DrawString(char *s);
-void DrawHexByte(UBYTE v);
-void DrawTextField(UBYTE a, UBYTE b, UBYTE c, UBYTE d);
-UBYTE ProjSyncModeIs567(void);
 
 void DrawSyncField(void)
 {

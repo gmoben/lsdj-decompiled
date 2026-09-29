@@ -25,14 +25,9 @@
  * `t` unsigned (`-t` is `xor a; sbc a,(hl)`).
  */
 
-typedef unsigned char UBYTE;
+#include "lsdj.h"
 
-extern char *wChainScratchPtr;          /* $C948 */
 extern char *HexCellPrefixPtrs[];       /* $06:$75A6, [4] -> TxtHexCellPrefix0..3 */
-
-void DrawString(char *s);
-void DrawStringIndexed(UBYTE c);
-void DrawByte(UBYTE v);
 
 void DrawTileHexCell(UBYTE v)
 {
