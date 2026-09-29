@@ -69,10 +69,11 @@ DEF wHelpCursorRow   EQU $C934  ; HELP/word screen cursor row (ProjHelpSelectPre
 DEF wWordEditRow     EQU $C937  ; Word/speech editor: cursor row within the current word (inc/dec by nav); AccessWord indexes word data at +wWordEditRow*2
 DEF wWordEditCol     EQU $C938  ; Word/speech editor: cursor column (0/1) within the row; AccessWord byte offset within the 2-byte unit
 DEF wPlayMarkerTimer EQU $C950  ; Song screen: free-running blink counter incremented each SongUpdatePlayMarker; bit 3 (and $08) is the play-marker on/off phase
-; Table editor cell base pointers (16-bit) into the working table command data;
-; TableGetCellA/B read [ptr + wTable*32 + row] to fetch a CMD1/CMD2 cell byte.
-DEF wTableCellAPtr   EQU $C447  ; [1] 16-bit 16-bit base ptr for TABLE command column A (CMD1); TableGetCellA
-DEF wTableCellBPtr   EQU $C449  ; [1] 16-bit 16-bit base ptr for TABLE command column B (CMD2); TableGetCellB
+; Table editor column bases (addresses held as 16-bit integers): the selected
+; command column ($B680 CMD1 or $BA80 CMD2, SRAM bank 1) and its value column
+; ($B880 / $BC80); the accessors use [base + wTable*16 + step].
+DEF wTableCellAPtr   EQU $C447  ; [1] 16-bit base of the table command column (CMD1/CMD2); TableReadCmd, TableWriteCmd
+DEF wTableCellBPtr   EQU $C449  ; [1] 16-bit base of its value column; TableReadVal, TableWriteVal
 DEF wGrooveRow       EQU $C9D4  ; Groove editor: current step/row cursor (0-15)
 DEF wSynthScreen     EQU $C441  ; Synth editor: current synth screen/sub-state (pairs with wSynthCursor); Synth* owned
 DEF wSynthCursor     EQU $C442  ; Synth editor: current parameter/cursor index
