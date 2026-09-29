@@ -66,8 +66,8 @@ DEF wTableCol        EQU $C92F  ; Table editor: current column/cursor state (bit
 DEF wTableRow        EQU $C930  ; Table editor: current row cursor (0-15); pairs with wTableCol
 DEF wDefaultNotes     EQU $C904  ; table/array of default note values (InstrScreenInput / InstrParamByte10 / InstrParamTableSet2; reset in ResetWorkState)
 DEF wHelpCursorRow   EQU $C934  ; HELP/word screen cursor row (ProjHelpSelectPrev/Next/OpenSelected)
-DEF wWordEditRow     EQU $C937  ; Word/speech editor: cursor row within the current word (inc/dec by nav); AccessWord indexes word data at +wWordEditRow*2
-DEF wWordEditCol     EQU $C938  ; Word/speech editor: cursor column (0/1) within the row; AccessWord byte offset within the 2-byte unit
+DEF wWordEditRow     EQU $C937  ; Word/speech editor: cursor row within the current word (inc/dec by nav); ReadWordCell indexes word data at +wWordEditRow*2
+DEF wWordEditCol     EQU $C938  ; Word/speech editor: cursor column (0/1) within the row; ReadWordCell byte offset within the 2-byte unit
 DEF wPlayMarkerTimer EQU $C950  ; Song screen: free-running blink counter incremented each SongUpdatePlayMarker; bit 3 (and $08) is the play-marker on/off phase
 ; Table editor column bases (addresses held as 16-bit integers): the selected
 ; command column ($B680 CMD1 or $BA80 CMD2, SRAM bank 1) and its value column
