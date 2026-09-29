@@ -10,18 +10,18 @@
 5957 TxtCutChains       ; "CUT CHAINS"
 5B0F TxtPastedChains    ; "PASTED CHAINS"
 7171 TxtKeyboardCal     ; "KEYBOARD CALIBRATION"
-40D0 SongCellAddr       ; -> &chain_assignments[row*4+channel] (song $1290 / SRAM bank0 $B290); row<128
+40D0 WriteSongCell              ; write song[row][col] = chain (SRAM bank 0 $B290); asserts col < 4, row <= $BF, chain < $80 or $FF
 7220 VramCopyByteSafe   ; spin until rSTAT mode<2 (VRAM free), then copy [de]->[hl], inc e/l
 4574 DrawSongScreen      ; screen idx 4: draws the song sequence (4 channels = PU1/PU2/WAV/NOI)
 47AA SongScreenUpdate   ; per-frame visual update (screen idx 4)
 4139 SongEnterChain             ; cache chain -> $c44f+wSongCol column cache, cancel selection, IsSongChainUsed check
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
-4000 SongCheckGlyphTables       ; bounds-checked indices into ROM glyph tables $4A70/$4D70 (DebugTrap on overflow)
+4000 SongCopyColumn             ; copy a song column from p to q (stride 4) until p reaches $B590 (SongScanSram); asserts both >= $B290, q < $B590
 404B SongChanActiveMask         ; OR wChanActive[0..3] -> combined active flag
-4084 SongReadCellValue          ; read song-grid cell at col $c41d / row $c41e (IsBookmarked)
+4084 SongEraseCursor            ; restore the cursor cell palette (1 if the row is bookmarked, else 0) at SongColOffsets[wSongCol]
 4366 .showCloneMsg        ; (was SongShowCloneMsg) show "CLONED CHAIN" / "CLONED CHAIN+PHRASES" popup
-4395 SongDrawCellHw             ; draw song-grid cell (palette per hGameboyType)
+4395 SongDrawCursor             ; highlight the cursor cell (palette 3 on CGB, 2 on DMG) at SongColOffsets[wSongCol]
 43E4 SongReadRow                ; read song row $c41c from SRAM ($B290, ReadSongBytes) -> $c46d (16 bytes)
 4463 SongDrawRowNum             ; draw a song row number + bookmark marker (wSongScroll window, 18 rows)
 451E SongRedrawRow              ; SongReadRow + draw the row at VRAM $9842 (palettes, SongDrawColumnValues/4395)
@@ -62,7 +62,7 @@
 7276 VramCopyRowUp              ; copy tilemap row 17 -> row 16 (VBK-aware, calib screen)
 72C1 SongScrollVramUp           ; shift VRAM rows up ($9a00 -> $9a20, 15 bytes, hblank-safe)
 735B SongScrollVramDown         ; shift VRAM rows down (counterpart of SongScrollVramUp)
-73F5 SongScanSram               ; read SRAM bytes (di-guarded) until pointer reaches $B590
+73F5 SongScanSram               ; copy [hl] -> [de] in SRAM bank 0 (di-guarded), both += 4, until hl reaches $B590
 7422 SongWriteSramBytes         ; write N bytes (count arg) to SRAM (di, bank-select, $0a enable)
 ; --- functions called from bank 0 (this bank paged in) ---
 68A2 ProcessLinkQueue           ; drain the link-port ring buffer ($cb81+, head $cb80): keyboard scancodes / sync bytes
@@ -91,7 +91,7 @@
 403F SongColFlags               ; 8-byte per-column flag row (precedes SongColOffsets)
 
 ; --- structural local names (loop heads / common exits) ---
-4106 .loop                ; loop head in SongCellAddr
+4106 .loop                ; loop head in WriteSongCell
 4194 .loop                ; loop head in SongEnterChain
 41D7 .loop2               ; loop head in SongEnterChain
 436F .done                ; common exit of SongEnterChain

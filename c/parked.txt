@@ -11,3 +11,7 @@ ClearTableRow      $1F:$5183 -- pointer param copied to b,c before the call, the
 GetInstrFlags1F5   $1F:$40CA -- `v = f() & 0x80; if (v)` (ROM: and; ld c,a; or a,c; jp z) makes SDCC 2.2.1 assert (gen.c 3215, genAnd single-bit + ifx); no crash-free spelling found yet
 MarkPhraseDataUsed $1F:$5F20 -- frame 3 with i at sp+0 and p at sp+1, call first, p copied to b,c for the push; ours keeps i in c (call-first) or evaluates the table first
 GrooveDrawField    $1D:$40AE -- `(wGrooveRow & 2) ? 0 : 1`: stock SDCC copies the global (`ld c,(hl); ld a,c; bit 1,a`), the ROM tests it directly (`ld a,(hl); bit`, 34 global sites vs 7 copies); opPreservesA-accepts-literals variant breaks 10 matched functions
+IsBookmarked       $07:$6320 -- ROM spills the loop counter (sp+2) and the pointer (sp+0) and pushes the pointer through a b/c copy (low byte in b); ours keeps i in c and spills only the pointer (UWORD/char* pointer, CSE'd and do-while forms tried)
+RemoveBookmark     $07:$63B5 -- same spill shape as IsBookmarked without the copy: i at sp+2, pointer at sp+0, the read byte in c; ours keeps i in c
+SongFindNextRow    $07:$4998 -- ROM spills the loop counter and keeps r in b, the IsBookmarked result in c; 2.2.1 spills r (used 7: its `wSongRow = r; return` block is outside the loop) rather than i (used 9)
+SongFindPrevRow    $07:$4A25 -- same spill choice as SongFindNextRow

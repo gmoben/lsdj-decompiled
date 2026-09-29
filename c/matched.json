@@ -1061,6 +1061,18 @@
   "len": 10,
   "src": "c/bank01/ShowMessages.c"
  },
+ "SongBeginSelection": {
+  "bank": "07",
+  "addr": "4AB8",
+  "len": 69,
+  "src": "c/bank07/SongScreen.c"
+ },
+ "SongCopyColumn": {
+  "bank": "07",
+  "addr": "4000",
+  "len": 63,
+  "src": "c/bank07/SongScreen.c"
+ },
  "SongCursorPageDown": {
   "bank": "07",
   "addr": "49E7",
@@ -1073,10 +1085,22 @@
   "len": 63,
   "src": "c/bank07/SongScreen.c"
  },
+ "SongDrawCursor": {
+  "bank": "07",
+  "addr": "4395",
+  "len": 79,
+  "src": "c/bank07/SongScreen.c"
+ },
  "SongDrawCursorRow": {
   "bank": "07",
   "addr": "492D",
   "len": 33,
+  "src": "c/bank07/SongScreen.c"
+ },
+ "SongEraseCursor": {
+  "bank": "07",
+  "addr": "4084",
+  "len": 76,
   "src": "c/bank07/SongScreen.c"
  },
  "SongLoadCursorChain": {
@@ -1216,6 +1240,12 @@
   "addr": "5002",
   "len": 56,
   "src": "c/bank03/InstrScreen.c"
+ },
+ "WriteSongCell": {
+  "bank": "07",
+  "addr": "40D0",
+  "len": 105,
+  "src": "c/bank07/SongScreen.c"
  },
  "WriteSynthParam": {
   "bank": "1D",
