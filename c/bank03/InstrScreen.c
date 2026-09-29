@@ -124,7 +124,7 @@ void InstrTableNew(void)
     WriteCurrentInstrByte(6, t | (v & 0xD0));
     hBgDigitPalette = wSelectDigitPal;
     hBgPalette = wSelectPal;
-    FarCall(0x1F, FAR_FN(GetInstrTable1F2));
+    FarCall(0x1F, FAR_FN(DrawInstrTableField));
 }
 
 void SetInstrLen(void)
@@ -248,7 +248,7 @@ void InstrTableModePrev(void)
     wVramCursor++;
     hBgDigitPalette = wShadowDigitPal;
     hBgPalette = wShadowPal;
-    FarCall(0x1F, FAR_FN(GetInstrTable1F2));
+    FarCall(0x1F, FAR_FN(DrawInstrTableField));
 }
 
 void InstrTableModeNext(void)
@@ -265,7 +265,7 @@ void InstrTableModeNext(void)
     wVramCursor++;
     hBgDigitPalette = wShadowDigitPal;
     hBgPalette = wShadowPal;
-    FarCall(0x1F, FAR_FN(GetInstrTable1F2));
+    FarCall(0x1F, FAR_FN(DrawInstrTableField));
 }
 
 void InstrTableNext(void)
@@ -279,7 +279,7 @@ void InstrTableNext(void)
             return;
         v++;
         WriteCurrentInstrByte(6, v);
-        FarCall(0x1F, FAR_FN(GetInstrTable1F2));
+        FarCall(0x1F, FAR_FN(DrawInstrTableField));
     }
 }
 
@@ -300,7 +300,7 @@ void SetInstrTable5(void)
         } else {
             v--;
             WriteCurrentInstrByte(6, v);
-            FarCall(0x1F, FAR_FN(GetInstrTable1F2));
+            FarCall(0x1F, FAR_FN(DrawInstrTableField));
         }
     }
 }
@@ -314,7 +314,7 @@ void InstrTableAdd16(void)
         if (!wButtonsSame) {
             v |= 0x10;
             WriteCurrentInstrByte(6, v);
-            FarCall(0x1F, FAR_FN(GetInstrTable1F2));
+            FarCall(0x1F, FAR_FN(DrawInstrTableField));
         }
     }
 }
@@ -327,7 +327,7 @@ void InstrTableSub16(void)
     if (v & 0x20) {
         v &= 0xEF;
         WriteCurrentInstrByte(6, v);
-        FarCall(0x1F, FAR_FN(GetInstrTable1F2));
+        FarCall(0x1F, FAR_FN(DrawInstrTableField));
     }
 }
 

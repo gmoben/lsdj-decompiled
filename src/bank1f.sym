@@ -33,7 +33,7 @@
 7097 RedrawScreenFar1F          ; FarCall home RedrawScreen ($24dd) with bank 4 arg
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
-409C GetInstrTable1F2                       ; read instrument byte 6 = table (bits0-4) + enable (bit5)
+409C DrawInstrTableField        ; draw the instrument's table field: table number (hex) if on, '--' if off
 40CA GetInstrFlags1F5                       ; read instrument byte 5 flags (bit3 = table STEP/AUTOMATE mode, vibrato bits)
 411F DrawTableFlag              ; draw the instr TABLE on/off state glyph (field 5) with palettes
 418A GetInstrEnv1F2                           ; read instrument byte 1 = envelope/volume
@@ -134,7 +134,7 @@
 648B TxtOk3                     ; "OK!"
 
 ; --- structural local names (loop heads / common exits) ---
-40C5 .done                ; common exit of GetInstrTable1F2
+40C5 .done                ; common exit of DrawInstrTableField
 4111 .done                ; common exit of GetInstrFlags1F5
 4168 .done                ; common exit of GetInstrEnv1F
 4234 .done                ; common exit of GetInstrEnv1F2

@@ -1,0 +1,12 @@
+# Matching C tried and set aside: NAME $BB:$AAAA -- what differs from the ROM (tools/match/update_counts.py
+# renders this into docs/toolchain.md). Remove a line when the function matches.
+SetInstrFlags54 $03:$4B5E  -- the `ld b,c; ld a,b` copy is a `char` local (as DrawInstrTableField); then `and a,$f8; ld c,a ... or a,c`: the AND result must stay in c, ours packs it into a (the or-a,a bug shape)
+SetInstrLen2    $03:$441A  -- synth clone, 19-byte frame: widened (UWORD) copies of i/so spilled, long `| 0xA000`; not LICM (FileForEachInstrType proves hoisting on)
+FileUpgradeV3Pulse $1C:$628B -- same `ld b,c; ld a,b; and; or #n; ld c,a` tail as V3Kit
+FileUpgradeV3Kit   $1C:$62D3 -- with `(char)v` casts all but one byte matches: the tail's `and a,$f9` result stays in a for `| 1` in the ROM, ours stores it to b (stock packing refuses a literal operand)
+FileUpgradeV0Kit   $1C:$6134 -- all 5 byte locals + a 16-bit temp on the stack (frame 7); ours keeps 2 in registers, 8-bit clear (~0x20 folds)
+FileUpgradeV2      $1C:$622D -- only an `ld hl,sp+0` reload after `or a,a; jp z` (&& chain on a named local): ROM keeps hl there, but reloads in switch chains
+FileCheckByte6973  $1C:$6973 -- pointer param copied to a local (frame 3), deref via de; ours via bc
+ClearTableRow      $1F:$5183 -- pointer param copied to b,c before the call, then incremented in place on the stack after it; p++ / post-increment / a local copy don't give that
+GetInstrFlags1F5   $1F:$40CA -- `v = f() & 0x80; if (v)` (ROM: and; ld c,a; or a,c; jp z) makes SDCC 2.2.1 assert (gen.c 3215, genAnd single-bit + ifx); no crash-free spelling found yet
+MarkPhraseDataUsed $1F:$5F20 -- frame 3 with i at sp+0 and p at sp+1, call first, p copied to b,c for the push; ours keeps i in c (call-first) or evaluates the table first

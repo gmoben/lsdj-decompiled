@@ -1,8 +1,20 @@
 {
+ "AllocNextFreeInstr": {
+  "bank": "1F",
+  "addr": "4A65",
+  "len": 105,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
  "BuildUsedTablesMap": {
   "bank": "1F",
   "addr": "52B3",
   "len": 39,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
+ "DrawAllChanStatus": {
+  "bank": "1F",
+  "addr": "7072",
+  "len": 37,
   "src": "c/bank1f/InstrHelpers.c"
  },
  "DrawInstrByte10": {
@@ -29,17 +41,35 @@
   "len": 231,
   "src": "c/bank03/InstrScreen.c"
  },
+ "DrawInstrParamField": {
+  "bank": "1F",
+  "addr": "70DF",
+  "len": 41,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
  "DrawInstrRow14": {
   "bank": "03",
   "addr": "49FD",
   "len": 71,
   "src": "c/bank03/InstrScreen.c"
  },
+ "DrawInstrTableField": {
+  "bank": "1F",
+  "addr": "409C",
+  "len": 43,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
  "DrawKitDistName": {
   "bank": "03",
   "addr": "4A44",
   "len": 112,
   "src": "c/bank03/InstrScreen.c"
+ },
+ "DrawKitNameCell": {
+  "bank": "1F",
+  "addr": "44B7",
+  "len": 38,
+  "src": "c/bank1f/InstrHelpers.c"
  },
  "DrawKitNameField": {
   "bank": "03",
@@ -64,6 +94,12 @@
   "addr": "58B1",
   "len": 262,
   "src": "c/bank1b/DrawSyncField.c"
+ },
+ "DrawTableFlag": {
+  "bank": "1F",
+  "addr": "411F",
+  "len": 56,
+  "src": "c/bank1f/InstrHelpers.c"
  },
  "DrawTileHexCell": {
   "bank": "06",
@@ -335,6 +371,12 @@
   "len": 33,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "InitRemapTable": {
+  "bank": "1F",
+  "addr": "4A26",
+  "len": 63,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
  "InstrByte9IsZero": {
   "bank": "03",
   "addr": "4105",
@@ -389,6 +431,12 @@
   "len": 59,
   "src": "c/bank03/InstrScreen.c"
  },
+ "InstrHCollectUsedTables": {
+  "bank": "1F",
+  "addr": "526B",
+  "len": 72,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
  "InstrHCountUsedChains": {
   "bank": "1F",
   "addr": "5DF3",
@@ -405,6 +453,12 @@
   "bank": "1F",
   "addr": "50CC",
   "len": 42,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
+ "InstrHDrawParamField": {
+  "bank": "1F",
+  "addr": "70B6",
+  "len": 41,
   "src": "c/bank1f/InstrHelpers.c"
  },
  "InstrHGetParamPlus4": {
@@ -431,10 +485,22 @@
   "len": 24,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "InstrHProcessUsedTables": {
+  "bank": "1F",
+  "addr": "50F6",
+  "len": 71,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
  "InstrHReadCursorCellAt": {
   "bank": "1F",
   "addr": "6EFE",
   "len": 22,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
+ "InstrHReadTableRow": {
+  "bank": "1F",
+  "addr": "4B00",
+  "len": 69,
   "src": "c/bank1f/InstrHelpers.c"
  },
  "InstrHScanAllChainPhr": {
@@ -605,6 +671,18 @@
   "len": 83,
   "src": "c/bank03/InstrScreen.c"
  },
+ "MarkChainPhrasesUsed": {
+  "bank": "1F",
+  "addr": "5413",
+  "len": 78,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
+ "PhraseScreenUpdate": {
+  "bank": "1F",
+  "addr": "648F",
+  "len": 82,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
  "ReadCurInstrByte": {
   "bank": "00",
   "addr": "0AE2",
@@ -747,6 +825,12 @@
   "bank": "1F",
   "addr": "62BD",
   "len": 32,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
+ "WriteChainPhrase": {
+  "bank": "1F",
+  "addr": "48C5",
+  "len": 85,
   "src": "c/bank1f/InstrHelpers.c"
  },
  "WriteCurrentInstrByte": {

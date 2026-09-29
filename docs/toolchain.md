@@ -12,7 +12,7 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 | What compiled LSDj? | **GBDK 2.95-3** (19 Aug 2000) → **SDCC 2.2.1** (`gbz80` target), default `asxxxx` assembler/linker, small memory model — **plus an accumulator-tracking optimisation stock SDCC lacks** (the "modified GBDK"), modelled here as an accumulator-tracking pass plus 66 peephole rules (below) |
 | Can we run it today? | **Yes, natively.** SDCC 2.2.1 + `sdcpp`/`as-gbz80`/`link-gbz80` build from the GBDK 2.95-2 sources (`tools/toolchain/build_sdcc221.sh`, ~15 s) and emit **byte-identical** asm, objects, listings and images to GBDK 2.95-3's Win32 binaries — which still run under Wine (`fetch_gbdk295.sh`), but crash on large units (below) |
 | Is it the right toolchain? | **Yes, for the code generator**: LSDj's instruction selection, register allocation and frame idioms are SDCC 2.2.1's line for line, and GBDK 2.95 library code in the ROM is byte-identical to its sources (`display_off` ← `crt0.s`, `strcpy` ← `asm_string.s`, `set_bkg_palette` ← `cgb.s`, `set_bkg_tiles` ← `set_bk_t.s` + `set_xy_t.s`, the SDCC `mul` runtime). Stock output does **not** match on its own: LSDj's build also ran peephole rules that stock 2.95-3 lacks |
-| Matched real LSDj functions? | **Yes — 128**, in seven banks (the list: [`c/matched.json`](../c/matched.json)): a message renderer, a 15-case `switch`, a sparse `switch`, the SRAM accessors, and the instrument screen's field accessors and draw helpers. `make match` re-verifies them all (cached: only changed sources reach the compiler), and **their bytes in the ROM build come from the compiled C** (below) |
+| Matched real LSDj functions? | **Yes — 142**, in seven banks (the list: [`c/matched.json`](../c/matched.json)): a message renderer, a 15-case `switch`, a sparse `switch`, the SRAM accessors, and the instrument screen's field accessors and draw helpers. `make match` re-verifies them all (cached: only changed sources reach the compiler), and **their bytes in the ROM build come from the compiled C** (below) |
 | Is all of LSDj C? | **No.** ~130 functions (7% of the instructions) are hand-written assembly — the interrupt handlers, sound tick, envelope/pitch and tile-loader code in bank 0, and the sequencer core in bank `$02` (`tools/match/code_kind.py`). Those stay asm; the ~830 others (every editor) are Track 2 targets |
 | Go/no-go on Track 2? | **Go, with the rule set still growing.** Every function tried has matched (each new one has cost a few rules so far), the C feeds the ROM build with `make compare` as the gate, and the hand-written asm (7%) is mapped and excluded |
 
@@ -27,7 +27,7 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 | [`c/bank01/ShowMessages.c`](../c/bank01/ShowMessages.c) | `ShowOutOfMemory`, `ShowTapAddChain` | one-line wrappers, 16-bit argument |
 | [`c/bank03/InstrScreen.c`](../c/bank03/InstrScreen.c) | 62 functions of the instrument screen | field get/set/step helpers, `FarCall` in both address forms, SRAM literal addresses, a string literal placed after its function, `hl` kept across a `!=` compare |
 | [`c/bank1c/FileUpgrade.c`](../c/bank1c/FileUpgrade.c) | 28 functions: the song-format upgrades | per-type instrument callbacks through a function pointer (`FileForEachInstrType`), the upgrade steps' field fix-ups, a 16-bit `\|` forced by an `int` constant |
-| [`c/bank1f/InstrHelpers.c`](../c/bank1f/InstrHelpers.c) | 28 functions: bank $1F helpers | the used-table/phrase/chain scans and counters (one template, four limits), SRAM resets bracketed by `_asm di _endasm;` and MBC register writes, a function that returns `e` by accident (no `return`) |
+| [`c/bank1f/InstrHelpers.c`](../c/bank1f/InstrHelpers.c) | 42 functions: bank $1F helpers | the used-table/phrase/chain scans and counters (one template, four limits), SRAM resets bracketed by `_asm di _endasm;` and MBC register writes, a function that returns `e` by accident (no `return`) |
 | [`c/bank06/DrawTileHexCell.c`](../c/bank06/DrawTileHexCell.c) | `DrawTileHexCell` (130 B) | consecutive updates of a stack local, sign test, `-t`, pointer table |
 | [`c/bank1b/DrawSyncField.c`](../c/bank1b/DrawSyncField.c) | `DrawSyncField` (262 B) | sparse `switch` (`cp` chain), if/else, a pointer local chosen by a condition, 4-arg calls |
 
@@ -215,6 +215,11 @@ stub, GBDK library routines, and bank `$02`'s note/period/sequencer core
   are 67 bytes (the NOISE row has 13 fields), so they are declared, not
   defined, in the C. SDCC's runtime helpers (`__muluchar`, `__divuint`, …)
   resolve to our names for those GBDK routines (`MulU8`, `DivU16`, …).
+- **Plain `char` locals are signed**, and LSDj's source uses them: reading a
+  byte into a `char` and testing or masking it compiles to a copy first
+  (`ld b,c; ld a,b; bit 5,a` — the implicit conversion), which `UBYTE` does
+  not produce. `DrawInstrTableField`'s `char v` is the first confirmed case;
+  the same copy shows in several parked functions.
 - **Constants above 127 are `int`s**: `v & 0xF0` feeding another operation
   is done in 16 bits (`and a,$f0; ld b,$00`), which is why
   `FileUpgradeRemapBits` builds its result in a 16-bit temporary. Assigned
@@ -349,14 +354,16 @@ shape.
 
 | Function | Where | What differs |
 |----------|-------|--------------|
-| `SetInstrFlags54` | `$03:$4B5E` | `ld b,c; ld a,b; and a,$f8; ld c,a ... or a,c`: copy of a call result + AND kept in a register (no packing); no source form found |
+| `SetInstrFlags54` | `$03:$4B5E` | the `ld b,c; ld a,b` copy is a `char` local (as DrawInstrTableField); then `and a,$f8; ld c,a ... or a,c`: the AND result must stay in c, ours packs it into a (the or-a,a bug shape) |
 | `SetInstrLen2` | `$03:$441A` | synth clone, 19-byte frame: widened (UWORD) copies of i/so spilled, long `\| 0xA000`; not LICM (FileForEachInstrType proves hoisting on) |
 | `FileUpgradeV3Pulse` | `$1C:$628B` | same `ld b,c; ld a,b; and; or #n; ld c,a` tail as V3Kit |
-| `FileUpgradeV3Kit` | `$1C:$62D3` | switch prologue matches; tail `ld b,c; ld a,b; and a,$f9; or a,$01; ld c,a` (AND packed into a with a literal `\|`); old packRegsForAccUse tried: no |
+| `FileUpgradeV3Kit` | `$1C:$62D3` | with `(char)v` casts all but one byte matches: the tail's `and a,$f9` result stays in a for `\| 1` in the ROM, ours stores it to b (stock packing refuses a literal operand) |
 | `FileUpgradeV0Kit` | `$1C:$6134` | all 5 byte locals + a 16-bit temp on the stack (frame 7); ours keeps 2 in registers, 8-bit clear (~0x20 folds) |
 | `FileUpgradeV2` | `$1C:$622D` | only an `ld hl,sp+0` reload after `or a,a; jp z` (&& chain on a named local): ROM keeps hl there, but reloads in switch chains |
 | `FileCheckByte6973` | `$1C:$6973` | pointer param copied to a local (frame 3), deref via de; ours via bc |
-
+| `ClearTableRow` | `$1F:$5183` | pointer param copied to b,c before the call, then incremented in place on the stack after it; p++ / post-increment / a local copy don't give that |
+| `GetInstrFlags1F5` | `$1F:$40CA` | `v = f() & 0x80; if (v)` (ROM: and; ld c,a; or a,c; jp z) makes SDCC 2.2.1 assert (gen.c 3215, genAnd single-bit + ifx); no crash-free spelling found yet |
+| `MarkPhraseDataUsed` | `$1F:$5F20` | frame 3 with i at sp+0 and p at sp+1, call first, p copied to b,c for the push; ours keeps i in c (call-first) or evaluates the table first |
 
 ## What's still unknown
 

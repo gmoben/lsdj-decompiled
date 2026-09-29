@@ -5,7 +5,9 @@ Reads c/matched.json (functions, banks, bytes, per-file counts) and
 tools/match/lsdj.peep (rule count) and rewrites the sentences that quote
 them in README.md, AGENTS.md, docs/toolchain.md and docs/reversal.md, plus
 the "N functions" cell of each multi-function row of the matched-functions
-table. Run after `make match`; prints what changed.
+table, and regenerates the parked-functions table from c/parked.txt (one
+line per function: NAME BB:AAAA -- what differs). Run after `make match`;
+prints what changed.
 """
 
 from __future__ import annotations
@@ -41,12 +43,25 @@ def main() -> None:
         (r"\d+ functions in \w+ banks are C in `c/`", f"{n} functions in {bw} banks are C in `c/`"),
         (r"\d+ functions \(\d+ bytes\) are C", f"{n} functions ({nbytes} bytes) are C"),
     ]
+    parked = []
+    pf = ROOT / "c" / "parked.txt"
+    if pf.is_file():
+        for line in pf.read_text().splitlines():
+            if line.strip() and not line.startswith("#"):
+                name, where, note = line.split(None, 2)
+                note = note.lstrip("- ").strip().replace("|", "\\|")
+                parked.append(f"| `{name}` | `{where}` | {note} |")
     changed = []
     for rel in ("README.md", "AGENTS.md", "docs/toolchain.md", "docs/reversal.md"):
         p = ROOT / rel
         s = t = p.read_text()
         for pat, rep in subs:
             t = re.sub(pat, rep, t)
+        if rel == "docs/toolchain.md" and parked:
+            head = "| Function | Where | What differs |\n|----------|-------|--------------|\n"
+            t = re.sub(r"(## Parked functions\n.*?\n\n)\| Function \| Where .*?\n\n",
+                       lambda m: m.group(1) + head + "\n".join(parked) + "\n\n", t, flags=re.S)
+            t = re.sub(r"(\| `[^\n]*\|)\n\n\n+## What's still unknown", r"\1\n\n## What's still unknown", t)
         if rel == "docs/toolchain.md":
             for src, k in per_file.items():
                 t = re.sub(rf"(\[`{re.escape(src)}`\]\([^)]*\) \| )\d+ functions", rf"\g<1>{k} functions", t)

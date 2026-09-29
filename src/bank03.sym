@@ -36,7 +36,7 @@
 4638 InstrSelectNextUsed        ; step wInstrument on to the next allocated instrument (stops at $40, speech), then redraw
 47A2 InstrTableModePrev         ; table mode down: clear byte 5 bit 3 (table step) if set, else table off; redraw
 482E InstrTableModeNext         ; table mode up: table on, then set byte 5 bit 3 (table step); redraw
-489D InstrTableNext             ; table on: table number +1 (up to $1F), then FarCall bank $1F GetInstrTable1F2
+489D InstrTableNext             ; table on: table number +1 (up to $1F), then FarCall bank $1F DrawInstrTableField
 48D6 SetInstrTable5             ; write instrument byte 6 = table (bits0-4) + enable (bit5)
 495C InstrTableSub16            ; table on: clear table-number bit 4 (-16)
 498B DrawInstrByte10            ; draw the instr byte-10 field cell at row 14 (dashes gate via InstrByte9IsZero)

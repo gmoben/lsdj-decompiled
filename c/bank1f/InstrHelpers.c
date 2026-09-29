@@ -11,6 +11,14 @@
 extern UBYTE wUsedTableMap[];               /* $C47D, [32] tables referenced by instruments */
 extern UBYTE wSpeechCursorRow;              /* $C429 */
 extern UBYTE wSongCol;                      /* $C41D */
+extern UBYTE wInstrRemapTable[];            /* $C9B8, [16] */
+extern UBYTE wInstrRemapDirty;              /* $C9B7 */
+extern UBYTE wSongReadBuf[];                /* $C46D */
+extern UBYTE wLiveStartCol;                 /* $C571 */
+extern UBYTE wPlayMode;                     /* $C4D2 */
+extern UBYTE wPhrase;                       /* $C414 */
+extern UBYTE wChanPhrase[];                 /* $C168, [4] */
+extern UBYTE wChanPhraseRow[];              /* $C16C, [4] */
 extern UBYTE DefaultWaveFrameB1F[];         /* $1F:$491A, [16] */
 extern UBYTE DefaultSynthParams[];          /* $1F:$61FF, [16] */
 extern UBYTE wPhraseCol;                    /* $C415 */
@@ -41,6 +49,43 @@ UBYTE MarkPhraseDataUsed(UBYTE phrase);
 UBYTE CanEnterSongCol(UBYTE col);
 UBYTE IsInstrAllocated(UBYTE instr);
 void InstrHMarkInstrTable(UBYTE instr);
+void DrawChanStatus(UBYTE chan);
+void GetInstrFlags1F5(UBYTE a, UBYTE b);
+UBYTE InstrHGetParamPlus4(void);
+UBYTE ClaimInstrSlot(UBYTE instr);
+void ReadSongBytes(UBYTE bank, UBYTE *src, UBYTE *dst);
+UBYTE InstrHCountUsedTables(void);
+void ReadTableRowCmds(UBYTE t);
+void ClearTable(UBYTE t);
+UBYTE FarCallArg2(UBYTE bank, UWORD fn, UBYTE a, UBYTE b);
+UBYTE SndGetChainPhrase(UBYTE chain, UBYTE row);
+void MarkPhraseUsed(UBYTE phrase);
+void SetSpriteY(UBYTE sprite, UBYTE row);
+void ClearSpriteY(UBYTE sprite);
+void FarCallArg3(UBYTE bank, UWORD fn, UBYTE a, UBYTE b, UBYTE c);
+void WritePhraseInstrument(UBYTE phrase, UBYTE row, UBYTE instr);
+
+void DrawInstrTableField(void)
+{
+    char v;
+
+    v = ReadCurInstrByte(6);
+    if (v & 0x20)
+        DrawHexByte(v & 0x1F);
+    else
+        DrawString("--");
+}
+
+void DrawTableFlag(void)
+{
+    GetInstrFlags1F5(0x40, 2);
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
+    DrawStringIndexed('/');
+    hBgDigitPalette = wShadowDigitPal;
+    hBgPalette = wShadowPal;
+    GetInstrFlags1F5(0x20, 9);
+}
 
 UBYTE GetInstrEnv1F(void)
 {
@@ -54,6 +99,67 @@ UBYTE GetInstrByte1F9(void)
     a = GetInstrEnv1F();
     b = ReadCurInstrByte(9) & 0x0F;
     return a && b;
+}
+
+void DrawKitNameCell(UBYTE kit)
+{
+    ReadKitName(kit);
+    DrawHexByte(kit + 1);
+    DrawStringTile20();
+    DrawString(wSampleNoteString);
+}
+
+void WriteChainPhrase(UBYTE chain, UBYTE row, UBYTE phrase)
+{
+    UBYTE *p;
+
+    if (chain & 0x80)
+        DebugTrap();
+    if (row >= 0x10)
+        DebugTrap();
+    p = SramChainPhrases + ((UWORD)chain << 4);
+    WriteSongByte(1, p + row, phrase);
+}
+
+void InitRemapTable(void)
+{
+    UBYTE i, v;
+    UBYTE *p;
+
+    for (i = 0; i != 0x10; i++) {
+        p = &wInstrRemapTable[i];
+        v = *p;
+        if (v < 0x40) {
+            *p = 0xFF;
+            ClaimInstrSlot(v);
+        }
+    }
+    wInstrRemapDirty = 0;
+}
+
+UBYTE AllocNextFreeInstr(void)
+{
+    UBYTE i;
+
+    for (i = 0; i < 0x40; i++) {
+        if (ClaimInstrSlot(i)) {
+            FarCallArg3(4, (UWORD)WritePhraseInstrument, wPhrase, wPhraseRow, i);
+            return i;
+        }
+    }
+    strcpy(wStrBuffer, "OUT OF MEMORY. CLEAN INSTR DATA IN PROJECT SCREEN");
+    FarCall(1, DrawMessageBar);
+    return 0xFF;
+}
+
+/* 1 if the 16 bytes at bank:addr are all zero. (The loop reuses `bank`.) */
+UBYTE InstrHReadTableRow(UBYTE bank, UBYTE *addr)
+{
+    ReadSongBytes(bank, addr, wSongReadBuf);
+    for (bank = 0; bank != 16; bank++)
+        if (wSongReadBuf[bank])
+            return 0;
+    return 1;
 }
 
 UBYTE FindFreeTable(void)
@@ -108,6 +214,17 @@ UBYTE InstrHCountUsedTables(void)
     return n;
 }
 
+UBYTE InstrHProcessUsedTables(void)
+{
+    UBYTE before, i;
+
+    before = InstrHCountUsedTables();
+    for (i = 0; i < 0x20; i++)
+        if (InstrHGetTableUsed(i))
+            ReadTableRowCmds(i);
+    return !(before == InstrHCountUsedTables());
+}
+
 void InstrHMarkInstrTable(UBYTE instr)
 {
     UBYTE v;
@@ -126,6 +243,21 @@ void InstrHScanInstrTables(void)
             InstrHMarkInstrTable(i);
 }
 
+UBYTE InstrHCollectUsedTables(void)
+{
+    UBYTE n, i;
+
+    n = 0;
+    for (i = 0; i < 0x20; i++) {
+        if (!InstrHGetTableUsed(i)) {
+            if (!IsTableFree((UWORD)i))
+                n++;
+            ClearTable(i);
+        }
+    }
+    return n;
+}
+
 UBYTE BuildUsedTablesMap(void)
 {
     MemSet(wUsedTableMap, 0, 0x20);
@@ -135,6 +267,17 @@ UBYTE BuildUsedTablesMap(void)
         ;
     while (InstrHProcessUsedTables());
     return InstrHCollectUsedTables();
+}
+
+void MarkChainPhrasesUsed(UBYTE chain)
+{
+    UBYTE i, p;
+
+    for (i = 0; i < 16; i++) {
+        p = FarCallArg2(2, (UWORD)SndGetChainPhrase, chain, i);
+        if (p != 0xFF)
+            FarCallArg(1, (UWORD)MarkPhraseUsed, p);
+    }
 }
 
 UBYTE IsChainUsedFar(UBYTE chain)
@@ -246,6 +389,16 @@ UBYTE TableIsReferenced(void)
     return a - b;
 }
 
+void PhraseScreenUpdate(void)
+{
+    if (wLiveStartCol != 0xFF)
+        return;
+    if (wPlayMode && wPhrase == wChanPhrase[wSongCol])
+        SetSpriteY(0, wChanPhraseRow[wSongCol]);
+    else
+        ClearSpriteY(0);
+}
+
 UBYTE HasEnterableColRight(void)
 {
     UBYTE c;
@@ -282,6 +435,14 @@ void InstrHReadCursorCellAt(void)
     InstrHReadCursorCell(col, row);
 }
 
+void DrawAllChanStatus(void)
+{
+    DrawChanStatus(0);
+    DrawChanStatus(1);
+    DrawChanStatus(2);
+    DrawChanStatus(3);
+}
+
 void RedrawScreenFar1F(void)
 {
     FarCall(4, FAR_FN(RedrawScreen));
@@ -290,4 +451,14 @@ void RedrawScreenFar1F(void)
 UBYTE InstrHGetParamPlus4(void)
 {
     return (UWORD)wSpeechCursorRow + 4;
+}
+
+void InstrHDrawParamField(void)
+{
+    DrawTextField(0, InstrHGetParamPlus4(), 3, !(wSpeechCursorRow & 1));
+}
+
+void DrawInstrParamField(void)
+{
+    DrawTextField(0, InstrHGetParamPlus4(), 3, hGameboyType ? 3 : 2);
 }
