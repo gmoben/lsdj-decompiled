@@ -7,7 +7,7 @@
 
 #include "lsdj.h"
 
-extern UBYTE wPhraseCol;                    /* $C415 */
+extern char wPhraseCol;                     /* $C415, a plain char */
 extern UBYTE wPhraseColLast[];              /* $C907, [4] */
 extern UBYTE wPhraseDrawMode;               /* $C90C */
 extern UBYTE wInstrIsKit;                   /* $C90B */
@@ -21,6 +21,12 @@ void PastePhraseSelection(void);            /* bank $1F */
 void CopyInstrName(void);                   /* bank 1 */
 void WriteInstrName(void);                  /* bank 1 */
 UBYTE ReadPhraseInstr(UBYTE phrase, UBYTE row);
+extern UBYTE wAPressEnabled;                /* $C409 */
+UBYTE PhraseCursorOnEditCell(void);
+void CloneInstrAtCursor(void);
+UBYTE CloneTableAtCursor(void);
+UBYTE PhraseReadFx(UBYTE phrase, UBYTE row);
+UBYTE GetScreenScratchCell2(UBYTE a, UBYTE b);   /* bank 0 */
 UBYTE FindCursorInstr(void);
 
 void DrawChainCellFar(UBYTE x)
@@ -238,6 +244,21 @@ UBYTE CursorInstrIsKit(void)
     return r;
 }
 
+UBYTE PhraseCheckEditContext(UBYTE x)
+{
+    if (wSongCol != 2)
+        return 0;
+    if (wPhraseCol > 1)
+        return 0;
+    if (wSelLeft > 1)
+        return 0;
+    if (!CursorInstrIsKit())
+        return 0;
+    if (wPhraseCol == 0)
+        return wSelLeft == 1;
+    return GetScreenScratchCell2(1, x) == 0xFF;
+}
+
 void CloneInstrument(UBYTE src, UBYTE dst)
 {
     UBYTE i;
@@ -246,6 +267,27 @@ void CloneInstrument(UBYTE src, UBYTE dst)
         WriteInstrByte(dst, i, ReadInstrByte(src, i));
     FarCallArg(1, (UWORD)CopyInstrName, src);
     FarCallArg(1, (UWORD)WriteInstrName, dst);
+}
+
+UBYTE PhraseCloneTableCmd(void)
+{
+    UBYTE row;
+
+    if (wAPressEnabled || PhraseCursorOnEditCell())
+        return 0;
+    if (wPhraseCol == 2) {
+        CloneInstrAtCursor();
+        return 1;
+    }
+    if (wPhraseCol == 4) {
+        row = wPhraseRow;
+        if (PhraseReadFx(wPhrase, row) == 1) {
+            if (CloneTableAtCursor())
+                ShowMessage("CLONED TABLE");
+            return 1;
+        }
+    }
+    return 0;
 }
 
 UBYTE PrelistenEditedCell(void)

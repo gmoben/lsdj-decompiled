@@ -1265,6 +1265,18 @@
   "len": 26,
   "src": "c/bank04/PhraseScreen.c"
  },
+ "PhraseCheckEditContext": {
+  "bank": "04",
+  "addr": "5136",
+  "len": 120,
+  "src": "c/bank04/PhraseScreen.c"
+ },
+ "PhraseCloneTableCmd": {
+  "bank": "04",
+  "addr": "56BA",
+  "len": 101,
+  "src": "c/bank04/PhraseScreen.c"
+ },
  "PhraseDrawCursorGlyph": {
   "bank": "04",
   "addr": "4257",
