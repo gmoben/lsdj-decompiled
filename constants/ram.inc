@@ -439,7 +439,7 @@ DEF wSynthBufA       EQU $CAB8  ; [64] 64-byte synth wave work buffer A (ClearSy
 DEF wSynthBufB       EQU $CAF8  ; [64] 64-byte synth wave work buffer B
 DEF wOverwriteStart  EQU $CB61  ; nonzero while the synth OVERWRITE? prompt is open (OverwritePromptInput clears it)
 DEF wOverwriteEnd    EQU $CB62  ; the prompt's choice: 0 = left (accept: SynthClearFlag), 1 = right
-DEF wKbdQueueHead    EQU $CB7D  ; PS/2 keyboard byte-queue head (KbdReadByte)
+DEF wLinkQueueCount EQU $CB7D  ; bytes waiting in the wLinkQueueBuf ring (ProcessLinkQueue appends, LinkDequeueByte pops)
 DEF wLinkQueueHead   EQU $CB80  ; link-port ring buffer head (ProcessLinkQueue)
 DEF wLinkQueueBuf    EQU $CB81  ; link-port ring buffer (ProcessLinkQueue)
 DEF wEnvStagePu1     EQU $CBBF  ; current envelope stage 0-2, PU1 (UpdateEnvPU1 advances)

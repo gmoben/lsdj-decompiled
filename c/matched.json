@@ -311,6 +311,12 @@
   "len": 43,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "DrawKbdOctave": {
+  "bank": "07",
+  "addr": "6812",
+  "len": 119,
+  "src": "c/bank07/KbdLink.c"
+ },
  "DrawKeyRepeatField": {
   "bank": "1B",
   "addr": "5876",
@@ -1283,6 +1289,18 @@
   "len": 23,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "KbdDrainQueue": {
+  "bank": "07",
+  "addr": "7033",
+  "len": 27,
+  "src": "c/bank07/KbdLink.c"
+ },
+ "KbdPollScancode": {
+  "bank": "07",
+  "addr": "704E",
+  "len": 73,
+  "src": "c/bank07/KbdLink.c"
+ },
  "KitExists": {
   "bank": "00",
   "addr": "0CFE",
@@ -1306,6 +1324,12 @@
   "addr": "508C",
   "len": 83,
   "src": "c/bank03/InstrScreen.c"
+ },
+ "LinkDequeueByte": {
+  "bank": "07",
+  "addr": "7012",
+  "len": 33,
+  "src": "c/bank07/KbdLink.c"
  },
  "LoadChainRow": {
   "bank": "06",
@@ -1804,6 +1828,12 @@
   "addr": "31E3",
   "len": 57,
   "src": "c/bank00/Sprites.c"
+ },
+ "SetSyncSendRate": {
+  "bank": "07",
+  "addr": "5DD8",
+  "len": 113,
+  "src": "c/bank07/KbdLink.c"
  },
  "ShowMax16Marks": {
   "bank": "01",
