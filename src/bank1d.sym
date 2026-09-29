@@ -66,10 +66,10 @@
 6967 SynthLoadWaveTable         ; read packed param from SRAM, build wave table $ca94 (via SynthFillWaveRange)
 6997 SynthLoadFilterParams      ; read 2 synth params from SRAM -> $c9ee, $c9eb (filter)
 6B33 BuildOverwritePrompt       ; build the OVERWRITE prompt string (wStringSrc)
-6D0F SynthDrawWaveView          ; draw synth wave view; layout depends on $cb62 toggle
+6D0F DrawOverwriteChoice        ; highlight the OVERWRITE? prompt choice (wOverwriteEnd) on row 9
 6D6F SynthOverwriteWaves        ; "OVERWRITE": render the synth into the wave frames ($cb61/$cb62 range)
 6E00 RedrawScreenFar            ; FarCall home RedrawScreen ($24dd)
-6E11 SynthHandleViewKeys        ; synth-screen key dispatch ($c575: toggle views $cb61/$cb62, RedrawScreenFar)
+6E11 OverwritePromptInput       ; synth OVERWRITE? prompt input: LEFT/RIGHT move the choice, A accepts (clearing the synth flag on the left choice), B cancels
 6E6E WriteSynthParam            ; synth_params[wSynthScreen*16+n] = value (song $3EB2); 24 uses
 6EB6 ReadSynthParamPair         ; read a synth param byte (variant 1 of the row accessors)
 6F3F ReadSynthParamPair2        ; read a synth param byte (variant 2)
@@ -191,7 +191,7 @@
 6911 .loop                ; loop head in SynthDataAddr
 6B3A .loop                ; loop head in BuildOverwritePrompt
 6B82 .loop2               ; loop head in BuildOverwritePrompt
-6E6D .done                ; common exit of SynthHandleViewKeys
+6E6D .done                ; common exit of OverwritePromptInput
 6E7B .loop                ; loop head in WriteSynthParam
 6EC3 .loop                ; loop head in ReadSynthParamPair
 6F4C .loop                ; loop head in ReadSynthParamPair2
@@ -226,9 +226,9 @@
 4A49 .selUp               ; wButtons == case in DrawGrooveCursor
 4A71 .b                   ; wButtons == case in DrawGrooveCursor
 4A90 .selB                ; wButtons == case in DrawGrooveCursor
-6E3C .left                ; wButtons == case in SynthHandleViewKeys
-6E47 .right               ; wButtons == case in SynthHandleViewKeys
-6E52 .a                   ; wButtons == case in SynthHandleViewKeys
+6E3C .left                ; wButtons == case in OverwritePromptInput
+6E47 .right               ; wButtons == case in OverwritePromptInput
+6E52 .a                   ; wButtons == case in OverwritePromptInput
 7196 .notA                ; wButtons == case in SynthScreenInput
 7231 .up                  ; wButtons == case in SynthScreenInput
 7285 .down                ; wButtons == case in SynthScreenInput

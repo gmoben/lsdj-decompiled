@@ -14,6 +14,10 @@ extern UBYTE wSynthFilterType;              /* $C9EB */
 extern UBYTE wSynthFilterCutoff;            /* $C9EC */
 extern UBYTE wSynth;                        /* $C42A */
 extern UBYTE wSynthScreen;                  /* $C441, the synth being edited */
+extern UBYTE wOverwriteStart;               /* $CB61 */
+extern UBYTE wOverwriteEnd;                 /* $CB62 */
+extern UBYTE wAPressEnabled;                /* $C409 */
+extern UBYTE wButtons;                      /* $C575 */
 extern UBYTE wGroove;                       /* $C417 */
 extern UBYTE wGrooveRow;                    /* $C9D4 */
 extern UBYTE wChanGroove[];                 /* $C150, [4] */
@@ -31,6 +35,8 @@ void SetSpriteTile3(UBYTE sprite);
 void DrawGrooveSteps(void);
 void DrawAllChanStatus(void);
 void DrawSynthNumber(void);
+void RedrawScreenFar(void);
+void SynthClearFlag(UBYTE x);
 
 void WriteGrooveByte(UBYTE step, UBYTE v)
 {
@@ -208,9 +214,54 @@ void DrawSynthScreen(void)
     FarCall(5, MapDrawTopRow);
 }
 
+void DrawOverwriteChoice(void)
+{
+    UBYTE x1, w2, x2, w1;
+
+    if (wOverwriteEnd) {
+        x2 = 0x0B;
+        x1 = 4;
+        w2 = 2;
+        w1 = 3;
+    } else {
+        x2 = 4;
+        x1 = 0x0B;
+        w2 = 3;
+        w1 = 2;
+    }
+    DrawTextField(x1, 9, w1, 0);
+    DrawTextField(x2, 9, w2, hGameboyType ? 3 : 2);
+}
+
 void RedrawScreenFar(void)
 {
     FarCall(1, FAR_FN(RedrawScreen));
+}
+
+void OverwritePromptInput(void)
+{
+    if (wAPressEnabled) {
+        switch (wButtons) {
+        case 0x20:
+            wOverwriteStart = 0;
+            RedrawScreenFar();
+            break;
+        case 2:
+            wOverwriteEnd = 0;
+            DrawOverwriteChoice();
+            break;
+        case 1:
+            wOverwriteEnd = 1;
+            DrawOverwriteChoice();
+            break;
+        case 0x10:
+            if (!wOverwriteEnd)
+                SynthClearFlag(wSynthScreen);
+            wOverwriteStart = 0;
+            RedrawScreenFar();
+            break;
+        }
+    }
 }
 
 void WriteSynthParam(UBYTE field, UBYTE v)

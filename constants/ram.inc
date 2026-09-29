@@ -437,8 +437,8 @@ DEF wFileListActive  EQU $C998  ; cursor is inside the file list (not a string b
 DEF wProjCursor      EQU $C9A4  ; project-screen cursor row (ProjCalcFieldTile index)
 DEF wSynthBufA       EQU $CAB8  ; [64] 64-byte synth wave work buffer A (ClearSynthWaveBufs)
 DEF wSynthBufB       EQU $CAF8  ; [64] 64-byte synth wave work buffer B
-DEF wOverwriteStart  EQU $CB61  ; first wave frame for synth OVERWRITE (SynthOverwriteWaves)
-DEF wOverwriteEnd    EQU $CB62  ; last wave frame for synth OVERWRITE
+DEF wOverwriteStart  EQU $CB61  ; nonzero while the synth OVERWRITE? prompt is open (OverwritePromptInput clears it)
+DEF wOverwriteEnd    EQU $CB62  ; the prompt's choice: 0 = left (accept: SynthClearFlag), 1 = right
 DEF wKbdQueueHead    EQU $CB7D  ; PS/2 keyboard byte-queue head (KbdReadByte)
 DEF wLinkQueueHead   EQU $CB80  ; link-port ring buffer head (ProcessLinkQueue)
 DEF wLinkQueueBuf    EQU $CB81  ; link-port ring buffer (ProcessLinkQueue)
