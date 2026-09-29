@@ -21,7 +21,7 @@
 5126 CloseNameEditor            ; leave the name editor -> wNameReturnScreen (FILE flow shows "SAVING...")
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
-401B DrawStringAtXY             ; GetTilemapAddr(x,y) + DrawString
+401B DrawHelpMenu               ; draw the HELP menu: HelpMenuPtrs[i] at column 0, row i, up to the NULL
 49F8 ProjDrawHelpEntry          ; draw help-list line index $c934 (text via ROM tables $408E/$4058); palette by arg
 4A4D ProjRedrawHelpSel          ; if $c933==0, redraw current help entry (<-DrawHelpScreen)
 4A79 ProjHelpSelectNext         ; move help selection down: redraw old highlighted, inc $c934, redraw new normal
@@ -39,8 +39,8 @@
 5796 DrawSyncMode2Field         ; draw + persist wSyncMode2 (song property $bfbf)
 57C1 ProjSyncStateFlag          ; predicate combining wSyncMode (1/3) and $cb6b
 582C SaveTempoProps             ; wTempo -> $bfb4, wTempoMode -> $bfcc song properties
-5853 ProjCommitVram             ; $2bc4 -> $2c3c (commit a queued VRAM write)
-5861 ProjQueueVramWrite         ; spin until wRedrawPending<6, set wVramCursor=$9846, then ProjCommitVram
+5853 ProjDrawTempo              ; draw the tempo at the VRAM cursor: DrawTempo(GetTempoTimerValue())
+5861 ProjRedrawTempo            ; wait while wRedrawPending < 6, then ProjDrawTempo at $9846
 5876 DrawKeyRepeatField         ; draw the KEY DELAY/REPEAT values (wKeyDelay/wKeyRepeat)
 5896 ProjSyncModeIs567          ; return 1 if wSyncMode in {5,6,7}
 5952 .drawSubSetting            ; (was mislabeled as a function DrawSyncModeField: its `push bc` is the DrawString argument, its `pop bc; ret` DrawSyncField's epilogue)
@@ -50,7 +50,7 @@
 5AE3 DrawDecimalField           ; draw a small decimal value ("%d" via DrawFormat)
 5B09 ProjSyncModeIs015          ; return 1 if wSyncMode in {0,1,5}
 5B23 DrawPrelistenField         ; PRELISTEN field: "ON "/"OFF"/"N/A" by wPrelisten + sync mode
-5B62 ProjDrawSyncLabel          ; set wVramCursor=$992a, src $c566/$c567, then DrawPrelistenField
+5B62 ProjRedrawPrelisten        ; PRELISTEN field at $992A in the shadow palette (DrawPrelistenField)
 5D7C ProjectScreenRefresh       ; drain buttons, clear tilemap, DrawProjectScreen + map row
 6988 ApplySettingsAndRedraw     ; delay, LoadProjectSettings(0), clear, redraw frame -- 63 call sites
 6A8C ProjScrollTextStep         ; marquee step: manage $c9aa/$c9ab state, shift 7-byte buffer $c9ac (via $3843)
@@ -133,8 +133,8 @@
 6A7E TxtResetMemory             ; "RESET MEMORY!"
 
 ; --- structural local names (loop heads / common exits) ---
-4022 .loop                ; loop head in DrawStringAtXY
-4054 .done                ; common exit of DrawStringAtXY
+4022 .loop                ; loop head in DrawHelpMenu
+4054 .done                ; common exit of DrawHelpMenu
 4A61 .done                ; common exit of ProjRedrawHelpSel
 4AA4 .done                ; common exit of ProjHelpSelectNext
 4AC4 .done                ; common exit of ProjHelpSelectPrev

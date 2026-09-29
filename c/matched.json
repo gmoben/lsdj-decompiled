@@ -35,11 +35,29 @@
   "len": 37,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "DrawDecimalField": {
+  "bank": "1B",
+  "addr": "5AE3",
+  "len": 35,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
  "DrawGrooveScreen": {
   "bank": "1D",
   "addr": "41DA",
   "len": 59,
   "src": "c/bank1d/SynthScreen.c"
+ },
+ "DrawHelpMenu": {
+  "bank": "1B",
+  "addr": "401B",
+  "len": 61,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
+ "DrawHelpScreen": {
+  "bank": "1B",
+  "addr": "4A62",
+  "len": 23,
+  "src": "c/bank1b/ProjectScreen.c"
  },
  "DrawInstrByte10": {
   "bank": "03",
@@ -83,6 +101,12 @@
   "len": 43,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "DrawKeyRepeatField": {
+  "bank": "1B",
+  "addr": "5876",
+  "len": 32,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
  "DrawKitDistName": {
   "bank": "03",
   "addr": "4A44",
@@ -113,6 +137,12 @@
   "len": 22,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "DrawPrelistenField": {
+  "bank": "1B",
+  "addr": "5B23",
+  "len": 51,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
  "DrawStringAtCursor": {
   "bank": "06",
   "addr": "73C0",
@@ -124,6 +154,12 @@
   "addr": "58B1",
   "len": 262,
   "src": "c/bank1b/DrawSyncField.c"
+ },
+ "DrawSyncMode2Field": {
+  "bank": "1B",
+  "addr": "5796",
+  "len": 43,
+  "src": "c/bank1b/ProjectScreen.c"
  },
  "DrawSyncStatus": {
   "bank": "06",
@@ -418,6 +454,12 @@
   "addr": "53DE",
   "len": 65,
   "src": "c/bank03/InstrScreen.c"
+ },
+ "GotoProjectScreen": {
+  "bank": "1B",
+  "addr": "4AC5",
+  "len": 22,
+  "src": "c/bank1b/ProjectScreen.c"
  },
  "GrooveBuildCache": {
   "bank": "1D",
@@ -773,6 +815,72 @@
   "len": 82,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "ProjDrawNameField": {
+  "bank": "1B",
+  "addr": "4C96",
+  "len": 36,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
+ "ProjDrawNameFieldHw": {
+  "bank": "1B",
+  "addr": "4C30",
+  "len": 58,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
+ "ProjDrawTempo": {
+  "bank": "1B",
+  "addr": "5853",
+  "len": 14,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
+ "ProjHelpReset": {
+  "bank": "1B",
+  "addr": "4ADB",
+  "len": 12,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
+ "ProjHelpSelectNext": {
+  "bank": "1B",
+  "addr": "4A79",
+  "len": 45,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
+ "ProjHelpSelectPrev": {
+  "bank": "1B",
+  "addr": "4AA6",
+  "len": 31,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
+ "ProjRedrawHelpSel": {
+  "bank": "1B",
+  "addr": "4A4D",
+  "len": 21,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
+ "ProjRedrawPrelisten": {
+  "bank": "1B",
+  "addr": "5B62",
+  "len": 24,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
+ "ProjRedrawTempo": {
+  "bank": "1B",
+  "addr": "5861",
+  "len": 21,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
+ "ProjSyncModeIs015": {
+  "bank": "1B",
+  "addr": "5B09",
+  "len": 26,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
+ "ProjSyncModeIs567": {
+  "bank": "1B",
+  "addr": "5896",
+  "len": 27,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
  "ReadCurInstrByte": {
   "bank": "00",
   "addr": "0AE2",
@@ -826,6 +934,18 @@
   "addr": "6163",
   "len": 59,
   "src": "c/bank1f/InstrHelpers.c"
+ },
+ "SaveSyncMode": {
+  "bank": "1B",
+  "addr": "5782",
+  "len": 20,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
+ "SaveTempoProps": {
+  "bank": "1B",
+  "addr": "582C",
+  "len": 39,
+  "src": "c/bank1b/ProjectScreen.c"
  },
  "ScreenDrawDispatch": {
   "bank": "00",

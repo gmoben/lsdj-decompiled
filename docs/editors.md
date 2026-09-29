@@ -172,7 +172,7 @@ Confirmed routines (bank `$1B`):
   `$98A0`. Its second half was once labelled as a separate `DrawSyncModeField`;
   matching it in C (`c/bank1b/DrawSyncField.c`) showed it is one function.
 - **`DrawSyncSubSetting` (`$5B7A`)** — the PS/2 DELAY / TICKS/STEP value beside
-  SYNC. Other field helpers: `ProjCommitVram` (`$5853`, commit a queued VRAM
+  SYNC. Other field helpers: `ProjDrawTempo` (`$5853`, commit a queued VRAM
   write), `DrawFontColorFields` (`$569C`, the FONT and COLOR SET rows), and
   bank 0's `DrawHexByte` (`$2E33`, numbers).
 

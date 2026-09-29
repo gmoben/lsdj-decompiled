@@ -28,6 +28,11 @@ The optional condition (later SDCC's syntax) requires the label bound to
 `%n` to be referenced exactly K times in the file outside its definition --
 e.g. a label the trampoline collapse left behind, which no jump reaches.
 
+A rule never leaves a jump dangling: if it drops a label that other lines
+still reference, the match is refused -- unless the label was a trampoline
+(`%n:` then `jp %m`) reached only by conditional jumps, which are then
+retargeted to %m (a multi-byte `==` jumps through one trampoline per byte).
+
 Usage: tools/match/peep.py RULES.peep FILE.asm      # rewrites FILE.asm in place
 """
 
@@ -115,6 +120,42 @@ def _match_line(pat: list[str], src: str, binds: dict[str, str]) -> bool:
     return True
 
 
+def _keep_labels_reachable(pat: list[list[str]], rep: list[str], binds: dict[str, str],
+                           lines: list[str], idx: list[int]) -> bool:
+    """A rule may drop a label (`%n:` in the pattern, not in the replacement).
+    References to it outside the matched lines must not dangle. When the
+    label was a trampoline (`%n:` then `jp %m`) and every such reference is
+    a conditional jump, they are retargeted to %m (as `jp cc`), as the ROM
+    has it for a multi-byte `==` (one `jp nz,T` per byte, all through the
+    same trampoline). Otherwise the match is refused. Mutates `lines` only
+    when it returns True."""
+    kept = {r.strip() for r in rep}
+    edits: dict[int, str] = {}
+    for k, p in enumerate(pat):
+        if len(p) != 1 or not re.fullmatch(r"%\d+:", p[0]) or p[0] in kept:
+            continue
+        label = binds[p[0][:-1]]
+        lo, hi = _scope_bounds(lines, idx[0]) if _LOCAL.fullmatch(label) else (0, len(lines))
+        ref = re.compile(rf"(?<![\w$]){re.escape(label)}(?![\w$])")
+        outside = [j for j in range(lo, hi) if not idx[0] <= j <= idx[-1]
+                   and ref.search(_strip(lines[j]))
+                   and not _strip(lines[j]).strip().startswith(label + ":")]
+        if not outside:
+            continue
+        nxt = pat[k + 1] if k + 1 < len(pat) else []
+        if len(nxt) != 2 or nxt[0] != "jp" or not re.fullmatch(r"%\d+", nxt[1]):
+            return False
+        target = binds[nxt[1]]
+        for j in outside:
+            mn, ops = _ops(_strip(lines[j]).strip())
+            if mn not in ("jp", "jr") or len(ops) != 2 or ops[1] != label:
+                return False
+            edits[j] = f"\tjp\t{ops[0]},{target}"
+    for j, s in edits.items():
+        lines[j] = s
+    return True
+
+
 def apply(rules: list[Rule], lines: list[str]) -> tuple[list[str], int]:
     """Return (rewritten lines, number of replacements)."""
     lines = list(lines)
@@ -141,6 +182,8 @@ def apply(rules: list[Rule], lines: list[str]) -> tuple[list[str], int]:
                 if ok and idx and cond is not None:
                     label = binds.get(cond[0], "")
                     ok = bool(label) and _label_refs(lines, label, idx[0]) == cond[1]
+                if ok and idx:
+                    ok = _keep_labels_reachable(pat, rep, binds, lines, idx)
                 if not ok or not idx:
                     i += 1
                     continue

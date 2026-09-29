@@ -20,7 +20,6 @@ extern UBYTE wChanGrooveRow[];              /* $C158, [4] */
 
 UBYTE ReadSynthParam(UBYTE field);          /* the current synth's param byte */
 void WriteSynthParam(UBYTE field, UBYTE v);
-void RedrawScreen(void);
 void WriteGrooveByte(UBYTE step, UBYTE v);
 UBYTE ReadGrooveStep(UBYTE step);
 void ClearSynthWaveBufs(void);

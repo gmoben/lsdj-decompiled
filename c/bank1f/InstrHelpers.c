@@ -22,7 +22,6 @@ extern UBYTE wPhraseRow;                    /* $C416 */
 UBYTE FarCallArgByte(UBYTE bank, UWORD fn, UBYTE arg);
 UBYTE IsPhraseUsed(UBYTE phrase);
 UBYTE IsChainUsed(UBYTE chain);
-void RedrawScreen(void);
 void InstrHReadCursorCell(UBYTE col, UBYTE row);
 void DrawPhraseCellValue(UBYTE col, UBYTE row);
 UBYTE InstrHGetTableUsed(UBYTE t);
