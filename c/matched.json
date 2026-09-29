@@ -401,10 +401,22 @@
   "len": 77,
   "src": "c/bank1d/SynthScreen.c"
  },
+ "DrawSynthFilterField": {
+  "bank": "1D",
+  "addr": "636E",
+  "len": 130,
+  "src": "c/bank1d/SynthScreen.c"
+ },
  "DrawSynthScreen": {
   "bank": "1D",
   "addr": "68AB",
   "len": 78,
+  "src": "c/bank1d/SynthScreen.c"
+ },
+ "DrawSynthWaveField": {
+  "bank": "1D",
+  "addr": "6414",
+  "len": 117,
   "src": "c/bank1d/SynthScreen.c"
  },
  "DrawTableEnv": {
@@ -851,10 +863,22 @@
   "len": 55,
   "src": "c/bank1d/SynthScreen.c"
  },
+ "GrooveDrawField": {
+  "bank": "1D",
+  "addr": "40AE",
+  "len": 60,
+  "src": "c/bank1d/SynthScreen.c"
+ },
  "GrooveDrawFieldHw": {
   "bank": "1D",
   "addr": "4394",
   "len": 59,
+  "src": "c/bank1d/SynthScreen.c"
+ },
+ "GrooveRefreshRows": {
+  "bank": "1D",
+  "addr": "4C63",
+  "len": 117,
   "src": "c/bank1d/SynthScreen.c"
  },
  "GrooveResetState": {
@@ -1791,6 +1815,12 @@
   "bank": "1D",
   "addr": "649F",
   "len": 100,
+  "src": "c/bank1d/SynthScreen.c"
+ },
+ "SynthLoadWaveDataB": {
+  "bank": "1D",
+  "addr": "6503",
+  "len": 116,
   "src": "c/bank1d/SynthScreen.c"
  },
  "SynthParamDecTo0": {

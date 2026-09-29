@@ -7,6 +7,12 @@
 
 #include "lsdj.h"
 
+extern UBYTE wClipboardType;                /* $C411 */
+
+extern UBYTE wSelBottom;                    /* $C410 */
+
+extern UBYTE wSelTop;                       /* $C40E */
+
 extern UBYTE wGrooveCacheValid;             /* $C9D5 */
 extern UBYTE wGrooveStepCache[];            /* $C9D6, [16] */
 extern UBYTE *wGrooveCachePtr;              /* $C9E6 */
@@ -23,7 +29,7 @@ extern UBYTE wOverwriteEnd;                 /* $CB62 */
 extern UBYTE wAPressEnabled;                /* $C409 */
 extern UBYTE wButtons;                      /* $C575 */
 extern UBYTE wGroove;                       /* $C417 */
-extern UBYTE wGrooveRow;                    /* $C9D4 */
+extern char wGrooveRow;                     /* $C9D4, a plain char */
 extern UBYTE wChanGroove[];                 /* $C150, [4] */
 extern UBYTE wChanGrooveRow[];              /* $C158, [4] */
 
@@ -37,6 +43,7 @@ void SynthFilterPass(void);
 void SetSpriteX(UBYTE sprite, UBYTE col);
 void SetSpriteTile3(UBYTE sprite);
 void DrawGrooveSteps(void);
+UBYTE GetScreenScratchCell2(UBYTE a, UBYTE b);   /* bank 0 */
 void DrawAllChanStatus(void);
 void DrawSynthNumber(void);
 void RedrawScreenFar(void);
@@ -64,6 +71,17 @@ UBYTE ReadGrooveStep(UBYTE step)
         DebugTrap();
     p = SramGrooves + ((UWORD)wGroove << 4);
     return ReadSongByte(0, p + (unsigned int)step);
+}
+
+void GrooveDrawField(void)
+{
+    UBYTE r, pal;
+
+    r = wGrooveRow;
+    if (r & 0xF0)
+        DebugTrap();
+    pal = (wGrooveRow & 2) ? 0 : 1;
+    DrawTextField(2, wGrooveRow + 2, 2, pal);
 }
 
 void DrawGrooveScreen(void)
@@ -106,6 +124,22 @@ void GrooveDrawFieldHw(void)
     if (r & 0xF0)
         DebugTrap();
     DrawTextField(2, wGrooveRow + 2, 2, hGameboyType ? 3 : 2);
+}
+
+void GrooveRefreshRows(void)
+{
+    UBYTE i;
+
+    if (wClipboardType != 2)
+        return;
+    if ((UBYTE)(wSelBottom - wSelTop) > 1)
+        ShowMessage("PASTE");
+    for (i = wSelTop; i < wSelBottom; i++) {
+        WriteGrooveByte(wGrooveRow, GetScreenScratchCell2(0, i));
+        if (++wGrooveRow == 0x10)
+            wGrooveRow = 0;
+    }
+    DrawGrooveSteps();
 }
 
 void GrooveResetState(void)
@@ -192,12 +226,69 @@ UBYTE SynthSignalIsFrame(void)
     return ReadSynthParam(0) == 3;
 }
 
+void DrawSynthFilterField(void)
+{
+    wVramCursor = (UBYTE *)0x9868;
+    if (SynthSignalIsFrame()) {
+        DrawString("-----");
+    } else {
+        switch (ReadSynthParam(1)) {
+        case 0:
+            DrawString(" LOWP");
+            break;
+        case 1:
+            DrawString("HIGHP");
+            break;
+        case 2:
+            DrawString("BANDP");
+            break;
+        case 3:
+            DrawString(" ALLP");
+            break;
+        case 4:
+            DrawString("NOTCH");
+            break;
+        }
+    }
+}
+
+void DrawSynthWaveField(void)
+{
+    wVramCursor = (UBYTE *)0x9849;
+    switch (ReadSynthParam(0)) {
+    case 0:
+        DrawString("iiii");
+        break;
+    case 1:
+        DrawString("mmmm");
+        break;
+    case 2:
+        DrawString("kkkk");
+        break;
+    case 3:
+        DrawString("W.F");
+        DrawByte(wSynthScreen);
+        break;
+    default:
+        DrawString("??");
+        break;
+    }
+}
+
 void SynthLoadWaveDataA(void)
 {
     UBYTE x;
 
     for (x = SynthFieldX[wSynthCursor]; x < SynthFieldX[wSynthCursor] + SynthFieldWidth[wSynthCursor]; x++)
         DrawTextField(x, SynthFieldLayout[wSynthCursor], 1, 1);
+}
+
+void SynthLoadWaveDataB(void)
+{
+    UBYTE x;
+
+    for (x = SynthFieldX[wSynthCursor]; x < SynthFieldX[wSynthCursor] + SynthFieldWidth[wSynthCursor]; x++)
+        DrawTextField(x, SynthFieldLayout[wSynthCursor], 1, hGameboyType ? 3 : 2);
 }
 
 void DrawSynthDistField(UBYTE v)
