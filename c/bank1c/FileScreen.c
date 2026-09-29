@@ -15,6 +15,12 @@ extern UBYTE wFsCheckResult;                /* $C56B */
 extern UBYTE wFileBlockIdx;                 /* $C958 */
 extern UBYTE wFileBlockCounts[];            /* $C959, [32] */
 extern UBYTE wCompByte;                     /* $C97F */
+extern UBYTE wCompBank;                     /* $C979 */
+extern UWORD wCompSrc;                      /* $C97A, an SRAM address */
+extern UWORD wCompDst;                      /* $C97D, a working-song offset */
+extern UBYTE wDecompPos;                    /* $C983 */
+extern UBYTE wDecompBuf[];                  /* $DA00, [256] */
+extern UBYTE DefaultWaveFrameB1C[];         /* $1C:$4047 */
 extern UBYTE wFileField;                    /* $C992 */
 extern UBYTE wFileCursor;                   /* $C999 */
 extern UBYTE wFileScroll;                   /* $C99B */
@@ -33,7 +39,27 @@ UBYTE GetFileBlockCount(UBYTE i);
 UBYTE FileFindSlotEnd(void);
 UBYTE FileSlotHalfBase(void);
 void WriteDecompByte(UBYTE v);
+UBYTE FileClassifyToken(void);              /* asm */
+UBYTE ReadWorkingSongByte(UWORD addr);      /* asm */
 void FileClearChanState(void);
+
+void FileWriteCompressedSram(void)
+{
+    if (!FileClassifyToken())
+        DebugTrap();
+    rRAMB = wCompBank;
+    _asm
+        di
+    _endasm;
+    rRAMG = 0x0A;
+    memcpy((UBYTE *)wCompSrc, wDecompBuf, 0x100);
+    rRAMG = 0;
+    _asm
+        ei
+    _endasm;
+    wCompSrc += 0x100;
+    wDecompPos = 0;
+}
 
 UBYTE FileSlotHalfBase(void)
 {
@@ -58,6 +84,19 @@ UBYTE GetFileBlockCount(UBYTE i)
     if (i >= 0x20)
         DebugTrap();
     return wFileBlockCounts[i];
+}
+
+UBYTE FileReadCompressedBlock(void)
+{
+    UBYTE i;
+
+    if (wCompDst >= (UWORD)0x7FF1)
+        return 0;
+    for (i = 0; i < 0x10; i++) {
+        if (ReadWorkingSongByte(wCompDst + i) != DefaultWaveFrameB1C[i])
+            return 0;
+    }
+    return 1;
 }
 
 UBYTE FileFindSlotEnd(void)

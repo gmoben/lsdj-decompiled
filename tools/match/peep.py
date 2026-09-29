@@ -223,6 +223,10 @@ _CMP16 = [
     ([r"xor\s+a,a", r"ld\s+a,([ce])", rf"sbc\s+a,{_HEX}", r"ld\s+a,([bd])", rf"sbc\s+a,{_HEX}",
       r"jp\s+(n?c),(\S+)"],
      lambda g: ([], {"cb": "bc", "ed": "de"}.get(g[0] + g[2], ""), g[1], g[3], g[4], g[5])),
+    # a global -> fetched into de (`FileReadCompressedBlock`)
+    ([r"xor\s+a,a", r"ld\s+hl,(#[^;]+?)", r"ld\s+a,\(hl\)", rf"sbc\s+a,{_HEX}", r"inc\s+hl",
+      r"ld\s+a,\(hl\)", rf"sbc\s+a,{_HEX}", r"jp\s+(n?c),(\S+)"],
+     lambda g: ([f"\tld\thl,{g[0]}", "\tld\te,(hl)", "\tinc\thl", "\tld\td,(hl)"], "de", g[1], g[2], g[3], g[4])),
 ]
 
 

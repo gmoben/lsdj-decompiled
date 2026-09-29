@@ -485,6 +485,12 @@
   "len": 74,
   "src": "c/bank1c/FileScreen.c"
  },
+ "FileReadCompressedBlock": {
+  "bank": "1C",
+  "addr": "43C1",
+  "len": 94,
+  "src": "c/bank1c/FileScreen.c"
+ },
  "FileReadInstrByte": {
   "bank": "1C",
   "addr": "60CC",
@@ -669,6 +675,12 @@
   "bank": "1C",
   "addr": "5597",
   "len": 90,
+  "src": "c/bank1c/FileScreen.c"
+ },
+ "FileWriteCompressedSram": {
+  "bank": "1C",
+  "addr": "4000",
+  "len": 71,
   "src": "c/bank1c/FileScreen.c"
  },
  "FileWriteInstrByte": {

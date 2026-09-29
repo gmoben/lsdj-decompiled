@@ -780,3 +780,15 @@ replace restart {
 	or	a,(hl)
 	jp	%3,%4
 }
+
+// hl copied into a pair and straight back: the reload is dropped (0 in the
+// ROM's compiled code; FileReadCompressedBlock pushes hl right after the copy)
+replace {
+	ld	%1,l
+	ld	%2,h
+	ld	l,%1
+	ld	h,%2
+} by {
+	ld	%1,l
+	ld	%2,h
+}
