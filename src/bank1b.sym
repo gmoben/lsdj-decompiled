@@ -62,7 +62,7 @@
 6B7A LoadSongData       ; load the working song (called by InitAndLoadSong)
 5DBF ProjectDrawField   ; project field draw ($c9a4)
 53E8 NameEditorInput            ; name-editor per-frame input (letter select; FILE save flow aware)
-4BC3 ProjectInitLatch           ; latch $c933 (project screen one-time init flag)
+4BC3 HelpScreenInput            ; HELP screen input: UP/DOWN move the selection, A opens the entry, B closes it or returns to the project screen
 
 4E8A OpenNameEditor             ; save screen -> wNameReturnScreen, init letter input (wKbdLetterPos) for instr/file/word names
 754F UpdateInstrEnvelope        ; envelope-bearing types only (PULSE/NOISE): recompute envelope data after instrument edit
@@ -176,10 +176,10 @@
 756E .done                ; common exit of UpdateInstrEnvelope
 
 ; --- structural local names (loop heads / common exits) ---
-4BED .down                ; wButtons == case in ProjectInitLatch
-4BF8 .up                  ; wButtons == case in ProjectInitLatch
-4C03 .a                   ; wButtons == case in ProjectInitLatch
-4C16 .b                   ; wButtons == case in ProjectInitLatch
+4BED .down                ; wButtons == case in HelpScreenInput
+4BF8 .up                  ; wButtons == case in HelpScreenInput
+4C03 .a                   ; wButtons == case in HelpScreenInput
+4C16 .b                   ; wButtons == case in HelpScreenInput
 4EF4 .notFile             ; wButtons == case in OpenNameEditor
 5450 .a                   ; wButtons == case in NameEditorInput
 558E .sel                 ; wButtons == case in NameEditorInput

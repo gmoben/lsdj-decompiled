@@ -719,6 +719,12 @@
   "len": 33,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "HelpScreenInput": {
+  "bank": "1B",
+  "addr": "4BC3",
+  "len": 109,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
  "InitRemapTable": {
   "bank": "1F",
   "addr": "4A26",
@@ -1684,6 +1690,12 @@
   "addr": "445A",
   "len": 45,
   "src": "c/bank01/UiHelpers.c"
+ },
+ "UpdateEnvSprites": {
+  "bank": "1B",
+  "addr": "74E4",
+  "len": 107,
+  "src": "c/bank1b/ProjectScreen.c"
  },
  "WriteBookmarkByte": {
   "bank": "07",

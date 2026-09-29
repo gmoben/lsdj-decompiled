@@ -82,7 +82,7 @@ stubs' bank + call target):
 | 3 Chain | `ChainScreenEdit` `$06:$5BD0` | | 10 Synth | `SynthScreenInput` `$1D:$7138` |
 | 4 Song | `SongScreenEdit` `$07:$4B3B` | | 12 Word | `DrawSelectDigit`* `$06:$431D` |
 | 5 Table | `TableHighlightCell`* `$05:$4B5D` | | 13 File | `FileScreenInput` `$1C:$5B0C` |
-| 6 Instrument | `InstrScreenInput` `$03:$541F` | | 14 Help | `ProjectInitLatch`* `$1B:$4BC3` |
+| 6 Instrument | `InstrScreenInput` `$03:$541F` | | 14 Help | `HelpScreenInput`* `$1B:$4BC3` |
 | 7 (name editor) | `NameEditorInput` `$1B:$53E8` | | 0, 11 | — |
 
 \* These five are the screens' real input entry points, but their names (and

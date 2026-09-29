@@ -22,6 +22,8 @@ extern UBYTE HelpSelectLines[];             /* $1B:$408E, the selectable lines *
 extern UWORD *HelpPageRefs[];               /* $1B:$4BAF, &HelpPagePtrs[k] per line */
 extern UBYTE ProjFieldX[];                  /* $1B:$575C, the 12 fields' x */
 extern UBYTE ProjFieldY[];                  /* $1B:$5768, and rows */
+extern UBYTE wAPressEnabled;                /* $C409 */
+extern UBYTE wButtons;                      /* $C575 */
 extern UBYTE wProjCursor;                   /* $C9A4 */
 extern UBYTE wProjDrawScratch2;             /* $C9A8 */
 extern UBYTE wProjDrawScratch3;             /* $C9A9 */
@@ -39,6 +41,9 @@ UBYTE GetNextButtons(void);                 /* bank 0 */
 UWORD StringLength(char *s);                /* bank 0 */
 UBYTE ProjCalcFieldTile(void);
 void DrawNameEditArrows(UWORD page);
+void SetOAMByte(UWORD offset, UBYTE v);     /* bank 0 */
+void ProjHelpSelectNext(void);
+void ProjHelpOpenSelected(void);
 
 void DrawHelpMenu(void)
 {
@@ -111,6 +116,36 @@ void ProjHelpOpenSelected(void)
     ClearBgTilemap();
     wHelpOpenEntry = HelpSelectLines[wHelpCursorRow];
     DrawNameEditArrows(*HelpPageRefs[wHelpCursorRow]);
+}
+
+UBYTE HelpScreenInput(void)
+{
+    UBYTE closed;
+
+    closed = wHelpOpenEntry == 0;
+    switch (wButtons) {
+    case 8:
+        if (closed)
+            ProjHelpSelectNext();
+        break;
+    case 4:
+        if (closed)
+            ProjHelpSelectPrev();
+        break;
+    case 0x10:
+        if (wAPressEnabled && closed)
+            ProjHelpOpenSelected();
+        break;
+    case 0x20:
+        if (wAPressEnabled) {
+            if (closed)
+                GotoProjectScreen();
+            else
+                ProjHelpReset();
+        }
+        break;
+    }
+    return 1;
 }
 
 void ProjDrawNameFieldHw(void)
@@ -235,4 +270,17 @@ void ProjectScreenRefresh(void)
     DrawProjectScreen();
     FarCall(5, MapDrawTopRow);
     wRedrawPending = 0;
+}
+
+void UpdateEnvSprites(void)
+{
+    UBYTE i, t, u;
+
+    for (i = 0; i != 8; i++) {
+        t = i << 2;
+        SetOAMByte(t + 0x0C, 0x40);
+        u = (i << 3) + 0x30;
+        SetOAMByte(t + 0x0D, u);
+        SetOAMByte(t + 0x0E, u = i + 6);
+    }
 }
