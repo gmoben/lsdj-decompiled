@@ -185,6 +185,10 @@ def repair_globls(asm: str) -> str:
     have = set(re.findall(r"^\s*\.globl\s+(\S+)", "\n".join(out), re.M))
     missing = [f"\t.globl _{n}" for n in re.findall(r"^___(\w+?)_start:", asm, re.M)
                if f"_{n}" not in have]
+    # SDCC calls its runtime helpers (`__muluchar`, ...) without declaring
+    # them; GBDK's driver assembled with -g. Declare them so they link.
+    missing += [f"\t.globl {n}" for n in sorted(set(re.findall(r"^\s*call\s+(__\w+)", asm, re.M)))
+                if n not in have]
     if missing:
         at = next((i for i, l in enumerate(out) if re.match(r"\s*\.globl\b", l)), 0)
         out[at:at] = missing
@@ -329,7 +333,22 @@ def load_symbols() -> dict[str, tuple[int | None, int]]:
             m = re.match(r"^\s*([0-9A-Fa-f]{4})\s+([A-Za-z_]\w*)", line)
             if m:
                 syms.setdefault(m.group(2), (bank, int(m.group(1), 16)))
+    # SDCC's runtime helpers (GBDK 2.95 libc/asm/gbz80/{mul,div}.s, called for
+    # `*`, `/`, `%`) under the names our symbol map gives those routines.
+    for sdcc_name, ours in RUNTIME_ALIASES.items():
+        if ours in syms:
+            syms.setdefault(sdcc_name, syms[ours])
     return syms
+
+
+RUNTIME_ALIASES = {
+    "__mulschar": "MulU8", "__muluchar": "MulU8",
+    "__mulsint": "MulU16", "__muluint": "MulU16",
+    "__divschar": "DivS8", "__modschar": "ModS8",
+    "__divuchar": "DivU8", "__moduchar": "ModU8",
+    "__divsint": "DivS16", "__modsint": "ModS16",
+    "__divuint": "DivU16", "__moduint": "ModU16",
+}
 
 
 def rom_offset(bank: int, addr: int) -> int:
@@ -393,6 +412,8 @@ def link_plan(asm: str, lst: str, func: str | None, bank: int, addr: int,
     gargs, missing, other_bank = [], [], []
     for sym in externs:
         plain = sym[1:]
+        if plain not in defines and plain not in syms and sym in syms:
+            plain = sym                 # a runtime helper: `__muluchar`, ...
         if plain in defines:
             val = defines[plain]
         elif plain in syms:

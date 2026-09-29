@@ -15,8 +15,10 @@
 #include "lsdj.h"
 
 extern UBYTE DefaultWaveFrameB3[];          /* $03:$4015, 16 bytes */
-extern UBYTE InstrFieldXKit[];              /* $03:$4046 */
-extern UBYTE InstrFieldYWave[];             /* $03:$4089 */
+extern char TxtUnlim[];                     /* $03:$4025 "UNLIM" */
+extern UBYTE InstrFieldX[][18];             /* $03:$402B, [type][field] cursor X */
+extern UBYTE InstrFieldY[][18];             /* $03:$406E */
+extern UBYTE InstrFieldW[][18];             /* $03:$40B1 */
 extern UBYTE InstrFieldCounts[];            /* $03:$40F4, [4] fields per instrument type */
 
 void WriteCurrentInstrByte(UBYTE field, UBYTE val)
@@ -55,6 +57,19 @@ UBYTE InstrCheckFieldOption(UBYTE type)
     return wInstrField == InstrFieldCounts[type] - 1;
 }
 
+void DrawInstrCursor(void)
+{
+    UBYTE type;
+
+    type = ReadCurInstrByte(0) & 3;
+    if (type == 1 && InstrByte9IsZero() && wInstrField == 9) {
+        DrawTextField(0x0B, 0x0C, 2, hGameboyType ? 3 : 2);
+        return;
+    }
+    DrawTextField(InstrFieldX[type][wInstrField], InstrFieldY[type][wInstrField],
+                  InstrFieldW[type][wInstrField], hGameboyType ? 3 : 2);
+}
+
 void SetInstrPitchByte(UBYTE v)
 {
     WriteCurrentInstrByte(5, v);
@@ -91,7 +106,7 @@ void SetInstrLen(void)
     v = ShowOutOfSynths();
     if (v == 0xFF)
         return;
-    GetTilemapAddr(InstrFieldXKit[0], InstrFieldYWave[0]);
+    GetTilemapAddr(InstrFieldX[1][9], InstrFieldY[1][9]);   /* WAVE: the synth field */
     hBgDigitPalette = wSelectDigitPal;
     hBgPalette = wSelectPal;
     DrawByte(v);
@@ -147,6 +162,21 @@ void InstrSelectNextUsed(void)
     DrawInstrumentScreen();
 }
 
+void EraseInstrCursor(void)
+{
+    UBYTE type, x, y, r;
+
+    type = ReadCurInstrByte(0) & 3;
+    if (type == 1 && InstrByte9IsZero() && wInstrField == 9) {
+        DrawTextField(0x0B, 0x0C, 2, 1);
+        return;
+    }
+    x = InstrFieldX[type][wInstrField];
+    r = InstrFieldW[type][wInstrField] + x;
+    y = InstrFieldY[type][wInstrField];
+    DrawTextField(x, y, r - x, 1);
+}
+
 void SetInstrByte8(void)
 {
     UBYTE v;
@@ -176,6 +206,40 @@ UBYTE GetInstrByte5Flag8(void)
     return ReadCurInstrByte(5) & 0x08;
 }
 
+void InstrTableModePrev(void)
+{
+    if (wButtonsSame)
+        return;
+    if (ReadCurInstrByte(5) & 0x08)
+        WriteCurrentInstrByte(5, ReadCurInstrByte(5) & 0xF7);
+    else
+        WriteCurrentInstrByte(6, ReadCurInstrByte(6) & 0xDF);
+    hBgDigitPalette = wSelectDigitPal;
+    hBgPalette = wSelectPal;
+    FarCall(0x1F, FAR_FN(GetInstrType1F));
+    wVramCursor++;
+    hBgDigitPalette = wShadowDigitPal;
+    hBgPalette = wShadowPal;
+    FarCall(0x1F, FAR_FN(GetInstrTable1F2));
+}
+
+void InstrTableModeNext(void)
+{
+    if (wButtonsSame)
+        return;
+    if (IsInstrTableOn())
+        WriteCurrentInstrByte(5, ReadCurInstrByte(5) | 0x08);
+    else
+        InstrTableOn();
+    hBgDigitPalette = wSelectDigitPal;
+    hBgPalette = wSelectPal;
+    FarCall(0x1F, FAR_FN(GetInstrType1F));
+    wVramCursor++;
+    hBgDigitPalette = wShadowDigitPal;
+    hBgPalette = wShadowPal;
+    FarCall(0x1F, FAR_FN(GetInstrTable1F2));
+}
+
 void InstrTableNext(void)
 {
     UBYTE v, t;
@@ -199,11 +263,11 @@ void SetInstrTable5(void)
     if (v & 0x20) {
         if ((v & 0x1F) == 0) {
             if (!wButtonsSame) {
-                SetInstrFlags52();
-                SetInstrFlags52();
-                GetInstrType2();
+                InstrTableModePrev();
+                InstrTableModePrev();
+                EraseInstrCursor();
                 wInstrField--;
-                GetInstrType();
+                DrawInstrCursor();
             }
         } else {
             v--;
@@ -277,6 +341,28 @@ void DrawInstrRow14(void)
         DrawStringIndexed('-');
 }
 
+void DrawKitDistName(UBYTE v)
+{
+    switch (v) {
+    case 0xD0:
+        DrawString(" HARD");
+        break;
+    case 0xD1:
+        DrawString(" SOFT");
+        break;
+    case 0xD2:
+        DrawString(" FOLD");
+        break;
+    case 0xD3:
+        DrawString(" WRAP");
+        break;
+    default:
+        DrawStringIndexed('?');
+        DrawHexByte(v);
+        DrawString("00");
+    }
+}
+
 UBYTE GetInstrByte11(void)
 {
     return ReadCurInstrByte(11) + 3;
@@ -338,6 +424,41 @@ void InstrField5Prev(void)
 UBYTE GetInstrType3(void)
 {
     return ReadCurInstrByte(0) - 2;
+}
+
+void InstrPitchModeUp(void)
+{
+    UBYTE v;
+
+    v = ReadCurInstrByte(5);
+    if (v & 0x80)
+        return;
+    if (v & 0x10)
+        v ^= 0x90;
+    else if ((v & 0x40) && GetInstrType3())
+        v ^= 0x40;
+    else
+        v |= 0x10;
+    WriteCurrentInstrByte(5, v);
+    FarCallArg(1, (UWORD)DrawSpeedModeName, v);
+}
+
+void InstrPitchModeDown(void)
+{
+    UBYTE v;
+
+    v = ReadCurInstrByte(5);
+    if (v & 0x80)
+        v ^= 0x90;
+    else if (v & 0x10) {
+        if (GetInstrType3())
+            v &= 0xAF;
+        else
+            v ^= 0x10;
+    } else if (GetInstrType3())
+        v |= 0x40;
+    WriteCurrentInstrByte(5, v);
+    FarCallArg(1, (UWORD)DrawSpeedModeName, v);
 }
 
 void DrawInstrByte12(void)
@@ -419,6 +540,23 @@ void KitSelectEnsure(void)
     }
 }
 
+void SetInstrType(UBYTE type)
+{
+    UBYTE t, n;
+
+    if (wButtonsSame)
+        return;
+    t = type;
+    n = InstrFieldCounts[t];
+    if (wInstrField >= n)
+        wInstrField = n - 1;
+    WriteCurrentInstrByte(0, t);
+    FarCall(1, FAR_FN(UiDrawTextHw));
+    if (t == 2)
+        KitSelectEnsure();
+    DrawInstrumentScreen();
+}
+
 void InstrFieldIncLo(UBYTE field)
 {
     UBYTE v, t;
@@ -430,7 +568,7 @@ void InstrFieldIncLo(UBYTE field)
     v++;
     WriteCurrentInstrByte(field, v);
     FarCall(0x1F, GetInstrEnv1F2);
-    GetInstrType();
+    DrawInstrCursor();
     InstrEnvelopeChanged();
 }
 
@@ -444,7 +582,7 @@ void InstrFieldDecLo(UBYTE field)
     v--;
     WriteCurrentInstrByte(field, v);
     FarCall(0x1F, GetInstrEnv1F2);
-    GetInstrType();
+    DrawInstrCursor();
     InstrEnvelopeChanged();
 }
 
@@ -459,7 +597,7 @@ void InstrFieldIncHi(UBYTE field)
     v += 0x10;
     WriteCurrentInstrByte(field, v);
     FarCall(0x1F, GetInstrEnv1F2);
-    GetInstrType();
+    DrawInstrCursor();
     InstrEnvelopeChanged();
 }
 
@@ -473,6 +611,107 @@ void InstrFieldDecHi(UBYTE field)
     v -= 0x10;
     WriteCurrentInstrByte(field, v);
     FarCall(0x1F, GetInstrEnv1F2);
-    GetInstrType();
+    DrawInstrCursor();
     InstrEnvelopeChanged();
+}
+
+void SetInstrLen4(void)
+{
+    UBYTE v;
+
+    v = ReadCurInstrByte(3);
+    if (v & 0x40) {
+        v--;
+        if (v == 0x3F)
+            v = 0;
+    }
+    WriteCurrentInstrByte(3, v);
+    if (v & 0x40) {
+        DrawString("   ");
+        v = 0x3F - v;
+        v &= 0x3F;
+        DrawHexByte(v);
+    } else
+        DrawString(TxtUnlim);
+}
+
+void SetInstrLen5(void)
+{
+    UBYTE v, t;
+
+    v = ReadCurInstrByte(3);
+    if (!(v & 0x40)) {
+        v &= 0x80;
+        v += 0x40;
+    } else {
+        t = v & 0x3F;
+        if (t != 0x3F)
+            v++;
+    }
+    WriteCurrentInstrByte(3, v);
+    if (v & 0x40) {
+        DrawString("   ");
+        v = 0x3F - v;
+        v &= 0x3F;
+        DrawHexByte(v);
+    } else
+        DrawString(TxtUnlim);
+}
+
+void SetInstrLen6(void)
+{
+    UBYTE v, t;
+
+    v = ReadCurInstrByte(3);
+    if (v & 0x40) {
+        t = v & 0x3F;
+        if (t > 0x0F)
+            v -= 0x10;
+        else
+            v = 0;
+    }
+    WriteCurrentInstrByte(3, v);
+    if (v & 0x40) {
+        DrawString("   ");
+        v = 0x3F - v;
+        v &= 0x3F;
+        DrawHexByte(v);
+    } else
+        DrawString(TxtUnlim);
+}
+
+void SetInstrLen7(void)
+{
+    UBYTE v, t;
+
+    v = ReadCurInstrByte(3);
+    if (!(v & 0x40))
+        v = 0x4F;
+    else {
+        t = v & 0x3F;
+        if (t < 0x30)
+            v += 0x10;
+        else
+            v |= 0x3F;
+    }
+    WriteCurrentInstrByte(3, v);
+    if (v & 0x40) {
+        DrawString("   ");
+        v = 0x3F - v;
+        v &= 0x3F;
+        DrawHexByte(v);
+    } else
+        DrawString(TxtUnlim);
+}
+
+void GetInstrType4(void)
+{
+    UBYTE t;
+
+    t = ReadCurInstrByte(0) & 3;
+    if (t == 1 && wInstrField == 9 && !InstrByte9IsZero())
+        SetInstrLen2();
+    else
+        FarCall(1, FAR_FN(CloneInstrTable));
+    wInstrEditLatch = 0;
 }

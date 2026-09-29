@@ -682,3 +682,65 @@ replace restart {
 	sub	a,%1
 	ld	(hl),a
 }
+replace restart {
+	ld	(hl),a
+	ld	de,#%1
+	ld	l,(hl)
+} by {
+	ld	(hl),a
+	ld	de,#%1
+	ld	l,a
+}
+replace restart {
+	ld	(hl),a
+	ld	de,#%1 + %2
+	ld	l,(hl)
+} by {
+	ld	(hl),a
+	ld	de,#%1 + %2
+	ld	l,a
+}
+replace restart {
+	lda	hl,%1(sp)
+	ld	(hl),b
+	lda	sp,%2(sp)
+	ld	a,(hl)
+} by {
+	lda	hl,%1(sp)
+	ld	(hl),b
+	lda	sp,%2(sp)
+	ld	a,b
+}
+replace restart {
+	lda	hl,%1(sp)
+	ld	(hl),c
+	lda	sp,%2(sp)
+	ld	a,(hl)
+} by {
+	lda	hl,%1(sp)
+	ld	(hl),c
+	lda	sp,%2(sp)
+	ld	a,c
+}
+replace restart {
+	lda	hl,%1(sp)
+	ld	(hl),d
+	lda	sp,%2(sp)
+	ld	a,(hl)
+} by {
+	lda	hl,%1(sp)
+	ld	(hl),d
+	lda	sp,%2(sp)
+	ld	a,d
+}
+replace restart {
+	lda	hl,%1(sp)
+	ld	(hl),e
+	lda	sp,%2(sp)
+	ld	a,(hl)
+} by {
+	lda	hl,%1(sp)
+	ld	(hl),e
+	lda	sp,%2(sp)
+	ld	a,e
+}

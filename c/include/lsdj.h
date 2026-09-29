@@ -67,6 +67,7 @@ extern UBYTE wStrBuffer[];                  /* $C6A9, 20 chars + NUL */
 extern UBYTE wMsgTimer;                     /* $C7A9 */
 extern UBYTE *wMsgStrPtr;                   /* $C7AA */
 extern UBYTE wMsgPanelShown;                /* $C7AC */
+extern UBYTE wInstrEditLatch;               /* $C906: instrument screen edit latch */
 extern char *wChainScratchPtr;              /* $C948 */
 extern UBYTE wSyncMode;                     /* $CB66 */
 extern UBYTE wSyncMode2;                    /* $CB67 */
@@ -163,17 +164,23 @@ void UiDrawTextHw(void);
 void DrawOnOffName(UBYTE v);
 void DrawSpeedModeName(UBYTE v);
 void DrawSpeedGlyph(UBYTE v);
+void CloneInstrTable(void);
 
 /* --- bank 3: instrument screen --------------------------------------------- */
 
 void WriteCurrentInstrByte(UBYTE field, UBYTE val);
-UBYTE GetInstrType(void);
-UBYTE GetInstrType2(void);
+void DrawInstrCursor(void);
+void EraseInstrCursor(void);
 UBYTE ShowOutOfSynths(void);
-void SetInstrFlags52(void);
+void InstrTableModePrev(void);
 UBYTE GetInstrByte2(void);
+UBYTE GetInstrType3(void);
 void WriteKitNumber(UBYTE field, UBYTE kit);
 void InstrEnvelopeChanged(void);
+void KitSelectEnsure(void);
+void SetInstrLen2(void);
+void InstrTableOn(void);
+UBYTE IsInstrTableOn(void);
 UBYTE GetInstrByte9(void);
 UBYTE InstrByte9IsZero(void);
 void SetInstrPitchByte(UBYTE v);
@@ -196,6 +203,7 @@ UBYTE ProjSyncModeIs567(void);
 /* --- bank $1F -------------------------------------------------------------- */
 
 UBYTE GetInstrTable1F2(void);
+UBYTE GetInstrType1F(void);
 void GetInstrEnv1F2(void);
 
 #endif /* LSDJ_H */

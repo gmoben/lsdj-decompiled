@@ -13,10 +13,10 @@
 4105 InstrByte9IsZero           ; 1 if instrument byte 9 == 0 (kit row dashes gate; 12 uses)
 4118 IsInstrTableOn             ; instrument byte 6 bit 5 (table on) as 0/1
 4133 InstrTableOn               ; set instrument byte 6 bit 5 (table on)
-4170 GetInstrType               ; read instrument byte 0 = type (0=PULSE 1=WAVE 2=KIT 3=NOISE)
+4170 DrawInstrCursor            ; draw the cursor highlight on field wInstrField (DrawTextField from InstrFieldX/Y/W[type][field], palette 3 CGB / 2)
 4257 SetInstrPitchByte          ; write instrument byte 5 (pitch flags) and redraw its transpose ON/OFF (bank 1 DrawOnOffName)
 4293 InstrTransposeOff          ; clear instrument byte 5 bit 5 (transpose) via SetInstrPitchByte
-4679 GetInstrType2              ; read instrument byte 0 = type (0=PULSE 1=WAVE 2=KIT 3=NOISE)
+4679 EraseInstrCursor           ; erase the cursor highlight on field wInstrField (palette 1)
 4741 SetInstrByte8              ; write instrument byte 8 (kit pitch / pulse finetune)
 4769 SetInstrByte82             ; write instrument byte 8 (kit pitch / pulse finetune)
 4924 InstrTableAdd16            ; table on, fresh press: set table-number bit 4 (+16)
@@ -35,8 +35,8 @@
 45D3 InstrSelectPrevUsed        ; step wInstrument back to the previous allocated instrument (SramInstrAlloc), then redraw
 461B InstrSelectPrevPage        ; wInstrument -= 16 (clamped to 0), then InstrSelectPrevUsed
 4638 InstrSelectNextUsed        ; step wInstrument on to the next allocated instrument (stops at $40, speech), then redraw
-47A2 SetInstrFlags52            ; write instrument byte 5 flags (bit3 = table STEP/AUTOMATE mode, vibrato bits)
-482E SetInstrFlags53            ; write instrument byte 5 flags (bit3 = table STEP/AUTOMATE mode, vibrato bits)
+47A2 InstrTableModePrev         ; table mode down: clear byte 5 bit 3 (table step) if set, else table off; redraw
+482E InstrTableModeNext         ; table mode up: table on, then set byte 5 bit 3 (table step); redraw
 489D InstrTableNext             ; table on: table number +1 (up to $1F), then FarCall bank $1F GetInstrTable1F2
 48D6 SetInstrTable5             ; write instrument byte 6 = table (bits0-4) + enable (bit5)
 495C InstrTableSub16            ; table on: clear table-number bit 4 (-16)
@@ -55,8 +55,8 @@
 4BAC InstrField5Next            ; read instr field5, step +2 (wrap 6->1), write back via SetInstrFlags54
 4BCB InstrField5Prev            ; read instr field5, step -2 (wrap <0 ->4), write back via SetInstrFlags54
 4BE9 GetInstrType3              ; read instrument byte 0 = type (0=PULSE 1=WAVE 2=KIT 3=NOISE)
-4BF9 SetInstrFlags55            ; write instrument byte 5 flags (bit3 = table STEP/AUTOMATE mode, vibrato bits)
-4C64 SetInstrFlags56            ; write instrument byte 5 flags (bit3 = table STEP/AUTOMATE mode, vibrato bits)
+4BF9 InstrPitchModeUp           ; pitch mode up: byte 5 bits 4/6/7 (bit 7 = top), redraw via DrawSpeedModeName
+4C64 InstrPitchModeDown         ; pitch mode down: byte 5 bits 4/6/7, redraw via DrawSpeedModeName
 4CD9 DrawInstrByte12            ; read instr byte 12 + draw label/hex pair
 4D15 GetInstrLen                ; read instrument byte 3 = length (bit6=limited, bits0-5; wave v16+: synth<<4)
 4DD7 InstrEnvelopeChanged       ; FarCall bank1b UpdateInstrEnvelope after a field edit
@@ -82,17 +82,14 @@
 4AC0 TxtFold                    ; " FOLD"
 4AC6 TxtWrap                    ; " WRAP"
 4025 TxtUnlim                   ; "UNLIM"
-402B InstrFieldX                ; per-field cursor X positions (per-type rows)
-4046 InstrFieldXKit             ; kit-type X row (direct base)
-406E InstrFieldY                ; per-field cursor Y positions (per-type rows)
-4089 InstrFieldYWave            ; wave-type Y row (direct base)
-409C InstrFieldYKit             ; kit-type Y row (direct base)
-40B1 InstrFieldW                ; per-field cursor widths (per-type rows)
+402B InstrFieldX                ; [4][18] per-type cursor X per field (NOISE row: 13): indexed [type][field]
+406E InstrFieldY                ; [4][18] per-type cursor Y per field (NOISE row: 13)
+40B1 InstrFieldW                ; [4][18] per-type cursor width per field (NOISE row: 13)
 40F4 InstrFieldCounts           ; fields per instrument type: PULSE 16, WAVE 15, KIT 18, NOISE 13
 4015 DefaultWaveFrameB3         ; default wave frame (16 bytes, bank-3 copy)
 
 ; --- structural local names (loop heads / common exits) ---
-4253 .done                ; common exit of GetInstrType
+4253 .done                ; common exit of DrawInstrCursor
 42BE .loop                ; loop head in InstrReadPhraseNote
 42FB .done                ; common exit of InstrReadPhraseNote
 4302 .loop                ; loop head in ShowOutOfSynths
@@ -105,11 +102,11 @@
 4619 .done                ; common exit of InstrSelectPrevUsed
 4637 .done                ; common exit of InstrSelectPrevPage
 4641 .loop                ; loop head in InstrSelectNextUsed
-473D .done                ; common exit of GetInstrType2
+473D .done                ; common exit of EraseInstrCursor
 4767 .done                ; common exit of SetInstrByte8
 478E .done                ; common exit of SetInstrByte82
-482C .done                ; common exit of SetInstrFlags52
-489B .done                ; common exit of SetInstrFlags53
+482C .done                ; common exit of InstrTableModePrev
+489B .done                ; common exit of InstrTableModeNext
 48D4 .done                ; common exit of InstrTableNext
 4922 .done                ; common exit of SetInstrTable5
 495A .done                ; common exit of InstrTableAdd16
@@ -120,7 +117,7 @@
 4AB3 .done                ; common exit of DrawKitDistName
 4BC9 .done                ; common exit of InstrField5Next
 4BE7 .done                ; common exit of InstrField5Prev
-4C60 .done                ; common exit of SetInstrFlags55
+4C60 .done                ; common exit of InstrPitchModeUp
 4D13 .done                ; common exit of DrawInstrByte12
 4DC9 .done                ; common exit of GetInstrLen
 4EC6 .loop                ; loop head in DrawInstrumentScreen
@@ -164,8 +161,8 @@
 691C InstrParamColB             ; param handler: field selected by wInstrCursorCol (variant B)
 697B InstrParamByte2Alt         ; param handler: instrument byte 2 (alternate draw)
 69A2 InstrParamByte10           ; param handler: instrument byte 10 (kit distortion $d0-$d3)
-69F1 InstrParamTablePrev        ; table field handler: InstrField5Prev + SetInstrFlags52/Table5
-69F7 InstrParamTableSet         ; table field handler: SetInstrFlags52 + SetInstrTable5
+69F1 InstrParamTablePrev        ; table field handler: InstrField5Prev + InstrTableModePrev/Table5
+69F7 InstrParamTableSet         ; table field handler: InstrTableModePrev + SetInstrTable5
 69FD InstrParamTableSet2        ; table field handler: SetInstrTable5 entry
 
 

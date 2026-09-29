@@ -17,10 +17,22 @@
   "len": 60,
   "src": "c/bank03/InstrScreen.c"
  },
+ "DrawInstrCursor": {
+  "bank": "03",
+  "addr": "4170",
+  "len": 231,
+  "src": "c/bank03/InstrScreen.c"
+ },
  "DrawInstrRow14": {
   "bank": "03",
   "addr": "49FD",
   "len": 71,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "DrawKitDistName": {
+  "bank": "03",
+  "addr": "4A44",
+  "len": 112,
   "src": "c/bank03/InstrScreen.c"
  },
  "DrawKitNameField": {
@@ -46,6 +58,12 @@
   "addr": "7524",
   "len": 130,
   "src": "c/bank06/DrawTileHexCell.c"
+ },
+ "EraseInstrCursor": {
+  "bank": "03",
+  "addr": "4679",
+  "len": 200,
+  "src": "c/bank03/InstrScreen.c"
  },
  "GetInstrByte10": {
   "bank": "03",
@@ -87,6 +105,12 @@
   "bank": "03",
   "addr": "4BE9",
   "len": 16,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "GetInstrType4": {
+  "bank": "03",
+  "addr": "53DE",
+  "len": 65,
   "src": "c/bank03/InstrScreen.c"
  },
  "InstrByte9IsZero": {
@@ -143,6 +167,18 @@
   "len": 59,
   "src": "c/bank03/InstrScreen.c"
  },
+ "InstrPitchModeDown": {
+  "bank": "03",
+  "addr": "4C64",
+  "len": 117,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "InstrPitchModeUp": {
+  "bank": "03",
+  "addr": "4BF9",
+  "len": 107,
+  "src": "c/bank03/InstrScreen.c"
+ },
  "InstrReadPhraseNote": {
   "bank": "03",
   "addr": "42AB",
@@ -177,6 +213,18 @@
   "bank": "03",
   "addr": "4924",
   "len": 56,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "InstrTableModeNext": {
+  "bank": "03",
+  "addr": "482E",
+  "len": 111,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "InstrTableModePrev": {
+  "bank": "03",
+  "addr": "47A2",
+  "len": 140,
   "src": "c/bank03/InstrScreen.c"
  },
  "InstrTableNext": {
@@ -293,6 +341,30 @@
   "len": 90,
   "src": "c/bank03/InstrScreen.c"
  },
+ "SetInstrLen4": {
+  "bank": "03",
+  "addr": "526B",
+  "len": 80,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "SetInstrLen5": {
+  "bank": "03",
+  "addr": "52BF",
+  "len": 89,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "SetInstrLen6": {
+  "bank": "03",
+  "addr": "531C",
+  "len": 90,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "SetInstrLen7": {
+  "bank": "03",
+  "addr": "537A",
+  "len": 96,
+  "src": "c/bank03/InstrScreen.c"
+ },
  "SetInstrPitchByte": {
   "bank": "03",
   "addr": "4257",
@@ -303,6 +375,12 @@
   "bank": "03",
   "addr": "48D6",
   "len": 78,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "SetInstrType": {
+  "bank": "03",
+  "addr": "5128",
+  "len": 89,
   "src": "c/bank03/InstrScreen.c"
  },
  "ShowOutOfMemory": {
