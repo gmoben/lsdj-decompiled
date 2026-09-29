@@ -1,4 +1,10 @@
 {
+ "AddBookmark": {
+  "bank": "07",
+  "addr": "637C",
+  "len": 57,
+  "src": "c/bank07/SongScreen.c"
+ },
  "AllocNextFreeInstr": {
   "bank": "1F",
   "addr": "4A65",
@@ -28,6 +34,12 @@
   "addr": "4000",
   "len": 34,
   "src": "c/bank06/Screens.c"
+ },
+ "ClearBookmarks": {
+  "bank": "07",
+  "addr": "643D",
+  "len": 18,
+  "src": "c/bank07/SongScreen.c"
  },
  "DrawAllChanStatus": {
   "bank": "1F",
@@ -1049,6 +1061,60 @@
   "len": 10,
   "src": "c/bank01/ShowMessages.c"
  },
+ "SongCursorPageDown": {
+  "bank": "07",
+  "addr": "49E7",
+  "len": 62,
+  "src": "c/bank07/SongScreen.c"
+ },
+ "SongCursorPageUp": {
+  "bank": "07",
+  "addr": "4A79",
+  "len": 63,
+  "src": "c/bank07/SongScreen.c"
+ },
+ "SongDrawCursorRow": {
+  "bank": "07",
+  "addr": "492D",
+  "len": 33,
+  "src": "c/bank07/SongScreen.c"
+ },
+ "SongLoadCursorChain": {
+  "bank": "07",
+  "addr": "4AFD",
+  "len": 62,
+  "src": "c/bank07/SongScreen.c"
+ },
+ "SongRedrawRow": {
+  "bank": "07",
+  "addr": "451E",
+  "len": 34,
+  "src": "c/bank07/SongScreen.c"
+ },
+ "SongScreenUpdate": {
+  "bank": "07",
+  "addr": "47AA",
+  "len": 37,
+  "src": "c/bank07/SongScreen.c"
+ },
+ "SongScrollDown": {
+  "bank": "07",
+  "addr": "4973",
+  "len": 37,
+  "src": "c/bank07/SongScreen.c"
+ },
+ "SongScrollToCursor": {
+  "bank": "07",
+  "addr": "4540",
+  "len": 52,
+  "src": "c/bank07/SongScreen.c"
+ },
+ "SongScrollUp": {
+  "bank": "07",
+  "addr": "494E",
+  "len": 37,
+  "src": "c/bank07/SongScreen.c"
+ },
  "SynthApplyFilter": {
   "bank": "1D",
   "addr": "5F00",
@@ -1108,6 +1174,18 @@
   "addr": "62BD",
   "len": 32,
   "src": "c/bank1f/InstrHelpers.c"
+ },
+ "ToggleBookmark": {
+  "bank": "07",
+  "addr": "6413",
+  "len": 42,
+  "src": "c/bank07/SongScreen.c"
+ },
+ "WriteBookmarkByte": {
+  "bank": "07",
+  "addr": "6249",
+  "len": 51,
+  "src": "c/bank07/SongScreen.c"
  },
  "WriteChainPhrase": {
   "bank": "1F",

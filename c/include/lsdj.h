@@ -156,6 +156,8 @@ void memcpy(UBYTE *dst, UBYTE *src, UWORD n);
 /* --- the screens' draw entry points (ScreenDrawDispatch, bank 0) ----------- */
 
 void RedrawScreen(void);                    /* $24DD: full repaint of the current screen */
+void SetSpriteY(UBYTE sprite, UBYTE row);   /* play-position marker sprites */
+void ClearSpriteY(UBYTE sprite);
 
 void DrawPhraseScreen(void);        /* $04:$4CE5 */
 void DrawGrooveScreen(void);        /* $1D:$41DA */

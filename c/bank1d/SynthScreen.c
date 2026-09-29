@@ -29,8 +29,6 @@ void SetSpriteX(UBYTE sprite, UBYTE col);
 void SetSpriteTile3(UBYTE sprite);
 void DrawGrooveSteps(void);
 void DrawAllChanStatus(void);
-void SetSpriteY(UBYTE sprite, UBYTE row);
-void ClearSpriteY(UBYTE sprite);
 
 void WriteGrooveByte(UBYTE step, UBYTE v)
 {

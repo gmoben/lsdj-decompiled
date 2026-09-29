@@ -203,6 +203,63 @@ def apply(rules: list[Rule], lines: list[str]) -> tuple[list[str], int]:
     return lines, n_replaced
 
 
+# --- 16-bit compares with a constant --------------------------------------------
+#
+# LSDj's compiler compared a 16-bit value with a constant the way later SDCC
+# releases do on the Game Boy: `ld hl,#-lit; add hl,<pair>` and a jump on the
+# inverted carry (`p < 0xAFF0` is `ld hl,#0x5010; add hl,de; jp c,skip`), the
+# operand used in place when it sits in bc/de and fetched into de otherwise.
+# SDCC 2.2.1 subtracts byte by byte (`xor a,a; ld a,lo; sbc a,#lo; ld a,hi;
+# sbc a,#hi; jp nc,skip`). The ROM has 28 such adds and no 16-bit `sbc`
+# compare with a constant (its `sbc` chains are all 32-bit).
+
+_HEX = r"#(0x[0-9A-Fa-f]+)"
+_CMP16 = [
+    # stack operand -> fetched into de
+    ([r"xor\s+a,a", r"lda\s+hl,(\d+)\(sp\)", r"ld\s+a,\(hl\)", rf"sbc\s+a,{_HEX}", r"inc\s+hl",
+      r"ld\s+a,\(hl\)", rf"sbc\s+a,{_HEX}", r"jp\s+(n?c),(\S+)"],
+     lambda g: ([f"\tlda\thl,{g[0]}(sp)", "\tld\te,(hl)", "\tinc\thl", "\tld\td,(hl)"], "de", g[1], g[2], g[3], g[4])),
+    # operand already in bc or de
+    ([r"xor\s+a,a", r"ld\s+a,([ce])", rf"sbc\s+a,{_HEX}", r"ld\s+a,([bd])", rf"sbc\s+a,{_HEX}",
+      r"jp\s+(n?c),(\S+)"],
+     lambda g: ([], {"cb": "bc", "ed": "de"}.get(g[0] + g[2], ""), g[1], g[3], g[4], g[5])),
+]
+
+
+def gb_cmp16(lines: list[str]) -> tuple[list[str], int]:
+    """Rewrite SDCC 2.2.1's 16-bit `x < lit` / `x >= lit` into LSDj's add form."""
+    lines = list(lines)
+    n = 0
+    i = 0
+    while i < len(lines):
+        for pats, build in _CMP16:
+            idx: list[int] = []
+            groups: list[str] = []
+            j = i
+            for p in pats:
+                while j < len(lines) and not _strip(lines[j]).strip():
+                    j += 1
+                m = re.fullmatch(p, _strip(lines[j]).strip()) if j < len(lines) else None
+                if not m:
+                    break
+                idx.append(j)
+                groups += m.groups()
+                j += 1
+            else:
+                fetch, pair, lo, hi, cc, target = build(groups)
+                if not pair:
+                    continue
+                neg = (-(int(hi, 16) << 8 | int(lo, 16))) & 0xFFFF
+                out = fetch + [f"\tld\thl,#0x{neg:04X}", f"\tadd\thl,{pair}",
+                               f"\tjp\t{'c' if cc == 'nc' else 'nc'},{target}"]
+                lines[idx[0]:idx[-1] + 1] = out
+                n += 1
+                i = idx[0] + len(out) - 1
+                break
+        i += 1
+    return lines, n
+
+
 # --- accumulator tracking -----------------------------------------------------
 #
 # LSDj's compiler knew what `a` held: after `ld a,c` / `ld c,a` / `ld a,#5`

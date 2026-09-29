@@ -54,8 +54,6 @@ void ClearTable(UBYTE t);
 UBYTE FarCallArg2(UBYTE bank, UWORD fn, UBYTE a, UBYTE b);
 UBYTE SndGetChainPhrase(UBYTE chain, UBYTE row);
 void MarkPhraseUsed(UBYTE phrase);
-void SetSpriteY(UBYTE sprite, UBYTE row);
-void ClearSpriteY(UBYTE sprite);
 void FarCallArg3(UBYTE bank, UWORD fn, UBYTE a, UBYTE b, UBYTE c);
 void WritePhraseInstrument(UBYTE phrase, UBYTE row, UBYTE instr);
 

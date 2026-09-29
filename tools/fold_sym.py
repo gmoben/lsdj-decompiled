@@ -57,7 +57,10 @@ def main() -> None:
             for f in files:
                 s = f.read_text()
                 t = re.sub(rf"(?<![\w.]){re.escape(name)}\.(\w+)", rf"{enclosing[1]}.\1", s)
-                t = re.sub(rf"(?<![\w.(]){re.escape(name)}\b(?!\))", qualified, t) if f != sym else t
+                # plain mentions (comments too), except the folded line's `(was NAME)`
+                t = "\n".join(l if l.startswith(f"{addr:04X} ") and f == sym else
+                              re.sub(rf"(?<![\w.(]){re.escape(name)}\b(?!\))", qualified, l)
+                              for l in t.split("\n"))
                 if t != s:
                     f.write_text(t)
             print(f"{name} -> {qualified} (${addr:04X}, {sym.name})")

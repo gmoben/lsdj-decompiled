@@ -53,7 +53,8 @@ def main() -> None:
     for old, new, _ in pairs:
         if not re.search(rf"\b{re.escape(old)}\b", syms):
             sys.exit(f"error: {old} is not a symbol")
-        if re.search(rf"\b{re.escape(new)}\b", syms):
+        # defined names only (`ADDR NAME` / `DEF NAME`); comments may mention NEW
+        if re.search(rf"^(?:[0-9A-F]{{4}}|DEF) {re.escape(new)}\b", syms, re.M):
             sys.exit(f"error: {new} is already a symbol")
     changed = []
     for f in files():

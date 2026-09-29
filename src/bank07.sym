@@ -20,7 +20,7 @@
 4000 SongCheckGlyphTables       ; bounds-checked indices into ROM glyph tables $4A70/$4D70 (DebugTrap on overflow)
 404B SongChanActiveMask         ; OR wChanActive[0..3] -> combined active flag
 4084 SongReadCellValue          ; read song-grid cell at col $c41d / row $c41e (IsBookmarked)
-4366 SongShowCloneMsg           ; show "CLONED CHAIN" / "CLONED CHAIN+PHRASES" popup
+4366 .showCloneMsg        ; (was SongShowCloneMsg) show "CLONED CHAIN" / "CLONED CHAIN+PHRASES" popup
 4395 SongDrawCellHw             ; draw song-grid cell (palette per hGameboyType)
 43E4 SongReadRow                ; read song row $c41c from SRAM ($B290, ReadSongBytes) -> $c46d (16 bytes)
 4463 SongDrawRowNum             ; draw a song row number + bookmark marker (wSongScroll window, 18 rows)
@@ -29,17 +29,16 @@
 4657 SongUpdatePlayMarker       ; per-channel play-position markers from wChanSongRow/wChanNextSongRow (<-SongScreenUpdate)
 47CF SongRowPalettes            ; pick row draw palettes (cursor/bookmark-aware)
 492D SongDrawCursorRow          ; draw cursor-row string (GetTilemapAddr at $c41e-$c41c, SongRowPalettes)
-494E SongDrawHeaderLeft         ; draw left header label at VRAM $9840 (hw VramCopy)
-4973 SongDrawHeaderRight        ; draw right header element (hw VramCopy)
+494E SongScrollUp               ; scroll the song grid for the row above: SongScrollVramUp (+ VramCopyRowUp on CGB), redraw row 2 ($9840)
+4973 SongScrollDown             ; scroll the song grid for the row below: SongScrollVramDown (+ VramCopyRowDown on CGB), redraw row 17 ($9A20)
 4998 SongFindNextRow            ; scan down 1..16 from cursor $c41e, wrapping at 0 -> $ff
 49E7 SongCursorPageDown         ; PgDn: advance song cursor $c41e by a page ($c413==4 guard)
 4A25 SongFindPrevRow            ; scan up 1..16 from cursor $c41e, wrapping
 4A79 SongCursorPageUp           ; PgUp: retreat song cursor $c41e by a page
 4AB8 SongBeginSelection         ; SaveSelectionState, seed wSel* rect from the song cursor
 4AFD SongLoadCursorChain        ; read seq[wSongRow,wSongCol] ($ff -> empty path), validate+cache via SongEnterChain
-5736 SongStartSelection         ; framed entry to PasteSongSelection (begin song selection/edit)
-5739 PasteSongSelection         ; write clipboard rows into the song grid (clipType 4; unreferenced variant)
-5929 SongEndSelection           ; finish selection ($0dbc), restore cursor from $c40d/$c94b
+5736 PasteSongSelection         ; write the clipboard rows into the song grid (clipType 4), then restore the cursor
+5929 .endSelection        ; (was SongEndSelection) finish selection ($0dbc), restore cursor from $c40d/$c94b
 5970 SongCalcSelectionSpan      ; compute selection span from $c40d/$c40f/$c41d
 5B1D SongEditSelection          ; apply the current edit op across the selection rect (clipType 4; 7 uses in SongScreenEdit)
 627C SortBookmarks              ; bubble-sort the 16-byte song bookmarks row ($aff0, song offset $0FF0)
@@ -95,7 +94,7 @@
 4106 .loop                ; loop head in SongCellAddr
 4194 .loop                ; loop head in SongEnterChain
 41D7 .loop2               ; loop head in SongEnterChain
-436F .done                ; common exit of SongShowCloneMsg
+436F .done                ; common exit of SongEnterChain
 43F1 .loop                ; loop head in SongReadRow
 4476 .loop                ; loop head in SongDrawRowNum
 44D8 .loop2               ; loop head in SongDrawRowNum
@@ -124,7 +123,7 @@
 5849 .loop3               ; loop head in PasteSongSelection
 5879 .loop4               ; loop head in PasteSongSelection
 58AA .loop5               ; loop head in PasteSongSelection
-5953 .done                ; common exit of SongEndSelection
+5953 .done                ; common exit of PasteSongSelection
 59D7 .loop                ; loop head in SongCalcSelectionSpan
 59FF .loop2               ; loop head in SongCalcSelectionSpan
 5A77 .loop3               ; loop head in SongCalcSelectionSpan
