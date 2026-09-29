@@ -935,6 +935,24 @@
   "len": 20,
   "src": "c/bank04/PhraseScreen.c"
  },
+ "PhraseReadFx": {
+  "bank": "04",
+  "addr": "4AEA",
+  "len": 113,
+  "src": "c/bank04/PhraseScreen.c"
+ },
+ "PhraseReadFxVal": {
+  "bank": "04",
+  "addr": "4A8F",
+  "len": 91,
+  "src": "c/bank04/PhraseScreen.c"
+ },
+ "PhraseReadNote": {
+  "bank": "04",
+  "addr": "4968",
+  "len": 93,
+  "src": "c/bank04/PhraseScreen.c"
+ },
  "PhraseScreenUpdate": {
   "bank": "1F",
   "addr": "648F",
@@ -1432,6 +1450,24 @@
   "addr": "5002",
   "len": 56,
   "src": "c/bank03/InstrScreen.c"
+ },
+ "WritePhraseFx": {
+  "bank": "04",
+  "addr": "49C5",
+  "len": 107,
+  "src": "c/bank04/PhraseScreen.c"
+ },
+ "WritePhraseInstrument": {
+  "bank": "04",
+  "addr": "41F0",
+  "len": 103,
+  "src": "c/bank04/PhraseScreen.c"
+ },
+ "WritePhraseNote": {
+  "bank": "04",
+  "addr": "418F",
+  "len": 97,
+  "src": "c/bank04/PhraseScreen.c"
  },
  "WriteSongCell": {
   "bank": "07",

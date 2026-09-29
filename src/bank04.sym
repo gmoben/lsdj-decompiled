@@ -8,7 +8,7 @@
 
 ; Bank $04 -- Phrase screen. phrase[wPhrase][16] in 4 SRAM columns: notes $A000
 ; (bank0), instr $B000 (bank3), fx $A000 (bank2), fx_val $AFF0 (bank2).
-4968 PhraseStepPtr      ; -> $A000 + step (phrase row base pre-selected in SRAM; step<16); phrase-editor cell helper
+4968 PhraseReadNote             ; read phrase_notes[wPhrase][row] (SRAM bank 0 $A000); asserts row < $10, wPhrase != $FF
 4C14 LoadPhraseRow        ; load the 4 phrase columns for phrase[wPhrase] into row buffers
 4CE5 DrawPhraseScreen     ; screen idx 1: draws the phrase note/instr/cmd/val grid
 4000 DrawChainCellFar           ; FarCall bank06 DrawChainCell(wSongCol, row) -- chain info cell on the phrase screen
@@ -22,8 +22,8 @@
 4087 FindCursorInstr            ; the instrument in effect at the cursor: the nearest step at or above wPhraseRow with one (<= $40), else $FF
 40B2 PhraseResolveCursorNote    ; resolve note+instrument under the cursor (FindCursorInstr; $40=none; select-mode aware)
 4106 SetColInstrument           ; cache the last-used instrument per channel column (wColInstrument+wSongCol; WAV specials)
-418F WritePhraseNote            ; phrase_notes[wPhrase*16+row] = value (row<16, wPhrase!=$ff asserted)
-41F0 WritePhraseInstrument      ; phrase_instruments (song $7000) [phrase*16+row] = instr
+418F WritePhraseNote            ; write phrase_notes[wPhrase][row] = v (SRAM bank 0 $A000); asserts row < $10, wPhrase != $FF
+41F0 WritePhraseInstrument      ; write phrase_instruments[phrase][row] = instr (SRAM bank 3 $B000); asserts instr <= $40 or $FF
 4257 PhraseDrawCursorGlyph      ; pick glyph data ($429e/$42a3 by $c90c) + col $c415, then GetTilemapAddr
 42A8 PhraseInstrEntered         ; after instrument entry: WritePhraseInstrument, update wColInstrument, redraw
 43CD PhraseEditUp               ; A+UP edit on the cursor cell (note: +octave; hex fields: +$10)
@@ -31,10 +31,10 @@
 470B PhraseEditRight            ; A+RIGHT edit on the cursor cell (+semitone / +1)
 4811 PhraseEditLeft             ; A+LEFT edit on the cursor cell (-semitone / -1)
 4918 ReadPhraseInstr            ; read phrase_instruments[phrase][row] (SRAM bank 3 $B000); asserts phrase != $FF, row < $10
-49C5 WritePhraseNoteRaw         ; phrase-notes write at an explicit song offset ($0000 region)
+49C5 WritePhraseFx              ; write phrase_fx[phrase][row] = cmd (SRAM bank 2 $A000); asserts cmd <= $13
 4A30 WriteWorkRow               ; write byte n (n<16) of the song work/bookmarks row ($0FF0 = phrase $ff slot)
-4A8F PhraseReadCmdSram          ; read phrase_cmd_val[phrase*16+row] from SRAM ($AFF0, ReadSongByte bank2); bounds-checked
-4AEA PhraseReadNoteSram         ; read phrase_notes[phrase*16+row] from SRAM ($A000, ReadSongByte bank2); bounds-checked
+4A8F PhraseReadFxVal            ; read phrase_fx_val[phrase][row] (SRAM bank 2 $AFF0); asserts phrase != $FF, row < $10
+4AEA PhraseReadFx               ; read phrase_fx[phrase][row] (SRAM bank 2 $A000); 0 unless a command (<= $13)
 4B5B PhraseEditPlace            ; plain-A: place/repeat a value into the empty cursor cell
 4C06 DrawEmptyNote              ; draw "---" empty note cell
 4C99 PastePhraseSelectionFar    ; FarCall bank1f PastePhraseSelection
@@ -88,11 +88,11 @@
 484B .loop                ; loop head in PhraseEditLeft
 4914 .done                ; common exit of PhraseEditLeft
 493A .loop                ; loop head in ReadPhraseInstr
-499E .loop                ; loop head in PhraseStepPtr
-4A05 .loop                ; loop head in WritePhraseNoteRaw
+499E .loop                ; loop head in PhraseReadNote
+4A05 .loop                ; loop head in WritePhraseFx
 4A64 .loop                ; loop head in WriteWorkRow
-4AC3 .loop                ; loop head in PhraseReadCmdSram
-4B1E .loop                ; loop head in PhraseReadNoteSram
+4AC3 .loop                ; loop head in PhraseReadFxVal
+4B1E .loop                ; loop head in PhraseReadFx
 4B93 .loop                ; loop head in PhraseEditPlace
 4C02 .done                ; common exit of PhraseEditPlace
 4C24 .loop                ; loop head in LoadPhraseRow

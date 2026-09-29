@@ -66,6 +66,33 @@ UBYTE FindCursorInstr(void)
     return 0xFF;
 }
 
+void WritePhraseNote(UBYTE row, UBYTE v)
+{
+    UWORD p;
+
+    p = (UWORD)(SramPhraseNotes + (unsigned int)row);
+    if (row >= 0x10)
+        DebugTrap();
+    if (wPhrase == 0xFF)
+        DebugTrap();
+    p += (UWORD)wPhrase << 4;
+    WriteSongByte(0, (UBYTE *)p, v);
+}
+
+void WritePhraseInstrument(UBYTE phrase, UBYTE row, UBYTE instr)
+{
+    UBYTE *p;
+
+    if (phrase == 0xFF)
+        DebugTrap();
+    if (row >= 0x10)
+        DebugTrap();
+    if (instr > 0x40 && instr != 0xFF)
+        DebugTrap();
+    p = SramPhraseInstruments + ((UWORD)phrase << 4);
+    WriteSongByte(3, p + row, instr);
+}
+
 UBYTE ReadPhraseInstr(UBYTE phrase, UBYTE row)
 {
     UBYTE *p;
@@ -76,6 +103,65 @@ UBYTE ReadPhraseInstr(UBYTE phrase, UBYTE row)
         DebugTrap();
     p = SramPhraseInstruments + ((UWORD)phrase << 4);
     return ReadSongByte(3, p + (unsigned int)row);
+}
+
+UBYTE PhraseReadNote(UBYTE row)
+{
+    UWORD p;
+
+    p = (UWORD)(SramPhraseNotes + (unsigned int)row);
+    if (row >= 0x10)
+        DebugTrap();
+    if (wPhrase == 0xFF)
+        DebugTrap();
+    p += (UWORD)wPhrase << 4;
+    return ReadSongByte(0, (UBYTE *)p);
+}
+
+void WritePhraseFx(UBYTE phrase, UBYTE row, UBYTE cmd)
+{
+    UWORD p;
+
+    p = (UWORD)(SramPhraseFx + (unsigned int)row);
+    if (phrase == 0xFF)
+        DebugTrap();
+    if (row >= 0x10)
+        DebugTrap();
+    if (cmd > 0x13)
+        DebugTrap();
+    p += (UWORD)phrase << 4;
+    WriteSongByte(2, (UBYTE *)p, cmd);
+}
+
+UBYTE PhraseReadFxVal(UBYTE phrase, UBYTE row)
+{
+    UWORD p;
+
+    p = (UWORD)(SramPhraseFxVal + (unsigned int)row);
+    if (phrase == 0xFF)
+        DebugTrap();
+    if (row >= 0x10)
+        DebugTrap();
+    p += (UWORD)phrase << 4;
+    return ReadSongByte(2, (UBYTE *)p);
+}
+
+UBYTE PhraseReadFx(UBYTE phrase, UBYTE row)
+{
+    UWORD p;
+    UBYTE v, ok;
+
+    p = (UWORD)(SramPhraseFx + (unsigned int)row);
+    if (phrase == 0xFF)
+        DebugTrap();
+    if (row >= 0x10)
+        DebugTrap();
+    p += (UWORD)phrase << 4;
+    v = ReadSongByte(2, (UBYTE *)p);
+    ok = v <= 0x13;
+    if (!ok)
+        v = 0;
+    return v;
 }
 
 void DrawEmptyNote(void)
