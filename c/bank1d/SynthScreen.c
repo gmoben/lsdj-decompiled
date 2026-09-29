@@ -12,6 +12,7 @@ extern UBYTE wGrooveStepCache[];            /* $C9D6, [16] */
 extern UBYTE *wGrooveCachePtr;              /* $C9E6 */
 extern UBYTE wSynthFilterType;              /* $C9EB */
 extern UBYTE wSynthFilterCutoff;            /* $C9EC */
+extern UBYTE wSynth;                        /* $C42A */
 extern UBYTE wSynthScreen;                  /* $C441, the synth being edited */
 extern UBYTE wGroove;                       /* $C417 */
 extern UBYTE wGrooveRow;                    /* $C9D4 */
@@ -29,6 +30,7 @@ void SetSpriteX(UBYTE sprite, UBYTE col);
 void SetSpriteTile3(UBYTE sprite);
 void DrawGrooveSteps(void);
 void DrawAllChanStatus(void);
+void DrawSynthNumber(void);
 
 void WriteGrooveByte(UBYTE step, UBYTE v)
 {
@@ -136,6 +138,18 @@ UWORD SynthCalcParamAddr(UBYTE x)
     return p;
 }
 
+void SynthClearFlag(UBYTE x)
+{
+    UWORD p;
+    UBYTE v;
+
+    p = SynthCalcParamAddr(x);
+    v = ReadSongByte(1, p);
+    x &= 7;
+    v &= ~(1 << x);
+    WriteSongByte(1, p, v);
+}
+
 void DrawSynthField(UBYTE v)
 {
     switch (v) {
@@ -181,6 +195,17 @@ void DrawSynthDistField(UBYTE v)
         DrawString("WRAP");
         break;
     }
+}
+
+void DrawSynthScreen(void)
+{
+    wSynth &= 0x0F;
+    wSynth = wSynth + (wSynthScreen << 4);
+    FarCall(1, FAR_FN(DrawTopBar));
+    DrawTempoField();
+    FarCall(0x1F, FAR_FN(DrawAllChanStatus));
+    DrawSynthNumber();
+    FarCall(5, MapDrawTopRow);
 }
 
 void RedrawScreenFar(void)

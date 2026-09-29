@@ -395,6 +395,12 @@
   "len": 77,
   "src": "c/bank1d/SynthScreen.c"
  },
+ "DrawSynthScreen": {
+  "bank": "1D",
+  "addr": "68AB",
+  "len": 78,
+  "src": "c/bank1d/SynthScreen.c"
+ },
  "DrawTableEnv": {
   "bank": "05",
   "addr": "472B",
@@ -1737,6 +1743,12 @@
   "bank": "1D",
   "addr": "60A7",
   "len": 62,
+  "src": "c/bank1d/SynthScreen.c"
+ },
+ "SynthClearFlag": {
+  "bank": "1D",
+  "addr": "6144",
+  "len": 79,
   "src": "c/bank1d/SynthScreen.c"
  },
  "SynthFieldDecHi": {

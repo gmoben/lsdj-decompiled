@@ -48,7 +48,7 @@
 5F90 SynthReadWaveSram          ; read synth wave bytes from SRAM $AF00 + $c441*32
 60A7 SynthCalcParamAddr         ; pick SRAM base $bfc4/$bfc5 by bit3 of arg -> synth param pointer
 6115 SynthReadParam             ; read synth param via SynthCalcParamAddr + ReadSongByte (bank1)
-6144 SynthCopyParam             ; copy one synth parameter byte (SynthCalcParamAddr src->dst)
+6144 SynthClearFlag             ; clear synth x's bit in the flag pair at $BFC4/$BFC5 (SynthCalcParamAddr)
 6193 SynthFillWaveRange         ; fill/interpolate a wave value range (16-step; <-SynthLoadWaveTable)
 62A8 DrawSynthField             ; draw the synth PHASE field: switch (jp-table $62bb) -> " PINCH"/"  WARP"/"RESYNC"/"RESYN2"
 636E DrawSynthFilterField       ; draw the FILTER type field (" LOWP"...; "-----" empty; jp-table $63a6)
@@ -57,10 +57,10 @@
 6503 SynthLoadWaveDataB         ; read wave data via index $c442 + ROM table $60F5 (variant)
 6577 DrawSynthDistField         ; draw the DIST field: "CLIP"/"FOLD"/"WRAP"
 65C2 DrawSynthNumber            ; draw the synth number header (wSynthScreen)
-6709 DrawSynthHexRowA           ; draw a START/END hex pair row of the synth screen (section A; "--" empty)
-6791 DrawSynthHexRowB           ; draw a START/END hex pair row (section B)
-6819 DrawSynthHexRowC           ; draw a START/END hex pair row (section C)
-6865 DrawSynthHexRowD           ; draw a START/END hex pair row (section D), then SynthLoadWaveDataB re-render
+6709 .rowA                ; (was DrawSynthHexRowA) draw a START/END hex pair row of the synth screen (section A; "--" empty)
+6791 .rowB                ; (was DrawSynthHexRowB) draw a START/END hex pair row (section B)
+6819 .rowC                ; (was DrawSynthHexRowC) draw a START/END hex pair row (section C)
+6865 .rowD                ; (was DrawSynthHexRowD) draw a START/END hex pair row (section D), then SynthLoadWaveDataB re-render
 68F9 SynthDataAddr         ; compute SRAM address of synth $c441 data (index*N + base)
 6935 SynthLoadWaveType          ; read 2 synth params from SRAM -> $c9ed, $c9e9 (wave type)
 6967 SynthLoadWaveTable         ; read packed param from SRAM, build wave table $ca94 (via SynthFillWaveRange)
@@ -168,7 +168,7 @@
 5FBC .loop2               ; loop head in SynthReadWaveSram
 6031 .done                ; common exit of SynthReadWaveSram
 6138 .loop                ; loop head in SynthReadParam
-6171 .loop                ; loop head in SynthCopyParam
+6171 .loop                ; loop head in SynthClearFlag
 61B2 .loop                ; loop head in SynthFillWaveRange
 61E5 .loop2               ; loop head in SynthFillWaveRange
 622B .loop3               ; loop head in SynthFillWaveRange
@@ -298,8 +298,8 @@
 6625 .drawSynthFilterField
 6680 .setVramCursor
 66AA .setVramCursorb
-6758 .setVramCursor
-6806 .setVramCursor
+6758 .setVramCursor_rowA
+6806 .setVramCursor_rowB
 6E65 .setOverwriteStart
 716D .checkOverwriteStart
 717D .loadSelectDigitPal
@@ -520,13 +520,13 @@
 669D .drawByte_2
 66BD .readSongByte_2
 66E3 .readSongByte_3
-6739 .readSongByte
+6739 .readSongByte_rowA
 6751 .setVramCursor_2
-676B .readSongByte_2
-67B7 .readSongByte
-67E7 .readSongByte_2
-67FF .setVramCursor_2
-683F .readSongByte
+676B .readSongByte_2_rowA
+67B7 .readSongByte_rowB
+67E7 .readSongByte_2_rowB
+67FF .setVramCursor_2_rowB
+683F .readSongByte_rowC
 6919 .step
 694E .readSongByte
 69B0 .readSongByte
