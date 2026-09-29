@@ -15,8 +15,6 @@ extern UBYTE wSynthFilterCutoff;            /* $C9EC */
 extern UBYTE wSynthScreen;                  /* $C441, the synth being edited */
 extern UBYTE wGroove;                       /* $C417 */
 extern UBYTE wGrooveRow;                    /* $C9D4 */
-extern UBYTE wPlayMode;                     /* $C4D2 */
-extern UBYTE wSongCol;                      /* $C41D */
 extern UBYTE wChanGroove[];                 /* $C150, [4] */
 extern UBYTE wChanGrooveRow[];              /* $C158, [4] */
 

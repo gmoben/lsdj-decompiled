@@ -8,14 +8,10 @@
 
 #include "lsdj.h"
 
-extern UBYTE wUsedTableMap[];               /* $C47D, [32] tables referenced by instruments */
 extern UBYTE wSpeechCursorRow;              /* $C429 */
-extern UBYTE wSongCol;                      /* $C41D */
 extern UBYTE wInstrRemapTable[];            /* $C9B8, [16] */
 extern UBYTE wInstrRemapDirty;              /* $C9B7 */
-extern UBYTE wSongReadBuf[];                /* $C46D */
 extern UBYTE wLiveStartCol;                 /* $C571 */
-extern UBYTE wPlayMode;                     /* $C4D2 */
 extern UBYTE wPhrase;                       /* $C414 */
 extern UBYTE wChanPhrase[];                 /* $C168, [4] */
 extern UBYTE wChanPhraseRow[];              /* $C16C, [4] */
@@ -53,7 +49,6 @@ void DrawChanStatus(UBYTE chan);
 void GetInstrFlags1F5(UBYTE a, UBYTE b);
 UBYTE InstrHGetParamPlus4(void);
 UBYTE ClaimInstrSlot(UBYTE instr);
-void ReadSongBytes(UBYTE bank, UBYTE *src, UBYTE *dst);
 UBYTE InstrHCountUsedTables(void);
 void ReadTableRowCmds(UBYTE t);
 void ClearTable(UBYTE t);

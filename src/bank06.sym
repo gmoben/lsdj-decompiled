@@ -1,7 +1,7 @@
 ; Bank $06 -- Chain / Wave / Word screens
 ; Chain editor: chains[wChain] = phrase# + transpose per step (16); chain_phrases
 ; at SRAM bank1 $A080, chain_transposes at $A880.
-5677 GetChainTranspose  ; read chain_transposes[chain][step] (song $2880 / SRAM bank1 $A880)
+5677 .shift               ; chain * 16 (was GetChainTranspose)
 
 ; --- UI strings + note-name table (db "..."; referenced by draw/clipboard code) ---
 76E4 NoteNames          ; chromatic note-name display table "---C 2C#2..." (C-2..B, all octaves)
@@ -16,10 +16,10 @@
 7455 TxtWait            ; "WAIT" (sync status)
 749E TxtSync            ; "SYNC" (sync status)
 7510 TxtSync2           ; "SYNC" (second instance)
-5908 SetChainPhrase     ; write chain_phrases[chain][step] (song $2080 / SRAM bank1 $A080)
-58FB LoadChainRow        ; load chain_phrases+chain_transposes[wChain][16] -> buffers $C46D/$C47D
+5908 .shift               ; wChain * 16 (was SetChainPhrase)
+58FB LoadChainRow        ; load chain_phrases/chain_transposes[wChain] -> wSongReadBuf / wUsedTableMap (16 each)
 5626 WriteChainTranspose ; write chain_transposes[wChain][step]
-569C ReadChainTranspose  ; read chain_transposes[wChain][step]
+569C .write               ; (was ReadChainTranspose)
 5947 DrawChainScreen     ; screen idx 3: draws chain phrases + transposes
 4A0A AccessWaveFrame     ; compute/access a wave_frames cell (SRAM bank3 $A000; 32 nibbles/frame)
 4F18 DrawWaveScreen      ; screen idx 8: draws the waveform; edits wave_frames (bank3 $A000) directly
@@ -29,7 +29,7 @@
 5511 ChainLoadCursorPhrase      ; read the phrase at (wChain, wChainRow) via FarCallArg2; $ff -> empty path
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
-4000 ChainScaleValue            ; scale/clamp a display value (mask $0f, $374c) with +$19/+$05 offset
+4000 ChainScaleValue            ; (v / 15) + $19, then +5 past $1A (DivU8)
 4026 DrawSampleNameCell         ; draw a kit sample-name cell (ChainScaleValue + ReadKitSampleName -> wSampleNoteString)
 40B3 WriteWordCell              ; write to the speech-word data under the word cursor (wWordEditRow/Col, $b890 region)
 410E ChainDrawWaveCell          ; draw cell at cursor $c937/$c938 via ROM tables $4022/$4024
@@ -54,9 +54,9 @@
 504E DrawWaveCursor             ; draw the wave-screen cursor nibbles (AccessWaveFrame + ChainDrawCursorByte x2)
 5398 CopyWaveSelection          ; wave-screen COPY: selection -> clipboard (clipType 8), shows "COPY"
 546C ChainReadCursorInput       ; read input ($07da) -> cursor $c93b
-54FA GetCursorChain             ; read the chain number under the song cursor (ReadSeqByte(wSongRow,wSongCol))
+54FA GetCursorChain             ; read the chain number under the song cursor (ReadSeqByte(wSongCol, wSongRow))
 5563 ChainScreenEnter           ; enter the chain screen for the cursor chain (LIVE-mode aware, clears message)
-5655 ChainReadChainCell         ; bounds-checked chain[arg<$80][row<$10] read
+5655 SetChainTranspose          ; write chain_transposes[chain<$80][step<$10] = v (SRAM bank 1 $A880)
 56AA ChainReadTrans        ; read chain_transposes[chain<$80] from SRAM (bounds-checked)
 56F0 ClonePhraseAtCursor        ; chain screen deep-clone: new phrase + copy rows, "CLONED PHRASE"
 5804 CopyPhraseNotes            ; copy 16 phrase-note bytes src->dst phrase (clone helper)
@@ -73,7 +73,7 @@
 73DC ChainSyncStatusFlag        ; read $cb69, return status flag
 740C ChainDrawSyncStatus        ; draw sync status string from $cb6c/$cb6b (DrawStringAtCursor)
 7469 ChainDrawLeadStatus        ; draw LEAD/sync status via ChainSyncStatusFlag (DrawStringAtCursor)
-7508 ChainDrawStatusWord        ; draw a status word (SYNC/LEAD) via DrawStringAtCursor
+7508 .drawStatus          ; (was ChainDrawStatusWord) draw a status word (SYNC/LEAD) via DrawStringAtCursor
 7524 DrawTileHexCell            ; (v): t = ((v-60)+1)>>2 - 9; prefix = HexCellPrefixPtrs[v&3]; t<0 -> prefix[0], '-', DrawByte(-t); else DrawString(prefix), DrawByte(t). Matched in C: c/bank06/DrawTileHexCell.c
 75A6 HexCellPrefixPtrs          ; [4] dw -> the 2-char prefix strings below, indexed by (v & 3) in DrawTileHexCell (also parked in wChainScratchPtr)
 75AE TxtHexCellPrefix0          ; "D "

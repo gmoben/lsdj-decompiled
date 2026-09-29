@@ -11,6 +11,24 @@
   "len": 39,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "ChainDrawCursorByte": {
+  "bank": "06",
+  "addr": "4EAC",
+  "len": 17,
+  "src": "c/bank06/Screens.c"
+ },
+ "ChainDrawRow16": {
+  "bank": "06",
+  "addr": "4F02",
+  "len": 22,
+  "src": "c/bank06/Screens.c"
+ },
+ "ChainScaleValue": {
+  "bank": "06",
+  "addr": "4000",
+  "len": 34,
+  "src": "c/bank06/Screens.c"
+ },
  "DrawAllChanStatus": {
   "bank": "1F",
   "addr": "7072",
@@ -95,11 +113,23 @@
   "len": 22,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "DrawStringAtCursor": {
+  "bank": "06",
+  "addr": "73C0",
+  "len": 28,
+  "src": "c/bank06/Screens.c"
+ },
  "DrawSyncField": {
   "bank": "1B",
   "addr": "58B1",
   "len": 262,
   "src": "c/bank1b/DrawSyncField.c"
+ },
+ "DrawSyncStatus": {
+  "bank": "06",
+  "addr": "74AD",
+  "len": 99,
+  "src": "c/bank06/Screens.c"
  },
  "DrawSynthDistField": {
   "bank": "1D",
@@ -124,6 +154,12 @@
   "addr": "7524",
   "len": 130,
   "src": "c/bank06/DrawTileHexCell.c"
+ },
+ "DrawWaveCellPair": {
+  "bank": "06",
+  "addr": "4306",
+  "len": 23,
+  "src": "c/bank06/Screens.c"
  },
  "DrawWaveSynthField": {
   "bank": "03",
@@ -316,6 +352,12 @@
   "addr": "4BD9",
   "len": 56,
   "src": "c/bank1f/InstrHelpers.c"
+ },
+ "GetCursorChain": {
+  "bank": "06",
+  "addr": "54FA",
+  "len": 21,
+  "src": "c/bank06/Screens.c"
  },
  "GetInstrByte10": {
   "bank": "03",
@@ -713,6 +755,12 @@
   "len": 83,
   "src": "c/bank03/InstrScreen.c"
  },
+ "LoadChainRow": {
+  "bank": "06",
+  "addr": "58FB",
+  "len": 76,
+  "src": "c/bank06/Screens.c"
+ },
  "MarkChainPhrasesUsed": {
   "bank": "1F",
   "addr": "5413",
@@ -784,6 +832,12 @@
   "addr": "254F",
   "len": 252,
   "src": "c/bank00/ScreenDrawDispatch.c"
+ },
+ "SetChainTranspose": {
+  "bank": "06",
+  "addr": "5655",
+  "len": 85,
+  "src": "c/bank06/Screens.c"
  },
  "SetInstrByte10": {
   "bank": "03",

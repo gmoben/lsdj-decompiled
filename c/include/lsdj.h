@@ -57,8 +57,13 @@ extern UBYTE rRAMB;                         /* $4000, MBC5 SRAM bank */
 
 extern UBYTE wCurrentScreen;                /* $C401 */
 extern UBYTE wButtonsSame;                  /* $C408: 1 if the buttons are unchanged since last frame */
+extern UBYTE wSongCol;                      /* $C41D: song cursor column (channel) */
+extern UBYTE wSongRow;                      /* $C41E: song cursor row */
 extern UBYTE wInstrField;                   /* $C427: instrument screen cursor row */
 extern char wSampleNoteString[];            /* $C43A: [7] shared name buffer */
+extern UBYTE wSongReadBuf[];                /* $C46D, [16] ReadSongBytes buffer */
+extern UBYTE wUsedTableMap[];               /* $C47D, [32] tables referenced by instruments; also a scratch buffer */
+extern UBYTE wPlayMode;                     /* $C4D2 */
 extern UBYTE wShadowDigitPal;               /* $C566 */
 extern UBYTE wShadowPal;                    /* $C567 */
 extern UBYTE wSelectDigitPal;               /* $C568 */
@@ -126,6 +131,7 @@ UBYTE FarCallByte(UBYTE bank, void (*fn)(void));    /* returns fn's byte result 
 /* song data access */
 UBYTE ReadSongByte(UBYTE bank, UBYTE *addr);
 void WriteSongByte(UBYTE bank, UBYTE *addr, UBYTE val);
+void ReadSongBytes(UBYTE bank, UBYTE *src, UBYTE *dst);  /* 16 bytes */
 void WriteInstrByte(UBYTE instr, UBYTE field, UBYTE val);
 UBYTE ReadInstrByte(UBYTE instr, UBYTE field);
 UBYTE ReadCurInstrByte(UBYTE field);

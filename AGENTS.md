@@ -80,7 +80,7 @@ original compiler — a period-correct, modified **GBDK 2.95 + its SDCC build**,
 a matching bank/link layout. SDCC matching is less-trodden than the MIPS/ARM/PPC
 decomp scene, and "modified GBDK" was an unknown, so Track 2 is **gated behind a
 toolchain-recovery spike**: reproduce real LSDj functions byte-for-byte before
-betting on C. **Status:** 162 functions match (`c/`, `make match`) — including
+betting on C. **Status:** 171 functions match (`c/`, `make match`) — including
 a 15-case `switch`, 16-bit SRAM addressing and most of the instrument screen's
 helpers — using stock GBDK 2.95-3 / SDCC 2.2.1 plus peephole rules recovered
 from the ROM (`tools/match/lsdj.peep`). Go: the rule set still grows with new
@@ -123,10 +123,11 @@ stay asm. See
 | `tools/audit_export.py` | Diff a pasted Emulicious export (`emulicious.out`) against our symbols |
 | `tools/label_gaps.py`, `data_refs.py`, `callgraph.py`, `farcall_targets.py`, `find_orphans.py` | Audits that drove naming/labeling to zero gaps |
 | `tools/name_locals_full.py`, `name_locals.py`, `name_firstaction.py` | Semantic naming of function-local labels (generated into the `.sym`) |
+| `tools/rename.py`, `tools/fold_sym.py` | Symbol maintenance: rename a global everywhere (`.sym`, constants, C, docs, tools; refuses collisions), or fold a mislabelled "function" (a loop head, case body or shared tail) into a local label of the function it belongs to |
 | `tools/show_func.py`, `annotate_ram.py`, `statevar.py`, `bankmap.py` | Inspection helpers (dump a function, annotate a RAM dump, …) |
 | `tools/emu/` | SameBoy-based live-verification harness (see `tools/emu/README.md`) |
 | `tools/toolchain/` | Fetch + run the period GBDK 2.95-3 / SDCC 2.2.1 under Wine |
-| `tools/match/` | Track 2: `match_function.py --target` (compile C, link at the ROM address, diff; `--diff` aligns both disassemblies), `verify_all.py` (`make match`; cached batch check, also of files outside `c/`), `peep.py` (our peephole matcher), `code_kind.py` (which functions are C vs hand-written asm), `shapes.py` (unmatched C functions by size / shape), `merge_c.py` (move matching functions into a module) |
+| `tools/match/` | Track 2: `match_function.py --target` (compile C, link at the ROM address, diff; `--diff` aligns both disassemblies), `verify_all.py` (`make match`; cached batch check, also of files outside `c/`), `peep.py` (our peephole matcher), `code_kind.py` (which functions are C vs hand-written asm), `shapes.py` (unmatched C functions by size / shape), `merge_c.py` (move matching functions into a module), `update_counts.py` (refresh the function/rule counts in the docs and the parked table from `c/parked.txt`) |
 | `tools/match/lsdj.peep` | Peephole rules recovered from LSDj's code — the "modified GBDK" part (`docs/toolchain.md`) |
 | `c/include/lsdj.h` | Shared declarations for the matching C: hardware/HRAM/WRAM variables, the SRAM layout (literal-address macros), every settled prototype |
 | `c/bankNN/*.c` | **Matching C** sources: byte-identical to the ROM when compiled with the period toolchain + `lsdj.peep`. Their bytes feed the ROM build (`c/matched.json`, written by `make match`, lists the C-owned ranges; the carve INCBINs `build/c/` or the ROM) |
@@ -435,7 +436,7 @@ Always, before committing:
 - [x] Matched C feeds the RGBDS build: `make match` writes the bytes, the carve
       INCBINs them (ROM slice without Wine), `make compare` is the gate
 - [x] Go/no-go on Track 2: **go** — the rule set still grows with new idioms
-      (`docs/toolchain.md`); 162 functions in eight banks match so far
+      (`docs/toolchain.md`); 171 functions in eight banks match so far
 
 **Phase 2 — asm skeleton (Track 1)**
 - [x] Byte-exact SM83→RGBDS disassembler (`tools/disasm.py`, opcode self-test)
@@ -512,7 +513,7 @@ Always, before committing:
 - [ ] Reproduce the original bank/link layout under the recovered toolchain
       (only needed to build banks from C wholesale)
 - [x] Replace asm functions with matching C, keeping `make compare` green —
-      the mechanism is in place (162 functions); now it is a grind: bank by
+      the mechanism is in place (171 functions); now it is a grind: bank by
       bank, editor code first, asm functions stay asm
 - [ ] Recover C structures/types toward a full, readable C source tree
 
