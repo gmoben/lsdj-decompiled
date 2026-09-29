@@ -5,8 +5,8 @@
 
 ; Bank $05 -- Table screen. tables[wTable][16], 4 columns in SRAM:
 ; envelope $B690 (bank0), transpose $B480, cmd1 $B680, cmd2 $BA80 (bank1).
-4360 GetTableEnvelope  ; editor: read table_envelopes[wTable][step] (song $1690 / SRAM bank0 $B690)
-4491 GetTableTranspose ; editor: read table_transposes[wTable][step] (song $3480 / SRAM bank1 $B480)
+4360 TableWriteEnv              ; write table_envelopes[wTable][step] = v (SRAM bank 0 $B690); asserts step < $10, wTable < $20
+4491 TableWriteTrans            ; write table_transposes[wTable][step] = v (SRAM bank 1 $B480); asserts step < $10, wTable < $20
 4668 ReadTableStep       ; read the 4 columns (env/transpose/cmd1/cmd2) for table[wTable][step]
 4762 DrawTableScreen     ; screen idx 5: draws the table (env/transpose/cmd cols)
 4967 TableScreenUpdate  ; per-frame visual update (screen idx 5)
@@ -17,13 +17,13 @@
 420C MapStartTransition         ; store move direction (1=up 2=right 3=down 4=left) -> wMapMoveDir, reset rSCX/rSCY
 421A MapCancelSelection         ; if select mode (wCursorMode==4) restore pre-selection state before leaving the screen
 42A4 DrawCmdLetter              ; draw an FX command letter cell (FxMnemonics char via DrawStringIndexed; >$13 asserted)
-42E7 TableGetCellA              ; address table column-A cell: base ptr $c447 + wTable*32 + row(arg<16); bounds-checked
-43B7 WriteTableCmd1             ; write cmd (arg<=$13) into the table CMD1 column via wTableCellAPtr (row<16, table<32 asserted)
-442A WriteTableCmd2             ; write cmd into the table CMD2 column via wTableCellBPtr
+42E7 TableReadCmd               ; read the command column (wTableCellAPtr) at step; 0 unless a command (<= $13)
+43B7 TableWriteCmd              ; write the command column (wTableCellAPtr) at step; asserts cmd <= $13
+442A TableWriteVal              ; write the value column (wTableCellBPtr) at step
 44E8 TableReadEnv          ; read table_envelopes[table][row<$10] from SRAM (bounds-checked)
-453B TableGetCellB              ; address table column-B cell: base ptr $c449 + wTable*32 + row(arg<16); bounds-checked
+453B TableReadVal               ; read the value column (wTableCellBPtr) at step
 459E TableReadTrans        ; read table_transposes[table][row<$10] from SRAM (bounds-checked)
-45F1 TableColumnLookup     ; map table column $c92f via ROM tables $42D5/$42DB (uses $c930, $c413); called across the table screen
+45F1 TableEraseCursor           ; restore the cursor cells to their column palette (TableColPalette) at row wTableRow+2, unless selecting
 472B DrawTableEnv               ; draw a table envelope cell (lo-nibble $F -> hi-nibble + release glyph)
 4930 TableInputFlag             ; return e=flag derived from input code (arg sp+4: 4 or $0a) and column $c92f
 4AA8 TableDrawCursor            ; refresh the table cursor cell (select mode -> TableUpdateScreen; palette by CGB)
@@ -47,24 +47,24 @@
 6F38 TxtHelpInstrType   ; "USE PULSE IN PU1/PU2; WAVE/KIT IN WAV; NOISE IN NOI"
 649A TxtCut05                   ; "CUT"
 649E TxtCopy05                  ; "COPY"
-42D5 MapColXTable               ; per-map-column X positions (6 entries, TableUpdateScreen transition)
-42DB MapColWidthTable           ; per-map-column widths/steps (6 entries)
-42E1 MapColFlagTable            ; per-map-column flags (6 entries)
+42D5 TableColX                  ; x of the six table screen columns (VOL TSP CMD VAL CMD VAL)
+42DB TableColWidth              ; widths of the six table screen columns
+42E1 TableColPalette            ; normal palette of the six table screen columns (1 on the command columns)
 
 ; --- structural local names (loop heads / common exits) ---
 403F .done                ; common exit of MapUpdateTopRow
 420A .done                ; common exit of MapEnterScreen
 4231 .done                ; common exit of MapCancelSelection
-4319 .loop                ; loop head in TableGetCellA
-4384 .loop                ; loop head in GetTableEnvelope
-43F5 .loop                ; loop head in WriteTableCmd1
-445C .loop                ; loop head in WriteTableCmd2
-44B5 .loop                ; loop head in GetTableTranspose
+4319 .loop                ; loop head in TableReadCmd
+4384 .loop                ; loop head in TableWriteEnv
+43F5 .loop                ; loop head in TableWriteCmd
+445C .loop                ; loop head in TableWriteVal
+44B5 .loop                ; loop head in TableWriteTrans
 450C .loop                ; loop head in TableReadEnv
-456D .loop                ; loop head in TableGetCellB
+456D .loop                ; loop head in TableReadVal
 45C2 .loop                ; loop head in TableReadTrans
-4636 .loop                ; loop head in TableColumnLookup
-4664 .done                ; common exit of TableColumnLookup
+4636 .loop                ; loop head in TableEraseCursor
+4664 .done                ; common exit of TableEraseCursor
 4678 .loop                ; loop head in ReadTableStep
 4760 .done                ; common exit of DrawTableEnv
 47D9 .loop                ; loop head in DrawTableScreen

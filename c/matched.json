@@ -47,6 +47,12 @@
   "len": 37,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "DrawCmdLetter": {
+  "bank": "05",
+  "addr": "42A4",
+  "len": 49,
+  "src": "c/bank05/TableScreen.c"
+ },
  "DrawDecimalField": {
   "bank": "1B",
   "addr": "5AE3",
@@ -190,6 +196,12 @@
   "addr": "62A8",
   "len": 77,
   "src": "c/bank1d/SynthScreen.c"
+ },
+ "DrawTableEnv": {
+  "bank": "05",
+  "addr": "472B",
+  "len": 55,
+  "src": "c/bank05/TableScreen.c"
  },
  "DrawTableFlag": {
   "bank": "1F",
@@ -815,6 +827,48 @@
   "len": 76,
   "src": "c/bank06/Screens.c"
  },
+ "MapCancelSelection": {
+  "bank": "05",
+  "addr": "421A",
+  "len": 25,
+  "src": "c/bank05/TableScreen.c"
+ },
+ "MapMoveDown": {
+  "bank": "05",
+  "addr": "4287",
+  "len": 29,
+  "src": "c/bank05/TableScreen.c"
+ },
+ "MapMoveLeft": {
+  "bank": "05",
+  "addr": "4233",
+  "len": 32,
+  "src": "c/bank05/TableScreen.c"
+ },
+ "MapMoveRight": {
+  "bank": "05",
+  "addr": "4253",
+  "len": 23,
+  "src": "c/bank05/TableScreen.c"
+ },
+ "MapMoveUp": {
+  "bank": "05",
+  "addr": "426A",
+  "len": 29,
+  "src": "c/bank05/TableScreen.c"
+ },
+ "MapStartTransition": {
+  "bank": "05",
+  "addr": "420C",
+  "len": 14,
+  "src": "c/bank05/TableScreen.c"
+ },
+ "MapUpdateTopRow": {
+  "bank": "05",
+  "addr": "4000",
+  "len": 64,
+  "src": "c/bank05/TableScreen.c"
+ },
  "MarkChainPhrasesUsed": {
   "bank": "1F",
   "addr": "5413",
@@ -946,6 +1000,12 @@
   "addr": "6163",
   "len": 59,
   "src": "c/bank1f/InstrHelpers.c"
+ },
+ "SaveSelectionState": {
+  "bank": "05",
+  "addr": "743F",
+  "len": 62,
+  "src": "c/bank05/TableScreen.c"
  },
  "SaveSyncMode": {
   "bank": "1B",
@@ -1193,11 +1253,71 @@
   "len": 12,
   "src": "c/bank1d/SynthScreen.c"
  },
+ "TableEraseCursor": {
+  "bank": "05",
+  "addr": "45F1",
+  "len": 119,
+  "src": "c/bank05/TableScreen.c"
+ },
+ "TableInputFlag": {
+  "bank": "05",
+  "addr": "4930",
+  "len": 55,
+  "src": "c/bank05/TableScreen.c"
+ },
  "TableIsReferenced": {
   "bank": "1F",
   "addr": "62BD",
   "len": 32,
   "src": "c/bank1f/InstrHelpers.c"
+ },
+ "TableReadCmd": {
+  "bank": "05",
+  "addr": "42E7",
+  "len": 121,
+  "src": "c/bank05/TableScreen.c"
+ },
+ "TableReadEnv": {
+  "bank": "05",
+  "addr": "44E8",
+  "len": 83,
+  "src": "c/bank05/TableScreen.c"
+ },
+ "TableReadTrans": {
+  "bank": "05",
+  "addr": "459E",
+  "len": 83,
+  "src": "c/bank05/TableScreen.c"
+ },
+ "TableReadVal": {
+  "bank": "05",
+  "addr": "453B",
+  "len": 99,
+  "src": "c/bank05/TableScreen.c"
+ },
+ "TableWriteCmd": {
+  "bank": "05",
+  "addr": "43B7",
+  "len": 115,
+  "src": "c/bank05/TableScreen.c"
+ },
+ "TableWriteEnv": {
+  "bank": "05",
+  "addr": "4360",
+  "len": 87,
+  "src": "c/bank05/TableScreen.c"
+ },
+ "TableWriteTrans": {
+  "bank": "05",
+  "addr": "4491",
+  "len": 87,
+  "src": "c/bank05/TableScreen.c"
+ },
+ "TableWriteVal": {
+  "bank": "05",
+  "addr": "442A",
+  "len": 103,
+  "src": "c/bank05/TableScreen.c"
  },
  "ToggleBookmark": {
   "bank": "07",
