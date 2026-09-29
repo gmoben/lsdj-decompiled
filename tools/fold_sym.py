@@ -49,6 +49,18 @@ def main() -> None:
                 sys.exit(f"error: nothing encloses {name}")
             comment = (m0.group(3) or "").strip().lstrip(";").strip()
             lines[hit] = f"{addr:04X} {local:20s} ; (was {name}) {comment}".rstrip()
+            # locals of the folded part now share the enclosing function's
+            # scope: a name it already has gets the fold's name appended
+            nxt = min((g[0] for g in glob if g[0] > addr), default=0x10000)
+            loc = re.compile(r"^([0-9A-F]{4}) (\.\w+)(.*)$")
+            for i, l in enumerate(lines):
+                m = loc.match(l)
+                if not m or not (addr < int(m.group(1), 16) < nxt):
+                    continue
+                dup = [j for j, k in enumerate(lines) if (mm := loc.match(k)) and mm.group(2) == m.group(2)
+                       and enclosing[0] <= int(mm.group(1), 16) < addr]
+                if dup:
+                    lines[i] = f"{m.group(1)} {m.group(2)}_{local[1:]}{m.group(3)}"
             sym.write_text("\n".join(lines) + "\n")
             qualified = f"{enclosing[1]}{local}"
             files = list((ROOT / "src").glob("bank*.sym")) + list((ROOT / "docs").glob("*.md"))

@@ -9,7 +9,13 @@
 
 extern UBYTE wChain;                        /* $C418, the chain being edited */
 extern UBYTE wWaveCursor;                   /* $C42B */
+extern UBYTE wCursorMode;                   /* $C413 */
+extern UBYTE wChainRow;                     /* $C41A */
+extern UBYTE wWordClipCell0[];              /* $C935 */
 extern UBYTE wWordEditRow;                  /* $C937 */
+extern UBYTE wWaveSelStart;                 /* $C93B */
+extern UBYTE wSyncRun;                      /* $CB6B */
+extern UBYTE wSyncHandshake;                /* $CB6C */
 
 void LoadKitSampleInfo(UBYTE i);
 void ChainDrawWaveCell(void);
@@ -17,6 +23,12 @@ void ChainDrawWaveCellHw(void);
 void DrawStringAtCursor(char *s);
 void ChainDrawSyncStatus(void);
 void ChainDrawLeadStatus(void);
+UBYTE ChainSyncStatusFlag(void);
+void AccessWaveFrame(UBYTE n, UBYTE v);
+UBYTE ChainReadPhraseNote(UBYTE i);
+void ChainDrawWaveform(void);
+void ChainScanCmd(UBYTE s, UBYTE x);
+void ReadKitSampleName(UBYTE kit, UBYTE sample);   /* bank 0 */
 
 UBYTE ChainScaleValue(UBYTE v)
 {
@@ -28,6 +40,18 @@ UBYTE ChainScaleValue(UBYTE v)
     return r;
 }
 
+void DrawSampleNameCell(UBYTE v)
+{
+    UBYTE t, m;
+
+    wWordClipCell0[0] = v;
+    t = v;
+    t--;
+    m = t % 15 + 1;
+    ReadKitSampleName(ChainScaleValue(t), m);
+    DrawString(wSampleNoteString);
+}
+
 void DrawWaveCellPair(void)
 {
     if (wWordEditRow == 0x0F)
@@ -35,6 +59,27 @@ void DrawWaveCellPair(void)
     ChainDrawWaveCell();
     wWordEditRow++;
     ChainDrawWaveCellHw();
+}
+
+UWORD ChainCalcParamAddr(UBYTE x)
+{
+    UWORD p;
+
+    p = (x & 8) ? 0xBFC4 : 0xBFC5;
+    if (x >= 0x10)
+        DebugTrap();
+    return p;
+}
+
+void ChainSetCursorSprite(void)
+{
+    UBYTE x, s;
+
+    x = (wWaveCursor << 2) + 0x18;
+    s = (wWaveSelStart << 2) + 0x18;
+    if (wCursorMode != 4)
+        s = x;
+    ChainScanCmd(s, x);
 }
 
 void ChainDrawCursorByte(void)
@@ -50,9 +95,44 @@ void ChainDrawRow16(void)
         LoadKitSampleInfo(i);
 }
 
+void DrawWaveScreen(void)
+{
+    ChainDrawWaveform();
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
+    FarCall(1, FAR_FN(DrawTopBar));
+    ChainDrawRow16();
+    FarCall(5, MapDrawTopRow);
+}
+
+void DrawWaveCursor(UBYTE d)
+{
+    UBYTE n, v;
+
+    n = (wWaveCursor + d) & 0x1F;
+    v = ChainReadPhraseNote(wWaveCursor);
+    AccessWaveFrame(n, v);
+    ChainDrawCursorByte();
+    wWaveCursor = n;
+    ChainDrawCursorByte();
+    ChainSetCursorSprite();
+}
+
 UBYTE GetCursorChain(void)
 {
     return ReadSeqByte(wSongCol, wSongRow);
+}
+
+void DrawChainPos(void)
+{
+    UBYTE r;
+
+    wVramCursor = (UBYTE *)0x9851;
+    hBgDigitPalette = wShadowDigitPal;
+    hBgPalette = wShadowPal;
+    DrawString("CP");
+    r = wChainRow;
+    DrawByte(r);
 }
 
 void SetChainTranspose(UBYTE chain, UBYTE row, UBYTE v)
@@ -65,6 +145,16 @@ void SetChainTranspose(UBYTE chain, UBYTE row, UBYTE v)
         DebugTrap();
     p = SramChainTransposes + ((UWORD)chain << 4);
     WriteSongByte(1, p + row, v);
+}
+
+UBYTE ChainReadTrans(UBYTE chain, UBYTE step)
+{
+    UBYTE *p;
+
+    if (chain >= 0x80)
+        DebugTrap();
+    p = SramChainTransposes + ((UWORD)chain << 4);
+    return ReadSongByte(1, p + step);
 }
 
 void LoadChainRow(void)
@@ -83,6 +173,28 @@ void DrawStringAtCursor(char *s)
     hBgPalette = 1;
     wVramCursor = (UBYTE *)0x99B0;
     DrawString(s);
+}
+
+void ChainDrawSyncStatus(void)
+{
+    if (wSyncHandshake)
+        DrawStringAtCursor("WAIT");
+    else if (wSyncRun)
+        DrawStringAtCursor("LEAD");
+    else if (ChainSyncStatusFlag())
+        DrawStringAtCursor("SYNC");
+    else
+        DrawStringAtCursor("    ");
+}
+
+void ChainDrawLeadStatus(void)
+{
+    if (ChainSyncStatusFlag())
+        DrawStringAtCursor("SYNC");
+    else if (wPlayMode)
+        DrawStringAtCursor("WAIT");
+    else
+        DrawStringAtCursor("    ");
 }
 
 void DrawSyncStatus(void)

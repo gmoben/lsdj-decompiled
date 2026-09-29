@@ -18,7 +18,7 @@
 7510 TxtSync2           ; "SYNC" (second instance)
 5908 .shift               ; wChain * 16 (was SetChainPhrase)
 58FB LoadChainRow        ; load chain_phrases/chain_transposes[wChain] -> wSongReadBuf / wUsedTableMap (16 each)
-5626 WriteChainTranspose ; write chain_transposes[wChain][step]
+5626 DrawChainPos               ; draw "CP" and the chain cursor row (DrawByte) at $9851 in the shadow palette
 569C .write               ; (was ReadChainTranspose)
 5947 DrawChainScreen     ; screen idx 3: draws chain phrases + transposes
 4A0A AccessWaveFrame     ; compute/access a wave_frames cell (SRAM bank3 $A000; 32 nibbles/frame)
@@ -59,9 +59,9 @@
 5655 SetChainTranspose          ; write chain_transposes[chain<$80][step<$10] = v (SRAM bank 1 $A880)
 56AA ChainReadTrans        ; read chain_transposes[chain<$80] from SRAM (bounds-checked)
 56F0 ClonePhraseAtCursor        ; chain screen deep-clone: new phrase + copy rows, "CLONED PHRASE"
-5804 CopyPhraseNotes            ; copy 16 phrase-note bytes src->dst phrase (clone helper)
-5836 CopyPhraseFx               ; copy 16 phrase-fx bytes src->dst phrase
-5868 CopyPhraseInstrs           ; copy 16 phrase-instrument bytes src->dst phrase
+5804 .copyNotes           ; (was CopyPhraseNotes) copy 16 phrase-note bytes src->dst phrase (clone helper)
+5836 .copyFx              ; (was CopyPhraseFx) copy 16 phrase-fx bytes src->dst phrase
+5868 .copyInstrs          ; (was CopyPhraseInstrs) copy 16 phrase-instrument bytes src->dst phrase
 58A7 ChainDrawCellLo            ; draw cell at cursor $c419/$c41a
 5ABE ChainDrawCellHw            ; draw cell at $c41a (palette per hGameboyType)
 5B00 ChainOpenPhrase            ; open the phrase under the chain cursor (RestoreSelectionState, load phrase)
@@ -139,7 +139,7 @@
 56C1 .loop                ; loop head in ChainReadTrans
 5701 .loop                ; loop head in ClonePhraseAtCursor
 571A .loop2               ; loop head in ClonePhraseAtCursor
-5895 .done                ; common exit of CopyPhraseInstrs
+5895 .done                ; common exit of ClonePhraseAtCursor.copyInstrs
 5995 .loop                ; loop head in DrawChainScreen
 59DB .loop2               ; loop head in DrawChainScreen
 5ABC .done                ; common exit of ChainScreenUpdate
@@ -460,9 +460,9 @@
 57BB .checkArg
 57CE .readSongByte
 57E8 .cont
-581C .writeSongByte
-584E .writeSongByte
-5880 .writeSongByte
+581C .writeNote
+584E .writeFx
+5880 .writeInstr
 58B6 .loadChainCol
 58C6 .cont
 58CA .setChainRow

@@ -17,10 +17,22 @@
   "len": 39,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "ChainCalcParamAddr": {
+  "bank": "06",
+  "addr": "4901",
+  "len": 62,
+  "src": "c/bank06/Screens.c"
+ },
  "ChainDrawCursorByte": {
   "bank": "06",
   "addr": "4EAC",
   "len": 17,
+  "src": "c/bank06/Screens.c"
+ },
+ "ChainDrawLeadStatus": {
+  "bank": "06",
+  "addr": "7469",
+  "len": 53,
   "src": "c/bank06/Screens.c"
  },
  "ChainDrawRow16": {
@@ -29,10 +41,28 @@
   "len": 22,
   "src": "c/bank06/Screens.c"
  },
+ "ChainDrawSyncStatus": {
+  "bank": "06",
+  "addr": "740C",
+  "len": 73,
+  "src": "c/bank06/Screens.c"
+ },
+ "ChainReadTrans": {
+  "bank": "06",
+  "addr": "56AA",
+  "len": 70,
+  "src": "c/bank06/Screens.c"
+ },
  "ChainScaleValue": {
   "bank": "06",
   "addr": "4000",
   "len": 34,
+  "src": "c/bank06/Screens.c"
+ },
+ "ChainSetCursorSprite": {
+  "bank": "06",
+  "addr": "4B16",
+  "len": 42,
   "src": "c/bank06/Screens.c"
  },
  "ClearBookmarks": {
@@ -64,6 +94,12 @@
   "addr": "4000",
   "len": 27,
   "src": "c/bank04/PhraseScreen.c"
+ },
+ "DrawChainPos": {
+  "bank": "06",
+  "addr": "5626",
+  "len": 44,
+  "src": "c/bank06/Screens.c"
  },
  "DrawCmdLetter": {
   "bank": "05",
@@ -203,6 +239,12 @@
   "len": 51,
   "src": "c/bank1b/ProjectScreen.c"
  },
+ "DrawSampleNameCell": {
+  "bank": "06",
+  "addr": "4026",
+  "len": 55,
+  "src": "c/bank06/Screens.c"
+ },
  "DrawStringAtCursor": {
   "bank": "06",
   "addr": "73C0",
@@ -261,6 +303,18 @@
   "bank": "06",
   "addr": "4306",
   "len": 23,
+  "src": "c/bank06/Screens.c"
+ },
+ "DrawWaveCursor": {
+  "bank": "06",
+  "addr": "504E",
+  "len": 49,
+  "src": "c/bank06/Screens.c"
+ },
+ "DrawWaveScreen": {
+  "bank": "06",
+  "addr": "4F18",
+  "len": 42,
   "src": "c/bank06/Screens.c"
  },
  "DrawWaveSynthField": {

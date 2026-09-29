@@ -417,8 +417,8 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
             else:
                 forget_hl()
         elif mn == "ld" and len(ops) == 2 and ops[0].startswith("(") and ops[0] not in ("(hl+)", "(hl-)"):
-            if ops[0] != "(hl)":
-                eq.discard("(hl)")    # a store elsewhere may alias
+            if ops[0] != "(hl)" and ops[1] != "a":
+                eq.discard("(hl)")    # a store elsewhere may alias (storing `a` itself cannot break a == (hl))
         elif mn == "ldh" and len(ops) == 2 and ops[1] == "a":
             pass
         elif mn in ("inc", "dec") and ops == ["hl"]:
