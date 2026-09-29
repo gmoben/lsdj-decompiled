@@ -15,7 +15,7 @@
 50A0 UiReadSongProp      ; ReadSongByte $bfb3 (song property), compare $3c
 48D4 WriteSongInitFlag   ; WriteSongByte $be78 (set the 'rb' init marker)
 4D67 UiValidateByte      ; bounds-check a value < $80 (DebugTrap otherwise)
-4EA3 WriteSongByteWrap   ; thin WriteSongByte wrapper
+4EA3 .writeSongByte       ; (was WriteSongByteWrap) thin WriteSongByte wrapper
 45D1 UiClearSram         ; enable SRAM + ClearSramWindow
 
 ; --- UI message / status strings (db "..."; referenced by the draw code) ---
@@ -46,7 +46,7 @@
 4CFB MarkPhraseUsed             ; set the phrase-alloc bit (song $3E82 bitmap) for phrase arg
 500D UpdateWorkClock            ; 60-frame tick: advance the TOTAL WORK time clock counters ($c6a8...)
 5208 DrawSpeedGlyph             ; draw the 2-tile speed icon (SpeedGlyphTiles[value&7])
-5243 DrawStringBC               ; draw the string pointed to by bc (shared tail of the flag-name drawers)
+5243 .drawString          ; (was DrawStringBC) draw the string pointed to by bc (shared tail of the flag-name drawers)
 52EB CopySong16                 ; copy a 16-byte song-data row src->dst via Read/WriteSongByte
 5331 CopyTableData              ; copy table src->dst across the table column regions (song $3680/$3880/$3A80)
 55C9 GetScreenPalette           ; -> de = CGB BG palette block for wCurrentScreen (INSTR varies by instr type)

@@ -447,6 +447,8 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
             if mn == "pop":
                 level -= 2
             eq -= regs
+            if mn == "ld" and len(ops) == 2 and dest in _REGS and ops[1] in eq:
+                eq.add(dest)          # `ld b,c` while `a` equals c: b equals it too
             if regs & {"h", "l"}:
                 forget_hl()
             if not regs and not dest.startswith("("):

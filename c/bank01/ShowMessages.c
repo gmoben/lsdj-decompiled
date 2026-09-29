@@ -1,5 +1,5 @@
 /*
- * ShowOutOfMemory / ShowTapAddChain -- LSDj 9.4.0, ROM bank $01:$75BD / $75F8
+ * The message pop-ups -- LSDj 9.4.0, ROM bank $01 ($75BD..$763F)
  *
  * MATCHING C (period GBDK 2.95-3 / SDCC 2.2.1 + tools/match/lsdj.peep). Verify:
  *
@@ -23,4 +23,14 @@ void ShowOutOfMemory(void)
 void ShowTapAddChain(void)
 {
     ShowMessage(TxtTapAddChain);
+}
+
+void ShowTapAddPhrase(void)
+{
+    ShowMessage("TAP A TO ADD PHRASE!");
+}
+
+void ShowMax16Marks(void)
+{
+    ShowMessage("MAX 16 MARKS");
 }

@@ -281,6 +281,12 @@
   "len": 29,
   "src": "c/bank04/PhraseScreen.c"
  },
+ "DrawOnOffName": {
+  "bank": "01",
+  "addr": "522D",
+  "len": 30,
+  "src": "c/bank01/UiHelpers.c"
+ },
  "DrawPhraseCmdLetter": {
   "bank": "04",
   "addr": "402C",
@@ -310,6 +316,12 @@
   "addr": "4026",
   "len": 55,
   "src": "c/bank06/Screens.c"
+ },
+ "DrawSpeedGlyph": {
+  "bank": "01",
+  "addr": "5208",
+  "len": 37,
+  "src": "c/bank01/UiHelpers.c"
  },
  "DrawStringAtCursor": {
   "bank": "06",
@@ -1343,6 +1355,12 @@
   "len": 89,
   "src": "c/bank03/InstrScreen.c"
  },
+ "ShowMax16Marks": {
+  "bank": "01",
+  "addr": "7635",
+  "len": 10,
+  "src": "c/bank01/ShowMessages.c"
+ },
  "ShowOutOfMemory": {
   "bank": "01",
   "addr": "75BD",
@@ -1352,6 +1370,12 @@
  "ShowTapAddChain": {
   "bank": "01",
   "addr": "75F8",
+  "len": 10,
+  "src": "c/bank01/ShowMessages.c"
+ },
+ "ShowTapAddPhrase": {
+  "bank": "01",
+  "addr": "7616",
   "len": 10,
   "src": "c/bank01/ShowMessages.c"
  },
@@ -1576,6 +1600,12 @@
   "addr": "6413",
   "len": 42,
   "src": "c/bank07/SongScreen.c"
+ },
+ "UiInitScreen": {
+  "bank": "01",
+  "addr": "4CF1",
+  "len": 10,
+  "src": "c/bank01/UiHelpers.c"
  },
  "WriteBookmarkByte": {
   "bank": "07",
