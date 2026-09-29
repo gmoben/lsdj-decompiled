@@ -9,12 +9,10 @@
 
 extern volatile sfr UBYTE SCX_REG;          /* $FF43 */
 extern volatile sfr UBYTE SCY_REG;          /* $FF42 */
-extern UBYTE wSelLeft;                      /* $C40D, the selection rectangle */
 extern UBYTE wSelTop;                       /* $C40E */
 extern UBYTE wSelRight;                     /* $C40F */
 extern UBYTE wSelBottom;                    /* $C410 */
 extern UBYTE wClipboardType;                /* $C411 */
-extern UBYTE wCursorMode;                   /* $C413 */
 extern UBYTE wTable;                        /* $C41B, the table being edited */
 extern UWORD wTableCellAPtr;                /* $C447: CMD column base, an address held as an integer */
 extern UWORD wTableCellBPtr;                /* $C449: its value column */
@@ -34,13 +32,11 @@ extern UBYTE wSavedSelLeft;
 extern UBYTE wSavedSelTop;
 extern UBYTE wSavedSelRight;
 extern UBYTE wSavedSelBottom;
-extern UBYTE FxMnemonics[];                 /* $00:$0824, the command letters */
 
 void MapUpdateTopRow(void);
 void MapEnterScreen(void);
 void MapStartTransition(UBYTE dir);
 void MapCancelSelection(void);
-void RestoreSelectionState(void);
 
 void MapUpdateTopRow(void)
 {

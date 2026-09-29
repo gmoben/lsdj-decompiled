@@ -57,9 +57,14 @@ extern UBYTE rRAMB;                         /* $4000, MBC5 SRAM bank */
 
 extern UBYTE wCurrentScreen;                /* $C401 */
 extern UBYTE wButtonsSame;                  /* $C408: 1 if the buttons are unchanged since last frame */
+extern UBYTE wSelLeft;                      /* $C40D */
+extern UBYTE wCursorMode;                   /* $C413 */
+extern UBYTE wPhrase;                       /* $C414 */
+extern UBYTE wPhraseRow;                    /* $C416 */
 extern UBYTE wSongCol;                      /* $C41D: song cursor column (channel) */
 extern UBYTE wSongRow;                      /* $C41E: song cursor row */
 extern UBYTE wInstrField;                   /* $C427: instrument screen cursor row */
+extern UBYTE wSpeechCursorRow;              /* $C429 */
 extern char wSampleNoteString[];            /* $C43A: [7] shared name buffer */
 extern UBYTE wSongReadBuf[];                /* $C46D, [16] ReadSongBytes buffer */
 extern UBYTE wUsedTableMap[];               /* $C47D, [32] tables referenced by instruments; also a scratch buffer */
@@ -119,12 +124,20 @@ extern UBYTE wSyncMode2;                    /* $CB67 */
 #define SramPhraseInstruments  ((UBYTE *)0xB000)   /* SRAM bank 3, song +$7000 */
 #define SramInitFlag3          ((UBYTE *)0xBFF0)   /* SRAM bank 3, song +$7FF0 */
 
+/* --- bank 2: the sound engine ----------------------------------------------- */
+
+void SndGetChainPhrase(void);               /* $02:$6F65 (far): chain_phrases[chain][row] */
+
 /* --- bank 0 ---------------------------------------------------------------- */
 
 /* runtime (hand-written asm) */
 void DebugTrap(void);                                   /* `ld b,b` + rst $38 assert */
 void FarCall(UBYTE bank, void (*fn)(void));
 void FarCallArg(UBYTE bank, UWORD fn, UBYTE arg);
+UBYTE FarCallArgByte(UBYTE bank, UWORD fn, UBYTE arg);         /* returns fn's byte */
+UBYTE FarCallArg2(UBYTE bank, UWORD fn, UBYTE a, UBYTE b);
+void FarCallArg2V(UBYTE bank, void (*fn)(void), UBYTE a, UBYTE b);
+void FarCallArg3(UBYTE bank, UWORD fn, UBYTE a, UBYTE b, UBYTE c);
 UBYTE FarCallByte(UBYTE bank, void (*fn)(void));    /* returns fn's byte result */
 #define FAR_FN(f) ((void (*)(void))(UWORD)(f))
 
@@ -156,6 +169,8 @@ void memcpy(UBYTE *dst, UBYTE *src, UWORD n);
 /* --- the screens' draw entry points (ScreenDrawDispatch, bank 0) ----------- */
 
 void RedrawScreen(void);                    /* $24DD: full repaint of the current screen */
+void ClearBgTilemap(void);                  /* $17FB: tile 0 over the visible BG map */
+extern UBYTE FxMnemonics[];                 /* $0824: "-ABCDEFGHKLMOPRSTVWZ", the command letters */
 void SetSpriteY(UBYTE sprite, UBYTE row);   /* play-position marker sprites */
 void ClearSpriteY(UBYTE sprite);
 
@@ -209,6 +224,7 @@ UBYTE GetInstrFlags53(void);
 void SetInstrFlags54(UBYTE v);
 
 /* --- bank 5 ---------------------------------------------------------------- */
+void RestoreSelectionState(void);           /* $05:$747D (far) */
 
 void MapDrawTopRow(void);
 

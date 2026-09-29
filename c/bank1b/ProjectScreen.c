@@ -21,7 +21,6 @@ extern char *HelpMenuPtrs[];                /* $1B:$4058, NULL-terminated */
 
 UWORD GetTempoTimerValue(void);
 void DrawTempo(UWORD v);
-void ClearBgTilemap(void);
 void DrawFormat(char *fmt, UWORD v);        /* printf-style, varargs */
 void DrawHelpMenu(void);
 void ProjDrawHelpEntry(UBYTE selected);

@@ -8,15 +8,12 @@
 #include "lsdj.h"
 
 extern UBYTE wWaveCursor;                   /* $C42B */
-extern UBYTE wCursorMode;                   /* $C413 */
 extern UBYTE wChanActive[];                 /* $C0E0, [4] */
 extern UBYTE wChanChain[];                  /* $C170, [4] */
 extern UBYTE wChanChainRow[];               /* $C17C, [4] */
-extern UBYTE wPhrase;                       /* $C414 */
 extern UBYTE wChain;                        /* $C418 */
 extern UBYTE wChainCol;                     /* $C419 */
 extern UBYTE wChainRow;                     /* $C41A */
-extern UBYTE wSpeechCursorRow;              /* $C429 */
 extern UBYTE wWordClipCell0[];              /* $C935 */
 extern UBYTE wWordEditRow;                  /* $C937 */
 extern UBYTE wWordEditCol;                  /* $C938 */
@@ -42,8 +39,6 @@ void ReadKitSampleName(UBYTE kit, UBYTE sample);   /* bank 0 */
 void ChainWriteCursorPair(UBYTE *a, UBYTE *b);
 void SetOAMByte(UWORD offset, UBYTE v);     /* bank 0 */
 void ChainWriteWaveA(void);
-UBYTE FarCallArg2(UBYTE bank, UWORD fn, UBYTE a, UBYTE b);   /* bank 0 */
-void SndGetChainPhrase(void);               /* bank 2 */
 
 UBYTE ChainScaleValue(UBYTE v)
 {

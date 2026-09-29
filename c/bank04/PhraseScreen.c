@@ -7,15 +7,10 @@
 
 #include "lsdj.h"
 
-extern UBYTE wCursorMode;                   /* $C413 */
-extern UBYTE wPhrase;                       /* $C414, the phrase being edited */
-extern UBYTE wPhraseRow;                    /* $C416 */
 extern UBYTE wPhraseColLast[];              /* $C907, [4] */
 extern UBYTE wInstrIsKit;                   /* $C90B */
 extern UBYTE wPhraseRowFlags[];             /* $C90D, [16] */
-extern UBYTE FxMnemonics[];                 /* $00:$0824, the command letters */
 
-void FarCallArg2V(UBYTE bank, void (*fn)(void), UBYTE a, UBYTE b);   /* bank 0 */
 void DrawChainCell(void);                   /* bank 6 */
 void DrawPhraseCursor(void);                /* bank $1F */
 void PastePhraseSelection(void);            /* bank $1F */

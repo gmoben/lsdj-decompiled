@@ -8,18 +8,14 @@
 
 #include "lsdj.h"
 
-extern UBYTE wSpeechCursorRow;              /* $C429 */
 extern UBYTE wInstrRemapTable[];            /* $C9B8, [16] */
 extern UBYTE wInstrRemapDirty;              /* $C9B7 */
 extern UBYTE wLiveStartCol;                 /* $C571 */
-extern UBYTE wPhrase;                       /* $C414 */
 extern UBYTE wChanPhrase[];                 /* $C168, [4] */
 extern UBYTE wChanPhraseRow[];              /* $C16C, [4] */
 extern UBYTE DefaultWaveFrameB1F[];         /* $1F:$491A, [16] */
 extern UBYTE DefaultSynthParams[];          /* $1F:$61FF, [16] */
 extern UBYTE wPhraseCol;                    /* $C415 */
-extern UBYTE wPhraseRow;                    /* $C416 */
-UBYTE FarCallArgByte(UBYTE bank, UWORD fn, UBYTE arg);
 UBYTE IsPhraseUsed(UBYTE phrase);
 UBYTE IsChainUsed(UBYTE chain);
 void InstrHReadCursorCell(UBYTE col, UBYTE row);
@@ -51,10 +47,7 @@ UBYTE ClaimInstrSlot(UBYTE instr);
 UBYTE InstrHCountUsedTables(void);
 void ReadTableRowCmds(UBYTE t);
 void ClearTable(UBYTE t);
-UBYTE FarCallArg2(UBYTE bank, UWORD fn, UBYTE a, UBYTE b);
-UBYTE SndGetChainPhrase(UBYTE chain, UBYTE row);
 void MarkPhraseUsed(UBYTE phrase);
-void FarCallArg3(UBYTE bank, UWORD fn, UBYTE a, UBYTE b, UBYTE c);
 void WritePhraseInstrument(UBYTE phrase, UBYTE row, UBYTE instr);
 
 void DrawInstrTableField(void)

@@ -7,9 +7,7 @@
 
 #include "lsdj.h"
 
-extern UBYTE wCursorMode;                   /* $C413 */
 extern UBYTE wSongScroll;                   /* $C41C, the top visible song row */
-extern UBYTE wSelLeft;                      /* $C40D */
 extern UBYTE wSavedSongCol;                 /* $C952 */
 extern UBYTE wPartialRedrawDone;            /* $C56D */
 extern UBYTE SongColOffsets[];              /* $07:$4047, x of each channel column */
@@ -37,7 +35,6 @@ void RemoveBookmark(UBYTE row);
 void ShowMax16Marks(void);                  /* bank 1 */
 void SongScanSram(UBYTE *src, UBYTE *dst);  /* asm */
 void SaveSelectionState(void);              /* bank 5 */
-void RestoreSelectionState(void);           /* bank 5 */
 void SndStopAllIfIdle(void);                /* bank 2 */
 
 void SongCopyColumn(UBYTE *p, UBYTE *q)
