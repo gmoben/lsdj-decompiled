@@ -11,7 +11,7 @@ replace restart {
 } by {
 	ld	%1,a
 	or	a,%1
-}
+} if operandIsReg %1
 replace restart {
 	ld	a,(bc)
 	ld	b,a

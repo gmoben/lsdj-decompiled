@@ -1727,6 +1727,12 @@
   "len": 85,
   "src": "c/bank06/Screens.c"
  },
+ "SetColInstrument": {
+  "bank": "04",
+  "addr": "4106",
+  "len": 137,
+  "src": "c/bank04/PhraseScreen.c"
+ },
  "SetInstrByte10": {
   "bank": "03",
   "addr": "4B0A",

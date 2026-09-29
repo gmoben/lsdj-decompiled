@@ -49,10 +49,13 @@ Rule = tuple[list[list[str]], list[str], bool, "tuple[str, int] | None"]
 def parse_rules(text: str) -> list[Rule]:
     rules: list[Rule] = []
     for m in re.finditer(r"replace(\s+restart)?\s*\{(.*?)\}\s*by\s*\{(.*?)\}"
-                         r"(?:[ \t]*if[ \t]+labelRefCount[ \t]+(%\d+)[ \t]+(\d+))?", text, re.S):
+                         r"(?:[ \t]*if[ \t]+(?:labelRefCount[ \t]+(%\d+)[ \t]+(\d+)"
+                         r"|operandIsReg[ \t]+(%\d+)))?", text, re.S):
         pat = [l.strip() for l in m.group(2).splitlines() if l.strip() and not l.strip().startswith(";")]
         rep = [l.rstrip() for l in m.group(3).splitlines() if l.strip()]
-        cond = (m.group(4), int(m.group(5))) if m.group(4) else None
+        # `if labelRefCount %N k`: label %N has k references; `if operandIsReg %N`:
+        # %N bound to a register, not a memory operand
+        cond = (m.group(4), int(m.group(5))) if m.group(4) else ((m.group(6), -1) if m.group(6) else None)
         rules.append(([p.split() for p in pat], rep, bool(m.group(1)), cond))
     return rules
 
@@ -180,8 +183,11 @@ def apply(rules: list[Rule], lines: list[str]) -> tuple[list[str], int]:
                     idx.append(j)
                     j += 1
                 if ok and idx and cond is not None:
-                    label = binds.get(cond[0], "")
-                    ok = bool(label) and _label_refs(lines, label, idx[0]) == cond[1]
+                    if cond[1] < 0:
+                        ok = binds.get(cond[0], "") in ("a", "b", "c", "d", "e", "h", "l")
+                    else:
+                        label = binds.get(cond[0], "")
+                        ok = bool(label) and _label_refs(lines, label, idx[0]) == cond[1]
                 if ok and idx:
                     ok = _keep_labels_reachable(pat, rep, binds, lines, idx)
                 if not ok or not idx:
@@ -335,15 +341,18 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
     level = 0                     # bytes pushed since the block began
     a_alu = False                 # `a` holds a fresh ALU result
     hl_reg = None                 # b..e the byte at (hl) equals (`ld (hl),e` / `ld e,(hl)`)
+    hl_is_a = False               # the byte at (hl) is `a`, stored by `ld (hl),a` (not a pointer read)
+    a_ptr = False                 # `a` was loaded through de/bc (`ld a,(de)`)
     dropped = 0
     code = [i for i, l in enumerate(lines) if _strip(l).strip()]
     nxt = {code[k]: code[k + 1] for k in range(len(code) - 1)}
     scope = 0
 
     def forget_hl() -> None:
-        nonlocal hl, hl_reg
+        nonlocal hl, hl_reg, hl_is_a
         hl = None
         hl_reg = None
+        hl_is_a = False
         eq.discard("(hl)")
 
     for i, raw in enumerate(lines):
@@ -362,6 +371,21 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
             out.append(raw)
             continue
         mn, ops = _ops(t)
+        # --- (hl) == a after `ld (hl),a`: a test of that byte is `or a,a` (169
+        # ROM sites; the value from an ALU op or a merge label), except that a
+        # value read through a pointer (`x = *p; if (x)`) is reread: `xor a,a;
+        # or a,(hl)` (27 sites, each after `ld a,(de)` / `ld a,(bc)`)
+        hl_was_a = hl_is_a
+        w_all = _written(mn, ops)
+        if hl_is_a and ("a" in w_all or {"h", "l"} & w_all or mn in _WRITES_ALL
+                        or (mn in ("jp", "jr") and len(ops) == 1)
+                        or (mn == "ld" and ops and ops[0].startswith("(") and ops != ["(hl)", "a"])
+                        or (mn in ("inc", "dec") and ops == ["(hl)"])):
+            hl_is_a = False
+        if mn == "ld" and ops == ["(hl)", "a"]:
+            hl_is_a = not a_ptr
+        if "a" in w_all:
+            a_ptr = mn == "ld" and len(ops) == 2 and ops[1] in ("(de)", "(bc)")
         # --- (hl) == a register: after `ld (hl),e` (or a load) the byte at hl is e until
         # either changes (183 ROM sites reread it as `ld a,e`, 1 from (hl))
         if hl_reg is not None:
@@ -415,8 +439,16 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
         elif mn == "xor" and ops == ["a", "a"]:
             n = nxt.get(i)
             follow = _ops(_strip(lines[n]).strip()) if n is not None else ("", [])
+            if follow[0] == "or" and follow[1] == ["a", "(hl)"] and hl_was_a and n is not None:
+                dropped += 1          # `a` is unchanged: what it equals still holds
+                lines[n] = lines[n].replace("(hl)", "a", 1)
+                continue
             if follow[0] == "or" and len(follow[1]) == 2 and follow[1][0] == "a" and follow[1][1] in eq:
                 dropped += 1          # `or a,r` alone: `a` already equals r
+                if follow[1][1] == "(hl)" and n is not None:
+                    # the byte at hl is `a` itself: the test is `or a,a` (169
+                    # after `ld (hl),a` in the ROM, never `or a,(hl)` alone)
+                    lines[n] = lines[n].replace("(hl)", "a", 1)
                 continue
             if follow[0] == "or" and follow[1] == ["a", "(hl)"] and hl_reg is not None and n is not None:
                 # testing the byte just stored from a register: `ld a,e; or a,e`

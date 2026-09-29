@@ -10,6 +10,7 @@
 extern char wPhraseCol;                     /* $C415, a plain char */
 extern UBYTE wPhraseColLast[];              /* $C907, [4] */
 extern UBYTE wPhraseDrawMode;               /* $C90C */
+extern UBYTE wColInstrument[];              /* $C468, [4] last instrument per channel */
 extern UBYTE wInstrIsKit;                   /* $C90B */
 extern UBYTE wPhraseRowFlags[];             /* $C90D, [16] */
 extern UBYTE PhraseColX0[];                 /* $04:$429E */
@@ -84,6 +85,21 @@ void PhraseResolveCursorNote(UBYTE v)
         instr = FindCursorInstr();
         if (instr < 0x40 && ReadInstrByte(instr, 0) == 3)
             WriteInstrByte(instr, 4, v);
+    }
+}
+
+void SetColInstrument(UBYTE instr)
+{
+    if (wSongCol >= 4)
+        DebugTrap();
+    if (instr <= 0x40) {
+        wColInstrument[wSongCol] = instr;
+        if (wSongCol == 2) {
+            wInstrIsKit = instr != 0x40;
+            if (wInstrIsKit)
+                wInstrIsKit = ReadInstrByte(instr, 0) == 2;
+        }
+        WriteSongByte(1, (UWORD)wSongCol + (UWORD)0xBFC6, instr);
     }
 }
 

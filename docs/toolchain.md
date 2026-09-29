@@ -12,7 +12,7 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 | What compiled LSDj? | **GBDK 2.95-3** (19 Aug 2000) → **SDCC 2.2.1** (`gbz80` target), default `asxxxx` assembler/linker, small memory model — **plus an accumulator-tracking optimisation stock SDCC lacks** (the "modified GBDK"), modelled here as an accumulator-tracking pass plus 70 peephole rules (below) |
 | Can we run it today? | **Yes, natively.** SDCC 2.2.1 + `sdcpp`/`as-gbz80`/`link-gbz80` build from the GBDK 2.95-2 sources (`tools/toolchain/build_sdcc221.sh`, ~15 s) and emit **byte-identical** asm, objects, listings and images to GBDK 2.95-3's Win32 binaries — which still run under Wine (`fetch_gbdk295.sh`), but crash on large units (below) |
 | Is it the right toolchain? | **Yes, for the code generator**: LSDj's instruction selection, register allocation and frame idioms are SDCC 2.2.1's line for line, and GBDK 2.95 library code in the ROM is byte-identical to its sources (`display_off` ← `crt0.s`, `strcpy` ← `asm_string.s`, `set_bkg_palette` ← `cgb.s`, `set_bkg_tiles` ← `set_bk_t.s` + `set_xy_t.s`, the SDCC `mul` runtime). Stock output does **not** match on its own: LSDj's build also ran peephole rules that stock 2.95-3 lacks |
-| Matched real LSDj functions? | **Yes — 384**, in eleven banks (the list: [`c/matched.json`](../c/matched.json)): a message renderer, a 15-case `switch`, a sparse `switch`, the SRAM accessors, and the instrument screen's field accessors and draw helpers. `make match` re-verifies them all (cached: only changed sources reach the compiler), and **their bytes in the ROM build come from the compiled C** (below) |
+| Matched real LSDj functions? | **Yes — 385**, in eleven banks (the list: [`c/matched.json`](../c/matched.json)): a message renderer, a 15-case `switch`, a sparse `switch`, the SRAM accessors, and the instrument screen's field accessors and draw helpers. `make match` re-verifies them all (cached: only changed sources reach the compiler), and **their bytes in the ROM build come from the compiled C** (below) |
 | Is all of LSDj C? | **No.** ~130 functions (7% of the instructions) are hand-written assembly — the interrupt handlers, sound tick, envelope/pitch and tile-loader code in bank 0, and the sequencer core in bank `$02` (`tools/match/code_kind.py`). Those stay asm; the ~830 others (every editor) are Track 2 targets |
 | Go/no-go on Track 2? | **Go, with the rule set still growing.** Every function tried has matched (each new one has cost a few rules so far), the C feeds the ROM build with `make compare` as the gate, and the hand-written asm (7%) is mapped and excluded |
 
@@ -37,7 +37,7 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 | [`c/bank1c/FileUpgrade.c`](../c/bank1c/FileUpgrade.c) | 29 functions: the song-format upgrades | per-type instrument callbacks through a function pointer (`FileForEachInstrType`), the upgrade steps' field fix-ups, a 16-bit `\|` forced by an `int` constant |
 | [`c/bank1d/SynthScreen.c`](../c/bank1d/SynthScreen.c) | 34 functions: synth and groove screens | a `switch` through a jump table, SRAM param/groove accessors, a `?:` over `long` constants (> 32767), the cache walker |
 | [`c/bank1f/InstrHelpers.c`](../c/bank1f/InstrHelpers.c) | 44 functions: bank $1F helpers | the used-table/phrase/chain scans and counters (one template, four limits), SRAM resets bracketed by `_asm di _endasm;` and MBC register writes, a function that returns `e` by accident (no `return`) |
-| [`c/bank04/PhraseScreen.c`](../c/bank04/PhraseScreen.c) | 25 functions: phrase screen | far-call wrappers (`FarCallArg2V`), the phrase instrument reader and the backward search for the instrument in effect (a return through `e`, `track_e`), `?:` returns |
+| [`c/bank04/PhraseScreen.c`](../c/bank04/PhraseScreen.c) | 26 functions: phrase screen | far-call wrappers (`FarCallArg2V`), the phrase instrument reader and the backward search for the instrument in effect (a return through `e`, `track_e`), `?:` returns |
 | [`c/bank05/TableScreen.c`](../c/bank05/TableScreen.c) | 20 functions: table screen and screen map | table step accessors through column pointers held in `UWORD` globals, the map moves, materialized `<=` tests, a two-case `switch` |
 | [`c/bank06/Screens.c`](../c/bank06/Screens.c) | 33 functions: chain, wave and word screens | an early `return` under `==` (SDCC's `jp nz,L; jp end; L:`), the chain row buffers through `ReadSongBytes`, `?:` over string literals as an argument |
 | [`c/bank06/DrawTileHexCell.c`](../c/bank06/DrawTileHexCell.c) | `DrawTileHexCell` (130 B) | consecutive updates of a stack local, sign test, `-t`, pointer table |
@@ -76,7 +76,7 @@ common (byte-pattern counts over banks `$01`-`$07`, `$1B`-`$1F`):
 
 | Family | Rewrite | "Before" left in ROM | "After" in ROM |
 |--------|---------|---------------------:|---------------:|
-| Redundant flag ops | `or a,X` / `or a,a` → `or a,X`; `ld r,a` / `xor a,a` / `or a,r` → `ld r,a` / `or a,r` | 0 | 575, 41 |
+| Redundant flag ops | `or a,X` / `or a,a` → `or a,X`; `ld r,a` / `xor a,a` / `or a,r` → `ld r,a` / `or a,r` (r a register: `if operandIsReg %1`; after `ld (hl),a` see `track_a`) | 0 | 575, 41 |
 | Register reload | `ld r,a` / `ld a,r` → `ld r,a` (r = b, c, d, e, h, l; **not** `(hl)`); `ld c,e` … `ld e,c` (a returned value) even across `add sp,N` | 2 (both with a jump label between) + 1 (below) | 69, 34 |
 | Reload of a computed value | *ALU op*; `ld (hl),a`; `ld a,(hl)` → reload dropped; **kept** after a pointer read (`ld a,(de)`; `ld hl,sp+N`; `ld (hl),a`; `ld a,(hl)` survives 30/30) | 0 | 31 |
 | Dead stores | `ld X,a`; *a-only ops*; `ld X,a` → first store dropped (X a register or `(hl)`, also when the first store is followed by its reload) | 0 | (small; e.g. `and 3; add a,a; ld c,a` ×2) |
@@ -86,6 +86,10 @@ common (byte-pattern counts over banks `$01`-`$07`, `$1B`-`$1F`):
 | Register tracking (`track_a`, below) | a reload of what `a` already holds: `ld a,r` / `cp` / `jp cc` / *(dead label)* / `ld a,r` (an `\|\|` chain) → reload dropped; a stored stack local reread: `ld hl,sp+N` / `ld (hl),r` / [`add sp,M`] / `ld a,(hl)` → `ld a,r`; `ld (hl),a` / `ld de,#T` / `ld l,(hl)` → `ld l,a` (indexing a table by the value just stored) | 0, 0, 0 | 35, 25 + 141, 32 |
 | More dead stores | `ld r,#n` / `ld r,X` → `ld r,X`; a discarded sign extension `rla` / `sbc a,a` / `ld r,a` / `ld a,X` / `and a,#n` → store dropped; the `== 0` test of a fresh `&`: `and a,#n` / `ld r,a` / `or a,a` / `jp nz` → `and a,#n` / `jp nz`; after *ALU* `a,r` / `ld (hl),a` the `ld a,(hl)` reload is dropped too | 0, 0, 0 (1 `jp z` / `if (t)` site keeps it), 0 | —, 3, 12, 69 |
 | 16-bit compare with a constant (`gb_cmp16`, below) | `xor a,a` / `ld a,lo` / `sbc a,#lo` / `ld a,hi` / `sbc a,#hi` / `jp cc` → `ld hl,#-lit` / `add hl,de` (or `bc` when the value already sits there) / `jp` on the inverted carry | 0 (its 5 `sbc` chains are 32-bit) | 28 |
+
+Besides SDCC's `if labelRefCount %N k`, a rule may say `if operandIsReg %N`
+(the variable bound to a register rather than `(hl)`); `peep.py` implements
+both.
 
 The one register reload LSDj keeps without a label in the way is
 `ld a,(bc); ld c,a; ld a,c` (`DrawTileHexCell`, `$06:$7553`): the pointer
@@ -130,6 +134,12 @@ a,(hl); add a,#0xFF; ld c,a; ld (hl),c`, how `while (--i)` compiles) is
 reread for the test, `xor a,a; or a,(hl)` (`SortBookmarks`; no ROM site of
 that shape tests the register). SDCC's pre-decrement yields the variable
 itself rather than the new value.
+
+After `ld (hl),a` a test of the stored byte is `or a,a` (169 ROM sites: the
+value from an ALU op or a merge label; never `or a,(hl)` alone), except that a
+value read through a pointer is reread, `xor a,a; or a,(hl)` (27 sites, each
+after `ld a,(de)` / `ld a,(bc)`), the same split as the reload row above
+(`SetColInstrument`'s `wInstrIsKit = instr != 0x40; if (wInstrIsKit)`).
 
 `track_e` does the same for `e`, which carries call results and return
 values: after `ld c,e` (a result kept in `c`) a later `ld e,c` (returning
