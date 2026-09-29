@@ -29,7 +29,7 @@
 415A FindFreeBlock              ; scan the block alloc table ($a141+) for a free block ($c56b selects the SRAM half)
 42D6 FileSlotHalfBase           ; return $40 or $c0 depending on $c56b (which save half)
 42E9 FileScanSlotNames          ; scan file-slot names in SRAM ($A140, bank4) from index $c958
-4335 FileGetNameChar            ; read $c959[arg] from the 32-char name buffer (bounds-checked)
+4335 GetFileBlockCount          ; wFileBlockCounts[i] (i < $20): the blocks file i uses
 4352 CopyFileName               ; copy the 8-char filename of slot arg (<$20) into the $c987 buffer
 43C1 FileReadCompressedBlock    ; read a compressed block via ptr $c97d (bounds $800f); 16-step
 441F CompressSong               ; compress the 32 KiB working song ($A000) into the output stream: init ptrs $c97d/$c983, read via ReadSongByte, emit via WriteCompressedByte ($441E is the prior fn's ret)
@@ -52,8 +52,8 @@
 5563 FileDrawFieldChecked       ; bounds-check (<$10) then DrawTextField
 5597 FileValidateName           ; validate a name (FileFindSlotEnd; char range $0a/$1f/$20 checks)
 55F1 DrawFileList               ; draw the visible file slots (wFileScroll window, names + block counts)
-5892 DrawLoadLabel              ; draw the "LOAD" prompt string
-58C1 FileMatchName              ; compare a slot name (ReadSongByte) against the name buffer (FileGetNameChar)
+5892 .drawLabel           ; (was DrawLoadLabel) draw the "LOAD" prompt string
+58C1 FileMatchName              ; compare a slot name (ReadSongByte) against the name buffer (GetFileBlockCount)
 590B FileCopyNameToBuf          ; copy a slot name from SRAM (ReadSongByte) into the name buffer
 594A FileCheckNameLen           ; return whether ($c999-$c99b) exceeds $0b (name length)
 595F FileCalcCompressedSize     ; read 4 size bytes + MulU16 -> total compressed size
@@ -645,3 +645,5 @@
 74AF .incDecompPos
 74C9 .fileDecompNextBank_2
 753C .cont
+5092 FileFieldX         ; x of the three file screen fields (0, 5, 10)
+5095 FileFieldWidth     ; their widths (4, 4, 5)

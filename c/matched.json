@@ -425,6 +425,30 @@
   "len": 200,
   "src": "c/bank03/InstrScreen.c"
  },
+ "FileCheckNameLen": {
+  "bank": "1C",
+  "addr": "594A",
+  "len": 21,
+  "src": "c/bank1c/FileScreen.c"
+ },
+ "FileClearChanState": {
+  "bank": "1C",
+  "addr": "5077",
+  "len": 27,
+  "src": "c/bank1c/FileScreen.c"
+ },
+ "FileDrawField": {
+  "bank": "1C",
+  "addr": "5531",
+  "len": 50,
+  "src": "c/bank1c/FileScreen.c"
+ },
+ "FileDrawFieldChecked": {
+  "bank": "1C",
+  "addr": "5563",
+  "len": 52,
+  "src": "c/bank1c/FileScreen.c"
+ },
  "FileForEachInstrType": {
   "bank": "1C",
   "addr": "60F5",
@@ -436,6 +460,18 @@
   "addr": "60CC",
   "len": 20,
   "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileSlotHalfBase": {
+  "bank": "1C",
+  "addr": "42D6",
+  "len": 19,
+  "src": "c/bank1c/FileScreen.c"
+ },
+ "FileStopSound": {
+  "bank": "1C",
+  "addr": "5098",
+  "len": 27,
+  "src": "c/bank1c/FileScreen.c"
  },
  "FileUpgradeClampNibble": {
   "bank": "1C",
@@ -616,6 +652,12 @@
   "addr": "54FA",
   "len": 21,
   "src": "c/bank06/Screens.c"
+ },
+ "GetFileBlockCount": {
+  "bank": "1C",
+  "addr": "4335",
+  "len": 29,
+  "src": "c/bank1c/FileScreen.c"
  },
  "GetInstrByte10": {
   "bank": "03",
@@ -1528,6 +1570,12 @@
   "addr": "494E",
   "len": 37,
   "src": "c/bank07/SongScreen.c"
+ },
+ "SyncTransferByte": {
+  "bank": "1C",
+  "addr": "72EE",
+  "len": 34,
+  "src": "c/bank1c/FileScreen.c"
  },
  "SynthApplyFilter": {
   "bank": "1D",

@@ -20,3 +20,4 @@ FreeChain          $01:$4E43 -- with FreePhrase/IsPhraseUsed: the bitmap byte ad
 FreePhrase         $01:$4DD3 -- FreeChain's shape on the phrase bitmap
 IsPhraseUsed       $01:$4F99 -- FreeChain's shape: pointer pushed through a b/c (reversed) conversion copy
 DrawSpeedModeName  $01:$518C -- matches except its four string literals sit 6 bytes later: in the ROM the SpeedGlyphTiles table ($51EE) comes between the function's code and its literals, where SDCC 2.2.1 emits literals right after the code and file-scope const data after all code (an emission-order difference to emulate in the harness)
+PlotEnvCurve       $1B:$7200 -- matches except register naming: the ROM keeps every temporary in b (the end pointer as b/c, low byte in b), as if c were busy for the whole function; ours uses c. The $DA00 buffer is addressed as a literal pointer ((char *)0xDA00)
