@@ -117,7 +117,7 @@ DEF wVramCursor      EQU $C573  ; [1] 16-bit VRAM tilemap dest ($98xx-$9Bxx, 16-
 DEF wPhrase          EQU $C414  ; current phrase number being edited ($FF=none, Phrase screen)
 DEF wInstrument      EQU $C576  ; current instrument number (index into instruments[64][16])
 DEF wStrBuffer       EQU $C6A9  ; shared text work buffer (strcpy destination), used across banks
-DEF wSongReadBuf     EQU $C46D  ; shared scratch buffer that ReadSongBytes fills with song data (its address is passed
+DEF wSongReadBuf     EQU $C46D  ; [64] the song screen's window: 16 visible rows x 4 channels (SongReadRow, four ReadSongBytes of 16); also ReadSongBytes' shared scratch destination
                                 ; in across banks); editors read a row/set (e.g. groove steps, cp $10) into it then render
 DEF wMsgTimer        EQU $C7A9  ; frame countdown for the transient message (set 10/50/100/150, dec'd; gates its draw)
 DEF wMsgStrPtr       EQU $C7AA  ; 16-bit pointer to a transient on-screen message string (set to wStrBuffer / the
@@ -423,7 +423,7 @@ DEF wColInstrument   EQU $C468  ; last-used instrument per channel column (4 byt
 ; --- session-evidenced RAM (readers named in parentheses) ---
 DEF wColChain        EQU $C44F  ; chain under cursor per song column, 4 bytes (SongEnterChain / IsSongChainUsed)
 DEF wColPhrase       EQU $C453  ; phrase per song column, 4 bytes (AllocNextFreePhrase scan start)
-DEF wUsedTableMap    EQU $C47D  ; [32] 32-slot used-tables map (BuildUsedTablesMap)
+DEF wUsedTableMap    EQU $C47D  ; [32] 32-slot used-tables map (BuildUsedTablesMap); overlaps wSongReadBuf + 16
 DEF wTopBarStr       EQU $C555  ; top-bar/title string buffer (DrawTopBar draws it directly)
 DEF wClockFrame60    EQU $C6A8  ; 60-frame divider feeding the TOTAL WORK clock (UpdateWorkClock)
 DEF wHelpStrBuf      EQU $C7B0  ; [20] help/status string buffer (UiDrawHelpStr unrolled copy; wHelpSrcPtr follows)

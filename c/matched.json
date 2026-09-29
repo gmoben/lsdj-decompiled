@@ -1925,6 +1925,12 @@
   "len": 62,
   "src": "c/bank07/SongScreen.c"
  },
+ "SongReadRow": {
+  "bank": "07",
+  "addr": "43E4",
+  "len": 127,
+  "src": "c/bank07/SongScreen.c"
+ },
  "SongRedrawRow": {
   "bank": "07",
   "addr": "451E",
@@ -1953,6 +1959,12 @@
   "bank": "07",
   "addr": "494E",
   "len": 37,
+  "src": "c/bank07/SongScreen.c"
+ },
+ "SortBookmarks": {
+  "bank": "07",
+  "addr": "627C",
+  "len": 164,
   "src": "c/bank07/SongScreen.c"
  },
  "SortBytePair": {

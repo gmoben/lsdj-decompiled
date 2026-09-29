@@ -309,6 +309,21 @@ _ALU = {"add", "adc", "sub", "sbc", "and", "or", "xor", "inc", "dec", "rla", "rr
         "rrca", "rl", "rr", "sla", "sra", "srl", "swap", "cpl"}
 
 
+def _rmw_store(out: list[str], r: str) -> bool:
+    """`ld a,(hl); <alu>; ld r,a` right before `ld (hl),r`: a variable
+    incremented or decremented in place, as `while (--i)` compiles. SDCC's
+    pre-decrement yields the variable itself, and LSDj's compiler rereads it
+    for the test (`xor a,a; or a,(hl)`: SortBookmarks; no ROM site of this
+    shape tests the register instead)."""
+    tail = [t for t in (_strip(l).strip() for l in out) if t][-3:]
+    if len(tail) < 3:
+        return False
+    alu, alu_ops = _ops(tail[1])
+    return (tail[0] == "ld\ta,(hl)" or _ops(tail[0]) == ("ld", ["a", "(hl)"])) \
+        and alu in _ALU and (alu_ops[:1] == ["a"] or (alu in ("inc", "dec") and alu_ops == ["a"])) \
+        and _ops(tail[2]) == ("ld", [r, "a"])
+
+
 def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
     """Drop loads of values the register already holds: `ld a,X` / `xor a,a`
     when `a` equals X, `ld r,a` when r already equals `a`, `ld hl,...` /
@@ -357,7 +372,7 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
                 hl_reg = None
         if mn == "ld" and len(ops) == 2 and ops[0] == "(hl)" and ops[1] in ("b", "c", "d", "e"):
             eq.discard("(hl)")
-            hl_reg = ops[1]
+            hl_reg = None if _rmw_store(out, ops[1]) else ops[1]
             out.append(raw)
             continue
         if mn == "ld" and len(ops) == 2 and ops[1] == "(hl)" and ops[0] in ("b", "c", "d", "e"):

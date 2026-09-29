@@ -84,6 +84,17 @@ void SongDrawCursor(void)
     DrawTextField(SongColOffsets[wSongCol], y, 2, hGameboyType ? 3 : 2);
 }
 
+void SongReadRow(void)
+{
+    UBYTE *p;
+
+    p = SramSequence + ((unsigned int)wSongScroll << 2);
+    ReadSongBytes(0, p, wSongReadBuf);
+    ReadSongBytes(0, p + 0x10, (UBYTE *)0xC47D);
+    ReadSongBytes(0, p + 0x20, (UBYTE *)0xC48D);
+    ReadSongBytes(0, p + 0x30, (UBYTE *)0xC49D);
+}
+
 void SongRedrawRow(void)
 {
     SongReadRow();
@@ -262,6 +273,27 @@ void WriteBookmarkByte(UWORD p, UBYTE v)
     if (p >= (UWORD)0xB000)
         DebugTrap();
     WriteSongByte(0, p, v);
+}
+
+void SortBookmarks(void)
+{
+    UBYTE swapped, i, a, b;
+    UBYTE *p;
+
+    do {
+        i = 15;
+        swapped = 0;
+        do {
+            p = SramBookmarks + i;
+            a = ReadSongByte(0, p - 1);
+            b = ReadSongByte(0, p);
+            if (b < a) {
+                swapped = 1;
+                WriteBookmarkByte(p - 1, b);
+                WriteBookmarkByte(p, a);
+            }
+        } while (--i);
+    } while (swapped);
 }
 
 UBYTE IsBookmarked(UBYTE row)
