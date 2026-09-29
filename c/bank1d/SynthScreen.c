@@ -273,6 +273,21 @@ void WriteSynthParam(UBYTE field, UBYTE v)
     WriteSongByte(1, p, v);
 }
 
+void DrawSynthParamPair(UBYTE field, UBYTE max)
+{
+    UWORD p;
+    UBYTE v;
+
+    p = (UWORD)SramSynthParams + ((UWORD)wSynthScreen << 4);
+    p += (UWORD)field;
+    v = ReadSongByte(1, p);
+    if (v != max) {
+        v++;
+        DrawHexByte(v);
+        WriteSongByte(1, p, v);
+    }
+}
+
 UBYTE SynthFieldIncHi(void)
 {
     UBYTE v, t;

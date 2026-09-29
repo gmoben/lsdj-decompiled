@@ -406,11 +406,14 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
                 eq, a_alu = {hl_reg, "(hl)"}, False
                 continue
             eq, a_alu = {"#0x00"}, False
-        elif mn == "ld" and len(ops) == 2 and ops[1] == "(hl)" and ops[0] in ("b", "c", "d", "e") \
+        elif mn == "ld" and len(ops) == 2 and ops[1] == "(hl)" and ops[0] in ("b", "c", "d", "e", "l", "h") \
                 and "(hl)" in eq:
             # `ld c,(hl)` while `a` still holds (hl): LSDj's compiler used `ld c,a`
-            # (3 sites after `ld a,(hl); cp; jp`, none rereading)
+            # (3 sites after `ld a,(hl); cp; jp`, none rereading; `ld l,a` for a
+            # table index likewise, SynthWriteWaveCol)
             raw = raw.replace("(hl)", "a", 1)
+            if ops[0] in ("l", "h"):
+                forget_hl()
             eq.add(ops[0])
         elif mn == "ld" and len(ops) == 2 and ops[1] == "a" and ops[0] in _REGS:
             if ops[0] in eq:

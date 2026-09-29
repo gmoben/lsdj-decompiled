@@ -401,6 +401,12 @@
   "len": 77,
   "src": "c/bank1d/SynthScreen.c"
  },
+ "DrawSynthParamPair": {
+  "bank": "1D",
+  "addr": "6FC4",
+  "len": 103,
+  "src": "c/bank1d/SynthScreen.c"
+ },
  "DrawSynthScreen": {
   "bank": "1D",
   "addr": "68AB",

@@ -792,3 +792,12 @@ replace {
 	ld	%1,l
 	ld	%2,h
 }
+
+// genXor stores a literal-left result twice (`ld (hl),a; ld (hl),a`); the ROM
+// never has the pair (SynthWriteWaveCol)
+replace {
+	ld	(hl),a
+	ld	(hl),a
+} by {
+	ld	(hl),a
+}

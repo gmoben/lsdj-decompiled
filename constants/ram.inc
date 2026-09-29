@@ -949,6 +949,7 @@ DEF wSelHoldFrames2  EQU $C677  ; second SELECT-hold counter byte
 DEF wFxWaveParam     EQU $C8C2  ; W command value latch (lo nibble; consumed via SndSetKitParams)
 DEF wFxWaveParam2    EQU $C8C3  ; W command companion latch
 DEF wSynthRenderState EQU $CB3A ; synth render params copied at buffer init (3 words: +0/+2/+4)
+DEF wSynthWaveBuf   EQU $CA34  ; [32] rendered synth wave samples, one nibble each (SynthComposeWave; SynthWriteWaveCol packs them into SRAM)
 DEF wSynthRenderPtr  EQU $CB3C  ; 16-bit scratch ptr into the $CA34 wave scratch (render/smoothing)
 DEF wSynthRenderVal  EQU $CB3E  ; 16-bit render scratch (wSynthBufA value, DivU16 operand)
 DEF wWaveEditX       EQU $CB60  ; wave-editor pen X: (column*4) & $f0 (SynthWriteWaveCol)
