@@ -16,6 +16,7 @@ extern UBYTE wPhrase;                       /* $C414 */
 extern UBYTE wChain;                        /* $C418 */
 extern UBYTE wChainCol;                     /* $C419 */
 extern UBYTE wChainRow;                     /* $C41A */
+extern UBYTE wSpeechCursorRow;              /* $C429 */
 extern UBYTE wWordClipCell0[];              /* $C935 */
 extern UBYTE wWordEditRow;                  /* $C937 */
 extern UBYTE wWordEditCol;                  /* $C938 */
@@ -66,6 +67,26 @@ void DrawSampleNameCell(UBYTE v)
     DrawString(wSampleNoteString);
 }
 
+UBYTE ReadWordCell(void)
+{
+    UBYTE *p;
+
+    p = SramWords + ((UWORD)wSpeechCursorRow << 5);
+    p += (unsigned int)wWordEditCol;
+    p += (unsigned int)(wWordEditRow << 1);
+    return ReadSongByte(0, p);
+}
+
+void WriteWordCell(UBYTE v)
+{
+    UBYTE *p;
+
+    p = SramWords + ((UWORD)wSpeechCursorRow << 5);
+    p += (unsigned int)wWordEditCol;
+    p += (unsigned int)(wWordEditRow << 1);
+    WriteSongByte(0, p, v);
+}
+
 void ChainDrawWaveCell(void)
 {
     DrawTextField(WordColX[wWordEditCol], wWordEditRow + 2, WordColWidth[wWordEditCol], wWordEditCol);
@@ -83,6 +104,17 @@ void DrawWaveCellPair(void)
     ChainDrawWaveCell();
     wWordEditRow++;
     ChainDrawWaveCellHw();
+}
+
+UBYTE *TilemapAddr(UBYTE x, UBYTE y)
+{
+    UWORD a;
+
+    a = y;
+    a <<= 5;
+    a += x;
+    a |= 0x9800;
+    return (UBYTE *)a;
 }
 
 UWORD ChainCalcParamAddr(UBYTE x)

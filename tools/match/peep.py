@@ -536,6 +536,41 @@ def track_e(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
     return out, dropped
 
 
+def track_const(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
+    """Drop `ld r,#n` (r = b..e) while r already holds n: the high byte of a
+    widened index stays 0 for the next one (`ReadWordCell`)."""
+    out: list[str] = []
+    val: dict[str, str] = {}      # register -> the constant it holds
+    dropped = 0
+    scope = 0
+    for raw in lines:
+        t = _strip(raw).strip()
+        if not t:
+            out.append(raw)
+            continue
+        if t.endswith(":"):
+            if not _LOCAL.fullmatch(t[:-1]):
+                scope += 1
+                val = {}
+            elif f"{scope}:{t[:-1]}" in jump_targets:
+                val = {}
+            out.append(raw)
+            continue
+        mn, ops = _ops(t)
+        if mn == "ld" and len(ops) == 2 and ops[0] in ("b", "c", "d", "e") and ops[1].startswith("#"):
+            if val.get(ops[0]) == ops[1]:
+                dropped += 1
+                continue
+            val[ops[0]] = ops[1]
+        elif mn in _WRITES_ALL or (mn in ("jp", "jr") and len(ops) == 1):
+            val = {}
+        else:
+            for r in _written(mn, ops):
+                val.pop(r, None)
+        out.append(raw)
+    return out, dropped
+
+
 # --- dead register stores ----------------------------------------------------
 #
 # Within a basic block LSDj's compiler never left `ld r,a` (r = b..e) that a

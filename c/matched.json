@@ -1205,6 +1205,12 @@
   "len": 67,
   "src": "c/bank1d/SynthScreen.c"
  },
+ "ReadWordCell": {
+  "bank": "06",
+  "addr": "405D",
+  "len": 86,
+  "src": "c/bank06/Screens.c"
+ },
  "RedrawScreenFar": {
   "bank": "1D",
   "addr": "6E00",
@@ -1559,6 +1565,12 @@
   "len": 103,
   "src": "c/bank05/TableScreen.c"
  },
+ "TilemapAddr": {
+  "bank": "06",
+  "addr": "48AB",
+  "len": 86,
+  "src": "c/bank06/Screens.c"
+ },
  "ToggleBookmark": {
   "bank": "07",
   "addr": "6413",
@@ -1630,5 +1642,11 @@
   "addr": "6E6E",
   "len": 72,
   "src": "c/bank1d/SynthScreen.c"
+ },
+ "WriteWordCell": {
+  "bank": "06",
+  "addr": "40B3",
+  "len": 91,
+  "src": "c/bank06/Screens.c"
  }
 }

@@ -23,7 +23,7 @@
 5947 DrawChainScreen     ; screen idx 3: draws chain phrases + transposes
 4A0A AccessWaveFrame     ; compute/access a wave_frames cell (SRAM bank3 $A000; 32 nibbles/frame)
 4F18 DrawWaveScreen      ; screen idx 8: draws the waveform; edits wave_frames (bank3 $A000) directly
-405D AccessWord          ; words[word][32] cell at SRAM bank0 $B890 (42 words; allophone+length pairs)
+405D ReadWordCell               ; read the speech word cell under the cursor: SRAM bank 0 $B890 + word*32 + col + row*2
 41A2 DrawWordScreen      ; screen idx 12: draws speech words; edits words ($B890) + word_names ($BDD0)
 5A62 ChainScreenUpdate  ; per-frame visual update (screen idx 3)
 5511 ChainLoadCursorPhrase      ; read the phrase at (wChain, wChainRow) via FarCallArg2; $ff -> empty path
@@ -36,7 +36,7 @@
 414F ChainDrawWaveCellHw        ; like ChainDrawWaveCell but palette per hGameboyType
 4279 DrawSampleNameFull         ; sample name + extras draw (unreferenced variant of DrawSampleNameCell)
 4306 DrawWaveCellPair           ; draw a wave cell in both variants (ChainDrawWaveCell + Hw) for the row
-48AB ChainCalcSampleAddr        ; compute a sample address (arg<<5 + base) for LoadKitSampleInfo
+48AB TilemapAddr                ; the BG tilemap address of cell x,y: $9800 | (y*32 + x)
 4901 ChainCalcParamAddr         ; pick SRAM base $bfc4/$bfc5 by bit3 of arg (= SynthCalcParamAddr)
 493F CopySynthParam             ; copy one synth parameter byte (ChainCalcParamAddr src->dst)
 4992 ChainReadPhraseNote   ; read phrase_notes[arg<$20] from SRAM (chain screen)
@@ -44,7 +44,7 @@
 4B16 ChainSetCursorSprite       ; compute cursor sprite X/Y from $c42b/$c93b ($c413==4)
 4B40 ChainWriteCursorPair       ; store $c42b through two arg pointers
 4BA7 ChainDrawWaveform          ; draw wave samples from $400c.. (<-DrawWaveScreen)
-4C55 LoadKitSampleInfo          ; resolve the kit sample pair for the cursor note (ChainCalcSampleAddr; clears $c93d..+8)
+4C55 LoadKitSampleInfo          ; resolve the kit sample pair for the cursor note (TilemapAddr; clears $c93d..+8)
 4EAC ChainDrawCursorByte        ; draw $c42b>>1 via LoadKitSampleInfo
 4EBD ChainWriteWaveA            ; write wave data via ChainWriteCursorPair
 4F02 ChainDrawRow16             ; draw 16 bytes via LoadKitSampleInfo
@@ -106,13 +106,13 @@
 4022 WordColX                   ; x of the word editor columns ($02, $06)
 
 ; --- structural local names (loop heads / common exits) ---
-406A .loop                ; loop head in AccessWord
+406A .loop                ; loop head in ReadWordCell
 40C0 .loop                ; loop head in WriteWordCell
 41EC .loop                ; loop head in DrawWordScreen
 423A .loop2               ; loop head in DrawWordScreen
 431C .done                ; common exit of DrawWaveCellPair
 48A7 .done                ; common exit of DrawSelectDigit
-48BA .loop                ; loop head in ChainCalcSampleAddr
+48BA .loop                ; loop head in TilemapAddr
 4974 .loop                ; loop head in CopySynthParam
 49B2 .loop                ; loop head in ChainReadPhraseNote
 4A22 .loop                ; loop head in AccessWaveFrame
