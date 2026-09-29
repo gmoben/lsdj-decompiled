@@ -71,6 +71,12 @@
   "len": 83,
   "src": "c/bank06/Screens.c"
  },
+ "ChainLoadCursorPhrase": {
+  "bank": "06",
+  "addr": "5511",
+  "len": 82,
+  "src": "c/bank06/Screens.c"
+ },
  "ChainReadTrans": {
   "bank": "06",
   "addr": "56AA",
@@ -83,10 +89,46 @@
   "len": 34,
   "src": "c/bank06/Screens.c"
  },
+ "ChainScanCmd": {
+  "bank": "06",
+  "addr": "4AB0",
+  "len": 102,
+  "src": "c/bank06/Screens.c"
+ },
+ "ChainScreenUpdate": {
+  "bank": "06",
+  "addr": "5A62",
+  "len": 92,
+  "src": "c/bank06/Screens.c"
+ },
  "ChainSetCursorSprite": {
   "bank": "06",
   "addr": "4B16",
   "len": 42,
+  "src": "c/bank06/Screens.c"
+ },
+ "ChainWriteCursorPair": {
+  "bank": "06",
+  "addr": "4B40",
+  "len": 103,
+  "src": "c/bank06/Screens.c"
+ },
+ "ChainWriteWaveA": {
+  "bank": "06",
+  "addr": "4EBD",
+  "len": 69,
+  "src": "c/bank06/Screens.c"
+ },
+ "ChainWriteWaveC": {
+  "bank": "06",
+  "addr": "4FA9",
+  "len": 82,
+  "src": "c/bank06/Screens.c"
+ },
+ "ChainWriteWaveD": {
+  "bank": "06",
+  "addr": "4FFB",
+  "len": 83,
   "src": "c/bank06/Screens.c"
  },
  "ClearBookmarks": {

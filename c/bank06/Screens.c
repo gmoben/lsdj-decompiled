@@ -7,9 +7,13 @@
 
 #include "lsdj.h"
 
-extern UBYTE wChain;                        /* $C418, the chain being edited */
 extern UBYTE wWaveCursor;                   /* $C42B */
 extern UBYTE wCursorMode;                   /* $C413 */
+extern UBYTE wChanActive[];                 /* $C0E0, [4] */
+extern UBYTE wChanChain[];                  /* $C170, [4] */
+extern UBYTE wChanChainRow[];               /* $C17C, [4] */
+extern UBYTE wPhrase;                       /* $C414 */
+extern UBYTE wChain;                        /* $C418 */
 extern UBYTE wChainCol;                     /* $C419 */
 extern UBYTE wChainRow;                     /* $C41A */
 extern UBYTE wWordClipCell0[];              /* $C935 */
@@ -34,6 +38,11 @@ UBYTE ChainReadPhraseNote(UBYTE i);
 void ChainDrawWaveform(void);
 void ChainScanCmd(UBYTE s, UBYTE x);
 void ReadKitSampleName(UBYTE kit, UBYTE sample);   /* bank 0 */
+void ChainWriteCursorPair(UBYTE *a, UBYTE *b);
+void SetOAMByte(UWORD offset, UBYTE v);     /* bank 0 */
+void ChainWriteWaveA(void);
+UBYTE FarCallArg2(UBYTE bank, UWORD fn, UBYTE a, UBYTE b);   /* bank 0 */
+void SndGetChainPhrase(void);               /* bank 2 */
 
 UBYTE ChainScaleValue(UBYTE v)
 {
@@ -86,6 +95,16 @@ UWORD ChainCalcParamAddr(UBYTE x)
     return p;
 }
 
+void ChainScanCmd(UBYTE y1, UBYTE y2)
+{
+    UBYTE i;
+
+    for (i = 3; (UWORD)i != 11; i++)
+        SetOAMByte((i << 2) + 1, y1);
+    for (; (UWORD)i != 19; i++)
+        SetOAMByte((i << 2) + 1, y2);
+}
+
 void ChainSetCursorSprite(void)
 {
     UBYTE x, s;
@@ -97,9 +116,33 @@ void ChainSetCursorSprite(void)
     ChainScanCmd(s, x);
 }
 
+void ChainWriteCursorPair(UBYTE *a, UBYTE *b)
+{
+    *a = wWaveCursor;
+    *b = wWaveCursor;
+    if (wCursorMode == 4) {
+        if (wWaveSelStart < wWaveCursor)
+            *a = wWaveSelStart;
+        else
+            *b = wWaveSelStart;
+    }
+    (*b)++;
+}
+
 void ChainDrawCursorByte(void)
 {
     LoadKitSampleInfo(wWaveCursor >> 1);
+}
+
+void ChainWriteWaveA(void)
+{
+    UBYTE start, end, t;
+
+    ChainWriteCursorPair(&start, &end);
+    t = start;
+    start = t & 0xFE;
+    for (; start < end; start += 2)
+        LoadKitSampleInfo(start >> 1);
 }
 
 void ChainDrawRow16(void)
@@ -120,6 +163,32 @@ void DrawWaveScreen(void)
     FarCall(5, MapDrawTopRow);
 }
 
+void ChainWriteWaveC(void)
+{
+    UBYTE start, end, t;
+
+    ChainWriteCursorPair(&start, &end);
+    while (start < end) {
+        AccessWaveFrame(start, 0x0F - ChainReadPhraseNote(start));
+        t = start;
+        start = t + 1;
+    }
+    ChainWriteWaveA();
+}
+
+void ChainWriteWaveD(UBYTE d)
+{
+    UBYTE start, end, t;
+
+    ChainWriteCursorPair(&start, &end);
+    while (start < end) {
+        AccessWaveFrame(start, ChainReadPhraseNote(start) + d);
+        t = start;
+        start = t + 1;
+    }
+    ChainWriteWaveA();
+}
+
 void DrawWaveCursor(UBYTE d)
 {
     UBYTE n, v;
@@ -136,6 +205,24 @@ void DrawWaveCursor(UBYTE d)
 UBYTE GetCursorChain(void)
 {
     return ReadSeqByte(wSongCol, wSongRow);
+}
+
+UBYTE ChainLoadCursorPhrase(void)
+{
+    UBYTE row, ph;
+
+    row = wChainRow;
+    for (;;) {
+        ph = FarCallArg2(2, (UWORD)SndGetChainPhrase, wChain, row);
+        if (ph != 0xFF) {
+            wPhrase = ph;
+            wChainRow = row;
+            return 1;
+        }
+        if (!row)
+            return 0;
+        row--;
+    }
 }
 
 void DrawChainPos(void)
@@ -191,6 +278,15 @@ void LoadChainRow(void)
     q = SramChainTransposes + ((UWORD)wChain << 4);
     ReadSongBytes(1, p, wSongReadBuf);
     ReadSongBytes(1, q, wUsedTableMap);
+}
+
+void ChainScreenUpdate(void)
+{
+    if ((wPlayMode == 4 || wPlayMode == 3) && wChanActive[wSongCol]
+            && wChain == wChanChain[wSongCol])
+        SetSpriteY(0, wChanChainRow[wSongCol]);
+    else
+        ClearSpriteY(0);
 }
 
 void ChainDrawCellHw(void)
