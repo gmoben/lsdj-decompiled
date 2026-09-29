@@ -18,6 +18,13 @@ extern UBYTE wKeyRepeat;                    /* $C52C */
 extern UBYTE wRedrawPending;                /* $C56C */
 extern UBYTE wPrelisten;                    /* $C56E */
 extern char *HelpMenuPtrs[];                /* $1B:$4058, NULL-terminated */
+extern UBYTE HelpSelectLines[];             /* $1B:$408E, the selectable lines */
+extern UWORD *HelpPageRefs[];               /* $1B:$4BAF, &HelpPagePtrs[k] per line */
+extern UBYTE ProjFieldX[];                  /* $1B:$575C, the 12 fields' x */
+extern UBYTE ProjFieldY[];                  /* $1B:$5768, and rows */
+extern UBYTE wProjCursor;                   /* $C9A4 */
+extern UBYTE wProjDrawScratch2;             /* $C9A8 */
+extern UBYTE wProjDrawScratch3;             /* $C9A9 */
 
 UWORD GetTempoTimerValue(void);
 void DrawTempo(UWORD v);
@@ -28,6 +35,10 @@ void ProjRedrawHelpSel(void);
 void ProjDrawTempo(void);
 UBYTE ProjSyncModeIs015(void);
 void DrawPrelistenField(void);
+UBYTE GetNextButtons(void);                 /* bank 0 */
+UWORD StringLength(char *s);                /* bank 0 */
+UBYTE ProjCalcFieldTile(void);
+void DrawNameEditArrows(UWORD page);
 
 void DrawHelpMenu(void)
 {
@@ -37,6 +48,16 @@ void DrawHelpMenu(void)
         GetTilemapAddr(0, i);
         DrawString(HelpMenuPtrs[i]);
     }
+}
+
+void ProjDrawHelpEntry(UBYTE selected)
+{
+    UBYTE e;
+    UBYTE len;
+
+    e = HelpSelectLines[wHelpCursorRow];
+    len = StringLength(HelpMenuPtrs[e]);
+    DrawTextField(0, e, len, selected ? 0 : 2);
 }
 
 void ProjRedrawHelpSel(void)
@@ -82,6 +103,14 @@ void ProjHelpReset(void)
     wHelpOpenEntry = 0;
     ClearBgTilemap();
     DrawHelpScreen();
+}
+
+void ProjHelpOpenSelected(void)
+{
+    ProjDrawHelpEntry(1);
+    ClearBgTilemap();
+    wHelpOpenEntry = HelpSelectLines[wHelpCursorRow];
+    DrawNameEditArrows(*HelpPageRefs[wHelpCursorRow]);
 }
 
 void ProjDrawNameFieldHw(void)
@@ -144,6 +173,26 @@ UBYTE ProjSyncModeIs567(void)
     return 0;
 }
 
+void ProjDrawSyncField(void)
+{
+    UBYTE pal, y;
+
+    pal = wProjCursor < 8;
+    wProjDrawScratch2 = ProjCalcFieldTile();
+    y = ProjFieldY[wProjCursor];
+    DrawTextField(ProjFieldX[wProjCursor], y, wProjDrawScratch2, pal);
+}
+
+void ProjDrawSyncFieldHw(void)
+{
+    UBYTE pal, y;
+
+    pal = hGameboyType ? 3 : 2;
+    wProjDrawScratch3 = ProjCalcFieldTile();
+    y = ProjFieldY[wProjCursor];
+    DrawTextField(ProjFieldX[wProjCursor], y, wProjDrawScratch3, pal);
+}
+
 void DrawDecimalField(UBYTE v)
 {
     if (v < 10)
@@ -172,4 +221,18 @@ void ProjRedrawPrelisten(void)
     hBgDigitPalette = wShadowDigitPal;
     hBgPalette = wShadowPal;
     DrawPrelistenField();
+}
+
+void ProjectScreenRefresh(void)
+{
+    while (GetNextButtons())
+        ;
+    while (!GetNextButtons())
+        ;
+    if (hGameboyType)
+        ClearBgTilemap();
+    FarCall(1, FAR_FN(UiDrawTextHw));
+    DrawProjectScreen();
+    FarCall(5, MapDrawTopRow);
+    wRedrawPending = 0;
 }

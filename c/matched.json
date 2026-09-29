@@ -1133,6 +1133,12 @@
   "len": 72,
   "src": "c/bank04/PhraseScreen.c"
  },
+ "ProjDrawHelpEntry": {
+  "bank": "1B",
+  "addr": "49F8",
+  "len": 85,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
  "ProjDrawNameField": {
   "bank": "1B",
   "addr": "4C96",
@@ -1145,10 +1151,28 @@
   "len": 58,
   "src": "c/bank1b/ProjectScreen.c"
  },
+ "ProjDrawSyncField": {
+  "bank": "1B",
+  "addr": "5A42",
+  "len": 78,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
+ "ProjDrawSyncFieldHw": {
+  "bank": "1B",
+  "addr": "5A90",
+  "len": 83,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
  "ProjDrawTempo": {
   "bank": "1B",
   "addr": "5853",
   "len": 14,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
+ "ProjHelpOpenSelected": {
+  "bank": "1B",
+  "addr": "4B6D",
+  "len": 66,
   "src": "c/bank1b/ProjectScreen.c"
  },
  "ProjHelpReset": {
@@ -1197,6 +1221,12 @@
   "bank": "1B",
   "addr": "5896",
   "len": 27,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
+ "ProjectScreenRefresh": {
+  "bank": "1B",
+  "addr": "5D7C",
+  "len": 67,
   "src": "c/bank1b/ProjectScreen.c"
  },
  "ReadCurInstrByte": {
