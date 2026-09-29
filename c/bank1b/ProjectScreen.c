@@ -11,8 +11,6 @@ extern UBYTE wHelpOpenEntry;                /* $C933, the open HELP entry (0 = n
 extern UBYTE wHelpCursorRow;                /* $C934 */
 extern UBYTE wKbdCursorCol;                 /* $C42D */
 extern UBYTE wKbdCursorRow;                 /* $C42E */
-extern UBYTE wTempo;                        /* $C529 */
-extern UBYTE wTempoMode;                    /* $C52A */
 extern UBYTE wKeyDelay;                     /* $C52B */
 extern UBYTE wKeyRepeat;                    /* $C52C */
 extern UBYTE wRedrawPending;                /* $C56C */
@@ -28,9 +26,6 @@ extern UBYTE wProjCursor;                   /* $C9A4 */
 extern UBYTE wProjDrawScratch2;             /* $C9A8 */
 extern UBYTE wProjDrawScratch3;             /* $C9A9 */
 
-UWORD GetTempoTimerValue(void);
-void DrawTempo(UWORD v);
-void DrawFormat(char *fmt, UWORD v);        /* printf-style, varargs */
 void DrawHelpMenu(void);
 void ProjDrawHelpEntry(UBYTE selected);
 void ProjRedrawHelpSel(void);

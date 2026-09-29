@@ -12,7 +12,7 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 | What compiled LSDj? | **GBDK 2.95-3** (19 Aug 2000) → **SDCC 2.2.1** (`gbz80` target), default `asxxxx` assembler/linker, small memory model — **plus an accumulator-tracking optimisation stock SDCC lacks** (the "modified GBDK"), modelled here as an accumulator-tracking pass plus 70 peephole rules (below) |
 | Can we run it today? | **Yes, natively.** SDCC 2.2.1 + `sdcpp`/`as-gbz80`/`link-gbz80` build from the GBDK 2.95-2 sources (`tools/toolchain/build_sdcc221.sh`, ~15 s) and emit **byte-identical** asm, objects, listings and images to GBDK 2.95-3's Win32 binaries — which still run under Wine (`fetch_gbdk295.sh`), but crash on large units (below) |
 | Is it the right toolchain? | **Yes, for the code generator**: LSDj's instruction selection, register allocation and frame idioms are SDCC 2.2.1's line for line, and GBDK 2.95 library code in the ROM is byte-identical to its sources (`display_off` ← `crt0.s`, `strcpy` ← `asm_string.s`, `set_bkg_palette` ← `cgb.s`, `set_bkg_tiles` ← `set_bk_t.s` + `set_xy_t.s`, the SDCC `mul` runtime). Stock output does **not** match on its own: LSDj's build also ran peephole rules that stock 2.95-3 lacks |
-| Matched real LSDj functions? | **Yes — 362**, in eleven banks (the list: [`c/matched.json`](../c/matched.json)): a message renderer, a 15-case `switch`, a sparse `switch`, the SRAM accessors, and the instrument screen's field accessors and draw helpers. `make match` re-verifies them all (cached: only changed sources reach the compiler), and **their bytes in the ROM build come from the compiled C** (below) |
+| Matched real LSDj functions? | **Yes — 369**, in eleven banks (the list: [`c/matched.json`](../c/matched.json)): a message renderer, a 15-case `switch`, a sparse `switch`, the SRAM accessors, and the instrument screen's field accessors and draw helpers. `make match` re-verifies them all (cached: only changed sources reach the compiler), and **their bytes in the ROM build come from the compiled C** (below) |
 | Is all of LSDj C? | **No.** ~130 functions (7% of the instructions) are hand-written assembly — the interrupt handlers, sound tick, envelope/pitch and tile-loader code in bank 0, and the sequencer core in bank `$02` (`tools/match/code_kind.py`). Those stay asm; the ~830 others (every editor) are Track 2 targets |
 | Go/no-go on Track 2? | **Go, with the rule set still growing.** Every function tried has matched (each new one has cost a few rules so far), the C feeds the ROM build with `make compare` as the gate, and the hand-written asm (7%) is mapped and excluded |
 
@@ -20,6 +20,7 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 
 | Source | Functions | What they exercise |
 |--------|-----------|--------------------|
+| [`c/bank00/DrawFields.c`](../c/bank00/DrawFields.c) | 6 functions: tempo, channel header, duty and pan fields | `switch` chains with `?:` returns, a register pair plus a constant, a block-local initialiser |
 | [`c/bank00/Helpers.c`](../c/bank00/Helpers.c) | 7 functions: bank 0's shared C helpers | kit bank probes through a `volatile` MBC register, a word compare, the clipboard cell accessors, sign extension into an `int` array with a 32-bit `\|=`, a re-typed pointer argument |
 | [`c/bank00/InstrByte.c`](../c/bank00/InstrByte.c) | `WriteInstrByte`, `ReadInstrByte`, `ReadCurInstrByte` | byte args, pointer local, 16-bit shift loop, asserts (one compound), both forms of pointer + byte |
 | [`c/bank00/ReadSeqByte.c`](../c/bank00/ReadSeqByte.c) | `ReadSeqByte` | `?:` on bit 7 of a call result |
@@ -27,7 +28,7 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 | [`c/bank00/Sprites.c`](../c/bank00/Sprites.c) | 10 functions: the sprite helpers | literal-pointer stores, a register pair plus a constant added in place, `v == *p` |
 | [`c/bank01/DrawMessageBar.c`](../c/bank01/DrawMessageBar.c) | `DrawMessageBar` (198 B) | globals, `sfr` HRAM stores, two loops, calls |
 | [`c/bank01/SongAlloc.c`](../c/bank01/SongAlloc.c) | 1 function: song allocation bitmaps | a bit test on the chain bitmap (`1 << (chain & 7)`, whose shift count dies to `ld b,#1`) |
-| [`c/bank01/UiHelpers.c`](../c/bank01/UiHelpers.c) | 9 functions: small UI helpers | `?:` over string literals, a `char` local (its dead `ld b,c` copy), a glyph table |
+| [`c/bank01/UiHelpers.c`](../c/bank01/UiHelpers.c) | 10 functions: small UI helpers | `?:` over string literals, a `char` local (its dead `ld b,c` copy), a glyph table, a file-scope `const` table flushed ahead of the next function's strings |
 | [`c/bank01/ShowMessages.c`](../c/bank01/ShowMessages.c) | `ShowOutOfMemory`, `ShowTapAddChain` | one-line wrappers, 16-bit argument |
 | [`c/bank03/InstrScreen.c`](../c/bank03/InstrScreen.c) | 62 functions of the instrument screen | field get/set/step helpers, `FarCall` in both address forms, SRAM literal addresses, a string literal placed after its function, `hl` kept across a `!=` compare |
 | [`c/bank1c/FileScreen.c`](../c/bank1c/FileScreen.c) | 23 functions: file screen | field highlights from column tables, a `do … while (--i)` clear (CSE shares `i - 1`), the serial receive wait, `?:` returns |
@@ -307,7 +308,16 @@ stub, GBDK library routines, and bank `$02`'s note/period/sequencer core
   (`(UWORD)fn` at its call sites). A cast to another pointer type, `banked`
   or `nonbanked` all fold away.
 - **String literals** are emitted right after the function that uses them, as
-  in the ROM (`DrawInstrByte11`'s `"--"` at `$03:$49E4`).
+  in the ROM (`DrawInstrByte11`'s `"--"` at `$03:$49E4`). Precisely, SDCC
+  flushes its constant segment after each function it compiles, in the order
+  things were put there: `const` data defined at file scope since the last
+  flush first (`const UBYTE SpeedGlyphTiles[]` just above `DrawSpeedModeName`
+  lands between its code and its strings, where the ROM has it), then the
+  function's literals as `decorateType` numbers them, in source order except
+  that a block-local initialiser's literal is numbered while the declaration
+  is parsed, ahead of the rest (`{ char *s = "LR"; ... }` inside one case of
+  `DrawFieldValue` puts "LR" before case 0's "--"). SDCC 2.2.1 has no
+  `code` keyword.
 - **One operation per statement** is how LSDj's source reads: `v = 0x3F - v;
   v &= 0x3F;` compiles to `sub; and; ld c,a` (the dead-store rule removes the
   first store), `v = (0x3F - v) & 0x3F` to `sub; ld b,a; and; ld c,a` — stock
@@ -471,7 +481,6 @@ shape.
 | `RemoveBookmark` | `$07:$63B5` | pushes its pointer to ReadSongByte and WriteBookmarkByte straight from the stack (no conversion copy), though both take UWORD addresses and the sum is pointer arithmetic (i fetched into de) |
 | `CopySynthParam` | `$06:$493F` | ROM keeps s = wSynth >> 4 in c, packs ChainCalcParamAddr's result straight into p (sp+0) and stores a copy of s to sp+2 before the mask; UWORD/pointer p and three mask spellings tried |
 | `ChainWriteWaveB` | `$06:$4F42` | reverses the selection; ROM spills the first ChainReadPhraseNote result (sp+2) and keeps the second in b, where SDCC pushes the second straight from e and keeps the first in b |
-| `DrawSpeedModeName` | `$01:$518C` | matches except its four string literals sit 6 bytes later: in the ROM the SpeedGlyphTiles table ($51EE) comes between the function's code and its literals, where SDCC 2.2.1 emits literals right after the code and file-scope const data after all code (an emission-order difference to emulate in the harness) |
 | `PlotEnvCurve` | `$1B:$7200` | matches except register naming: the ROM keeps every temporary in b (the end pointer as b/c, low byte in b), as if c were busy for the whole function; ours uses c. The $DA00 buffer is addressed as a literal pointer ((char *)0xDA00) |
 | `SynthWriteWaveCol` | `$1D:$5F29` | all but the register pair: the ROM loads the post-incremented wSynthRenderDst into c/b and pushes bc, ours gets b/c (c busy at allocation per --dumpregassign, though no live temp shows); needs `ld l,a` (track_a) and the genXor double-store rule, both in |
 

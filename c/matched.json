@@ -221,6 +221,12 @@
   "len": 44,
   "src": "c/bank06/Screens.c"
  },
+ "DrawChannelHeader": {
+  "bank": "00",
+  "addr": "2CC6",
+  "len": 76,
+  "src": "c/bank00/DrawFields.c"
+ },
  "DrawCmdLetter": {
   "bank": "05",
   "addr": "42A4",
@@ -238,6 +244,12 @@
   "addr": "4C06",
   "len": 10,
   "src": "c/bank04/PhraseScreen.c"
+ },
+ "DrawFieldValue": {
+  "bank": "00",
+  "addr": "2D7E",
+  "len": 166,
+  "src": "c/bank00/DrawFields.c"
  },
  "DrawGrooveScreen": {
   "bank": "1D",
@@ -371,6 +383,12 @@
   "len": 51,
   "src": "c/bank1b/ProjectScreen.c"
  },
+ "DrawPulseDuty": {
+  "bank": "00",
+  "addr": "2D22",
+  "len": 80,
+  "src": "c/bank00/DrawFields.c"
+ },
  "DrawSampleNameCell": {
   "bank": "06",
   "addr": "4026",
@@ -381,6 +399,12 @@
   "bank": "01",
   "addr": "5208",
   "len": 37,
+  "src": "c/bank01/UiHelpers.c"
+ },
+ "DrawSpeedModeName": {
+  "bank": "01",
+  "addr": "518C",
+  "len": 98,
   "src": "c/bank01/UiHelpers.c"
  },
  "DrawStringAtCursor": {
@@ -448,6 +472,18 @@
   "addr": "411F",
   "len": 56,
   "src": "c/bank1f/InstrHelpers.c"
+ },
+ "DrawTempo": {
+  "bank": "00",
+  "addr": "2C3C",
+  "len": 89,
+  "src": "c/bank00/DrawFields.c"
+ },
+ "DrawTempoField": {
+  "bank": "00",
+  "addr": "2CA4",
+  "len": 34,
+  "src": "c/bank00/DrawFields.c"
  },
  "DrawTileHexCell": {
   "bank": "06",
@@ -868,6 +904,12 @@
   "addr": "53DE",
   "len": 65,
   "src": "c/bank03/InstrScreen.c"
+ },
+ "GetTempoTimerValue": {
+  "bank": "00",
+  "addr": "2BC4",
+  "len": 120,
+  "src": "c/bank00/DrawFields.c"
  },
  "GotoProjectScreen": {
   "bank": "1B",

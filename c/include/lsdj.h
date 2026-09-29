@@ -56,6 +56,7 @@ extern UBYTE rRAMB;                         /* $4000, MBC5 SRAM bank */
 /* --- WRAM ----------------------------------------------------------------- */
 
 extern UBYTE wCurrentScreen;                /* $C401 */
+extern UBYTE wIsCGB;                        /* $C402 */
 extern UBYTE wButtonsSame;                  /* $C408: 1 if the buttons are unchanged since last frame */
 extern UBYTE wSelLeft;                      /* $C40D */
 extern UBYTE wCursorMode;                   /* $C413 */
@@ -69,6 +70,8 @@ extern char wSampleNoteString[];            /* $C43A: [7] shared name buffer */
 extern UBYTE wSongReadBuf[];                /* $C46D, [16] ReadSongBytes buffer */
 extern UBYTE wUsedTableMap[];               /* $C47D, [32] tables referenced by instruments; also a scratch buffer */
 extern UBYTE wPlayMode;                     /* $C4D2 */
+extern UBYTE wTempo;                        /* $C529, 0-39 stand for 256-295 */
+extern UBYTE wTempoMode;                    /* $C52A: 0 = BPM, 1-3 = the 2X/3X/6X sync speeds */
 extern UBYTE wShadowDigitPal;               /* $C566 */
 extern UBYTE wShadowPal;                    /* $C567 */
 extern UBYTE wSelectDigitPal;               /* $C568 */
@@ -160,6 +163,9 @@ void DrawStringTile20(void);
 void DrawByte(UBYTE v);
 void DrawHexByte(UBYTE v);
 void DrawTempoField(void);
+UWORD GetTempoTimerValue(void);                 /* the tempo as shown (or a speed code) */
+void DrawTempo(UWORD tempo);
+void DrawFormat(char *fmt, UWORD v);            /* printf-style, varargs */
 void GetTilemapAddr(UBYTE x, UBYTE y);                  /* sets wVramCursor (asm) */
 void ClearMarkerSprites(void);
 char *strcpy(char *dest, char *src);
