@@ -343,12 +343,13 @@ shape.
 | Function | Where | What differs |
 |----------|-------|--------------|
 | `SetInstrFlags54` | `$03:$4B5E` | `ld b,c; ld a,b; and a,$f8; ld c,a ... or a,c`: copy of a call result + AND kept in a register (no packing); no source form found |
-| `SetInstrLen2` | `$03:$441A` | synth clone, 19-byte frame: widened (UWORD) copies of i/so spilled, long `| 0xA000`; not LICM (FileForEachInstrType proves hoisting on) |
+| `SetInstrLen2` | `$03:$441A` | synth clone, 19-byte frame: widened (UWORD) copies of i/so spilled, long `\| 0xA000`; not LICM (FileForEachInstrType proves hoisting on) |
 | `FileUpgradeV3Pulse` | `$1C:$628B` | same `ld b,c; ld a,b; and; or #n; ld c,a` tail as V3Kit |
-| `FileUpgradeV3Kit` | `$1C:$62D3` | switch prologue matches; tail `ld b,c; ld a,b; and a,$f9; or a,$01; ld c,a` (AND packed into a with a literal `|`); old packRegsForAccUse tried: no |
+| `FileUpgradeV3Kit` | `$1C:$62D3` | switch prologue matches; tail `ld b,c; ld a,b; and a,$f9; or a,$01; ld c,a` (AND packed into a with a literal `\|`); old packRegsForAccUse tried: no |
 | `FileUpgradeV0Kit` | `$1C:$6134` | all 5 byte locals + a 16-bit temp on the stack (frame 7); ours keeps 2 in registers, 8-bit clear (~0x20 folds) |
 | `FileUpgradeV2` | `$1C:$622D` | only an `ld hl,sp+0` reload after `or a,a; jp z` (&& chain on a named local): ROM keeps hl there, but reloads in switch chains |
 | `FileCheckByte6973` | `$1C:$6973` | pointer param copied to a local (frame 3), deref via de; ours via bc |
+
 
 ## What's still unknown
 
