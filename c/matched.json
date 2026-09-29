@@ -149,11 +149,29 @@
   "len": 18,
   "src": "c/bank07/SongScreen.c"
  },
+ "ClearMarkerSprites": {
+  "bank": "00",
+  "addr": "30EC",
+  "len": 104,
+  "src": "c/bank00/Sprites.c"
+ },
  "ClearMessageBar": {
   "bank": "01",
   "addr": "781F",
   "len": 65,
   "src": "c/bank01/UiHelpers.c"
+ },
+ "ClearSpriteY": {
+  "bank": "00",
+  "addr": "319E",
+  "len": 23,
+  "src": "c/bank00/Sprites.c"
+ },
+ "ClearSprites012": {
+  "bank": "00",
+  "addr": "30DD",
+  "len": 15,
+  "src": "c/bank00/Sprites.c"
  },
  "ClearTableRow": {
   "bank": "1F",
@@ -1385,6 +1403,12 @@
   "len": 82,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "PositionWavSprites": {
+  "bank": "00",
+  "addr": "3176",
+  "len": 40,
+  "src": "c/bank00/Sprites.c"
+ },
  "PrelistenEditedCell": {
   "bank": "04",
   "addr": "5B5E",
@@ -1684,6 +1708,42 @@
   "addr": "5128",
   "len": 89,
   "src": "c/bank03/InstrScreen.c"
+ },
+ "SetOAMByte": {
+  "bank": "00",
+  "addr": "3154",
+  "len": 34,
+  "src": "c/bank00/Sprites.c"
+ },
+ "SetSpriteAttr": {
+  "bank": "00",
+  "addr": "324A",
+  "len": 23,
+  "src": "c/bank00/Sprites.c"
+ },
+ "SetSpriteTile3": {
+  "bank": "00",
+  "addr": "321C",
+  "len": 23,
+  "src": "c/bank00/Sprites.c"
+ },
+ "SetSpriteTile4": {
+  "bank": "00",
+  "addr": "3233",
+  "len": 23,
+  "src": "c/bank00/Sprites.c"
+ },
+ "SetSpriteX": {
+  "bank": "00",
+  "addr": "31B5",
+  "len": 46,
+  "src": "c/bank00/Sprites.c"
+ },
+ "SetSpriteY": {
+  "bank": "00",
+  "addr": "31E3",
+  "len": 57,
+  "src": "c/bank00/Sprites.c"
  },
  "ShowMax16Marks": {
   "bank": "01",

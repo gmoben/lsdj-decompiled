@@ -178,6 +178,11 @@ void ClearBgTilemap(void);                  /* $17FB: tile 0 over the visible BG
 extern UBYTE FxMnemonics[];                 /* $0824: "-ABCDEFGHKLMOPRSTVWZ", the command letters */
 void SetSpriteY(UBYTE sprite, UBYTE row);   /* play-position marker sprites */
 void ClearSpriteY(UBYTE sprite);
+void SetSpriteX(UBYTE sprite, UBYTE col);
+void SetSpriteTile3(UBYTE sprite);
+void SetSpriteTile4(UBYTE sprite);
+void SetSpriteAttr(UBYTE sprite, UBYTE attr);
+void SetOAMByte(UWORD offset, UBYTE v);         /* wOamBuffer[offset] = v if changed */
 
 void DrawPhraseScreen(void);        /* $04:$4CE5 */
 void DrawGrooveScreen(void);        /* $1D:$41DA */

@@ -37,8 +37,6 @@ UBYTE ReadGrooveStep(UBYTE step);
 void ClearSynthWaveBufs(void);
 void ClearSynthWaveBufs2(void);
 void SynthFilterPass(void);
-void SetSpriteX(UBYTE sprite, UBYTE col);
-void SetSpriteTile3(UBYTE sprite);
 void DrawGrooveSteps(void);
 void DrawAllChanStatus(void);
 void DrawSynthNumber(void);

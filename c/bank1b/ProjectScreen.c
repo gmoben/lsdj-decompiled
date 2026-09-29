@@ -41,7 +41,6 @@ UBYTE GetNextButtons(void);                 /* bank 0 */
 UWORD StringLength(char *s);                /* bank 0 */
 UBYTE ProjCalcFieldTile(void);
 void DrawNameEditArrows(UWORD page);
-void SetOAMByte(UWORD offset, UBYTE v);     /* bank 0 */
 void ProjHelpSelectNext(void);
 void ProjHelpOpenSelected(void);
 

@@ -38,7 +38,6 @@ void ChainDrawWaveform(void);
 void ChainScanCmd(UBYTE s, UBYTE x);
 void ReadKitSampleName(UBYTE kit, UBYTE sample);   /* bank 0 */
 void ChainWriteCursorPair(UBYTE *a, UBYTE *b);
-void SetOAMByte(UWORD offset, UBYTE v);     /* bank 0 */
 void ChainWriteWaveA(void);
 
 UBYTE ChainScaleValue(UBYTE v)
