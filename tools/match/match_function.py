@@ -199,9 +199,18 @@ def repair_globls(asm: str) -> str:
     return "\n".join(out) + "\n"
 
 
+STOCK_MARK = re.compile(r"@stock-rules\b")
+
+
 def compile_unit(work: Path, env: dict[str, str], c_path: Path,
                  peep: Path | None) -> tuple[str, str]:
-    """C -> asxxxx asm -> object + listing in `work`. Returns (asm, lst) text."""
+    """C -> asxxxx asm -> object + listing in `work`. Returns (asm, lst) text.
+
+    A unit whose source says `@stock-rules` (in a comment) is GBDK library
+    code: GBDK's own build compiled it, with SDCC's stock peephole rules and
+    none of LSDj's, so lsdj.peep and the tracking passes are skipped for it."""
+    if peep is not None and STOCK_MARK.search(c_path.read_text(errors="replace")):
+        peep = None
     for stale in ("unit.asm", "unit.o", "unit.lst", "unit.ihx"):   # reused work dir
         (work / stale).unlink(missing_ok=True)
     shutil.copyfile(c_path, work / "unit.c")

@@ -39,7 +39,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 mf = importlib.import_module("match_function")
 
-DEFN = re.compile(r"^(?:[A-Za-z_][\w \t*]*?\b)?([A-Za-z_]\w*)\s*\([^;{}]*\)\s*$")
+DEFN = re.compile(r"^(?:[A-Za-z_][\w \t*]*?\b)?([A-Za-z_]\w*)\s*\([^;{}]*\)\s*(?:nonbanked|banked|critical)?\s*$")
 MANIFEST = mf.REPO_ROOT / "c" / "matched.json"
 CACHE = mf.REPO_ROOT / "build" / "match-cache"
 HARNESS = [mf.REPO_ROOT / "tools" / "match" / n for n in ("match_function.py", "peep.py")]

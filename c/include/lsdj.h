@@ -147,6 +147,7 @@ UBYTE FarCallByte(UBYTE bank, void (*fn)(void));    /* returns fn's byte result 
 /* song data access */
 UBYTE ReadSongByte(UBYTE bank, UWORD addr);
 void WriteSongByte(UBYTE bank, UWORD addr, UBYTE val);
+UBYTE ReadSongByteRaw(UBYTE bank, UWORD addr);  /* no range asserts */
 void ReadSongBytes(UBYTE bank, UBYTE *src, UBYTE *dst);  /* 16 bytes */
 void WriteInstrByte(UBYTE instr, UBYTE field, UBYTE val);
 UBYTE ReadInstrByte(UBYTE instr, UBYTE field);

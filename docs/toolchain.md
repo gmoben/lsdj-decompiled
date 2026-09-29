@@ -12,7 +12,7 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 | What compiled LSDj? | **GBDK 2.95-3** (19 Aug 2000) → **SDCC 2.2.1** (`gbz80` target), default `asxxxx` assembler/linker, small memory model — **plus an accumulator-tracking optimisation stock SDCC lacks** (the "modified GBDK"), modelled here as an accumulator-tracking pass plus 70 peephole rules (below) |
 | Can we run it today? | **Yes, natively.** SDCC 2.2.1 + `sdcpp`/`as-gbz80`/`link-gbz80` build from the GBDK 2.95-2 sources (`tools/toolchain/build_sdcc221.sh`, ~15 s) and emit **byte-identical** asm, objects, listings and images to GBDK 2.95-3's Win32 binaries — which still run under Wine (`fetch_gbdk295.sh`), but crash on large units (below) |
 | Is it the right toolchain? | **Yes, for the code generator**: LSDj's instruction selection, register allocation and frame idioms are SDCC 2.2.1's line for line, and GBDK 2.95 library code in the ROM is byte-identical to its sources (`display_off` ← `crt0.s`, `strcpy` ← `asm_string.s`, `set_bkg_palette` ← `cgb.s`, `set_bkg_tiles` ← `set_bk_t.s` + `set_xy_t.s`, the SDCC `mul` runtime). Stock output does **not** match on its own: LSDj's build also ran peephole rules that stock 2.95-3 lacks |
-| Matched real LSDj functions? | **Yes — 369**, in eleven banks (the list: [`c/matched.json`](../c/matched.json)): a message renderer, a 15-case `switch`, a sparse `switch`, the SRAM accessors, and the instrument screen's field accessors and draw helpers. `make match` re-verifies them all (cached: only changed sources reach the compiler), and **their bytes in the ROM build come from the compiled C** (below) |
+| Matched real LSDj functions? | **Yes — 375**, in eleven banks (the list: [`c/matched.json`](../c/matched.json)): a message renderer, a 15-case `switch`, a sparse `switch`, the SRAM accessors, and the instrument screen's field accessors and draw helpers. `make match` re-verifies them all (cached: only changed sources reach the compiler), and **their bytes in the ROM build come from the compiled C** (below) |
 | Is all of LSDj C? | **No.** ~130 functions (7% of the instructions) are hand-written assembly — the interrupt handlers, sound tick, envelope/pitch and tile-loader code in bank 0, and the sequencer core in bank `$02` (`tools/match/code_kind.py`). Those stay asm; the ~830 others (every editor) are Track 2 targets |
 | Go/no-go on Track 2? | **Go, with the rule set still growing.** Every function tried has matched (each new one has cost a few rules so far), the C feeds the ROM build with `make compare` as the gate, and the hand-written asm (7%) is mapped and excluded |
 
@@ -21,11 +21,13 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 | Source | Functions | What they exercise |
 |--------|-----------|--------------------|
 | [`c/bank00/DrawFields.c`](../c/bank00/DrawFields.c) | 6 functions: tempo, channel header, duty and pan fields | `switch` chains with `?:` returns, a register pair plus a constant, a block-local initialiser |
+| [`c/bank00/GbdkLib.c`](../c/bank00/GbdkLib.c) | `StringLength` (GBDK's `strlen`) | GBDK library C under the stock rules (`@stock-rules`) |
 | [`c/bank00/Helpers.c`](../c/bank00/Helpers.c) | 7 functions: bank 0's shared C helpers | kit bank probes through a `volatile` MBC register, a word compare, the clipboard cell accessors, sign extension into an `int` array with a 32-bit `\|=`, a re-typed pointer argument |
 | [`c/bank00/InstrByte.c`](../c/bank00/InstrByte.c) | `WriteInstrByte`, `ReadInstrByte`, `ReadCurInstrByte` | byte args, pointer local, 16-bit shift loop, asserts (one compound), both forms of pointer + byte |
 | [`c/bank00/ReadSeqByte.c`](../c/bank00/ReadSeqByte.c) | `ReadSeqByte` | `?:` on bit 7 of a call result |
 | [`c/bank00/ScreenDrawDispatch.c`](../c/bank00/ScreenDrawDispatch.c) | `ScreenDrawDispatch` (252 B) | 15-case `switch` → `jp hl` table, bank switching, cross-bank calls |
 | [`c/bank00/Sprites.c`](../c/bank00/Sprites.c) | 10 functions: the sprite helpers | literal-pointer stores, a register pair plus a constant added in place, `v == *p` |
+| [`c/bank00/Sync.c`](../c/bank00/Sync.c) | 5 functions: sync mode setters, the overload message, unchecked sequence/chain reads | literal bank switches around a cross-bank call, a message string in another bank |
 | [`c/bank01/DrawMessageBar.c`](../c/bank01/DrawMessageBar.c) | `DrawMessageBar` (198 B) | globals, `sfr` HRAM stores, two loops, calls |
 | [`c/bank01/SongAlloc.c`](../c/bank01/SongAlloc.c) | 1 function: song allocation bitmaps | a bit test on the chain bitmap (`1 << (chain & 7)`, whose shift count dies to `ld b,#1`) |
 | [`c/bank01/UiHelpers.c`](../c/bank01/UiHelpers.c) | 10 functions: small UI helpers | `?:` over string literals, a `char` local (its dead `ld b,c` copy), a glyph table, a file-scope `const` table flushed ahead of the next function's strings |
@@ -202,6 +204,12 @@ The asm is where you'd expect it: `TimerHandler` and the sound tick, the
 pitch/vibrato/envelope steppers, the tile loader, `ReadJoypad`, the OAM DMA
 stub, GBDK library routines, and bank `$02`'s note/period/sequencer core
 (`NoteToPeriod`, `WriteChannelFreq`, …). Those are kept as asm, pret-style.
+
+Not all of GBDK's library in the ROM is asm: libc's C routines were compiled
+by GBDK's build, with the stock rules (`strlen` is `StringLength`, matched
+from gbdk-2.95-2's own `libc/strlen.c`). The heuristic also counts as C some
+asm that reads stack arguments (`DrawByte`, `DrawString`, `GetTilemapAddr`,
+`DrawTileRun`, the division helpers); those poll `rSTAT` or use `jr` freely.
 
 ## Writing C that matches (what we learned)
 
@@ -437,6 +445,12 @@ address, and calls between them are *isolated* (the neighbours' definitions
 renamed away, so the calls link to their ROM addresses). On a mismatch it
 prints the first differing bytes and the listing lines around them; `--diff`
 prints both disassemblies aligned, `--dump` writes the linked bytes.
+
+A source file that says `@stock-rules` (in a comment) is GBDK library code:
+GBDK's own build compiled it with SDCC's stock peephole rules, so the harness
+skips `lsdj.peep` and the tracking passes for that file
+([`c/bank00/GbdkLib.c`](../c/bank00/GbdkLib.c), whose `strlen` keeps an
+`or a,a` LSDj's rules would drop).
 
 `tools/match/verify_all.py` (`make match`) runs every function defined under
 `c/` the same way, caching compiler output by source/rules/header hash and

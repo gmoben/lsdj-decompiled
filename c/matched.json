@@ -959,6 +959,12 @@
   "len": 70,
   "src": "c/bank1d/SynthScreen.c"
  },
+ "HandleTooBusy": {
+  "bank": "00",
+  "addr": "20DB",
+  "len": 43,
+  "src": "c/bank00/Sync.c"
+ },
  "HasEnterableColLeft": {
   "bank": "1F",
   "addr": "6677",
@@ -1553,6 +1559,12 @@
   "len": 67,
   "src": "c/bank1b/ProjectScreen.c"
  },
+ "ReadChainByte": {
+  "bank": "00",
+  "addr": "2141",
+  "len": 59,
+  "src": "c/bank00/Sync.c"
+ },
  "ReadClipboardCell": {
   "bank": "00",
   "addr": "07DA",
@@ -1600,6 +1612,12 @@
   "addr": "0AF6",
   "len": 94,
   "src": "c/bank00/ReadSeqByte.c"
+ },
+ "ReadSeqByteRaw": {
+  "bank": "00",
+  "addr": "2106",
+  "len": 59,
+  "src": "c/bank00/Sync.c"
  },
  "ReadSynthParam": {
   "bank": "1D",
@@ -1912,6 +1930,24 @@
   "addr": "0D8B",
   "len": 49,
   "src": "c/bank00/Helpers.c"
+ },
+ "StringLength": {
+  "bank": "00",
+  "addr": "36DD",
+  "len": 55,
+  "src": "c/bank00/GbdkLib.c"
+ },
+ "SyncSetRecvMode": {
+  "bank": "00",
+  "addr": "1EE3",
+  "len": 35,
+  "src": "c/bank00/Sync.c"
+ },
+ "SyncSetSendMode": {
+  "bank": "00",
+  "addr": "1EC8",
+  "len": 27,
+  "src": "c/bank00/Sync.c"
  },
  "SyncTransferByte": {
   "bank": "1C",
