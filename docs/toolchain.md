@@ -12,7 +12,7 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 | What compiled LSDj? | **GBDK 2.95-3** (19 Aug 2000) → **SDCC 2.2.1** (`gbz80` target), default `asxxxx` assembler/linker, small memory model — **plus an accumulator-tracking optimisation stock SDCC lacks** (the "modified GBDK"), modelled here as an accumulator-tracking pass plus 65 peephole rules (below) |
 | Can we run it today? | **Yes, natively.** SDCC 2.2.1 + `sdcpp`/`as-gbz80`/`link-gbz80` build from the GBDK 2.95-2 sources (`tools/toolchain/build_sdcc221.sh`, ~15 s) and emit **byte-identical** asm, objects, listings and images to GBDK 2.95-3's Win32 binaries — which still run under Wine (`fetch_gbdk295.sh`), but crash on large units (below) |
 | Is it the right toolchain? | **Yes, for the code generator**: LSDj's instruction selection, register allocation and frame idioms are SDCC 2.2.1's line for line, and GBDK 2.95 library code in the ROM is byte-identical to its sources (`display_off` ← `crt0.s`, `strcpy` ← `asm_string.s`, `set_bkg_palette` ← `cgb.s`, `set_bkg_tiles` ← `set_bk_t.s` + `set_xy_t.s`, the SDCC `mul` runtime). Stock output does **not** match on its own: LSDj's build also ran peephole rules that stock 2.95-3 lacks |
-| Matched real LSDj functions? | **Yes — 69**, in five banks (the list: [`c/matched.json`](../c/matched.json)): a message renderer, a 15-case `switch`, a sparse `switch`, the SRAM accessors, and the instrument screen's field accessors and draw helpers. `make match` re-verifies them all (cached: only changed sources reach the compiler), and **their bytes in the ROM build come from the compiled C** (below) |
+| Matched real LSDj functions? | **Yes — 72**, in five banks (the list: [`c/matched.json`](../c/matched.json)): a message renderer, a 15-case `switch`, a sparse `switch`, the SRAM accessors, and the instrument screen's field accessors and draw helpers. `make match` re-verifies them all (cached: only changed sources reach the compiler), and **their bytes in the ROM build come from the compiled C** (below) |
 | Is all of LSDj C? | **No.** ~130 functions (7% of the instructions) are hand-written assembly — the interrupt handlers, sound tick, envelope/pitch and tile-loader code in bank 0, and the sequencer core in bank `$02` (`tools/match/code_kind.py`). Those stay asm; the ~830 others (every editor) are Track 2 targets |
 | Go/no-go on Track 2? | **Go, with the rule set still growing.** Every function tried has matched (each new one has cost a few rules so far), the C feeds the ROM build with `make compare` as the gate, and the hand-written asm (7%) is mapped and excluded |
 
@@ -25,7 +25,7 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 | [`c/bank00/ScreenDrawDispatch.c`](../c/bank00/ScreenDrawDispatch.c) | `ScreenDrawDispatch` (252 B) | 15-case `switch` → `jp hl` table, bank switching, cross-bank calls |
 | [`c/bank01/DrawMessageBar.c`](../c/bank01/DrawMessageBar.c) | `DrawMessageBar` (198 B) | globals, `sfr` HRAM stores, two loops, calls |
 | [`c/bank01/ShowMessages.c`](../c/bank01/ShowMessages.c) | `ShowOutOfMemory`, `ShowTapAddChain` | one-line wrappers, 16-bit argument |
-| [`c/bank03/InstrScreen.c`](../c/bank03/InstrScreen.c) | 59 functions of the instrument screen | field get/set/step helpers, `FarCall` in both address forms, SRAM literal addresses, a string literal placed after its function, `hl` kept across a `!=` compare |
+| [`c/bank03/InstrScreen.c`](../c/bank03/InstrScreen.c) | 62 functions of the instrument screen | field get/set/step helpers, `FarCall` in both address forms, SRAM literal addresses, a string literal placed after its function, `hl` kept across a `!=` compare |
 | [`c/bank06/DrawTileHexCell.c`](../c/bank06/DrawTileHexCell.c) | `DrawTileHexCell` (130 B) | consecutive updates of a stack local, sign test, `-t`, pointer table |
 | [`c/bank1b/DrawSyncField.c`](../c/bank1b/DrawSyncField.c) | `DrawSyncField` (262 B) | sparse `switch` (`cp` chain), if/else, a pointer local chosen by a condition, 4-arg calls |
 
@@ -314,25 +314,31 @@ matching C one at a time while `make compare` stays green.
 
 ## What's still unknown
 
-1. **The complete compiler model.** An accumulator-tracking pass plus 65
+1. **Build options.** Every function so far matches with and without
+   `--noinvariant` / `--noinduction`; `SetInstrLen2` (`$03:$441A`, the synth
+   clone) recomputes a loop-invariant address every iteration, which stock
+   SDCC hoists — either LSDj's build disabled loop-invariant motion or the
+   source spelled it differently. It is parked until one or the other shows.
+2. **The complete compiler model.** An accumulator-tracking pass plus 65
    rules so far; most new functions need nothing new, but each new idiom can
    surface a rule. One function so far (`SetInstrFlags54`, `$03:$4B5E`)
    points at a register-allocation difference no rule can express: stock
    SDCC keeps the result of an `&` in `a` for the `|` that follows and then
-   clobbers it (wrong code), LSDj's compiler keeps it in `c` — maybe the
-   "modified GBDK" fixed that bug; one site is not enough to say. The reload-after-ALU and
+   clobbers it (wrong code), LSDj's compiler keeps it in `c`. Not a fixed
+   bug: `InstrTableNew` (`$03:$436D`) ships exactly that miscompilation
+   (`and a,$d0; ld a,c; or a,a`), so it is a source-shape question. The reload-after-ALU and
    dead-store families are probably one codegen mechanism (tracking what `a`
    holds) that we model textually; the overlapping-pointer exception rests on
    one site.
-2. **Flags.** The default `lcc` compile is `sdcc -mgbz80 --c1mode` after a
+3. **Flags.** The default `lcc` compile is `sdcc -mgbz80 --c1mode` after a
    separate `sdcpp` pass (`-DGB=1 -DGAMEBOY=1 -DINT_16_BITS …`); nothing so far
    needed more.
-3. **Whole translation units.** Per-function matching links one function at
+4. **Whole translation units.** Per-function matching links one function at
    its address. Reproducing LSDj's original object/link layout (function
    order within a bank, string literals and `const` tables after their
    functions, as `DrawTileHexCell`'s table shows) is only needed to build
    banks from C wholesale.
-4. **Building whole banks from C.** Solved per function (below); building a
+5. **Building whole banks from C.** Solved per function (below); building a
    bank from C wholesale would additionally need LSDj's link order.
 
 ## Next steps

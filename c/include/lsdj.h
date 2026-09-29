@@ -118,6 +118,7 @@ extern UBYTE wSyncMode2;                    /* $CB67 */
 void DebugTrap(void);                                   /* `ld b,b` + rst $38 assert */
 void FarCall(UBYTE bank, void (*fn)(void));
 void FarCallArg(UBYTE bank, UWORD fn, UBYTE arg);
+UBYTE FarCallByte(UBYTE bank, void (*fn)(void));    /* returns fn's byte result */
 #define FAR_FN(f) ((void (*)(void))(UWORD)(f))
 
 /* song data access */
@@ -140,6 +141,7 @@ void DrawHexByte(UBYTE v);
 void DrawTempoField(void);
 void GetTilemapAddr(UBYTE x, UBYTE y);                  /* sets wVramCursor (asm) */
 void ClearMarkerSprites(void);
+char *strcpy(char *dest, char *src);
 
 /* --- the screens' draw entry points (ScreenDrawDispatch, bank 0) ----------- */
 
@@ -159,6 +161,7 @@ void DrawHelpScreen(void);          /* $1B:$4A62 */
 /* --- bank 1 ---------------------------------------------------------------- */
 
 void ShowMessage(char *text);
+void DrawMessageBar(void);
 void DrawTopBar(void);
 void UiDrawTextHw(void);
 void DrawOnOffName(UBYTE v);
@@ -171,7 +174,8 @@ void CloneInstrTable(void);
 void WriteCurrentInstrByte(UBYTE field, UBYTE val);
 void DrawInstrCursor(void);
 void EraseInstrCursor(void);
-UBYTE ShowOutOfSynths(void);
+UBYTE FindFreeSynth(void);
+UBYTE SynthWavesModified(UBYTE synth);
 void InstrTableModePrev(void);
 UBYTE GetInstrByte2(void);
 UBYTE GetInstrType3(void);
@@ -204,6 +208,7 @@ UBYTE ProjSyncModeIs567(void);
 
 UBYTE GetInstrTable1F2(void);
 UBYTE GetInstrType1F(void);
+UBYTE FindFreeTable(void);
 void GetInstrEnv1F2(void);
 
 #endif /* LSDJ_H */

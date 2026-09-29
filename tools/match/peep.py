@@ -202,7 +202,8 @@ def referenced_labels(lines: list[str]) -> set[str]:
 
 
 def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
-    """Drop `ld a,X` / `xor a,a` whose value `a` already holds (see above)."""
+    """Drop `ld a,X` / `xor a,a` whose value `a` already holds, and `ld r,a`
+    when r already equals `a` (see above)."""
     out: list[str] = []
     eq: set[str] = set()          # sources `a` currently equals: "c", "#0x05"
     dropped = 0
@@ -236,6 +237,9 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
                 continue
             eq = {"#0x00"}
         elif mn == "ld" and len(ops) == 2 and ops[1] == "a" and ops[0] in _REGS:
+            if ops[0] in eq:
+                dropped += 1          # `ld c,a` when `a` already equals c: a no-op
+                continue
             eq.add(ops[0])
         elif mn == "ld" and len(ops) == 2 and ops[0] == "a":
             eq = set()                # a loaded from memory

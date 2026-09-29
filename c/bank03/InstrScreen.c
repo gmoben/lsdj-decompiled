@@ -86,7 +86,7 @@ void InstrTransposeOff(void)
     SetInstrPitchByte(ReadCurInstrByte(5) & 0xDF);
 }
 
-UBYTE InstrReadPhraseNote(UBYTE synth)
+UBYTE SynthWavesModified(UBYTE synth)
 {
     UBYTE *p;
 
@@ -99,11 +99,39 @@ UBYTE InstrReadPhraseNote(UBYTE synth)
     return 0;
 }
 
+UBYTE FindFreeSynth(void)
+{
+    UBYTE i;
+
+    for (i = 0; i < 16; i++) {
+        if (!SynthWavesModified(i))
+            return i;
+    }
+    strcpy(wStrBuffer, "OUT OF SYNTHS! CLEAN INSTR DATA IN PROJECT SCREEN");
+    FarCall(1, DrawMessageBar);
+    return 0xFF;
+}
+
+void InstrTableNew(void)
+{
+    UBYTE t, v;
+
+    t = FarCallByte(0x1F, FAR_FN(FindFreeTable));
+    if (t == 0xFF)
+        return;
+    t |= 0x20;
+    v = ReadCurInstrByte(6);
+    WriteCurrentInstrByte(6, t | (v & 0xD0));
+    hBgDigitPalette = wSelectDigitPal;
+    hBgPalette = wSelectPal;
+    FarCall(0x1F, FAR_FN(GetInstrTable1F2));
+}
+
 void SetInstrLen(void)
 {
     UBYTE v;
 
-    v = ShowOutOfSynths();
+    v = FindFreeSynth();
     if (v == 0xFF)
         return;
     GetTilemapAddr(InstrFieldX[1][9], InstrFieldY[1][9]);   /* WAVE: the synth field */
@@ -473,6 +501,29 @@ void DrawInstrByte12(void)
     } else {
         DrawStringTile20();
         DrawHexByte(v);
+    }
+}
+
+void DrawWaveSynthField(void)
+{
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
+    wVramCursor = (UBYTE *)0x9980;
+    if (InstrByte9IsZero()) {
+        DrawString("WAVE ");
+        wVramCursor = (UBYTE *)0x998B;
+        DrawTextField(0x0B, 0x0C, 1, 1);
+        hBgDigitPalette = wShadowDigitPal;
+        hBgPalette = wShadowPal;
+        DrawHexByte(ReadCurInstrByte(3));
+    } else {
+        DrawString("SYNTH");
+        wVramCursor = (UBYTE *)0x998B;
+        DrawTextField(0x0B, 0x0C, 1, 0);
+        DrawStringIndexed(' ');
+        hBgDigitPalette = wShadowDigitPal;
+        hBgPalette = wShadowPal;
+        DrawByte(ReadCurInstrByte(3) >> 4);
     }
 }
 

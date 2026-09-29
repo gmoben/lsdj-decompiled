@@ -65,13 +65,17 @@ GBDK = Path(os.environ["GBDK_295"]) if os.environ.get("GBDK_295") else _default_
 NATIVE = REPO_ROOT / "toolchain" / "sdcc-2.2.1-native" / "bin"
 
 
+# Extra SDCC options (experiments; part of the cache key via toolchain_id).
+SDCC_FLAGS = os.environ.get("LSDJ_SDCC_FLAGS", "").split()
+
+
 def use_native() -> bool:
     return (NATIVE / "sdcc").is_file() and not os.environ.get("LSDJ_USE_WINE")
 
 
 def toolchain_id() -> str:
     """Identifies the compiler for caches (both builds emit the same code)."""
-    return "native-sdcc-2.2.1" if use_native() else f"wine:{GBDK}"
+    return ("native-sdcc-2.2.1" if use_native() else f"wine:{GBDK}") + " ".join([""] + SDCC_FLAGS)
 WINEPREFIX = Path(os.environ.get("WINEPREFIX", REPO_ROOT / "toolchain" / ".wine"))
 DEFAULT_PEEP = REPO_ROOT / "tools" / "match" / "lsdj.peep"
 INCLUDE_DIR = REPO_ROOT / "c" / "include"   # shared prototypes/externs (lsdj.h)
@@ -207,7 +211,7 @@ def compile_unit(work: Path, env: dict[str, str], c_path: Path,
     # peep.py. SDCC 2.2.1's own matcher cannot see past a line's trailing
     # comment or bind a variable across a comma, and it crashes (exit 5) on
     # larger units when rules with a variable mnemonic (`%1 a`) are loaded.
-    rc = _run_wine("sdcc.exe", ["-mgbz80", "-S", "unit.c"], work, env)
+    rc = _run_wine("sdcc.exe", ["-mgbz80", "-S", *SDCC_FLAGS, "unit.c"], work, env)
     asm = work / "unit.asm"
     if not asm.is_file():
         hint = ""

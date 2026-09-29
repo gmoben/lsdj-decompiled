@@ -59,10 +59,22 @@
   "len": 130,
   "src": "c/bank06/DrawTileHexCell.c"
  },
+ "DrawWaveSynthField": {
+  "bank": "03",
+  "addr": "4D15",
+  "len": 182,
+  "src": "c/bank03/InstrScreen.c"
+ },
  "EraseInstrCursor": {
   "bank": "03",
   "addr": "4679",
   "len": 200,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "FindFreeSynth": {
+  "bank": "03",
+  "addr": "42FF",
+  "len": 60,
   "src": "c/bank03/InstrScreen.c"
  },
  "GetInstrByte10": {
@@ -179,12 +191,6 @@
   "len": 107,
   "src": "c/bank03/InstrScreen.c"
  },
- "InstrReadPhraseNote": {
-  "bank": "03",
-  "addr": "42AB",
-  "len": 84,
-  "src": "c/bank03/InstrScreen.c"
- },
  "InstrScreenFrame": {
   "bank": "03",
   "addr": "45A7",
@@ -225,6 +231,12 @@
   "bank": "03",
   "addr": "47A2",
   "len": 140,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "InstrTableNew": {
+  "bank": "03",
+  "addr": "436D",
+  "len": 83,
   "src": "c/bank03/InstrScreen.c"
  },
  "InstrTableNext": {
@@ -394,6 +406,12 @@
   "addr": "75F8",
   "len": 10,
   "src": "c/bank01/ShowMessages.c"
+ },
+ "SynthWavesModified": {
+  "bank": "03",
+  "addr": "42AB",
+  "len": 84,
+  "src": "c/bank03/InstrScreen.c"
  },
  "WriteCurrentInstrByte": {
   "bank": "03",

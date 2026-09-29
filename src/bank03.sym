@@ -25,12 +25,11 @@
 40F8 GetInstrByte9              ; read instrument byte 9 (kit row gate: 0 -> dashes)
 414F InstrCheckFieldOption      ; return 1 if option-table[c] (ROM $40F4) minus 1 == current field $c427, else 0
 427B InstrTransposeOn           ; set instrument byte 5 bit 5 (transpose) via SetInstrPitchByte
-42AB InstrReadPhraseNote   ; read phrase_notes[arg] from SRAM ($A000-based) -- instrument preview
-42FF ShowOutOfSynths            ; "OUT OF SYNTHS!..." -> wStrBuffer + DrawMessageBar (16-synth limit hit)
-436D SetInstrTable3             ; write instrument byte 6 = table (bits0-4) + enable (bit5)
+42AB SynthWavesModified         ; 1 if synth n's 256-byte wave page (SRAM bank 3) differs from DefaultWaveFrameB3 repeated
+42FF FindFreeSynth              ; first synth (0-15) whose waves are still default; else 'OUT OF SYNTHS!' message and $FF
+436D InstrTableNew              ; give the instrument the first free table (FarCallByte bank $1F FindFreeTable), switched on; SDCC bug clears byte 6's other bits
 43C0 SetInstrLen                ; write instrument byte 3 = length (bit6=limited, bits0-5; wave v16+: synth<<4)
-441A SetInstrLen2               ; write instrument byte 3 = length (bit6=limited, bits0-5; wave v16+: synth<<4)
-4540 SetInstrLen3               ; write instrument byte 3 = length (bit6=limited, bits0-5; wave v16+: synth<<4)
+441A SetInstrLen2               ; clone the instrument's synth into a free one (params + 256-byte wave page), 'CLONED SYNTH'
 45A7 InstrScreenFrame           ; shared instrument-screen frame draw (map row, tempo field, marker sprites)
 45D3 InstrSelectPrevUsed        ; step wInstrument back to the previous allocated instrument (SramInstrAlloc), then redraw
 461B InstrSelectPrevPage        ; wInstrument -= 16 (clamped to 0), then InstrSelectPrevUsed
@@ -58,7 +57,7 @@
 4BF9 InstrPitchModeUp           ; pitch mode up: byte 5 bits 4/6/7 (bit 7 = top), redraw via DrawSpeedModeName
 4C64 InstrPitchModeDown         ; pitch mode down: byte 5 bits 4/6/7, redraw via DrawSpeedModeName
 4CD9 DrawInstrByte12            ; read instr byte 12 + draw label/hex pair
-4D15 GetInstrLen                ; read instrument byte 3 = length (bit6=limited, bits0-5; wave v16+: synth<<4)
+4D15 DrawWaveSynthField         ; draw the WAVE/SYNTH field: 'WAVE ' + byte 3 (hex), or 'SYNTH' + byte 3 >> 4
 4DD7 InstrEnvelopeChanged       ; FarCall bank1b UpdateInstrEnvelope after a field edit
 4FDC DrawKitNameField           ; draw kit number (hex) + 6-char kit name (ReadKitName -> wSampleNoteString)
 5002 WriteKitNumber             ; write kit# into the field's low 6 bits (top flag bits preserved via $c0 mask)
@@ -90,14 +89,14 @@
 
 ; --- structural local names (loop heads / common exits) ---
 4253 .done                ; common exit of DrawInstrCursor
-42BE .loop                ; loop head in InstrReadPhraseNote
-42FB .done                ; common exit of InstrReadPhraseNote
-4302 .loop                ; loop head in ShowOutOfSynths
-4339 .done                ; common exit of ShowOutOfSynths
-43BE .done                ; common exit of SetInstrTable3
+42BE .loop                ; loop head in SynthWavesModified
+42FB .done                ; common exit of SynthWavesModified
+4302 .loop                ; loop head in FindFreeSynth
+4339 .done                ; common exit of FindFreeSynth
+43BE .done                ; common exit of InstrTableNew
 4416 .done                ; common exit of SetInstrLen
 4466 .loop                ; loop head in SetInstrLen2
-4596 .done                ; common exit of SetInstrLen3
+4596 .done                ; common exit of SetInstrLen2
 45E4 .loop                ; loop head in InstrSelectPrevUsed
 4619 .done                ; common exit of InstrSelectPrevUsed
 4637 .done                ; common exit of InstrSelectPrevPage
@@ -119,7 +118,7 @@
 4BE7 .done                ; common exit of InstrField5Prev
 4C60 .done                ; common exit of InstrPitchModeUp
 4D13 .done                ; common exit of DrawInstrByte12
-4DC9 .done                ; common exit of GetInstrLen
+4DC9 .done                ; common exit of DrawWaveSynthField
 4EC6 .loop                ; loop head in DrawInstrumentScreen
 4F9D .loop2               ; loop head in DrawInstrumentScreen
 4FC0 .done                ; common exit of DrawInstrumentScreen
@@ -400,7 +399,8 @@
 4442 .cont
 44D6 .cont_2
 4535 .cont_3
-4558 .cont
+4540 .copyWave         ; wave-page copy loop body (was mislabelled SetInstrLen3)
+4558 .dstIncDone
 45F5 .readSongByte
 4608 .farCall
 4666 .farCall
