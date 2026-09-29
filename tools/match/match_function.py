@@ -62,7 +62,7 @@ GBDK = Path(os.environ["GBDK_295"]) if os.environ.get("GBDK_295") else _default_
 # (tools/toolchain/build_sdcc221.sh): same output as GBDK 2.95-3's Win32
 # binaries, without their GC crashes, and no Wine. Preferred when present;
 # LSDJ_USE_WINE=1 forces the Win32 tools.
-NATIVE = REPO_ROOT / "toolchain" / "sdcc-2.2.1-native" / "bin"
+NATIVE = Path(os.environ.get("LSDJ_NATIVE_BIN", REPO_ROOT / "toolchain" / "sdcc-2.2.1-native" / "bin"))
 
 
 # Extra SDCC options (experiments; part of the cache key via toolchain_id).
@@ -75,7 +75,7 @@ def use_native() -> bool:
 
 def toolchain_id() -> str:
     """Identifies the compiler for caches (both builds emit the same code)."""
-    return ("native-sdcc-2.2.1" if use_native() else f"wine:{GBDK}") + " ".join([""] + SDCC_FLAGS)
+    return (f"native:{NATIVE}" if use_native() else f"wine:{GBDK}") + " ".join([""] + SDCC_FLAGS)
 WINEPREFIX = Path(os.environ.get("WINEPREFIX", REPO_ROOT / "toolchain" / ".wine"))
 DEFAULT_PEEP = REPO_ROOT / "tools" / "match" / "lsdj.peep"
 INCLUDE_DIR = REPO_ROOT / "c" / "include"   # shared prototypes/externs (lsdj.h)
@@ -229,6 +229,7 @@ def compile_unit(work: Path, env: dict[str, str], c_path: Path,
         lines, _ = peep_mod.apply(rules, lines)
         if not os.environ.get("LSDJ_NO_TRACK"):
             lines, _ = peep_mod.track_a(lines, targets)
+            lines, _ = peep_mod.dead_stores(lines, targets)
         asm.write_text("\n".join(lines) + "\n")
     _run_wine("as-gbz80.exe", ["-l", "-o", "unit.o", "unit.asm"], work, env)
     lst = work / "unit.lst"
@@ -411,6 +412,8 @@ def link_plan(asm: str, lst: str, func: str | None, bank: int, addr: int,
     (name, start, end, linker -g arguments, notes). Exits on unresolved externs.
     verify_all.py keys its link cache on this."""
     name, start, end = function_span(lst, func)
+    m = re.search(rf"^___{re.escape(name)}_start:(.*?)^___{re.escape(name)}_end:", asm, re.M | re.S)
+    fbody = m.group(1) if m else asm
     defined = set(re.findall(r"^(_\w+)::?", asm, re.M))
     externs = sorted(set(re.findall(r"^\s*\.globl\s+(_\w+)", asm, re.M)) - defined)
     gargs, missing, other_bank = [], [], []
@@ -425,9 +428,11 @@ def link_plan(asm: str, lst: str, func: str | None, bank: int, addr: int,
             if sbank not in (None, 0, bank):
                 other_bank.append(f"{plain} (${sbank:02X})")
         else:
-            # A header's extern that this unit never uses still gets a .globl;
-            # only a *referenced* unknown name is an error.
-            if re.search(rf"\b{re.escape(sym)}\b", re.sub(r"^\s*\.globl.*$", "", asm, flags=re.M)):
+            # A header's extern that this unit never uses still gets a .globl,
+            # and a neighbour's may be unknown; only a name *this function*
+            # references is an error (the rest stays unresolved, outside the
+            # bytes we extract).
+            if re.search(rf"\b{re.escape(sym)}\b", fbody):
                 missing.append(plain)
             continue
         gargs.append(f"-g{sym}=0x{val:04X}")

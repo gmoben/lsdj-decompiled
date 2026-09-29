@@ -116,6 +116,8 @@
 64E7 FileUpgradeV8Wave   ; V8 wave-instrument field migration (callback)
 6513 FileUpgradeV9Wave   ; V9 wave-instrument field migration (callback)
 6540 FileUpgradeV10Pulse ; V10 pulse-instrument field migration (callback)
+68F1 FileUpgradeRemapTable ; [8] nibble remap for FileUpgradeRemapBits: 00 06 08 09 0a 0b 0c 0c
+68F9 FileUpgradeV12Pulse ; V12 pulse/noise-instrument field migration (callback; remaps bytes 1/9 via FileUpgradeRemapBits)
 6A72 FileUpgradeV14Pulse ; V14 pulse-instrument field migration (callback)
 6AEC FileUpgradeV15Wave  ; V15 wave-instrument field migration (callback)
 6C29 FileUpgradeV17bPulse ; V17b pulse-instrument field migration (callback)

@@ -744,3 +744,13 @@ replace restart {
 	lda	sp,%2(sp)
 	ld	a,e
 }
+replace restart {
+	jr	%1,%2
+	jr	%3
+%2:
+	jp	%4
+%3:
+} by {
+	jp	%1,%4
+%3:
+}

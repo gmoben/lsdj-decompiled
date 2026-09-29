@@ -201,15 +201,30 @@ def referenced_labels(lines: list[str]) -> set[str]:
     return refs
 
 
+_ALU = {"add", "adc", "sub", "sbc", "and", "or", "xor", "inc", "dec", "rla", "rra", "rlca",
+        "rrca", "rl", "rr", "sla", "sra", "srl", "swap", "cpl"}
+
+
 def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
-    """Drop `ld a,X` / `xor a,a` whose value `a` already holds, and `ld r,a`
-    when r already equals `a` (see above)."""
+    """Drop loads of values the register already holds: `ld a,X` / `xor a,a`
+    when `a` equals X, `ld r,a` when r already equals `a`, `ld hl,...` /
+    `lda hl,N(sp)` when `hl` already points there, and `ld a,(hl)` right
+    after an ALU result was stored through `hl` (see above)."""
     out: list[str] = []
-    eq: set[str] = set()          # sources `a` currently equals: "c", "#0x05"
+    eq: set[str] = set()          # what `a` equals: "c", "#0x05", "(hl)"
+    hl = None                     # ("stk", N - level) | ("imm", text) | None
+    level = 0                     # bytes pushed since the block began
+    a_alu = False                 # `a` holds a fresh ALU result
     dropped = 0
     code = [i for i, l in enumerate(lines) if _strip(l).strip()]
     nxt = {code[k]: code[k + 1] for k in range(len(code) - 1)}
     scope = 0
+
+    def forget_hl() -> None:
+        nonlocal hl
+        hl = None
+        eq.discard("(hl)")
+
     for i, raw in enumerate(lines):
         t = _strip(raw).strip()
         if not t:
@@ -218,57 +233,212 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
         if t.endswith(":"):
             if not _LOCAL.fullmatch(t[:-1]):
                 scope += 1
-                eq = set()
+                eq, level, a_alu = set(), 0, False
+                forget_hl()
             elif f"{scope}:{t[:-1]}" in jump_targets:
-                eq = set()
+                eq, a_alu = set(), False
+                forget_hl()
             out.append(raw)
             continue
         mn, ops = _ops(t)
+        # --- hl ---
+        # hl is followed (for the `(hl)` reload below) but its own reloads
+        # are left alone: whether LSDj's compiler kept hl across a compare
+        # depends on the operand kind (a named local vs a spill slot), which
+        # the text doesn't show -- the textual `!=` rule covers globals.
+        if mn == "lda" and len(ops) == 2 and ops[0] == "hl":
+            m = re.fullmatch(r"(-?\d+)\(sp\)", ops[1])
+            if m:
+                forget_hl()
+                hl = ("stk", int(m.group(1)) - level)
+                out.append(raw)
+                continue
+        if mn == "ld" and len(ops) == 2 and ops[0] == "hl" and ops[1].startswith("#"):
+            forget_hl()
+            hl = ("imm", ops[1])
+            out.append(raw)
+            continue
+        # --- a ---
         if mn == "ld" and len(ops) == 2 and ops[0] == "a" and (ops[1] in _REGS or ops[1].startswith("#")):
             if ops[1] in eq:
                 dropped += 1
                 continue
-            eq = {ops[1]}
+            eq, a_alu = {ops[1]}, False
+        elif mn == "ld" and ops == ["a", "(hl)"]:
+            if "(hl)" in eq:
+                dropped += 1
+                continue
+            eq, a_alu = {"(hl)"}, False
         elif mn == "xor" and ops == ["a", "a"]:
             n = nxt.get(i)
             follow = _ops(_strip(lines[n]).strip()) if n is not None else ("", [])
             if follow[0] == "or" and len(follow[1]) == 2 and follow[1][0] == "a" and follow[1][1] in eq:
                 dropped += 1          # `or a,r` alone: `a` already equals r
                 continue
-            eq = {"#0x00"}
+            eq, a_alu = {"#0x00"}, False
         elif mn == "ld" and len(ops) == 2 and ops[1] == "a" and ops[0] in _REGS:
             if ops[0] in eq:
                 dropped += 1          # `ld c,a` when `a` already equals c: a no-op
                 continue
             eq.add(ops[0])
+            if ops[0] in "hl":
+                forget_hl()
+        elif mn == "ld" and ops == ["(hl)", "a"]:
+            eq.discard("(hl)")
+            if a_alu and hl is not None:
+                eq.add("(hl)")        # a fresh ALU result, stored through hl
         elif mn == "ld" and len(ops) == 2 and ops[0] == "a":
-            eq = set()                # a loaded from memory
-        elif mn in _NEUTRAL or (mn in ("jp", "jr") and len(ops) == 2):
-            pass                      # flags/stack/fall-through: `a` unchanged
+            eq, a_alu = set(), False  # a loaded from memory (a pointer read keeps its reloads)
+            if ops[1] in ("(hl+)", "(hl-)"):
+                forget_hl()
         elif mn in ("or", "and") and ops == ["a", "a"]:
             pass
-        elif mn == "inc" and ops == ["sp"] or mn == "lda" and ops and ops[0] == "sp":
-            pass
+        elif mn in _ALU and (not ops or ops[0] == "a"):
+            eq, a_alu = set(), True
+        elif mn in ("jp", "jr") and len(ops) == 2:
+            # `a` survives a conditional jump; `hl` only when a dead label
+            # follows it -- the `!=` idiom stock SDCC emits as a trampoline
+            # and its Rule 5 collapses. A plain `jp z,case` (a switch chain)
+            # resets it: the ROM reloads there (84 sites), not here (7).
+            n = nxt.get(i)
+            follow = _strip(lines[n]).strip() if n is not None else ""
+            dead_label = (follow.endswith(":") and _LOCAL.fullmatch(follow[:-1])
+                          and f"{scope}:{follow[:-1]}" not in jump_targets)
+            if not dead_label:
+                forget_hl()
+        elif mn in _NEUTRAL:
+            if mn == "push":
+                level += 2
+        elif mn == "inc" and ops == ["sp"]:
+            level -= 1
+        elif mn == "dec" and ops == ["sp"]:
+            level += 1
+        elif mn == "lda" and ops and ops[0] == "sp":
+            m = re.fullmatch(r"(-?\d+)\(sp\)", ops[1]) if len(ops) == 2 else None
+            if m:
+                level -= int(m.group(1))
+            else:
+                forget_hl()
         elif mn == "ld" and len(ops) == 2 and ops[0].startswith("(") and ops[0] not in ("(hl+)", "(hl-)"):
-            pass                      # a store to memory
+            if ops[0] != "(hl)":
+                eq.discard("(hl)")    # a store elsewhere may alias
         elif mn == "ldh" and len(ops) == 2 and ops[1] == "a":
             pass
+        elif mn in ("inc", "dec") and ops == ["hl"]:
+            if hl is not None and hl[0] == "stk":
+                hl = ("stk", hl[1] + (1 if mn == "inc" else -1))
+                eq.discard("(hl)")
+            else:
+                forget_hl()
+        elif mn in ("inc", "dec") and ops == ["(hl)"]:
+            eq.discard("(hl)")
         elif mn in ("ld", "lda", "inc", "dec", "pop", "add") and ops and ops[0] != "a":
             dest = ops[0]
             if mn == "ld" and dest in ("(hl+)", "(hl-)"):
-                dest = "hl"
+                if hl is not None and hl[0] == "stk":
+                    hl = ("stk", hl[1] + (1 if dest == "(hl+)" else -1))
+                else:
+                    forget_hl()
+                eq.discard("(hl)")
+                out.append(raw)
+                continue
             regs = set(_PAIRS.get(dest, dest)) if dest in _PAIRS else ({dest} if dest in _REGS else set())
             if dest.startswith("("):
                 regs = set()
             if mn == "ld" and len(ops) == 2 and ops[1] in ("(hl+)", "(hl-)"):
                 regs |= {"h", "l"}
+            if mn == "pop":
+                level -= 2
             eq -= regs
+            if regs & {"h", "l"}:
+                forget_hl()
             if not regs and not dest.startswith("("):
-                eq = set()
+                eq, a_alu = set(), False
+                forget_hl()
         else:
-            eq = set()                # anything else: forget
+            eq, a_alu = set(), False  # anything else (calls, jumps, returns): forget
+            forget_hl()
+            if mn in ("call", "rst", "ret", "reti", "jp", "jr"):
+                pass
         out.append(raw)
     return out, dropped
+
+
+# --- dead register stores ----------------------------------------------------
+#
+# Within a basic block LSDj's compiler never left `ld r,a` (r = b..e) that a
+# later `ld r,a` rewrites before anything reads r: of 1999 `ld r,a` in the
+# ROM's compiled functions, none is (stock SDCC 2.2.1 emits them, e.g. the
+# low byte of a 16-bit `&` stored and then rewritten by the `|` that
+# follows). This generalises the textual dead-store rules. Stores killed any
+# other way (`pop bc`, `ld r,#n`) survive in the ROM, as do those dead only
+# across a call or a branch: blocks end at jumps, calls, returns and
+# referenced labels.
+
+_PAIR_OF = {"bc": "bc", "de": "de", "hl": "hl"}
+
+
+def _reads_reg(mn: str, ops: list[str], r: str) -> bool:
+    if mn == "ld" and len(ops) == 2:
+        dst, src = ops
+        if src == r or (src in ("(bc)", "(de)") and r in src):
+            return True
+        if dst in ("(bc)", "(de)") and r in dst:
+            return True
+        return False
+    if mn in ("lda", "ldh"):
+        return False
+    if mn == "push":
+        return r in _PAIR_OF.get(ops[0], "") if ops else True
+    if mn in ("add", "adc", "sub", "sbc", "and", "or", "xor", "cp"):
+        if ops and ops[0] in ("hl", "sp"):
+            return r in ops[-1]
+        return bool(ops) and ops[-1] == r
+    if mn in ("inc", "dec"):
+        return bool(ops) and (ops[0] == r or (len(ops[0]) == 2 and r in ops[0]))
+    if mn in ("bit", "res", "set", "rl", "rr", "sla", "sra", "srl", "swap", "rlc", "rrc"):
+        return bool(ops) and ops[-1] == r
+    if mn in ("pop", "nop", "rla", "rra", "rlca", "rrca", "cpl", "scf", "ccf"):
+        return False
+    return True                              # unknown: assume it reads
+
+
+def _restores_reg(mn: str, ops: list[str], r: str) -> bool:
+    """`ld r,a` again: the only overwrite that makes an earlier `ld r,a` dead
+    in LSDj's code (a store killed by `pop bc` or `ld r,#n` survives)."""
+    return mn == "ld" and ops == [r, "a"]
+
+
+def dead_stores(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
+    """Drop `ld r,a` (r = b, c, d, e) overwritten unread within its block."""
+    code = [(i, _ops(_strip(l).strip())) for i, l in enumerate(lines) if _strip(l).strip()]
+    scope, scopes = 0, {}
+    for i, (mn, ops) in code:
+        t = _strip(lines[i]).strip()
+        if t.endswith(":") and not _LOCAL.fullmatch(t[:-1]):
+            scope += 1
+        scopes[i] = scope
+    drop: set[int] = set()
+    for k, (i, (mn, ops)) in enumerate(code):
+        if not (mn == "ld" and len(ops) == 2 and ops[1] == "a" and ops[0] in ("b", "c", "d", "e")):
+            continue
+        r = ops[0]
+        for j, (mn2, ops2) in code[k + 1:]:
+            t = _strip(lines[j]).strip()
+            if t.endswith(":"):
+                if not _LOCAL.fullmatch(t[:-1]) or f"{scopes[j]}:{t[:-1]}" in jump_targets:
+                    break
+                continue                      # a dead label: same block
+            if mn2 in ("jp", "jr", "call", "ret", "reti", "rst", "halt", "stop"):
+                break
+            if _reads_reg(mn2, ops2, r):
+                break
+            if _restores_reg(mn2, ops2, r):
+                drop.add(i)
+                break
+            if mn2 in ("ld", "pop") and ops2 and (ops2[0] == r or r in _PAIR_OF.get(ops2[0], "")):
+                break                         # overwritten some other way: kept
+    return [l for i, l in enumerate(lines) if i not in drop], len(drop)
 
 
 def main() -> None:

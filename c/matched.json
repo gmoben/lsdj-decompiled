@@ -71,6 +71,174 @@
   "len": 200,
   "src": "c/bank03/InstrScreen.c"
  },
+ "FileForEachInstrType": {
+  "bank": "1C",
+  "addr": "60F5",
+  "len": 63,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileReadInstrByte": {
+  "bank": "1C",
+  "addr": "60CC",
+  "len": 20,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileUpgradeClampNibble": {
+  "bank": "1C",
+  "addr": "6A57",
+  "len": 27,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileUpgradeReadByte": {
+  "bank": "1C",
+  "addr": "6585",
+  "len": 52,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileUpgradeRemapBits": {
+  "bank": "1C",
+  "addr": "68C5",
+  "len": 44,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileUpgradeV0": {
+  "bank": "1C",
+  "addr": "61D6",
+  "len": 16,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileUpgradeV1": {
+  "bank": "1C",
+  "addr": "621D",
+  "len": 16,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileUpgradeV10": {
+  "bank": "1C",
+  "addr": "656B",
+  "len": 26,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileUpgradeV10Pulse": {
+  "bank": "1C",
+  "addr": "6540",
+  "len": 43,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileUpgradeV12": {
+  "bank": "1C",
+  "addr": "6959",
+  "len": 26,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileUpgradeV12Pulse": {
+  "bank": "1C",
+  "addr": "68F9",
+  "len": 96,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileUpgradeV14": {
+  "bank": "1C",
+  "addr": "6AD2",
+  "len": 26,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileUpgradeV14Pulse": {
+  "bank": "1C",
+  "addr": "6A72",
+  "len": 96,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileUpgradeV15": {
+  "bank": "1C",
+  "addr": "6B08",
+  "len": 16,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileUpgradeV15Wave": {
+  "bank": "1C",
+  "addr": "6AEC",
+  "len": 28,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileUpgradeV17b": {
+  "bank": "1C",
+  "addr": "6C46",
+  "len": 16,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileUpgradeV17bPulse": {
+  "bank": "1C",
+  "addr": "6C29",
+  "len": 29,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileUpgradeV1Kit": {
+  "bank": "1C",
+  "addr": "61E6",
+  "len": 55,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileUpgradeV3": {
+  "bank": "1C",
+  "addr": "630F",
+  "len": 39,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileUpgradeV5": {
+  "bank": "1C",
+  "addr": "63C6",
+  "len": 16,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileUpgradeV5Wave": {
+  "bank": "1C",
+  "addr": "6395",
+  "len": 49,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileUpgradeV6": {
+  "bank": "1C",
+  "addr": "640B",
+  "len": 16,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileUpgradeV6Wave": {
+  "bank": "1C",
+  "addr": "63D6",
+  "len": 53,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileUpgradeV8": {
+  "bank": "1C",
+  "addr": "6503",
+  "len": 16,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileUpgradeV8Wave": {
+  "bank": "1C",
+  "addr": "64E7",
+  "len": 28,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileUpgradeV9": {
+  "bank": "1C",
+  "addr": "6530",
+  "len": 16,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileUpgradeV9Wave": {
+  "bank": "1C",
+  "addr": "6513",
+  "len": 29,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileWriteInstrByte": {
+  "bank": "1C",
+  "addr": "60E0",
+  "len": 21,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
  "FindFreeSynth": {
   "bank": "03",
   "addr": "42FF",
