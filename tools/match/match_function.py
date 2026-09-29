@@ -58,6 +58,20 @@ def _default_gbdk() -> Path:
 
 
 GBDK = Path(os.environ["GBDK_295"]) if os.environ.get("GBDK_295") else _default_gbdk()
+# SDCC 2.2.1 built natively from the GBDK 2.95-2 sources
+# (tools/toolchain/build_sdcc221.sh): same output as GBDK 2.95-3's Win32
+# binaries, without their GC crashes, and no Wine. Preferred when present;
+# LSDJ_USE_WINE=1 forces the Win32 tools.
+NATIVE = REPO_ROOT / "toolchain" / "sdcc-2.2.1-native" / "bin"
+
+
+def use_native() -> bool:
+    return (NATIVE / "sdcc").is_file() and not os.environ.get("LSDJ_USE_WINE")
+
+
+def toolchain_id() -> str:
+    """Identifies the compiler for caches (both builds emit the same code)."""
+    return "native-sdcc-2.2.1" if use_native() else f"wine:{GBDK}"
 WINEPREFIX = Path(os.environ.get("WINEPREFIX", REPO_ROOT / "toolchain" / ".wine"))
 DEFAULT_PEEP = REPO_ROOT / "tools" / "match" / "lsdj.peep"
 INCLUDE_DIR = REPO_ROOT / "c" / "include"   # shared prototypes/externs (lsdj.h)
@@ -98,6 +112,15 @@ def _run(cmd: list[str], cwd: Path | None, env: dict[str, str]) -> tuple[int, st
 
 
 def _run_wine(exe: str, args: list[str], cwd: Path, env: dict[str, str]) -> int:
+    """Run a toolchain program (`sdcc.exe`, `as-gbz80.exe`, ...): natively
+    when the native build is present, else the Win32 binary under Wine."""
+    if use_native():
+        rc, text = _run([str(NATIVE / exe.removesuffix(".exe")), *args], cwd, env)
+        err = "\n".join(l for l in text.splitlines()
+                        if not l.startswith(("Cannot exec", "?ASlink-Warning")) and l.strip())
+        if rc != 0 and err.strip():
+            sys.stderr.write(err + "\n")
+        return rc
     rc, text = _run(["wine", str(GBDK / "bin" / exe), *args], cwd, env)
     err = "\n".join(l for l in text.splitlines() if not _NOISE.search(l))
     if rc != 0 and err.strip():
@@ -125,8 +148,14 @@ def _preflight() -> None:
 
 @contextmanager
 def workdir():
-    """A scratch directory on Wine's writable C: drive (sdcc 2.2.1 writes its
-    temp file at the current drive's root, so it must run from there)."""
+    """A scratch directory -- with Wine, on its writable C: drive (sdcc 2.2.1
+    writes its temp file at the current drive's root, so it must run there)."""
+    if use_native():
+        env = dict(os.environ)
+        env["PATH"] = f"{NATIVE}{os.pathsep}{env.get('PATH', '')}"   # sdcc runs sdcpp
+        with tempfile.TemporaryDirectory(prefix="lsdj-match-") as tmp:
+            yield Path(tmp), env
+        return
     _preflight()
     env = _wine_env()
     drive_c = WINEPREFIX / "drive_c"
@@ -187,7 +216,11 @@ def compile_unit(work: Path, env: dict[str, str], c_path: Path,
     if peep is not None:
         peep_mod = importlib.import_module("peep")
         rules = peep_mod.parse_rules(peep.read_text())
-        lines, _ = peep_mod.apply(rules, asm.read_text(errors="replace").splitlines())
+        lines = asm.read_text(errors="replace").splitlines()
+        targets = peep_mod.referenced_labels(lines)     # jump targets in SDCC's output
+        lines, _ = peep_mod.apply(rules, lines)
+        if not os.environ.get("LSDJ_NO_TRACK"):
+            lines, _ = peep_mod.track_a(lines, targets)
         asm.write_text("\n".join(lines) + "\n")
     _run_wine("as-gbz80.exe", ["-l", "-o", "unit.o", "unit.asm"], work, env)
     lst = work / "unit.lst"

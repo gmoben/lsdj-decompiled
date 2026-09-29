@@ -42,7 +42,7 @@ mf = importlib.import_module("match_function")
 DEFN = re.compile(r"^(?:[A-Za-z_][\w \t*]*?\b)?([A-Za-z_]\w*)\s*\([^;{}]*\)\s*$")
 MANIFEST = mf.REPO_ROOT / "c" / "matched.json"
 CACHE = mf.REPO_ROOT / "build" / "match-cache"
-HARNESS = [Path(__file__).resolve().parent / n for n in ("match_function.py", "peep.py")]
+HARNESS = [mf.REPO_ROOT / "tools" / "match" / n for n in ("match_function.py", "peep.py")]
 
 
 def functions_in(src: str) -> list[str]:
@@ -74,7 +74,7 @@ class Runner:
     def __init__(self, stack: ExitStack, peep: Path):
         self.stack, self.peep = stack, peep
         headers = sorted(mf.INCLUDE_DIR.glob("*.h"))
-        self.salt = _sha(peep.read_bytes(), *(p.read_bytes() for p in HARNESS + headers), str(mf.GBDK))
+        self.salt = _sha(peep.read_bytes(), *(p.read_bytes() for p in HARNESS + headers), mf.toolchain_id())
         self._work = None
         self.wine_runs = 0
 
@@ -192,7 +192,7 @@ def main() -> None:
         if not MANIFEST.is_file() or MANIFEST.read_text() != text:
             MANIFEST.write_text(text)
         print(f"wrote {len(matched)} function(s) to {write_dir}/ and "
-              f"{MANIFEST.relative_to(mf.REPO_ROOT)} ({run.wine_runs} Wine run(s); rest cached)")
+              f"{MANIFEST.relative_to(mf.REPO_ROOT)} ({run.wine_runs} compile/link run(s); rest cached)")
     if failed:
         sys.exit(f"==> {failed} function(s) do not match; run match_function.py --target on one for the diff.")
     print(f"==> all {len(matched)} function(s) byte-identical to the ROM.")

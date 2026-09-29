@@ -17,6 +17,12 @@
   "len": 60,
   "src": "c/bank03/InstrScreen.c"
  },
+ "DrawInstrRow14": {
+  "bank": "03",
+  "addr": "49FD",
+  "len": 71,
+  "src": "c/bank03/InstrScreen.c"
+ },
  "DrawKitNameField": {
   "bank": "03",
   "addr": "4FDC",
@@ -113,6 +119,36 @@
   "len": 30,
   "src": "c/bank03/InstrScreen.c"
  },
+ "InstrFieldDecHi": {
+  "bank": "03",
+  "addr": "5231",
+  "len": 58,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "InstrFieldDecLo": {
+  "bank": "03",
+  "addr": "51BC",
+  "len": 56,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "InstrFieldIncHi": {
+  "bank": "03",
+  "addr": "51F4",
+  "len": 61,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "InstrFieldIncLo": {
+  "bank": "03",
+  "addr": "5181",
+  "len": 59,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "InstrReadPhraseNote": {
+  "bank": "03",
+  "addr": "42AB",
+  "len": 84,
+  "src": "c/bank03/InstrScreen.c"
+ },
  "InstrScreenFrame": {
   "bank": "03",
   "addr": "45A7",
@@ -179,6 +215,24 @@
   "len": 27,
   "src": "c/bank03/InstrScreen.c"
  },
+ "KitSelectEnsure": {
+  "bank": "03",
+  "addr": "50DF",
+  "len": 73,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "KitSelectNext": {
+  "bank": "03",
+  "addr": "503A",
+  "len": 82,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "KitSelectPrev": {
+  "bank": "03",
+  "addr": "508C",
+  "len": 83,
+  "src": "c/bank03/InstrScreen.c"
+ },
  "ReadCurInstrByte": {
   "bank": "00",
   "addr": "0AE2",
@@ -233,10 +287,22 @@
   "len": 39,
   "src": "c/bank03/InstrScreen.c"
  },
+ "SetInstrLen": {
+  "bank": "03",
+  "addr": "43C0",
+  "len": 90,
+  "src": "c/bank03/InstrScreen.c"
+ },
  "SetInstrPitchByte": {
   "bank": "03",
   "addr": "4257",
   "len": 36,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "SetInstrTable5": {
+  "bank": "03",
+  "addr": "48D6",
+  "len": 78,
   "src": "c/bank03/InstrScreen.c"
  },
  "ShowOutOfMemory": {
@@ -262,5 +328,11 @@
   "addr": "0953",
   "len": 102,
   "src": "c/bank00/InstrByte.c"
+ },
+ "WriteKitNumber": {
+  "bank": "03",
+  "addr": "5002",
+  "len": 56,
+  "src": "c/bank03/InstrScreen.c"
  }
 }

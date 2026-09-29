@@ -14,6 +14,9 @@
 
 #include "lsdj.h"
 
+extern UBYTE DefaultWaveFrameB3[];          /* $03:$4015, 16 bytes */
+extern UBYTE InstrFieldXKit[];              /* $03:$4046 */
+extern UBYTE InstrFieldYWave[];             /* $03:$4089 */
 extern UBYTE InstrFieldCounts[];            /* $03:$40F4, [4] fields per instrument type */
 
 void WriteCurrentInstrByte(UBYTE field, UBYTE val)
@@ -68,6 +71,33 @@ void InstrTransposeOff(void)
     SetInstrPitchByte(ReadCurInstrByte(5) & 0xDF);
 }
 
+UBYTE InstrReadPhraseNote(UBYTE synth)
+{
+    UBYTE *p;
+
+    p = SramWaveFrames + ((UWORD)synth << 8);
+    do {
+        if (ReadSongByte(3, p) != DefaultWaveFrameB3[(UBYTE)p & 0x0F])
+            return 1;
+        p++;
+    } while ((UBYTE)p != 0);
+    return 0;
+}
+
+void SetInstrLen(void)
+{
+    UBYTE v;
+
+    v = ShowOutOfSynths();
+    if (v == 0xFF)
+        return;
+    GetTilemapAddr(InstrFieldXKit[0], InstrFieldYWave[0]);
+    hBgDigitPalette = wSelectDigitPal;
+    hBgPalette = wSelectPal;
+    DrawByte(v);
+    WriteCurrentInstrByte(3, v << 4);
+}
+
 void InstrScreenFrame(void)
 {
     hBgDigitPalette = 4;
@@ -105,8 +135,6 @@ void InstrSelectPrevPage(void)
     }
 }
 
-/* Step forward to the next allocated instrument ($40, the speech
-   instrument, ends the search). */
 void InstrSelectNextUsed(void)
 {
     wMsgStrPtr = 0;
@@ -163,6 +191,28 @@ void InstrTableNext(void)
     }
 }
 
+void SetInstrTable5(void)
+{
+    UBYTE v;
+
+    v = ReadCurInstrByte(6);
+    if (v & 0x20) {
+        if ((v & 0x1F) == 0) {
+            if (!wButtonsSame) {
+                SetInstrFlags52();
+                SetInstrFlags52();
+                GetInstrType2();
+                wInstrField--;
+                GetInstrType();
+            }
+        } else {
+            v--;
+            WriteCurrentInstrByte(6, v);
+            FarCall(0x1F, FAR_FN(GetInstrTable1F2));
+        }
+    }
+}
+
 void InstrTableAdd16(void)
 {
     UBYTE v;
@@ -210,6 +260,21 @@ void DrawInstrByte11(void)
 UBYTE GetInstrByte2(void)
 {
     return 0x0F ^ (ReadCurInstrByte(2) & 0x0F);
+}
+
+void DrawInstrRow14(void)
+{
+    UBYTE v, d;
+
+    wVramCursor = (UBYTE *)0x99EC;
+    v = GetInstrByte9();
+    if (v == 2 || v == 3 || v == 4) {
+        d = GetInstrByte10() - GetInstrByte2();
+        if (d & 0xF0)
+            d = 0;
+        DrawByte(d);
+    } else
+        DrawStringIndexed('-');
 }
 
 UBYTE GetInstrByte11(void)
@@ -301,4 +366,113 @@ void DrawKitNameField(UBYTE kit)
     DrawHexByte(kit + 1);
     DrawStringTile20();
     DrawString(wSampleNoteString);
+}
+
+void WriteKitNumber(UBYTE field, UBYTE kit)
+{
+    WORD t;
+
+    t = (BYTE)ReadCurInstrByte(field) & (WORD)0xC0;
+    WriteCurrentInstrByte(field, t | kit);
+}
+
+UBYTE KitSelectNext(void)
+{
+    UBYTE field, kit, orig;
+
+    field = (wInstrField == 2) ? 2 : 9;
+    kit = ReadCurInstrByte(field) & 0x3F;
+    orig = kit;
+    do {
+        if (!kit)
+            return orig;
+        kit--;
+    } while (!KitExists(kit));
+    WriteKitNumber(field, kit);
+    return kit;
+}
+
+UBYTE KitSelectPrev(void)
+{
+    UBYTE field, kit, orig;
+
+    field = (wInstrField == 2) ? 2 : 9;
+    kit = ReadCurInstrByte(field) & 0x3F;
+    orig = kit;
+    do {
+        if (kit == 0x3F)
+            return orig;
+        kit++;
+    } while (!KitExists(kit));
+    WriteKitNumber(field, kit);
+    return kit;
+}
+
+void KitSelectEnsure(void)
+{
+    UBYTE i, field;
+
+    for (i = 0; i < 2; i++) {
+        field = i ? 2 : 9;
+        if (!KitExists(ReadCurInstrByte(field) & 0x3F))
+            WriteKitNumber(field, 0);
+    }
+}
+
+void InstrFieldIncLo(UBYTE field)
+{
+    UBYTE v, t;
+
+    v = ReadCurInstrByte(field);
+    t = v & 0x0F;
+    if (t == 0x0F)
+        return;
+    v++;
+    WriteCurrentInstrByte(field, v);
+    FarCall(0x1F, GetInstrEnv1F2);
+    GetInstrType();
+    InstrEnvelopeChanged();
+}
+
+void InstrFieldDecLo(UBYTE field)
+{
+    UBYTE v;
+
+    v = ReadCurInstrByte(field);
+    if ((v & 0x0F) == 0)
+        return;
+    v--;
+    WriteCurrentInstrByte(field, v);
+    FarCall(0x1F, GetInstrEnv1F2);
+    GetInstrType();
+    InstrEnvelopeChanged();
+}
+
+void InstrFieldIncHi(UBYTE field)
+{
+    UBYTE v, t;
+
+    v = ReadCurInstrByte(field);
+    t = v & 0xF0;
+    if (t == 0xF0)
+        return;
+    v += 0x10;
+    WriteCurrentInstrByte(field, v);
+    FarCall(0x1F, GetInstrEnv1F2);
+    GetInstrType();
+    InstrEnvelopeChanged();
+}
+
+void InstrFieldDecHi(UBYTE field)
+{
+    UBYTE v;
+
+    v = ReadCurInstrByte(field);
+    if ((v & 0xF0) == 0)
+        return;
+    v -= 0x10;
+    WriteCurrentInstrByte(field, v);
+    FarCall(0x1F, GetInstrEnv1F2);
+    GetInstrType();
+    InstrEnvelopeChanged();
 }

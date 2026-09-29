@@ -127,6 +127,7 @@ UBYTE ReadInstrByte(UBYTE instr, UBYTE field);
 UBYTE ReadCurInstrByte(UBYTE field);
 UBYTE ReadSeqByte(UBYTE chan, UBYTE row);
 void ReadKitName(UBYTE kit);                            /* -> wSampleNoteString */
+UBYTE KitExists(UBYTE kit);
 
 /* drawing */
 void set_bkg_tiles(UBYTE x, UBYTE y, UBYTE w, UBYTE h, unsigned char *tiles);
@@ -136,6 +137,7 @@ void DrawStringTile20(void);
 void DrawByte(UBYTE v);
 void DrawHexByte(UBYTE v);
 void DrawTempoField(void);
+void GetTilemapAddr(UBYTE x, UBYTE y);                  /* sets wVramCursor (asm) */
 void ClearMarkerSprites(void);
 
 /* --- the screens' draw entry points (ScreenDrawDispatch, bank 0) ----------- */
@@ -159,10 +161,19 @@ void ShowMessage(char *text);
 void DrawTopBar(void);
 void UiDrawTextHw(void);
 void DrawOnOffName(UBYTE v);
+void DrawSpeedModeName(UBYTE v);
+void DrawSpeedGlyph(UBYTE v);
 
 /* --- bank 3: instrument screen --------------------------------------------- */
 
 void WriteCurrentInstrByte(UBYTE field, UBYTE val);
+UBYTE GetInstrType(void);
+UBYTE GetInstrType2(void);
+UBYTE ShowOutOfSynths(void);
+void SetInstrFlags52(void);
+UBYTE GetInstrByte2(void);
+void WriteKitNumber(UBYTE field, UBYTE kit);
+void InstrEnvelopeChanged(void);
 UBYTE GetInstrByte9(void);
 UBYTE InstrByte9IsZero(void);
 void SetInstrPitchByte(UBYTE v);
@@ -185,5 +196,6 @@ UBYTE ProjSyncModeIs567(void);
 /* --- bank $1F -------------------------------------------------------------- */
 
 UBYTE GetInstrTable1F2(void);
+void GetInstrEnv1F2(void);
 
 #endif /* LSDJ_H */

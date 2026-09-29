@@ -130,14 +130,14 @@ The project runs on **two tracks** (details in [`AGENTS.md`](AGENTS.md)):
 
 Track 2 is gated behind a **toolchain-recovery spike**: pin a period-correct
 GBDK 2.95 + SDCC and reproduce real LSDj functions byte-for-byte before
-committing to C. That spike is done and the grind has begun: 44 functions
-match, the recovered compiler model is 42 peephole rules with ROM-wide
-evidence, and matched C feeds the ROM build (`INCBIN` of the compiled bytes,
+committing to C. That spike is done and the grind has begun: 56 functions
+match, the recovered compiler model is an accumulator-tracking pass plus 59
+peephole rules with ROM-wide evidence, and matched C feeds the ROM build (`INCBIN` of the compiled bytes,
 gated by `make compare`).
 See [`docs/toolchain.md`](docs/toolchain.md), and try it:
 
 ```bash
-tools/toolchain/fetch_gbdk295.sh     # period toolchain (needs curl, unzip, wine)
+tools/toolchain/build_sdcc221.sh     # period compiler, built natively (gcc -m32, bison, flex)
 make match                           # every c/bankNN/*.c vs the ROM (cached)
 tools/match/match_function.py --c c/bank01/DrawMessageBar.c --target DrawMessageBar
 # ==> MATCH: byte-identical to ROM $01:$74F7-$75BC
@@ -199,8 +199,9 @@ lsdj-decompiled/
 └── .githooks/pre-commit  # ROM-leak guard + `make compare`
 ```
 
-> `toolchain/` (the downloaded GBDK 2.95 / SDCC 2.2.1) is git-ignored and fetched
-> on demand by `tools/toolchain/fetch_gbdk295.sh`. It requires `wine`.
+> `toolchain/` (SDCC 2.2.1 built from the GBDK 2.95-2 sources by
+> `tools/toolchain/build_sdcc221.sh`; optionally GBDK 2.95-3's Win32 binaries
+> via `fetch_gbdk295.sh`, run under Wine) is git-ignored.
 
 ## Development
 

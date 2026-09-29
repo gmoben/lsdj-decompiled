@@ -537,3 +537,148 @@ replace restart {
 } by {
 	xor	a,a
 }
+replace restart {
+	lda	hl,%1(sp)
+	ld	(hl),b
+	ld	a,(hl)
+} by {
+	lda	hl,%1(sp)
+	ld	(hl),b
+	ld	a,b
+}
+replace restart {
+	lda	hl,%1(sp)
+	ld	(hl),c
+	ld	a,(hl)
+} by {
+	lda	hl,%1(sp)
+	ld	(hl),c
+	ld	a,c
+}
+replace restart {
+	lda	hl,%1(sp)
+	ld	(hl),d
+	ld	a,(hl)
+} by {
+	lda	hl,%1(sp)
+	ld	(hl),d
+	ld	a,d
+}
+replace restart {
+	lda	hl,%1(sp)
+	ld	(hl),e
+	ld	a,(hl)
+} by {
+	lda	hl,%1(sp)
+	ld	(hl),e
+	ld	a,e
+}
+replace restart {
+	ld	a,%1
+	cp	a,#%2
+	jp	%3,%4
+	xor	a,a
+	or	a,%1
+} by {
+	ld	a,%1
+	cp	a,#%2
+	jp	%3,%4
+	or	a,%1
+}
+replace restart {
+	rla
+	sbc	a,a
+	ld	%1,a
+	ld	a,%2
+	and	a,#%3
+} by {
+	rla
+	sbc	a,a
+	ld	a,%2
+	and	a,#%3
+}
+replace restart {
+	ld	a,%1
+	cp	#%2
+	jp	%3,%4
+	xor	a,a
+	or	a,%1
+} by {
+	ld	a,%1
+	cp	#%2
+	jp	%3,%4
+	or	a,%1
+}
+replace restart {
+	and	a,#%1
+	ld	%2,a
+	or	a,a
+	jp	nz,%3
+} by {
+	and	a,#%1
+	jp	nz,%3
+}
+replace restart {
+	ld	b,#%1
+	ld	b,%2
+} by {
+	ld	b,%2
+}
+replace restart {
+	ld	c,#%1
+	ld	c,%2
+} by {
+	ld	c,%2
+}
+replace restart {
+	ld	d,#%1
+	ld	d,%2
+} by {
+	ld	d,%2
+}
+replace restart {
+	ld	e,#%1
+	ld	e,%2
+} by {
+	ld	e,%2
+}
+replace restart {
+	or	a,%1
+	ld	(hl),a
+	ld	a,(hl)
+} by {
+	or	a,%1
+	ld	(hl),a
+}
+replace restart {
+	and	a,%1
+	ld	(hl),a
+	ld	a,(hl)
+} by {
+	and	a,%1
+	ld	(hl),a
+}
+replace restart {
+	xor	a,%1
+	ld	(hl),a
+	ld	a,(hl)
+} by {
+	xor	a,%1
+	ld	(hl),a
+}
+replace restart {
+	add	a,%1
+	ld	(hl),a
+	ld	a,(hl)
+} by {
+	add	a,%1
+	ld	(hl),a
+}
+replace restart {
+	sub	a,%1
+	ld	(hl),a
+	ld	a,(hl)
+} by {
+	sub	a,%1
+	ld	(hl),a
+}

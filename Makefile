@@ -51,16 +51,19 @@ carve: | $(BASEROM)
 	tools/carve_clean.py
 
 # --- Matching C (Track 2) --------------------------------------------------
-# Functions under c/bankNN/*.c compile byte-for-byte with the period GBDK
-# 2.95-3 / SDCC 2.2.1 (under Wine; tools/toolchain/fetch_gbdk295.sh) plus
-# tools/match/lsdj.peep. `make match` verifies them all, writes their bytes to
+# Functions under c/bankNN/*.c compile byte-for-byte with the period SDCC
+# 2.2.1 -- built natively from the GBDK 2.95-2 sources
+# (tools/toolchain/build_sdcc221.sh), identical in output to GBDK 2.95-3's
+# Win32 binaries -- plus tools/match/lsdj.peep. `make match` verifies them all, writes their bytes to
 # build/c/ and the manifest c/matched.json; the carve then renders those ROM
 # ranges as INCBINs of the compiled bytes -- so the C is the source of those
-# bytes and a C file that stops matching fails the build. Without wine the
-# same ranges INCBIN the ROM, so `compare` works everywhere.
-C_SRCS := $(wildcard c/bank*/*.c)
+# bytes and a C file that stops matching fails the build. Without a compiler
+# the same ranges INCBIN the ROM, so `compare` works everywhere.
+C_SRCS := $(wildcard c/bank*/*.c) $(wildcard c/include/*.h)
 C_TOOLS := tools/match/verify_all.py tools/match/match_function.py tools/match/peep.py tools/match/lsdj.peep
-HAVE_C_TOOLCHAIN := $(shell command -v wine >/dev/null 2>&1 && { test -f toolchain/gbdk-2.95-3/bin/sdcc.exe || test -f toolchain/gbdk-2.95/bin/sdcc.exe; } && echo 1)
+# (Only the native build: the Win32 sdcc.exe crashes under Wine on units
+# the size of c/bank03/InstrScreen.c.)
+HAVE_C_TOOLCHAIN := $(shell test -x toolchain/sdcc-2.2.1-native/bin/sdcc && echo 1)
 ifeq ($(HAVE_C_TOOLCHAIN),1)
 C_STAMP := $(BUILD)/c/.stamp
 # Not an intermediate: `.SECONDARY:` above makes every target one, and make
