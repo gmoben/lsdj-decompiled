@@ -4,7 +4,7 @@
 
 ; --- data tables + strings (db; instrument-editor + word/phrase helpers) ---
 4236 TxtDashTemplate    ; "/--/--" (value display template)
-491A DefaultWaveFrameB1F        ; default wave frame (16 bytes; MarkPhraseDataUsed compares phrase rows against it)
+491A DefaultWaveFrameB1F        ; default wave frame (16 bytes; WaveFrameModified compares phrase rows against it)
 4A02 DefaultInstrument       ; 16-byte default instrument template
 4ACE TxtOutOfMemory1F     ; "OUT OF MEMORY. CLEAN SONG DATA IN PROJECT SCREEN"
 4C11 TxtOutOfTables     ; "OUT OF TABLES!"
@@ -71,7 +71,7 @@
 5DC9 InstrHCountUsedPhrases     ; count used phrases 0..255 (IsPhraseUsedFar)
 5DF3 InstrHCountUsedChains      ; count used chains 0..127 (IsChainUsedFar)
 5E1D RebuildPhraseAllocMap      ; clear the phrase-alloc bitmap ($3E82, 32B) + rescan via used chains
-5F20 MarkPhraseDataUsed         ; per-phrase used-scan helper (reads rows, dispatch table $491a)
+5F20 WaveFrameModified          ; 1 if synth w's wave frame (SRAM bank 3 $A000 + w*16) differs from DefaultWaveFrameB1F
 5F85 InstrHScanChainPhrases     ; scan the 16 phrase slots of a chain (arg*16) for usage
 5FC2 InstrHScanAllChainPhr      ; for 16 chains, scan their phrases (InstrHScanChainPhrases)
 5FEC InstrHScanPhraseCmds       ; scan phrase command bytes from SRAM ($A0xx) for references
@@ -227,9 +227,9 @@
 5E49 .loop                ; loop head in RebuildPhraseAllocMap
 5E6A .loop2               ; loop head in RebuildPhraseAllocMap
 5F1C .done                ; common exit of RebuildPhraseAllocMap
-5F2C .loop                ; loop head in MarkPhraseDataUsed
-5F42 .loop2               ; loop head in MarkPhraseDataUsed
-5F81 .done                ; common exit of MarkPhraseDataUsed
+5F2C .loop                ; loop head in WaveFrameModified
+5F42 .loop2               ; loop head in WaveFrameModified
+5F81 .done                ; common exit of WaveFrameModified
 5F9A .loop                ; loop head in InstrHScanChainPhrases
 5FBE .done                ; common exit of InstrHScanChainPhrases
 5FCB .loop                ; loop head in InstrHScanAllChainPhr

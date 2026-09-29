@@ -77,7 +77,7 @@
 669E FileUpgradeV11             ; song upgrade step v11->v12: patch song data (+ FileUpgradeClearRange clear)
 68C5 FileUpgradeRemapBits       ; upgrade helper: recursive bit/nibble remap via ROM table $68f1
 6959 FileUpgradeV12             ; song upgrade step v12->v13: patch instruments (FileForEachInstrType)
-6973 FileCheckByte6973          ; classify a byte (cp $80)
+6973 FileCheckByte6973          ; unless *p's high nibble is 8, bump its low nibble (mod 16)
 69A7 FileUpgradeV13             ; song upgrade step v13->v14: patch phrase data
 6A57 FileUpgradeClampNibble     ; upgrade helper: mask low nibble, conditional decrement; return in e
 6AD2 FileUpgradeV14             ; song upgrade step v14->v15: patch instruments (FileForEachInstrType)

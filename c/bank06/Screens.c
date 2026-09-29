@@ -14,6 +14,7 @@ extern UBYTE wChanChainRow[];               /* $C17C, [4] */
 extern UBYTE wChain;                        /* $C418 */
 extern UBYTE wChainCol;                     /* $C419 */
 extern UBYTE wChainRow;                     /* $C41A */
+extern UBYTE wSynth;                        /* $C42A */
 extern UBYTE wWordClipCell0[];              /* $C935 */
 extern UBYTE wWordEditRow;                  /* $C937 */
 extern UBYTE wWordEditCol;                  /* $C938 */
@@ -32,7 +33,7 @@ void ChainDrawSyncStatus(void);
 void ChainDrawLeadStatus(void);
 UBYTE ChainSyncStatusFlag(void);
 void AccessWaveFrame(UBYTE n, UBYTE v);
-UBYTE ChainReadPhraseNote(UBYTE i);
+UBYTE ReadWaveSample(UBYTE i);
 void ChainDrawWaveform(void);
 void ChainScanCmd(UBYTE s, UBYTE x);
 void ReadKitSampleName(UBYTE kit, UBYTE sample);   /* bank 0 */
@@ -122,6 +123,24 @@ UWORD ChainCalcParamAddr(UBYTE x)
     return p;
 }
 
+UBYTE ReadWaveSample(UBYTE i)
+{
+    UBYTE *p;
+    UBYTE v;
+
+    if (i >= 0x20)
+        DebugTrap();
+    i = (i + 1) & 0x1F;
+    p = SramWaveFrames + ((UWORD)wSynth << 4);
+    p += i >> 1;
+    v = ReadSongByte(3, p);
+    if (i & 1)
+        v &= 0x0F;
+    else
+        v >>= 4;
+    return 0x0F ^ v;
+}
+
 void ChainScanCmd(UBYTE y1, UBYTE y2)
 {
     UBYTE i;
@@ -196,7 +215,7 @@ void ChainWriteWaveC(void)
 
     ChainWriteCursorPair(&start, &end);
     while (start < end) {
-        AccessWaveFrame(start, 0x0F - ChainReadPhraseNote(start));
+        AccessWaveFrame(start, 0x0F - ReadWaveSample(start));
         t = start;
         start = t + 1;
     }
@@ -209,7 +228,7 @@ void ChainWriteWaveD(UBYTE d)
 
     ChainWriteCursorPair(&start, &end);
     while (start < end) {
-        AccessWaveFrame(start, ChainReadPhraseNote(start) + d);
+        AccessWaveFrame(start, ReadWaveSample(start) + d);
         t = start;
         start = t + 1;
     }
@@ -221,7 +240,7 @@ void DrawWaveCursor(UBYTE d)
     UBYTE n, v;
 
     n = (wWaveCursor + d) & 0x1F;
-    v = ChainReadPhraseNote(wWaveCursor);
+    v = ReadWaveSample(wWaveCursor);
     AccessWaveFrame(n, v);
     ChainDrawCursorByte();
     wWaveCursor = n;

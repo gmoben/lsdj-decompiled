@@ -176,6 +176,19 @@ UBYTE FileCheckNameLen(void)
     return d > 0x0B;
 }
 
+void FileCheckByte6973(UBYTE *p)
+{
+    UBYTE v;
+
+    v = *p;
+    if ((v & 0xF0) != 0x80) {
+        *p = v & 0xF0;
+        v++;
+        v &= 0x0F;
+        *p |= v;
+    }
+}
+
 void FileSendSyncByte(UBYTE v)
 {
     UBYTE s;

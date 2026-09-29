@@ -6,14 +6,10 @@ FileUpgradeV3Pulse $1C:$628B -- same `ld b,c; ld a,b; and; or #n; ld c,a` tail a
 FileUpgradeV3Kit   $1C:$62D3 -- with `(char)v` casts all but one byte matches: the tail's `and a,$f9` result stays in a for `| 1` in the ROM, ours stores it to b (stock packing refuses a literal operand)
 FileUpgradeV0Kit   $1C:$6134 -- all 5 byte locals + a 16-bit temp on the stack (frame 7); ours keeps 2 in registers, 8-bit clear (~0x20 folds)
 FileUpgradeV2      $1C:$622D -- only an `ld hl,sp+0` reload after `or a,a; jp z` (&& chain on a named local): ROM keeps hl there, but reloads in switch chains
-FileCheckByte6973  $1C:$6973 -- pointer param copied to a local (frame 3), deref via de; ours via bc
-ClearTableRow      $1F:$5183 -- pointer param copied to b,c before the call, then incremented in place on the stack after it; p++ / post-increment / a local copy don't give that
 GetInstrFlags1F5   $1F:$40CA -- `v = f() & 0x80; if (v)` (ROM: and; ld c,a; or a,c; jp z) makes SDCC 2.2.1 assert (gen.c 3215, genAnd single-bit + ifx); no crash-free spelling found yet
-MarkPhraseDataUsed $1F:$5F20 -- frame 3 with i at sp+0 and p at sp+1, call first, p copied to b,c for the push; ours keeps i in c (call-first) or evaluates the table first
 GrooveDrawField    $1D:$40AE -- `(wGrooveRow & 2) ? 0 : 1`: stock SDCC copies the global (`ld c,(hl); ld a,c; bit 1,a`), the ROM tests it directly (`ld a,(hl); bit`, 34 global sites vs 7 copies); opPreservesA-accepts-literals variant breaks 10 matched functions
 RemoveBookmark     $07:$63B5 -- pushes its pointer to ReadSongByte and WriteBookmarkByte straight from the stack (no conversion copy), though both take UWORD addresses and the sum is pointer arithmetic (i fetched into de)
 CopySynthParam     $06:$493F -- ROM keeps s = wSynth >> 4 in c, packs ChainCalcParamAddr's result straight into p (sp+0) and stores a copy of s to sp+2 before the mask; UWORD/pointer p and three mask spellings tried
-ChainReadPhraseNote $06:$4992 -- reads a wave-frame nibble; ROM adds i >> 1 as pointer arithmetic (ld l,c; ld h,0) yet pushes the pointer through a bc copy (a conversion); UWORD and pointer p, double casts tried
 ChainWriteWaveB    $06:$4F42 -- reverses the selection; ROM spills the first ChainReadPhraseNote result (sp+2) and keeps the second in b, where SDCC pushes the second straight from e and keeps the first in b
 DrawSpeedModeName  $01:$518C -- matches except its four string literals sit 6 bytes later: in the ROM the SpeedGlyphTiles table ($51EE) comes between the function's code and its literals, where SDCC 2.2.1 emits literals right after the code and file-scope const data after all code (an emission-order difference to emulate in the harness)
 PlotEnvCurve       $1B:$7200 -- matches except register naming: the ROM keeps every temporary in b (the end pointer as b/c, low byte in b), as if c were busy for the whole function; ours uses c. The $DA00 buffer is addressed as a literal pointer ((char *)0xDA00)

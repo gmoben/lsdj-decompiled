@@ -36,7 +36,7 @@ void InstrHScanUsedPhrases(void);
 UBYTE InstrHProcessUsedTables(void);
 UBYTE InstrHCollectUsedTables(void);
 void MarkChainPhrasesUsed(UBYTE chain);
-UBYTE MarkPhraseDataUsed(UBYTE phrase);
+UBYTE WaveFrameModified(UBYTE phrase);
 UBYTE CanEnterSongCol(UBYTE col);
 UBYTE IsInstrAllocated(UBYTE instr);
 void InstrHMarkInstrTable(UBYTE instr);
@@ -228,6 +228,16 @@ void InstrHScanInstrTables(void)
             InstrHMarkInstrTable(i);
 }
 
+void ClearTableRow(UBYTE bank, UBYTE *p)
+{
+    UBYTE i;
+
+    for (i = 0; i < 0x10; i++) {
+        WriteSongByte(bank, p, 0);
+        p = p + 1;
+    }
+}
+
 UBYTE InstrHCollectUsedTables(void)
 {
     UBYTE n, i;
@@ -301,13 +311,27 @@ UBYTE InstrHCountUsedChains(void)
     return n;
 }
 
+UBYTE WaveFrameModified(UBYTE w)
+{
+    UBYTE *p;
+    UBYTE i;
+
+    p = SramWaveFrames + ((UWORD)w << 4);
+    for (i = 0; i < 0x10; i++) {
+        if (ReadSongByte(3, p) != DefaultWaveFrameB1F[i])
+            return 1;
+        p = p + 1;
+    }
+    return 0;
+}
+
 UBYTE InstrHScanChainPhrases(UBYTE chain)
 {
     UBYTE p, i;
 
     p = chain << 4;
     for (i = 0; i != 16; i++) {
-        if (MarkPhraseDataUsed(p))
+        if (WaveFrameModified(p))
             return 1;
         p++;
     }

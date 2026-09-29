@@ -39,7 +39,7 @@
 48AB TilemapAddr                ; the BG tilemap address of cell x,y: $9800 | (y*32 + x)
 4901 ChainCalcParamAddr         ; pick SRAM base $bfc4/$bfc5 by bit3 of arg (= SynthCalcParamAddr)
 493F CopySynthParam             ; copy one synth parameter byte (ChainCalcParamAddr src->dst)
-4992 ChainReadPhraseNote   ; read phrase_notes[arg<$20] from SRAM (chain screen)
+4992 ReadWaveSample             ; sample (i+1)&31 of the edited synth wave frame (SRAM bank 3 $A000 + wSynth*16), inverted: $0F ^ nibble
 4AB0 ChainScanCmd               ; scan 4 entries for command $0b with nonzero operand
 4B16 ChainSetCursorSprite       ; compute cursor sprite X/Y from $c42b/$c93b ($c413==4)
 4B40 ChainWriteCursorPair       ; store $c42b through two arg pointers
@@ -114,7 +114,7 @@
 48A7 .done                ; common exit of DrawSelectDigit
 48BA .loop                ; loop head in TilemapAddr
 4974 .loop                ; loop head in CopySynthParam
-49B2 .loop                ; loop head in ChainReadPhraseNote
+49B2 .loop                ; loop head in ReadWaveSample
 4A22 .loop                ; loop head in AccessWaveFrame
 4AB7 .loop                ; loop head in ChainScanCmd
 4AE8 .loop2               ; loop head in ChainScanCmd

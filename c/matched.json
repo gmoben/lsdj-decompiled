@@ -149,6 +149,12 @@
   "len": 65,
   "src": "c/bank01/UiHelpers.c"
  },
+ "ClearTableRow": {
+  "bank": "1F",
+  "addr": "5183",
+  "len": 54,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
  "CloneInstrument": {
   "bank": "04",
   "addr": "5491",
@@ -424,6 +430,12 @@
   "addr": "4679",
   "len": 200,
   "src": "c/bank03/InstrScreen.c"
+ },
+ "FileCheckByte6973": {
+  "bank": "1C",
+  "addr": "6973",
+  "len": 52,
+  "src": "c/bank1c/FileScreen.c"
  },
  "FileCheckNameLen": {
   "bank": "1C",
@@ -1385,6 +1397,12 @@
   "len": 67,
   "src": "c/bank1d/SynthScreen.c"
  },
+ "ReadWaveSample": {
+  "bank": "06",
+  "addr": "4992",
+  "len": 120,
+  "src": "c/bank06/Screens.c"
+ },
  "ReadWordCell": {
   "bank": "06",
   "addr": "405D",
@@ -1810,6 +1828,12 @@
   "addr": "74E4",
   "len": 107,
   "src": "c/bank1b/ProjectScreen.c"
+ },
+ "WaveFrameModified": {
+  "bank": "1F",
+  "addr": "5F20",
+  "len": 101,
+  "src": "c/bank1f/InstrHelpers.c"
  },
  "WriteBookmarkByte": {
   "bank": "07",
