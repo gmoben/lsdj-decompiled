@@ -276,6 +276,12 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
                 dropped += 1          # `or a,r` alone: `a` already equals r
                 continue
             eq, a_alu = {"#0x00"}, False
+        elif mn == "ld" and len(ops) == 2 and ops[1] == "(hl)" and ops[0] in ("b", "c", "d", "e") \
+                and "(hl)" in eq:
+            # `ld c,(hl)` while `a` still holds (hl): LSDj's compiler used `ld c,a`
+            # (3 sites after `ld a,(hl); cp; jp`, none rereading)
+            raw = raw.replace("(hl)", "a", 1)
+            eq.add(ops[0])
         elif mn == "ld" and len(ops) == 2 and ops[1] == "a" and ops[0] in _REGS:
             if ops[0] in eq:
                 dropped += 1          # `ld c,a` when `a` already equals c: a no-op
@@ -296,16 +302,7 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
         elif mn in _ALU and (not ops or ops[0] == "a"):
             eq, a_alu = set(), True
         elif mn in ("jp", "jr") and len(ops) == 2:
-            # `a` survives a conditional jump; `hl` only when a dead label
-            # follows it -- the `!=` idiom stock SDCC emits as a trampoline
-            # and its Rule 5 collapses. A plain `jp z,case` (a switch chain)
-            # resets it: the ROM reloads there (84 sites), not here (7).
-            n = nxt.get(i)
-            follow = _strip(lines[n]).strip() if n is not None else ""
-            dead_label = (follow.endswith(":") and _LOCAL.fullmatch(follow[:-1])
-                          and f"{scope}:{follow[:-1]}" not in jump_targets)
-            if not dead_label:
-                forget_hl()
+            pass                      # a conditional jump: `a` and `hl` survive the fall-through
         elif mn in _NEUTRAL:
             if mn == "push":
                 level += 2

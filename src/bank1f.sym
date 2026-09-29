@@ -31,7 +31,6 @@
 5413 MarkChainPhrasesUsed       ; mark all phrases of chain arg used (rows<16, $ff skipped)
 5461 IsChainUsedFar             ; FarCall bank01 IsChainUsed
 7097 RedrawScreenFar1F          ; FarCall home RedrawScreen ($24dd) with bank 4 arg
-4085 GetInstrTable1F                         ; read instrument byte 6 = table (bits0-4) + enable (bit5)
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 409C GetInstrTable1F2                       ; read instrument byte 6 = table (bits0-4) + enable (bit5)
@@ -46,14 +45,14 @@
 4CCD MarkInstrUsed              ; set the instr-alloc entry for instrument arg (<$40)
 4F04 InstrHMarkTableUsed        ; if arg<$20, set $c47d[arg]=1 (mark table used)
 4F1C InstrHGetTableUsed         ; return $c47d[arg] (table-used flag)
-4F2E InstrHReadPhraseRef        ; read SRAM byte at $A040+arg (ReadSongByte bank1)
+4F2E IsInstrAllocated           ; instrument n's SramInstrAlloc flag
 4F49 ComparePhraseToWork        ; compare phrase rows against the $0FF0 work row (dedupe comparator)
 4FC5 ReadTableRowCmds           ; gather one table row's cmd1/val1/cmd2 bytes ($3680/$3880/$3A80 regions)
 50A8 InstrHScanUsedPhrases      ; for each phrase 0..255 used (IsPhraseUsedFar), process via ComparePhraseToWork
 50CC InstrHCountUsedTables      ; count nonzero entries in used-table map $c47d[0..$1f]
 50F6 InstrHProcessUsedTables    ; count tables (50CC) then run ReadTableRowCmds per used
 513D InstrHMarkInstrTable       ; read instr field6; if bit5 set, mark its table used (InstrHMarkTableUsed)
-515F InstrHScanInstrTables      ; for each instrument 0..63 used, mark its table (InstrHReadPhraseRef/513D)
+515F InstrHScanInstrTables      ; for each instrument 0..63 used, mark its table (IsInstrAllocated/513D)
 5183 ClearTableRow              ; zero 16 bytes of one table column region (row arg <$10)
 51B9 ClearTable                 ; wipe table n (<$20) across all five column regions ($3480..$3C80)
 526B InstrHCollectUsedTables    ; gather used-table indices + pointers from map $c47d
@@ -78,9 +77,9 @@
 5FEC InstrHScanPhraseCmds       ; scan phrase command bytes from SRAM ($A0xx) for references
 6074 InstrHScanTableCmds        ; scan table command columns from SRAM ($B680/$BA80) for references
 614C InstrHAnyCmdRef            ; return 1 if InstrHScanPhraseCmds or InstrHScanTableCmds found a reference
-6163 InstrHPhraseAddr           ; compute SRAM phrase address (arg*16 + base)
+6163 ResetWaveFrame             ; reset wave frame n (SRAM bank 3, $A000 + n*16) to DefaultWaveFrameB1F
 619E InstrHScanChainRows        ; scan 16 rows of a chain (arg*16)
-61C4 InstrHSongAddr             ; compute SRAM song-area address (arg*16 + $B2xx)
+61C4 ResetSynthParams           ; reset synth n's 16 params (SRAM bank 1, $BEB2 + n*16) to DefaultSynthParams
 620F InstrHScanTableRows        ; scan 16 table rows from a pointer
 62BD TableIsReferenced          ; e=1 if table n is referenced by any instrument or A command (CleanInstrData)
 6B3B DrawPhraseCellValue        ; draw the cell under the phrase cursor ($fe/$ff specials, $c90c state)
@@ -240,10 +239,10 @@
 6089 .loop                ; loop head in InstrHScanTableCmds
 6094 .loop2               ; loop head in InstrHScanTableCmds
 6148 .done                ; common exit of InstrHScanTableCmds
-616D .loop                ; loop head in InstrHPhraseAddr
+616D .loop                ; loop head in ResetWaveFrame
 61AF .loop                ; loop head in InstrHScanChainRows
 61C2 .done                ; common exit of InstrHScanChainRows
-61CE .loop                ; loop head in InstrHSongAddr
+61CE .loop                ; loop head in ResetSynthParams
 621F .loop                ; loop head in InstrHScanTableRows
 623D .loop2               ; loop head in InstrHScanTableRows
 6284 .loop3               ; loop head in InstrHScanTableRows
@@ -360,7 +359,8 @@
 ; --- full local naming (block signature) ---
 4050 .readCurInstrByte
 4078 .cont
-407D .toGetInstrTable1F
+407D .toDrawString
+4085 .drawString          ; shared DrawString tail of GetInstrType1F (was mislabelled GetInstrTable1F)
 4080 .cont_2
 40BC .drawString
 40E8 .drawString

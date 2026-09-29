@@ -1,4 +1,10 @@
 {
+ "BuildUsedTablesMap": {
+  "bank": "1F",
+  "addr": "52B3",
+  "len": 39,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
  "DrawInstrByte10": {
   "bank": "03",
   "addr": "498B",
@@ -46,6 +52,12 @@
   "addr": "74F7",
   "len": 198,
   "src": "c/bank01/DrawMessageBar.c"
+ },
+ "DrawPhraseCursor": {
+  "bank": "1F",
+  "addr": "6C1E",
+  "len": 22,
+  "src": "c/bank1f/InstrHelpers.c"
  },
  "DrawSyncField": {
   "bank": "1B",
@@ -245,6 +257,12 @@
   "len": 60,
   "src": "c/bank03/InstrScreen.c"
  },
+ "FindFreeTable": {
+  "bank": "1F",
+  "addr": "4BD9",
+  "len": 56,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
  "GetInstrByte10": {
   "bank": "03",
   "addr": "4AF4",
@@ -256,6 +274,12 @@
   "addr": "4ACF",
   "len": 17,
   "src": "c/bank03/InstrScreen.c"
+ },
+ "GetInstrByte1F9": {
+  "bank": "1F",
+  "addr": "4169",
+  "len": 33,
+  "src": "c/bank1f/InstrHelpers.c"
  },
  "GetInstrByte2": {
   "bank": "03",
@@ -275,6 +299,12 @@
   "len": 13,
   "src": "c/bank03/InstrScreen.c"
  },
+ "GetInstrEnv1F": {
+  "bank": "1F",
+  "addr": "4157",
+  "len": 18,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
  "GetInstrFlags53": {
   "bank": "03",
   "addr": "4B4C",
@@ -292,6 +322,18 @@
   "addr": "53DE",
   "len": 65,
   "src": "c/bank03/InstrScreen.c"
+ },
+ "HasEnterableColLeft": {
+  "bank": "1F",
+  "addr": "6677",
+  "len": 33,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
+ "HasEnterableColRight": {
+  "bank": "1F",
+  "addr": "6656",
+  "len": 33,
+  "src": "c/bank1f/InstrHelpers.c"
  },
  "InstrByte9IsZero": {
   "bank": "03",
@@ -346,6 +388,90 @@
   "addr": "5181",
   "len": 59,
   "src": "c/bank03/InstrScreen.c"
+ },
+ "InstrHCountUsedChains": {
+  "bank": "1F",
+  "addr": "5DF3",
+  "len": 42,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
+ "InstrHCountUsedPhrases": {
+  "bank": "1F",
+  "addr": "5DC9",
+  "len": 42,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
+ "InstrHCountUsedTables": {
+  "bank": "1F",
+  "addr": "50CC",
+  "len": 42,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
+ "InstrHGetParamPlus4": {
+  "bank": "1F",
+  "addr": "70A8",
+  "len": 14,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
+ "InstrHGetTableUsed": {
+  "bank": "1F",
+  "addr": "4F1C",
+  "len": 18,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
+ "InstrHMarkInstrTable": {
+  "bank": "1F",
+  "addr": "513D",
+  "len": 34,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
+ "InstrHMarkTableUsed": {
+  "bank": "1F",
+  "addr": "4F04",
+  "len": 24,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
+ "InstrHReadCursorCellAt": {
+  "bank": "1F",
+  "addr": "6EFE",
+  "len": 22,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
+ "InstrHScanAllChainPhr": {
+  "bank": "1F",
+  "addr": "5FC2",
+  "len": 42,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
+ "InstrHScanChainPhrases": {
+  "bank": "1F",
+  "addr": "5F85",
+  "len": 61,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
+ "InstrHScanChainRows": {
+  "bank": "1F",
+  "addr": "619E",
+  "len": 38,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
+ "InstrHScanInstrTables": {
+  "bank": "1F",
+  "addr": "515F",
+  "len": 36,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
+ "InstrHScanUsedChains": {
+  "bank": "1F",
+  "addr": "5478",
+  "len": 36,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
+ "InstrHScanUsedPhrases": {
+  "bank": "1F",
+  "addr": "50A8",
+  "len": 36,
+  "src": "c/bank1f/InstrHelpers.c"
  },
  "InstrPitchModeDown": {
   "bank": "03",
@@ -437,11 +563,29 @@
   "len": 24,
   "src": "c/bank03/InstrScreen.c"
  },
+ "IsChainUsedFar": {
+  "bank": "1F",
+  "addr": "5461",
+  "len": 23,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
+ "IsInstrAllocated": {
+  "bank": "1F",
+  "addr": "4F2E",
+  "len": 27,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
  "IsInstrTableOn": {
   "bank": "03",
   "addr": "4118",
   "len": 27,
   "src": "c/bank03/InstrScreen.c"
+ },
+ "IsPhraseUsedFar": {
+  "bank": "1F",
+  "addr": "5091",
+  "len": 23,
+  "src": "c/bank1f/InstrHelpers.c"
  },
  "KitSelectEnsure": {
   "bank": "03",
@@ -478,6 +622,24 @@
   "addr": "0AF6",
   "len": 94,
   "src": "c/bank00/ReadSeqByte.c"
+ },
+ "RedrawScreenFar1F": {
+  "bank": "1F",
+  "addr": "7097",
+  "len": 17,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
+ "ResetSynthParams": {
+  "bank": "1F",
+  "addr": "61C4",
+  "len": 59,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
+ "ResetWaveFrame": {
+  "bank": "1F",
+  "addr": "6163",
+  "len": 59,
+  "src": "c/bank1f/InstrHelpers.c"
  },
  "ScreenDrawDispatch": {
   "bank": "00",
@@ -580,6 +742,12 @@
   "addr": "42AB",
   "len": 84,
   "src": "c/bank03/InstrScreen.c"
+ },
+ "TableIsReferenced": {
+  "bank": "1F",
+  "addr": "62BD",
+  "len": 32,
+  "src": "c/bank1f/InstrHelpers.c"
  },
  "WriteCurrentInstrByte": {
   "bank": "03",

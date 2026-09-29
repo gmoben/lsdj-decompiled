@@ -44,6 +44,8 @@ extern volatile sfr UBYTE hBgDigitPalette;  /* $FF8D */
 extern volatile sfr UBYTE hCurrentBank;     /* $FF8E */
 extern UBYTE hGameboyType;                  /* $FF90 */
 extern UBYTE rROMB0;                        /* $2000, the MBC5 ROM bank register */
+extern UBYTE rRAMG;                         /* $0000, MBC5 SRAM enable ($0A on) */
+extern UBYTE rRAMB;                         /* $4000, MBC5 SRAM bank */
 
 /* GBDK's SWITCH_ROM_MBC1 is `*(UBYTE *)0x2000 = n`, which SDCC compiles through
  * de (`ld de,#0x2000; ld a,#n; ld (de),a`); the ROM has the named-variable form
@@ -142,6 +144,8 @@ void DrawTempoField(void);
 void GetTilemapAddr(UBYTE x, UBYTE y);                  /* sets wVramCursor (asm) */
 void ClearMarkerSprites(void);
 char *strcpy(char *dest, char *src);
+void MemSet(UBYTE *dest, UBYTE value, UWORD count);
+void memcpy(UBYTE *dst, UBYTE *src, UWORD n);
 
 /* --- the screens' draw entry points (ScreenDrawDispatch, bank 0) ----------- */
 
@@ -208,6 +212,7 @@ UBYTE ProjSyncModeIs567(void);
 
 UBYTE GetInstrTable1F2(void);
 UBYTE GetInstrType1F(void);
+UBYTE GetInstrEnv1F(void);
 UBYTE FindFreeTable(void);
 void GetInstrEnv1F2(void);
 
