@@ -124,7 +124,12 @@ a 16-bit value), which is how `EraseFile` and `FileUpgradeV21` test a value
 they just stored. A load `ld r,(hl)` sets up the same equality: the
 ROM never rereads the byte after one (171 `ld a,r`, 0 `ld a,(hl)`, 0
 `or a,(hl)` tests), while stock `genCast` does to sign-extend a spilled
-`char` (`ld c,(hl); ld a,(hl); rla`, `LoadSynthShape`).
+`char` (`ld c,(hl); ld a,(hl); rla`, `LoadSynthShape`). One exception: a
+byte incremented or decremented in place and tested straight away (`ld
+a,(hl); add a,#0xFF; ld c,a; ld (hl),c`, how `while (--i)` compiles) is
+reread for the test, `xor a,a; or a,(hl)` (`SortBookmarks`; no ROM site of
+that shape tests the register). SDCC's pre-decrement yields the variable
+itself rather than the new value.
 
 `track_e` does the same for `e`, which carries call results and return
 values: after `ld c,e` (a result kept in `c`) a later `ld e,c` (returning
@@ -238,6 +243,11 @@ asm that reads stack arguments (`DrawByte`, `DrawString`, `GetTilemapAddr`,
   in a register pair; `wOamBuffer + offset` adds the address first (`ld
   a,#0x00; add a,c`), and `offset + 0xDD00` on a stack operand goes through
   `ld hl,#0xDD00; add hl,de` (`SetOAMByte`).
+- **`array + n` is computed at run time**, even as a call argument (`ld
+  de,#_a; ld hl,#n; add hl,de`), and `&a[n]` likewise; only the bare array
+  name is an immediate. An address the ROM pushes as `ld hl,#addr` is a
+  symbol of its own or a literal: `SongReadRow` fills the 64-byte song window
+  in 16-byte chunks at `wSongReadBuf`, `(UBYTE *)0xC47D`, `0xC48D`, `0xC49D`.
 - **A multiply by a constant stays a `MulU16` call** only when the constant
   is not a literal while the tree is built: `decorateType` moves a literal
   left operand of `*` to the right, and `geniCodeMultiply` turns a power of two
