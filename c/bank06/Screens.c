@@ -81,6 +81,13 @@ void WriteChainPhrase(void);                /* bank $1F */
 void ShowOutOfMemory(void);                 /* bank 1 */
 void ClonePhraseAtCursor(UBYTE src, UBYTE dst);
 
+extern UBYTE wSelTop;                       /* $C40E */
+extern UBYTE wSelRight;                     /* $C40F */
+extern UBYTE wSelBottom;                    /* $C410 */
+extern UBYTE wClipboardType;                /* $C411 */
+void CopySelection(void);                   /* bank $1C */
+extern char TxtCopy[];                      /* $06:$5467 "COPY" */
+
 UBYTE ChainScaleValue(UBYTE v)
 {
     UBYTE r;
@@ -378,6 +385,33 @@ void DrawWaveCursor(UBYTE d)
     wWaveCursor = n;
     ChainDrawCursorByte();
     ChainSetCursorSprite();
+}
+
+void CopyWaveSelection(void)
+{
+    UBYTE v;
+    UBYTE i;
+
+    if (wClipboardType != 8)
+        DebugTrap();
+    ShowMessage(TxtCopy);
+    wWaveSelEnd = wWaveCursor;
+    wWaveCursor = wWaveSelStart;
+    SortBytePair(&wWaveSelStart, &wWaveSelEnd);
+    wWaveSelEnd++;
+    for (i = 0; i < 0x20; i += 2) {
+        v = ReadWaveSample(i) << 4;
+        v |= ReadWaveSample(i + 1);
+        WriteClipboardCell(0, i >> 1, v);
+    }
+    WriteClipboardCell(0, 0x10, wWaveSelStart);
+    WriteClipboardCell(0, 0x11, wWaveSelEnd);
+    wSelLeft = 0;
+    wSelRight = 1;
+    wSelTop = 0;
+    wSelBottom = 0x12;
+    wCursorMode = 2;
+    FarCall(0x1C, FAR_FN(CopySelection));
 }
 
 void PasteWaveSelection(void)

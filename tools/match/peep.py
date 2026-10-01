@@ -745,6 +745,13 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
             if not regs and not dest.startswith("("):
                 eq, a_alu = set(), False
                 forget_hl()
+        elif mn in ("sla", "sra", "srl", "rl", "rr", "rlc", "rrc", "swap") and ops and ops[0] in _REGS \
+                and ops[0] != "a":
+            # a shift of another register leaves `a` and the byte at hl alone
+            # (CopyWaveSelection's `i >> 1` between `v |= t` and the push of v)
+            _forget_reg(eq, via, ops[0])
+            if ops[0] in "hl":
+                forget_hl()
         else:
             eq, a_alu = set(), False  # anything else (calls, jumps, returns): forget
             forget_hl()

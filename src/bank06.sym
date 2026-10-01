@@ -66,7 +66,7 @@
 5ABE ChainDrawCellHw            ; draw cell at $c41a (palette per hGameboyType)
 5B00 ChainOpenPhrase            ; open the phrase under the chain cursor (RestoreSelectionState, load phrase)
 6D55 PasteChainSelection        ; write clipboard cells into the chain grid (clipType 3)
-6F0D ChainNormalizeSelection    ; normalize the chain-screen selection rect (wSel*)
+6F0D ChainPasteCells            ; SELECT+A paste on the chain screen: clipboard cells into rows wSelTop..wSelBottom (column 0 phrases via WriteChainPhrase, column 1 transposes), "PASTE" message when more than one row
 7006 ChainHandleInput           ; main chain-screen input handler ($c411==3, $c419/$c40d); large
 71ED DrawKitSampleNames         ; draw the playing kit sample names (wKit1Bank/wKit2Bank) at the tilemap position
 73C0 DrawStringAtCursor         ; set wVramCursor + DrawString (9-use draw helper)
@@ -158,9 +158,9 @@
 6DA2 .loop                ; loop head in PasteChainSelection
 6DD0 .loop2               ; loop head in PasteChainSelection
 6EFF .done                ; common exit of PasteChainSelection
-6F17 .loop                ; loop head in ChainNormalizeSelection
-6F29 .loop2               ; loop head in ChainNormalizeSelection
-6FFC .done                ; common exit of ChainNormalizeSelection
+6F17 .loop                ; loop head in ChainPasteCells
+6F29 .loop2               ; loop head in ChainPasteCells
+6FFC .done                ; common exit of ChainPasteCells
 7092 .loop                ; loop head in ChainHandleInput
 70D7 .loop2               ; loop head in ChainHandleInput
 7174 .loop3               ; loop head in ChainHandleInput
