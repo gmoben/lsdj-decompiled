@@ -2633,6 +2633,12 @@
   "len": 187,
   "src": "c/bank07/SongScreen.c"
  },
+ "SongEditSelection": {
+  "bank": "07",
+  "addr": "5B1D",
+  "len": 667,
+  "src": "c/bank07/SongSelection.c"
+ },
  "SongEraseCursor": {
   "bank": "07",
   "addr": "4084",

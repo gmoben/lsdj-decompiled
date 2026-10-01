@@ -376,6 +376,7 @@ RUNTIME_ALIASES = {
     "FarCallArg3P": "FarCallArg3",  # FarCallArg3 called with a function pointer (two cast temps)
     "wVramCursorW": "wVramCursor",  # the VRAM cursor as a plain word (DrawTopBar's 32-bit `< 0x9811`)
     "wTopBarLen": "wTopBarDrawScratch",  # the top-bar scratch word as a length
+    "SortBytePairC": "SortBytePair",  # SortBytePair prototyped with `char *` (SongEditSelection casts its `&UBYTE` locals)
 }
 
 
