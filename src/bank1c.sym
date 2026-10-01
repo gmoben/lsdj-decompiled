@@ -46,7 +46,7 @@
 4FA5 FileLoadSlotInfo           ; load slot info for index (arg<$20 -> $c97f); calls FileScanSlotNames
 5077 FileClearChanState         ; zero the 8 wChanActive bytes ($C0E0..7) backward
 5098 FileStopSound              ; SetInterruptEnable + FileClearChanState (silence before load/save)
-50B3 LoadInputSyncProps         ; load KEY DELAY/REPEAT ($bfba/bb) + sync modes ($bfbd/$bfbf) from song properties
+50B3 LoadFile                   ; FILE load action: keep key delay/repeat + sync modes, FileLoadSlotInfo the slot (FAIL! waits a press), restore props, set active file, LoadProjectSettings + RedrawScreen
 5361 DrawFileTextField          ; draw a file-screen text field (highlight-aware) at computed coords
 5531 FileDrawField              ; DrawTextField wrapper
 5563 FileDrawFieldChecked       ; bounds-check (<$10) then DrawTextField
@@ -121,7 +121,7 @@
 6A72 FileUpgradeV14Pulse ; V14 pulse-instrument field migration (callback)
 6AEC FileUpgradeV15Wave  ; V15 wave-instrument field migration (callback)
 6C29 FileUpgradeV17bPulse ; V17b pulse-instrument field migration (callback)
-4E10 ClearFileName      ; zero the 8-byte filename slot n<32 at file-space +n*8 (unreferenced)
+4E10 SaveFile                   ; FILE save action: clear the slot name, free its blocks, compress + verify (DrawVerifyPanel), bump the file generation ($a100+n), copy wNameEditBuf; 0 fail, 2 verify fail, 1 ok
 589F TxtSave                    ; "SAVE"
 58A4 TxtErase                   ; "ERASE"
 58AA TxtBlocksUsed              ; "BLOCKS USED: %x/"
@@ -138,7 +138,7 @@
 743C FlushBlockToSram           ; copy the 256-byte staging page (wDecompBuf) to SRAM [wBlockDstPage]<<8; wrap $c0->$a0, bank++
 746E VerifyBlockAgainstSram     ; compare the staging page with the SRAM block (save VERIFY step)
 4559 CompressSongMid ; @deploy-only: interior of CompressSong (walker artifact)
-4F4C ClearFileNameMid ; @deploy-only: interior of ClearFileName (walker artifact)
+4F4C SaveFileMid ; @deploy-only: interior of SaveFile (walker artifact)
 
 ; --- structural local names (loop heads / common exits) ---
 40F0 .done                ; common exit of CheckFileMagic64
@@ -170,15 +170,15 @@
 4C9E .loop2               ; loop head in EraseFileName
 4CEE .loop3               ; loop head in EraseFileName
 4D54 .done                ; common exit of EraseFileName
-4E39 .loop                ; loop head in ClearFileName
-4F53 .loop2               ; loop head in ClearFileName
-4FA1 .done                ; common exit of ClearFileName
+4E39 .loop                ; loop head in SaveFile
+4F53 .loop2               ; loop head in SaveFile
+4FA1 .done                ; common exit of SaveFile
 5073 .done                ; common exit of FileLoadSlotInfo
 507A .loop                ; loop head in FileClearChanState
-51E3 .loop                ; loop head in LoadInputSyncProps
-51EC .loop2               ; loop head in LoadInputSyncProps
-51F5 .loop3               ; loop head in LoadInputSyncProps
-534A .done                ; common exit of LoadInputSyncProps
+51E3 .loop                ; loop head in LoadFile
+51EC .loop2               ; loop head in LoadFile
+51F5 .loop3               ; loop head in LoadFile
+534A .done                ; common exit of LoadFile
 537E .loop                ; loop head in DrawFileTextField
 53BF .loop2               ; loop head in DrawFileTextField
 55BE .loop                ; loop head in FileValidateName

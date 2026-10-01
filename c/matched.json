@@ -695,6 +695,12 @@
   "len": 121,
   "src": "c/bank1c/FileScreen.c"
  },
+ "EraseFileName": {
+  "bank": "1C",
+  "addr": "4C1A",
+  "len": 318,
+  "src": "c/bank1c/FileScreen.c"
+ },
  "EraseInstrCursor": {
   "bank": "03",
   "addr": "4679",
@@ -1631,6 +1637,12 @@
   "len": 76,
   "src": "c/bank06/Screens.c"
  },
+ "LoadFile": {
+  "bank": "1C",
+  "addr": "50B3",
+  "len": 667,
+  "src": "c/bank1c/FileScreen.c"
+ },
  "LoadSyncSetting": {
   "bank": "00",
   "addr": "1CFF",
@@ -2068,6 +2080,12 @@
   "addr": "6163",
   "len": 59,
   "src": "c/bank1f/InstrHelpers.c"
+ },
+ "SaveFile": {
+  "bank": "1C",
+  "addr": "4E10",
+  "len": 405,
+  "src": "c/bank1c/FileScreen.c"
  },
  "SaveSelectionState": {
   "bank": "05",

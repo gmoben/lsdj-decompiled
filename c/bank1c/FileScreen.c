@@ -34,6 +34,10 @@ extern char wTopBarStr[];                   /* $C555 */
 extern UBYTE wFileListActive;               /* $C998 */
 extern UBYTE wDecompOk;                     /* $C982 */
 extern UBYTE wBlockDstBank;                 /* $C97C */
+extern UBYTE wNameEditBuf[];                /* $C431, [5] */
+extern UBYTE wFileSramProps[];              /* $C99D, [4] */
+extern UBYTE wFileLoadAltReturn;            /* $C997 */
+extern UBYTE wRedrawPending;                /* $C56C */
 extern UBYTE wFileField;                    /* $C992 */
 extern UBYTE wFileCursor;                   /* $C999 */
 extern UBYTE wFileScroll;                   /* $C99B */
@@ -60,6 +64,12 @@ void FileDecompressByte(void);              /* $1C:$749E */
 void VerifyBlockAgainstSram(void);         /* $1C:$746E */
 void DrawFileList(void);                    /* $1C:$55F1 */
 int StringLength(const char *s);            /* bank00/GbdkLib.c, nonbanked */
+UBYTE FindFreeBlock(UBYTE *bank, UWORD *src);   /* $1C:$415A */
+UBYTE CompressSong(void);                   /* $1C:$441F */
+UBYTE DrawVerifyPanel(UBYTE f);             /* $1C:$4778 */
+UBYTE GetNextButtons(void);                 /* bank 0 */
+void UiClearSram(void);                     /* $01:$45D1 */
+void LoadProjectSettings(void);             /* $01:$7C86 */
 UBYTE GetFileBlockCount(UBYTE i);
 UBYTE FileFindSlotEnd(void);
 UBYTE FileSlotHalfBase(void);
@@ -271,6 +281,29 @@ void FreeFileBlocks(UBYTE f)
     }
 }
 
+void EraseFileName(UBYTE f)
+{
+    UWORD p;
+    UBYTE v;
+
+    p = (UWORD)0xA000 + (f << 3);
+    while (p != (UWORD)0xA0F8) {
+        WriteSongByte(4, p, ReadSongByte(4, p + 8));
+        p++;
+    }
+    WriteSongByte(4, 0xA0F8, 0);
+    p = (UWORD)0xA100 + f;
+    while (p != (UWORD)0xA11F) {
+        WriteSongByte(4, p, ReadSongByte(4, p + 1));
+        p++;
+    }
+    for (p = 0xA141; p != 0xA200; p++) {
+        v = ReadSongByte(4, p);
+        if (v < 0x20 && f < v)
+            WriteSongByte(4, p, v - 1);
+    }
+}
+
 void EraseFile(UBYTE f)
 {
     if (f >= 0x20)
@@ -293,6 +326,44 @@ void MigrateTempoProps(void)
 {
     WriteSongByte(1, (UBYTE *)0xBFCB, ReadSongByte(1, (UBYTE *)0xBFB3));
     WriteSongByte(1, (UBYTE *)0xBFCA, ReadSongByte(1, (UBYTE *)0xBFB2));
+}
+
+UBYTE SaveFile(UBYTE f)
+{
+    UBYTE i;
+    UWORD p;
+
+    if (f >= 0x20)
+        DebugTrap();
+    p = (UWORD)0xA000 + (f << 3);
+    for (i = 0; i < 8; i++)
+        WriteSongByte(4, p++, 0x3F);
+    wCompByte = f;
+    FreeFileBlocks(f);
+    wCompProgress = 0;
+    i = FindFreeBlock(&wCompBank, &wCompSrc);
+    if (!i || !CompressSong()) {
+        FreeFileBlocks(f);
+        return 0;
+    }
+    if (!DrawVerifyPanel(f)) {
+        FreeFileBlocks(f);
+        return 2;
+    }
+    i = ReadSongByte(4, 0xA140);
+    if (i != 0xFF)
+        i = ReadSongByte(4, (UWORD)0xA100 + i);
+    if (wCompByte >= 0x20 && wCompByte != 0xFF)
+        DebugTrap();
+    WriteSongByte(4, 0xA140, wCompByte);
+    WriteSongByte(4, (UWORD)0xA100 + wCompByte, i + 1);
+    p = (UWORD)0xA000 + (wCompByte << 3);
+    for (i = 0; i < 8; i++)
+        WriteSongByte(4, p++, wNameEditBuf[i]);
+    WriteSongByte(1, 0xBFC1, 0x20);
+    LoadFileListState();
+    MigrateTempoProps();
+    return 1;
 }
 
 UBYTE FileLoadSlotInfo(UBYTE slot, UBYTE verify)
@@ -330,6 +401,66 @@ void FileStopSound(void)
     wPlayMode = 0;
     NR52_REG = 0;
     FileClearChanState();
+}
+
+void LoadFile(void)
+{
+    UBYTE keyRepeat, keyDelay, syncIn, syncOut, n;
+
+    keyRepeat = ReadSongByte(1, 0xBFBB);
+    keyDelay = ReadSongByte(1, 0xBFBA);
+    syncIn = ReadSongByte(1, 0xBFBD);
+    syncOut = ReadSongByte(1, 0xBFBF);
+    FileStopSound();
+    n = GetFileBlockCount(wFileCursor);
+    wFileFirstChar = n;
+    if (n) {
+        DrawFileTextField(1, 6, 0x11, 3);
+        wVramCursor = 0x98E2;
+        hBgDigitPalette = 4;
+        hBgPalette = 1;
+        DrawString("LOADING...1/");
+        DrawByte(wFileFirstChar);
+        wFileSramProps[0] = ReadSongByte(1, 0xBFB6);
+        wFileSramProps[1] = ReadSongByte(1, 0xBFB7);
+        wFileSramProps[2] = ReadSongByte(1, 0xBFB8);
+        wFileSramProps[3] = ReadSongByte(1, 0xBFB9);
+        if (!FileLoadSlotInfo(wFileCursor, 0)) {
+            wVramCursor = 0x98EC;
+            DrawString("FAIL!");
+            while (GetNextButtons())
+                ;
+            while (!GetNextButtons())
+                ;
+            while (GetNextButtons())
+                ;
+            wRedrawPending = 0;
+            FarCall(1, FAR_FN(RedrawScreen));
+            return;
+        }
+        WriteSongByte(1, 0xBFB6, wFileSramProps[0]);
+        WriteSongByte(1, 0xBFB7, wFileSramProps[1]);
+        WriteSongByte(1, 0xBFB8, wFileSramProps[2]);
+        WriteSongByte(1, 0xBFB9, wFileSramProps[3]);
+    } else {
+        FarCall(1, FAR_FN(UiClearSram));
+        WriteSongByte(4, (UWORD)0xA100 + wFileCursor, 0);
+    }
+    WriteSongByte(1, 0xBFBA, keyDelay);
+    WriteSongByte(1, 0xBFBB, keyRepeat);
+    WriteSongByte(1, 0xBFBD, syncIn);
+    WriteSongByte(1, 0xBFBF, syncOut);
+    if (wFileCursor >= 0x20 && wFileCursor != 0xFF)
+        DebugTrap();
+    WriteSongByte(4, 0xA140, wFileCursor);
+    WriteSongByte(1, 0xBFC1, 0x20);
+    LoadFileListState();
+    MigrateTempoProps();
+    FarCallArg(1, FAR_FN(LoadProjectSettings), 1);
+    if (wFileLoadAltReturn)
+        wCurrentScreen = 0x0D;
+    FarCall(1, FAR_FN(RedrawScreen));
+    wRedrawPending = 0;
 }
 
 void FileDrawField(UBYTE pal)

@@ -806,6 +806,47 @@ def track_const(lines: list[str], jump_targets: set[str]) -> tuple[list[str], in
     return out, dropped
 
 
+def track_de(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
+    """Drop `ld de,#X` while `de` already holds X.
+
+    SDCC 2.2.1's `fetchLitPair` remembers the literal last loaded into a
+    pair but the `de` half of that is compiled out (`IS_GB && pairId ==
+    PAIR_DE && 0`), so a global array's base is reloaded for `a[0] = x;
+    a[1] = y` (the second load feeds `ld hl,#1; add hl,de`). LSDj's compiler
+    kept the first load: the ROM has no `ld de,#X ... ld de,#X` pair within a
+    basic block while `d`/`e` are untouched (LoadFile). A call,
+    an unconditional jump or a jump target ends the knowledge."""
+    out: list[str] = []
+    held: str | None = None
+    dropped = 0
+    scope = 0
+    for raw in lines:
+        t = _strip(raw).strip()
+        if not t:
+            out.append(raw)
+            continue
+        if t.endswith(":"):
+            if not _LOCAL.fullmatch(t[:-1]):
+                scope += 1
+                held = None
+            elif f"{scope}:{t[:-1]}" in jump_targets:
+                held = None
+            out.append(raw)
+            continue
+        mn, ops = _ops(t)
+        if mn == "ld" and len(ops) == 2 and ops[0] == "de" and ops[1].startswith("#"):
+            if held == ops[1]:
+                dropped += 1
+                continue
+            held = ops[1]
+        elif mn in _WRITES_ALL or (mn in ("jp", "jr") and len(ops) == 1):
+            held = None
+        elif {"d", "e"} & _written(mn, ops):
+            held = None
+        out.append(raw)
+    return out, dropped
+
+
 # --- dead register stores ----------------------------------------------------
 #
 # Within a basic block LSDj's compiler never left `ld r,a` (r = b..e) that a
