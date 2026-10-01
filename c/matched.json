@@ -2891,6 +2891,12 @@
   "len": 173,
   "src": "c/bank1d/SynthScreen.c"
  },
+ "SynthLoadParams": {
+  "bank": "1D",
+  "addr": "68F9",
+  "len": 570,
+  "src": "c/bank1d/SynthScreen.c"
+ },
  "SynthParamAddClamp": {
   "bank": "1D",
   "addr": "6EB6",

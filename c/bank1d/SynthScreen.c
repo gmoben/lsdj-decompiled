@@ -64,6 +64,12 @@ void SynthRenderWaveType(void);
 void SynthComposeWave(void);
 void SynthWriteWaveCol(void);
 
+extern UBYTE wSynthWaveShape;               /* $C9E9 */
+extern UBYTE wSynthFilterParam;             /* $C9EE */
+extern UBYTE wSynthRenderActive;            /* $C9F1 */
+extern UBYTE *wSynthRenderDst;              /* $C9F2 */
+void SynthFillWaveRange(UBYTE a, UBYTE b, UBYTE *buf);
+
 void WriteGrooveByte(UBYTE step, UBYTE v)
 {
     UBYTE *p;
@@ -519,6 +525,39 @@ void DrawSynthScreen(void)
     FarCall(0x1F, FAR_FN(DrawAllChanStatus));
     DrawSynthNumber();
     FarCall(5, MapDrawTopRow);
+}
+
+void SynthLoadParams(void)
+{
+    volatile UWORD p;
+    volatile UWORD o;
+    volatile UWORD s;
+    UBYTE v;
+    UBYTE x, y;
+
+    s = wSynthScreen;
+    o = s << 4;
+    p = (UWORD)SramSynthParams + o;
+    wSynthSignalType = ReadSongByte(1, p++);
+    wSynthWaveShape = ReadSongByte(1, p++);
+    v = ReadSongByte(1, p++);
+    SynthFillWaveRange(v >> 4, v & 0x0F, (UBYTE *)0xCA94);
+    wSynthFilterParam = ReadSongByte(1, p++);
+    wSynthFilterType = ReadSongByte(1, p++);
+    wSynthSegLen3 = ReadSongByte(1, p++);
+    wSynthSegLen1 = ReadSongByte(1, p++);
+    wSynthFilterCutoff = ReadSongByte(1, p++) << 3;
+    wSynthSegLen2 = ReadSongByte(1, p++);
+    SynthFillWaveRange(wSynthSegLen3, ReadSongByte(1, p++), wSynthCurveSeg3);
+    SynthFillWaveRange(wSynthSegLen1, ReadSongByte(1, p++), wSynthCurveSeg1);
+    SynthFillWaveRange(wSynthFilterCutoff, ReadSongByte(1, p++) << 3, wSynthCurveCutoff);
+    SynthFillWaveRange(wSynthSegLen2, ReadSongByte(1, p++), wSynthCurveSeg2);
+    x = ReadSongByte(1, p++);
+    y = ReadSongByte(1, p);
+    SynthFillWaveRange(x + 0x0F, y + 0x0F, (UBYTE *)0xCAA4);
+    wSynthRenderDst = (UBYTE *)((s << 8) + (UWORD)0xA000);
+    wSynthRenderIdx = 0;
+    wSynthRenderActive = 1;
 }
 
 void DrawOverwriteChoice(void)
