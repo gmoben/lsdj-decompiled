@@ -1277,6 +1277,12 @@
   "len": 251,
   "src": "c/bank00/Main.c"
  },
+ "InitKitMixer": {
+  "bank": "1B",
+  "addr": "6B7A",
+  "len": 190,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
  "InitRemapTable": {
   "bank": "1F",
   "addr": "4A26",

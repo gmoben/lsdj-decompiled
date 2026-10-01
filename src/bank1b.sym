@@ -3,6 +3,7 @@
 ; tables are marked as data in the disasm command; some embedded graphics/jump
 ; tables are still shown as code (byte-safe) and will be refined.
 
+4000 MixerKernel                ; 27-byte asm kit mixer step (ldh a,[c] .. ldh [c],a), copied to WRAM by InitKitMixer; ends at DrawHelpMenu
 4A62 DrawHelpScreen   ; Help screen (idx 14): renders the help/command-list text
 5C17 DrawProjectScreen ; Project screen draw: edits song-global properties at SRAM bank1 $BFB2+ (song offset $3FB2: tempo/transpose/sync/font/colorset/clone; see data_model.md)
 58B1 DrawSyncField   ; Project SYNC field ($58B1-$59B6): draw the wSyncMode name (TxtSyncOff..TxtSyncAnOut) at VRAM $9885, then at $98A0 either the sub-setting label (PS/2 DELAY / TICKS/STEP, ProjSyncModeIs567) + wSyncMode2 in hex, or a blank; CGB attribute row via DrawTextField. Matched in C: c/bank1b/DrawSyncField.c
@@ -15,7 +16,7 @@
 52D8 TxtSaving                  ; "SAVING..."
 5C03 TxtClockLabels  ; "PLAY %d:"/"WORKED %d:" (total/work-time clock)
 6A5C CloneModeNames2 ; "SLIM"/"DEEP" + "RESET CART..." (reset-cartridge menu)
-6C38 ProjScreenGfx   ; 1152-byte tile/graphics block copied to WRAM $D000 by $6B88
+6C38 KitMixTable                ; 1152-byte nibble-sum LUT copied to WRAM $d000 for the MixerKernel (indexed h = page, l = sample nibbles)
 5D4F CloneModeNames  ; clone-mode display names "DEEP"/"SLIM" (5-byte stride)
 5B7A DrawSyncSubSetting ; draw PS/2 DELAY (KEYBD) or TICKS/STEP (analog) value beside SYNC
 5126 CloseNameEditor            ; leave the name editor -> wNameReturnScreen (FILE flow shows "SAVING...")
@@ -59,7 +60,7 @@
 726E ComputeEnvelope            ; precompute envelope data for the current instrument (UpdateInstrEnvelope core)
 74E4 UpdateEnvSprites           ; write the envelope OAM markers (SetOAMByte x2, 8-slot bound)
 ; --- functions called from bank 0 (this bank paged in) ---
-6B7A LoadSongData       ; load the working song (called by InitAndLoadSong)
+6B7A InitKitMixer               ; build the kit sample mixer in WRAM: KitMixTable -> $d000 (1152 B), then MixerKernel unrolled 16x at $d480 with inc c / inc e between copies and a ret after the last
 5DBF ProjectScreenInput         ; project screen (9) input handler, from DispatchScreenInput: dispatch on wButtons
 53E8 NameEditorInput            ; name-editor per-frame input (letter select; FILE save flow aware)
 4BC3 HelpScreenInput            ; HELP screen input: UP/DOWN move the selection, A opens the entry, B closes it or returns to the project screen
@@ -161,8 +162,8 @@
 6AF8 .loop                ; loop head in ProjScrollTextStep
 6B2A .loop2               ; loop head in ProjScrollTextStep
 6B76 .done                ; common exit of ProjScrollTextStep
-6B99 .loop                ; loop head in LoadSongData
-6BAA .loop2               ; loop head in LoadSongData
+6B99 .loop                ; loop head in InitKitMixer
+6BAA .loop2               ; loop head in InitKitMixer
 720E .loop                ; loop head in PlotEnvCurve
 72BF .loop                ; loop head in ComputeEnvelope
 7318 .loop2               ; loop head in ComputeEnvelope

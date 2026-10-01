@@ -40,7 +40,7 @@ extern char TxtTitle[];                     /* $01:$6F7E */
 
 void SwitchToDoubleSpeed(void);             /* asm */
 void ResetWorkState(void);
-void LoadSongData(void);                    /* bank $1B */
+void InitKitMixer(void);                    /* bank $1B */
 void UiInitScreen(void);                    /* bank 1 */
 UBYTE CheckSongInitFlag(void);              /* bank 1 */
 void InitScreenPalettes(void);              /* bank $1E */
@@ -70,7 +70,7 @@ void InitAndLoadSong(void)
     ClearBgTilemap();
     rRAMG = 0;
     SWITCH_ROM(0x1B);
-    LoadSongData();
+    InitKitMixer();
     SWITCH_ROM(0x01);
     UiInitScreen();
     if (!CheckSongInitFlag()) {
