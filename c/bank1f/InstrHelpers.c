@@ -721,6 +721,54 @@ void RemapChainRefs(UBYTE from, UBYTE to)
     } while (i);
 }
 
+void RemapCmdTableRefs(UBYTE from, UBYTE to)
+{
+    volatile UWORD p;
+    volatile UWORD q;
+    volatile UBYTE i;
+    volatile UBYTE nt;
+    UBYTE nf;
+
+    p = (UWORD)0xB680;
+    q = (UWORD)0xB880;
+    _asm di _endasm;
+    rRAMG = 0x0A;
+    rRAMB = 1;
+    while (p != (UWORD)0xB880) {
+        if (*(UBYTE *)p == 1 && from == *(UBYTE *)q)
+            *(UBYTE *)q = to;
+        p++;
+        q++;
+    }
+    p = (UWORD)0xBA80;
+    q = (UWORD)0xBC80;
+    while (p != (UWORD)0xBC80) {
+        if (*(UBYTE *)p == 1 && from == *(UBYTE *)q)
+            *(UBYTE *)q = to;
+        p++;
+        q++;
+    }
+    rRAMB = 2;
+    p = (UWORD)0xA000;
+    q = (UWORD)0xAFF0;
+    while (p != (UWORD)0xAFF0) {
+        if (*(UBYTE *)p == 1 && from == *(UBYTE *)q)
+            *(UBYTE *)q = to;
+        p++;
+        q++;
+    }
+    rRAMG = 0;
+    _asm ei _endasm;
+    i = 0;
+    nt = to | 0x20;
+    nf = from | 0x20;
+    while (i != 0x40) {
+        if (ReadInstrByte(i, 6) == nf)
+            WriteInstrByte(i, 6, nt);
+        i++;
+    }
+}
+
 UBYTE InstrHCountUsedPhrases(void)
 {
     UBYTE n, i;

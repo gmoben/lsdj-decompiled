@@ -2357,6 +2357,12 @@
   "len": 124,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "RemapCmdTableRefs": {
+  "bank": "1F",
+  "addr": "5A8E",
+  "len": 336,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
  "RemapPhraseRefs": {
   "bank": "1F",
   "addr": "5996",
