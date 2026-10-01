@@ -17,6 +17,23 @@ extern UBYTE DefaultWaveFrameB1F[];         /* $1F:$491A, [16] */
 extern UBYTE DefaultSynthParams[];          /* $1F:$61FF, [16] */
 extern UBYTE wPhraseCol;                    /* $C415 */
 UBYTE IsPhraseUsed(UBYTE phrase);
+extern UBYTE wColPhrase[];                  /* $C453, [4] */
+extern UBYTE wColChain[];                   /* $C44F, [4] */
+extern UBYTE wPhraseDedupScratch5;          /* $C9CC */
+void FreePhrase(void);                      /* $01:$4DD3 */
+void FreeChain(void);                       /* $01:$4E43 */
+void MarkChainUsed(void);                   /* $01:$4D67 */
+void ShowOutOfMemory(void);                 /* $01:$75BD */
+void DrawFreedTables(void);
+UBYTE MarkInstrUsed(void);
+UBYTE InstrHCountUsedPhrases(void);
+UBYTE InstrHCountUsedChains(void);
+void DedupPhrases(void);
+void DedupChains(void);
+void RemapSeqChains(void);
+void RebuildPhraseAllocMap(void);
+UBYTE FindDupTable(UBYTE a, UBYTE b);
+void RemapCmdTableRefs(UBYTE from, UBYTE to);
 UBYTE IsChainUsed(UBYTE chain);
 void InstrHReadCursorCell(UBYTE col, UBYTE row);
 void DrawPhraseCellValue(UBYTE col, UBYTE row);
@@ -169,6 +186,18 @@ UBYTE InstrHReadTableRow(UBYTE bank, UBYTE *addr)
     return 1;
 }
 
+UBYTE IsTableFree(UWORD t)
+{
+    t <<= 4;
+    if (!InstrHReadTableRow(1, (UBYTE *)0xB480 + t))
+        return 0;
+    if (!InstrHReadTableRow(1, (UBYTE *)0xB680 + t))
+        return 0;
+    if (!InstrHReadTableRow(1, (UBYTE *)0xBA80 + t))
+        return 0;
+    return InstrHReadTableRow(0, (UBYTE *)0xB690 + t);
+}
+
 UBYTE FindFreeTable(void)
 {
     UBYTE i;
@@ -177,6 +206,32 @@ UBYTE FindFreeTable(void)
         if (IsTableFree((UWORD)i))
             return i;
     ShowMessage("OUT OF TABLES!");
+    return 0xFF;
+}
+
+UBYTE IsSongChainUsed(void)
+{
+    UBYTE i;
+    UBYTE *p;
+    UBYTE start;
+
+    start = wColChain[wSongCol];
+    if (start & 0x80)
+        start = 0;
+    i = start;
+    do {
+        p = SramChainAlloc + (i >> 3);
+        if (!(ReadSongByte(1, (UWORD)p) & (1 << (i & 7)))) {
+            FarCallArg(1, FAR_FN(MarkChainUsed), i);
+            if (i >= 0x80)
+                DebugTrap();
+            return i;
+        }
+        i++;
+        if (i == 0x80)
+            i = 0;
+    } while (i != start);
+    FarCall(1, FAR_FN(ShowOutOfMemory));
     return 0xFF;
 }
 
@@ -276,6 +331,28 @@ void ClearTableRow(UBYTE bank, UBYTE *p)
     }
 }
 
+void ClearTable(UBYTE t)
+{
+    UWORD o;
+    UBYTE *p1, *p2, *p3, *p4, *p5;
+
+    o = (UWORD)t << 4;
+    if (t >= 0x20)
+        DebugTrap();
+    p1 = (UBYTE *)0xB680 + o;
+    p2 = (UBYTE *)0xB880 + o;
+    p3 = (UBYTE *)0xBA80 + o;
+    p4 = (UBYTE *)0xBC80 + o;
+    p5 = (UBYTE *)0xB480 + o;
+    o += (UWORD)0xB690;
+    ClearTableRow(1, p1);
+    ClearTableRow(1, p2);
+    ClearTableRow(1, p3);
+    ClearTableRow(1, p4);
+    ClearTableRow(1, p5);
+    ClearTableRow(0, (UBYTE *)o);
+}
+
 UBYTE InstrHCollectUsedTables(void)
 {
     UBYTE n, i;
@@ -325,6 +402,52 @@ void InstrHScanUsedChains(void)
     for (i = 0; i < 0x80; i++)
         if (IsChainUsedFar(i))
             MarkChainPhrasesUsed(i);
+}
+
+void RemapPhraseRefs(UBYTE from, UBYTE to)
+{
+    UBYTE *p;
+    UBYTE i;
+
+    p = SramChainPhrases;
+    _asm di _endasm;
+    rRAMG = 0x0A;
+    rRAMB = 1;
+    for (; p != SramChainPhrases + 0x800; p++)
+        if (from == *p)
+            *p = to;
+    rRAMG = 0;
+    _asm ei _endasm;
+    FarCallArg(1, FAR_FN(FreePhrase), from);
+    i = 4;
+    do {
+        if (from == wColPhrase[i - 1])
+            wColPhrase[i - 1] = to;
+        i--;
+    } while (i);
+}
+
+void RemapChainRefs(UBYTE from, UBYTE to)
+{
+    UBYTE *p;
+    UBYTE i;
+
+    p = SramSequence;
+    _asm di _endasm;
+    rRAMG = 0x0A;
+    rRAMB = 0;
+    for (; p != SramSequence + 0x400; p++)
+        if (from == *p)
+            *p = to;
+    rRAMG = 0;
+    _asm ei _endasm;
+    FarCallArg(1, FAR_FN(FreeChain), from);
+    i = 4;
+    do {
+        if (from == wColChain[i - 1])
+            wColChain[i - 1] = to;
+        i--;
+    } while (i);
 }
 
 UBYTE InstrHCountUsedPhrases(void)
@@ -454,6 +577,50 @@ UBYTE TableIsReferenced(void)
     InstrHScanTableRows();
     b = InstrHScanAllChainPhr();
     return a - b;
+}
+
+void CleanSongData(void)
+{
+    UBYTE phrases, chains;
+
+    phrases = InstrHCountUsedPhrases();
+    chains = InstrHCountUsedChains();
+    wVramCursor = 0x98A4;
+    DrawString("DE-DUPE...");
+    DedupPhrases();
+    DedupChains();
+    wVramCursor = 0x98C4;
+    DrawString("FREEING:");
+    wVramCursor = 0x98E4;
+    DrawFormat("CHAINS....");
+    RemapSeqChains();
+    DrawFormat("%d", chains - InstrHCountUsedChains());
+    wVramCursor = 0x9904;
+    DrawFormat("PHRASES...");
+    RebuildPhraseAllocMap();
+    DrawFormat("%d", phrases - InstrHCountUsedPhrases());
+    wVramCursor = 0x9944;
+    DrawFormat("OK!");
+}
+
+void CleanInstrData(void)
+{
+    wVramCursor = 0x98A4;
+    DrawString("DE-DUPE...");
+    DrawFreedTables();
+    wVramCursor = 0x98C4;
+    DrawString("FREEING:");
+    wVramCursor = 0x98E4;
+    DrawFormat("INSTRS....");
+    DrawFormat("%d", MarkInstrUsed());
+    wVramCursor = 0x9904;
+    DrawFormat("TABLES....");
+    DrawFormat("%d", BuildUsedTablesMap());
+    wVramCursor = 0x9924;
+    DrawFormat("SYNTHS....");
+    DrawFormat("%d", TableIsReferenced());
+    wVramCursor = 0x9964;
+    DrawFormat("OK!");
 }
 
 void PhraseScreenUpdate(void)
