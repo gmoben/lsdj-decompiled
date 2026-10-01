@@ -40,6 +40,15 @@ void SndStopAllIfIdle(void);                /* bank 2 */
 void SongScrollToCursor(void);
 void DrawAllChanStatus(void);               /* bank $1F */
 
+extern UBYTE wPlayMarkerTimer;              /* $C950 */
+extern UBYTE wChanNextSongRow[];            /* $C2FC, [4] */
+extern UBYTE wChanSongRow[];                /* $C200, [4] */
+extern UBYTE wChanLiveQueued[];             /* $C300, [4] live-mode row queued */
+extern UBYTE wChanActive[];                 /* $C0E0, [4] */
+extern UBYTE wChanStarted[];                /* $C304, [4] */
+extern char TxtDashes[];                    /* $07:$492A "--" */
+UBYTE MulU8(UBYTE a, UBYTE b);
+
 void SongCopyColumn(UBYTE *p, UBYTE *q)
 {
     if (q >= (UBYTE *)0xB590)
@@ -179,6 +188,49 @@ void DrawSongScreen(void)
     FarCall(5, MapDrawTopRow);
 }
 
+void SongUpdatePlayMarker(void)
+{
+    UBYTE i;
+    UBYTE next;
+    UBYTE row;
+    UBYTE on;
+    UBYTE y;
+
+    wPlayMarkerTimer++;
+    for (i = 0; i < 4; i++) {
+        next = wChanNextSongRow[i];
+        row = wChanSongRow[i];
+        on = wPlayMarkerTimer & (wChanLiveQueued[i] ? 4 : 8);
+        if (next != 0xFF && on) {
+            y = next - wSongScroll;
+            SetSpriteY(i + 4, y);
+            if (hGameboyType)
+                SetSpriteAttr(i + 4, IsBookmarked(next));
+        } else {
+            ClearSpriteY(i + 4);
+        }
+        if (!wChanActive[i]) {
+            ClearSpriteY(i);
+        } else if (next == row) {
+            ClearSpriteY(i);
+        } else {
+            if (wChanStarted[i]) {
+                if (on)
+                    SetSpriteTile4(i);
+                else {
+                    ClearSpriteY(i);
+                    continue;
+                }
+            } else {
+                SetSpriteTile3(i);
+            }
+            SetSpriteY(i, row - wSongScroll);
+            if (hGameboyType)
+                SetSpriteAttr(i, IsBookmarked(row));
+        }
+    }
+}
+
 void SongScreenUpdate(void)
 {
     UBYTE i;
@@ -188,6 +240,60 @@ void SongScreenUpdate(void)
     } else {
         for (i = 0; i != 8; i++)
             ClearSpriteY(i);
+    }
+}
+
+void SongRowPalettes(UBYTE y)
+{
+    UBYTE bm;
+    UBYTE v;
+    UBYTE shadow;
+    UBYTE i, cur;
+
+    bm = IsBookmarked(wSongRow);
+    cur = wSongScroll + y - 2;
+    shadow = cur & (UBYTE)4;
+    if (shadow) {
+        hBgDigitPalette = wShadowDigitPal;
+        hBgPalette = wShadowPal;
+    } else {
+        hBgDigitPalette = wSelectDigitPal;
+        hBgPalette = wSelectPal;
+    }
+    DrawHexByte(wSongRow);
+    if (bm) {
+        hBgDigitPalette = wShadowDigitPal;
+        hBgPalette = wShadowPal;
+    } else {
+        hBgDigitPalette = 4;
+        hBgPalette = 1;
+    }
+    for (i = 0; i < 4; i++) {
+        v = ReadSeqByte(i, wSongRow);
+        DrawStringIndexed(' ');
+        cur = i == wSongCol;
+        if (cur) {
+            hBgDigitPalette = wSelectDigitPal;
+            hBgPalette = wSelectPal;
+        }
+        if (v & 0x80)
+            DrawString(TxtDashes);
+        else
+            DrawHexByte(v);
+        if (cur) {
+            if (bm) {
+                hBgDigitPalette = wShadowDigitPal;
+                hBgPalette = wShadowPal;
+            } else {
+                hBgDigitPalette = 4;
+                hBgPalette = 1;
+            }
+        }
+    }
+    if (hGameboyType) {
+        DrawTextField(0, y, 2, shadow ? 1 : 2);
+        DrawTextField(2, y, 12, bm);
+        DrawTextField(MulU8(wSongCol, 3) + 3, y, 2, 3);
     }
 }
 

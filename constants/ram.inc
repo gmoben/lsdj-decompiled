@@ -590,7 +590,7 @@ DEF wChanTableFreshNoi EQU $C2EF  ; table freshly restarted, NOI
 DEF wChanNextSongRowPu1Hi EQU $C2FD  ; wChanNextSongRow[0] hi byte (Pu1)
 DEF wChanNextSongRowPu2 EQU $C2FE  ; wChanNextSongRow[1]  (Pu2)
 DEF wChanNextSongRowPu2Hi EQU $C2FF  ; wChanNextSongRow[1] hi byte (Pu2)
-DEF wChanNextSongRowWav EQU $C300  ; wChanNextSongRow[2]  (Wav)
+DEF wChanLiveQueued  EQU $C300  ; [4] live mode: a song row is queued for this channel (SndChanStateMachine; the play marker blinks faster while set)
 DEF wChanVibAccumPu1Hi EQU $C309  ; vibrato phase accumulator hi, PU1 (16-bit += wChanVibSpeed)
 DEF wChanVibAccumPu2 EQU $C30A  ; vibrato phase accumulator lo, PU2
 DEF wChanVibAccumPu2Hi EQU $C30B  ; vibrato phase accumulator hi, PU2

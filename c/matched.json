@@ -2663,6 +2663,12 @@
   "len": 34,
   "src": "c/bank07/SongScreen.c"
  },
+ "SongRowPalettes": {
+  "bank": "07",
+  "addr": "47CF",
+  "len": 347,
+  "src": "c/bank07/SongScreen.c"
+ },
  "SongScreenUpdate": {
   "bank": "07",
   "addr": "47AA",
@@ -2685,6 +2691,12 @@
   "bank": "07",
   "addr": "494E",
   "len": 37,
+  "src": "c/bank07/SongScreen.c"
+ },
+ "SongUpdatePlayMarker": {
+  "bank": "07",
+  "addr": "4657",
+  "len": 339,
   "src": "c/bank07/SongScreen.c"
  },
  "SortBookmarks": {
