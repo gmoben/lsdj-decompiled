@@ -15,7 +15,12 @@
 #include "lsdj.h"
 
 extern volatile sfr UBYTE SC_REG;           /* $FF02 */
+extern volatile sfr UBYTE hSoundCh;         /* $FF8B, the sound engine's channel */
 extern volatile sfr UBYTE IE_REG;           /* $FFFF */
+extern UBYTE wChanActive[];                 /* $C0E0, [4] */
+extern UBYTE wChanSongRow[];                /* $C200, [4] */
+extern UBYTE wChanNextSongRow[];            /* $C2FC, [4] */
+extern UBYTE wChanStarted[];                /* $C304, [4] */
 extern UBYTE wLiveMode;                     /* $C528 */
 extern UBYTE wLiveStartCol;                 /* $C571 */
 extern UBYTE wAnalogOutTimer;               /* $CB68 */
@@ -27,6 +32,7 @@ extern UBYTE wSyncSendGate;                 /* $CB6E */
 extern UBYTE wSyncRxPos;                    /* $CB71 */
 extern UBYTE wSyncTxByte;                   /* $CBDC */
 extern UBYTE wSyncRxByte;                   /* $CBDD */
+extern UBYTE wSyncState;                    /* $CBDE */
 extern char TxtTooBusy[];                   /* $01:$6FAE, "TOO BUSY!" */
 
 void SndInitPlayState(void);                /* bank 2 */
@@ -39,6 +45,7 @@ void SyncTickLSDJ(void);
 void SyncSetSendMode(void);
 void SyncSetRecvMode(void);
 void StopPlayback(void);                    /* bank 2 */
+void SndSetupChanState5F5E(void);           /* bank 2 */
 void EnableSerialSync(void);                /* bank $1C */
 
 void LoadSyncSetting(void)
@@ -84,6 +91,39 @@ void SyncStopTransport(void)
     }
 }
 
+void SyncTickLSDJ(void)
+{
+    UBYTE *saved;
+
+    if (wLiveMode) {
+        saved = wVramCursor;
+        for (hSoundCh = 0; hSoundCh < 4; hSoundCh++) {
+            wChanNextSongRow[hSoundCh] = 0xFF;
+            wChanStarted[hSoundCh] = 0;
+            wChanActive[hSoundCh] = 0;
+            _asm di _endasm;
+            SWITCH_ROM(2);
+            SndSetupChanState5F5E();
+            _asm ei _endasm;
+            if (wCurrentScreen == 4) {
+                GetTilemapAddr(hSoundCh * 3 + 2, (wChanSongRow[hSoundCh] & 0x0F) + 2);
+                DrawStringTile20();
+            }
+        }
+        wVramCursor = (UBYTE *)0x99B0;
+        hBgDigitPalette = 4;
+        hBgPalette = 1;
+        DrawString("    ");
+        wVramCursor = saved;
+    } else {
+        wPlayMode = wCurrentScreen;
+        _asm di _endasm;
+        SWITCH_ROM(2);
+        StopPlayback();
+        _asm ei _endasm;
+    }
+}
+
 void SyncTickMidi(void)
 {
     if (wLiveMode) {
@@ -124,6 +164,44 @@ void SyncSetRecvMode(void)
     SetInterruptEnable((IE_REG & 4) | 9);
     wSyncTick = 0xFF;
     SendSyncHandshake();
+}
+
+void SyncApplyMode(void)
+{
+    _asm di _endasm;
+    wSyncRun = 0;
+    switch (wSyncMode) {
+    case 0:
+    case 7:
+        SyncSetSendMode();
+        wSyncTick = 0xFF;
+        break;
+    case 6:
+        wSyncSerialIeMask = 0;
+        wSyncSendGate = 2;
+        SetInterruptEnable(5);
+        wSyncTick = 0xFF;
+        break;
+    case 1:
+        if (wPlayMode) {
+            wSyncRun = 1;
+            SyncSetSendMode();
+        } else
+            SyncSetRecvMode();
+        break;
+    case 3:
+        SyncSetRecvMode();
+        break;
+    case 5:
+        wSyncSerialIeMask = 8;
+        wSyncSendGate = 1;
+        if (wSyncState != 2) {
+            SetInterruptEnable((IE_REG & 4) | 9);
+            SendSyncHandshake();
+        }
+        break;
+    }
+    _asm ei _endasm;
 }
 
 void SyncSendAnalogClock(void)

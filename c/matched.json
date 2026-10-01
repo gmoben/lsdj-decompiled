@@ -2039,6 +2039,12 @@
   "len": 55,
   "src": "c/bank00/GbdkLib.c"
  },
+ "SyncApplyMode": {
+  "bank": "00",
+  "addr": "1F06",
+  "len": 148,
+  "src": "c/bank00/Sync.c"
+ },
  "SyncSendAnalogClock": {
   "bank": "00",
   "addr": "1F9A",
@@ -2067,6 +2073,12 @@
   "bank": "00",
   "addr": "1D6C",
   "len": 49,
+  "src": "c/bank00/Sync.c"
+ },
+ "SyncTickLSDJ": {
+  "bank": "00",
+  "addr": "1D9D",
+  "len": 211,
   "src": "c/bank00/Sync.c"
  },
  "SyncTickMidi": {
