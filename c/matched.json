@@ -371,6 +371,12 @@
   "len": 223,
   "src": "c/bank1c/FileScreen.c"
  },
+ "DrawFontColorFields": {
+  "bank": "1B",
+  "addr": "569C",
+  "len": 107,
+  "src": "c/bank1b/DrawFontColorFields.c"
+ },
  "DrawGrooveRow": {
   "bank": "1D",
   "addr": "425B",
