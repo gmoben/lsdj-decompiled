@@ -989,6 +989,12 @@
   "len": 65,
   "src": "c/bank03/InstrScreen.c"
  },
+ "GetSynthFieldHelp": {
+  "bank": "05",
+  "addr": "7208",
+  "len": 155,
+  "src": "c/bank05/TableScreen.c"
+ },
  "GetTempoTimerValue": {
   "bank": "00",
   "addr": "2BC4",
@@ -2302,6 +2308,12 @@
   "addr": "58DA",
   "len": 12,
   "src": "c/bank1d/SynthScreen.c"
+ },
+ "TableDrawCursor": {
+  "bank": "05",
+  "addr": "4AA8",
+  "len": 181,
+  "src": "c/bank05/TableScreen.c"
  },
  "TableEraseCursor": {
   "bank": "05",

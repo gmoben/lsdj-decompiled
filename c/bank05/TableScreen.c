@@ -7,6 +7,8 @@
 
 #include "lsdj.h"
 
+void TableUpdateScreen(void);
+
 extern volatile sfr UBYTE SCX_REG;          /* $FF43 */
 extern volatile sfr UBYTE SCY_REG;          /* $FF42 */
 extern UBYTE wSelTop;                       /* $C40E */
@@ -21,7 +23,8 @@ extern UBYTE wMapRow;                       /* $C900 */
 extern UBYTE wMapProjectCol;                /* $C901 */
 extern UBYTE wMapSynthCol;                  /* $C902 */
 extern UBYTE wMapMoveDir;                   /* $C903 */
-extern UBYTE wTableCol;                     /* $C92F */
+extern UBYTE wSynthCursor;                  /* $C442 */
+extern char wTableCol;                      /* $C92F, a plain char (TableDrawCursor's signed switch) */
 extern UBYTE wTableRow;                     /* $C930 */
 extern UBYTE TableColX[];                /* $05:$42D5..: the six table columns' x, */
 extern UBYTE TableColWidth[];            /* width */
@@ -259,6 +262,72 @@ UBYTE TableInputFlag(UBYTE x)
         return wTableCol != 2;
     }
     return 0;
+}
+
+void TableDrawCursor(void)
+{
+    if (wCursorMode == 4)
+        TableUpdateScreen();
+    else
+        DrawTextField(TableColX[wTableCol], wTableRow + 2, TableColWidth[wTableCol], hGameboyType ? 3 : 2);
+    switch (wTableCol) {
+    case 2:
+    case 3:
+        wTableCellAPtr = 0xB680;
+        wTableCellBPtr = 0xB880;
+        break;
+    case 4:
+    case 5:
+        wTableCellAPtr = 0xBA80;
+        wTableCellBPtr = 0xBC80;
+        break;
+    }
+}
+
+void GetSynthFieldHelp(void)
+{
+    char *s;
+
+    s = 0;
+    switch (wSynthCursor) {
+    case 0:
+        s = "SIGNAL WAVE. W.FX USES A WAVE IN RANGE F0-FF AS INPUT";
+        break;
+    case 1:
+        s = "LOW-PASS, HIGH-PASS, BAND-PASS OR ALL-PASS";
+        break;
+    case 2:
+        s = "DISTORTION. CLIP TRUNCATES TO LIMIT, FOLD MIRRORS AROUND LIMIT, WRAP WRAPS AROUND VERTICALLY";
+        break;
+    case 3:
+    case 9:
+    case 15:
+        s = "COMPRESS WAVE HORIZONTALLY";
+        break;
+    case 4:
+    case 10:
+        s = "SIGNAL VOLUME";
+        break;
+    case 5:
+    case 11:
+        s = "FILTER CUTOFF FREQUENCY";
+        break;
+    case 6:
+    case 12:
+        s = "RESONANCE CONTROL. BOOSTS SIGNAL AROUND CUTOFF FREQUENCY";
+        break;
+    case 7:
+    case 13:
+        s = "VERTICAL SHIFT";
+        break;
+    case 8:
+    case 14:
+        s = "LIMIT SIGNAL VERTICALLY USING DIST MOD";
+        break;
+    default:
+        DebugTrap();
+    }
+    ShowMessage(s);
 }
 
 void SaveSelectionState(void)
