@@ -29,6 +29,7 @@
 2CC6 DrawChannelHeader   ; draw the channel/column header at VRAM $9811, dispatched on wSongCol (0-3)
 0150 Start              ; init: di, stack=$E000, clear WRAM/HRAM, save boot regs
 0824 FxMnemonics        ; "-ABCDEFGHKLMOPRSTVWZ": phrase/table command letters indexed by command byte (0='-'=none); FxCommandTable order
+0839 PlayModeNames              ; five 9-byte table PLAY mode names "  MANUAL", "    ONCE", "    LOOP", "PINGPONG", "  RESYNC" (DrawWaveInstr: byte 9, capped at 5)
 0DDB InitAndLoadSong    ; second-stage boot (runs once before MainLoop): SwitchToDoubleSpeed, ClearBgTilemap, init subsystems, load the working song (bank1 $4CF1/$4848) or ResetWorkState if empty, set palettes + load song properties
 1377 .mainLoop            ; (was MainLoop) poll ready flags, then process a frame (-> ProcessInput)
 1CFF LoadSyncSetting    ; read song sync property ($BFBD) -> $CB66/$CB67

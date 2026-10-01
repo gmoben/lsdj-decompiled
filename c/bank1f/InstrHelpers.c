@@ -79,6 +79,15 @@ void ClearTable(UBYTE t);
 void MarkPhraseUsed(UBYTE phrase);
 void WritePhraseInstrument(UBYTE phrase, UBYTE row, UBYTE instr);
 
+void DrawFieldValue(UBYTE kind, UBYTE v);   /* bank 0, DrawFields.c */
+extern char PlayModeNames[];                /* $00:$0839, five 9-byte names "  MANUAL".."  RESYNC" */
+void DrawPulseDuty(UBYTE duty);             /* bank 0 */
+void DrawInstrByte12(void);                 /* $03:$4CD9 */
+void DrawWaveSynthField(void);              /* $03:$4D15 */
+void DrawInstrByte10(void);                 /* $03:$498B */
+void DrawInstrRow14(void);                  /* $03:$49FD */
+void DrawInstrByte11(void);                 /* $03:$49B7 */
+
 void DrawInstrTableMode(void)
 {
     char *s;
@@ -165,12 +174,128 @@ void DrawInstrEnvFields(void)
     }
 }
 
+void DrawPulseInstr(void)
+{
+    UBYTE v;
+
+    DrawInstrEnvFields();
+    wVramCursor = 0x98EB;
+    v = ReadCurInstrByte(7);
+    DrawPulseDuty(v >> 6);
+    wVramCursor = 0x990B;
+    DrawFieldValue(0x0C, ReadCurInstrByte(7));
+    wVramCursor = 0x9928;
+    v = ReadCurInstrByte(3);
+    if (!(v & 0x40)) {
+        DrawString("UNLIM");
+    } else {
+        DrawString("   ");
+        DrawHexByte((0x3F - v) & 0x3F);
+    }
+    wVramCursor = 0x994B;
+    DrawHexByte(ReadCurInstrByte(4) & 0x7F);
+    wVramCursor = 0x9967;
+    v = ReadCurInstrByte(5);
+    FarCallArg(1, FAR_FN(DrawSpeedModeName), v);
+    wVramCursor = 0x998A;
+    FarCallArg(1, FAR_FN(DrawOnOffName), v);
+    wVramCursor = 0x99EC;
+    DrawByte(ReadCurInstrByte(8));
+    wVramCursor = 0x99AB;
+    DrawHexByte(ReadCurInstrByte(2));
+    wVramCursor = 0x99CB;
+    DrawHexByte(ReadCurInstrByte(0x0B));
+    wVramCursor = 0x9A26;
+    DrawInstrTableMode();
+    wVramCursor++;
+    DrawInstrTableField();
+}
+
+void DrawNoiseInstr(void)
+{
+    UBYTE v;
+
+    wVramCursor = 0x98A5;
+    DrawInstrEnvFields();
+    wVramCursor = 0x98EB;
+    DrawFieldValue(0x0C, ReadCurInstrByte(7));
+    wVramCursor = 0x9908;
+    v = ReadCurInstrByte(3);
+    if (!(v & 0x40)) {
+        DrawString("UNLIM");
+    } else {
+        DrawString("   ");
+        DrawHexByte((0x3F - v) & 0x3F);
+    }
+    wVramCursor = 0x9929;
+    DrawString(ReadCurInstrByte(2) ? "SAFE" : "FREE");
+    wVramCursor = 0x994B;
+    v = ReadCurInstrByte(5);
+    FarCallArg(1, FAR_FN(DrawSpeedGlyph), v);
+    wVramCursor = 0x996A;
+    FarCallArg(1, FAR_FN(DrawOnOffName), v);
+    wVramCursor = 0x998C;
+    DrawByte(ReadCurInstrByte(8));
+    wVramCursor = 0x99C6;
+    DrawInstrTableMode();
+    wVramCursor++;
+    DrawInstrTableField();
+}
+
 void DrawKitNameCell(UBYTE kit)
 {
     ReadKitName(kit);
     DrawHexByte(kit + 1);
     DrawStringTile20();
     DrawString(wSampleNoteString);
+}
+
+void DrawWaveInstr(void)
+{
+    UBYTE v;
+
+    wVramCursor = 0x98A9;
+    v = ReadCurInstrByte(1);
+    switch (v & 0x60) {
+    case 0x20:
+        v = '3';
+        break;
+    case 0x40:
+        v = '2';
+        break;
+    case 0x60:
+        v = '1';
+        break;
+    default:
+        v = '0';
+        break;
+    }
+    DrawStringIndexed((char)v);
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
+    DrawStringIndexed('/');
+    hBgDigitPalette = wShadowDigitPal;
+    hBgPalette = wShadowPal;
+    DrawFieldValue(0x0C, ReadCurInstrByte(7));
+    wVramCursor = 0x98C7;
+    v = ReadCurInstrByte(5);
+    FarCallArg(1, FAR_FN(DrawSpeedModeName), v);
+    wVramCursor = 0x98EA;
+    FarCallArg(1, FAR_FN(DrawOnOffName), v);
+    wVramCursor = 0x992C;
+    DrawByte(ReadCurInstrByte(8));
+    FarCall(3, DrawInstrByte12);
+    FarCall(3, DrawWaveSynthField);
+    FarCall(3, DrawInstrByte10);
+    FarCall(3, DrawInstrRow14);
+    FarCall(3, DrawInstrByte11);
+    wVramCursor = 0x9965;
+    v = ReadCurInstrByte(9);
+    DrawString(PlayModeNames + (v < 5 ? v : 5) * 9);
+    wVramCursor = 0x9A26;
+    DrawInstrTableMode();
+    wVramCursor++;
+    DrawInstrTableField();
 }
 
 void WriteChainPhrase(UBYTE chain, UBYTE row, UBYTE phrase)

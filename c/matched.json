@@ -515,6 +515,12 @@
   "len": 229,
   "src": "c/bank1b/ProjectScreen.c"
  },
+ "DrawNoiseInstr": {
+  "bank": "1F",
+  "addr": "4399",
+  "len": 266,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
  "DrawNoteCell": {
   "bank": "04",
   "addr": "4CC4",
@@ -574,6 +580,12 @@
   "addr": "2D22",
   "len": 80,
   "src": "c/bank00/DrawFields.c"
+ },
+ "DrawPulseInstr": {
+  "bank": "1F",
+  "addr": "423D",
+  "len": 338,
+  "src": "c/bank1f/InstrHelpers.c"
  },
  "DrawSampleNameCell": {
   "bank": "06",
@@ -700,6 +712,12 @@
   "addr": "504E",
   "len": 49,
   "src": "c/bank06/Screens.c"
+ },
+ "DrawWaveInstr": {
+  "bank": "1F",
+  "addr": "474E",
+  "len": 375,
+  "src": "c/bank1f/InstrHelpers.c"
  },
  "DrawWaveScreen": {
   "bank": "06",
