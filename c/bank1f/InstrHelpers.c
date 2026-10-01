@@ -566,6 +566,40 @@ UBYTE InstrHCountUsedChains(void)
     return n;
 }
 
+void RebuildPhraseAllocMap(void)
+{
+    UBYTE i;
+    UWORD o;
+
+    rRAMB = 1;
+    _asm di _endasm;
+    rRAMG = 0x0A;
+    MemSet(SramPhraseAlloc, 0, 0x20);
+    rRAMG = 0;
+    _asm ei _endasm;
+    InstrHScanUsedChains();
+    for (i = 0; i < 0xFF; i++) {
+        if (IsPhraseUsedFar(i))
+            continue;
+        o = i;
+        o <<= 4;
+        o |= 0xA000;
+        _asm di _endasm;
+        rRAMG = 0x0A;
+        rRAMB = 0;
+        MemSet((UBYTE *)o, 0, 0x10);
+        rRAMB = 2;
+        MemSet((UBYTE *)o, 0, 0x10);
+        o += 0xFF0;
+        MemSet((UBYTE *)o, 0, 0x10);
+        o += 0x10;
+        rRAMB = 3;
+        MemSet((UBYTE *)o, 0xFF, 0x10);
+        rRAMG = 0;
+        _asm ei _endasm;
+    }
+}
+
 UBYTE WaveFrameModified(UBYTE w)
 {
     UBYTE *p;

@@ -1937,6 +1937,12 @@
   "len": 86,
   "src": "c/bank06/Screens.c"
  },
+ "RebuildPhraseAllocMap": {
+  "bank": "1F",
+  "addr": "5E1D",
+  "len": 259,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
  "RedrawScreenFar": {
   "bank": "1D",
   "addr": "6E00",
