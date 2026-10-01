@@ -71,6 +71,16 @@ void DrawChainCell(UBYTE col, UBYTE v);
 void DrawKitSampleNames(UBYTE ch, UBYTE note);
 void ChainUpdateScope(void);
 
+extern char TxtClonedPhrase[];              /* $06:$5899 "CLONED PHRASE" */
+extern char TxtDashes2[];                   /* $06:$5A5E " --" */
+extern UBYTE wColPhrase[];                  /* $C453, [4] */
+void DrawChainPos(void);
+void LoadChainRow(void);
+void AllocNextFreePhrase(void);             /* bank 1 */
+void WriteChainPhrase(void);                /* bank $1F */
+void ShowOutOfMemory(void);                 /* bank 1 */
+void ClonePhraseAtCursor(UBYTE src, UBYTE dst);
+
 UBYTE ChainScaleValue(UBYTE v)
 {
     UBYTE r;
@@ -477,6 +487,41 @@ UBYTE ChainReadTrans(UBYTE chain, UBYTE step)
     return ReadSongByte(1, p + step);
 }
 
+void ClonePhraseAtCursor(UBYTE src, UBYTE dst)
+{
+    UBYTE *s1, *d1, *s2, *d2, *s3, *d3, *s4, *d4;
+    UWORD soff, doff;
+    UBYTE v;
+    UBYTE i;
+
+    soff = (UWORD)src << 4;
+    doff = (UWORD)dst << 4;
+    if (wCurrentScreen == 3)
+        ShowMessage(TxtClonedPhrase);
+    if (src == 0xFF)
+        DebugTrap();
+    if (dst == 0xFF)
+        DebugTrap();
+    s1 = (UBYTE *)0xA000 + soff;
+    s2 = (UBYTE *)0xB000 + soff;
+    s3 = (UBYTE *)0xA000 + soff;
+    s4 = (UBYTE *)0xAFF0 + soff;
+    d1 = (UBYTE *)0xA000 + doff;
+    d2 = (UBYTE *)0xB000 + doff;
+    d3 = (UBYTE *)0xA000 + doff;
+    d4 = (UBYTE *)0xAFF0 + doff;
+    for (i = 0; i < 16; i++) {
+        v = ReadSongByte(0, s1++);
+        WriteSongByte(0, d1++, v);
+        v = ReadSongByte(3, s2++);
+        WriteSongByte(3, d2++, v);
+        v = ReadSongByte(2, s3++);
+        WriteSongByte(2, d3++, v);
+        v = ReadSongByte(2, s4++);
+        WriteSongByte(2, d4++, v);
+    }
+}
+
 void ChainDrawCellLo(void)
 {
     UBYTE r, c;
@@ -498,6 +543,50 @@ void LoadChainRow(void)
     ReadSongBytes(1, q, wUsedTableMap);
 }
 
+void DrawChainScreen(void)
+{
+    UBYTE y;
+    UBYTE i, v, pal, r;
+
+    if (wChain & 0x80)
+        DebugTrap();
+    SetSpriteX(0, 1);
+    SetSpriteTile3(0);
+    FarCall(1, FAR_FN(DrawTopBar));
+    DrawTempoField();
+    DrawChainPos();
+    LoadChainRow();
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
+    wVramCursor = (UBYTE *)0x9841;
+    for (i = 0;; i++) {
+        v = wSongReadBuf[i];
+        if (v == 0xFF) {
+            DrawString(TxtDashes2);
+        } else {
+            DrawStringTile20();
+            DrawHexByte(v);
+        }
+        if (i == 15)
+            break;
+        wVramCursor += 0x1D;
+    }
+    wVramCursor = (UBYTE *)0x9845;
+    for (i = 0;; i++) {
+        DrawHexByte(wUsedTableMap[i]);
+        if (i == 15)
+            break;
+        wVramCursor += 0x1E;
+    }
+    r = wChainRow;
+    if (r & 0xF0)
+        DebugTrap();
+    pal = hGameboyType ? 3 : 2;
+    y = wChainRow + 2;
+    DrawTextField(ChainColX[wChainCol], y, 2, pal);
+    FarCall(0x1F, FAR_FN(DrawAllChanStatus));
+}
+
 void ChainScreenUpdate(void)
 {
     if ((wPlayMode == 4 || wPlayMode == 3) && wChanActive[wSongCol]
@@ -510,6 +599,29 @@ void ChainScreenUpdate(void)
 void ChainDrawCellHw(void)
 {
     DrawTextField(ChainColX[wChainCol], wChainRow + 2, 2, hGameboyType ? 3 : 2);
+}
+
+void ChainOpenPhrase(void)
+{
+    UBYTE ph;
+    UBYTE n;
+
+    ph = FarCallArg2(2, (UWORD)SndGetChainPhrase, wChain, (char)wChainRow);
+    FarCall(5, 0x747D);                 /* RestoreSelectionState, bank 5, by address */
+    if (ph == 0xFF)
+        return;
+    wColPhrase[wSongCol] = ph;
+    n = FarCallByte(1, FAR_FN(AllocNextFreePhrase));
+    if (n != 0xFF) {
+        ClonePhraseAtCursor(ph, n);
+        FarCallArg3(0x1F, (UWORD)WriteChainPhrase, wChain, (char)wChainRow, n);
+        GetTilemapAddr(2, wChainRow + 2);
+        hBgDigitPalette = wSelectDigitPal;
+        hBgPalette = wSelectPal;
+        DrawHexByte(n);
+    } else {
+        FarCall(1, FAR_FN(ShowOutOfMemory));
+    }
 }
 
 void DrawKitSampleNames(UBYTE ch, UBYTE note)

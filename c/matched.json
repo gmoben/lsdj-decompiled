@@ -107,6 +107,12 @@
   "len": 82,
   "src": "c/bank06/Screens.c"
  },
+ "ChainOpenPhrase": {
+  "bank": "06",
+  "addr": "5B00",
+  "len": 208,
+  "src": "c/bank06/Screens.c"
+ },
  "ChainReadTrans": {
   "bank": "06",
   "addr": "56AA",
@@ -263,6 +269,12 @@
   "len": 82,
   "src": "c/bank04/PhraseScreen.c"
  },
+ "ClonePhraseAtCursor": {
+  "bank": "06",
+  "addr": "56F0",
+  "len": 425,
+  "src": "c/bank06/Screens.c"
+ },
  "CloneSynth": {
   "bank": "03",
   "addr": "441A",
@@ -363,6 +375,12 @@
   "bank": "06",
   "addr": "5626",
   "len": 44,
+  "src": "c/bank06/Screens.c"
+ },
+ "DrawChainScreen": {
+  "bank": "06",
+  "addr": "5947",
+  "len": 279,
   "src": "c/bank06/Screens.c"
  },
  "DrawChanStatus": {
