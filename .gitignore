@@ -55,3 +55,8 @@ __pycache__/
 *.pyc
 .venv/
 .ruff_cache/
+
+# editor lock and autosave files
+.#*
+#*#
+*~

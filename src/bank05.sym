@@ -31,7 +31,7 @@
 64A3 TableHandleInput           ; table-screen input/cursor handler ($c411 mode, wSelLeft/wSelTop); large
 676A TableUpdateScreen          ; main table-screen update/draw (large; also entered from DrawTableScreen)
 ; --- functions called from bank 0 (this bank paged in) ---
-4B5D TableHighlightCell         ; table cursor cell highlight (wTable asserted, select palettes)
+4B5D TableScreenInput           ; table screen (5) input handler, from DispatchScreenInput: dispatch on wButtons
 4040 MapDrawTopRow      ; draw the map top-row entries (PROJECT + WAVE/SYNTH) at wMapProjectCol/wMapSynthCol, screen row 15
 61C3 TxtSelect05       ; "SELECT" (pairs with TxtCancelSelect05)
 
@@ -73,17 +73,17 @@
 4965 .done                ; common exit of TableInputFlag
 4AA4 .done                ; common exit of TableScreenUpdate
 4B59 .done                ; common exit of TableDrawCursor
-4F1F .loop                ; loop head in TableHighlightCell
-508E .loop2               ; loop head in TableHighlightCell
-5251 .loop3               ; loop head in TableHighlightCell
-53BD .loop4               ; loop head in TableHighlightCell
-556B .loop5               ; loop head in TableHighlightCell
-56E3 .loop6               ; loop head in TableHighlightCell
-58C5 .loop7               ; loop head in TableHighlightCell
-5A3B .loop8               ; loop head in TableHighlightCell
-5F34 .loop9               ; loop head in TableHighlightCell
-5FD2 .loop10              ; loop head in TableHighlightCell
-61B1 .done                ; common exit of TableHighlightCell
+4F1F .loop                ; loop head in TableScreenInput
+508E .loop2               ; loop head in TableScreenInput
+5251 .loop3               ; loop head in TableScreenInput
+53BD .loop4               ; loop head in TableScreenInput
+556B .loop5               ; loop head in TableScreenInput
+56E3 .loop6               ; loop head in TableScreenInput
+58C5 .loop7               ; loop head in TableScreenInput
+5A3B .loop8               ; loop head in TableScreenInput
+5F34 .loop9               ; loop head in TableScreenInput
+5FD2 .loop10              ; loop head in TableScreenInput
+61B1 .done                ; common exit of TableScreenInput
 6265 .loop                ; loop head in CutCopyTableSelection
 6291 .loop2               ; loop head in CutCopyTableSelection
 6496 .done                ; common exit of CutCopyTableSelection
@@ -98,11 +98,11 @@
 6D21 .done                ; common exit of DrawInstrFieldHelp
 
 ; --- structural local names (loop heads / common exits) ---
-4B85 .notA                ; wButtons == case in TableHighlightCell
-4E70 .right               ; wButtons == case in TableHighlightCell
-4E89 .left                ; wButtons == case in TableHighlightCell
-4EA1 .up                  ; wButtons == case in TableHighlightCell
-4EBB .down                ; wButtons == case in TableHighlightCell
+4B85 .notA                ; wButtons == case in TableScreenInput
+4E70 .right               ; wButtons == case in TableScreenInput
+4E89 .left                ; wButtons == case in TableScreenInput
+4EA1 .up                  ; wButtons == case in TableScreenInput
+4EBB .down                ; wButtons == case in TableScreenInput
 
 
 

@@ -60,7 +60,7 @@
 74E4 UpdateEnvSprites           ; write the envelope OAM markers (SetOAMByte x2, 8-slot bound)
 ; --- functions called from bank 0 (this bank paged in) ---
 6B7A LoadSongData       ; load the working song (called by InitAndLoadSong)
-5DBF ProjectDrawField   ; project field draw ($c9a4)
+5DBF ProjectScreenInput         ; project screen (9) input handler, from DispatchScreenInput: dispatch on wButtons
 53E8 NameEditorInput            ; name-editor per-frame input (letter select; FILE save flow aware)
 4BC3 HelpScreenInput            ; HELP screen input: UP/DOWN move the selection, A opens the entry, B closes it or returns to the project screen
 
@@ -189,11 +189,11 @@
 5613 .up                  ; wButtons == case in NameEditorInput
 5647 .left                ; wButtons == case in NameEditorInput
 567B .b                   ; wButtons == case in NameEditorInput
-5DFF .notA                ; wButtons == case in ProjectDrawField
-5EE1 .right               ; wButtons == case in ProjectDrawField
-5EEE .left                ; wButtons == case in ProjectDrawField
-64FB .down                ; wButtons == case in ProjectDrawField
-6587 .up                  ; wButtons == case in ProjectDrawField
+5DFF .notA                ; wButtons == case in ProjectScreenInput
+5EE1 .right               ; wButtons == case in ProjectScreenInput
+5EEE .left                ; wButtons == case in ProjectScreenInput
+64FB .down                ; wButtons == case in ProjectScreenInput
+6587 .up                  ; wButtons == case in ProjectScreenInput
 
 
 

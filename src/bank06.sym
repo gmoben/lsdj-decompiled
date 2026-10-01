@@ -87,9 +87,9 @@
 ; --- functions called from bank 0 (this bank paged in) ---
 74AD DrawSyncStatus             ; draw the sync/lead status by wSyncMode (1/3/6/7 cases)
 72C4 DrawShadowDigit            ; draw a digit cell with the shadow palettes
-5BD0 ChainScreenEdit            ; chain-screen edit dispatcher (wButtons; wChain asserted)
+5BD0 ChainScreenInput           ; chain screen (3) input handler, from DispatchScreenInput: dispatch on wButtons
 507F WaveScreenInput            ; wave-screen input dispatch (wButtons)
-431D DrawSelectDigit    ; draw select-palette digit (wSelectDigitPal)
+431D WordEditorInput            ; word screen (12) input handler, from DispatchScreenInput: cursor over wWordEditRow/Col, dispatch on wButtons
 5391 TxtSelect         ; "SELECT" (pairs with TxtCancelSelect)
 6D4E TxtSelect2        ; "SELECT" (second instance; pairs with TxtCancelSelect2)
 4024 WordColWidth               ; widths of the word editor columns ($03, $02)
@@ -111,7 +111,7 @@
 41EC .loop                ; loop head in DrawWordScreen
 423A .loop2               ; loop head in DrawWordScreen
 431C .done                ; common exit of DrawWaveCellPair
-48A7 .done                ; common exit of DrawSelectDigit
+48A7 .done                ; common exit of WordEditorInput
 48BA .loop                ; loop head in TilemapAddr
 4974 .loop                ; loop head in CopySynthParam
 49B2 .loop                ; loop head in ReadWaveSample
@@ -144,17 +144,17 @@
 59DB .loop2               ; loop head in DrawChainScreen
 5ABC .done                ; common exit of ChainScreenUpdate
 5BCC .done                ; common exit of ChainOpenPhrase
-5F76 .loop                ; loop head in ChainScreenEdit
-5F84 .loop2               ; loop head in ChainScreenEdit
-6168 .loop3               ; loop head in ChainScreenEdit
-6176 .loop4               ; loop head in ChainScreenEdit
-63B2 .loop5               ; loop head in ChainScreenEdit
-63C0 .loop6               ; loop head in ChainScreenEdit
-659C .loop7               ; loop head in ChainScreenEdit
-65AA .loop8               ; loop head in ChainScreenEdit
-676D .loop9               ; loop head in ChainScreenEdit
-67B1 .loop10              ; loop head in ChainScreenEdit
-6D3C .done                ; common exit of ChainScreenEdit
+5F76 .loop                ; loop head in ChainScreenInput
+5F84 .loop2               ; loop head in ChainScreenInput
+6168 .loop3               ; loop head in ChainScreenInput
+6176 .loop4               ; loop head in ChainScreenInput
+63B2 .loop5               ; loop head in ChainScreenInput
+63C0 .loop6               ; loop head in ChainScreenInput
+659C .loop7               ; loop head in ChainScreenInput
+65AA .loop8               ; loop head in ChainScreenInput
+676D .loop9               ; loop head in ChainScreenInput
+67B1 .loop10              ; loop head in ChainScreenInput
+6D3C .done                ; common exit of ChainScreenInput
 6DA2 .loop                ; loop head in PasteChainSelection
 6DD0 .loop2               ; loop head in PasteChainSelection
 6EFF .done                ; common exit of PasteChainSelection
@@ -175,26 +175,26 @@
 76E0 .done                ; common exit of DrawChainCell
 
 ; --- structural local names (loop heads / common exits) ---
-43B6 .up                  ; wButtons == case in DrawSelectDigit
-43CD .down                ; wButtons == case in DrawSelectDigit
-43D5 .left                ; wButtons == case in DrawSelectDigit
-43E5 .right               ; wButtons == case in DrawSelectDigit
-43F5 .aB                  ; wButtons == case in DrawSelectDigit
-449C .selA                ; wButtons == case in DrawSelectDigit
-44E5 .a                   ; wButtons == case in DrawSelectDigit
-45ED .aRight              ; wButtons == case in DrawSelectDigit
-4666 .aLeft               ; wButtons == case in DrawSelectDigit
-46DF .aUp                 ; wButtons == case in DrawSelectDigit
-4736 .aDown               ; wButtons == case in DrawSelectDigit
-478D .bLeft               ; wButtons == case in DrawSelectDigit
-479E .bRight              ; wButtons == case in DrawSelectDigit
-47B7 .bDown               ; wButtons == case in DrawSelectDigit
-47CF .bUp                 ; wButtons == case in DrawSelectDigit
-47E5 .selLeft             ; wButtons == case in DrawSelectDigit
-480D .selUp               ; wButtons == case in DrawSelectDigit
-4835 .selDown             ; wButtons == case in DrawSelectDigit
-485D .selStart            ; wButtons == case in DrawSelectDigit
-487D .start               ; wButtons == case in DrawSelectDigit
+43B6 .up                  ; wButtons == case in WordEditorInput
+43CD .down                ; wButtons == case in WordEditorInput
+43D5 .left                ; wButtons == case in WordEditorInput
+43E5 .right               ; wButtons == case in WordEditorInput
+43F5 .aB                  ; wButtons == case in WordEditorInput
+449C .selA                ; wButtons == case in WordEditorInput
+44E5 .a                   ; wButtons == case in WordEditorInput
+45ED .aRight              ; wButtons == case in WordEditorInput
+4666 .aLeft               ; wButtons == case in WordEditorInput
+46DF .aUp                 ; wButtons == case in WordEditorInput
+4736 .aDown               ; wButtons == case in WordEditorInput
+478D .bLeft               ; wButtons == case in WordEditorInput
+479E .bRight              ; wButtons == case in WordEditorInput
+47B7 .bDown               ; wButtons == case in WordEditorInput
+47CF .bUp                 ; wButtons == case in WordEditorInput
+47E5 .selLeft             ; wButtons == case in WordEditorInput
+480D .selUp               ; wButtons == case in WordEditorInput
+4835 .selDown             ; wButtons == case in WordEditorInput
+485D .selStart            ; wButtons == case in WordEditorInput
+487D .start               ; wButtons == case in WordEditorInput
 50EB .selRightLeft        ; wButtons == case in WaveScreenInput
 511A .right               ; wButtons == case in WaveScreenInput
 513C .left                ; wButtons == case in WaveScreenInput
@@ -215,35 +215,35 @@
 5323 .b                   ; wButtons == case in WaveScreenInput
 5349 .selA                ; wButtons == case in WaveScreenInput
 5737 .notChain            ; wButtons == case in ClonePhraseAtCursor
-5BEC .notA                ; wButtons == case in ChainScreenEdit
-5C68 .notSelRightLeft     ; wButtons == case in ChainScreenEdit
-5E0A .notRight            ; wButtons == case in ChainScreenEdit
-5E2D .notRight2           ; wButtons == case in ChainScreenEdit
-5E66 .notLeft             ; wButtons == case in ChainScreenEdit
-5EA2 .notUp               ; wButtons == case in ChainScreenEdit
-5EB9 .notRightLeftUpDown  ; wButtons == case in ChainScreenEdit
-5EDF .notDown             ; wButtons == case in ChainScreenEdit
-60D1 .notARight           ; wButtons == case in ChainScreenEdit
-631B .notAUp              ; wButtons == case in ChainScreenEdit
-6505 .notALeft            ; wButtons == case in ChainScreenEdit
-674E .notADown            ; wButtons == case in ChainScreenEdit
-6792 .notBRight           ; wButtons == case in ChainScreenEdit
-67D6 .notBLeft            ; wButtons == case in ChainScreenEdit
-6840 .notBUp              ; wButtons == case in ChainScreenEdit
-686C .notSelStartABRightLeftUpDown ; wButtons == case in ChainScreenEdit
-68AF .notBDown            ; wButtons == case in ChainScreenEdit
-69B1 .notAB               ; wButtons == case in ChainScreenEdit
-69C8 .notRight3           ; wButtons == case in ChainScreenEdit
-6A31 .notSelA             ; wButtons == case in ChainScreenEdit
-6A49 .notSelAB            ; wButtons == case in ChainScreenEdit
-6A72 .notSelStart         ; wButtons == case in ChainScreenEdit
-6B09 .notStart            ; wButtons == case in ChainScreenEdit
-6B5B .notSelRight         ; wButtons == case in ChainScreenEdit
-6B91 .notSelLeft          ; wButtons == case in ChainScreenEdit
-6BCA .notSelUp            ; wButtons == case in ChainScreenEdit
-6C00 .notSelDown          ; wButtons == case in ChainScreenEdit
-6C2B .notB                ; wButtons == case in ChainScreenEdit
-6D3A .notSelB             ; wButtons == case in ChainScreenEdit
+5BEC .notA                ; wButtons == case in ChainScreenInput
+5C68 .notSelRightLeft     ; wButtons == case in ChainScreenInput
+5E0A .notRight            ; wButtons == case in ChainScreenInput
+5E2D .notRight2           ; wButtons == case in ChainScreenInput
+5E66 .notLeft             ; wButtons == case in ChainScreenInput
+5EA2 .notUp               ; wButtons == case in ChainScreenInput
+5EB9 .notRightLeftUpDown  ; wButtons == case in ChainScreenInput
+5EDF .notDown             ; wButtons == case in ChainScreenInput
+60D1 .notARight           ; wButtons == case in ChainScreenInput
+631B .notAUp              ; wButtons == case in ChainScreenInput
+6505 .notALeft            ; wButtons == case in ChainScreenInput
+674E .notADown            ; wButtons == case in ChainScreenInput
+6792 .notBRight           ; wButtons == case in ChainScreenInput
+67D6 .notBLeft            ; wButtons == case in ChainScreenInput
+6840 .notBUp              ; wButtons == case in ChainScreenInput
+686C .notSelStartABRightLeftUpDown ; wButtons == case in ChainScreenInput
+68AF .notBDown            ; wButtons == case in ChainScreenInput
+69B1 .notAB               ; wButtons == case in ChainScreenInput
+69C8 .notRight3           ; wButtons == case in ChainScreenInput
+6A31 .notSelA             ; wButtons == case in ChainScreenInput
+6A49 .notSelAB            ; wButtons == case in ChainScreenInput
+6A72 .notSelStart         ; wButtons == case in ChainScreenInput
+6B09 .notStart            ; wButtons == case in ChainScreenInput
+6B5B .notSelRight         ; wButtons == case in ChainScreenInput
+6B91 .notSelLeft          ; wButtons == case in ChainScreenInput
+6BCA .notSelUp            ; wButtons == case in ChainScreenInput
+6C00 .notSelDown          ; wButtons == case in ChainScreenInput
+6C2B .notB                ; wButtons == case in ChainScreenInput
+6D3A .notSelB             ; wButtons == case in ChainScreenInput
 
 
 

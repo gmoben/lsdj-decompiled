@@ -77,17 +77,17 @@ stubs' bank + call target):
 
 | `$C401` | Input handler | | `$C401` | Input handler |
 |---------|---------------|-|---------|---------------|
-| 1 Phrase | `PhraseScreenEdit` `$04:$5BA6` | | 8 Wave | `WaveScreenInput` `$06:$507F` |
-| 2 Groove | `DrawGrooveCursor`* `$1D:$4451` | | 9 Project | `ProjectDrawField`* `$1B:$5DBF` |
-| 3 Chain | `ChainScreenEdit` `$06:$5BD0` | | 10 Synth | `SynthScreenInput` `$1D:$7138` |
-| 4 Song | `SongScreenEdit` `$07:$4B3B` | | 12 Word | `DrawSelectDigit`* `$06:$431D` |
-| 5 Table | `TableHighlightCell`* `$05:$4B5D` | | 13 File | `FileScreenInput` `$1C:$5B0C` |
-| 6 Instrument | `InstrScreenInput` `$03:$541F` | | 14 Help | `HelpScreenInput`* `$1B:$4BC3` |
+| 1 Phrase | `PhraseScreenInput` `$04:$5BA6` | | 8 Wave | `WaveScreenInput` `$06:$507F` |
+| 2 Groove | `GrooveScreenInput` `$1D:$4451` | | 9 Project | `ProjectScreenInput` `$1B:$5DBF` |
+| 3 Chain | `ChainScreenInput` `$06:$5BD0` | | 10 Synth | `SynthScreenInput` `$1D:$7138` |
+| 4 Song | `SongScreenInput` `$07:$4B3B` | | 12 Word | `WordEditorInput` `$06:$431D` |
+| 5 Table | `TableScreenInput` `$05:$4B5D` | | 13 File | `FileScreenInput` `$1C:$5B0C` |
+| 6 Instrument | `InstrScreenInput` `$03:$541F` | | 14 Help | `HelpScreenInput` `$1B:$4BC3` |
 | 7 (name editor) | `NameEditorInput` `$1B:$53E8` | | 0, 11 | — |
 
-\* These five are the screens' real input entry points, but their names (and
-`.sym` comments) describe only a first action such as a cursor highlight —
-they predate the July rename passes and are due a re-verification/rename.
+Matching `DispatchScreenInput` in C (`c/bank00/ScreenDrawDispatch.c`) settled
+the handlers' names: five of them had been named after a first action (a cursor
+highlight, a field draw) and three after `Edit`.
 Index 7 has no draw routine but does have an input handler: the on-screen
 name keyboard used by the Project/File screens.
 
@@ -180,8 +180,7 @@ The Project cursor row is `wProjCursor` (`$C9A4`). (`$C566`-`$C569` were once
 taken for cursor state; they are the BG-attribute draw palettes
 `wShadowDigitPal`/`wShadowPal`/`wSelectDigitPal`/`wSelectPal`.) The field
 *labels* (TEMPO, SYNC, …) are tiles, not ASCII. The Project input handler is
-the index-9 entry of `DispatchScreenInput` (`ProjectDrawField`, `$5DBF` — see
-the naming caveat above).
+the index-9 entry of `DispatchScreenInput` (`ProjectScreenInput`, `$5DBF`).
 
 ## Status
 
@@ -209,7 +208,6 @@ per-kit/per-sample sections) and the 30 empty banks (`$22`-`$3F`).
 
 The whole screen system is named: the spine (`MainLoop`, `ProcessInput`,
 `HandleButtonEvent`, `DispatchScreenInput`, `ScreenDrawDispatch` +
-`ScreenDrawTable`, `ScreenUpdateDispatch` + `ScreenUpdateTable`,
+`ScreenDrawTable`, `ScreenUpdateDispatch` + `ScreenUpdateDispatch.jumpTable`,
 `RedrawScreen`), every draw/update/input handler, the per-field helpers, and
-the sync subsystem ([`sync.md`](sync.md)). Open items: re-verify the five
-draw-named input handlers (\* above).
+the sync subsystem ([`sync.md`](sync.md)).

@@ -126,7 +126,9 @@ def main() -> None:
     if argv and argv[0] == "--write":
         write_dir = Path(argv[1])
         argv = argv[2:]
-    files = [Path(a).resolve() for a in argv] or sorted((mf.REPO_ROOT / "c").glob("bank*/*.c"))
+    # (editor lock and autosave files -- Emacs' `.#Name.c` -- are not sources)
+    files = [Path(a).resolve() for a in argv] or sorted(
+        p for p in (mf.REPO_ROOT / "c").glob("bank*/*.c") if not p.name.startswith((".", "#")))
     if not files:
         sys.exit("no C sources under c/")
     rom_path = mf.REPO_ROOT / "lsdj9_4_0.gb"

@@ -190,6 +190,8 @@ void SetSpriteTile3(UBYTE sprite);
 void SetSpriteTile4(UBYTE sprite);
 void SetSpriteAttr(UBYTE sprite, UBYTE attr);
 void SetOAMByte(UWORD offset, UBYTE v);         /* wOamBuffer[offset] = v if changed */
+void ClearSprites012(void);
+void PositionWavSprites(void);
 
 void DrawPhraseScreen(void);        /* $04:$4CE5 */
 void DrawGrooveScreen(void);        /* $1D:$41DA */

@@ -215,6 +215,12 @@
   "len": 44,
   "src": "c/bank04/PhraseScreen.c"
  },
+ "DispatchScreenInput": {
+  "bank": "00",
+  "addr": "2A71",
+  "len": 284,
+  "src": "c/bank00/ScreenDrawDispatch.c"
+ },
  "DrawAllChanStatus": {
   "bank": "1F",
   "addr": "7072",
@@ -977,6 +983,12 @@
   "len": 70,
   "src": "c/bank1d/SynthScreen.c"
  },
+ "HandleButtonEvent": {
+  "bank": "00",
+  "addr": "2B8D",
+  "len": 55,
+  "src": "c/bank00/ScreenDrawDispatch.c"
+ },
  "HandleTooBusy": {
   "bank": "00",
   "addr": "20DB",
@@ -1685,6 +1697,12 @@
   "len": 17,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "ResetScreenSprites": {
+  "bank": "00",
+  "addr": "24A8",
+  "len": 53,
+  "src": "c/bank00/ScreenDrawDispatch.c"
+ },
  "ResetSynthParams": {
   "bank": "1F",
   "addr": "61C4",
@@ -1719,6 +1737,12 @@
   "bank": "00",
   "addr": "254F",
   "len": 252,
+  "src": "c/bank00/ScreenDrawDispatch.c"
+ },
+ "ScreenUpdateDispatch": {
+  "bank": "00",
+  "addr": "264B",
+  "len": 207,
   "src": "c/bank00/ScreenDrawDispatch.c"
  },
  "SetChainTranspose": {

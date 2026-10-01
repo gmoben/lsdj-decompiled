@@ -40,7 +40,7 @@
 5736 PasteSongSelection         ; write the clipboard rows into the song grid (clipType 4), then restore the cursor
 5929 .endSelection        ; (was SongEndSelection) finish selection ($0dbc), restore cursor from $c40d/$c94b
 5970 SongCalcSelectionSpan      ; compute selection span from $c40d/$c40f/$c41d
-5B1D SongEditSelection          ; apply the current edit op across the selection rect (clipType 4; 7 uses in SongScreenEdit)
+5B1D SongEditSelection          ; apply the current edit op across the selection rect (clipType 4; 7 uses in SongScreenInput)
 627C SortBookmarks              ; bubble-sort the 16-byte song bookmarks row ($aff0, song offset $0FF0)
 6320 IsBookmarked               ; -> e=1 if song row (arg) is in the bookmarks list, else 0
 637C AddBookmark                ; append song row to bookmarks; full -> ShowMax16Marks
@@ -66,7 +66,7 @@
 7422 SongWriteSramBytes         ; write N bytes (count arg) to SRAM (di, bank-select, $0a enable)
 ; --- functions called from bank 0 (this bank paged in) ---
 68A2 ProcessLinkQueue           ; drain the link-port ring buffer ($cb81+, head $cb80): keyboard scancodes / sync bytes
-4B3B SongScreenEdit             ; song-screen edit dispatcher (single cell or selection via SongEditSelection)
+4B3B SongScreenInput            ; song screen (4) input handler, from DispatchScreenInput: dispatch on wButtons
 
 ; --- bookmarks / tempo / PS/2 keyboard ---
 6249 WriteBookmarkByte          ; bounds-checked ($aff0-$afff) WriteSongByte into the bookmarks row
@@ -113,11 +113,11 @@
 4A75 .done                ; common exit of SongFindPrevRow
 4AB6 .done                ; common exit of SongCursorPageUp
 4B39 .done                ; common exit of SongLoadCursorChain
-4C91 .loop                ; loop head in SongScreenEdit
-525C .loop2               ; loop head in SongScreenEdit
-54A8 .loop3               ; loop head in SongScreenEdit
-54EF .loop4               ; loop head in SongScreenEdit
-56FA .done                ; common exit of SongScreenEdit
+4C91 .loop                ; loop head in SongScreenInput
+525C .loop2               ; loop head in SongScreenInput
+54A8 .loop3               ; loop head in SongScreenInput
+54EF .loop4               ; loop head in SongScreenInput
+56FA .done                ; common exit of SongScreenInput
 57A6 .loop                ; loop head in PasteSongSelection
 57C7 .loop2               ; loop head in PasteSongSelection
 5849 .loop3               ; loop head in PasteSongSelection
@@ -189,34 +189,34 @@
 742E .loop                ; loop head in SongWriteSramBytes
 
 ; --- structural local names (loop heads / common exits) ---
-4D22 .rightLeft           ; wButtons == case in SongScreenEdit
+4D22 .rightLeft           ; wButtons == case in SongScreenInput
 
 ; --- structural local names (loop heads / common exits) ---
-4B7C .notA                ; wButtons == case in SongScreenEdit
-4B94 .notB                ; wButtons == case in SongScreenEdit
-4BF0 .notSelRightLeft     ; wButtons == case in SongScreenEdit
-4D5D .notRight            ; wButtons == case in SongScreenEdit
-4DB1 .notLeft             ; wButtons == case in SongScreenEdit
-4E2A .notUp               ; wButtons == case in SongScreenEdit
-4E97 .notDown             ; wButtons == case in SongScreenEdit
-4EA7 .notBDown            ; wButtons == case in SongScreenEdit
-4EB7 .notBUp              ; wButtons == case in SongScreenEdit
-4FDA .notSelLeft          ; wButtons == case in SongScreenEdit
-5037 .notARight           ; wButtons == case in SongScreenEdit
-5095 .notAUp              ; wButtons == case in SongScreenEdit
-50F4 .notALeft            ; wButtons == case in SongScreenEdit
-516D .notADown            ; wButtons == case in SongScreenEdit
-51A3 .notSelUp            ; wButtons == case in SongScreenEdit
-51D9 .notSelDown          ; wButtons == case in SongScreenEdit
-52E9 .notAB               ; wButtons == case in SongScreenEdit
-5300 .notRight2           ; wButtons == case in SongScreenEdit
-5371 .notSelA             ; wButtons == case in SongScreenEdit
-5389 .notSelAB            ; wButtons == case in SongScreenEdit
-53FA .notSelStart         ; wButtons == case in SongScreenEdit
-5472 .notStart            ; wButtons == case in SongScreenEdit
-548B .notStartLeft        ; wButtons == case in SongScreenEdit
-553E .notSelRight         ; wButtons == case in SongScreenEdit
-56F8 .notSelB             ; wButtons == case in SongScreenEdit
+4B7C .notA                ; wButtons == case in SongScreenInput
+4B94 .notB                ; wButtons == case in SongScreenInput
+4BF0 .notSelRightLeft     ; wButtons == case in SongScreenInput
+4D5D .notRight            ; wButtons == case in SongScreenInput
+4DB1 .notLeft             ; wButtons == case in SongScreenInput
+4E2A .notUp               ; wButtons == case in SongScreenInput
+4E97 .notDown             ; wButtons == case in SongScreenInput
+4EA7 .notBDown            ; wButtons == case in SongScreenInput
+4EB7 .notBUp              ; wButtons == case in SongScreenInput
+4FDA .notSelLeft          ; wButtons == case in SongScreenInput
+5037 .notARight           ; wButtons == case in SongScreenInput
+5095 .notAUp              ; wButtons == case in SongScreenInput
+50F4 .notALeft            ; wButtons == case in SongScreenInput
+516D .notADown            ; wButtons == case in SongScreenInput
+51A3 .notSelUp            ; wButtons == case in SongScreenInput
+51D9 .notSelDown          ; wButtons == case in SongScreenInput
+52E9 .notAB               ; wButtons == case in SongScreenInput
+5300 .notRight2           ; wButtons == case in SongScreenInput
+5371 .notSelA             ; wButtons == case in SongScreenInput
+5389 .notSelAB            ; wButtons == case in SongScreenInput
+53FA .notSelStart         ; wButtons == case in SongScreenInput
+5472 .notStart            ; wButtons == case in SongScreenInput
+548B .notStartLeft        ; wButtons == case in SongScreenInput
+553E .notSelRight         ; wButtons == case in SongScreenInput
+56F8 .notSelB             ; wButtons == case in SongScreenInput
 6EC8 .notPhrase           ; wButtons == case in ProcessKbdNote
 6FFE .notPhrase2          ; wButtons == case in ProcessKbdNote
 

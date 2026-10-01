@@ -173,9 +173,9 @@ DEF wFxCommand       EQU $C8C4  ; current FX command index (0-$12) being process
 ; computed frequency (wChanFreq) is written to rAUDxLOW/HIGH each frame.
 DEF wChanFreq        EQU $C0F4  ; channel frequency shadow, PU1 lo (rAUD1LOW)
 DEF wSongTranspose   EQU $C444  ; global/project TRANSPOSE (working copy of the SRAM song property); SndTransposeNote
-                                ; adds it to every note; displayed/edited on the PROJECT screen (ProjectDrawField)
+                                ; adds it to every note; displayed/edited on the PROJECT screen (ProjectScreenInput)
 DEF wTransposeDirty  EQU $C445  ; transpose edit/commit flag: set by the PROJECT screen after refreshing wSongTransposeDisp; when set, ProcessInput commits wSongTransposeDisp -> wSongTranspose and saves it to SRAM ($BFB5), then clears it
-DEF wSongTransposeDisp EQU $C446 ; displayed form of the song transpose (ProjectDrawField / ProcessInput)
+DEF wSongTransposeDisp EQU $C446 ; displayed form of the song transpose (ProjectScreenInput / ProcessInput)
 DEF wNoteTranspose   EQU $C4D3  ; PU2 instrument transpose (from instrument PU2_TRANSPOSE param), added before the period lookup
 DEF wNotePeriods     EQU $CF28  ; runtime 16-bit GB note-period table (computed for tuning); NoteToPeriod indexes it
 DEF wCurInstr        EQU $C0D0  ; current instrument record byte 0 = type (0 pulse, 1 wav, 2 kit, 3 noise); 16B staged from SramInstruments $B080+instr*16

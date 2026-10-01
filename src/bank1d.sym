@@ -82,7 +82,7 @@
 ; --- functions called from bank 0 (this bank paged in) ---
 7138 SynthScreenInput           ; synth-screen input dispatch (wButtons + SynthReadParam)
 4D58 GrooveResetState           ; reset groove screen state ($c9d5=0 + 16-slot loop)
-4451 DrawGrooveCursor           ; groove cursor-row highlight (wGrooveRow, select palettes)
+4451 GrooveScreenInput          ; groove screen (2) input handler, from DispatchScreenInput: dispatch on wButtons
 4B65 TxtSelect1D       ; "SELECT" (pairs with TxtCancelSelect1D)
 7D98 TxtPastedSynth    ; "PASTED SYNTH"
 
@@ -115,12 +115,12 @@
 436A .loop                ; loop head in GrooveBuildCache
 4392 .done                ; common exit of GrooveBuildCache
 444D .done                ; common exit of GrooveRowPalettes
-462B .loop                ; loop head in DrawGrooveCursor
-46DE .loop2               ; loop head in DrawGrooveCursor
-4799 .loop3               ; loop head in DrawGrooveCursor
-495E .loop4               ; loop head in DrawGrooveCursor
-4AE6 .loop5               ; loop head in DrawGrooveCursor
-4B53 .done                ; common exit of DrawGrooveCursor
+462B .loop                ; loop head in GrooveScreenInput
+46DE .loop2               ; loop head in GrooveScreenInput
+4799 .loop3               ; loop head in GrooveScreenInput
+495E .loop4               ; loop head in GrooveScreenInput
+4AE6 .loop5               ; loop head in GrooveScreenInput
+4B53 .done                ; common exit of GrooveScreenInput
 4BE6 .loop                ; loop head in GrooveScreenHw
 4C56 .done                ; common exit of GrooveScreenHw
 4C92 .loop                ; loop head in PasteGrooveSelection
@@ -207,25 +207,25 @@
 7DB3 .loop                ; loop head in TxtPastedSynth
 
 ; --- structural local names (loop heads / common exits) ---
-44CF .selRightLeft        ; wButtons == case in DrawGrooveCursor
-4526 .a                   ; wButtons == case in DrawGrooveCursor
-456F .up                  ; wButtons == case in DrawGrooveCursor
-4592 .down                ; wButtons == case in DrawGrooveCursor
-45CE .aRight              ; wButtons == case in DrawGrooveCursor
-4684 .aLeft               ; wButtons == case in DrawGrooveCursor
-4735 .aUp                 ; wButtons == case in DrawGrooveCursor
-47E0 .notAUp              ; wButtons == case in DrawGrooveCursor
-4864 .bRight              ; wButtons == case in DrawGrooveCursor
-487E .bUp                 ; wButtons == case in DrawGrooveCursor
-48A2 .bDown               ; wButtons == case in DrawGrooveCursor
-48C6 .bLeft               ; wButtons == case in DrawGrooveCursor
-48DF .aB                  ; wButtons == case in DrawGrooveCursor
-49A0 .selA                ; wButtons == case in DrawGrooveCursor
-49E3 .selStart            ; wButtons == case in DrawGrooveCursor
-49FE .start               ; wButtons == case in DrawGrooveCursor
-4A49 .selUp               ; wButtons == case in DrawGrooveCursor
-4A71 .b                   ; wButtons == case in DrawGrooveCursor
-4A90 .selB                ; wButtons == case in DrawGrooveCursor
+44CF .selRightLeft        ; wButtons == case in GrooveScreenInput
+4526 .a                   ; wButtons == case in GrooveScreenInput
+456F .up                  ; wButtons == case in GrooveScreenInput
+4592 .down                ; wButtons == case in GrooveScreenInput
+45CE .aRight              ; wButtons == case in GrooveScreenInput
+4684 .aLeft               ; wButtons == case in GrooveScreenInput
+4735 .aUp                 ; wButtons == case in GrooveScreenInput
+47E0 .notAUp              ; wButtons == case in GrooveScreenInput
+4864 .bRight              ; wButtons == case in GrooveScreenInput
+487E .bUp                 ; wButtons == case in GrooveScreenInput
+48A2 .bDown               ; wButtons == case in GrooveScreenInput
+48C6 .bLeft               ; wButtons == case in GrooveScreenInput
+48DF .aB                  ; wButtons == case in GrooveScreenInput
+49A0 .selA                ; wButtons == case in GrooveScreenInput
+49E3 .selStart            ; wButtons == case in GrooveScreenInput
+49FE .start               ; wButtons == case in GrooveScreenInput
+4A49 .selUp               ; wButtons == case in GrooveScreenInput
+4A71 .b                   ; wButtons == case in GrooveScreenInput
+4A90 .selB                ; wButtons == case in GrooveScreenInput
 6E3C .left                ; wButtons == case in OverwritePromptInput
 6E47 .right               ; wButtons == case in OverwritePromptInput
 6E52 .a                   ; wButtons == case in OverwritePromptInput

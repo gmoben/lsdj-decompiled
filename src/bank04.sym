@@ -54,7 +54,7 @@
 5AC7 PhraseCellFlagD       ; phrase-cell predicate OR-ed in PrelistenEditedCell ($30/$10-offset, adjacent-compare variant)
 5B5E PrelistenEditedCell        ; preview the just-edited cell (kit instruments special-cased)
 ; --- functions called from bank 0 (this bank paged in) ---
-5BA6 PhraseScreenEdit           ; phrase-screen edit dispatcher: A+dir ops, plain-A place, selection seeding (wSel* from cursor)
+5BA6 PhraseScreenInput          ; phrase screen (1) input handler, from DispatchScreenInput: dispatch on wButtons
 55DE TxtClonedInstr    ; "CLONED INSTR"
 7D57 TxtSelect04       ; "SELECT" (pairs with TxtCancelSelect04)
 
@@ -116,47 +116,47 @@
 5AC3 .done                ; common exit of PhraseCellFlagC
 5B5A .done                ; common exit of PhraseCellFlagD
 5BA4 .done                ; common exit of PrelistenEditedCell
-624A .loop                ; loop head in PhraseScreenEdit
-6403 .loop2               ; loop head in PhraseScreenEdit
-669B .loop3               ; loop head in PhraseScreenEdit
-685C .loop4               ; loop head in PhraseScreenEdit
-6B16 .loop5               ; loop head in PhraseScreenEdit
-6BC8 .loop6               ; loop head in PhraseScreenEdit
-6CEC .loop7               ; loop head in PhraseScreenEdit
-6D66 .loop8               ; loop head in PhraseScreenEdit
-6FE5 .loop9               ; loop head in PhraseScreenEdit
-7098 .loop10              ; loop head in PhraseScreenEdit
-71CA .loop11              ; loop head in PhraseScreenEdit
-7244 .loop12              ; loop head in PhraseScreenEdit
-7D45 .done                ; common exit of PhraseScreenEdit
+624A .loop                ; loop head in PhraseScreenInput
+6403 .loop2               ; loop head in PhraseScreenInput
+669B .loop3               ; loop head in PhraseScreenInput
+685C .loop4               ; loop head in PhraseScreenInput
+6B16 .loop5               ; loop head in PhraseScreenInput
+6BC8 .loop6               ; loop head in PhraseScreenInput
+6CEC .loop7               ; loop head in PhraseScreenInput
+6D66 .loop8               ; loop head in PhraseScreenInput
+6FE5 .loop9               ; loop head in PhraseScreenInput
+7098 .loop10              ; loop head in PhraseScreenInput
+71CA .loop11              ; loop head in PhraseScreenInput
+7244 .loop12              ; loop head in PhraseScreenInput
+7D45 .done                ; common exit of PhraseScreenInput
 
 ; --- structural local names (loop heads / common exits) ---
-5BE7 .notA                ; wButtons == case in PhraseScreenEdit
-5C3E .notSelRightLeft     ; wButtons == case in PhraseScreenEdit
-5FE6 .notRight            ; wButtons == case in PhraseScreenEdit
-6068 .notLeft             ; wButtons == case in PhraseScreenEdit
-6133 .notUp               ; wButtons == case in PhraseScreenEdit
-61F9 .notDown             ; wButtons == case in PhraseScreenEdit
-664A .notARight           ; wButtons == case in PhraseScreenEdit
-6AC5 .notAUp              ; wButtons == case in PhraseScreenEdit
-6F94 .notALeft            ; wButtons == case in PhraseScreenEdit
-7495 .notADown            ; wButtons == case in PhraseScreenEdit
-74BE .notBRight           ; wButtons == case in PhraseScreenEdit
-74E7 .notBLeft            ; wButtons == case in PhraseScreenEdit
-7561 .notBUp              ; wButtons == case in PhraseScreenEdit
-75CE .notBDown            ; wButtons == case in PhraseScreenEdit
-78B9 .notAB               ; wButtons == case in PhraseScreenEdit
-78D3 .right               ; wButtons == case in PhraseScreenEdit
-79A8 .notSelA             ; wButtons == case in PhraseScreenEdit
-79BF .notSelAB            ; wButtons == case in PhraseScreenEdit
-79E8 .notSelStart         ; wButtons == case in PhraseScreenEdit
-7A27 .notStart            ; wButtons == case in PhraseScreenEdit
-7A5D .notSelLeft          ; wButtons == case in PhraseScreenEdit
-7AD0 .notSelDown          ; wButtons == case in PhraseScreenEdit
-7B06 .notSelUp            ; wButtons == case in PhraseScreenEdit
-7C01 .notSelRight         ; wButtons == case in PhraseScreenEdit
-7C35 .notB                ; wButtons == case in PhraseScreenEdit
-7D43 .notSelB             ; wButtons == case in PhraseScreenEdit
+5BE7 .notA                ; wButtons == case in PhraseScreenInput
+5C3E .notSelRightLeft     ; wButtons == case in PhraseScreenInput
+5FE6 .notRight            ; wButtons == case in PhraseScreenInput
+6068 .notLeft             ; wButtons == case in PhraseScreenInput
+6133 .notUp               ; wButtons == case in PhraseScreenInput
+61F9 .notDown             ; wButtons == case in PhraseScreenInput
+664A .notARight           ; wButtons == case in PhraseScreenInput
+6AC5 .notAUp              ; wButtons == case in PhraseScreenInput
+6F94 .notALeft            ; wButtons == case in PhraseScreenInput
+7495 .notADown            ; wButtons == case in PhraseScreenInput
+74BE .notBRight           ; wButtons == case in PhraseScreenInput
+74E7 .notBLeft            ; wButtons == case in PhraseScreenInput
+7561 .notBUp              ; wButtons == case in PhraseScreenInput
+75CE .notBDown            ; wButtons == case in PhraseScreenInput
+78B9 .notAB               ; wButtons == case in PhraseScreenInput
+78D3 .right               ; wButtons == case in PhraseScreenInput
+79A8 .notSelA             ; wButtons == case in PhraseScreenInput
+79BF .notSelAB            ; wButtons == case in PhraseScreenInput
+79E8 .notSelStart         ; wButtons == case in PhraseScreenInput
+7A27 .notStart            ; wButtons == case in PhraseScreenInput
+7A5D .notSelLeft          ; wButtons == case in PhraseScreenInput
+7AD0 .notSelDown          ; wButtons == case in PhraseScreenInput
+7B06 .notSelUp            ; wButtons == case in PhraseScreenInput
+7C01 .notSelRight         ; wButtons == case in PhraseScreenInput
+7C35 .notB                ; wButtons == case in PhraseScreenInput
+7D43 .notSelB             ; wButtons == case in PhraseScreenInput
 
 
 
