@@ -551,6 +551,12 @@
   "len": 182,
   "src": "c/bank03/InstrScreen.c"
  },
+ "DrawWordRow": {
+  "bank": "1F",
+  "addr": "6C34",
+  "len": 106,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
  "EraseFile": {
   "bank": "1C",
   "addr": "4D58",
@@ -1437,6 +1443,12 @@
   "bank": "1F",
   "addr": "5413",
   "len": 78,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
+ "MarkPhraseTablesUsed": {
+  "bank": "1F",
+  "addr": "4F49",
+  "len": 124,
   "src": "c/bank1f/InstrHelpers.c"
  },
  "MigrateTempoProps": {

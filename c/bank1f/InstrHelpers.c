@@ -26,7 +26,7 @@ UBYTE IsPhraseUsedFar(UBYTE phrase);
 UBYTE IsChainUsedFar(UBYTE chain);
 UBYTE InstrHScanChainPhrases(UBYTE chain);
 void ResetWaveFrame(UBYTE p);
-void ComparePhraseToWork(UBYTE phrase);
+void MarkPhraseTablesUsed(UBYTE phrase);
 UBYTE IsTableFree(UWORD t);
 UBYTE InstrHScanAllChainPhr(void);
 UBYTE InstrHAnyCmdRef(void);
@@ -174,6 +174,22 @@ UBYTE IsInstrAllocated(UBYTE instr)
     return ReadSongByte(1, SramInstrAlloc + (UWORD)instr);
 }
 
+void MarkPhraseTablesUsed(UBYTE phrase)
+{
+    UBYTE *c;
+    UBYTE *v;
+    UBYTE i;
+
+    c = SramPhraseFx + ((unsigned int)phrase << 4);
+    v = SramPhraseFxVal + ((unsigned int)phrase << 4);
+    for (i = 0; i < 16; i++) {
+        if (ReadSongByte(2, c) == 1)
+            InstrHMarkTableUsed(ReadSongByte(2, v));
+        c = c + 1;
+        v = v + 1;
+    }
+}
+
 UBYTE IsPhraseUsedFar(UBYTE phrase)
 {
     return FarCallArgByte(1, (UWORD)IsPhraseUsed, phrase);
@@ -185,7 +201,7 @@ void InstrHScanUsedPhrases(void)
 
     for (i = 0; i < 0xFF; i++)
         if (IsPhraseUsedFar(i))
-            ComparePhraseToWork(i);
+            MarkPhraseTablesUsed(i);
 }
 
 UBYTE InstrHCountUsedTables(void)
@@ -433,6 +449,25 @@ void DrawPhraseCursor(void)
     row = wPhraseRow;
     col = wPhraseCol;
     DrawPhraseCellValue(col, row);
+}
+
+void DrawWordRow(UBYTE n)
+{
+    UBYTE *p;
+    UBYTE i, c, w;
+
+    w = n;
+    w--;
+    if (w < 14) {
+        p = SramWordNames + (unsigned int)w * 3;
+        for (i = 0; i < 3; i++) {
+            c = ReadSongByte(0, p++);
+            if (!c)
+                c = ' ';
+            DrawStringIndexed(c);
+        }
+    } else
+        DrawString("---");
 }
 
 void InstrHReadCursorCellAt(void)

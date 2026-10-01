@@ -46,9 +46,9 @@
 4F04 InstrHMarkTableUsed        ; if arg<$20, set $c47d[arg]=1 (mark table used)
 4F1C InstrHGetTableUsed         ; return $c47d[arg] (table-used flag)
 4F2E IsInstrAllocated           ; instrument n's SramInstrAlloc flag
-4F49 ComparePhraseToWork        ; compare phrase rows against the $0FF0 work row (dedupe comparator)
+4F49 MarkPhraseTablesUsed       ; mark the tables phrase (arg)'s A commands (command 1) name: InstrHMarkTableUsed(value)
 4FC5 ReadTableRowCmds           ; gather one table row's cmd1/val1/cmd2 bytes ($3680/$3880/$3A80 regions)
-50A8 InstrHScanUsedPhrases      ; for each phrase 0..255 used (IsPhraseUsedFar), process via ComparePhraseToWork
+50A8 InstrHScanUsedPhrases      ; for each phrase 0..255 used (IsPhraseUsedFar), process via MarkPhraseTablesUsed
 50CC InstrHCountUsedTables      ; count nonzero entries in used-table map $c47d[0..$1f]
 50F6 InstrHProcessUsedTables    ; count tables (50CC) then run ReadTableRowCmds per used
 513D InstrHMarkInstrTable       ; read instr field6; if bit5 set, mark its table used (InstrHMarkTableUsed)
@@ -127,7 +127,7 @@
 6698 CutCopyPhraseSelection ; arg!=0 -> "CUT" (copy+clear) else "COPY": phrase selection -> clipboard (clipType 1)
 6B32 TxtCut1F           ; "CUT"
 6B36 TxtCopy1F          ; "COPY"
-6C34 DrawWordRow        ; draw the 3 allophone chars of word row (arg-1); 0 -> spaces
+6C34 DrawWordRow        ; draw word n's 3-character name (SramWordNames + 3*(n-1), blanks for 0) or \"---\" outside 1-14
 647A TxtPctD4                   ; "%d"
 647D TxtSynthsFill              ; "SYNTHS...."
 6488 TxtPctD5                   ; "%d"
@@ -159,9 +159,9 @@
 4E45 .loop5               ; loop head in MarkInstrUsed
 4EA8 .loop6               ; loop head in MarkInstrUsed
 4F1A .done                ; common exit of InstrHMarkTableUsed
-4F55 .loop                ; loop head in ComparePhraseToWork
-4F75 .loop2               ; loop head in ComparePhraseToWork
-4FC1 .done                ; common exit of ComparePhraseToWork
+4F55 .loop                ; loop head in MarkPhraseTablesUsed
+4F75 .loop2               ; loop head in MarkPhraseTablesUsed
+4FC1 .done                ; common exit of MarkPhraseTablesUsed
 4FD1 .loop                ; loop head in ReadTableRowCmds
 5005 .loop2               ; loop head in ReadTableRowCmds
 508D .done                ; common exit of ReadTableRowCmds
