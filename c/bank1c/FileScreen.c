@@ -58,7 +58,7 @@ UBYTE joypad(void);                         /* bank 0 */
 void SendSyncHandshake(void);               /* bank 0 */
 void SendSyncByte(void);                    /* bank 0 */
 void delay(UWORD d);                        /* bank 0 (GBDK) */
-void DrawFileTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE pal);
+void DrawFileTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE h);
 UWORD FileCalcCompressedSize(void);
 UBYTE ReadCompressedByte(void);
 void FilePutDecompByte(UBYTE v);
@@ -525,6 +525,58 @@ void LoadFile(void)
         wCurrentScreen = 0x0D;
     FarCall(1, FAR_FN(RedrawScreen));
     wRedrawPending = 0;
+}
+
+/* A w x h frame at (x, y): corner/edge tiles through the identity map,
+ * the interior cleared with tile 2 in palette 1. Inline bounds keep the
+ * prologue free of `local := temp` copies, so SDCC 2.2.1's pre-loop dataflow
+ * settles after two passes and the edge tests, `x + w - 1` and the ASCII
+ * restore stay in the inner loop's preheader (an outer-loop invariant whose
+ * definition has not reached that preheader is not hoisted further), where
+ * the ROM has them. The `==` operands are written `i == x`: SDCC 2.2.1 swaps
+ * them back.
+ */
+void DrawFileTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE h)
+{
+    UBYTE i, j;
+
+    for (i = x; i < x + w; i++) {
+        for (j = y; j < y + h; j++) {
+            wStringSrc = IdentityCharMap;
+            hBgPalette = hGameboyType ? 0x48 : 0xD2;
+            DrawTextField(i, j, 1, 0);
+            GetTilemapAddr(i, j);
+            if (i == x) {
+                if (j == y)
+                    DrawStringIndexed(0);
+                else if (j == y + h - 1)
+                    DrawStringIndexed(3);
+                else
+                    DrawStringIndexed(7);
+            } else if (i == x + w - 1) {
+                if (j == y)
+                    DrawStringIndexed(1);
+                else if (j == y + h - 1)
+                    DrawStringIndexed(2);
+                else
+                    DrawStringIndexed(5);
+            } else {
+                if (j == y)
+                    DrawStringIndexed(4);
+                else if (j == y + h - 1)
+                    DrawStringIndexed(6);
+                else {
+                    hBgDigitPalette = 4;
+                    hBgPalette = 1;
+                    DrawStringIndexed(2);
+                }
+                wStringSrc = AsciiCharMap - 0x20;
+            }
+        }
+    }
+    wStringSrc = AsciiCharMap - 0x20;
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
 }
 
 void FileDrawField(UBYTE pal)

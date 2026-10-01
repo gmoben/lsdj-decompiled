@@ -901,6 +901,57 @@ void SynthLoadParams(void)
     wSynthRenderActive = 1;
 }
 
+/* The confirmation dialog's frame: border tiles through the identity map,
+ * the interior cleared with tile 2 in palette 1. The in-loop restore of the
+ * ASCII map sits at the end of the middle-column branch: there SDCC 2.2.1
+ * hoists it out of the inner loop only (its definition does not reach the
+ * inner preheader in the pre-loop dataflow), which is where the ROM has it.
+ * At the end of the whole body it is hoisted out of both loops.
+ */
+void BuildOverwritePrompt(void)
+{
+    UBYTE x;
+    UBYTE y;
+
+    for (x = 3; (UWORD)x < 15; x++) {
+        for (y = 4; (UWORD)y < 11; y++) {
+            wStringSrc = IdentityCharMap;
+            hBgPalette = hGameboyType ? 0x48 : 0xD2;
+            DrawTextField(x, y, 1, 0);
+            GetTilemapAddr(x, y);
+            if (x == 3) {
+                if (y == 4)
+                    DrawStringIndexed(0);
+                else if ((UWORD)y == 10)
+                    DrawStringIndexed(3);
+                else
+                    DrawStringIndexed(7);
+            } else if ((UWORD)x == 14) {
+                if (y == 4)
+                    DrawStringIndexed(1);
+                else if ((UWORD)y == 10)
+                    DrawStringIndexed(2);
+                else
+                    DrawStringIndexed(5);
+            } else {
+                if (y == 4)
+                    DrawStringIndexed(4);
+                else if ((UWORD)y == 10)
+                    DrawStringIndexed(6);
+                else {
+                    hBgDigitPalette = 4;
+                    hBgPalette = 1;
+                    DrawStringIndexed(2);
+                }
+                wStringSrc = AsciiCharMap - 0x20;
+            }
+        }
+    }
+    wStringSrc = AsciiCharMap - 0x20;
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
+}
+
 void DrawOverwriteChoice(void)
 {
     UBYTE x1, w2, x2, w1;

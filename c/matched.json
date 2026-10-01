@@ -35,6 +35,12 @@
   "len": 144,
   "src": "c/bank01/UiHelpers.c"
  },
+ "BuildOverwritePrompt": {
+  "bank": "1D",
+  "addr": "6B33",
+  "len": 476,
+  "src": "c/bank1d/SynthScreen.c"
+ },
  "BuildUsedTablesMap": {
   "bank": "1F",
   "addr": "52B3",
@@ -443,6 +449,12 @@
   "len": 223,
   "src": "c/bank1c/FileScreen.c"
  },
+ "DrawFileTextField": {
+  "bank": "1C",
+  "addr": "5361",
+  "len": 464,
+  "src": "c/bank1c/FileScreen.c"
+ },
  "DrawFontColorFields": {
   "bank": "1B",
   "addr": "569C",
@@ -663,6 +675,12 @@
   "bank": "1B",
   "addr": "5B23",
   "len": 51,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
+ "DrawProjTextField": {
+  "bank": "1B",
+  "addr": "4CBA",
+  "len": 464,
   "src": "c/bank1b/ProjectScreen.c"
  },
  "DrawProjectScreen": {

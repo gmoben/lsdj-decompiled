@@ -76,6 +76,9 @@ extern UBYTE wShadowDigitPal;               /* $C566 */
 extern UBYTE wShadowPal;                    /* $C567 */
 extern UBYTE wSelectDigitPal;               /* $C568 */
 extern UBYTE wSelectPal;                    /* $C569 */
+extern UBYTE *wStringSrc;                   /* $C564, the character-to-tile map DrawString reads */
+extern UBYTE AsciiCharMap[];                /* $0:$086F, text from ' '; wStringSrc = AsciiCharMap - 0x20 */
+extern UBYTE IdentityCharMap[];             /* $0:$08C8, raw tile indices */
 extern UBYTE *wVramCursor;                  /* $C573 */
 extern UBYTE wInstrument;                   /* $C576, the instrument being edited */
 extern UBYTE wStrBuffer[];                  /* $C6A9, 20 chars + NUL */
