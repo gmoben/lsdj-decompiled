@@ -2129,6 +2129,18 @@
   "len": 72,
   "src": "c/bank04/PhraseScreen.c"
  },
+ "ProcessKbdNote": {
+  "bank": "07",
+  "addr": "6E50",
+  "len": 450,
+  "src": "c/bank07/KbdLink.c"
+ },
+ "ProcessLinkQueue": {
+  "bank": "07",
+  "addr": "68A2",
+  "len": 1418,
+  "src": "c/bank07/KbdLink.c"
+ },
  "ProcessSyncByte": {
   "bank": "00",
   "addr": "234D",

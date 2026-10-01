@@ -242,6 +242,7 @@ def compile_unit(work: Path, env: dict[str, str], c_path: Path,
             lines, _ = peep_mod.track_hram(lines, targets)
             lines, _ = peep_mod.track_a(lines, targets)
             lines, _ = peep_mod.track_e(lines, targets)
+            lines, _ = peep_mod.track_d(lines, targets)
             lines, _ = peep_mod.track_const(lines, targets)
             lines, _ = peep_mod.track_de(lines, targets)
             lines, _ = peep_mod.dead_stores(lines, targets)
@@ -377,6 +378,7 @@ RUNTIME_ALIASES = {
     "wVramCursorW": "wVramCursor",  # the VRAM cursor as a plain word (DrawTopBar's 32-bit `< 0x9811`)
     "wTopBarLen": "wTopBarDrawScratch",  # the top-bar scratch word as a length
     "SortBytePairC": "SortBytePair",  # SortBytePair prototyped with `char *` (SongEditSelection casts its `&UBYTE` locals)
+    "FarCallArg0": "FarCallArg",  # FarCallArg called with (bank, fn) only -- hFxValue set by hand (ProcessLinkQueue)
 }
 
 

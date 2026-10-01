@@ -888,8 +888,20 @@ def track_hram(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int
 
 def track_e(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
     """Drop `ld e,r` while `e` already equals r (b, c or d)."""
+    return _track_half(lines, jump_targets, "e", ("b", "c", "d"))
+
+
+def track_d(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
+    """Drop `ld d,r` while `d` already equals r (b, c or e): the second
+    `ld e,b; ld d,c` fetch of a pointer kept in bc (ProcessLinkQueue's
+    `wKbdChanState[1]` read then cleared) loses both halves in the ROM."""
+    return _track_half(lines, jump_targets, "d", ("b", "c", "e"))
+
+
+def _track_half(lines: list[str], jump_targets: set[str], reg: str,
+                sources: tuple[str, ...]) -> tuple[list[str], int]:
     out: list[str] = []
-    eq: set[str] = set()          # registers equal to e
+    eq: set[str] = set()          # registers equal to `reg`
     dropped = 0
     scope = 0
     for raw in lines:
@@ -906,18 +918,18 @@ def track_e(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
             out.append(raw)
             continue
         mn, ops = _ops(t)
-        if mn == "ld" and len(ops) == 2 and ops[0] == "e" and ops[1] in ("b", "c", "d"):
+        if mn == "ld" and len(ops) == 2 and ops[0] == reg and ops[1] in sources:
             if ops[1] in eq:
                 dropped += 1
                 continue
             eq = {ops[1]}
-        elif mn == "ld" and len(ops) == 2 and ops[1] == "e" and ops[0] in ("b", "c", "d"):
+        elif mn == "ld" and len(ops) == 2 and ops[1] == reg and ops[0] in sources:
             eq.add(ops[0])
         elif mn in _WRITES_ALL or (mn in ("jp", "jr") and len(ops) == 1):
             eq = set()
         else:
             w = _written(mn, ops)
-            if "e" in w:
+            if reg in w:
                 eq = set()
             else:
                 eq -= w

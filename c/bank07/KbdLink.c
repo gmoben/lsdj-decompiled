@@ -43,6 +43,31 @@ void CopyInstrName(UBYTE instr);            /* bank 1 */
 void ClearMessageBar(void);                 /* bank 1 */
 void UiClearBgMap(void);                    /* bank 1 */
 
+extern UBYTE wKbdHeldNote;                  /* $CB7E */
+extern UBYTE wKbdNoteQueued;                /* $CB92 */
+extern UBYTE wAPressEnabled;                /* $C409 */
+extern UBYTE wButtons;                      /* $C407 */
+extern UBYTE KeyboardNoteMap[];             /* $07:$662A */
+extern UBYTE KeyboardFnMap[];               /* $07:$66AA */
+UBYTE PhraseCheckColFD(UBYTE row);          /* bank 4 */
+
+extern volatile sfr UBYTE hSoundCh;         /* $FF8B */
+extern volatile sfr UBYTE hFxValue;         /* $FF8F */
+extern UBYTE wKbdCmdAccum;                  /* $CBA1 */
+extern UBYTE wKbdCmdModifier;               /* $CB9F */
+extern UBYTE wKbdSustain;                   /* $CBA0 */
+extern UBYTE wKbdInstrument2;               /* $CB95 */
+extern UBYTE wKbdActionCh;                  /* $CB9A */
+extern UBYTE wKbdChanTrigger[];             /* $CB9B, [4] */
+extern UBYTE wChanModFlag[];                /* $C0A0, [4] */
+extern UBYTE wSelectHeld;                   /* $C40A */
+extern UBYTE wBHeld;                        /* $C40B */
+void DrawKbdInstrName(void);
+void DrawKbdOctave(void);
+UBYTE ProcessKbdNote(UBYTE sc);
+void FxCmd_A(void);                         /* bank 2 */
+void FarCallArg0(UBYTE bank, void (*fn)(void));   /* FarCallArg called without its byte (hFxValue set by hand; aliased) */
+
 void SetSyncSendRate(void)
 {
     UWORD r;
@@ -156,6 +181,325 @@ void DrawKbdOctave(void)
     }
     wMsgStrPtr = 0;
     wMsgTimer = 100;
+}
+
+UBYTE ProcessLinkQueue(void)
+{
+    UBYTE mod;
+    UBYTE key;
+    UBYTE t;
+    UBYTE u;
+    UBYTE code;
+
+    code = wLinkQueueBuf[wLinkQueueHead];
+    mod = wKbdCmdAccum + wKbdCmdModifier;
+    key = code | wKbdSustain;
+    if (code & 0x80)
+        mod |= 4;
+    wLinkQueueHead++;
+    wLinkQueueHead &= 0x0F;
+    switch (code) {
+    case 0x03:
+        wKbdCmdModifier = 1;
+        return 0xFF;
+    case 0x07:
+        if (!wKbdSustain) {
+            wKbdSustain = 0x80;
+            return 0xFF;
+        }
+        break;
+    case 0x14:
+        wKbdCmdAccum = wKbdSustain ? 0 : 2;
+        wKbdSustain = 0;
+        return 0xFF;
+    }
+    wKbdSustain = 0;
+    wKbdCmdModifier = 0;
+    if (mod & 4) {
+        if (key <= 0xA0 && key >= 0x80) {
+            wKbdInstrument = key + 0x80;
+            DrawKbdInstrName();
+        } else {
+        switch (key) {
+        case 0xB3:
+            wKbdTranspose = 0xFD;
+            DrawKbdOctave();
+            return 0xFF;
+        case 0xB4:
+            wKbdTranspose = 0x09;
+            DrawKbdOctave();
+            return 0xFF;
+        case 0xB5:
+            wKbdTranspose = 0x15;
+            DrawKbdOctave();
+            return 0xFF;
+        case 0xB6:
+            wKbdTranspose = 0x21;
+            DrawKbdOctave();
+            return 0xFF;
+        case 0xB7:
+            wKbdTranspose = 0x2D;
+            DrawKbdOctave();
+            return 0xFF;
+        }
+        wVramCursor = (UBYTE *)0x99AF;
+        hBgDigitPalette = 4;
+        hBgPalette = 1;
+        switch (key) {
+        case 0xA1:
+            wKbdChanState[0] = 1;
+            wKbdChanState[1] = 0;
+            DrawString("PU1  ");
+            break;
+        case 0xA2:
+            wKbdChanState[0] = 0;
+            wKbdChanState[1] = 1;
+            DrawString("PU  2");
+            break;
+        case 0xA3:
+            wKbdChanState[0] = 1;
+            wKbdChanState[1] = 1;
+            DrawString("PU1+2");
+            break;
+        }
+        wMsgStrPtr = 0;
+        wMsgTimer = 0x64;
+        }
+        return 0xFF;
+    }
+    switch (key) {
+    case 0x5F:
+        wBHeld = 1;
+        return 0x24;
+    case 0x2F:
+        wBHeld = 1;
+        return 0x28;
+    case 0x2D:
+        if (mod & 2) {
+            wSelectHeld = 1;
+            return 0xC0;
+        }
+        return 0x80;
+    case 0x6B:
+        if (!(mod & 1)) {
+            wSelectHeld = 1;
+            return 0x42;
+        }
+        return 0x02;
+    case 0x17:
+        if (!(mod & 1)) {
+            wSelectHeld = 1;
+            return 0x41;
+        }
+        return 0x01;
+    case 0x57:
+        if (!(mod & 1)) {
+            wSelectHeld = 1;
+            return 0x44;
+        }
+        return 0x04;
+    case 0x27:
+        if (!(mod & 1)) {
+            wSelectHeld = 1;
+            return 0x48;
+        }
+        return 0x08;
+    case 0x10:
+        if (wKbdInstrument) {
+            wKbdNoteQueued = 0;
+            wKbdInstrument--;
+            DrawKbdInstrName();
+        }
+        return 0xFF;
+    case 0x18:
+        if (wKbdInstrument != 0x40) {
+            wKbdNoteQueued = 0;
+            wKbdInstrument++;
+            DrawKbdInstrName();
+        }
+        return 0xFF;
+    case 0x60:
+        if (wKbdInstrument2) {
+            wVramCursor = (UBYTE *)0x9991;
+            hBgDigitPalette = 4;
+            hBgPalette = 1;
+            DrawStringIndexed('A');
+            wKbdInstrument2--;
+            DrawHexByte(wKbdInstrument2);
+        }
+        return 0xFF;
+    case 0x68:
+        if (wKbdInstrument2 != 0x40) {
+            wVramCursor = (UBYTE *)0x9991;
+            hBgDigitPalette = 4;
+            hBgPalette = 1;
+            DrawStringIndexed('A');
+            wKbdInstrument2++;
+            DrawHexByte(wKbdInstrument2);
+        }
+        return 0xFF;
+    case 0x4A:
+        _asm di _endasm;
+        for (hSoundCh = 0; hSoundCh < 4; hSoundCh++) {
+            if (wKbdChanState[hSoundCh]) {
+                wKbdChanTrigger[hSoundCh] = wKbdInstrument2 | 0x80;
+                hFxValue = wKbdInstrument2;
+                FarCallArg0(2, FAR_FN(FxCmd_A));
+            }
+        }
+        _asm ei _endasm;
+        return 0xFF;
+    case 0xCA:
+        wKbdChanTrigger[0] = 0;
+        wKbdChanTrigger[1] = 0;
+        wKbdChanTrigger[2] = 0;
+        wKbdChanTrigger[3] = 0;
+        return 0xFF;
+    case 0x50:
+        if (wKbdTranspose != 0xFD) {
+            wKbdTranspose += 0xF4;
+            DrawKbdOctave();
+        }
+        return 0xFF;
+    case 0x30:
+        if (wKbdTranspose != 0x2D) {
+            wKbdTranspose += 0x0C;
+            DrawKbdOctave();
+        }
+        return 0xFF;
+    case 0x28:
+        wKbdNoteQueued = 0;
+        wVramCursor = (UBYTE *)0x99AF;
+        hBgDigitPalette = 4;
+        hBgPalette = 1;
+        t = wKbdChanState[0];
+        if (t) {
+            u = wKbdChanState[1];
+            if (u) {
+                wKbdChanState[1] = 0;
+                DrawString("PU1  ");
+                goto msg;
+            }
+        }
+        if (t) {
+            u = wKbdChanState[1];
+            if (!u) {
+                wKbdChanState[0] = 0;
+                wKbdChanState[1] = 1;
+                DrawString("PU  2");
+                goto msg;
+            }
+        }
+        if (!t && wKbdChanState[1]) {
+            wKbdChanState[0] = 1;
+            DrawString("PU1+2");
+        }
+msg:
+        wMsgStrPtr = 0;
+        wMsgTimer = 0x64;
+        return 0xFF;
+    case 0xC0:
+        if (!(mod & 2))
+            goto note;
+    case 0x40:
+        wKbdActionCh = 0;
+        if (wChanModFlag[0] & 0x80)
+            return 0x20;
+        wBHeld = 1;
+        return 0x60;
+    case 0xC8:
+        if (!(mod & 2))
+            goto note;
+    case 0x48:
+        wKbdActionCh = 1;
+        if (wChanModFlag[1] & 0x80)
+            return 0x20;
+        wBHeld = 1;
+        return 0x60;
+    case 0x8F:
+        if (!(mod & 2))
+            goto note;
+    case 0x0F:
+        wKbdActionCh = 2;
+        if (wChanModFlag[2] & 0x80)
+            return 0x20;
+        wBHeld = 1;
+        return 0x60;
+    case 0xF0:
+        if (!(mod & 2))
+            goto note;
+    case 0x70:
+        wKbdActionCh = 3;
+        if (wChanModFlag[3] & 0x80)
+            return 0x20;
+        wBHeld = 1;
+        return 0x60;
+    case 0x07:
+        return 0x0D;
+    case 0xC7:
+        return 0x0C;
+    case 0x9B:
+        return 0x0E;
+    case 0xCB:
+        return 0x0F;
+    }
+note:
+    return ProcessKbdNote(key);
+}
+
+UBYTE ProcessKbdNote(UBYTE sc)
+{
+    UBYTE note;
+    UBYTE armed;
+    char isPhrase;
+
+    if (!(sc & 0x80)) {
+        isPhrase = 0;
+        if (wPlayMode && !wKbdHeldNote) {
+            armed = wKbdArmed;
+        } else if (wCurrentScreen == 1) {
+            isPhrase = 1;
+            armed = wSongCol == 3 || !FarCallArgByte(4, (UWORD)PhraseCheckColFD, wPhraseRow);
+        } else {
+            return 0;
+        }
+        if (armed) {
+            note = KeyboardFnMap[sc];
+            if (!note)
+                return 0;
+        } else {
+            note = KeyboardNoteMap[sc];
+            if (!note)
+                return 0;
+            note += wKbdTranspose;
+            if (0x6C < note)
+                return 0;
+        }
+        if (isPhrase) {
+            if (wKbdHeldNote != note) {
+                wKbdHeldNote = note;
+                wAPressEnabled = 1;
+                wButtons = 0;
+            }
+        } else if (armed) {
+            wKbdNoteQueued &= (note & 0x0F) ? 0xF0 : 0x0F;
+            wKbdNoteQueued |= note;
+        } else {
+            wKbdNoteQueued = note;
+        }
+    } else if (wCurrentScreen == 1) {
+        sc &= 0x7F;
+        armed = wSongCol == 3 || !FarCallArgByte(4, (UWORD)PhraseCheckColFD, wPhraseRow);
+        if (armed) {
+            note = KeyboardFnMap[sc];
+        } else {
+            note = KeyboardNoteMap[sc];
+            note += wKbdTranspose;
+        }
+        if (note == wKbdHeldNote)
+            wKbdHeldNote = 0;
+    }
+    return wKbdHeldNote ? 0x10 : 0;
 }
 
 UBYTE LinkDequeueByte(void)
