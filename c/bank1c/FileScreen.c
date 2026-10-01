@@ -38,6 +38,12 @@ extern UBYTE wNameEditBuf[];                /* $C431, [5] */
 extern UBYTE wFileSramProps[];              /* $C99D, [4] */
 extern UBYTE wFileLoadAltReturn;            /* $C997 */
 extern UBYTE wRedrawPending;                /* $C56C */
+extern UBYTE wFileDrawIdx;                  /* $C993 */
+extern UBYTE wButtons;                      /* $C575 */
+extern UBYTE wAPressEnabled;                /* $C409 */
+extern UBYTE wFileListAction;               /* $C99A */
+extern UBYTE wFileNameNavMode;              /* $C99C */
+extern UBYTE wNameEditIsInstr;              /* $C430 */
 extern UBYTE wFileField;                    /* $C992 */
 extern UBYTE wFileCursor;                   /* $C999 */
 extern UBYTE wFileScroll;                   /* $C99B */
@@ -70,6 +76,10 @@ UBYTE DrawVerifyPanel(UBYTE f);             /* $1C:$4778 */
 UBYTE GetNextButtons(void);                 /* bank 0 */
 void UiClearSram(void);                     /* $01:$45D1 */
 void LoadProjectSettings(void);             /* $01:$7C86 */
+void CountFileBlocks(void);                 /* $1C:$48D4 */
+void StopAllPlayback(void);                 /* $02:$78C4 */
+void OpenNameEditor(void);                  /* $1B:$4E8A */
+int strcmp(const char *a, const char *b);   /* bank 0's StrCompare */
 UBYTE GetFileBlockCount(UBYTE i);
 UBYTE FileFindSlotEnd(void);
 UBYTE FileSlotHalfBase(void);
@@ -279,6 +289,60 @@ void FreeFileBlocks(UBYTE f)
         if (f == ReadSongByte(4, p))
             WriteSongByte(4, p, 0xFF);
     }
+}
+
+void LoadFileListState(void)
+{
+    UBYTE ver;
+    char mod;
+    UBYTE i;
+
+    mod = ReadSongByte(1, 0xBFC1);
+    wFileCursor = ReadSongByte(4, 0xA140);
+    CountFileBlocks();
+    if (wFileCursor == 0xFF) {
+        wFileScroll = 0;
+        wFileCursor = 0;
+        strcpy(wTopBarStr, "[EMPTY] ");
+        wTopBarMarkPtr = wTopBarStr + 7;
+        return;
+    }
+    i = 0;
+    if (wFileCursor > 0x1F)
+        wFileCursor = 0;
+    CopyFileName(wFileCursor);
+    while (i < 8) {
+        if (!wFileNameBuf[i])
+            break;
+        wTopBarStr[i] = wFileNameBuf[i];
+        i++;
+    }
+    wTopBarStr[i++] = '.';
+    ver = ReadSongByte(4, (UWORD)0xA100 + wFileCursor);
+    if (ver & 0xF0) {
+        wTopBarStr[i] = (ver >> 4) + 0x30;
+        if ((ver >> 4) > 9)
+            wTopBarStr[i] += 7;
+        ver &= 0x0F;
+        if (ver > 9)
+            ver += 7;
+        i++;
+        wTopBarStr[i] = ver + 0x30;
+        i++;
+        wTopBarMarkPtr = &wTopBarStr[i];
+        wTopBarStr[i++] = mod;
+        wTopBarStr[i] = 0;
+    } else {
+        wTopBarStr[i] = ver + 0x30;
+        if (ver > 9)
+            wTopBarStr[i] += 7;
+        i++;
+        wTopBarMarkPtr = &wTopBarStr[i];
+        wTopBarStr[i++] = mod;
+        wTopBarStr[i] = 0;
+    }
+    if (i >= 0x0D)
+        DebugTrap();
 }
 
 void EraseFileName(UBYTE f)
@@ -497,6 +561,72 @@ void FileValidateName(void)
         DebugTrap();
 }
 
+void DrawFileList(void)
+{
+    UBYTE row, slot, active, end, blocks;
+    UBYTE ver, c, n;
+    char *empty = "[EMPTY]      0";
+
+    row = 0;
+    slot = wFileScroll;
+    active = ReadSongByte(4, 0xA140);
+    end = FileFindSlotEnd() + 1;
+    CountFileBlocks();
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
+    wVramCursor = 0x9880;
+    while (row < 12 && slot < 0x20) {
+        blocks = wFileBlockCounts[slot];
+        if (slot == end)
+            break;
+        hBgDigitPalette = wShadowDigitPal;
+        hBgPalette = wShadowPal;
+        DrawHexByte(slot);
+        hBgDigitPalette = 4;
+        hBgPalette = 1;
+        DrawStringIndexed(slot == active ? '*' : ' ');
+        if (blocks) {
+            ver = ReadSongByte(4, (UWORD)0xA100 + slot);
+            CopyFileName(slot);
+            DrawString(wFileNameBuf);
+            DrawStringIndexed('.');
+            DrawByte(ver);
+            if ((ver & 0xF0) == 0)
+                DrawStringTile20();
+            n = 9 - StringLength(wFileNameBuf);
+            while (n--)
+                DrawStringTile20();
+            if ((blocks & 0xF0) == 0)
+                DrawStringTile20();
+            DrawByte(blocks);
+        } else {
+            DrawString(empty);
+        }
+        wVramCursor += 0x0F;
+        row++;
+        slot++;
+    }
+    if (row < 12) {
+        c = row + wFileScroll;
+        if (c < 0x20) {
+            GetTilemapAddr(0, row + 4);
+            hBgDigitPalette = wShadowDigitPal;
+            hBgPalette = wShadowPal;
+            DrawHexByte(c);
+            hBgDigitPalette = 4;
+            hBgPalette = 1;
+            if (active == c)
+                DrawStringIndexed('*');
+            else
+                DrawStringTile20();
+            DrawString(empty);
+        }
+    }
+    wFileDrawIdx = row + wFileScroll;
+    if (wFileDrawIdx == 0x20)
+        wFileDrawIdx--;
+}
+
 void DrawFileScreen(void)
 {
     UBYTE i;
@@ -594,6 +724,201 @@ UBYTE DrawBlocksUsed(void)
         VBK_REG = 1;
         set_bkg_tiles(0x0B, 9, 2, 1, FileNoAttrTiles);
         VBK_REG = 0;
+    }
+    return 1;
+}
+
+UBYTE FileScreenInput(void)
+{
+    UBYTE i;
+
+    wFileLoadAltReturn = 0;
+    switch (wButtons) {
+    case 0x80:
+        if (!wButtonsSame)
+            FarCall(2, FAR_FN(StopAllPlayback));
+        break;
+    case 0x50:
+        wFileLoadAltReturn = 1;
+    case 0x10:
+        if (!wAPressEnabled)
+            return 0;
+        if (wFilePromptActive) {
+            wFilePromptActive = 0;
+            DrawTextField(6, 9, 6, 0);
+            if (wFilePromptNo)
+                goto cancel;
+            if (!wFileEraseArmed) {
+                LoadFile();
+                return 1;
+            }
+            EraseFile(wFileCursor);
+            DrawFileTextField(2, 7, 0x0F, 3);
+            wVramCursor = 0x9903;
+            DrawString("FILE ERASED!");
+            delay(hGameboyType ? 2000 : 1000);
+            FileDrawFieldChecked(0);
+            wFileListActive = 0;
+            FileValidateName();
+            if (hGameboyType)
+                ClearBgTilemap();
+            else
+                FarCall(1, FAR_FN(UiDrawTextHw));
+            DrawFileScreen();
+        } else if (wFileListActive) {
+            FileDrawFieldChecked(2);
+            switch (wFileListAction) {
+            case 0:
+                if (!DrawBlocksUsed())
+                    LoadFile();
+                return 1;
+            case 1:
+                FileDrawFieldChecked(0);
+                i = ReadSongByte(4, 0xA140);
+                wNameEditBuf[0] = 0;
+                if (i != 0xFF) {
+                    CopyFileName(i);
+                    if (strcmp("[EMPTY]", wFileNameBuf)) {
+                        for (i = 0; i < 9; i++)
+                            wNameEditBuf[i] = wFileNameBuf[i];
+                    }
+                }
+                wNameEditIsInstr = 0;
+                wFileListActive = 0;
+                FarCall(0x1B, FAR_FN(OpenNameEditor));
+                return 1;
+            case 2:
+                if (GetFileBlockCount(wFileCursor)) {
+                    wFileEraseArmed = 1;
+                    hBgDigitPalette = 4;
+                    hBgPalette = 1;
+                    DrawFileTextField(5, 6, 9, 5);
+                    wFilePromptActive = 1;
+                    wFilePromptNo = 1;
+                    wVramCursor = 0x98E6;
+                    DrawString("ERASE?");
+                    wVramCursor = 0x9926;
+                    DrawString("YES");
+                    wVramCursor = 0x992B;
+                    DrawString("NO");
+                    DrawTextField(0x0B, 9, 2, hGameboyType ? 3 : 2);
+                    return 1;
+                }
+                return 0;
+            default:
+                if (hGameboyType)
+                    ClearBgTilemap();
+                wFileListActive = 0;
+                DrawFileScreen();
+                break;
+            }
+        } else {
+            switch (wFileField) {
+            case 0:
+            case 1:
+            case 2:
+                wFileListAction = wFileField;
+                wFileListActive = 1;
+                wFileNameNavMode = wFileField == 1;
+                if (wFileNameNavMode) {
+                    wFileCursor = ReadSongByte(4, 0xA140);
+                    if (wFileCursor == 0xFF)
+                        wFileCursor = 0;
+                    if (wFileCursor >= 0x20)
+                        DebugTrap();
+                    if (FileCheckNameLen()) {
+                        FileValidateName();
+                        DrawFileList();
+                    }
+                }
+                FileDrawField(2);
+                FileDrawFieldChecked(hGameboyType ? 3 : 2);
+                break;
+            }
+        }
+        break;
+    case 0x20:
+        if (!wAPressEnabled)
+            return 0;
+        if (wFilePromptActive) {
+        cancel:
+            wFilePromptActive = 0;
+            if (hGameboyType)
+                ClearBgTilemap();
+            wFileListActive = 0;
+            FarCall(1, FAR_FN(UiDrawTextHw));
+            DrawFileScreen();
+        } else if (wFileListActive) {
+            FileDrawFieldChecked(0);
+            wFileListActive = 0;
+            FileDrawField(hGameboyType ? 3 : 2);
+        } else {
+            wCurrentScreen = 9;
+            FarCall(7, FAR_FN(RedrawScreen));
+        }
+        break;
+    case 2:
+        if (wButtonsSame)
+            break;
+        if (wFilePromptActive) {
+            wFilePromptNo = 0;
+            DrawTextField(6, 9, 3, hGameboyType ? 3 : 2);
+            DrawTextField(0x0B, 9, 2, 0);
+        } else if (!wFileListActive && wFileField) {
+            FileDrawField(1);
+            wFileField--;
+            FileDrawField(hGameboyType ? 3 : 2);
+        }
+        break;
+    case 1:
+        if (wButtonsSame)
+            break;
+        if (wFilePromptActive) {
+            wFilePromptNo = 1;
+            DrawTextField(6, 9, 3, 0);
+            DrawTextField(0x0B, 9, 2, hGameboyType ? 3 : 2);
+        } else if (!wFileListActive && wFileField < 3 - 1) {
+            FileDrawField(1);
+            wFileField++;
+            FileDrawField(hGameboyType ? 3 : 2);
+        }
+        break;
+    case 8:
+        if (!wFilePromptActive && wFileListActive && wFileCursor < wFileDrawIdx) {
+            FileDrawFieldChecked(0);
+            if (!wFileNameNavMode)
+                wFileCursor++;
+            else
+                FileMatchName();
+            if (wFileCursor >= 0x20)
+                DebugTrap();
+            if (FileCheckNameLen()) {
+                do {
+                    wFileScroll++;
+                } while (FileCheckNameLen());
+                DrawFileList();
+            }
+            FileDrawFieldChecked(hGameboyType ? 3 : 2);
+        }
+        break;
+    case 4:
+        if (!wFilePromptActive && wFileListActive && wFileCursor) {
+            FileDrawFieldChecked(0);
+            if (!wFileNameNavMode)
+                wFileCursor--;
+            else
+                FileCopyNameToBuf();
+            if (wFileCursor >= 0x20)
+                DebugTrap();
+            if (FileCheckNameLen()) {
+                do {
+                    wFileScroll--;
+                } while (FileCheckNameLen());
+                DrawFileList();
+            }
+            FileDrawFieldChecked(hGameboyType ? 3 : 2);
+        }
+        break;
     }
     return 1;
 }

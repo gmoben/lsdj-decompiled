@@ -359,6 +359,12 @@
   "len": 166,
   "src": "c/bank00/DrawFields.c"
  },
+ "DrawFileList": {
+  "bank": "1C",
+  "addr": "55F1",
+  "len": 443,
+  "src": "c/bank1c/FileScreen.c"
+ },
  "DrawFileScreen": {
   "bank": "1C",
   "addr": "57BB",
@@ -795,6 +801,12 @@
   "bank": "1C",
   "addr": "42E9",
   "len": 76,
+  "src": "c/bank1c/FileScreen.c"
+ },
+ "FileScreenInput": {
+  "bank": "1C",
+  "addr": "5B0C",
+  "len": 1437,
   "src": "c/bank1c/FileScreen.c"
  },
  "FileSendSyncByte": {
@@ -1641,6 +1653,12 @@
   "bank": "1C",
   "addr": "50B3",
   "len": 667,
+  "src": "c/bank1c/FileScreen.c"
+ },
+ "LoadFileListState": {
+  "bank": "1C",
+  "addr": "4A46",
+  "len": 459,
   "src": "c/bank1c/FileScreen.c"
  },
  "LoadSyncSetting": {

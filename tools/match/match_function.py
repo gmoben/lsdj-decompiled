@@ -370,6 +370,7 @@ RUNTIME_ALIASES = {
     "__divuchar": "DivU8", "__moduchar": "ModU8",
     "__divsint": "DivS16", "__modsint": "ModS16",
     "__divuint": "DivU16", "__moduint": "ModU16",
+    "strcmp": "StrCompare",     # bank 0's SDCC strcmp (named StrCompare: `strcmp` is an rgbasm keyword)
 }
 
 
