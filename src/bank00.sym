@@ -624,7 +624,7 @@
 125D .cont_2
 1292 .cont_3
 12EA .cont
-1306 .checkBootHwId
+1306 main               ; the C entry point (Start jumps here): detect the hardware, InitAndLoadSong, redraw, file-system check; then MainLoop is its endless loop
 1318 .readAUDENA
 1323 .setIsCGB_2
 132B .cont_2

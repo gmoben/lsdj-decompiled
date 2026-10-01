@@ -1,9 +1,11 @@
 /*
- * The bank 0 field drawers -- LSDj 9.4.0, ROM bank $00:$2BC4-$2E6C.
+ * The bank 0 field drawers -- LSDj 9.4.0, ROM bank $00 ($1298, $2BC4-$2E6C).
  *
  * MATCHING C (period GBDK 2.95-3 / SDCC 2.2.1 + tools/match/lsdj.peep);
  * `make match` verifies every function here against the ROM.
  *
+ * DrawTextField colours a field: on CGB it fills wAttrRowBuf with the palette
+ * and writes it to VRAM bank 1 with set_bkg_tiles, on DMG it draws a tile run.
  * The tempo (a stored 0-39 stands for 256-295; the three sync speeds show
  * as 2X/3X/6X), the channel header and the pulse duty / pan values. The
  * string literals come out in the order SDCC numbers them, and a block-local
@@ -13,6 +15,25 @@
  */
 
 #include "lsdj.h"
+
+extern volatile sfr UBYTE VBK_REG;          /* $FF4F */
+extern UBYTE wAttrRowBuf[];                 /* $C677, [20] */
+void DrawTileRun(UBYTE x, UBYTE y, UBYTE w, UBYTE h, UBYTE tile);   /* asm */
+
+void DrawTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE pal)
+{
+    if (!w)
+        return;
+    if (hGameboyType) {
+        if (w > 20)
+            DebugTrap();
+        MemSet(wAttrRowBuf, pal, w);
+        VBK_REG = 1;
+        set_bkg_tiles(x, y, w, 1, wAttrRowBuf);
+        VBK_REG = 0;
+    } else
+        DrawTileRun(x, y, w, 1, pal);
+}
 
 UWORD GetTempoTimerValue(void)
 {

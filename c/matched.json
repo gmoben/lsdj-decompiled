@@ -515,6 +515,12 @@
   "len": 34,
   "src": "c/bank00/DrawFields.c"
  },
+ "DrawTextField": {
+  "bank": "00",
+  "addr": "1298",
+  "len": 110,
+  "src": "c/bank00/DrawFields.c"
+ },
  "DrawTileHexCell": {
   "bank": "06",
   "addr": "7524",

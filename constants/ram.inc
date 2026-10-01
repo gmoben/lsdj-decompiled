@@ -947,7 +947,7 @@ DEF wNoteOctave      EQU $C693  ; octave/fine index stored by NoteToPeriod; inde
 DEF wTableHopCountersWav EQU $C1C0  ; [32] table H-hop repeat counters, WAV slice
 DEF wTableHopCountersNoi EQU $C1E0  ; [32] table H-hop repeat counters, NOI slice
 DEF wSelHoldFrames   EQU $C676  ; frames SELECT has been held (ProcessInput resets on other input)
-DEF wSelHoldFrames2  EQU $C677  ; second SELECT-hold counter byte
+DEF wAttrRowBuf     EQU $C677  ; [20] CGB attribute row buffer: DrawTextField fills it with the palette and set_bkg_tiles writes it to VRAM bank 1
 DEF wFxWaveParam     EQU $C8C2  ; W command value latch (lo nibble; consumed via SndSetKitParams)
 DEF wFxWaveParam2    EQU $C8C3  ; W command companion latch
 DEF wSynthRenderState EQU $CB3A ; synth render params copied at buffer init (3 words: +0/+2/+4)
