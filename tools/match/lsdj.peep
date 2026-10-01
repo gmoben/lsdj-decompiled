@@ -532,6 +532,20 @@ replace restart {
 %5:
 } if labelRefCount %5 0
 replace restart {
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+	cp	%3
+	jp	z,%4
+%5:
+	ld	hl,#%1 + %2
+} by {
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+	cp	%3
+	jp	z,%4
+%5:
+} if labelRefCount %5 0
+replace restart {
 	xor	a,a
 	ld	a,#0x00
 } by {

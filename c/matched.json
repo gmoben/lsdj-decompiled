@@ -269,6 +269,12 @@
   "len": 146,
   "src": "c/bank04/PhraseScreen.c"
  },
+ "CloseNameEditor": {
+  "bank": "1B",
+  "addr": "5126",
+  "len": 434,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
  "CopyFileName": {
   "bank": "1C",
   "addr": "4352",
@@ -1774,6 +1780,12 @@
   "addr": "4DD1",
   "len": 63,
   "src": "c/bank1c/FileScreen.c"
+ },
+ "OpenNameEditor": {
+  "bank": "1B",
+  "addr": "4E8A",
+  "len": 653,
+  "src": "c/bank1b/ProjectScreen.c"
  },
  "OverwritePromptInput": {
   "bank": "1D",

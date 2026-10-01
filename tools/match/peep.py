@@ -424,6 +424,7 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
     out: list[str] = []
     eq: set[str] = set()          # what `a` equals: "c", "#0x05", "(hl)"
     via: dict[str, str] = {}      # register -> the register its equality came through
+    pair_half: set[str] = set()   # b/c holding half of a 16-bit call result (`ld c,d; ld b,e`)
     hl = None                     # ("stk", N - level) | ("imm", text) | None
     level = 0                     # bytes pushed since the block began
     a_alu = False                 # `a` holds a fresh ALU result
@@ -461,6 +462,16 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
             out.append(raw)
             continue
         mn, ops = _ops(t)
+        # a 16-bit call result copied into bc (`ld c,d; ld b,e`): the ROM's
+        # one reread of a byte just stored from a register (`ld (hl),b; ld
+        # a,(hl)`, OpenNameEditor's StringLength result) stores such a half;
+        # the 46 sites that reuse the register stored a byte value
+        for r in _written(mn, ops):
+            pair_half.discard(r)
+        if mn == "ld" and ops in (["c", "d"], ["b", "e"]):
+            prev = next((_strip(l).strip() for l in reversed(out) if _strip(l).strip()), "")
+            if (ops == ["b", "e"] and prev == "ld\tc,d") or (ops == ["c", "d"] and prev == "ld\tb,e"):
+                pair_half |= {"b", "c"}
         # --- (hl) == a after `ld (hl),a`: a test of that byte is `or a,a` (169
         # ROM sites; the value from an ALU op or a merge label), except that a
         # value read through a pointer (`x = *p; if (x)`) is reread: `xor a,a;
@@ -496,7 +507,7 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
                 hl_reg = None
         if mn == "ld" and len(ops) == 2 and ops[0] == "(hl)" and ops[1] in ("b", "c", "d", "e"):
             eq.discard("(hl)")
-            hl_reg = None if _rmw_store(out, ops[1]) else ops[1]
+            hl_reg = None if _rmw_store(out, ops[1]) or ops[1] in pair_half else ops[1]
             out.append(raw)
             continue
         if mn == "ld" and len(ops) == 2 and ops[1] == "(hl)" and ops[0] in ("l", "h") \
@@ -998,7 +1009,14 @@ def dead_stores(lines: list[str], jump_targets: set[str]) -> tuple[list[str], in
         scopes[i] = scope
     drop: set[int] = set()
     for k, (i, (mn, ops)) in enumerate(code):
-        if not (mn == "ld" and len(ops) == 2 and ops[1] == "a" and ops[0] in ("b", "c", "d", "e")):
+        if not (mn == "ld" and len(ops) == 2 and ops[0] in ("b", "c", "d", "e")
+                and (ops[1] == "a"
+                     # a call result copied to its register (`call; ld c,e`)
+                     # and never read: SDCC leaves it when the cast that
+                     # follows reads e itself (CloseNameEditor's row * 3);
+                     # the ROM has no such copy before its register is
+                     # rewritten
+                     or (ops[1] == "e" and k > 0 and code[k - 1][1][0] == "call"))):
             continue
         r = ops[0]
         for j, (mn2, ops2) in code[k + 1:]:

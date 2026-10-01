@@ -62,6 +62,19 @@ void DrawFontColorFields(void);             /* $1B:$569C, its own unit */
 extern UBYTE ExpoCurve16[];                 /* $00:$300F, envelope speed -> frame count */
 int Abs16(int v);                           /* $00:$343F */
 
+extern UBYTE wNameReturnScreen;             /* $C42F */
+extern UBYTE wFileListActive;               /* $C998 */
+extern UBYTE wFileCursor;                   /* $C999 */
+extern UBYTE wNameEditIsInstr;              /* $C430 */
+extern UBYTE wInstrument;                   /* $C576 */
+void FileStopSound(void);                   /* $1C:$5098 */
+UBYTE SaveFile(UBYTE f);                    /* $1C:$4E10 */
+void WriteInstrName(UBYTE instr);           /* $01:$4A49 */
+void DrawProjTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE h);
+void delay(UWORD d);
+extern char AlnumChars[];                   /* $1B:$4C6A, four 11-byte rows: "0123456789", "ABCDEFGHIJ", "KLMNOPQRST", "UVWXYZx >w" */
+void CopyInstrName(UBYTE instr);            /* $01:$493B */
+
 void DrawHelpMenu(void)
 {
     UBYTE i;
@@ -206,6 +219,121 @@ void ProjDrawNameFieldHw(void)
 void ProjDrawNameField(void)
 {
     DrawTextField(wKbdCursorCol + 5, wKbdCursorRow + 8, 1, 0);
+}
+
+void OpenNameEditor(void)
+{
+    UBYTE i, v;
+
+    ClearMarkerSprites();
+    wNameReturnScreen = wCurrentScreen;
+    if (wNameEditIsInstr)
+        FarCallArg(1, FAR_FN(CopyInstrName), wInstrument);
+    wKbdLetterPos = 0;
+    while (wNameEditBuf[wKbdLetterPos]) {
+        if (wKbdLetterPos == (wNameEditIsInstr ? 4 : 2))
+            break;
+        wKbdLetterPos++;
+    }
+    if (wCurrentScreen == 0x0D) {
+        DrawProjTextField(4, 4, 0x0C, 9);
+        wVramCursor = 0x98A5;
+        hBgDigitPalette = 4;
+        hBgPalette = 1;
+        DrawString("SAVE AS:");
+    } else {
+        DrawProjTextField(4, 5, 0x0C, 8);
+    }
+    hBgDigitPalette = wSelectDigitPal;
+    hBgPalette = wSelectPal;
+    if (wCurrentScreen == 0x0D) {
+        wVramCursor = 0x98C5;
+        DrawString(wNameEditBuf);
+        wKbdLetterPos = StringLength(wNameEditBuf);
+        if (wKbdLetterPos == 8)
+            wKbdLetterPos--;
+        wKbdCursorCol = 9;
+        wKbdCursorRow = 3;
+    } else {
+        wVramCursor = 0x98CA;
+        for (i = 0; i < (wNameEditIsInstr ? 5 : 3); i++) {
+            v = wNameEditBuf[i];
+            DrawStringIndexed(v ? v : ' ');
+        }
+        hBgDigitPalette = 4;
+        hBgPalette = 1;
+        wVramCursor = 0x98C5;
+        DrawString("NAME:");
+    }
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
+    wVramCursor = 0x9905;
+    DrawString(AlnumChars);
+    wVramCursor = 0x9925;
+    DrawString(AlnumChars + 11);
+    wVramCursor = 0x9945;
+    DrawString(AlnumChars + 22);
+    wVramCursor = 0x9965;
+    DrawString(AlnumChars + 33);
+    if (wCurrentScreen == 0x0D) {
+        DrawTextField(5, 6, 0x0A, hGameboyType ? 3 : 2);
+        DrawTextField(wKbdLetterPos + 5, 6, 1, hGameboyType ? 4 : 1);
+    } else {
+        DrawTextField(0x0A, 6, wNameEditIsInstr ? 5 : 3, hGameboyType ? 3 : 2);
+        DrawTextField(wKbdLetterPos + 0x0A, 6, 1, hGameboyType ? 4 : 1);
+    }
+    DrawTextField(wKbdCursorCol + 5, wKbdCursorRow + 8, 1, hGameboyType ? 3 : 2);
+    wCurrentScreen = 7;
+}
+
+void CloseNameEditor(void)
+{
+    UBYTE *p;
+
+    if (wNameReturnScreen == 0x0D) {
+        FarCall(0x1C, FAR_FN(FileStopSound));
+        wFileListActive = 0;
+        DrawProjTextField(2, 6, 0x10, 4);
+        wVramCursor = 0x98E3;
+        hBgDigitPalette = 4;
+        hBgPalette = 1;
+        DrawString("SAVING...");
+        switch (FarCallArgByte(0x1C, (UWORD)SaveFile, wFileCursor)) {
+        case 0:
+            wVramCursor = 0x98EC;
+            DrawString("FAIL!");
+            wVramCursor = 0x9903;
+            DrawString("OUT OF MEMORY!");
+            while (GetNextButtons())
+                ;
+            while (!GetNextButtons())
+                ;
+            break;
+        case 1:
+            wVramCursor = 0x98EC;
+            DrawString("OK!  ");
+            delay(hGameboyType ? 1500 : 750);
+            break;
+        case 2:
+            wVramCursor = 0x98EC;
+            DrawString("FAIL!");
+            while (GetNextButtons())
+                ;
+            while (!GetNextButtons())
+                ;
+            break;
+        }
+        wRedrawPending = 0;
+    } else if (wNameEditIsInstr) {
+        FarCallArg(1, FAR_FN(WriteInstrName), wInstrument);
+    } else {
+        p = (UBYTE *)0xBDD0 + wSpeechCursorRow * 3;
+        WriteSongByte(0, p++, wNameEditBuf[0]);
+        WriteSongByte(0, p++, wNameEditBuf[1]);
+        WriteSongByte(0, p, wNameEditBuf[2]);
+    }
+    wCurrentScreen = wNameReturnScreen;
+    FarCall(3, FAR_FN(RedrawScreen));
 }
 
 void DrawNameEditCursor(UBYTE x, UBYTE n)
