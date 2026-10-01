@@ -244,7 +244,7 @@ void InstrTableModePrev(void)
         WriteCurrentInstrByte(6, ReadCurInstrByte(6) & 0xDF);
     hBgDigitPalette = wSelectDigitPal;
     hBgPalette = wSelectPal;
-    FarCall(0x1F, FAR_FN(GetInstrType1F));
+    FarCall(0x1F, FAR_FN(DrawInstrTableMode));
     wVramCursor++;
     hBgDigitPalette = wShadowDigitPal;
     hBgPalette = wShadowPal;
@@ -261,7 +261,7 @@ void InstrTableModeNext(void)
         InstrTableOn();
     hBgDigitPalette = wSelectDigitPal;
     hBgPalette = wSelectPal;
-    FarCall(0x1F, FAR_FN(GetInstrType1F));
+    FarCall(0x1F, FAR_FN(DrawInstrTableMode));
     wVramCursor++;
     hBgDigitPalette = wShadowDigitPal;
     hBgPalette = wShadowPal;

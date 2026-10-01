@@ -335,6 +335,12 @@
   "len": 43,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "DrawInstrTableMode": {
+  "bank": "1F",
+  "addr": "4000",
+  "len": 141,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
  "DrawKbdOctave": {
   "bank": "07",
   "addr": "6812",
@@ -1191,6 +1197,12 @@
   "bank": "1F",
   "addr": "515F",
   "len": 36,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
+ "InstrHScanPhraseCmds": {
+  "bank": "1F",
+  "addr": "5FEC",
+  "len": 136,
   "src": "c/bank1f/InstrHelpers.c"
  },
  "InstrHScanUsedChains": {

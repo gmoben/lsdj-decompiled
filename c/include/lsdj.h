@@ -256,7 +256,7 @@ UBYTE ProjSyncModeIs567(void);
 /* --- bank $1F -------------------------------------------------------------- */
 
 void DrawInstrTableField(void);
-UBYTE GetInstrType1F(void);
+void DrawInstrTableMode(void);
 UBYTE GetInstrEnv1F(void);
 UBYTE FindFreeTable(void);
 void GetInstrEnv1F2(void);

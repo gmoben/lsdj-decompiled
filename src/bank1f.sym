@@ -24,7 +24,7 @@
 44AD NoiseSafeStr      ; "SAFE" (noise S command, nonzero)
 44B2 NoiseFreeStr      ; "FREE" (noise S command, 0)
 648F PhraseScreenUpdate ; per-frame visual update (screen idx 1 = Phrase)
-4000 GetInstrType1F                           ; read instrument byte 0 = type (0=PULSE 1=WAVE 2=KIT 3=NOISE)
+4000 DrawInstrTableMode         ; draw the instrument's table mode at its type's row: " OFF", or STEP/TICK by byte 5 bit 3 when the table is on (byte 6 bit 5)
 4157 GetInstrEnv1F                             ; read instrument byte 1 = envelope/volume
 4169 GetInstrByte1F9                         ; read instrument byte 9 (kit row gate: 0 -> dashes)
 5091 IsPhraseUsedFar            ; FarCall bank01 IsPhraseUsed
@@ -74,7 +74,7 @@
 5F20 WaveFrameModified          ; 1 if synth w's wave frame (SRAM bank 3 $A000 + w*16) differs from DefaultWaveFrameB1F
 5F85 InstrHScanChainPhrases     ; scan the 16 phrase slots of a chain (arg*16) for usage
 5FC2 InstrHScanAllChainPhr      ; for 16 chains, scan their phrases (InstrHScanChainPhrases)
-5FEC InstrHScanPhraseCmds       ; scan phrase command bytes from SRAM ($A0xx) for references
+5FEC InstrHScanPhraseCmds       ; e=1 if any phrase row (SRAM bank 2 phrase commands) holds command 6 (F), else 0
 6074 InstrHScanTableCmds        ; scan table command columns from SRAM ($B680/$BA80) for references
 614C InstrHAnyCmdRef            ; return 1 if InstrHScanPhraseCmds or InstrHScanTableCmds found a reference
 6163 ResetWaveFrame             ; reset wave frame n (SRAM bank 3, $A000 + n*16) to DefaultWaveFrameB1F
@@ -360,7 +360,7 @@
 4050 .readCurInstrByte
 4078 .cont
 407D .toDrawString
-4085 .drawString          ; shared DrawString tail of GetInstrType1F (was mislabelled GetInstrTable1F)
+4085 .drawString          ; shared DrawString tail of DrawInstrTableMode (was mislabelled GetInstrTable1F)
 4080 .cont_2
 40BC .drawString
 40E8 .drawString

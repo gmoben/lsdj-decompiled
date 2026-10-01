@@ -50,6 +50,28 @@ void ClearTable(UBYTE t);
 void MarkPhraseUsed(UBYTE phrase);
 void WritePhraseInstrument(UBYTE phrase, UBYTE row, UBYTE instr);
 
+void DrawInstrTableMode(void)
+{
+    char *s;
+
+    switch (ReadCurInstrByte(0)) {
+    case 0:
+        wVramCursor = (UBYTE *)0x9A26;
+        break;
+    case 1:
+        wVramCursor = (UBYTE *)0x9A26;
+        break;
+    case 2:
+        wVramCursor = (UBYTE *)0x9A26;
+        break;
+    case 3:
+        wVramCursor = (UBYTE *)0x99C6;
+        break;
+    }
+    s = (ReadCurInstrByte(6) & 0x20) ? ((ReadCurInstrByte(5) & 8) ? "STEP" : "TICK") : " OFF";
+    DrawString(s);
+}
+
 void DrawInstrTableField(void)
 {
     char v;
@@ -363,6 +385,26 @@ UBYTE InstrHScanAllChainPhr(void)
         if (InstrHScanChainPhrases(i))
             n++;
     return n;
+}
+
+UBYTE InstrHScanPhraseCmds(void)
+{
+    UBYTE *p;
+    UBYTE ph, i;
+
+    p = SramPhraseFx;
+    for (ph = 0; ph != 0xFF; ph++) {
+        i = 0;
+        while (1) {
+            if (!(i < 0x10))
+                break;
+            if (ReadSongByte(2, p) == 6)
+                return 1;
+            p = p + 1;
+            i = i + 1;
+        }
+    }
+    return 0;
 }
 
 void ResetWaveFrame(UBYTE p)
