@@ -719,6 +719,12 @@
   "len": 56,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "DrawTableScreen": {
+  "bank": "05",
+  "addr": "4762",
+  "len": 462,
+  "src": "c/bank05/TableScreen.c"
+ },
  "DrawTempo": {
   "bank": "00",
   "addr": "2C3C",
@@ -1805,6 +1811,18 @@
   "len": 25,
   "src": "c/bank05/TableScreen.c"
  },
+ "MapDrawTopRow": {
+  "bank": "05",
+  "addr": "4040",
+  "len": 288,
+  "src": "c/bank05/TableScreen.c"
+ },
+ "MapEnterScreen": {
+  "bank": "05",
+  "addr": "4167",
+  "len": 165,
+  "src": "c/bank05/TableScreen.c"
+ },
  "MapMoveDown": {
   "bank": "05",
   "addr": "4287",
@@ -2207,6 +2225,12 @@
   "len": 204,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "ReadTableStep": {
+  "bank": "05",
+  "addr": "4668",
+  "len": 195,
+  "src": "c/bank05/TableScreen.c"
+ },
  "ReadWaveSample": {
   "bank": "06",
   "addr": "4992",
@@ -2278,6 +2302,12 @@
   "addr": "6163",
   "len": 59,
   "src": "c/bank1f/InstrHelpers.c"
+ },
+ "RestoreSelectionState": {
+  "bank": "05",
+  "addr": "747D",
+  "len": 49,
+  "src": "c/bank05/TableScreen.c"
  },
  "SaveFile": {
   "bank": "1C",
@@ -2817,6 +2847,12 @@
   "bank": "05",
   "addr": "453B",
   "len": 99,
+  "src": "c/bank05/TableScreen.c"
+ },
+ "TableScreenUpdate": {
+  "bank": "05",
+  "addr": "4967",
+  "len": 321,
   "src": "c/bank05/TableScreen.c"
  },
  "TableWriteCmd": {

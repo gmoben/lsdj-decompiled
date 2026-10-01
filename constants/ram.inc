@@ -425,6 +425,10 @@ DEF wColInstrument   EQU $C468  ; last-used instrument per channel column (4 byt
 DEF wColChain        EQU $C44F  ; chain under cursor per song column, 4 bytes (SongEnterChain / IsSongChainUsed)
 DEF wColPhrase       EQU $C453  ; phrase per song column, 4 bytes (AllocNextFreePhrase scan start)
 DEF wUsedTableMap    EQU $C47D  ; [32] 32-slot used-tables map (BuildUsedTablesMap); overlaps wSongReadBuf + 16
+DEF wRowBufCol2      EQU $C48D  ; [16] shared row buffer, third column (phrase: commands; table: command 1; song: 3rd channel)
+DEF wRowBufCol3      EQU $C49D  ; [16] shared row buffer, fourth column (phrase: command values; table: value 1)
+DEF wRowBufCol4      EQU $C4AD  ; [16] shared row buffer, fifth column (table: command 2)
+DEF wRowBufCol5      EQU $C4BD  ; [16] shared row buffer, sixth column (table: value 2)
 DEF wTopBarStr       EQU $C555  ; top-bar/title string buffer (DrawTopBar draws it directly)
 DEF wPlayFrames      EQU $C6A8  ; PLAY clock frame divider (UpdatePlayClock: 60 frames = 1 s, restarted at 1 every 4th
                                 ; second to track the 59.73 Hz frame rate); 0 while stopped
