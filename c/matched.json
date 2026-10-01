@@ -1001,6 +1001,18 @@
   "len": 120,
   "src": "c/bank00/DrawFields.c"
  },
+ "GfxFillVramRegions": {
+  "bank": "1E",
+  "addr": "79FA",
+  "len": 62,
+  "src": "c/bank1e/Gfx.c"
+ },
+ "GfxReadVramByte": {
+  "bank": "1E",
+  "addr": "7A38",
+  "len": 19,
+  "src": "c/bank1e/Gfx.c"
+ },
  "GotoProjectScreen": {
   "bank": "1B",
   "addr": "4AC5",
