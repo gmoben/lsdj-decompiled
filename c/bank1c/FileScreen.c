@@ -23,6 +23,10 @@ extern char wFileNameBuf[];                 /* $C987, [8] */
 extern UBYTE wFileNameTerm[];               /* $C98F, its NUL */
 extern UBYTE wDecompBuf[];                  /* $DA00, [256] */
 extern UBYTE DefaultWaveFrameB1C[];         /* $1C:$4047 */
+extern UBYTE *wTopBarMarkPtr;               /* $C562 */
+extern UBYTE wFileEraseArmed;               /* $C994 */
+extern UBYTE wFilePromptActive;             /* $C995 */
+extern UBYTE wFilePromptNo;                 /* $C996 */
 extern UBYTE wFileField;                    /* $C992 */
 extern UBYTE wFileCursor;                   /* $C999 */
 extern UBYTE wFileScroll;                   /* $C99B */
@@ -37,6 +41,8 @@ UBYTE joypad(void);                         /* bank 0 */
 void SendSyncHandshake(void);               /* bank 0 */
 void SendSyncByte(void);                    /* bank 0 */
 void delay(UWORD d);                        /* bank 0 (GBDK) */
+void DrawFileTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE pal);
+UWORD FileCalcCompressedSize(void);
 UBYTE GetFileBlockCount(UBYTE i);
 UBYTE FileFindSlotEnd(void);
 UBYTE FileSlotHalfBase(void);
@@ -297,6 +303,40 @@ UBYTE FileCheckNameLen(void)
 
     d = wFileCursor - wFileScroll;
     return d > 0x0B;
+}
+
+const UBYTE FileNoAttrTiles[] = {3, 3};    /* $1C:$5AD4: CGB attributes under the NO prompt */
+
+UBYTE DrawBlocksUsed(void)
+{
+    UWORD n;
+
+    n = FileCalcCompressedSize();
+    if (*wTopBarMarkPtr != 0x21)
+        return 0;
+    wFileEraseArmed = 0;
+    DrawFileTextField(1, 5, 0x12, 6);
+    wFilePromptActive = 1;
+    wFilePromptNo = 1;
+    wVramCursor = 0x98C2;
+    if (n < 0x78)
+        DrawFormat("LOSE %u MINUTES", n);
+    else
+        DrawFormat("LOSE %u HOURS", n / 60);
+    wVramCursor = 0x98E2;
+    DrawString("OF UNSAVED WORK?");
+    wVramCursor = 0x9926;
+    DrawString("YES");
+    wVramCursor = 0x992B;
+    hBgDigitPalette = wSelectDigitPal;
+    hBgPalette = wSelectPal;
+    DrawString("NO");
+    if (hGameboyType) {
+        VBK_REG = 1;
+        set_bkg_tiles(0x0B, 9, 2, 1, FileNoAttrTiles);
+        VBK_REG = 0;
+    }
+    return 1;
 }
 
 void FileCheckByte6973(UBYTE *p)

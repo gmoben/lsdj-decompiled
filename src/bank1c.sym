@@ -8,7 +8,7 @@
 4C11 TxtEmpty2          ; "[EMPTY] "
 534E TxtLoading         ; "LOADING...1/"
 57AC TxtEmpty3          ; "[EMPTY]      0"
-5AD4 TxtLoseMinutes     ; "LOSE %u MINUTES" (unsaved-work warning)
+5AD4 FileNoAttrTiles                ; [2] = $03 $03: CGB attribute bytes under the "NO" prompt (set_bkg_tiles, DrawBlocksUsed)
 60A9 TxtFileErased      ; "FILE ERASED!"
 70F9 TxtUpgrading        ; "UPGRADING..."
 6E3C CompressRunTable   ; [8][8] run/length table used by the song compressor ($6DBF)

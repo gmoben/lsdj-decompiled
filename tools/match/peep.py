@@ -265,6 +265,22 @@ def gb_cmp16(lines: list[str]) -> tuple[list[str], int]:
                 lines[idx[0]:idx[-1] + 1] = out
                 n += 1
                 i = idx[0] + len(out) - 1
+                if fetch and fetch[0].startswith("\tlda\thl,"):
+                    # stock SDCC left hl at the operand's high byte and may go
+                    # on from there (`dec hl; ld a,(hl+)`); the add clobbered
+                    # hl, so LSDj's compiler reloaded it (DrawBlocksUsed's
+                    # `ld hl,sp+0`)
+                    off = int(groups[0]) + 1
+                    k = i + 1
+                    while k < len(lines) and not _strip(lines[k]).strip():
+                        k += 1
+                    adj = k
+                    while adj < len(lines) and _strip(lines[adj]).strip() in ("inc\thl", "dec\thl"):
+                        off += 1 if _strip(lines[adj]).strip() == "inc\thl" else -1
+                        adj += 1
+                    nxt = _strip(lines[adj]).strip() if adj < len(lines) else ""
+                    if "(hl" in nxt and not nxt.endswith(":"):
+                        lines[k:adj] = [f"\tlda\thl,{off}(sp)"]
                 break
         i += 1
     return lines, n

@@ -299,6 +299,12 @@
   "len": 37,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "DrawBlocksUsed": {
+  "bank": "1C",
+  "addr": "59E6",
+  "len": 238,
+  "src": "c/bank1c/FileScreen.c"
+ },
  "DrawChainCellFar": {
   "bank": "04",
   "addr": "4000",
