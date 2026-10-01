@@ -23,6 +23,12 @@
   "len": 105,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "AllocNextFreePhrase": {
+  "bank": "01",
+  "addr": "4EB3",
+  "len": 166,
+  "src": "c/bank01/SongAlloc.c"
+ },
  "ApplyColorSet": {
   "bank": "01",
   "addr": "4C61",
@@ -202,6 +208,12 @@
   "addr": "5183",
   "len": 54,
   "src": "c/bank1f/InstrHelpers.c"
+ },
+ "CloneInstrTable": {
+  "bank": "01",
+  "addr": "546E",
+  "len": 136,
+  "src": "c/bank01/SongAlloc.c"
  },
  "CloneInstrument": {
   "bank": "04",

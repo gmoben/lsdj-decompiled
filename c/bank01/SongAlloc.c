@@ -7,6 +7,12 @@
 
 #include "lsdj.h"
 
+extern UBYTE wInstrField;                   /* $C427 */
+extern UBYTE wColPhrase[];                  /* $C453, [4] */
+extern UBYTE InstrTableFieldRow[];          /* $01:$532C, [4] */
+void CopyTableData(UBYTE from, UBYTE to);
+void ShowOutOfMemory(void);
+
 UBYTE CheckSongInitFlag(void)
 {
     if (ReadSongByte(0, SramInitFlag1) == 'r' && ReadSongByte(0, SramInitFlag1 + 1) == 'b')
@@ -72,6 +78,31 @@ void FreeChain(UBYTE chain)
     WriteSongByte(1, p, ReadSongByte(1, p) & (0xFF - (1 << chain)));
 }
 
+UBYTE AllocNextFreePhrase(void)
+{
+    UBYTE i;
+    UBYTE *p;
+    UBYTE start;
+
+    start = wColPhrase[wSongCol];
+    if (start == 0xFF)
+        start = 0;
+    i = start;
+    do {
+        p = SramPhraseAlloc + (i >> 3);
+        if (!(ReadSongByte(1, p) & (1 << (i & 7)))) {
+            MarkPhraseUsed(i);
+            if (i == 0xFF)
+                DebugTrap();
+            return i;
+        }
+        if (++i == 0xFF)
+            i = 0;
+    } while (i != start);
+    FarCall(1, FAR_FN(ShowOutOfMemory));
+    return 0xFF;
+}
+
 UBYTE IsChainUsed(UBYTE chain)
 {
     UBYTE v, m;
@@ -104,4 +135,22 @@ void CopySong16(UBYTE bank, UWORD src, UWORD dst)
         src = src + 1;
         dst = dst + 1;
     }
+}
+
+void CloneInstrTable(void)
+{
+    UBYTE v, t;
+
+    if (wInstrField != InstrTableFieldRow[ReadCurInstrByte(0) \& 3])
+        return;
+    v = ReadCurInstrByte(6);
+    if (!(v & 0x20))
+        return;
+    v &= 0x1F;
+    t = FarCallByte(0x1F, FAR_FN(FindFreeTable));
+    if (t == 0xFF)
+        return;
+    ShowMessage("CLONED TABLE");
+    CopyTableData(v, t);
+    WriteInstrByte(wInstrument, 6, t | 0x20);
 }

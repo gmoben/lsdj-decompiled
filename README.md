@@ -130,7 +130,7 @@ The project runs on **two tracks** (details in [`AGENTS.md`](AGENTS.md)):
 
 Track 2 is gated behind a **toolchain-recovery spike**: pin a period-correct
 GBDK 2.95 + SDCC and reproduce real LSDj functions byte-for-byte before
-committing to C. That spike is done and the grind has begun: 412 functions
+committing to C. That spike is done and the grind has begun: 414 functions
 match, the recovered compiler model is an accumulator-tracking pass plus 71
 peephole rules with ROM-wide evidence, and matched C feeds the ROM build (`INCBIN` of the compiled bytes,
 gated by `make compare`).
