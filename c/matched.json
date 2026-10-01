@@ -1517,6 +1517,12 @@
   "len": 117,
   "src": "c/bank1d/SynthScreen.c"
  },
+ "PasteInstrument": {
+  "bank": "01",
+  "addr": "5503",
+  "len": 185,
+  "src": "c/bank01/SongAlloc.c"
+ },
  "PastePhraseSelectionFar": {
   "bank": "04",
   "addr": "4C99",
@@ -1786,6 +1792,12 @@
   "addr": "7097",
   "len": 17,
   "src": "c/bank1f/InstrHelpers.c"
+ },
+ "ResetEditorState": {
+  "bank": "01",
+  "addr": "7BDE",
+  "len": 168,
+  "src": "c/bank01/UiHelpers.c"
  },
  "ResetScreenSprites": {
   "bank": "00",

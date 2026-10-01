@@ -12,6 +12,15 @@ extern volatile sfr UBYTE LCDC_REG;         /* $FF40 */
 extern volatile sfr UBYTE BGP_REG;          /* $FF47 */
 extern volatile sfr UBYTE OBP0_REG;         /* $FF48 */
 extern UBYTE wColorSet;
+extern UBYTE wSelTop;                       /* $C40E */
+extern UBYTE wSelRight;                     /* $C40F */
+extern UBYTE wSelBottom;                    /* $C410 */
+extern UBYTE wClipboardType;                /* $C411 */
+extern UBYTE wClipboardType_p1;             /* $C412 */
+extern UBYTE wLiveMode;                     /* $C528 */
+extern UBYTE wClipboardBuf[];               /* $C57A, [252] */
+extern UBYTE wClipboardSave[];              /* $C7C6, [252] */
+void ResetWorkState(void);                  /* bank 0 */
 extern UBYTE wBootHwId;                     /* $CBD9 */
 extern UBYTE wFileNameTmp[];
 extern UWORD ColorSetPalettes[];            /* $01:$56A7, [sets][20] */
@@ -171,4 +180,34 @@ void ClearMessageBar(void)
     } while (i++ != 4);
     wMsgTimer = 100;
     wMsgPanelShown = 1;
+}
+
+void ResetEditorState(UBYTE keep)
+{
+    UBYTE top, right, bottom, ctype, ctype1, mode, left, live;
+
+    left = wSelLeft;
+    top = wSelTop;
+    right = wSelRight;
+    bottom = wSelBottom;
+    ctype = wClipboardType;
+    ctype1 = wClipboardType_p1;
+    mode = wCursorMode;
+    live = wLiveMode;
+    if (keep)
+        memcpy(wClipboardSave, wClipboardBuf, 0xFC);
+    rRAMG = 0x0A;
+    ResetWorkState();
+    rRAMG = 0;
+    if (keep) {
+        memcpy(wClipboardBuf, wClipboardSave, 0xFC);
+        wSelLeft = left;
+        wSelRight = right;
+        wSelTop = top;
+        wSelBottom = bottom;
+        wClipboardType = ctype;
+        wClipboardType_p1 = ctype1;
+        wCursorMode = mode;
+        wLiveMode = live;
+    }
 }

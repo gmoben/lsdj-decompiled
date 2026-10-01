@@ -429,6 +429,7 @@ DEF wTopBarStr       EQU $C555  ; top-bar/title string buffer (DrawTopBar draws 
 DEF wClockFrame60    EQU $C6A8  ; 60-frame divider feeding the TOTAL WORK clock (UpdateWorkClock)
 DEF wHelpStrBuf      EQU $C7B0  ; [20] help/status string buffer (UiDrawHelpStr unrolled copy; wHelpSrcPtr follows)
 DEF wHelpSrcPtr      EQU $C7C4  ; [1] 16-bit source pointer of the staged help string, 2 bytes
+DEF wClipboardSave   EQU $C7C6  ; [252] ResetEditorState keeps wClipboardBuf here across ResetWorkState
 DEF wPlayChanFirst   EQU $C8DD  ; first channel to start playing (SndStartChannels)
 DEF wPlayChanLast    EQU $C8DE  ; last channel to start playing
 DEF wSavedScreen     EQU $C8FE  ; wCurrentScreen saved around song-context stop (StopAllPlayback)

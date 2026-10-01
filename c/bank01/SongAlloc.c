@@ -7,11 +7,15 @@
 
 #include "lsdj.h"
 
+extern UBYTE wClipboardType;                /* $C411 */
 extern UBYTE wInstrField;                   /* $C427 */
+extern UBYTE wNameEditBuf[];                /* $C431, [5] */
+extern UBYTE wSelectHeld;
 extern UBYTE wColPhrase[];                  /* $C453, [4] */
 extern UBYTE InstrTableFieldRow[];          /* $01:$532C, [4] */
 void CopyTableData(UBYTE from, UBYTE to);
 void ShowOutOfMemory(void);
+void WriteInstrName(UBYTE instr);
 
 UBYTE CheckSongInitFlag(void)
 {
@@ -153,4 +157,28 @@ void CloneInstrTable(void)
     ShowMessage("CLONED TABLE");
     CopyTableData(v, t);
     WriteInstrByte(wInstrument, 6, t | 0x20);
+}
+
+void PasteInstrument(void)
+{
+    UBYTE i;
+
+    if (wInstrument == 0x40)
+        return;
+    if (wCursorMode != 2)
+        return;
+    if (!wSelectHeld)
+        return;
+    if (wClipboardType != 6)
+        return;
+    for (i = 0; i < 16; i++)
+        WriteInstrByte(wInstrument, i, ReadClipboardCell(0, i));
+    for (i = 0; i < 5; i++)
+        wNameEditBuf[i] = ReadClipboardCell(1, i);
+    WriteInstrName(wInstrument);
+    if (hGameboyType)
+        ClearBgTilemap();
+    UiDrawTextHw();
+    FarCall(3, FAR_FN(DrawInstrumentScreen));
+    ShowMessage("PASTED INSTR");
 }
