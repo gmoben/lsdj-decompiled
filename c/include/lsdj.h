@@ -136,7 +136,7 @@ void SndGetChainPhrase(void);               /* $02:$6F65 (far): chain_phrases[ch
 /* runtime (hand-written asm) */
 void DebugTrap(void);                                   /* `ld b,b` + rst $38 assert */
 void FarCall(UBYTE bank, void (*fn)(void));
-void FarCallArg(UBYTE bank, UWORD fn, UBYTE arg);
+void FarCallArg(UBYTE bank, void (*fn)(void), UBYTE arg);    /* FAR_FN(f) for the byte-wise form */
 UBYTE FarCallArgByte(UBYTE bank, UWORD fn, UBYTE arg);         /* returns fn's byte */
 UBYTE FarCallArg2(UBYTE bank, UWORD fn, UBYTE a, UBYTE b);
 void FarCallArg2V(UBYTE bank, void (*fn)(void), UBYTE a, UBYTE b);

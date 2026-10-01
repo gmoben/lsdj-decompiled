@@ -280,8 +280,8 @@ void CloneInstrument(UBYTE src, UBYTE dst)
 
     for (i = 0; i < 0x10; i++)
         WriteInstrByte(dst, i, ReadInstrByte(src, i));
-    FarCallArg(1, (UWORD)CopyInstrName, src);
-    FarCallArg(1, (UWORD)WriteInstrName, dst);
+    FarCallArg(1, FAR_FN(CopyInstrName), src);
+    FarCallArg(1, FAR_FN(WriteInstrName), dst);
 }
 
 UBYTE PhraseCloneTableCmd(void)

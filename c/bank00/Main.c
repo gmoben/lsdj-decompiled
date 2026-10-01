@@ -1,5 +1,5 @@
 /*
- * main -- LSDj 9.4.0, ROM bank $00:$1306-$14xx.
+ * InitAndLoadSong and main -- LSDj 9.4.0, ROM bank $00 ($0DDB, $1306).
  *
  * MATCHING C (period GBDK 2.95-3 / SDCC 2.2.1 + tools/match/lsdj.peep);
  * `make match` verifies every function here against the ROM.
@@ -19,10 +19,15 @@
 
 sfr hGameboyTypeIo = 0xFF90;
 extern volatile sfr UBYTE NR52_REG;         /* $FF26 */
+extern volatile sfr UBYTE STAT_REG;         /* $FF41 */
+extern volatile sfr UBYTE TMA_REG;          /* $FF06 */
+extern volatile sfr UBYTE TAC_REG;          /* $FF07 */
 extern UBYTE wFsCheckResult;                /* $C56B */
 extern UBYTE wRedrawPending;                /* $C56C */
 extern UBYTE wPrelisten;                    /* $C56E */
 extern UBYTE wButtons;                      /* $C575 */
+extern UBYTE wTimerReload;                  /* $C578 */
+extern UBYTE wTimerTickInc;                 /* $C579 */
 extern UBYTE wWorkTimeTicks;                /* $C577 */
 extern UBYTE wIdleHalt;                     /* $C68B */
 extern UBYTE wIdleFrames;                   /* $C68C */
@@ -33,7 +38,19 @@ extern UBYTE wSyncSerialIeMask;             /* $CB6D */
 extern UBYTE wBootHwId;                     /* $CBD9 */
 extern char TxtTitle[];                     /* $01:$6F7E */
 
-void InitAndLoadSong(void);
+void SwitchToDoubleSpeed(void);             /* asm */
+void ResetWorkState(void);
+void LoadSongData(void);                    /* bank $1B */
+void UiInitScreen(void);                    /* bank 1 */
+UBYTE CheckSongInitFlag(void);              /* bank 1 */
+void InitScreenPalettes(void);              /* bank $1E */
+void DrawCartTest(void);                    /* bank 1 */
+void UiClearSram(void);                     /* bank 1 */
+void WriteSongInitFlag(void);               /* bank 1 */
+UBYTE CheckFileMagic64(void);               /* bank $1C */
+UBYTE CheckJkMarker(void);                  /* bank 1 */
+void FormatFileSpace(void);                 /* bank $1C */
+void LoadProjectSettings(void);             /* bank 1 */
 UBYTE CheckFileMagicAll(void);              /* bank $1C */
 void RenderSynthWave(void);                 /* bank $1D */
 UBYTE ProcessInput(void);
@@ -46,6 +63,45 @@ void UiUpdateMessage(void);                 /* bank 1 */
 void SetInterruptEnable(UBYTE ie);          /* asm */
 UBYTE joypad(void);                         /* GBDK */
 void WaitInterrupt(void);                   /* asm */
+
+void InitAndLoadSong(void)
+{
+    SwitchToDoubleSpeed();
+    ClearBgTilemap();
+    rRAMG = 0;
+    SWITCH_ROM(0x1B);
+    LoadSongData();
+    SWITCH_ROM(0x01);
+    UiInitScreen();
+    if (!CheckSongInitFlag()) {
+        ResetWorkState();
+        FarCall(0x1E, FAR_FN(InitScreenPalettes));
+        hBgDigitPalette = 4;
+        hBgPalette = 1;
+        DrawCartTest();
+        WriteSongByte(1, 0xBFB6, 0);
+        WriteSongByte(1, 0xBFB8, 0);
+        WriteSongByte(1, 0xBFB7, 0);
+        UiClearSram();
+    }
+    WriteSongInitFlag();
+    SWITCH_ROM(0x1C);
+    if (CheckFileMagic64()) {
+        SWITCH_ROM(0x01);
+        if (!CheckJkMarker()) {
+            SWITCH_ROM(0x1C);
+            FormatFileSpace();
+        }
+    }
+    _asm di _endasm;
+    STAT_REG |= 0x40;
+    TMA_REG = 0x49;
+    TAC_REG = 6;
+    wTimerReload = hGameboyType ? 0x6E : 0xB7;
+    wTimerTickInc = hGameboyType ? 0x0C : 0x06;
+    FarCallArg(1, LoadProjectSettings, 0);
+    _asm ei _endasm;
+}
 
 void main(void)
 {

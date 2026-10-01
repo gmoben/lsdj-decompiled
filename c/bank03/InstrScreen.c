@@ -73,7 +73,7 @@ void DrawInstrCursor(void)
 void SetInstrPitchByte(UBYTE v)
 {
     WriteCurrentInstrByte(5, v);
-    FarCallArg(1, (UWORD)DrawOnOffName, v);
+    FarCallArg(1, FAR_FN(DrawOnOffName), v);
 }
 
 void InstrTransposeOn(void)
@@ -468,7 +468,7 @@ void InstrPitchModeUp(void)
     else
         v |= 0x10;
     WriteCurrentInstrByte(5, v);
-    FarCallArg(1, (UWORD)DrawSpeedModeName, v);
+    FarCallArg(1, FAR_FN(DrawSpeedModeName), v);
 }
 
 void InstrPitchModeDown(void)
@@ -486,7 +486,7 @@ void InstrPitchModeDown(void)
     } else if (GetInstrType3())
         v |= 0x40;
     WriteCurrentInstrByte(5, v);
-    FarCallArg(1, (UWORD)DrawSpeedModeName, v);
+    FarCallArg(1, FAR_FN(DrawSpeedModeName), v);
 }
 
 void DrawInstrByte12(void)

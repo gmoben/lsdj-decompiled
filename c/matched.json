@@ -1025,6 +1025,12 @@
   "len": 109,
   "src": "c/bank1b/ProjectScreen.c"
  },
+ "InitAndLoadSong": {
+  "bank": "00",
+  "addr": "0DDB",
+  "len": 251,
+  "src": "c/bank00/Main.c"
+ },
  "InitRemapTable": {
   "bank": "1F",
   "addr": "4A26",
