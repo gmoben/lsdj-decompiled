@@ -400,6 +400,22 @@ def _forget_reg(eq: set[str], via: dict[str, str], r: str) -> None:
             _forget_reg(eq, via, d)
 
 
+def _after_word_zero_test(out: list[str]) -> bool:
+    """The last three instructions emitted are `ld a,(hl+); or a,(hl); jp cc,L`."""
+    seq = []
+    for l in reversed(out):
+        t = _strip(l).strip()
+        if not t or t.endswith(":"):
+            continue              # (a label the rules left unreferenced)
+        seq.append(t)
+        if len(seq) == 3:
+            break
+    if len(seq) < 3:
+        return False
+    return (re.fullmatch(r"jp\s+(nz|z),\S+", seq[0]) is not None and seq[1] == "or\ta,(hl)"
+            and seq[2] == "ld\ta,(hl+)")
+
+
 def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
     """Drop loads of values the register already holds: `ld a,X` / `xor a,a`
     when `a` equals X, `ld r,a` when r already equals `a`, `ld hl,...` /
@@ -518,8 +534,21 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
         if mn == "lda" and len(ops) == 2 and ops[0] == "hl":
             m = re.fullmatch(r"(-?\d+)\(sp\)", ops[1])
             if m:
+                want = int(m.group(1)) - level
+                if hl is not None and hl[0] == "stk" and hl[1] - want == 1 and _after_word_zero_test(out):
+                    # a 16-bit local tested for zero (`ld a,(hl+); or a,(hl);
+                    # jp nz`) and then assigned: the ROM steps hl back
+                    # (GetInstrEnvBytes' `if (total == 0) total = 1`) where
+                    # stock SDCC reloads it
+                    raw = "\tdec\thl"
+                    hl = ("stk", want)
+                    hl_reg = None
+                    hl_is_a = False
+                    eq.discard("(hl)")
+                    out.append(raw)
+                    continue
                 forget_hl()
-                hl = ("stk", int(m.group(1)) - level)
+                hl = ("stk", want)
                 out.append(raw)
                 continue
         if mn == "ld" and len(ops) == 2 and ops[0] == "hl" and ops[1].startswith("#"):

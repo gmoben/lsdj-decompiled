@@ -49,6 +49,19 @@ extern UBYTE wWorkClockSubFrame;            /* $C9AA */
 extern UBYTE wTapTempoCount;                /* $C9AB */
 extern UBYTE wTapTempoBuf[];                /* $C9AC, [8] */
 
+extern UBYTE wKbdLetterPos;                 /* $C42C */
+extern UBYTE wNameEditBuf[];                /* $C431, [5] */
+
+extern UBYTE wSramFsFlag;                   /* $C9A3 */
+extern UBYTE wSongTranspose;                /* $C444 */
+extern UBYTE wCloneMode;                    /* $C531 */
+UBYTE CheckFileMagic64(void);               /* $1C:$4057 */
+void DrawSyncField(void);
+void DrawFontColorFields(void);             /* $1B:$569C, its own unit */
+
+extern UBYTE ExpoCurve16[];                 /* $00:$300F, envelope speed -> frame count */
+int Abs16(int v);                           /* $00:$343F */
+
 void DrawHelpMenu(void)
 {
     UBYTE i;
@@ -195,6 +208,24 @@ void ProjDrawNameField(void)
     DrawTextField(wKbdCursorCol + 5, wKbdCursorRow + 8, 1, 0);
 }
 
+void DrawNameEditCursor(UBYTE x, UBYTE n)
+{
+    UBYTE c;
+
+    if (wKbdLetterPos == n && (c = wNameEditBuf[n])) {
+        wNameEditBuf[n] = 0;
+    } else if (wKbdLetterPos) {
+        DrawTextField(x + wKbdLetterPos, 6, 1, hGameboyType ? 3 : 2);
+        wKbdLetterPos--;
+        wNameEditBuf[wKbdLetterPos] = 0;
+        DrawTextField(x + wKbdLetterPos, 6, 1, hGameboyType ? 4 : 1);
+    }
+    GetTilemapAddr(x + wKbdLetterPos, 6);
+    hBgDigitPalette = wShadowDigitPal;
+    hBgPalette = wShadowPal;
+    DrawStringIndexed(wNameEditBuf[wKbdLetterPos] ? wNameEditBuf[wKbdLetterPos] : ' ');
+}
+
 void SaveSyncMode(void)
 {
     WriteSongByte(1, SramPropSyncMode, wSyncMode);
@@ -312,6 +343,46 @@ void DrawSyncSubSetting(void)
     }
 }
 
+void DrawProjectScreen(void)
+{
+    wSramFsFlag = FarCallByte(0x1C, FAR_FN(CheckFileMagic64));
+    FarCall(1, FAR_FN(DrawTopBar));
+    wVramCursor = 0x9846;
+    hBgDigitPalette = wShadowDigitPal;
+    hBgPalette = wShadowPal;
+    ProjDrawTempo();
+    wVramCursor = 0x986A;
+    DrawHexByte(wSongTranspose);
+    wVramCursor = 0x98E5;
+    DrawFontColorFields();
+    wVramCursor = 0x98C6;
+    if (!wCloneMode)
+        DrawString("DEEP");
+    else
+        DrawString("SLIM");
+    wVramCursor = 0x9911;
+    DrawKeyRepeatField();
+    wVramCursor = 0x992A;
+    DrawPrelistenField();
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
+    wVramCursor = 0x99C0;
+    if (wSramFsFlag)
+        DrawString("LOAD/SAVE SONG");
+    else
+        DrawString("RESET MEMORY");
+    wVramCursor = 0x9885;
+    hBgDigitPalette = wShadowDigitPal;
+    hBgPalette = wShadowPal;
+    DrawSyncField();
+    DrawSyncSubSetting();
+    wVramCursor = 0x9A26;
+    DrawFormat2("%d:%d:", ReadSongByte(1, 0xBFB6), ReadSongByte(1, 0xBFB7));
+    DrawDecimalField(ReadSongByte(1, 0xBFB8));
+    ProjDrawSyncFieldHw();
+    wTapTempoCount = 0xFF;
+}
+
 void ProjectScreenRefresh(void)
 {
     while (GetNextButtons())
@@ -377,6 +448,47 @@ void InitKitMixer(void)
         }
     }
     *dst = 0xC9;
+}
+
+UWORD GetInstrEnvBytes(void)
+{
+    UWORD total;
+    UBYTE v, v2, v3;
+    char vol;
+    UBYTE len;
+    char vol2;
+    UBYTE len2;
+    char vol3;
+    UBYTE len3;
+    int d;
+
+    total = 0;
+    v = ReadCurInstrByte(1);
+    vol = v >> 4;
+    len = ExpoCurve16[v & 0x0F];
+    if (len) {
+        v2 = ReadCurInstrByte(9);
+        vol2 = v2 >> 4;
+        len2 = ExpoCurve16[v2 & 0x0F];
+        total = Abs16(vol2 - vol);
+        if (total == 0)
+            total = 1;
+        total = total * len;
+        if (len2) {
+            v3 = ReadCurInstrByte(10);
+            vol3 = v3 >> 4;
+            len3 = ExpoCurve16[v3 & 0x0F];
+            d = vol3 - vol2;
+            if (Abs16(d))
+                d = Abs16(d);
+            else
+                d = 1;
+            total += d * len2;
+            d = vol3;
+            total += d * len3;
+        }
+    }
+    return total;
 }
 
 void UpdateEnvSprites(void)

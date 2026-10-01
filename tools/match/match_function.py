@@ -234,9 +234,9 @@ def compile_unit(work: Path, env: dict[str, str], c_path: Path,
         peep_mod = importlib.import_module("peep")
         rules = peep_mod.parse_rules(peep.read_text())
         lines = asm.read_text(errors="replace").splitlines()
-        targets = peep_mod.referenced_labels(lines)     # jump targets in SDCC's output
         lines, _ = peep_mod.gb_cmp16(lines)             # LSDj's 16-bit compare codegen
         lines, _ = peep_mod.apply(rules, lines)
+        targets = peep_mod.referenced_labels(lines)     # jump targets once the rules have run
         if not os.environ.get("LSDJ_NO_TRACK"):
             lines, _ = peep_mod.track_hram(lines, targets)
             lines, _ = peep_mod.track_a(lines, targets)
@@ -371,6 +371,7 @@ RUNTIME_ALIASES = {
     "__divsint": "DivS16", "__modsint": "ModS16",
     "__divuint": "DivU16", "__moduint": "ModU16",
     "strcmp": "StrCompare",     # bank 0's SDCC strcmp (named StrCompare: `strcmp` is an rgbasm keyword)
+    "DrawFormat2": "DrawFormat",  # the varargs DrawFormat called with two values
 }
 
 

@@ -503,6 +503,12 @@
   "len": 134,
   "src": "c/bank1b/ProjectScreen.c"
  },
+ "DrawNameEditCursor": {
+  "bank": "1B",
+  "addr": "5303",
+  "len": 229,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
  "DrawNoteCell": {
   "bank": "04",
   "addr": "4CC4",
@@ -549,6 +555,12 @@
   "bank": "1B",
   "addr": "5B23",
   "len": 51,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
+ "DrawProjectScreen": {
+  "bank": "1B",
+  "addr": "5C17",
+  "len": 312,
   "src": "c/bank1b/ProjectScreen.c"
  },
  "DrawPulseDuty": {
@@ -1144,6 +1156,12 @@
   "addr": "4157",
   "len": 18,
   "src": "c/bank1f/InstrHelpers.c"
+ },
+ "GetInstrEnvBytes": {
+  "bank": "1B",
+  "addr": "70B8",
+  "len": 328,
+  "src": "c/bank1b/ProjectScreen.c"
  },
  "GetInstrFlags53": {
   "bank": "03",
