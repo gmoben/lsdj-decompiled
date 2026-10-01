@@ -147,6 +147,11 @@ instead of reloading it (`ld (hl),e; add sp,3; ld c,e`, 23 ROM sites) and
 drops the reload into the same register (`ld (hl),e; ld e,(hl)` never
 occurs: FileCalcCompressedSize's result).
 
+`track_a`'s register knowledge is pairwise: `ld c,a; ld b,c` makes `b`
+equal `a` only through `c`, so `ld c,a; ld b,c; ld a,b` loses the reload
+(DrawSpeedGlyph) while `ld c,a; ld b,c; ld c,#0; ld a,b` keeps it
+(FindFreeBlock's `<< 9`).
+
 `track_a` also knows the byte at `hl` after `ld (hl),r` (r = `b`..`e`): a
 reread becomes `ld a,r` and a test `ld a,r; or a,r` (183 and 36 such sites
 in the ROM's compiled code; one site rereads, after storing the low byte of
@@ -651,6 +656,7 @@ shape.
 | `CountFileBlocks` | `$1C:$48D4` | `(*wFileBlockCountPtr)++` on the global pointer: the ROM reads the pointer global for both the read and the write (frame 7, the read value spilled into the 32-bit compare's slot); SDCC copies the pointer into a spill slot for the write (packRegsForOneuse refuses across the intervening pointer get); UWORD-with-cast and volatile forms differ more |
 | `DrawFileTextField` | `$1C:$5361` | the frame drawer (DrawProjTextField $1B:$4CBA is the same code): the ROM computes `right - 1` and `AsciiCharMap - 0x20` inside the outer loop (no invariant hoisting; `--noinvariant` reproduces all but one allocation) and keeps b = y + h - 1 in c for the whole function with i/j/bottom/right on the stack; SDCC gives c to i and spills b (used 15 < 23) |
 | `FileUpgradeClearRange` | `$1C:$65B9` | all but `v` (the transpose being rescaled): the ROM keeps it on the stack with every inner-loop temp spilt, SDCC gives it c; `(UBYTE *)0xDA00 + (UWORD)t` reproduces the reversed-pair index and literal far-call addresses the `ld hl,#fn; push hl` |
+| `FindFreeBlock` | `$1C:$415A` | UWORD p/end with `(p - end) & 0x8000` (or int p/end) gives the ROM's spilt signed difference and `bit 7` test, and UWORD p the plain `push hl` of the SRAM address; what remains is one allocation: the ROM spills `end` and keeps the ReadSongByte result in c, SDCC keeps end in bc and spills the result (leastUsedLR prefers the smaller symbol on a tie) |
 
 ## What's still unknown
 

@@ -346,6 +346,16 @@ def _rmw_store(out: list[str], r: str) -> bool:
         and _ops(tail[2]) == ("ld", [r, "a"])
 
 
+def _forget_reg(eq: set[str], via: dict[str, str], r: str) -> None:
+    """Register r changed: drop it from what `a` equals, and every register
+    whose equality was known only through r (`ld b,c` after `ld c,a`)."""
+    eq.discard(r)
+    via.pop(r, None)
+    for d, src in list(via.items()):
+        if src == r:
+            _forget_reg(eq, via, d)
+
+
 def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
     """Drop loads of values the register already holds: `ld a,X` / `xor a,a`
     when `a` equals X, `ld r,a` when r already equals `a`, `ld hl,...` /
@@ -353,6 +363,7 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
     after an ALU result was stored through `hl` (see above)."""
     out: list[str] = []
     eq: set[str] = set()          # what `a` equals: "c", "#0x05", "(hl)"
+    via: dict[str, str] = {}      # register -> the register its equality came through
     hl = None                     # ("stk", N - level) | ("imm", text) | None
     level = 0                     # bytes pushed since the block began
     a_alu = False                 # `a` holds a fresh ALU result
@@ -381,9 +392,11 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
             if not _LOCAL.fullmatch(t[:-1]):
                 scope += 1
                 eq, level, a_alu = set(), 0, False
+                via.clear()
                 forget_hl()
             elif f"{scope}:{t[:-1]}" in jump_targets:
                 eq, a_alu = set(), False
+                via.clear()
                 forget_hl()
             out.append(raw)
             continue
@@ -523,6 +536,7 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
                 dropped += 1          # `ld c,a` when `a` already equals c: a no-op
                 continue
             eq.add(ops[0])
+            via.pop(ops[0], None)
             if ops[0] in "hl":
                 forget_hl()
         elif mn == "ld" and ops == ["(hl)", "a"]:
@@ -590,9 +604,15 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
                 regs |= {"h", "l"}
             if mn == "pop":
                 level -= 2
-            eq -= regs
+            for r in regs:
+                _forget_reg(eq, via, r)
             if mn == "ld" and len(ops) == 2 and dest in _REGS and ops[1] in eq:
-                eq.add(dest)          # `ld b,c` while `a` equals c: b equals it too
+                # `ld b,c` while `a` equals c: b equals it too, but only
+                # through c -- `ld c,a; ld b,c; ld a,b` loses the reload
+                # (DrawSpeedGlyph) while `ld c,a; ld b,c; ld c,#0; ld a,b`
+                # keeps it (FindFreeBlock): the ROM's knowledge is pairwise
+                eq.add(dest)
+                via[dest] = ops[1]
             if regs & {"h", "l"}:
                 forget_hl()
             if not regs and not dest.startswith("("):
