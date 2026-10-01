@@ -960,6 +960,10 @@ DEF wFxWaveParam     EQU $C8C2  ; W command value latch (lo nibble; consumed via
 DEF wFxWaveParam2    EQU $C8C3  ; W command companion latch
 DEF wSynthRenderState EQU $CB3A ; synth render params copied at buffer init (3 words: +0/+2/+4)
 DEF wSynthWaveBuf   EQU $CA34  ; [32] rendered synth wave samples, one nibble each (SynthComposeWave; SynthWriteWaveCol packs them into SRAM)
+DEF wSynthCurveSeg2  EQU $CA54  ; [16] per-wave interpolated synth parameter curves (SynthFillWaveRange from SynthLoadParams,
+DEF wSynthCurveCutoff EQU $CA64 ;      read back per wave by RenderSynthWave into wSynthSegLen2/wSynthFilterCutoff/
+DEF wSynthCurveSeg1  EQU $CA74  ;      wSynthSegLen1/wSynthSegLen3); the C addresses them as literal pointers
+DEF wSynthCurveSeg3  EQU $CA84
 DEF wSynthRenderPtr  EQU $CB3C  ; 16-bit scratch ptr into the $CA34 wave scratch (render/smoothing)
 DEF wSynthRenderVal  EQU $CB3E  ; 16-bit render scratch (wSynthBufA value, DivU16 operand)
 DEF wSynthWaveTmp    EQU $CB40  ; [32] filter-pass scratch copy of wSynthWaveBuf (SynthFilterPass writes it, then memcpy back)

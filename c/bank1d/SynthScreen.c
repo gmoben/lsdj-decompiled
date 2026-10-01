@@ -48,6 +48,22 @@ void DrawSynthNumber(void);
 void RedrawScreenFar(void);
 void SynthClearFlag(UBYTE x);
 
+extern UBYTE wSynthRenderIdx;               /* $C9F0 */
+extern UBYTE wSynthSegLen1;                 /* $C9E8 */
+extern UBYTE wSynthSegLen2;                 /* $C9EA */
+extern UBYTE wSynthSegLen3;                 /* $C9EF */
+extern UBYTE wSynthSignalType;              /* $C9ED */
+extern UBYTE wSynthCurveSeg2[];             /* $CA54, [16] */
+extern UBYTE wSynthCurveCutoff[];           /* $CA64, [16] */
+extern UBYTE wSynthCurveSeg1[];             /* $CA74, [16] */
+extern UBYTE wSynthCurveSeg3[];             /* $CA84, [16] */
+UWORD SynthCalcParamAddr(UBYTE x);
+void SynthApplyFilter(void);
+void SynthReadWaveSram(void);
+void SynthRenderWaveType(void);
+void SynthComposeWave(void);
+void SynthWriteWaveCol(void);
+
 void WriteGrooveByte(UBYTE step, UBYTE v)
 {
     UBYTE *p;
@@ -316,6 +332,23 @@ void SynthApplyFilter(void)
     }
 }
 
+void RenderSynthWave(void)
+{
+    if (wSynthRenderIdx >= 0x10)
+        DebugTrap();
+    wSynthSegLen3 = wSynthCurveSeg3[wSynthRenderIdx];
+    wSynthSegLen1 = wSynthCurveSeg1[wSynthRenderIdx];
+    wSynthSegLen2 = wSynthCurveSeg2[wSynthRenderIdx];
+    wSynthFilterCutoff = wSynthCurveCutoff[wSynthRenderIdx];
+    if (wSynthSignalType == 3)
+        SynthReadWaveSram();
+    else
+        SynthRenderWaveType();
+    SynthComposeWave();
+    SynthApplyFilter();
+    SynthWriteWaveCol();
+}
+
 UWORD SynthCalcParamAddr(UBYTE x)
 {
     UWORD p;
@@ -324,6 +357,14 @@ UWORD SynthCalcParamAddr(UBYTE x)
     if (x >= 0x10)
         DebugTrap();
     return p;
+}
+
+UBYTE SynthReadParam(UBYTE x)
+{
+    UBYTE v;
+
+    v = ReadSongByte(1, SynthCalcParamAddr(x));
+    return v & (1 << (x & 7));
 }
 
 void SynthClearFlag(UBYTE x)
@@ -336,6 +377,25 @@ void SynthClearFlag(UBYTE x)
     x &= 7;
     v &= ~(1 << x);
     WriteSongByte(1, p, v);
+}
+
+void SynthFillWaveRange(UBYTE a, UBYTE b, UBYTE *buf)
+{
+    UBYTE i;
+
+    if (b >= a) {
+        b -= a;
+        if (b < 0xFF)
+            b++;
+        for (i = 0; i < 16; i++)
+            *buf++ = ((UWORD)i * b >> 4) + a;
+    } else {
+        a -= b;
+        if (a < 0xFF)
+            a++;
+        for (i = 15; i != 0xFF; i--)
+            *buf++ = b + ((UWORD)i * a >> 4);
+    }
 }
 
 void DrawSynthField(UBYTE v)

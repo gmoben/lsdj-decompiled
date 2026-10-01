@@ -2369,6 +2369,12 @@
   "len": 313,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "RenderSynthWave": {
+  "bank": "1D",
+  "addr": "6035",
+  "len": 114,
+  "src": "c/bank1d/SynthScreen.c"
+ },
  "ResetEditorState": {
   "bank": "01",
   "addr": "7BDE",
@@ -2873,6 +2879,12 @@
   "len": 40,
   "src": "c/bank1d/SynthScreen.c"
  },
+ "SynthFillWaveRange": {
+  "bank": "1D",
+  "addr": "6193",
+  "len": 277,
+  "src": "c/bank1d/SynthScreen.c"
+ },
  "SynthFilterPass": {
   "bank": "1D",
   "addr": "5E53",
@@ -2901,6 +2913,12 @@
   "bank": "1D",
   "addr": "6F3F",
   "len": 133,
+  "src": "c/bank1d/SynthScreen.c"
+ },
+ "SynthReadParam": {
+  "bank": "1D",
+  "addr": "6115",
+  "len": 47,
   "src": "c/bank1d/SynthScreen.c"
  },
  "SynthSignalIsFrame": {
