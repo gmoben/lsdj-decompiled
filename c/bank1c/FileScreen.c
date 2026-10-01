@@ -30,6 +30,10 @@ extern UBYTE wFilePromptNo;                 /* $C996 */
 extern void (*wBlockSinkPtr)(void);         /* $C984, FlushBlockToSram or the verify sink */
 extern UBYTE wCompProgress;                 /* $C981 */
 extern UBYTE wFileFirstChar;                /* $C980 */
+extern char wTopBarStr[];                   /* $C555 */
+extern UBYTE wFileListActive;               /* $C998 */
+extern UBYTE wDecompOk;                     /* $C982 */
+extern UBYTE wBlockDstBank;                 /* $C97C */
 extern UBYTE wFileField;                    /* $C992 */
 extern UBYTE wFileCursor;                   /* $C999 */
 extern UBYTE wFileScroll;                   /* $C99B */
@@ -52,6 +56,10 @@ void EmitDefaultWave(void);
 void EmitDefaultInstrument(void);
 void LoadFileListState(void);
 void FlushBlockToSram(void);                /* $1C:$743C */
+void FileDecompressByte(void);              /* $1C:$749E */
+void VerifyBlockAgainstSram(void);         /* $1C:$746E */
+void DrawFileList(void);                    /* $1C:$55F1 */
+int StringLength(const char *s);            /* bank00/GbdkLib.c, nonbanked */
 UBYTE GetFileBlockCount(UBYTE i);
 UBYTE FileFindSlotEnd(void);
 UBYTE FileSlotHalfBase(void);
@@ -287,6 +295,26 @@ void MigrateTempoProps(void)
     WriteSongByte(1, (UBYTE *)0xBFCA, ReadSongByte(1, (UBYTE *)0xBFB2));
 }
 
+UBYTE FileLoadSlotInfo(UBYTE slot, UBYTE verify)
+{
+    UBYTE ok;
+
+    wDecompOk = 1;
+    if (slot >= 0x20)
+        DebugTrap();
+    wCompByte = slot;
+    wCompProgress = 1;
+    if (FileScanSlotNames() == 0)
+        return 0;
+    wDecompPos = 0;
+    wCompDst = 0xA000;
+    wBlockDstBank = 0;
+    wBlockSinkPtr = verify ? VerifyBlockAgainstSram : FlushBlockToSram;
+    FileDecompressByte();
+    ok = wDecompOk && wBlockDstBank == 4;
+    return ok && wCompDst == 0xA000 && !wDecompPos;
+}
+
 void FileClearChanState(void)
 {
     UBYTE i = 8;
@@ -336,6 +364,33 @@ void FileValidateName(void)
         wFileScroll = 0x14;
     if (wFileCursor >= 0x20)
         DebugTrap();
+}
+
+void DrawFileScreen(void)
+{
+    UBYTE i;
+
+    FarCall(1, FAR_FN(DrawTopBar));
+    for (i = StringLength(wTopBarStr); i != 12; i++)
+        DrawStringTile20();
+    hBgDigitPalette = wShadowDigitPal;
+    hBgPalette = wShadowPal;
+    wVramCursor = 0x9840;
+    DrawString("LOAD");
+    wVramCursor = 0x9845;
+    DrawString("SAVE");
+    wVramCursor = 0x984A;
+    DrawString("ERASE");
+    DrawFileList();
+    if (wFileListActive)
+        FileDrawFieldChecked(hGameboyType ? 3 : 2);
+    else
+        FileDrawField(hGameboyType ? 3 : 2);
+    wVramCursor = 0x9A20;
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
+    DrawFormat("BLOCKS USED: %x/", (UWORD)FileListSlots());
+    DrawString(wFsCheckResult ? "3F" : "BF");
 }
 
 void FileMatchName(void)

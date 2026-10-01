@@ -359,6 +359,12 @@
   "len": 166,
   "src": "c/bank00/DrawFields.c"
  },
+ "DrawFileScreen": {
+  "bank": "1C",
+  "addr": "57BB",
+  "len": 223,
+  "src": "c/bank1c/FileScreen.c"
+ },
  "DrawGrooveRow": {
   "bank": "1D",
   "addr": "425B",
@@ -755,6 +761,12 @@
   "len": 107,
   "src": "c/bank1c/FileScreen.c"
  },
+ "FileLoadSlotInfo": {
+  "bank": "1C",
+  "addr": "4FA5",
+  "len": 210,
+  "src": "c/bank1c/FileScreen.c"
+ },
  "FileMatchName": {
   "bank": "1C",
   "addr": "58C1",
@@ -813,6 +825,12 @@
   "bank": "1C",
   "addr": "68C5",
   "len": 44,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileUpgradeSong": {
+  "bank": "1C",
+  "addr": "6FC7",
+  "len": 306,
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV0": {

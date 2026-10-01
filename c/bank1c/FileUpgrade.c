@@ -32,6 +32,10 @@ void FileUpgradeV14Pulse(void);
 void FileUpgradeV15Wave(void);
 void FileUpgradeV17bPulse(void);
 void FileCheckByte6973(UBYTE *p);          /* $1C:$6973 */
+void FileUpgradeClearRange(void);           /* $1C:$65B9 */
+void FileUpgradeV11(void);                  /* $1C:$669E */
+void FileUpgradeV18(void);                  /* $1C:$6C56 */
+void FileUpgradeV2(void);                   /* $1C:$622D, parked */
 
 UWORD FileCalcCompressedSize(void)
 {
@@ -352,4 +356,42 @@ void FileUpgradeV21(void)
         if (v)
             WriteSongByte(1, q, 3);
     }
+}
+
+void FileUpgradeSong(void)
+{
+    UBYTE v;
+
+    v = ReadSongByte(3, 0xBFFF);
+    if (!(v < 0x16))
+        return;
+    wVramCursor = 0x98E2;
+    DrawString("UPGRADING...   ");
+    while (v < 0x16) {
+        switch (v) {
+        case 0: FileUpgradeV0(); break;
+        case 1: FileUpgradeV1(); break;
+        case 2: FileUpgradeV2(); break;
+        case 3: FileUpgradeV3(); break;
+        case 4: FileUpgradeV4(); break;
+        case 5: FileUpgradeV5(); break;
+        case 6: FileUpgradeV6(); break;
+        case 7: FileUpgradeV7(); break;
+        case 8: FileUpgradeV8(); break;
+        case 9: FileUpgradeV9(); break;
+        case 10: FileUpgradeV10(); break;
+        case 11: FileUpgradeV11(); FileUpgradeClearRange(); break;
+        case 12: FileUpgradeV12(); break;
+        case 13: FileUpgradeV13(); break;
+        case 14: FileUpgradeV14(); break;
+        case 15: FileUpgradeV15(); break;
+        case 16: FileUpgradeV16(); break;
+        case 17: FileUpgradeV17(); FileUpgradeV17b(); break;
+        case 18: FileUpgradeV18(); break;
+        case 19: FileUpgradeV19(); break;
+        case 21: FileUpgradeV21(); break;
+        }
+        v++;
+    }
+    WriteSongByte(3, 0xBFFF, 0x16);
 }
