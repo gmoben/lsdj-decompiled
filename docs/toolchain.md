@@ -544,6 +544,8 @@ shape.
 | `PlotEnvCurve` | `$1B:$7200` | matches except register naming: the ROM keeps every temporary in b (the end pointer as b/c, low byte in b), as if c were busy for the whole function; ours uses c. The $DA00 buffer is addressed as a literal pointer ((char *)0xDA00) |
 | `SynthWriteWaveCol` | `$1D:$5F29` | all but the register pair: the ROM loads the post-incremented wSynthRenderDst into c/b and pushes bc, ours gets b/c (c busy at allocation per --dumpregassign, though no live temp shows); needs `ld l,a` (track_a) and the genXor double-store rule, both in |
 | `CheckRomChecksum` | `$00:$1FD5` | all but the end matches: the ROM tests (UBYTE)sum == lo with the cast in c and SDCC's cp a,a miscompile (so that test always passes), and compares sum >> 8 with hi in 16 bits with the shift spilled; ours keeps the cast in a and compares correctly |
+| `DedupPhrases` | `$1F:$5BDE` | in its nested loop SDCC 2.2.1 extends the inner loop's temporaries to the loop end (SDCClrange.c operandLUse: hasIncomingDefs), so `wPhraseDedupScratch = IsPhraseUsedFar(j); if (...)` keeps the call result in a spill slot; LSDj's compiler stores it straight into the global (packRegsForAssign), frame 2 vs 4 |
+| `DedupChains` | `$1F:$5C78` | same nested-loop live range as DedupPhrases |
 
 ## What's still unknown
 
