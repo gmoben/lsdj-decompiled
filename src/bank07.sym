@@ -6,6 +6,7 @@
 6889 TxtOct78                   ; "O7-8"
 6E2C ChannelNames       ; channel display names "PU1"/"PU2"/"PU1+2"/...
 4373 TxtClonedChain     ; "CLONED CHAIN"
+4380 TxtClonedChainPhrases ; "CLONED CHAIN+PHRASES"
 56FE TxtCancelSelect07  ; "CANCEL SELECT"
 492A TxtDashes          ; "--" (SongRowPalettes: cell with bit 7 set)
 5957 TxtCutChains       ; "CUT CHAINS"
@@ -15,7 +16,7 @@
 7220 VramCopyByteSafe   ; spin until rSTAT mode<2 (VRAM free), then copy [de]->[hl], inc e/l
 4574 DrawSongScreen      ; screen idx 4: draws the song sequence (4 channels = PU1/PU2/WAV/NOI)
 47AA SongScreenUpdate   ; per-frame visual update (screen idx 4)
-4139 SongEnterChain             ; cache chain -> $c44f+wSongCol column cache, cancel selection, IsSongChainUsed check
+4139 SongCloneChain             ; song screen chain clone (CLONED CHAIN / +PHRASES in deep mode): new chain via IsSongChainUsed, copy its 16 phrases (deep: clone each phrase once via the $c532 map), transposes; returns the new chain or $ff
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 4000 SongCopyColumn             ; copy a song column from p to q (stride 4) until p reaches $B590 (SongScanSram); asserts both >= $B290, q < $B590
@@ -37,7 +38,7 @@
 4A25 SongFindPrevRow            ; scan up 1..16 from cursor $c41e, wrapping
 4A79 SongCursorPageUp           ; PgUp: retreat song cursor $c41e by a page
 4AB8 SongBeginSelection         ; SaveSelectionState, seed wSel* rect from the song cursor
-4AFD SongLoadCursorChain        ; read seq[wSongRow,wSongCol] ($ff -> empty path), validate+cache via SongEnterChain
+4AFD SongLoadCursorChain        ; read seq[wSongRow,wSongCol] ($ff -> empty path), validate+cache via SongCloneChain
 5736 CutCopySongSelection       ; cut (isCut arg) or copy the song selection rect into the clipboard; a cut shifts each column up and clears the tail ($FF), AdjustBookmarksOnDelete, CUT/COPIED CHAINS
 5929 .endSelection        ; (was SongEndSelection) finish selection ($0dbc), restore cursor from $c40d/$c94b
 5970 PasteSongSelection         ; paste the clipboard rows into the song grid at the cursor: shifts the columns down (SongWriteSramBytes) to make room, writes the cells, PASTED CHAINS
@@ -94,9 +95,9 @@
 
 ; --- structural local names (loop heads / common exits) ---
 4106 .loop                ; loop head in WriteSongCell
-4194 .loop                ; loop head in SongEnterChain
-41D7 .loop2               ; loop head in SongEnterChain
-436F .done                ; common exit of SongEnterChain
+4194 .loop                ; loop head in SongCloneChain
+41D7 .loop2               ; loop head in SongCloneChain
+436F .done                ; common exit of SongCloneChain
 43F1 .loop                ; loop head in SongReadRow
 4476 .loop                ; loop head in SongDrawRowNum
 44D8 .loop2               ; loop head in SongDrawRowNum

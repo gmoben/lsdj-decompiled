@@ -13,7 +13,7 @@ extern UBYTE wPartialRedrawDone;            /* $C56D */
 extern UBYTE SongColOffsets[];              /* $07:$4047, x of each channel column */
 
 void SongEraseCursor(void);
-UBYTE SongEnterChain(UBYTE chain);
+UBYTE SongCloneChain(UBYTE chain);
 void SongDrawCursor(void);
 void SongReadRow(void);
 void SongDrawRowNum(void);
@@ -47,6 +47,19 @@ extern UBYTE wChanLiveQueued[];             /* $C300, [4] live-mode row queued *
 extern UBYTE wChanActive[];                 /* $C0E0, [4] */
 extern UBYTE wChanStarted[];                /* $C304, [4] */
 UBYTE MulU8(UBYTE a, UBYTE b);
+
+extern UBYTE wCloneMode;                    /* $C531 */
+extern UBYTE wClonePhraseMap[];             /* $C532, [32] */
+extern UBYTE wColChain[];                   /* $C44F, [4] */
+extern UBYTE wColPhrase[];                  /* $C453, [4] */
+UBYTE IsSongChainUsed(void);                /* bank $1F */
+void WriteChainPhrase(void);                /* bank $1F */
+void AllocNextFreePhrase(void);             /* bank 1 */
+void ShowOutOfMemory(void);                 /* bank 1 */
+void ClonePhraseAtCursor(UBYTE src, UBYTE dst);    /* bank 6 */
+UBYTE ChainReadTrans(UBYTE chain, UBYTE step);     /* bank 6 */
+void SetChainTranspose(UBYTE chain, UBYTE row, UBYTE v);   /* bank 6 */
+void WriteSongCell(UBYTE col, UBYTE row, UBYTE chain);
 
 void SongCopyColumn(UBYTE *p, UBYTE *q)
 {
@@ -83,6 +96,69 @@ void WriteSongCell(UBYTE col, UBYTE row, UBYTE chain)
         DebugTrap();
     p = SramSequence + ((UWORD)row << 2);
     WriteSongByte(0, p + col, chain);
+}
+
+UBYTE SongCloneChain(UBYTE chain)
+{
+    UBYTE v;
+    UBYTE i;
+    UBYTE ph;
+    UBYTE j;
+    UBYTE f;
+    UBYTE n;
+    UBYTE *p;
+    UBYTE *q;
+    char *msg;
+
+    FarCall(5, RestoreSelectionState);
+    wColChain[wSongCol] = chain;
+    v = FarCallByte(0x1F, FAR_FN(IsSongChainUsed));
+    if (v == 0xFF)
+        return 0xFF;
+    i = 0;
+    p = wClonePhraseMap + 16;
+    q = (UBYTE *)wClonePhraseMap + 16;
+    while (i < 16) {
+        ph = FarCallArg2(2, (UWORD)SndGetChainPhrase, chain, i);
+        if (!wCloneMode) {
+            wClonePhraseMap[i] = ph;
+            if (ph != 0xFF) {
+                f = 0xFF;
+                j = 0;
+                while (j < i) {
+                    if (!(wClonePhraseMap[j] - ph)) {
+                        f = p[j];
+                        break;
+                    }
+                    j++;
+                }
+                if (f != 0xFF) {
+                    FarCallArg3P(0x1F, FAR_FN(WriteChainPhrase), v, i, f);
+                } else {
+                    wColPhrase[wSongCol] = ph;
+                    n = FarCallByte(1, FAR_FN(AllocNextFreePhrase));
+                    if (n == 0xFF) {
+                        FarCall(1, FAR_FN(ShowOutOfMemory));
+                        return 0xFF;
+                    }
+                    FarCallArg2V(6, FAR_FN(ClonePhraseAtCursor), ph, n);
+                    FarCallArg3P(0x1F, FAR_FN(WriteChainPhrase), v, i, n);
+                    q[i] = n;
+                }
+            } else {
+                FarCallArg3P(0x1F, FAR_FN(WriteChainPhrase), v, i, 0xFF);
+            }
+        } else {
+            FarCallArg3P(0x1F, FAR_FN(WriteChainPhrase), v, i, ph);
+        }
+        ph = FarCallArg2(6, FAR_FN(ChainReadTrans), chain, i);
+        FarCallArg3P(6, FAR_FN(SetChainTranspose), v, i, ph);
+        i++;
+    }
+    WriteSongCell(wSongCol, wSongRow, v);
+    msg = wCloneMode ? "CLONED CHAIN" : "CLONED CHAIN+PHRASES";
+    ShowMessage(msg);
+    return v;
 }
 
 void SongDrawCursor(void)
@@ -424,7 +500,7 @@ void SongLoadCursorChain(void)
         return;
     c &= 0x7F;
     SongEraseCursor();
-    c = SongEnterChain(c);
+    c = SongCloneChain(c);
     if (c != 0xFF)
         DrawHexByte(c);
     SongDrawCursor();

@@ -2597,6 +2597,12 @@
   "len": 69,
   "src": "c/bank07/SongScreen.c"
  },
+ "SongCloneChain": {
+  "bank": "07",
+  "addr": "4139",
+  "len": 570,
+  "src": "c/bank07/SongScreen.c"
+ },
  "SongCopyColumn": {
   "bank": "07",
   "addr": "4000",
