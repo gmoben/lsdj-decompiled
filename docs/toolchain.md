@@ -12,7 +12,7 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 | What compiled LSDj? | **GBDK 2.95-3** (19 Aug 2000) → **SDCC 2.2.1** (`gbz80` target), default `asxxxx` assembler/linker, small memory model — **plus an accumulator-tracking optimisation stock SDCC lacks** (the "modified GBDK"), modelled here as an accumulator-tracking pass plus 71 peephole rules (below) |
 | Can we run it today? | **Yes, natively.** SDCC 2.2.1 + `sdcpp`/`as-gbz80`/`link-gbz80` build from the GBDK 2.95-2 sources (`tools/toolchain/build_sdcc221.sh`, ~15 s) and emit **byte-identical** asm, objects, listings and images to GBDK 2.95-3's Win32 binaries — which still run under Wine (`fetch_gbdk295.sh`), but crash on large units (below) |
 | Is it the right toolchain? | **Yes, for the code generator**: LSDj's instruction selection, register allocation and frame idioms are SDCC 2.2.1's line for line, and GBDK 2.95 library code in the ROM is byte-identical to its sources (`display_off` ← `crt0.s`, `strcpy` ← `asm_string.s`, `set_bkg_palette` ← `cgb.s`, `set_bkg_tiles` ← `set_bk_t.s` + `set_xy_t.s`, the SDCC `mul` runtime). Stock output does **not** match on its own: LSDj's build also ran peephole rules that stock 2.95-3 lacks |
-| Matched real LSDj functions? | **Yes — 452**, in twelve banks (the list: [`c/matched.json`](../c/matched.json)): a message renderer, a 15-case `switch`, a sparse `switch`, the SRAM accessors, and the instrument screen's field accessors and draw helpers. `make match` re-verifies them all (cached: only changed sources reach the compiler), and **their bytes in the ROM build come from the compiled C** (below) |
+| Matched real LSDj functions? | **Yes — 455**, in twelve banks (the list: [`c/matched.json`](../c/matched.json)): a message renderer, a 15-case `switch`, a sparse `switch`, the SRAM accessors, and the instrument screen's field accessors and draw helpers. `make match` re-verifies them all (cached: only changed sources reach the compiler), and **their bytes in the ROM build come from the compiled C** (below) |
 | Is all of LSDj C? | **No.** ~130 functions (7% of the instructions) are hand-written assembly — the interrupt handlers, sound tick, envelope/pitch and tile-loader code in bank 0, and the sequencer core in bank `$02` (`tools/match/code_kind.py`). Those stay asm; the ~830 others (every editor) are Track 2 targets |
 | Go/no-go on Track 2? | **Go, with the rule set still growing.** Every function tried has matched (each new one has cost a few rules so far), the C feeds the ROM build with `make compare` as the gate, and the hand-written asm (7%) is mapped and excluded |
 
@@ -36,7 +36,7 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 | [`c/bank03/InstrScreen.c`](../c/bank03/InstrScreen.c) | 63 functions of the instrument screen | field get/set/step helpers, `FarCall` in both address forms, SRAM literal addresses, a string literal placed after its function, `hl` kept across a `!=` compare |
 | [`c/bank1c/FileScreen.c`](../c/bank1c/FileScreen.c) | 23 functions: file screen | field highlights from column tables, a `do … while (--i)` clear (CSE shares `i - 1`), the serial receive wait, `?:` returns |
 | [`c/bank1c/FileUpgrade.c`](../c/bank1c/FileUpgrade.c) | 36 functions: the song-format upgrades | per-type instrument callbacks through a function pointer (`FileForEachInstrType`), the upgrade steps' field fix-ups, a 16-bit `\|` forced by an `int` constant |
-| [`c/bank1d/SynthScreen.c`](../c/bank1d/SynthScreen.c) | 36 functions: synth and groove screens | a `switch` through a jump table, SRAM param/groove accessors, a `?:` over `long` constants (> 32767), the cache walker |
+| [`c/bank1d/SynthScreen.c`](../c/bank1d/SynthScreen.c) | 37 functions: synth and groove screens | a `switch` through a jump table, SRAM param/groove accessors, a `?:` over `long` constants (> 32767), the cache walker |
 | [`c/bank1e/Gfx.c`](../c/bank1e/Gfx.c) | 2 functions: VRAM helpers | `UWORD` loop addresses compared against `(UWORD)0x9800` (constants above 32768 are `long`), a `while (STAT_REG & 2)` wait |
 | [`c/bank1f/InstrHelpers.c`](../c/bank1f/InstrHelpers.c) | 62 functions: bank $1F helpers | the used-table/phrase/chain scans and counters (one template, four limits), SRAM resets bracketed by `_asm di _endasm;` and MBC register writes, a function that returns `e` by accident (no `return`) |
 | [`c/bank04/PhraseScreen.c`](../c/bank04/PhraseScreen.c) | 30 functions: phrase screen | far-call wrappers (`FarCallArg2V`), the phrase instrument reader and the backward search for the instrument in effect (a return through `e`, `track_e`), `?:` returns |
@@ -45,7 +45,7 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 | [`c/bank06/DrawTileHexCell.c`](../c/bank06/DrawTileHexCell.c) | `DrawTileHexCell` (130 B) | consecutive updates of a stack local, sign test, `-t`, pointer table |
 | [`c/bank07/KbdLink.c`](../c/bank07/KbdLink.c) | 5 functions: keyboard octave, link queue, sync rate | a multiply kept as a `MulU16` call, `di`/`ei` around a 16-bit store, an empty case listed first |
 | [`c/bank07/SongScreen.c`](../c/bank07/SongScreen.c) | 25 functions: song screen and bookmarks | page-up/down scroll arithmetic, bookmark add/toggle in SRAM, `WriteBookmarkByte`'s pointer-range asserts (16-bit compares: `ld hl,#-lit; add hl,de`), a `!=` sprite loop |
-| [`c/bank1b/ProjectScreen.c`](../c/bank1b/ProjectScreen.c) | 27 functions: project and help screens | property writes to SRAM, a busy-wait on a global, `(UWORD)x == 9` (a 16-bit compare: one `jp nz` per byte through one trampoline), `?:` string arguments, a NULL-terminated pointer table |
+| [`c/bank1b/ProjectScreen.c`](../c/bank1b/ProjectScreen.c) | 29 functions: project and help screens | property writes to SRAM, a busy-wait on a global, `(UWORD)x == 9` (a 16-bit compare: one `jp nz` per byte through one trampoline), `?:` string arguments, a NULL-terminated pointer table |
 | [`c/bank1b/DrawSyncField.c`](../c/bank1b/DrawSyncField.c) | `DrawSyncField` (262 B) | sparse `switch` (`cp` chain), if/else, a pointer local chosen by a condition, 4-arg calls |
 
 Shared prototypes, variables and the SRAM layout live in
@@ -131,7 +131,12 @@ rewritten by the next `ld (hl),...` before anything touches `hl`: SDCC
 spills a call result to its variable, `track_a` turns the reads into
 `ld a,e`, and the variable's next assignment overwrites the slot
 (`v = ReadSongByte(1, p); v |= v << 4` in FileUpgradeV4); no such pair
-exists in the ROM. `track_a` also copies a byte still held in a register
+exists in the ROM. A byte read through `de`/`bc` is remembered as "the byte at (de)": its
+copies are forgotten once the pair is rewritten, so `ld a,(de); ld c,a;
+ld e,(hl); inc hl; ld d,(hl); ld a,c; ld (de),a` keeps the reload
+(SynthFilterPass, FileFormatBuf, 2/2) while `ld a,(de); ld b,a; cp a,#n;
+jp z; ld a,b` drops it (DrawPhraseCellField).
+`track_a` also copies a byte still held in a register
 instead of reloading it (`ld (hl),e; add sp,3; ld c,e`, 23 ROM sites) and
 drops the reload into the same register (`ld (hl),e; ld e,(hl)` never
 occurs: FileCalcCompressedSize's result).
@@ -265,6 +270,13 @@ asm that reads stack arguments (`DrawByte`, `DrawString`, `GetTilemapAddr`,
   LSDj's bank switch is `hCurrentBank = n; rROMB0 = n`. `rROMB0` is `volatile`:
   with no call between two switches (`KitExists`, which pages a kit bank in
   and straight back out) SDCC otherwise drops the first store as dead.
+- **`++s` on a pointer parameter, `s++` on a local**: the post-increment's
+  old-value copy (`rOp := s`) survives CSE for a true symbol (the temp is
+  "cheaper"), so a parameter's `s++` compiles to `ld hl,#1; add hl,bc` and
+  a store, while `++s` (or `s += 1`) is the in-place `inc (hl); jr nz; inc
+  hl; inc (hl)` -- DrawNameEditArrows walks its string with `++s`. A
+  local's copy is replaced by the local, so `p++` already increments in
+  place there (FileUpgradeV7).
 - **Bank 3 declares `ReadSongByte`'s address a pointer** (`#define
   SONG_BYTE_PTR` before `lsdj.h`): CloneSynth pushes a spilled pointer sum
   straight from its slot (`ld a,(hl+); ld h,(hl); ld l,a; push hl`), where

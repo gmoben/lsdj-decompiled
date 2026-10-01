@@ -449,6 +449,12 @@
   "len": 198,
   "src": "c/bank01/DrawMessageBar.c"
  },
+ "DrawNameEditArrows": {
+  "bank": "1B",
+  "addr": "4AE7",
+  "len": 134,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
  "DrawNoteCell": {
   "bank": "04",
   "addr": "4CC4",
@@ -544,6 +550,12 @@
   "addr": "74AD",
   "len": 99,
   "src": "c/bank06/Screens.c"
+ },
+ "DrawSyncSubSetting": {
+  "bank": "1B",
+  "addr": "5B7A",
+  "len": 137,
+  "src": "c/bank1b/ProjectScreen.c"
  },
  "DrawSynthDistField": {
   "bank": "1D",
@@ -2427,6 +2439,12 @@
   "bank": "1D",
   "addr": "70BC",
   "len": 40,
+  "src": "c/bank1d/SynthScreen.c"
+ },
+ "SynthFilterPass": {
+  "bank": "1D",
+  "addr": "5E53",
+  "len": 173,
   "src": "c/bank1d/SynthScreen.c"
  },
  "SynthParamAddClamp": {

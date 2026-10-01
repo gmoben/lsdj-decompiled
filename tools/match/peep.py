@@ -343,6 +343,7 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
     hl_reg = None                 # b..e the byte at (hl) equals (`ld (hl),e` / `ld e,(hl)`)
     hl_is_a = False               # the byte at (hl) is `a`, stored by `ld (hl),a` (not a pointer read)
     a_ptr = False                 # `a` was loaded through de/bc (`ld a,(de)`)
+    a_pair = None                 # that pair ("de"/"bc") while the byte is still `a`
     dropped = 0
     code = [i for i, l in enumerate(lines) if _strip(l).strip()]
     nxt = {code[k]: code[k + 1] for k in range(len(code) - 1)}
@@ -386,6 +387,15 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
             hl_is_a = not a_ptr
         if "a" in w_all:
             a_ptr = mn == "ld" and len(ops) == 2 and ops[1] in ("(de)", "(bc)")
+            a_pair = ops[1][1:3] if a_ptr else None
+        elif a_pair is not None and set(a_pair) & w_all:
+            # the byte in `a` is remembered as "the byte at (de)", so its
+            # copies are forgotten once the pair is rewritten: `ld a,(de);
+            # ld c,a; ld e,(hl); inc hl; ld d,(hl); ld a,c; ld (de),a` keeps
+            # the reload (SynthFilterPass, FileFormatBuf), while `ld a,(de);
+            # ld b,a; cp a,#n; jp z; ld a,b` drops it (DrawPhraseCellField)
+            a_pair = None
+            eq = set()
         # --- (hl) == a register: after `ld (hl),e` (or a load) the byte at hl is e until
         # either changes (183 ROM sites reread it as `ld a,e`, 1 from (hl))
         if hl_reg is not None and not (mn == "ld" and len(ops) == 2 and ops[1] == "(hl)"):

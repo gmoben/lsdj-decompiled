@@ -15,6 +15,8 @@ extern UBYTE wGrooveStepCache[];            /* $C9D6, [16] */
 extern UBYTE *wGrooveCachePtr;              /* $C9E6 */
 extern UBYTE wSynthFilterType;              /* $C9EB */
 extern UBYTE wSynthFilterCutoff;            /* $C9EC */
+extern UBYTE wSynthWaveBuf[];               /* $CA34, [32] */
+extern UBYTE wSynthWaveTmp[];               /* $CB40, [32] */
 extern UBYTE wSynth;                        /* $C42A */
 extern UBYTE wSynthCursor;                  /* $C442 */
 extern UBYTE SynthFieldLayout[];            /* $1D:$60E5, rows of the 16 fields */
@@ -188,6 +190,20 @@ void GrooveResetState(void)
 UBYTE SynthWrapIndex32(UBYTE v)
 {
     return (v + 1) & 0x1F;
+}
+
+void SynthFilterPass(void)
+{
+    UBYTE i;
+    UBYTE n;
+    UBYTE k;
+
+    n = 0x20 - (wSynthFilterCutoff >> 3);
+    for (i = 0; i < 0x20; i++) {
+        k = (((UWORD)i << 5) + 0x10) / n % 0x20;
+        wSynthWaveTmp[SynthWrapIndex32(i)] = wSynthWaveBuf[SynthWrapIndex32(k)];
+    }
+    memcpy(wSynthWaveBuf, wSynthWaveTmp, 0x20);
 }
 
 void SynthApplyFilter(void)

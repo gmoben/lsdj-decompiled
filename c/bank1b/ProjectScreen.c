@@ -17,12 +17,15 @@ extern UBYTE wRedrawPending;                /* $C56C */
 extern UBYTE wPrelisten;                    /* $C56E */
 extern char *HelpMenuPtrs[];                /* $1B:$4058, NULL-terminated */
 extern UBYTE HelpSelectLines[];             /* $1B:$408E, the selectable lines */
-extern UWORD *HelpPageRefs[];               /* $1B:$4BAF, &HelpPagePtrs[k] per line */
+extern char **HelpPageRefs[];               /* $1B:$4BAF, &HelpPagePtrs[k] per line */
 extern UBYTE ProjFieldX[];                  /* $1B:$575C, the 12 fields' x */
 extern UBYTE ProjFieldY[];                  /* $1B:$5768, and rows */
 extern UBYTE wAPressEnabled;                /* $C409 */
 extern UBYTE wButtons;                      /* $C575 */
 extern UBYTE wProjCursor;                   /* $C9A4 */
+extern UBYTE wFrameCounter;                 /* $C553 */
+extern UBYTE wFrameCounterHi;               /* $C552 */
+extern UBYTE wProjDrawScratch;              /* $C9A7 */
 extern UBYTE wProjDrawScratch2;             /* $C9A8 */
 extern UBYTE wProjDrawScratch3;             /* $C9A9 */
 
@@ -35,7 +38,7 @@ void DrawPrelistenField(void);
 UBYTE GetNextButtons(void);                 /* bank 0 */
 UWORD StringLength(char *s);                /* bank 0 */
 UBYTE ProjCalcFieldTile(void);
-void DrawNameEditArrows(UWORD page);
+void DrawNameEditArrows(char *s);
 void ProjHelpSelectNext(void);
 void ProjHelpOpenSelected(void);
 
@@ -102,6 +105,35 @@ void ProjHelpReset(void)
     wHelpOpenEntry = 0;
     ClearBgTilemap();
     DrawHelpScreen();
+}
+
+void DrawNameEditArrows(char *s)
+{
+    UBYTE row;
+    UBYTE col;
+    UBYTE start;
+
+    row = 0;
+    col = 0;
+    wVramCursor = 0x9800;
+    while (*s) {
+        switch (*s) {
+        case '\n':
+            GetTilemapAddr(0, ++row);
+            col = 0;
+            break;
+        case '<':
+            start = col;
+            break;
+        case '>':
+            DrawTextField(start, row, col - start, 1);
+            break;
+        default:
+            DrawStringIndexed(*s);
+            col++;
+        }
+        ++s;
+    }
 }
 
 void ProjHelpOpenSelected(void)
@@ -250,6 +282,27 @@ void ProjRedrawPrelisten(void)
     hBgDigitPalette = wShadowDigitPal;
     hBgPalette = wShadowPal;
     DrawPrelistenField();
+}
+
+void DrawSyncSubSetting(void)
+{
+    wVramCursor = 0x9A00;
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
+    if (wPlayMode) {
+        DrawFormat("PLAY %d:", (UWORD)wFrameCounterHi);
+        DrawDecimalField(wFrameCounter);
+        wProjDrawScratch = 0x0C;
+        if (wFrameCounterHi > 9)
+            wProjDrawScratch = 0x0D;
+        else
+            DrawStringTile20();
+        DrawStringTile20();
+        DrawStringTile20();
+    } else {
+        DrawFormat("WORKED %d:", (UWORD)ReadSongByte(1, 0xBFB2));
+        DrawDecimalField(ReadSongByte(1, 0xBFB3));
+    }
 }
 
 void ProjectScreenRefresh(void)
