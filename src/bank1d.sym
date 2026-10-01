@@ -71,8 +71,8 @@
 6E00 RedrawScreenFar            ; FarCall home RedrawScreen ($24dd)
 6E11 OverwritePromptInput       ; synth OVERWRITE? prompt input: LEFT/RIGHT move the choice, A accepts (clearing the synth flag on the left choice), B cancels
 6E6E WriteSynthParam            ; synth_params[wSynthScreen*16+n] = value (song $3EB2); 24 uses
-6EB6 ReadSynthParamPair         ; read a synth param byte (variant 1 of the row accessors)
-6F3F ReadSynthParamPair2        ; read a synth param byte (variant 2)
+6EB6 SynthParamAddClamp         ; synth param field += inc, clamped to max; draws it and writes it back
+6F3F SynthParamSubClamp         ; synth param field -= dec, clamped at 0; draws it and writes it back
 6FC4 SynthParamIncTo            ; increment the edited synth's param field unless it equals max; draw it (hex) and store it
 702B SynthParamDecTo0           ; decrement the edited synth's param field unless 0; draw it (hex) and store it
 708E SynthFieldIncHi            ; current synth field: +$10 on the hi nibble (clamp $f0), WriteSynthParam
@@ -193,8 +193,8 @@
 6B82 .loop2               ; loop head in BuildOverwritePrompt
 6E6D .done                ; common exit of OverwritePromptInput
 6E7B .loop                ; loop head in WriteSynthParam
-6EC3 .loop                ; loop head in ReadSynthParamPair
-6F4C .loop                ; loop head in ReadSynthParamPair2
+6EC3 .loop                ; loop head in SynthParamAddClamp
+6F4C .loop                ; loop head in SynthParamSubClamp
 6FD1 .loop                ; loop head in SynthParamIncTo
 7027 .done                ; common exit of SynthParamIncTo
 7038 .loop                ; loop head in SynthParamDecTo0

@@ -2429,6 +2429,12 @@
   "len": 40,
   "src": "c/bank1d/SynthScreen.c"
  },
+ "SynthParamAddClamp": {
+  "bank": "1D",
+  "addr": "6EB6",
+  "len": 137,
+  "src": "c/bank1d/SynthScreen.c"
+ },
  "SynthParamDecTo0": {
   "bank": "1D",
   "addr": "702B",
@@ -2439,6 +2445,12 @@
   "bank": "1D",
   "addr": "6FC4",
   "len": 103,
+  "src": "c/bank1d/SynthScreen.c"
+ },
+ "SynthParamSubClamp": {
+  "bank": "1D",
+  "addr": "6F3F",
+  "len": 133,
   "src": "c/bank1d/SynthScreen.c"
  },
  "SynthSignalIsFrame": {

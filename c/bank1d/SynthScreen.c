@@ -410,6 +410,36 @@ void WriteSynthParam(UBYTE field, UBYTE v)
     WriteSongByte(1, p, v);
 }
 
+void SynthParamAddClamp(UBYTE field, UBYTE max, UBYTE inc)
+{
+    UWORD p;
+    UWORD v;
+
+    p = (UWORD)SramSynthParams + ((UWORD)wSynthScreen << 4);
+    p += (UWORD)field;
+    v = ReadSongByte(1, p);
+    v += (UWORD)inc;
+    if (v > max)
+        v = max;
+    DrawHexByte(v);
+    WriteSongByte(1, p, v);
+}
+
+void SynthParamSubClamp(UBYTE field, UBYTE dec)
+{
+    UWORD p;
+    UWORD v;
+
+    p = (UWORD)SramSynthParams + ((UWORD)wSynthScreen << 4);
+    p += (UWORD)field;
+    v = ReadSongByte(1, p);
+    v -= dec;
+    if (v & 0x8000)
+        v = 0;
+    DrawHexByte(v);
+    WriteSongByte(1, p, v);
+}
+
 void SynthParamIncTo(UBYTE field, UBYTE max)
 {
     UWORD p;
