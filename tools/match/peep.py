@@ -426,6 +426,16 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
             hl_reg = None if _rmw_store(out, ops[1]) else ops[1]
             out.append(raw)
             continue
+        if mn == "ld" and len(ops) == 2 and ops[1] == "(hl)" and ops[0] in ("l", "h") \
+                and hl_reg is not None and hl_reg in eq and "(hl)" not in eq:
+            # a table index loaded from the byte just stored from a register
+            # that `a` still equals: `ld (hl),e; ld a,e; cp; ...; ld l,a`
+            # (CountFileBlocks)
+            raw = raw.replace("(hl)", "a", 1)
+            forget_hl()
+            eq.add(ops[0])
+            out.append(raw)
+            continue
         if mn == "ld" and len(ops) == 2 and ops[1] == "(hl)" and ops[0] in ("b", "c", "d", "e"):
             if hl_reg is not None and "(hl)" not in eq:
                 # the byte at hl is still in a register: LSDj's compiler
@@ -466,6 +476,8 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
                 dropped += 1
                 continue
             eq, a_alu = {ops[1]}, False
+            if hl_reg is not None and ops[1] == hl_reg:
+                eq.add("(hl)")       # `ld (hl),e; ld a,e`: `a` is the byte at hl too
         elif mn == "ld" and ops == ["a", "(hl)"]:
             if "(hl)" in eq:
                 dropped += 1

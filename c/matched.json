@@ -155,6 +155,12 @@
   "len": 83,
   "src": "c/bank06/Screens.c"
  },
+ "CheckFileMagic64": {
+  "bank": "1C",
+  "addr": "4057",
+  "len": 155,
+  "src": "c/bank1c/FileScreen.c"
+ },
  "CheckFileMagicAll": {
   "bank": "1C",
   "addr": "40F2",
@@ -280,6 +286,12 @@
   "addr": "510A",
   "len": 44,
   "src": "c/bank04/PhraseScreen.c"
+ },
+ "DecompressBlock": {
+  "bank": "1C",
+  "addr": "46E3",
+  "len": 149,
+  "src": "c/bank1c/FileScreen.c"
  },
  "DispatchScreenInput": {
   "bank": "00",
@@ -1012,6 +1024,12 @@
   "addr": "4BD9",
   "len": 56,
   "src": "c/bank1f/InstrHelpers.c"
+ },
+ "FormatFileSpace": {
+  "bank": "1C",
+  "addr": "47B1",
+  "len": 177,
+  "src": "c/bank1c/FileScreen.c"
  },
  "FreeChain": {
   "bank": "01",

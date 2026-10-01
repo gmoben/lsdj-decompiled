@@ -12,7 +12,7 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 | What compiled LSDj? | **GBDK 2.95-3** (19 Aug 2000) → **SDCC 2.2.1** (`gbz80` target), default `asxxxx` assembler/linker, small memory model — **plus an accumulator-tracking optimisation stock SDCC lacks** (the "modified GBDK"), modelled here as an accumulator-tracking pass plus 71 peephole rules (below) |
 | Can we run it today? | **Yes, natively.** SDCC 2.2.1 + `sdcpp`/`as-gbz80`/`link-gbz80` build from the GBDK 2.95-2 sources (`tools/toolchain/build_sdcc221.sh`, ~15 s) and emit **byte-identical** asm, objects, listings and images to GBDK 2.95-3's Win32 binaries — which still run under Wine (`fetch_gbdk295.sh`), but crash on large units (below) |
 | Is it the right toolchain? | **Yes, for the code generator**: LSDj's instruction selection, register allocation and frame idioms are SDCC 2.2.1's line for line, and GBDK 2.95 library code in the ROM is byte-identical to its sources (`display_off` ← `crt0.s`, `strcpy` ← `asm_string.s`, `set_bkg_palette` ← `cgb.s`, `set_bkg_tiles` ← `set_bk_t.s` + `set_xy_t.s`, the SDCC `mul` runtime). Stock output does **not** match on its own: LSDj's build also ran peephole rules that stock 2.95-3 lacks |
-| Matched real LSDj functions? | **Yes — 459**, in twelve banks (the list: [`c/matched.json`](../c/matched.json)): a message renderer, a 15-case `switch`, a sparse `switch`, the SRAM accessors, and the instrument screen's field accessors and draw helpers. `make match` re-verifies them all (cached: only changed sources reach the compiler), and **their bytes in the ROM build come from the compiled C** (below) |
+| Matched real LSDj functions? | **Yes — 462**, in twelve banks (the list: [`c/matched.json`](../c/matched.json)): a message renderer, a 15-case `switch`, a sparse `switch`, the SRAM accessors, and the instrument screen's field accessors and draw helpers. `make match` re-verifies them all (cached: only changed sources reach the compiler), and **their bytes in the ROM build come from the compiled C** (below) |
 | Is all of LSDj C? | **No.** ~130 functions (7% of the instructions) are hand-written assembly — the interrupt handlers, sound tick, envelope/pitch and tile-loader code in bank 0, and the sequencer core in bank `$02` (`tools/match/code_kind.py`). Those stay asm; the ~830 others (every editor) are Track 2 targets |
 | Go/no-go on Track 2? | **Go, with the rule set still growing.** Every function tried has matched (each new one has cost a few rules so far), the C feeds the ROM build with `make compare` as the gate, and the hand-written asm (7%) is mapped and excluded |
 
@@ -34,7 +34,7 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 | [`c/bank01/UiHelpers.c`](../c/bank01/UiHelpers.c) | 12 functions: small UI helpers | `?:` over string literals, a `char` local (its dead `ld b,c` copy), a glyph table, a file-scope `const` table flushed ahead of the next function's strings |
 | [`c/bank01/ShowMessages.c`](../c/bank01/ShowMessages.c) | `ShowOutOfMemory`, `ShowTapAddChain` | one-line wrappers, 16-bit argument |
 | [`c/bank03/InstrScreen.c`](../c/bank03/InstrScreen.c) | 63 functions of the instrument screen | field get/set/step helpers, `FarCall` in both address forms, SRAM literal addresses, a string literal placed after its function, `hl` kept across a `!=` compare |
-| [`c/bank1c/FileScreen.c`](../c/bank1c/FileScreen.c) | 24 functions: file screen | field highlights from column tables, a `do … while (--i)` clear (CSE shares `i - 1`), the serial receive wait, `?:` returns |
+| [`c/bank1c/FileScreen.c`](../c/bank1c/FileScreen.c) | 27 functions: file screen | field highlights from column tables, a `do … while (--i)` clear (CSE shares `i - 1`), the serial receive wait, `?:` returns |
 | [`c/bank1c/FileUpgrade.c`](../c/bank1c/FileUpgrade.c) | 36 functions: the song-format upgrades | per-type instrument callbacks through a function pointer (`FileForEachInstrType`), the upgrade steps' field fix-ups, a 16-bit `\|` forced by an `int` constant |
 | [`c/bank1d/SynthScreen.c`](../c/bank1d/SynthScreen.c) | 40 functions: synth and groove screens | a `switch` through a jump table, SRAM param/groove accessors, a `?:` over `long` constants (> 32767), the cache walker |
 | [`c/bank1e/Gfx.c`](../c/bank1e/Gfx.c) | 2 functions: VRAM helpers | `UWORD` loop addresses compared against `(UWORD)0x9800` (constants above 32768 are `long`), a `while (STAT_REG & 2)` wait |
@@ -135,6 +135,8 @@ exists in the ROM. `gb_cmp16` also re-seats `hl` after the compare it rewrites: 
 leaves `hl` at the operand's high byte and may continue from there
 (`dec hl; ld a,(hl+)`), while the add form clobbers it, so the ROM
 reloads `ld hl,sp+0` (DrawBlocksUsed).
+After `ld (hl),e; ld a,e` the byte at hl is `a` too, so a table index
+loaded from it is `ld l,a` (CountFileBlocks' `ld l,a; ld h,#0`).
 A byte read through `de`/`bc` is remembered as "the byte at (de)": its
 copies are forgotten once the pair is rewritten, so `ld a,(de); ld c,a;
 ld e,(hl); inc hl; ld d,(hl); ld a,c; ld (de),a` keeps the reload
@@ -288,6 +290,12 @@ asm that reads stack arguments (`DrawByte`, `DrawString`, `GetTilemapAddr`,
   matches need the `UWORD` form. A pointer plus `(UWORD)(s << 4)` keeps the
   widening inside the loop (a CAST is never a loop invariant), which is why
   only the byte shift is hoisted there.
+- **`switch (b = f())` and a function-pointer compare**: DecompressBlock
+  switches on the assignment's value (the call result in `c`) while the
+  local `b` keeps a copy and is reused as the run counter (`while (b--)`);
+  `wBlockSinkPtr == FlushBlockToSram` compares the pointer global with an
+  address (`AOP_IMMD`: `ld a,#lo; cp a,(hl)`), where a numeric literal
+  would load the global first.
 - **Too few arguments compile**: SDCC 2.2.1 accepts a call with fewer
   arguments than the prototype, so `DrawFormat("INSTRS....")` compiles
   against `void DrawFormat(char *fmt, UWORD v)` (CleanInstrData); a K&R
@@ -633,6 +641,7 @@ shape.
 | `SynthReadWaveSram` | `$1D:$5F90` | shape matches (xor, two sign-extended stores through a 2-byte slot, p++) but the ROM keeps i in c for the whole loop and spills v and the int temps; SDCC spills i for the 2-register cast temp (`int t`, `register`, `volatile v` and statement splits tried) |
 | `EnableSerialSync` | `$1C:$7310` | the inner loop's y is spilled in the ROM (every local is: x, y, p, the bound boolean, the p+y temp); SDCC keeps y in b since it is an operand of the ic whose allocation spills (CopySelection is the same shape with the boolean in c) |
 | `CopySelection` | `$1C:$71CD` | see EnableSerialSync: the ROM spills y where SDCC keeps it in b |
+| `CountFileBlocks` | `$1C:$48D4` | `(*wFileBlockCountPtr)++` on the global pointer: the ROM reads the pointer global for both the read and the write (frame 7, the read value spilled into the 32-bit compare's slot); SDCC copies the pointer into a spill slot for the write (packRegsForOneuse refuses across the intervening pointer get); UWORD-with-cast and volatile forms differ more |
 
 ## What's still unknown
 

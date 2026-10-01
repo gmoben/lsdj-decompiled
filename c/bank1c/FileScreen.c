@@ -27,6 +27,9 @@ extern UBYTE *wTopBarMarkPtr;               /* $C562 */
 extern UBYTE wFileEraseArmed;               /* $C994 */
 extern UBYTE wFilePromptActive;             /* $C995 */
 extern UBYTE wFilePromptNo;                 /* $C996 */
+extern void (*wBlockSinkPtr)(void);         /* $C984, FlushBlockToSram or the verify sink */
+extern UBYTE wCompProgress;                 /* $C981 */
+extern UBYTE wFileFirstChar;                /* $C980 */
 extern UBYTE wFileField;                    /* $C992 */
 extern UBYTE wFileCursor;                   /* $C999 */
 extern UBYTE wFileScroll;                   /* $C99B */
@@ -43,6 +46,12 @@ void SendSyncByte(void);                    /* bank 0 */
 void delay(UWORD d);                        /* bank 0 (GBDK) */
 void DrawFileTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE pal);
 UWORD FileCalcCompressedSize(void);
+UBYTE ReadCompressedByte(void);
+void FilePutDecompByte(UBYTE v);
+void EmitDefaultWave(void);
+void EmitDefaultInstrument(void);
+void LoadFileListState(void);
+void FlushBlockToSram(void);                /* $1C:$743C */
 UBYTE GetFileBlockCount(UBYTE i);
 UBYTE FileFindSlotEnd(void);
 UBYTE FileSlotHalfBase(void);
@@ -70,6 +79,23 @@ void FileWriteCompressedSram(void)
     _endasm;
     wCompSrc += 0x100;
     wDecompPos = 0;
+}
+
+UBYTE CheckFileMagic64(void)
+{
+    if (ReadSongByte(4, 0xBE78) != 'r')
+        return 1;
+    if (ReadSongByte(4, 0xBE79) != 'b')
+        return 1;
+    if (ReadSongByte(5, 0xBE80) != 'r')
+        return 1;
+    if (ReadSongByte(5, 0xBE81) != 'b')
+        return 1;
+    if (ReadSongByte(7, 0xBFF0) != 'r')
+        return 1;
+    if (ReadSongByte(7, 0xBFF1) != 'b')
+        return 1;
+    return 0;
 }
 
 UBYTE CheckFileMagicAll(void)
@@ -142,6 +168,53 @@ UBYTE FileReadCompressedBlock(void)
             return 0;
     }
     return 1;
+}
+
+UBYTE DecompressBlock(void)
+{
+    UBYTE b;
+
+    switch (b = ReadCompressedByte()) {
+    case 0xE0:
+        FilePutDecompByte(0xE0);
+        break;
+    case 0xF0:
+        b = ReadCompressedByte();
+        while (b--)
+            EmitDefaultWave();
+        break;
+    case 0xF1:
+        b = ReadCompressedByte();
+        while (b--)
+            EmitDefaultInstrument();
+        break;
+    case 0xFF:
+        return 1;
+    default:
+        if (wBlockSinkPtr == FlushBlockToSram) {
+            wVramCursor = 0x98EC;
+            wCompProgress++;
+            DrawByte(wCompProgress);
+            DrawStringIndexed('/');
+            DrawByte(wFileFirstChar);
+        }
+        WriteDecompByte(b);
+    }
+    return 0;
+}
+
+void FormatFileSpace(void)
+{
+    UWORD p;
+
+    WriteSongByte(4, 0xBE78, 0);
+    for (p = 0xA000; p != 0xA100; p++)
+        WriteSongByte(4, p, 0);
+    for (p = 0xA140; p != 0xA200; p++)
+        WriteSongByte(4, p, 0xFF);
+    LoadFileListState();
+    WriteSongByte(4, 0xA13E, 0x6A);
+    WriteSongByte(4, 0xA13F, 0x6B);
 }
 
 UBYTE FileFindSlotEnd(void)
