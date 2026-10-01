@@ -32,7 +32,7 @@
 435D GrooveBuildCache       ; once ($c9d5 guard): build the 16-step groove display cache $c9d6 (via $405a)
 4394 GrooveDrawFieldHw      ; like GrooveDrawField but palette per hGameboyType
 43CF GrooveRowPalettes          ; pick a groove row's draw palettes: select colours inside the sorted wSelTop..wGrooveRow range (select mode) or on the cursor row, 4/1 stripe on rows with bit 1, else shadow
-4B6C GrooveScreenHw         ; Groove screen banked-draw path (sets wClipboardType=GROOVE on CUT)
+4B6C GrooveCutCopy              ; cut/copy the groove selection (arg 1 = cut: rows cleared to 0, row 0 to 6)
 4C63 PasteGrooveSelection       ; write the clipboard steps into the groove from the cursor (clipType 2), advancing wGrooveRow and wrapping at 16; PASTE message
 4CDE GrooveDrawSelection        ; clipType 2: highlight the rows between the anchor wSelTop and the cursor (palette 3 on CGB, 2 on DMG)
 4D81 SynthRenderWaveA           ; render synth waveform segment using wave tables $4EF0/$50F0 ($c9e8/$c9ed)
@@ -121,8 +121,8 @@
 495E .loop4               ; loop head in GrooveScreenInput
 4AE6 .loop5               ; loop head in GrooveScreenInput
 4B53 .done                ; common exit of GrooveScreenInput
-4BE6 .loop                ; loop head in GrooveScreenHw
-4C56 .done                ; common exit of GrooveScreenHw
+4BE6 .loop                ; loop head in GrooveCutCopy
+4C56 .done                ; common exit of GrooveCutCopy
 4C92 .loop                ; loop head in PasteGrooveSelection
 4CD4 .done                ; common exit of PasteGrooveSelection
 4D14 .loop                ; loop head in GrooveDrawSelection

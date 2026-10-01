@@ -9,6 +9,7 @@
 
 extern UBYTE wSelTop;                       /* $C40E */
 extern UBYTE wSelBottom;                    /* $C410 */
+extern UBYTE wSelRight;                     /* $C40F */
 extern UBYTE wClipboardType;                /* $C411 */
 extern UBYTE wGrooveCacheValid;             /* $C9D5 */
 extern UBYTE wGrooveStepCache[];            /* $C9D6, [16] */
@@ -40,6 +41,8 @@ void ClearSynthWaveBufs(void);
 void ClearSynthWaveBufs2(void);
 void SynthFilterPass(void);
 void DrawGrooveSteps(void);
+void DrawGrooveRow(void);
+void CopySelection(void);                   /* $1C:$71CD */
 void DrawAllChanStatus(void);
 void DrawSynthNumber(void);
 void RedrawScreenFar(void);
@@ -80,6 +83,35 @@ void GrooveDrawField(void)
     DrawTextField(2, wGrooveRow + 2, 2, pal);
 }
 
+void DrawGrooveSteps(void)
+{
+    UBYTE i;
+    UBYTE v;
+
+    if (wGroove >= 0x20)
+        DebugTrap();
+    ReadSongBytes(0, (UBYTE *)(((UWORD)wGroove << 4) + (UWORD)0xB090), wSongReadBuf);
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
+    for (i = 0; i < 0x10; i++) {
+        GetTilemapAddr(1, i + 2);
+        v = wSongReadBuf[i];
+        if (!v)
+            DrawString(" --    ");
+        else {
+            DrawStringTile20();
+            DrawHexByte(v);
+            DrawString("    ");
+        }
+        if (i == wGrooveRow)
+            v = hGameboyType ? 3 : 2;
+        else
+            v = (i & 2) ? 0 : 1;
+        DrawTextField(2, i + 2, 2, v);
+    }
+    DrawGrooveRow();
+}
+
 void DrawGrooveScreen(void)
 {
     SetSpriteX(0, 1);
@@ -96,6 +128,40 @@ void GrooveScreenUpdate(void)
         SetSpriteY(0, wChanGrooveRow[wSongCol]);
     else
         ClearSpriteY(0);
+}
+
+void DrawGrooveRow(void)
+{
+    UBYTE i;
+    UWORD a, b;
+    UBYTE q;
+
+    i = 0;
+    while (i != 0x10) {
+        if (wGrooveCacheValid) {
+            a = wGrooveStepCache[i];
+            b = wGrooveStepCache[i + 1];
+        } else {
+            a = ReadGrooveStep(i);
+            b = ReadGrooveStep(i + 1);
+        }
+        if (b) {
+            GetTilemapAddr(5, i + 2);
+            if (i & 2) {
+                hBgDigitPalette = 4;
+                hBgPalette = 1;
+            } else {
+                hBgDigitPalette = wShadowDigitPal;
+                hBgPalette = wShadowPal;
+            }
+            q = a * 100 / (a + b);
+            DrawFormat("%d", (UWORD)q);
+            DrawStringIndexed('%');
+            if (q < 10)
+                DrawStringTile20();
+        }
+        i += 2;
+    }
 }
 
 void GrooveBuildCache(void)
@@ -139,6 +205,34 @@ void GrooveRowPalettes(UBYTE row)
         hBgDigitPalette = wShadowDigitPal;
         hBgPalette = wShadowPal;
     }
+}
+
+void GrooveCutCopy(UBYTE cut)
+{
+    UBYTE row;
+
+    row = wGrooveRow;
+    SortBytePair(&wSelTop, &row);
+    if (ReadGrooveStep(row))
+        row++;
+    if (wSelTop == row)
+        return;
+    wCursorMode = 2;
+    wClipboardType = 2;
+    wSelLeft = 0;
+    wSelRight = 1;
+    wSelBottom = row;
+    ShowMessage(cut ? "CUT" : "COPY");
+    for (row = wSelTop; row < wSelBottom; row++) {
+        wGrooveRow = row;
+        GrooveDrawField();
+        WriteClipboardCell(0, row, ReadGrooveStep(row));
+        if (cut)
+            WriteGrooveByte(row, row ? 0 : 6);
+    }
+    wGrooveRow = wSelTop;
+    FarCall(0x1C, FAR_FN(CopySelection));
+    DrawGrooveSteps();
 }
 
 void PasteGrooveSelection(void)

@@ -341,10 +341,22 @@
   "len": 166,
   "src": "c/bank00/DrawFields.c"
  },
+ "DrawGrooveRow": {
+  "bank": "1D",
+  "addr": "425B",
+  "len": 255,
+  "src": "c/bank1d/SynthScreen.c"
+ },
  "DrawGrooveScreen": {
   "bank": "1D",
   "addr": "41DA",
   "len": 59,
+  "src": "c/bank1d/SynthScreen.c"
+ },
+ "DrawGrooveSteps": {
+  "bank": "1D",
+  "addr": "40EA",
+  "len": 227,
   "src": "c/bank1d/SynthScreen.c"
  },
  "DrawHelpMenu": {
@@ -1119,6 +1131,12 @@
   "bank": "1D",
   "addr": "435D",
   "len": 55,
+  "src": "c/bank1d/SynthScreen.c"
+ },
+ "GrooveCutCopy": {
+  "bank": "1D",
+  "addr": "4B6C",
+  "len": 238,
   "src": "c/bank1d/SynthScreen.c"
  },
  "GrooveDrawField": {
