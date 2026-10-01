@@ -533,6 +533,18 @@
   "len": 141,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "DrawKbdInstrName": {
+  "bank": "07",
+  "addr": "674D",
+  "len": 197,
+  "src": "c/bank07/KbdLink.c"
+ },
+ "DrawKbdInstrState": {
+  "bank": "07",
+  "addr": "6543",
+  "len": 231,
+  "src": "c/bank07/KbdLink.c"
+ },
  "DrawKbdOctave": {
   "bank": "07",
   "addr": "6812",
@@ -544,6 +556,12 @@
   "addr": "5876",
   "len": 32,
   "src": "c/bank1b/ProjectScreen.c"
+ },
+ "DrawKeyboardCalibScreen": {
+  "bank": "07",
+  "addr": "7097",
+  "len": 218,
+  "src": "c/bank07/KbdLink.c"
  },
  "DrawKitDistName": {
   "bank": "03",
@@ -664,6 +682,12 @@
   "addr": "4026",
   "len": 55,
   "src": "c/bank06/Screens.c"
+ },
+ "DrawSongScreen": {
+  "bank": "07",
+  "addr": "4574",
+  "len": 227,
+  "src": "c/bank07/SongScreen.c"
  },
  "DrawSpeechInstrScreen": {
   "bank": "1F",
@@ -2589,6 +2613,12 @@
   "bank": "07",
   "addr": "492D",
   "len": 33,
+  "src": "c/bank07/SongScreen.c"
+ },
+ "SongDrawRowNum": {
+  "bank": "07",
+  "addr": "4463",
+  "len": 187,
   "src": "c/bank07/SongScreen.c"
  },
  "SongEraseCursor": {

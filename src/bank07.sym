@@ -9,7 +9,6 @@
 56FE TxtCancelSelect07  ; "CANCEL SELECT"
 5957 TxtCutChains       ; "CUT CHAINS"
 5B0F TxtPastedChains    ; "PASTED CHAINS"
-7171 TxtKeyboardCal     ; "KEYBOARD CALIBRATION"
 40D0 WriteSongCell              ; write song[row][col] = chain (SRAM bank 0 $B290); asserts col < 4, row <= $BF, chain < $80 or $FF
 7220 VramCopyByteSafe   ; spin until rSTAT mode<2 (VRAM free), then copy [de]->[hl], inc e/l
 4574 DrawSongScreen      ; screen idx 4: draws the song sequence (4 channels = PU1/PU2/WAV/NOI)

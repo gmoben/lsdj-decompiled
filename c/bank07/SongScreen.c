@@ -37,6 +37,9 @@ void SongScanSram(UBYTE *src, UBYTE *dst);  /* asm */
 void SaveSelectionState(void);              /* bank 5 */
 void SndStopAllIfIdle(void);                /* bank 2 */
 
+void SongScrollToCursor(void);
+void DrawAllChanStatus(void);               /* bank $1F */
+
 void SongCopyColumn(UBYTE *p, UBYTE *q)
 {
     if (q >= (UBYTE *)0xB590)
@@ -95,6 +98,36 @@ void SongReadRow(void)
     ReadSongBytes(0, p + 0x30, (UBYTE *)0xC49D);
 }
 
+void SongDrawRowNum(void)
+{
+    UBYTE y;
+    UBYTE row, pal;
+
+    if (hGameboyType) {
+        row = wSongScroll;
+        for (y = 2; y != 18; y++, row++) {
+            pal = (row & 4) ? 1 : 2;
+            DrawTextField(0, y, 2, pal);
+            DrawTextField(2, y, 12, IsBookmarked(row));
+        }
+    }
+    wVramCursor = (UBYTE *)0x9840;
+    row = wSongScroll;
+    y = 16;
+    while (y--) {
+        if ((BYTE)row & 4) {
+            hBgDigitPalette = wShadowDigitPal;
+            hBgPalette = wShadowPal;
+        } else {
+            hBgDigitPalette = wSelectDigitPal;
+            hBgPalette = wSelectPal;
+        }
+        DrawHexByte(row);
+        wVramCursor += 0x1E;
+        row++;
+    }
+}
+
 void SongRedrawRow(void)
 {
     SongReadRow();
@@ -118,6 +151,32 @@ void SongScrollToCursor(void)
         if (d & 0xF0)
             wSongScroll = wSongRow - 15;
     }
+}
+
+void DrawSongScreen(void)
+{
+    FarCall(1, FAR_FN(DrawTopBar));
+    SetSpriteX(0, 2);
+    SetSpriteX(1, 5);
+    SetSpriteX(2, 8);
+    SetSpriteX(3, 11);
+    SetSpriteTile3(0);
+    SetSpriteTile3(1);
+    SetSpriteTile3(2);
+    SetSpriteTile3(3);
+    SetSpriteX(4, 2);
+    SetSpriteX(5, 5);
+    SetSpriteX(6, 8);
+    SetSpriteX(7, 11);
+    SetSpriteTile3(4);
+    SetSpriteTile3(5);
+    SetSpriteTile3(6);
+    SetSpriteTile3(7);
+    SongScrollToCursor();
+    SongRedrawRow();
+    FarCall(0x1F, FAR_FN(DrawAllChanStatus));
+    DrawTempoField();
+    FarCall(5, MapDrawTopRow);
 }
 
 void SongScreenUpdate(void)
