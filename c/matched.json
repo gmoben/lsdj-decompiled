@@ -221,6 +221,12 @@
   "len": 284,
   "src": "c/bank00/ScreenDrawDispatch.c"
  },
+ "DispatchSyncClock": {
+  "bank": "00",
+  "addr": "1E93",
+  "len": 53,
+  "src": "c/bank00/Sync.c"
+ },
  "DrawAllChanStatus": {
   "bank": "1F",
   "addr": "7072",
@@ -1361,6 +1367,12 @@
   "len": 76,
   "src": "c/bank06/Screens.c"
  },
+ "LoadSyncSetting": {
+  "bank": "00",
+  "addr": "1CFF",
+  "len": 42,
+  "src": "c/bank00/Sync.c"
+ },
  "LoadSynthShape": {
   "bank": "00",
   "addr": "0B54",
@@ -1510,6 +1522,12 @@
   "addr": "5B5E",
   "len": 72,
   "src": "c/bank04/PhraseScreen.c"
+ },
+ "ProcessSyncByte": {
+  "bank": "00",
+  "addr": "234D",
+  "len": 125,
+  "src": "c/bank00/Sync.c"
  },
  "ProjDrawHelpEntry": {
   "bank": "1B",
@@ -2021,6 +2039,12 @@
   "len": 55,
   "src": "c/bank00/GbdkLib.c"
  },
+ "SyncSendAnalogClock": {
+  "bank": "00",
+  "addr": "1F9A",
+  "len": 59,
+  "src": "c/bank00/Sync.c"
+ },
  "SyncSetRecvMode": {
   "bank": "00",
   "addr": "1EE3",
@@ -2031,6 +2055,24 @@
   "bank": "00",
   "addr": "1EC8",
   "len": 27,
+  "src": "c/bank00/Sync.c"
+ },
+ "SyncStartTransport": {
+  "bank": "00",
+  "addr": "1D29",
+  "len": 67,
+  "src": "c/bank00/Sync.c"
+ },
+ "SyncStopTransport": {
+  "bank": "00",
+  "addr": "1D6C",
+  "len": 49,
+  "src": "c/bank00/Sync.c"
+ },
+ "SyncTickMidi": {
+  "bank": "00",
+  "addr": "1E75",
+  "len": 30,
   "src": "c/bank00/Sync.c"
  },
  "SyncTransferByte": {
