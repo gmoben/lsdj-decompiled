@@ -141,6 +141,34 @@ void CopySong16(UBYTE bank, UWORD src, UWORD dst)
     }
 }
 
+void CopyTableData(UBYTE src, UBYTE dst)
+{
+    UWORD s, d;
+    UWORD s1, s2, s3, s4, s5, s6;
+    UWORD d1, d2, d3, d4, d5, d6;
+
+    s = (UWORD)src << 4;
+    d = (UWORD)dst << 4;
+    s1 = (UWORD)0xB680 + s;
+    s2 = (UWORD)0xB880 + s;
+    s3 = (UWORD)0xBA80 + s;
+    s4 = (UWORD)0xBC80 + s;
+    s5 = (UWORD)0xB480 + s;
+    s6 = (UWORD)0xB690 + s;
+    d1 = (UWORD)0xB680 + d;
+    d2 = (UWORD)0xB880 + d;
+    d3 = (UWORD)0xBA80 + d;
+    d4 = (UWORD)0xBC80 + d;
+    d5 = (UWORD)0xB480 + d;
+    d6 = (UWORD)0xB690 + d;
+    CopySong16(1, s1, d1);
+    CopySong16(1, s2, d2);
+    CopySong16(1, s3, d3);
+    CopySong16(1, s4, d4);
+    CopySong16(1, s5, d5);
+    CopySong16(0, s6, d6);
+}
+
 void CloneInstrTable(void)
 {
     UBYTE v, t;

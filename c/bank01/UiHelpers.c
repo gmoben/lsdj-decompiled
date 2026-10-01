@@ -11,6 +11,10 @@ extern volatile sfr UBYTE STAT_REG;         /* $FF41 */
 extern volatile sfr UBYTE LCDC_REG;         /* $FF40 */
 extern volatile sfr UBYTE BGP_REG;          /* $FF47 */
 extern volatile sfr UBYTE OBP0_REG;         /* $FF48 */
+extern volatile sfr UBYTE NR50_REG;         /* $FF24 */
+extern volatile sfr UBYTE NR51_REG;         /* $FF25 */
+extern volatile sfr UBYTE NR52_REG;         /* $FF26 */
+extern volatile sfr UBYTE hSoundCh;         /* $FF8B */
 extern UBYTE wColorSet;
 extern UBYTE wSelTop;                       /* $C40E */
 extern UBYTE wSelRight;                     /* $C40F */
@@ -49,6 +53,73 @@ UBYTE TestSram(void);                       /* bank 0 */
 UBYTE *GetScreenPalette(void);
 void UiDrawScreenCgb(UWORD s);              /* asm */
 void UiDrawScreenDmg(UBYTE *s);             /* asm */
+
+void LoadSyncSetting(void);                 /* bank 0 */
+void InitScreenPalettes(void);              /* bank $1E */
+void SetSyncSendRate(void);                 /* bank 7 */
+void LoadFileListState(void);               /* bank $1C */
+void FileUpgradeSong(void);                 /* bank $1C */
+void DrawKbdInstrState(void);               /* bank 7 */
+extern char *CommandHelpTable[];            /* $01:$776E */
+extern char TxtHelpBNote[];                 /* $01:$6FDB "B: MAYBE PLAY NOTE; ..." */
+extern char TxtHelpBHop[];                  /* $01:$7016 "B: MAYBE HOP; ..." */
+extern char TxtHelpFTune[];                 /* $01:$7123 "F: FINETUNE ..." */
+extern char TxtHelpFOffset[];               /* $01:$7143 "F: KIT/SYNTH OFFSET; ..." */
+extern char TxtHelpHPhrase[];               /* $01:$718D "H0X: HOP TO NEXT PHRASE; ..." */
+extern char TxtHelpHTable[];                /* $01:$71EF "H: HOP TO STEP; ..." */
+extern char TxtHelpWShort[];                /* $01:$7411 "W: WAVE" */
+extern char TxtHelpW[];                     /* $01:$7419 "W: WAVE [SPEED,LENGTH] 0=NO CHANGE" */
+extern char TxtHelpSKit[];                  /* $01:$7796 "S: MOVE KIT LOOP POINTS; ..." */
+extern char TxtHelpSNoise[];                /* $01:$77DF "S: ADD TO NOISE SHAPE; ..." */
+extern char TxtHelpSSweep[];                /* $01:$780D "S: SET PU1 SWEEP" */
+extern char wTopBarStr[];                   /* $C555 */
+extern char *wTopBarDrawScratch;            /* $C7AD, 16-bit scratch */
+extern char TxtScreenLive[];                /* $01, "LIVE" */
+extern char TxtScreenSong[];                /* $01, "SONG" */
+extern char TxtScreenChain[];               /* $01, "CHAIN " */
+extern char TxtScreenPhrase[];              /* $01, "PHRASE " */
+extern char TxtScreenTable[];               /* $01, "TABLE " */
+extern char TxtScreenProject[];             /* $01, "PROJECT " */
+extern char TxtScreenFile[];                /* $01, "FILE " */
+extern char TxtScreenInstr[];               /* $01, "INSTR " */
+extern char TxtScreenWave[];                /* $01, "WAVE " */
+extern char TxtScreenSynth[];               /* $01, "SYNTH " */
+extern char TxtScreenGroove[];              /* $01, "GROOVE " */
+int StringLength(const char *s);            /* bank 0 */
+UBYTE CheckFileMagic64(void);               /* $1C:$4057 */
+void DrawChannelHeader(void);               /* bank 0 */
+
+extern UBYTE ScreenPalChain[];              /* $01:$57BF */
+extern UBYTE ScreenPalFile[];               /* $01:$6B6F */
+extern UBYTE ScreenPalGroove[];             /* $01:$5BF7 */
+extern UBYTE ScreenPalInstrKit[];           /* $01:$62FF */
+extern UBYTE ScreenPalInstrNoise[];         /* $01:$6467 */
+extern UBYTE ScreenPalInstrPulse[];         /* $01:$602F */
+extern UBYTE ScreenPalInstrWave[];          /* $01:$6197 */
+extern UBYTE ScreenPalPhrase[];             /* $01:$5A8F */
+extern UBYTE ScreenPalProject[];            /* $01:$5D5F */
+extern UBYTE ScreenPalSong[];               /* $01:$5EC7 */
+extern UBYTE ScreenPalSpeech[];             /* $01:$65CF */
+extern UBYTE ScreenPalSynth[];              /* $01:$689F */
+extern UBYTE ScreenPalTable[];              /* $01:$5927 */
+extern UBYTE ScreenPalWave[];               /* $01:$6737 */
+extern UBYTE ScreenPalWord[];               /* $01:$6A07 */
+extern UBYTE TxtBlankString2[];             /* $01:$7498, 20 zero attribute bytes */
+extern UBYTE wChain;                        /* $C418 */
+extern UBYTE wCloneMode;                    /* $C531 */
+extern UBYTE wColInstrument[];              /* $C468, [4] */
+extern UBYTE wFont;                         /* $C52E */
+extern UBYTE wGroove;                       /* $C417 */
+extern UBYTE wKeyDelay;                     /* $C52B */
+extern UBYTE wKeyDelayTimer;                /* $C406 */
+extern UBYTE wKeyRepeat;                    /* $C52C */
+extern UBYTE wKeyRepeatTimer;               /* $C407 */
+extern UBYTE wSongTranspose;                /* $C444 */
+extern UBYTE wSynth;                        /* $C42A */
+extern UBYTE wSynthScreen;                  /* $C441 */
+extern UBYTE wTable;                        /* $C41B */
+extern UWORD wTopBarLen;                    /* $C7AD, wTopBarDrawScratch as a word (aliased by match_function.py) */
+extern UWORD wVramCursorW;                  /* $C573, wVramCursor as a plain word: its `< 0x9811` is a 32-bit compare (aliased by match_function.py) */
 
 UBYTE UiTestSramHi(void)
 {
@@ -271,6 +342,51 @@ void DrawOnOffName(UBYTE v)
     DrawString((v & 0x20) ? "OFF" : " ON");
 }
 
+UBYTE *GetScreenPalette(void)
+{
+    switch (wCurrentScreen) {
+    case 1:
+        return ScreenPalPhrase;
+    case 2:
+        return ScreenPalGroove;
+    case 3:
+        return ScreenPalChain;
+    case 4:
+        return ScreenPalSong;
+    case 5:
+        return ScreenPalTable;
+    case 6:
+        if (wInstrument < 0x40) {
+            switch (ReadCurInstrByte(0)) {
+            case 0:
+                return ScreenPalInstrPulse;
+            case 1:
+                return ScreenPalInstrWave;
+            case 2:
+                return ScreenPalInstrKit;
+            case 3:
+                return ScreenPalInstrNoise;
+            }
+        } else {
+            return ScreenPalSpeech;
+        }
+        return 0;
+    case 8:
+        return ScreenPalWave;
+    case 9:
+        return ScreenPalProject;
+    case 10:
+        return ScreenPalSynth;
+    case 11:
+        return ScreenPalSpeech;
+    case 12:
+        return ScreenPalWord;
+    case 13:
+        return ScreenPalFile;
+    }
+    return 0;
+}
+
 void UiDrawTextHw(void)
 {
     UBYTE *s;
@@ -303,6 +419,131 @@ void UiClearBgMap(void)
         }
         VBK_REG = 0;
     }
+}
+
+void DrawTopBar(void)
+{
+    UBYTE i;
+    UBYTE isFile;
+
+    wVramCursorW = 0x9800;
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
+    if (wMsgStrPtr)
+        return;
+    isFile = wCurrentScreen == 13;
+    if (!isFile && wCurrentScreen != 9 && hGameboyType) {
+        VBK_REG = 1;
+        set_bkg_tiles(0, 0, 20, 1, TxtBlankString2);
+        VBK_REG = 0;
+    }
+    wVramCursorW = 0x9800;
+    switch (wCurrentScreen) {
+    default:
+        if (!isFile)
+            break;
+        goto file;
+    case 4:
+        if (wLiveMode)
+            wTopBarDrawScratch = TxtScreenLive;
+        else
+            wTopBarDrawScratch = TxtScreenSong;
+        DrawString(wTopBarDrawScratch);
+        break;
+    case 3:
+        DrawString(TxtScreenChain);
+        DrawHexByte(wChain);
+        break;
+    case 1:
+        DrawString(TxtScreenPhrase);
+        DrawHexByte(wPhrase);
+        break;
+    case 5:
+        DrawString(TxtScreenTable);
+        DrawHexByte(wTable);
+        break;
+    case 9:
+        DrawString(TxtScreenProject);
+        if (FarCallByte(0x1C, FAR_FN(CheckFileMagic64)))
+            DrawString(wTopBarStr);
+        break;
+    file:
+        DrawString(TxtScreenFile);
+        DrawString(wTopBarStr);
+        i = 0;
+        for (;;) {
+            wTopBarLen = 12 - StringLength(wTopBarStr);
+            if (i == wTopBarLen)
+                break;
+            DrawStringTile20();
+            i++;
+        }
+        break;
+    case 6:
+        DrawString(TxtScreenInstr);
+        DrawHexByte(wInstrument);
+        break;
+    case 8:
+        DrawString(TxtScreenWave);
+        DrawHexByte(wSynth);
+        break;
+    case 10:
+        DrawString(TxtScreenSynth);
+        DrawByte(wSynthScreen);
+        break;
+    case 2:
+        DrawString(TxtScreenGroove);
+        DrawHexByte(wGroove);
+        break;
+    }
+    while (wVramCursorW < 0x9811)
+        DrawStringIndexed(' ');
+    if (wCurrentScreen != 9 && !isFile)
+        DrawChannelHeader();
+}
+
+void LoadCommandHelp(UBYTE cmd)
+{
+    UBYTE *saved;
+    UBYTE *s;
+
+    saved = wVramCursor;
+    if (!cmd)
+        return;
+    if (cmd > 0x13)
+        DebugTrap();
+    switch (cmd) {
+    case 2:
+        s = wCurrentScreen == 1 ? TxtHelpBNote : TxtHelpBHop;
+        break;
+    case 8:
+        s = wCurrentScreen == 1 ? TxtHelpHPhrase : TxtHelpHTable;
+        break;
+    case 6:
+        s = wSongCol == 2 ? TxtHelpFOffset : TxtHelpFTune;
+        break;
+    case 0x0F:
+        switch (wSongCol) {
+        case 2:
+            s = TxtHelpSKit;
+            break;
+        case 3:
+            s = TxtHelpSNoise;
+            break;
+        default:
+            s = TxtHelpSSweep;
+            break;
+        }
+        break;
+    case 0x12:
+        s = wSongCol == 2 ? TxtHelpW : TxtHelpWShort;
+        break;
+    default:
+        s = CommandHelpTable[cmd];
+        break;
+    }
+    ShowMessage(s);
+    wVramCursor = saved;
 }
 
 void ClearMessageBar(void)
@@ -386,4 +627,57 @@ void ResetEditorState(UBYTE keep)
         wCursorMode = mode;
         wLiveMode = live;
     }
+}
+
+void LoadProjectSettings(UBYTE keep)
+{
+    UBYTE i;
+
+    ResetEditorState(keep);
+    NR52_REG = 0;
+    NR51_REG = 0;
+    NR50_REG = 0;
+    _asm di _endasm;
+    rRAMG = 0x0A;
+    rRAMB = 1;
+    wFont = *(UBYTE *)0xBFBC;
+    if (wFont > 2) {
+        wFont = 0;
+        *(UBYTE *)0xBFBC = 0;
+    }
+    LoadSyncSetting();
+    rRAMG = 0x0A;
+    rRAMB = 1;
+    wCloneMode = *(UBYTE *)0xBFC0;
+    wColorSet = *(UBYTE *)0xBFBE;
+    if (!hGameboyType && wColorSet > 3)
+        wColorSet = 0;
+    rRAMG = 0;
+    FarCall(0x1E, FAR_FN(InitScreenPalettes));
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
+    ApplyColorSet();
+    hSoundCh = 0;
+    _asm di _endasm;
+    rRAMG = 0x0A;
+    rRAMB = 1;
+    wTempo = *(UBYTE *)0xBFB4;
+    wTempoMode = *(UBYTE *)0xBFCC;
+    wSongTranspose = *(UBYTE *)0xBFB5;
+    memcpy(wColInstrument, (UBYTE *)0xBFC6, 4);
+    i = 4;
+    do {
+        if (wColInstrument[i - 1] > 0x40 && wColInstrument[i - 1] != 0xFF)
+            wColInstrument[i - 1] = 0;
+    } while (--i);
+    wKeyDelay = *(UBYTE *)0xBFBA & 0x0F;
+    wKeyRepeat = *(UBYTE *)0xBFBB & 0x0F;
+    rRAMG = 0;
+    FarCall(7, FAR_FN(SetSyncSendRate));
+    wKeyDelayTimer = wKeyDelay;
+    wKeyRepeatTimer = wKeyRepeat;
+    FarCall(0x1C, FAR_FN(LoadFileListState));
+    FarCall(0x1C, FAR_FN(FileUpgradeSong));
+    if (wSyncMode == 5)
+        FarCall(7, FAR_FN(DrawKbdInstrState));
 }

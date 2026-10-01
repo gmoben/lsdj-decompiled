@@ -374,6 +374,8 @@ RUNTIME_ALIASES = {
     "strcmp": "StrCompare",     # bank 0's SDCC strcmp (named StrCompare: `strcmp` is an rgbasm keyword)
     "DrawFormat2": "DrawFormat",  # the varargs DrawFormat called with two values
     "FarCallArg3P": "FarCallArg3",  # FarCallArg3 called with a function pointer (two cast temps)
+    "wVramCursorW": "wVramCursor",  # the VRAM cursor as a plain word (DrawTopBar's 32-bit `< 0x9811`)
+    "wTopBarLen": "wTopBarDrawScratch",  # the top-bar scratch word as a length
 }
 
 

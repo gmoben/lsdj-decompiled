@@ -299,6 +299,12 @@
   "len": 65,
   "src": "c/bank01/SongAlloc.c"
  },
+ "CopyTableData": {
+  "bank": "01",
+  "addr": "5331",
+  "len": 317,
+  "src": "c/bank01/SongAlloc.c"
+ },
  "CursorInstrIsKit": {
   "bank": "04",
   "addr": "510A",
@@ -730,6 +736,12 @@
   "addr": "7524",
   "len": 130,
   "src": "c/bank06/DrawTileHexCell.c"
+ },
+ "DrawTopBar": {
+  "bank": "01",
+  "addr": "6D53",
+  "len": 555,
+  "src": "c/bank01/UiHelpers.c"
  },
  "DrawWaveCellPair": {
   "bank": "06",
@@ -1235,6 +1247,12 @@
   "len": 65,
   "src": "c/bank03/InstrScreen.c"
  },
+ "GetScreenPalette": {
+  "bank": "01",
+  "addr": "55C9",
+  "len": 222,
+  "src": "c/bank01/UiHelpers.c"
+ },
  "GetSynthFieldHelp": {
   "bank": "05",
   "addr": "7208",
@@ -1733,6 +1751,12 @@
   "len": 76,
   "src": "c/bank06/Screens.c"
  },
+ "LoadCommandHelp": {
+  "bank": "01",
+  "addr": "764C",
+  "len": 290,
+  "src": "c/bank01/UiHelpers.c"
+ },
  "LoadFile": {
   "bank": "1C",
   "addr": "50B3",
@@ -1744,6 +1768,12 @@
   "addr": "4A46",
   "len": 459,
   "src": "c/bank1c/FileScreen.c"
+ },
+ "LoadProjectSettings": {
+  "bank": "01",
+  "addr": "7C86",
+  "len": 355,
+  "src": "c/bank01/UiHelpers.c"
  },
  "LoadSyncSetting": {
   "bank": "00",
