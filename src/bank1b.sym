@@ -53,7 +53,7 @@
 5B23 DrawPrelistenField         ; PRELISTEN field: "ON "/"OFF"/"N/A" by wPrelisten + sync mode
 5B62 ProjRedrawPrelisten        ; PRELISTEN field at $992A in the shadow palette (DrawPrelistenField)
 5D7C ProjectScreenRefresh       ; drain buttons, clear tilemap, DrawProjectScreen + map row
-6988 ApplySettingsAndRedraw     ; delay, LoadProjectSettings(0), clear, redraw frame -- 63 call sites
+6988 .applySettings     ; ProjectScreenInput tail (was ApplySettingsAndRedraw): delay, LoadProjectSettings(0), clear, redraw frame -- the 63 "call sites" are its jumps
 6A8C TapTempoStep               ; TAP tempo: on each tap record the frames since the last one (wWorkClockSubFrame) into wTapTempoBuf (8-deep, oldest dropped), reset on a -frame gap; from 3 taps on, tempo = ffe / (8 * mean interval), capped at 
 70B8 GetInstrEnvBytes           ; read the instrument's envelope input bytes (x2 ReadCurInstrByte)
 7200 PlotEnvCurve               ; plot env-graph column y at x into wDecompBuf, filling gap from wEnvPlotX (<$40)
@@ -158,7 +158,7 @@
 5C01 .done                ; common exit of DrawSyncSubSetting
 5D7D .loop                ; loop head in ProjectScreenRefresh
 5D86 .loop2               ; loop head in ProjectScreenRefresh
-6A5A .done                ; common exit of ApplySettingsAndRedraw
+6A5A .doneApply                ; common exit of ApplySettingsAndRedraw
 6AF8 .loop                ; loop head in TapTempoStep
 6B2A .loop2               ; loop head in TapTempoStep
 6B76 .done                ; common exit of TapTempoStep
@@ -312,8 +312,8 @@
 66DF .projSyncStateFlage
 677C .setCurrentScreen
 6794 .checkSyncModeb
-69A0 .checkGameboyType
-6A19 .checkButtonsSame
+69A0 .checkGameboyTypeApply
+6A19 .checkButtonsSameApply
 6B72 .setTempo
 722A .ok
 7568 .computeEnvelope
@@ -498,17 +498,17 @@
 68CD .farCall_7
 6924 .farCall_8
 6985 .cont_8
-69AE .farCall
-69BC .farCall_2
-69D7 .ret01
-69DC .ret00
-69E1 .setProjCursor
-69F6 .farCall_3
-6A14 .ret01_2
-6A29 .ret01_3
-6A2E .setCurrentScreen
-6A52 .ret01_4
-6A58 .cont
+69AE .farCallApply
+69BC .farCall_2Apply
+69D7 .ret01Apply
+69DC .ret00Apply
+69E1 .setProjCursorApply
+69F6 .farCall_3Apply
+6A14 .ret01_2Apply
+6A29 .ret01_3Apply
+6A2E .setCurrentScreenApply
+6A52 .ret01_4Apply
+6A58 .contApply
 6AA8 .setProjCursor
 6AB5 .checkProjCursor
 6AD3 .loadProjCursor
