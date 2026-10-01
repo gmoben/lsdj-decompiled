@@ -2153,6 +2153,12 @@
   "len": 124,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "RemapSeqChains": {
+  "bank": "1F",
+  "addr": "52DA",
+  "len": 313,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
  "ResetEditorState": {
   "bank": "01",
   "addr": "7BDE",

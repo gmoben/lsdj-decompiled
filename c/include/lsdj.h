@@ -141,6 +141,7 @@ UBYTE FarCallArgByte(UBYTE bank, UWORD fn, UBYTE arg);         /* returns fn's b
 UBYTE FarCallArg2(UBYTE bank, UWORD fn, UBYTE a, UBYTE b);
 void FarCallArg2V(UBYTE bank, void (*fn)(void), UBYTE a, UBYTE b);
 void FarCallArg3(UBYTE bank, UWORD fn, UBYTE a, UBYTE b, UBYTE c);
+void FarCallArg3P(UBYTE bank, void (*fn)(void), UBYTE a, UBYTE b, UBYTE c);  /* the same routine taking FAR_FN(f) (match_function.py aliases it) */
 UBYTE FarCallByte(UBYTE bank, void (*fn)(void));    /* returns fn's byte result */
 #define FAR_FN(f) ((void (*)(void))(UWORD)(f))
 

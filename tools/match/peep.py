@@ -274,6 +274,39 @@ def _hl_stack_offset(lines: list[str], at: int) -> int | None:
     return None
 
 
+def inline_asm_hl(lines: list[str]) -> tuple[list[str], int]:
+    """Reload hl after an inline-asm block.
+
+    SDCC 2.2.1's genInline leaves its pair cache alone, so a stack byte
+    addressed right after `_asm di _endasm` is reached with `inc hl` from
+    the previous `lda hl,N(sp)`; LSDj's compiler reloaded `ld hl,sp+N`
+    there (RemapSeqChains' `i = 0` after the di). An inline line keeps the
+    user's indentation after SDCC's tab (`\t        di`)."""
+    lines = list(lines)
+    n = 0
+    i = 0
+    while i < len(lines):
+        raw = lines[i]
+        t = _strip(raw).strip()
+        if re.match(r"\t +\S", raw) and t and not t.endswith(":"):
+            k = i + 1
+            while k < len(lines) and not _strip(lines[k]).strip():
+                k += 1
+            adj = k
+            off = 0
+            while adj < len(lines) and _strip(lines[adj]).strip() in ("inc\thl", "dec\thl"):
+                off += 1 if _strip(lines[adj]).strip() == "inc\thl" else -1
+                adj += 1
+            nxt = _strip(lines[adj]).strip() if adj < len(lines) else ""
+            if adj > k and "(hl" in nxt and not nxt.endswith(":"):
+                base = _hl_stack_offset(lines, i)
+                if base is not None:
+                    lines[k:adj] = [f"\tlda\thl,{base + off}(sp)"]
+                    n += 1
+        i += 1
+    return lines, n
+
+
 def gb_cmp16(lines: list[str]) -> tuple[list[str], int]:
     """Rewrite SDCC 2.2.1's 16-bit `x < lit` / `x >= lit` into LSDj's add form."""
     lines = list(lines)

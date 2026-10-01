@@ -99,6 +99,8 @@ extern UBYTE wChanChainRow[];               /* $C17C, [4] */
 extern UBYTE wChanSongRow[];                /* $C200, [4] */
 void ScreenPreDraw(void);                   /* $1E:$4000 */
 
+void SetChainTranspose(UBYTE chain, UBYTE row, UBYTE v);    /* $06:$5655 */
+
 void DrawInstrTableMode(void)
 {
     char *s;
@@ -607,6 +609,45 @@ UBYTE BuildUsedTablesMap(void)
         ;
     while (InstrHProcessUsedTables());
     return InstrHCollectUsedTables();
+}
+
+void RemapSeqChains(void)
+{
+    UBYTE j, i, col;
+
+    col = wSongCol;
+    _asm
+        di
+    _endasm;
+    for (i = 0; i < 0x80; i++)
+        FarCallArg(1, FAR_FN(FreeChain), i);
+    _asm
+        ei
+        di
+    _endasm;
+    for (wSongCol = 0; wSongCol < 4; wSongCol++) {
+        for (j = 0; j != 0xC0; j++) {
+            i = ReadSeqByte(wSongCol, j);
+            if (!(i & 0x80))
+                FarCallArg(1, FAR_FN(MarkChainUsed), i);
+        }
+    }
+    wSongCol = col;
+    _asm
+        ei
+        di
+    _endasm;
+    for (i = 0; i < 0x80; i++) {
+        if (!FarCallArgByte(1, FAR_FN(IsChainUsed), i)) {
+            for (j = 0; j < 0x10; j++) {
+                WriteChainPhrase(i, j, 0xFF);
+                FarCallArg3P(6, FAR_FN(SetChainTranspose), i, j, 0);
+            }
+        }
+    }
+    _asm
+        ei
+    _endasm;
 }
 
 void MarkChainPhrasesUsed(UBYTE chain)
