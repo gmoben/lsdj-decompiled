@@ -682,6 +682,7 @@ shape.
 | `DrawFileTextField` | `$1C:$5361` | the frame drawer (DrawProjTextField $1B:$4CBA is the same code): the ROM computes `right - 1` and `AsciiCharMap - 0x20` inside the outer loop (no invariant hoisting; `--noinvariant` reproduces all but one allocation) and keeps b = y + h - 1 in c for the whole function with i/j/bottom/right on the stack; SDCC gives c to i and spills b (used 15 < 23) |
 | `FileUpgradeClearRange` | `$1C:$65B9` | all but `v` (the transpose being rescaled): the ROM keeps it on the stack with every inner-loop temp spilt, SDCC gives it c; `(UBYTE *)0xDA00 + (UWORD)t` reproduces the reversed-pair index and literal far-call addresses the `ld hl,#fn; push hl` |
 | `FindFreeBlock` | `$1C:$415A` | UWORD p/end with `(p - end) & 0x8000` (or int p/end) gives the ROM's spilt signed difference and `bit 7` test, and UWORD p the plain `push hl` of the SRAM address; what remains is one allocation: the ROM spills `end` and keeps the ReadSongByte result in c, SDCC keeps end in bc and spills the result (leastUsedLR prefers the smaller symbol on a tie) |
+| `NameEditorInput` | `$1B:$53E8` | all but one assertion: before storing the letter the ROM computes wNameEditBuf + 1 byte-wise into b/c and tests it with the signed add form (`ld e,b; xor a,#0x80; ld d,a; ld hl,#0x8000; add hl,de; jp nc`, i.e. `(int)(wNameEditBuf + 1) > -1` -> DebugTrap); stock SDCC emits the unsigned sbc chain for that spelling and spills an `int t` local, and gb_cmp16 has no signed variant yet |
 
 ## What's still unknown
 
