@@ -12,6 +12,8 @@ extern UBYTE wPhraseColLast[];              /* $C907, [4] */
 extern UBYTE wPhraseDrawMode;               /* $C90C */
 extern UBYTE wColInstrument[];              /* $C468, [4] last instrument per channel */
 extern UBYTE wInstrIsKit;                   /* $C90B */
+UBYTE AllocNextFreeInstr(void);             /* bank $1F */
+void CopyTableData(UBYTE from, UBYTE to);   /* bank 1 */
 extern UBYTE wPhraseRowFlags[];             /* $C90D, [16] */
 extern UBYTE PhraseColX0[];                 /* $04:$429E */
 extern UBYTE PhraseColX1[];                 /* $04:$42A3 */
@@ -282,6 +284,46 @@ void CloneInstrument(UBYTE src, UBYTE dst)
         WriteInstrByte(dst, i, ReadInstrByte(src, i));
     FarCallArg(1, FAR_FN(CopyInstrName), src);
     FarCallArg(1, FAR_FN(WriteInstrName), dst);
+}
+
+void CloneInstrAtCursor(void)
+{
+    UBYTE instr, bad, n;
+
+    instr = ReadCursorInstr();
+    bad = !(instr < 0x40);
+    FarCall(5, FAR_FN(RestoreSelectionState));
+    if (bad) {
+        strcpy(wStrBuffer, "CANNOT CLONE");
+        FarCall(1, DrawMessageBar);
+        return;
+    }
+    n = FarCallByte(0x1F, FAR_FN(AllocNextFreeInstr));
+    if (n == 0xFF)
+        return;
+    CloneInstrument(instr, n);
+    SetColInstrument(n);
+    WritePhraseInstrument(wPhrase, (char)wPhraseRow, n);
+    DrawPhraseScreen();
+    ShowMessage("CLONED INSTR");
+}
+
+UBYTE CloneTableAtCursor(void)
+{
+    UBYTE v, ok, t;
+
+    v = PhraseReadFxVal(wPhrase, (char)wPhraseRow);
+    ok = v < 0x20;
+    FarCall(5, FAR_FN(RestoreSelectionState));
+    if (!ok)
+        return 0;
+    t = FarCallByte(0x1F, FAR_FN(FindFreeTable));
+    if (t == 0xFF)
+        return 0;
+    FarCallArg2V(1, FAR_FN(CopyTableData), v, t);
+    WritePhraseFxVal(wPhrase, (char)wPhraseRow, t);
+    DrawPhraseScreen();
+    return 1;
 }
 
 UBYTE PhraseCloneTableCmd(void)

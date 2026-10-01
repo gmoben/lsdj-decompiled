@@ -209,6 +209,12 @@
   "len": 54,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "CloneInstrAtCursor": {
+  "bank": "04",
+  "addr": "5533",
+  "len": 158,
+  "src": "c/bank04/PhraseScreen.c"
+ },
  "CloneInstrTable": {
   "bank": "01",
   "addr": "546E",
@@ -219,6 +225,12 @@
   "bank": "04",
   "addr": "5491",
   "len": 82,
+  "src": "c/bank04/PhraseScreen.c"
+ },
+ "CloneTableAtCursor": {
+  "bank": "04",
+  "addr": "55EB",
+  "len": 146,
   "src": "c/bank04/PhraseScreen.c"
  },
  "CopyFileName": {
