@@ -41,6 +41,12 @@
   "len": 39,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "CanEnterSongCol": {
+  "bank": "1F",
+  "addr": "64FF",
+  "len": 343,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
  "ChainCalcParamAddr": {
   "bank": "06",
   "addr": "4901",
@@ -335,6 +341,12 @@
   "len": 44,
   "src": "c/bank06/Screens.c"
  },
+ "DrawChanStatus": {
+  "bank": "1F",
+  "addr": "6F14",
+  "len": 324,
+  "src": "c/bank1f/DrawChanStatus.c"
+ },
  "DrawChannelHeader": {
   "bank": "00",
   "addr": "2CC6",
@@ -592,6 +604,12 @@
   "addr": "4026",
   "len": 55,
   "src": "c/bank06/Screens.c"
+ },
+ "DrawSpeechInstrScreen": {
+  "bank": "1F",
+  "addr": "7108",
+  "len": 311,
+  "src": "c/bank1f/InstrHelpers.c"
  },
  "DrawSpeedGlyph": {
   "bank": "01",

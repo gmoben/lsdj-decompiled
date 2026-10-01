@@ -67,6 +67,7 @@ UBYTE InstrHCollectUsedTables(void);
 void MarkChainPhrasesUsed(UBYTE chain);
 UBYTE WaveFrameModified(UBYTE phrase);
 UBYTE CanEnterSongCol(UBYTE col);
+void InstrHReadCursorCellAt(void);
 UBYTE IsInstrAllocated(UBYTE instr);
 void InstrHMarkInstrTable(UBYTE instr);
 void DrawChanStatus(UBYTE chan);
@@ -87,6 +88,16 @@ void DrawWaveSynthField(void);              /* $03:$4D15 */
 void DrawInstrByte10(void);                 /* $03:$498B */
 void DrawInstrRow14(void);                  /* $03:$49FD */
 void DrawInstrByte11(void);                 /* $03:$49B7 */
+
+void InstrScreenFrame(void);                /* $03:$45A7 */
+extern UBYTE wLiveMode;                     /* $C528 */
+extern UBYTE wChain;                        /* $C418 */
+extern UBYTE wChainRow;                     /* $C41A */
+extern UBYTE wChanActive[];                 /* $C0E0, [4] */
+extern UBYTE wChanChain[];                  /* $C170, [4] */
+extern UBYTE wChanChainRow[];               /* $C17C, [4] */
+extern UBYTE wChanSongRow[];                /* $C200, [4] */
+void ScreenPreDraw(void);                   /* $1E:$4000 */
 
 void DrawInstrTableMode(void)
 {
@@ -927,6 +938,47 @@ void PhraseScreenUpdate(void)
         ClearSpriteY(0);
 }
 
+UBYTE CanEnterSongCol(UBYTE col)
+{
+    UBYTE chain, row, phrase;
+    void (*fn)(void);
+
+    if (col >= 4)
+        DebugTrap();
+    wMsgStrPtr = 0;
+    if (wLiveMode && wChanActive[col]) {
+        chain = wChanChain[col];
+        if (chain & 0x80)
+            return 0;
+        phrase = wChanPhrase[col];
+        if (phrase & 0x80)
+            return 0;
+        row = wChanChainRow[col];
+        if (row & 0xF0)
+            return 0;
+        wSongRow = wChanSongRow[col];
+    } else {
+        chain = ReadSeqByte(col, wSongRow);
+        if (chain & 0x80)
+            return 0;
+        row = wChainRow;
+        fn = FAR_FN(SndGetChainPhrase);
+        phrase = FarCallArg2(2, (UWORD)fn, chain, wChainRow);
+        while (phrase == 0xFF && row)
+            phrase = FarCallArg2(2, (UWORD)fn, chain, --row);
+        if (phrase == 0xFF)
+            return 0;
+    }
+    InstrHReadCursorCellAt();
+    wSongCol = col;
+    wChain = chain;
+    wChainRow = row;
+    wPhrase = phrase;
+    FarCall(4, FAR_FN(DrawPhraseScreen));
+    FarCall(0x1E, FAR_FN(ScreenPreDraw));
+    return 1;
+}
+
 UBYTE HasEnterableColRight(void)
 {
     UBYTE c;
@@ -1034,4 +1086,48 @@ void InstrHDrawParamField(void)
 void DrawInstrParamField(void)
 {
     DrawTextField(0, InstrHGetParamPlus4(), 3, hGameboyType ? 3 : 2);
+}
+
+void DrawSpeechInstrScreen(void)
+{
+    UBYTE *p;
+    UBYTE row, i, c;
+
+    wCurrentScreen = 0x0B;
+    FarCall(1, FAR_FN(UiDrawTextHw));
+    FarCall(0x1F, FAR_FN(DrawAllChanStatus));
+    wCurrentScreen = 6;
+    FarCall(3, FAR_FN(InstrScreenFrame));
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
+    wVramCursor = 0x9840;
+    DrawString("TYPE   SPEECH");
+    p = (UBYTE *)0xBDD0;
+    row = 4;
+    while (row < 4 + 14) {
+        GetTilemapAddr(0, row);
+        if (row & 1) {
+            hBgDigitPalette = wShadowDigitPal;
+            hBgPalette = wShadowPal;
+        } else {
+            hBgDigitPalette = 4;
+            hBgPalette = 1;
+        }
+        i = 0;
+        while (i < 3) {
+            c = ReadSongByte(0, p);
+            if (!c)
+                break;
+            DrawStringIndexed(c);
+            p = p + 1;
+            i = i + 1;
+        }
+        while (i < 3) {
+            DrawStringIndexed(' ');
+            p = p + 1;
+            i = i + 1;
+        }
+        row++;
+    }
+    DrawInstrParamField();
 }

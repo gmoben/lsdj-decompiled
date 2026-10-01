@@ -309,6 +309,11 @@ def gb_cmp16(lines: list[str]) -> tuple[list[str], int]:
                 elif fetch and fetch[0] == "\tld\te,(hl)":
                     known = _hl_stack_offset(lines, idx[0])
                     known = known + 1 if known is not None else None
+                elif not fetch:
+                    # the operand was already in a pair; hl may still point at
+                    # a stack byte the code goes on to use (DrawSpeechInstrScreen's
+                    # `row < 4 + 14` then `GetTilemapAddr(0, row)`)
+                    known = _hl_stack_offset(lines, idx[0])
                 if known is not None:
                     # stock SDCC left hl at the operand's high byte and may go
                     # on from there (`dec hl; ld a,(hl+)`); the add clobbered
