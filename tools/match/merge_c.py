@@ -45,12 +45,16 @@ def split(src: str) -> tuple[str, list[tuple[str, str]]]:
         return src, []
     pre = "\n".join(lines[:starts[0][0]]).rstrip() + "\n"
     chunks = []
+    begin = starts[0][0]
     for k, (j, name) in enumerate(starts):
         end = starts[k + 1][0] if k + 1 < len(starts) else len(lines)
-        body = lines[j:end]
         # stop at the function's closing brace
-        close = max(n for n, l in enumerate(body) if l.startswith("}"))
-        chunks.append((name, "\n".join(body[:close + 1]).rstrip() + "\n"))
+        close = j + max(n for n, l in enumerate(lines[j:end]) if l.startswith("}"))
+        # a chunk carries whatever precedes its function since the previous
+        # one closed -- file-scope data such as a const table placed right
+        # before it (UiHelpers.c's SpeedGlyphTiles) travels with it
+        chunks.append((name, "\n".join(lines[begin:close + 1]).strip("\n") + "\n"))
+        begin = close + 1
     return pre, chunks
 
 

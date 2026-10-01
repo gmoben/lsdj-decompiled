@@ -14,7 +14,7 @@
 4848 CheckSongInitFlag   ; ReadSongByte $be78/$be79 ('rb' memory-init marker)
 50A0 UiReadSongProp      ; ReadSongByte $bfb3 (song property), compare $3c
 48D4 WriteSongInitFlag   ; WriteSongByte $be78 (set the 'rb' init marker)
-4D67 UiValidateByte      ; bounds-check a value < $80 (DebugTrap otherwise)
+4D67 MarkChainUsed              ; set chain (arg)'s bit in the chain allocation map (SramChainAlloc + chain/8, bit chain&7); asserts chain < $80
 4EA3 .writeSongByte       ; (was WriteSongByteWrap) thin WriteSongByte wrapper
 45D1 UiClearSram         ; enable SRAM + ClearSramWindow
 
@@ -198,7 +198,7 @@
 4C4F .loop3               ; loop head in ClearOamBuffer
 4CEF .done                ; common exit of ApplyColorSet
 4D49 .loop                ; loop head in MarkPhraseUsed
-4DB5 .loop                ; loop head in UiValidateByte
+4DB5 .loop                ; loop head in MarkChainUsed
 4E21 .loop                ; loop head in FreePhrase
 4E91 .loop                ; loop head in FreeChain
 4ED7 .loop                ; loop head in AllocNextFreePhrase
@@ -462,3 +462,4 @@
 7E1C .setrVBK
 7E37 .readSTAT
 6F7E TxtTitle                   ; "LITTLE SOUND DJ " running on into TxtVersion: main's startup message
+56A7 ColorSetPalettes           ; [color sets][20] words: 5 BG palettes of 4 colours per set; objects use the first two and colours 5-8 (ApplyColorSet)

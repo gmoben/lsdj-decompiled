@@ -8,6 +8,15 @@
 #include "lsdj.h"
 
 extern volatile sfr UBYTE STAT_REG;         /* $FF41 */
+extern volatile sfr UBYTE LCDC_REG;         /* $FF40 */
+extern volatile sfr UBYTE BGP_REG;          /* $FF47 */
+extern volatile sfr UBYTE OBP0_REG;         /* $FF48 */
+extern UBYTE wColorSet;
+extern UBYTE wBootHwId;                     /* $CBD9 */
+extern UBYTE wFileNameTmp[];
+extern UWORD ColorSetPalettes[];            /* $01:$56A7, [sets][20] */
+void set_bkg_palette(UBYTE first, UBYTE nb, UWORD *rgb);   /* GBDK */
+void UiLoadObjPalette(UBYTE first, UBYTE nb, UWORD *rgb);
 extern UBYTE wNotePeriodLo[];               /* $CD28 */
 extern UBYTE wNotePeriods[];                /* $CF28 */
 extern UBYTE NoteFreqTable[];               /* $01:$40FA, DMG */
@@ -50,6 +59,26 @@ void UiLoadHwTables(void)
 {
     memcpy(wNotePeriodLo, wIsCGB ? PitchCurveCgb : PitchCurve, 0xD8);
     memcpy(wNotePeriods, wIsCGB ? NoteFreqDeltaTable : NoteFreqTable, 0xD8);
+}
+
+void ApplyColorSet(void)
+{
+    UWORD *pal;
+    UBYTE v;
+
+    if (wBootHwId == 0x11) {
+        LCDC_REG &= 0x7F;
+        pal = &ColorSetPalettes[wColorSet * 20];
+        set_bkg_palette(0, 5, pal);
+        UiLoadObjPalette(0, 2, pal);
+        memcpy(wFileNameTmp, (UBYTE *)(pal + 5), 8);
+        UiLoadObjPalette(2, 1, (UWORD *)wFileNameTmp);
+        LCDC_REG |= 0x80;
+    } else {
+        v = (wColorSet & 1) ? 0x1B : 0xE4;
+        BGP_REG = v;
+        OBP0_REG = v;
+    }
 }
 
 void UiInitScreen(void)

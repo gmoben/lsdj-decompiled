@@ -23,6 +23,12 @@
   "len": 105,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "ApplyColorSet": {
+  "bank": "01",
+  "addr": "4C61",
+  "len": 144,
+  "src": "c/bank01/UiHelpers.c"
+ },
  "BuildUsedTablesMap": {
   "bank": "1F",
   "addr": "52B3",
@@ -154,6 +160,12 @@
   "addr": "4811",
   "len": 55,
   "src": "c/bank01/UiHelpers.c"
+ },
+ "CheckSongInitFlag": {
+  "bank": "01",
+  "addr": "4848",
+  "len": 140,
+  "src": "c/bank01/SongAlloc.c"
  },
  "ClearBookmarks": {
   "bank": "07",
@@ -1457,11 +1469,23 @@
   "len": 78,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "MarkChainUsed": {
+  "bank": "01",
+  "addr": "4D67",
+  "len": 108,
+  "src": "c/bank01/SongAlloc.c"
+ },
  "MarkPhraseTablesUsed": {
   "bank": "1F",
   "addr": "4F49",
   "len": 124,
   "src": "c/bank1f/InstrHelpers.c"
+ },
+ "MarkPhraseUsed": {
+  "bank": "01",
+  "addr": "4CFB",
+  "len": 108,
+  "src": "c/bank01/SongAlloc.c"
  },
  "MigrateTempoProps": {
   "bank": "1C",
