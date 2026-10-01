@@ -2410,5 +2410,11 @@
   "addr": "40B3",
   "len": 91,
   "src": "c/bank06/Screens.c"
+ },
+ "main": {
+  "bank": "00",
+  "addr": "1306",
+  "len": 370,
+  "src": "c/bank00/Main.c"
  }
 }

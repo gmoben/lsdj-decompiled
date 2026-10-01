@@ -30,7 +30,7 @@
 0150 Start              ; init: di, stack=$E000, clear WRAM/HRAM, save boot regs
 0824 FxMnemonics        ; "-ABCDEFGHKLMOPRSTVWZ": phrase/table command letters indexed by command byte (0='-'=none); FxCommandTable order
 0DDB InitAndLoadSong    ; second-stage boot (runs once before MainLoop): SwitchToDoubleSpeed, ClearBgTilemap, init subsystems, load the working song (bank1 $4CF1/$4848) or ResetWorkState if empty, set palettes + load song properties
-1377 MainLoop           ; poll ready flags, then process a frame (-> ProcessInput)
+1377 .mainLoop            ; (was MainLoop) poll ready flags, then process a frame (-> ProcessInput)
 1CFF LoadSyncSetting    ; read song sync property ($BFBD) -> $CB66/$CB67
 254F ScreenDrawDispatch ; jp table $2563 indexed by wCurrentScreen ($C401): per-screen draw
 2563 ScreenDrawTable    ; 15x jp: screen index -> "select bank N; call draw; ret"
@@ -57,7 +57,7 @@
 0061 CrashTrampoline            ; trampoline: select ROM bank 1, jp CrashHandler ($794B)
 0391 TimerHandler       ; timer IRQ body: sound/playback engine tick
 0662 TimerHandlerReturn ; timer IRQ epilogue: restore regs, wait rSTAT, reti
-0ED6 ProcessInput       ; MainLoop input handler: drain the button queue (GetNextButtons) and dispatch to the current screen
+0ED6 ProcessInput       ; main.mainLoop input handler: drain the button queue (GetNextButtons) and dispatch to the current screen
 1CEA GetNextButtons     ; dequeue next button state from the input ring ($CE00[wButtonReadIdx++]) -> e; stops at wButtonWriteIdx
 2B8D HandleButtonEvent  ; process one button event: latch A/B/Select held flags (wAHeld/wBHeld/wSelectHeld) from wButtons, then HandleInputCombos + DispatchScreenInput, OR their results
 271A HandleInputCombos  ; global/B-held button-combo handling before per-screen dispatch (skipped on screens 7/8/9/$0D/$0E) -> e
@@ -347,7 +347,7 @@
 1089 .loop2               ; loop head in ProcessInput
 1294 .done                ; common exit of ProcessInput
 1304 .done                ; common exit of DrawTextField
-1439 .loop                ; loop head in MainLoop
+1439 .loop                ; loop head in main.mainLoop
 14AE .loop                ; loop head in DebugNop
 15B7 .loop                ; loop head in SelectKit1Sample
 1673 .done                ; common exit of SelectKit1Sample
@@ -624,7 +624,7 @@
 125D .cont_2
 1292 .cont_3
 12EA .cont
-1306 main               ; the C entry point (Start jumps here): detect the hardware, InitAndLoadSong, redraw, file-system check; then MainLoop is its endless loop
+1306 main               ; the C entry point (Start jumps here): detect the hardware, InitAndLoadSong, redraw, file-system check; then main.mainLoop is its endless loop
 1318 .readAUDENA
 1323 .setIsCGB_2
 132B .cont_2

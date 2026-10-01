@@ -801,3 +801,10 @@ replace {
 } by {
 	ld	(hl),a
 }
+
+// SDCC's MOVA after reading an sfr for a compare (`ldh a,(_X); ld a,a`): the
+// ROM's code never has `ld a,a` (its one occurrence is palette data; main)
+replace restart {
+	ld	a,a
+} by {
+}

@@ -9,10 +9,10 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 
 | Question | Answer |
 |----------|--------|
-| What compiled LSDj? | **GBDK 2.95-3** (19 Aug 2000) → **SDCC 2.2.1** (`gbz80` target), default `asxxxx` assembler/linker, small memory model — **plus an accumulator-tracking optimisation stock SDCC lacks** (the "modified GBDK"), modelled here as an accumulator-tracking pass plus 70 peephole rules (below) |
+| What compiled LSDj? | **GBDK 2.95-3** (19 Aug 2000) → **SDCC 2.2.1** (`gbz80` target), default `asxxxx` assembler/linker, small memory model — **plus an accumulator-tracking optimisation stock SDCC lacks** (the "modified GBDK"), modelled here as an accumulator-tracking pass plus 71 peephole rules (below) |
 | Can we run it today? | **Yes, natively.** SDCC 2.2.1 + `sdcpp`/`as-gbz80`/`link-gbz80` build from the GBDK 2.95-2 sources (`tools/toolchain/build_sdcc221.sh`, ~15 s) and emit **byte-identical** asm, objects, listings and images to GBDK 2.95-3's Win32 binaries — which still run under Wine (`fetch_gbdk295.sh`), but crash on large units (below) |
 | Is it the right toolchain? | **Yes, for the code generator**: LSDj's instruction selection, register allocation and frame idioms are SDCC 2.2.1's line for line, and GBDK 2.95 library code in the ROM is byte-identical to its sources (`display_off` ← `crt0.s`, `strcpy` ← `asm_string.s`, `set_bkg_palette` ← `cgb.s`, `set_bkg_tiles` ← `set_bk_t.s` + `set_xy_t.s`, the SDCC `mul` runtime). Stock output does **not** match on its own: LSDj's build also ran peephole rules that stock 2.95-3 lacks |
-| Matched real LSDj functions? | **Yes — 402**, in eleven banks (the list: [`c/matched.json`](../c/matched.json)): a message renderer, a 15-case `switch`, a sparse `switch`, the SRAM accessors, and the instrument screen's field accessors and draw helpers. `make match` re-verifies them all (cached: only changed sources reach the compiler), and **their bytes in the ROM build come from the compiled C** (below) |
+| Matched real LSDj functions? | **Yes — 403**, in eleven banks (the list: [`c/matched.json`](../c/matched.json)): a message renderer, a 15-case `switch`, a sparse `switch`, the SRAM accessors, and the instrument screen's field accessors and draw helpers. `make match` re-verifies them all (cached: only changed sources reach the compiler), and **their bytes in the ROM build come from the compiled C** (below) |
 | Is all of LSDj C? | **No.** ~130 functions (7% of the instructions) are hand-written assembly — the interrupt handlers, sound tick, envelope/pitch and tile-loader code in bank 0, and the sequencer core in bank `$02` (`tools/match/code_kind.py`). Those stay asm; the ~830 others (every editor) are Track 2 targets |
 | Go/no-go on Track 2? | **Go, with the rule set still growing.** Every function tried has matched (each new one has cost a few rules so far), the C feeds the ROM build with `make compare` as the gate, and the hand-written asm (7%) is mapped and excluded |
 
@@ -24,6 +24,7 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 | [`c/bank00/GbdkLib.c`](../c/bank00/GbdkLib.c) | `StringLength` (GBDK's `strlen`) | GBDK library C under the stock rules (`@stock-rules`) |
 | [`c/bank00/Helpers.c`](../c/bank00/Helpers.c) | 7 functions: bank 0's shared C helpers | kit bank probes through a `volatile` MBC register, a word compare, the clipboard cell accessors, sign extension into an `int` array with a 32-bit `\|=`, a re-typed pointer argument |
 | [`c/bank00/InstrByte.c`](../c/bank00/InstrByte.c) | `WriteInstrByte`, `ReadInstrByte`, `ReadCurInstrByte` | byte args, pointer local, 16-bit shift loop, asserts (one compound), both forms of pointer + byte |
+| [`c/bank00/Main.c`](../c/bank00/Main.c) | `main` (370 B) | the boot `switch`, an endless frame loop with `continue`, an `\|\|` chain, a second absolute `sfr` name for a plain global |
 | [`c/bank00/ReadSeqByte.c`](../c/bank00/ReadSeqByte.c) | `ReadSeqByte` | `?:` on bit 7 of a call result |
 | [`c/bank00/ScreenDrawDispatch.c`](../c/bank00/ScreenDrawDispatch.c) | 5 functions: the screen dispatchers | 15-case `switch` → `jp hl` tables, bank switching, cross-bank calls, case bodies out of value order, an `&&` chain |
 | [`c/bank00/Sprites.c`](../c/bank00/Sprites.c) | 10 functions: the sprite helpers | literal-pointer stores, a register pair plus a constant added in place, `v == *p` |
@@ -86,6 +87,7 @@ common (byte-pattern counts over banks `$01`-`$07`, `$1B`-`$1F`):
 | Register tracking (`track_a`, below) | a reload of what `a` already holds: `ld a,r` / `cp` / `jp cc` / *(dead label)* / `ld a,r` (an `\|\|` chain) → reload dropped; a stored stack local reread: `ld hl,sp+N` / `ld (hl),r` / [`add sp,M`] / `ld a,(hl)` → `ld a,r`; `ld (hl),a` / `ld de,#T` / `ld l,(hl)` → `ld l,a` (indexing a table by the value just stored) | 0, 0, 0 | 35, 25 + 141, 32 |
 | More dead stores | `ld r,#n` / `ld r,X` → `ld r,X`; a discarded sign extension `rla` / `sbc a,a` / `ld r,a` / `ld a,X` / `and a,#n` → store dropped; the `== 0` test of a fresh `&`: `and a,#n` / `ld r,a` / `or a,a` / `jp nz` → `and a,#n` / `jp nz`; after *ALU* `a,r` / `ld (hl),a` the `ld a,(hl)` reload is dropped too | 0, 0, 0 (1 `jp z` / `if (t)` site keeps it), 0 | —, 3, 12, 69 |
 | 16-bit compare with a constant (`gb_cmp16`, below) | `xor a,a` / `ld a,lo` / `sbc a,#lo` / `ld a,hi` / `sbc a,#hi` / `jp cc` → `ld hl,#-lit` / `add hl,de` (or `bc` when the value already sits there) / `jp` on the inverted carry | 0 (its 5 `sbc` chains are 32-bit) | 28 |
+| `ld a,a` | the MOVA SDCC leaves after reading an sfr for a compare → removed | 0 (the one `ld a,a` in the ROM is palette data) | — |
 
 Besides SDCC's `if labelRefCount %N k`, a rule may say `if operandIsReg %N`
 (the variable bound to a register rather than `(hl)`); `peep.py` implements
@@ -268,6 +270,10 @@ asm that reads stack arguments (`DrawByte`, `DrawString`, `GetTilemapAddr`,
   name is an immediate. An address the ROM pushes as `ld hl,#addr` is a
   symbol of its own or a literal: `SongReadRow` fills the 64-byte song window
   in 16-byte chunks at `wSongReadBuf`, `(UBYTE *)0xC47D`, `0xC48D`, `0xC49D`.
+- **One global, two views**: `hGameboyType` is read everywhere as a plain
+  global (`ld hl,#0xFF90; or a,(hl)`), but `main` stores it with `ldh`, so
+  `main`'s file saw it as an sfr. SDCC's absolute form gives that file its
+  own name without a linker symbol: `sfr hGameboyTypeIo = 0xFF90;`.
 - **A multiply by a constant stays a `MulU16` call** only when the constant
   is not a literal while the tree is built: `decorateType` moves a literal
   left operand of `*` to the right, and `geniCodeMultiply` turns a power of two
@@ -544,7 +550,7 @@ shape.
    clone) recomputes a loop-invariant address every iteration, which stock
    SDCC hoists — either LSDj's build disabled loop-invariant motion or the
    source spelled it differently. It is parked until one or the other shows.
-2. **The complete compiler model.** An accumulator-tracking pass plus 70
+2. **The complete compiler model.** An accumulator-tracking pass plus 71
    rules so far; most new functions need nothing new, but each new idiom can
    surface a rule. One function so far (`SetInstrFlags54`, `$03:$4B5E`)
    points at a register-allocation difference no rule can express: stock

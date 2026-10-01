@@ -1,5 +1,5 @@
 ; Bank $1D -- Groove / Synth screens + softsynth renderer
-6035 RenderSynthWave    ; render a softsynth wave frame; called from MainLoop idle time (counter $C9F0, 0-15)
+6035 RenderSynthWave    ; render a softsynth wave frame; called from main.mainLoop idle time (counter $C9F0, 0-15)
 
 ; --- synth data tables + strings ---
 4EF0 SineTable          ; signed sine waveform (synth source): 0..$3f..0..-$3f..

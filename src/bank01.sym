@@ -461,3 +461,4 @@
 7E1A .cont
 7E1C .setrVBK
 7E37 .readSTAT
+6F7E TxtTitle                   ; "LITTLE SOUND DJ " running on into TxtVersion: main's startup message

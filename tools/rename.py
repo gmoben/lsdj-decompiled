@@ -24,7 +24,8 @@ ROOT = Path(__file__).resolve().parent.parent
 
 def files() -> list[Path]:
     out = list((ROOT / "src").glob("bank*.sym")) + list((ROOT / "constants").glob("*.inc"))
-    out += [p for p in (ROOT / "c").rglob("*") if p.suffix in (".c", ".h")]
+    out += [p for p in (ROOT / "c").rglob("*") if p.suffix in (".c", ".h")
+          and not p.name.startswith((".", "#"))]   # not editor lock/autosave files
     out += list((ROOT / "docs").glob("*.md")) + [ROOT / "AGENTS.md", ROOT / "README.md"]
     out += [p for p in (ROOT / "tools").rglob("*.py") if "__pycache__" not in p.parts]
     return [p for p in out if p.is_file()]

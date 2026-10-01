@@ -8,8 +8,8 @@ the end.)
 ## Control-flow spine (confirmed)
 
 ```
-Entry $0100 -> Start $0150 (init) -> InitAndLoadSong $0DDB -> MainLoop $1377
-  MainLoop: when wRedrawPending ($C56C) says a frame is due ->
+Entry $0100 -> Start $0150 (init) -> main $1306 (InitAndLoadSong $0DDB, ...) -> main.mainLoop $1377
+  main.mainLoop: when wRedrawPending ($C56C) says a frame is due ->
     ProcessInput $0ED6: drain the button queue (GetNextButtons); per event
       HandleButtonEvent $2B8D -> HandleInputCombos + DispatchScreenInput
       ($2A71, jp table $2A86 by wCurrentScreen -> the screen's input handler)
@@ -206,7 +206,7 @@ All 13 program banks (`$00`-`$07`, `$1B`-`$1F`) are carved; the only `INCBIN`s
 left are the 21 sample kits (`$08`-`$1A`, `$20`-`$21`, emitted as labeled
 per-kit/per-sample sections) and the 30 empty banks (`$22`-`$3F`).
 
-The whole screen system is named: the spine (`MainLoop`, `ProcessInput`,
+The whole screen system is named: the spine (`main.mainLoop`, `ProcessInput`,
 `HandleButtonEvent`, `DispatchScreenInput`, `ScreenDrawDispatch` +
 `ScreenDrawTable`, `ScreenUpdateDispatch` + `ScreenUpdateDispatch.jumpTable`,
 `RedrawScreen`), every draw/update/input handler, the per-field helpers, and

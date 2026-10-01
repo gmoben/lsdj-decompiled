@@ -64,7 +64,8 @@ def main() -> None:
             sym.write_text("\n".join(lines) + "\n")
             qualified = f"{enclosing[1]}{local}"
             files = list((ROOT / "src").glob("bank*.sym")) + list((ROOT / "docs").glob("*.md"))
-            files += [p for p in (ROOT / "c").rglob("*") if p.suffix in (".c", ".h")]
+            files += [p for p in (ROOT / "c").rglob("*") if p.suffix in (".c", ".h")
+          and not p.name.startswith((".", "#"))]   # not editor lock/autosave files
             files += [ROOT / "AGENTS.md", ROOT / "README.md"]
             for f in files:
                 s = f.read_text()

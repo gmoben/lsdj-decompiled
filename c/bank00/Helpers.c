@@ -24,8 +24,8 @@ UBYTE ReadClipboardCell(UBYTE col, UBYTE row)
     UBYTE *p;
 
     if (col >= 6)
-        DebugTrap();
-    if (row >= 42)
+        DebugTrap(); 
+   if (row >= 42)
         DebugTrap();
     p = wClipboardBuf + col * 42;
     return p[row];
