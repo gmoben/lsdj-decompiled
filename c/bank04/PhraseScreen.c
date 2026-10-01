@@ -199,6 +199,211 @@ UBYTE PhraseInstrEntered(void)
     return res;
 }
 
+void PhraseEditUp(UBYTE row)
+{
+    UBYTE *p;
+    UBYTE step;
+    UBYTE full;
+    UBYTE v;
+
+    p = (UBYTE *)(row + (UWORD)0xA000);
+    step = 12;
+    full = 0;
+    if (wPhrase == 0xFF)
+        DebugTrap();
+    if (row >= 0x10)
+        DebugTrap();
+    p += (UWORD)wPhrase << 4;
+    v = ReadSongByte(0, p);
+    if (wSongCol == 3) {
+        switch (v) {
+        case 0x3A:
+        case 0x3B:
+        case 0x76:
+        case 0x77:
+        case 0x78:
+            step = 1;
+            break;
+        case 0x38:
+        case 0x39:
+        case 0x74:
+        case 0x75:
+            step = 2;
+            break;
+        case 0x36:
+        case 0x37:
+        case 0x72:
+        case 0x73:
+            step = 3;
+            break;
+        default:
+            step = 4;
+            break;
+        }
+    }
+    if (!v) {
+        if (wCursorMode == 4)
+            return;
+        v = wPhraseColLast[wSongCol];
+        full = PhraseInstrEntered();
+    } else {
+        v += step;
+        if (wCursorMode == 4 || wSongCol == 3) {
+            while (PhraseModeTile() < v || !v)
+                v -= PhraseModeTile();
+        } else {
+            while (PhraseModeTile() < v || v < step)
+                v -= step;
+        }
+    }
+    PhraseResolveCursorNote(v);
+    WriteSongByte(0, p, v);
+    if (full)
+        DrawPhraseScreen();
+    else
+        DrawChainCellFar(v);
+}
+
+void PhraseEditDown(UBYTE row)
+{
+    UBYTE *p;
+    UBYTE step;
+    UBYTE full;
+    UBYTE v;
+    UBYTE kitcol;
+    UBYTE t, n;
+
+    p = (UBYTE *)(row + (UWORD)0xA000);
+    step = 12;
+    full = 0;
+    if (wPhrase == 0xFF)
+        DebugTrap();
+    if (row >= 0x10)
+        DebugTrap();
+    p += (UWORD)wPhrase << 4;
+    v = ReadSongByte(0, p);
+    if (!v) {
+        if (wCursorMode == 4)
+            return;
+        v = wPhraseColLast[wSongCol];
+        full = PhraseInstrEntered();
+    } else {
+        kitcol = wSongCol == 3;
+        if (kitcol) {
+            if (v > 0x3C)
+                t = v + 0xC4;
+            else
+                t = v;
+            switch (t) {
+            case 3:
+            case 0x39:
+            case 0x3F:
+                step = 3;
+                break;
+            case 2:
+            case 0x3A:
+            case 0x3E:
+                step = 2;
+                break;
+            case 1:
+            case 0x3B:
+            case 0x3C:
+            case 0x3D:
+                step = 1;
+                break;
+            default:
+                step = 4;
+                break;
+            }
+        }
+        v -= step;
+        if (wCursorMode == 4 || kitcol) {
+            while (PhraseModeTile() < v || !v)
+                v += PhraseModeTile();
+        } else {
+            n = -step;
+            while (n < v || !v)
+                v += step;
+        }
+    }
+    PhraseResolveCursorNote(v);
+    WriteSongByte(0, p, v);
+    if (full)
+        DrawPhraseScreen();
+    else
+        DrawChainCellFar(v);
+}
+
+void PhraseEditRight(UBYTE row)
+{
+    UBYTE *p;
+    UBYTE full;
+    UWORD addr;
+    UBYTE v;
+
+    p = (UBYTE *)(row + (UWORD)0xA000);
+    full = 0;
+    if (wPhrase == 0xFF)
+        DebugTrap();
+    if (row >= 0x10)
+        DebugTrap();
+    p += (UWORD)wPhrase << 4;
+    addr = (UWORD)p;
+    v = ReadSongByte(0, addr);
+    if (!v) {
+        if (wCursorMode == 4)
+            return;
+        row = wPhraseColLast[wSongCol];
+        full = PhraseInstrEntered();
+    } else {
+        if (v == PhraseModeTile() && wCursorMode != 4 && wSongCol != 3)
+            return;
+        row = v + 1;
+    }
+    if (PhraseModeTile() < row || !row)
+        row = 1;
+    PhraseResolveCursorNote(row);
+    WriteSongByte(0, addr, row);
+    if (full)
+        DrawPhraseScreen();
+    else
+        DrawChainCellFar(row);
+}
+
+void PhraseEditLeft(UBYTE row)
+{
+    UBYTE *p;
+    UBYTE full;
+    UBYTE v;
+
+    p = (UBYTE *)(row + (UWORD)0xA000);
+    full = 0;
+    if (wPhrase == 0xFF)
+        DebugTrap();
+    if (row >= 0x10)
+        DebugTrap();
+    p += (UWORD)wPhrase << 4;
+    v = ReadSongByte(0, p);
+    if (!v) {
+        if (wCursorMode == 4)
+            return;
+        v = wPhraseColLast[wSongCol];
+        full = PhraseInstrEntered();
+    } else {
+        if (v == 1 && wCursorMode != 4 && wSongCol != 3)
+            return;
+        v--;
+    }
+    if (!v || PhraseModeTile() < v)
+        v = PhraseModeTile();
+    PhraseResolveCursorNote(v);
+    WriteSongByte(0, p, v);
+    if (full)
+        DrawPhraseScreen();
+    else
+        DrawChainCellFar(v);
+}
+
 UBYTE ReadPhraseInstr(UBYTE phrase, UBYTE row)
 {
     UBYTE *p;

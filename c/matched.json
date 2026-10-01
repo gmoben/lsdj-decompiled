@@ -1943,10 +1943,34 @@
   "len": 71,
   "src": "c/bank04/PhraseScreen.c"
  },
+ "PhraseEditDown": {
+  "bank": "04",
+  "addr": "457C",
+  "len": 399,
+  "src": "c/bank04/PhraseScreen.c"
+ },
+ "PhraseEditLeft": {
+  "bank": "04",
+  "addr": "4811",
+  "len": 263,
+  "src": "c/bank04/PhraseScreen.c"
+ },
  "PhraseEditPlace": {
   "bank": "04",
   "addr": "4B5B",
   "len": 171,
+  "src": "c/bank04/PhraseScreen.c"
+ },
+ "PhraseEditRight": {
+  "bank": "04",
+  "addr": "470B",
+  "len": 262,
+  "src": "c/bank04/PhraseScreen.c"
+ },
+ "PhraseEditUp": {
+  "bank": "04",
+  "addr": "43CD",
+  "len": 431,
   "src": "c/bank04/PhraseScreen.c"
  },
  "PhraseInstrEntered": {
