@@ -618,7 +618,7 @@ void InstrFieldIncLo(UBYTE field)
         return;
     v++;
     WriteCurrentInstrByte(field, v);
-    FarCall(0x1F, GetInstrEnv1F2);
+    FarCall(0x1F, DrawInstrEnvFields);
     DrawInstrCursor();
     InstrEnvelopeChanged();
 }
@@ -632,7 +632,7 @@ void InstrFieldDecLo(UBYTE field)
         return;
     v--;
     WriteCurrentInstrByte(field, v);
-    FarCall(0x1F, GetInstrEnv1F2);
+    FarCall(0x1F, DrawInstrEnvFields);
     DrawInstrCursor();
     InstrEnvelopeChanged();
 }
@@ -647,7 +647,7 @@ void InstrFieldIncHi(UBYTE field)
         return;
     v += 0x10;
     WriteCurrentInstrByte(field, v);
-    FarCall(0x1F, GetInstrEnv1F2);
+    FarCall(0x1F, DrawInstrEnvFields);
     DrawInstrCursor();
     InstrEnvelopeChanged();
 }
@@ -661,7 +661,7 @@ void InstrFieldDecHi(UBYTE field)
         return;
     v -= 0x10;
     WriteCurrentInstrByte(field, v);
-    FarCall(0x1F, GetInstrEnv1F2);
+    FarCall(0x1F, DrawInstrEnvFields);
     DrawInstrCursor();
     InstrEnvelopeChanged();
 }

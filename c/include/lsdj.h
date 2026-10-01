@@ -259,6 +259,6 @@ void DrawInstrTableField(void);
 void DrawInstrTableMode(void);
 UBYTE GetInstrEnv1F(void);
 UBYTE FindFreeTable(void);
-void GetInstrEnv1F2(void);
+void DrawInstrEnvFields(void);
 
 #endif /* LSDJ_H */

@@ -5,7 +5,9 @@
 ; --- data tables + strings (db; instrument-editor + word/phrase helpers) ---
 4236 TxtDashTemplate    ; "/--/--" (value display template)
 491A DefaultWaveFrameB1F        ; default wave frame (16 bytes; WaveFrameModified compares phrase rows against it)
-4A02 DefaultInstrument       ; 16-byte default instrument template
+4A02 DefaultInstrPulse          ; [11] default pulse (or noise) instrument bytes (ClaimInstrSlot)
+4A0D DefaultInstrWave           ; [11] default wave instrument bytes
+4A18 DefaultInstrKit            ; [14] default kit instrument bytes
 4ACE TxtOutOfMemory1F     ; "OUT OF MEMORY. CLEAN SONG DATA IN PROJECT SCREEN"
 4C11 TxtOutOfTables     ; "OUT OF TABLES!"
 61FF DefaultSynthParams  ; [16] default softsynth params, memcpy'd into synth_params ($3EB2) by $61E1
@@ -36,7 +38,7 @@
 409C DrawInstrTableField        ; draw the instrument's table field: table number (hex) if on, '--' if off
 40CA GetInstrFlags1F5                       ; read instrument byte 5 flags (bit3 = table STEP/AUTOMATE mode, vibrato bits)
 411F DrawTableFlag              ; draw the instr TABLE on/off state glyph (field 5) with palettes
-418A GetInstrEnv1F2                           ; read instrument byte 1 = envelope/volume
+418A DrawInstrEnvFields         ; draw the instrument envelope line: byte 1, the /--/-- template, bytes 9 and 10 (hex or n-)
 44B7 DrawKitNameCell            ; kit number (hex) + 6-char kit name (ReadKitName)
 48C5 WriteChainPhrase           ; chains[chain*16+row] = phrase (song $2080 region)
 492A ClaimInstrSlot             ; read+mark the instr-alloc entry (song $2040); returns prior state
@@ -83,8 +85,8 @@
 620F InstrHScanTableRows        ; scan 16 table rows from a pointer
 62BD TableIsReferenced          ; e=1 if table n is referenced by any instrument or A command (CleanInstrData)
 6B3B DrawPhraseCellValue        ; draw the cell under the phrase cursor ($fe/$ff specials, $c90c state)
-6CA2 InstrHReadCursorCell       ; read cell via ROM table $64E1 + cursor offsets (args sp+7/sp+8)
-6EFE InstrHReadCursorCellAt     ; read cell at cursor $c415/$c416 (InstrHReadCursorCell)
+6CA2 DrawPhraseCellField        ; highlight phrase cell (col,row): DrawTextField from the PhraseCell* layout tables (x,w,pal by row flag)
+6EFE InstrHReadCursorCellAt     ; read cell at cursor $c415/$c416 (DrawPhraseCellField)
 6F14 DrawChanStatus            ; draw channel status cell at (16, ch+6) from wChanModFlag[ch]
 70A8 InstrHGetParamPlus4        ; return $c429 + 4
 70B6 InstrHDrawParamField       ; draw a field from $c429 (parity-based) via InstrHGetParamPlus4
@@ -103,14 +105,19 @@
 64FF CanEnterSongCol            ; e=1 if song column (arg<4) can take the cursor (channel active/enterable)
 6656 HasEnterableColRight       ; e=1 if any song column right of wSongCol is enterable (phrase-screen '>' arrow)
 6677 HasEnterableColLeft        ; e=1 if any song column left of wSongCol is enterable ('<' arrow)
-6C1E DrawPhraseCursor           ; draw the phrase cursor cell: DrawPhraseCellValue(wPhraseCol, wPhraseRow) via PhraseColLayout
+6C1E DrawPhraseCursor           ; draw the phrase cursor cell: DrawPhraseCellValue(wPhraseCol, wPhraseRow) via the PhraseCell* tables
 6D58 PastePhraseSelection       ; wClipboardType==1: normalize sel rect vs cursor, write clipboard cells into the phrase
 7072 DrawAllChanStatus          ; draw the 4 channel status cells (DrawChanStatus 0-3)
 7108 DrawSpeechInstrScreen      ; instrument screen for SPEECH type: "TYPE   SPEECH" + word list (pseudo-screen $0b)
 724D WordScreenInput            ; word/speech editor input dispatch (wButtons); edits words at song $3DD0 ($bdd0)
 ; --- data ---
 4ACE TxtOutOfMemInstr           ; "OUT OF MEMORY. CLEAN INSTR DATA IN PROJECT SCREEN!"
-64E1 PhraseColLayout            ; per-phrase-column draw metrics (x pos / width / flags), 6 rows x 5 cols
+64E1 PhraseCellX                ; [5] phrase cell x per column (the six PhraseColLayout rows; $FF = hidden)
+64E6 PhraseCellXAlt             ; [5] x when the step's row flag is not $FE/$FF
+64EB PhraseCellWidthAlt         ; [5] width, alt rows
+64F0 PhraseCellWidth            ; [5] width
+64F5 PhraseCellPalAlt           ; [5] highlight palette, alt rows
+64FA PhraseCellPal              ; [5] highlight palette
 637D TxtDedupe                  ; "DE-DUPE..."
 6388 TxtFreeing                 ; "FREEING:"
 6391 TxtChainsFill              ; "CHAINS...."
@@ -137,7 +144,7 @@
 40C5 .done                ; common exit of DrawInstrTableField
 4111 .done                ; common exit of GetInstrFlags1F5
 4168 .done                ; common exit of GetInstrEnv1F
-4234 .done                ; common exit of GetInstrEnv1F2
+4234 .done                ; common exit of DrawInstrEnvFields
 43B7 .done                ; common exit of DrawNoiseInstr
 48E7 .loop                ; loop head in WriteChainPhrase
 4A2B .loop                ; loop head in InitRemapTable
@@ -261,7 +268,7 @@
 6C1A .done                ; common exit of DrawPhraseCellValue
 6C5D .loop                ; loop head in DrawWordRow
 6C9A .done                ; common exit of DrawWordRow
-6D54 .done                ; common exit of InstrHReadCursorCell
+6D54 .done                ; common exit of DrawPhraseCellField
 6E0D .loop                ; loop head in PastePhraseSelection
 6E4F .loop2               ; loop head in PastePhraseSelection
 6EBF .loop3               ; loop head in PastePhraseSelection

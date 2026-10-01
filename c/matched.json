@@ -173,6 +173,12 @@
   "len": 140,
   "src": "c/bank01/SongAlloc.c"
  },
+ "ClaimInstrSlot": {
+  "bank": "1F",
+  "addr": "492A",
+  "len": 216,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
  "CleanInstrData": {
   "bank": "1F",
   "addr": "63B1",
@@ -371,6 +377,12 @@
   "len": 231,
   "src": "c/bank03/InstrScreen.c"
  },
+ "DrawInstrEnvFields": {
+  "bank": "1F",
+  "addr": "418A",
+  "len": 172,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
  "DrawInstrParamField": {
   "bank": "1F",
   "addr": "70DF",
@@ -448,6 +460,12 @@
   "addr": "6D0F",
   "len": 96,
   "src": "c/bank1d/SynthScreen.c"
+ },
+ "DrawPhraseCellField": {
+  "bank": "1F",
+  "addr": "6CA2",
+  "len": 182,
+  "src": "c/bank1f/InstrHelpers.c"
  },
  "DrawPhraseCmdLetter": {
   "bank": "04",
@@ -1319,6 +1337,18 @@
   "len": 136,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "InstrHScanTableCmds": {
+  "bank": "1F",
+  "addr": "6074",
+  "len": 216,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
+ "InstrHScanTableRows": {
+  "bank": "1F",
+  "addr": "620F",
+  "len": 174,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
  "InstrHScanUsedChains": {
   "bank": "1F",
   "addr": "5478",
@@ -1888,6 +1918,12 @@
   "addr": "6311",
   "len": 67,
   "src": "c/bank1d/SynthScreen.c"
+ },
+ "ReadTableRowCmds": {
+  "bank": "1F",
+  "addr": "4FC5",
+  "len": 204,
+  "src": "c/bank1f/InstrHelpers.c"
  },
  "ReadWaveSample": {
   "bank": "06",
