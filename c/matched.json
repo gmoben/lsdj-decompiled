@@ -287,6 +287,12 @@
   "len": 103,
   "src": "c/bank1c/FileScreen.c"
  },
+ "CopyInstrName": {
+  "bank": "01",
+  "addr": "493B",
+  "len": 265,
+  "src": "c/bank01/UiHelpers.c"
+ },
  "CopySong16": {
   "bank": "01",
   "addr": "52EB",
@@ -328,6 +334,12 @@
   "addr": "59E6",
   "len": 238,
   "src": "c/bank1c/FileScreen.c"
+ },
+ "DrawCartTest": {
+  "bank": "01",
+  "addr": "4487",
+  "len": 208,
+  "src": "c/bank01/UiHelpers.c"
  },
  "DrawChainCellFar": {
   "bank": "04",
@@ -2441,6 +2453,12 @@
   "len": 84,
   "src": "c/bank07/SongScreen.c"
  },
+ "SongHexDigit": {
+  "bank": "07",
+  "addr": "672A",
+  "len": 18,
+  "src": "c/bank07/KbdLink.c"
+ },
  "SongLoadCursorChain": {
   "bank": "07",
   "addr": "4AFD",
@@ -2789,11 +2807,29 @@
   "len": 45,
   "src": "c/bank01/UiHelpers.c"
  },
+ "UiUpdateMessage": {
+  "bank": "01",
+  "addr": "7878",
+  "len": 205,
+  "src": "c/bank01/UiHelpers.c"
+ },
  "UpdateEnvSprites": {
   "bank": "1B",
   "addr": "74E4",
   "len": 107,
   "src": "c/bank1b/ProjectScreen.c"
+ },
+ "UpdatePlayClock": {
+  "bank": "01",
+  "addr": "4FEC",
+  "len": 173,
+  "src": "c/bank01/UiHelpers.c"
+ },
+ "UpdateWorkClock": {
+  "bank": "01",
+  "addr": "50A0",
+  "len": 236,
+  "src": "c/bank01/UiHelpers.c"
  },
  "WaveFrameModified": {
   "bank": "1F",
@@ -2848,6 +2884,12 @@
   "addr": "0953",
   "len": 102,
   "src": "c/bank00/InstrByte.c"
+ },
+ "WriteInstrName": {
+  "bank": "01",
+  "addr": "4A49",
+  "len": 204,
+  "src": "c/bank01/UiHelpers.c"
  },
  "WriteKitNumber": {
   "bank": "03",

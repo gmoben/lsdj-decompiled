@@ -22,6 +22,15 @@ extern UBYTE wClipboardBuf[];               /* $C57A, [252] */
 extern UBYTE wClipboardSave[];              /* $C7C6, [252] */
 void ResetWorkState(void);                  /* bank 0 */
 extern UBYTE wBootHwId;                     /* $CBD9 */
+extern UBYTE wNameEditBuf[];                /* $C431, [5] + NUL */
+extern UBYTE wPlayMinutes;                  /* $C552 */
+extern UBYTE wPlaySeconds;                  /* $C553 */
+extern UBYTE wPlayFrames;                   /* $C6A8 */
+extern volatile UBYTE wProjDrawScratch;     /* $C9A7; volatile: the ROM re-reads it for the `++` */
+extern UBYTE wSelectHeld;                   /* $C40A */
+extern UBYTE wColorSet_p1;                  /* $C530 */
+UBYTE CheckRomChecksum(void);               /* $00:$1FD5 */
+UBYTE UiTestSramLo(void);
 extern UBYTE wFileNameTmp[];
 extern UWORD ColorSetPalettes[];            /* $01:$56A7, [sets][20] */
 void set_bkg_palette(UBYTE first, UBYTE nb, UWORD *rgb);   /* GBDK */
@@ -55,6 +64,38 @@ UBYTE UiTestSramHi(void)
     return 1;
 }
 
+void DrawCartTest(void)
+{
+    wVramCursor = (UBYTE *)0x9820;
+    DrawString("CARTRIDGE TEST");
+    wVramCursor = (UBYTE *)0x9860;
+    DrawString("ROM...");
+    if (FarCallByte(0, FAR_FN(CheckRomChecksum))) {
+        DrawString("OK!");
+    } else {
+        DrawString("FAIL!");
+        wVramCursor = (UBYTE *)0x9880;
+        DrawString("TRY CLEANING PINS");
+        wVramCursor = (UBYTE *)0x98A0;
+        DrawString("OR FLASH AGAIN.");
+        for (;;)
+            ;
+    }
+    wVramCursor = (UBYTE *)0x9880;
+    DrawString("SRAM...");
+    if (UiTestSramLo() && UiTestSramHi()) {
+        DrawString("OK!");
+    } else {
+        DrawString("FAIL!");
+        wVramCursor = (UBYTE *)0x98A0;
+        DrawString("TRY CLEANING PINS");
+        wVramCursor = (UBYTE *)0x98C0;
+        DrawString("OR REPLACE BATTERY.");
+        for (;;)
+            ;
+    }
+}
+
 UBYTE CheckJkMarker(void)
 {
     if (ReadSongByte(4, (UBYTE *)0xA13E) != 'j')
@@ -62,6 +103,39 @@ UBYTE CheckJkMarker(void)
     if (ReadSongByte(4, (UBYTE *)0xA13F) != 'k')
         return 0;
     return 1;
+}
+
+void CopyInstrName(UBYTE instr)
+{
+    UBYTE *p;
+
+    if (instr > 0x40)
+        DebugTrap();
+    if (instr == 0x40) {
+        strcpy(wNameEditBuf, "SPCH");
+        return;
+    }
+    p = (UBYTE *)0xBE7A + (UWORD)instr * 5;
+    wNameEditBuf[0] = ReadSongByte(0, p++);
+    wNameEditBuf[1] = ReadSongByte(0, p++);
+    wNameEditBuf[2] = ReadSongByte(0, p++);
+    wNameEditBuf[3] = ReadSongByte(0, p++);
+    wNameEditBuf[4] = ReadSongByte(0, p);
+    wNameEditBuf[5] = 0;
+}
+
+void WriteInstrName(UBYTE instr)
+{
+    UBYTE *p;
+
+    if (instr >= 0x40)
+        DebugTrap();
+    p = (UBYTE *)0xBE7A + (UWORD)instr * 5;
+    WriteSongByte(0, p++, wNameEditBuf[0]);
+    WriteSongByte(0, p++, wNameEditBuf[1]);
+    WriteSongByte(0, p++, wNameEditBuf[2]);
+    WriteSongByte(0, p++, wNameEditBuf[3]);
+    WriteSongByte(0, p, wNameEditBuf[4]);
 }
 
 void UiLoadHwTables(void)
@@ -95,6 +169,70 @@ void UiInitScreen(void)
     ApplyColorSet();
     ClearOamBuffer();
     UiLoadHwTables();
+}
+
+void UpdatePlayClock(void)
+{
+    if (!wPlayMode) {
+        wPlayFrames = 0;
+        return;
+    }
+    wPlayFrames++;
+    if (wPlayFrames != 60)
+        return;
+    wPlaySeconds++;
+    if (wPlaySeconds == 60) {
+        wPlaySeconds = 0;
+        wPlayMinutes++;
+    }
+    wPlayFrames = 0;
+    if ((wPlaySeconds & 3) == 0)
+        wPlayFrames = 1;
+    if (wPlayMode && wCurrentScreen == 9) {
+        hBgDigitPalette = 4;
+        hBgPalette = 1;
+        wVramCursor = 0x9A05;
+        DrawFormat("%d:", (UWORD)wPlayMinutes);
+        wProjDrawScratch = 0x0C;
+        if (wPlayMinutes > 9)
+            wProjDrawScratch++;
+        if (wPlaySeconds < 10)
+            DrawStringIndexed('0');
+        DrawFormat("%d", (UWORD)wPlaySeconds);
+    }
+}
+
+void UpdateWorkClock(void)
+{
+    UBYTE v;
+
+    v = ReadSongByte(1, (UBYTE *)0xBFB3);
+    v++;
+    if (v == 60) {
+        WriteSongByte(1, (UBYTE *)0xBFB3, 0);
+        v = ReadSongByte(1, (UBYTE *)0xBFB2);
+        v++;
+        WriteSongByte(1, (UBYTE *)0xBFB2, v);
+    } else {
+        WriteSongByte(1, (UBYTE *)0xBFB3, v);
+    }
+    v = ReadSongByte(1, (UBYTE *)0xBFB8);
+    v++;
+    if (v == 60) {
+        WriteSongByte(1, (UBYTE *)0xBFB8, 0);
+        v = ReadSongByte(1, (UBYTE *)0xBFB7);
+        v++;
+        if (v == 24) {
+            WriteSongByte(1, (UBYTE *)0xBFB7, 0);
+            v = ReadSongByte(1, (UBYTE *)0xBFB6);
+            v++;
+            WriteSongByte(1, (UBYTE *)0xBFB6, v);
+        } else {
+            WriteSongByte(1, (UBYTE *)0xBFB7, v);
+        }
+    } else {
+        WriteSongByte(1, (UBYTE *)0xBFB8, v);
+    }
 }
 
 /*
@@ -180,6 +318,44 @@ void ClearMessageBar(void)
     } while (i++ != 4);
     wMsgTimer = 100;
     wMsgPanelShown = 1;
+}
+
+void UiUpdateMessage(void)
+{
+    UBYTE i;
+
+    if (wSelectHeld && !wColorSet_p1)
+        return;
+    if (wMsgStrPtr) {
+        if (!wMsgTimer) {
+            hBgDigitPalette = wSelectDigitPal;
+            hBgPalette = wSelectPal;
+            wVramCursor = (UBYTE *)0x9800;
+            for (i = 0; i < 20; i++)
+                DrawStringIndexed(wMsgStrPtr[i]);
+            wMsgTimer = 10;
+            wMsgStrPtr += 20;
+            if (!*wMsgStrPtr) {
+                wColorSet_p1 = 0;
+                wMsgStrPtr = 0;
+                wMsgTimer = 150;
+            } else {
+                wMsgStrPtr -= 19;
+            }
+        }
+        wMsgTimer--;
+    } else if (wMsgTimer) {
+        if (!--wMsgTimer) {
+            if (wMsgPanelShown) {
+                hBgDigitPalette = 4;
+                hBgPalette = 1;
+                wVramCursor = (UBYTE *)0x998F;
+                DrawString("     ");
+            } else {
+                DrawTopBar();
+            }
+        }
+    }
 }
 
 void ResetEditorState(UBYTE keep)

@@ -7,12 +7,12 @@
 ; --- UI functions called from bank 0 (bank $01 paged in) ---
 4CF1 UiInitScreen        ; screen setup: ApplyColorSet + ClearOamBuffer + UiLoadHwTables
 4487 DrawCartTest               ; boot CARTRIDGE TEST screen (ROM checksum + SRAM self-test)
-4FEC UiSetPlayMode       ; access wPlayMode, clear $c6a8, tail-jump into UpdateWorkClock.done
+4FEC UpdatePlayClock            ; per-frame PLAY clock: wPlayFrames counts to 60 (one frame skipped every 4 s), then seconds/minutes; redraws m:ss on the project screen
 7860 UiShowMessage       ; set up the timed status message (wMsgTimer / wMsgStrPtr)
 7878 UiUpdateMessage     ; timed message + wSelectHeld handling
 4811 CheckJkMarker              ; check the 'jk' SRAM-init marker at $a13e/$a13f (unreferenced)
 4848 CheckSongInitFlag   ; ReadSongByte $be78/$be79 ('rb' memory-init marker)
-50A0 UiReadSongProp      ; ReadSongByte $bfb3 (song property), compare $3c
+50A0 UpdateWorkClock            ; apply one work-time minute: song WORKED h:mm ($BFB2/$BFB3) and the total d:hh:mm ($BFB6-$BFB8) in SRAM bank 1
 48D4 WriteSongInitFlag   ; WriteSongByte $be78 (set the 'rb' init marker)
 4D67 MarkChainUsed              ; set chain (arg)'s bit in the chain allocation map (SramChainAlloc + chain/8, bit chain&7); asserts chain < $80
 4EA3 .writeSongByte       ; (was WriteSongByteWrap) thin WriteSongByte wrapper
@@ -44,7 +44,6 @@
 4B5E ClearOamBuffer             ; MemSet(wOamBuffer,0,$a0) + sprite state reset
 4C61 ApplyColorSet              ; load the wColorSet CGB BG+OBJ palettes (hw $11 check, set_bkg_palette)
 4CFB MarkPhraseUsed             ; set the phrase-alloc bit (song $3E82 bitmap) for phrase arg
-500D UpdateWorkClock            ; 60-frame tick: advance the TOTAL WORK time clock counters ($c6a8...)
 5208 DrawSpeedGlyph             ; draw the 2-tile speed icon (SpeedGlyphTiles[value&7])
 5243 .drawString          ; (was DrawStringBC) draw the string pointed to by bc (shared tail of the flag-name drawers)
 52EB CopySong16                 ; copy a 16-byte song-data row src->dst via Read/WriteSongByte
@@ -206,8 +205,8 @@
 4F55 .done                ; common exit of AllocNextFreePhrase
 4F8D .loop                ; loop head in IsChainUsed
 4FDE .loop                ; loop head in IsPhraseUsed
-5097 .done                ; common exit of UpdateWorkClock
-518A .done                ; common exit of UiReadSongProp
+5097 .done                ; common exit of UpdatePlayClock
+518A .done                ; common exit of UpdateWorkClock
 5269 .loop                ; loop head in CopyInstrument
 5297 .loop2               ; loop head in CopyInstrument
 52EE .loop                ; loop head in CopySong16
@@ -401,6 +400,7 @@
 4FE1 .step
 4FFD .incClockFrame60
 500A .cont
+500D .tick                 ; (was UpdateWorkClock) once a second: advance the PLAY clock, redraw it on the project screen
 501D .setClockFrame60
 5087 .loadFrameCounter
 50E9 .writeSongByte

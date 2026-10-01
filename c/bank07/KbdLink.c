@@ -43,6 +43,11 @@ void SetSyncSendRate(void)
     _asm ei _endasm;
 }
 
+UBYTE SongHexDigit(UBYTE d)
+{
+    return "0123456789ABCDEF"[d];
+}
+
 void DrawKbdOctave(void)
 {
     wVramCursor = (UBYTE *)0x99B0;

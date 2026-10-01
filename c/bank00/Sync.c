@@ -31,8 +31,8 @@ extern UBYTE wChanSongRow[];                /* $C200, [4] */
 extern UBYTE wChanNextSongRow[];            /* $C2FC, [4] */
 extern UBYTE wChanStarted[];                /* $C304, [4] */
 extern UBYTE wLiveMode;                     /* $C528 */
-extern UBYTE wFrameCounterHi;               /* $C552 */
-extern UBYTE wFrameCounter;                 /* $C553 */
+extern UBYTE wPlayMinutes;                 /* $C552 */
+extern UBYTE wPlaySeconds;                 /* $C553 */
 extern UBYTE wLiveStartCol;                 /* $C571 */
 extern UBYTE wAnalogOutTimer;               /* $CB68 */
 extern UBYTE wSyncTick;                     /* $CB69 */
@@ -318,8 +318,8 @@ void SendByteStep(void)
                 SndEnableLcdInts();
                 if (wCurrentScreen == 9) {
                     SWITCH_ROM(0x1B);
-                    wFrameCounterHi = 0;
-                    wFrameCounter = 0;
+                    wPlayMinutes = 0;
+                    wPlaySeconds = 0;
                     DrawSyncSubSetting();
                 }
                 SWITCH_ROM(saved);

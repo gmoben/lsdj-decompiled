@@ -137,18 +137,18 @@ DEF wWavLevel        EQU $C8F3  ; WAV channel (ch 2) output level: staged here, 
 DEF wSndUpdateFlags  EQU $C8F5  ; current channel's per-frame sound-update gate: nonzero -> run the vibrato/pitch-mod
                                 ; stepper, wave-trigger and freq-write (each `or a,[hl]; ret z`); reset on channel
                                 ; setup, bit7 set on note trigger, bit1 tested
-DEF wFrameCounter    EQU $C553  ; per-frame counter (verified: increments every frame; `inc [hl]`), overflows into
-                                ; wFrameCounterHi; consumed as `&$03` (4-phase UI animation) and `cp $0a`; reset on sound stop
-DEF wFrameCounterHi  EQU $C552  ; high byte of wFrameCounter (incremented when wFrameCounter wraps)
+DEF wPlaySeconds     EQU $C553  ; PLAY clock seconds (0-59; UpdatePlayClock advances it every 60 frames, carries into
+                                ; wPlayMinutes); shown as "PLAY m:ss" on the project screen; reset on sound stop
+DEF wPlayMinutes     EQU $C552  ; PLAY clock minutes (shown before the colon; >9 widens the field)
 DEF wSyncSendAccum   EQU $C956  ; [1] 16-bit 16-bit serial/sync send-clock accumulator (TimerHandler, gated by $cb6e==1): -=8 each
                                 ; timer tick; on underflow adds wSyncSendRate and calls SendByteStep. Reset on sound stop
 DEF wSyncSendRate    EQU $C954  ; [1] 16-bit 16-bit reload added to wSyncSendAccum on underflow (sets the serial/sync byte-send rate)
 DEF wIdleHalt        EQU $C68B  ; power-save idle/halt flag: set when MainLoop idle-halts (wIdleFrames>7); while set, VBlankHandler only ticks the work clock; cleared by activity (work-clock wrap, SerialHandler) or input
 DEF wIdleFrames      EQU $C68C  ; frames since last activity (redraw/work/sync/input reset it to 0); when it exceeds 7, MainLoop enters the idle halt
-DEF wWorkTimeAccum   EQU $C69D  ; 16-bit sub-second accumulator for the song work-time clock; wraps every $0e00 to add a
-                                ; whole-second tick to wWorkTimeTicks (verified: c69d advances during playback)
-DEF wWorkTimeTicks   EQU $C577  ; pending whole-second ticks for the work-time clock; bank01 $50a0 applies each to the
-                                ; song clock in SRAM (seconds @ $bfb3 carry to minutes @ $bfb2 at 60) and decrements this
+DEF wWorkTimeAccum   EQU $C69D  ; 16-bit frame accumulator for the song work-time clock; wraps every $0e00 frames
+                                ; (one minute) to add a tick to wWorkTimeTicks (verified: c69d advances during playback)
+DEF wWorkTimeTicks   EQU $C577  ; pending whole-minute ticks for the work-time clock; UpdateWorkClock applies each to the
+                                ; song clock in SRAM (minutes @ $bfb3 carry to hours @ $bfb2 at 60) and decrements this
 DEF wWavPlayMode     EQU $C500  ; wav synth play mode (1 = stop at list end, 4 = manual; kit/off = 0)
                                 ; 0 gates the wave-frame updater off (`ret z`), 1/2 select modes
 DEF wSndDataPtr      EQU $C8E9  ; 16-bit working pointer the sound command/table reader (SndReadCmdStream) walks;
@@ -426,7 +426,8 @@ DEF wColChain        EQU $C44F  ; chain under cursor per song column, 4 bytes (S
 DEF wColPhrase       EQU $C453  ; phrase per song column, 4 bytes (AllocNextFreePhrase scan start)
 DEF wUsedTableMap    EQU $C47D  ; [32] 32-slot used-tables map (BuildUsedTablesMap); overlaps wSongReadBuf + 16
 DEF wTopBarStr       EQU $C555  ; top-bar/title string buffer (DrawTopBar draws it directly)
-DEF wClockFrame60    EQU $C6A8  ; 60-frame divider feeding the TOTAL WORK clock (UpdateWorkClock)
+DEF wPlayFrames      EQU $C6A8  ; PLAY clock frame divider (UpdatePlayClock: 60 frames = 1 s, restarted at 1 every 4th
+                                ; second to track the 59.73 Hz frame rate); 0 while stopped
 DEF wHelpStrBuf      EQU $C7B0  ; [20] help/status string buffer (UiDrawHelpStr unrolled copy; wHelpSrcPtr follows)
 DEF wHelpSrcPtr      EQU $C7C4  ; [1] 16-bit source pointer of the staged help string, 2 bytes
 DEF wClipboardSave   EQU $C7C6  ; [252] ResetEditorState keeps wClipboardBuf here across ResetWorkState

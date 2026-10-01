@@ -23,8 +23,8 @@ extern UBYTE ProjFieldY[];                  /* $1B:$5768, and rows */
 extern UBYTE wAPressEnabled;                /* $C409 */
 extern UBYTE wButtons;                      /* $C575 */
 extern UBYTE wProjCursor;                   /* $C9A4 */
-extern UBYTE wFrameCounter;                 /* $C553 */
-extern UBYTE wFrameCounterHi;               /* $C552 */
+extern UBYTE wPlaySeconds;                 /* $C553 */
+extern UBYTE wPlayMinutes;                 /* $C552 */
 extern UBYTE wProjDrawScratch;              /* $C9A7 */
 extern UBYTE wProjDrawScratch2;             /* $C9A8 */
 extern UBYTE wProjDrawScratch3;             /* $C9A9 */
@@ -456,10 +456,10 @@ void DrawSyncSubSetting(void)
     hBgDigitPalette = 4;
     hBgPalette = 1;
     if (wPlayMode) {
-        DrawFormat("PLAY %d:", (UWORD)wFrameCounterHi);
-        DrawDecimalField(wFrameCounter);
+        DrawFormat("PLAY %d:", (UWORD)wPlayMinutes);
+        DrawDecimalField(wPlaySeconds);
         wProjDrawScratch = 0x0C;
-        if (wFrameCounterHi > 9)
+        if (wPlayMinutes > 9)
             wProjDrawScratch = 0x0D;
         else
             DrawStringTile20();

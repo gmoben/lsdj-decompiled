@@ -56,8 +56,8 @@ void RenderSynthWave(void);                 /* bank $1D */
 UBYTE ProcessInput(void);
 void ScreenUpdateDispatch(void);
 UBYTE AnyChanFlagSet(void);
-void UiSetPlayMode(void);                   /* bank 1 */
-void UiReadSongProp(void);                  /* bank 1 */
+void UpdatePlayClock(void);                   /* bank 1 */
+void UpdateWorkClock(void);                  /* bank 1 */
 UBYTE UiShowMessage(void);                  /* bank 1 */
 void UiUpdateMessage(void);                 /* bank 1 */
 void SetInterruptEnable(UBYTE ie);          /* asm */
@@ -141,11 +141,11 @@ void main(void)
         if (AnyChanFlagSet())
             wIdleFrames = 0;
         SWITCH_ROM(1);
-        UiSetPlayMode();
+        UpdatePlayClock();
         if (wWorkTimeTicks) {
             wWorkTimeTicks--;
             wIdleFrames = 0;
-            UiReadSongProp();
+            UpdateWorkClock();
         }
         if (UiShowMessage())
             wIdleFrames = 0;

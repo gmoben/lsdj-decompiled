@@ -14,7 +14,7 @@ Entry $0100 -> Start $0150 (init) -> main $1306 (InitAndLoadSong $0DDB, ...) -> 
       HandleButtonEvent $2B8D -> HandleInputCombos + DispatchScreenInput
       ($2A71, jp table $2A86 by wCurrentScreen -> the screen's input handler)
     ScreenUpdateDispatch $264B (screens 1-5), then a bank-1 UI tail
-      (UiSetPlayMode, UiReadSongProp, UiShowMessage)
+      (UpdatePlayClock, UpdateWorkClock, UiShowMessage)
   otherwise, while wSynthRenderActive ($C9F1): one RenderSynthWave step
       (bank $1D) per pass, 16 steps
   ScreenDrawDispatch $254F (via RedrawScreen): jp ($2563 + 3*wCurrentScreen)
