@@ -388,7 +388,8 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
             a_ptr = mn == "ld" and len(ops) == 2 and ops[1] in ("(de)", "(bc)")
         # --- (hl) == a register: after `ld (hl),e` (or a load) the byte at hl is e until
         # either changes (183 ROM sites reread it as `ld a,e`, 1 from (hl))
-        if hl_reg is not None:
+        if hl_reg is not None and not (mn == "ld" and len(ops) == 2 and ops[1] == "(hl)"):
+            # (a load from (hl) keeps the equality whatever it writes)
             w = _written(mn, ops)
             if hl_reg in w or {"h", "l"} & w or mn in _WRITES_ALL or (mn in ("jp", "jr") and len(ops) == 1) \
                     or (mn == "ld" and ops and ops[0].startswith("(")) \
@@ -400,10 +401,22 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
             out.append(raw)
             continue
         if mn == "ld" and len(ops) == 2 and ops[1] == "(hl)" and ops[0] in ("b", "c", "d", "e"):
-            # a load sets up the same equality: after `ld c,(hl)` the ROM
-            # never rereads the byte (171 `ld a,c`, 0 `ld a,(hl)`); stock
-            # genCast's sign extension does (LoadSynthShape)
-            hl_reg = ops[0]
+            if hl_reg is not None and "(hl)" not in eq:
+                # the byte at hl is still in a register: LSDj's compiler
+                # copied it (`ld (hl),e; add sp,3; ld c,e`: 18 + 2 + 3 ROM
+                # sites) or, for the same register, skipped the reload
+                # (FileCalcCompressedSize's result; the ROM never reloads
+                # `ld e,(hl)` after `ld (hl),e`)
+                if hl_reg == ops[0]:
+                    dropped += 1
+                    continue
+                raw = raw.replace("(hl)", hl_reg, 1)
+                mn, ops = _ops(_strip(raw).strip())
+            else:
+                # a load sets up the same equality: after `ld c,(hl)` the ROM
+                # never rereads the byte (171 `ld a,c`, 0 `ld a,(hl)`); stock
+                # genCast's sign extension does (LoadSynthShape)
+                hl_reg = ops[0]
         # --- hl ---
         # hl is followed (for the `(hl)` reload below) but its own reloads
         # are left alone: whether LSDj's compiler kept hl across a compare
@@ -831,6 +844,39 @@ def dead_stores(lines: list[str], jump_targets: set[str]) -> tuple[list[str], in
                 break
             if mn2 in ("ld", "pop") and ops2 and (ops2[0] == r or r in _PAIR_OF.get(ops2[0], "")):
                 break                         # overwritten some other way: kept
+    return [l for i, l in enumerate(lines) if i not in drop], len(drop)
+
+
+def dead_mem_stores(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
+    """Drop `ld (hl),X` when the next thing that touches `hl` or `(hl)` in its
+    block is another `ld (hl),Y`: the slot is rewritten unread. SDCC emits
+    the pair when it spills a call result whose reads then become `ld a,e`
+    (track_a) and the variable is reassigned at once (`v = f(); v |= v << 4`
+    in FileUpgradeV4); the ROM keeps no such store."""
+    code = [(i, _ops(_strip(l).strip())) for i, l in enumerate(lines) if _strip(l).strip()]
+    scope, scopes = 0, {}
+    for i, (mn, ops) in code:
+        t = _strip(lines[i]).strip()
+        if t.endswith(":") and not _LOCAL.fullmatch(t[:-1]):
+            scope += 1
+        scopes[i] = scope
+    drop: set[int] = set()
+    for k, (i, (mn, ops)) in enumerate(code):
+        if not (mn == "ld" and len(ops) == 2 and ops[0] == "(hl)"):
+            continue
+        for j, (mn2, ops2) in code[k + 1:]:
+            t = _strip(lines[j]).strip()
+            if t.endswith(":"):
+                if not _LOCAL.fullmatch(t[:-1]) or f"{scopes[j]}:{t[:-1]}" in jump_targets:
+                    break
+                continue
+            if mn2 in ("jp", "jr", "call", "ret", "reti", "rst", "halt", "stop", "push", "pop"):
+                break
+            if mn2 == "ld" and len(ops2) == 2 and ops2[0] == "(hl)" and "hl" not in ops2[1]:
+                drop.add(i)
+                break
+            if any("hl" in o or o in ("h", "l") for o in ops2):
+                break                         # hl read, written or dereferenced
     return [l for i, l in enumerate(lines) if i not in drop], len(drop)
 
 

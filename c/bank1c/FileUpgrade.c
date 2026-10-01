@@ -31,6 +31,19 @@ void FileUpgradeV12Pulse(void);
 void FileUpgradeV14Pulse(void);
 void FileUpgradeV15Wave(void);
 void FileUpgradeV17bPulse(void);
+void FileCheckByte6973(UBYTE *p);          /* $1C:$6973 */
+
+UWORD FileCalcCompressedSize(void)
+{
+    UWORD n;
+
+    n = ReadSongByte(1, 0xBFB2);
+    n -= ReadSongByte(1, 0xBFCA);
+    n *= 0x3C;
+    n += ReadSongByte(1, 0xBFB3);
+    n -= ReadSongByte(1, 0xBFCB);
+    return n;
+}
 
 UBYTE FileReadInstrByte(UBYTE field)
 {
@@ -79,6 +92,18 @@ void FileUpgradeV3(void)
     FileForEachInstrType(2, FileUpgradeV3Kit);
 }
 
+void FileUpgradeV4(void)
+{
+    UWORD p;
+    UBYTE v;
+
+    for (p = 0xBEB4; p != (UWORD)0xBFB4; p += 0x10) {
+        v = ReadSongByte(1, p);
+        v |= v << 4;
+        WriteSongByte(1, p, v);
+    }
+}
+
 void FileUpgradeV5Wave(void)
 {
     UBYTE v;
@@ -106,6 +131,30 @@ void FileUpgradeV6Wave(void)
 void FileUpgradeV6(void)
 {
     FileForEachInstrType(1, FileUpgradeV6Wave);
+}
+
+void FileUpgradeV7(void)
+{
+    UBYTE *p;
+    UBYTE v;
+
+    _asm di _endasm;
+    rRAMG = 0x0A;
+    rRAMB = 1;
+    for (p = (UBYTE *)0xB680; p != (UBYTE *)0xB880; p++) {
+        v = *p;
+        if (v > 1)
+            *p = v + 1;
+    }
+    for (p = (UBYTE *)0xBA80; p != (UBYTE *)0xBC80; p++)
+        if (*p > 1)
+            (*p)++;
+    rRAMB = 2;
+    for (p = (UBYTE *)0xA000; p != (UBYTE *)0xAFF0; p++)
+        if (*p > 1)
+            (*p)++;
+    rRAMG = 0;
+    _asm ei _endasm;
 }
 
 void FileUpgradeV8Wave(void)
@@ -175,6 +224,27 @@ void FileUpgradeV12(void)
     FileForEachInstrType(3, FileUpgradeV12Pulse);
 }
 
+void FileUpgradeV13(void)
+{
+    UBYTE *p;
+
+    _asm di _endasm;
+    rRAMG = 0x0A;
+    rRAMB = 1;
+    for (p = (UBYTE *)0xB680; p != (UBYTE *)0xB880; p++)
+        if (*p == 0x0E)
+            FileCheckByte6973(p + 0x200);
+    for (p = (UBYTE *)0xBA80; p != (UBYTE *)0xBC80; p++)
+        if (*p == 0x0E)
+            FileCheckByte6973(p + 0x200);
+    rRAMB = 2;
+    for (p = (UBYTE *)0xA000; p != (UBYTE *)0xAFF0; p++)
+        if (*p == 0x0E)
+            FileCheckByte6973(p + 0xFF0);
+    rRAMG = 0;
+    _asm ei _endasm;
+}
+
 UBYTE FileUpgradeClampNibble(UBYTE v)
 {
     UBYTE r;
@@ -209,6 +279,44 @@ void FileUpgradeV15(void)
     FileForEachInstrType(1, FileUpgradeV15Wave);
 }
 
+void FileUpgradeV16(void)
+{
+    UWORD p;
+    UBYTE v;
+    UBYTE *q;
+
+    p = 0xB690;
+    _asm di _endasm;
+    rRAMG = 0x0A;
+    rRAMB = 0;
+    while (p != (UWORD)0xB890) {
+        v = p;
+        if ((v & 0x0F) != 0 && (*(UBYTE *)p & 0x0F) == 0x0F) {
+            p--;
+            q = (UBYTE *)p;
+            v = *q;
+            if ((v & 0x0F) < 0x0E)
+                *q = v + 1;
+            p++;
+        }
+        p++;
+    }
+    rRAMG = 0;
+    _asm ei _endasm;
+}
+
+void FileUpgradeV17(void)
+{
+    UWORD p;
+    UBYTE v;
+
+    for (p = 0xBEBF; p != (UWORD)0xBFBF; p += 0x10) {
+        v = ReadSongByte(1, p);
+        WriteSongByte(1, p, -(v >> 4));
+        WriteSongByte(1, p + 1, -(v & 0x0F));
+    }
+}
+
 void FileUpgradeV17bPulse(void)
 {
     FileWriteInstrByte(11, (FileReadInstrByte(7) << 1) & 0x78);
@@ -217,6 +325,20 @@ void FileUpgradeV17bPulse(void)
 void FileUpgradeV17b(void)
 {
     FileForEachInstrType(0, FileUpgradeV17bPulse);
+}
+
+void FileUpgradeV19(void)
+{
+    UWORD p, q;
+
+    p = 0xBDD0;
+    q = 0xBDD0;
+    while (q != (UWORD)0xBDFA) {
+        WriteSongByte(0, q++, ReadSongByte(0, p++));
+        WriteSongByte(0, q++, ReadSongByte(0, p++));
+        WriteSongByte(0, q++, ReadSongByte(0, p++));
+        p++;
+    }
 }
 
 void FileUpgradeV21(void)

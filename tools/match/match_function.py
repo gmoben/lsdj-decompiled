@@ -243,6 +243,7 @@ def compile_unit(work: Path, env: dict[str, str], c_path: Path,
             lines, _ = peep_mod.track_e(lines, targets)
             lines, _ = peep_mod.track_const(lines, targets)
             lines, _ = peep_mod.dead_stores(lines, targets)
+            lines, _ = peep_mod.dead_mem_stores(lines, targets)
         asm.write_text("\n".join(lines) + "\n")
     _run_wine("as-gbz80.exe", ["-l", "-o", "unit.o", "unit.asm"], work, env)
     lst = work / "unit.lst"

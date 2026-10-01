@@ -611,6 +611,12 @@
   "len": 200,
   "src": "c/bank03/InstrScreen.c"
  },
+ "FileCalcCompressedSize": {
+  "bank": "1C",
+  "addr": "595F",
+  "len": 135,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
  "FileCheckByte6973": {
   "bank": "1C",
   "addr": "6973",
@@ -761,6 +767,12 @@
   "len": 96,
   "src": "c/bank1c/FileUpgrade.c"
  },
+ "FileUpgradeV13": {
+  "bank": "1C",
+  "addr": "69A7",
+  "len": 176,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
  "FileUpgradeV14": {
   "bank": "1C",
   "addr": "6AD2",
@@ -785,6 +797,18 @@
   "len": 28,
   "src": "c/bank1c/FileUpgrade.c"
  },
+ "FileUpgradeV16": {
+  "bank": "1C",
+  "addr": "6B18",
+  "len": 143,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileUpgradeV17": {
+  "bank": "1C",
+  "addr": "6BA7",
+  "len": 130,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
  "FileUpgradeV17b": {
   "bank": "1C",
   "addr": "6C46",
@@ -795,6 +819,12 @@
   "bank": "1C",
   "addr": "6C29",
   "len": 29,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileUpgradeV19": {
+  "bank": "1C",
+  "addr": "6EAC",
+  "len": 199,
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV1Kit": {
@@ -813,6 +843,12 @@
   "bank": "1C",
   "addr": "630F",
   "len": 39,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileUpgradeV4": {
+  "bank": "1C",
+  "addr": "6336",
+  "len": 95,
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV5": {
@@ -837,6 +873,12 @@
   "bank": "1C",
   "addr": "63D6",
   "len": 53,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileUpgradeV7": {
+  "bank": "1C",
+  "addr": "641B",
+  "len": 204,
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV8": {
