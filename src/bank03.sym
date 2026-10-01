@@ -29,7 +29,7 @@
 42FF FindFreeSynth              ; first synth (0-15) whose waves are still default; else 'OUT OF SYNTHS!' message and $FF
 436D InstrTableNew              ; give the instrument the first free table (FarCallByte bank $1F FindFreeTable), switched on; SDCC bug clears byte 6's other bits
 43C0 SetInstrLen                ; write instrument byte 3 = length (bit6=limited, bits0-5; wave v16+: synth<<4)
-441A SetInstrLen2               ; clone the instrument's synth into a free one (params + 256-byte wave page), 'CLONED SYNTH'
+441A CloneSynth                 ; clone the current instrument's synth into a free synth slot (params + 256 wave bytes), then point the instrument at it
 45A7 InstrScreenFrame           ; shared instrument-screen frame draw (map row, tempo field, marker sprites)
 45D3 InstrSelectPrevUsed        ; step wInstrument back to the previous allocated instrument (SramInstrAlloc), then redraw
 461B InstrSelectPrevPage        ; wInstrument -= 16 (clamped to 0), then InstrSelectPrevUsed
@@ -95,8 +95,8 @@
 4339 .done                ; common exit of FindFreeSynth
 43BE .done                ; common exit of InstrTableNew
 4416 .done                ; common exit of SetInstrLen
-4466 .loop                ; loop head in SetInstrLen2
-4596 .done                ; common exit of SetInstrLen2
+4466 .loop                ; loop head in CloneSynth
+4596 .done                ; common exit of CloneSynth
 45E4 .loop                ; loop head in InstrSelectPrevUsed
 4619 .done                ; common exit of InstrSelectPrevUsed
 4637 .done                ; common exit of InstrSelectPrevPage

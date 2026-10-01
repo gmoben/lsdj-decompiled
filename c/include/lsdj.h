@@ -145,7 +145,11 @@ UBYTE FarCallByte(UBYTE bank, void (*fn)(void));    /* returns fn's byte result 
 #define FAR_FN(f) ((void (*)(void))(UWORD)(f))
 
 /* song data access */
+#ifdef SONG_BYTE_PTR
+UBYTE ReadSongByte(UBYTE bank, UBYTE *addr);    /* bank 3 declares the address a pointer */
+#else
 UBYTE ReadSongByte(UBYTE bank, UWORD addr);
+#endif
 void WriteSongByte(UBYTE bank, UWORD addr, UBYTE val);
 UBYTE ReadSongByteRaw(UBYTE bank, UWORD addr);  /* no range asserts */
 void ReadSongBytes(UBYTE bank, UBYTE *src, UBYTE *dst);  /* 16 bytes */
@@ -230,7 +234,7 @@ UBYTE GetInstrType3(void);
 void WriteKitNumber(UBYTE field, UBYTE kit);
 void InstrEnvelopeChanged(void);
 void KitSelectEnsure(void);
-void SetInstrLen2(void);
+void CloneSynth(void);
 void InstrTableOn(void);
 UBYTE IsInstrTableOn(void);
 UBYTE GetInstrByte9(void);

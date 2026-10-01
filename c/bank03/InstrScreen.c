@@ -12,6 +12,7 @@
  * byte 6 = table on (bit 5) + table number (bits 4-0)).
  */
 
+#define SONG_BYTE_PTR               /* this bank's ReadSongByte takes a pointer (CloneSynth) */
 #include "lsdj.h"
 
 extern UBYTE DefaultWaveFrameB3[];          /* $03:$4015, 16 bytes */
@@ -88,9 +89,9 @@ void InstrTransposeOff(void)
 
 UBYTE SynthWavesModified(UBYTE synth)
 {
-    UWORD p;
+    UBYTE *p;
 
-    p = (UWORD)SramWaveFrames + ((UWORD)synth << 8);
+    p = SramWaveFrames + ((UWORD)synth << 8);
     do {
         if (ReadSongByte(3, p) != DefaultWaveFrameB3[(UBYTE)p & 0x0F])
             return 1;
@@ -139,6 +140,35 @@ void SetInstrLen(void)
     hBgPalette = wSelectPal;
     DrawByte(v);
     WriteCurrentInstrByte(3, v << 4);
+}
+
+void CloneSynth(void)
+{
+    UBYTE s, d, i;
+    UWORD ps, pd;
+    UBYTE v, w;
+
+    s = ReadCurInstrByte(3) >> 4;
+    d = FindFreeSynth();
+    if (d == 0xFF)
+        return;
+    for (i = 0; i < 0x10; i++) {
+        v = ReadSongByte(1, SramSynthParams + (UWORD)(s << 4) + (UWORD)i);
+        WriteSongByte(1, (UWORD)(d << 4) + (UWORD)0xBEB2 + (UWORD)i, v);
+    }
+    i = 0;
+    ps = s;
+    ps <<= 8;
+    ps |= 0xA000;
+    pd = d;
+    pd <<= 8;
+    pd |= 0xA000;
+    do {
+        w = ReadSongByte(3, (UBYTE *)ps++);
+        WriteSongByte(3, pd++, w);
+    } while (++i);
+    WriteCurrentInstrByte(3, (ReadCurInstrByte(3) & 0x0F) | (d << 4));
+    ShowMessage("CLONED SYNTH");
 }
 
 void InstrScreenFrame(void)
@@ -761,7 +791,7 @@ void GetInstrType4(void)
 
     t = ReadCurInstrByte(0) & 3;
     if (t == 1 && wInstrField == 9 && !InstrByte9IsZero())
-        SetInstrLen2();
+        CloneSynth();
     else
         FarCall(1, FAR_FN(CloneInstrTable));
     wInstrEditLatch = 0;

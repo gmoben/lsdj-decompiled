@@ -1,7 +1,6 @@
 # Matching C tried and set aside: NAME $BB:$AAAA -- what differs from the ROM (tools/match/update_counts.py
 # renders this into docs/toolchain.md). Remove a line when the function matches.
 SetInstrFlags54 $03:$4B5E  -- the `ld b,c; ld a,b` copy is a `char` local (as DrawInstrTableField); then `and a,$f8; ld c,a ... or a,c`: the AND result must stay in c, ours packs it into a (the or-a,a bug shape)
-SetInstrLen2    $03:$441A  -- synth clone, 19-byte frame: widened (UWORD) copies of i/so spilled, long `| 0xA000`; not LICM (FileForEachInstrType proves hoisting on)
 FileUpgradeV3Pulse $1C:$628B -- same `ld b,c; ld a,b; and; or #n; ld c,a` tail as V3Kit
 FileUpgradeV3Kit   $1C:$62D3 -- with `(char)v` casts all but one byte matches: the tail's `and a,$f9` result stays in a for `| 1` in the ROM, ours stores it to b (stock packing refuses a literal operand)
 FileUpgradeV0Kit   $1C:$6134 -- all 5 byte locals + a 16-bit temp on the stack (frame 7); ours keeps 2 in registers, 8-bit clear (~0x20 folds)
