@@ -347,6 +347,12 @@
   "len": 208,
   "src": "c/bank01/UiHelpers.c"
  },
+ "DrawChainCell": {
+  "bank": "06",
+  "addr": "75BA",
+  "len": 298,
+  "src": "c/bank06/Screens.c"
+ },
  "DrawChainCellFar": {
   "bank": "04",
   "addr": "4000",
@@ -532,6 +538,12 @@
   "addr": "4FDC",
   "len": 38,
   "src": "c/bank03/InstrScreen.c"
+ },
+ "DrawKitSampleNames": {
+  "bank": "06",
+  "addr": "71ED",
+  "len": 215,
+  "src": "c/bank06/Screens.c"
  },
  "DrawMessageBar": {
   "bank": "01",
@@ -790,6 +802,12 @@
   "addr": "6C34",
   "len": 106,
   "src": "c/bank1f/InstrHelpers.c"
+ },
+ "DrawWordScreen": {
+  "bank": "06",
+  "addr": "41A2",
+  "len": 345,
+  "src": "c/bank06/Screens.c"
  },
  "EraseFile": {
   "bank": "1C",
@@ -2950,6 +2968,12 @@
   "addr": "4FEC",
   "len": 173,
   "src": "c/bank01/UiHelpers.c"
+ },
+ "UpdateStatusPanel": {
+  "bank": "06",
+  "addr": "72C4",
+  "len": 248,
+  "src": "c/bank06/Screens.c"
  },
  "UpdateWorkClock": {
   "bank": "01",

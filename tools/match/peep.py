@@ -235,6 +235,11 @@ _CMP16 = [
     ([r"xor\s+a,a", r"ld\s+a,\(hl\)", rf"sbc\s+a,{_HEX}", r"inc\s+hl", r"ld\s+a,\(hl\)", rf"sbc\s+a,{_HEX}",
       r"jp\s+(n?c),(\S+)"],
      lambda g: (["\tld\te,(hl)", "\tinc\thl", "\tld\td,(hl)"], "de", g[0], g[1], g[2], g[3])),
+    # hl one past the operand's low byte (a 16-bit temp just stored byte by
+    # byte, DrawChainCell's `(UWORD)t < 0x78`): stepped back, then fetched
+    ([r"xor\s+a,a", r"dec\s+hl", r"ld\s+a,\(hl\)", rf"sbc\s+a,{_HEX}", r"inc\s+hl", r"ld\s+a,\(hl\)",
+      rf"sbc\s+a,{_HEX}", r"jp\s+(n?c),(\S+)"],
+     lambda g: (["\tdec\thl", "\tld\te,(hl)", "\tinc\thl", "\tld\td,(hl)"], "de", g[0], g[1], g[2], g[3])),
     # a global -> fetched into de (`FileReadCompressedBlock`)
     ([r"xor\s+a,a", r"ld\s+hl,(#[^;]+?)", r"ld\s+a,\(hl\)", rf"sbc\s+a,{_HEX}", r"inc\s+hl",
       r"ld\s+a,\(hl\)", rf"sbc\s+a,{_HEX}", r"jp\s+(n?c),(\S+)"],

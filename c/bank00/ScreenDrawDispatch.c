@@ -36,7 +36,7 @@ void GrooveScreenUpdate(void);              /* bank $1D */
 void TableScreenUpdate(void);               /* bank 5 */
 void ChainScreenUpdate(void);               /* bank 6 */
 void SongScreenUpdate(void);                /* bank 7 */
-void DrawShadowDigit(void);                 /* bank 6 */
+void UpdateStatusPanel(void);                 /* bank 6 */
 void DrawSyncStatus(void);                  /* bank 6 */
 UBYTE PhraseScreenInput(void);              /* the input handlers, by screen */
 UBYTE GrooveScreenInput(void);
@@ -153,7 +153,7 @@ void ScreenUpdateDispatch(void)
             break;
         default:
             SWITCH_ROM(0x06);
-            DrawShadowDigit();
+            UpdateStatusPanel();
             DrawSyncStatus();
         }
     }

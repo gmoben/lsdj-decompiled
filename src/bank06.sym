@@ -6,6 +6,7 @@
 ; --- UI strings + note-name table (db "..."; referenced by draw/clipboard code) ---
 76E4 NoteNames          ; chromatic note-name display table "---C 2C#2..." (C-2..B, all octaves)
 42FB TxtWord            ; "WORD " (word/speech screen)
+4301 TxtNoSample        ; "--- " (word screen: empty sample slot)
 5383 TxtCancelSelect    ; "CANCEL SELECT"
 5467 TxtCopy            ; "COPY"
 54F4 TxtPaste           ; "PASTE"
@@ -34,7 +35,6 @@
 40B3 WriteWordCell              ; write to the speech-word data under the word cursor (wWordEditRow/Col, $b890 region)
 410E ChainDrawWaveCell          ; draw cell at cursor $c937/$c938 via ROM tables $4022/$4024
 414F ChainDrawWaveCellHw        ; like ChainDrawWaveCell but palette per hGameboyType
-4279 DrawSampleNameFull         ; sample name + extras draw (unreferenced variant of DrawSampleNameCell)
 4306 DrawWaveCellPair           ; draw a wave cell in both variants (ChainDrawWaveCell + Hw) for the row
 48AB TilemapAddr                ; the BG tilemap address of cell x,y: $9800 | (y*32 + x)
 4901 ChainCalcParamAddr         ; pick SRAM base $bfc4/$bfc5 by bit3 of arg (= SynthCalcParamAddr)
@@ -86,7 +86,7 @@
 78B8 ChainUpdateScope           ; update scope from $cba2/$cba3/$cba4
 ; --- functions called from bank 0 (this bank paged in) ---
 74AD DrawSyncStatus             ; draw the sync/lead status by wSyncMode (1/3/6/7 cases)
-72C4 DrawShadowDigit            ; draw a digit cell with the shadow palettes
+72C4 UpdateStatusPanel          ; per-frame status update for most screens: pending sample-name cells (wChanDispNote) at x=17, the tempo field when wTempo changed, the scope
 5BD0 ChainScreenInput           ; chain screen (3) input handler, from DispatchScreenInput: dispatch on wButtons
 507F WaveScreenInput            ; wave-screen input dispatch (wButtons)
 431D WordEditorInput            ; word screen (12) input handler, from DispatchScreenInput: cursor over wWordEditRow/Col, dispatch on wButtons
@@ -167,7 +167,7 @@
 7190 .loop4               ; loop head in ChainHandleInput
 71E9 .done                ; common exit of ChainHandleInput
 72C0 .done                ; common exit of DrawKitSampleNames
-72D7 .loop                ; loop head in DrawShadowDigit
+72D7 .loop                ; loop head in UpdateStatusPanel
 7453 .done                ; common exit of ChainDrawSyncStatus
 749C .done                ; common exit of ChainDrawLeadStatus
 750E .done                ; common exit of ChainDrawStatusWord
@@ -356,9 +356,9 @@
 4219 .drawTempoField_2
 423F .index
 4250 .checkArg
+4279 .drawSample          ; (was DrawSampleNameFull) the word screen's sample-name column
 42BB .drawString
 42DB .readSongByte
-4301 .step
 43C8 .ret01
 45A2 .setWordEditCol
 45E8 .ret00
@@ -651,9 +651,11 @@
 76CC .drawStringIndexed
 76D7 .drawString_7
 7890 .setKbdInstrument
-7830 NoteNameC5                 ; note-name entry "C 5" (referenced directly)
-7834 NoteNameF5                 ; note-name entry "F 5"
-7838 NoteNameC6                 ; note-name entry "C 6"
-783C NoteNameC7                 ; note-name entry "C 7"
-7844 NoteNameHi1                ; note-name entry (high range)
-7848 NoteNameHi2                ; note-name entry (high range)
+782C TxtNoNote                  ; "---" DrawChainCell's empty cell (string literals after NoteNames)
+7830 TxtKitNoteC5               ; "C 5" DrawChainCell: kit sample $73
+7834 TxtKitNoteF5               ; "F 5" kit sample $74
+7838 TxtKitNoteC6               ; "C 6" kit sample $75
+783C TxtKitNoteC7               ; "C 7" kit sample $76
+7840 TxtKitNoteC8               ; "C 8" kit sample $77
+7844 TxtKitNoteBad              ; "???" kit sample >= $78
+7848 TxtNoteBad                 ; "???" note > $6C
