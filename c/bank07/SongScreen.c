@@ -46,7 +46,6 @@ extern UBYTE wChanSongRow[];                /* $C200, [4] */
 extern UBYTE wChanLiveQueued[];             /* $C300, [4] live-mode row queued */
 extern UBYTE wChanActive[];                 /* $C0E0, [4] */
 extern UBYTE wChanStarted[];                /* $C304, [4] */
-extern char TxtDashes[];                    /* $07:$492A "--" */
 UBYTE MulU8(UBYTE a, UBYTE b);
 
 void SongCopyColumn(UBYTE *p, UBYTE *q)
@@ -277,7 +276,7 @@ void SongRowPalettes(UBYTE y)
             hBgPalette = wSelectPal;
         }
         if (v & 0x80)
-            DrawString(TxtDashes);
+            DrawString("--");                   /* the literal lands right after the function ($492A) */
         else
             DrawHexByte(v);
         if (cur) {

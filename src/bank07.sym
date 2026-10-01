@@ -9,6 +9,7 @@
 56FE TxtCancelSelect07  ; "CANCEL SELECT"
 492A TxtDashes          ; "--" (SongRowPalettes: cell with bit 7 set)
 5957 TxtCutChains       ; "CUT CHAINS"
+5962 TxtCopiedChains    ; "COPIED CHAINS"
 5B0F TxtPastedChains    ; "PASTED CHAINS"
 40D0 WriteSongCell              ; write song[row][col] = chain (SRAM bank 0 $B290); asserts col < 4, row <= $BF, chain < $80 or $FF
 7220 VramCopyByteSafe   ; spin until rSTAT mode<2 (VRAM free), then copy [de]->[hl], inc e/l
@@ -37,9 +38,9 @@
 4A79 SongCursorPageUp           ; PgUp: retreat song cursor $c41e by a page
 4AB8 SongBeginSelection         ; SaveSelectionState, seed wSel* rect from the song cursor
 4AFD SongLoadCursorChain        ; read seq[wSongRow,wSongCol] ($ff -> empty path), validate+cache via SongEnterChain
-5736 PasteSongSelection         ; write the clipboard rows into the song grid (clipType 4), then restore the cursor
+5736 CutCopySongSelection       ; cut (isCut arg) or copy the song selection rect into the clipboard; a cut shifts each column up and clears the tail ($FF), AdjustBookmarksOnDelete, CUT/COPIED CHAINS
 5929 .endSelection        ; (was SongEndSelection) finish selection ($0dbc), restore cursor from $c40d/$c94b
-5970 SongCalcSelectionSpan      ; compute selection span from $c40d/$c40f/$c41d
+5970 PasteSongSelection         ; paste the clipboard rows into the song grid at the cursor: shifts the columns down (SongWriteSramBytes) to make room, writes the cells, PASTED CHAINS
 5B1D SongEditSelection          ; apply the current edit op across the selection rect (clipType 4; 7 uses in SongScreenInput)
 627C SortBookmarks              ; bubble-sort the 16-byte song bookmarks row ($aff0, song offset $0FF0)
 6320 IsBookmarked               ; -> e=1 if song row (arg) is in the bookmarks list, else 0
@@ -118,17 +119,17 @@
 54A8 .loop3               ; loop head in SongScreenInput
 54EF .loop4               ; loop head in SongScreenInput
 56FA .done                ; common exit of SongScreenInput
-57A6 .loop                ; loop head in PasteSongSelection
-57C7 .loop2               ; loop head in PasteSongSelection
-5849 .loop3               ; loop head in PasteSongSelection
-5879 .loop4               ; loop head in PasteSongSelection
-58AA .loop5               ; loop head in PasteSongSelection
-5953 .done                ; common exit of PasteSongSelection
-59D7 .loop                ; loop head in SongCalcSelectionSpan
-59FF .loop2               ; loop head in SongCalcSelectionSpan
-5A77 .loop3               ; loop head in SongCalcSelectionSpan
-5A88 .loop4               ; loop head in SongCalcSelectionSpan
-5B0B .done                ; common exit of SongCalcSelectionSpan
+57A6 .loop                ; loop head in CutCopySongSelection
+57C7 .loop2               ; loop head in CutCopySongSelection
+5849 .loop3               ; loop head in CutCopySongSelection
+5879 .loop4               ; loop head in CutCopySongSelection
+58AA .loop5               ; loop head in CutCopySongSelection
+5953 .done                ; common exit of CutCopySongSelection
+59D7 .loop                ; loop head in PasteSongSelection
+59FF .loop2               ; loop head in PasteSongSelection
+5A77 .loop3               ; loop head in PasteSongSelection
+5A88 .loop4               ; loop head in PasteSongSelection
+5B0B .done                ; common exit of PasteSongSelection
 5C16 .loop                ; loop head in SongEditSelection
 5C47 .loop2               ; loop head in SongEditSelection
 5D0C .loop3               ; loop head in SongEditSelection

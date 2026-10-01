@@ -329,6 +329,12 @@
   "len": 44,
   "src": "c/bank04/PhraseScreen.c"
  },
+ "CutCopySongSelection": {
+  "bank": "07",
+  "addr": "5736",
+  "len": 545,
+  "src": "c/bank07/SongCutCopy.c"
+ },
  "DecompressBlock": {
   "bank": "1C",
   "addr": "46E3",
@@ -1984,6 +1990,12 @@
   "addr": "4C99",
   "len": 17,
   "src": "c/bank04/PhraseScreen.c"
+ },
+ "PasteSongSelection": {
+  "bank": "07",
+  "addr": "5970",
+  "len": 415,
+  "src": "c/bank07/SongPaste.c"
  },
  "PasteWaveSelection": {
   "bank": "06",
