@@ -476,12 +476,20 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
                 forget_hl()
         elif mn == "ld" and ops == ["(hl)", "a"]:
             eq.discard("(hl)")
-            if a_alu and hl is not None:
-                eq.add("(hl)")        # a fresh ALU result, stored through hl
+            if (a_alu or not a_ptr) and hl is not None:
+                # a value stored through hl is not reread (`ld a,(hl)` goes),
+                # unless it came through a pointer: all 43 such reloads in the
+                # ROM follow `ld a,(de)` / `ld a,(bc)`
+                eq.add("(hl)")
         elif mn == "ld" and len(ops) == 2 and ops[0] == "a":
             eq, a_alu = set(), False  # a loaded from memory (a pointer read keeps its reloads)
             if ops[1] in ("(hl+)", "(hl-)"):
-                forget_hl()
+                if hl is not None and hl[0] == "stk":
+                    hl = ("stk", hl[1] + (1 if ops[1] == "(hl+)" else -1))
+                    hl_reg = None
+                    hl_is_a = False
+                else:
+                    forget_hl()
         elif mn in ("or", "and") and ops == ["a", "a"]:
             pass
         elif mn in _ALU and (not ops or ops[0] == "a"):

@@ -1763,6 +1763,12 @@
   "len": 207,
   "src": "c/bank00/ScreenDrawDispatch.c"
  },
+ "SendByteStep": {
+  "bank": "00",
+  "addr": "227C",
+  "len": 209,
+  "src": "c/bank00/Sync.c"
+ },
  "SetChainTranspose": {
   "bank": "06",
   "addr": "5655",
@@ -2043,6 +2049,18 @@
   "bank": "00",
   "addr": "1F06",
   "len": 148,
+  "src": "c/bank00/Sync.c"
+ },
+ "SyncReceiveAnalogClock": {
+  "bank": "00",
+  "addr": "23CA",
+  "len": 222,
+  "src": "c/bank00/Sync.c"
+ },
+ "SyncSeekSongPos": {
+  "bank": "00",
+  "addr": "217C",
+  "len": 256,
   "src": "c/bank00/Sync.c"
  },
  "SyncSendAnalogClock": {
