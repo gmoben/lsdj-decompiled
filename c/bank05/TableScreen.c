@@ -322,7 +322,7 @@ void GetSynthFieldHelp(void)
         break;
     case 8:
     case 14:
-        s = "LIMIT SIGNAL VERTICALLY USING DIST MOD";
+        s = "LIMIT SIGNAL VERTICALLY USING DIST MODE. 0-F LOWERS VOLUME, 10-FF WRAPS LOUD SIGNALS";
         break;
     default:
         DebugTrap();

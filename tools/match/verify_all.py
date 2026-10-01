@@ -111,13 +111,15 @@ class Runner:
             d, asm, lst = d2, iso, (d2 / "unit.lst").read_text(errors="replace")
         name, start, _end, gargs, _notes = mf.link_plan(asm, lst, func, bank, addr, syms, {})
         f = d / f"{name}-{_sha(str(addr - start), *gargs)}.bin"
-        if not f.is_file():
+        ft = f.with_suffix(".tail")
+        if not f.is_file() or not ft.is_file():
             work, env = self.work()
             self.wine_runs += 1
             shutil.copyfile(d / "unit.o", work / "unit.o")
-            _, code, _ = mf.link_function(work, env, asm, lst, func, bank, addr, syms, {}, quiet=True)
+            _, code, _, tail = mf.link_function(work, env, asm, lst, func, bank, addr, syms, {}, quiet=True)
             f.write_bytes(code)
-        return name, f.read_bytes()
+            ft.write_bytes(tail)
+        return name, f.read_bytes(), ft.read_bytes()
 
 
 def main() -> None:
@@ -164,7 +166,7 @@ def main() -> None:
                     failed += 1
                     continue
                 try:
-                    name, code = run.link(d, asm, lst, func, bank, addr, syms)
+                    name, code, tail = run.link(d, asm, lst, func, bank, addr, syms)
                 except SystemExit as e:
                     print(f"  {func:24s} link failed: {e}   ({rel})")
                     failed += 1
@@ -177,6 +179,13 @@ def main() -> None:
                     first = next(i for i in range(len(code)) if code[i] != target[i])
                     ndiff = sum(a != b for a, b in zip(code, target))
                     where = f"  first diff +${first:02X} (${addr + first:04X}), {ndiff} B differ"
+                else:
+                    # the literals/const data the unit places after the code
+                    rom_tail = rom[off + len(code):off + len(code) + len(tail)]
+                    if rom_tail != tail:
+                        ok = False
+                        k = next(i for i in range(len(tail)) if i >= len(rom_tail) or tail[i] != rom_tail[i])
+                        where = f"  literals/const data after the code differ at ${addr + len(code) + k:04X}"
                 print(f"  {name:24s} ${bank:02X}:${addr:04X}  {len(code):4d} B  "
                       f"{'MATCH' if ok else 'MISMATCH'}{where}   ({rel})")
                 failed += not ok

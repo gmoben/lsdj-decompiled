@@ -495,6 +495,11 @@ renamed away, so the calls link to their ROM addresses). On a mismatch it
 prints the first differing bytes and the listing lines around them; `--diff`
 prints both disassemblies aligned, `--dump` writes the linked bytes.
 
+The bytes the unit places right after a function -- the constant segment
+SDCC flushes there, its string literals and `const` data, up to the next
+function -- are compared with the ROM too: the code alone checks only their
+addresses, so a wrong last string would otherwise pass.
+
 A source file that says `@stock-rules` (in a comment) is GBDK library code:
 GBDK's own build compiled it with SDCC's stock peephole rules, so the harness
 skips `lsdj.peep` and the tracking passes for that file

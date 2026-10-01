@@ -493,7 +493,23 @@ def link_function(work: Path, env: dict[str, str], asm: str, lst: str,
     missing_addr = [a for a in range(addr, addr + end - start) if a not in mem]
     if missing_addr:
         sys.exit(f"error: linked image has no byte at ${missing_addr[0]:04X}.")
-    return name, bytes(mem[a] for a in range(addr, addr + end - start)), start
+    return name, bytes(mem[a] for a in range(addr, addr + end - start)), start, \
+        trailing_data(lst, end, mem, addr - start)
+
+
+def trailing_data(lst: str, end: int, mem: dict[int, int], base: int) -> bytes:
+    """The bytes the unit places right after a function: the constant segment
+    SDCC flushes there (its string literals and const data), up to the next
+    function in the unit or the first gap. The ROM must have them too --
+    the code bytes alone only check their addresses, not their contents."""
+    starts = [int(m.group(1), 16) for m in re.finditer(r"___\w+?_start +([0-9A-Fa-f]{4})\b", lst)]
+    stop = min((a for a in starts if a >= end), default=None)
+    out = bytearray()
+    a = end
+    while (stop is None or a < stop) and (base + a) in mem:
+        out.append(mem[base + a])
+        a += 1
+    return bytes(out)
 
 
 def listing_near(lst: str, rel_addr: int, span: int = 6) -> list[str]:
@@ -616,8 +632,8 @@ def main() -> None:
             func = args.func or (label if not label.startswith("$") else None)
             if func and (iso := isolate(asm, func)) != asm:
                 asm, lst = iso, assemble(work, env, iso)
-            name, code, start = link_function(work, env, asm, lst, func, bank,
-                                              addr, syms, defines)
+            name, code, start, tail = link_function(work, env, asm, lst, func, bank,
+                                                    addr, syms, defines)
             off = rom_offset(bank, addr)
             target = rom[off:off + len(code)]
             extent = rom_extent(syms, bank, addr)
@@ -635,6 +651,13 @@ def main() -> None:
                 for line in listing_near(lst, start + next(
                         i for i in range(len(code)) if i >= len(target) or code[i] != target[i])):
                     print(f"    | {line}")
+                sys.exit(2)
+            rom_tail = rom[off + len(code):off + len(code) + len(tail)]
+            if tail != rom_tail:
+                k = next(i for i in range(len(tail)) if i >= len(rom_tail) or tail[i] != rom_tail[i])
+                print(f"==> MISMATCH: the code matches, but the {len(tail)} byte(s) of literals/const "
+                      f"data after it differ from ${addr + len(code) + k:04X} "
+                      f"(ours {tail[k:k + 12].hex(' ')}, ROM {rom_tail[k:k + 12].hex(' ')})")
                 sys.exit(2)
             print(f"==> MATCH: byte-identical to ROM ${bank:02X}:${addr:04X}-"
                   f"${addr + len(code) - 1:04X}"
