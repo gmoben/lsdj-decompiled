@@ -826,7 +826,7 @@ DEF wProjDrawScratch EQU $C9A7  ; transient tile-value scratch (Proj/clock digit
 DEF wProjDrawScratch2 EQU $C9A8  ; draw scratch (ProjDrawSyncField)
 DEF wProjDrawScratch3 EQU $C9A9  ; draw scratch (ProjDrawSyncFieldHw)
 DEF wWorkClockSubFrame EQU $C9AA  ; frame counter mod 128 feeding the WORK-time clock (TickWorkTimeClock)
-DEF wProjScrollCount EQU $C9AB  ; project scroll/average queue fill count (0-8)
+DEF wTapTempoCount EQU $C9AB  ; project scroll/average queue fill count (0-8)
 DEF wVramCopyScratch EQU $C9B4  ; VRAM byte-copy scratch (bank1e InitScreenPalettes path)
 DEF wTileSlotPtr     EQU $C9B5  ; 16-bit scratch ptr (LoadTilesDispatch -> RequestTileSlot)
 DEF wTileSlotPtrHi   EQU $C9B6  ; hi byte of wTileSlotPtr
@@ -989,4 +989,4 @@ DEF wChanEnvVolOffsetWav EQU $C226  ; env volume delta, WAV
 DEF wChanEnvVolOffsetNoi EQU $C227  ; env volume delta, NOI
 DEF wFileNameTmp     EQU $C6A0  ; 8-char filename scratch (memcpy'd from the file table)
 DEF wGrooveStepCache EQU $C9D6  ; [16] groove-step display cache (GrooveBuildCache fills, DrawGrooveRow reads)
-DEF wProjScrollBuf   EQU $C9AC  ; [8] sample queue averaged by ProjScrollTextStep
+DEF wTapTempoBuf   EQU $C9AC  ; [8] sample queue averaged by TapTempoStep

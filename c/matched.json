@@ -2669,6 +2669,12 @@
   "len": 103,
   "src": "c/bank05/TableScreen.c"
  },
+ "TapTempoStep": {
+  "bank": "1B",
+  "addr": "6A8C",
+  "len": 238,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
  "TilemapAddr": {
   "bank": "06",
   "addr": "48AB",

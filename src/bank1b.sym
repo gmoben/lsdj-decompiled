@@ -54,7 +54,7 @@
 5B62 ProjRedrawPrelisten        ; PRELISTEN field at $992A in the shadow palette (DrawPrelistenField)
 5D7C ProjectScreenRefresh       ; drain buttons, clear tilemap, DrawProjectScreen + map row
 6988 ApplySettingsAndRedraw     ; delay, LoadProjectSettings(0), clear, redraw frame -- 63 call sites
-6A8C ProjScrollTextStep         ; marquee step: manage $c9aa/$c9ab state, shift 7-byte buffer $c9ac (via $3843)
+6A8C TapTempoStep               ; TAP tempo: on each tap record the frames since the last one (wWorkClockSubFrame) into wTapTempoBuf (8-deep, oldest dropped), reset on a -frame gap; from 3 taps on, tempo = ffe / (8 * mean interval), capped at 
 70B8 GetInstrEnvBytes           ; read the instrument's envelope input bytes (x2 ReadCurInstrByte)
 7200 PlotEnvCurve               ; plot env-graph column y at x into wDecompBuf, filling gap from wEnvPlotX (<$40)
 726E ComputeEnvelope            ; precompute envelope data for the current instrument (UpdateInstrEnvelope core)
@@ -73,7 +73,7 @@
 5B5E TxtNA                      ; "N/A"
 5707 FontNames                  ; 5-char FONT names "Y2K ", "ZERO", "KIKO" (indexed wFont*5; DrawFontColorFields)
 5716 ColorSetNames              ; 5-char COLOR SET names ("AIRY"...; indexed wColorSet*5)
-6FFE ScrollStepTable            ; scroll index-step table (ProjScrollTextStep)
+6FFE ScrollStepTable            ; scroll index-step table (TapTempoStep)
 703C EnvVolumeRamps             ; 8-byte volume ramp rows (envelope precalc family; computed base from ScrollStepTable region)
 4058 HelpMenuPtrs               ; dw pointers to the 16 help-menu line strings
 4098 TxtHelpTitle               ; "HELP / V9.4.0"
@@ -159,9 +159,9 @@
 5D7D .loop                ; loop head in ProjectScreenRefresh
 5D86 .loop2               ; loop head in ProjectScreenRefresh
 6A5A .done                ; common exit of ApplySettingsAndRedraw
-6AF8 .loop                ; loop head in ProjScrollTextStep
-6B2A .loop2               ; loop head in ProjScrollTextStep
-6B76 .done                ; common exit of ProjScrollTextStep
+6AF8 .loop                ; loop head in TapTempoStep
+6B2A .loop2               ; loop head in TapTempoStep
+6B76 .done                ; common exit of TapTempoStep
 6B99 .loop                ; loop head in InitKitMixer
 6BAA .loop2               ; loop head in InitKitMixer
 720E .loop                ; loop head in PlotEnvCurve

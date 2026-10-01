@@ -229,11 +229,49 @@ _CMP16 = [
     ([r"xor\s+a,a", r"ld\s+a,([ce])", rf"sbc\s+a,{_HEX}", r"ld\s+a,([bd])", rf"sbc\s+a,{_HEX}",
       r"jp\s+(n?c),(\S+)"],
      lambda g: ([], {"cb": "bc", "ed": "de"}.get(g[0] + g[2], ""), g[1], g[3], g[4], g[5])),
+    # hl already at the operand's low byte (a stack slot just stored through
+    # hl: TapTempoStep's `sum < 0x100` after DivU16) -> fetched into de;
+    # track_a then drops the `ld e,(hl)` of a byte just stored from e
+    ([r"xor\s+a,a", r"ld\s+a,\(hl\)", rf"sbc\s+a,{_HEX}", r"inc\s+hl", r"ld\s+a,\(hl\)", rf"sbc\s+a,{_HEX}",
+      r"jp\s+(n?c),(\S+)"],
+     lambda g: (["\tld\te,(hl)", "\tinc\thl", "\tld\td,(hl)"], "de", g[0], g[1], g[2], g[3])),
     # a global -> fetched into de (`FileReadCompressedBlock`)
     ([r"xor\s+a,a", r"ld\s+hl,(#[^;]+?)", r"ld\s+a,\(hl\)", rf"sbc\s+a,{_HEX}", r"inc\s+hl",
       r"ld\s+a,\(hl\)", rf"sbc\s+a,{_HEX}", r"jp\s+(n?c),(\S+)"],
      lambda g: ([f"\tld\thl,{g[0]}", "\tld\te,(hl)", "\tinc\thl", "\tld\td,(hl)"], "de", g[1], g[2], g[3], g[4])),
 ]
+
+
+def _hl_stack_offset(lines: list[str], at: int) -> int | None:
+    """The sp-relative offset hl holds just before line `at`, found by walking
+    back to the last `lda hl,N(sp)` over hl steps (`inc hl`, `dec hl`, `(hl+)`,
+    `(hl-)`) and `lda sp,M(sp)` adjustments; None past a label, jump, call or
+    anything else that sets hl."""
+    off = 0
+    k = at - 1
+    while k >= 0:
+        t = _strip(lines[k]).strip()
+        k -= 1
+        if not t:
+            continue
+        m = re.fullmatch(r"lda\s+hl,(-?\d+)\(sp\)", t)
+        if m:
+            return int(m.group(1)) + off
+        m = re.fullmatch(r"lda\s+sp,(-?\d+)\(sp\)", t)
+        if m:
+            off -= int(m.group(1))
+            continue
+        if t == "inc\thl" or "(hl+)" in t:
+            off += 1          # happened after the lda: hl is one higher
+            continue
+        if t == "dec\thl" or "(hl-)" in t:
+            off -= 1
+            continue
+        mn = t.split()[0] if t else ""
+        if t.endswith(":") or mn in ("jp", "jr", "call", "ret", "reti", "rst", "push", "pop") \
+                or re.match(r"(ld|add|inc|dec)\s+(hl|h|l)\b", t) or t.startswith("ld\thl"):
+            return None
+    return None
 
 
 def gb_cmp16(lines: list[str]) -> tuple[list[str], int]:
@@ -265,12 +303,18 @@ def gb_cmp16(lines: list[str]) -> tuple[list[str], int]:
                 lines[idx[0]:idx[-1] + 1] = out
                 n += 1
                 i = idx[0] + len(out) - 1
+                known = None
                 if fetch and fetch[0].startswith("\tlda\thl,"):
+                    known = int(groups[0]) + 1
+                elif fetch and fetch[0] == "\tld\te,(hl)":
+                    known = _hl_stack_offset(lines, idx[0])
+                    known = known + 1 if known is not None else None
+                if known is not None:
                     # stock SDCC left hl at the operand's high byte and may go
                     # on from there (`dec hl; ld a,(hl+)`); the add clobbered
                     # hl, so LSDj's compiler reloaded it (DrawBlocksUsed's
                     # `ld hl,sp+0`)
-                    off = int(groups[0]) + 1
+                    off = known
                     k = i + 1
                     while k < len(lines) and not _strip(lines[k]).strip():
                         k += 1

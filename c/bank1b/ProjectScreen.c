@@ -45,6 +45,10 @@ void ProjHelpOpenSelected(void);
 extern UBYTE KitMixTable[];               /* $1B:$6C38, the 1152-byte nibble-sum LUT */
 void MixerKernel(void);                     /* $1B:$4000, the 27-byte asm mixer step (code, hence a function); DrawHelpMenu follows it */
 
+extern UBYTE wWorkClockSubFrame;            /* $C9AA */
+extern UBYTE wTapTempoCount;                /* $C9AB */
+extern UBYTE wTapTempoBuf[];                /* $C9AC, [8] */
+
 void DrawHelpMenu(void)
 {
     UBYTE i;
@@ -320,6 +324,34 @@ void ProjectScreenRefresh(void)
     DrawProjectScreen();
     FarCall(5, MapDrawTopRow);
     wRedrawPending = 0;
+}
+
+void TapTempoStep(void)
+{
+    UWORD sum;
+    UBYTE i;
+
+    sum = 0;
+    if (wTapTempoCount == 0xFF || wWorkClockSubFrame == 0x80) {
+        wTapTempoCount = 0;
+        wWorkClockSubFrame = 0;
+        return;
+    }
+    if (wTapTempoCount == 8) {
+        memcpy(wTapTempoBuf, wTapTempoBuf + 1, 7);
+        wTapTempoCount--;
+    }
+    wTapTempoBuf[wTapTempoCount] = wWorkClockSubFrame;
+    wWorkClockSubFrame = 0;
+    wTapTempoCount++;
+    if (wTapTempoCount < 3)
+        return;
+    for (i = 0; i < wTapTempoCount; i++)
+        sum += wTapTempoBuf[i];
+    sum <<= 3;
+    sum /= wTapTempoCount;
+    sum = 0x6FFE / sum;
+    wTempo = sum < 0x100 ? sum : 0xFF;
 }
 
 void InitKitMixer(void)
