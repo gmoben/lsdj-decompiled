@@ -31,6 +31,18 @@ void CloneInstrAtCursor(void);
 UBYTE CloneTableAtCursor(void);
 UBYTE PhraseReadFx(UBYTE phrase, UBYTE row);
 UBYTE FindCursorInstr(void);
+extern UBYTE wPrelisten;                    /* $C56E */
+extern UBYTE wLiveStartCol;                 /* $C571 */
+extern UBYTE wSavedLiveMode;                /* $C572 */
+extern UBYTE wLiveMode;                     /* $C528 */
+void StopPlayback(void);                    /* bank 2 */
+void SyncSetSendMode(void);                 /* bank 0 */
+extern UBYTE wDrawStep;                     /* $C405 */
+extern UBYTE wNameEditBuf[];                /* $C431, [5] */
+extern UBYTE wInstrRemapDirty;              /* $C9B7 */
+extern UBYTE wInstrRemapTable[];            /* $C9B8, [16] */
+void ClearMessageBar(void);                 /* bank 1 */
+UBYTE PhraseInstrEntered(void);
 
 void DrawChainCellFar(UBYTE x)
 {
@@ -143,6 +155,50 @@ void PhraseDrawCursorGlyph(UBYTE row)
     GetTilemapAddr(tbl[wPhraseCol], y);
 }
 
+UBYTE PhraseInstrEntered(void)
+{
+    UBYTE instr;
+    UBYTE res;
+    UBYTE *p;
+    UBYTE i, v, n;
+
+    instr = ReadCursorInstr();
+    res = 0;
+    if (instr > 0x40) {
+        if (wColInstrument[wSongCol] == 0xFF) {
+            SetColInstrument(FarCallByte(0x1F, FAR_FN(AllocNextFreeInstr)));
+            wDrawStep++;
+        }
+        WritePhraseInstrument(wPhrase, (char)wPhraseRow, wColInstrument[wSongCol]);
+        if (wSongCol == 3) {
+            n = wColInstrument[3];
+            if (n < 0x40) {
+                n = ReadInstrByte(n, 4);
+                if (n > 0x78)
+                    n = 0x78;
+                WritePhraseNote((char)wPhraseRow, n);
+            }
+        }
+        res = 1;
+    } else {
+        SetColInstrument(instr);
+        if (wPhraseCol == 2) {
+            FarCallArg(1, FAR_FN(CopyInstrName), instr);
+            for (i = 0; i < 5; i++) {
+                p = &wSampleNoteString[i];
+                v = wNameEditBuf[i];
+                if (!v)
+                    v = ' ';
+                *p = v;
+            }
+            wSampleNoteString[5] = ' ';
+            FarCall(1, FAR_FN(ClearMessageBar));
+            PhraseDrawCursorGlyph((char)wPhraseRow);
+        }
+    }
+    return res;
+}
+
 UBYTE ReadPhraseInstr(UBYTE phrase, UBYTE row)
 {
     UBYTE *p;
@@ -227,9 +283,43 @@ UBYTE PhraseReadFx(UBYTE phrase, UBYTE row)
     return v;
 }
 
+UBYTE PhraseEditPlace(void)
+{
+    UBYTE *p;
+    UBYTE v;
+
+    p = (UBYTE *)(wPhraseRow + (UWORD)0xA000);
+    if (wPhraseRow >= 0x10)
+        DebugTrap();
+    if (wPhrase == 0xFF)
+        DebugTrap();
+    p += (UWORD)wPhrase << 4;
+    v = ReadSongByte(0, p);
+    if (v || wCursorMode == 4) {
+        PhraseResolveCursorNote(v);
+        return 0;
+    }
+    WriteSongByte(0, p, wPhraseColLast[wSongCol]);
+    return 1;
+}
+
 void DrawEmptyNote(void)
 {
     DrawString("---");
+}
+
+void LoadPhraseRow(void)
+{
+    volatile UWORD p;
+    UWORD off;
+
+    off = wPhrase;
+    off <<= 4;
+    p = (UWORD)0xA000 + off;
+    ReadSongBytes(0, p, wSongReadBuf);
+    ReadSongBytes(3, (UWORD)0xB000 + off, (UBYTE *)0xC47D);
+    ReadSongBytes(2, p, (UBYTE *)0xC48D);
+    ReadSongBytes(2, (UWORD)0xAFF0 + off, (UBYTE *)0xC49D);
 }
 
 void PastePhraseSelectionFar(void)
@@ -346,6 +436,69 @@ UBYTE PhraseCloneTableCmd(void)
         }
     }
     return 0;
+}
+
+void PrelistenCursorRow(void)
+{
+    UBYTE row, note;
+
+    if (!wPrelisten)
+        return;
+    if (wCursorMode == 4)
+        return;
+    row = wPhraseRow;
+    note = PhraseReadNote(row);
+    if (!note)
+        return;
+    if (wLiveStartCol != 0xFF) {
+        FarCall(2, FAR_FN(StopPlayback));
+        wLiveMode = wSavedLiveMode;
+    }
+    if (wPlayMode)
+        return;
+    if (wSyncMode != 0 && wSyncMode != 1 && wSyncMode != 5)
+        return;
+    wSavedLiveMode = wLiveMode;
+    wLiveMode = 0;
+    wLiveStartCol = wSongCol;
+    if (wSyncMode == 1)
+        SyncSetSendMode();
+    FarCall(2, FAR_FN(StopPlayback));
+}
+
+UBYTE DrawInstrName(UBYTE row, UBYTE instr)
+{
+    UBYTE res;
+    UBYTE *p;
+    UBYTE i, v, n;
+
+    res = 0;
+    FarCallArg(1, FAR_FN(CopyInstrName), instr);
+    for (i = 0; i < 5; i++) {
+        p = &wSampleNoteString[i];
+        v = wNameEditBuf[i];
+        if (!v)
+            v = ' ';
+        *p = v;
+    }
+    wSampleNoteString[5] = ' ';
+    FarCall(1, FAR_FN(ClearMessageBar));
+    PhraseDrawCursorGlyph(row);
+    SetColInstrument(instr);
+    WritePhraseInstrument(wPhrase, row, instr);
+    hBgDigitPalette = wSelectDigitPal;
+    hBgPalette = wSelectPal;
+    DrawHexByte(instr);
+    if (wSongCol == 3 && instr < 0x40 && ReadInstrByte(instr, 0) == 3) {
+        n = ReadInstrByte(instr, 4);
+        *(UBYTE *)0xC90A = n;               /* wPhraseInstrCache, stored through the literal */
+        WritePhraseNote(row, n);
+        res = 1;
+    }
+    PrelistenCursorRow();
+    wInstrRemapDirty = 1;
+    wInstrRemapTable[row] = instr;
+    return res;
 }
 
 UBYTE PhraseCellFlagA(UBYTE row)

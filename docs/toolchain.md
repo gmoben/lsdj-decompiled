@@ -12,7 +12,7 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 | What compiled LSDj? | **GBDK 2.95-3** (19 Aug 2000) → **SDCC 2.2.1** (`gbz80` target), default `asxxxx` assembler/linker, small memory model — **plus an accumulator-tracking optimisation stock SDCC lacks** (the "modified GBDK"), modelled here as an accumulator-tracking pass plus 79 peephole rules (below) |
 | Can we run it today? | **Yes, natively.** SDCC 2.2.1 + `sdcpp`/`as-gbz80`/`link-gbz80` build from the GBDK 2.95-2 sources (`tools/toolchain/build_sdcc221.sh`, ~15 s) and emit **byte-identical** asm, objects, listings and images to GBDK 2.95-3's Win32 binaries — which still run under Wine (`fetch_gbdk295.sh`), but crash on large units (below) |
 | Is it the right toolchain? | **Yes, for the code generator**: LSDj's instruction selection, register allocation and frame idioms are SDCC 2.2.1's line for line, and GBDK 2.95 library code in the ROM is byte-identical to its sources (`display_off` ← `crt0.s`, `strcpy` ← `asm_string.s`, `set_bkg_palette` ← `cgb.s`, `set_bkg_tiles` ← `set_bk_t.s` + `set_xy_t.s`, the SDCC `mul` runtime). Stock output does **not** match on its own: LSDj's build also ran peephole rules that stock 2.95-3 lacks |
-| Matched real LSDj functions? | **Yes — 499**, in twelve banks (the list: [`c/matched.json`](../c/matched.json)): a message renderer, a 15-case `switch`, a sparse `switch`, the SRAM accessors, and the instrument screen's field accessors and draw helpers. `make match` re-verifies them all (cached: only changed sources reach the compiler), and **their bytes in the ROM build come from the compiled C** (below) |
+| Matched real LSDj functions? | **Yes — 504**, in twelve banks (the list: [`c/matched.json`](../c/matched.json)): a message renderer, a 15-case `switch`, a sparse `switch`, the SRAM accessors, and the instrument screen's field accessors and draw helpers. `make match` re-verifies them all (cached: only changed sources reach the compiler), and **their bytes in the ROM build come from the compiled C** (below) |
 | Is all of LSDj C? | **No.** ~130 functions (7% of the instructions) are hand-written assembly — the interrupt handlers, sound tick, envelope/pitch and tile-loader code in bank 0, and the sequencer core in bank `$02` (`tools/match/code_kind.py`). Those stay asm; the ~830 others (every editor) are Track 2 targets |
 | Go/no-go on Track 2? | **Go, with the rule set still growing.** Every function tried has matched (each new one has cost a few rules so far), the C feeds the ROM build with `make compare` as the gate, and the hand-written asm (7%) is mapped and excluded |
 
@@ -39,7 +39,7 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 | [`c/bank1d/SynthScreen.c`](../c/bank1d/SynthScreen.c) | 40 functions: synth and groove screens | a `switch` through a jump table, SRAM param/groove accessors, a `?:` over `long` constants (> 32767), the cache walker |
 | [`c/bank1e/Gfx.c`](../c/bank1e/Gfx.c) | 2 functions: VRAM helpers | `UWORD` loop addresses compared against `(UWORD)0x9800` (constants above 32768 are `long`), a `while (STAT_REG & 2)` wait |
 | [`c/bank1f/InstrHelpers.c`](../c/bank1f/InstrHelpers.c) | 68 functions: bank $1F helpers | the used-table/phrase/chain scans and counters (one template, four limits), SRAM resets bracketed by `_asm di _endasm;` and MBC register writes, a function that returns `e` by accident (no `return`) |
-| [`c/bank04/PhraseScreen.c`](../c/bank04/PhraseScreen.c) | 30 functions: phrase screen | far-call wrappers (`FarCallArg2V`), the phrase instrument reader and the backward search for the instrument in effect (a return through `e`, `track_e`), `?:` returns |
+| [`c/bank04/PhraseScreen.c`](../c/bank04/PhraseScreen.c) | 35 functions: phrase screen, its row loader, instrument entry and name draw, prelisten | far-call wrappers (`FarCallArg2V`), the phrase instrument reader and the backward search for the instrument in effect (a return through `e`, `track_e`), `?:` returns, a `volatile UWORD` SRAM offset (no CSE of its casts: each push reloads it), `if (a != X && b != Y) return;` chains (the ROM's uncollapsed `jp z,L; jp done; L:`), a name copy through `char` casts |
 | [`c/bank05/TableScreen.c`](../c/bank05/TableScreen.c) | 22 functions: table screen and screen map | table step accessors through column pointers held in `UWORD` globals, the map moves, materialized `<=` tests, a two-case `switch` |
 | [`c/bank06/Screens.c`](../c/bank06/Screens.c) | 37 functions: chain, wave and word screens | `while (i != wWaveSelEnd)` (global right: the kept `jr nz` trampoline), `(UWORD)y != 0x80`, an early `return` under `==` (SDCC's `jp nz,L; jp end; L:`), the chain row buffers through `ReadSongBytes`, `?:` over string literals as an argument |
 | [`c/bank06/DrawTileHexCell.c`](../c/bank06/DrawTileHexCell.c) | `DrawTileHexCell` (130 B) | consecutive updates of a stack local, sign test, `-t`, pointer table |
@@ -561,7 +561,9 @@ GBDK 2.95-3 only ever shipped as Win32 binaries, but its compiler is SDCC
 ([juju.nz/src/juju/gbdk-releases](https://juju.nz/src/juju/gbdk-releases), tag
 `gbdk-2.95-2`). `build_sdcc221.sh` builds it 32-bit with the source's own
 `_NO_GC` switch and a handful of host-portability fixes (modern flex, headers
-the 2000-era code got implicitly); nothing in the code generator changes.
+the 2000-era code got implicitly; the undocumented `/L1`..`/L4` label-optimiser
+switches, which the release's option parser cannot reach, are accepted for
+experiments); nothing in the code generator changes.
 Checked on every unit Wine could compile: identical `.asm` (down to the stock
 peephole comments), identical objects and listings from `as-gbz80`, identical
 linked images from `link-gbz80`.
@@ -692,6 +694,7 @@ shape.
 | `DrawKitInstr` | `$1F:$44DD` | all but the HALF/FULL test: the ROM keeps `ReadCurInstrByte(2) & 0x40` in b and tests it (`ld b,e; ld a,b; and a,#0x40; ld b,a; or a,b; jp z`, the GetInstrFlags1F5 shape); `if (x & 0x40)` gives `bit 6,a`, a stack local the spilt form, and `t &= 0x40; if (t)` the genAnd internal error (gen.c 3110) |
 | `RemapCmdTableRefs` | `$1F:$5A8E` | three SRAM scans with two pointers each: the ROM keeps both pointers on the stack from their first assignment and the command byte in c, SDCC gives the second pointer bc (equal use counts, the first is evicted) and spills the byte; `UBYTE * volatile` and UWORD spellings move further away |
 | `ClearOamBuffer` | `$01:$4B5E` | `for (p = 0x8000; p != 0x8030; p++)` with the unsigned-long literal compare (four-byte temp) and a pointer-parameter cast per call: the ROM keeps `p` on the stack from its first store and the second loop's cast temp lands in b/c reversed (a spilt `v` freed c); SDCC gives `p` bc, so the cast temps and `v` spill instead |
+| `UiClearSram` | `$01:$45D1` | matches end to end with `UBYTE * volatile p` except the "W-x" word loop's `*p += i < 10 ? '0' : '7'`: the ROM spills the `*p` read to the stack (frame 7) while SDCC keeps it in c; the pointer copy, the `?:` in c and the sum all agree |
 
 ## What's still unknown
 

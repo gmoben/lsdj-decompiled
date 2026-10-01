@@ -473,6 +473,12 @@
   "len": 172,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "DrawInstrName": {
+  "bank": "04",
+  "addr": "57D4",
+  "len": 261,
+  "src": "c/bank04/PhraseScreen.c"
+ },
  "DrawInstrParamField": {
   "bank": "1F",
   "addr": "70DF",
@@ -1769,6 +1775,12 @@
   "len": 459,
   "src": "c/bank1c/FileScreen.c"
  },
+ "LoadPhraseRow": {
+  "bank": "04",
+  "addr": "4C14",
+  "len": 133,
+  "src": "c/bank04/PhraseScreen.c"
+ },
  "LoadProjectSettings": {
   "bank": "01",
   "addr": "7C86",
@@ -1931,6 +1943,18 @@
   "len": 71,
   "src": "c/bank04/PhraseScreen.c"
  },
+ "PhraseEditPlace": {
+  "bank": "04",
+  "addr": "4B5B",
+  "len": 171,
+  "src": "c/bank04/PhraseScreen.c"
+ },
+ "PhraseInstrEntered": {
+  "bank": "04",
+  "addr": "42A8",
+  "len": 293,
+  "src": "c/bank04/PhraseScreen.c"
+ },
  "PhraseModeTile": {
   "bank": "04",
   "addr": "405D",
@@ -1972,6 +1996,12 @@
   "addr": "3176",
   "len": 40,
   "src": "c/bank00/Sprites.c"
+ },
+ "PrelistenCursorRow": {
+  "bank": "04",
+  "addr": "572C",
+  "len": 148,
+  "src": "c/bank04/PhraseScreen.c"
  },
  "PrelistenEditedCell": {
   "bank": "04",

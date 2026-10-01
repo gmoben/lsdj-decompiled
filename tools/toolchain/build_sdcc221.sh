@@ -55,6 +55,11 @@ edit("src/Makefile.in", "all: ports checkconf $(LIBGC) $(TARGET)", "all: ports c
 # Modern flex defines yylineno itself and no longer has YY_PROTO.
 edit("src/SDCC.lex", "int   yylineno = 1               ;", "/* yylineno: defined by flex */")
 edit("src/SDCC.lex", "int yywrap YY_PROTO((void))", "int yywrap(void)")
+# The undocumented `/L1`..`/L4` switches (one label optimisation each) are
+# unreachable in the release: the parser only accepts two-character `/x`
+# options. Accept the three-character forms too; nothing else changes.
+edit("src/SDCCmain.c", "if ( *argv[i] == '/' && strlen(argv[i]) < 3) {",
+     "if ( *argv[i] == '/' && strlen(argv[i]) < 4) {")
 # sdcpp: an unused GCC target declaration, and headers the 2000-era code
 # got implicitly.
 edit("support/cpp/i386/i386.h", "extern enum reg_class regclass_map[];",
