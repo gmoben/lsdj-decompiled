@@ -606,6 +606,8 @@ shape.
 | `PhraseCellFlagD` | `$04:$5AC7` | same as PhraseCellFlagB; a separate j = i + 0x10 keeps i in c but spills j |
 | `GfxCopyVramRegion` | `$1E:$7A4B` | `WriteVramByteSafe(dst++, wVramCopyScratch = GfxReadVramByte(src++))` gives the right order and both reversed pairs but a 2-byte frame: SDCC's `=` hands the push the call result (no spill location); the ROM re-reads the global, so its temp spilled into it. Both `src++`/`dst++` old-value pairs are reversed (`ld b,(hl); inc hl; ld c,(hl)`): c is busy at both, so a byte temp lives across the second with the call result spilled *into* wVramCopyScratch (one-byte frame, `ld (hl),e`, re-read for the push); SDCC's `=` hands the push the call result, which has no spill location (frame 2), and the two-statement form frees c |
 | `DrawFreedTables` | `$1F:$5D18` | nested loops: the ROM keeps IsTableFree(j)'s result in c to the inner loop's end (j++ goes through b) yet packs FindDupTable's result straight into wPhraseDedupScratch5 (`ld (hl),e`); SDCC 2.2.1 extends both call results' live ranges (hasIncomingDefs), spilling one to a new slot (frame 7 vs 6) |
+| `FindDupChain` | `$1F:$5644` | the first `SramChainPhrases + oa` is computed into a spill slot and copied byte-wise into pa (frame 11) while the second goes through bc; both scans keep their byte values in b/c with one i on the stack (block-scoped locals get their own slots here) |
+| `DrawPhraseCellValue` | `$1F:$6B3B` | the `hGameboyType ? 3 : 2` temp sits in b and the width read spills into wDrawTextScratch (re-read for the push); SDCC spills the ?: temp and keeps the width in c (frame 3 vs 2) |
 
 ## What's still unknown
 

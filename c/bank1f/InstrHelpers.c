@@ -51,6 +51,7 @@ void DrawPhraseCellValue(UBYTE col, UBYTE row);
 UBYTE InstrHGetTableUsed(UBYTE t);
 void InstrHMarkTableUsed(UBYTE t);
 UBYTE IsPhraseUsedFar(UBYTE phrase);
+void InstrHScanUsedChains(void);
 UBYTE IsChainUsedFar(UBYTE chain);
 UBYTE InstrHScanChainPhrases(UBYTE chain);
 void ResetWaveFrame(UBYTE p);
