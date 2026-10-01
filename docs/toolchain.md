@@ -12,7 +12,7 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 | What compiled LSDj? | **GBDK 2.95-3** (19 Aug 2000) → **SDCC 2.2.1** (`gbz80` target), default `asxxxx` assembler/linker, small memory model — **plus an accumulator-tracking optimisation stock SDCC lacks** (the "modified GBDK"), modelled here as an accumulator-tracking pass plus 71 peephole rules (below) |
 | Can we run it today? | **Yes, natively.** SDCC 2.2.1 + `sdcpp`/`as-gbz80`/`link-gbz80` build from the GBDK 2.95-2 sources (`tools/toolchain/build_sdcc221.sh`, ~15 s) and emit **byte-identical** asm, objects, listings and images to GBDK 2.95-3's Win32 binaries — which still run under Wine (`fetch_gbdk295.sh`), but crash on large units (below) |
 | Is it the right toolchain? | **Yes, for the code generator**: LSDj's instruction selection, register allocation and frame idioms are SDCC 2.2.1's line for line, and GBDK 2.95 library code in the ROM is byte-identical to its sources (`display_off` ← `crt0.s`, `strcpy` ← `asm_string.s`, `set_bkg_palette` ← `cgb.s`, `set_bkg_tiles` ← `set_bk_t.s` + `set_xy_t.s`, the SDCC `mul` runtime). Stock output does **not** match on its own: LSDj's build also ran peephole rules that stock 2.95-3 lacks |
-| Matched real LSDj functions? | **Yes — 422**, in eleven banks (the list: [`c/matched.json`](../c/matched.json)): a message renderer, a 15-case `switch`, a sparse `switch`, the SRAM accessors, and the instrument screen's field accessors and draw helpers. `make match` re-verifies them all (cached: only changed sources reach the compiler), and **their bytes in the ROM build come from the compiled C** (below) |
+| Matched real LSDj functions? | **Yes — 426**, in eleven banks (the list: [`c/matched.json`](../c/matched.json)): a message renderer, a 15-case `switch`, a sparse `switch`, the SRAM accessors, and the instrument screen's field accessors and draw helpers. `make match` re-verifies them all (cached: only changed sources reach the compiler), and **their bytes in the ROM build come from the compiled C** (below) |
 | Is all of LSDj C? | **No.** ~130 functions (7% of the instructions) are hand-written assembly — the interrupt handlers, sound tick, envelope/pitch and tile-loader code in bank 0, and the sequencer core in bank `$02` (`tools/match/code_kind.py`). Those stay asm; the ~830 others (every editor) are Track 2 targets |
 | Go/no-go on Track 2? | **Go, with the rule set still growing.** Every function tried has matched (each new one has cost a few rules so far), the C feeds the ROM build with `make compare` as the gate, and the hand-written asm (7%) is mapped and excluded |
 
@@ -40,7 +40,7 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 | [`c/bank1f/InstrHelpers.c`](../c/bank1f/InstrHelpers.c) | 48 functions: bank $1F helpers | the used-table/phrase/chain scans and counters (one template, four limits), SRAM resets bracketed by `_asm di _endasm;` and MBC register writes, a function that returns `e` by accident (no `return`) |
 | [`c/bank04/PhraseScreen.c`](../c/bank04/PhraseScreen.c) | 30 functions: phrase screen | far-call wrappers (`FarCallArg2V`), the phrase instrument reader and the backward search for the instrument in effect (a return through `e`, `track_e`), `?:` returns |
 | [`c/bank05/TableScreen.c`](../c/bank05/TableScreen.c) | 22 functions: table screen and screen map | table step accessors through column pointers held in `UWORD` globals, the map moves, materialized `<=` tests, a two-case `switch` |
-| [`c/bank06/Screens.c`](../c/bank06/Screens.c) | 33 functions: chain, wave and word screens | an early `return` under `==` (SDCC's `jp nz,L; jp end; L:`), the chain row buffers through `ReadSongBytes`, `?:` over string literals as an argument |
+| [`c/bank06/Screens.c`](../c/bank06/Screens.c) | 37 functions: chain, wave and word screens | `while (i != wWaveSelEnd)` (global right: the kept `jr nz` trampoline), `(UWORD)y != 0x80`, an early `return` under `==` (SDCC's `jp nz,L; jp end; L:`), the chain row buffers through `ReadSongBytes`, `?:` over string literals as an argument |
 | [`c/bank06/DrawTileHexCell.c`](../c/bank06/DrawTileHexCell.c) | `DrawTileHexCell` (130 B) | consecutive updates of a stack local, sign test, `-t`, pointer table |
 | [`c/bank07/KbdLink.c`](../c/bank07/KbdLink.c) | 5 functions: keyboard octave, link queue, sync rate | a multiply kept as a `MulU16` call, `di`/`ei` around a 16-bit store, an empty case listed first |
 | [`c/bank07/SongScreen.c`](../c/bank07/SongScreen.c) | 25 functions: song screen and bookmarks | page-up/down scroll arithmetic, bookmark add/toggle in SRAM, `WriteBookmarkByte`'s pointer-range asserts (16-bit compares: `ld hl,#-lit; add hl,de`), a `!=` sprite loop |
@@ -85,7 +85,7 @@ common (byte-pattern counts over banks `$01`-`$07`, `$1B`-`$1F`):
 | Compare chains | a sparse `switch` re-reads its global before every `cp` in stock output; LSDj loads it once (one rule per chain position, so the pattern always carries the variable). SDCC's `==` trampoline `jp cc,T; jr F; T: jp X; F:` → `jp cc,X`, every byte's `jp cc,T` of a multi-byte compare included (the only survivor in the ROM is inside GBDK's stock-compiled `gprintf`) | 0, 1 (library) | 72 |
 | Kept across a test | `ld a,r` / `bit n,a` / `jp cc` / `ld a,r` → reload dropped; `ld hl,#x` / `ld a,(hl)` / `cp a,#n` / `jp z,F` / *(dead label)* / `ld hl,#x` → reload dropped (a `!=` test; stock SDCC's Rule 5 leaves the trampoline's label behind, which makes its codegen forget `hl`); `xor a` / `ld a,#0` → `xor a` | 0, 1 (a real jump target in between), 0 | 68, 7, 6 |
 | Register tracking (`track_a`, below) | a reload of what `a` already holds: `ld a,r` / `cp` / `jp cc` / *(dead label)* / `ld a,r` (an `\|\|` chain) → reload dropped; a stored stack local reread: `ld hl,sp+N` / `ld (hl),r` / [`add sp,M`] / `ld a,(hl)` → `ld a,r`; `ld (hl),a` / `ld de,#T` / `ld l,(hl)` → `ld l,a` (indexing a table by the value just stored) | 0, 0, 0 | 35, 25 + 141, 32 |
-| More dead stores | `ld r,#n` / `ld r,X` → `ld r,X`; a discarded sign extension `rla` / `sbc a,a` / `ld r,a` / `ld a,X` / `and a,#n` → store dropped; the `== 0` test of a fresh `&`: `and a,#n` / `ld r,a` / `or a,a` / `jp nz` → `and a,#n` / `jp nz`; after *ALU* `a,r` / `ld (hl),a` the `ld a,(hl)` reload is dropped too | 0, 0, 0 (1 `jp z` / `if (t)` site keeps it), 0 | —, 3, 12, 69 |
+| More dead stores | `ld r,#n` / `ld r,X` → `ld r,X`; `ld r,a` / … / `ld r,(hl)` → `ld r,(hl)`; a discarded sign extension `rla` / `sbc a,a` / `ld r,a` / `ld a,X` / `and a,#n` → store dropped; the `== 0` test of a fresh `&`: `and a,#n` / `ld r,a` / `or a,a` / `jp nz` → `and a,#n` / `jp nz`; after *ALU* `a,r` / `ld (hl),a` the `ld a,(hl)` reload is dropped too | 0, 0, 0 (1 `jp z` / `if (t)` site keeps it), 0 | —, 3, 12, 69 |
 | 16-bit compare with a constant (`gb_cmp16`, below) | `xor a,a` / `ld a,lo` / `sbc a,#lo` / `ld a,hi` / `sbc a,#hi` / `jp cc` → `ld hl,#-lit` / `add hl,de` (or `bc` when the value already sits there) / `jp` on the inverted carry | 0 (its 5 `sbc` chains are 32-bit) | 28 |
 | `ld a,a` | the MOVA SDCC leaves after reading an sfr for a compare → removed | 0 (the one `ld a,a` in the ROM is palette data) | — |
 
@@ -119,9 +119,12 @@ reload, 30/30). `dead_stores` removes `ld r,a` that a later `ld r,a`
 rewrites, within a basic block, before anything reads r: none of the 1999
 `ld r,a` in the ROM's compiled code is such a store, while stock SDCC
 emits them (the low byte of a 16-bit `&` rewritten by the `|` after it).
-A store overwritten by `ld r,#n` goes too: no unread `ld r,a` dies to a
-constant load in the ROM either (`IsChainUsed`'s shift count). Stores killed
-by `pop bc` or across a call or a branch survive, so the pass stops there.
+A store overwritten by any other `ld r,...` goes too: no unread `ld r,a`
+dies to a constant load (`IsChainUsed`'s shift count) or to a `ld r,(hl)`
+(`WriteWaveSample`'s `pos + 1`, whose register the next temp reloads) in the
+ROM's real code -- the five apparent survivors are text data disassembled
+as code. Stores killed by `pop bc` or across a call or a branch survive, so
+the pass stops there.
 
 `track_a` also knows the byte at `hl` after `ld (hl),r` (r = `b`..`e`): a
 reread becomes `ld a,r` and a test `ld a,r; or a,r` (183 and 36 such sites
@@ -252,6 +255,23 @@ asm that reads stack arguments (`DrawByte`, `DrawString`, `GetTilemapAddr`,
   LSDj's bank switch is `hCurrentBank = n; rROMB0 = n`. `rROMB0` is `volatile`:
   with no call between two switches (`KitExists`, which pages a kit bank in
   and straight back out) SDCC otherwise drops the first store as dead.
+- **Which side of `==`/`!=` a global sits on shows**: `gencjneshort` puts a
+  register, direct or literal *right* operand through `cp; jp nz,L`, which
+  SDCC's own rule 5 then folds with the `jp` after it into `jp z,X`; a global
+  (`AOP_HL` on the GB) or stack *right* operand takes the pointer branch,
+  `cp; jr nz,L; jp X; L:`, which nothing folds. The ROM keeps 12 such
+  trampolines (all `x == global`, `x == stack`): `while (i != wWaveSelEnd)`
+  in `PasteWaveSelection`, `CloneInstrTable`'s field test. `global == reg`
+  is the folded form. (The `!=` double trampoline, `jr nz,L; jr M; L: jp X;
+  M:`, is folded by lsdj.peep either way.)
+- **Literal types** (`constVal`): hex and octal literals are *unsigned*,
+  decimal ones signed; a value under 256 is a `short`, which is **one byte**
+  in this port (`gbz80_port` sizes: char 1, short 1, int 2, long 4), so `y
+  != 0x80` compares bytes and `pos + 1` is an 8-bit add; a value above
+  32768 is a `long`. The ROM's 16-bit `!=` against a small constant
+  (`WaveInitSprites`, `ReadWaveSample`'s loop bounds) is `(UWORD)y != 0x80`
+  -- the zero-extended copy spills in the first of two identical loops and
+  sits in `bc` in the second.
 - **Sign extension follows the destination type**: `genCast` extends by
   the type cast *to*, so a `char` stored into an `int` element is
   `rla; sbc a,a` and into a `UWORD` is `ld b,#0` (`wSynthShapeBuf` is

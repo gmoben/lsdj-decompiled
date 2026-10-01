@@ -795,10 +795,11 @@ def _reads_reg(mn: str, ops: list[str], r: str) -> bool:
 
 
 def _restores_reg(mn: str, ops: list[str], r: str) -> bool:
-    """`ld r,a` or `ld r,#n`: the overwrites that make an earlier unread
-    `ld r,a` dead in LSDj's code (none of either kind survives in the ROM;
-    a store killed by `pop bc` does)."""
-    return mn == "ld" and len(ops) == 2 and ops[0] == r and (ops[1] == "a" or ops[1].startswith("#"))
+    """Any `ld r,...` overwrite makes an earlier unread `ld r,a` dead in
+    LSDj's code: no such store survives in the ROM whatever overwrote it
+    (`ld r,a`, `ld r,#n`, `ld r,(hl)`, `ld r,r2`...). A store killed by
+    `pop bc` does survive."""
+    return mn == "ld" and len(ops) == 2 and ops[0] == r
 
 
 def dead_stores(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:

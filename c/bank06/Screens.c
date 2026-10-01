@@ -11,6 +11,7 @@ extern UBYTE wWaveCursor;                   /* $C42B */
 extern UBYTE wChanActive[];                 /* $C0E0, [4] */
 extern UBYTE wChanChain[];                  /* $C170, [4] */
 extern UBYTE wChanChainRow[];               /* $C17C, [4] */
+extern UBYTE wChanSongRow[];                /* $C200, [4] */
 extern UBYTE wChain;                        /* $C418 */
 extern UBYTE wChainCol;                     /* $C419 */
 extern UBYTE wChainRow;                     /* $C41A */
@@ -18,7 +19,9 @@ extern UBYTE wSynth;                        /* $C42A */
 extern UBYTE wWordClipCell0[];              /* $C935 */
 extern UBYTE wWordEditRow;                  /* $C937 */
 extern UBYTE wWordEditCol;                  /* $C938 */
+extern UBYTE wLiveMode;                     /* $C528 */
 extern UBYTE wWaveSelStart;                 /* $C93B */
+extern UBYTE wWaveSelEnd;                   /* $C93C */
 extern UBYTE wSyncRun;                      /* $CB6B */
 extern UBYTE wSyncHandshake;                /* $CB6C */
 extern UBYTE WordColX[];                  /* the word editor's two columns: x */
@@ -32,13 +35,16 @@ void DrawStringAtCursor(char *s);
 void ChainDrawSyncStatus(void);
 void ChainDrawLeadStatus(void);
 UBYTE ChainSyncStatusFlag(void);
-void AccessWaveFrame(UBYTE n, UBYTE v);
+void WriteWaveSample(UBYTE n, UBYTE v);
 UBYTE ReadWaveSample(UBYTE i);
-void ChainDrawWaveform(void);
-void ChainScanCmd(UBYTE s, UBYTE x);
+void WaveInitSprites(void);
+void WaveSetSpriteColumns(UBYTE s, UBYTE x);
 void ReadKitSampleName(UBYTE kit, UBYTE sample);   /* bank 0 */
 void ChainWriteCursorPair(UBYTE *a, UBYTE *b);
 void ChainWriteWaveA(void);
+void CopySynthParam(void);
+void ChainDrawRow16(void);
+void ChainSetCursorSprite(void);
 
 UBYTE ChainScaleValue(UBYTE v)
 {
@@ -140,7 +146,31 @@ UBYTE ReadWaveSample(UBYTE i)
     return 0x0F ^ v;
 }
 
-void ChainScanCmd(UBYTE y1, UBYTE y2)
+void WriteWaveSample(UBYTE pos, UBYTE v)
+{
+    UBYTE *p;
+    UBYTE b;
+
+    if (pos >= 0x20)
+        DebugTrap();
+    p = SramWaveFrames + ((UWORD)wSynth << 4);
+    CopySynthParam();
+    v ^= 0x0F;
+    pos = (pos + 1) & 0x1F;
+    p += pos >> 1;
+    b = ReadSongByte(3, (UWORD)p);
+    if (pos & 1) {
+        b &= 0xF0;
+        v = (v & 0x0F) | b;
+    } else {
+        b &= 0x0F;
+        v <<= 4;
+        v |= b;
+    }
+    WriteSongByte(3, (UWORD)p, v);
+}
+
+void WaveSetSpriteColumns(UBYTE y1, UBYTE y2)
 {
     UBYTE i;
 
@@ -158,7 +188,7 @@ void ChainSetCursorSprite(void)
     s = (wWaveSelStart << 2) + 0x18;
     if (wCursorMode != 4)
         s = x;
-    ChainScanCmd(s, x);
+    WaveSetSpriteColumns(s, x);
 }
 
 void ChainWriteCursorPair(UBYTE *a, UBYTE *b)
@@ -172,6 +202,26 @@ void ChainWriteCursorPair(UBYTE *a, UBYTE *b)
             *b = wWaveSelStart;
     }
     (*b)++;
+}
+
+void WaveInitSprites(void)
+{
+    UBYTE y, i;
+
+    i = 0x0C;
+    for (y = 0x40; (UWORD)y != 0x80; y += 8) {
+        SetOAMByte(i++, y);
+        i++;
+        SetOAMByte(i++, 5);
+        SetOAMByte(i++, 0x82);
+    }
+    for (y = 0x40; (UWORD)y != 0x80; y += 8) {
+        SetOAMByte(i++, y);
+        i++;
+        SetOAMByte(i++, 5);
+        SetOAMByte(i++, 0x82);
+    }
+    ChainSetCursorSprite();
 }
 
 void ChainDrawCursorByte(void)
@@ -200,7 +250,7 @@ void ChainDrawRow16(void)
 
 void DrawWaveScreen(void)
 {
-    ChainDrawWaveform();
+    WaveInitSprites();
     hBgDigitPalette = 4;
     hBgPalette = 1;
     FarCall(1, FAR_FN(DrawTopBar));
@@ -214,7 +264,7 @@ void ChainWriteWaveC(void)
 
     ChainWriteCursorPair(&start, &end);
     while (start < end) {
-        AccessWaveFrame(start, 0x0F - ReadWaveSample(start));
+        WriteWaveSample(start, 0x0F - ReadWaveSample(start));
         t = start;
         start = t + 1;
     }
@@ -227,7 +277,7 @@ void ChainWriteWaveD(UBYTE d)
 
     ChainWriteCursorPair(&start, &end);
     while (start < end) {
-        AccessWaveFrame(start, ReadWaveSample(start) + d);
+        WriteWaveSample(start, ReadWaveSample(start) + d);
         t = start;
         start = t + 1;
     }
@@ -240,10 +290,33 @@ void DrawWaveCursor(UBYTE d)
 
     n = (wWaveCursor + d) & 0x1F;
     v = ReadWaveSample(wWaveCursor);
-    AccessWaveFrame(n, v);
+    WriteWaveSample(n, v);
     ChainDrawCursorByte();
     wWaveCursor = n;
     ChainDrawCursorByte();
+    ChainSetCursorSprite();
+}
+
+void PasteWaveSelection(void)
+{
+    UBYTE i, v;
+
+    wWaveSelStart = ReadClipboardCell(0, 0x10);
+    wWaveSelEnd = ReadClipboardCell(0, 0x11);
+    i = wWaveSelStart;
+    while (i != wWaveSelEnd) {
+        v = ReadClipboardCell(0, i >> 1);
+        if (!(i \& 1))
+            v >>= 4;
+        else
+            v \&= 0x0F;
+        WriteWaveSample(wWaveCursor, v);
+        i++;
+        wWaveCursor++;
+        wWaveCursor \&= 0x1F;
+    }
+    ShowMessage("PASTE");
+    ChainDrawRow16();
     ChainSetCursorSprite();
 }
 
@@ -268,6 +341,33 @@ UBYTE ChainLoadCursorPhrase(void)
             return 0;
         row--;
     }
+}
+
+UBYTE ChainScreenEnter(UBYTE col)
+{
+    UBYTE chain, row;
+
+    chain = wChain;
+    row = wSongRow;
+    if (col >= 4)
+        DebugTrap();
+    wMsgStrPtr = 0;
+    if (wLiveMode && wChanActive[col]) {
+        wChain = wChanChain[col];
+        wSongRow = wChanSongRow[col];
+    } else {
+        wChain = ReadSeqByte(col, wSongRow);
+        while (wChain == 0xFF && wSongRow)
+            wChain = ReadSeqByte(col, --wSongRow);
+    }
+    if (wChain & 0x80) {
+        wChain = chain;
+        wSongRow = row;
+        return 0;
+    }
+    wSongCol = col;
+    DrawChainScreen();
+    return 1;
 }
 
 void DrawChainPos(void)

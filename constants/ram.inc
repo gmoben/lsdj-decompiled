@@ -932,7 +932,7 @@ DEF wSpriteMark6Y    EQU $DD24  ; sprite pool slot 9 Y
 DEF wSpriteMark6Attr EQU $DD27  ; sprite pool slot 9 attr
 DEF wSpriteMark7Y    EQU $DD28  ; sprite pool slot 10 Y
 DEF wSpriteMark7Attr EQU $DD2B  ; sprite pool slot 10 attr
-DEF wSpriteCursor0X  EQU $DD2D  ; selection/edit-cursor column sprite 11 X (ChainScanCmd)
+DEF wSpriteCursor0X  EQU $DD2D  ; selection/edit-cursor column sprite 11 X (WaveSetSpriteColumns)
 DEF wSpriteCursor1X  EQU $DD31  ; selection cursor sprite 12 X
 DEF wSpriteCursor2X  EQU $DD35  ; selection cursor sprite 13 X
 DEF wSpriteCursor3X  EQU $DD39  ; selection cursor sprite 14 X

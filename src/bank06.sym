@@ -21,7 +21,7 @@
 5626 DrawChainPos               ; draw "CP" and the chain cursor row (DrawByte) at $9851 in the shadow palette
 569C .write               ; (was ReadChainTranspose)
 5947 DrawChainScreen     ; screen idx 3: draws chain phrases + transposes
-4A0A AccessWaveFrame     ; compute/access a wave_frames cell (SRAM bank3 $A000; 32 nibbles/frame)
+4A0A WriteWaveSample            ; write sample pos+1 (inverted nibble) of the edited wave frame (SRAM bank 3 )
 4F18 DrawWaveScreen      ; screen idx 8: draws the waveform; edits wave_frames (bank3 $A000) directly
 405D ReadWordCell               ; read the speech word cell under the cursor: SRAM bank 0 $B890 + word*32 + col + row*2
 41A2 DrawWordScreen      ; screen idx 12: draws speech words; edits words ($B890) + word_names ($BDD0)
@@ -40,10 +40,10 @@
 4901 ChainCalcParamAddr         ; pick SRAM base $bfc4/$bfc5 by bit3 of arg (= SynthCalcParamAddr)
 493F CopySynthParam             ; copy one synth parameter byte (ChainCalcParamAddr src->dst)
 4992 ReadWaveSample             ; sample (i+1)&31 of the edited synth wave frame (SRAM bank 3 $A000 + wSynth*16), inverted: $0F ^ nibble
-4AB0 ChainScanCmd               ; scan 4 entries for command $0b with nonzero operand
+4AB0 WaveSetSpriteColumns       ; set the x of wave sprites 3..10 and 11..18
 4B16 ChainSetCursorSprite       ; compute cursor sprite X/Y from $c42b/$c93b ($c413==4)
 4B40 ChainWriteCursorPair       ; store $c42b through two arg pointers
-4BA7 ChainDrawWaveform          ; draw wave samples from $400c.. (<-DrawWaveScreen)
+4BA7 WaveInitSprites            ; init the 16 wave-sample sprites (3..18): y, tile 5, attr ; x via WaveSetSpriteColumns
 4C55 LoadKitSampleInfo          ; resolve the kit sample pair for the cursor note (TilemapAddr; clears $c93d..+8)
 4EAC ChainDrawCursorByte        ; draw $c42b>>1 via LoadKitSampleInfo
 4EBD ChainWriteWaveA            ; write wave data via ChainWriteCursorPair
@@ -51,9 +51,9 @@
 4F42 ChainWriteWaveB            ; write wave data via ChainWriteCursorPair (variant)
 4FA9 ChainWriteWaveC            ; write wave data via ChainWriteCursorPair (variant)
 4FFB ChainWriteWaveD            ; write wave data via ChainWriteCursorPair (variant)
-504E DrawWaveCursor             ; draw the wave-screen cursor nibbles (AccessWaveFrame + ChainDrawCursorByte x2)
+504E DrawWaveCursor             ; draw the wave-screen cursor nibbles (WriteWaveSample + ChainDrawCursorByte x2)
 5398 CopyWaveSelection          ; wave-screen COPY: selection -> clipboard (clipType 8), shows "COPY"
-546C ChainReadCursorInput       ; read input ($07da) -> cursor $c93b
+546C PasteWaveSelection         ; wave screen: paste the clipboard samples at the cursor
 54FA GetCursorChain             ; read the chain number under the song cursor (ReadSeqByte(wSongCol, wSongRow))
 5563 ChainScreenEnter           ; enter the chain screen for the cursor chain (LIVE-mode aware, clears message)
 5655 SetChainTranspose          ; write chain_transposes[chain<$80][step<$10] = v (SRAM bank 1 $A880)
@@ -115,12 +115,12 @@
 48BA .loop                ; loop head in TilemapAddr
 4974 .loop                ; loop head in CopySynthParam
 49B2 .loop                ; loop head in ReadWaveSample
-4A22 .loop                ; loop head in AccessWaveFrame
-4AB7 .loop                ; loop head in ChainScanCmd
-4AE8 .loop2               ; loop head in ChainScanCmd
-4B12 .done                ; common exit of ChainScanCmd
-4BB1 .loop                ; loop head in ChainDrawWaveform
-4C04 .loop2               ; loop head in ChainDrawWaveform
+4A22 .loop                ; loop head in WriteWaveSample
+4AB7 .loop                ; loop head in WaveSetSpriteColumns
+4AE8 .loop2               ; loop head in WaveSetSpriteColumns
+4B12 .done                ; common exit of WaveSetSpriteColumns
+4BB1 .loop                ; loop head in WaveInitSprites
+4C04 .loop2               ; loop head in WaveInitSprites
 4DF8 .loop                ; loop head in LoadKitSampleInfo
 4EE2 .loop                ; loop head in ChainWriteWaveA
 4EFE .done                ; common exit of ChainWriteWaveA
@@ -131,7 +131,7 @@
 5019 .loop                ; loop head in ChainWriteWaveD
 5381 .done                ; common exit of WaveScreenInput
 53D3 .loop                ; loop head in CopyWaveSelection
-5495 .loop                ; loop head in ChainReadCursorInput
+5495 .loop                ; loop head in PasteWaveSelection
 551B .loop                ; loop head in ChainLoadCursorPhrase
 555F .done                ; common exit of ChainLoadCursorPhrase
 55D4 .loop                ; loop head in ChainScreenEnter

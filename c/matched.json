@@ -113,10 +113,10 @@
   "len": 34,
   "src": "c/bank06/Screens.c"
  },
- "ChainScanCmd": {
+ "ChainScreenEnter": {
   "bank": "06",
-  "addr": "4AB0",
-  "len": 102,
+  "addr": "5563",
+  "len": 195,
   "src": "c/bank06/Screens.c"
  },
  "ChainScreenUpdate": {
@@ -1547,6 +1547,12 @@
   "len": 17,
   "src": "c/bank04/PhraseScreen.c"
  },
+ "PasteWaveSelection": {
+  "bank": "06",
+  "addr": "546C",
+  "len": 136,
+  "src": "c/bank06/Screens.c"
+ },
  "PhraseCellFlagA": {
   "bank": "04",
   "addr": "58D9",
@@ -2435,6 +2441,18 @@
   "len": 101,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "WaveInitSprites": {
+  "bank": "06",
+  "addr": "4BA7",
+  "len": 174,
+  "src": "c/bank06/Screens.c"
+ },
+ "WaveSetSpriteColumns": {
+  "bank": "06",
+  "addr": "4AB0",
+  "len": 102,
+  "src": "c/bank06/Screens.c"
+ },
  "WriteBookmarkByte": {
   "bank": "07",
   "addr": "6249",
@@ -2518,6 +2536,12 @@
   "addr": "6E6E",
   "len": 72,
   "src": "c/bank1d/SynthScreen.c"
+ },
+ "WriteWaveSample": {
+  "bank": "06",
+  "addr": "4A0A",
+  "len": 166,
+  "src": "c/bank06/Screens.c"
  },
  "WriteWordCell": {
   "bank": "06",
