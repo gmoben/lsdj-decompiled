@@ -24,6 +24,7 @@ void PastePhraseSelection(void);            /* bank $1F */
 void CopyInstrName(void);                   /* bank 1 */
 void WriteInstrName(void);                  /* bank 1 */
 UBYTE ReadPhraseInstr(UBYTE phrase, UBYTE row);
+UBYTE DrawInstrName(UBYTE row, UBYTE instr);
 extern UBYTE wAPressEnabled;                /* $C409 */
 UBYTE PhraseCursorOnEditCell(void);
 void CloneInstrAtCursor(void);
@@ -345,6 +346,55 @@ UBYTE PhraseCloneTableCmd(void)
         }
     }
     return 0;
+}
+
+UBYTE PhraseCellFlagA(UBYTE row)
+{
+    UBYTE r, kit, i, k2;
+
+    i = ReadPhraseInstr(wPhrase, row);
+    r = 0;
+    kit = 0;
+    if (i == 0xFF)
+        return 0;
+    if (i < 0x40) {
+        kit = ReadInstrByte(i, 0) == 2;
+    } else {
+        i = 0x40;
+        r = 1;
+    }
+    if (i)
+        i--;
+    k2 = ReadInstrByte(i, 0);
+    k2 = k2 == 2;
+    r |= k2;
+    r |= !(kit == k2);
+    r |= DrawInstrName(row, i);
+    return r;
+}
+
+UBYTE PhraseCellFlagC(UBYTE row)
+{
+    UBYTE r, kit, i, k2;
+
+    i = ReadPhraseInstr(wPhrase, row);
+    r = 0;
+    kit = 0;
+    if (i == 0xFF || i < 0x10)
+        return 0;
+    if (i < 0x40) {
+        kit = ReadInstrByte(i, 0) == 2;
+        i -= 0x10;
+    } else {
+        i = 0x30;
+        r = 1;
+    }
+    k2 = ReadInstrByte(i, 0);
+    k2 = k2 == 2;
+    r |= k2;
+    r |= !(kit == k2);
+    r |= DrawInstrName(row, i);
+    return r;
 }
 
 UBYTE PrelistenEditedCell(void)

@@ -15,3 +15,5 @@ SynthWriteWaveCol  $1D:$5F29 -- all but the register pair: the ROM loads the pos
 CheckRomChecksum   $00:$1FD5 -- all but the end matches: the ROM tests (UBYTE)sum == lo with the cast in c and SDCC's cp a,a miscompile (so that test always passes), and compares sum >> 8 with hi in 16 bits with the shift spilled; ours keeps the cast in a and compares correctly
 DedupPhrases       $1F:$5BDE -- in its nested loop SDCC 2.2.1 extends the inner loop's temporaries to the loop end (SDCClrange.c operandLUse: hasIncomingDefs), so `wPhraseDedupScratch = IsPhraseUsedFar(j); if (...)` keeps the call result in a spill slot; LSDj's compiler stores it straight into the global (packRegsForAssign), frame 2 vs 4
 DedupChains        $1F:$5C78 -- same nested-loop live range as DedupPhrases
+PhraseCellFlagB    $04:$597D -- register allocation: the ROM keeps the instrument in c and spills r (first assigned in both branches); ours spills the instrument from its definition. PhraseCellFlagA/C (r = 0 at the top) match
+PhraseCellFlagD    $04:$5AC7 -- same as PhraseCellFlagB; a separate j = i + 0x10 keeps i in c but spills j
