@@ -599,6 +599,15 @@ asm that reads stack arguments (`DrawByte`, `DrawString`, `GetTilemapAddr`,
   ROM. Their `==` operands come out swapped (`i == x` compiles with `x` on the
   left). Instrumenting `SDCCloop.c`/`SDCCdflow.c` in a debug build shows
   each decision (`LOOPDBG` in `/tmp/opencode/sdcc-dbg-src`).
+- **Dead code changes live ranges.** `killDeadCode` removing anything (a
+  post-increment's unused old-value copy, the temp a literal store to a
+  non-volatile global leaves behind) makes SDCC 2.2.1 rerun
+  `computeDataFlow` after the loop pass; the extra propagation lets a
+  nested loop's body definitions reach the inner preheader, so
+  `hasIncomingDefs` extends their temporaries to the loop end and an
+  assignment such as `wPhraseDedupScratch = IsPhraseUsedFar(j)` no longer
+  packs into the global (`DedupPhrases`, parked: `i = i + 1`, a volatile word
+  cursor and a volatile inner counter restore the pack).
 - **Inline assembly** is SDCC 2.2.1's `_asm ... _endasm;` (the `di`/`ei`
   around SRAM access); the MBC registers are variables (`rRAMG = 0x0A`,
   `rRAMB = 3`), like `rROMB0`.
