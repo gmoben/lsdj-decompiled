@@ -2837,6 +2837,12 @@
   "len": 45,
   "src": "c/bank01/UiHelpers.c"
  },
+ "UiTestSramLo": {
+  "bank": "01",
+  "addr": "4000",
+  "len": 234,
+  "src": "c/bank01/UiHelpers.c"
+ },
  "UiUpdateMessage": {
   "bank": "01",
   "addr": "7878",

@@ -35,6 +35,8 @@ extern UBYTE wSelectHeld;                   /* $C40A */
 extern UBYTE wColorSet_p1;                  /* $C530 */
 UBYTE CheckRomChecksum(void);               /* $00:$1FD5 */
 UBYTE UiTestSramLo(void);
+void SeedRandom16(UWORD seed);              /* bank 0 */
+UBYTE Random16(void);                       /* bank 0, a 16-bit LCG; the SRAM test uses the low byte */
 extern UBYTE wFileNameTmp[];
 extern UWORD ColorSetPalettes[];            /* $01:$56A7, [sets][20] */
 void set_bkg_palette(UBYTE first, UBYTE nb, UWORD *rgb);   /* GBDK */
@@ -120,6 +122,47 @@ extern UBYTE wSynthScreen;                  /* $C441 */
 extern UBYTE wTable;                        /* $C41B */
 extern UWORD wTopBarLen;                    /* $C7AD, wTopBarDrawScratch as a word (aliased by match_function.py) */
 extern UWORD wVramCursorW;                  /* $C573, wVramCursor as a plain word: its `< 0x9811` is a 32-bit compare (aliased by match_function.py) */
+
+UBYTE UiTestSramLo(void)
+{
+    UBYTE i;
+    UBYTE * volatile p;                     /* volatile: the ROM keeps p on the stack */
+    char done;
+    UBYTE v;
+    char ok;
+
+    SeedRandom16(0x1234);
+    rRAMG = 0x0A;
+    for (i = 0; i < 4; i++) {
+        p = (UBYTE *)0xA000;
+        rRAMB = i;
+        for (;;) {
+            done = p == (UBYTE *)0xC000;
+            if (done)
+                break;
+            v = Random16();
+            *p = v;
+            p = p + 1;
+        }
+    }
+    SeedRandom16(0x1234);
+    for (i = 0; i < 4; i++) {
+        p = (UBYTE *)0xA000;
+        rRAMB = i;
+        for (;;) {
+            done = p == (UBYTE *)0xC000;
+            if (done)
+                break;
+            v = *p;
+            ok = v == Random16();
+            if (!ok)
+                return 0;
+            p++;
+        }
+    }
+    rRAMG = 0;
+    return 1;
+}
 
 UBYTE UiTestSramHi(void)
 {
