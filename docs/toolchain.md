@@ -12,7 +12,7 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 | What compiled LSDj? | **GBDK 2.95-3** (19 Aug 2000) → **SDCC 2.2.1** (`gbz80` target), default `asxxxx` assembler/linker, small memory model — **plus an accumulator-tracking optimisation stock SDCC lacks** (the "modified GBDK"), modelled here as an accumulator-tracking pass plus 79 peephole rules (below) |
 | Can we run it today? | **Yes, natively.** SDCC 2.2.1 + `sdcpp`/`as-gbz80`/`link-gbz80` build from the GBDK 2.95-2 sources (`tools/toolchain/build_sdcc221.sh`, ~15 s) and emit **byte-identical** asm, objects, listings and images to GBDK 2.95-3's Win32 binaries — which still run under Wine (`fetch_gbdk295.sh`), but crash on large units (below) |
 | Is it the right toolchain? | **Yes, for the code generator**: LSDj's instruction selection, register allocation and frame idioms are SDCC 2.2.1's line for line, and GBDK 2.95 library code in the ROM is byte-identical to its sources (`display_off` ← `crt0.s`, `strcpy` ← `asm_string.s`, `set_bkg_palette` ← `cgb.s`, `set_bkg_tiles` ← `set_bk_t.s` + `set_xy_t.s`, the SDCC `mul` runtime). Stock output does **not** match on its own: LSDj's build also ran peephole rules that stock 2.95-3 lacks |
-| Matched real LSDj functions? | **Yes — 540**, in twelve banks (the list: [`c/matched.json`](../c/matched.json)): a message renderer, a 15-case `switch`, a sparse `switch`, the SRAM accessors, and the instrument screen's field accessors and draw helpers. `make match` re-verifies them all (cached: only changed sources reach the compiler), and **their bytes in the ROM build come from the compiled C** (below) |
+| Matched real LSDj functions? | **Yes — 546**, in twelve banks (the list: [`c/matched.json`](../c/matched.json)): a message renderer, a 15-case `switch`, a sparse `switch`, the SRAM accessors, and the instrument screen's field accessors and draw helpers. `make match` re-verifies them all (cached: only changed sources reach the compiler), and **their bytes in the ROM build come from the compiled C** (below) |
 | Is all of LSDj C? | **No.** ~130 functions (7% of the instructions) are hand-written assembly — the interrupt handlers, sound tick, envelope/pitch and tile-loader code in bank 0, and the sequencer core in bank `$02` (`tools/match/code_kind.py`). Those stay asm; the ~830 others (every editor) are Track 2 targets |
 | Go/no-go on Track 2? | **Go, with the rule set still growing.** Every function tried has matched (each new one has cost a few rules so far), the C feeds the ROM build with `make compare` as the gate, and the hand-written asm (7%) is mapped and excluded |
 
@@ -36,7 +36,7 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 | [`c/bank03/InstrScreen.c`](../c/bank03/InstrScreen.c) | 63 functions of the instrument screen | field get/set/step helpers, `FarCall` in both address forms, SRAM literal addresses, a string literal placed after its function, `hl` kept across a `!=` compare |
 | [`c/bank1c/FileScreen.c`](../c/bank1c/FileScreen.c) | 35 functions: file screen | field highlights from column tables, a `do … while (--i)` clear (CSE shares `i - 1`), the serial receive wait, `?:` returns |
 | [`c/bank1c/FileUpgrade.c`](../c/bank1c/FileUpgrade.c) | 37 functions: the song-format upgrades | per-type instrument callbacks through a function pointer (`FileForEachInstrType`), the upgrade steps' field fix-ups, a 16-bit `\|` forced by an `int` constant |
-| [`c/bank1d/SynthScreen.c`](../c/bank1d/SynthScreen.c) | 44 functions: synth and groove screens, the per-wave parameter curves and their loader | a `switch` through a jump table, SRAM param/groove accessors, a `?:` over `long` constants (> 32767), the cache walker; SynthFillWaveRange's `*buf++ = ((UWORD)i * b >> 4) + a` (the 16-bit product through MulU16, the sum operand order per branch), RenderSynthWave's curve buffers as real array symbols (`wSynthCurveSeg3[wSynthRenderIdx]` is the `ld a,#<sym; add a,c` form a cast literal would not give), SynthReadParam's `1 << (x & 7)` mask; SynthLoadParams reads the 16 parameter bytes through `volatile UWORD` locals (`ReadSongByte(1, p++)`: the old value fetched into bc, the slot incremented in place, a plain `p` pushed straight from the stack), inline call results as arguments (a named result would hold c through the whole function), the last pair into two locals so the `+ 0x0F` adds come out in the ROM's order, and the render destination as a pointer cast of the sum |
+| [`c/bank1d/SynthScreen.c`](../c/bank1d/SynthScreen.c) | 50 functions: synth and groove screens, the per-wave parameter curves and their loader | a `switch` through a jump table, SRAM param/groove accessors, a `?:` over `long` constants (> 32767), the cache walker; SynthFillWaveRange's `*buf++ = ((UWORD)i * b >> 4) + a` (the 16-bit product through MulU16, the sum operand order per branch), RenderSynthWave's curve buffers as real array symbols (`wSynthCurveSeg3[wSynthRenderIdx]` is the `ld a,#<sym; add a,c` form a cast literal would not give), SynthReadParam's `1 << (x & 7)` mask; SynthLoadParams reads the 16 parameter bytes through `volatile UWORD` locals (`ReadSongByte(1, p++)`: the old value fetched into bc, the slot incremented in place, a plain `p` pushed straight from the stack), inline call results as arguments (a named result would hold c through the whole function), the last pair into two locals so the `+ 0x0F` adds come out in the ROM's order, and the render destination as a pointer cast of the sum |
 | [`c/bank1e/Gfx.c`](../c/bank1e/Gfx.c) | 2 functions: VRAM helpers | `UWORD` loop addresses compared against `(UWORD)0x9800` (constants above 32768 are `long`), a `while (STAT_REG & 2)` wait |
 | [`c/bank1f/InstrHelpers.c`](../c/bank1f/InstrHelpers.c) | 69 functions: bank $1F helpers | the used-table/phrase/chain scans and counters (one template, four limits), SRAM resets bracketed by `_asm di _endasm;` and MBC register writes, a function that returns `e` by accident (no `return`); RemapCmdTableRefs scans three SRAM ranges through `volatile UWORD` pointers (`*(UBYTE *)p` reads via de, in-place increments, `p != (UWORD)0xB880` byte-wise), `from == *(UBYTE *)q` (the global on the left), a `volatile UBYTE` counter and a `volatile` remapped byte for the instrument loop |
 | [`c/bank04/PhraseScreen.c`](../c/bank04/PhraseScreen.c) | 39 functions: phrase screen, its row loader, the four A+direction cell editors, instrument entry and name draw, prelisten | far-call wrappers (`FarCallArg2V`), the phrase instrument reader and the backward search for the instrument in effect (a return through `e`, `track_e`), `?:` returns, a `volatile UWORD` SRAM offset (no CSE of its casts: each push reloads it), `if (a != X && b != Y) return;` chains (the ROM's uncollapsed `jp z,L; jp done; L:`), a name copy through `char` casts, a `UWORD addr = (UWORD)p` copy (a named spill slot the allocator evicts instead of the value), a `wSongCol == 3` test the ROM shares between an `if` and a later `\|\|` (one CSE temp without a spill slot, so the value spills instead) |
@@ -59,6 +59,7 @@ it is settled there once.
 
 ```sh
 make match                      # every c/bankNN/*.c linked at its ROM address and compared
+python3 tools/match/test_peep.py  # comparison truth values and HL/SP-relative destinations
 tools/match/match_function.py --c c/bank01/DrawMessageBar.c --target DrawMessageBar
 tools/match/match_function.py --c c/bank01/DrawMessageBar.c --target DrawMessageBar --stock   # without the rules: 205 bytes, mismatch
 ```
@@ -70,6 +71,32 @@ matched C enters the build*). Matching `DrawSyncField` also fixed the symbol
 map: its second half had been labelled as a separate routine
 (`DrawSyncModeField`), but the `push bc` there is an argument push and the
 `pop bc; ret` is `DrawSyncField`'s epilogue.
+
+### Synth renderer and field redraw
+
+`SynthRenderWaveA` (367 B), `SynthRenderWaveB` (403 B), `SynthComposeWave`
+(882 B), `SynthRenderWaveType` (581 B), `DrawSynthNumber` (739 B), and
+`SynthOverwriteWaves` (110 B) match in `c/bank1d/SynthScreen.c`.
+
+- The two waveform mixers repeat `wSynthSignalType == 2` in their tests.
+  SDCC shares an unnamed comparison temporary; storing it in a named
+  boolean spills that boolean and adds a byte to the frame. Plain pointer
+  and word locals match once that extra spill location is removed.
+- Samples widen through `(WORD)*tbl` before storage in an unsigned word,
+  and the four-bit logical shift is explicitly sign-extended with `0xF000`.
+  `vol = param & mask; vol >>= 1;` must remain two statements.
+- The dispatcher uses real bank-$1E array symbols (`SynthSeedTableA`–`F`),
+  not literal pointer bases: SDCC preserves an immediate symbol as the left
+  operand of addition. A single `UWORD p` holds the offset and then the
+  banked address, cast to `char *` for `LoadSynthShape`.
+- Composition uses signed word bounds and samples, but widens the window
+  control through `UWORD`. The shared test is `hi == lo`; FOLD uses
+  `v >= hi + 1`, preserving the ROM's hoisted comparison bound. The new
+  `wSynthCurveAmp`/`wSynthCurveLimit` symbols document `$CA94`/`$CAA4`.
+- The redraw's SRAM cursor is a plain `UWORD`, not a pointer. The two `--`
+  literals are emitted after the function at `$68A5` and `$68A8`.
+  `SynthOverwriteWaves` opens the confirmation dialog; its old quoted
+  comment had incorrectly classified the routine as data.
 
 ## The "modified GBDK": recovered peephole rules
 
@@ -248,6 +275,22 @@ just stored through it, TapTempoStep's `sum < 0x100`) is fetched from
 there -- also one byte past it, stepping back first (DrawChainCell's
 `(UWORD)t < 0x78` after a two-byte store) -- the following hl-relative use
 reloaded with `ld hl,sp+N` as the add clobbered hl.
+
+The same pass now handles a **stored unsigned comparison** from a stack
+operand or register pair: stock `sbc` followed by `ld a,0; rla` becomes
+`add hl,pair; ld a,0; rla; xor a,1`. A scan of all reached instruction
+boundaries in the program banks finds one such add/materialize/invert site
+(`BuildOverwritePrompt`, `$1D:$6B8E`) and zero stock subtract/materialize
+forms (stack, global, or register operands). This is the same carry
+inversion as the branch form, with the truth value made explicit.
+Zero thresholds are left alone: adding zero cannot provide the inverse
+borrow. The pass also restores HL when its fetch starts one byte above the
+stack operand (`dec hl`), including relative stores after materialization.
+`tools/match/test_peep.py` checks both branch polarities and the actual
+destination of these stores with a small instruction interpreter, plus all
+65,536 input values at five representative thresholds. Global boolean
+materialization is deliberately left to stock code until its HL handling
+is established.
 
 Most of these are one mechanism — the code generator knowing what `a` holds
 — so besides the textual rules `peep.py` runs `track_a` over the result: it
@@ -706,6 +749,7 @@ shape.
 | `ChainPasteCells` | `$06:$6F0D` | matches with `volatile` x/y, `char` booleans and gotos except the WriteChainPhrase address: the ROM stores `fn = 0x48C5` to a late spill slot and copies it into a function-pointer temp (no constant folding, slot below the temp); SDCC folds the literal into `ld hl,#0x48C5` unless fn is volatile, which puts its slot above the temp |
 | `FindDupPhrase` | `$1F:$549C` | four 16-byte SRAM compare loops over two phrases; matches end to end with `volatile UWORD` pointers (`x = *(UBYTE *)p; p++;` is the ROM's fetch-then-in-place increment), a `volatile UBYTE` counter, block-scoped `x, y` per loop and the section bases as `(UWORD)(UBYTE *)...` casts, except that the ROM's first loop keeps the p byte in b and the q byte in c (the later loops c/b as SDCC does): one register swap; `/tmp/opencode/c/fdp_best.c` |
 | `FindDupTable` | `$1F:$573C` | the same shape as FindDupPhrase over the table rows ($B680 + offset), the same first-loop register swap |
+| `BuildOverwritePrompt` | `$1D:$6B33` | `/tmp/opencode/c/synth_overwrite.c`: 476 bytes, with the loop bounds and all border-glyph branches matching after gb_cmp16's materialized-boolean/HL-restoration fix. The remaining difference is loop-invariant motion: SDCC hoists the 14-byte `wStringSrc = AsciiCharMap + (UWORD)0xFFE0` store before the outer x loop; the ROM places it in that loop, just before the inner y loop. The final restore uses a pointer cast to avoid sharing the first expression's spill slot. |
 
 ## What's still unknown
 

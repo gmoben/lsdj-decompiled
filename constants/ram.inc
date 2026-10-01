@@ -853,12 +853,12 @@ DEF wSynthWaveShape  EQU $C9E9  ; synth waveform shape type (jump-table selector
 DEF wSynthSegLen2    EQU $C9EA  ; synth param: fill count -> curve buf $CA54 (field TBD)
 DEF wSynthFilterType EQU $C9EB  ; synth filter type (2=clear, 3=SynthFilterPass)
 DEF wSynthFilterCutoff EQU $C9EC  ; synth filter cutoff (value<<3 & $F8, SynthFilterPass)
-DEF wSynthSignalType EQU $C9ED  ; synth wave source select (2 -> SineTable vs SynthShapeTableB)
-DEF wSynthFilterParam EQU $C9EE  ; synth filter group byte (likely resonance/Q; field TBD)
+DEF wSynthSignalType EQU $C9ED  ; synth source: 2 selects SynthShapeTableB; 0/1 select SynthShapeTableA; 3 reads a saved wave
+DEF wSynthFilterParam EQU $C9EE  ; synth distortion mode: 0=CLIP, 1=FOLD, 2=WRAP (SynthComposeWave)
 DEF wSynthSegLen3    EQU $C9EF  ; synth param: fill count -> curve buf $CA84 (field TBD)
 DEF wSynthRenderActive EQU $C9F1  ; idle synth render in progress (cleared at frame $10)
 DEF wSynthRenderDst  EQU $C9F2  ; 16-bit SRAM dest ptr for rendered waves ($A0xx)
-DEF wSynthShapeBuf  EQU $C9F4  ; [32] words: the current shape's signed seed samples, sign-extended from a bank-$1E table by LoadSynthShape; SynthRenderWaveA/B read them
+DEF wSynthShapeBuf  EQU $C9F4  ; [32] words: signed seed samples from bank $1E (LoadSynthShape), accumulated into by SynthRenderWaveA/B
 DEF wSynthBufPtr     EQU $CB38  ; 16-bit scratch ptr into wSynthBufA (render/smoothing)
 DEF wSynthNavSide    EQU $CB63  ; synth screen: last horizontal nav direction (cursor column side)
 DEF wSyncXferActive  EQU $CB65  ; link song-transfer in progress (skips ProcessSyncByte)
@@ -964,6 +964,8 @@ DEF wSynthCurveSeg2  EQU $CA54  ; [16] per-wave interpolated synth parameter cur
 DEF wSynthCurveCutoff EQU $CA64 ;      read back per wave by RenderSynthWave into wSynthSegLen2/wSynthFilterCutoff/
 DEF wSynthCurveSeg1  EQU $CA74  ;      wSynthSegLen1/wSynthSegLen3); the C addresses them as literal pointers
 DEF wSynthCurveSeg3  EQU $CA84
+DEF wSynthCurveAmp   EQU $CA94  ; [16] per-frame mix amplitude, interpolated from the two nibbles of synth parameter 2
+DEF wSynthCurveLimit EQU $CAA4  ; [16] per-frame distortion-window control: synth parameters 13/14 biased by $0F
 DEF wSynthRenderPtr  EQU $CB3C  ; 16-bit scratch ptr into the $CA34 wave scratch (render/smoothing)
 DEF wSynthRenderVal  EQU $CB3E  ; 16-bit render scratch (wSynthBufA value, DivU16 operand)
 DEF wSynthWaveTmp    EQU $CB40  ; [32] filter-pass scratch copy of wSynthWaveBuf (SynthFilterPass writes it, then memcpy back)

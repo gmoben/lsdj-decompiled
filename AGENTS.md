@@ -80,7 +80,7 @@ original compiler — a period-correct, modified **GBDK 2.95 + its SDCC build**,
 a matching bank/link layout. SDCC matching is less-trodden than the MIPS/ARM/PPC
 decomp scene, and "modified GBDK" was an unknown, so Track 2 is **gated behind a
 toolchain-recovery spike**: reproduce real LSDj functions byte-for-byte before
-betting on C. **Status:** 540 functions match (`c/`, `make match`) — including
+betting on C. **Status:** 546 functions match (`c/`, `make match`) — including
 a 15-case `switch`, 16-bit SRAM addressing and most of the instrument screen's
 helpers — using stock GBDK 2.95-3 / SDCC 2.2.1 plus peephole rules recovered
 from the ROM (`tools/match/lsdj.peep`). Go: the rule set still grows with new
@@ -129,6 +129,7 @@ stay asm. See
 | `tools/toolchain/` | Fetch + run the period GBDK 2.95-3 / SDCC 2.2.1 under Wine |
 | `tools/match/` | Track 2: `match_function.py --target` (compile C, link at the ROM address, diff; `--diff` aligns both disassemblies), `verify_all.py` (`make match`; cached batch check, also of files outside `c/`), `peep.py` (our peephole matcher), `code_kind.py` (which functions are C vs hand-written asm), `shapes.py` (unmatched C functions by size / shape), `merge_c.py` (move matching functions into a module), `update_counts.py` (refresh the function/rule counts in the docs and the parked table from `c/parked.txt`) |
 | `tools/match/lsdj.peep` | Peephole rules recovered from LSDj's code — the "modified GBDK" part (`docs/toolchain.md`) |
+| `tools/match/test_peep.py` | Focused comparison-pass regressions: branch/boolean semantics, HL/SP-relative stores, zero thresholds; run with `python3 tools/match/test_peep.py` after changing `gb_cmp16` |
 | `c/include/lsdj.h` | Shared declarations for the matching C: hardware/HRAM/WRAM variables, the SRAM layout (literal-address macros), every settled prototype |
 | `c/bankNN/*.c` | **Matching C** sources: byte-identical to the ROM when compiled with the period toolchain + `lsdj.peep`. Their bytes feed the ROM build (`c/matched.json`, written by `make match`, lists the C-owned ranges; the carve INCBINs `build/c/` or the ROM) A file marked `@stock-rules` is GBDK library code, matched with SDCC's stock rules only. |
 | `tools/gen_baseline.py` | Historical one-time bootstrap baseline generator |
@@ -220,7 +221,9 @@ Tips:
    form, add a rule to `tools/match/lsdj.peep` **only with ROM-wide evidence**
    (count the stock "before" shape and the rewritten shape over the code
    banks, as in `docs/toolchain.md`), then `make match` to confirm every earlier
-   function still matches.
+   function still matches. For `gb_cmp16` changes, also run
+   `python3 tools/match/test_peep.py`: the add form reverses carry, clobbers HL,
+   and needs an inverted numeric result when the comparison is stored.
 4. `make compare` (which now runs `make match`'s compile when Wine is present)
    must stay green; commit the C, the `.sym` fixes it uncovered, and
    `c/matched.json`.
@@ -436,7 +439,7 @@ Always, before committing:
 - [x] Matched C feeds the RGBDS build: `make match` writes the bytes, the carve
       INCBINs them (ROM slice without Wine), `make compare` is the gate
 - [x] Go/no-go on Track 2: **go** — the rule set still grows with new idioms
-      (`docs/toolchain.md`); 540 functions in twelve banks match so far
+      (`docs/toolchain.md`); 546 functions in twelve banks match so far
 
 **Phase 2 — asm skeleton (Track 1)**
 - [x] Byte-exact SM83→RGBDS disassembler (`tools/disasm.py`, opcode self-test)
@@ -513,7 +516,7 @@ Always, before committing:
 - [ ] Reproduce the original bank/link layout under the recovered toolchain
       (only needed to build banks from C wholesale)
 - [x] Replace asm functions with matching C, keeping `make compare` green —
-      the mechanism is in place (540 functions); now it is a grind: bank by
+      the mechanism is in place (546 functions); now it is a grind: bank by
       bank, editor code first, asm functions stay asm
 - [ ] Recover C structures/types toward a full, readable C source tree
 

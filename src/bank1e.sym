@@ -19,7 +19,13 @@
 6356 TilesFont1A        ; font 1 (wFont==1) tile block A
 6848 TilesFont1B        ; font 1 tile block B (DMG path)
 6D1A TilesFont1C        ; font 1 tile block C (DMG path)
-720C SynthWaveTables    ; bandlimited 32-byte signed waveform cycles (softsynth preview/render)
+71EC SynthSeedTableA    ; [512] bank-$1E seed cycles: waveform shape 0, signal 0 (32 signed bytes per cycle)
+720C SynthWaveTables    ; [480] interior of SynthSeedTableA, retained debugger name for its second cycle
+73EC SynthSeedTableB    ; [256] seed cycles: waveform shape 0, signal 1
+74EC SynthSeedTableC    ; [512] seed cycles: waveform shape 1, signal 0
+76EC SynthSeedTableD    ; [256] seed cycles: waveform shape 1, signal 1
+77EC SynthSeedTableE    ; [256] seed cycles: waveform shape 0, signal 2
+78EC SynthSeedTableF    ; [256] seed cycles: waveform shape 1, signal 2
 79EC TxtSpaces13        ; 13-space blank string
 
 ; --- structural local names (loop heads / common exits) ---

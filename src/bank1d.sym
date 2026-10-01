@@ -56,7 +56,9 @@
 649F SynthEraseCursor           ; restore palette 1 over the cursor field's cells (SynthFieldX/Width/Layout[wSynthCursor])
 6503 SynthDrawCursor            ; highlight the cursor field's cells (palette 3 on CGB, 2 on DMG)
 6577 DrawSynthDistField         ; draw the DIST field: "CLIP"/"FOLD"/"WRAP"
-65C2 DrawSynthNumber            ; draw the synth number header (wSynthScreen)
+65C2 DrawSynthNumber            ; redraw the synth number and both endpoints of every parameter field
+68A5 TxtSynthFrameDashesA       ; "--" for a hidden parameter's first endpoint
+68A8 TxtSynthFrameDashesB       ; "--" for its second endpoint
 6709 .rowA                ; (was DrawSynthHexRowA) draw a START/END hex pair row of the synth screen (section A; "--" empty)
 6791 .rowB                ; (was DrawSynthHexRowB) draw a START/END hex pair row (section B)
 6819 .rowC                ; (was DrawSynthHexRowC) draw a START/END hex pair row (section C)
@@ -65,9 +67,9 @@
 6935 .loadWaveType        ; (was SynthLoadWaveType) read 2 synth params from SRAM -> $c9ed, $c9e9 (wave type)
 6967 .loadWaveTable       ; (was SynthLoadWaveTable) read packed param from SRAM, build wave table $ca94 (via SynthFillWaveRange)
 6997 .loadFilterParams    ; (was SynthLoadFilterParams) read 2 synth params from SRAM -> $c9ee, $c9eb (filter)
-6B33 BuildOverwritePrompt       ; build the OVERWRITE prompt string (wStringSrc)
+6B33 BuildOverwritePrompt       ; draw the confirmation border at columns 3..14, rows 4..10; restore wStringSrc/palettes
 6D0F DrawOverwriteChoice        ; highlight the OVERWRITE? prompt choice (wOverwriteEnd) on row 9
-6D6F SynthOverwriteWaves        ; "OVERWRITE": render the synth into the wave frames ($cb61/$cb62 range)
+6D6F SynthOverwriteWaves        ; open the OVERWRITE HAND-DRAWN WAVES? confirmation; set active/choice flags $cb61/$cb62
 6E00 RedrawScreenFar            ; FarCall home RedrawScreen ($24dd)
 6E11 OverwritePromptInput       ; synth OVERWRITE? prompt input: LEFT/RIGHT move the choice, A accepts (clearing the synth flag on the left choice), B cancels
 6E6E WriteSynthParam            ; synth_params[wSynthScreen*16+n] = value (song $3EB2); 24 uses

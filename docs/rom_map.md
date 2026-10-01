@@ -121,6 +121,45 @@ xor a / ldh [rSCY],[rSCX],[rSTAT],[rWY],a   ; reset scroll/LCD status/window
 
 `wBootHwId`/`wBootAgbId` (`$CBD9`/`$CBDA`) hold the CGB/AGB detection bytes.
 
+## Banks $1D/$1E: synth rendering
+
+The matching C in `c/bank1d/SynthScreen.c` covers the two weighted waveform
+mixers (`$4D81`, `$5190`), composition/distortion (`$5323`), and shape
+dispatch (`$5695`). `LoadSynthShape` in bank 0 temporarily selects bank
+`$1E` and sign-extends a 32-byte seed cycle into the 32-word accumulator
+`wSynthShapeBuf` (`$C9F4`). The mixers add signed correction samples from
+bank `$1D`: `SynthShapeTableA` at `$4EF0` for signal types 0/1, or
+`SynthShapeTableB` at `$50F0` for type 2.
+
+The dispatcher selects these bank-$1E seed-table bases:
+
+| Symbol | Address | Wave shape / signal type |
+|--------|---------|--------------------------|
+| `SynthSeedTableA` | `$71EC` | 0 / 0 |
+| `SynthSeedTableB` | `$73EC` | 0 / 1 |
+| `SynthSeedTableC` | `$74EC` | 1 / 0 |
+| `SynthSeedTableD` | `$76EC` | 1 / 1 |
+| `SynthSeedTableE` | `$77EC` | 0 / 2 |
+| `SynthSeedTableF` | `$78EC` | 1 / 2 |
+
+`SynthWaveTables` at `$720C` is an interior name for the second cycle of
+`SynthSeedTableA`. Shape 2 clears the accumulator before mixing; shape 3
+uses the fixed offsets A + `$F0`, B + `$70`, or E + `$70`.
+
+Two additional 16-byte per-frame curves are now named: `wSynthCurveAmp`
+(`$CA94`), interpolated from synth parameter 2's nibbles, and
+`wSynthCurveLimit` (`$CAA4`), interpolated from parameters 13/14 after adding
+`$0F`. Composition uses the latter to set its window. The byte historically
+named `wSynthFilterParam` (`$C9EE`) selects **CLIP / FOLD / WRAP** (0/1/2),
+rather than resonance; the actual filter dispatch follows composition.
+
+The full parameter redraw is `DrawSynthNumber` at `$1D:$65C2`; its two
+hidden-field `--` strings are at `$68A5`/`$68A8`. `SynthOverwriteWaves`
+at `$6D6F` opens the overwrite confirmation and sets `$CB61`/`$CB62` flags;
+it does not itself write wave data. The dialog's text uses bank 0's
+`AsciiCharMap` (`$086F`, with `wStringSrc` biased by -`$20`) and
+`IdentityCharMap` (`$08C8`) for its border tiles.
+
 ## References
 
 - [Pan Docs](https://gbdev.io/pandocs/) — memory map, I/O registers, power-up sequence.

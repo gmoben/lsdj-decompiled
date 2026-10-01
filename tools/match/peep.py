@@ -246,6 +246,18 @@ _CMP16 = [
      lambda g: ([f"\tld\thl,{g[0]}", "\tld\te,(hl)", "\tinc\thl", "\tld\td,(hl)"], "de", g[1], g[2], g[3], g[4])),
 ]
 
+# The same compare can produce a stored boolean rather than a conditional
+# jump. The only reached ROM instance is BuildOverwritePrompt ($1D:$6B8E):
+# add hl,de; ld a,0; rla; xor a,1. No stock subtract/materialize form occurs
+# in the reached program banks. Adding -N gives the inverse of subtract's
+# borrow, so the numeric result must be inverted as well as branch polarity.
+_CMP16_FORMS = [(pats, build, False) for pats, build in _CMP16] + [
+    (pats[:-1] + [r"ld\s+a,#0x00", r"rla"], build, True)
+    # Stack/register forms have enough context to restore a following
+    # stack-relative store. Leave global materialization alone for now.
+    for pats, build in _CMP16[:-1]
+]
+
 
 def _hl_stack_offset(lines: list[str], at: int) -> int | None:
     """The sp-relative offset hl holds just before line `at`, found by walking
@@ -313,12 +325,12 @@ def inline_asm_hl(lines: list[str]) -> tuple[list[str], int]:
 
 
 def gb_cmp16(lines: list[str]) -> tuple[list[str], int]:
-    """Rewrite SDCC 2.2.1's 16-bit `x < lit` / `x >= lit` into LSDj's add form."""
+    """Rewrite unsigned word comparisons, branching or stored, to the add form."""
     lines = list(lines)
     n = 0
     i = 0
     while i < len(lines):
-        for pats, build in _CMP16:
+        for pats, build, materialized in _CMP16_FORMS:
             idx: list[int] = []
             groups: list[str] = []
             j = i
@@ -332,12 +344,19 @@ def gb_cmp16(lines: list[str]) -> tuple[list[str], int]:
                 groups += m.groups()
                 j += 1
             else:
-                fetch, pair, lo, hi, cc, target = build(groups)
+                fetch, pair, lo, hi, cc, target = build(
+                    groups + ["", ""] if materialized else groups)
                 if not pair:
                     continue
                 neg = (-(int(hi, 16) << 8 | int(lo, 16))) & 0xFFFF
-                out = fetch + [f"\tld\thl,#0x{neg:04X}", f"\tadd\thl,{pair}",
-                               f"\tjp\t{'c' if cc == 'nc' else 'nc'},{target}"]
+                if not neg:
+                    # x + 0 never carries: unlike nonzero thresholds, its
+                    # carry is not the inverse of x - 0's borrow.
+                    continue
+                tail = (["\tld\ta,#0x00", "\trla", "\txor\ta,#0x01"]
+                        if materialized else
+                        [f"\tjp\t{'c' if cc == 'nc' else 'nc'},{target}"])
+                out = fetch + [f"\tld\thl,#0x{neg:04X}", f"\tadd\thl,{pair}"] + tail
                 lines[idx[0]:idx[-1] + 1] = out
                 n += 1
                 i = idx[0] + len(out) - 1
@@ -347,6 +366,10 @@ def gb_cmp16(lines: list[str]) -> tuple[list[str], int]:
                 elif fetch and fetch[0] == "\tld\te,(hl)":
                     known = _hl_stack_offset(lines, idx[0])
                     known = known + 1 if known is not None else None
+                elif fetch and fetch[0] == "\tdec\thl":
+                    # The fetch steps back from the high byte, then returns
+                    # to it. The subsequent add destroys that stack address.
+                    known = _hl_stack_offset(lines, idx[0])
                 elif not fetch:
                     # the operand was already in a pair; hl may still point at
                     # a stack byte the code goes on to use (DrawSpeechInstrScreen's

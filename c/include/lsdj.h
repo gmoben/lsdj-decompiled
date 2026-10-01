@@ -183,6 +183,7 @@ void memcpy(UBYTE *dst, UBYTE *src, UWORD n);
 void SortBytePair(UBYTE *a, UBYTE *b);               /* swap so *a <= *b */
 UBYTE ReadClipboardCell(UBYTE col, UBYTE row);         /* wClipboardBuf[col*42 + row] */
 void WriteClipboardCell(UBYTE col, UBYTE row, UBYTE v);
+void LoadSynthShape(char *src);              /* bank $1E seed bytes -> wSynthShapeBuf */
 
 /* --- the screens' draw entry points (ScreenDrawDispatch, bank 0) ----------- */
 

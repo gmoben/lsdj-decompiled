@@ -45,6 +45,7 @@ void DrawGrooveRow(void);
 void CopySelection(void);                   /* $1C:$71CD */
 void DrawAllChanStatus(void);
 void DrawSynthNumber(void);
+void BuildOverwritePrompt(void);
 void RedrawScreenFar(void);
 void SynthClearFlag(UBYTE x);
 
@@ -57,15 +58,28 @@ extern UBYTE wSynthCurveSeg2[];             /* $CA54, [16] */
 extern UBYTE wSynthCurveCutoff[];           /* $CA64, [16] */
 extern UBYTE wSynthCurveSeg1[];             /* $CA74, [16] */
 extern UBYTE wSynthCurveSeg3[];             /* $CA84, [16] */
+extern UBYTE wSynthCurveAmp[];              /* $CA94, [16] */
+extern UBYTE wSynthCurveLimit[];            /* $CAA4, [16], biased by $0F */
+extern UBYTE wSynthShapeBuf[];              /* $C9F4, byte view of 32 signed words */
+extern BYTE SynthShapeTableA[];             /* $1D:$4EF0, signed correction samples */
+extern BYTE SynthShapeTableB[];             /* $1D:$50F0 */
+extern char SynthSeedTableA[];              /* $1E:$71EC, shape 0 / signal 0 */
+extern char SynthSeedTableB[];              /* $1E:$73EC, shape 0 / signal 1 */
+extern char SynthSeedTableC[];              /* $1E:$74EC, shape 1 / signal 0 */
+extern char SynthSeedTableD[];              /* $1E:$76EC, shape 1 / signal 1 */
+extern char SynthSeedTableE[];              /* $1E:$77EC, shape 0 / signal 2 */
+extern char SynthSeedTableF[];              /* $1E:$78EC, shape 1 / signal 2 */
 UWORD SynthCalcParamAddr(UBYTE x);
 void SynthApplyFilter(void);
 void SynthReadWaveSram(void);
 void SynthRenderWaveType(void);
 void SynthComposeWave(void);
 void SynthWriteWaveCol(void);
+void SynthRenderWaveA(UBYTE amp);
+void SynthRenderWaveB(UBYTE amp);
 
 extern UBYTE wSynthWaveShape;               /* $C9E9 */
-extern UBYTE wSynthFilterParam;             /* $C9EE */
+extern UBYTE wSynthFilterParam;             /* $C9EE, distortion: CLIP/FOLD/WRAP */
 extern UBYTE wSynthRenderActive;            /* $C9F1 */
 extern UBYTE *wSynthRenderDst;              /* $C9F2 */
 void SynthFillWaveRange(UBYTE a, UBYTE b, UBYTE *buf);
@@ -303,6 +317,266 @@ void GrooveResetState(void)
         WriteGrooveByte(i, wGrooveStepCache[i]);
 }
 
+/* Add the current table cycle, weighted by the fractional segment parameter.
+ * Keep the two signal-type comparisons separate: SDCC shares their boolean
+ * temporary, but naming it changes the register spills. The signed byte is
+ * widened through WORD before storage in samp; the final shift is explicitly
+ * sign-extended because the period compiler shifts words logically.
+ */
+void SynthRenderWaveA(UBYTE amp)
+{
+    UBYTE vol;
+    UBYTE i;
+    BYTE *tbl;
+    UWORD samp;
+
+    vol = wSynthSegLen1 >> 4;
+    if (wSynthSignalType == 2)
+        tbl = &SynthShapeTableB[0];
+    else
+        tbl = &SynthShapeTableA[0];
+    if (wSynthSignalType) {
+        vol &= 0x0E;
+        if (wSynthSignalType == 2) {
+            vol >>= 1;
+            if (vol > 4)
+                vol = 4;
+        }
+    }
+    for (i = 0; i < vol; i++)
+        tbl += 0x20;
+    if (wSynthSignalType) {
+        vol = wSynthSegLen1 & 0x1F;
+        vol >>= 1;
+    } else {
+        vol = wSynthSegLen1 & 0x0F;
+    }
+    if (!vol)
+        return;
+    vol = vol * amp;
+    for (i = 0; i < 0x20; i++) {
+        samp = (WORD)*tbl;
+        samp = samp * vol;
+        if ((WORD)samp < 0) {
+            samp >>= 4;
+            samp |= 0xF000;
+        } else {
+            samp >>= 4;
+        }
+        *(UWORD *)(wSynthShapeBuf + (i << 1)) += samp;
+        tbl++;
+    }
+}
+
+/* The complementary weight comes from the preceding cycle. There is no
+ * preceding cycle at segment index zero, so that contribution is skipped.
+ */
+void SynthRenderWaveB(UBYTE amp)
+{
+    UBYTE i;
+    UBYTE vol;
+    BYTE *tbl;
+    UWORD samp;
+
+    if (wSynthSignalType == 2)
+        tbl = &SynthShapeTableB[0];
+    else
+        tbl = &SynthShapeTableA[0];
+    if (wSynthSignalType) {
+        vol = wSynthSegLen1 >> 5;
+        if (!vol)
+            return;
+        vol--;
+        vol <<= 1;
+        if (wSynthSignalType == 2) {
+            vol >>= 1;
+            if (vol > 4)
+                vol = 4;
+        }
+    } else {
+        vol = wSynthSegLen1 >> 4;
+        if (!vol)
+            return;
+        vol--;
+    }
+    for (i = 0; i < vol; i++)
+        tbl += 0x20;
+    if (wSynthSignalType) {
+        vol = wSynthSegLen1 & 0x1F;
+        vol >>= 1;
+    } else {
+        vol = wSynthSegLen1 & 0x0F;
+    }
+    vol ^= 0x0F;
+    if (!vol)
+        return;
+    vol = vol * amp;
+    for (i = 0; i < 0x20; i++) {
+        samp = (WORD)*tbl;
+        samp = samp * vol;
+        if ((WORD)samp < 0) {
+            samp >>= 4;
+            samp |= 0xF000;
+        } else {
+            samp >>= 4;
+        }
+        *(UWORD *)(wSynthShapeBuf + (i << 1)) += samp;
+        tbl++;
+    }
+}
+
+/* Scale the signed accumulator, apply the selected distortion within a
+ * per-frame window, and quantize to the wave buffer. Keep the shifts and
+ * sign extension explicit for SDCC 2.2.1; FOLD's >= hi + 1 also preserves
+ * the loop-invariant temporary in the ROM's stack frame.
+ */
+void SynthComposeWave(void)
+{
+    UBYTE *dst;
+    UBYTE i;
+    WORD span;
+    WORD lo;
+    WORD hi;
+    WORD v;
+
+    dst = &wSynthWaveBuf[0];
+    span = 0x10 - (UWORD)wSynthCurveLimit[wSynthRenderIdx];
+    lo = (span >> 1) << 4;
+    hi = 0x100 - (((span + 1) >> 1) << 4);
+    for (i = 0; i < 0x20; i++) {
+        v = *(WORD *)(wSynthShapeBuf + (i << 1));
+        v = v * wSynthSegLen3;
+        v >>= 4;
+        if (v & 0x0800)
+            v |= 0xF000;
+        v += 0x80;
+        v += wSynthSegLen2;
+        switch (wSynthFilterParam) {
+        case 0:
+            if (v < lo)
+                v = lo;
+            else if (v > hi)
+                v = hi;
+            break;
+        case 1:
+            v &= 0xFFF0;
+            if (hi == lo) {
+                v = hi;
+                break;
+            }
+            for (;;) {
+                if (v >= hi + 1)
+                    v = (hi << 1) - v;
+                else if (v < lo)
+                    v = (lo << 1) - v;
+                else
+                    break;
+            }
+            break;
+        case 2:
+            v &= 0xFFF0;
+            if (hi == lo) {
+                v = hi;
+                break;
+            }
+            while (v > hi) {
+                v = v - (hi + 0x10);
+                v = v + lo;
+            }
+            while (v < lo) {
+                v = v + (hi + 0x10);
+                v = v - lo;
+            }
+            break;
+        }
+        *dst = v >> 4;
+        dst++;
+    }
+}
+
+/* Seed the signed accumulator from bank $1E, or zero it for shape 2, then
+ * add the weighted bank-$1D cycles. p holds both the cycle offset and the
+ * resulting banked address; the cast at LoadSynthShape preserves its ABI.
+ */
+void SynthRenderWaveType(void)
+{
+    UBYTE amp;
+    UBYTE i;
+    UWORD p;
+
+    amp = wSynthCurveAmp[wSynthRenderIdx];
+    switch (wSynthWaveShape) {
+    case 0:
+        switch (wSynthSignalType) {
+        default:
+            p = wSynthSegLen1 & 0xF0;
+            p = (UWORD)(SynthSeedTableA + (p << 1));
+            break;
+        case 1:
+            p = wSynthSegLen1 & 0xE0;
+            p >>= 1;
+            p = (UWORD)(SynthSeedTableB + (p << 1));
+            break;
+        case 2:
+            p = wSynthSegLen1 & 0xE0;
+            p >>= 1;
+            p = (UWORD)(SynthSeedTableE + (p << 1));
+            break;
+        }
+        LoadSynthShape((char *)p);
+        SynthRenderWaveA(amp + 1);
+        if (amp)
+            SynthRenderWaveB(amp);
+        break;
+    case 1:
+        switch (wSynthSignalType) {
+        case 0:
+            p = wSynthSegLen1 & 0xF0;
+            p = (UWORD)(SynthSeedTableC + (p << 1));
+            break;
+        case 1:
+            p = wSynthSegLen1 & 0xE0;
+            p >>= 1;
+            p = (UWORD)(SynthSeedTableD + (p << 1));
+            break;
+        case 2:
+            p = wSynthSegLen1 & 0xE0;
+            p >>= 1;
+            p = (UWORD)(SynthSeedTableF + (p << 1));
+            break;
+        }
+        LoadSynthShape((char *)p);
+        SynthRenderWaveB(amp + 1);
+        if (amp)
+            SynthRenderWaveA(amp);
+        break;
+    case 2:
+        i = 0x20;
+        do {
+            *(UWORD *)(wSynthShapeBuf + ((i - 1) << 1)) = 0;
+        } while (--i);
+        SynthRenderWaveA(amp ? amp : 1);
+        SynthRenderWaveB(amp ? amp : 1);
+        break;
+    case 3:
+        switch (wSynthSignalType) {
+        case 0:
+            p = (UWORD)(SynthSeedTableA + 0xF0);
+            break;
+        case 1:
+            p = (UWORD)(SynthSeedTableB + 0x70);
+            break;
+        case 2:
+            p = (UWORD)(SynthSeedTableE + 0x70);
+            break;
+        }
+        LoadSynthShape((char *)p);
+        SynthRenderWaveA(amp);
+        SynthRenderWaveB(amp);
+        break;
+    }
+}
+
 UBYTE SynthWrapIndex32(UBYTE v)
 {
     return (v + 1) & 0x1F;
@@ -516,6 +790,73 @@ void DrawSynthDistField(UBYTE v)
     }
 }
 
+/* Redraw both endpoints of the synth parameters. The integer SRAM cursor
+ * is incremented between fields even when a saved-frame source hides one.
+ */
+void DrawSynthNumber(void)
+{
+    UWORD p;
+    UBYTE v;
+
+    p = (UWORD)SramSynthParams + ((UWORD)wSynthScreen << 4);
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
+    wVramCursor = (UBYTE *)0x98E8;
+    DrawByte(wSynthScreen);
+    wVramCursor = (UBYTE *)0x98EB;
+    DrawByte(wSynthScreen);
+    hBgDigitPalette = wShadowDigitPal;
+    hBgPalette = wShadowPal;
+    DrawSynthWaveField();
+    p++;
+    DrawSynthFilterField();
+    p++;
+    v = ReadSongByte(1, (UWORD)p++);
+    wVramCursor = (UBYTE *)0x9969;
+    if (SynthSignalIsFrame())
+        DrawStringIndexed('-');
+    else
+        DrawByte(v >> 4);
+    wVramCursor = (UBYTE *)0x996C;
+    if (SynthSignalIsFrame())
+        DrawStringIndexed('-');
+    else
+        DrawByte(v & 0x0F);
+    wVramCursor = (UBYTE *)0x9889;
+    DrawSynthDistField(ReadSongByte(1, (UWORD)p++));
+    wVramCursor = (UBYTE *)0x98A7;
+    DrawSynthField(ReadSongByte(1, (UWORD)p++));
+    wVramCursor = (UBYTE *)0x9928;
+    DrawHexByte(ReadSongByte(1, (UWORD)p++));
+    wVramCursor = (UBYTE *)0x9948;
+    if (SynthSignalIsFrame())
+        DrawString("--");
+    else
+        DrawHexByte(ReadSongByte(1, (UWORD)p));
+    p++;
+    wVramCursor = (UBYTE *)0x99C8;
+    DrawHexByte(ReadSongByte(1, (UWORD)p++));
+    wVramCursor = (UBYTE *)0x9988;
+    DrawHexByte(ReadSongByte(1, (UWORD)p++));
+    wVramCursor = (UBYTE *)0x992B;
+    DrawHexByte(ReadSongByte(1, (UWORD)p++));
+    wVramCursor = (UBYTE *)0x994B;
+    if (SynthSignalIsFrame())
+        DrawString("--");
+    else
+        DrawHexByte(ReadSongByte(1, (UWORD)p));
+    p++;
+    wVramCursor = (UBYTE *)0x99CB;
+    DrawHexByte(ReadSongByte(1, (UWORD)p++));
+    wVramCursor = (UBYTE *)0x998B;
+    DrawHexByte(ReadSongByte(1, (UWORD)p++));
+    wVramCursor = (UBYTE *)0x99A8;
+    DrawHexByte(ReadSongByte(1, (UWORD)p++) + 0x0F);
+    wVramCursor = (UBYTE *)0x99AB;
+    DrawHexByte(ReadSongByte(1, (UWORD)p) + 0x0F);
+    SynthDrawCursor();
+}
+
 void DrawSynthScreen(void)
 {
     wSynth &= 0x0F;
@@ -541,7 +882,7 @@ void SynthLoadParams(void)
     wSynthSignalType = ReadSongByte(1, p++);
     wSynthWaveShape = ReadSongByte(1, p++);
     v = ReadSongByte(1, p++);
-    SynthFillWaveRange(v >> 4, v & 0x0F, (UBYTE *)0xCA94);
+    SynthFillWaveRange(v >> 4, v & 0x0F, wSynthCurveAmp);
     wSynthFilterParam = ReadSongByte(1, p++);
     wSynthFilterType = ReadSongByte(1, p++);
     wSynthSegLen3 = ReadSongByte(1, p++);
@@ -554,7 +895,7 @@ void SynthLoadParams(void)
     SynthFillWaveRange(wSynthSegLen2, ReadSongByte(1, p++), wSynthCurveSeg2);
     x = ReadSongByte(1, p++);
     y = ReadSongByte(1, p);
-    SynthFillWaveRange(x + 0x0F, y + 0x0F, (UBYTE *)0xCAA4);
+    SynthFillWaveRange(x + 0x0F, y + 0x0F, wSynthCurveLimit);
     wSynthRenderDst = (UBYTE *)((s << 8) + (UWORD)0xA000);
     wSynthRenderIdx = 0;
     wSynthRenderActive = 1;
@@ -577,6 +918,27 @@ void DrawOverwriteChoice(void)
     }
     DrawTextField(x1, 9, w1, 0);
     DrawTextField(x2, 9, w2, hGameboyType ? 3 : 2);
+}
+
+/* Open the confirmation dialog; OverwritePromptInput handles the choice. */
+void SynthOverwriteWaves(void)
+{
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
+    BuildOverwritePrompt();
+    wOverwriteStart = 1;
+    wOverwriteEnd = 1;
+    wVramCursor = (UBYTE *)0x98A4;
+    DrawString("OVERWRITE");
+    wVramCursor = (UBYTE *)0x98C4;
+    DrawString("HAND-DRAWN");
+    wVramCursor = (UBYTE *)0x98E4;
+    DrawString("WAVES?");
+    wVramCursor = (UBYTE *)0x9924;
+    DrawString("YES");
+    wVramCursor = (UBYTE *)0x992B;
+    DrawString("NO");
+    DrawOverwriteChoice();
 }
 
 void RedrawScreenFar(void)

@@ -761,6 +761,12 @@
   "len": 130,
   "src": "c/bank1d/SynthScreen.c"
  },
+ "DrawSynthNumber": {
+  "bank": "1D",
+  "addr": "65C2",
+  "len": 739,
+  "src": "c/bank1d/SynthScreen.c"
+ },
  "DrawSynthScreen": {
   "bank": "1D",
   "addr": "68AB",
@@ -2849,6 +2855,12 @@
   "len": 79,
   "src": "c/bank1d/SynthScreen.c"
  },
+ "SynthComposeWave": {
+  "bank": "1D",
+  "addr": "5323",
+  "len": 882,
+  "src": "c/bank1d/SynthScreen.c"
+ },
  "SynthDrawCursor": {
   "bank": "1D",
   "addr": "6503",
@@ -2903,6 +2915,12 @@
   "len": 570,
   "src": "c/bank1d/SynthScreen.c"
  },
+ "SynthOverwriteWaves": {
+  "bank": "1D",
+  "addr": "6D6F",
+  "len": 110,
+  "src": "c/bank1d/SynthScreen.c"
+ },
  "SynthParamAddClamp": {
   "bank": "1D",
   "addr": "6EB6",
@@ -2931,6 +2949,24 @@
   "bank": "1D",
   "addr": "6115",
   "len": 47,
+  "src": "c/bank1d/SynthScreen.c"
+ },
+ "SynthRenderWaveA": {
+  "bank": "1D",
+  "addr": "4D81",
+  "len": 367,
+  "src": "c/bank1d/SynthScreen.c"
+ },
+ "SynthRenderWaveB": {
+  "bank": "1D",
+  "addr": "5190",
+  "len": 403,
+  "src": "c/bank1d/SynthScreen.c"
+ },
+ "SynthRenderWaveType": {
+  "bank": "1D",
+  "addr": "5695",
+  "len": 581,
   "src": "c/bank1d/SynthScreen.c"
  },
  "SynthSignalIsFrame": {

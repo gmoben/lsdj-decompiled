@@ -26,10 +26,10 @@ Current state:
   classifies as fill/text/graphics, with no code-like bytes unexplained. Known
   fidelity gaps — e.g. bank 0's bank-switched call targets still printed as raw
   addresses — are listed in [`docs/reversal.md`](docs/reversal.md) → *Current status*
-- matching C works: ten LSDj functions in [`c/`](c) — a message renderer,
-  two `switch`es, a 16-bit SRAM accessor, … — compile byte-for-byte with the
-  original GBDK 2.95-3 / SDCC 2.2.1 plus peephole rules recovered from the
-  ROM, LSDj's "modified GBDK", and the ROM build takes those functions' bytes
+- matching C works: editor, synth, storage and shared routines in [`c/`](c)
+  — including waveform mixing and CLIP/FOLD/WRAP distortion — compile
+  byte-for-byte with the original GBDK 2.95-3 / SDCC 2.2.1 plus peephole
+  rules recovered from the ROM, LSDj's "modified GBDK", and the ROM build takes those functions' bytes
   from the compiled C (`make match`; see
   [`docs/toolchain.md`](docs/toolchain.md)). About 130 functions — the sound
   tick and sequencer core — are hand-written asm and stay that way
@@ -130,7 +130,7 @@ The project runs on **two tracks** (details in [`AGENTS.md`](AGENTS.md)):
 
 Track 2 is gated behind a **toolchain-recovery spike**: pin a period-correct
 GBDK 2.95 + SDCC and reproduce real LSDj functions byte-for-byte before
-committing to C. That spike is done and the grind has begun: 540 functions
+committing to C. That spike is done and the grind has begun: 546 functions
 match, the recovered compiler model is an accumulator-tracking pass plus 79
 peephole rules with ROM-wide evidence, and matched C feeds the ROM build (`INCBIN` of the compiled bytes,
 gated by `make compare`).
@@ -139,6 +139,7 @@ See [`docs/toolchain.md`](docs/toolchain.md), and try it:
 ```bash
 tools/toolchain/build_sdcc221.sh     # period compiler, built natively (gcc -m32, bison, flex)
 make match                           # every c/bankNN/*.c vs the ROM (cached)
+python3 tools/match/test_peep.py       # comparison-pass semantics and HL/SP regressions
 tools/match/match_function.py --c c/bank01/DrawMessageBar.c --target DrawMessageBar
 # ==> MATCH: byte-identical to ROM $01:$74F7-$75BC
 ```

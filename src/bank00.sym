@@ -235,6 +235,7 @@
 014E HeaderChecksumHi           ; ROM header global checksum (hi byte), read by CheckRomChecksum
 014F HeaderChecksumLo           ; ROM header global checksum (lo byte)
 300F ExpoCurve16                ; 16-entry exponential curve $00..$73: envelope speed -> frame count
+086F AsciiCharMap               ; [89] character-to-tile map from space onward; text draws set wStringSrc to this address minus $20
 08C8 IdentityCharMap            ; identity tile-index map (loaded into wStringSrc for raw-tile draws)
 01E0 SyncModeStubs              ; 4 x 4-byte jp-hl slots from SendSyncHandshake ((mode&3)*4); only slot 0 (ret) populated
 0200 TimesTwoTable              ; [n] -> 2n byte ramp (FileUpgradeRemapBits, synth draw)
