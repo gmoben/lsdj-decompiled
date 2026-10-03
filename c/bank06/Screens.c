@@ -658,6 +658,45 @@ void ChainOpenPhrase(void)
     }
 }
 
+void CutCopyChainSelection(UBYTE cut)
+{
+    UBYTE x, y;
+
+    if (wClipboardType != 3)
+        return;
+    wCursorMode = 2;
+    wSelRight = wChainCol;
+    wSelBottom = wChainRow;
+    SortBytePair(&wSelLeft, &wSelRight);
+    SortBytePair(&wSelTop, &wSelBottom);
+    wSelRight++;
+    wSelBottom++;
+    for (x = wSelLeft; x < wSelRight; x++) {
+        for (y = wSelTop; y < wSelBottom; y = y + 1) {
+            wChainCol = x;
+            wChainRow = y;
+            ChainDrawCellLo();
+            switch (x) {
+            case 0:
+                WriteClipboardCell(0, y, FarCallArg2P(2, FAR_FN(SndGetChainPhrase), wChain, y));
+                if (cut)
+                    FarCallArg3P(0x1F, FAR_FN(WriteChainPhrase), wChain, y, 0xFF);
+                break;
+            case 1:
+                WriteClipboardCell(1, y, ChainReadTrans(wChain, y));
+                if (cut)
+                    SetChainTranspose(wChain, y, 0);
+                break;
+            }
+        }
+    }
+    FarCall(0x1C, FAR_FN(CopySelection));
+    wChainCol = wSelLeft;
+    wChainRow = wSelTop;
+    ShowMessage(cut ? "CUT " : "COPY");
+    DrawChainScreen();
+}
+
 void DrawKitSampleNames(UBYTE ch, UBYTE note)
 {
     UBYTE c, n;

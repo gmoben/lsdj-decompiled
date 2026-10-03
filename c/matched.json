@@ -341,6 +341,12 @@
   "len": 44,
   "src": "c/bank04/PhraseScreen.c"
  },
+ "CutCopyChainSelection": {
+  "bank": "06",
+  "addr": "6D55",
+  "len": 430,
+  "src": "c/bank06/Screens.c"
+ },
  "CutCopySongSelection": {
   "bank": "07",
   "addr": "5736",
