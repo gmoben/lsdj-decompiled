@@ -173,7 +173,7 @@ void CloneInstrTable(void)
 {
     UBYTE v, t;
 
-    if (wInstrField != InstrTableFieldRow[ReadCurInstrByte(0) \& 3])
+    if (wInstrField != InstrTableFieldRow[ReadCurInstrByte(0) & 3])
         return;
     v = ReadCurInstrByte(6);
     if (!(v & 0x20))

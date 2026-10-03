@@ -423,14 +423,14 @@ void PasteWaveSelection(void)
     i = wWaveSelStart;
     while (i != wWaveSelEnd) {
         v = ReadClipboardCell(0, i >> 1);
-        if (!(i \& 1))
+        if (!(i & 1))
             v >>= 4;
         else
-            v \&= 0x0F;
+            v &= 0x0F;
         WriteWaveSample(wWaveCursor, v);
         i++;
         wWaveCursor++;
-        wWaveCursor \&= 0x1F;
+        wWaveCursor &= 0x1F;
     }
     ShowMessage("PASTE");
     ChainDrawRow16();
