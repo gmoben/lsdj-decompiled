@@ -20,6 +20,15 @@ extern UBYTE wNameEditBuf[];                /* $C431, [5] */
 extern UBYTE wColInstrument[];              /* $C468, [4] */
 extern UBYTE wSelTop;                       /* $C40E */
 extern UBYTE wClipboardType;                /* $C411 */
+extern UBYTE wSelRight;                     /* $C40F */
+extern UBYTE wSelBottom;                    /* $C410 */
+void CopySelection(void);                   /* $1C:$71CD */
+void PhraseReadNote(void);                  /* $04:$4968, (row) */
+void WritePhraseNote(void);                 /* $04:$418F, (row, v) */
+void PhraseReadFx(void);                    /* $04:$4AEA, (phrase, row) */
+void WritePhraseFx(void);                   /* $04:$49C5, (phrase, row, cmd) */
+void PhraseReadFxVal(void);                 /* $04:$4A8F, (phrase, row) */
+void WritePhraseFxVal(void);                /* $04:$4A30, (phrase, row, v) */
 UBYTE ReadPhraseInstr(UBYTE phrase, UBYTE row);  /* $04:$4918 */
 void WriteInstrName(UBYTE instr);           /* $01:$4A49 */
 UBYTE IsPhraseUsed(UBYTE phrase);
@@ -1160,6 +1169,93 @@ UBYTE HasEnterableColLeft(void)
     for (c = wSongCol - 1; c < 4; c--)
         if (CanEnterSongCol(c))
             break;
+}
+
+/* The phrase screen's cut/copy: every selected cell into the clipboard
+   (the note byte split over columns 0 and 1 unless the row flag is $FF),
+   cleared on a cut. A selection of the note column alone on channel 2
+   takes the instrument column too, copied but never cut (cutInstr). The
+   note accessors take only the row: FarCallArg2/3 get one byte fewer. */
+void CutCopyPhraseSelection(UBYTE cut)
+{
+    UBYTE x, y, t;
+    UBYTE cutInstr = cut;
+
+    if (wClipboardType != 1)
+        return;
+    ShowMessage(cutInstr ? "CUT" : "COPY");
+    wCursorMode = 2;
+    wSelRight = wPhraseCol;
+    wSelBottom = wPhraseRow;
+    SortBytePair(&wSelLeft, &wSelRight);
+    SortBytePair(&wSelTop, &wSelBottom);
+    if (wSelLeft == 4)
+        wSelLeft = 3;
+    if (wSelRight == 3)
+        wSelRight = 4;
+    if (wSelRight == 1 && wSongCol == 2) {
+        cutInstr = 0;
+        wSelRight = 2;
+    }
+    wSelRight++;
+    wSelBottom++;
+    for (y = wSelTop; y < wSelBottom; y++) {
+        for (x = wSelLeft; x < wSelRight; x = x + 1) {
+            wPhraseCol = x;
+            wPhraseRow = y;
+            InstrHReadCursorCellAt();
+            switch (x) {
+            case 0:
+                if (wPhraseRowFlags[y] != 0xFF) {
+                    t = FarCallArg2P(4, FAR_FN(PhraseReadNote), y);
+                    WriteClipboardCell(0, y, t >> 4);
+                    if (cut)
+                        FarCallArg3P(4, FAR_FN(WritePhraseNote), y, t & 0x0F);
+                }
+                if (wSelRight == 1 && wSongCol == 2) {
+                    WriteClipboardCell(1, y, 0xFF);
+                    cutInstr = 0;
+                    goto instr;
+                }
+                break;
+            case 1:
+                if (wPhraseRowFlags[y] == 0xFF) {
+                    WriteClipboardCell(0, y, 0);
+                    WriteClipboardCell(1, y, FarCallArg2P(4, FAR_FN(PhraseReadNote), y));
+                    if (cut)
+                        FarCallArg3P(4, FAR_FN(WritePhraseNote), y, 0);
+                } else {
+                    t = FarCallArg2P(4, FAR_FN(PhraseReadNote), y);
+                    WriteClipboardCell(1, y, t & 0x0F);
+                    if (cut)
+                        FarCallArg3P(4, FAR_FN(WritePhraseNote), y, t & 0xF0);
+                }
+                break;
+            case 2:
+            instr:
+                WriteClipboardCell(2, y, FarCallArg2P(4, FAR_FN(ReadPhraseInstr), wPhrase, y));
+                if (cutInstr)
+                    FarCallArg3P(4, FAR_FN(WritePhraseInstrument), wPhrase, y, 0xFF);
+                break;
+            case 3:
+                WriteClipboardCell(3, y, FarCallArg2P(4, FAR_FN(PhraseReadFx), wPhrase, y));
+                if (cut)
+                    FarCallArg3P(4, FAR_FN(WritePhraseFx), wPhrase, y, 0);
+                break;
+            case 4:
+                WriteClipboardCell(4, y, FarCallArg2P(4, FAR_FN(PhraseReadFxVal), wPhrase, y));
+                if (cut)
+                    FarCallArg3P(4, FAR_FN(WritePhraseFxVal), wPhrase, y, 0);
+                break;
+            }
+        }
+    }
+    if (wSelRight == 1)
+        wSelRight = 3;
+    FarCall(0x1C, FAR_FN(CopySelection));
+    wPhraseCol = wSelLeft;
+    wPhraseRow = wSelTop;
+    FarCall(4, FAR_FN(DrawPhraseScreen));
 }
 
 void DrawPhraseCursor(void)
