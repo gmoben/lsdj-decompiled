@@ -235,6 +235,7 @@ def compile_unit(work: Path, env: dict[str, str], c_path: Path,
         rules = peep_mod.parse_rules(peep.read_text())
         lines = asm.read_text(errors="replace").splitlines()
         lines, _ = peep_mod.inline_asm_hl(lines)        # hl reloaded after `_asm`
+        lines, _ = peep_mod.ifx_word_hl(lines)          # hl reloaded after `if (w)` on a stack word
         lines, _ = peep_mod.gb_cmp16(lines)             # LSDj's 16-bit compare codegen
         lines, _ = peep_mod.apply(rules, lines)
         targets = peep_mod.referenced_labels(lines)     # jump targets once the rules have run

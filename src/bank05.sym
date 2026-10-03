@@ -43,8 +43,27 @@
 7208 GetSynthFieldHelp  ; -> bc = help string for the selected synth field (jump table by wSynthCursor)
 743F SaveSelectionState ; wCursorMode/wClipboardType/wSelLeft/Top/Right/... -> $cbd2 save area
 747D RestoreSelectionState ; $cbd2 save area -> wCursorMode/wClipboardType/wSel*
-69BD DrawInstrFieldHelp ; pick + draw the instr-screen bottom help string by wInstrField/arg (TYPE -> TxtHelpInstrType)
+69BD DrawInstrFieldHelp ; instrument-screen help line: the string for wInstrField under instrument type arg (TYPE row: TxtHelpInstrType) -> ShowMessage
 6F38 TxtHelpInstrType   ; "USE PULSE IN PU1/PU2; WAVE/KIT IN WAV; NOISE IN NOI"
+6D25 TxtHelpEnvStage1           ; "ENVELOPE STAGE 1: ..." (DrawInstrFieldHelp reaches these ten shared strings by constant address)
+6D72 TxtHelpEnvStage2           ; "ENVELOPE STAGE 2: ..."
+6DBF TxtHelpEnvStage3           ; "ENVELOPE STAGE 3: ..."
+6E0C TxtHelpPan                 ; "LEFT/RIGHT/BOTH/NONE"
+6E21 TxtHelpLength              ; "LENGTH [N/256 SECS]"
+6E35 TxtHelpPitchMode           ; "P/L/V CMDS: FAST=358 HZ UPDATE; ..."
+6EB5 TxtHelpTransposeOk         ; "ALLOW TRANSPOSES?"
+6EC7 TxtHelpCmdRate             ; "SLOWS C+R COMMANDS, P+V TOO IF PITCH=TICK"
+6EF1 TxtHelpTableMode           ; "TABLE ADVANCE: TICK=EVERY TICK, STEP=EVERY NOTE"
+6F21 TxtHelpVolume              ; "AMPLITUDE=0/25/50/100%"
+6F6C TxtHelpPulseWidth          ; "PULSE WIDTH 12/25/50/75%"
+6F85 TxtHelpPu1Sweep            ; "PU1 PITCH CHANGE: 1ST DIGIT=TIME, 2ND DIGIT=INC/DEC"
+6FCB TxtHelpPuDetune            ; "DETUNES PU1 DOWN, PU2 UP"
+7000 TxtHelpSynthToPlay         ; "SYNTH TO PLAY. SYNTH N=WAVES N0-NF"
+7023 TxtHelpWavePlayMode        ; "MANUAL=PLAY SINGLE WAVE ...; RESYNC=RESTART WAVE ON EACH STEP"
+70B5 TxtHelpTicksPerStep        ; "TICKS/STEP"
+70E3 TxtHelpKitLeft             ; "SAMPLE KIT [LEFT]"
+70F5 TxtHelpKitRight            ; "SAMPLE KIT [RIGHT]"
+7108 TxtHelpPitchShift          ; "PITCH SHIFT"
 649A TxtCut05                   ; "CUT"
 649E TxtCopy05                  ; "COPY"
 42D5 TableColX                  ; x of the six table screen columns (VOL TSP CMD VAL CMD VAL)
@@ -494,43 +513,6 @@
 6CFE .cont_43
 6D08 .cont_44
 6D0F .showMessage
-6D9C .cont_45
-6DB4 .cont_46
-6DB6 .step
-6DB8 .step_2
-6DCC .cont_47
-6DCD .cont_48
-6DCF .cont_49
-6DE2 .cont_50
-6DE9 .cont_51
-6E02 .cont_52
-6E03 .step_3
-6E05 .step_4
-6E19 .cont_53
-6E1A .cont_54
-6E1C .cont_55
-6E2F .cont_56
-6E36 .cont_57
-6E52 .cont_58
-6E6A .cont_59
-6E7F .cont_60
-6E84 .step_5
-6E88 .cont_61
-6EA3 .cont_62
-6EAA .cont_63
-6EB2 .cont_64
-6EBC .cont_65
-6EBF .cont_66
-6EC2 .cont_67
-6EC9 .cont_68
-6ECB .cont_69
-6EDD .cont_70
-6EE4 .cont_71
-6F03 .cont_72
-6F10 .cont_73
-6F15 .step_6
-6F2D .cont_74
-6F37 .cont_75
 7250 .cont
 7258 .cont_2
 7260 .cont_3

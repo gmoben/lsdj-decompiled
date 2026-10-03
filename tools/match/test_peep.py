@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Focused regressions for the recovered 16-bit comparison pass and the
-switch-chain reload pass.
+"""Focused regressions for the recovered 16-bit comparison pass, the
+switch-chain reload pass and the hl reload after a word test.
 
 Run with: python3 tools/match/test_peep.py
 """
@@ -186,6 +186,32 @@ class SwitchChainTests(unittest.TestCase):
         other = [l.replace("_wButtons", "_wButtonsSame") if i >= 5 else l
                  for i, l in enumerate(source)]
         self.assertEqual(peep.switch_chain(other, set()), (other, 0))
+
+
+
+class WordTestHlTests(unittest.TestCase):
+    """A stack word tested by genIfx loses hl (DrawInstrFieldHelp); the same
+    bytes from genCmpEq keep it (GetInstrEnvBytes)."""
+
+    def source(self, marker):
+        return [marker, "; AOP_STK for _f_s_1_1", "\tlda\thl,0(sp)", "\tld\ta,(hl+)",
+                "\tor\ta,(hl)", "\tjp\tz,00168$", "; genIpush", "\tdec\thl",
+                "\tld\ta,(hl+)", "\tld\th,(hl)", "\tld\tl,a", "\tpush\thl"]
+
+    def test_ifx_test_reloads_hl(self):
+        out, n = peep.ifx_word_hl(self.source("; genIfx"))
+        self.assertEqual(n, 1)
+        self.assertEqual(out[7], "\tlda\thl,0(sp)")
+        # and track_a leaves that reload alone
+        tracked, _ = peep.track_a(out, set())
+        self.assertNotIn("\tdec\thl", tracked)
+
+    def test_compare_keeps_hl(self):
+        source = self.source("; genCmpEq")
+        self.assertEqual(peep.ifx_word_hl(source), (source, 0))
+        reloaded = source[:7] + ["\tlda\thl,0(sp)"] + source[8:]
+        tracked, _ = peep.track_a(reloaded, set())
+        self.assertEqual(tracked[7], "\tdec\thl")
 
 
 if __name__ == "__main__":

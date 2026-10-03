@@ -575,6 +575,12 @@
   "len": 172,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "DrawInstrFieldHelp": {
+  "bank": "05",
+  "addr": "69BD",
+  "len": 872,
+  "src": "c/bank05/FieldHelp.c"
+ },
  "DrawInstrName": {
   "bank": "04",
   "addr": "57D4",

@@ -295,6 +295,57 @@ def _hl_stack_offset(lines: list[str], at: int) -> int | None:
     return None
 
 
+def ifx_word_hl(lines: list[str]) -> tuple[list[str], int]:
+    """Reload hl after `if (w)` on a stack word.
+
+    SDCC 2.2.1 tests a 16-bit stack operand in genIfx with `lda hl,N(sp);
+    ld a,(hl); inc hl; or a,(hl)` (its peephole folds the first two into
+    `ld a,(hl+)`) and still knows hl, so the next use of that word steps
+    back with `dec hl`. LSDj's compiler forgot hl after this test and
+    reloaded it (DrawInstrFieldHelp's `if (s) ShowMessage(s)`: `ld hl,sp+0`
+    again). A `w == 0` compare (genCmpEq, the same bytes) keeps hl in both
+    (GetInstrEnvBytes' `dec hl; ld (hl),1`), so only genIfx's test counts."""
+    lines = list(lines)
+    n = 0
+    i = 0
+    while i < len(lines):
+        if _strip(lines[i]).strip() or "; genIfx" not in lines[i]:
+            i += 1
+            continue
+        code = []
+        k = i + 1
+        while k < len(lines) and len(code) < 4:
+            t = _strip(lines[k]).strip()
+            if t:
+                if t.endswith(":"):
+                    break
+                code.append((k, t))
+            k += 1
+        ts = [t for _, t in code]
+        if ts and re.fullmatch(r"lda\s+hl,\d+\(sp\)", ts[0]):
+            ts = ts[1:]
+            code = code[1:]
+        if len(ts) >= 3 and ts[0] == "ld\ta,(hl+)" and ts[1] == "or\ta,(hl)" \
+                and re.fullmatch(r"jp\s+n?z,\S+", ts[2]):
+            jump = code[2][0]
+            base = _hl_stack_offset(lines, jump)
+            if base is not None:
+                k = jump + 1
+                while k < len(lines) and not _strip(lines[k]).strip():
+                    k += 1
+                adj = k
+                off = 0
+                while adj < len(lines) and _strip(lines[adj]).strip() in ("inc\thl", "dec\thl"):
+                    off += 1 if _strip(lines[adj]).strip() == "inc\thl" else -1
+                    adj += 1
+                nxt = _strip(lines[adj]).strip() if adj < len(lines) else ""
+                if adj > k and "(hl" in nxt and not nxt.endswith(":"):
+                    lines[k:adj] = [f"\tlda\thl,{base + off}(sp)"]
+                    n += 1
+        i += 1
+    return lines, n
+
+
 def inline_asm_hl(lines: list[str]) -> tuple[list[str], int]:
     """Reload hl after an inline-asm block.
 
@@ -539,10 +590,14 @@ def _forget_reg(eq: set[str], via: dict[str, str], r: str) -> None:
 
 
 def _after_word_zero_test(out: list[str]) -> bool:
-    """The last three instructions emitted are `ld a,(hl+); or a,(hl); jp cc,L`."""
+    """The last three instructions emitted are `ld a,(hl+); or a,(hl); jp cc,L`
+    from a compare (genCmpEq). genIfx's test of a word is the other way
+    round (see ifx_word_hl) and does not count."""
     seq = []
-    for l in reversed(out):
-        t = _strip(l).strip()
+    k = len(out)
+    while k > 0:
+        k -= 1
+        t = _strip(out[k]).strip()
         if not t or t.endswith(":"):
             continue              # (a label the rules left unreferenced)
         seq.append(t)
@@ -550,8 +605,15 @@ def _after_word_zero_test(out: list[str]) -> bool:
             break
     if len(seq) < 3:
         return False
-    return (re.fullmatch(r"jp\s+(nz|z),\S+", seq[0]) is not None and seq[1] == "or\ta,(hl)"
-            and seq[2] == "ld\ta,(hl+)")
+    if not (re.fullmatch(r"jp\s+(nz|z),\S+", seq[0]) is not None and seq[1] == "or\ta,(hl)"
+            and seq[2] == "ld\ta,(hl+)"):
+        return False
+    while k > 0:                  # the code generator that emitted the test
+        k -= 1
+        m = re.match(r"; (gen\w+)", out[k])
+        if m:
+            return m.group(1) != "genIfx"
+    return True
 
 
 def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
