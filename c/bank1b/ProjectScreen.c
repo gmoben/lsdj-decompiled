@@ -48,6 +48,38 @@ void MixerKernel(void);                     /* $1B:$4000, the 27-byte asm mixer 
 extern UBYTE wWorkClockSubFrame;            /* $C9AA */
 extern UBYTE wTapTempoCount;                /* $C9AB */
 extern UBYTE wTapTempoBuf[];                /* $C9AC, [8] */
+extern UBYTE wSelectHeld;                   /* $C40A */
+extern UBYTE wBHeld;                        /* $C40B */
+extern UBYTE wAHeld;                        /* $C40C */
+extern UBYTE wMapCol;                       /* $C8FF */
+extern UBYTE wProjMenuActive;               /* $C9A5, the RESET CARTRIDGE? menu is open */
+extern UBYTE wProjMenuItem;                 /* $C9A6, its YES/NO */
+extern UBYTE wTickRepeat;                   /* $CB70 */
+extern UBYTE wFrameSkip;                    /* $CB6F */
+extern UBYTE wTransposeDirty;               /* $C445 */
+extern UBYTE wSongTransposeDisp;            /* $C446 */
+extern UBYTE wSyncState;                    /* $CBDE */
+extern UBYTE wColorSet;                     /* $C52F */
+extern UBYTE wKeyDelayTimer;                /* $C406 */
+extern UBYTE wFont;                         /* $C52E */
+extern UBYTE wFileField;                    /* $C992 */
+UBYTE ProjSyncStateFlag(void);              /* $1B:$57C1 */
+void SyncApplyMode(void);                   /* bank 0 */
+void TapTempoStep(void);
+void SetSyncSendRate(void);                 /* bank 7 */
+void ApplyColorSet(void);                   /* bank 1 */
+void LoadFontTiles(void);                   /* bank $1E */
+void FormatFileSpace(void);                 /* bank $1C */
+void CleanSongData(void);                   /* bank $1F */
+void CleanInstrData(void);                  /* bank $1F */
+void DrawKeyboardCalibScreen(void);         /* bank 7 */
+void FileValidateName(void);                /* bank $1C */
+void LoadFileListState(void);               /* bank $1C */
+void LoadProjectSettings(void);             /* bank 1 */
+void UiClearSram(void);                     /* bank 1 */
+void MapMoveRight(void);                    /* bank 5 */
+void MapMoveDown(void);                     /* bank 5 */
+void StopPlayback(void);                    /* bank 2 */
 
 extern UBYTE wKbdLetterPos;                 /* $C42C */
 extern UBYTE wNameEditBuf[];                /* $C431, [5] */
@@ -579,6 +611,482 @@ void ProjectScreenRefresh(void)
     DrawProjectScreen();
     FarCall(5, MapDrawTopRow);
     wRedrawPending = 0;
+}
+
+/*
+ * The project screen's input (screen 9). A+right/left and A+up/down change
+ * the field under the cursor: tempo (or the sync rate when slaved), the
+ * transpose, sync mode and its setting, clone mode, colour set, font, key
+ * repeat and delay, prelisten -- each saved to the song properties. A taps
+ * the tempo, cleans songs or instruments, opens the keyboard calibration,
+ * and on the last row opens the file screen, or without a file system the
+ * RESET CARTRIDGE? menu: its YES clears SRAM and reloads the settings
+ * (select+A+B on YES also formats the file area). start/select+start stop
+ * playback. 1 when the key was taken.
+ */
+UBYTE ProjectScreenInput(void)
+{
+    GetTilemapAddr(ProjFieldX[wProjCursor], ProjFieldY[wProjCursor]);
+    hBgDigitPalette = wSelectDigitPal;
+    hBgPalette = wSelectPal;
+    if (wButtons != 0x10)
+        wTapTempoCount = 0xFF;
+    switch (wButtons) {
+    case 0x48:
+        if (!wSelectHeld || wProjMenuActive)
+            return 0;
+        wSelectHeld = 0;
+        _asm
+        ei
+        _endasm;
+        FarCall(5, MapMoveDown);
+        FarCall(5, FAR_FN(RedrawScreen));
+        _asm
+        ei
+        _endasm;
+        return 1;
+    case 0x41:
+        if (!wSelectHeld || wProjMenuActive)
+            return 0;
+        if (!(char)wMapCol)
+            return 0;
+        wSelectHeld = 0;
+        FarCall(5, MapMoveRight);
+        FarCall(4, FAR_FN(RedrawScreen));
+        return 1;
+    case 0x01:
+        if (wProjMenuActive)
+            goto menuRight;
+        return 0;
+    case 0x02:
+        if (wProjMenuActive)
+            goto menuLeft;
+        return 0;
+    case 0x11:
+        switch (wProjCursor) {
+        case 0:
+            if (ProjSyncStateFlag()) {
+                wTickRepeat++;
+                DrawTempo(GetTempoTimerValue() + 1);
+                ProjRedrawTempo();
+                return 1;
+            }
+            if (wTempo != 0x27)
+                wTempo++;
+            else if (wTempoMode < 3)
+                wTempoMode++;
+            FarCall(7, FAR_FN(SetSyncSendRate));
+            ProjDrawTempo();
+            SaveTempoProps();
+            return 1;
+        case 1:
+            if (!wTransposeDirty) {
+                wSongTransposeDisp = wSongTranspose;
+                wTransposeDirty++;
+            }
+            wSongTransposeDisp++;
+            DrawHexByte(wSongTransposeDisp);
+            return 1;
+        case 2:
+            if (wButtonsSame)
+                return 1;
+            if (wSyncMode < 7) {
+                wSyncMode++;
+                if (wSyncMode == 4 || wSyncMode == 2)
+                    wSyncMode++;
+                SaveSyncMode();
+            }
+            wSyncState = 0;
+            SyncApplyMode();
+            hBgDigitPalette = wSelectDigitPal;
+            hBgPalette = wSelectPal;
+            DrawSyncField();
+            ProjRedrawPrelisten();
+            return 1;
+        case 3:
+            if (wSyncMode2 < 0xFF) {
+                wSyncMode2++;
+                DrawSyncMode2Field();
+            }
+            return 1;
+        case 4:
+            if (!wCloneMode) {
+                wCloneMode = 1;
+                WriteSongByte(1, 0xBFC0, 1);
+                DrawString("SLIM");
+            }
+            return 1;
+        case 5:
+            if (wButtonsSame)
+                return 0;
+            if (!hGameboyType && wColorSet == 3)
+                return 0;
+            if (hGameboyType && wColorSet == 6)
+                return 0;
+            wColorSet++;
+            WriteSongByte(1, 0xBFBE, wColorSet);
+            DrawFontColorFields();
+            FarCall(1, FAR_FN(ApplyColorSet));
+            if (!hGameboyType && wColorSet == 2)
+                FarCall(0x1E, FAR_FN(LoadFontTiles));
+            return 1;
+        case 6:
+            if (wKeyRepeat == 0x0F || !wAHeld)
+                return 1;
+            wAHeld = 0;
+            wKeyDelayTimer = 1;
+            wKeyRepeat++;
+            DrawKeyRepeatField();
+            WriteSongByte(1, 0xBFBB, wKeyRepeat);
+            return 1;
+        case 7:
+            wPrelisten = 1;
+            DrawPrelistenField();
+            WriteSongByte(1, 0xBFC3, wPrelisten);
+            return 1;
+        }
+        break;
+    case 0x12:
+        switch (wProjCursor) {
+        case 5:
+            if (!wColorSet || wButtonsSame)
+                return 0;
+            wColorSet--;
+            WriteSongByte(1, 0xBFBE, wColorSet);
+            FarCall(1, FAR_FN(ApplyColorSet));
+            DrawFontColorFields();
+            if (!hGameboyType && wColorSet == 1)
+                FarCall(0x1E, FAR_FN(LoadFontTiles));
+            return 1;
+        case 0:
+            if (ProjSyncStateFlag()) {
+                wFrameSkip++;
+                DrawTempo(GetTempoTimerValue() - 1);
+                ProjRedrawTempo();
+                return 1;
+            }
+            if (wTempoMode)
+                wTempoMode--;
+            else if (wTempo != 0x28)
+                wTempo--;
+            FarCall(7, FAR_FN(SetSyncSendRate));
+            ProjDrawTempo();
+            SaveTempoProps();
+            return 1;
+        case 1:
+            if (!wTransposeDirty) {
+                wSongTransposeDisp = wSongTranspose;
+                wTransposeDirty++;
+            }
+            wSongTransposeDisp--;
+            DrawHexByte(wSongTransposeDisp);
+            return 1;
+        case 2:
+            if (wButtonsSame)
+                return 1;
+            if (wSyncMode != 0) {
+                wSyncMode--;
+                if (wSyncMode == 4 || wSyncMode == 2)
+                    wSyncMode--;
+                SaveSyncMode();
+            }
+            wSyncState = 0;
+            SyncApplyMode();
+            hBgDigitPalette = wSelectDigitPal;
+            hBgPalette = wSelectPal;
+            DrawSyncField();
+            ProjRedrawPrelisten();
+            return 1;
+        case 3:
+            if (wSyncMode2 > 1) {
+                wSyncMode2--;
+                DrawSyncMode2Field();
+            }
+            return 1;
+        case 4:
+            if (wCloneMode) {
+                wCloneMode = 0;
+                WriteSongByte(1, 0xBFC0, 0);
+                DrawString("DEEP");
+            }
+            return 1;
+        case 6:
+            if (!wKeyRepeat || !wAHeld)
+                return 0;
+            wAHeld = 0;
+            wKeyDelayTimer = 1;
+            wKeyRepeat--;
+            DrawKeyRepeatField();
+            WriteSongByte(1, 0xBFBB, wKeyRepeat);
+            return 1;
+        case 7:
+            wPrelisten = 0;
+            DrawPrelistenField();
+            WriteSongByte(1, 0xBFC3, wPrelisten);
+            return 1;
+        }
+        break;
+    case 0x14:
+        switch (wProjCursor) {
+        case 5:
+            if (wButtonsSame)
+                return 0;
+            if (wFont != 2) {
+                wFont++;
+                WriteSongByte(1, 0xBFBC, wFont);
+                DrawProjectScreen();
+                FarCall(0x1E, FAR_FN(LoadFontTiles));
+            }
+            return 1;
+        case 0:
+            if (ProjSyncStateFlag())
+                return 0;
+            wTempo += 10;
+            if (wTempo >= 0x28 && wTempo < 0x32)
+                wTempo = 0x27;
+            FarCall(7, FAR_FN(SetSyncSendRate));
+            ProjDrawTempo();
+            SaveTempoProps();
+            return 1;
+        case 1:
+            if (!wTransposeDirty) {
+                wSongTransposeDisp = wSongTranspose;
+                wTransposeDirty++;
+            }
+            hBgDigitPalette = wSelectDigitPal;
+            hBgPalette = wSelectPal;
+            wVramCursor = (UBYTE *)0x986A;
+            wSongTransposeDisp += 12;
+            DrawHexByte(wSongTransposeDisp);
+            return 1;
+        case 6:
+            if (wKeyDelay == 0x0F || !wAHeld)
+                return 1;
+            wAHeld = 0;
+            wKeyDelayTimer = 1;
+            wKeyDelay++;
+            DrawKeyRepeatField();
+            WriteSongByte(1, 0xBFBA, wKeyDelay);
+            return 1;
+        }
+        break;
+    case 0x18:
+        switch (wProjCursor) {
+        case 0:
+            if (ProjSyncStateFlag())
+                return 0;
+            wTempo -= 10;
+            if (wTempo >= 0x1E && wTempo < 0x28)
+                wTempo = 0x28;
+            FarCall(7, FAR_FN(SetSyncSendRate));
+            ProjDrawTempo();
+            SaveTempoProps();
+            return 1;
+        case 1:
+            if (!wTransposeDirty) {
+                wSongTransposeDisp = wSongTranspose;
+                wTransposeDirty++;
+            }
+            hBgDigitPalette = wSelectDigitPal;
+            hBgPalette = wSelectPal;
+            wVramCursor = (UBYTE *)0x986A;
+            wSongTransposeDisp -= 12;
+            DrawHexByte(wSongTransposeDisp);
+            return 1;
+        case 5:
+            if (wButtonsSame)
+                return 0;
+            if (wFont) {
+                wFont--;
+                WriteSongByte(1, 0xBFBC, wFont);
+                DrawProjectScreen();
+                FarCall(0x1E, FAR_FN(LoadFontTiles));
+            }
+            return 1;
+        case 6:
+            if (!wKeyDelay || !wAHeld)
+                return 1;
+            wAHeld = 0;
+            wKeyDelayTimer = 1;
+            wKeyDelay--;
+            DrawKeyRepeatField();
+            WriteSongByte(1, 0xBFBA, wKeyDelay);
+            return 1;
+        }
+        break;
+    case 0x08:
+        if (!wProjMenuActive) {
+            ProjDrawSyncField();
+            if (wProjCursor < 0x0B)
+                wProjCursor++;
+            if (wProjCursor == 7 && !ProjSyncModeIs015())
+                wProjCursor++;
+            else if (wProjCursor == 3 && !ProjSyncModeIs567())
+                wProjCursor++;
+            ProjDrawSyncFieldHw();
+        } else {
+        menuRight:
+            wProjMenuItem = 1;
+            DrawTextField(5, 9, 3, 0);
+            DrawTextField(12, 9, 2, hGameboyType ? 3 : 2);
+        }
+        return 1;
+    case 0x04:
+        if (!wProjMenuActive) {
+            ProjDrawSyncField();
+            if (wProjCursor)
+                wProjCursor--;
+            if (wProjCursor == 7 && !ProjSyncModeIs015())
+                wProjCursor--;
+            else if (wProjCursor == 3 && !ProjSyncModeIs567())
+                wProjCursor--;
+            ProjDrawSyncFieldHw();
+        } else {
+        menuLeft:
+            wProjMenuItem = 0;
+            DrawTextField(5, 9, 3, hGameboyType ? 3 : 2);
+            DrawTextField(12, 9, 2, 0);
+        }
+        return 1;
+    case 0x70:
+        if (!wAPressEnabled)
+            return 0;
+        if (!wProjMenuActive && wProjCursor == 0x0B)
+            goto openMenu;
+        if (!wProjMenuActive || wProjMenuItem)
+            break;
+        DrawTextField(5, 9, 3, 0);
+        DrawTextField(12, 9, 2, 0);
+        FarCall(0x1C, FAR_FN(FormatFileSpace));
+        WriteSongByte(1, 0xBFB6, 0);
+        WriteSongByte(1, 0xBFB8, 0);
+        WriteSongByte(1, 0xBFB7, 0);
+        goto reset;
+    case 0x10:
+        if (!wAPressEnabled)
+            return 0;
+        switch (wProjCursor) {
+        case 0:
+            if (ProjSyncStateFlag())
+                break;
+            TapTempoStep();
+            FarCall(7, FAR_FN(SetSyncSendRate));
+            ProjDrawTempo();
+            SaveTempoProps();
+            return 1;
+        case 9:
+            FarCall(0x1C, FAR_FN(FileStopSound));
+            ProjDrawSyncField();
+            DrawProjTextField(3, 4, 0x0F, 8);
+            FarCall(0x1F, FAR_FN(CleanSongData));
+            ProjectScreenRefresh();
+            return 1;
+        case 10:
+            FarCall(0x1C, FAR_FN(FileStopSound));
+            ProjDrawSyncField();
+            DrawProjTextField(3, 4, 0x0F, 9);
+            FarCall(0x1F, FAR_FN(CleanInstrData));
+            ProjectScreenRefresh();
+            return 1;
+        case 8:
+            wCurrentScreen = 0x0E;
+            FarCall(4, FAR_FN(RedrawScreen));
+            return 1;
+        case 3:
+            if (wSyncMode == 5) {
+                FarCall(0x1C, FAR_FN(FileStopSound));
+                FarCall(7, DrawKeyboardCalibScreen);
+                DrawSyncMode2Field();
+                FarCall(4, FAR_FN(RedrawScreen));
+            }
+            return 1;
+        case 11:
+            if (wSramFsFlag) {
+                if (wProjMenuActive)
+                    goto closeMenu;
+                wCurrentScreen = 0x0D;
+                wFileField = 0;
+                wFileListActive = 0;
+                FarCall(0x1C, FAR_FN(FileValidateName));
+                FarCall(4, FAR_FN(RedrawScreen));
+            } else {
+                if (wProjMenuActive)
+                    goto closeMenu;
+            openMenu:
+                hBgDigitPalette = 4;
+                hBgPalette = 1;
+                DrawProjTextField(1, 6, 0x12, 5);
+                wProjMenuActive = 1;
+                wProjMenuItem = 1;
+                wVramCursor = (UBYTE *)0x98E2;
+                DrawString("RESET CARTRIDGE?");
+                wVramCursor = (UBYTE *)0x9925;
+                DrawString("YES");
+                wVramCursor = (UBYTE *)0x992C;
+                DrawString("NO");
+                DrawTextField(12, 9, 2, hGameboyType ? 3 : 2);
+                return 1;
+            closeMenu:
+                wProjMenuActive = 0;
+                DrawTextField(5, 9, 3, 0);
+                DrawTextField(12, 9, 2, 0);
+                if (wProjMenuItem)
+                    goto redraw;
+            reset:
+                FarCall(0x1C, FAR_FN(FileStopSound));
+                if (wSramFsFlag) {
+                    WriteSongByte(1, 0xBFB6, 0);
+                    WriteSongByte(1, 0xBFB8, 0);
+                    WriteSongByte(1, 0xBFB7, 0);
+                    FarCall(0x1C, FAR_FN(FormatFileSpace));
+                }
+                FarCall(1, FAR_FN(UiClearSram));
+                WriteSongByte(4, 0xA140, 0xFF);
+                FarCall(0x1C, FAR_FN(LoadFileListState));
+                DrawProjTextField(2, 7, 0x10, 3);
+                wVramCursor = (UBYTE *)0x9903;
+                DrawString("RESET MEMORY!");
+                delay(hGameboyType ? 2000 : 1000);
+                FarCallArg(1, FAR_FN(LoadProjectSettings), 0);
+            redraw:
+                if (hGameboyType)
+                    ClearBgTilemap();
+                else
+                    FarCall(1, FAR_FN(UiDrawTextHw));
+                FarCall(0, FAR_FN(RedrawScreen));
+                FarCall(5, MapDrawTopRow);
+            }
+            return 1;
+        }
+        return 0;
+    case 0x20:
+        if (wProjMenuActive) {
+            wProjMenuActive = 0;
+            if (hGameboyType)
+                ClearBgTilemap();
+            FarCall(1, FAR_FN(UiDrawTextHw));
+            DrawProjectScreen();
+            FarCall(5, MapDrawTopRow);
+        }
+        return 1;
+    case 0x80:
+    case 0xC0:
+        if (wButtonsSame || wBHeld)
+            return 1;
+        _asm
+        di
+        _endasm;
+        wCurrentScreen = 4;
+        FarCall(2, FAR_FN(StopPlayback));
+        wCurrentScreen = 9;
+        if (wPlayMode)
+            DrawSyncSubSetting();
+        _asm
+        ei
+        _endasm;
+        return 1;
+    }
+    return 0;
 }
 
 void TapTempoStep(void)

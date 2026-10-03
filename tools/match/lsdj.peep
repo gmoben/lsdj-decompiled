@@ -1292,3 +1292,32 @@ replace restart {
 	jp	nz,%4
 %3:
 }
+// the `x != 0` test of a global (genCmpEq: `ld a,(hl); or a,a; jp z`) keeps
+// hl like the `cp` forms above: the ROM never reloads after it (0 sites; 3
+// keep it: ProjectScreenInput's `wSyncMode != 0` before `wSyncMode--`)
+replace restart {
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+	or	a,a
+	jp	%3,%4
+%5:
+	ld	hl,#%1 + %2
+} by {
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+	or	a,a
+	jp	%3,%4
+%5:
+} if labelRefCount %5 0
+replace restart {
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+	or	a,a
+	jp	%3,%4
+	ld	hl,#%1 + %2
+} by {
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+	or	a,a
+	jp	%3,%4
+}

@@ -15,7 +15,7 @@
 5117 TxtSaveAs       ; "SAVE AS:"/"NAME:" prompts
 52D8 TxtSaving                  ; "SAVING..."
 5C03 TxtClockLabels  ; "PLAY %d:"/"WORKED %d:" (total/work-time clock)
-6A5C CloneModeNames2 ; "SLIM"/"DEEP" + "RESET CART..." (reset-cartridge menu)
+6A5C CloneModeNames2 ; "SLIM", "DEEP": ProjectScreenInput's string literals (then the reset menu's)
 6C38 KitMixTable                ; 1152-byte nibble-sum LUT copied to WRAM $d000 for the MixerKernel (indexed h = page, l = sample nibbles)
 5D4F CloneModeNames  ; clone-mode display names "DEEP"/"SLIM" (5-byte stride)
 5B7A DrawSyncSubSetting ; draw PS/2 DELAY (KEYBD) or TICKS/STEP (analog) value beside SYNC
@@ -53,7 +53,7 @@
 5B23 DrawPrelistenField         ; PRELISTEN field: "ON "/"OFF"/"N/A" by wPrelisten + sync mode
 5B62 ProjRedrawPrelisten        ; PRELISTEN field at $992A in the shadow palette (DrawPrelistenField)
 5D7C ProjectScreenRefresh       ; drain buttons, clear tilemap, DrawProjectScreen + map row
-6988 .applySettings     ; ProjectScreenInput tail (was ApplySettingsAndRedraw): delay, LoadProjectSettings(0), clear, redraw frame -- the 63 "call sites" are its jumps
+6988 .applySettings     ; ProjectScreenInput: the reset path after RESET MEMORY! (delay, LoadProjectSettings(0), redraw)
 6A8C TapTempoStep               ; TAP tempo: on each tap record the frames since the last one (wWorkClockSubFrame) into wTapTempoBuf (8-deep, oldest dropped), reset on a -frame gap; from 3 taps on, tempo = ffe / (8 * mean interval), capped at 
 70B8 GetInstrEnvBytes           ; read the instrument's envelope input bytes (x2 ReadCurInstrByte)
 7200 PlotEnvCurve               ; plot env-graph column y at x into wDecompBuf, filling gap from wEnvPlotX (<$40)
@@ -61,7 +61,7 @@
 74E4 UpdateEnvSprites           ; write the envelope OAM markers (SetOAMByte x2, 8-slot bound)
 ; --- functions called from bank 0 (this bank paged in) ---
 6B7A InitKitMixer               ; build the kit sample mixer in WRAM: KitMixTable -> $d000 (1152 B), then MixerKernel unrolled 16x at $d480 with inc c / inc e between copies and a ret after the last
-5DBF ProjectScreenInput         ; project screen (9) input handler, from DispatchScreenInput: dispatch on wButtons
+5DBF ProjectScreenInput         ; project screen (9) input (wButtons): field edits saved to the song properties, tap tempo, clean, file screen, RESET CARTRIDGE? menu; 1 = handled
 53E8 NameEditorInput            ; name-editor per-frame input (letter select; FILE save flow aware)
 4BC3 HelpScreenInput            ; HELP screen input: UP/DOWN move the selection, A opens the entry, B closes it or returns to the project screen
 
@@ -158,7 +158,7 @@
 5C01 .done                ; common exit of DrawSyncSubSetting
 5D7D .loop                ; loop head in ProjectScreenRefresh
 5D86 .loop2               ; loop head in ProjectScreenRefresh
-6A5A .doneApply                ; common exit of ApplySettingsAndRedraw
+6A5A .doneApply                ; common exit of ProjectScreenInput
 6AF8 .loop                ; loop head in TapTempoStep
 6B2A .loop2               ; loop head in TapTempoStep
 6B76 .done                ; common exit of TapTempoStep

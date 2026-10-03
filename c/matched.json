@@ -2369,6 +2369,12 @@
   "len": 27,
   "src": "c/bank1b/ProjectScreen.c"
  },
+ "ProjectScreenInput": {
+  "bank": "1B",
+  "addr": "5DBF",
+  "len": 3229,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
  "ProjectScreenRefresh": {
   "bank": "1B",
   "addr": "5D7C",
