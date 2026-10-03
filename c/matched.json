@@ -677,6 +677,18 @@
   "len": 17,
   "src": "c/bank04/PhraseScreen.c"
  },
+ "DrawPhraseSelection": {
+  "bank": "1F",
+  "addr": "6D58",
+  "len": 422,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
+ "DrawPhraseSelectionFar": {
+  "bank": "04",
+  "addr": "4C99",
+  "len": 17,
+  "src": "c/bank04/PhraseScreen.c"
+ },
  "DrawPrelistenField": {
   "bank": "1B",
   "addr": "5B23",
@@ -2020,12 +2032,6 @@
   "addr": "5503",
   "len": 185,
   "src": "c/bank01/SongAlloc.c"
- },
- "PastePhraseSelectionFar": {
-  "bank": "04",
-  "addr": "4C99",
-  "len": 17,
-  "src": "c/bank04/PhraseScreen.c"
  },
  "PasteSongSelection": {
   "bank": "07",

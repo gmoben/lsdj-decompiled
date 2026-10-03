@@ -18,6 +18,8 @@ extern UBYTE DefaultSynthParams[];          /* $1F:$61FF, [16] */
 extern UBYTE wPhraseCol;                    /* $C415 */
 extern UBYTE wNameEditBuf[];                /* $C431, [5] */
 extern UBYTE wColInstrument[];              /* $C468, [4] */
+extern UBYTE wSelTop;                       /* $C40E */
+extern UBYTE wClipboardType;                /* $C411 */
 UBYTE ReadPhraseInstr(UBYTE phrase, UBYTE row);  /* $04:$4918 */
 void WriteInstrName(UBYTE instr);           /* $01:$4A49 */
 UBYTE IsPhraseUsed(UBYTE phrase);
@@ -1212,6 +1214,41 @@ void DrawPhraseCellField(UBYTE col, UBYTE row)
         pal = PhraseCellPalAlt[col];
     }
     DrawTextField(x, y, w, pal);
+}
+
+void DrawPhraseSelection(void)
+{
+    UBYTE x, y, left, top, right, bottom;
+    UBYTE col;
+
+    if (wClipboardType != 1)
+        return;
+    col = wPhraseCol;               /* the ROM reads the column into c for the test only */
+    if (wSelLeft < col) {
+        left = wSelLeft;
+        right = wPhraseCol + 1;
+    } else {
+        right = wSelLeft + 1;
+        left = wPhraseCol;
+    }
+    if (wSelTop < wPhraseRow) {
+        top = wSelTop;
+        bottom = wPhraseRow + 1;
+    } else {
+        bottom = wSelTop + 1;
+        top = wPhraseRow;
+    }
+    /* the one-cell ring around the rectangle back to its column palettes... */
+    for (x = left ? left - 1 : 0; x < (right == 5 ? 5 : right + 1); x++) {
+        for (y = top ? top - 1 : 0; y < (bottom == 0x10 ? 0x10 : bottom + 1); y = y + 1) {
+            if (x < left || x >= right || y < top || y >= bottom)
+                DrawPhraseCellField(x, y);
+        }
+    }
+    /* ...and the rectangle itself drawn as the cursor cell */
+    for (x = left; x < right; x++)
+        for (y = top; y < bottom; y = y + 1)
+            DrawPhraseCellValue(x, y);
 }
 
 void InstrHReadCursorCellAt(void)

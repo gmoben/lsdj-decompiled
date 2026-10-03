@@ -106,7 +106,7 @@
 6656 HasEnterableColRight       ; e=1 if any song column right of wSongCol is enterable (phrase-screen '>' arrow)
 6677 HasEnterableColLeft        ; e=1 if any song column left of wSongCol is enterable ('<' arrow)
 6C1E DrawPhraseCursor           ; draw the phrase cursor cell: DrawPhraseCellValue(wPhraseCol, wPhraseRow) via the PhraseCell* tables
-6D58 PastePhraseSelection       ; wClipboardType==1: normalize sel rect vs cursor, write clipboard cells into the phrase
+6D58 DrawPhraseSelection        ; phrase selection (wClipboardType==1) redraw vs the cursor: the one-cell ring around the rectangle via DrawPhraseCellField, the inside via DrawPhraseCellValue
 7072 DrawAllChanStatus          ; draw the 4 channel status cells (DrawChanStatus 0-3)
 7108 DrawSpeechInstrScreen      ; instrument screen for SPEECH type: "TYPE   SPEECH" + word list (pseudo-screen $0b)
 724D WordScreenInput            ; word/speech editor input dispatch (wButtons); edits words at song $3DD0 ($bdd0)
@@ -269,11 +269,11 @@
 6C5D .loop                ; loop head in DrawWordRow
 6C9A .done                ; common exit of DrawWordRow
 6D54 .done                ; common exit of DrawPhraseCellField
-6E0D .loop                ; loop head in PastePhraseSelection
-6E4F .loop2               ; loop head in PastePhraseSelection
-6EBF .loop3               ; loop head in PastePhraseSelection
-6ECD .loop4               ; loop head in PastePhraseSelection
-6EFA .done                ; common exit of PastePhraseSelection
+6E0D .loop                ; loop head in DrawPhraseSelection
+6E4F .loop2               ; loop head in DrawPhraseSelection
+6EBF .loop3               ; loop head in DrawPhraseSelection
+6ECD .loop4               ; loop head in DrawPhraseSelection
+6EFA .done                ; common exit of DrawPhraseSelection
 7054 .done                ; common exit of DrawChanStatus
 7163 .loop                ; loop head in DrawSpeechInstrScreen
 71A1 .loop2               ; loop head in DrawSpeechInstrScreen

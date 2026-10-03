@@ -20,7 +20,7 @@ extern UBYTE PhraseColX1[];                 /* $04:$42A3 */
 
 void DrawChainCell(void);                   /* bank 6 */
 void DrawPhraseCursor(void);                /* bank $1F */
-void PastePhraseSelection(void);            /* bank $1F */
+void DrawPhraseSelection(void);            /* bank $1F */
 void CopyInstrName(void);                   /* bank 1 */
 void WriteInstrName(void);                  /* bank 1 */
 UBYTE ReadPhraseInstr(UBYTE phrase, UBYTE row);
@@ -527,9 +527,9 @@ void LoadPhraseRow(void)
     ReadSongBytes(2, (UWORD)0xAFF0 + off, (UBYTE *)0xC49D);
 }
 
-void PastePhraseSelectionFar(void)
+void DrawPhraseSelectionFar(void)
 {
-    FarCall(0x1F, FAR_FN(PastePhraseSelection));
+    FarCall(0x1F, FAR_FN(DrawPhraseSelection));
 }
 
 UBYTE PhraseCheckColFD(UBYTE i)

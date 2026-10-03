@@ -37,7 +37,7 @@
 4AEA PhraseReadFx               ; read phrase_fx[phrase][row] (SRAM bank 2 $A000); 0 unless a command (<= $13)
 4B5B PhraseEditPlace            ; plain-A: place/repeat a value into the empty cursor cell
 4C06 DrawEmptyNote              ; draw "---" empty note cell
-4C99 PastePhraseSelectionFar    ; FarCall bank1f PastePhraseSelection
+4C99 DrawPhraseSelectionFar    ; FarCall bank1f DrawPhraseSelection
 4CAA PhraseCheckColFD           ; return wPhraseRowFlags[arg] > $FD (a $FE/$FF sentinel)
 4CC4 DrawNoteCell               ; draw wSampleNoteString (note name) or "OFF"
 510A CursorInstrIsKit           ; 1 if the instrument in effect at the cursor (FindCursorInstr) is a kit
