@@ -431,6 +431,12 @@
   "len": 279,
   "src": "c/bank06/Screens.c"
  },
+ "DrawChainSelection": {
+  "bank": "06",
+  "addr": "7006",
+  "len": 487,
+  "src": "c/bank06/Screens.c"
+ },
  "DrawChanStatus": {
   "bank": "1F",
   "addr": "6F14",

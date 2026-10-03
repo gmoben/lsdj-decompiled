@@ -719,6 +719,41 @@ void ChainPasteCells(void)
         ShowMessage("PASTE");
 }
 
+void DrawChainSelection(void)
+{
+    UBYTE x, y, left, top, right, bottom;
+    UBYTE col;
+
+    if (wClipboardType != 3)
+        return;
+    col = wChainCol;                /* into c for the test only, as DrawPhraseSelection */
+    if (wSelLeft < col) {
+        left = wSelLeft;
+        right = wChainCol + 1;
+    } else {
+        right = wSelLeft + 1;
+        left = wChainCol;
+    }
+    if (wSelTop < wChainRow) {
+        top = wSelTop;
+        bottom = wChainRow + 1;
+    } else {
+        bottom = wSelTop + 1;
+        top = wChainRow;
+    }
+    /* both columns' cells around the rectangle back to their own palettes... */
+    for (x = 0; x < 2; x++) {
+        for (y = top ? top - 1 : 0; y < (bottom == 0x10 ? 0x10 : bottom + 1); y = y + 1) {
+            if (x < left || x >= right || y < top || y >= bottom)
+                DrawTextField(ChainColX[x], y + 2, 2, hGameboyType ? x : 0);
+        }
+    }
+    /* ...and the rectangle highlighted */
+    for (x = left; x < right; x++)
+        for (y = top; y < bottom; y = y + 1)
+            DrawTextField(ChainColX[x], y + 2, 2, hGameboyType ? 3 : 2);
+}
+
 void DrawKitSampleNames(UBYTE ch, UBYTE note)
 {
     UBYTE c, n;

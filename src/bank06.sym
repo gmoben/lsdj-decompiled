@@ -67,7 +67,7 @@
 5B00 ChainOpenPhrase            ; open the phrase under the chain cursor (RestoreSelectionState, load phrase)
 6D55 CutCopyChainSelection      ; arg!=0 -> "CUT " (copy+clear) else "COPY": chain selection -> clipboard (clipType 3; phrases via SndGetChainPhrase, transposes)
 6F0D ChainPasteCells            ; SELECT+A paste on the chain screen: clipboard cells into rows wSelTop..wSelBottom (column 0 phrases via WriteChainPhrase, column 1 transposes), "PASTE" message when more than one row
-7006 ChainHandleInput           ; main chain-screen input handler ($c411==3, $c419/$c40d); large
+7006 DrawChainSelection         ; chain selection (wClipboardType==3) redraw vs the cursor: cells around the rectangle in their column palettes, the inside highlighted (DrawTextField)
 71ED DrawKitSampleNames         ; draw the playing kit sample names (wKit1Bank/wKit2Bank) at the tilemap position
 73C0 DrawStringAtCursor         ; set wVramCursor + DrawString (9-use draw helper)
 73DC ChainSyncStatusFlag        ; read $cb69, return status flag
@@ -161,11 +161,11 @@
 6F17 .loop                ; loop head in ChainPasteCells
 6F29 .loop2               ; loop head in ChainPasteCells
 6FFC .done                ; common exit of ChainPasteCells
-7092 .loop                ; loop head in ChainHandleInput
-70D7 .loop2               ; loop head in ChainHandleInput
-7174 .loop3               ; loop head in ChainHandleInput
-7190 .loop4               ; loop head in ChainHandleInput
-71E9 .done                ; common exit of ChainHandleInput
+7092 .loop                ; loop head in DrawChainSelection
+70D7 .loop2               ; loop head in DrawChainSelection
+7174 .loop3               ; loop head in DrawChainSelection
+7190 .loop4               ; loop head in DrawChainSelection
+71E9 .done                ; common exit of DrawChainSelection
 72C0 .done                ; common exit of DrawKitSampleNames
 72D7 .loop                ; loop head in UpdateStatusPanel
 7453 .done                ; common exit of ChainDrawSyncStatus
