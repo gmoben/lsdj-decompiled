@@ -905,6 +905,12 @@
   "len": 23,
   "src": "c/bank06/Screens.c"
  },
+ "DrawWaveColumn": {
+  "bank": "06",
+  "addr": "4C55",
+  "len": 599,
+  "src": "c/bank06/Screens.c"
+ },
  "DrawWaveCursor": {
   "bank": "06",
   "addr": "504E",

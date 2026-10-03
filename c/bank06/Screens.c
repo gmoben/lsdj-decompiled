@@ -28,7 +28,7 @@ extern UBYTE WordColX[];                  /* the word editor's two columns: x */
 extern UBYTE WordColWidth[];                  /* width */
 extern UBYTE ChainColX[];                  /* the chain screen's two columns: x */
 
-void LoadKitSampleInfo(UBYTE i);
+void DrawWaveColumn(UBYTE i);
 void ChainDrawWaveCell(void);
 void ChainDrawWaveCellHw(void);
 void DrawStringAtCursor(char *s);
@@ -86,6 +86,8 @@ extern UBYTE wSelRight;                     /* $C40F */
 extern UBYTE wSelBottom;                    /* $C410 */
 extern UBYTE wClipboardType;                /* $C411 */
 extern UBYTE wButtons;                      /* $C575 */
+extern UBYTE wWaveColEmpty[];               /* $C93D, [8] */
+void WriteVramByteSafe(UBYTE *addr, UBYTE v);  /* $00:$17EC */
 extern UBYTE wSynthScreen;                  /* $C441 */
 extern UBYTE wSelectHeld;                   /* $C40A */
 extern UBYTE wBHeld;                        /* $C40B */
@@ -327,9 +329,60 @@ void WaveInitSprites(void)
     ChainSetCursorSprite();
 }
 
+/* One column of the wave graph: samples 2*col and 2*col+1 as dots (one
+   tile when they share a row, the half-tile pair otherwise; CGB and DMG
+   tile numbers), the empty tile on the column's other rows, and the two
+   values in hex below the graph. */
+void DrawWaveColumn(UBYTE col)
+{
+    UBYTE s0, s1, i, j;
+    UBYTE *p;
+    char t;
+
+    s0 = ReadWaveSample(col * 2);
+    s1 = ReadWaveSample(col * 2 + 1);
+    i = s0 >> 1;
+    j = s1 >> 1;
+    p = TilemapAddr(col + 2, 13 - i);
+    MemSet(wWaveColEmpty, 1, 8);
+    wWaveColEmpty[i] = 0;
+    wWaveColEmpty[j] = 0;
+    if (i == j) {
+        WriteVramByteSafe(p, (s0 & 1)
+                          ? ((s1 & 1) ? (hGameboyType ? 0x54 : 0xDE) : (hGameboyType ? 0x55 : 0xDF))
+                          : ((s1 & 1) ? (hGameboyType ? 0x56 : 0xE0) : (hGameboyType ? 0x57 : 0xE1)));
+    } else {
+        WriteVramByteSafe(p, (s0 & 1) ? (hGameboyType ? 0x50 : 0xDA) : (hGameboyType ? 0x53 : 0xDD));
+        p = TilemapAddr(col + 2, 13 - j);
+        WriteVramByteSafe(p, (s1 & 1) ? (hGameboyType ? 0x51 : 0xDB) : (hGameboyType ? 0x52 : 0xDC));
+    }
+    p = TilemapAddr(col + 2, 6);
+    for (i = 7; ; i--) {
+        if (wWaveColEmpty[i])
+            WriteVramByteSafe(p, 3);
+        if (!i)
+            break;
+        p += 0x20;
+    }
+    if (col & 2) {
+        hBgDigitPalette = wShadowDigitPal;
+        hBgPalette = wShadowPal;
+    } else {
+        hBgDigitPalette = wSelectDigitPal;
+        hBgPalette = wSelectPal;
+    }
+    t = col;                        /* a char copy: the test and the x read b */
+    if (t & 8)
+        GetTilemapAddr(t * 2 - 14, 14);
+    else
+        GetTilemapAddr(col * 2 + 2, 5);
+    DrawByte(ReadWaveSample(col * 2));
+    DrawByte(ReadWaveSample(col * 2 + 1));
+}
+
 void ChainDrawCursorByte(void)
 {
-    LoadKitSampleInfo(wWaveCursor >> 1);
+    DrawWaveColumn(wWaveCursor >> 1);
 }
 
 void ChainWriteWaveA(void)
@@ -340,7 +393,7 @@ void ChainWriteWaveA(void)
     t = start;
     start = t & 0xFE;
     for (; start < end; start += 2)
-        LoadKitSampleInfo(start >> 1);
+        DrawWaveColumn(start >> 1);
 }
 
 void ChainDrawRow16(void)
@@ -348,7 +401,7 @@ void ChainDrawRow16(void)
     UBYTE i;
 
     for (i = 0; i < 0x10; i++)
-        LoadKitSampleInfo(i);
+        DrawWaveColumn(i);
 }
 
 void DrawWaveScreen(void)

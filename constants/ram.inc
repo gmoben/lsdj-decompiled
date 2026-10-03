@@ -795,6 +795,7 @@ DEF wWordClipCell1   EQU $C936  ; word clipboard: length byte
 DEF wWordClipPtr     EQU $C939  ; 16-bit scratch ptr walking the 4-byte word clipboard (copy/paste)
 DEF wWaveSelStart    EQU $C93B  ; wave editor selection anchor (frame index; pairs with wWaveCursor)
 DEF wWaveSelEnd      EQU $C93C  ; wave editor selection other endpoint
+DEF wWaveColEmpty    EQU $C93D  ; [8] wave screen: 1 per row of the column being drawn that takes the empty tile (DrawWaveColumn)
 DEF wChainCellValue  EQU $C945  ; chain-screen phrase value under cursor (working copy -> DrawHexByte)
 DEF wChainCellEmpty  EQU $C946  ; chain cursor cell reads $FF flag
 DEF wTempoShadow EQU $C947  ; cached wTempo for the chain-screen tempo field (redraw-if-changed)
