@@ -74,7 +74,7 @@
 656B FileUpgradeV10             ; song upgrade step v10->v11: patch instruments (FileForEachInstrType)
 6585 FileUpgradeReadByte        ; upgrade helper: read a working-song byte (ReadSongByte)
 65B9 FileUpgradeClearRange      ; upgrade helper: clear a range (MemSet; reads via FileUpgradeReadByte)
-669E FileUpgradeV11             ; song upgrade step v11->v12: patch song data (+ FileUpgradeClearRange clear)
+669E FileUpgradeV11             ; song upgrade step v11->v12: noise-instrument phrase notes -> instrument byte 4, high nibble moved by octave
 68C5 FileUpgradeRemapBits       ; upgrade helper: recursive bit/nibble remap via ROM table $68f1
 6959 FileUpgradeV12             ; song upgrade step v12->v13: patch instruments (FileForEachInstrType)
 6973 FileCheckByte6973          ; unless *p's high nibble is 8, bump its low nibble (mod 16)

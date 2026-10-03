@@ -1133,6 +1133,12 @@
   "len": 43,
   "src": "c/bank1c/FileUpgrade.c"
  },
+ "FileUpgradeV11": {
+  "bank": "1C",
+  "addr": "669E",
+  "len": 551,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
  "FileUpgradeV12": {
   "bank": "1C",
   "addr": "6959",

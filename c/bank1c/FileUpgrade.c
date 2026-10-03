@@ -33,9 +33,10 @@ void FileUpgradeV15Wave(void);
 void FileUpgradeV17bPulse(void);
 void FileCheckByte6973(UBYTE *p);          /* $1C:$6973 */
 void FileUpgradeClearRange(void);           /* $1C:$65B9 */
-void FileUpgradeV11(void);                  /* $1C:$669E */
 void FileUpgradeV18(void);                  /* $1C:$6C56 */
 void FileUpgradeV2(void);                   /* $1C:$622D, parked */
+void ReadSongBytesW(UBYTE bank, UWORD src, UBYTE *dst);  /* ReadSongBytes taking a word address (aliased by match_function.py) */
+char ReadInstrByteS(UBYTE instr, UBYTE field);  /* ReadInstrByte returning char (aliased): the cast to UBYTE keeps the call result in its own slot */
 
 UWORD FileCalcCompressedSize(void)
 {
@@ -205,6 +206,71 @@ UBYTE FileUpgradeReadByte(UBYTE i)
 
     v = ReadSongByte(0, SramSequence + 3 + ((UWORD)i << 2));   /* row i, channel 3 */
     return (v & 0x80) ? 0xFF : v;
+}
+
+/*
+ * v11 -> v12: noise instruments (type 3) used to take their shape from the
+ * phrase note. For every phrase, each step played by a noise instrument has
+ * its note rewritten to the instrument's byte 4 with the high nibble moved by
+ * the note's octave relative to octave 3 (clamped at 0 and F). A step with
+ * instrument $40 (none) clears the value; one above $40 keeps the previous
+ * step's.
+ */
+void FileUpgradeV11(void)
+{
+    UBYTE types[0x40];
+    UBYTE i;
+    UWORD p;
+    UWORD q;
+    UBYTE v;
+    UBYTE j;
+    UBYTE n;
+
+    i = 0;
+    p = 0xA000;
+    q = 0xB000;
+    while (i != 0x40) {
+        types[i] = ReadInstrByte(i, 0);
+        i++;
+    }
+    while (q != 0xBFF0) {
+        v = 0;
+        j = 0;
+        ReadSongBytesW(0, p, wSongReadBuf);
+        ReadSongBytesW(3, q, wUsedTableMap);
+        for (; j != 0x10; j = j + 1) {
+            i = wUsedTableMap[j];
+            if (i == 0x40) {
+                v = 0;
+            } else if (i < 0x40) {
+                if (types[i] == 3)
+                    v = ReadInstrByteS(i, 4);
+                else
+                    v = 0;
+            }
+            if (v) {
+                n = wSongReadBuf[j];
+                if (n) {
+                    n = n - 1;
+                    n = n / 12;
+                    n = n - 3;
+                    while (n & 0x80) {
+                        n = n + 1;
+                        if (v & 0xF0)
+                            v = v - 0x10;
+                    }
+                    while (n) {
+                        n = n - 1;
+                        if ((v & 0xF0) != 0xF0)
+                            v = v + 0x10;
+                    }
+                    WriteSongByte(0, p + j, v);
+                }
+            }
+        }
+        q += 0x10;
+        p += 0x10;
+    }
 }
 
 UBYTE FileUpgradeRemapBits(UBYTE v)

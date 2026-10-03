@@ -381,6 +381,8 @@ RUNTIME_ALIASES = {
     "wTopBarLen": "wTopBarDrawScratch",  # the top-bar scratch word as a length
     "SortBytePairC": "SortBytePair",  # SortBytePair prototyped with `char *` (SongEditSelection casts its `&UBYTE` locals)
     "FarCallArg0": "FarCallArg",  # FarCallArg called with (bank, fn) only -- hFxValue set by hand (ProcessLinkQueue)
+    "ReadSongBytesW": "ReadSongBytes",  # ReadSongBytes with a word source address (FileUpgradeV11 pushes its UWORD cursors)
+    "ReadInstrByteS": "ReadInstrByte",  # ReadInstrByte returning `char`: the cast gives the call result its own slot (FileUpgradeV11)
 }
 
 
