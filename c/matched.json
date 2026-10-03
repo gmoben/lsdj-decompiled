@@ -731,6 +731,12 @@
   "len": 17,
   "src": "c/bank04/PhraseScreen.c"
  },
+ "DrawPhraseScreen": {
+  "bank": "04",
+  "addr": "4CE5",
+  "len": 1011,
+  "src": "c/bank04/PhraseScreen.c"
+ },
  "DrawPhraseSelection": {
   "bank": "1F",
   "addr": "6D58",

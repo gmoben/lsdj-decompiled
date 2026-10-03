@@ -3,14 +3,13 @@
 55D1 TxtCannotClone             ; "CANNOT CLONE"
 571F TxtClonedTable04   ; "CLONED TABLE"
 7D49 TxtCancelSelect04  ; "CANCEL SELECT"
-50D8 PhraseAttrHighlight ; CGB tile-attribute row (set_bkg_tiles -> VRAM bank1) highlighting phrase columns; one of a group ($50D8/$50E5/$50F2)
 ; ($54E3 all-$01 table -- left unnamed pending RE of its indexing)
 
 ; Bank $04 -- Phrase screen. phrase[wPhrase][16] in 4 SRAM columns: notes $A000
 ; (bank0), instr $B000 (bank3), fx $A000 (bank2), fx_val $AFF0 (bank2).
 4968 PhraseReadNote             ; read phrase_notes[wPhrase][row] (SRAM bank 0 $A000); asserts row < $10, wPhrase != $FF
 4C14 LoadPhraseRow        ; load the 4 phrase columns for phrase[wPhrase] into row buffers
-4CE5 DrawPhraseScreen     ; screen idx 1: draws the phrase note/instr/cmd/val grid
+4CE5 DrawPhraseScreen     ; screen idx 1: the phrase grid (note or kit samples, instrument, command, value per step), its CGB row attributes, cursor and channel status
 4000 DrawChainCellFar           ; FarCall bank06 DrawChainCell(wSongCol, row) -- chain info cell on the phrase screen
 5533 CloneInstrAtCursor         ; clone the instrument under the cursor: alloc+CloneInstrument; fail -> "CANNOT CLONE"
 
@@ -59,9 +58,12 @@
 7D57 TxtSelect04       ; "SELECT" (pairs with TxtCancelSelect04)
 
 ; --- phrase-screen render/edit tables ---
-50D8 PhraseRowAttrs0    ; 13-byte CGB BG-attribute row for phrase rows (variant 0; picked via PhraseCheckColFD)
-50E5 PhraseRowAttrs1    ; 13-byte CGB BG-attribute row (variant 1)
-50F2 PhraseRowAttrs2    ; 13-byte CGB BG-attribute row (variant 2; $c90c==0 path)
+50D8 PhraseRowAttrs0    ; [13] CGB BG attributes of a kit row (PhraseCheckColFD false); DrawPhraseScreen's const data
+50E5 PhraseRowAttrs1    ; [13] CGB BG attributes of a non-kit row on a kit phrase
+50F2 PhraseRowAttrs2    ; [13] CGB BG attributes of a row on a phrase without kits
+50FF TxtPhraseBlank3    ; "   " (DrawPhraseScreen: the note column's padding on kit phrases)
+5103 TxtPhraseNoInstr   ; "--" (no instrument)
+5106 TxtPhraseBlank3b   ; "   " (the value column's padding without kits)
 54E3 PhraseStepOnes     ; [80] constant $01 table read by the four phrase edit handlers (per-index step/enable)
 57D4 DrawInstrName      ; FarCall bank1 CopyInstrName(instr) -> wSampleNoteString, draw the 5-char name
 4C10 TxtNoteEmpty               ; "---"
@@ -386,7 +388,6 @@
 5020 .drawHexByte
 5082 .checkPhraseCol_2
 50B8 .farCall
-5103 .step
 5128 .cont
 512C .cont_2
 512D .cont_3

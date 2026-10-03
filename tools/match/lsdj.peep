@@ -1276,3 +1276,19 @@ replace restart {
 	lda	hl,%2
 	ld	a,(hl)
 }
+// genAnd's `if (!(x & n))` (jmpTrueOrFalse's IC_TRUE trampoline): the ROM
+// folds it into one jump; no `and a,n; jr nz,L; jp M; L: jp X; M:` is left
+// (DrawPhraseScreen's `note & 0xF0`; the one unfolded trampoline in the ROM
+// follows a `cp (hl)`, CloneInstrTable)
+replace restart {
+	and	a,%1
+	jr	nz,%2
+	jp	%3
+%2:
+	jp	%4
+%3:
+} by {
+	and	a,%1
+	jp	nz,%4
+%3:
+}

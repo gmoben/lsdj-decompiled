@@ -785,7 +785,8 @@ DEF wPhraseColLast   EQU $C907  ; [4] the last value entered per phrase column, 
 DEF wPhraseInstrCache EQU $C90A  ; phrase screen: ReadInstrByte cache during phrase note write
 DEF wInstrIsKit      EQU $C90B  ; current instrument type == KIT cache (phrase screen)
 DEF wPhraseDrawMode  EQU $C90C  ; phrase draw variant selector (jump-table $42A3 vs $429E)
-DEF wPhraseRowFlags  EQU $C90D  ; [16] per-step state DrawPhraseScreen sets for the phrase grid: a value, or $FE/$FF sentinels (PhraseCheckColFD tests > $FD)
+DEF wPhraseRowFlags  EQU $C90D  ; [16] per-step state DrawPhraseScreen sets for the phrase grid: the instrument, $FE (none) / $FF (not a kit) -- on kit rows the left sample's kit bank (PhraseCheckColFD tests > $FD)
+DEF wPhraseRowFlagsB EQU $C91D  ; [16] kit rows: the right sample's kit bank (DrawPhraseScreen)
 DEF wPhraseNoteIsKitA EQU $C92D  ; phrase edit: current note is-kit cache
 DEF wPhraseNoteIsKitB EQU $C92E  ; phrase edit: adjacent note is-kit cache
 DEF wTableEnvCache   EQU $C931  ; table screen: cached TableReadEnv at cursor

@@ -15,10 +15,20 @@ extern UBYTE wInstrIsKit;                   /* $C90B */
 UBYTE AllocNextFreeInstr(void);             /* bank $1F */
 void CopyTableData(UBYTE from, UBYTE to);   /* bank 1 */
 extern UBYTE wPhraseRowFlags[];             /* $C90D, [16] */
+extern UBYTE wPhraseRowFlagsB[];            /* $C91D, [16] */
+extern UBYTE wRowBufCol2[];                 /* $C48D, [16] the phrase commands */
+extern UBYTE wRowBufCol3[];                 /* $C49D, [16] their values */
 extern UBYTE PhraseColX0[];                 /* $04:$429E */
 extern UBYTE PhraseColX1[];                 /* $04:$42A3 */
 
 void DrawChainCell(void);                   /* bank 6 */
+void DrawChainPos(void);                    /* bank 6 */
+void DrawWordRow(UBYTE n);                  /* bank $1F */
+void DrawAllChanStatus(void);               /* bank $1F */
+void ScreenPreDraw(void);                   /* bank $1E */
+void DrawFieldValue(UBYTE kind, UBYTE v);   /* bank 0 */
+UBYTE KitIndexToBank(UBYTE kit);            /* bank 0, asm */
+void ReadKitSampleName(UBYTE kit, UBYTE sample);   /* bank 0, asm */
 void DrawPhraseCursor(void);                /* bank $1F */
 void DrawPhraseSelection(void);            /* bank $1F */
 void CopyInstrName(void);                   /* bank 1 */
@@ -543,6 +553,140 @@ UBYTE PhraseCheckColFD(UBYTE i)
 void DrawNoteCell(void)
 {
     DrawString(wSampleNoteString[0] ? wSampleNoteString : "OFF");
+}
+
+/* CGB attribute rows for DrawPhraseScreen; SDCC places them right after its
+   code ($04:$50D8), ahead of its string literals */
+const UBYTE PhraseRowAttrs0[13] = { 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0 };
+const UBYTE PhraseRowAttrs1[13] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0 };
+const UBYTE PhraseRowAttrs2[13] = { 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0 };
+
+/*
+ * Screen 1, the phrase grid. A phrase that plays a kit on any step
+ * (wPhraseDrawMode) gets the two-sample layout: each step's instrument
+ * carries forward to the following empty steps, and steps under a kit show
+ * the left and right sample names (their kit banks recorded in
+ * wPhraseRowFlags / wPhraseRowFlagsB) instead of a note. Then the
+ * instrument, command letter and value columns, the CGB row attributes, and
+ * the cursor, channel status and column labels.
+ */
+void DrawPhraseScreen(void)
+{
+    UBYTE i;
+    UBYTE t;
+    UBYTE cur;
+    UBYTE ins;
+    UBYTE note;
+    UWORD addr;
+    UBYTE *p;
+
+    if (wPhrase == 0xFF)
+        DebugTrap();
+    SetSpriteX(0, 1);
+    SetSpriteTile3(0);
+    FarCall(1, FAR_FN(DrawTopBar));
+    FarCall(6, DrawChainPos);
+    DrawTempoField();
+    LoadPhraseRow();
+    wPhraseDrawMode = 0;
+    for (i = 0; i < 0x10; i++) {
+        t = wUsedTableMap[i];
+        if (t < 0x40 && ReadSongByte(1, ((UWORD)t << 4) + (UWORD)0xB080) == 2) {
+            wPhraseDrawMode = 1;
+            break;
+        }
+    }
+    cur = 0xFF;
+    for (i = 0; i < 0x10; i++) {
+        ins = wUsedTableMap[i];
+        switch (ins) {
+        case 0x40:
+            cur = 0xFF;
+            wPhraseRowFlags[i] = 0xFE;
+            break;
+        case 0xFF:
+            wPhraseRowFlags[i] = cur;
+            break;
+        default:
+            if (ReadSongByte(1, ((UWORD)ins << 4) + (UWORD)0xB080) == 2) {
+                cur = ins;
+                wPhraseRowFlags[i] = ins;
+            } else {
+                cur = 0xFF;
+                wPhraseRowFlags[i] = 0xFF;
+            }
+        }
+        hBgDigitPalette = 4;
+        hBgPalette = 1;
+        GetTilemapAddr(2, i + 2);
+        if (cur != 0xFF) {
+            note = wSongReadBuf[i];
+            addr = ((UWORD)cur << 4) + (UWORD)0xB082;
+            t = ReadSongByte(1, addr);
+            t = KitIndexToBank(t & 0x3F);
+            wPhraseRowFlags[i] = t;
+            hBgDigitPalette = wShadowDigitPal;
+            hBgPalette = wShadowPal;
+            if (!(note & 0xF0)) {
+                DrawEmptyNote();
+            } else {
+                ReadKitSampleName(t, note >> 4);
+                DrawNoteCell();
+            }
+            hBgDigitPalette = 4;
+            hBgPalette = 1;
+            addr = ((UWORD)cur << 4) + (UWORD)0xB089;
+            t = ReadSongByte(1, addr);
+            t = KitIndexToBank((char)t & 0x3F);
+            wPhraseRowFlagsB[i] = t;
+            if (!(note & 0x0F)) {
+                DrawEmptyNote();
+            } else {
+                ReadKitSampleName(t, note & 0x0F);
+                DrawNoteCell();
+            }
+            DrawStringTile20();
+        } else {
+            if (wPhraseDrawMode)
+                DrawString("   ");
+            if (ins == 0x40) {
+                t = wSongReadBuf[i];
+                FarCallArg(0x1F, FAR_FN(DrawWordRow), t);
+            } else {
+                t = wSongReadBuf[i];
+                DrawChainCellFar(t);
+            }
+            DrawStringTile20();
+        }
+        if (hGameboyType) {
+            p = wPhraseDrawMode ? (PhraseCheckColFD(i) ? PhraseRowAttrs1 : PhraseRowAttrs0) : PhraseRowAttrs2;
+            VBK_REG = 1;
+            set_bkg_tiles(2, i + 2, 13, 1, p);
+            VBK_REG = 0;
+        }
+        if (ins == 0xFF)
+            DrawString("--");
+        else
+            DrawHexByte(ins);
+        DrawStringTile20();
+        hBgDigitPalette = wShadowDigitPal;
+        hBgPalette = wShadowPal;
+        t = wRowBufCol2[i];
+        DrawPhraseCmdLetter(t);
+        hBgDigitPalette = 4;
+        hBgPalette = 1;
+        DrawFieldValue(t, wRowBufCol3[i]);
+        if (!wPhraseDrawMode)
+            DrawString("   ");
+    }
+    if (!wPhraseCol && PhraseCheckColFD((char)wPhraseRow))
+        wPhraseCol++;
+    if (wCursorMode == 4)
+        DrawPhraseSelectionFar();
+    else
+        DrawPhraseCursorFar();
+    FarCall(0x1F, FAR_FN(DrawAllChanStatus));
+    FarCall(0x1E, FAR_FN(ScreenPreDraw));
 }
 
 UBYTE CursorInstrIsKit(void)
