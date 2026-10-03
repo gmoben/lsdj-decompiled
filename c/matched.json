@@ -2861,6 +2861,12 @@
   "len": 347,
   "src": "c/bank07/SongScreen.c"
  },
+ "SongScreenInput": {
+  "bank": "07",
+  "addr": "4B3B",
+  "len": 3011,
+  "src": "c/bank07/SongInput.c"
+ },
  "SongScreenUpdate": {
   "bank": "07",
   "addr": "47AA",

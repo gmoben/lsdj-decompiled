@@ -68,7 +68,7 @@
 7422 SongWriteSramBytes         ; write N bytes (count arg) to SRAM (di, bank-select, $0a enable)
 ; --- functions called from bank 0 (this bank paged in) ---
 68A2 ProcessLinkQueue           ; drain the link-port ring buffer ($cb81+, head $cb80): keyboard scancodes / sync bytes
-4B3B SongScreenInput            ; song screen (4) input handler, from DispatchScreenInput: dispatch on wButtons
+4B3B SongScreenInput            ; song screen (4) input (wButtons): chain entry, cursor moves, chain number steps, clear/delete, live mode, selections, bookmarks, playback; 1 = handled
 
 ; --- bookmarks / tempo / PS/2 keyboard ---
 6249 WriteBookmarkByte          ; bounds-checked ($aff0-$afff) WriteSongByte into the bookmarks row
