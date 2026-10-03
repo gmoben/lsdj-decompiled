@@ -240,6 +240,12 @@ _CMP16 = [
     ([r"xor\s+a,a", r"dec\s+hl", r"ld\s+a,\(hl\)", rf"sbc\s+a,{_HEX}", r"inc\s+hl", r"ld\s+a,\(hl\)",
       rf"sbc\s+a,{_HEX}", r"jp\s+(n?c),(\S+)"],
      lambda g: (["\tdec\thl", "\tld\te,(hl)", "\tinc\thl", "\tld\td,(hl)"], "de", g[0], g[1], g[2], g[3])),
+    # hl one below the operand's low byte (the byte local just compared:
+    # WordScreenInput's `i < 0x10` before `p >= 0xBDD0`): stepped up, then
+    # fetched
+    ([r"xor\s+a,a", r"inc\s+hl", r"ld\s+a,\(hl\)", rf"sbc\s+a,{_HEX}", r"inc\s+hl", r"ld\s+a,\(hl\)",
+      rf"sbc\s+a,{_HEX}", r"jp\s+(n?c),(\S+)"],
+     lambda g: (["\tinc\thl", "\tld\te,(hl)", "\tinc\thl", "\tld\td,(hl)"], "de", g[0], g[1], g[2], g[3])),
     # a global -> fetched into de (`CompressIsDefaultWave`)
     ([r"xor\s+a,a", r"ld\s+hl,(#[^;]+?)", r"ld\s+a,\(hl\)", rf"sbc\s+a,{_HEX}", r"inc\s+hl",
       r"ld\s+a,\(hl\)", rf"sbc\s+a,{_HEX}", r"jp\s+(n?c),(\S+)"],
@@ -425,6 +431,10 @@ def gb_cmp16(lines: list[str]) -> tuple[list[str], int]:
                     # The fetch steps back from the high byte, then returns
                     # to it. The subsequent add destroys that stack address.
                     known = _hl_stack_offset(lines, idx[0])
+                elif fetch and fetch[0] == "\tinc\thl":
+                    # stepped up to the low byte, then to the high byte
+                    known = _hl_stack_offset(lines, idx[0])
+                    known = known + 2 if known is not None else None
                 elif not fetch:
                     # the operand was already in a pair; hl may still point at
                     # a stack byte the code goes on to use (DrawSpeechInstrScreen's

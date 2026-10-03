@@ -109,7 +109,7 @@
 6D58 DrawPhraseSelection        ; phrase selection (wClipboardType==1) redraw vs the cursor: the one-cell ring around the rectangle via DrawPhraseCellField, the inside via DrawPhraseCellValue
 7072 DrawAllChanStatus          ; draw the 4 channel status cells (DrawChanStatus 0-3)
 7108 DrawSpeechInstrScreen      ; instrument screen for SPEECH type: "TYPE   SPEECH" + word list (pseudo-screen $0b)
-724D WordScreenInput            ; word/speech editor input dispatch (wButtons); edits words at song $3DD0 ($bdd0)
+724D WordScreenInput            ; word screen input (wButtons): rename, move, map exits, cut/copy/paste of a word (allophones at $B890 + 32n, names at $BDD0 + 3n); 1 = handled
 ; --- data ---
 4ACE TxtOutOfMemInstr           ; "OUT OF MEMORY. CLEAN INSTR DATA IN PROJECT SCREEN!"
 64E1 PhraseCellX                ; [5] phrase cell x per column (the six PhraseColLayout rows; $FF = hidden)

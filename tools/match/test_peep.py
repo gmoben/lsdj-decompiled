@@ -144,6 +144,19 @@ class Compare16Tests(unittest.TestCase):
                   "\tsbc\ta,#0x00", "\tld\ta,#0x00", "\trla"]
         self.assertEqual(gb_cmp16(source), (source, 0))
 
+    def test_fetch_stepping_up_from_the_byte_below(self):
+        # WordScreenInput: hl still at the loop counter (sp+5) below the word
+        for condition in ("c", "nc"):
+            source = ["\tlda\thl,5(sp)", "\txor\ta,a", "\tinc\thl", "\tld\ta,(hl)",
+                      "\tsbc\ta,#0xD0", "\tinc\thl", "\tld\ta,(hl)", "\tsbc\ta,#0xBD",
+                      f"\tjp\t{condition},001done$", "\tdec\thl", "\tld\t(hl),#0x04"]
+            result, count = gb_cmp16(source)
+            self.assertEqual(count, 1)
+            self.assertIn("\tadd\thl,de", result)
+            for value in (0, 0xBDCF, 0xBDD0, 0xBDD1, 0xFFFF):
+                with self.subTest(condition=condition, value=value):
+                    self.assertEqual(execute(source, value), execute(result, value))
+
     def test_global_branch_reloads_hl_for_the_next_use(self):
         # CompressSong: `wCompDst < 0x7FFF` then `wCompDst + 1`; stock SDCC
         # steps back from the high byte, which the add form has clobbered

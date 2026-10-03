@@ -3311,6 +3311,12 @@
   "len": 102,
   "src": "c/bank06/Screens.c"
  },
+ "WordScreenInput": {
+  "bank": "1F",
+  "addr": "724D",
+  "len": 1448,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
  "WriteBookmarkByte": {
   "bank": "07",
   "addr": "6249",

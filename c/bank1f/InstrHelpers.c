@@ -17,6 +17,10 @@ extern UBYTE DefaultWaveFrameB1F[];         /* $1F:$491A, [16] */
 extern UBYTE DefaultSynthParams[];          /* $1F:$61FF, [16] */
 extern UBYTE wPhraseCol;                    /* $C415 */
 extern UBYTE wNameEditBuf[];                /* $C431, [5] */
+extern UBYTE wNameEditIsInstr;              /* $C430 */
+extern UBYTE wAPressEnabled;                /* $C409 */
+extern UBYTE wBHeld;                        /* $C40B */
+extern UBYTE wButtons;                      /* $C575 */
 extern UBYTE wColInstrument[];              /* $C468, [4] */
 extern UBYTE wSelTop;                       /* $C40E */
 extern UBYTE wClipboardType;                /* $C411 */
@@ -88,6 +92,14 @@ void InstrHMarkInstrTable(UBYTE instr);
 void DrawChanStatus(UBYTE chan);
 void GetInstrFlags1F5(UBYTE a, UBYTE b);
 UBYTE InstrHGetParamPlus4(void);
+void OpenNameEditor(void);                  /* bank $1B */
+void MapMoveLeft(void);                     /* bank 5 */
+void MapMoveRight(void);                    /* bank 5 */
+void MapMoveUp(void);                       /* bank 5 */
+void MapMoveDown(void);                     /* bank 5 */
+void InstrSelectPrevPage(void);             /* bank 3 */
+void StopAllPlayback(void);                 /* bank 2 */
+void StopPlayback(void);                    /* bank 2 */
 UBYTE ClaimInstrSlot(UBYTE instr);
 UBYTE InstrHCountUsedTables(void);
 void ReadTableRowCmds(UBYTE t);
@@ -1426,4 +1438,157 @@ void DrawSpeechInstrScreen(void)
         row++;
     }
     DrawInstrParamField();
+}
+
+/*
+ * The word (speech) screen's input: A opens the name editor on the word
+ * under the cursor, up/down move the cursor, select+direction leaves through
+ * the screen map, A+B / select+B cut or copy the word (its 16 allophone
+ * pairs and 3-letter name; a cut leaves the name "W-n"), select+A pastes it,
+ * B+left / B+down step the instrument back. 1 when the key was taken.
+ */
+UBYTE WordScreenInput(void)
+{
+    UWORD p;
+    UBYTE i;
+    UBYTE v;
+
+    switch (wButtons) {
+    case 0x10:
+        if (!wAPressEnabled)
+            return 0;
+        p = (UWORD)0xBDD0 + wSpeechCursorRow * 3;
+        wNameEditBuf[0] = ReadSongByte(0, p++);
+        wNameEditBuf[1] = ReadSongByte(0, p++);
+        wNameEditBuf[2] = ReadSongByte(0, p);
+        wNameEditBuf[3] = 0;
+        wNameEditBuf[4] = 0;
+        wNameEditIsInstr = 0;
+        FarCall(0x1B, FAR_FN(OpenNameEditor));
+        return 1;
+    case 0x04:
+        if (!wSpeechCursorRow)
+            return 0;
+        InstrHDrawParamField();
+        wSpeechCursorRow--;
+        DrawInstrParamField();
+        return 1;
+    case 0x08:
+        if (wSpeechCursorRow == 0x0D)
+            return 0;
+        InstrHDrawParamField();
+        wSpeechCursorRow++;
+        DrawInstrParamField();
+        return 1;
+    case 0x48:
+        if (wButtonsSame)
+            break;
+        FarCall(5, MapMoveDown);
+        RedrawScreenFar1F();
+        return 1;
+    case 0x44:
+        if (wButtonsSame)
+            break;
+        FarCall(5, MapMoveUp);
+        RedrawScreenFar1F();
+        return 1;
+    case 0x41:
+        if (wButtonsSame)
+            break;
+        FarCall(5, MapMoveRight);
+        RedrawScreenFar1F();
+        return 1;
+    case 0x42:
+        if (wButtonsSame)
+            break;
+        FarCall(5, MapMoveLeft);
+        RedrawScreenFar1F();
+        return 1;
+    case 0x30:
+    case 0x60:
+        if (!wAPressEnabled)
+            return 0;
+        if (wButtons == 0x60)
+            ShowMessage("COPIED WORD");
+        else
+            ShowMessage("CUT WORD");
+        wClipboardType = 0x0B;
+        wCursorMode = 2;
+        p = ((UWORD)wSpeechCursorRow << 5) + (UWORD)0xB890;
+        for (i = 0; i < 0x10; i++) {
+            WriteClipboardCell(0, i, ReadSongByte(0, p));
+            if (wButtons == 0x30)
+                WriteSongByte(0, p, 0);
+            p++;
+            WriteClipboardCell(1, i, ReadSongByte(0, p));
+            if (wButtons == 0x30)
+                WriteSongByte(0, p, 0);
+            p++;
+        }
+        p = (UWORD)wSpeechCursorRow * 3 + (UWORD)0xBDD0;
+        for (i = 0; i < 3; i++) {
+            WriteClipboardCell(2, i, ReadSongByte(0, p));
+            p++;
+        }
+        if (wButtons == 0x30) {
+            GetTilemapAddr(0, InstrHGetParamPlus4());
+            hBgDigitPalette = wSelectDigitPal;
+            hBgPalette = wSelectPal;
+            p -= 3;
+            WriteSongByte(0, p++, 'W');
+            DrawStringIndexed('W');
+            WriteSongByte(0, p++, '-');
+            DrawStringIndexed('-');
+            i = wSpeechCursorRow;
+            i += wSpeechCursorRow < 10 ? '0' : '7';
+            WriteSongByte(0, p, i);
+            DrawStringIndexed((char)i);
+        }
+        return 1;
+    case 0x50:
+        if (!wAPressEnabled)
+            return 0;
+        if (wClipboardType != 0x0B)
+            return 0;
+        ShowMessage("PASTED WORD");
+        p = ((UWORD)wSpeechCursorRow << 5) + (UWORD)0xB890;
+        for (i = 0; i < 0x10; i++) {
+            if (p >= (UWORD)0xBDD0)
+                DebugTrap();
+            WriteSongByte(0, p++, ReadClipboardCell(0, i));
+            if (p >= (UWORD)0xBDD0)
+                DebugTrap();
+            WriteSongByte(0, p++, ReadClipboardCell(1, i));
+        }
+        p = (UWORD)wSpeechCursorRow * 3 + (UWORD)0xBDD0;
+        hBgDigitPalette = wSelectDigitPal;
+        hBgPalette = wSelectPal;
+        GetTilemapAddr(0, InstrHGetParamPlus4());
+        for (i = 0; i < 3; i++) {
+            if (p >= (UWORD)0xBE78)
+                DebugTrap();
+            v = ReadClipboardCell(2, i);
+            WriteSongByte(0, p++, v);
+            if (v)
+                DrawStringIndexed((char)v);
+            else
+                DrawStringTile20();
+        }
+        return 1;
+    case 0x22:
+        FarCall(3, InstrSelectPrevUsed);
+        return 1;
+    case 0x28:
+        FarCall(3, InstrSelectPrevPage);
+        return 1;
+    case 0xC0:
+        if (!wButtonsSame)
+            FarCall(2, FAR_FN(StopAllPlayback));
+        return 1;
+    case 0x80:
+        if (!wButtonsSame && !wBHeld)
+            FarCall(2, FAR_FN(StopPlayback));
+        return 1;
+    }
+    return 0;
 }
