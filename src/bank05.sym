@@ -26,10 +26,10 @@
 45F1 TableEraseCursor           ; restore the cursor cells to their column palette (TableColPalette) at row wTableRow+2, unless selecting
 472B DrawTableEnv               ; draw a table envelope cell (lo-nibble $F -> hi-nibble + release glyph)
 4930 TableInputFlag             ; return e=flag derived from input code (arg sp+4: 4 or $0a) and column $c92f
-4AA8 TableDrawCursor            ; refresh the table cursor cell (select mode -> TableUpdateScreen; palette by CGB)
+4AA8 TableDrawCursor            ; refresh the table cursor cell (select mode -> DrawTableSelection; palette by CGB)
 61CA CutCopyTableSelection      ; arg? "CUT" (copy+clear) : "COPY": table selection -> clipboard (clipType 5)
 64A3 TablePasteCells            ; table-screen paste: clipboard cells into rows from wTableRow (a phrase selection's CMD pair too; swaps the two CMD/value pairs; "PASTE" for more than one row)
-676A TableUpdateScreen          ; main table-screen update/draw (large; also entered from DrawTableScreen)
+676A DrawTableSelection         ; table selection (wClipboardType==5) redraw vs the cursor: cells around the rectangle in their column palettes, the inside highlighted (DrawTextField)
 ; --- functions called from bank 0 (this bank paged in) ---
 4B5D TableScreenInput           ; table screen (5) input handler, from DispatchScreenInput: dispatch on wButtons
 4040 MapDrawTopRow      ; draw the map top-row entries (PROJECT + WAVE/SYNTH) at wMapProjectCol/wMapSynthCol, screen row 15
@@ -90,11 +90,11 @@
 652E .loop                ; loop head in TablePasteCells
 6550 .loop2               ; loop head in TablePasteCells
 6760 .done                ; common exit of TablePasteCells
-681B .loop                ; loop head in TableUpdateScreen
-687B .loop2               ; loop head in TableUpdateScreen
-692C .loop3               ; loop head in TableUpdateScreen
-6957 .loop4               ; loop head in TableUpdateScreen
-69B9 .done                ; common exit of TableUpdateScreen
+681B .loop                ; loop head in DrawTableSelection
+687B .loop2               ; loop head in DrawTableSelection
+692C .loop3               ; loop head in DrawTableSelection
+6957 .loop4               ; loop head in DrawTableSelection
+69B9 .done                ; common exit of DrawTableSelection
 6D21 .done                ; common exit of DrawInstrFieldHelp
 
 ; --- structural local names (loop heads / common exits) ---

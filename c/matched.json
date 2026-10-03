@@ -863,6 +863,12 @@
   "len": 462,
   "src": "c/bank05/TableScreen.c"
  },
+ "DrawTableSelection": {
+  "bank": "05",
+  "addr": "676A",
+  "len": 595,
+  "src": "c/bank05/TableScreen.c"
+ },
  "DrawTempo": {
   "bank": "00",
   "addr": "2C3C",

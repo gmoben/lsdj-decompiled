@@ -7,7 +7,7 @@
 
 #include "lsdj.h"
 
-void TableUpdateScreen(void);
+void DrawTableSelection(void);
 
 extern volatile sfr UBYTE SCX_REG;          /* $FF43 */
 extern volatile sfr UBYTE SCY_REG;          /* $FF42 */
@@ -402,7 +402,7 @@ void DrawTableScreen(void)
     DrawTextField(i, a1, w, pal);
     FarCall(0x1F, FAR_FN(DrawAllChanStatus));
     if (wCursorMode == 4)
-        TableUpdateScreen();
+        DrawTableSelection();
 }
 
 UBYTE TableInputFlag(UBYTE x)
@@ -457,7 +457,7 @@ void TableScreenUpdate(void)
 void TableDrawCursor(void)
 {
     if (wCursorMode == 4)
-        TableUpdateScreen();
+        DrawTableSelection();
     else
         DrawTextField(TableColX[wTableCol], wTableRow + 2, TableColWidth[wTableCol], hGameboyType ? 3 : 2);
     switch (wTableCol) {
@@ -638,6 +638,33 @@ void TablePasteCells(void)
         wSelLeft = 3;
         wSelRight = 5;
     }
+}
+
+void DrawTableSelection(void)
+{
+    UBYTE x, y, left, top, right, bottom;
+
+    if (wClipboardType != 5)
+        return;
+    left = wSelLeft;
+    right = wTableCol;
+    SortBytePair(&left, &right);
+    right = (char)right + 1;        /* the char casts read through c and b, */
+    top = wSelTop;
+    bottom = (char)wTableRow;       /* as if the coordinates were chars */
+    SortBytePair(&top, &bottom);
+    bottom = (char)bottom + 1;
+    /* the ring around the rectangle back to the column palettes... */
+    for (x = left ? left - 1 : 0; x < (right == 6 ? 6 : right + 1); x++) {
+        for (y = top ? top - 1 : 0; y < (bottom == 0x10 ? 0x10 : bottom + 1); y = y + 1) {
+            if (x < left || x >= right || y < top || y >= bottom)
+                DrawTextField(TableColX[x], y + 2, TableColWidth[x], x ? 1 - (x & 1) : 0);
+        }
+    }
+    /* ...and the rectangle highlighted */
+    for (x = left; x < right; x++)
+        for (y = top; y < bottom; y = y + 1)
+            DrawTextField(TableColX[x], y + 2, TableColWidth[x], hGameboyType ? 3 : 2);
 }
 
 void GetSynthFieldHelp(void)
