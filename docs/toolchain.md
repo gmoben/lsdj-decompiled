@@ -12,7 +12,7 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 | What compiled LSDj? | **GBDK 2.95-3** (19 Aug 2000) → **SDCC 2.2.1** (`gbz80` target), default `asxxxx` assembler/linker, small memory model — **plus an accumulator-tracking optimisation stock SDCC lacks** (the "modified GBDK"), modelled here as an accumulator-tracking pass plus 80 peephole rules (below) |
 | Can we run it today? | **Yes, natively.** SDCC 2.2.1 + `sdcpp`/`as-gbz80`/`link-gbz80` build from the GBDK 2.95-2 sources (`tools/toolchain/build_sdcc221.sh`, ~15 s) and emit **byte-identical** asm, objects, listings and images to GBDK 2.95-3's Win32 binaries — which still run under Wine (`fetch_gbdk295.sh`), but crash on large units (below) |
 | Is it the right toolchain? | **Yes, for the code generator**: LSDj's instruction selection, register allocation and frame idioms are SDCC 2.2.1's line for line, and GBDK 2.95 library code in the ROM is byte-identical to its sources (`display_off` ← `crt0.s`, `strcpy` ← `asm_string.s`, `set_bkg_palette` ← `cgb.s`, `set_bkg_tiles` ← `set_bk_t.s` + `set_xy_t.s`, the SDCC `mul` runtime). Stock output does **not** match on its own: LSDj's build also ran peephole rules that stock 2.95-3 lacks |
-| Matched real LSDj functions? | **Yes — 567**, in twelve banks (the list: [`c/matched.json`](../c/matched.json)): a message renderer, a 15-case `switch`, a sparse `switch`, the SRAM accessors, and the instrument screen's field accessors and draw helpers. `make match` re-verifies them all (cached: only changed sources reach the compiler), and **their bytes in the ROM build come from the compiled C** (below) |
+| Matched real LSDj functions? | **Yes — 568**, in twelve banks (the list: [`c/matched.json`](../c/matched.json)): a message renderer, a 15-case `switch`, a sparse `switch`, the SRAM accessors, and the instrument screen's field accessors and draw helpers. `make match` re-verifies them all (cached: only changed sources reach the compiler), and **their bytes in the ROM build come from the compiled C** (below) |
 | Is all of LSDj C? | **No.** ~130 functions (7% of the instructions) are hand-written assembly — the interrupt handlers, sound tick, envelope/pitch and tile-loader code in bank 0, and the sequencer core in bank `$02` (`tools/match/code_kind.py`). Those stay asm; the ~830 others (every editor) are Track 2 targets |
 | Go/no-go on Track 2? | **Go, with the rule set still growing.** Every function tried has matched (each new one has cost a few rules so far), the C feeds the ROM build with `make compare` as the gate, and the hand-written asm (7%) is mapped and excluded |
 
@@ -34,7 +34,7 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 | [`c/bank01/UiHelpers.c`](../c/bank01/UiHelpers.c) | 23 functions: small UI helpers, the cartridge test and SRAM test, the play/work clocks, instrument names, project settings, the screen palettes, the top bar and command help | `?:` over string literals, a `char` local (its dead `ld b,c` copy), a glyph table, a file-scope `const` table flushed ahead of the next function's strings, a `volatile` scratch byte so `++` is not folded into the store, `v = f(); v++` reusing the call register, a 12-case `switch` chain, a `switch` whose `default:` comes first and `goto`s into a later body, a global read as a word for a 32-bit `<`, a `UBYTE * volatile` loop pointer (kept on the stack, its `+ 1` through a register pair), `char` booleans stored and then tested, a stack-vs-stack `==` whose operand order avoids SDCC's `cp a` miscompile |
 | [`c/bank01/ShowMessages.c`](../c/bank01/ShowMessages.c) | `ShowOutOfMemory`, `ShowTapAddChain` | one-line wrappers, 16-bit argument |
 | [`c/bank03/InstrScreen.c`](../c/bank03/InstrScreen.c) | 63 functions of the instrument screen | field get/set/step helpers, `FarCall` in both address forms, SRAM literal addresses, a string literal placed after its function, `hl` kept across a `!=` compare |
-| [`c/bank1c/FileScreen.c`](../c/bank1c/FileScreen.c) | 36 functions: file screen | field highlights from column tables, a `do … while (--i)` clear (CSE shares `i - 1`), the serial receive wait, `?:` returns; DrawFileTextField's frame loops (bounds inline, see Writing C: hoisting depth) |
+| [`c/bank1c/FileScreen.c`](../c/bank1c/FileScreen.c) | 37 functions: file screen and the song compressor | CompressSong (the `cur == next` operand order, `wCompDst + 2` read twice through one CSE'd temporary, `wCompSrc & 0x100` / `wCompDst & 0x8000` as `bit` tests of the high bytes), field highlights from column tables, a `do … while (--i)` clear (CSE shares `i - 1`), the serial receive wait, `?:` returns; DrawFileTextField's frame loops (bounds inline, see Writing C: hoisting depth) |
 | [`c/bank1c/FileUpgrade.c`](../c/bank1c/FileUpgrade.c) | 39 functions: the song-format upgrades | per-type instrument callbacks through a function pointer (`FileForEachInstrType`), the upgrade steps' field fix-ups, a 16-bit `\|` forced by an `int` constant, FileUpgradeV11's aliases (`ReadSongBytesW` takes the UWORD SRAM cursor, `ReadInstrByteS` returns `char` so its result keeps a slot of its own; FileUpgradeV18's `v = types[i] == 3` gets the same copy from the comparison's `char` result) |
 | [`c/bank1d/SynthScreen.c`](../c/bank1d/SynthScreen.c) | 51 functions: synth and groove screens, the per-wave parameter curves and their loader | a `switch` through a jump table, SRAM param/groove accessors, a `?:` over `long` constants (> 32767), the cache walker; SynthFillWaveRange's `*buf++ = ((UWORD)i * b >> 4) + a` (the 16-bit product through MulU16, the sum operand order per branch), RenderSynthWave's curve buffers as real array symbols (`wSynthCurveSeg3[wSynthRenderIdx]` is the `ld a,#<sym; add a,c` form a cast literal would not give), SynthReadParam's `1 << (x & 7)` mask; SynthLoadParams reads the 16 parameter bytes through `volatile UWORD` locals (`ReadSongByte(1, p++)`: the old value fetched into bc, the slot incremented in place, a plain `p` pushed straight from the stack), inline call results as arguments (a named result would hold c through the whole function), the last pair into two locals so the `+ 0x0F` adds come out in the ROM's order, and the render destination as a pointer cast of the sum; BuildOverwritePrompt's frame (the ASCII restore at the end of the middle-column branch, see Writing C: hoisting depth) |
 | [`c/bank1e/Gfx.c`](../c/bank1e/Gfx.c) | 4 functions: the top row's column labels, the font loader, VRAM helpers | `UWORD` loop addresses compared against `(UWORD)0x9800` (constants above 32768 are `long`), a `while (STAT_REG & 2)` wait; ScreenPreDraw's `switch (wCurrentScreen)` with its bodies in source order (1, 3, 5, 2, 12, 4); LoadFontTiles pushes its two spilled DMG blocks through `(UBYTE *)(UWORD)` cast temps (the ROM's `ld c,(hl); inc hl; ld b,(hl); push bc`) |
@@ -168,7 +168,8 @@ spills a call result to its variable, `track_a` turns the reads into
 exists in the ROM. `gb_cmp16` also re-seats `hl` after the compare it rewrites: stock SDCC
 leaves `hl` at the operand's high byte and may continue from there
 (`dec hl; ld a,(hl+)`), while the add form clobbers it, so the ROM
-reloads `ld hl,sp+0` (DrawBlocksUsed).
+reloads `ld hl,sp+0` (DrawBlocksUsed), or `ld hl,#G` for a global operand
+(CompressSong's `wCompDst < 0x7FFF` before `wCompDst + 1`).
 After `ld (hl),e; ld a,e` the byte at hl is `a` too, so a table index
 loaded from it is `ld l,a` (CountFileBlocks' `ld l,a; ld h,#0`).
 A byte read through `de`/`bc` is remembered as "the byte at (de)": its
@@ -265,7 +266,7 @@ array indexes in `SyncTickLSDJ`, but reread within one block
 both ways, no site contradicts that. An HRAM store, a call or a jump target
 ends the reuse.
 A textual rule covers the pair case: `ld b,l; ld c,h; ld l,b; ld h,c` loses
-the copy back (none in the ROM; `FileReadCompressedBlock` pushes `hl` right
+the copy back (none in the ROM; `CompressIsDefaultWave` pushes `hl` right
 after copying it).
 
 One family is code generation rather than a peephole: LSDj's compiler
@@ -289,7 +290,9 @@ forms (stack, global, or register operands). This is the same carry
 inversion as the branch form, with the truth value made explicit.
 Zero thresholds are left alone: adding zero cannot provide the inverse
 borrow. The pass also restores HL when its fetch starts one byte above the
-stack operand (`dec hl`), including relative stores after materialization.
+stack operand (`dec hl`), including relative stores after materialization,
+and reloads a global operand's address when the branch's fall-through goes
+on through HL.
 `tools/match/test_peep.py` checks both branch polarities and the actual
 destination of these stores with a small instruction interpreter, plus all
 65,536 input values at five representative thresholds. Global boolean

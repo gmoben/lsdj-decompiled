@@ -240,7 +240,7 @@ _CMP16 = [
     ([r"xor\s+a,a", r"dec\s+hl", r"ld\s+a,\(hl\)", rf"sbc\s+a,{_HEX}", r"inc\s+hl", r"ld\s+a,\(hl\)",
       rf"sbc\s+a,{_HEX}", r"jp\s+(n?c),(\S+)"],
      lambda g: (["\tdec\thl", "\tld\te,(hl)", "\tinc\thl", "\tld\td,(hl)"], "de", g[0], g[1], g[2], g[3])),
-    # a global -> fetched into de (`FileReadCompressedBlock`)
+    # a global -> fetched into de (`CompressIsDefaultWave`)
     ([r"xor\s+a,a", r"ld\s+hl,(#[^;]+?)", r"ld\s+a,\(hl\)", rf"sbc\s+a,{_HEX}", r"inc\s+hl",
       r"ld\s+a,\(hl\)", rf"sbc\s+a,{_HEX}", r"jp\s+(n?c),(\S+)"],
      lambda g: ([f"\tld\thl,{g[0]}", "\tld\te,(hl)", "\tinc\thl", "\tld\td,(hl)"], "de", g[1], g[2], g[3], g[4])),
@@ -379,6 +379,14 @@ def gb_cmp16(lines: list[str]) -> tuple[list[str], int]:
                     # a stack byte the code goes on to use (DrawSpeechInstrScreen's
                     # `row < 4 + 14` then `GetTilemapAddr(0, row)`)
                     known = _hl_stack_offset(lines, idx[0])
+                glob = None
+                if fetch and fetch[0].startswith("\tld\thl,#"):
+                    # a global: hl was left at its high byte the same way
+                    # (CompressSong's `wCompDst < 0x7FFF` then `wCompDst + 1`)
+                    gm = re.fullmatch(r"#(\w+)(?: \+ (\d+))?", groups[0].strip())
+                    if gm:
+                        glob = gm.group(1)
+                        known = int(gm.group(2) or 0) + 1
                 if known is not None:
                     # stock SDCC left hl at the operand's high byte and may go
                     # on from there (`dec hl; ld a,(hl+)`); the add clobbered
@@ -394,7 +402,8 @@ def gb_cmp16(lines: list[str]) -> tuple[list[str], int]:
                         adj += 1
                     nxt = _strip(lines[adj]).strip() if adj < len(lines) else ""
                     if "(hl" in nxt and not nxt.endswith(":"):
-                        lines[k:adj] = [f"\tlda\thl,{off}(sp)"]
+                        lines[k:adj] = ([f"\tld\thl,#{glob} + {off}"] if glob
+                                        else [f"\tlda\thl,{off}(sp)"])
                 break
         i += 1
     return lines, n

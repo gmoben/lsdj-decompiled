@@ -63,30 +63,35 @@ runs of `$00`/`$FF` (empty phrases/chains).
 
 | Routine | Addr | Role |
 |---------|------|------|
-| `DecompressSpecial` | `$46E1` | handle an `$E0`-escape sub-command: `$F0` (default-wave run), `$F1` (default-instrument run), `$FF` (end), else a literal `$E0` |
+| `DecompressBlock` | `$46E3` | the `$E0`-escape handler: `$E0` (a literal `$E0`), `$F0 n` (default-wave run), `$F1 n` (default-instrument run), `$FF` (end, returns 1), anything else the next block's index (`LoadCompressedBlock`, with the progress count on the panel) |
 | `ReadCompressedByte` | `$7402` | fetch the next stream byte via the SRAM block pointer (`$C97B`/`$C97C`) |
-| `WriteSongByte` | `$74E0` | write a decompressed byte into the working song |
+| `LoadCompressedBlock` | `$74E0` | copy 512-byte block `a` (SRAM bank `4 + a>>4`, `$A000 + (a&15)*$200`) into the `$DB00` buffer and point `wCompSrc` at it |
 | `EmitDefaultWave` | `$753E` | `$F0` run: emit a default wavetable frame |
 | `EmitDefaultInstrument` | `$758E` | `$F1` run: emit a default instrument |
 
 The output pointer (`$C97D`/`$C97E`) is filled until it reaches `$8000` (the
-32 KiB song size). `DecompressSpecial` (`$46E1`) is the `$E0`-escape sub-handler
-(`$F0`/`$F1`/`$FF`/literal-`$E0`); the main loop also handles `$C0` RLE and
-literals.
+32 KiB song size). `DecompressBlock` (`$46E3`) is the `$E0`-escape sub-handler
+(`$F0`/`$F1`/`$FF`/literal `$E0`/block link); the main loop also handles `$C0`
+RLE and literals.
 
 ### Compressor — located in bank `$1C` (the SAVE path)
 
 | Routine | Addr | Role |
 |---------|------|------|
-| `CompressSong` | `$441F` | compress the 32 KiB working song into blocks; inits `$C97D=0`, reads the song from `$A000` (`$441E` is the previous routine's `ret`) |
+| `CompressSong` | `$441F` | compress the 32 KiB working song into blocks (matching C in `c/bank1c/FileScreen.c`); returns 0 when no free block is left |
+| `CompressIsDefaultWave` | `$43C1` | 1 when the 16 bytes at `wCompDst` are the default wave frame |
+| `FileCompressRun` | `$7167` | emit `$C0 v n` for the run of `v` at `wCompDst` (asm, `v` in `a`) |
 | `WriteCompressedByte` | `$715B` | emit one byte to the compressed output stream |
-| `ReadWorkingSongByte` | `$711F` | read a byte of the working song (compressor input) |
+| `ReadWorkingSongByte` | `$711F` | read a byte of the working song (compressor input; caches the SRAM page in `$C986`) |
 
-The compressor confirms the codec **exactly matches the table above** (the
-liblsdj model): it emits `$C0 $C0` / `$E0 $E0` (literal escapes), `$C0 v n`
-(RLE), `$E0 $F0 n` (default-wave run), `$E0 $F1 n` (default-instrument run), and
-`$E0 $FF` (end). Compress (`$441E`+) and decompress (`$45xx`/`$46xx`) sit next to
-each other in bank `$1C` and share the loop tail at `$464F`.
+`CompressSong` walks the song with the current and next byte and emits `$C0 $C0`
+/ `$E0 $E0` for literal `$C0`/`$E0`, `$C0 v n` (`FileCompressRun`) when four
+bytes repeat, `$E0 $F0 n` for `n` consecutive default wave frames (checked
+with a quick look at the first two bytes, `$71 $32`, then all 16), and the
+byte itself otherwise. When the output reaches byte `$FC` of a block's second
+256-byte page it writes `$E0` and the next free block's index (`FindFreeBlock`)
+and continues there; at `$8000` it writes `$E0 $FF`. It never emits the
+`$E0 $F1` default-instrument run that the decompressor accepts.
 
 ## Song-format upgrade (migration on load) — bank `$1C`
 

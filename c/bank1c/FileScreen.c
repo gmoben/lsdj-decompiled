@@ -19,6 +19,7 @@ extern UBYTE wCompBank;                     /* $C979 */
 extern UWORD wCompSrc;                      /* $C97A, an SRAM address */
 extern UWORD wCompDst;                      /* $C97D, a working-song offset */
 extern UBYTE wDecompPos;                    /* $C983 */
+extern UBYTE wWorkSongPage;                 /* $C986, ReadWorkingSongByte's cached page */
 extern char wFileNameBuf[];                 /* $C987, [8] */
 extern UBYTE wFileNameTerm[];               /* $C98F, its NUL */
 extern UBYTE wDecompBuf[];                  /* $DA00, [256] */
@@ -83,12 +84,14 @@ int strcmp(const char *a, const char *b);   /* bank 0's StrCompare */
 UBYTE GetFileBlockCount(UBYTE i);
 UBYTE FileFindSlotEnd(void);
 UBYTE FileSlotHalfBase(void);
-void WriteDecompByte(UBYTE v);
+void LoadCompressedBlock(UBYTE v);
 UBYTE FileClassifyToken(void);              /* asm */
 UBYTE CheckFileMagic64(void);
 void FreeFileBlocks(UBYTE f);
 void EraseFileName(UBYTE f);
 UBYTE ReadWorkingSongByte(UWORD addr);      /* asm */
+void WriteCompressedByte(UBYTE v);          /* asm, v also in a */
+void FileCompressRun(UBYTE v);              /* asm, v in a */
 void FileClearChanState(void);
 
 void FileWriteCompressedSram(void)
@@ -146,7 +149,7 @@ UBYTE FileScanSlotNames(void)
     wFileBlockIdx = 1;
     do {
         if (wCompByte == ReadSongByte(4, (UBYTE *)0xA140 + (unsigned int)wFileBlockIdx)) {
-            WriteDecompByte(wFileBlockIdx);
+            LoadCompressedBlock(wFileBlockIdx);
             return 1;
         }
         wFileBlockIdx++;
@@ -185,7 +188,7 @@ void CopyFileName(UBYTE f)
     }
 }
 
-UBYTE FileReadCompressedBlock(void)
+UBYTE CompressIsDefaultWave(void)
 {
     UBYTE i;
 
@@ -195,6 +198,87 @@ UBYTE FileReadCompressedBlock(void)
         if (ReadWorkingSongByte(wCompDst + i) != DefaultWaveFrameB1C[i])
             return 0;
     }
+    return 1;
+}
+
+/*
+ * SAVE's compressor: walks the working song with the current and next byte
+ * and writes the block stream through WriteCompressedByte -- $C0 $C0 and
+ * $E0 $E0 escape the two marker bytes, a byte repeated four times becomes an
+ * RLE run (FileCompressRun), consecutive default wave frames an `$E0 $F0 n`
+ * run. Near the end of a block's second page it links to the next free block
+ * (`$E0 n`); 0 when none is left, 1 after the closing `$E0 $FF`.
+ */
+UBYTE CompressSong(void)
+{
+    UBYTE cur;
+    UBYTE next;
+    UBYTE k;
+    UBYTE bank;
+    UWORD src;
+
+    wCompDst = 0;
+    wDecompPos = 0;
+    wWorkSongPage = 0xFF;
+    cur = ReadSongByte(0, 0xA000);
+    next = ReadSongByte(0, 0xA001);
+    do {
+        if (cur == 0xC0) {
+            WriteCompressedByte(0xC0);
+            WriteCompressedByte(0xC0);
+            cur = next;
+            wCompDst++;
+            if (wCompDst < 0x7FFF)
+                next = ReadWorkingSongByte(wCompDst + 1);
+        } else if (cur == 0x71 && next == 0x32 && CompressIsDefaultWave()) {
+            k = 0;
+            do {
+                k = k + 1;
+                wCompDst += 0x10;
+            } while (CompressIsDefaultWave() && k != 0xFF);
+            WriteCompressedByte(0xE0);
+            WriteCompressedByte(0xF0);
+            WriteCompressedByte(k);
+            cur = ReadWorkingSongByte(wCompDst);
+            next = ReadWorkingSongByte(wCompDst + 1);
+        } else if (cur == 0xE0) {
+            WriteCompressedByte(0xE0);
+            WriteCompressedByte(0xE0);
+            cur = next;
+            wCompDst++;
+            if (wCompDst < 0x7FFF)
+                next = ReadWorkingSongByte(wCompDst + 1);
+        } else if (cur == next && wCompDst < 0x7FFD
+                   && next == ReadWorkingSongByte(wCompDst + 2)
+                   && ReadWorkingSongByte(wCompDst + 2) == ReadWorkingSongByte(wCompDst + 3)) {
+            FileCompressRun(cur);
+            if (wCompDst < 0x8000) {
+                cur = ReadWorkingSongByte(wCompDst);
+                if (wCompDst < 0x7FFF)
+                    next = ReadWorkingSongByte(wCompDst + 1);
+            }
+        } else {
+            WriteCompressedByte(cur);
+            cur = next;
+            wCompDst++;
+            if (wCompDst < 0x7FFF)
+                next = ReadWorkingSongByte(wCompDst + 1);
+        }
+        if (wDecompPos > 0xFB && (wCompSrc & 0x100)) {
+            WriteCompressedByte(0xE0);
+            if (!FindFreeBlock(&bank, &src))
+                return 0;
+            WriteCompressedByte(wFileBlockIdx);
+            if (wDecompPos)
+                FileWriteCompressedSram();
+            wCompBank = bank;
+            wCompSrc = src;
+        }
+    } while (!(wCompDst & 0x8000));
+    WriteCompressedByte(0xE0);
+    WriteCompressedByte(0xFF);
+    if (wDecompPos)
+        FileWriteCompressedSram();
     return 1;
 }
 
@@ -226,7 +310,7 @@ UBYTE DecompressBlock(void)
             DrawStringIndexed('/');
             DrawByte(wFileFirstChar);
         }
-        WriteDecompByte(b);
+        LoadCompressedBlock(b);
     }
     return 0;
 }

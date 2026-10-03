@@ -29,7 +29,7 @@ def execute(lines, value):
 
     def get(operand):
         if operand.startswith("#"):
-            return int(operand[1:], 0)
+            return sum(int(term, 0) for term in operand[1:].split("+"))
         if operand == "(hl)":
             return memory.get(pair("hl"), 0xA5)
         return regs[operand]
@@ -143,6 +143,21 @@ class Compare16Tests(unittest.TestCase):
                   "\tsbc\ta,#0x0B", "\tinc\thl", "\tld\ta,(hl)",
                   "\tsbc\ta,#0x00", "\tld\ta,#0x00", "\trla"]
         self.assertEqual(gb_cmp16(source), (source, 0))
+
+    def test_global_branch_reloads_hl_for_the_next_use(self):
+        # CompressSong: `wCompDst < 0x7FFF` then `wCompDst + 1`; stock SDCC
+        # steps back from the high byte, which the add form has clobbered
+        source = ["\txor\ta,a", "\tld\thl,#0xC006 + 0", "\tld\ta,(hl)",
+                  "\tsbc\ta,#0xFF", "\tinc\thl", "\tld\ta,(hl)",
+                  "\tsbc\ta,#0x7F", "\tjp\tnc,001skip$", "\tdec\thl",
+                  "\tld\ta,(hl)", "\tinc\thl", "\tinc\thl", "\tld\t(hl),a"]
+        result, count = gb_cmp16(source)
+        self.assertEqual(count, 1)
+        jump = result.index("\tjp\tc,001skip$")
+        self.assertEqual(result[jump + 1], "\tld\thl,#0xC006 + 0")
+        for value in (0, 0x1234, 0x7FFE, 0x7FFF, 0xFFFF):
+            with self.subTest(value=value):
+                self.assertEqual(execute(source, value), execute(result, value))
 
     def test_zero_threshold_and_intervening_label_are_not_rewritten(self):
         for ending in (["\tld\ta,#0x00", "\trla"], ["\tjp\tnc,001done$"]):

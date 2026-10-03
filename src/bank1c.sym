@@ -16,9 +16,8 @@
 715B WriteCompressedByte ; emit one byte to the compressed output stream
 711F ReadWorkingSongByte ; read a byte of the working song (input to compress)
 ; --- song decompressor (LOAD) ---
-46E1 DecompressSpecial   ; handle an $E0-escape sub-command: $F0 wave / $F1 instr / $FF end / literal $E0
 7402 ReadCompressedByte  ; read next byte from the compressed stream (ptr $C97B/$C97C)
-74E0 WriteDecompByte     ; write a decompressed byte into the working song (decompress output)
+74E0 LoadCompressedBlock        ; copy 512-byte compressed block a (SRAM bank 4 + a>>4, $A000 + (a&15)*$200) into the $DB00 buffer and point wCompSrc at it; ends with reti
 753E EmitDefaultWave     ; $F0 run: emit a default wavetable frame
 758E EmitDefaultInstrument ; $F1 run: emit a default instrument
 ; --- file screen ---
@@ -31,8 +30,8 @@
 42E9 FileScanSlotNames          ; scan file-slot names in SRAM ($A140, bank4) from index $c958
 4335 GetFileBlockCount          ; wFileBlockCounts[i] (i < $20): the blocks file i uses
 4352 CopyFileName               ; copy the 8-char filename of slot arg (<$20) into the $c987 buffer
-43C1 FileReadCompressedBlock    ; read a compressed block via ptr $c97d (bounds $800f); 16-step
-441F CompressSong               ; compress the 32 KiB working song ($A000) into the output stream: init ptrs $c97d/$c983, read via ReadSongByte, emit via WriteCompressedByte ($441E is the prior fn's ret)
+43C1 CompressIsDefaultWave      ; 1 when the 16 working-song bytes at wCompDst are the default wave frame (DefaultWaveFrameB1C); 0 at or past $7FF1
+441F CompressSong               ; compress the 32 KiB working song into SRAM blocks: $C0/$E0 escapes, RLE runs, default-wave runs, $E0 n block links, $E0 $FF end; 0 when no block is free
 46E3 DecompressBlock            ; LSDj block decompressor: RLE $c0, special $e0/$f0 (default wave) /$f1 (default instr) /$ff EOF
 4778 DrawVerifyPanel            ; "VERIFY..." save-verification panel + slot info
 4862 FileFindSlotEnd            ; scan file slots in SRAM ($A141) for the $ff terminator
@@ -148,8 +147,8 @@
 42EF .loop                ; loop head in FileScanSlotNames
 4333 .done                ; common exit of FileScanSlotNames
 43B7 .done                ; common exit of CopyFileName
-43DA .loop                ; loop head in FileReadCompressedBlock
-441B .done                ; common exit of FileReadCompressedBlock
+43DA .loop                ; loop head in CompressIsDefaultWave
+441B .done                ; common exit of CompressIsDefaultWave
 4454 .loop                ; loop head in CompressSong
 44BE .loop2               ; loop head in CompressSong
 46DF .done                ; common exit of CompressSong
@@ -246,8 +245,8 @@
 747D .loop                ; loop head in VerifyBlockAgainstSram
 74AA .loop                ; loop head in FileDecompressByte
 74B3 .loop2               ; loop head in FileDecompressByte
-74FC .loop                ; loop head in WriteDecompByte
-7502 .loop2               ; loop head in WriteDecompByte
+74FC .loop                ; loop head in LoadCompressedBlock
+7502 .loop2               ; loop head in LoadCompressedBlock
 7528 .loop                ; loop head in FileDecompressRun
 
 ; --- structural local names (loop heads / common exits) ---

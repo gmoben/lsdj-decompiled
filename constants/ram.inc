@@ -110,6 +110,7 @@ DEF wCompDst         EQU $C97D  ; (de)compression output pointer into the workin
 DEF wCompByte        EQU $C97F  ; current byte being processed in song (de)compression: loaded via ReadSongByte and
                                 ; compared against RLE markers ($20, $ff, run counts); set to $ff as a sentinel
 DEF wDecompPos       EQU $C983  ; cursor into the $DA00 decompress scratch buffer
+DEF wWorkSongPage    EQU $C986  ; ReadWorkingSongByte's cached SRAM page (song address high byte; $FF = none)
 
 ; --- Drawing helpers (used by DrawString/DrawHexByte/... in bank 0) ----------
 DEF wStringSrc       EQU $C564  ; source pointer for DrawString (16-bit)

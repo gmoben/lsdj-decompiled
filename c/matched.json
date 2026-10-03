@@ -311,6 +311,18 @@
   "len": 434,
   "src": "c/bank1b/ProjectScreen.c"
  },
+ "CompressIsDefaultWave": {
+  "bank": "1C",
+  "addr": "43C1",
+  "len": 94,
+  "src": "c/bank1c/FileScreen.c"
+ },
+ "CompressSong": {
+  "bank": "1C",
+  "addr": "441F",
+  "len": 708,
+  "src": "c/bank1c/FileScreen.c"
+ },
  "ComputeEnvelope": {
   "bank": "1B",
   "addr": "726E",
@@ -1041,12 +1053,6 @@
   "bank": "1C",
   "addr": "58C1",
   "len": 74,
-  "src": "c/bank1c/FileScreen.c"
- },
- "FileReadCompressedBlock": {
-  "bank": "1C",
-  "addr": "43C1",
-  "len": 94,
   "src": "c/bank1c/FileScreen.c"
  },
  "FileReadInstrByte": {
