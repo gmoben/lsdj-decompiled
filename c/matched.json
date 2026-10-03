@@ -2525,6 +2525,12 @@
   "len": 252,
   "src": "c/bank00/ScreenDrawDispatch.c"
  },
+ "ScreenPreDraw": {
+  "bank": "1E",
+  "addr": "4000",
+  "len": 712,
+  "src": "c/bank1e/Gfx.c"
+ },
  "ScreenUpdateDispatch": {
   "bank": "00",
   "addr": "264B",

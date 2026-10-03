@@ -1,5 +1,5 @@
 ; Bank $1E -- screen pre-draw helper
-4000 ScreenPreDraw       ; called before most screen draws (ScreenDrawDispatch prologue)
+4000 ScreenPreDraw       ; top-row column labels for the screen about to be drawn (raw tiles; none on the wave screen); ScreenDrawDispatch prologue
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 79FA GfxFillVramRegions         ; write $ff to VRAM $9480-$97FF and $8800-$88CF (via $17ec vblank tile writer)
