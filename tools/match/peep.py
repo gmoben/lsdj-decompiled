@@ -441,6 +441,65 @@ def referenced_labels(lines: list[str]) -> set[str]:
     return refs
 
 
+def switch_chain(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
+    """Drop the reloads left in a long `switch` compare chain.
+
+    Stock SDCC re-reads the switch variable before every `cp a,#n; jp z,L`
+    of a sparse switch; the rules in lsdj.peep remove those reloads one
+    chain position at a time (up to twelve, then by chaining), so a chain of
+    twenty cases (WaveScreenInput's wButtons) keeps one. Here `ld hl,#G;
+    ld a,(hl)` is dropped wherever the same pair already loaded `a` and only
+    compares, conditional jumps and labels nothing jumps to lie between. The
+    ROM's compiled code never reloads inside such a chain."""
+    out: list[str] = []
+    n = 0
+    scope = 0
+    cur: str | None = None            # the global `ld hl,#G` loaded into a and hl
+    i = 0
+    while i < len(lines):
+        raw = lines[i]
+        t = _strip(raw).strip()
+        if not t:
+            out.append(raw)
+            i += 1
+            continue
+        if t.endswith(":"):
+            if not _LOCAL.fullmatch(t[:-1]):
+                scope += 1
+                cur = None
+            elif f"{scope}:{t[:-1]}" in jump_targets:
+                cur = None
+            out.append(raw)
+            i += 1
+            continue
+        m = re.fullmatch(r"ld\s+hl,(#_\w+(?: \+ \d+)?)", t)
+        if m:
+            k = i + 1
+            while k < len(lines) and not _strip(lines[k]).strip():
+                k += 1
+            nxt = _strip(lines[k]).strip() if k < len(lines) else ""
+            if nxt == "ld\ta,(hl)":
+                if cur == m.group(1):
+                    n += 1
+                    out.extend(l for l in lines[i + 1:k])   # keep comments
+                    i = k + 1
+                    continue
+                cur = m.group(1)
+                out.append(raw)
+                i += 1
+                continue
+            cur = None
+            out.append(raw)
+            i += 1
+            continue
+        if cur is not None and not (t in ("ld\ta,(hl)", "or\ta,a") or re.fullmatch(r"cp\s+a,#\S+", t)
+                                    or re.fullmatch(r"jp\s+n?z,\S+", t)):
+            cur = None
+        out.append(raw)
+        i += 1
+    return out, n
+
+
 _ALU = {"add", "adc", "sub", "sbc", "and", "or", "xor", "inc", "dec", "rla", "rra", "rlca",
         "rrca", "rl", "rr", "sla", "sra", "srl", "swap", "cpl"}
 

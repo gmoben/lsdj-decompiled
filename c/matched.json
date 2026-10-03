@@ -3239,6 +3239,12 @@
   "len": 174,
   "src": "c/bank06/Screens.c"
  },
+ "WaveScreenInput": {
+  "bank": "06",
+  "addr": "507F",
+  "len": 772,
+  "src": "c/bank06/Screens.c"
+ },
  "WaveSetSpriteColumns": {
   "bank": "06",
   "addr": "4AB0",

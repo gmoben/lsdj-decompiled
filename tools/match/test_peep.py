@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Focused semantic regressions for the recovered 16-bit comparison pass.
+"""Focused regressions for the recovered 16-bit comparison pass and the
+switch-chain reload pass.
 
 Run with: python3 tools/match/test_peep.py
 """
@@ -8,7 +9,8 @@ import importlib
 import re
 import unittest
 
-gb_cmp16 = importlib.import_module("peep").gb_cmp16
+peep = importlib.import_module("peep")
+gb_cmp16 = peep.gb_cmp16
 
 
 def execute(lines, value):
@@ -148,6 +150,27 @@ class Compare16Tests(unittest.TestCase):
             self.assertEqual(gb_cmp16(source), (source, 0))
         source = self.source(11, ["001entry$:", "\tld\ta,#0x00", "\trla"])
         self.assertEqual(gb_cmp16(source), (source, 0))
+
+
+class SwitchChainTests(unittest.TestCase):
+    LOAD = ["\tld\thl,#_wButtons + 0", "\tld\ta,(hl)"]
+
+    def chain(self, label="00201$:"):
+        return (self.LOAD + ["\tcp\ta,#0x01", "\tjp\tz,00107$", label]
+                + self.LOAD + ["\tcp\ta,#0x02", "\tjp\tz,00111$"])
+
+    def test_reload_after_unreferenced_label_is_dropped(self):
+        out, n = peep.switch_chain(self.chain(), set())
+        self.assertEqual(n, 1)
+        self.assertEqual(out, self.LOAD + ["\tcp\ta,#0x01", "\tjp\tz,00107$", "00201$:",
+                                           "\tcp\ta,#0x02", "\tjp\tz,00111$"])
+
+    def test_jump_target_or_other_global_keeps_the_reload(self):
+        source = self.chain()
+        self.assertEqual(peep.switch_chain(source, {"0:00201$"}), (source, 0))
+        other = [l.replace("_wButtons", "_wButtonsSame") if i >= 5 else l
+                 for i, l in enumerate(source)]
+        self.assertEqual(peep.switch_chain(other, set()), (other, 0))
 
 
 if __name__ == "__main__":

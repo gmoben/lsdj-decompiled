@@ -85,6 +85,19 @@ extern UBYTE wSelTop;                       /* $C40E */
 extern UBYTE wSelRight;                     /* $C40F */
 extern UBYTE wSelBottom;                    /* $C410 */
 extern UBYTE wClipboardType;                /* $C411 */
+extern UBYTE wButtons;                      /* $C575 */
+extern UBYTE wSynthScreen;                  /* $C441 */
+extern UBYTE wSelectHeld;                   /* $C40A */
+extern UBYTE wBHeld;                        /* $C40B */
+extern UBYTE wAPressEnabled;                /* $C409 */
+void ChainWriteWaveB(void);
+void CopyWaveSelection(void);
+void PasteWaveSelection(void);
+void SaveSelectionState(void);              /* $05:$743F */
+void MapMoveLeft(void);                     /* $05:$4233 */
+void MapMoveDown(void);                     /* $05:$4287 */
+void StopAllPlayback(void);                 /* $02:$78C4 */
+void StopPlayback(void);                    /* $02:$7C4C */
 void CopySelection(void);                   /* bank $1C */
 extern char TxtCopy[];                      /* $06:$5467 "COPY" */
 
@@ -385,6 +398,137 @@ void DrawWaveCursor(UBYTE d)
     wWaveCursor = n;
     ChainDrawCursorByte();
     ChainSetCursorSprite();
+}
+
+UBYTE WaveScreenInput(void)
+{
+    switch (wButtons) {
+    case 0x43:
+        if (wCursorMode == 4) {
+            wWaveCursor = wWaveSelStart;
+            FarCall(5, RestoreSelectionState);
+            DrawWaveScreen();
+            ShowMessage("CANCEL SELECT");
+        }
+        return 1;
+    case 0x01:
+        if (!wButtonsSame || wWaveCursor != 0x1F) {
+            wWaveCursor++;
+            wWaveCursor = (char)wWaveCursor & 0x1F;
+            ChainSetCursorSprite();
+        }
+        return 1;
+    case 0x02:
+        if (!wButtonsSame || wWaveCursor) {
+            wWaveCursor--;
+            wWaveCursor = (char)wWaveCursor & 0x1F;
+            ChainSetCursorSprite();
+        }
+        return 1;
+    case 0x04:
+        ChainWriteWaveD(1);
+        return 1;
+    case 0x08:
+        ChainWriteWaveD(0xFF);
+        return 1;
+    case 0x12:
+        if (wCursorMode == 4)
+            ChainWriteWaveB();
+        else
+            DrawWaveCursor(0xFF);
+        return 1;
+    case 0x11:
+        if (wCursorMode == 4)
+            ChainWriteWaveB();
+        else
+            DrawWaveCursor(1);
+        return 1;
+    case 0x14:
+    case 0x18:
+        ChainWriteWaveC();
+        return 1;
+    case 0x21:
+        wSynth++;
+        wMsgStrPtr = 0;
+        DrawWaveScreen();
+        return 1;
+    case 0x22:
+        wSynth--;
+        wMsgStrPtr = 0;
+        DrawWaveScreen();
+        return 1;
+    case 0x24:
+        wSynth += 0x10;
+        wMsgStrPtr = 0;
+        DrawWaveScreen();
+        return 1;
+    case 0x28:
+        wSynth -= 0x10;
+        wMsgStrPtr = 0;
+        DrawWaveScreen();
+        return 1;
+    case 0xC0:
+        if (wButtonsSame)
+            return 1;
+        FarCall(2, FAR_FN(StopAllPlayback));
+        return 1;
+    case 0x80:
+        if (wButtonsSame || wBHeld)
+            return 1;
+        FarCall(2, FAR_FN(StopPlayback));
+        return 1;
+    case 0x42:
+        if (wButtonsSame)
+            return 0;
+        if (wSynth < 0xF0)
+            wSynthScreen = wSynth >> 4;
+        FarCall(5, MapMoveLeft);
+        FarCall(7, FAR_FN(RedrawScreen));
+        return 1;
+    case 0x48:
+        if (wButtonsSame)
+            return 0;
+        FarCall(5, MapMoveDown);
+        FarCall(7, FAR_FN(RedrawScreen));
+        return 1;
+    case 0x60:
+        if (!wSelectHeld)
+            return 0;
+        wSelectHeld = 0;
+        switch (wCursorMode) {
+        case 1:
+        case 2:
+            FarCall(5, SaveSelectionState);
+            wWaveSelStart = wWaveCursor;
+            ShowMessage("SELECT");
+            break;
+        case 4:
+            wWaveSelStart = 0;
+            wWaveCursor = 0x1F;
+            break;
+        }
+        ChainSetCursorSprite();
+        return 1;
+    case 0x20:
+        if (wCursorMode != 4)
+            return 0;
+        if (!wAPressEnabled)
+            return 0;
+        CopyWaveSelection();
+        ChainSetCursorSprite();
+        return 1;
+    case 0x50:
+        if (wCursorMode != 2)
+            return 0;
+        if (wClipboardType != 8)
+            return 0;
+        if (!wSelectHeld)
+            return 0;
+        wSelectHeld = 0;
+        PasteWaveSelection();
+        return 1;
+    }
+    return 0;
 }
 
 void CopyWaveSelection(void)

@@ -238,6 +238,7 @@ def compile_unit(work: Path, env: dict[str, str], c_path: Path,
         lines, _ = peep_mod.gb_cmp16(lines)             # LSDj's 16-bit compare codegen
         lines, _ = peep_mod.apply(rules, lines)
         targets = peep_mod.referenced_labels(lines)     # jump targets once the rules have run
+        lines, _ = peep_mod.switch_chain(lines, targets)  # what the chain rules leave of a long switch
         if not os.environ.get("LSDJ_NO_TRACK"):
             lines, _ = peep_mod.track_hram(lines, targets)
             lines, _ = peep_mod.track_a(lines, targets)
