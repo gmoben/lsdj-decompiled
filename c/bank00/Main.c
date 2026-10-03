@@ -43,7 +43,7 @@ void ResetWorkState(void);
 void InitKitMixer(void);                    /* bank $1B */
 void UiInitScreen(void);                    /* bank 1 */
 UBYTE CheckSongInitFlag(void);              /* bank 1 */
-void InitScreenPalettes(void);              /* bank $1E */
+void LoadFontTiles(void);              /* bank $1E */
 void DrawCartTest(void);                    /* bank 1 */
 void UiClearSram(void);                     /* bank 1 */
 void WriteSongInitFlag(void);               /* bank 1 */
@@ -75,7 +75,7 @@ void InitAndLoadSong(void)
     UiInitScreen();
     if (!CheckSongInitFlag()) {
         ResetWorkState();
-        FarCall(0x1E, FAR_FN(InitScreenPalettes));
+        FarCall(0x1E, FAR_FN(LoadFontTiles));
         hBgDigitPalette = 4;
         hBgPalette = 1;
         DrawCartTest();

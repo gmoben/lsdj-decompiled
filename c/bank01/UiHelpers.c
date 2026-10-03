@@ -57,7 +57,7 @@ void UiDrawScreenCgb(UWORD s);              /* asm */
 void UiDrawScreenDmg(UBYTE *s);             /* asm */
 
 void LoadSyncSetting(void);                 /* bank 0 */
-void InitScreenPalettes(void);              /* bank $1E */
+void LoadFontTiles(void);              /* bank $1E */
 void SetSyncSendRate(void);                 /* bank 7 */
 void LoadFileListState(void);               /* bank $1C */
 void FileUpgradeSong(void);                 /* bank $1C */
@@ -696,7 +696,7 @@ void LoadProjectSettings(UBYTE keep)
     if (!hGameboyType && wColorSet > 3)
         wColorSet = 0;
     rRAMG = 0;
-    FarCall(0x1E, FAR_FN(InitScreenPalettes));
+    FarCall(0x1E, FAR_FN(LoadFontTiles));
     hBgDigitPalette = 4;
     hBgPalette = 1;
     ApplyColorSet();

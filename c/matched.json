@@ -1943,6 +1943,12 @@
   "len": 459,
   "src": "c/bank1c/FileScreen.c"
  },
+ "LoadFontTiles": {
+  "bank": "1E",
+  "addr": "7AA0",
+  "len": 267,
+  "src": "c/bank1e/Gfx.c"
+ },
  "LoadPhraseRow": {
   "bank": "04",
   "addr": "4C14",

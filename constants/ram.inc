@@ -834,7 +834,7 @@ DEF wProjDrawScratch2 EQU $C9A8  ; draw scratch (ProjDrawSyncField)
 DEF wProjDrawScratch3 EQU $C9A9  ; draw scratch (ProjDrawSyncFieldHw)
 DEF wWorkClockSubFrame EQU $C9AA  ; frame counter mod 128 feeding the WORK-time clock (TickWorkTimeClock)
 DEF wTapTempoCount EQU $C9AB  ; project scroll/average queue fill count (0-8)
-DEF wVramCopyScratch EQU $C9B4  ; VRAM byte-copy scratch (bank1e InitScreenPalettes path)
+DEF wVramCopyScratch EQU $C9B4  ; VRAM byte-copy scratch (bank1e LoadFontTiles path)
 DEF wTileSlotPtr     EQU $C9B5  ; 16-bit scratch ptr (LoadTilesDispatch -> RequestTileSlot)
 DEF wTileSlotPtrHi   EQU $C9B6  ; hi byte of wTileSlotPtr
 DEF wInstrRemapDirty EQU $C9B7  ; instrument remap table populated/dirty flag
