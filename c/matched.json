@@ -359,6 +359,12 @@
   "len": 545,
   "src": "c/bank07/SongCutCopy.c"
  },
+ "CutCopyTableSelection": {
+  "bank": "05",
+  "addr": "61CA",
+  "len": 720,
+  "src": "c/bank05/TableScreen.c"
+ },
  "DecompressBlock": {
   "bank": "1C",
   "addr": "46E3",

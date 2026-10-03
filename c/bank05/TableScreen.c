@@ -15,6 +15,7 @@ extern UBYTE wSelTop;                       /* $C40E */
 extern UBYTE wSelRight;                     /* $C40F */
 extern UBYTE wSelBottom;                    /* $C410 */
 extern UBYTE wClipboardType;                /* $C411 */
+void CopySelection(void);                   /* bank $1C */
 extern UBYTE wTable;                        /* $C41B, the table being edited */
 extern UWORD wTableCellAPtr;                /* $C447: CMD column base, an address held as an integer */
 extern UWORD wTableCellBPtr;                /* $C449: its value column */
@@ -471,6 +472,83 @@ void TableDrawCursor(void)
         wTableCellBPtr = 0xBC80;
         break;
     }
+}
+
+void CutCopyTableSelection(UBYTE cut)
+{
+    UBYTE x, y;
+
+    if (wClipboardType != 5)
+        return;
+    ShowMessage(cut ? "CUT" : "COPY");
+    wCursorMode = 2;
+    wSelRight = wTableCol;
+    wSelBottom = wTableRow;
+    SortBytePair(&wSelLeft, &wSelRight);
+    SortBytePair(&wSelTop, &wSelBottom);
+    if (wSelLeft == 3)
+        wSelLeft--;
+    if (wSelLeft == 5)
+        wSelLeft--;
+    if (wSelRight == 2)
+        wSelRight++;
+    if (wSelRight == 4)
+        wSelRight++;
+    wSelRight++;
+    wSelBottom++;
+    for (x = wSelLeft; x < wSelRight; x++) {
+        for (y = wSelTop; y < wSelBottom; y = y + 1) {
+            if (x == 6 && y)
+                continue;
+            wTableCol = x;
+            wTableRow = y;
+            TableEraseCursor();
+            switch (x) {
+            case 0:
+                WriteClipboardCell(0, y, TableReadEnv(y));
+                if (cut)
+                    TableWriteEnv(y, 0);
+                break;
+            case 1:
+                WriteClipboardCell(1, y, TableReadTrans(y));
+                if (cut)
+                    TableWriteTrans(y, 0);
+                break;
+            case 2:
+                wTableCellAPtr = 0xB680;
+                wTableCellBPtr = 0xB880;
+                WriteClipboardCell(2, y, TableReadCmd(y));
+                if (cut)
+                    TableWriteCmd(y, 0);
+                break;
+            case 3:
+                wTableCellAPtr = 0xB680;
+                wTableCellBPtr = 0xB880;
+                WriteClipboardCell(3, y, TableReadVal(y));
+                if (cut)
+                    TableWriteVal(y, 0);
+                break;
+            case 4:
+                wTableCellAPtr = 0xBA80;
+                wTableCellBPtr = 0xBC80;
+                WriteClipboardCell(4, y, TableReadCmd(y));
+                if (cut)
+                    TableWriteCmd(y, 0);
+                break;
+            case 5:
+                wTableCellAPtr = 0xBA80;
+                wTableCellBPtr = 0xBC80;
+                WriteClipboardCell(5, y, TableReadVal(y));
+                if (cut)
+                    TableWriteVal(y, 0);
+                break;
+            }
+        }
+    }
+    wTableCol = wSelLeft;
+    wTableRow = wSelTop;
+    FarCall(0x1C, FAR_FN(CopySelection));
+    DrawTableScreen();
 }
 
 void GetSynthFieldHelp(void)
