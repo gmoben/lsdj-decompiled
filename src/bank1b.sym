@@ -57,7 +57,7 @@
 6A8C TapTempoStep               ; TAP tempo: on each tap record the frames since the last one (wWorkClockSubFrame) into wTapTempoBuf (8-deep, oldest dropped), reset on a -frame gap; from 3 taps on, tempo = ffe / (8 * mean interval), capped at 
 70B8 GetInstrEnvBytes           ; read the instrument's envelope input bytes (x2 ReadCurInstrByte)
 7200 PlotEnvCurve               ; plot env-graph column y at x into wDecompBuf, filling gap from wEnvPlotX (<$40)
-726E ComputeEnvelope            ; precompute envelope data for the current instrument (UpdateInstrEnvelope core)
+726E ComputeEnvelope            ; plot the instrument envelope graph (bytes 1/9/10 segments over 64 columns, time scaled by GetInstrEnvBytes) into wDecompBuf, upload
 74E4 UpdateEnvSprites           ; write the envelope OAM markers (SetOAMByte x2, 8-slot bound)
 ; --- functions called from bank 0 (this bank paged in) ---
 6B7A InitKitMixer               ; build the kit sample mixer in WRAM: KitMixTable -> $d000 (1152 B), then MixerKernel unrolled 16x at $d480 with inc c / inc e between copies and a ret after the last

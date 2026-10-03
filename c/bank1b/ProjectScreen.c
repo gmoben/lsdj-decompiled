@@ -60,6 +60,10 @@ void DrawSyncField(void);
 void DrawFontColorFields(void);             /* $1B:$569C, its own unit */
 
 extern UBYTE ExpoCurve16[];                 /* $00:$300F, envelope speed -> frame count */
+extern UBYTE wDecompBuf[];                  /* $DA00 */
+void PlotEnvCurve(UBYTE x, UBYTE y);
+void OrBitsIntoDaBuffer(void);              /* $00:$3261 */
+void UploadTilesToVram(void);               /* $00:$3298 */
 int Abs16(int v);                           /* $00:$343F */
 
 extern UBYTE wNameReturnScreen;             /* $C42F */
@@ -669,6 +673,72 @@ UWORD GetInstrEnvBytes(void)
         }
     }
     return total;
+}
+
+/* The instrument screen's envelope graph: the attack/decay/release
+   segments of instrument bytes 1, 9 and 10 plotted over 64 columns, the
+   time axis scaled by GetInstrEnvBytes' total (500 at least) */
+void ComputeEnvelope(void)
+{
+    UWORD pos;
+    UWORD total;
+    UBYTE v;
+    UBYTE vol;
+    UBYTE len;
+    UBYTE v2;
+    UBYTE vol2;
+    UBYTE len2;
+    UBYTE vol3;
+    UBYTE len3;
+    UBYTE v3;
+
+    pos = 0;
+    total = GetInstrEnvBytes();
+    v = ReadCurInstrByte(1);
+    vol = v >> 4;
+    len = ExpoCurve16[v & 0x0F];
+    if (total < 500)
+        total = 500;
+    total >>= 3;
+    MemSet(wDecompBuf, 0, 0xC0);
+    PlotEnvCurve(0, vol);
+    if (len) {
+        v2 = ReadCurInstrByte(9);
+        vol2 = v2 >> 4;
+        len2 = ExpoCurve16[v2 & 0x0F];
+        do {
+            pos += len;
+            PlotEnvCurve((pos << 3) / total, vol);
+            if (vol2 < vol)
+                vol--;
+            else if (vol < vol2)
+                vol++;
+        } while (vol != vol2);
+        if (len2) {
+            v3 = ReadCurInstrByte(10);
+            vol3 = v3 >> 4;
+            len3 = ExpoCurve16[v3 & 0x0F];
+            do {
+                pos += len2;
+                PlotEnvCurve((pos << 3) / total, vol);
+                if (vol3 < vol)
+                    vol--;
+                else if (vol < vol3)
+                    vol++;
+            } while (vol != vol3);
+            if (len3) {
+                while (vol) {
+                    pos += len3;
+                    PlotEnvCurve((pos << 3) / total, vol);
+                    vol--;
+                }
+            }
+        }
+    }
+    PlotEnvCurve((pos << 3) / total, vol);
+    PlotEnvCurve(0x3F, vol);
+    OrBitsIntoDaBuffer();
+    UploadTilesToVram();
 }
 
 void UpdateEnvSprites(void)

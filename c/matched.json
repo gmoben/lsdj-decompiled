@@ -311,6 +311,12 @@
   "len": 434,
   "src": "c/bank1b/ProjectScreen.c"
  },
+ "ComputeEnvelope": {
+  "bank": "1B",
+  "addr": "726E",
+  "len": 630,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
  "CopyFileName": {
   "bank": "1C",
   "addr": "4352",
