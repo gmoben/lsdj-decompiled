@@ -129,7 +129,7 @@ stay asm. See
 | `tools/toolchain/` | Fetch + run the period GBDK 2.95-3 / SDCC 2.2.1 under Wine |
 | `tools/match/` | Track 2: `match_function.py --target` (compile C, link at the ROM address, diff; `--diff` aligns both disassemblies), `verify_all.py` (`make match`; cached batch check, also of files outside `c/`), `peep.py` (our peephole matcher), `code_kind.py` (which functions are C vs hand-written asm), `shapes.py` (unmatched C functions by size / shape), `merge_c.py` (move matching functions into a module), `update_counts.py` (refresh the function/rule counts in the docs and the parked table from `c/parked.txt`) |
 | `tools/match/lsdj.peep` | Peephole rules recovered from LSDj's code — the "modified GBDK" part (`docs/toolchain.md`) |
-| `tools/match/test_peep.py` | Focused comparison-pass regressions: branch/boolean semantics, HL/SP-relative stores, zero thresholds; run with `python3 tools/match/test_peep.py` after changing `gb_cmp16` |
+| `tools/match/test_peep.py` | Focused regressions for `gb_cmp16` (branch/boolean semantics, HL/SP-relative stores, zero thresholds) and `switch_chain`; run with `python3 tools/match/test_peep.py` after changing either |
 | `c/include/lsdj.h` | Shared declarations for the matching C: hardware/HRAM/WRAM variables, the SRAM layout (literal-address macros), every settled prototype |
 | `c/bankNN/*.c` | **Matching C** sources: byte-identical to the ROM when compiled with the period toolchain + `lsdj.peep`. Their bytes feed the ROM build (`c/matched.json`, written by `make match`, lists the C-owned ranges; the carve INCBINs `build/c/` or the ROM) A file marked `@stock-rules` is GBDK library code, matched with SDCC's stock rules only. |
 | `tools/gen_baseline.py` | Historical one-time bootstrap baseline generator |

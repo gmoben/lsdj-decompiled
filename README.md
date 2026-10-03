@@ -139,7 +139,7 @@ See [`docs/toolchain.md`](docs/toolchain.md), and try it:
 ```bash
 tools/toolchain/build_sdcc221.sh     # period compiler, built natively (gcc -m32, bison, flex)
 make match                           # every c/bankNN/*.c vs the ROM (cached)
-python3 tools/match/test_peep.py       # comparison-pass semantics and HL/SP regressions
+python3 tools/match/test_peep.py       # gb_cmp16 and switch_chain regressions
 tools/match/match_function.py --c c/bank01/DrawMessageBar.c --target DrawMessageBar
 # ==> MATCH: byte-identical to ROM $01:$74F7-$75BC
 ```
