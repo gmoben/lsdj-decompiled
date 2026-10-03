@@ -27,6 +27,19 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+
+# Routines the heuristics misfile, each checked by hand: hand-written asm
+# with no `jr` or no stack-frame access to give it away (register-passing
+# helpers, `ldh a,(c)` kernels, unrolled sample shifts).
+KNOWN_ASM = {
+    "01:PitchCurveCgb", "01:UiDrawHelpStr", "01:UiDrawScreenCgb",
+    "01:UiDrawScreenDmg", "01:UiLoadObjPalette",
+    "06:ChainDrawScopePoint", "06:ChainShiftSamples",
+    "07:DrawHexOrDashes", "07:SongScanSram", "07:SongWriteSramBytes",
+    "1b:MixerKernel",
+    "1c:EmitDefaultInstrument", "1c:EmitDefaultWave", "1c:FileClassifyToken",
+    "1c:FilePutDecompByte", "1c:ReadWorkingSongByte", "1c:WriteCompressedByte",
+}
 LABEL = re.compile(r"^([A-Za-z_]\w*)::?")
 JPCC = re.compile(r"^jp (nz|z|nc|c),")
 
@@ -53,6 +66,8 @@ def classify_bank(asm_path: Path) -> dict[str, tuple[str, int]]:
         jr = sum(s.startswith("jr ") for s in ins)
         jpcc = sum(bool(JPCC.match(s)) for s in ins)
         kind = "C" if sp else ("asm" if jr > jpcc else "C?")
+        if f"{asm_path.stem[4:]}:{name}" in KNOWN_ASM:
+            kind = "asm"
         out[name] = (kind, len(ins))
     return out
 

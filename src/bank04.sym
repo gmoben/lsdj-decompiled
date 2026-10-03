@@ -62,7 +62,7 @@
 50D8 PhraseRowAttrs0    ; 13-byte CGB BG-attribute row for phrase rows (variant 0; picked via PhraseCheckColFD)
 50E5 PhraseRowAttrs1    ; 13-byte CGB BG-attribute row (variant 1)
 50F2 PhraseRowAttrs2    ; 13-byte CGB BG-attribute row (variant 2; $c90c==0 path)
-54E3 PhraseStepOnes     ; constant $01 table read by the four phrase edit handlers (per-index step/enable)
+54E3 PhraseStepOnes     ; [80] constant $01 table read by the four phrase edit handlers (per-index step/enable)
 57D4 DrawInstrName      ; FarCall bank1 CopyInstrName(instr) -> wSampleNoteString, draw the 5-char name
 4C10 TxtNoteEmpty               ; "---"
 4CE1 TxtNoteOff                 ; "OFF"

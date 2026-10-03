@@ -537,6 +537,6 @@
 748D .cont_4
 74A5 .step_3
 7565 .computeEnvelope_2
-575C ProjFieldX         ; x of the 12 project screen fields (ProjDrawSyncField)
-5768 ProjFieldY         ; their rows
-4BAF HelpPageRefs       ; dw per help-menu line: &HelpPagePtrs[k], the page it opens
+575C ProjFieldX         ; [12] x of the 12 project screen fields (ProjDrawSyncField)
+5768 ProjFieldY         ; [26] their rows
+4BAF HelpPageRefs       ; [20] dw per help-menu line: &HelpPagePtrs[k], the page it opens
