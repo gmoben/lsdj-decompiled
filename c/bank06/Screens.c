@@ -697,6 +697,28 @@ void CutCopyChainSelection(UBYTE cut)
     DrawChainScreen();
 }
 
+void ChainPasteCells(void)
+{
+    UBYTE x, y;
+
+    for (y = wSelTop; y < wSelBottom; y++) {
+        for (x = wSelLeft; x < wSelRight; x = x + 1) {
+            switch (x) {
+            case 0:
+                FarCallArg3P(0x1F, FAR_FN(WriteChainPhrase), wChain, wChainRow, ReadClipboardCell(0, y));
+                break;
+            case 1:
+                SetChainTranspose(wChain, wChainRow, ReadClipboardCell(1, y));
+                break;
+            }
+        }
+        wChainRow++;
+        wChainRow = (char)wChainRow & 0x0F;     /* read into c, like ChainOpenPhrase's (char)wChainRow */
+    }
+    if (wSelBottom - wSelTop > 1)
+        ShowMessage("PASTE");
+}
+
 void DrawKitSampleNames(UBYTE ch, UBYTE note)
 {
     UBYTE c, n;

@@ -119,6 +119,12 @@
   "len": 208,
   "src": "c/bank06/Screens.c"
  },
+ "ChainPasteCells": {
+  "bank": "06",
+  "addr": "6F0D",
+  "len": 243,
+  "src": "c/bank06/Screens.c"
+ },
  "ChainReadTrans": {
   "bank": "06",
   "addr": "56AA",
