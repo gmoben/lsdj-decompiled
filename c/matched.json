@@ -1535,6 +1535,12 @@
   "len": 130,
   "src": "c/bank1d/SynthScreen.c"
  },
+ "GrooveScreenInput": {
+  "bank": "1D",
+  "addr": "4451",
+  "len": 1798,
+  "src": "c/bank1d/SynthScreen.c"
+ },
  "GrooveScreenUpdate": {
   "bank": "1D",
   "addr": "4215",

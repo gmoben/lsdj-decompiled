@@ -84,7 +84,7 @@
 ; --- functions called from bank 0 (this bank paged in) ---
 7138 SynthScreenInput           ; synth-screen input dispatch (wButtons + SynthReadParam)
 4D58 GrooveResetState           ; reset groove screen state ($c9d5=0 + 16-slot loop)
-4451 GrooveScreenInput          ; groove screen (2) input handler, from DispatchScreenInput: dispatch on wButtons
+4451 GrooveScreenInput          ; groove screen (2) input: step edits, tick moves between pairs, delete, groove select, cut/copy/paste, map exit; 1 = handled
 4B65 TxtSelect1D       ; "SELECT" (pairs with TxtCancelSelect1D)
 7D98 TxtPastedSynth    ; "PASTED SYNTH"
 

@@ -30,6 +30,9 @@ extern UBYTE wAPressEnabled;                /* $C409 */
 extern UBYTE wButtons;                      /* $C575 */
 extern UBYTE wGroove;                       /* $C417 */
 extern char wGrooveRow;                     /* $C9D4, a plain char */
+extern UBYTE wSelectHeld;                   /* $C40A */
+extern UBYTE wBHeld;                        /* $C40B */
+extern UBYTE wMapCol;                       /* $C8FF */
 extern UBYTE wChanGroove[];                 /* $C150, [4] */
 extern UBYTE wChanGrooveRow[];              /* $C158, [4] */
 
@@ -48,6 +51,13 @@ void DrawSynthNumber(void);
 void BuildOverwritePrompt(void);
 void RedrawScreenFar(void);
 void SynthClearFlag(UBYTE x);
+void GrooveCutCopy(UBYTE cut);
+void PasteGrooveSelection(void);
+void GrooveDrawSelection(void);
+void MapMoveUp(void);                       /* bank 5 */
+void SaveSelectionState(void);              /* bank 5 */
+void StopAllPlayback(void);                 /* bank 2 */
+void StopPlayback(void);                    /* bank 2 */
 
 extern UBYTE wSynthRenderIdx;               /* $C9F0 */
 extern UBYTE wSynthSegLen1;                 /* $C9E8 */
@@ -241,6 +251,281 @@ void GrooveRowPalettes(UBYTE row)
         hBgDigitPalette = wShadowDigitPal;
         hBgPalette = wShadowPal;
     }
+}
+
+/*
+ * The groove screen's input (screen 2): A sets an empty step to 6, A+left/
+ * right step the values under the cursor or the selection, A+up/down move
+ * ticks between the two steps of each pair, A+B deletes a step and pulls
+ * the rest up, B+direction picks another groove, select+B/A/B start, copy,
+ * cut and paste a selection, start leaves for the screen to the left of
+ * the groove on the map. 1 when the key was taken.
+ */
+UBYTE GrooveScreenInput(void)
+{
+    UBYTE top;
+    UBYTE bot;
+    UBYTE v;
+    UBYTE v2;
+    UBYTE end;
+
+    v = wGrooveRow + 2;
+    hBgDigitPalette = wSelectDigitPal;
+    hBgPalette = wSelectPal;
+    switch (wButtons) {
+    case 0x43:
+        if (wCursorMode == 4) {
+            wGrooveRow = wSelTop;
+            FarCall(5, 0x747D);
+            if (hGameboyType) {
+                FarCall(1, FAR_FN(UiDrawTextHw));
+                FarCall(5, MapDrawTopRow);
+            }
+            DrawGrooveScreen();
+            GrooveDrawFieldHw();
+            ShowMessage("CANCEL SELECT");
+        }
+        return 1;
+    case 0x10:
+        if (!wAPressEnabled)
+            break;
+        if (!ReadGrooveStep(wGrooveRow)) {
+            GetTilemapAddr(2, v);
+            DrawHexByte(6);
+            WriteGrooveByte(wGrooveRow, 6);
+        }
+        DrawGrooveRow();
+        return 1;
+    case 0x04:
+        GrooveDrawField();
+        if (wGrooveRow)
+            wGrooveRow--;
+        GrooveDrawFieldHw();
+        if (wCursorMode == 4)
+            GrooveDrawSelection();
+        DrawGrooveRow();
+        return 1;
+    case 0x08:
+        GrooveDrawField();
+        wGrooveRow++;
+        if (wGrooveRow == 16 || !ReadGrooveStep(wGrooveRow - 1))
+            wGrooveRow--;
+        GrooveDrawFieldHw();
+        if (wCursorMode == 4)
+            GrooveDrawSelection();
+        DrawGrooveRow();
+        return 1;
+    case 0x11:
+        GrooveBuildCache();
+        if (wCursorMode == 4 && (!wSelLeft || !wSelRight)) {
+            top = wSelTop;
+            bot = wGrooveRow;
+            SortBytePair(&top, &bot);
+        } else {
+            bot = wGrooveRow;
+            top = wGrooveRow;
+        }
+        bot++;
+        for (; top < bot; top++) {
+            v = wGrooveStepCache[top];
+            if (v < 0xFF)
+                v++;
+            wGrooveStepCache[top] = v;
+            GetTilemapAddr(2, top + 2);
+            DrawHexByte(v);
+        }
+        DrawGrooveRow();
+        return 1;
+    case 0x12:
+        GrooveBuildCache();
+        if (wCursorMode == 4 && (!wSelLeft || !wSelRight)) {
+            top = wSelTop;
+            bot = wGrooveRow;
+            SortBytePair(&top, &bot);
+        } else {
+            bot = wGrooveRow;
+            top = wGrooveRow;
+        }
+        end = bot;
+        end++;
+        for (; top < end; top++) {
+            GetTilemapAddr(2, top + 2);
+            v = wGrooveStepCache[top];
+            if (v > 1)
+                v--;
+            wGrooveStepCache[top] = v;
+            DrawHexByte(v);
+        }
+        DrawGrooveRow();
+        return 1;
+    case 0x14:
+    case 0x18:
+        GrooveBuildCache();
+        if (wCursorMode == 4 && (!wSelLeft || !wSelRight)) {
+            top = wSelTop;
+            bot = wGrooveRow;
+            SortBytePair(&top, &bot);
+        } else {
+            bot = wGrooveRow;
+            top = wGrooveRow;
+        }
+        top &= 0xFE;
+        bot = (bot & 0xFE) + 2;
+        while (top != bot) {
+            v2 = wGrooveStepCache[top + 1];
+            v = wGrooveStepCache[top];
+            if (!v2)
+                v2 = v;
+            if (wButtons == 0x14) {
+                v++;
+                v2--;
+            } else {
+                v--;
+                v2++;
+            }
+            if (v2 && v) {
+                wGrooveStepCache[top] = v;
+                GetTilemapAddr(2, top + 2);
+                GrooveRowPalettes(top);
+                DrawHexByte(v);
+                wGrooveStepCache[top + 1] = v2;
+                GetTilemapAddr(2, top + 3);
+                GrooveRowPalettes(top + 1);
+                DrawHexByte(v2);
+            }
+            top += 2;
+        }
+        DrawGrooveRow();
+        return 1;
+    case 0x21:
+        if (wGroove < 0x1F)
+            wGroove++;
+        wMsgStrPtr = 0;
+        DrawGrooveScreen();
+        return 1;
+    case 0x24:
+        if (wGroove < 0x10)
+            wGroove += 0x10;
+        else
+            wGroove = 0x1F;
+        wMsgStrPtr = 0;
+        DrawGrooveScreen();
+        return 1;
+    case 0x28:
+        if (wGroove & 0x10)
+            wGroove -= 0x10;
+        else
+            wGroove = 0;
+        wMsgStrPtr = 0;
+        DrawGrooveScreen();
+        return 1;
+    case 0x22:
+        if (wGroove)
+            wGroove--;
+        wMsgStrPtr = 0;
+        DrawGrooveScreen();
+        return 1;
+    case 0x30:
+        if (!wAPressEnabled)
+            break;
+        wAPressEnabled = 0;
+        if (!ReadGrooveStep(wGrooveRow))
+            break;
+        if (!wGrooveRow && !ReadGrooveStep(1))
+            break;
+        GrooveDrawField();
+        wCursorMode = 2;
+        wSelLeft = 0;
+        wSelRight = 1;
+        wSelTop = wGrooveRow;
+        wSelBottom = wSelTop + 1;
+        wClipboardType = 2;
+        WriteClipboardCell(0, wGrooveRow, ReadGrooveStep(wGrooveRow));
+        top = wGrooveRow;
+        while (1) {
+            if (top == 0x0F) {
+                WriteGrooveByte(top, 0);
+                break;
+            }
+            WriteGrooveByte(top, ReadGrooveStep(top + 1));
+            top = top + 1;
+        }
+        DrawGrooveScreen();
+        return 1;
+    case 0x50:
+        if (wCursorMode == 1)
+            break;
+        if (!wSelectHeld)
+            break;
+        if (wCursorMode == 4) {
+            wSelectHeld = 0;
+            GrooveCutCopy(1);
+            break;
+        }
+        wSelectHeld = 0;
+        if (wSelLeft)
+            break;
+        GrooveDrawField();
+        PasteGrooveSelection();
+        return 1;
+    case 0xC0:
+        if (!wButtonsSame)
+            FarCall(2, FAR_FN(StopAllPlayback));
+        return 1;
+    case 0x80:
+        if (wButtonsSame || wBHeld)
+            return 1;
+        switch ((char)wMapCol) {
+        case 0:
+            wCurrentScreen = 4;
+            break;
+        case 1:
+            wCurrentScreen = 3;
+            break;
+        }
+        FarCall(2, FAR_FN(StopPlayback));
+        wCurrentScreen = 2;
+        return 1;
+    case 0x44:
+        if (wButtonsSame)
+            break;
+        FarCall(5, MapMoveUp);
+        FarCall(5, FAR_FN(RedrawScreen));
+        return 1;
+    case 0x20:
+        if (wCursorMode != 4)
+            break;
+        if (!wAPressEnabled)
+            break;
+        GrooveCutCopy(0);
+        return 1;
+    case 0x60:
+        if (!wSelectHeld)
+            break;
+        if (wCursorMode == 4 && wClipboardType == 2) {
+            top = wSelTop;
+            bot = wGrooveRow;
+            SortBytePair(&top, &bot);
+            if (top || bot != 0x0F) {
+                wGrooveRow = 0x0F;
+                while (wGrooveRow && !ReadGrooveStep(wGrooveRow))
+                    wGrooveRow--;
+                wSelTop = 0;
+                wSelectHeld = 0;
+                GrooveDrawSelection();
+                return 1;
+            }
+            GrooveCutCopy(0);
+            return 1;
+        }
+        ShowMessage("SELECT");
+        FarCall(5, SaveSelectionState);
+        wSelLeft = 0;
+        wSelTop = wGrooveRow;
+        wSelectHeld = 0;
+        return 1;
+    }
+    return 0;
 }
 
 void GrooveCutCopy(UBYTE cut)
