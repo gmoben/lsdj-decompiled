@@ -11,7 +11,7 @@
 5AD4 FileNoAttrTiles                ; [2] = $03 $03: CGB attribute bytes under the "NO" prompt (set_bkg_tiles, DrawBlocksUsed)
 60A9 TxtFileErased      ; "FILE ERASED!"
 70F9 TxtUpgrading        ; "UPGRADING..."
-6E3C CompressRunTable   ; [8][8] run/length table used by the song compressor ($6DBF)
+6E3C NoiseNoteRemapTable        ; [112] FileUpgradeV18's noise-note remap: (note - $20) as high nibble x low 3 bits -> 1..$3C, +$3C unless bit 3
 ; --- song compressor (SAVE); see docs/save_format.md ---
 715B WriteCompressedByte ; emit one byte to the compressed output stream
 711F ReadWorkingSongByte ; read a byte of the working song (input to compress)
@@ -85,7 +85,7 @@
 6B18 FileUpgradeV16             ; song upgrade step v16->v17: reclassify bytes ($90/$b8/$0f/$0e)
 6BA7 FileUpgradeV17             ; song upgrade step v17->v18: patch song data (+ FileUpgradeV17b)
 6C46 FileUpgradeV17b            ; v17 upgrade helper: patch instruments (FileForEachInstrType)
-6C56 FileUpgradeV18             ; song upgrade step v18->v19: patch song data (WriteSongByte)
+6C56 FileUpgradeV18             ; song upgrade step v18->v19: noise-instrument phrase notes remapped through NoiseNoteRemapTable
 6EAC FileUpgradeV19             ; song upgrade step v19->v20: patch song data (WriteSongByte)
 6F73 FileUpgradeV21             ; song-format upgrade step for v21->v22: patch synth params (SRAM $beb2.. stride $10, write $03)
 6FC7 FileUpgradeSong            ; song-format migration: read stored version ($bfff[3]); if < $16 show "UPGRADING..." and run FileUpgradeV<n> for n=version..$15, then stamp version $16

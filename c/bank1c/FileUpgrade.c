@@ -12,6 +12,7 @@
 
 extern UBYTE wFileInstrIdx;                 /* $C9A1, the instrument being upgraded */
 extern UBYTE FileUpgradeRemapTable[];       /* $1C:$68F1, [8] */
+extern UBYTE NoiseNoteRemapTable[];         /* $1C:$6E3C, [112] */
 
 void FileForEachInstrType(UBYTE type, void (*fn)());
 UBYTE FileReadInstrByte(UBYTE field);
@@ -33,7 +34,6 @@ void FileUpgradeV15Wave(void);
 void FileUpgradeV17bPulse(void);
 void FileCheckByte6973(UBYTE *p);          /* $1C:$6973 */
 void FileUpgradeClearRange(void);           /* $1C:$65B9 */
-void FileUpgradeV18(void);                  /* $1C:$6C56 */
 void FileUpgradeV2(void);                   /* $1C:$622D, parked */
 void ReadSongBytesW(UBYTE bank, UWORD src, UBYTE *dst);  /* ReadSongBytes taking a word address (aliased by match_function.py) */
 char ReadInstrByteS(UBYTE instr, UBYTE field);  /* ReadInstrByte returning char (aliased): the cast to UBYTE keeps the call result in its own slot */
@@ -395,6 +395,61 @@ void FileUpgradeV17bPulse(void)
 void FileUpgradeV17b(void)
 {
     FileForEachInstrType(0, FileUpgradeV17bPulse);
+}
+
+/*
+ * v18 -> v19: the same pass as v11 over every phrase step played by a noise
+ * instrument, now remapping the note itself: notes below $20 become 0, the
+ * rest index NoiseNoteRemapTable by (note - $20)'s high nibble and low three
+ * bits, plus $3C when bit 3 is clear.
+ */
+void FileUpgradeV18(void)
+{
+    UBYTE types[0x40];
+    UBYTE i;
+    UWORD p;
+    UWORD q;
+    UBYTE v;
+    UBYTE j;
+    UBYTE n;
+    UBYTE m;
+
+    i = 0;
+    p = 0xA000;
+    q = 0xB000;
+    while (i != 0x40) {
+        types[i] = ReadInstrByte(i, 0);
+        i++;
+    }
+    while (q != 0xBFF0) {
+        v = 0;
+        j = 0;
+        ReadSongBytesW(0, p, wSongReadBuf);
+        ReadSongBytesW(3, q, wUsedTableMap);
+        for (; j != 0x10; j = j + 1) {
+            i = wUsedTableMap[j];
+            if (i == 0x40) {
+                v = 0;
+            } else if (i < 0x40) {
+                v = types[i] == 3;
+            }
+            if (v) {
+                n = wSongReadBuf[j];
+                m = 0;
+                if (n) {
+                    if (!(n < 0x20)) {
+                        n = n - 0x20;
+                        m = NoiseNoteRemapTable[(n & 7) + ((n & 0xF0) >> 1)];
+                        if (!(n & 8))
+                            m = m + 0x3C;
+                    }
+                    WriteSongByte(0, p + j, m);
+                }
+            }
+        }
+        q += 0x10;
+        p += 0x10;
+    }
 }
 
 void FileUpgradeV19(void)
