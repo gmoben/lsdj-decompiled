@@ -3101,6 +3101,12 @@
   "len": 581,
   "src": "c/bank1d/SynthScreen.c"
  },
+ "SynthScreenInput": {
+  "bank": "1D",
+  "addr": "7138",
+  "len": 3155,
+  "src": "c/bank1d/SynthScreen.c"
+ },
  "SynthSignalIsFrame": {
   "bank": "1D",
   "addr": "6354",

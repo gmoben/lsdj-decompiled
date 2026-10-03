@@ -33,6 +33,8 @@ extern char wGrooveRow;                     /* $C9D4, a plain char */
 extern UBYTE wSelectHeld;                   /* $C40A */
 extern UBYTE wBHeld;                        /* $C40B */
 extern UBYTE wMapCol;                       /* $C8FF */
+extern UBYTE wDrawStep;                     /* $C405 */
+extern UBYTE wSynthNavSide;                 /* $CB63 */
 extern UBYTE wChanGroove[];                 /* $C150, [4] */
 extern UBYTE wChanGrooveRow[];              /* $C158, [4] */
 
@@ -55,6 +57,10 @@ void GrooveCutCopy(UBYTE cut);
 void PasteGrooveSelection(void);
 void GrooveDrawSelection(void);
 void MapMoveUp(void);                       /* bank 5 */
+void MapMoveLeft(void);                     /* bank 5 */
+void MapMoveRight(void);                    /* bank 5 */
+void MapMoveDown(void);                     /* bank 5 */
+void GetSynthFieldHelp(void);               /* bank 5 */
 void SaveSelectionState(void);              /* bank 5 */
 void StopAllPlayback(void);                 /* bank 2 */
 void StopPlayback(void);                    /* bank 2 */
@@ -1425,4 +1431,498 @@ UBYTE SynthFieldDecLo(void)
         WriteSynthParam(2, v);
     }
     return v & 0x0F;
+}
+
+/*
+ * The synth screen's input. A on a field that would overwrite the synth's
+ * waves asks first (SynthOverwriteWaves / the prompt's own input); A alone
+ * shows the field's help after two presses; the directions walk the
+ * two-column field layout (skipping the rows a framed signal hides);
+ * A+right/left step the field under the cursor, A+up/down by the coarse
+ * step; B+direction picks another synth; select+B / select+A copy and paste
+ * its 16 parameter bytes; start and select+start stop playback. 1 when the
+ * key was taken.
+ */
+UBYTE SynthScreenInput(void)
+{
+    UBYTE v;
+    UWORD p;
+    UWORD q;
+
+    if ((wButtons & 0x10) && SynthReadParam(wSynthScreen) && !wOverwriteStart) {
+        if (wAPressEnabled)
+            SynthOverwriteWaves();
+        return 1;
+    }
+    if (wOverwriteStart) {
+        OverwritePromptInput();
+        return 1;
+    }
+    hBgDigitPalette = wSelectDigitPal;
+    hBgPalette = wSelectPal;
+    if (wButtons != 0x10)
+        wDrawStep = 0;
+    switch (wButtons) {
+    case 0x10:
+        if (wAPressEnabled && ++wDrawStep == 2)
+            FarCall(5, GetSynthFieldHelp);
+        return 1;
+    case 0x04:
+        if (!wSynthCursor)
+            break;
+        SynthEraseCursor();
+        switch (wSynthCursor) {
+        case 0x0A:
+            wSynthCursor = 3;
+            break;
+        case 0x07:
+        case 0x0D:
+            if (SynthSignalIsFrame())
+                wSynthCursor--;
+        case 0x02:
+            if (SynthSignalIsFrame())
+                wSynthCursor--;
+        default:
+            wSynthCursor--;
+        }
+        SynthDrawCursor();
+        return 1;
+    case 0x08:
+        SynthEraseCursor();
+        switch (wSynthCursor) {
+        case 0x03:
+            wSynthCursor = wSynthNavSide ? 4 : 10;
+            break;
+        case 0x04:
+        case 0x0A:
+            if (SynthSignalIsFrame())
+                wSynthCursor++;
+        case 0x00:
+            if (SynthSignalIsFrame())
+                wSynthCursor++;
+        default:
+            wSynthCursor++;
+        case 0x09:
+        case 0x0F:
+            break;
+        }
+        SynthDrawCursor();
+        return 1;
+    case 0x02:
+        wSynthNavSide = 1;
+        SynthEraseCursor();
+        switch (wSynthCursor) {
+        case 0x0A:
+        case 0x0B:
+        case 0x0C:
+        case 0x0D:
+        case 0x0E:
+        case 0x0F:
+            wSynthCursor -= 6;
+        }
+        SynthDrawCursor();
+        return 1;
+    case 0x01:
+        wSynthNavSide = 0;
+        SynthEraseCursor();
+        switch (wSynthCursor) {
+        case 0x04:
+        case 0x05:
+        case 0x06:
+        case 0x07:
+        case 0x08:
+        case 0x09:
+            wSynthCursor += 6;
+        }
+        SynthDrawCursor();
+        return 1;
+    case 0x11:
+        GetTilemapAddr(SynthFieldX[wSynthCursor], SynthFieldLayout[wSynthCursor]);
+        switch (wSynthCursor) {
+        case 0:
+            if (wButtonsSame)
+                break;
+            switch (ReadSynthParam(0)) {
+            case 0:
+                WriteSynthParam(0, 1);
+                break;
+            case 1:
+                WriteSynthParam(0, 2);
+                break;
+            default:
+                WriteSynthParam(0, 3);
+                DrawSynthScreen();
+                hBgDigitPalette = wSelectDigitPal;
+                hBgPalette = wSelectPal;
+                DrawSynthWaveField();
+            }
+            DrawSynthWaveField();
+            break;
+        case 1:
+            if (wButtonsSame)
+                break;
+            v = ReadSynthParam(1);
+            if (v == 3)
+                break;
+            v++;
+            WriteSynthParam(1, v);
+            DrawSynthFilterField();
+            break;
+        case 2:
+            if (wButtonsSame)
+                break;
+            v = ReadSynthParam(3);
+            if (v >= 2)
+                break;
+            v++;
+            WriteSynthParam(3, v);
+            DrawSynthDistField(v);
+            break;
+        case 8:
+            v = ReadSynthParam(0x0D) + 0x0F;
+            if (v == 0xFF)
+                break;
+            v++;
+            DrawHexByte(v);
+            WriteSynthParam(0x0D, v - 0x0F);
+            break;
+        case 14:
+            v = ReadSynthParam(0x0E) + 0x0F;
+            if (v == 0xFF)
+                break;
+            v++;
+            DrawHexByte(v);
+            WriteSynthParam(0x0E, v - 0x0F);
+            break;
+        case 3:
+            if (wButtonsSame)
+                break;
+            v = ReadSynthParam(4);
+            if (v >= 3)
+                break;
+            v++;
+            DrawSynthField(v);
+            WriteSynthParam(4, v);
+            break;
+        case 6:
+            DrawByte(SynthFieldIncHi());
+            break;
+        case 12:
+            DrawByte(SynthFieldIncLo());
+            break;
+        case 4:
+            SynthParamIncTo(5, 0xFF);
+            break;
+        case 10:
+            SynthParamIncTo(9, 0xFF);
+            break;
+        case 5:
+            SynthParamIncTo(6, 0xFF);
+            break;
+        case 11:
+            SynthParamIncTo(0x0A, 0xFF);
+            break;
+        case 7:
+            SynthParamIncTo(8, 0xFF);
+            break;
+        case 13:
+            SynthParamIncTo(0x0C, 0xFF);
+            break;
+        case 9:
+            SynthParamIncTo(7, 0x1F);
+            break;
+        case 15:
+            SynthParamIncTo(0x0B, 0x1F);
+            break;
+        }
+        SynthLoadParams();
+        return 1;
+    case 0x12:
+        GetTilemapAddr(SynthFieldX[wSynthCursor], SynthFieldLayout[wSynthCursor]);
+        switch (wSynthCursor) {
+        case 0:
+            if (wButtonsSame)
+                break;
+            switch (ReadSynthParam(0)) {
+            default:
+                WriteSynthParam(0, 0);
+                break;
+            case 2:
+                WriteSynthParam(0, 1);
+                break;
+            case 3:
+                WriteSynthParam(0, 2);
+                DrawSynthScreen();
+                hBgDigitPalette = wSelectDigitPal;
+                hBgPalette = wSelectPal;
+                DrawSynthWaveField();
+            }
+            DrawSynthWaveField();
+            break;
+        case 1:
+            if (wButtonsSame)
+                break;
+            v = ReadSynthParam(1);
+            if (!v)
+                break;
+            v--;
+            WriteSynthParam(1, v);
+            DrawSynthFilterField();
+            break;
+        case 2:
+            if (wButtonsSame)
+                break;
+            v = ReadSynthParam(3);
+            if (!v)
+                break;
+            v--;
+            WriteSynthParam(3, v);
+            DrawSynthDistField(v);
+            break;
+        case 8:
+            v = ReadSynthParam(0x0D) + 0x0F;
+            if (!v)
+                break;
+            v--;
+            DrawHexByte(v);
+            WriteSynthParam(0x0D, v - 0x0F);
+            break;
+        case 14:
+            v = ReadSynthParam(0x0E) + 0x0F;
+            if (!v)
+                break;
+            v--;
+            DrawHexByte(v);
+            WriteSynthParam(0x0E, v - 0x0F);
+            break;
+        case 3:
+            if (wButtonsSame)
+                break;
+            v = ReadSynthParam(4);
+            if (!v)
+                break;
+            v--;
+            DrawSynthField(v);
+            WriteSynthParam(4, v);
+            break;
+        case 6:
+            DrawByte(SynthFieldDecHi());
+            break;
+        case 12:
+            DrawByte(SynthFieldDecLo());
+            break;
+        case 4:
+            SynthParamDecTo0(5);
+            break;
+        case 10:
+            SynthParamDecTo0(9);
+            break;
+        case 5:
+            SynthParamDecTo0(6);
+            break;
+        case 11:
+            SynthParamDecTo0(0x0A);
+            break;
+        case 7:
+            SynthParamDecTo0(8);
+            break;
+        case 13:
+            SynthParamDecTo0(0x0C);
+            break;
+        case 9:
+            SynthParamDecTo0(7);
+            break;
+        case 15:
+            SynthParamDecTo0(0x0B);
+            break;
+        }
+        SynthLoadParams();
+        return 1;
+    case 0x14:
+        GetTilemapAddr(SynthFieldX[wSynthCursor], SynthFieldLayout[wSynthCursor]);
+        switch (wSynthCursor) {
+        case 6:
+            SynthFieldIncHi();
+            DrawByte(SynthFieldIncHi());
+            break;
+        case 12:
+            SynthFieldIncLo();
+            DrawByte(SynthFieldIncLo());
+            break;
+        case 9:
+            SynthParamAddClamp(7, 0x1F, 8);
+            break;
+        case 15:
+            SynthParamAddClamp(0x0B, 0x1F, 8);
+            break;
+        case 4:
+            SynthParamAddClamp(5, 0xFF, 0x10);
+            break;
+        case 10:
+            SynthParamAddClamp(9, 0xFF, 0x10);
+            break;
+        case 8:
+            v = ReadSynthParam(0x0D) + 0x0F;
+            v += 0x10;
+            if (!(v & 0xF0))
+                v = 0xFF;
+            DrawHexByte(v);
+            WriteSynthParam(0x0D, v - 0x0F);
+            break;
+        case 14:
+            v = ReadSynthParam(0x0E) + 0x0F;
+            v += 0x10;
+            if (!(v & 0xF0))
+                v = 0xFF;
+            DrawHexByte(v);
+            WriteSynthParam(0x0E, v - 0x0F);
+            break;
+        case 5:
+            SynthParamAddClamp(6, 0xFF, 0x10);
+            break;
+        case 11:
+            SynthParamAddClamp(0x0A, 0xFF, 0x10);
+            break;
+        case 7:
+            SynthParamAddClamp(8, 0xFF, 0x10);
+            break;
+        case 13:
+            SynthParamAddClamp(0x0C, 0xFF, 0x10);
+            break;
+        }
+        SynthLoadParams();
+        return 1;
+    case 0x18:
+        GetTilemapAddr(SynthFieldX[wSynthCursor], SynthFieldLayout[wSynthCursor]);
+        switch (wSynthCursor) {
+        case 6:
+            SynthFieldDecHi();
+            DrawByte(SynthFieldDecHi());
+            break;
+        case 12:
+            SynthFieldDecLo();
+            DrawByte(SynthFieldDecLo());
+            break;
+        case 9:
+            SynthParamSubClamp(7, 8);
+            break;
+        case 15:
+            SynthParamSubClamp(0x0B, 8);
+            break;
+        case 4:
+            SynthParamSubClamp(5, 0x10);
+            break;
+        case 10:
+            SynthParamSubClamp(9, 0x10);
+            break;
+        case 8:
+            v = ReadSynthParam(0x0D) + 0x0F;
+            v -= 0x10;
+            if ((v & 0xF0) == 0xF0)
+                v = 0;
+            DrawHexByte(v);
+            WriteSynthParam(0x0D, v - 0x0F);
+            break;
+        case 14:
+            v = ReadSynthParam(0x0E) + 0x0F;
+            v -= 0x10;
+            if ((v & 0xF0) == 0xF0)
+                v = 0;
+            DrawHexByte(v);
+            WriteSynthParam(0x0E, v - 0x0F);
+            break;
+        case 5:
+            SynthParamSubClamp(6, 0x10);
+            break;
+        case 11:
+            SynthParamSubClamp(0x0A, 0x10);
+            break;
+        case 7:
+            SynthParamSubClamp(8, 0x10);
+            break;
+        case 13:
+            SynthParamSubClamp(0x0C, 0x10);
+            break;
+        }
+        SynthLoadParams();
+        return 1;
+    case 0x21:
+    case 0x24:
+        wMsgStrPtr = 0;
+        if (wSynthScreen != 0x0F) {
+            wSynthScreen++;
+            DrawSynthScreen();
+        }
+        return 1;
+    case 0x22:
+    case 0x28:
+        wMsgStrPtr = 0;
+        if (wSynthScreen) {
+            wSynthScreen--;
+            DrawSynthScreen();
+        }
+        return 1;
+    case 0xC0:
+        if (wButtonsSame)
+            return 1;
+        FarCall(2, FAR_FN(StopAllPlayback));
+        return 1;
+    case 0x80:
+        if (wButtonsSame || wBHeld)
+            return 1;
+        FarCall(2, FAR_FN(StopPlayback));
+        return 1;
+    case 0x48:
+        if (wButtonsSame)
+            return 0;
+        FarCall(5, MapMoveDown);
+        RedrawScreenFar();
+        return 1;
+    case 0x42:
+        if (wButtonsSame)
+            return 0;
+        FarCall(5, MapMoveLeft);
+        RedrawScreenFar();
+        return 1;
+    case 0x41:
+        if (wButtonsSame)
+            return 0;
+        if (wSynthCursor == 0 && SynthSignalIsFrame()) {
+            wSynth = wSynthScreen + 0xF0;
+        } else {
+            wSynth &= 0x0F;
+            wSynth += wSynthScreen << 4;
+        }
+        FarCall(5, MapMoveRight);
+        FarCall(7, RedrawScreen);
+        return 1;
+    case 0x60:
+        ShowMessage("COPIED SYNTH");
+        wCursorMode = 2;
+        wClipboardType = 0x0A;
+        p = ((UWORD)wSynthScreen << 4) + (UWORD)0xBEB2;
+        for (v = 0; v < 0x10; v++) {
+            WriteClipboardCell(0, v, ReadSongByte(1, p));
+            p++;
+        }
+        wSelLeft = 0;
+        wSelRight = 1;
+        wSelTop = 0;
+        wSelBottom = 0x10;
+        FarCall(0x1C, FAR_FN(CopySelection));
+        return 1;
+    case 0x50:
+        if (wCursorMode == 1 || wClipboardType != 0x0A)
+            return 0;
+        ShowMessage("PASTED SYNTH");
+        q = ((UWORD)wSynthScreen << 4) + (UWORD)0xBEB2;
+        for (v = 0; v < 0x10; v++) {
+            WriteSongByte(1, q, ReadClipboardCell(0, v));
+            q++;
+        }
+        SynthLoadParams();
+        DrawSynthNumber();
+        return 1;
+    }
+    return 0;
 }

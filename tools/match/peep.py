@@ -520,11 +520,18 @@ def switch_chain(lines: list[str], jump_targets: set[str]) -> tuple[list[str], i
     twenty cases (WaveScreenInput's wButtons) keeps one. Here `ld hl,#G;
     ld a,(hl)` is dropped wherever the same pair already loaded `a` and only
     compares, conditional jumps and labels nothing jumps to lie between. The
-    ROM's compiled code never reloads inside such a chain."""
+    ROM's compiled code never reloads inside such a chain.
+
+    A case whose test CSE shares with an earlier boolean (`xor a,a; or a,c;
+    jp nz,L` in the middle of the chain: SynthScreenInput's `wButtons ==
+    0x10`, also TableScreenInput and ProjectScreenInput) clobbers `a` but
+    not `hl`, so after it only the `ld a,(hl)` comes back (3 such sites; the
+    7 `ld hl,nn` reloads after that test in the ROM load another global)."""
     out: list[str] = []
     n = 0
     scope = 0
     cur: str | None = None            # the global `ld hl,#G` loaded into a and hl
+    hl_g: str | None = None           # G that hl still holds after `a` was clobbered
     i = 0
     while i < len(lines):
         raw = lines[i]
@@ -536,9 +543,9 @@ def switch_chain(lines: list[str], jump_targets: set[str]) -> tuple[list[str], i
         if t.endswith(":"):
             if not _LOCAL.fullmatch(t[:-1]):
                 scope += 1
-                cur = None
+                cur = hl_g = None
             elif f"{scope}:{t[:-1]}" in jump_targets:
-                cur = None
+                cur = hl_g = None
             out.append(raw)
             i += 1
             continue
@@ -554,14 +561,24 @@ def switch_chain(lines: list[str], jump_targets: set[str]) -> tuple[list[str], i
                     out.extend(l for l in lines[i + 1:k])   # keep comments
                     i = k + 1
                     continue
-                cur = m.group(1)
+                if hl_g == m.group(1):
+                    n += 1                  # hl is still there: reload a only
+                    cur, hl_g = m.group(1), None
+                    i += 1
+                    continue
+                cur, hl_g = m.group(1), None
                 out.append(raw)
                 i += 1
                 continue
-            cur = None
+            cur = hl_g = None
             out.append(raw)
             i += 1
             continue
+        if cur is not None and (t == "xor\ta,a" or re.fullmatch(r"or\s+a,[bcde]", t)):
+            hl_g, cur = cur, None
+        elif hl_g is not None and not (t == "xor\ta,a" or re.fullmatch(r"or\s+a,[bcde]", t)
+                                       or re.fullmatch(r"jp\s+n?z,\S+", t)):
+            hl_g = None
         if cur is not None and not (t in ("ld\ta,(hl)", "or\ta,a") or re.fullmatch(r"cp\s+a,#\S+", t)
                                     or re.fullmatch(r"jp\s+n?z,\S+", t)):
             cur = None

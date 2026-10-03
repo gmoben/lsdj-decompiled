@@ -193,6 +193,17 @@ class SwitchChainTests(unittest.TestCase):
         self.assertEqual(out, self.LOAD + ["\tcp\ta,#0x01", "\tjp\tz,00107$", "00201$:",
                                            "\tcp\ta,#0x02", "\tjp\tz,00111$"])
 
+    def test_shared_boolean_case_reloads_a_only(self):
+        # SynthScreenInput: case 0x10 tests the CSE'd `wButtons == 0x10` in c
+        source = (self.LOAD + ["\tcp\ta,#0x08", "\tjp\tz,00107$", "00418$:", "\txor\ta,a",
+                               "\tor\ta,c", "\tjp\tnz,00114$"]
+                  + self.LOAD + ["\tcp\ta,#0x11", "\tjp\tz,00111$"])
+        out, n = peep.switch_chain(source, set())
+        self.assertEqual(n, 1)
+        self.assertEqual(out, source[:8] + ["\tld\ta,(hl)", "\tcp\ta,#0x11", "\tjp\tz,00111$"])
+        other = source[:8] + ["\tld\thl,#_wButtonsSame + 0"] + source[9:]
+        self.assertEqual(peep.switch_chain(other, set()), (other, 0))
+
     def test_jump_target_or_other_global_keeps_the_reload(self):
         source = self.chain()
         self.assertEqual(peep.switch_chain(source, {"0:00201$"}), (source, 0))
