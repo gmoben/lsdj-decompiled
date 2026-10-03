@@ -12,6 +12,8 @@
  * leaves the ROM's `jp z,body; jp end`. SyncTickLSDJ needs track_hram
  * (hSoundCh reused across its loop test); SendByteStep is the re-entrancy
  * guarded step loop the serial interrupt and the analog clock drive.
+ * CheckRomChecksum (the cartridge test's ROM pass) sits between them: its
+ * low-byte test is SDCC's `cp a,a` miscompile, so it always passes.
  */
 
 #include "lsdj.h"
@@ -58,6 +60,7 @@ void SndInitPlayState(void);                /* bank 2 */
 void SetInterruptEnable(UBYTE ie);          /* asm */
 void SendSyncHandshake(void);
 void SendSyncByte(void);                    /* asm */
+UWORD ChecksumRomBank(void);                /* $00:$20B3, asm */
 void SendByteStep(void);
 void SyncApplyMode(void);
 void SyncTickLSDJ(void);
@@ -236,6 +239,30 @@ void SyncSendAnalogClock(void)
     if (wAnalogOutTimer == 0)
         wAnalogOutTimer = wSyncMode2;
     wAnalogOutTimer--;
+}
+
+UBYTE CheckRomChecksum(void)
+{
+    UBYTE bank;
+    UBYTE lo;
+    volatile UBYTE hi;      /* (UWORD)hi is widened afresh for the last test */
+    UWORD sum;
+    UWORD p;
+
+    lo = *(UBYTE *)0x014F;  /* HeaderChecksumLo */
+    hi = *(UBYTE *)0x014E;  /* HeaderChecksumHi */
+    sum = 0;
+    for (p = 0; p < 0x4000; p++)
+        sum += *(UBYTE *)p;
+    for (bank = 1; bank < 0x40; bank++) {
+        *(UBYTE *)0x2000 = bank;
+        sum += ChecksumRomBank();
+    }
+    sum -= hi;
+    sum -= lo;
+    /* SDCC compiles the low-byte test to `cp a,a` (lo fetched into a over
+       the byte it is compared with), so only the high byte is checked */
+    return (sum & 0xFF) == lo && (sum >> 8) == hi;
 }
 
 void HandleTooBusy(void)

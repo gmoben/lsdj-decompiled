@@ -191,6 +191,12 @@
   "len": 55,
   "src": "c/bank01/UiHelpers.c"
  },
+ "CheckRomChecksum": {
+  "bank": "00",
+  "addr": "1FD5",
+  "len": 222,
+  "src": "c/bank00/Sync.c"
+ },
  "CheckSongInitFlag": {
   "bank": "01",
   "addr": "4848",
