@@ -551,6 +551,95 @@ void CutCopyTableSelection(UBYTE cut)
     DrawTableScreen();
 }
 
+/* The table screen's paste: clipboard cells into rows from wTableRow on.
+   A phrase selection's command pair (clipboard type 1, columns 3-4) pastes
+   into the first CMD/value pair; pasting a pair into the other one swaps
+   the SRAM columns (command $0A becomes 0 when it lands in the second). */
+void TablePasteCells(void)
+{
+    UBYTE x, y;
+    UBYTE swap = 0;
+    UBYTE fromPhrase = 0;
+    UBYTE v;
+
+    if (wClipboardType == 1) {
+        if (wSelLeft != 3 || wSelRight != 5)
+            return;
+        fromPhrase = 1;
+        wSelLeft = 2;
+        wSelRight = 4;
+    }
+    if (wSelBottom - wSelTop > 1)
+        ShowMessage("PASTE");
+    if (wSelLeft == 2 && (wTableCol == 4 || wTableCol == 5))
+        swap = 1;
+    if (wSelLeft == 4 && (wTableCol == 2 || wTableCol == 3))
+        swap++;
+    for (y = wSelTop; y < wSelBottom; y++) {
+        for (x = wSelLeft; x < wSelRight; x = x + 1) {
+            if (x == 6 && y)
+                continue;
+            switch (x) {
+            case 0:
+                TableWriteEnv(wTableRow, ReadClipboardCell(0, y));
+                break;
+            case 1:
+                TableWriteTrans(wTableRow, ReadClipboardCell(1, y));
+                break;
+            case 2:
+                v = ReadClipboardCell(fromPhrase + 2, y);
+                if (swap) {
+                    wTableCellAPtr = 0xBA80;
+                    wTableCellBPtr = 0xBC80;
+                    if (v == 0x0A)
+                        v = 0;
+                } else {
+                    wTableCellAPtr = 0xB680;
+                    wTableCellBPtr = 0xB880;
+                }
+                TableWriteCmd(wTableRow, v);
+                break;
+            case 3:
+                if (swap) {
+                    wTableCellAPtr = 0xBA80;
+                    wTableCellBPtr = 0xBC80;
+                } else {
+                    wTableCellAPtr = 0xB680;
+                    wTableCellBPtr = 0xB880;
+                }
+                TableWriteVal(wTableRow, ReadClipboardCell(fromPhrase + 3, y));
+                break;
+            case 4:
+                if (swap) {
+                    wTableCellAPtr = 0xB680;
+                    wTableCellBPtr = 0xB880;
+                } else {
+                    wTableCellAPtr = 0xBA80;
+                    wTableCellBPtr = 0xBC80;
+                }
+                TableWriteCmd(wTableRow, ReadClipboardCell(4, y));
+                break;
+            case 5:
+                if (swap) {
+                    wTableCellAPtr = 0xB680;
+                    wTableCellBPtr = 0xB880;
+                } else {
+                    wTableCellAPtr = 0xBA80;
+                    wTableCellBPtr = 0xBC80;
+                }
+                TableWriteVal(wTableRow, ReadClipboardCell(5, y));
+                break;
+            }
+        }
+        wTableRow++;
+        wTableRow = (char)wTableRow & 0x0F;     /* read into c, as ChainPasteCells */
+    }
+    if (fromPhrase) {
+        wSelLeft = 3;
+        wSelRight = 5;
+    }
+}
+
 void GetSynthFieldHelp(void)
 {
     char *s;

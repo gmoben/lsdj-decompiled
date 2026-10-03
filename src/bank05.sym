@@ -28,7 +28,7 @@
 4930 TableInputFlag             ; return e=flag derived from input code (arg sp+4: 4 or $0a) and column $c92f
 4AA8 TableDrawCursor            ; refresh the table cursor cell (select mode -> TableUpdateScreen; palette by CGB)
 61CA CutCopyTableSelection      ; arg? "CUT" (copy+clear) : "COPY": table selection -> clipboard (clipType 5)
-64A3 TableHandleInput           ; table-screen input/cursor handler ($c411 mode, wSelLeft/wSelTop); large
+64A3 TablePasteCells            ; table-screen paste: clipboard cells into rows from wTableRow (a phrase selection's CMD pair too; swaps the two CMD/value pairs; "PASTE" for more than one row)
 676A TableUpdateScreen          ; main table-screen update/draw (large; also entered from DrawTableScreen)
 ; --- functions called from bank 0 (this bank paged in) ---
 4B5D TableScreenInput           ; table screen (5) input handler, from DispatchScreenInput: dispatch on wButtons
@@ -87,9 +87,9 @@
 6265 .loop                ; loop head in CutCopyTableSelection
 6291 .loop2               ; loop head in CutCopyTableSelection
 6496 .done                ; common exit of CutCopyTableSelection
-652E .loop                ; loop head in TableHandleInput
-6550 .loop2               ; loop head in TableHandleInput
-6760 .done                ; common exit of TableHandleInput
+652E .loop                ; loop head in TablePasteCells
+6550 .loop2               ; loop head in TablePasteCells
+6760 .done                ; common exit of TablePasteCells
 681B .loop                ; loop head in TableUpdateScreen
 687B .loop2               ; loop head in TableUpdateScreen
 692C .loop3               ; loop head in TableUpdateScreen

@@ -3077,6 +3077,12 @@
   "len": 32,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "TablePasteCells": {
+  "bank": "05",
+  "addr": "64A3",
+  "len": 705,
+  "src": "c/bank05/TableScreen.c"
+ },
  "TableReadCmd": {
   "bank": "05",
   "addr": "42E7",
