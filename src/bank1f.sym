@@ -44,7 +44,7 @@
 492A ClaimInstrSlot             ; read+mark the instr-alloc entry (song $2040); returns prior state
 4B00 InstrHReadTableRow         ; read a 16-byte row from SRAM (ReadSongBytes) -> $c46d, then scan it
 4B45 IsTableFree                ; e=1 if table n has no data in its env/cmd rows (used by FindFreeTable)
-4CCD MarkInstrUsed              ; set the instr-alloc entry for instrument arg (<$40)
+4CCD FreeUnusedInstrs           ; CLEAN INSTR DATA pass: re-mark the instruments phrases use, reset the rest (name, $B080 block, column refs); e = how many allocated ones were freed
 4F04 InstrHMarkTableUsed        ; if arg<$20, set $c47d[arg]=1 (mark table used)
 4F1C InstrHGetTableUsed         ; return $c47d[arg] (table-used flag)
 4F2E IsInstrAllocated           ; instrument n's SramInstrAlloc flag
@@ -159,12 +159,12 @@
 4C42 .loop                ; loop head in IsSongChainUsed
 4C72 .loop2               ; loop head in IsSongChainUsed
 4CC9 .done                ; common exit of IsSongChainUsed
-4CE0 .loop                ; loop head in MarkInstrUsed
-4D23 .loop2               ; loop head in MarkInstrUsed
-4D2E .loop3               ; loop head in MarkInstrUsed
-4DEC .loop4               ; loop head in MarkInstrUsed
-4E45 .loop5               ; loop head in MarkInstrUsed
-4EA8 .loop6               ; loop head in MarkInstrUsed
+4CE0 .loop                ; loop head in FreeUnusedInstrs
+4D23 .loop2               ; loop head in FreeUnusedInstrs
+4D2E .loop3               ; loop head in FreeUnusedInstrs
+4DEC .loop4               ; loop head in FreeUnusedInstrs
+4E45 .loop5               ; loop head in FreeUnusedInstrs
+4EA8 .loop6               ; loop head in FreeUnusedInstrs
 4F1A .done                ; common exit of InstrHMarkTableUsed
 4F55 .loop                ; loop head in MarkPhraseTablesUsed
 4F75 .loop2               ; loop head in MarkPhraseTablesUsed

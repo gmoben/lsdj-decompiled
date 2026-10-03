@@ -1263,3 +1263,16 @@ replace restart {
 	ld	a,a
 } by {
 }
+
+// a load into a that the next stack read overwrites unread: SDCC's gencjneshort
+// fetches a stack right operand into a over an a-packed left (`ld a,(de)`, then
+// `cp a,a`); the ROM never has `ld a,X; ld hl,...; ld a,(hl)` (FreeUnusedInstrs'
+// wColInstrument test; its other `cp a,a`, $00:$2076, has no load either)
+replace restart {
+	ld	a,%1
+	lda	hl,%2
+	ld	a,(hl)
+} by {
+	lda	hl,%2
+	ld	a,(hl)
+}

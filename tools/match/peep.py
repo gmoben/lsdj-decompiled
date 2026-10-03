@@ -262,8 +262,10 @@ _CMP16_FORMS = [(pats, build, False) for pats, build in _CMP16] + [
 def _hl_stack_offset(lines: list[str], at: int) -> int | None:
     """The sp-relative offset hl holds just before line `at`, found by walking
     back to the last `lda hl,N(sp)` over hl steps (`inc hl`, `dec hl`, `(hl+)`,
-    `(hl-)`) and `lda sp,M(sp)` adjustments; None past a label, jump, call or
-    anything else that sets hl."""
+    `(hl-)`) and `lda sp,M(sp)` adjustments and the fall-through of a
+    conditional jump (a loop test: FreeUnusedInstrs's `i < 0x40` before its
+    di); None past a label, unconditional jump, call or anything else that
+    sets hl."""
     off = 0
     k = at - 1
     while k >= 0:
@@ -284,6 +286,8 @@ def _hl_stack_offset(lines: list[str], at: int) -> int | None:
         if t == "dec\thl" or "(hl-)" in t:
             off -= 1
             continue
+        if re.fullmatch(r"j[pr]\s+n?[cz],\S+", t):
+            continue          # reached on the fall-through: hl unchanged
         mn = t.split()[0] if t else ""
         if t.endswith(":") or mn in ("jp", "jr", "call", "ret", "reti", "rst", "push", "pop") \
                 or re.match(r"(ld|add|inc|dec)\s+(hl|h|l)\b", t) or t.startswith("ld\thl"):

@@ -16,6 +16,10 @@ extern UBYTE wChanPhraseRow[];              /* $C16C, [4] */
 extern UBYTE DefaultWaveFrameB1F[];         /* $1F:$491A, [16] */
 extern UBYTE DefaultSynthParams[];          /* $1F:$61FF, [16] */
 extern UBYTE wPhraseCol;                    /* $C415 */
+extern UBYTE wNameEditBuf[];                /* $C431, [5] */
+extern UBYTE wColInstrument[];              /* $C468, [4] */
+UBYTE ReadPhraseInstr(UBYTE phrase, UBYTE row);  /* $04:$4918 */
+void WriteInstrName(UBYTE instr);           /* $01:$4A49 */
 UBYTE IsPhraseUsed(UBYTE phrase);
 extern UBYTE wColPhrase[];                  /* $C453, [4] */
 extern UBYTE wColChain[];                   /* $C44F, [4] */
@@ -25,7 +29,7 @@ void FreeChain(void);                       /* $01:$4E43 */
 void MarkChainUsed(void);                   /* $01:$4D67 */
 void ShowOutOfMemory(void);                 /* $01:$75BD */
 void DrawFreedTables(void);
-UBYTE MarkInstrUsed(void);
+UBYTE FreeUnusedInstrs(void);
 UBYTE InstrHCountUsedPhrases(void);
 UBYTE InstrHCountUsedChains(void);
 void DedupPhrases(void);
@@ -442,6 +446,76 @@ UBYTE IsSongChainUsed(void)
     } while (i != start);
     FarCall(1, FAR_FN(ShowOutOfMemory));
     return 0xFF;
+}
+
+/* CLEAN INSTR DATA's instrument pass: clear the instr-alloc table, mark
+   every instrument a phrase row uses, then reset each unmarked one (its
+   name, its $B080 parameter block, the columns' current instrument).
+   Returns how many of the instruments allocated before were freed. */
+UBYTE FreeUnusedInstrs(void)
+{
+    UWORD p;
+    UBYTE i;
+    UBYTE ph;
+    UBYTE row;
+    UBYTE n;
+    UBYTE k;
+    UWORD addr;
+
+    p = (UWORD)SramInstrAlloc;
+    n = 0;
+    _asm di _endasm;
+    for (i = 0; i < 0x40; i++) {
+        if (ReadSongByte(1, p))
+            n++;
+        WriteSongByte(1, p, 0);
+        p++;
+    }
+    for (ph = 0; ph < 0xFF; ph++) {
+        for (row = 0; row < 0x10; row++) {
+            i = FarCallArg2P(4, FAR_FN(ReadPhraseInstr), ph, row);
+            if (i < 0x40)
+                WriteSongByte(1, (UWORD)SramInstrAlloc + i, 1);
+        }
+    }
+    _asm ei _endasm;
+    p = (UWORD)SramInstrAlloc;
+    for (i = 0; i < 0x40; i++) {
+        _asm di _endasm;
+        if (!ReadSongByte(1, p)) {
+            wNameEditBuf[0] = 0;
+            wNameEditBuf[1] = 0;
+            wNameEditBuf[2] = 0;
+            wNameEditBuf[3] = 0;
+            wNameEditBuf[4] = 0;
+            FarCallArg(1, FAR_FN(WriteInstrName), i);
+            addr = i;
+            addr <<= 4;
+            addr |= 0xB000;
+            addr += 0x80;
+            rRAMB = 1;
+            _asm di _endasm;
+            rRAMG = 0x0A;
+            MemSet((UBYTE *)addr, 0, 0x10);
+            rRAMG = 0;
+            _asm ei _endasm;
+            k = 4;
+            do {
+                /* SDCC fetches i into a over the element it just read
+                   (`cp a,a`): the test is always true, so freeing any
+                   instrument clears all four columns' */
+                if (wColInstrument[k - 1] == i)
+                    wColInstrument[k - 1] = 0xFF;
+            } while (--k);
+        } else {
+            n--;
+        }
+        _asm ei _endasm;
+        p++;
+    }
+    if (n & 0x80)
+        n = 0;
+    return n;
 }
 
 void InstrHMarkTableUsed(UBYTE t)
@@ -1006,7 +1080,7 @@ void CleanInstrData(void)
     DrawString("FREEING:");
     wVramCursor = 0x98E4;
     DrawFormat("INSTRS....");
-    DrawFormat("%d", MarkInstrUsed());
+    DrawFormat("%d", FreeUnusedInstrs());
     wVramCursor = 0x9904;
     DrawFormat("TABLES....");
     DrawFormat("%d", BuildUsedTablesMap());
