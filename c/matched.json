@@ -3233,6 +3233,12 @@
   "len": 107,
   "src": "c/bank1b/ProjectScreen.c"
  },
+ "UpdateInstrEnvelope": {
+  "bank": "1B",
+  "addr": "754F",
+  "len": 33,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
  "UpdatePlayClock": {
   "bank": "01",
   "addr": "4FEC",

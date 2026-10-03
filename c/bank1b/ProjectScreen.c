@@ -753,3 +753,16 @@ void UpdateEnvSprites(void)
         SetOAMByte(t + 0x0E, u = i + 6);
     }
 }
+
+/* redraw the envelope graph and its sprites unless the instrument is a
+   wave (1) or kit (2) */
+void UpdateInstrEnvelope(void)
+{
+    UBYTE type;
+
+    type = ReadCurInstrByte(0);
+    if (type == 1 || type == 2)
+        return;
+    ComputeEnvelope();
+    UpdateEnvSprites();
+}
