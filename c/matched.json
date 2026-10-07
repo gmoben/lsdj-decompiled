@@ -977,6 +977,12 @@
   "len": 345,
   "src": "c/bank06/Screens.c"
  },
+ "EnvReleaseSpeed": {
+  "bank": "02",
+  "addr": "69C3",
+  "len": 20,
+  "src": "c/bank02/Sound.c"
+ },
  "EraseFile": {
   "bank": "1C",
   "addr": "4D58",
@@ -1000,12 +1006,6 @@
   "addr": "595F",
   "len": 135,
   "src": "c/bank1c/FileUpgrade.c"
- },
- "FileCheckByte6973": {
-  "bank": "1C",
-  "addr": "6973",
-  "len": 52,
-  "src": "c/bank1c/FileScreen.c"
  },
  "FileCheckNameLen": {
   "bank": "1C",
@@ -1120,6 +1120,12 @@
   "addr": "68C5",
   "len": 44,
   "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileUpgradeRetrigRate": {
+  "bank": "1C",
+  "addr": "6973",
+  "len": 52,
+  "src": "c/bank1c/FileScreen.c"
  },
  "FileUpgradeSong": {
   "bank": "1C",
@@ -1378,6 +1384,24 @@
   "addr": "4CCD",
   "len": 567,
   "src": "c/bank1f/InstrHelpers.c"
+ },
+ "FxCmd_O": {
+  "bank": "02",
+  "addr": "665F",
+  "len": 10,
+  "src": "c/bank02/Sound.c"
+ },
+ "FxCmd_P": {
+  "bank": "02",
+  "addr": "6646",
+  "len": 25,
+  "src": "c/bank02/Sound.c"
+ },
+ "FxCmd_T": {
+  "bank": "02",
+  "addr": "6669",
+  "len": 28,
+  "src": "c/bank02/Sound.c"
  },
  "GetCursorChain": {
   "bank": "06",
@@ -2758,6 +2782,54 @@
   "addr": "7616",
   "len": 10,
   "src": "c/bank01/ShowMessages.c"
+ },
+ "SndAdvanceStatePtrs": {
+  "bank": "02",
+  "addr": "507F",
+  "len": 29,
+  "src": "c/bank02/Sound.c"
+ },
+ "SndEnableLcdInts": {
+  "bank": "02",
+  "addr": "70FB",
+  "len": 19,
+  "src": "c/bank02/Sound.c"
+ },
+ "SndGetChainPhrase": {
+  "bank": "02",
+  "addr": "6F65",
+  "len": 81,
+  "src": "c/bank02/Sound.c"
+ },
+ "SndInitPlayState": {
+  "bank": "02",
+  "addr": "710E",
+  "len": 17,
+  "src": "c/bank02/Sound.c"
+ },
+ "SndRandomUpTo": {
+  "bank": "02",
+  "addr": "6479",
+  "len": 36,
+  "src": "c/bank02/Sound.c"
+ },
+ "SndStopAllIfIdle": {
+  "bank": "02",
+  "addr": "6E0F",
+  "len": 21,
+  "src": "c/bank02/Sound.c"
+ },
+ "SndTableMaybeHop": {
+  "bank": "02",
+  "addr": "7362",
+  "len": 78,
+  "src": "c/bank02/Sound.c"
+ },
+ "SndUpdateRetrig": {
+  "bank": "02",
+  "addr": "6B9B",
+  "len": 31,
+  "src": "c/bank02/Sound.c"
  },
  "SongBeginSelection": {
   "bank": "07",

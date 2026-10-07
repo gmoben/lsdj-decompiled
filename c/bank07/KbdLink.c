@@ -29,7 +29,7 @@ void SendSyncHandshake(void);               /* bank 0 */
 extern UBYTE wKbdChanState[];               /* $CB96, [4] per-channel keyboard-active state */
 extern UBYTE wKbdArmed;                     /* $CB94 */
 extern UBYTE wKbdInstrument;                /* $CB93 */
-extern UBYTE wKbdHeldNote_p1;               /* $CB7F */
+extern UBYTE wKbdPulseChans;               /* $CB7F */
 extern char wNameEditBuf[];                 /* $C431, [5] */
 extern char TxtKeyboardCalibration[];       /* $07:$7171 */
 extern char TxtTapDownArrowKey[];           /* $07:$7186 */
@@ -103,7 +103,7 @@ void DrawKbdInstrState(void)
         switch (t) {
         case 0:
             *wav = 0;
-            switch (wKbdHeldNote_p1) {
+            switch (wKbdPulseChans) {
             case 0:
                 wKbdChanState[0] = 1;
                 *pu2 = 0;

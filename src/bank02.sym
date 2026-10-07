@@ -51,6 +51,7 @@
 4812 FxCmd_S            ; S: sweep / shape
 47C8 FxCmd_W            ; W: wave / duty cycle
 4286 FxCmd_L            ; L: slide (legato)
+69D7 EnvReleaseSpeeds   ; [8] envelope fade speed per release digit (EnvReleaseSpeed)
 6246 FxCmd_M            ; M: master volume
 665F FxCmd_O            ; O: output (panning)
 6646 FxCmd_P            ; P: pitch bend / shift
@@ -104,7 +105,7 @@
 4FC0 SndApplyTableCmd           ; (cp $02) SndReadSramByteVia then jp SndClampNoteRange
 503C SndReadSramByteVia         ; read [hl-pointer] from SRAM ($0a enable, di/reti) -> e
 504A SndRunTableStep            ; run a table step (SndDecodeCmdNibbles, SndTableStepDispatch)
-5074 SndBank0Call5074           ; call bank0 helpers $33f9 then $3758 (d=$0f)
+5074 SndRandom15                ; Random16() % 15: B (MayBe) in a phrase plays when this is below the probability digit
 507F SndAdvanceStatePtrs        ; advance the 7 working sound-state pointers (low bytes $c8df/e1/e3/e5/e7/eb/ed) to the next channel's slot in the $C1xx tables (counterpart of InitSoundStatePtrs)
 509C SndReadPhraseCmd           ; fetch phrase FX cmd+val for the current row (SRAM bank 2 phrase_fx); H/W special-cased
 50E1 SndReadTableCmd1           ; fetch table CMD1-column cmd+val via $c118/$c130 stream ptrs
@@ -112,14 +113,14 @@
 5165 SndReadCmdStream           ; read command-stream bytes ($c8fb; cp $ff = end)
 5345 SndSetupWaveChannel        ; ch2 (WAV/KIT): seed working ptrs ($c8ef/e3/e5/e7/fc), SndReadCmdStream
 5459 SndReadCursorByte          ; read a byte via $c110[ch] cursor + $c8ed (SRAM-guarded)
-5477 SndApplyTablePitch         ; apply table transpose/pitch to a note (nibble masks)
+5477 SndTableHop                ; hop this channel's table to row a & $0F: the transpose and left command columns, or with bit 7 the right command column (its own row); e = 0 if already there
 54D7 SndUpdateAllChannels       ; output phase of a tick: for each active channel (wChanActive $C0E0..7) set hSoundCh and call SndUpdateChannel (writes sound regs / runs tables)
 556A SndRunFrame                ; per-frame sound entry (called from main loop, bank00 $2317): tempo gate -- if $cb6f pending skip it; else run SndTick 1+$cb70 times this frame
-5583 SndApplyTableTranspose     ; jp target from SndStepTablePtrs: read table_transpose row, add to the channel note, apply (SndApplyTablePitch)
-55AE SndReadChanState55AE       ; read channel state via SndAdvanceGrooveCursor
+5583 SndApplyTableTranspose     ; jp target from SndStepTablePtrs: read table_transpose row, add to the channel note, apply (SndTableHop)
+55AE SndCountdownStep           ; count down this channel's ticks left in the step: e = 0 if idle; at 0, flag the note trigger and advance the groove
 55CB SndReadChainEnd            ; chain end-marker check (cp $ff)
-55EF SndDecodeTransA            ; SndApplyTablePitch / SndDecodeNibbles
-5604 SndDecodeTransB            ; SndApplyTablePitch / SndDecodeNibbles (variant)
+55EF SndDecodeTransA            ; SndTableHop / SndDecodeNibbles
+5604 SndDecodeTransB            ; SndTableHop / SndDecodeNibbles (variant)
 561B SndReadGrooveOrSpeed       ; NB misnomer (no groove/speed access): if wChanTableFresh[ch], clear it (NOI: also wNoiTableNotePrev); else when wChanTableStep[ch]==0 step the 5 table read ptrs (wTableNotePtr, wTableCmd1Ptr, wTableCmd2Ptr, wTableCmd1ValPtr, wTableCmd2ValPtr) to the next row
 5657 SndStepTablePtrs           ; advance the channel's table step counter; on 16-step wrap rebuild SRAM read-pointers ($c1xx) for the table transpose ($B480) and command ($BA80) columns of wChanTable[ch]
 56E1 SndReadGrooveVal           ; table step 0 -> jp SndAdvanceGroove unless the groove byte is $20; step 8 -> mark it $ff. (The trailing .initEnvPu1/.initEnvNoi stubs, zeroing wEnvStagePu1/Noi = ex-$cbbf, are separate entries.)
@@ -128,20 +129,20 @@
 583F SndSplitPhraseNibbles      ; wChanPhrase[ch] -> hi/lo nibbles (compute phrase index)
 58C7 SndFillFF                  ; write $ff to a run of consecutive bytes [hl]
 58EA SndLoadInstrument          ; copy the 16-byte instrument record instruments[a] (SRAM bank1 $B080+a*16) into wCurInstr ($C0D0)
-5F5E SndSetupChanState5F5E      ; set $c14f/$c14d then SndSetupLfoWavNoi
-5FA7 SndSetChanState5FA7        ; set $c14e/$c319
-5FBE SndSetChanState5FBE        ; SndSetChanState5FA7 then $c69c
+5F5E SndResetChanFx             ; reset this channel's (hSoundCh) retrigger rate, pitch slide and vibrato, and its LFO
+5FA7 SndResetWavFx              ; the WAV channel's part of SndResetChanFx (retrigger, update flags, pitch rate, frame delta, vibrato)
+5FBE SndResetWavFlat            ; SndResetWavFx, then a flat wave ($77 x 16) in hWavUploadBuf
 5FDA SndSetChannelEnable        ; enable/disable this channel in rAUDENA (per hSoundCh; SndWritePanning)
 61A9 SndWritePanning            ; set this channel's panning bits in rAUDTERM
 61F7 SndClearVoiceHram          ; clear $ffa0-$ffa3 (per-voice HRAM shadow regs)
 6270 SndUpdateWavFreq           ; WAV channel: recompute sample step from wChanFreq when the update flag is set
-6479 SndBank0Call6479           ; call bank0 helpers $33f9 then $3758
-6577 SndSetupWaveTrigger        ; wave/kit trigger helper (SndSetupChanState5F5E)
+6479 SndRandomUpTo              ; random 0..n (Random16() % (n + 1); 0 for 0): the range Z adds to each digit
+6577 SndSetupWaveTrigger        ; wave/kit trigger helper (SndResetChanFx)
 6685 SndRunFxSlot               ; set hSoundCh = $c527 & 3, run SndSetupWaveTrigger
 6694 SndTableEnvDispatch        ; table-envelope command dispatch
 66E7 SndResetPitchState         ; per-channel jp-table: clear wChanSlideNoteSrc, center wChanPitchCur ($8000), reset wChanCmdStep
 6904 SndTableStepDispatch       ; table-step jump table (jp hl), SndClampNoteRange
-69C3 SndMapFxLow3               ; map hFxValue & 7 via ROM table $69d7
+69C3 EnvReleaseSpeed            ; E's release digit (hFxValue & 7) -> the envelope fade speed (EnvReleaseSpeeds)
 69DF SndTriggerPU1Plus          ; TriggerPU1 then SndSetupLfo
 6A94 SndCheckRetrigState        ; retrigger-state checks (cp [hl], $03)
 6B59 SndCheckChanMode           ; channel-mode check (cp $04)
@@ -157,8 +158,8 @@
 70FB SndEnableLcdInts           ; SetInterruptEnable
 710E SndInitPlayState           ; copy $c401 -> $c4d2, clear $c528, StopPlayback
 711F SndAdvanceChanPos          ; per-frame position advance inside SndUpdateChannel; state $ff -> SndInitPlayState
-7362 SndBank0Call7362           ; bank0 $33f9 dispatch
-73B0 SndClearVoicePairs         ; recursive: SndBank0Call6479 x2 (clear voice state)
+7362 SndTableMaybeHop           ; B in a table (MayBe hop): with the high digit's probability (/16), hop to the low digit's row (arg: the right command column); e = 1 if it hopped
+73B0 FxCmd_Z                    ; Z: repeat the last command with a random amount (0..digit) added to each digit
 748E SndAdvanceGrooveCursor     ; SndReadCursorByte + SndAdvanceGroove
 75C6 SndUpdateChannel           ; per-channel processor (channel = hSoundCh): advance phrase cursor, resolve song/chain row, read note/cmd; called per active channel by SndUpdateAllChannels
 77F0 SndTick                    ; one engine tick: SndStepAllChannels (sequencer) then SndUpdateAllChannels (output); self-recurses on retrigger flag $c4cd / mode $cb66
@@ -211,7 +212,7 @@
 6327 .done                ; common exit of SndUpdateWavFreq
 63B5 .loop2               ; loop head in SndUpdateWavFreq
 6475 .done2               ; common exit of SndUpdateWavFreq
-649B .done                ; common exit of SndBank0Call6479
+649B .done                ; common exit of SndRandomUpTo
 6573 .done                ; common exit of FxCmd_R
 6642 .done                ; common exit of FxCmd_K
 665E .done                ; common exit of FxCmd_P
@@ -239,7 +240,7 @@
 6F87 .loop                ; loop head in SndGetChainPhrase
 7032 .done                ; common exit of SndWaveRetrigDispatch
 735E .done                ; common exit of SndAdvanceChanPos
-73AC .done                ; common exit of SndBank0Call7362
+73AC .done                ; common exit of SndTableMaybeHop
 75C2 .done                ; common exit of SndAdvanceGrooveCursor
 76F2 .loop                ; loop head in SndUpdateChannel
 77EC .done                ; common exit of SndUpdateChannel

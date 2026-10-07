@@ -20,7 +20,7 @@ extern UBYTE wSelTop;                       /* $C40E */
 extern UBYTE wSelRight;                     /* $C40F */
 extern UBYTE wSelBottom;                    /* $C410 */
 extern UBYTE wClipboardType;                /* $C411 */
-extern UBYTE wClipboardType_p1;             /* $C412 */
+extern UBYTE wQuickMarking;             /* $C412 */
 extern UBYTE wLiveMode;                     /* $C528 */
 extern UBYTE wClipboardBuf[];               /* $C57A, [252] */
 extern UBYTE wClipboardSave[];              /* $C7C6, [252] */
@@ -32,7 +32,7 @@ extern UBYTE wPlaySeconds;                  /* $C553 */
 extern UBYTE wPlayFrames;                   /* $C6A8 */
 extern volatile UBYTE wProjDrawScratch;     /* $C9A7; volatile: the ROM re-reads it for the `++` */
 extern UBYTE wSelectHeld;                   /* $C40A */
-extern UBYTE wColorSet_p1;                  /* $C530 */
+extern UBYTE wMsgNoPause;                  /* $C530 */
 UBYTE CheckRomChecksum(void);               /* $00:$1FD5 */
 UBYTE UiTestSramLo(void);
 void SeedRandom16(UWORD seed);              /* bank 0 */
@@ -608,7 +608,7 @@ void UiUpdateMessage(void)
 {
     UBYTE i;
 
-    if (wSelectHeld && !wColorSet_p1)
+    if (wSelectHeld && !wMsgNoPause)
         return;
     if (wMsgStrPtr) {
         if (!wMsgTimer) {
@@ -620,7 +620,7 @@ void UiUpdateMessage(void)
             wMsgTimer = 10;
             wMsgStrPtr += 20;
             if (!*wMsgStrPtr) {
-                wColorSet_p1 = 0;
+                wMsgNoPause = 0;
                 wMsgStrPtr = 0;
                 wMsgTimer = 150;
             } else {
@@ -651,7 +651,7 @@ void ResetEditorState(UBYTE keep)
     right = wSelRight;
     bottom = wSelBottom;
     ctype = wClipboardType;
-    ctype1 = wClipboardType_p1;
+    ctype1 = wQuickMarking;
     mode = wCursorMode;
     live = wLiveMode;
     if (keep)
@@ -666,7 +666,7 @@ void ResetEditorState(UBYTE keep)
         wSelTop = top;
         wSelBottom = bottom;
         wClipboardType = ctype;
-        wClipboardType_p1 = ctype1;
+        wQuickMarking = ctype1;
         wCursorMode = mode;
         wLiveMode = live;
     }

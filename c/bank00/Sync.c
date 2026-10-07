@@ -67,7 +67,7 @@ void SyncTickLSDJ(void);
 void SyncSetSendMode(void);
 void SyncSetRecvMode(void);
 void StopPlayback(void);                    /* bank 2 */
-void SndSetupChanState5F5E(void);           /* bank 2 */
+void SndResetChanFx(void);           /* bank 2 */
 void SndResetFxState(void);                 /* bank 2 */
 void SndEnableLcdInts(void);                /* bank 2 */
 void SndRunFrame(void);                     /* bank 2 */
@@ -129,7 +129,7 @@ void SyncTickLSDJ(void)
             wChanActive[hSoundCh] = 0;
             _asm di _endasm;
             SWITCH_ROM(2);
-            SndSetupChanState5F5E();
+            SndResetChanFx();
             _asm ei _endasm;
             if (wCurrentScreen == 4) {
                 GetTilemapAddr(hSoundCh * 3 + 2, (wChanSongRow[hSoundCh] & 0x0F) + 2);

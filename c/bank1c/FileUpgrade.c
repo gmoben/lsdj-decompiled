@@ -32,7 +32,7 @@ void FileUpgradeV12Pulse(void);
 void FileUpgradeV14Pulse(void);
 void FileUpgradeV15Wave(void);
 void FileUpgradeV17bPulse(void);
-void FileCheckByte6973(UBYTE *p);          /* $1C:$6973 */
+void FileUpgradeRetrigRate(UBYTE *p);          /* $1C:$6973 */
 void FileUpgradeClearRange(void);           /* $1C:$65B9 */
 void FileUpgradeV2(void);                   /* $1C:$622D, parked */
 void ReadSongBytesW(UBYTE bank, UWORD src, UBYTE *dst);  /* ReadSongBytes taking a word address (aliased by match_function.py) */
@@ -303,14 +303,14 @@ void FileUpgradeV13(void)
     rRAMB = 1;
     for (p = (UBYTE *)0xB680; p != (UBYTE *)0xB880; p++)
         if (*p == 0x0E)
-            FileCheckByte6973(p + 0x200);
+            FileUpgradeRetrigRate(p + 0x200);
     for (p = (UBYTE *)0xBA80; p != (UBYTE *)0xBC80; p++)
         if (*p == 0x0E)
-            FileCheckByte6973(p + 0x200);
+            FileUpgradeRetrigRate(p + 0x200);
     rRAMB = 2;
     for (p = (UBYTE *)0xA000; p != (UBYTE *)0xAFF0; p++)
         if (*p == 0x0E)
-            FileCheckByte6973(p + 0xFF0);
+            FileUpgradeRetrigRate(p + 0xFF0);
     rRAMG = 0;
     _asm ei _endasm;
 }

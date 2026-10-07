@@ -494,8 +494,8 @@ DEF wChanFreqPu2     EQU $C0F6  ; channel frequency shadow, PU2 lo
 DEF wChanFreqPu2Hi   EQU $C0F7  ; channel frequency shadow, PU2 hi
 DEF wChanFreqWav     EQU $C0F8  ; channel frequency shadow, WAV lo (rAUD3LOW)
 DEF wChanFreqWavHi   EQU $C0F9  ; channel frequency shadow, WAV hi
-DEF wChanGrooveTicks EQU $C0FC  ; ticks left in groove step, PU1: 0 -> wChanNoteTrigger + advance groove (SndReadChanState55AE)
-DEF wTableNotePtr    EQU $C108  ; SRAM read ptr: table NOTE column, PU1 (lo nibble = table row; hop cmd writes it, SndApplyTablePitch)
+DEF wChanGrooveTicks EQU $C0FC  ; ticks left in groove step, PU1: 0 -> wChanNoteTrigger + advance groove (SndCountdownStep)
+DEF wTableNotePtr    EQU $C108  ; SRAM read ptr: table NOTE column, PU1 (lo nibble = table row; hop cmd writes it, SndTableHop)
 DEF wTableNotePtrPu2 EQU $C10A  ; SRAM read ptr: table NOTE column, PU2
 DEF wTableNotePtrWav EQU $C10C  ; SRAM read ptr: table NOTE column, WAV
 DEF wPhraseCmdPtrPu2 EQU $C112  ; SRAM read ptr: phrase FX command, PU2
@@ -659,7 +659,7 @@ DEF wChanWaveTrigPu2  EQU $C35D  ; wChanWaveTrig[1] = Pu2 channel
 DEF wChanWaveTrigWav  EQU $C35E  ; wChanWaveTrig[2] = Wav channel
 DEF wChanVibShapePu1Hi EQU $C360  ; wChanVibShape[0] hi byte (Pu1)
 DEF wChanVibShapePu2 EQU $C361  ; wChanVibShape[1]  (Pu2)
-DEF wChanVibShapePu2Hi EQU $C362  ; wChanVibShape[1] hi byte (Pu2)
+DEF wNoiPSpeed EQU $C362  ; wChanVibShape[3]: noise has no vibrato, so the slot holds P's speed (applied as S every tick)
 DEF wChanVibShapeWav EQU $C363  ; wChanVibShape[2]  (Wav)
 DEF wChanVibShapeWavHi EQU $C364  ; wChanVibShape[2] hi byte (Wav)
 DEF wTableCmd1       EQU $C369  ; current-channel table CMD1 command (scratch)
@@ -672,12 +672,12 @@ DEF wChanPitchModActivePu2  EQU $C3FA  ; wChanPitchModActive[1] = Pu2 channel
 DEF wChanPitchModActiveWav  EQU $C3FB  ; wChanPitchModActive[2] = Wav channel
 DEF wChainScopeDirty EQU $C403  ; re-resolve phrase under chain cursor into wColPhrase (chain screen sets)
 DEF wSongScopeDirty  EQU $C404  ; re-resolve chain under song cursor into wColChain (song screen sets)
-DEF wClipboardType_p1 EQU $C412  ; set 1 on copy ops; saved/restored with selection state (exact meaning TBD)
+DEF wQuickMarking EQU $C412  ; 1 once SELECT+(B, B) extends a selection to a column, row or screen (quick-mark); 0 when a selection starts; kept across ResetEditorState
 DEF wChanDispNote    EQU $C41F  ; [4] per-channel note pending for sample-name display (bank06 draws + clears)
 DEF wChanDispNoteWav EQU $C421  ; pending display note, WAV (speech path writes)
 DEF wChanDispNoteNoi EQU $C422  ; pending display note, NOI (SetNoisePoly tail)
 DEF wChanDispNoteTimer EQU $C423  ; [4] sample-name display hold countdown ($19 frames)
-DEF wSynthCursor_p1  EQU $C443  ; init-only (0 at reset); no other references found
+DEF wUnusedC443  EQU $C443  ; set to 0 at reset, never read
 DEF wUnusedC44B      EQU $C44B  ; set to 1 at init, never read
 DEF wUnusedC44C      EQU $C44C  ; set to 1 at init, never read
 DEF wUnusedC44D      EQU $C44D  ; set to 1 at init, never read
@@ -689,7 +689,7 @@ DEF wColPhrasePu2    EQU $C454  ; phrase under cursor, song column PU2
 DEF wColPhraseWav    EQU $C455  ; phrase under cursor, song column WAV
 DEF wColPhraseNoi    EQU $C456  ; phrase under cursor, song column NOI
 DEF wColInstrumentNoi EQU $C46B  ; instrument cache, song column NOI
-DEF wColInstrument_p4 EQU $C46C  ; init-only; no other references found
+DEF wUnusedC46C EQU $C46C  ; set at reset, never read
 DEF wSpeechWord      EQU $C4CE  ; word being spoken (-> wChanNoteWav at speech note-on)
 DEF wSpeechFrameTicks EQU $C4CF  ; frames left in current allophone frame; 0 -> stream next (SndLoadWaveFrame)
 DEF wSpeechPtr       EQU $C4D0  ; allophone stream read ptr lo (SramWords $B890 base)
@@ -738,9 +738,9 @@ DEF wWavFrameDeltaPtrHi EQU $C522  ; wave-frame delta list cursor hi
 DEF wWavFrameDeltaLoop EQU $C523  ; saved delta-list reload ptr lo (list end, mode != once)
 DEF wWavFrameDeltaLoopHi EQU $C524  ; saved delta-list reload ptr hi
 DEF wWavFrameTimer   EQU $C525  ; wave-frame step countdown (reload = wFxWaveParam2; W cmd hi nibble sets)
-DEF wColorSet_p1     EQU $C530  ; gates UiUpdateMessage while SELECT held (role TBD)
+DEF wMsgNoPause     EQU $C530  ; 1 while a message SELECT cannot pause (set at reset: the startup banner); cleared when a message ends, on redraw, on a live-mode switch (UiUpdateMessage)
 DEF wTopBarMarkPtr   EQU $C562  ; 16-bit ptr to the unsaved-'!' char slot in the top bar
-DEF wSelectPal_p1    EQU $C56A  ; selection/mark mode state 1/2 (role TBD)
+DEF wMuteSoloLatch    EQU $C56A  ; set to 1 after B+SELECT (mute) and 2 after B+START (solo) in HandleInputCombos; B alone releases it (SongScreenInput turns 2 into 1)
 DEF wFsCheckResult   EQU $C56B  ; CheckFileMagicAll result (drives file-screen variant)
 DEF wPartialRedrawDone EQU $C56D  ; partial row redraw done; ScreenUpdateDispatch skips full update
 DEF wLiveStartCol    EQU $C571  ; LIVE queued start column ($FF = none; saves wLiveMode)
@@ -751,7 +751,7 @@ DEF wFxSlideTargetNote EQU $C68E  ; slide (L cmd) destination note, clamped to $
 DEF wFxSlideNote     EQU $C68F  ; slide base-note scratch (current note or wNoteOctave source)
 DEF wFxSlidePitch    EQU $C690  ; slide start pitch lo (-> wChanPitchCur)
 DEF wFxSlidePitchHi  EQU $C691  ; slide start pitch hi
-DEF wNoiFreeMode     EQU $C692  ; noise instr byte 2: nonzero skips the $3C note clamp (free-running shape; exact UI param TBD)
+DEF wNoiPitchSafe     EQU $C692  ; noise instrument byte 2, PITCH: nonzero = SAFE, 0 = FREE (manual C.4; SetupSoundNoise copies it); after a pitch change SAFE goes on to ProcessChannelTable, FREE returns for notes >= $3C
 DEF wWavSynthFrame   EQU $C694  ; current wav-synth frame index (seeded from wWavSynthRepeat; W cmd value adds)
 DEF wWavSynthEnd     EQU $C695  ; effective wav-synth frame count = min(instr LENGTH, wFxWaveParam)
 DEF wChanFinetunePu1Hi EQU $C697  ; wChanFinetune[0] hi byte (Pu1)
@@ -762,7 +762,7 @@ DEF wChanFinetuneNoi EQU $C69C  ; wChanFinetune[3]  (Noi)
 DEF wTimerTailBusy   EQU $C69F  ; timer-tail reentrancy guard (scope bitmap copy work)
 DEF wMsgPanelShown   EQU $C7AC  ; 4-line message panel shown (wMsgTimer=$64; special clear on expiry)
 DEF wTopBarDrawScratch EQU $C7AD  ; 16-bit top-bar draw scratch (string ptr / remaining count)
-DEF wFxCommand_p1    EQU $C8C5  ; FX state byte (readers $6653/$68AB bank02; role TBD)
+DEF wNoiPSlideStart    EQU $C8C5  ; set by P on the noise channel; its first tick zeroes wNoiPitchFrac and clears it
 DEF wChanCmdRatePu2   EQU $C8C7  ; wChanCmdRate[1] = Pu2 channel
 DEF wChanCmdRateWav   EQU $C8C8  ; wChanCmdRate[2] = Wav channel
 DEF wChanCmdRateNoi   EQU $C8C9  ; wChanCmdRate[3] = Noi channel
@@ -876,7 +876,7 @@ DEF wAnaInPulseCount EQU $CB79  ; analog sync-in pulses since resync
 DEF wAnaInPrevPlayMode EQU $CB7A  ; analog sync-in: latched wPlayMode (0 -> emit extra step)
 DEF wFullRedrawTimer EQU $CB7B  ; forces a full screen update every 32 frames despite partial redraws
 DEF wKbdQueueTail    EQU $CB7C  ; PS/2 ring-buffer write index into wLinkQueueBuf (serial IRQ)
-DEF wKbdHeldNote_p1  EQU $CB7F  ; kbd note-routing state 0/1/2 (single site bank07 $65AC; role TBD)
+DEF wKbdPulseChans  EQU $CB7F  ; keyboard: the pulse channel(s) a pulse instrument plays on, 0 PU1 / 1 PU2 / 2 both (F8 cycles them; KbdLink.c)
 DEF wKbdNoteQueued   EQU $CB92  ; queued PS/2 note/entry nibble-merge (0 = none; gates kbd trigger)
 DEF wKbdArmed        EQU $CB94  ; keyboard note-active / instrument-armed flag
 DEF wKbdInstrument2  EQU $CB95  ; keyboard voice-2 instrument number

@@ -1059,7 +1059,7 @@ UBYTE FileScreenInput(void)
     return 1;
 }
 
-void FileCheckByte6973(UBYTE *p)
+void FileUpgradeRetrigRate(UBYTE *p)
 {
     UBYTE v;
 

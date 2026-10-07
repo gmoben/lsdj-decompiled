@@ -27,13 +27,13 @@ extern UBYTE wSelTop;                       /* $C40E */
 extern UBYTE wSelRight;                     /* $C40F */
 extern UBYTE wSelBottom;                    /* $C410 */
 extern UBYTE wClipboardType;                /* $C411 */
-extern UBYTE wClipboardType_p1;             /* $C412 */
+extern UBYTE wQuickMarking;             /* $C412 */
 extern UBYTE wSongScopeDirty;               /* $C404 */
 extern UBYTE wChain;                        /* $C418 */
 extern UBYTE wChainRow;                     /* $C41A */
 extern UBYTE wLiveMode;                     /* $C528 */
-extern UBYTE wColorSet_p1;                  /* $C530 */
-extern UBYTE wSelectPal_p1;                 /* $C56A */
+extern UBYTE wMsgNoPause;                  /* $C530 */
+extern UBYTE wMuteSoloLatch;                 /* $C56A */
 extern UBYTE wPlayStartChan;                /* $C94C */
 extern UBYTE wPlayStartRow;                 /* $C94D */
 extern UBYTE wSongSelScroll;                /* $C94A */
@@ -217,7 +217,7 @@ UBYTE SongScreenInput(void)
             return 1;
         wLiveMode = !wLiveMode;
         if (wMsgStrPtr) {
-            wColorSet_p1 = 0;
+            wMsgNoPause = 0;
             wMsgStrPtr = 0;
             wMsgTimer = 0;
         }
@@ -363,8 +363,8 @@ UBYTE SongScreenInput(void)
         return 1;
     } else if (wButtons == 0x80) {
         if (wButtonsSame || wBHeld) {
-            if (wSelectPal_p1 == 2)
-                wSelectPal_p1 = 1;
+            if (wMuteSoloLatch == 2)
+                wMuteSoloLatch = 1;
             return 1;
         }
         if (wLiveMode)
@@ -432,7 +432,7 @@ UBYTE SongScreenInput(void)
             right = wSongCol;
             top = wSelTop;
             bot = wSongRow;
-            wClipboardType_p1 = 1;
+            wQuickMarking = 1;
             SortBytePair(&left, &right);
             if (left || right != 3) {
                 wSelLeft = 0;
@@ -451,7 +451,7 @@ UBYTE SongScreenInput(void)
             return 1;
         }
         FarCall(5, SaveSelectionState);
-        wClipboardType_p1 = 0;
+        wQuickMarking = 0;
         wSelLeft = wSongCol;
         wSelTop = wSongRow;
         wSongSelRow = wSongRow;
