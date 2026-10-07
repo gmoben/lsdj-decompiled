@@ -1569,7 +1569,7 @@ def dead_stores(lines: list[str], jump_targets: set[str]) -> tuple[list[str], in
                 and (ops[1] == "a"
                      # a call result copied to its register (`call; ld c,e`)
                      # and never read: SDCC leaves it when the cast that
-                     # follows reads e itself (CloseNameEditor's row * 3);
+                     # follows reads e itself (CommitNameEdit's row * 3);
                      # the ROM has no such copy before its register is
                      # rewritten
                      or (ops[1] == "e" and k > 0 and code[k - 1][1][0] == "call"))):

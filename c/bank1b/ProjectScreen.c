@@ -82,7 +82,8 @@ void MapMoveDown(void);                     /* bank 5 */
 void TogglePlayback(void);                    /* bank 2 */
 
 extern UBYTE wKbdLetterPos;                 /* $C42C */
-extern UBYTE wNameEditBuf[];                /* $C431, [5] */
+extern char wNameEditBuf[];                 /* $C431, [5] + NUL (char: NameEditorInput) */
+extern UBYTE wNameEditWrapLatch;            /* $C9A2 */
 
 extern UBYTE wSramFsFlag;                   /* $C9A3 */
 extern UBYTE wSongTranspose;                /* $C444 */
@@ -108,7 +109,7 @@ UBYTE SaveFile(UBYTE f);                    /* $1C:$4E10 */
 void WriteInstrName(UBYTE instr);           /* $01:$4A49 */
 void DrawProjTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE h);
 void delay(UWORD d);
-extern char AlnumChars[];                   /* $1B:$4C6A, four 11-byte rows: "0123456789", "ABCDEFGHIJ", "KLMNOPQRST", "UVWXYZx >w" */
+extern char AlnumChars[][11];               /* $1B:$4C6A, the name keyboard: "0123456789", "ABCDEFGHIJ", "KLMNOPQRST", "UVWXYZx >w" */
 void CopyInstrName(UBYTE instr);            /* $01:$493B */
 
 void DrawHelpMenu(void)
@@ -243,7 +244,7 @@ UBYTE HelpScreenInput(void)
     return 1;
 }
 
-void ProjDrawNameFieldHw(void)
+void DrawKbdCursor(void)
 {
     UBYTE x, y;
 
@@ -252,7 +253,7 @@ void ProjDrawNameFieldHw(void)
     ColorField(x, y, 1, hGameboyType ? 3 : 2);
 }
 
-void ProjDrawNameField(void)
+void EraseKbdCursor(void)
 {
     ColorField(wKbdCursorCol + 5, wKbdCursorRow + 8, 1, 0);
 }
@@ -358,11 +359,11 @@ void OpenNameEditor(void)
     wVramCursor = 0x9905;
     DrawString(AlnumChars);
     wVramCursor = 0x9925;
-    DrawString(AlnumChars + 11);
+    DrawString(AlnumChars[1]);
     wVramCursor = 0x9945;
-    DrawString(AlnumChars + 22);
+    DrawString(AlnumChars[2]);
     wVramCursor = 0x9965;
-    DrawString(AlnumChars + 33);
+    DrawString(AlnumChars[3]);
     if (wCurrentScreen == 0x0D) {
         ColorField(5, 6, 0x0A, hGameboyType ? 3 : 2);
         ColorField(wKbdLetterPos + 5, 6, 1, hGameboyType ? 4 : 1);
@@ -374,7 +375,7 @@ void OpenNameEditor(void)
     wCurrentScreen = 7;
 }
 
-void CloseNameEditor(void)
+void CommitNameEdit(void)
 {
     UBYTE *p;
 
@@ -424,7 +425,7 @@ void CloseNameEditor(void)
     FarCall(3, FAR_FN(RedrawScreen));
 }
 
-void DrawNameEditCursor(UBYTE x, UBYTE n)
+void NameEditBackspace(UBYTE x, UBYTE n)
 {
     UBYTE c;
 
@@ -440,6 +441,115 @@ void DrawNameEditCursor(UBYTE x, UBYTE n)
     hBgDigitPalette = wShadowDigitPal;
     hBgPalette = wShadowPal;
     DrawStringIndexed(wNameEditBuf[wKbdLetterPos] ? wNameEditBuf[wKbdLetterPos] : ' ');
+}
+
+/*
+ * The name editor's input (screen 7): an on-screen keyboard (AlnumChars,
+ * drawn at (5, 8)) for an instrument name (5 letters), a speech word (3)
+ * or, from the FILE screen's SAVE, the song's file name (8, at column 5).
+ * The d-pad moves the keyboard cursor, wrapping round at an edge only on a
+ * fresh press (wNameEditWrapLatch then holds it until the buttons change);
+ * A types the key under it -- the last row's two right-hand keys are
+ * backspace and done --, select is backspace, start is done and B leaves
+ * without storing the name. 1 when the key was taken.
+ */
+UBYTE NameEditorInput(void)
+{
+    UBYTE ch, x, last;
+
+    if (!wButtonsSame)
+        wNameEditWrapLatch = 0;
+    /* the name field's screen column and last letter */
+    if (wNameReturnScreen == 0x0D) {
+        x = 5;
+        last = 7;
+    } else {
+        x = 0x0A;
+        last = wNameEditIsInstr ? 4 : 2;
+    }
+    switch (wButtons) {
+    case 0x10:                                  /* A */
+        if (!wAPressEnabled)
+            return 0;
+        if (wKbdCursorRow == 3)
+            switch (wKbdCursorCol) {
+            case 8:
+                NameEditBackspace(x, last);
+                return 1;
+            case 9:
+                CommitNameEdit();
+                return 1;
+            }
+        ch = AlnumChars[wKbdCursorRow][wKbdCursorCol];
+        /* the buffer must be in RAM; a char pointer compares signed */
+        if ((int)(wNameEditBuf + 1) > -1)
+            DebugTrap();
+        wNameEditBuf[wKbdLetterPos] = ch;
+        wNameEditBuf[wKbdLetterPos + 1] = 0;
+        GetTilemapAddr(x + wKbdLetterPos, 6);
+        hBgDigitPalette = wShadowDigitPal;
+        hBgPalette = wShadowPal;
+        DrawStringIndexed(ch);
+        if (wKbdLetterPos != last) {
+            /* move the letter highlight on (storing the + 1 kept for the
+               terminator, not an inc (hl)) */
+            ColorField(x + wKbdLetterPos, 6, 1, hGameboyType ? 3 : 2);
+            wKbdLetterPos = wKbdLetterPos + 1;
+            ColorField(x + wKbdLetterPos, 6, 1, hGameboyType ? 4 : 1);
+        }
+        return 1;
+    case 0x40:                                  /* select */
+        NameEditBackspace(x, last);
+        return 1;
+    case 0x80:                                  /* start */
+        CommitNameEdit();
+        return 1;
+    case 0x08:                                  /* down */
+        EraseKbdCursor();
+        if (wKbdCursorRow != 3 && !wNameEditWrapLatch)
+            wKbdCursorRow++;
+        else if (!wButtonsSame) {
+            wKbdCursorRow = 0;
+            wNameEditWrapLatch = 1;
+        }
+        DrawKbdCursor();
+        return 1;
+    case 0x01:                                  /* right */
+        EraseKbdCursor();
+        if (wKbdCursorCol != 9 && !wNameEditWrapLatch)
+            wKbdCursorCol++;
+        else if (!wButtonsSame) {
+            wKbdCursorCol = 0;
+            wNameEditWrapLatch = 1;
+        }
+        DrawKbdCursor();
+        return 1;
+    case 0x04:                                  /* up */
+        EraseKbdCursor();
+        if (wKbdCursorRow && !wNameEditWrapLatch)
+            wKbdCursorRow--;
+        else if (!wButtonsSame) {
+            wKbdCursorRow = 3;
+            wNameEditWrapLatch = 1;
+        }
+        DrawKbdCursor();
+        return 1;
+    case 0x02:                                  /* left */
+        EraseKbdCursor();
+        if (wKbdCursorCol && !wNameEditWrapLatch)
+            wKbdCursorCol--;
+        else if (!wButtonsSame) {
+            wKbdCursorCol = 9;
+            wNameEditWrapLatch = 1;
+        }
+        DrawKbdCursor();
+        return 1;
+    case 0x20:                                  /* B: leave unchanged */
+        wCurrentScreen = wNameReturnScreen;
+        FarCall(3, FAR_FN(RedrawScreen));
+        return 1;
+    }
+    return 0;
 }
 
 void SaveSyncMode(void)

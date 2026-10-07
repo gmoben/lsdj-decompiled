@@ -57,7 +57,7 @@ DEF wSongRow         EQU $C41E  ; SONG cursor row (0-255); DOWN/UP move it (driv
 DEF wInstrField      EQU $C427  ; Instrument editor: current parameter/field index (reset to 0 on screen draw) = cursor row
 DEF wInstrCursorCol  EQU $C428  ; Instrument editor cursor column (pairs with wInstrField as the row)
 DEF wSpeechCursorRow EQU $C429  ; Speech (word) instrument editor cursor row (DrawWordScreen)
-; On-screen keyboard for entering the project/song name (ProjDrawNameField):
+; Name editor (OpenNameEditor, NameEditorInput): on-screen keyboard for an instrument name, a speech word or a song file name:
 DEF wKbdLetterPos    EQU $C42C  ; keyboard: index of the letter being edited in the name
 DEF wKbdCursorCol    EQU $C42D  ; keyboard cursor column
 DEF wKbdCursorRow    EQU $C42E  ; keyboard cursor row
@@ -832,7 +832,7 @@ DEF wFileListAction  EQU $C99A  ; field the file list was opened from (0 load / 
 DEF wFileNameNavMode EQU $C99C  ; file list entered from the name field (typed-name navigation)
 DEF wFileSramProps   EQU $C99D  ; [4] SRAM settings backup around FileLoadSlotInfo ($BFB6-B9)
 DEF wFileInstrIdx    EQU $C9A1  ; instrument index iterator 0-$3F (FileForEachInstrType)
-DEF wNameEditWrapLatch EQU $C9A2  ; name editor: cursor clamped at edge, blocks wrap while held
+DEF wNameEditWrapLatch EQU $C9A2  ; name editor: set when the keyboard cursor wraps (fresh press only); holds it until the buttons change
 DEF wSramFsFlag      EQU $C9A3  ; CheckFileMagic64 result; gates FILE menu + props write (polarity TBD)
 DEF wProjMenuActive  EQU $C9A5  ; project screen: bottom LOAD/SAVE menu focused
 DEF wProjMenuItem    EQU $C9A6  ; project screen: menu item index (0/1)

@@ -323,17 +323,17 @@
   "len": 146,
   "src": "c/bank04/PhraseScreen.c"
  },
- "CloseNameEditor": {
-  "bank": "1B",
-  "addr": "5126",
-  "len": 434,
-  "src": "c/bank1b/ProjectScreen.c"
- },
  "ColorField": {
   "bank": "00",
   "addr": "1298",
   "len": 110,
   "src": "c/bank00/DrawFields.c"
+ },
+ "CommitNameEdit": {
+  "bank": "1B",
+  "addr": "5126",
+  "len": 434,
+  "src": "c/bank1b/ProjectScreen.c"
  },
  "CompressIsDefaultWave": {
   "bank": "1C",
@@ -659,6 +659,12 @@
   "len": 141,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "DrawKbdCursor": {
+  "bank": "1B",
+  "addr": "4C30",
+  "len": 58,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
  "DrawKbdInstrName": {
   "bank": "07",
   "addr": "674D",
@@ -723,12 +729,6 @@
   "bank": "1B",
   "addr": "4AE7",
   "len": 134,
-  "src": "c/bank1b/ProjectScreen.c"
- },
- "DrawNameEditCursor": {
-  "bank": "1B",
-  "addr": "5303",
-  "len": 229,
   "src": "c/bank1b/ProjectScreen.c"
  },
  "DrawNoiseInstr": {
@@ -1060,6 +1060,12 @@
   "addr": "4679",
   "len": 200,
   "src": "c/bank03/InstrScreen.c"
+ },
+ "EraseKbdCursor": {
+  "bank": "1B",
+  "addr": "4C96",
+  "len": 36,
+  "src": "c/bank1b/ProjectScreen.c"
  },
  "FarCallArg2": {
   "bank": "00",
@@ -2273,6 +2279,18 @@
   "len": 63,
   "src": "c/bank1c/FileScreen.c"
  },
+ "NameEditBackspace": {
+  "bank": "1B",
+  "addr": "5303",
+  "len": 229,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
+ "NameEditorInput": {
+  "bank": "1B",
+  "addr": "53E8",
+  "len": 692,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
  "OpenNameEditor": {
   "bank": "1B",
   "addr": "4E8A",
@@ -2469,18 +2487,6 @@
   "bank": "1B",
   "addr": "49F8",
   "len": 85,
-  "src": "c/bank1b/ProjectScreen.c"
- },
- "ProjDrawNameField": {
-  "bank": "1B",
-  "addr": "4C96",
-  "len": 36,
-  "src": "c/bank1b/ProjectScreen.c"
- },
- "ProjDrawNameFieldHw": {
-  "bank": "1B",
-  "addr": "4C30",
-  "len": 58,
   "src": "c/bank1b/ProjectScreen.c"
  },
  "ProjDrawSyncField": {
