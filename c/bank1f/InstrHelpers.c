@@ -90,7 +90,6 @@ void InstrHReadCursorCellAt(void);
 UBYTE IsInstrAllocated(UBYTE instr);
 void InstrHMarkInstrTable(UBYTE instr);
 void DrawChanStatus(UBYTE chan);
-void GetInstrFlags1F5(UBYTE a, UBYTE b);
 UBYTE InstrHGetParamPlus4(void);
 void OpenNameEditor(void);                  /* bank $1B */
 void MapMoveLeft(void);                     /* bank 5 */
@@ -161,15 +160,33 @@ void DrawInstrTableField(void)
         DrawString("--");
 }
 
-void DrawTableFlag(void)
+/*
+ * One kit's LOOP setting: OFF unless `loopBit` of byte 5 is set, then ATK
+ * (loop from the start) when bit 7 of byte `atkByte` is set, else ON (loop
+ * from OFFSET). The literal first in `0x80 & ...` keeps the masked byte in
+ * a register for the test (`and; ld c,a; or a,c`): SDCC fuses `x & lit`
+ * into its `if` only with the literal on the right.
+ */
+void DrawKitLoopMode(UBYTE loopBit, UBYTE atkByte)
 {
-    GetInstrFlags1F5(0x40, 2);
+    if (ReadCurInstrByte(5) & loopBit) {
+        if (0x80 & ReadCurInstrByte(atkByte))
+            DrawString("ATK");
+        else
+            DrawString(" ON");
+    } else
+        DrawString("OFF");
+}
+
+void DrawKitLoopField(void)
+{
+    DrawKitLoopMode(0x40, 2);
     hBgDigitPalette = 4;
     hBgPalette = 1;
     DrawStringIndexed('/');
     hBgDigitPalette = wShadowDigitPal;
     hBgPalette = wShadowPal;
-    GetInstrFlags1F5(0x20, 9);
+    DrawKitLoopMode(0x20, 9);
 }
 
 UBYTE InstrEnvHasSecond(void)

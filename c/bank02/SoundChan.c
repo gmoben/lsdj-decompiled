@@ -48,7 +48,7 @@ void SndAdvanceChainRow(void);              /* asm */
 void SndLiveStartQueued(void);
 void SndSplitPhraseNibbles(void);           /* asm */
 UBYTE SndReadPhraseCmd(void);               /* asm */
-UBYTE SndPhraseHop(void);              /* parked (c/parked/SndPhraseHop.c) */
+UBYTE SndPhraseHop(void);
 UBYTE SndRandom15(void);                    /* asm */
 void SndMaskLow5(UBYTE v);                  /* asm (takes it in a) */
 void SndInitPlayState(void);
@@ -60,6 +60,78 @@ void AdvanceSongRow(void);                  /* asm */
 void SndQueueSyncByte(void);                /* asm */
 void SndResetChanFx(void);                  /* asm */
 void SndReadChainTranspose(void);           /* asm */
+
+/* $711F: H in a phrase, the hop: HFF stops the song; otherwise, once a tick,
+   go to the low digit's row of this phrase (after the high digit's count of
+   hops) or, playing a chain or the song, of the chain's next phrase; e = 0
+   when no hop is taken, 2 when the song stopped, else 1 */
+
+UBYTE SndPhraseHop(void)
+{
+    UBYTE mode, v;
+    UBYTE *p;
+
+    mode = wPlayMode;
+    v = wChanCmdVal[hSoundCh];
+    if (v == 0xFF) {
+        SndInitPlayState();
+        return 2;
+    }
+    if (wTableHopDone++)
+        return 0;
+    if (0xF0 & v) {                 /* literal first: the AND stays in c */
+        p = &wChanHopCount[hSoundCh];
+        if (!*p)
+            *p = v >> 4;
+        else if (!(*p = *p - 1))
+            return 0;
+        mode = 1;
+    } else if (wPlayMode == 1 && wSongCol == hSoundCh)
+        *wPtrPhrase = wPhrase;
+    *wPtrPhraseRow = v & 0x0F;
+    SndSplitPhraseNibbles();
+    wSeqNoteLatch = *wPtrPhraseRow;
+    if (wSeqNoteLatch)
+        AdvanceCurChanCursors(wSeqNoteLatch);
+    switch (mode) {
+    case 4:
+        (*wPtrChainRow)++;
+        if (wChanLiveQueued[hSoundCh] || ReadChainPhrase() == 0xFF || *wPtrChainRow == 0x10) {
+            wChanLiveQueued[hSoundCh] = 0;
+            *wPtrChainRow = 0;
+            if (SndLiveChainEnd()) {
+                wChanSongRow[hSoundCh]++;
+                wChanChain[hSoundCh] = ReadSongChain();
+                AdvanceSongRow();
+            }
+            SndQueueSyncByte();
+        }
+        SndLiveStartQueued();
+        *wPtrPhrase = ReadChainPhrase();
+        if (*wPtrPhrase == 0xFF) {
+            wChanActive[hSoundCh] = 0;
+            SndResetChanFx();
+        }
+        SndSplitPhraseNibbles();
+        *wPtrPhraseRow = wSeqNoteLatch;
+        if (wSeqNoteLatch)
+            AdvanceCurChanCursors(wSeqNoteLatch);
+        SndReadChainTranspose();
+        break;
+    case 3:
+        (*wPtrChainRow)++;
+        if (ReadChainPhrase() == 0xFF || *wPtrChainRow == 0x10)
+            *wPtrChainRow = 0;
+        *wPtrPhrase = ReadChainPhrase();
+        SndSplitPhraseNibbles();
+        *wPtrPhraseRow = wSeqNoteLatch;
+        if (wSeqNoteLatch)
+            AdvanceCurChanCursors(wSeqNoteLatch);
+        SndReadChainTranspose();
+        break;
+    }
+    return 1;
+}
 
 /* $748E: read the channel's next step: its note (or the PS/2 keyboard's), the
    groove's tick count less any D delay still owed, its instrument (or the

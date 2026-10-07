@@ -701,6 +701,18 @@
   "len": 112,
   "src": "c/bank03/InstrScreen.c"
  },
+ "DrawKitLoopField": {
+  "bank": "1F",
+  "addr": "411F",
+  "len": 56,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
+ "DrawKitLoopMode": {
+  "bank": "1F",
+  "addr": "40CA",
+  "len": 73,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
  "DrawKitNameCell": {
   "bank": "1F",
   "addr": "44B7",
@@ -934,12 +946,6 @@
   "addr": "472B",
   "len": 55,
   "src": "c/bank05/TableScreen.c"
- },
- "DrawTableFlag": {
-  "bank": "1F",
-  "addr": "411F",
-  "len": 56,
-  "src": "c/bank1f/InstrHelpers.c"
  },
  "DrawTableScreen": {
   "bank": "05",
@@ -3016,6 +3022,12 @@
   "addr": "68A0",
   "len": 100,
   "src": "c/bank02/Sound.c"
+ },
+ "SndPhraseHop": {
+  "bank": "02",
+  "addr": "711F",
+  "len": 579,
+  "src": "c/bank02/SoundChan.c"
  },
  "SndRandomUpTo": {
   "bank": "02",

@@ -40,8 +40,8 @@
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 409C DrawInstrTableField        ; draw the instrument's table field: table number (hex) if on, '--' if off
-40CA GetInstrFlags1F5                       ; read instrument byte 5 flags (bit3 = table STEP/AUTOMATE mode, vibrato bits)
-411F DrawTableFlag              ; draw the instr TABLE on/off state glyph (field 5) with palettes
+40CA DrawKitLoopMode            ; draw one kit's LOOP setting: OFF unless loopBit of byte 5 is set, else ATK if bit 7 of byte atkByte, else ON
+411F DrawKitLoopField           ; the kit LOOP field: kit 1's mode (byte 5 bit 6, byte 2 bit 7), a "/", kit 2's (byte 5 bit 5, byte 9 bit 7)
 418A DrawInstrEnvFields         ; draw the instrument envelope line: byte 1, the /--/-- template, bytes 9 and 10 (hex or n-)
 44B7 DrawKitNameCell            ; kit number (hex) + 6-char kit name (ReadKitName)
 48C5 WriteChainPhrase           ; chains[chain*16+row] = phrase (song $2080 region)
@@ -146,7 +146,7 @@
 
 ; --- structural local names (loop heads / common exits) ---
 40C5 .done                ; common exit of DrawInstrTableField
-4111 .done                ; common exit of GetInstrFlags1F5
+4111 .done                ; common exit of DrawKitLoopMode
 4168 .done                ; common exit of InstrEnvHasSecond
 4234 .done                ; common exit of DrawInstrEnvFields
 43B7 .done                ; common exit of DrawNoiseInstr
@@ -374,9 +374,8 @@
 4085 .drawString          ; shared DrawString tail of DrawInstrTableMode (was mislabelled GetInstrTable1F)
 4080 .cont_2
 40BC .drawString
-40E8 .drawString
-40FC .drawString_2
-4108 .drawString_3
+40FC .loopOn
+4108 .loopOff
 4182 .cont
 4186 .cont_2
 4210 .drawHexByte
