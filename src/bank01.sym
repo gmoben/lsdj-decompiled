@@ -52,7 +52,7 @@
 6CD7 UiDrawTextHw               ; read instrument (GetScreenPalette); draw via CGB path (UiDrawScreenCgb) or DMG path (UiDrawScreenDmg) per hGameboyType
 6D23 UiClearBgMap               ; clear BG tilemap from $9800 (VBK-aware: bank1 attrs on CGB)
 6D53 DrawTopBar                 ; top status bar: active message (wMsgStrPtr) or screen title + hex number
-7955 DrawCrashScreen            ; "DONT PANIC!" crash/diagnostic screen (ROM/STK/PLY/CVW dumps)
+7955 DrawCrashScreen            ; crash/diagnostic screen: "DONT PANIC!", ROM/STK/PLY/CVW dumps
 7BDE ResetEditorState           ; clear selection rect, clipboard type, cursor mode (+$c412)
 7DE9 ClearSramWindow           ; zero the whole $A000-$BFFF SRAM window (8 bytes/iter until h==$c0); used during init/format
 7DFB UiDrawScreenCgb            ; copy 18x20 chars (arg ptr) -> $9800 with per-char CGB palette attribute (VBK1)
@@ -66,7 +66,7 @@
 ; --- song-data allocation, clipboard, message bar (FarCall targets) ---
 4E43 FreeChain          ; clear chain-alloc bit (song $3EA2 bitmap) and write back
 4EB3 AllocNextFreePhrase ; scan phrase-alloc bitmap ($3E82) from current phrase, mark first free; full -> ShowOutOfMemory, ret $ff
-5253 CopyInstrument     ; "COPIED INSTR": wClipboardType=6, copy 16 instr bytes -> screen scratch
+5253 CopyInstrument     ; copy the instrument ("COPIED INSTR"): wClipboardType=6, 16 instr bytes -> screen scratch
 546E CloneInstrTable    ; on instr TABLE field: alloc table copy (bank1f), "CLONED TABLE", write #|$20
 5503 PasteInstrument    ; if select-held + clipboardType==6: paste 16 bytes back into instrument
 74F7 DrawMessageBar     ; render wStrBuffer (20 ch) to tilemap row 0 + CGB attrs (MsgBarAttrRow)

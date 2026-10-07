@@ -33,7 +33,7 @@
 43C1 CompressIsDefaultWave      ; 1 when the 16 working-song bytes at wCompDst are the default wave frame (DefaultWaveFrameB1C); 0 at or past $7FF1
 441F CompressSong               ; compress the 32 KiB working song into SRAM blocks: $C0/$E0 escapes, RLE runs, default-wave runs, $E0 n block links, $E0 $FF end; 0 when no block is free
 46E3 DecompressBlock            ; LSDj block decompressor: RLE $c0, special $e0/$f0 (default wave) /$f1 (default instr) /$ff EOF
-4778 DrawVerifyPanel            ; "VERIFY..." save-verification panel + slot info
+4778 DrawVerifyPanel            ; save-verification panel ("VERIFY...") + slot info
 4862 FileFindSlotEnd            ; scan file slots in SRAM ($A141) for the $ff terminator
 48D4 CountFileBlocks            ; rebuild the per-file block-count map ($c959, 32 slots) from the alloc table
 4969 FileListSlots              ; enumerate file slots for the browser (<-DrawFileScreen)
