@@ -379,6 +379,7 @@ RUNTIME_ALIASES = {
     "FarCallArg3P": "FarCallArg3",  # FarCallArg3 called with a function pointer (two cast temps)
     "FarCallArg2P": "FarCallArg2",  # FarCallArg2 called with a function pointer (two cast temps: FreeUnusedInstrs)
     "wVramCursorW": "wVramCursor",  # the VRAM cursor as a plain word (DrawTopBar's 32-bit `< 0x9811`)
+    "hFxValueMem": "hFxValue",  # hFxValue tested as a plain global (ld hl; or a,(hl): FxCmd_K) where the file reads it with ldh
     "wTopBarLen": "wTopBarDrawScratch",  # the top-bar scratch word as a length
     "SortBytePairC": "SortBytePair",  # SortBytePair prototyped with `char *` (SongEditSelection casts its `&UBYTE` locals)
     "FarCallArg0": "FarCallArg",  # FarCallArg called with (bank, fn) only -- hFxValue set by hand (ProcessLinkQueue)

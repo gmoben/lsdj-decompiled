@@ -64,8 +64,8 @@ void SongCopyColumn(UWORD p, UWORD q);    /* defined with pointers in SongScreen
 UBYTE IsSongChainUsed(void);                /* bank $1F */
 void MarkChainUsed(void);                   /* bank 1 */
 void ShowTapAddChain(void);                 /* bank 1 */
-void SndAdvanceRetrig(void);                /* bank 2 */
-void SndStopAllIfIdle(void);                /* bank 2 */
+void SndLiveStopRange(void);                /* bank 2 */
+void SndStartRange(void);                /* bank 2 */
 void StopPlayback(void);                    /* bank 2 */
 void SaveSelectionState(void);              /* bank 5 */
 void MapMoveUp(void);                       /* bank 5 */
@@ -354,7 +354,7 @@ UBYTE SongScreenInput(void)
             return 1;
         if (wLiveMode) {
             if (SongChanActiveMask())
-                FarCall(2, FAR_FN(SndAdvanceRetrig));
+                FarCall(2, FAR_FN(SndLiveStopRange));
         } else {
             if (wPlayMode)
                 FarCall(2, FAR_FN(StopPlayback));
@@ -368,7 +368,7 @@ UBYTE SongScreenInput(void)
             return 1;
         }
         if (wLiveMode)
-            FarCall(2, FAR_FN(SndStopAllIfIdle));
+            FarCall(2, FAR_FN(SndStartRange));
         else if (wSyncMode == 1 && !wPlayMode && wSyncTick != 0xFF)
             SongBeginSelection();
         else

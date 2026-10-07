@@ -137,20 +137,20 @@
 61F7 SndClearVoiceHram          ; clear $ffa0-$ffa3 (per-voice HRAM shadow regs)
 6270 SndUpdateWavFreq           ; WAV channel: recompute sample step from wChanFreq when the update flag is set
 6479 SndRandomUpTo              ; random 0..n (Random16() % (n + 1); 0 for 0): the range Z adds to each digit
-6577 SndSetupWaveTrigger        ; wave/kit trigger helper (SndResetChanFx)
-6685 SndRunFxSlot               ; set hSoundCh = $c527 & 3, run SndSetupWaveTrigger
-6694 SndTableEnvDispatch        ; table-envelope command dispatch
+6577 SndKillNote                ; kill this channel's note (K, now or when its slot's timer runs out): FX and FX slots, pitch slide, chord, vibrato off, table $FF
+6685 SndRunFxSlot               ; set hSoundCh = $c527 & 3, run SndKillNote
+6694 SndWavLevelStep            ; step the WAV output level (NR32 bits 5-6) by the signed high digit of the argument: negative towards off, positive towards 100%
 66E7 SndResetPitchState         ; per-channel jp-table: clear wChanSlideNoteSrc, center wChanPitchCur ($8000), reset wChanCmdStep
 6904 SndTableStepDispatch       ; table-step jump table (jp hl), SndClampNoteRange
 69C3 EnvReleaseSpeed            ; E's release digit (hFxValue & 7) -> the envelope fade speed (EnvReleaseSpeeds)
 69DF SndTriggerPU1Plus          ; TriggerPU1 then SndSetupLfo
-6A94 SndCheckRetrigState        ; retrigger-state checks (cp [hl], $03)
-6B59 SndCheckChanMode           ; channel-mode check (cp $04)
-6B9B SndUpdateRetrig            ; SndCheckChanMode / SndCheckRetrigState (advance retrigger)
+6A94 SndLiveQueueStart          ; live mode: queue channel (arg) to start the song row's chain when its current one ends; again on the same row (chain/phrase screen) start at the edited chain row, sooner; with a sync restart pending, start now
+6B59 SndSetPlayRange            ; the channels to play (wPlayChanFirst..Last): the song cursor's column, or on the song screen in selection mode the selection's columns
+6B9B SndLiveQueueRange          ; live mode: queue a start for each channel in the play range (SndLiveQueueStart)
 6BBA SndStartChanFromRow        ; start this channel playing from wChanNextSongRow ($ff -> stop path)
 6D97 SndStartChannels           ; start channels [$c8dd..$c8de] from wSongRow (per-screen playback entry)
-6E0F SndStopAllIfIdle           ; if no channel active, stop (SndUpdateRetrig, SndStartChannels)
-6E24 SndAdvanceRetrig           ; SndCheckChanMode (cp $ff)
+6E0F SndStartRange              ; start the play range: queued behind what is playing if any channel is active (SndLiveQueueRange), else at once (SndStartChannels)
+6E24 SndLiveStopRange           ; live mode, stop the play range's channels (SELECT+START): queued starts cancelled; an active channel stops at its chain's end, or its phrase's when pressed again (wChanLiveQueued)
 6EA7 SndChanStateMachine        ; per-channel state-machine dispatch (multiple branches)
 6F65 SndGetChainPhrase          ; bounds-checked chain_phrases[chain*16+row] lookup (chain=arg sp+6, row=arg sp+7 <$10; SRAM $A080); DebugTrap on out-of-range
 6FB6 SndWaveRetrigDispatch      ; wave-channel retrigger dispatch (-> SndLoadWaveFrame)
@@ -166,13 +166,13 @@
 786F SndUpdateChanAltPath       ; per-channel alt update (SndReadChainRow/4E74/5F5E)
 792B SndSyncStart               ; decide/perform playback start from wSyncMode + saved screen context ($c8fe)
 7B31 SndCheckSyncState          ; sync-state check (cp $01/$ff)
-7C4C StopPlayback               ; stop for current screen context: audio off, wPlayMode=0, clear channel state; LIVE -> SndStopAllIfIdle
+7C4C StopPlayback               ; stop for current screen context: audio off, wPlayMode=0, clear channel state; LIVE -> SndStartRange
 7CFB SndCmdJumpTable            ; command jump table (jp hl)
 7F24 SndSetupLfo                ; dispatch by hSoundCh -> SndSetupLfoPU1/PU2/WavNoi (vibrato/LFO setup)
 7F33 SndSetupLfoWavNoi          ; LFO setup for ch2/3 (WAV/NOI): clear $cbcd, init from $c2db
 7F3E SndSetupLfoPU2             ; LFO setup for ch1 (PU2): clear $cbc6, init from $c2d9
 7F49 SndSetupLfoPU1             ; LFO setup for ch0 (PU1): $cbbf, call bank0 $2f9a
-78C4 StopAllPlayback            ; stop playback in screen context AND song context (temporarily forces wCurrentScreen=SONG); LIVE -> SndAdvanceRetrig
+78C4 StopAllPlayback            ; stop playback in screen context AND song context (temporarily forces wCurrentScreen=SONG); LIVE -> SndLiveStopRange
 5EDA NoiseFreqTable             ; [noise note] -> NR43 poly/divisor byte (120 entries)
 5F52 SetNoisePoly               ; a = NoiseFreqTable[a] -> rAUD4POLY (NR43); noise-channel pitch
 7FF0 WavFreqTable               ; WAV channel sample-rate steps (SndUpdateWavFreq)
@@ -216,26 +216,26 @@
 6573 .done                ; common exit of FxCmd_R
 6642 .done                ; common exit of FxCmd_K
 665E .done                ; common exit of FxCmd_P
-66AA .loop                ; loop head in SndTableEnvDispatch
-66C8 .loop2               ; loop head in SndTableEnvDispatch
-66E6 .done                ; common exit of SndTableEnvDispatch
+66AA .loop                ; loop head in SndWavLevelStep
+66C8 .loop2               ; loop head in SndWavLevelStep
+66E6 .done                ; common exit of SndWavLevelStep
 689C .done                ; common exit of SndResetPitchState
 6902 .done2               ; common exit of SndResetPitchState
 69BF .done                ; common exit of SndTableStepDispatch
 6A26 .done                ; common exit of SndTriggerPU1Plus
 6A5C .done2               ; common exit of SndTriggerPU1Plus
 6A92 .done3               ; common exit of SndTriggerPU1Plus
-6B55 .done                ; common exit of SndCheckRetrigState
-6B9A .done                ; common exit of SndCheckChanMode
-6BA3 .loop                ; loop head in SndUpdateRetrig
-6BB8 .done                ; common exit of SndUpdateRetrig
+6B55 .done                ; common exit of SndLiveQueueStart
+6B9A .done                ; common exit of SndSetPlayRange
+6BA3 .loop                ; loop head in SndLiveQueueRange
+6BB8 .done                ; common exit of SndLiveQueueRange
 6CB1 .loop                ; loop head in SndStartChanFromRow
 6D93 .done                ; common exit of SndStartChanFromRow
 6DA6 .loop                ; loop head in SndStartChannels
 6E0D .done                ; common exit of SndStartChannels
-6E22 .done                ; common exit of SndStopAllIfIdle
-6E2E .loop                ; loop head in SndAdvanceRetrig
-6EA3 .done                ; common exit of SndAdvanceRetrig
+6E22 .done                ; common exit of SndStartRange
+6E2E .loop                ; loop head in SndLiveStopRange
+6EA3 .done                ; common exit of SndLiveStopRange
 6F61 .done                ; common exit of SndChanStateMachine
 6F87 .loop                ; loop head in SndGetChainPhrase
 7032 .done                ; common exit of SndWaveRetrigDispatch
@@ -256,8 +256,8 @@
 7D7F .done                ; common exit of SndCmdJumpTable
 
 ; --- structural local names (loop heads / common exits) ---
-6AC1 .onChain             ; wCurrentScreen == case in SndCheckRetrigState
-6AEF .notPhrase           ; wButtons == case in SndCheckRetrigState
+6AC1 .onChain             ; wCurrentScreen == case in SndLiveQueueStart
+6AEF .notPhrase           ; wButtons == case in SndLiveQueueStart
 78D0 .notSong             ; wButtons == case in StopAllPlayback
 7B51 .notSong             ; wButtons == case in SndCheckSyncState
 7B8F .onChain             ; wCurrentScreen == case in SndCheckSyncState

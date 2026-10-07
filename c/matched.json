@@ -1385,6 +1385,12 @@
   "len": 567,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "FxCmd_K": {
+  "bank": "02",
+  "addr": "65F3",
+  "len": 83,
+  "src": "c/bank02/Sound.c"
+ },
  "FxCmd_O": {
   "bank": "02",
   "addr": "665F",
@@ -2807,13 +2813,49 @@
   "len": 17,
   "src": "c/bank02/Sound.c"
  },
+ "SndKillNote": {
+  "bank": "02",
+  "addr": "6577",
+  "len": 124,
+  "src": "c/bank02/Sound.c"
+ },
+ "SndLiveQueueRange": {
+  "bank": "02",
+  "addr": "6B9B",
+  "len": 31,
+  "src": "c/bank02/Sound.c"
+ },
+ "SndLiveQueueStart": {
+  "bank": "02",
+  "addr": "6A94",
+  "len": 197,
+  "src": "c/bank02/Sound.c"
+ },
+ "SndLiveStopRange": {
+  "bank": "02",
+  "addr": "6E24",
+  "len": 131,
+  "src": "c/bank02/Sound.c"
+ },
  "SndRandomUpTo": {
   "bank": "02",
   "addr": "6479",
   "len": 36,
   "src": "c/bank02/Sound.c"
  },
- "SndStopAllIfIdle": {
+ "SndSetPlayRange": {
+  "bank": "02",
+  "addr": "6B59",
+  "len": 66,
+  "src": "c/bank02/Sound.c"
+ },
+ "SndStartChannels": {
+  "bank": "02",
+  "addr": "6D97",
+  "len": 120,
+  "src": "c/bank02/Sound.c"
+ },
+ "SndStartRange": {
   "bank": "02",
   "addr": "6E0F",
   "len": 21,
@@ -2825,10 +2867,16 @@
   "len": 78,
   "src": "c/bank02/Sound.c"
  },
- "SndUpdateRetrig": {
+ "SndTick": {
   "bank": "02",
-  "addr": "6B9B",
-  "len": 31,
+  "addr": "77F0",
+  "len": 127,
+  "src": "c/bank02/Sound.c"
+ },
+ "SndWavLevelStep": {
+  "bank": "02",
+  "addr": "6694",
+  "len": 83,
   "src": "c/bank02/Sound.c"
  },
  "SongBeginSelection": {
@@ -2980,6 +3028,18 @@
   "addr": "0D8B",
   "len": 49,
   "src": "c/bank00/Helpers.c"
+ },
+ "StopAllPlayback": {
+  "bank": "02",
+  "addr": "78C4",
+  "len": 103,
+  "src": "c/bank02/Sound.c"
+ },
+ "StopPlayback": {
+  "bank": "02",
+  "addr": "7C4C",
+  "len": 175,
+  "src": "c/bank02/Sound.c"
  },
  "StringLength": {
   "bank": "00",

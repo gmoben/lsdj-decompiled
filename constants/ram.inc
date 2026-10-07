@@ -240,7 +240,7 @@ DEF wChanPhrase      EQU $C168  ; [4] current phrase = CHAIN_PHRASES[chain][chai
 DEF wChanPhraseRow   EQU $C16C  ; [4] current note step within the phrase (0-15)
 DEF wChanRowQueue    EQU $C100  ; queued chain-row value, PU1 (consumed at phrase end: moved to [$C1xx + wPtrChainRow], then cleared)
 DEF wChanNextSongRow EQU $C2FC  ; [4] next song row, prefetched
-DEF wChanStarted     EQU $C304  ; [4] per channel, set to 1 by SndAdvanceRetrig once an active channel runs; cleared by SndDeactivateChannel, SndStartChannels, SyncTickLSDJ (meaning tentative)
+DEF wChanStarted     EQU $C304  ; [4] per channel, set to 1 by SndLiveStopRange once an active channel runs; cleared by SndDeactivateChannel, SndStartChannels, SyncTickLSDJ (meaning tentative)
 DEF wPhraseCmdPtr    EQU $C110  ; SRAM read ptr: phrase FX command, PU1 (SndReadPhraseCmd; init $0140)
                                 ; same offset $A000+phrase*16+step, selected by SRAM bank
 DEF wPhraseCmdValPtr EQU $C128  ; SRAM read ptr: phrase FX value, PU1

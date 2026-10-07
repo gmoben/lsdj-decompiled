@@ -35,7 +35,7 @@ void RemoveBookmark(UBYTE row);
 void ShowMax16Marks(void);                  /* bank 1 */
 void SongScanSram(UBYTE *src, UBYTE *dst);  /* asm */
 void SaveSelectionState(void);              /* bank 5 */
-void SndStopAllIfIdle(void);                /* bank 2 */
+void SndStartRange(void);                /* bank 2 */
 
 void SongScrollToCursor(void);
 void DrawAllChanStatus(void);               /* bank $1F */
@@ -486,7 +486,7 @@ void SongBeginSelection(void)
     FarCall(5, SaveSelectionState);
     wSelLeft = 0;
     wSongCol = 3;
-    FarCall(2, FAR_FN(SndStopAllIfIdle));
+    FarCall(2, FAR_FN(SndStartRange));
     FarCall(5, RestoreSelectionState);
     wSongCol = wSavedSongCol;
 }
