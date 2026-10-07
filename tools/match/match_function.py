@@ -208,8 +208,11 @@ def compile_unit(work: Path, env: dict[str, str], c_path: Path,
 
     A unit whose source says `@stock-rules` (in a comment) is GBDK library
     code: GBDK's own build compiled it, with SDCC's stock peephole rules and
-    none of LSDj's, so lsdj.peep and the tracking passes are skipped for it."""
-    if peep is not None and STOCK_MARK.search(c_path.read_text(errors="replace")):
+    none of LSDj's, so lsdj.peep and the tracking passes are skipped for it.
+    Its compiler compared words the way LSDj's did, and signed ones with 0
+    too, so gb_cmp16 still runs (abs's `num < 0`)."""
+    stock = peep is not None and bool(STOCK_MARK.search(c_path.read_text(errors="replace")))
+    if stock:
         peep = None
     for stale in ("unit.asm", "unit.o", "unit.lst", "unit.ihx"):   # reused work dir
         (work / stale).unlink(missing_ok=True)
@@ -249,6 +252,10 @@ def compile_unit(work: Path, env: dict[str, str], c_path: Path,
             lines, _ = peep_mod.track_de(lines, targets)
             lines, _ = peep_mod.dead_stores(lines, targets)
             lines, _ = peep_mod.dead_mem_stores(lines, targets)
+        asm.write_text("\n".join(lines) + "\n")
+    elif stock:
+        peep_mod = importlib.import_module("peep")
+        lines, _ = peep_mod.gb_cmp16(asm.read_text(errors="replace").splitlines(), zero=True)
         asm.write_text("\n".join(lines) + "\n")
     _run_wine("as-gbz80.exe", ["-l", "-o", "unit.o", "unit.asm"], work, env)
     lst = work / "unit.lst"
@@ -380,6 +387,8 @@ RUNTIME_ALIASES = {
     "FarCallArg2P": "FarCallArg2",  # FarCallArg2 called with a function pointer (two cast temps: FreeUnusedInstrs)
     "wVramCursorW": "wVramCursor",  # the VRAM cursor as a plain word (DrawTopBar's 32-bit `< 0x9811`)
     "hFxValueMem": "hFxValue",  # hFxValue tested as a plain global (ld hl; or a,(hl): FxCmd_K) where the file reads it with ldh
+    "hFxValueS": "hFxValue",    # hFxValue as a signed byte: widened with one cast (FxCmd_F_Wav's step)
+    "wWavLevelS": "wWavLevel",  # wWavLevel as a signed byte: saved to a word with one cast (FxCmd_F_Wav)
     "wTopBarLen": "wTopBarDrawScratch",  # the top-bar scratch word as a length
     "SortBytePairC": "SortBytePair",  # SortBytePair prototyped with `char *` (SongEditSelection casts its `&UBYTE` locals)
     "FarCallArg0": "FarCallArg",  # FarCallArg called with (bank, fn) only -- hFxValue set by hand (ProcessLinkQueue)

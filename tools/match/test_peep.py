@@ -19,6 +19,7 @@ def execute(lines, value):
     sp = 0xC000
     memory = {sp + 6: value & 0xFF, sp + 7: value >> 8}
     carry = 0
+    zero = False
     branch = False
 
     def pair(name):
@@ -67,8 +68,10 @@ def execute(lines, value):
         elif op == "rla":
             v = regs["a"]
             regs["a"], carry = ((v << 1) | carry) & 0xFF, v >> 7
+        elif op == "bit":
+            zero = not (get(args[1]) >> int(args[0]) & 1)
         elif op == "jp":
-            branch = bool(carry) if args[0] == "c" else not carry
+            branch = {"c": bool(carry), "nc": not carry, "z": zero, "nz": not zero}[args[0]]
             if branch:
                 break
         else:
@@ -180,6 +183,96 @@ class Compare16Tests(unittest.TestCase):
         self.assertEqual(gb_cmp16(source), (source, 0))
 
 
+class SignedCompare16Tests(unittest.TestCase):
+    """SDCC 2.2.1's signed word compares with a constant, rewritten to the add
+    form on the sign-flipped operand (Abs16, DrawNumber, DrawCrashScreen,
+    FxCmd_P_Step)."""
+
+    VALUES = (-0x8000, -0x7FFF, -17, -16, -15, -2, -1, 0, 1, 9, 10, 11, 15, 16, 17, 0x7FFE, 0x7FFF)
+    LIMITS = (-0x8000, -0x7FFF, -16, -1, 1, 10, 16, 0x7FFF)
+
+    @staticmethod
+    def flipped(k):
+        k &= 0xFFFF
+        return ((k >> 8) ^ 0x80), k & 0xFF
+
+    def check(self, source):
+        result, count = gb_cmp16(source)
+        self.assertEqual(count, 1)
+        self.assertIn("\tadd\thl,de", result)
+        for v in self.VALUES:
+            with self.subTest(value=v):
+                self.assertEqual(execute(source, v)[0], execute(result, v)[0])
+        return result
+
+    def test_constant_right_on_the_stack(self):
+        for k in self.LIMITS[1:]:             # x < -0x8000: never true is left alone
+            hh, ll = self.flipped(k)
+            for cc in ("c", "nc"):
+                with self.subTest(k=k, cc=cc):
+                    self.check(["\tlda\thl,7(sp)", "\tld\ta,(hl)", "\txor\ta,#0x80", "\tld\te,a",
+                                f"\tld\td,#0x{hh:02X}", "\tdec\thl", "\tld\ta,(hl)",
+                                f"\tsbc\ta,#0x{ll:02X}", "\tld\ta,e", "\tsbc\ta,d",
+                                f"\tjp\t{cc},001done$"])
+
+    def test_constant_left_on_the_stack(self):
+        for k in self.LIMITS[:-1]:            # K < 0x7FFF: never true is left alone
+            hh, ll = self.flipped(k)
+            for cc in ("c", "nc"):
+                with self.subTest(k=k, cc=cc):
+                    self.check([f"\tld\te,#0x{hh:02X}", "\tlda\thl,7(sp)", "\tld\ta,(hl)",
+                                "\txor\ta,#0x80", "\tld\td,a", f"\tld\ta,#0x{ll:02X}", "\tdec\thl",
+                                "\tsbc\ta,(hl)", "\tld\ta,e", "\tsbc\ta,d", f"\tjp\t{cc},001done$"])
+
+    def test_constant_in_registers(self):
+        for k in self.LIMITS:
+            hh, ll = self.flipped(k)
+            for v in self.VALUES:
+                load = [f"\tld\tc,#0x{v & 0xFF:02X}", f"\tld\tb,#0x{(v >> 8) & 0xFF:02X}"]
+                for body in (["\tld\ta,b", "\txor\ta,#0x80", "\tld\te,a", f"\tld\td,#0x{hh:02X}",
+                              "\tld\ta,c", f"\tsbc\ta,#0x{ll:02X}", "\tld\ta,e", "\tsbc\ta,d"],
+                             [f"\tld\te,#0x{hh:02X}", "\tld\ta,b", "\txor\ta,#0x80", "\tld\td,a",
+                              f"\tld\ta,#0x{ll:02X}", "\tsbc\ta,c", "\tld\ta,e", "\tsbc\ta,d"]):
+                    source = load + body + ["\tjp\tnc,001done$"]
+                    result, count = gb_cmp16(source)
+                    left = body[0].startswith("\tld\te,#")
+                    if k == (0x7FFF if left else -0x8000):
+                        self.assertEqual(count, 0)    # never true: left alone
+                        continue
+                    with self.subTest(k=k, v=v, left=left):
+                        self.assertEqual(count, 1)
+                        self.assertEqual(execute(source, 0)[0], execute(result, 0)[0])
+
+    def test_zero_after_the_compare_comment(self):
+        for cc in ("z", "nz"):
+            source = ["; genCmpLt", "; AOP_STK for ", "\tlda\thl,7(sp)", "\tld\ta,(hl)",
+                      "\tbit\t7,a", f"\tjp\t{cc},001done$"]
+            # LSDj's compiler kept the bit test; GBDK's library build added
+            self.assertEqual(gb_cmp16(source), (source, 0))
+            result, count = gb_cmp16(source, zero=True)
+            self.assertEqual(count, 1)
+            self.assertIn("\tld\thl,#0x8000", result)
+            for v in self.VALUES:
+                with self.subTest(cc=cc, value=v):
+                    self.assertEqual(execute(source, v)[0], execute(result, v)[0])
+
+    def test_bit_test_without_the_comment_stays(self):
+        # `if (w & 0x8000)` is the same bit test, from genAnd
+        source = ["; genAnd", "\tlda\thl,7(sp)", "\tld\ta,(hl)", "\tbit\t7,a", "\tjp\tz,001done$"]
+        self.assertEqual(gb_cmp16(source, zero=True), (source, 0))
+
+    def test_negation_after_the_compare_reloads_hl(self):
+        # Abs16: `xor a,a; ld hl,sp+4; ld a,$00; sbc a,[hl]` -- genUminus
+        # fetches its operand before loading the zero
+        source = ["; genCmpLt", "\tlda\thl,7(sp)", "\tld\ta,(hl)", "\tbit\t7,a",
+                  "\tjp\tz,001done$", "\txor\ta,a", "\tdec\thl", "\tld\ta,#0x00",
+                  "\tsbc\ta,(hl)"]
+        result, count = gb_cmp16(source, zero=True)
+        self.assertEqual(count, 1)
+        self.assertEqual(result[-4:], ["\txor\ta,a", "\tlda\thl,6(sp)", "\tld\ta,#0x00",
+                                       "\tsbc\ta,(hl)"])
+
+
 class SwitchChainTests(unittest.TestCase):
     LOAD = ["\tld\thl,#_wButtons + 0", "\tld\ta,(hl)"]
 
@@ -270,8 +363,9 @@ class HlRegisterTests(unittest.TestCase):
 
 class HramReuseTests(unittest.TestCase):
     """track_hram: a reload into the register holding the byte goes; no copy
-    from another register; `a` serves only across an ordering test; a store
-    through a pointer loaded from memory ends the reuse."""
+    from another register; `a` serves in straight-line code and across an
+    ordering test; a store through a pointer loaded from memory ends the
+    reuse of a byte carried across a jump."""
 
     READ_C = ["\tldh\ta,(_hSoundCh+0)", "\tld\tc,a"]
     READ_B = ["\tldh\ta,(_hSoundCh+0)", "\tld\tb,a"]
@@ -303,6 +397,16 @@ class HramReuseTests(unittest.TestCase):
         equality = ["\tldh\ta,(_hSoundCh+0)", "\tcp\ta,#0x02", "\tjp\tnz,00109$",
                     "\tldh\ta,(_hSoundCh+0)", "\tadd\ta,a"]
         self.assertEqual(self.run_pass(equality), equality)
+
+    def test_a_serves_in_straight_line_code(self):
+        # FxCmd_F_Wav's `step = hFxValueS`: genCast reads the sfr again for
+        # the sign; no compiled code in the ROM rereads a byte a holds
+        widen = ["\tldh\ta,(_hFxValueS+0)", "\tlda\thl,2(sp)", "\tld\t(hl),a",
+                 "\tldh\ta,(_hFxValueS+0)", "\trla", "\tsbc\ta,a"]
+        self.assertEqual(self.run_pass(widen), widen[:3] + widen[4:])
+        changed = ["\tldh\ta,(_hFxValueS+0)", "\tadd\ta,#0x01", "\tld\tc,a",
+                   "\tldh\ta,(_hFxValueS+0)", "\trla"]
+        self.assertEqual(self.run_pass(changed), changed)
 
     def test_store_through_a_loaded_pointer_ends_a_carried_byte(self):
         # SndUpdateChannel's D: c read before `if (d)`, then `+=` through a

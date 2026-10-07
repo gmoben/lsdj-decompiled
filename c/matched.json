@@ -1,4 +1,10 @@
 {
+ "Abs16": {
+  "bank": "00",
+  "addr": "343F",
+  "len": 40,
+  "src": "c/bank00/GbdkLib.c"
+ },
  "AddBookmark": {
   "bank": "07",
   "addr": "637C",
@@ -527,6 +533,12 @@
   "len": 107,
   "src": "c/bank1b/DrawFontColorFields.c"
  },
+ "DrawFormat": {
+  "bank": "00",
+  "addr": "35C2",
+  "len": 283,
+  "src": "c/bank00/GbdkLib.c"
+ },
  "DrawGrooveRow": {
   "bank": "1D",
   "addr": "425B",
@@ -706,6 +718,12 @@
   "addr": "4CC4",
   "len": 29,
   "src": "c/bank04/PhraseScreen.c"
+ },
+ "DrawNumber": {
+  "bank": "00",
+  "addr": "352A",
+  "len": 135,
+  "src": "c/bank00/GbdkLib.c"
  },
  "DrawOnOffName": {
   "bank": "01",
@@ -1457,6 +1475,12 @@
   "len": 54,
   "src": "c/bank02/Sound.c"
  },
+ "FxCmd_F_Wav": {
+  "bank": "02",
+  "addr": "632B",
+  "len": 334,
+  "src": "c/bank02/Sound.c"
+ },
  "FxCmd_K": {
   "bank": "02",
   "addr": "65F3",
@@ -1473,6 +1497,12 @@
   "bank": "02",
   "addr": "6646",
   "len": 25,
+  "src": "c/bank02/Sound.c"
+ },
+ "FxCmd_P_Step": {
+  "bank": "02",
+  "addr": "6270",
+  "len": 187,
   "src": "c/bank02/Sound.c"
  },
  "FxCmd_R": {

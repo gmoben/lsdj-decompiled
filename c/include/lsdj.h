@@ -186,7 +186,9 @@ void DrawHexByte(UBYTE v);
 void DrawTempoField(void);
 UWORD GetTempoTimerValue(void);                 /* the tempo as shown (or a speed code) */
 void DrawTempo(UWORD tempo);
+#ifndef GBDKLIB_C       /* GbdkLib.c defines it with `...` */
 void DrawFormat(char *fmt, UWORD v);            /* printf-style, varargs */
+#endif
 void DrawFormat2(char *fmt, UWORD a, UWORD b);  /* the same routine with two values (match_function.py aliases it) */
 void GetTilemapAddr(UBYTE x, UBYTE y);                  /* sets wVramCursor (asm) */
 void ClearMarkerSprites(void);

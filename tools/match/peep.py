@@ -385,8 +385,9 @@ def inline_asm_hl(lines: list[str]) -> tuple[list[str], int]:
     return lines, n
 
 
-def gb_cmp16(lines: list[str]) -> tuple[list[str], int]:
-    """Rewrite unsigned word comparisons, branching or stored, to the add form."""
+def gb_cmp16(lines: list[str], zero: bool = False) -> tuple[list[str], int]:
+    """Rewrite word comparisons with a constant, branching or stored, to the
+    add form; signed ones against 0 too when `zero` (GBDK's library build)."""
     lines = list(lines)
     n = 0
     i = 0
@@ -449,23 +450,210 @@ def gb_cmp16(lines: list[str]) -> tuple[list[str], int]:
                         glob = gm.group(1)
                         known = int(gm.group(2) or 0) + 1
                 if known is not None:
-                    # stock SDCC left hl at the operand's high byte and may go
-                    # on from there (`dec hl; ld a,(hl+)`); the add clobbered
-                    # hl, so LSDj's compiler reloaded it (DrawBlocksUsed's
-                    # `ld hl,sp+0`)
-                    off = known
-                    k = i + 1
-                    while k < len(lines) and not _strip(lines[k]).strip():
-                        k += 1
-                    adj = k
-                    while adj < len(lines) and _strip(lines[adj]).strip() in ("inc\thl", "dec\thl"):
-                        off += 1 if _strip(lines[adj]).strip() == "inc\thl" else -1
-                        adj += 1
-                    nxt = _strip(lines[adj]).strip() if adj < len(lines) else ""
-                    if "(hl" in nxt and not nxt.endswith(":"):
-                        lines[k:adj] = ([f"\tld\thl,#{glob} + {off}"] if glob
-                                        else [f"\tlda\thl,{off}(sp)"])
+                    _reseat_hl(lines, i, known, glob)
                 break
+        i += 1
+    lines, signed = _signed_cmp16(lines, zero)
+    return lines, n + signed
+
+
+def _reseat_hl(lines: list[str], i: int, off: int, glob: str | None = None) -> None:
+    """After a rewritten compare ending at line `i`: stock SDCC left hl at
+    stack offset `off` (or `glob + off`) and may go on from there (`dec hl;
+    ld a,(hl+)`); the add clobbered hl, so LSDj's compiler reloaded it
+    (DrawBlocksUsed's `ld hl,sp+0`). A negation reloads it after its carry
+    clear, before the zero it subtracts from (genUminus fetches the operand
+    first: Abs16's `xor a,a; ld hl,sp+4; ld a,$00; sbc a,[hl]`), a shift
+    after its carry clear (`or a,a; ld hl,sp+2; rl [hl]`)."""
+    def code_after(j: int) -> int:
+        j += 1
+        while j < len(lines) and not _strip(lines[j]).strip():
+            j += 1
+        return j
+
+    def text(j: int) -> str:
+        return _strip(lines[j]).strip() if j < len(lines) else ""
+
+    def negation(j: int) -> bool:
+        return text(j) == "ld\ta,#0x00" and text(code_after(j)) == "sbc\ta,(hl)"
+
+    start = code_after(i)
+    clear = text(start) if text(start) in ("xor\ta,a", "or\ta,a") else ""
+    if clear:
+        start = code_after(start)
+    adj = start
+    while text(adj) in ("inc\thl", "dec\thl"):
+        off += 1 if text(adj) == "inc\thl" else -1
+        adj = code_after(adj)
+    nxt = text(adj)
+    if clear == "xor\ta,a":
+        ok = negation(adj)
+    elif clear:                           # a shift's carry clear (FxCmd_F_Wav's `step <<= 1`)
+        ok = bool(re.fullmatch(r"(rl|rr|sla|sra|srl)\s+\(hl\)", nxt))
+    else:
+        ok = negation(adj) or ("(hl" in nxt and not nxt.endswith(":"))
+    if not ok:
+        return
+    lines[start:adj] = ([f"\tld\thl,#{glob} + {off}"] if glob else [f"\tlda\thl,{off}(sp)"])
+
+
+# --- signed 16-bit compares with a constant ---------------------------------
+#
+# SDCC 2.2.1 compares a signed word with a constant by flipping both sign
+# bits and subtracting -- `ld a,hi; xor a,#0x80; ld e,a; ld d,#K.hi^0x80;
+# ld a,lo; sbc a,#K.lo; ld a,e; sbc a,d` for `x < K`, the constant first
+# for `K < x` (`x > K`, `x <= K`): `ld e,#K.hi^0x80; ld a,hi; xor a,#0x80;
+# ld d,a; ld a,#K.lo; sbc a,lo; ...` -- and against 0 tests bit 7 of the
+# high byte (`ld a,hi; bit 7,a; jp z`, after genCmpLt/genCmpGt's comment).
+# LSDj's compiler used the unsigned add form on the sign-flipped operand:
+# `ld e,lo; ld a,hi; xor a,#0x80; ld d,a; ld hl,#-(K^0x8000); add hl,de`
+# and a jump on the inverted carry (DrawCrashScreen's `i < 10`: `ld
+# hl,#0x7FF6`); with the constant first, the add compares with K + 1 and
+# keeps the jump (NameEditorInput's `> -1`: `#0x8000`). Against 0 it tested
+# bit 7 as stock SDCC does (SynthRenderWaveA's `(WORD)samp < 0`), where
+# GBDK's library build adds here too (abs's `num < 0`: `ld hl,#0x8000`).
+
+_SCMP_STACK_RIGHT = ["<hl>", r"ld\s+a,\(hl\)", r"xor\s+a,#0x80", r"ld\s+e,a",
+                     rf"ld\s+d,{_HEX}", r"dec\s+hl", r"ld\s+a,\(hl\)", rf"sbc\s+a,{_HEX}",
+                     r"ld\s+a,e", r"sbc\s+a,d", r"jp\s+(n?c),(\S+)"]
+_SCMP_STACK_LEFT = [rf"ld\s+e,{_HEX}", "<hl>", r"ld\s+a,\(hl\)", r"xor\s+a,#0x80",
+                    r"ld\s+d,a", rf"ld\s+a,{_HEX}", r"dec\s+hl", r"sbc\s+a,\(hl\)",
+                    r"ld\s+a,e", r"sbc\s+a,d", r"jp\s+(n?c),(\S+)"]
+_SCMP_REG_RIGHT = [r"ld\s+a,([bc])", r"xor\s+a,#0x80", r"ld\s+e,a", rf"ld\s+d,{_HEX}",
+                   r"ld\s+a,([bc])", rf"sbc\s+a,{_HEX}", r"ld\s+a,e", r"sbc\s+a,d",
+                   r"jp\s+(n?c),(\S+)"]
+_SCMP_REG_LEFT = [rf"ld\s+e,{_HEX}", r"ld\s+a,([bc])", r"xor\s+a,#0x80", r"ld\s+d,a",
+                  rf"ld\s+a,{_HEX}", r"sbc\s+a,([bc])", r"ld\s+a,e", r"sbc\s+a,d",
+                  r"jp\s+(n?c),(\S+)"]
+_SCMP_STACK_ZERO = ["<hl>", r"ld\s+a,\(hl\)", r"bit\s+7,a", r"jp\s+(n?z),(\S+)"]
+_SCMP_REG_ZERO = [r"ld\s+a,([bc])", r"bit\s+7,a", r"jp\s+(n?z),(\S+)"]
+_OTHER_HALF = {"b": "c", "c": "b"}
+
+
+def _match_seq(lines: list[str], i: int, pats: list[str]) -> tuple[list[int], list[str]] | None:
+    """The lines (skipping blank and comment-only ones) from `i` on that match
+    `pats` in order, with the regex groups; None when they do not. `<hl>`
+    is SDCC seating hl on a stack byte: `lda hl,N(sp)` (group "N") or `inc
+    hl` steps from where it was (group "+K", K possibly 0, no line)."""
+    idx: list[int] = []
+    groups: list[str] = []
+    j = i
+    for p in pats:
+        while j < len(lines) and not _strip(lines[j]).strip():
+            j += 1
+        if p == "<hl>":
+            t = _strip(lines[j]).strip() if j < len(lines) else ""
+            m = re.fullmatch(r"lda\s+hl,(\d+)\(sp\)", t)
+            if m:
+                idx.append(j)
+                groups.append(m.group(1))
+                j += 1
+                continue
+            steps = 0
+            while j < len(lines) and _strip(lines[j]).strip() == "inc\thl":
+                idx.append(j)
+                steps += 1
+                j += 1
+                while j < len(lines) and not _strip(lines[j]).strip():
+                    j += 1
+            groups.append(f"+{steps}")
+            continue
+        m = re.fullmatch(p, _strip(lines[j]).strip()) if j < len(lines) else None
+        if not m:
+            return None
+        idx.append(j)
+        groups += m.groups()
+        j += 1
+    return idx, groups
+
+
+def _seat_hl(lines: list[str], at: int, how: str) -> tuple[int, list[str]] | None:
+    """For `<hl>` matched as `how` at line `at` (the first line after it when
+    it matched no line): the offset of the byte it seats hl on, and the
+    instructions that seat hl one byte lower instead."""
+    if not how.startswith("+"):
+        return int(how), [f"\tlda\thl,{int(how) - 1}(sp)"]
+    base = _hl_stack_offset(lines, at)
+    if base is None:
+        return None
+    steps = int(how[1:]) - 1
+    return base + steps + 1, (["\tinc\thl"] * steps if steps >= 0 else ["\tdec\thl"])
+
+
+def _after_cmp_comment(lines: list[str], i: int) -> bool:
+    """Line `i` is the first code after genCmpLt's or genCmpGt's comment."""
+    k = i - 1
+    while k >= 0 and not _strip(lines[k]).strip():
+        if re.match(r"\s*;\s*genCmp(Lt|Gt)\b", lines[k]):
+            return True
+        k -= 1
+    return False
+
+
+def _signed_cmp16(lines: list[str], zero: bool) -> tuple[list[str], int]:
+    """Rewrite signed word comparisons with a constant to the add form (with
+    0 only when `zero`)."""
+    lines = list(lines)
+    n = 0
+    i = 0
+    flip = {"c": "nc", "nc": "c", "z": "c", "nz": "nc"}
+    while i < len(lines):
+        out = None
+        for kind, pats in (("stack", _SCMP_STACK_RIGHT), ("stack-left", _SCMP_STACK_LEFT),
+                           ("reg", _SCMP_REG_RIGHT), ("reg-left", _SCMP_REG_LEFT),
+                           ("stack-zero", _SCMP_STACK_ZERO), ("reg-zero", _SCMP_REG_ZERO)):
+            got = _match_seq(lines, i, pats)
+            if got is None:
+                continue
+            idx, g = got
+            if kind.endswith("zero") and not (zero and _after_cmp_comment(lines, idx[0])):
+                continue
+            if kind == "stack":
+                how, flipped, cc, target = g[0], int(g[1], 16) << 8 | int(g[2], 16), g[3], g[4]
+            elif kind == "stack-left":
+                how, flipped, cc, target = g[1], int(g[0], 16) << 8 | int(g[2], 16), g[3], g[4]
+            elif kind == "reg":
+                if g[2] != _OTHER_HALF[g[0]]:
+                    continue
+                hi_reg, flipped, cc, target = g[0], int(g[1], 16) << 8 | int(g[3], 16), g[4], g[5]
+            elif kind == "reg-left":
+                if g[3] != _OTHER_HALF[g[1]]:
+                    continue
+                hi_reg, flipped, cc, target = g[1], int(g[0], 16) << 8 | int(g[2], 16), g[4], g[5]
+            elif kind == "stack-zero":
+                how, flipped, cc, target = g[0], 0x8000, g[1], g[2]
+            else:
+                hi_reg, flipped, cc, target = g[0], 0x8000, g[1], g[2]
+            if kind.endswith("left"):
+                k = (flipped + 1) & 0xFFFF        # K < x is x >= K + 1
+                jump = cc
+            else:
+                k = flipped
+                jump = flip[cc]
+            if not k:
+                continue                          # never carries
+            if kind.startswith("stack"):
+                # the first line `<hl>` matched, or the `ld a,(hl)` after it
+                seat = _seat_hl(lines, idx[1] if kind == "stack-left" else idx[0], how)
+                if seat is None:
+                    continue
+                hi_off, seat_lines = seat
+                fetch = seat_lines + ["\tld\te,(hl)", "\tinc\thl", "\tld\ta,(hl)"]
+                known = hi_off if kind == "stack-zero" else hi_off - 1
+            else:
+                fetch = [f"\tld\te,{_OTHER_HALF[hi_reg]}", f"\tld\ta,{hi_reg}"]
+                known = _hl_stack_offset(lines, idx[0])
+            out = fetch + ["\txor\ta,#0x80", "\tld\td,a", f"\tld\thl,#0x{(-k) & 0xFFFF:04X}",
+                           "\tadd\thl,de", f"\tjp\t{jump},{target}"]
+            break
+        if out is None:
+            i += 1
+            continue
+        lines[idx[0]:idx[-1] + 1] = out
+        n += 1
+        i = idx[0] + len(out) - 1
+        if known is not None:
+            _reseat_hl(lines, i, known)
         i += 1
     return lines, n
 
@@ -1008,9 +1196,12 @@ def track_hram(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int
     SndUpdateChannel's D across `if (d)`). It never copied the byte over from
     another register: a reload into b while c holds it stays (the `+=` target
     in SndUpdateChannel and HandleInputCombos). `a` itself serves a reread
-    only across an ordering test (SyncTickLSDJ's `hSoundCh < 4`: `cp #4; jp
-    nc`); after an equality test the byte is reread (`cp; jp nz; ldh a,(X)`:
-    SndUpdateChannel, SndUpdateWavFreq, SndRetrigNote). An HRAM store, a
+    in straight-line code (FxCmd_F_Wav's `step = hFxValueS`: stock genCast
+    reads the byte again for the sign's `rla`; no compiled code in the ROM
+    rereads a byte `a` holds before a jump) and across an ordering test
+    (SyncTickLSDJ's `hSoundCh < 4`: `cp #4; jp nc`); after an equality test
+    the byte is reread (`cp; jp nz; ldh a,(X)`: SndUpdateChannel,
+    SndRetrigNote). An HRAM store, a
     call or a jump target ends the reuse; a store through a pointer loaded
     from memory (`ld e,(hl); inc hl; ld d,(hl); ld (de),a`) ends it for a
     byte read before a conditional jump (the `+=` in SndUpdateChannel's D),
@@ -1020,6 +1211,7 @@ def track_hram(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int
     holds: dict[str, str] = {}    # register -> the `(X)` it holds
     carried: set[str] = set()     # registers whose byte was read before a conditional jump
     a_ok = False                  # `a`'s byte has crossed an ordering test since its read
+    a_straight = False            # `a`'s byte was read with no jump since
     de_loaded = False             # de was last loaded from memory (a pointer of unknown target)
     dropped = 0
     scope = 0
@@ -1035,10 +1227,10 @@ def track_hram(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int
                 and not o2[1].startswith("(hl")) or (m2 == "xor" and o2 == ["a", "a"])
 
     def forget() -> None:
-        nonlocal a_ok
+        nonlocal a_ok, a_straight
         holds.clear()
         carried.clear()
-        a_ok = False
+        a_ok = a_straight = False
 
     def a_dead_from(i: int | None) -> bool:
         """`a` is overwritten (as overwrites_a has it) before anything reads
@@ -1092,10 +1284,14 @@ def track_hram(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int
                     skip.add(n1)          # `ldh a,(X); ld r,a` with r == (X): both go
                     dropped += 2
                     continue
+            if holds.get("a") == src and a_straight:
+                dropped += 1
+                continue
             out.append(raw)
             holds["a"] = src
             carried.discard("a")
             a_ok = False
+            a_straight = True
             continue
         if mn == "ldh" and len(ops) == 2 and ops[1] == "a":
             forget()                      # an HRAM store: forget every reuse
@@ -1103,6 +1299,7 @@ def track_hram(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int
             continue
         if mn in ("jp", "jr") and len(ops) == 2:
             a_ok = ops[0] in ("c", "nc") and "a" in holds
+            a_straight = False
             carried.update(holds)
             out.append(raw)
             continue

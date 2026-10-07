@@ -135,7 +135,8 @@
 5FDA SndSetChannelEnable        ; enable/disable this channel in rAUDENA (per hSoundCh; SndWritePanning)
 61A9 SndWritePanning            ; set this channel's panning bits in rAUDTERM
 61F7 SndClearVoiceHram          ; clear $ffa0-$ffa3 (per-voice HRAM shadow regs)
-6270 SndUpdateWavFreq           ; WAV channel: recompute sample step from wChanFreq when the update flag is set
+6270 FxCmd_P_Step           ; P with PITCH on STEP: the pitch changes at once (a kit's rate by 3 a step, else wChanPitchCur by 8)
+632B FxCmd_F_Wav                ; F on the wave channel: a synth's wave frame steps; a kit's two sample positions move (x16, doubled beyond +-16)
 6479 SndRandomUpTo              ; random 0..n (Random16() % (n + 1); 0 for 0): the range Z adds to each digit
 6577 SndKillNote                ; kill this channel's note (K, now or when its slot's timer runs out): FX and FX slots, pitch slide, chord, vibrato off, table $FF
 6685 SndRunFxSlot               ; set hSoundCh = $c527 & 3, run SndKillNote
@@ -182,7 +183,7 @@
 78C4 ToggleSongPlayback         ; SELECT+START on any screen: TogglePlayback as if on the song screen (all four channels); live mode: SndLiveStopRange
 5EDA NoiseFreqTable             ; [noise note] -> NR43 poly/divisor byte (120 entries)
 5F52 SetNoisePoly               ; a = NoiseFreqTable[a] -> rAUD4POLY (NR43); noise-channel pitch
-7FF0 WavFreqTable               ; WAV channel sample-rate steps (SndUpdateWavFreq)
+7FF0 WavFreqTable               ; WAV channel sample-rate steps (FxCmd_P_Step)
 7F51 StepEnvToTarget            ; step channel volume [hl] toward e via zombie mode ($08 nudge up / FadeEnvStepDown); c = rAUDxENV; shared tail of SndSetupLfo*
 7F5C .stepDown           ; target below current: fade one step down (FadeEnvStepDown)
 
@@ -215,10 +216,10 @@
 6133 .loop                ; loop head in TriggerWave
 6196 .done                ; common exit of TriggerWave
 61E6 .loop                ; loop head in SndWritePanning
-62FE .loop                ; loop head in SndUpdateWavFreq
-6327 .done                ; common exit of SndUpdateWavFreq
-63B5 .loop2               ; loop head in SndUpdateWavFreq
-6475 .done2               ; common exit of SndUpdateWavFreq
+62FE .shiftLoop           ; loop head in FxCmd_P_Step: the value << 3
+6327 .done                ; common exit of FxCmd_P_Step
+63B5 .scaleLoop           ; loop head in FxCmd_F_Wav: step <<= 4
+6475 .done                ; common exit of FxCmd_F_Wav
 649B .done                ; common exit of SndRandomUpTo
 6573 .done                ; common exit of FxCmd_R
 6642 .done                ; common exit of FxCmd_K
@@ -573,15 +574,14 @@
 61DE .ret01
 61E0 .readSoundCh
 61F0 .readAUDTERM
-62CF .readSoundCh
-6303 .step
-632B .checkSndUpdateFlags
-6350 .readFxValue
-638C .cont
-63B1 .cont_2
-63BD .loadOscLoopB
-63F5 .setOscLoopB
-6440 .setOscLoopB_2
+62CF .pitch
+6303 .shiftTest
+6350 .kit
+638C .testBack
+63B1 .scale
+63BD .scaleTest
+63F5 .storeKit1
+6440 .storeKit2
 64EC .readFxValue
 6514 .loadFxChannel
 6702 .switchChannel

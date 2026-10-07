@@ -107,9 +107,9 @@
 2F6A DrawStringIndexed  ; draw from the string source at a byte offset
 2E33 DrawHexByte        ; draw byte A as two hex digits at the cursor
 2E6D DrawByte           ; draw a byte (stack arg) at the cursor
-352A DrawNumber         ; draw 16-bit value (sp+4) in base (sp+6) with optional minus sign (sp+8); recursive (high digit first), digit table $35B1 "0123456789ABCDEF"
+352A DrawNumber         ; GBDK's printn: draw a word in a base at the console cursor, a minus first when signed and negative; the leading digits by recursion
 35B1 DigitChars                 ; "0123456789ABCDEF" (DrawNumber's digit table, indexed by the digit value)
-35C2 DrawFormat         ; printf-style draw of format string (sp+7) + varargs to the VRAM cursor: %c char, %d/%u signed/unsigned decimal & %x hex (via DrawNumber), %s string
+35C2 DrawFormat         ; GBDK's printf at the console cursor: %c, %u, %d, %x (via DrawNumber), %s
 1298 ColorField                 ; color a field of w tiles at (x, y) with palette pal: CGB attributes through wAttrRowBuf, a DrawTileRun on DMG
 17E1 AnyChanFlagSet     ; e = nonzero if any of the 4 per-channel bytes $C423-$C426 is set (chain-screen per-channel state; caller resets the $C68C idle counter on activity)
 17FB ClearBgTilemap     ; fill the visible 20x18 BG tilemap ($9800) with tile 0, rSTAT-gated
@@ -194,7 +194,7 @@
 3424 SwitchToDoubleSpeed ; CGB KEY1 speed switch to double-speed (no-op if rSPD bit7 already set): disable IRQs, rJOYP=$30, rSPD=1, stop, restore rIE
 20B3 ChecksumRomBank    ; 16-bit sum of all bytes in the current ROM bank ($4000-$7FFF) -> de
 20C4 TestSram           ; write/read-back test of SRAM bank $A000-$BFFF (writes 0); e = end offset on success / high byte on failure
-343F Abs16              ; 16-bit absolute value: returns |arg(sp+4)| in de
+343F Abs16              ; GBDK's abs: the absolute value of a signed word
 33B9 GetTilemapAddr    ; (col,row 16-bit arg) -> BG map address $9800 + row*$20 + col
 3831 strcpy            ; GBDK/SDCC strcpy(dest=sp+2, src=sp+4): copy until NUL (byte-exact match)
 3843 memcpy            ; SDCC memcpy(dest=sp+4, src=sp+6, n=sp+8): copy n bytes (16-bit count)
@@ -862,7 +862,7 @@
 32FE .loadTileSlotAlloc
 3322 .readLCDC
 3357 .loadTileLoadSlot
-3460 .cont
+3460 .positive
 348B .storeTileLoadNow
 34CF .readSB
 34DD .storeSyncState_2
@@ -872,18 +872,18 @@
 351A .testBit1
 3520 .testBit0
 3526 .setrIE
-355B .add16
-358A .cont
-35EB .cont
-35EE .step
-35F4 .cont_2
-3617 .cont_3
-3631 .cont_4
-3656 .cont_5
-367B .cont_6
-36A0 .cont_7
-36BD .drawStringIndexed
-36C7 .cont_8
+355B .digits
+358A .lastDigit
+35EB .notPercent
+35EE .percent
+35F4 .conversion
+3617 .char
+3631 .unsigned
+3656 .signed
+367B .hex
+36A0 .string
+36BD .literal
+36C7 .next
 3708 .cont
 370B .cont_2
 3799 .testBit7

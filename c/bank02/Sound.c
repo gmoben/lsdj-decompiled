@@ -11,10 +11,12 @@ extern volatile sfr UBYTE IE_REG;           /* $FFFF */
 extern volatile sfr UBYTE DIV_REG;          /* $FF04 */
 extern volatile sfr UBYTE NR52_REG;         /* $FF26 */
 extern UBYTE hFxValueMem;                   /* hFxValue read as a plain global (ld hl; or a,(hl)) */
+extern volatile sfr BYTE hFxValueS;         /* hFxValue as a signed byte (P and F's steps) */
 extern UBYTE wFxChannel;                    /* $C527: the FX slot (channel + 4 x column) */
 extern UBYTE wFxSlotCmdTimer[];             /* $C230, [12] */
 extern UBYTE wChanFxSlots[];                /* $C2F0, [12] */
 extern UBYTE wWavLevel;                     /* $C8F3 */
+extern BYTE wWavLevelS;                     /* wWavLevel as a signed byte */
 extern UBYTE wChanNextSongRow[];            /* $C2FC, [4] */
 extern UBYTE wChanStopQueued[];                /* $C304, [4] */
 extern UBYTE wChanActive[];                 /* $C0E0, [4] */
@@ -64,6 +66,9 @@ extern UBYTE wEnvNode1Pu1, wEnvNode1Pu2, wEnvNode1Noi;    /* $CBBC, $CBC3, $CBCA
 extern UBYTE wNoiPitchFrac;                 /* $C8DB */
 extern UBYTE wNoiVibPrevOfs;                /* $C8DA */
 extern UBYTE wChanVibSpeed[];               /* $C314, [4] words, read here by byte */
+extern UWORD wChanFreq[];                   /* $C0F4, [4] */
+extern UBYTE wKit1OffsetHi, wKit1OffsetLo;  /* $C4EA, $C4EB */
+extern UBYTE wKit2OffsetHi, wKit2OffsetLo;  /* $C4EC, $C4ED */
 extern UBYTE wSyncSerialIeMask;             /* $CB6D */
 extern UBYTE wPlayChanFirst;                /* $C8DD */
 extern UBYTE wPlayChanLast;                 /* $C8DE */
@@ -141,6 +146,7 @@ void SndUpdateAllChannels(void);
 void SndRetrigNote(void);
 void SelectKit2Sample(UBYTE n);             /* bank 0 */
 void TriggerWave(void);                     /* asm */
+void SndClearChanFxSlots(void);             /* asm */
 void SndResetWavFlat(void);                 /* asm */
 void SndReadChainRow(void);                 /* asm */
 void SndDeactivateChannel(void);            /* asm */
@@ -334,6 +340,72 @@ void SndRetrigNote(void)
         wChanFxSlots[wFxChannel] = 0;
     else
         wFxSlotEnvTimer[wFxChannel] = rate;
+}
+
+/* $6270: P with the instrument's PITCH on STEP (ApplyPitchBend jumps
+   here): the pitch changes at once -- a kit's playback rate by 3 a step,
+   any other instrument's pitch by 8 a step, its slide restarted */
+
+void FxCmd_P_Step(void)
+{
+    if (wSndUpdateFlags && hSoundCh == 2)
+        wChanFreq[hSoundCh] += (WORD)hFxValueS * 3;
+    else {
+        wChanPitchCur[hSoundCh] += (WORD)hFxValueS << 3;
+        wChanCmdStep[hSoundCh] = 1;
+    }
+}
+
+/* $632B: F on the wave channel: a synth steps its wave frame by the value
+   and reloads the wave RAM; a kit moves both voices' sample positions by
+   the signed value x16 (beyond +-16 the steps double), stopping at the
+   sample's start, and retriggers at the instrument's level */
+
+void FxCmd_F_Wav(void)
+{
+    WORD step;
+    UWORD off;
+
+    if (!wSndUpdateFlags) {
+        if (hFxValueMem) {
+            wWavSynthFrame = hFxValue + wWavSynthFrame;
+            SndClearVoiceHram();
+            _asm di _endasm;
+            LoadWaveRam();
+            _asm ei _endasm;
+        }
+    } else {
+        step = hFxValueS;
+        off = wKit1OffsetHi;
+        if (step >= 16) {
+            step <<= 1;
+            step -= 16;
+        } else if (step < -16) {
+            step <<= 1;
+            step += 16;
+        }
+        step <<= 4;
+        off <<= 8;
+        off += wKit1OffsetLo;
+        off += step;
+        if (off & 0x8000)
+            off = 0;
+        wKit1OffsetLo = off & 0xFF;
+        wKit1OffsetHi = off >> 8;
+        off = wKit2OffsetHi;
+        off <<= 8;
+        off += wKit2OffsetLo;
+        off += step;
+        if (off & 0x8000)
+            off = 0;
+        wKit2OffsetLo = off & 0xFF;
+        wKit2OffsetHi = off >> 8;
+        step = wWavLevelS;
+        wWavLevel = wChanEnv[2];
+        TriggerWave();
+        wWavLevel = step;
+        SndClearChanFxSlots();
+    }
 }
 
 /* $68A0: the noise channel's pitch each tick: P slides it by its signed

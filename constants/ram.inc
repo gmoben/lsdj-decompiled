@@ -209,7 +209,7 @@ DEF wChanTableStep    EQU $C33F ; [4] byte5 bit3 = instrument TABLE-STEP param; 
 DEF wChanSlideNoteSrc EQU $C330 ; [4] byte5 bit6: FxCmd_L slide reads the alt note source ($C0EC vs wChanOutNote) when set
 DEF wChanTranspose    EQU $C333 ; [4] byte5 bit5 = instrument TRANSPOSE param (bit set = transpose OFF). When set,
                                 ; SndTransposeNote skips adding wChanChainTrans to the note. Verified in our code.
-DEF wChanWaveTrig     EQU $C35C ; [4] byte5 bit7: when set, ApplyPitchBend jumps to SndUpdateWavFreq instead of bending
+DEF wChanPitchStep    EQU $C35C ; [4] instrument byte 5 bit 7, PITCH on STEP: ApplyPitchBend jumps to FxCmd_P_Step (P changes the pitch at once instead of bending)
 DEF wChanActiveInstr EQU $C0C8  ; [4] instrument currently loaded into the sound engine per channel ($FF=none);
                                 ; set by SndLoadChannelInstr, gates note processing in ProcessChannel/NoteToPeriod.
                                 ; Distinct from wChanInstr ($C210), the *sequenced* instrument from the phrase.
@@ -658,8 +658,8 @@ DEF wChanPanWav       EQU $C354  ; wChanPan[2] = Wav channel
 DEF wChanPanNoi      EQU $C355  ; wChanPan[3] = NOI channel
 DEF wChanPeriodTablePtrPu2 EQU $C358  ; period-table ptr, PU2
 DEF wChanPeriodTablePtrWav EQU $C35A  ; period-table ptr, WAV (NOI has no period table)
-DEF wChanWaveTrigPu2  EQU $C35D  ; wChanWaveTrig[1] = Pu2 channel
-DEF wChanWaveTrigWav  EQU $C35E  ; wChanWaveTrig[2] = Wav channel
+DEF wChanPitchStepPu2  EQU $C35D  ; wChanPitchStep[1] = Pu2 channel
+DEF wChanPitchStepWav  EQU $C35E  ; wChanPitchStep[2] = Wav channel
 DEF wChanVibShapePu1Hi EQU $C360  ; wChanVibShape[0] hi byte (Pu1)
 DEF wChanVibShapePu2 EQU $C361  ; wChanVibShape[1]  (Pu2)
 DEF wNoiPSpeed EQU $C362  ; wChanVibShape[3]: noise has no vibrato, so the slot holds P's speed (applied as S every tick)

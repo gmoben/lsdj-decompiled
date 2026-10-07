@@ -14,7 +14,7 @@ all code disassembled with meaningful labels, all data structured.
 | Symbols (`make sym` output) | 8,723: 1,833 ROM globals, 6,045 function-local labels, 808 WRAM/HRAM, 37 SRAM |
 | Referenced data (`tools/data_refs.py`) | every operand-referenced ROM data address labeled |
 | C vs hand-written asm (`tools/match/code_kind.py`) | ~142.5 KB of C, 64% of it matched (575 functions; 134 C or ambiguous labels to go); 200 hand-written asm functions (~15 KB: bank 0's interrupt/sound-tick/tile-loader code, bank `$02`'s sequencer core) and 31 GBDK/SDCC library routines |
-| Matching C ([`toolchain.md`](toolchain.md)) | 627 functions in 13 banks are C in `c/`; the ROM build assembles them from the compiler's output translated to RGBDS source (`build/c/*/*.lines`; a ROM slice without the compiler) |
+| Matching C ([`toolchain.md`](toolchain.md)) | 632 functions in 13 banks are C in `c/`; the ROM build assembles them from the compiler's output translated to RGBDS source (`build/c/*/*.lines`; a ROM slice without the compiler) |
 
 Known gaps — asm fidelity/readability, none affect the bytes:
 
