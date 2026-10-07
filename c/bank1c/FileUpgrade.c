@@ -34,7 +34,7 @@ void FileUpgradeV15Wave(void);
 void FileUpgradeV17bPulse(void);
 void FileUpgradeRetrigRate(UBYTE *p);          /* $1C:$6973 */
 void FileUpgradeClearRange(void);           /* $1C:$65B9 */
-void FileUpgradeV2(void);                   /* $1C:$622D, parked */
+void FileUpgradeV2(void);
 void ReadSongBytesW(UBYTE bank, UWORD src, UBYTE *dst);  /* ReadSongBytes taking a word address (aliased by match_function.py) */
 char ReadInstrByteS(UBYTE instr, UBYTE field);  /* ReadInstrByte returning char (aliased): the cast to UBYTE keeps the call result in its own slot */
 
@@ -88,6 +88,21 @@ void FileUpgradeV1Kit(void)
 void FileUpgradeV1(void)
 {
     FileForEachInstrType(2, FileUpgradeV1Kit);
+}
+
+/* Version 2 to 3: every table envelope byte ($B690-$B88F) whose low
+   nibble is neither 0 nor F gains one. */
+void FileUpgradeV2(void)
+{
+    UWORD p;
+    UBYTE v, lo;
+
+    for (p = 0xB690; p != (UWORD)0xB890; p++) {
+        v = ReadSongByte(0, p);
+        lo = v & 0x0F;
+        if (lo && lo != 0x0F)
+            WriteSongByte(0, p, v + 1);
+    }
 }
 
 /* Version 3 to 4, pulse and wave instruments: byte 5's bits 2-1 move on.

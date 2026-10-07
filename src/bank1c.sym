@@ -535,9 +535,9 @@
 6129 .incFileScroll
 61B7 .cont
 61C4 .fileWriteInstrByte
-6246 .readSongByte
-627D .cont
-6284 .cont_2
+6246 .body
+627D .next
+6284 .nextDone
 62AD .bits2
 62B4 .bits4
 62BE .bits6
