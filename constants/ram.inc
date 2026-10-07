@@ -184,8 +184,8 @@ DEF wCurInstr        EQU $C0D0  ; current instrument record byte 0 = type (0 pul
                                 ; distributes its bytes to the rAUDx register shadows
 ; Per-channel sound state arrays (all [4] = PU1/PU2/WAV/NOI), derived from live
 ; RAM dumps cross-checked with the working-song SRAM map (see docs/save_format.md).
-DEF wChanModFlag     EQU $C0A0  ; [4] modulation (vibrato/sweep) active flag
-DEF wChanModType     EQU $C0A4  ; [4] modulation type
+DEF wChanOutput      EQU $C0A0  ; [4] the channel's output: bits 0-1 its panning as SndWritePanning last set it, bit 7 set while a B combo overrides it with wChanOutputOverride
+DEF wChanOutputOverride EQU $C0A4  ; [4] a channel's output while B+SELECT/START/LEFT/RIGHT override it: 0 muted, 1 left, 2 right (DrawChanStatus: MUTE/L/R)
 ; Vibrato state, per channel, from the V command (VXY: X=speed, Y=depth) in FxCmd_V.
 ; For the WAV channel (ch 2) the type/phase slots are seeded from the instrument by
 ; SetupSoundWave (which writes base+2 = channel 2's slot).
@@ -465,10 +465,10 @@ DEF wBlockDstBank    EQU $C97C  ; SRAM dest bank counter for block save (bumped 
 
 ; --- array elements / region bytes (auto-derived; every RAM byte the ROM
 ; touches carries a symbol so the debugger never shows _RAM_) ---
-DEF wChanModFlagPu2   EQU $C0A1  ; wChanModFlag[1] = Pu2 channel
-DEF wChanModFlagWav   EQU $C0A2  ; wChanModFlag[2] = Wav channel
-DEF wChanModFlagNoi   EQU $C0A3  ; wChanModFlag[3] = Noi channel
-DEF wChanMVolPending EQU $C0A8  ; [4] M-cmd value latched | $80 per channel (handler $2885; exact consumer TBD)
+DEF wChanOutputPu2   EQU $C0A1  ; wChanOutput[1] = Pu2 channel
+DEF wChanOutputWav   EQU $C0A2  ; wChanOutput[2] = Wav channel
+DEF wChanOutputNoi   EQU $C0A3  ; wChanOutput[3] = Noi channel
+DEF wChanOutputSoloSaved EQU $C0A8  ; [4] a channel's L/R override set aside while another channel is soloed (B+START), restored on release
 DEF wPhraseNotePtr   EQU $C0BC  ; SRAM read ptr (16-bit): note column, PU1 -- phrase/table row source (reader: base+ch*2)
 DEF wChanStepCountdown EQU $C0C4  ; steps until next note read, PU1 ($ff = halted; via wPtrStepCountdown)
 DEF wChanNoteWav      EQU $C0CE  ; wChanNote[2] = Wav channel

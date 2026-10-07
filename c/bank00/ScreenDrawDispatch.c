@@ -1,5 +1,5 @@
 /*
- * The screen dispatchers -- LSDj 9.4.0, ROM bank $00:$24A8-$2BC3.
+ * The screen dispatchers and the B combos -- LSDj 9.4.0, ROM bank $00:$24A8-$2BC3.
  *
  * MATCHING C (period GBDK 2.95-3 / SDCC 2.2.1 + tools/match/lsdj.peep);
  * `make match` verifies every function here against the ROM.
@@ -51,7 +51,111 @@ UBYTE SynthScreenInput(void);
 UBYTE WordEditorInput(void);
 UBYTE FileScreenInput(void);
 UBYTE HelpScreenInput(void);
-UBYTE HandleInputCombos(void);
+extern volatile sfr UBYTE hSoundCh;         /* $FF8B */
+extern UBYTE wChanOutput[];                 /* $C0A0, [4] */
+extern UBYTE wChanOutputOverride[];         /* $C0A4, [4] */
+extern UBYTE wChanOutputSoloSaved[];        /* $C0A8, [4] */
+extern UBYTE wMuteSoloLatch;                /* $C56A */
+extern UBYTE wKbdActionCh;                  /* $CB9A */
+extern UBYTE wAPressEnabled;                /* $C409 */
+void SndWritePanning(UBYTE v);              /* bank 2 */
+void DrawAllChanStatus(void);               /* $271A: the B combos, ahead of the screen's own input (none on the name
+   editor, wave, project, file and help screens). B+SELECT mutes the cursor's
+   channel (or the keyboard's), B+LEFT/RIGHT on the song screen pans it to
+   one side, B+START solos it; releasing B with the latch set puts the
+   output back. Returns 1 when a combo took the buttons */
+
+UBYTE HandleInputCombos(void)
+{
+    UBYTE saved;
+    UBYTE changed, ch, v;
+
+    if (wCurrentScreen == 7 || wCurrentScreen == 8 || wCurrentScreen == 9
+            || wCurrentScreen == 0x0D || wCurrentScreen == 0x0E)
+        return 0;
+    if (wBHeld) {
+        changed = 0;
+        if (wButtons == 0x60) {
+            wChanOutputOverride[wSongCol] = 0;
+            changed = 1;
+        } else if (wCurrentScreen == 4) {
+            switch (wButtons) {
+            case 0x22:
+                wChanOutputOverride[wSongCol] = 1;
+                changed = 1;
+                break;
+            case 0x21:
+                wChanOutputOverride[wSongCol] = 2;
+                changed = 1;
+                break;
+            }
+        }
+        if (changed) {
+            hSoundCh = !(wKbdActionCh == 0xFF) ? wKbdActionCh : wSongCol;
+            if (!(wChanOutput[hSoundCh] & 0x80)) {
+                saved = wChanOutput[hSoundCh];
+                SWITCH_ROM(2);
+                SndWritePanning(wChanOutputOverride[hSoundCh]);
+                wChanOutput[hSoundCh] = saved | 0x80;
+                SWITCH_ROM(0x1F);
+                DrawAllChanStatus();
+                wMuteSoloLatch = 1;
+            }
+            return 1;
+        }
+    }
+    if (wBHeld && wButtons == 0xA0) {
+        SWITCH_ROM(2);
+        for (hSoundCh = 0; hSoundCh < 4; hSoundCh++) {
+            if (wSongCol == hSoundCh)
+                continue;
+            saved = wChanOutput[hSoundCh];
+            if (wChanOutputOverride[hSoundCh]) {
+                wChanOutputSoloSaved[hSoundCh] = wChanOutputOverride[hSoundCh];
+                wChanOutputOverride[hSoundCh] = 0;
+            }
+            SndWritePanning(0);
+            wChanOutput[hSoundCh] = saved | 0x80;
+        }
+        hSoundCh = wSongCol;
+        wChanOutput[wSongCol] &= 3;
+        SndWritePanning(wChanOutput[wSongCol]);
+        SWITCH_ROM(0x1F);
+        DrawAllChanStatus();
+        wMuteSoloLatch = 2;
+        return 1;
+    }
+    if (wCursorMode == 4)
+        return 0;
+    if (wButtons == 0x20 && wMuteSoloLatch) {
+        if (wMuteSoloLatch == 1 || wAPressEnabled) {
+            ch = !(wKbdActionCh == 0xFF) ? wKbdActionCh : wSongCol;
+            wChanOutput[ch] &= 3;
+            wChanOutputOverride[ch] = 0;
+            wChanOutputSoloSaved[ch] = 0;
+            hSoundCh = ch;
+            SWITCH_ROM(2);
+            SndWritePanning(wChanOutput[hSoundCh]);
+        } else {
+            for (hSoundCh = 0; hSoundCh < 4; hSoundCh++) {
+                if (wSongCol == hSoundCh)
+                    continue;
+                v = wChanOutputSoloSaved[hSoundCh];
+                if (v)
+                    wChanOutputOverride[hSoundCh] = v;
+                else
+                    wChanOutput[hSoundCh] &= 3;
+                SWITCH_ROM(2);
+                SndWritePanning(wChanOutput[hSoundCh]);
+            }
+        }
+        SWITCH_ROM(0x1F);
+        DrawAllChanStatus();
+    }
+    return 0;
+}
+
+/* bank $1F */
 
 void ResetScreenSprites(void)
 {

@@ -14,8 +14,8 @@
 
 #include "lsdj.h"
 
-extern UBYTE wChanModFlag[];                /* $C0A0, [4] */
-extern UBYTE wChanModType[];                /* $C0A4, [4] */
+extern UBYTE wChanOutput[];                /* $C0A0, [4] */
+extern UBYTE wChanOutputOverride[];                /* $C0A4, [4] */
 extern UBYTE wChanMuteShown[];              /* $C9CE, [4] */
 extern UBYTE *wChanMuteShownPtr;            /* $C9D2 */
 int StringLength(const char *s);
@@ -32,11 +32,11 @@ void DrawChanStatus(UBYTE ch)
     y = ch + 6;
     GetTilemapAddr(0x10, y);
     c = ch;
-    if (wChanModFlag[c] & 0x80) {
+    if (wChanOutput[c] & 0x80) {
         s = "MUTE";
         hBgDigitPalette = wSelectDigitPal;
         hBgPalette = wSelectPal;
-        switch (wChanModType[c]) {
+        switch (wChanOutputOverride[c]) {
         case 0:
             wChanMuteShown[c] = 1;
             break;

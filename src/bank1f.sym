@@ -91,7 +91,7 @@
 6B3B DrawPhraseCellValue        ; draw the cell under the phrase cursor ($fe/$ff specials, $c90c state)
 6CA2 DrawPhraseCellField        ; highlight phrase cell (col,row): ColorField from the PhraseCell* layout tables (x,w,pal by row flag)
 6EFE InstrHReadCursorCellAt     ; read cell at cursor $c415/$c416 (DrawPhraseCellField)
-6F14 DrawChanStatus            ; draw channel status cell at (16, ch+6) from wChanModFlag[ch]
+6F14 DrawChanStatus            ; draw channel status cell at (16, ch+6) from wChanOutput[ch]
 70A8 InstrHGetParamPlus4        ; return $c429 + 4
 70B6 InstrHDrawParamField       ; draw a field from $c429 (parity-based) via InstrHGetParamPlus4
 70DF DrawInstrParamField        ; draw an instrument parameter text field (InstrHGetParamPlus4 + ColorField)

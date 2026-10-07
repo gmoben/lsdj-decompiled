@@ -58,8 +58,8 @@ extern char TxtNoNote[];                    /* $06:$782C "---" (this unit's lite
 extern char TxtNoteBad[];                   /* $06:$7848 "???" */
 extern UBYTE wChanDispNote[];               /* $C41F, [4] */
 extern UBYTE wChanDispNoteTimer[];          /* $C423, [4] */
-extern UBYTE wChanModFlag[];                /* $C0A0, [4] */
-extern UBYTE wChanModType[];                /* $C0A4, [4] */
+extern UBYTE wChanOutput[];                /* $C0A0, [4] */
+extern UBYTE wChanOutputOverride[];                /* $C0A4, [4] */
 extern UBYTE wKit1Bank;                     /* $C4F4 */
 extern UBYTE wKit2Bank;                     /* $C4F5 */
 extern UBYTE wNoteTranspose;                /* $C4D3 */
@@ -995,7 +995,7 @@ void UpdateStatusPanel(void)
     hBgDigitPalette = wShadowDigitPal;
     hBgPalette = wShadowPal;
     for (i = 0; i < 4; i++) {
-        t = (wChanModFlag[i] & 0x80) && !wChanModType[i];
+        t = (wChanOutput[i] & 0x80) && !wChanOutputOverride[i];
         if (t)
             continue;
         n = wChanDispNote[i];

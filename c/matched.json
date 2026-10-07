@@ -1703,6 +1703,12 @@
   "len": 55,
   "src": "c/bank00/ScreenDrawDispatch.c"
  },
+ "HandleInputCombos": {
+  "bank": "00",
+  "addr": "271A",
+  "len": 855,
+  "src": "c/bank00/ScreenDrawDispatch.c"
+ },
  "HandleTooBusy": {
   "bank": "00",
   "addr": "20DB",

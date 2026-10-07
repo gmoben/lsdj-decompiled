@@ -67,7 +67,7 @@
 0ED6 ProcessInput       ; main.mainLoop input handler: drain the button queue (GetNextButtons) and dispatch to the current screen
 1CEA GetNextButtons     ; dequeue next button state from the input ring ($CE00[wButtonReadIdx++]) -> e; stops at wButtonWriteIdx
 2B8D HandleButtonEvent  ; process one button event: latch A/B/Select held flags (wAHeld/wBHeld/wSelectHeld) from wButtons, then HandleInputCombos + DispatchScreenInput, OR their results
-271A HandleInputCombos  ; global/B-held button-combo handling before per-screen dispatch (skipped on screens 7/8/9/$0D/$0E) -> e
+271A HandleInputCombos  ; the B combos before the screen's input: B+SELECT mute, B+LEFT/RIGHT pan (song screen), B+START solo, B released restores; 1 when one took the buttons
 2A71 DispatchScreenInput ; jump table by wCurrentScreen (0-$0E, table $2A86) -> the current screen's input handler in its bank
 2BC4 GetTempoTimerValue ; -> de = tempo timer value: wTempoMode 1/2/3 -> fixed CGB/DMG presets, else derived from wTempo (BPM)
 2C3C DrawTempo          ; draw the tempo at the VRAM cursor: special label for wTempoMode 1/2/3, else the BPM number (DrawFormat "%d", wTempo)
@@ -385,8 +385,8 @@
 24A4 .done                ; common exit of SyncReceiveAnalogClock
 264A .done                ; common exit of DrawDispatch_Help
 2718 .done                ; common exit of ScreenUpdateDispatch.song
-285A .loop                ; loop head in HandleInputCombos
-29E3 .loop2               ; loop head in HandleInputCombos
+285A .soloLoop            ; loop head in HandleInputCombos: silence the other channels
+29E3 .unsoloLoop          ; loop head in HandleInputCombos: the other channels back
 2A6D .done                ; common exit of HandleInputCombos
 2B8B .done                ; common exit of DispatchScreenInput
 2C3A .done                ; common exit of GetTempoTimerValue
@@ -451,13 +451,13 @@
 24D5 .onWave              ; wCurrentScreen == case in ResetScreenSprites
 2520 .onInstr             ; wCurrentScreen == case in RedrawScreen
 2535 .onPhrase            ; wCurrentScreen == case in RedrawScreen
-273A .onWave              ; wCurrentScreen == case in HandleInputCombos
-273F .notHelp             ; wButtons == case in HandleInputCombos
-2767 .notSelB             ; wButtons == case in HandleInputCombos
-2793 .bRight              ; wButtons == case in HandleInputCombos
-27A5 .notSong             ; wButtons == case in HandleInputCombos
-2937 .notStartB           ; wButtons == case in HandleInputCombos
-2A6B .notB                ; wButtons == case in HandleInputCombos
+273A .noCombos            ; the name editor, wave, project, file and help screens take no combos
+273F .bHeld
+2767 .notMute
+2793 .panRight
+27A5 .changed
+2937 .notSolo
+2A6B .none
 2BA9 .a                   ; wButtons == case in HandleButtonEvent
 2BB1 .b                   ; wButtons == case in HandleButtonEvent
 2BB6 .notSel              ; wButtons == case in HandleButtonEvent
@@ -543,9 +543,9 @@
 2444 .checkSyncInPulses
 24D8 .clearMarkerSprites
 26E4 .checkRedrawPending
-283C .checkBHeld
-28E1 .loadSongCol
-2945 .checkButtons
+283C .solo
+28E1 .soloSelf
+2945 .release
 2BDB .checkIsCGB
 2BF1 .checkIsCGBb
 2C07 .checkIsCGBc
@@ -762,25 +762,25 @@
 261D .toDrawDispatch_Help
 2665 .setSyncInGate
 266A .setRedrawPending
-27B7 .cont
-27B8 .loadKbdInstrument
-27CB .loadSongCol_2
-27CF .readSoundCh
-2837 .ret01
-286A .readSoundCh_2
-28BC .readSoundCh_3
-28D8 .readSoundCh_4
-2964 .checkKbdInstrument
-2971 .cont_2
-2972 .loadKbdInstrument_2
-2985 .loadSongCol_3
-2989 .index
-29DF .readSoundCh_5
-29F3 .readSoundCh_6
-2A16 .readSoundCh_7
-2A38 .readSoundCh_8
-2A56 .readSoundCh_9
-2A5F .cont_3
+27B7 .kbdSet
+27B8 .pickChannel
+27CB .cursorChannel
+27CF .override
+2837 .took
+286A .silence
+28BC .writeSilence
+28D8 .soloNext
+2964 .restoreOne
+2971 .kbdSet2
+2972 .pickChannel2
+2985 .cursorChannel2
+2989 .restore
+29DF .unsolo
+29F3 .unsoloOther
+2A16 .noSavedPan
+2A38 .writeOutput
+2A56 .unsoloNext
+2A5F .redraw
 2AB3 .cont
 2AB6 .cont_2
 2AC6 .cont_3

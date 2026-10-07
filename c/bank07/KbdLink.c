@@ -59,7 +59,7 @@ extern UBYTE wKbdSustain;                   /* $CBA0 */
 extern UBYTE wKbdInstrument2;               /* $CB95 */
 extern UBYTE wKbdActionCh;                  /* $CB9A */
 extern UBYTE wKbdChanTrigger[];             /* $CB9B, [4] */
-extern UBYTE wChanModFlag[];                /* $C0A0, [4] */
+extern UBYTE wChanOutput[];                /* $C0A0, [4] */
 extern UBYTE wSelectHeld;                   /* $C40A */
 extern UBYTE wBHeld;                        /* $C40B */
 void DrawKbdInstrName(void);
@@ -403,7 +403,7 @@ msg:
             goto note;
     case 0x40:
         wKbdActionCh = 0;
-        if (wChanModFlag[0] & 0x80)
+        if (wChanOutput[0] & 0x80)
             return 0x20;
         wBHeld = 1;
         return 0x60;
@@ -412,7 +412,7 @@ msg:
             goto note;
     case 0x48:
         wKbdActionCh = 1;
-        if (wChanModFlag[1] & 0x80)
+        if (wChanOutput[1] & 0x80)
             return 0x20;
         wBHeld = 1;
         return 0x60;
@@ -421,7 +421,7 @@ msg:
             goto note;
     case 0x0F:
         wKbdActionCh = 2;
-        if (wChanModFlag[2] & 0x80)
+        if (wChanOutput[2] & 0x80)
             return 0x20;
         wBHeld = 1;
         return 0x60;
@@ -430,7 +430,7 @@ msg:
             goto note;
     case 0x70:
         wKbdActionCh = 3;
-        if (wChanModFlag[3] & 0x80)
+        if (wChanOutput[3] & 0x80)
             return 0x20;
         wBHeld = 1;
         return 0x60;
