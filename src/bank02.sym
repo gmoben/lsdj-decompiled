@@ -104,7 +104,7 @@
 4F3C SndDecodeCmdNibbles        ; decode a command's nibbles ($01/$02 cases)
 4FC0 SndApplyTableCmd           ; (cp $02) SndReadSramByteVia then jp SndClampNoteRange
 503C SndReadSramByteVia         ; read [hl-pointer] from SRAM ($0a enable, di/reti) -> e
-504A SndRunTableStep            ; run a table step (SndDecodeCmdNibbles, SndTableStepDispatch)
+504A SndRunTableStep            ; run a table step (SndDecodeCmdNibbles, SndNoiChordStep)
 5074 SndRandom15                ; Random16() % 15: B (MayBe) in a phrase plays when this is below the probability digit
 507F SndAdvanceStatePtrs        ; advance the 7 working sound-state pointers (low bytes $c8df/e1/e3/e5/e7/eb/ed) to the next channel's slot in the $C1xx tables (counterpart of InitSoundStatePtrs)
 509C SndReadPhraseCmd           ; fetch phrase FX cmd+val for the current row (SRAM bank 2 phrase_fx); H/W special-cased
@@ -141,7 +141,7 @@
 6685 SndRunFxSlot               ; set hSoundCh = $c527 & 3, run SndKillNote
 6694 SndWavLevelStep            ; step the WAV output level (NR32 bits 5-6) by the signed high digit of the argument: negative towards off, positive towards 100%
 66E7 SndResetPitchState         ; per-channel jp-table: clear wChanSlideNoteSrc, center wChanPitchCur ($8000), reset wChanCmdStep
-6904 SndTableStepDispatch       ; table-step jump table (jp hl), SndClampNoteRange
+6904 SndNoiChordStep            ; step the noise channel's chord (C): the note, the first digit's offset, the second's (skipped when 0), the note again; SndClampNoteRange gets the change
 69C3 EnvReleaseSpeed            ; E's release digit (hFxValue & 7) -> the envelope fade speed (EnvReleaseSpeeds)
 69DF EnvReleaseTarget           ; E's release direction (the second digit's bit 3, 9-F fade up): the volume the envelope fades toward, $0F or 0
 69F2 FxCmd_E_Pu1                ; E on PU1 (from FxCmd_E): restart the envelope (retriggering when the length bit is set), then fade at EnvReleaseSpeed toward EnvReleaseTarget
@@ -154,7 +154,7 @@
 6D97 SndStartChannels           ; start channels [$c8dd..$c8de] from wSongRow (per-screen playback entry)
 6E0F SndStartRange              ; start the play range: queued behind what is playing if any channel is active (SndLiveQueueRange), else at once (SndStartChannels)
 6E24 SndLiveStopRange           ; live mode, stop the play range's channels (SELECT+START): queued starts cancelled; an active channel stops at its chain's end, or its phrase's when pressed again (wChanLiveQueued)
-6EA7 SndChanStateMachine        ; per-channel state-machine dispatch (multiple branches)
+6EA7 SndLiveStartQueued         ; live mode: a channel queued to start (wChanLiveQueued) whose chain has ended starts now (wChanRestart)
 6F65 SndGetChainPhrase          ; bounds-checked chain_phrases[chain*16+row] lookup (chain=arg sp+6, row=arg sp+7 <$10; SRAM $A080); DebugTrap on out-of-range
 6FB6 SndStepWavFrames           ; step the synth's frames: on the timer, add the delta list's next step to wWavSynthFrame and reload the wave; at the list's end stop (play mode 1) or loop
 7034 SndSpeechStep              ; speech: when the frame's ticks run out, play the word's next allophone (SRAM bank 0 stream at wSpeechPtr; 0 ends the word) on kit voice 2, then read the next frame's length
@@ -227,7 +227,7 @@
 66E6 .done                ; common exit of SndWavLevelStep
 689C .done                ; common exit of SndResetPitchState
 6902 .done2               ; common exit of SndResetPitchState
-69BF .done                ; common exit of SndTableStepDispatch
+69BF .done                ; common exit of SndNoiChordStep
 6A26 .done                ; common exit of FxCmd_E_Pu1
 6A5C .done2               ; common exit of FxCmd_E_Pu2
 6A92 .done3               ; common exit of FxCmd_E_Noi
@@ -242,7 +242,7 @@
 6E22 .done                ; common exit of SndStartRange
 6E2E .loop                ; loop head in SndLiveStopRange
 6EA3 .done                ; common exit of SndLiveStopRange
-6F61 .done                ; common exit of SndChanStateMachine
+6F61 .done                ; common exit of SndLiveStartQueued
 6F87 .loop                ; loop head in SndGetChainPhrase
 7032 .done                ; common exit of SndStepWavFrames
 735E .done                ; common exit of SndAdvanceChanPos

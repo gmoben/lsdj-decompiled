@@ -73,6 +73,9 @@ extern UBYTE wWavUploadPending;              /* $C69C */
 extern UBYTE wFxWaveParam2;                 /* $C8C3 */
 extern UBYTE wChanFreqHi[];                 /* $C2E0, [4] */
 extern UBYTE wChanEnv[];                    /* $C2D8, [4] */
+extern UBYTE wChanRestart[];                /* $C0E4, [4] */
+extern UBYTE wChanChordPhase[];             /* $C21C, [4] */
+extern UBYTE wNoiChordPrevOfs;              /* $C8DC */
 extern UBYTE wEnvStagePu1, wEnvSpeedPu1, wEnvCounterPu1, wEnvTargetPu1;    /* $CBBF.. */
 extern UBYTE wEnvStagePu2, wEnvSpeedPu2, wEnvCounterPu2, wEnvTargetPu2;    /* $CBC6.. */
 extern UBYTE wEnvStageNoi, wEnvSpeedNoi, wEnvCounterNoi, wEnvTargetNoi;    /* $CBCD.. */
@@ -129,6 +132,7 @@ void TriggerNoise(void);                    /* asm */
 void SndSetupLfo(void);                     /* asm */
 UBYTE EnvReleaseSpeed(void);
 UBYTE EnvReleaseTarget(void);
+void SndClampNoteRange(UBYTE n);            /* asm */
 
 /* $507F: step the working pointers to the next channel */
 
@@ -239,6 +243,45 @@ void FxCmd_T(void)
     wTempo = hFxValue;
     wTempoMode = 0;
     FarCall(7, FAR_FN(SetSyncSendRate));
+}
+
+/* $6904: step the noise channel's chord: the note, the first digit's
+   offset, the second's (skipped when 0), the note again */
+
+void SndNoiChordStep(void)
+{
+    UBYTE chord;
+    UBYTE *q;
+
+    chord = wChanChord[3];
+    if (chord) {
+        q = wChanChordPhase;
+        switch (q[3]) {
+        case 0:
+            q[3] = 1;
+            wNoiChordPrevOfs = 0;
+            break;
+        case 1:
+            q[3] = 2;
+            chord >>= 4;
+            SndClampNoteRange(chord);
+            wNoiChordPrevOfs = chord;
+            break;
+        case 2:
+            if (chord & 0x0F) {
+                q[3] = 3;
+                chord &= 0x0F;
+                SndClampNoteRange(chord - wNoiChordPrevOfs);
+                wNoiChordPrevOfs = chord;
+                break;
+            }
+        case 3:
+            q[3] = 1;
+            SndClampNoteRange(-wNoiChordPrevOfs);
+            wNoiChordPrevOfs = 0;
+            break;
+        }
+    }
 }
 
 const UBYTE EnvReleaseSpeeds[8] = {0x00, 0x06, 0x0B, 0x11, 0x16, 0x1C, 0x22, 0x27};
@@ -635,6 +678,34 @@ void TogglePlayback(void)
     else
         SyncStopTransport();
     wSongRow = row;
+}
+
+/* $6EA7: live mode: a channel queued to start whose chain has ended starts
+   now (wChanRestart) */
+
+void SndLiveStartQueued(void)
+{
+    UBYTE *q;
+
+    if (wLiveMode) {
+        q = wChanLiveQueued;
+        if (q[0] && !wChanActive[0]) {
+            q[0] = 0;
+            wChanRestart[0] = 1;
+        }
+        if (q[1] && !wChanActive[1]) {
+            q[1] = 0;
+            wChanRestart[1] = 1;
+        }
+        if (q[2] && !wChanActive[2]) {
+            q[2] = 0;
+            wChanRestart[2] = 1;
+        }
+        if (q[3] && !wChanActive[3]) {
+            q[3] = 0;
+            wChanRestart[3] = 1;
+        }
+    }
 }
 
 /* $6FB6: step the synth's frames: when the timer runs out, add the delta

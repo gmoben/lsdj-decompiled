@@ -2873,10 +2873,22 @@
   "len": 197,
   "src": "c/bank02/Sound.c"
  },
+ "SndLiveStartQueued": {
+  "bank": "02",
+  "addr": "6EA7",
+  "len": 190,
+  "src": "c/bank02/Sound.c"
+ },
  "SndLiveStopRange": {
   "bank": "02",
   "addr": "6E24",
   "len": 131,
+  "src": "c/bank02/Sound.c"
+ },
+ "SndNoiChordStep": {
+  "bank": "02",
+  "addr": "6904",
+  "len": 191,
   "src": "c/bank02/Sound.c"
  },
  "SndRandomUpTo": {

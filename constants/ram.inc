@@ -159,7 +159,7 @@ DEF wFxChannel       EQU $C527  ; channel (0-3) the command/FX/table engine is p
                                 ; FX OR in bit2/bit3 as mode flags (tested via `and $fc` before using it as an index)
 DEF wChanCmdRate     EQU $C8C6  ; [4] command/table step rate = instrument COMMAND_RATE (byte 8); reload value for the countdown
 DEF wChanCmdCountdown EQU $C8CA ; [4] ticks until the next command/table step; SndRunTableStep decrements it, and on 0
-                                ; reloads it from wChanCmdRate and runs the step (SndDecodeCmdNibbles / SndTableStepDispatch)
+                                ; reloads it from wChanCmdRate and runs the step (SndDecodeCmdNibbles / SndNoiChordStep)
 DEF wFxCommand       EQU $C8C4  ; current FX command index (0-$12) being processed for the channel; argument in
                                 ; hFxValue. Set from wChanCmd, dispatched via the jump table at $47A2 (DispatchFxCommand)
 
@@ -216,7 +216,7 @@ DEF wChanActiveInstr EQU $C0C8  ; [4] instrument currently loaded into the sound
 DEF wChanNote        EQU $C0CC  ; [4] current note value per channel
 DEF wChanState       EQU $C0E0  ; start of the per-channel byte-state arrays
 DEF wChanActive      EQU $C0E0  ; [4] per-channel active flag; ProcessChannel runs only if nonzero
-DEF wChanRestart     EQU $C0E4  ; [4] per-channel (re)start request; SndChanStateMachine sets, SndStartChannel consumes
+DEF wChanRestart     EQU $C0E4  ; [4] per-channel (re)start request; SndLiveStartQueued sets, SndStartChannel consumes
 DEF wChanOutNote     EQU $C0E8  ; [4] effective note used for frequency: bank0 SndWriteFreqPU1 looks up the period as
                                 ; wNotePeriods[wChanOutNote + $7F + offset]. Set = wChanNote each tick by
                                 ; WriteChannelFreq; read/adjusted by the pitch-slide command (FxCmd_L)
@@ -595,7 +595,7 @@ DEF wChanTableFreshNoi EQU $C2EF  ; table freshly restarted, NOI
 DEF wChanNextSongRowPu1Hi EQU $C2FD  ; wChanNextSongRow[0] hi byte (Pu1)
 DEF wChanNextSongRowPu2 EQU $C2FE  ; wChanNextSongRow[1]  (Pu2)
 DEF wChanNextSongRowPu2Hi EQU $C2FF  ; wChanNextSongRow[1] hi byte (Pu2)
-DEF wChanLiveQueued  EQU $C300  ; [4] live mode: a song row is queued for this channel (SndChanStateMachine; the play marker blinks faster while set)
+DEF wChanLiveQueued  EQU $C300  ; [4] live mode: a song row is queued for this channel (SndLiveStartQueued; the play marker blinks faster while set)
 DEF wChanVibAccumPu1Hi EQU $C309  ; vibrato phase accumulator hi, PU1 (16-bit += wChanVibSpeed)
 DEF wChanVibAccumPu2 EQU $C30A  ; vibrato phase accumulator lo, PU2
 DEF wChanVibAccumPu2Hi EQU $C30B  ; vibrato phase accumulator hi, PU2
