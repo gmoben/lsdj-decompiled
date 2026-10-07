@@ -135,8 +135,10 @@ extern UBYTE wSyncMode2;                    /* $CB67 */
 /* --- bank 2: the sound engine ----------------------------------------------- */
 
 /* Far-call targets, declared as the banked-call routines take them; bank 2's
-   own units (SOUND_BANK) define them with their real types. */
-#ifndef SOUND_BANK
+   own units (SOUND_BANK) define them with their real types, and a unit that
+   calls one directly with bank 2 paged in (SND_DIRECT: Main.c's
+   ProcessInput) declares it so itself. */
+#if !defined(SOUND_BANK) && !defined(SND_DIRECT)
 void SndGetChainPhrase(void);               /* $02:$6F65 (far): chain_phrases[chain][row] */
 #endif
 

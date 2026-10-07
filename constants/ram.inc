@@ -381,7 +381,8 @@ DEF wAPressEnabled    EQU $C409  ; 1 = an A-press is allowed (set on button rele
 DEF wSelectHeld      EQU $C40A  ; nonzero while SELECT is held alone (set by HandleButtonEvent); read by screens as the SELECT modifier
 DEF wBHeld           EQU $C40B  ; nonzero while B is held alone (set by HandleButtonEvent); e.g. disables song-cursor left/right
 DEF wAHeld           EQU $C40C  ; nonzero while A is held alone (set by HandleButtonEvent)
-DEF wCursorButtonHold EQU $C467 ; cursor button-hold state (ProcessInput / editor cursors)
+DEF wPendingCmdTarget EQU $C467 ; where wPendingCmds go when A is released (ProcessInput): 0 the phrase, 1/2 the table's CMD1/CMD2 columns; $FF none
+DEF wPendingCmds     EQU $C457  ; [16] command letters edited with A held, by row; ProcessInput writes them on A's release (WritePhraseFx / TableWriteCmd)
 DEF wKeyDelay        EQU $C52B  ; KEY DELAY setting: frames before a held button first repeats (0 = off)
 DEF wKeyRepeat       EQU $C52C  ; KEY REPEAT setting: frames between repeats after the initial delay
 ; PROJECT-screen settings (working copies of song properties; loaded from SRAM
@@ -681,10 +682,10 @@ DEF wChanDispNoteWav EQU $C421  ; pending display note, WAV (speech path writes)
 DEF wChanDispNoteNoi EQU $C422  ; pending display note, NOI (SetNoisePoly tail)
 DEF wChanDispNoteTimer EQU $C423  ; [4] sample-name display hold countdown ($19 frames)
 DEF wUnusedC443  EQU $C443  ; set to 0 at reset, never read
-DEF wUnusedC44B      EQU $C44B  ; set to 1 at init, never read
-DEF wUnusedC44C      EQU $C44C  ; set to 1 at init, never read
-DEF wUnusedC44D      EQU $C44D  ; set to 1 at init, never read
-DEF wUnusedC44E      EQU $C44E  ; set to 1 at init, never read
+DEF wColLastCmd     EQU $C44B  ; [4] per song column: the last command letter ProcessInput wrote from wPendingCmds (1 at init); never read
+DEF wColLastCmdPu2  EQU $C44C  ; wColLastCmd[1]
+DEF wColLastCmdWav  EQU $C44D  ; wColLastCmd[2]
+DEF wColLastCmdNoi  EQU $C44E  ; wColLastCmd[3]
 DEF wColChainPu2     EQU $C450  ; chain under cursor, song column PU2
 DEF wColChainWav     EQU $C451  ; chain under cursor, song column WAV
 DEF wColChainNoi     EQU $C452  ; chain under cursor, song column NOI

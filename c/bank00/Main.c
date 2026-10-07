@@ -1,5 +1,6 @@
 /*
- * InitAndLoadSong and main -- LSDj 9.4.0, ROM bank $00 ($0DDB, $1306).
+ * InitAndLoadSong, ProcessInput and main -- LSDj 9.4.0, ROM bank $00 ($0DDB,
+ * $0ED6, $1306).
  *
  * MATCHING C (period GBDK 2.95-3 / SDCC 2.2.1 + tools/match/lsdj.peep);
  * `make match` verifies every function here against the ROM.
@@ -15,6 +16,7 @@
  * which needs no linker symbol).
  */
 
+#define SND_DIRECT          /* ProcessInput calls SndGetChainPhrase with bank 2 paged in */
 #include "lsdj.h"
 
 sfr hGameboyTypeIo = 0xFF90;
@@ -53,7 +55,46 @@ void FormatFileSpace(void);                 /* bank $1C */
 void LoadProjectSettings(void);             /* bank 1 */
 UBYTE CheckFileMagicAll(void);              /* bank $1C */
 void RenderSynthWave(void);                 /* bank $1D */
-UBYTE ProcessInput(void);
+UBYTE ProcessLinkQueue(void);               /* bank 7 */
+UBYTE GetNextButtons(void);
+UBYTE SndGetChainPhrase(UBYTE chain, UBYTE row);    /* bank 2 */
+void MarkPhraseUsed(UBYTE phrase);          /* bank 1 */
+void MarkChainUsed(UBYTE chain);            /* bank 1 */
+void InitRemapTable(void);                  /* bank $1F */
+void TogglePlayback(void);                  /* bank 2 */
+void SyncApplyMode(void);
+void WritePhraseFx(UBYTE phrase, UBYTE row, UBYTE fx);  /* bank 4 */
+void TableWriteCmd(UBYTE row, UBYTE fx);    /* bank 5 */
+void GrooveResetState(void);                /* bank $1D */
+UBYTE HandleButtonEvent(void);
+extern UBYTE wKbdActionCh;                  /* $CB9A */
+extern UBYTE wLinkQueueCount;               /* $CB7D */
+extern UBYTE wKbdHeldNote;                  /* $CB7E */
+extern UBYTE wSelHoldFrames;                /* $C676 */
+extern UBYTE wChainScopeDirty;              /* $C403 */
+extern UBYTE wSongScopeDirty;               /* $C404 */
+extern UBYTE wChain;                        /* $C418 */
+extern char wChainRow;                      /* $C41A: a char (copied through b to be pushed) */
+extern UBYTE wColPhrase[];                  /* $C453, [4] */
+extern UBYTE wColChain[];                   /* $C44F, [4] */
+extern UBYTE wColLastCmd[];                 /* $C44B, [4] */
+extern UBYTE wInstrRemapDirty;              /* $C9B7 */
+extern UBYTE wTransposeDirty;               /* $C445 */
+extern UBYTE wSongTranspose;                /* $C444 */
+extern UBYTE wSongTransposeDisp;            /* $C446 */
+extern UBYTE wLiveStartCol;                 /* $C571 */
+extern UBYTE wSavedLiveMode;                /* $C572 */
+extern UBYTE wLiveMode;                     /* $C528 */
+extern UBYTE wPendingCmdTarget;             /* $C467 */
+extern UBYTE wPendingCmds[];                /* $C457, [16] */
+extern UWORD wTableCellAPtr, wTableCellBPtr;    /* $C447, $C449 */
+extern UBYTE wGrooveCacheValid;             /* $C9D5 */
+extern UBYTE *wTopBarMarkPtr;               /* $C562 */
+extern UBYTE wKeyDelay, wKeyRepeat;         /* $C52B, $C52C */
+extern UBYTE wKeyDelayTimer, wKeyRepeatTimer;   /* $C406, $C407 */
+extern UBYTE wAPressEnabled;                /* $C409 */
+extern UBYTE wSelectHeld;                   /* $C40A */
+extern UBYTE wBHeld;                        /* $C40B */
 void ScreenUpdateDispatch(void);
 UBYTE AnyChanFlagSet(void);
 void UpdatePlayClock(void);                   /* bank 1 */
@@ -63,6 +104,167 @@ void UiUpdateMessage(void);                 /* bank 1 */
 void SetInterruptEnable(UBYTE ie);          /* asm */
 UBYTE joypad(void);                         /* GBDK */
 void WaitInterrupt(void);                   /* asm */
+
+/* $0ED6: the frame's input: the keyboard's queued events (the first that
+   is a button state) or the joypad's next buttons; SELECT tapped alone
+   becomes $43. Releasing A commits what was edited while it was held (the
+   chain or song cursor's phrase or chain marked used, the instrument remap,
+   the transpose, a queued live start, held command edits), then a button
+   change goes to HandleButtonEvent at the key delay and repeat rates. 1
+   when nothing was handled */
+
+UBYTE ProcessInput(void)
+{
+    UBYTE buttons;
+    UBYTE r;
+    UBYTE v;
+    UBYTE *p;
+    UBYTE i;
+    UBYTE ok;
+
+    wKbdActionCh = 0xFF;
+    if (wLinkQueueCount) {
+        SWITCH_ROM(7);
+        do
+            buttons = ProcessLinkQueue();
+        while (--wLinkQueueCount && buttons == 0xFF);
+        if (buttons == 0xFF)
+            return 1;
+    } else {
+        buttons = GetNextButtons();
+        if (wKbdHeldNote) {
+            if (buttons)
+                wKbdHeldNote = 0;
+            else
+                return 1;
+        }
+    }
+    if (buttons) {
+        if (buttons != 0x40)
+            wSelHoldFrames = 0;
+        else if (!wButtons)
+            wSelHoldFrames = 1;
+    } else if (wSelHoldFrames) {
+        buttons = 0x43;
+        wSelHoldFrames = 0;
+    }
+    if ((wButtons & 0x10) && !(buttons & 0x10)) {
+        if (wChainScopeDirty) {
+            wChainScopeDirty = 0;
+            SWITCH_ROM(2);
+            r = SndGetChainPhrase(wChain, wChainRow);
+            if (r != 0xFF) {
+                SWITCH_ROM(1);
+                MarkPhraseUsed(r);
+                wColPhrase[wSongCol] = r;
+            }
+        }
+        if (wSongScopeDirty) {
+            wSongScopeDirty = 0;
+            SWITCH_ROM(2);
+            r = ReadSeqByte(wSongCol, wSongRow);
+            if (r < 0x80) {
+                SWITCH_ROM(1);
+                MarkChainUsed(r);
+                wColChain[wSongCol] = r;
+            }
+        }
+        if (wInstrRemapDirty) {
+            SWITCH_ROM(0x1F);
+            InitRemapTable();
+        }
+        if (wTransposeDirty) {
+            wTransposeDirty = 0;
+            wSongTranspose = wSongTransposeDisp;
+            WriteSongByte(1, 0xBFB5, wSongTranspose);
+        }
+        if (wLiveStartCol != 0xFF) {
+            wLiveStartCol = 0xFF;
+            SWITCH_ROM(2);
+            TogglePlayback();
+            wLiveMode = wSavedLiveMode;
+            SyncApplyMode();
+            return 0;
+        }
+        if (wPendingCmdTarget != 0xFF) {
+            for (i = 0; i < 0x10; i++) {
+                p = &wPendingCmds[i];
+                v = *p;
+                if (v) {
+                    if (v > 0x13)
+                        DebugTrap();
+                    switch (wPendingCmdTarget) {
+                    case 0:
+                        SWITCH_ROM(4);
+                        WritePhraseFx(wPhrase, i, v);
+                        break;
+                    case 1:
+                        SWITCH_ROM(5);
+                        wTableCellAPtr = 0xB680;
+                        wTableCellBPtr = 0xB880;
+                        TableWriteCmd(i, v);
+                        break;
+                    case 2:
+                        SWITCH_ROM(5);
+                        wTableCellAPtr = 0xBA80;
+                        wTableCellBPtr = 0xBC80;
+                        TableWriteCmd(i, v);
+                        break;
+                    }
+                    wColLastCmd[wSongCol] = v;
+                    *p = 0;
+                }
+            }
+            wPendingCmdTarget = 0xFF;
+        }
+        if (wGrooveCacheValid) {
+            SWITCH_ROM(0x1D);
+            GrooveResetState();
+        }
+    }
+    if (buttons) {
+        ok = 1;
+        if (*wTopBarMarkPtr != 0x21 && (buttons & 0x10) && (buttons & 0x6F))
+            WriteSongByte(1, 0xBFC1, *wTopBarMarkPtr = 0x21);
+        wButtonsSame = wButtons == buttons;
+        if (!wButtonsSame) {
+            wKeyDelayTimer = wKeyDelay;
+            wKeyRepeatTimer = wKeyRepeat;
+        }
+        wButtons = buttons;
+        if (wKeyDelay == wKeyDelayTimer) {
+            SWITCH_ROM(3);
+            if (ok = HandleButtonEvent())
+                wKeyDelayTimer--;
+        } else if (wKeyDelayTimer)
+            wKeyDelayTimer--;
+        else {
+            if (wKeyRepeatTimer == wKeyRepeat) {
+                SWITCH_ROM(3);
+                if (!(ok = HandleButtonEvent())) {
+                    wKeyRepeatTimer = wKeyRepeat;
+                    wKeyDelayTimer = wKeyDelay;
+                }
+            }
+            if (wKeyRepeatTimer)
+                wKeyRepeatTimer--;
+            else
+                wKeyRepeatTimer = wKeyRepeat;
+        }
+        if (ok && (wButtons & 0xF0))
+            wAPressEnabled = 0;
+        return !ok;
+    }
+    if (wButtons) {
+        wButtons = 0;
+        wSelectHeld = 0;
+        wAPressEnabled = 1;
+        wBHeld = 0;
+        wKeyDelayTimer = wKeyDelay;
+        wKeyRepeatTimer = wKeyRepeat;
+    }
+    return 1;
+}
 
 void InitAndLoadSong(void)
 {

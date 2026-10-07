@@ -2417,6 +2417,12 @@
   "len": 72,
   "src": "c/bank04/PhraseScreen.c"
  },
+ "ProcessInput": {
+  "bank": "00",
+  "addr": "0ED6",
+  "len": 962,
+  "src": "c/bank00/Main.c"
+ },
  "ProcessKbdNote": {
   "bank": "07",
   "addr": "6E50",

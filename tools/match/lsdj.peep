@@ -970,6 +970,27 @@ replace restart {
 	bit	%2,a
 	jp	%3,%4
 }
+// A constant stored to the byte just tested with `!=` reloads hl (the next
+// rule's drop does not apply): ProcessInput's `if (wLiveStartCol != 0xFF) {
+// wLiveStartCol = 0xFF;`, the ROM's only such store after a compare; the
+// `inc (hl)` / `dec (hl)` after one (5 sites) keep hl. Dropping the dead
+// label keeps the next rule off.
+replace restart {
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+	cp	a,#%3
+	jp	z,%4
+%5:
+	ld	hl,#%1 + %2
+	ld	(hl),#%6
+} by {
+	ld	hl,#%1 + %2
+	ld	a,(hl)
+	cp	a,#%3
+	jp	z,%4
+	ld	hl,#%1 + %2
+	ld	(hl),#%6
+} if labelRefCount %5 0
 replace restart {
 	ld	hl,#%1 + %2
 	ld	a,(hl)

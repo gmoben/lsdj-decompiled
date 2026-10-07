@@ -64,7 +64,7 @@
 0061 CrashTrampoline            ; trampoline: select ROM bank 1, jp CrashHandler ($794B)
 0391 TimerHandler       ; timer IRQ body: sound/playback engine tick
 0662 TimerHandlerReturn ; timer IRQ epilogue: restore regs, wait rSTAT, reti
-0ED6 ProcessInput       ; main.mainLoop input handler: drain the button queue (GetNextButtons) and dispatch to the current screen
+0ED6 ProcessInput       ; the frame's input: queued keyboard events or the joypad; A's release commits what was edited while held; button changes go to HandleButtonEvent at the key delay/repeat rates
 1CEA GetNextButtons     ; dequeue next button state from the input ring ($CE00[wButtonReadIdx++]) -> e; stops at wButtonWriteIdx
 2B8D HandleButtonEvent  ; process one button event: latch A/B/Select held flags (wAHeld/wBHeld/wSelectHeld) from wButtons, then HandleInputCombos + DispatchScreenInput, OR their results
 271A HandleInputCombos  ; the B combos before the screen's input: B+SELECT mute, B+LEFT/RIGHT pan (song screen), B+START solo, B released restores; 1 when one took the buttons
@@ -347,8 +347,8 @@
 0B69 .loop                ; loop head in LoadSynthShape
 0D48 .done                ; common exit of KitExists
 0DB8 .done                ; common exit of SortBytePair
-0EEF .loop                ; loop head in ProcessInput
-1089 .loop2               ; loop head in ProcessInput
+0EEF .linkLoop            ; loop head in ProcessInput: the keyboard's queued events
+1089 .pendingLoop         ; loop head in ProcessInput: the rows' pending command letters
 1294 .done                ; common exit of ProcessInput
 1304 .done                ; common exit of ColorField
 1439 .loop                ; loop head in main.mainLoop
@@ -481,21 +481,21 @@
 0B04 .ok
 0B0F .okb
 0EAB .setTimerReload
-0F13 .getNextButtons
-0F4A .checkButtons
-0F5A .checkSelHoldFrames
-0F6B .loadButtons
-1033 .checkTransposeDirty
-107E .checkCursorButtonHold
-10B2 .ok
-1152 .setCursorButtonHold
-11B6 .setButtonsSame
-11FA .checkKeyDelayTimer
-1206 .checkKeyRepeat
-1234 .checkKeyRepeatTimer
-1240 .loadKeyRepeat
-1258 .setAPressEnabled
-1269 .checkButtonsb
+0F13 .joypad
+0F4A .selectAlone
+0F5A .selectReleased
+0F6B .aRelease
+1033 .transpose
+107E .pendingCmds
+10B2 .pendingTarget
+1152 .pendingDone
+11B6 .storeSame
+11FA .delaying
+1206 .repeating
+1234 .repeatCount
+1240 .repeatReload
+1258 .noAPress
+1269 .noButtons
 12B4 .ok
 1324 .setIsCGB
 13A5 .decRedrawPending
@@ -612,26 +612,26 @@
 0EA9 .setTimerReload_2
 0EBC .cont_2
 0EBE .setTimerReload_3
-0F06 .checkArg
-0F30 .ret01
-0F35 .setSelHoldFrames
-0FCE .setIsCGB
-101F .checkProjCursor
-1054 .checkButtonWriteIdx
-10C7 .cont
-10E6 .setTableCellAPtr
-110F .setTableCellAPtr_2
-1135 .loadSongCol
-114E .setCursorButtonHold_2
-1157 .checkGrooveRow
-116B .loadTopBarStr
-1190 .loadTopBarStr_2
-11A8 .checkButtons_2
-11B5 .setButtonsSame_2
-11CE .setButtons
-1248 .loadButtons_2
-125D .cont_2
-1292 .cont_3
+0F06 .linkDone
+0F30 .heldNote
+0F35 .selectTap
+0FCE .songScope
+101F .instrRemap
+1054 .liveStart
+10C7 .toPhrase
+10E6 .toTableCmd1
+110F .toTableCmd2
+1135 .pendingWritten
+114E .pendingNext
+1157 .groove
+116B .buttons
+1190 .markUnsaved
+11A8 .repeat
+11B5 .changedButtons
+11CE .storeButtons
+1248 .handled
+125D .result
+1292 .idle
 12EA .cont
 1306 main               ; the C entry point (Start jumps here): detect the hardware, InitAndLoadSong, redraw, file-system check; then main.mainLoop is its endless loop
 1318 .readAUDENA
