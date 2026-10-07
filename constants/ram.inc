@@ -437,8 +437,8 @@ DEF wRowBufCol5      EQU $C4BD  ; [16] shared row buffer, sixth column (table: v
 DEF wTopBarStr       EQU $C555  ; top-bar/title string buffer (DrawTopBar draws it directly)
 DEF wPlayFrames      EQU $C6A8  ; PLAY clock frame divider (UpdatePlayClock: 60 frames = 1 s, restarted at 1 every 4th
                                 ; second to track the 59.73 Hz frame rate); 0 while stopped
-DEF wHelpStrBuf      EQU $C7B0  ; [20] help/status string buffer (UiDrawHelpStr unrolled copy; wHelpSrcPtr follows)
-DEF wHelpSrcPtr      EQU $C7C4  ; [1] 16-bit source pointer of the staged help string, 2 bytes
+DEF wCrashStack      EQU $C7B0  ; [20] the crash's stack dump: 20 bytes copied from above the stack pointer (CrashSaveStack), shown as 10 words
+DEF wCrashSP      EQU $C7C4  ; the stack pointer at the crash (CrashSaveStack), shown after STK:
 DEF wClipboardSave   EQU $C7C6  ; [252] ResetEditorState keeps wClipboardBuf here across ResetWorkState
 DEF wPlayChanFirst   EQU $C8DD  ; first channel to start playing (SndStartChannels)
 DEF wPlayChanLast    EQU $C8DE  ; last channel to start playing

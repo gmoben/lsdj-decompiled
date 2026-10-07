@@ -377,6 +377,12 @@
   "len": 207,
   "src": "c/bank06/Screens.c"
  },
+ "CrashHandler": {
+  "bank": "01",
+  "addr": "794B",
+  "len": 10,
+  "src": "c/bank01/UiHelpers.c"
+ },
  "CursorInstrIsKit": {
   "bank": "04",
   "addr": "510A",
@@ -490,6 +496,12 @@
   "addr": "42A4",
   "len": 49,
   "src": "c/bank05/TableScreen.c"
+ },
+ "DrawCrashScreen": {
+  "bank": "01",
+  "addr": "7955",
+  "len": 549,
+  "src": "c/bank01/UiHelpers.c"
  },
  "DrawDecimalField": {
   "bank": "1B",
