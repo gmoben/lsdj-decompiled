@@ -285,6 +285,14 @@ class HramReuseTests(unittest.TestCase):
         out = self.run_pass(self.READ_C + self.INDEX_C + self.READ_C + self.INDEX_C)
         self.assertEqual(out, self.READ_C + self.INDEX_C + self.INDEX_C)
 
+    def test_pair_goes_when_a_dies_a_few_lines_on(self):
+        # SndStartChanFromRow: the 16-bit index of wChanPhrase[hSoundCh]
+        word = ["\tld\tde,#_wChanPhrase", "\tld\tl,c", "\tld\th,#0x00", "\tadd\thl,de", "\tld\ta,l"]
+        out = self.run_pass(self.READ_C + self.INDEX_C + self.READ_C + word)
+        self.assertEqual(out, self.READ_C + self.INDEX_C + word)
+        kept = self.READ_C + self.INDEX_C + self.READ_C + ["\tld\tde,#_wX", "\tpush\taf"]
+        self.assertEqual(self.run_pass(kept), kept)
+
     def test_no_copy_from_another_register(self):
         source = self.READ_C + self.INDEX_C + self.READ_B + ["\tld\tde,#_wArr"]
         self.assertEqual(self.run_pass(source), source)
@@ -296,10 +304,16 @@ class HramReuseTests(unittest.TestCase):
                     "\tldh\ta,(_hSoundCh+0)", "\tadd\ta,a"]
         self.assertEqual(self.run_pass(equality), equality)
 
-    def test_store_through_a_loaded_pointer_ends_it(self):
+    def test_store_through_a_loaded_pointer_ends_a_carried_byte(self):
+        # SndUpdateChannel's D: c read before `if (d)`, then `+=` through a
+        # stack pointer, then a reread; StartSongPlayback's `*active = 1` after an
+        # in-block read keeps it
         store = ["\tlda\thl,0(sp)", "\tld\te,(hl)", "\tinc\thl", "\tld\td,(hl)", "\tld\t(de),a"]
-        source = self.READ_C + store + self.READ_C + self.INDEX_C
-        self.assertEqual(self.run_pass(source), source)
+        test = ["\txor\ta,a", "\tor\ta,b", "\tjp\tz,00105$"]
+        carried = self.READ_C + test + store + self.READ_C + self.INDEX_C
+        self.assertEqual(self.run_pass(carried), carried)
+        in_block = self.READ_C + store + self.READ_C + self.INDEX_C
+        self.assertEqual(self.run_pass(in_block), self.READ_C + store + self.INDEX_C)
 
 
 if __name__ == "__main__":

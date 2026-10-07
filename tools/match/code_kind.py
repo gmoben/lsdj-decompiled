@@ -52,6 +52,23 @@ KNOWN_ASM = {
     "1c:FilePutDecompByte", "1c:ReadWorkingSongByte", "1c:WriteCompressedByte",
     # stack-argument readers that branch with `jr` / poll rSTAT
     "00:DrawTileRun", "00:WriteVramByteSafe",
+    # leaf routines without a stack frame, checked by hand: conditional
+    # returns mid-routine (`ret c`, `ret nz`: SDCC returns through its
+    # epilogue), register arguments (`push de` as a ModU8 call), `add a,l;
+    # ld l,a` / `inc l` address steps, `swap`, `stop`, unrolled `ld [hl+],a`,
+    # tail-jumping dispatchers, the `ld b,b` debugger marker
+    "00:SndInterpResume", "00:DebugTrap", "00:KitIndexToBank", "00:AnyChanFlagSet",
+    "00:SwitchToDoubleSpeed", "00:VibOffsetJumps",
+    "02:SndFxTableJump", "02:SndRandom15", "02:TriggerNote", "02:SetupChannelSound",
+    "02:SndClearChanFxSlots", "02:AdvanceChanCursors", "02:SndCountdownStep",
+    "02:SndFillFF", "02:FxCmd_M", "02:SndApplyTableTranspose", "02:ReadTableEnvelope",
+    "02:SndDeactivateChannel", "02:ReadTableTranspose", "02:SndDecodeNibbles",
+    # an `hl`-argument call wrapped in the C convention: RequestTileSlot pops
+    # its frame before setting the return value, which SDCC never does
+    "00:LoadTilesDispatch", "00:RequestTileSlot",
+    # compiled-looking but runs off its end into ScreenDrawDispatch (no
+    # `call; ret`): no C function ends without returning
+    "00:RedrawScreen",
 }
 
 # GBDK 2.95-3 / SDCC 2.2.1 library code linked into bank 0, by the source it

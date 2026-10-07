@@ -74,6 +74,7 @@ int StringLength(const char *s);            /* bank00/GbdkLib.c, nonbanked */
 UBYTE FindFreeBlock(UBYTE *bank, UWORD *src);   /* $1C:$415A */
 UBYTE CompressSong(void);                   /* $1C:$441F */
 UBYTE DrawVerifyPanel(UBYTE f);             /* $1C:$4778 */
+UBYTE FileLoadSlotInfo(UBYTE slot, UBYTE verify);
 UBYTE GetNextButtons(void);                 /* bank 0 */
 void UiClearSram(void);                     /* $01:$45D1 */
 void LoadProjectSettings(void);             /* $01:$7C86 */
@@ -313,6 +314,17 @@ UBYTE DecompressBlock(void)
         LoadCompressedBlock(b);
     }
     return 0;
+}
+
+/* $4778: the verify pass's panel ("VERIFY..."), then the slot read again
+   through the verify sink: FileLoadSlotInfo's result */
+
+UBYTE DrawVerifyPanel(UBYTE f)
+{
+    wVramCursor = 0x98E3;
+    DrawString("VERIFY...    ");
+    wBlockSinkPtr = VerifyBlockAgainstSram;
+    return FileLoadSlotInfo(f, 1);
 }
 
 void FormatFileSpace(void)

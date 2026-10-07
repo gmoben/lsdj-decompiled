@@ -1010,12 +1010,15 @@ def track_hram(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int
     in SndUpdateChannel and HandleInputCombos). `a` itself serves a reread
     only across an ordering test (SyncTickLSDJ's `hSoundCh < 4`: `cp #4; jp
     nc`); after an equality test the byte is reread (`cp; jp nz; ldh a,(X)`:
-    SndUpdateChannel, SndUpdateWavFreq, SndResetPitchState). An HRAM store, a
-    call, a jump target or a store through a pointer loaded from memory (`ld
-    e,(hl); inc hl; ld d,(hl); ld (de),a`, the `+=` in SndUpdateChannel's D)
-    ends the reuse; a store to an array element (`#arr + c` in de) does not."""
+    SndUpdateChannel, SndUpdateWavFreq, SndRetrigNote). An HRAM store, a
+    call or a jump target ends the reuse; a store through a pointer loaded
+    from memory (`ld e,(hl); inc hl; ld d,(hl); ld (de),a`) ends it for a
+    byte read before a conditional jump (the `+=` in SndUpdateChannel's D),
+    not for one read in this block (StartSongPlayback's `*active = 1`); a
+    store to an array element (`#arr + c` in de) ends neither."""
     out: list[str] = []
     holds: dict[str, str] = {}    # register -> the `(X)` it holds
+    carried: set[str] = set()     # registers whose byte was read before a conditional jump
     a_ok = False                  # `a`'s byte has crossed an ordering test since its read
     de_loaded = False             # de was last loaded from memory (a pointer of unknown target)
     dropped = 0
@@ -1034,7 +1037,31 @@ def track_hram(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int
     def forget() -> None:
         nonlocal a_ok
         holds.clear()
+        carried.clear()
         a_ok = False
+
+    def a_dead_from(i: int | None) -> bool:
+        """`a` is overwritten (as overwrites_a has it) before anything reads
+        it: instructions that leave `a` alone are skipped (`ld de,#x; ld
+        l,c; ld h,#0; add hl,de; ld a,l`, the address of a 16-bit index)."""
+        while i is not None:
+            t2 = _strip(lines[i]).strip()
+            if t2.endswith(":"):
+                return False
+            if overwrites_a(i):
+                return True
+            m2, o2 = _ops(t2)
+            if m2 in ("jp", "jr", "call", "ret", "reti", "rst") or "a" in _written(m2, o2):
+                return False
+            if m2 in ("add", "adc", "sub", "sbc", "and", "or", "xor", "cp") and (not o2 or o2[0] == "a"):
+                return False
+            if (m2 in ("ld", "ldh") and len(o2) == 2 and o2[1] == "a") or (m2 == "push" and o2 == ["af"]):
+                return False
+            if m2 in ("bit", "rl", "rr", "sla", "sra", "srl", "swap", "res", "set", "rlc", "rrc", "daa") \
+                    and o2 and o2[-1] == "a":
+                return False
+            i = nxt.get(i)
+        return False
 
     for idx, raw in enumerate(lines):
         if idx in skip:
@@ -1061,12 +1088,13 @@ def track_hram(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int
             if n1 is not None:
                 m1, o1 = _ops(_strip(lines[n1]).strip())
                 if m1 == "ld" and len(o1) == 2 and o1[1] == "a" and o1[0] in _REGS \
-                        and holds.get(o1[0]) == src and overwrites_a(nxt.get(n1)):
+                        and holds.get(o1[0]) == src and a_dead_from(nxt.get(n1)):
                     skip.add(n1)          # `ldh a,(X); ld r,a` with r == (X): both go
                     dropped += 2
                     continue
             out.append(raw)
             holds["a"] = src
+            carried.discard("a")
             a_ok = False
             continue
         if mn == "ldh" and len(ops) == 2 and ops[1] == "a":
@@ -1075,6 +1103,7 @@ def track_hram(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int
             continue
         if mn in ("jp", "jr") and len(ops) == 2:
             a_ok = ops[0] in ("c", "nc") and "a" in holds
+            carried.update(holds)
             out.append(raw)
             continue
         if mn in _WRITES_ALL or (mn in ("jp", "jr") and len(ops) == 1):
@@ -1082,18 +1111,29 @@ def track_hram(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int
             out.append(raw)
             continue
         if mn == "ld" and len(ops) == 2 and ops[0] == "(de)" and de_loaded:
-            forget()                      # a store through a pointer of unknown target
+            # a store through a pointer of unknown target ends the reuse of
+            # a byte read before a jump (SndUpdateChannel's D), not of one
+            # read in this block (StartSongPlayback's `*active = 1`)
+            for r in carried:
+                holds.pop(r, None)
+            carried.clear()
             out.append(raw)
             continue
         w = _written(mn, ops)
         if mn == "ld" and len(ops) == 2 and ops[1] == "a" and ops[0] in _REGS:
             if "a" in holds:
                 holds[ops[0]] = holds["a"]
+                if "a" in carried:
+                    carried.add(ops[0])
+                else:
+                    carried.discard(ops[0])
             else:
                 holds.pop(ops[0], None)
+                carried.discard(ops[0])
         else:
             for r in w:
                 holds.pop(r, None)
+                carried.discard(r)
             if "a" in w:
                 a_ok = False
         if {"d", "e"} & w:

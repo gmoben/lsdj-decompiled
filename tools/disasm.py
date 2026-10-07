@@ -552,7 +552,8 @@ def rom_pointers(rows: list[Row], bank: int | None, symbols: dict[int, str],
       the function wrote the bank to $2000;
     - a ROMX bank's own `ld rr, $4000-$7FFF`, except gb_cmp16's add form
       (`ld hl, K / add hl, rr / jp c`), a constant;
-    - in bank 0, a global name of its own (`ld hl, FarCallArgByteResume / push hl`);
+    - in bank 0, a global name of its own, or a local one pushed as a return
+      address (`ld hl, .resume / push hl`: the far calls' pointer calls);
     - every non-null word of a pointer table (`dw $4098`, rows from
       --ptr-tables; `table_bank` gives the bank each row points into);
     - an address loaded as two bytes, SDCC's `Table[i]`: `ld a, LO / add a, r /
@@ -679,7 +680,8 @@ def rom_pointers(rows: list[Row], bank: int | None, symbols: dict[int, str],
                     notes.append(f"${addr:04x}: {text} (bank unknown)")
             else:
                 out[addr] = (bank, v)
-        elif bank == 0 and v in home_globals and v >= 0x0100:
+        elif bank == 0 and v >= 0x0100 and (
+                v in home_globals or (v in home and rr == "hl" and texts[:1] == ["push hl"])):
             out[addr] = (0, v)
     return out, notes
 

@@ -146,13 +146,18 @@ void SndGetChainPhrase(void);               /* $02:$6F65 (far): chain_phrases[ch
 void DebugTrap(void);                                   /* `ld b,b` + rst $38 assert */
 void FarCall(UBYTE bank, void (*fn)(void));
 void FarCallArg(UBYTE bank, void (*fn)(void), UBYTE arg);    /* FAR_FN(f) for the byte-wise form */
+
+/* far calls with arguments or a byte result (C: c/bank00/FarCall.c) */
 UBYTE FarCallArgByte(UBYTE bank, UWORD fn, UBYTE arg);         /* returns fn's byte */
 UBYTE FarCallArg2(UBYTE bank, UWORD fn, UBYTE a, UBYTE b);
 UBYTE FarCallArg2P(UBYTE bank, void (*fn)(void), UBYTE a, UBYTE b);  /* the same routine taking FAR_FN(f) (match_function.py aliases it) */
-void FarCallArg2V(UBYTE bank, void (*fn)(void), UBYTE a, UBYTE b);
 void FarCallArg3(UBYTE bank, UWORD fn, UBYTE a, UBYTE b, UBYTE c);
 void FarCallArg3P(UBYTE bank, void (*fn)(void), UBYTE a, UBYTE b, UBYTE c);  /* the same routine taking FAR_FN(f) (match_function.py aliases it) */
+#ifndef FARCALL_C
+/* their callers pass a function; FarCall.c defines them taking a UWORD */
+void FarCallArg2V(UBYTE bank, void (*fn)(void), UBYTE a, UBYTE b);
 UBYTE FarCallByte(UBYTE bank, void (*fn)(void));    /* returns fn's byte result */
+#endif
 #define FAR_FN(f) ((void (*)(void))(UWORD)(f))
 
 /* song data access */

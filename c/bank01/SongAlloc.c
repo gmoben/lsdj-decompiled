@@ -10,12 +10,15 @@
 extern UBYTE wClipboardType;                /* $C411 */
 extern UBYTE wInstrField;                   /* $C427 */
 extern UBYTE wNameEditBuf[];                /* $C431, [5] */
+extern UBYTE wSelTop, wSelRight, wSelBottom; /* $C40E-$C410 */
 extern UBYTE wSelectHeld;
 extern UBYTE wColPhrase[];                  /* $C453, [4] */
 extern UBYTE InstrTableFieldRow[];          /* $01:$532C, [4] */
 void CopyTableData(UBYTE from, UBYTE to);
 void ShowOutOfMemory(void);
 void WriteInstrName(UBYTE instr);
+void CopyInstrName(UBYTE instr);            /* UiHelpers.c */
+void CopySelection(void);                   /* $1C */
 
 UBYTE CheckSongInitFlag(void)
 {
@@ -127,6 +130,28 @@ UBYTE IsPhraseUsed(UBYTE phrase)
     p = SramPhraseAlloc + (phrase >> 3);
     phrase &= 7;
     return ReadSongByte(1, p) & (1 << phrase);
+}
+
+/* $5253: copy the instrument ("COPIED INSTR"): its 16 bytes and its name
+   into the clipboard's first two columns, as a 3 x 16 selection */
+
+void CopyInstrument(void)
+{
+    UBYTE i;
+
+    ShowMessage("COPIED INSTR");
+    wClipboardType = 6;
+    wCursorMode = 2;
+    for (i = 0; i < 16; i++)
+        WriteClipboardCell(0, i, ReadCurInstrByte(i));
+    CopyInstrName(wInstrument);
+    for (i = 0; i < 5; i++)
+        WriteClipboardCell(1, i, wNameEditBuf[i]);
+    wSelLeft = 0;
+    wSelRight = 2;
+    wSelTop = 0;
+    wSelBottom = 16;
+    FarCall(0x1C, FAR_FN(CopySelection));
 }
 
 void CopySong16(UBYTE bank, UWORD src, UWORD dst)

@@ -308,7 +308,7 @@ DEF wEnvNode2Pu1     EQU $CBBD  ; envelope node 2, PU1 (stage 1 target/speed)
 DEF wEnvNode3Pu1     EQU $CBBE  ; envelope node 3, PU1 (stage 2 target/speed)
 DEF wChanLenDuty     EQU $C2DC  ; [4] length/duty value -> rAUDxLEN
 DEF wChanFreqHi      EQU $C2E0  ; [4] freq-high + trigger/length-enable bits -> rAUDxHIGH
-DEF wPU1Sweep        EQU $C2E4  ; PU1 sweep value -> rAUD1SWEEP
+DEF wChanSweep       EQU $C2E4  ; [4] per channel: PU1's sweep (-> rAUD1SWEEP); NOI's [3] is its note (wNoiNote, set from wNoiseNoteLatch on a retrig)
 DEF wNoiNote         EQU $C2E7  ; current noise note number (wraps 0..$77, drives SetNoisePoly)
 
 ; --- Link cable sync (see docs/sync.md) -------------------------------------

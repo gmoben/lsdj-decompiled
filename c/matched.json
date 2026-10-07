@@ -347,6 +347,12 @@
   "len": 265,
   "src": "c/bank01/UiHelpers.c"
  },
+ "CopyInstrument": {
+  "bank": "01",
+  "addr": "5253",
+  "len": 139,
+  "src": "c/bank01/SongAlloc.c"
+ },
  "CopySong16": {
   "bank": "01",
   "addr": "52EB",
@@ -929,6 +935,12 @@
   "len": 555,
   "src": "c/bank01/UiHelpers.c"
  },
+ "DrawVerifyPanel": {
+  "bank": "1C",
+  "addr": "4778",
+  "len": 43,
+  "src": "c/bank1c/FileScreen.c"
+ },
  "DrawWaveCellPair": {
   "bank": "06",
   "addr": "4306",
@@ -1006,6 +1018,36 @@
   "addr": "4679",
   "len": 200,
   "src": "c/bank03/InstrScreen.c"
+ },
+ "FarCallArg2": {
+  "bank": "00",
+  "addr": "0C8F",
+  "len": 54,
+  "src": "c/bank00/FarCall.c"
+ },
+ "FarCallArg2V": {
+  "bank": "00",
+  "addr": "0C5A",
+  "len": 53,
+  "src": "c/bank00/FarCall.c"
+ },
+ "FarCallArg3": {
+  "bank": "00",
+  "addr": "0CC5",
+  "len": 57,
+  "src": "c/bank00/FarCall.c"
+ },
+ "FarCallArgByte": {
+  "bank": "00",
+  "addr": "0C29",
+  "len": 49,
+  "src": "c/bank00/FarCall.c"
+ },
+ "FarCallByte": {
+  "bank": "00",
+  "addr": "0BFE",
+  "len": 43,
+  "src": "c/bank00/FarCall.c"
  },
  "FileCalcCompressedSize": {
   "bank": "1C",
@@ -2891,6 +2933,12 @@
   "len": 191,
   "src": "c/bank02/Sound.c"
  },
+ "SndNoiPitchStep": {
+  "bank": "02",
+  "addr": "68A0",
+  "len": 100,
+  "src": "c/bank02/Sound.c"
+ },
  "SndRandomUpTo": {
   "bank": "02",
   "addr": "6479",
@@ -2902,6 +2950,12 @@
   "addr": "748E",
   "len": 312,
   "src": "c/bank02/SoundChan.c"
+ },
+ "SndRetrigNote": {
+  "bank": "02",
+  "addr": "66E7",
+  "len": 441,
+  "src": "c/bank02/Sound.c"
  },
  "SndRunFxSlot": {
   "bank": "02",
@@ -2919,6 +2973,12 @@
   "bank": "02",
   "addr": "7034",
   "len": 199,
+  "src": "c/bank02/Sound.c"
+ },
+ "SndStartChanFromRow": {
+  "bank": "02",
+  "addr": "6BBA",
+  "len": 477,
   "src": "c/bank02/Sound.c"
  },
  "SndStartChannels": {
@@ -3141,6 +3201,12 @@
   "bank": "02",
   "addr": "7B31",
   "len": 283,
+  "src": "c/bank02/Sound.c"
+ },
+ "StartSongPlayback": {
+  "bank": "02",
+  "addr": "792B",
+  "len": 518,
   "src": "c/bank02/Sound.c"
  },
  "StringLength": {

@@ -79,7 +79,7 @@
 43CE SndFxTableJump             ; FX dispatch via computed jump (jp hl region)
 4637 SndClampNoteRange          ; clamp a note value to playable range ($3c..$78) -> $c422
 46C7 SndClearChanFxSlots        ; clear this channel's 3 FX slots ($c2f0/$c2f4/$c2f8 + ch)
-472F SndRunTableColumn          ; dispatch one table column (-> SndRunFxSlot / SndResetPitchState)
+472F SndRunTableColumn          ; dispatch one table column (-> SndRunFxSlot / SndRetrigNote)
 4753 SndRunChannelFxSlots       ; iterate the 12-entry FX-slot table $c2f0, run SndRunTableColumn per active
 478D SndDispatchStoredFx        ; load command from $c8c4, fall into DispatchFxCommand
 483F SndAdvanceTableCursor      ; advance this channel's table read cursor ($c8e1 ptr + $c140[ch])
@@ -140,7 +140,8 @@
 6577 SndKillNote                ; kill this channel's note (K, now or when its slot's timer runs out): FX and FX slots, pitch slide, chord, vibrato off, table $FF
 6685 SndRunFxSlot               ; set hSoundCh = $c527 & 3, run SndKillNote
 6694 SndWavLevelStep            ; step the WAV output level (NR32 bits 5-6) by the signed high digit of the argument: negative towards off, positive towards 100%
-66E7 SndResetPitchState         ; per-channel jp-table: clear wChanSlideNoteSrc, center wChanPitchCur ($8000), reset wChanCmdStep
+66E7 SndRetrigNote         ; R fires: play the slot's channel's latest note again (slide, envelope, table restarted), then reload or end the slot
+68A0 SndNoiPitchStep            ; the noise channel's pitch each tick: P's slide in quarter semitones, then V's offset, as note steps
 6904 SndNoiChordStep            ; step the noise channel's chord (C): the note, the first digit's offset, the second's (skipped when 0), the note again; SndClampNoteRange gets the change
 69C3 EnvReleaseSpeed            ; E's release digit (hFxValue & 7) -> the envelope fade speed (EnvReleaseSpeeds)
 69DF EnvReleaseTarget           ; E's release direction (the second digit's bit 3, 9-F fade up): the volume the envelope fades toward, $0F or 0
@@ -170,8 +171,8 @@
 75C6 SndUpdateChannel           ; per-channel processor (channel = hSoundCh): advance phrase cursor, resolve song/chain row, read note/cmd; called per active channel by SndUpdateAllChannels
 77F0 SndTick                    ; one engine tick: SndStepAllChannels (sequencer) then SndUpdateAllChannels (output); self-recurses on retrigger flag $c4cd / mode $cb66
 786F SndLiveChainEnd            ; live mode, at a chain's end: stop the channel if wChanStopQueued (the sound too once none plays), else start its queued song row (SndEnterSongRow); e = 1 if neither
-792B SndSyncStart               ; decide/perform playback start from wSyncMode + saved screen context ($c8fe)
-7B31 StartScreenPlayback        ; start the current screen's playback: the song from the cursor row (SndSyncStart), or the edited channel's chain or phrase
+792B StartSongPlayback          ; start the song, all four channels, at the song cursor's row: each channel's chain there, walking back past empty rows; from another screen's chain row (SELECT+START, sync OFF or KEYBD) each chain starts at that row, modulo its length
+7B31 StartScreenPlayback        ; start the current screen's playback: the song from the cursor row (StartSongPlayback), or the edited channel's chain or phrase
 7C4C TogglePlayback             ; START: stop all playback, then start the current screen's unless it was the one playing (sync stop otherwise); live mode: SndStartRange
 7CFB FxCmd_E_NoteOn             ; E at a note-on (NoteToPeriod): PU1/PU2/NOI stop the fade, the first digit sets wChanEnv (e = 5: the release runs); WAV sets wWavLevel (e = 0)
 7F24 SndSetupLfo                ; dispatch by hSoundCh -> SndSetupLfoPU1/PU2/WavNoi (vibrato/LFO setup)
@@ -225,8 +226,8 @@
 66AA .loop                ; loop head in SndWavLevelStep
 66C8 .loop2               ; loop head in SndWavLevelStep
 66E6 .done                ; common exit of SndWavLevelStep
-689C .done                ; common exit of SndResetPitchState
-6902 .done2               ; common exit of SndResetPitchState
+689C .done                ; common exit of SndRetrigNote
+6902 .done                ; common exit of SndNoiPitchStep
 69BF .done                ; common exit of SndNoiChordStep
 6A26 .done                ; common exit of FxCmd_E_Pu1
 6A5C .done2               ; common exit of FxCmd_E_Pu2
@@ -253,10 +254,10 @@
 786D .done                ; common exit of SndTick
 78C2 .done                ; common exit of SndLiveChainEnd
 792A .done                ; common exit of ToggleSongPlayback
-799D .loop                ; loop head in SndSyncStart
-7A03 .loop2               ; loop head in SndSyncStart
-7AA3 .loop3               ; loop head in SndSyncStart
-7B2D .done                ; common exit of SndSyncStart
+799D .loop                ; loop head in StartSongPlayback
+7A03 .loop2               ; loop head in StartSongPlayback
+7AA3 .loop3               ; loop head in StartSongPlayback
+7B2D .done                ; common exit of StartSongPlayback
 7C73 .loop                ; loop head in TogglePlayback
 7CF7 .done                ; common exit of TogglePlayback
 7D7F .done                ; common exit of FxCmd_E_NoteOn
@@ -316,8 +317,8 @@
 6570 .sndResetPitchState
 663F .sndSetupWaveTrigger
 665B .applyPitchBend
-67A6 .checkFxChannel
-6851 .triggerNote
+67A6 .restartTable
+6851 .trigger
 6A6C .startEnvNoi
 6B92 .loadSelLeft
 6DD1 .sndAnyChannelActive
@@ -583,22 +584,21 @@
 6440 .setOscLoopB_2
 64EC .readFxValue
 6514 .loadFxChannel
-6702 .readSoundCh
-6721 .cont
-673A .sndFxParsePitchVal
-6746 .cont_2
-675F .sndFxParsePitchVal_2
-676B .cont_3
-6784 .loadFxChannel
-679D .sndFxParsePitchVal_3
-6839 .readSoundCh_2
-6866 .loadFxChannel_2
-688D .loadFxChannel_3
-68A0 .checkFxCommand
-68BC .cont_4
-68C7 .setChanCmdCountdown
-68DC .sndClampNoteRange
-68E4 .sndStepPitchVibNoi
+6702 .switchChannel
+6721 .pu1
+673A .parsePu1Envelope
+6746 .pu2
+675F .parsePu2Envelope
+676B .wav
+6784 .stepWavLevel
+679D .noi
+6839 .restoreNoiseNote
+6866 .reloadTimer
+688D .setTimer
+68BC .slide
+68C7 .addFraction
+68DC .applySlide
+68E4 .vibrato
 6944 .setChanCmdCountdown
 6954 .cont
 6979 .cont_2

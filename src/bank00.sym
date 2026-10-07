@@ -131,11 +131,11 @@
 0D4C ReadKitName        ; copy the 6-char kit name (kit bank $4052, via KitIndexToBank) into wSampleNoteString
 ; SDCC banked-call thunk family (bc-addr style: save bank, switch, jp hl, restore),
 ; one per (arg-count, return-type). The sp-addr style lives at FarCall/FarCallArg.
-0BFE FarCallByte        ; 0 args, returns byte (e)
-0C29 FarCallArgByte     ; 1 byte arg, returns byte (e)
-0C5A FarCallArg2V       ; 2 byte args, void
-0C8F FarCallArg2        ; 2 byte args, returns byte (e)
-0CC5 FarCallArg3        ; 3 byte args, void
+0BFE FarCallByte        ; call a function in another ROM bank, returning its byte (e)
+0C29 FarCallArgByte     ; call fn(arg) in another ROM bank, returning its byte (e)
+0C5A FarCallArg2V       ; call fn(a, b) in another ROM bank
+0C8F FarCallArg2        ; call fn(a, b) in another ROM bank, returning its byte (e)
+0CC5 FarCallArg3        ; call fn(a, b, c) in another ROM bank
 0CFE KitExists          ; (kit index) -> e=1 if a kit is present at KitIndexToBank(index): switch to that bank, check [$4000:01]==$6040 (was mislabeled FarCallByteAlt -- it reads $4000, not a FarCall)
 2106 ReadSeqByteRaw     ; ReadSeqByte via ReadSongByteRaw (bank0 $B290)
 1482 DebugTrap          ; assert/debug trap (ld b,b BGB marker + rst $38), fires once via $C7AF
@@ -234,11 +234,6 @@
 154B ReadSongByteDi ; di + SRAM enable + bank select + read + reti (unreferenced variant of ReadSongByte)
 34E9 SendSyncHandshakeByte ; alt-entry into SendSyncHandshake with hl=arg (unreferenced)
 1E70 TxtBlank4 ; "    " 4-space blank field string
-0C1B FarCallByteResume ; continuation address pushed before the FarCallByte jp hl
-0C4A FarCallArgByteResume       ; continuation FarCallArgByte pushes before its jp hl
-0C80 FarCallArg2VResume         ; continuation FarCallArg2V pushes before its jp hl
-0CB5 FarCallArg2Resume          ; continuation FarCallArg2 pushes before its jp hl
-0CEF FarCallArg3Resume          ; continuation FarCallArg3 pushes before its jp hl
 014E HeaderChecksumHi           ; ROM header global checksum (hi byte), read by CheckRomChecksum
 014F HeaderChecksumLo           ; ROM header global checksum (lo byte)
 300F ExpoCurve16                ; 16-entry exponential curve $00..$73: envelope speed -> frame count
@@ -604,6 +599,11 @@
 0BC3 .cont
 0BDC .cont_2
 0BF1 .cont_3
+0C1B .resume              ; the callee returns here (its address pushed before the jp hl)
+0C4A .resume              ; the callee returns here
+0C80 .resume              ; the callee returns here
+0CB5 .resume              ; the callee returns here
+0CEF .resume              ; the callee returns here
 0D1D .cont
 0D3C .cont_2
 0D3D .cont_3
