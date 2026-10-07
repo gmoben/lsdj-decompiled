@@ -199,7 +199,8 @@ lsdj-decompiled/
 │   └── match/            # matching-decompilation harness (compile C, link at the
 │                         #   ROM address, diff, --score), verify_all (make match),
 │                         #   code_kind (C/asm/library map, progress), shapes (candidates),
-│                         #   rom_grep (rule evidence), trace_alloc (allocator trace)
+│                         #   rom_grep (rule evidence), trace_alloc (allocator trace),
+│                         #   to_rgbds (matched C as RGBDS source)
 │                         #   + lsdj.peep (recovered rules)
 └── .githooks/pre-commit  # ROM-leak guard + `make compare`
 ```

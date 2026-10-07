@@ -903,11 +903,36 @@ shape.
 - [x] A larger, branchier function: `DrawSyncField` (262 B).
 - [x] Shared header, cached batch verification, multi-function units
       (`c/bank03/InstrScreen.c`: 34 functions).
-- [ ] A screen input handler (300+ instructions) to shake out more rules in one
-      go; then generalise the accumulator-tracking rules into one pass if the
-      per-shape rules keep multiplying.
+- [x] A screen input handler (300+ instructions): Wave, Word, Groove, Synth,
+      Project and Song screens matched.
 - [ ] Grow the C tree bank by bank (editor code first; the asm functions
       stay asm).
+
+### Toward a moddable fork
+
+The goal past matching is a fork that adds features, so code has to be able
+to move. Today it can't: matched C enters as bytes linked at the original
+addresses, ~236 code operands in the carve are raw ROM addresses, and every
+pointer table is raw `db` bytes. The milestone, pret's "shiftable":
+
+- [x] Translate matched C to RGBDS source: `tools/match/to_rgbds.py --check`
+      assembles every matched function (code, literals and const data) with
+      rgbasm/rgblink at its address -- all 575 byte-identical.
+- [ ] Build from that source instead of the INCBINs (labels from the `.sym`
+      inside each function, the literals owned by the C), `make compare`
+      still the gate.
+- [ ] Symbolic references in the carve: the ~236 raw ROM-address operands
+      (bank 0's cross-bank trampoline targets, jump-table bases) and the
+      pointer tables as `dw Label`; no literal ROM addresses in the C either
+      (FieldHelp's ten strings, two `FarCall(5, 0x747D)`).
+- [ ] A shift test: a build with padding inserted in each bank, checked by
+      an emulator smoke test (boot, every screen, playback, save/load).
+- [ ] Behaviour tests on tools/emu for builds that no longer match the ROM:
+      what a fork runs instead of `make compare`.
+
+A function that won't match doesn't block this: it stays asm, which is just
+as editable once the carve is symbolic, or gets functionally equivalent C
+checked by the behaviour tests.
 
 ## References
 
