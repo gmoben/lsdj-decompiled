@@ -119,47 +119,47 @@
 5AC3 .done                ; common exit of PhraseCellFlagC
 5B5A .done                ; common exit of PhraseCellFlagD
 5BA4 .done                ; common exit of PrelistenEditedCell
-624A .loop                ; loop head in PhraseScreenInput
-6403 .loop2               ; loop head in PhraseScreenInput
-669B .loop3               ; loop head in PhraseScreenInput
-685C .loop4               ; loop head in PhraseScreenInput
-6B16 .loop5               ; loop head in PhraseScreenInput
-6BC8 .loop6               ; loop head in PhraseScreenInput
-6CEC .loop7               ; loop head in PhraseScreenInput
-6D66 .loop8               ; loop head in PhraseScreenInput
-6FE5 .loop9               ; loop head in PhraseScreenInput
-7098 .loop10              ; loop head in PhraseScreenInput
-71CA .loop11              ; loop head in PhraseScreenInput
-7244 .loop12              ; loop head in PhraseScreenInput
+624A .incLoop             ; loop head in PhraseScreenInput
+6403 .incCmdLoop          ; loop head in PhraseScreenInput
+669B .bigLoop             ; loop head in PhraseScreenInput
+685C .bigCmdLoop          ; loop head in PhraseScreenInput
+6B16 .decLoop             ; loop head in PhraseScreenInput
+6BC8 .decKitHighScan      ; loop head in PhraseScreenInput
+6CEC .decKitLowScan       ; loop head in PhraseScreenInput
+6D66 .decCmdLoop          ; loop head in PhraseScreenInput
+6FE5 .bigDecLoop          ; loop head in PhraseScreenInput
+7098 .bigDecKitHighScan   ; loop head in PhraseScreenInput
+71CA .bigDecKitLowScan    ; loop head in PhraseScreenInput
+7244 .bigDecCmdLoop       ; loop head in PhraseScreenInput
 7D45 .done                ; common exit of PhraseScreenInput
 
 ; --- structural local names (loop heads / common exits) ---
-5BE7 .notA                ; wButtons == case in PhraseScreenInput
-5C3E .notSelRightLeft     ; wButtons == case in PhraseScreenInput
-5FE6 .notRight            ; wButtons == case in PhraseScreenInput
-6068 .notLeft             ; wButtons == case in PhraseScreenInput
-6133 .notUp               ; wButtons == case in PhraseScreenInput
-61F9 .notDown             ; wButtons == case in PhraseScreenInput
-664A .notARight           ; wButtons == case in PhraseScreenInput
-6AC5 .notAUp              ; wButtons == case in PhraseScreenInput
-6F94 .notALeft            ; wButtons == case in PhraseScreenInput
-7495 .notADown            ; wButtons == case in PhraseScreenInput
-74BE .notBRight           ; wButtons == case in PhraseScreenInput
-74E7 .notBLeft            ; wButtons == case in PhraseScreenInput
-7561 .notBUp              ; wButtons == case in PhraseScreenInput
-75CE .notBDown            ; wButtons == case in PhraseScreenInput
-78B9 .notAB               ; wButtons == case in PhraseScreenInput
-78D3 .right               ; wButtons == case in PhraseScreenInput
-79A8 .notSelA             ; wButtons == case in PhraseScreenInput
-79BF .notSelAB            ; wButtons == case in PhraseScreenInput
-79E8 .notSelStart         ; wButtons == case in PhraseScreenInput
-7A27 .notStart            ; wButtons == case in PhraseScreenInput
-7A5D .notSelLeft          ; wButtons == case in PhraseScreenInput
-7AD0 .notSelDown          ; wButtons == case in PhraseScreenInput
-7B06 .notSelUp            ; wButtons == case in PhraseScreenInput
-7C01 .notSelRight         ; wButtons == case in PhraseScreenInput
-7C35 .notB                ; wButtons == case in PhraseScreenInput
-7D43 .notSelB             ; wButtons == case in PhraseScreenInput
+5BE7 .aFalse              ; wButtons == case in PhraseScreenInput
+5C3E .notCancelSelect     ; wButtons == case in PhraseScreenInput
+5FE6 .left                ; wButtons == case in PhraseScreenInput
+6068 .up                  ; wButtons == case in PhraseScreenInput
+6133 .down                ; wButtons == case in PhraseScreenInput
+61F9 .aRight              ; wButtons == case in PhraseScreenInput
+664A .aUp                 ; wButtons == case in PhraseScreenInput
+6AC5 .aLeft               ; wButtons == case in PhraseScreenInput
+6F94 .aDown               ; wButtons == case in PhraseScreenInput
+7495 .bRight              ; wButtons == case in PhraseScreenInput
+74BE .bLeft               ; wButtons == case in PhraseScreenInput
+74E7 .bUp                 ; wButtons == case in PhraseScreenInput
+7561 .bDown               ; wButtons == case in PhraseScreenInput
+75CE .cut                 ; wButtons == case in PhraseScreenInput
+78B9 .paste               ; wButtons == case in PhraseScreenInput
+78D3 .pasteRefused        ; wButtons == case in PhraseScreenInput
+79A8 .cloneTable          ; wButtons == case in PhraseScreenInput
+79BF .selectStart         ; wButtons == case in PhraseScreenInput
+79E8 .start               ; wButtons == case in PhraseScreenInput
+7A27 .selectLeft          ; wButtons == case in PhraseScreenInput
+7A5D .selectDown          ; wButtons == case in PhraseScreenInput
+7AD0 .selectUp            ; wButtons == case in PhraseScreenInput
+7B06 .selectRight         ; wButtons == case in PhraseScreenInput
+7C01 .copy                ; wButtons == case in PhraseScreenInput
+7C35 .selectB             ; wButtons == case in PhraseScreenInput
+7D43 .ignored             ; wButtons == case in PhraseScreenInput
 
 
 
@@ -224,66 +224,66 @@
 578F .loadLiveMode
 58BB .prelistenCursorRow
 5B6D .phraseReadCmdValCursor
-5BB9 .ok
-5BC6 .okb
-5BF2 .checkCursorMode
-5C94 .loadPhraseRow
-5CE1 .setCursorButtonHold
-5CF2 .loadSelectDigitPal
-5D2D .prelistenEditedCell
-5E20 .checkPhraseCol
-5E67 .phraseReadCmdValCursor
-5E73 .prelistenCursorRow
-5EB2 .incDrawStep
-5F12 .incDrawStepb
-5FA2 .checkButtons
-5FC0 .checkPhraseColb
-5FCD .incPhraseCol
-5FDE .drawPhraseCursorFar
-602A .checkCursorModeb
-604F .decPhraseCol
-6060 .drawPhraseCursorFarb
-609A .decPhraseRow
-6119 .setPhraseRow
-612B .drawPhraseCursorFarc
-6167 .incPhraseRow
-6190 .checkPhraseRow
-61F1 .drawPhraseCursorFard
-6308 .prelistenCursorRowb
-63E4 .prelistenCursorRowc
-648A .loadSongCol
-65D3 .checkSongCol
-675A .prelistenCursorRowd
-683D .prelistenCursorRowe
-68E3 .loadSongColb
-6A23 .checkSongColb
-6A4A .checkSongColc
-6C32 .prelistenCursorRowf
-6D47 .prelistenCursorRowg
-6DE0 .loadSongColc
-7102 .prelistenCursorRowh
-7225 .prelistenCursorRowi
-72BD .loadSongCold
-73F4 .checkSongCold
-7411 .checkSongCole
-7546 .drawPhraseScreen
-754C .checkAPressEnabled
-758E .loadChainRow
-75E4 .setAPressEnabled
-7630 .setSelLeft
-76D9 .phraseReadCmdValCursorb
-77C0 .setSelLeftb
-7813 .setSelLeftc
-78B1 .drawPhraseScreenb
-78D8 .checkClipboardType
-7964 .clearSelLeft
-7973 .checkSelLeft
-7981 .checkSelLeftb
-7B1C .phraseFindNoteFromCursor
-7B5B .loadInstrument
-7CA0 .setSelTop
-7CE0 .setSelLeftd
-7CF7 .setSelectHeld
+5BB9 .phraseOk
+5BC6 .rowOk
+5BF2 .checkMarking
+5C94 .keyToneChannel
+5CE1 .aNoKey
+5CF2 .aColumns
+5D2D .aNote
+5E20 .aInstrument
+5E67 .aInstrFromCursor
+5E73 .aInstrPrelisten
+5EB2 .aCmdHelp
+5F12 .aValue
+5FA2 .right
+5FC0 .rightColumn
+5FCD .rightStep
+5FDE .rightCursor
+602A .leftMove
+604F .leftStep
+6060 .leftCursor
+609A .upStep
+6119 .upAtTop
+612B .upCursor
+6167 .downStep
+6190 .downWrap
+61F1 .downCursor
+6308 .incKitHighDone
+63E4 .incNoteDone
+648A .incCmdTest
+65D3 .incWave
+675A .bigKitHighDone
+683D .bigNoteDone
+68E3 .bigCmdTest
+6A23 .bigWave
+6A4A .bigSweep
+6C32 .decKitHighDone
+6D47 .decNoteDone
+6DE0 .decCmdTest
+7102 .bigDecKitHighDone
+7225 .bigDecNoteDone
+72BD .bigDecCmdTest
+73F4 .bigDecWave
+7411 .bigDecSweep
+7546 .bUpRedraw
+754C .bUpAtTop
+758E .bDownNext
+75E4 .cutCell
+7630 .cutKitHigh
+76D9 .cutNote
+77C0 .cutInstr
+7813 .cutCommand
+78B1 .cutRedraw
+78D8 .pasteClipboard
+7964 .pasteNoteColumn
+7973 .pasteInstrColumn
+7981 .pasteCommandColumn
+7B1C .instrAtCursor
+7B5B .instrKeep
+7CA0 .markAllRows
+7CE0 .markAllColumns
+7CF7 .markCopy
 
 
 ; --- full local naming (block signature) ---
@@ -482,192 +482,192 @@
 5B8A .readInstrByte
 5BA1 .cont
 5BA2 .cont_2
-5BE8 .setDrawStep
-5BFF .cont
-5C00 .checkButtons_2
-5C79 .cont_2
-5C82 .cont_3
-5C88 .cont_4
-5CAF .setPhraseCol
-5CC0 .loadPhraseRow_2
-5D4D .loadPhraseRow_3
-5D95 .loadPhraseRow_4
-5DA9 .loadSongCol_2
-5DC6 .loadSongCol_3
-5DEF .loadPhraseRow_5
-5E03 .loadSongCol_4
-5E14 .checkPhraseCol_2
-5E54 .phraseInstrEntered
-5E7C .loadPhraseRow_6
-5ECF .loadPhraseRow_7
-5F6E .loadPhraseRow_8
-5F93 .drawPhraseScreen_2
-5F9D .ret01
-5FE1 .ret01_2
-5FFF .ret01_3
-6004 .loadPhraseRow_9
-6025 .ret01_4
-6037 .cont_5
-6038 .cont_6
-6063 .ret01_5
-6085 .cont_7
-60C3 .loadPhraseRow_10
-610C .setPhrase
-611E .pastePhraseSelectionFar
-612E .ret01_6
-6152 .cont_8
-61E4 .pastePhraseSelectionFar_2
-61F4 .ret01_7
-6235 .setPhraseRow_2
-6243 .cont_9
-6297 .phraseStepPtr
-62B8 .cont_10
-630E .phraseCheckColFD
-6371 .phraseEditRight
-637E .phraseStepPtr_2
-639F .cont_11
-63EA .phraseCellFlagB
-6447 .cont_12
-6482 .loadSongCol_5
-64DF .cont_13
-6509 .cont_14
-652C .loadPhrase
-6561 .loadPhrase_2
-65AE .add16
-65BD .checkArg
-65CC .checkSongCol_2
-65E4 .cont_15
-65EA .checkArg_2
-65F7 .cont_16
-65FA .loadPhrase_3
-6631 .cont_17
-663B .drawPhraseScreen_3
-6645 .ret01_8
-6686 .setPhraseRow_3
-6694 .cont_18
-66E8 .phraseStepPtr_3
-670A .cont_19
-6760 .phraseCheckColFD_2
-67A3 .cont_20
-67C9 .phraseEditUp
-67D6 .phraseStepPtr_4
-67F8 .cont_21
-6843 .phraseCellFlagD
-68A0 .cont_22
-68DB .loadSongCol_6
-693A .cont_23
-6964 .cont_24
-6987 .loadPhrase_4
-69BC .loadPhrase_5
-6A11 .cont_25
-6A35 .checkArg_3
-6A43 .checkSongCol_3
-6A58 .cont_26
-6A5A .cont_27
-6A62 .checkArg_4
-6A6F .cont_28
-6A75 .loadPhrase_6
-6AAC .cont_29
-6AB6 .drawPhraseScreen_4
-6AC0 .ret01_9
-6B01 .setPhraseRow_4
-6B0F .cont_30
-6B63 .phraseStepPtr_5
-6B88 .cont_31
-6B8C .cont_32
-6C1E .loadSongCol_7
-6C38 .phraseCheckColFD_3
-6C98 .phraseEditLeft
-6CA5 .phraseStepPtr_6
-6CC8 .cont_33
-6CCC .cont_34
-6D20 .cont_35
-6D4D .phraseCellFlagA
-6DA6 .cont_36
-6E51 .cont_37
-6E74 .loadPhrase_7
-6EA9 .loadPhrase_8
-6EF6 .cont_38
-6F01 .checkSongCol_4
-6F11 .cont_39
-6F17 .checkArg_5
-6F24 .cont_40
-6F26 .cont_41
-6F2C .cont_42
-6F3A .cont_43
-6F41 .cont_44
-6F44 .loadPhrase_9
-6F7B .cont_45
-6F85 .drawPhraseScreen_5
-6F8F .ret01_10
-6FD0 .setPhraseRow_5
-6FDE .cont_46
-7032 .phraseStepPtr_7
-7058 .cont_47
-705C .cont_48
-70EE .loadSongCol_8
-7108 .phraseCheckColFD_4
-714C .cont_49
-7150 .cont_50
-7174 .phraseEditDown
-7181 .phraseStepPtr_8
-71A6 .cont_51
-71AA .cont_52
-71FE .cont_53
-722B .phraseCellFlagC
-7284 .cont_54
-732E .cont_55
-7351 .loadPhrase_10
-7386 .loadPhrase_11
-73DB .cont_56
-73ED .checkSongCol_5
-7406 .checkSongCol_6
-741F .cont_57
-7421 .cont_58
-7429 .checkArg_6
-7438 .cont_59
-743F .cont_60
-7445 .loadPhrase_12
-747C .cont_61
-7486 .drawPhraseScreen_6
-7490 .ret01_11
-755C .ret01_12
-75C9 .ret01_13
-7651 .loadSongCol_9
-766B .loadPhraseRow_11
-773F .loadPhraseRow_12
-777D .loadSongCol_10
-7796 .loadPhraseRow_13
-785F .loadPhraseRow_14
-78E5 .cont_62
-78E6 .checkClipboardType_2
-78FB .setSelectHeld_2
-7915 .cont_63
-792E .checkPhraseCol_3
-798F .farCall
-79D5 .farCall_2
-7A01 .checkSelectPal
-7A0F .ret01_14
-7A14 .farCall_3
-7A3D .farCall_4
-7A73 .loadPhraseCol
-7AB0 .farCall_5
-7AE6 .farCall_6
-7B62 .loadPhraseCol_2
-7BE1 .farCall_7
-7C1E .farCallArg
-7C4B .checkClipboardType_3
-7CB7 .cont_64
-7D13 .farCall_8
+5BE8 .aTested
+5BFF .markingFalse
+5C00 .markingTested
+5C79 .keyKeepLow
+5C82 .keyKeepHigh
+5C88 .keyMerge
+5CAF .keyKitHigh
+5CC0 .keyPlace
+5D4D .aKitNote
+5D95 .aWriteKitHigh
+5DA9 .aRememberHigh
+5DC6 .aKitLow
+5DEF .aWriteKitLow
+5E03 .aRememberLow
+5E14 .aNoteDone
+5E54 .aInstrEntered
+5E7C .aCommand
+5ECF .aCmdDraw
+5F6E .aValuePrelisten
+5F93 .aRedraw
+5F9D .aDone
+5FE1 .rightDone
+5FFF .leftAtKit
+6004 .leftFromNote
+6025 .leftBlocked
+6037 .leftMarkingFalse
+6038 .leftMarkingTested
+6063 .leftDone
+6085 .upMove
+60C3 .upWrap
+610C .upPrevPhrase
+611E .upDraw
+612E .upDone
+6152 .downMove
+61E4 .downDraw
+61F4 .downDone
+6235 .incCursorRow
+6243 .incRows
+6297 .incKitHigh
+62B8 .incKitHighWrite
+630E .incNote
+6371 .incNoteEdit
+637E .incKitLow
+639F .incKitLowWrite
+63EA .incInstr
+6447 .incCmdStep
+6482 .incCmdClamp
+64DF .incCmdDraw
+6509 .incCmdHelp
+652C .incCmdValue
+6561 .incValue
+65AE .incGroove
+65BD .incOutput
+65CC .incOutputRight
+65E4 .incWaveStep
+65EA .incTable
+65F7 .incValueStep
+65FA .incValueWrite
+6631 .incNextRow
+663B .incRedraw
+6645 .incDone
+6686 .bigCursorRow
+6694 .bigRows
+66E8 .bigKitHigh
+670A .bigKitHighWrite
+6760 .bigNote
+67A3 .bigWordDraw
+67C9 .bigNoteEdit
+67D6 .bigKitLow
+67F8 .bigKitLowWrite
+6843 .bigInstr
+68A0 .bigCmdStep
+68DB .bigCmdClamp
+693A .bigCmdDraw
+6964 .bigCmdHelp
+6987 .bigCmdValue
+69BC .bigValue
+6A11 .bigGroove
+6A35 .bigPulseWave
+6A43 .bigOutput
+6A58 .bigSweepTone
+6A5A .bigSweepAdd
+6A62 .bigTable
+6A6F .bigValueStep
+6A75 .bigValueWrite
+6AAC .bigNextRow
+6AB6 .bigRedraw
+6AC0 .bigDone
+6B01 .decCursorRow
+6B0F .decRows
+6B63 .decKitHigh
+6B88 .decKitHighFloor
+6B8C .decKitHighWrite
+6C1E .decKitHighFound
+6C38 .decNote
+6C98 .decNoteEdit
+6CA5 .decKitLow
+6CC8 .decKitLowFloor
+6CCC .decKitLowRead
+6D20 .decKitLowFound
+6D4D .decInstr
+6DA6 .decCmdStep
+6E51 .decCmdHelp
+6E74 .decCmdValue
+6EA9 .decValue
+6EF6 .decGroove
+6F01 .decWave
+6F11 .decWaveStep
+6F17 .decOutput
+6F24 .decOutputLeft
+6F26 .decOutputSet
+6F2C .decTable
+6F3A .decTableOff
+6F41 .decValueStep
+6F44 .decValueWrite
+6F7B .decNextRow
+6F85 .decRedraw
+6F8F .decDone
+6FD0 .bigDecCursorRow
+6FDE .bigDecRows
+7032 .bigDecKitHigh
+7058 .bigDecKitHighFloor
+705C .bigDecKitHighWrite
+70EE .bigDecKitHighFound
+7108 .bigDecNote
+714C .bigDecWordFloor
+7150 .bigDecWordDraw
+7174 .bigDecNoteEdit
+7181 .bigDecKitLow
+71A6 .bigDecKitLowFloor
+71AA .bigDecKitLowRead
+71FE .bigDecKitLowFound
+722B .bigDecInstr
+7284 .bigDecCmdStep
+732E .bigDecCmdHelp
+7351 .bigDecCmdValue
+7386 .bigDecValue
+73DB .bigDecGroove
+73ED .bigDecOutput
+7406 .bigDecPulseWave
+741F .bigDecSweepTone
+7421 .bigDecSweepSub
+7429 .bigDecTable
+7438 .bigDecTableOff
+743F .bigDecValueStep
+7445 .bigDecValueWrite
+747C .bigDecNextRow
+7486 .bigDecRedraw
+7490 .bigDecDone
+755C .bUpDone
+75C9 .bDownDone
+7651 .cutRememberHigh
+766B .cutKitHighClip
+773F .cutNoteClip
+777D .cutKitLow
+7796 .cutKitLowClip
+785F .cutCommandClip
+78E5 .pasteNotCells
+78E6 .pasteTypeTested
+78FB .pasteTypeOk
+7915 .pasteCutSelection
+792E .pasteCheckColumn
+798F .pasteCells
+79D5 .songPlayback
+7A01 .startHeld
+7A0F .startDone
+7A14 .startPlayback
+7A3D .mapLeft
+7A73 .grooveCheck
+7AB0 .mapDown
+7AE6 .mapUp
+7B62 .tableCheck
+7BE1 .mapRight
+7C1E .copySelection
+7C4B .markCheck
+7CB7 .markColumns
+7D13 .markStart
 429E PhraseColX0        ; x of the phrase screen columns, draw mode 0 (2 2 6 9 10)
 42A3 PhraseColX1        ; the same with wPhraseDrawMode set (2 5 9 12 13)
 
 ; --- pointer targets (tools/name_targets.py) ---
 52AB .jumpTable
-5D1E .jumpTable
-6288 .jumpTable2
-66D9 .jumpTable3
-6B54 .jumpTable4
-7023 .jumpTable5
-7621 .jumpTable6
-7955 .jumpTable7
+5D1E .aColumnTable
+6288 .incColumnTable
+66D9 .bigColumnTable
+6B54 .decColumnTable
+7023 .bigDecColumnTable
+7621 .cutColumnTable
+7955 .pasteColumnTable

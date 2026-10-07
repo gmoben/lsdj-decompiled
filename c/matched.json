@@ -2399,6 +2399,12 @@
   "len": 84,
   "src": "c/bank04/PhraseScreen.c"
  },
+ "PhraseScreenInput": {
+  "bank": "04",
+  "addr": "5BA6",
+  "len": 8611,
+  "src": "c/bank04/PhraseScreen.c"
+ },
  "PhraseScreenUpdate": {
   "bank": "1F",
   "addr": "648F",
