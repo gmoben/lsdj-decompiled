@@ -43,7 +43,7 @@ coverage = importlib.import_module("coverage")   # tools/coverage.py: read_sym, 
 # with no `jr` or no stack-frame access to give it away (register-passing
 # helpers, `ldh a,(c)` kernels, unrolled sample shifts).
 KNOWN_ASM = {
-    "01:PitchCurveCgb", "01:UiDrawHelpStr", "01:UiDrawScreenCgb",
+    "01:UiDrawHelpStr", "01:UiDrawScreenCgb",
     "01:UiDrawScreenDmg", "01:UiLoadObjPalette",
     "06:ChainDrawScopePoint", "06:ChainShiftSamples",
     "07:DrawHexOrDashes", "07:SongScanSram", "07:SongWriteSramBytes",

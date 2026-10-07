@@ -13,8 +13,8 @@ all code disassembled with meaningful labels, all data structured.
 | Functions | every entry has a behavioral name; no global auto-labels |
 | Symbols (`make sym` output) | 8,723: 1,833 ROM globals, 6,045 function-local labels, 808 WRAM/HRAM, 37 SRAM |
 | Referenced data (`tools/data_refs.py`) | every operand-referenced ROM data address labeled |
-| C vs hand-written asm (`tools/match/code_kind.py`) | ~142.5 KB of C, 64% of it matched (575 functions; 134 C or ambiguous labels to go); 202 hand-written asm functions (~15 KB: bank 0's interrupt/sound-tick/tile-loader code, bank `$02`'s sequencer core) and 31 GBDK/SDCC library routines |
-| Matching C ([`toolchain.md`](toolchain.md)) | 575 functions in twelve banks are C in `c/`; their bytes in the ROM build come from the compiled C (`INCBIN` of `build/c/`, ROM slice without Wine) |
+| C vs hand-written asm (`tools/match/code_kind.py`) | ~142.5 KB of C, 64% of it matched (575 functions; 134 C or ambiguous labels to go); 200 hand-written asm functions (~15 KB: bank 0's interrupt/sound-tick/tile-loader code, bank `$02`'s sequencer core) and 31 GBDK/SDCC library routines |
+| Matching C ([`toolchain.md`](toolchain.md)) | 575 functions in twelve banks are C in `c/`; the ROM build assembles them from the compiler's output translated to RGBDS source (`build/c/*/*.lines`; a ROM slice without the compiler) |
 
 Known gaps — asm fidelity/readability, none affect the bytes:
 
@@ -25,9 +25,8 @@ Known gaps — asm fidelity/readability, none affect the bytes:
   ~13 named variables still carry `TBD` notes on their exact role.
 - **Code in WRAM.** The kit streamer calls `$D480` (`call $d480` at
   `$00:$04C1`, with `h = wKitDistType`) — apparently a routine executed from
-  WRAM; where it is copied from is not yet traced. (The `jp z, $d7ca/$d786` at
-  `$01:$4375`/`$43EF` are just the mis-decoded `PitchCurve` tail above.)
-- **Cross-bank call targets.** Bank 0's 79 inline-trampoline `call`/`jp`
+  WRAM; where it is copied from is not yet traced.
+- **Cross-bank call targets.** Bank 0's 22 inline-trampoline `call`/`jp`
   targets in `$4000`-`$7FFF` print as raw addresses: the bank comes from the
   preceding `$2000` write, which `coverage.py` tracks but `disasm.py` doesn't.
 - **Stale names.** `SndReadGrooveOrSpeed` actually steps table

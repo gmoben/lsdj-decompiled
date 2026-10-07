@@ -136,6 +136,10 @@ def main() -> int:
     for line in build_sym.read_text().splitlines():
         if line.startswith(RAM_SECTION_MARKER) or line.startswith(OLD_MARKERS):
             break
+        # matching C's own branch labels (`Func.L00102`, tools/match/to_rgbds.py)
+        # sit at the same addresses as the curated names: leave them out
+        if re.search(r"\.L\d{5}$", line):
+            continue
         link_lines.append(line)
     # Addresses already present in the link .sym, to avoid duplicate entries.
     present: set[tuple[str, str]] = set()

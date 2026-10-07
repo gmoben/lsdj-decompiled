@@ -132,7 +132,7 @@ idioms, and the ~200 hand-written asm functions (sound tick, sequencer core,
 | `tools/match/test_peep.py` | Focused regressions for `gb_cmp16` (branch/boolean semantics, HL/SP-relative stores, the global-operand HL reload, zero thresholds), `switch_chain` and `ifx_word_hl` (the HL reload after `if (w)`); run with `python3 tools/match/test_peep.py` after changing any of them |
 | `tools/match/test_tools.py` | Regressions for the helper tools: `rom_grep.py`'s pattern syntax, `code_kind.py`'s never-from-SDCC operand marks, `--score`'s local-address normalisation |
 | `c/include/lsdj.h` | Shared declarations for the matching C: hardware/HRAM/WRAM variables, the SRAM layout (literal-address macros), every settled prototype |
-| `c/bankNN/*.c` | **Matching C** sources: byte-identical to the ROM when compiled with the period toolchain + `lsdj.peep`. Their bytes feed the ROM build (`c/matched.json`, written by `make match`, lists the C-owned ranges; the carve INCBINs `build/c/` or the ROM) A file marked `@stock-rules` is GBDK library code, matched with SDCC's stock rules only. |
+| `c/bankNN/*.c` | **Matching C** sources: byte-identical to the ROM when compiled with the period toolchain + `lsdj.peep`. Their output feeds the ROM build (`c/matched.json`, written by `make match`, lists the C-owned ranges; the carve renders their RGBDS translation from `build/c/`, or INCBINs the ROM without the compiler) A file marked `@stock-rules` is GBDK library code, matched with SDCC's stock rules only. |
 | `tools/gen_baseline.py` | Historical one-time bootstrap baseline generator |
 | `.githooks/pre-commit` | ROM-leak guard + `make compare` |
 
@@ -445,8 +445,9 @@ Always, before committing:
 - [x] Map what is C at all: `tools/match/code_kind.py` — ~200 functions are
       hand-written asm (sound tick, envelope/pitch, tile loader, sequencer core)
 - [ ] Match a large editor function (a screen input handler) to grow the rule set
-- [x] Matched C feeds the RGBDS build: `make match` writes the bytes, the carve
-      INCBINs them (ROM slice without Wine), `make compare` is the gate
+- [x] Matched C feeds the RGBDS build: `make match` writes each function's
+      RGBDS translation, the carve renders it in place (ROM INCBIN without the
+      compiler), `make compare` is the gate
 - [x] Go/no-go on Track 2: **go** — the rule set still grows with new idioms
       (`docs/toolchain.md`); 575 functions in twelve banks match so far
 
@@ -513,7 +514,7 @@ Always, before committing:
       convention below) is skipped by the trace and rendered as `db` by
       `carve_clean.py` — all 415 named data symbols now render as data
       (coverage 79% → an honest 77%, still 0 code-like bytes)
-- [ ] Render bank 0's 79 inline-trampoline call targets by name (disasm.py
+- [ ] Render bank 0's 22 inline-trampoline call targets by name (disasm.py
       tracking the `$2000` bank write, as `coverage.py` already does)
 - [ ] Re-verify/rename the five draw-named per-screen input handlers and
       `SndReadGrooveOrSpeed`; regenerate local labels that echo pre-July RAM names

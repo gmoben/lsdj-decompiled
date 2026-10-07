@@ -145,8 +145,8 @@
 794B CrashHandler               ; crash entry: di, dump state, DrawCrashScreen ("DONT PANIC!")
 40FA NoteFreqTable              ; [semitone 0-107] -> GB frequency period (108 x dw, copied by UiLoadHwTables)
 41D2 NoteFreqDeltaTable         ; companion 108 x dw pitch table (finetune/delta variant, UiLoadHwTables)
-42AA PitchCurve                 ; rising pitch-response curve (UiLoadHwTables)
-4382 PitchCurveCgb              ; PitchCurve's CGB counterpart (216 bytes; UiLoadHwTables picks by wIsCGB)
+42AA PitchCurve                 ; [216] rising pitch-response curve (UiLoadHwTables copies it)
+4382 PitchCurveCgb              ; [216] PitchCurve's CGB counterpart (UiLoadHwTables picks by wIsCGB)
 5927 ScreenPalTable             ; CGB palette block: TABLE screen
 5A8F ScreenPalPhrase            ; CGB palette block: PHRASE screen
 5BF7 ScreenPalGroove            ; CGB palette block: GROOVE screen
@@ -180,7 +180,6 @@
 4079 .loop3               ; loop head in UiTestSramLo
 408E .loop4               ; loop head in UiTestSramLo
 40E6 .done                ; common exit of UiTestSramLo
-43D5 .loop                ; loop head in PitchCurve
 4462 .loop                ; loop head in UiTestSramHi
 44F5 .loop                ; loop head in DrawCartTest
 4552 .loop2               ; loop head in DrawCartTest
@@ -336,11 +335,6 @@
 40D9 .cont_7
 40DF .cont_8
 4229 .cont
-432C .cont
-4391 .cont_2
-439D .cont_3
-439F .cont_4
-43CC .cont_5
 4475 .ret00
 447A .step
 447E .ret01

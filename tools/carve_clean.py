@@ -232,28 +232,32 @@ def merge_ranges(runs: list[tuple[int, int]]) -> list[tuple[int, int]]:
     return out
 
 
-def c_incbins(bank: int) -> list[tuple[int, int, str, int]]:
-    """ROM ranges owned by matching C (c/matched.json, written by `make match`):
-    (lo, hi, path, offset) for disasm.py --incbin. The bytes come from the
-    compiled function (build/c/bankNN/Name.bin) when it is present with the
-    right size, otherwise from the ROM itself -- so the build is identical
-    either way, and a C file that stops matching breaks `make compare`."""
+def c_ranges(bank: int) -> tuple[list[str], list[tuple[int, int, str, int]]]:
+    """ROM ranges owned by matching C (c/matched.json, written by `make match`).
+    With the compiler present, each function's RGBDS translation
+    (build/c/bankNN/Name.lines, from tools/match/to_rgbds.py: the code plus the
+    literals and const data after it) is rendered in place -- source whose
+    references are labels, the step toward a relocatable build; those come
+    back as paths for disasm.py --clines. Without it, the function's code
+    range INCBINs the ROM itself: (lo, hi, path, offset) for --incbin. The
+    build is identical either way, and a C file that stops matching breaks
+    `make compare`."""
     manifest = ROOT / "c" / "matched.json"
     if not manifest.is_file():
-        return []
+        return [], []
     rom_name = os.environ.get("LSDJ_BASEROM", "lsdj9_4_0.gb")
-    out = []
+    lines, incbins = [], []
     for name, m in json.loads(manifest.read_text()).items():
         if int(m["bank"], 16) != bank:
             continue
         addr, n = int(m["addr"], 16), int(m["len"])
         lo = bank * BANK + (addr - (0x4000 if bank else 0))
-        binf = ROOT / "build" / "c" / f"bank{bank:02x}" / f"{name}.bin"
-        if binf.is_file() and binf.stat().st_size == n:
-            out.append((lo, lo + n, binf.relative_to(ROOT).as_posix(), 0))
+        src = ROOT / "build" / "c" / f"bank{bank:02x}" / f"{name}.lines"
+        if src.is_file():
+            lines.append(src.relative_to(ROOT).as_posix())
         else:
-            out.append((lo, lo + n, rom_name, lo))
-    return sorted(out)
+            incbins.append((lo, lo + n, rom_name, lo))
+    return sorted(lines), sorted(incbins)
 
 
 def main() -> None:
@@ -276,12 +280,16 @@ def main() -> None:
             cmd += ["--globals", "src/bank00.sym"]
         if data_arg:
             cmd += ["--data", data_arg]
-        incbins = c_incbins(b)
+        clines, incbins = c_ranges(b)
         if incbins:
             cmd += ["--incbin", ",".join(f"0x{lo:X}:0x{hi:X}:{p}:0x{off:X}" for lo, hi, p, off in incbins)]
+        if clines:
+            cmd += ["--clines", ",".join(clines)]
         subprocess.run(cmd, cwd=ROOT, check=True)
         db = sum(e - s for s, e in runs)
-        extra = f", {len(incbins)} function(s) from matching C" if incbins else ""
+        n_c = len(clines) + len(incbins)
+        extra = (f", {n_c} function(s) from matching C"
+                 + (f" ({len(incbins)} as ROM INCBINs)" if incbins else "")) if n_c else ""
         print(f"bank ${b:02X}: {len(runs)} data run(s), {db} bytes marked db{extra}")
 
     subprocess.run(["python3", "tools/gen_main.py"], cwd=ROOT, check=True)

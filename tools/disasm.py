@@ -20,6 +20,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import subprocess
 import sys
@@ -362,12 +363,19 @@ Row = tuple[int, bytes, str, "int | None"]
 
 
 IncBin = tuple[int, int, str, int]   # (lo, hi) file offsets, source path, offset in it
+# Matching C rendered from its RGBDS translation (tools/match/to_rgbds.py):
+# (lo, hi) file offsets and the rows, each (cpu address, kind, text) -- kind
+# I an instruction or data row, L a label of the translation's own, V a
+# verbatim directive. Rows from it carry these `ref` markers:
+C_ROW, C_TEXT = -1, -2
+CLines = tuple[int, int, list[tuple[int, str, str]]]
 
 
 def disassemble(data: bytes, start: int, end: int, org: int,
                 data_ranges: list[tuple[int, int]],
                 anchors: set[int] | None = None,
-                incbins: list[IncBin] | None = None) -> list[Row]:
+                incbins: list[IncBin] | None = None,
+                clines: list[CLines] | None = None) -> list[Row]:
     """Return decoded rows covering file offsets [start, end).
 
     `anchors` is a set of file offsets that are known code-instruction starts
@@ -377,13 +385,18 @@ def disassemble(data: bytes, start: int, end: int, org: int,
 
     `incbins` are ranges whose bytes come from another file -- a function that
     now has matching C (tools/match): the range renders as `INCBIN` slices,
-    split at every anchor inside it so each symbol still gets its label."""
+    split at every anchor inside it so each symbol still gets its label.
+
+    `clines` are ranges matching C owns, rendered from their RGBDS
+    translation: its rows replace the decode (their labels print as usual)."""
     anchors = anchors or set()
     incbins = incbins or []
+    clines = clines or []
 
     def next_data_edge(o: int) -> int:
         edges = [hi if lo <= o < hi else lo for lo, hi in data_ranges if o < hi]
         edges += [hi if lo <= o < hi else lo for lo, hi, _p, _f in incbins if o < hi]
+        edges += [hi if lo <= o < hi else lo for lo, hi, _r in clines if o < hi]
         edges += [a for a in anchors if a > o]
         return min((e for e in edges if e > o), default=end)
 
@@ -394,9 +407,24 @@ def disassemble(data: bytes, start: int, end: int, org: int,
         return next((ib for ib in incbins if ib[0] <= o < ib[1]), None)
 
     out: list[Row] = []
+    used: set[int] = set()
     o = start
     while o < end:
         addr = org + (o - start)
+        cl = next((c for c in clines if c[0] == o), None)
+        if cl is not None:
+            lo, hi, crows = cl
+            used.add(lo)
+            istarts = sorted({a for a, kind, _t in crows if kind == "I"})
+            ends = {a: b for a, b in zip(istarts, istarts[1:] + [org + (hi - start)])}
+            for a, kind, text in crows:
+                if kind == "I":
+                    fo = start + (a - org)
+                    out.append((a, data[fo:start + (ends[a] - org)], text, C_ROW))
+                else:
+                    out.append((a, b"", text, C_TEXT))
+            o = hi
+            continue
         ib = in_incbin(o)
         if ib is not None:
             edge = min(next_data_edge(o), ib[1], end)
@@ -453,6 +481,10 @@ def disassemble(data: bytes, start: int, end: int, org: int,
                 ref = raw[1] | (raw[2] << 8)
             out.append((addr, raw, _fmt(length, kind, template, raw, addr), ref))
         o += length
+    missed = [f"${org + (lo - start):04x}" for lo, _hi, _r in clines
+              if lo not in used and start <= lo < end]
+    if missed:   # the decode ran across their start: would silently drop the C
+        raise ValueError(f"matching C ranges not rendered: {', '.join(missed)}")
     return out
 
 
@@ -638,9 +670,21 @@ def render(rows: list[Row], comments: bool,
             cur_global = labels[addr]
         enclosing[addr] = cur_global
     lines = []
+    printed: set[int] = set()
     for addr, raw, text, ref in rows:
-        if addr in labels:
+        if addr in labels and addr not in printed:
             lines.append(f"{labels[addr]}:")
+            printed.add(addr)
+        if ref == C_TEXT:                    # matching C: its own label / a directive
+            lines.append(text)
+            continue
+        if ref == C_ROW:                     # matching C: already symbolic
+            if comments:
+                hexb = " ".join(f"{b:02x}" for b in raw)
+                lines.append(f"\t{text:<28} ; ${addr:04x}: {hexb}")
+            else:
+                lines.append(f"\t{text}")
+            continue
         if ref is not None and ref in labels:
             tgt = labels[ref]
             if tgt.startswith(".") and enclosing.get(ref, "") != enclosing.get(addr, ""):
@@ -717,6 +761,9 @@ def main() -> None:
     ap.add_argument("--org", type=lambda s: int(s, 0), help="GB address of --start")
     ap.add_argument("--data", default="",
                     help="comma-separated lo:hi file-offset ranges to emit as db")
+    ap.add_argument("--clines", default="",
+                    help="comma-separated build/c/bankNN/Name.lines files: matching C's "
+                         "RGBDS translation, rendered in place of the decode")
     ap.add_argument("--incbin", default="",
                     help="comma-separated lo:hi:PATH:OFF ranges to emit as INCBIN "
                          "from PATH at OFF (a function that has matching C)")
@@ -790,7 +837,13 @@ def main() -> None:
     # ROMX banks all share $4000-$7FFF, so prefix their auto-labels with the
     # bank to keep them globally unique once every bank is INCLUDEd together.
     prefix = "L" if args.bank in (0, None) else f"L{args.bank:02X}_"
-    rows = disassemble(data, start, end, org, data_ranges, anchors, incbins)
+    clines: list[CLines] = []
+    for part in filter(None, (p.strip() for p in args.clines.split(","))):
+        doc = json.loads(Path(part).read_text())
+        lo_f = start + (int(doc["lo"]) - org)
+        hi_f = start + (int(doc["hi"]) - org)
+        clines.append((lo_f, hi_f, [(int(a), k, t) for a, k, t in doc["rows"]]))
+    rows = disassemble(data, start, end, org, data_ranges, anchors, incbins, clines)
     labels = ({} if args.no_labels
               else build_labels(rows, org, org + size, symbols, prefix))
     # Name cross-bank calls into home (bank 0): substitute references to home

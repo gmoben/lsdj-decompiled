@@ -1,33 +1,44 @@
 #!/usr/bin/env python3
 """Translate matching C's compiled assembly into RGBDS source.
 
-The ROM build places matched C as INCBINs of bytes linked at the original
-addresses, which pins every function in place: a fork that changes code has
-to let the code move. Assembled by RGBDS from source instead, the C's calls,
-jumps and data references become labels the linker resolves wherever things
-end up.
+The ROM build used to place matched C as INCBINs of bytes linked at the
+original addresses, which pins every function in place; a fork that changes
+code has to let the code move. Assembled by RGBDS from source instead, the
+C's calls, jumps and data references are labels the linker resolves wherever
+things end up.
 
 SDCC 2.2.1's output (after lsdj.peep and the tracking passes, i.e. the text
 as-gbz80 assembles in tools/match) is asxxxx syntax; the translation is
 mechanical: `(hl)` -> `[hl]`, `lda hl,N(sp)` -> `ld hl, sp+N`, `lda sp,N(sp)`
 -> `add sp, N`, `#0x12` -> `$12`, `#<_x`/`#>_x` -> `LOW(x)`/`HIGH(x)`,
-`_name` -> `name` (SDCC runtime names through match_function's aliases),
-`00105$` -> `.L00105`, the unit's `__str_N` -> a global per module, `.db` /
-`.ascii` -> `db`. A function's text runs from its start label through the
-literals and const data SDCC places after it, up to the next function.
+`_name` -> `name` (SDCC runtime names through match_function's aliases, GBDK
+register names to include/hardware.inc's), `.db`/`.ascii` -> `db`. A
+function's text runs from its start label through the literals and const
+data SDCC places after it, up to the next function.
 
---check translates every matched function (or those of the given C files),
-assembles each with rgbasm/rgblink at its ROM address -- every other symbol
-an EQU from the symbol maps -- and compares the code and the bytes after it
-with the ROM.
+Labels: the carve keeps printing every src/bankNN.sym label (so every tool
+reading the generated .asm still sees them); the translation adds only its
+own, fully qualified (`Func.L00105:`, `Func.str_3:`), which RGBDS resolves
+whatever the scope, and refers to a literal or table by its .sym name when it
+has one. Each row carries its ROM address (from as-gbz80's listing), which
+is how the carve interleaves the two.
+
+verify_all.py --write saves each matched function's rows as
+build/c/bankNN/Name.lines (JSON); tools/carve_clean.py renders them in place.
+
+--check builds every matched function (or those of the given C files) the
+same way -- rows plus the .sym labels -- assembles each with rgbasm/rgblink at
+its ROM address, every other symbol an EQU, and compares the code and the
+bytes after it with the ROM.
 
 Usage: tools/match/to_rgbds.py --check [FILE.c ...]
-       tools/match/to_rgbds.py FILE.c FUNC        # print the translation
+       tools/match/to_rgbds.py FILE.c FUNC        # print the rendered rows
 """
 
 from __future__ import annotations
 
 import argparse
+import functools
 import importlib
 import json
 import re
@@ -40,77 +51,97 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 sys.path.insert(0, str(HERE))
-va = importlib.import_module("verify_all")
-mf = va.mf
+sys.path.insert(0, str(ROOT / "tools"))
+mf = importlib.import_module("match_function")
 
 START = re.compile(r"^___(\w+?)_start:")
 REGS = {"a", "b", "c", "d", "e", "h", "l", "af", "bc", "de", "hl", "sp",
         "z", "nz", "nc"}          # (`c` the register or the condition)
 KEYWORDS = {"LOW", "HIGH"}
 
+Row = tuple[int, str, str]        # (ROM address, kind, text); kind I/L/V
 
-def split_functions(asm: str) -> dict[str, list[str]]:
-    """Function name -> the unit's lines from its start label up to the next
-    function (its code, then the literals and const data placed after it)."""
-    out: dict[str, list[str]] = {}
-    cur: list[str] | None = None
-    for line in asm.splitlines():
+
+# --- the unit ----------------------------------------------------------------
+
+def split_functions(asm: str) -> dict[str, tuple[int, list[tuple[int, str]]]]:
+    """Function name -> (line number of its start label, [(line number, line)])
+    from the start label up to the next function: its code, then the
+    literals and const data placed after it. Line numbers are 1-based, as in
+    as-gbz80's listing."""
+    out: dict[str, tuple[int, list[tuple[int, str]]]] = {}
+    cur: list[tuple[int, str]] | None = None
+    for n, line in enumerate(asm.splitlines(), 1):
         m = START.match(line)
         if m:
-            cur = out.setdefault(m.group(1), [])
+            cur = []
+            out[m.group(1)] = (n, cur)
             continue
         s = line.strip()
         if s.startswith(".area") and "_CODE" not in s:
             cur = None
             continue
         if cur is not None:
-            cur.append(line)
+            cur.append((n, line))
+    return out
+
+
+def listing_addrs(lst: str) -> dict[int, int]:
+    """unit.asm line number -> area-relative address, from as-gbz80's listing
+    (fixed columns: address at 3-6, up to six bytes ending at column 24, the
+    line number in 25-30)."""
+    out: dict[int, int] = {}
+    for line in lst.splitlines():
+        if len(line) < 31:
+            continue
+        a, n = line[3:7], line[25:31].strip()
+        if n.isdigit() and re.fullmatch(r"[0-9A-F]{4}", a):
+            out.setdefault(int(n), int(a, 16))
     return out
 
 
 def module_equates(asm: str) -> dict[str, str]:
     """Symbols the unit defines by value (`_X = 0xff90`: an `sfr at` / `at`
-    declaration), as RGBDS names -> RGBDS expressions."""
-    return {_symbol(m.group(1), ""): _expr(m.group(2), "")
+    declaration): RGBDS name -> RGBDS expression."""
+    return {m.group(1)[1:]: re.sub(r"0x([0-9A-Fa-f]+)", r"$\1", m.group(2))
             for m in re.finditer(r"^\s*(_\w+)\s*=\s*(\S+)", asm, re.M)}
 
 
-def _symbol(name: str, module: str) -> str:
-    """An asxxxx symbol as the RGBDS build names it."""
-    m = re.fullmatch(r"__str_(\d+)", name)
-    if m:
-        return f"{module}_str_{m.group(1)}"
-    if name.startswith("_"):
-        plain = name[1:]
-        return mf.RUNTIME_ALIASES.get(plain) or mf.RUNTIME_ALIASES.get(name) or plain
-    return name
+@functools.lru_cache(maxsize=None)
+def rgbds_names() -> tuple[frozenset[str], dict[int, str]]:
+    """(names the RGBDS build defines: hardware.inc, ram.inc, every .sym
+    label; hardware.inc's first name for each register address)."""
+    names: set[str] = set()
+    hw: dict[int, str] = {}
+    for inc in (ROOT / "include" / "hardware.inc", ROOT / "constants" / "ram.inc"):
+        for m in re.finditer(r"^\s*DEF\s+(\w+)\s+EQU\s+(\S+)", inc.read_text(errors="replace"), re.M | re.I):
+            names.add(m.group(1))
+            v = m.group(2)
+            if inc.name == "hardware.inc" and v.startswith("$"):
+                hw.setdefault(int(v[1:], 16), m.group(1))
+    for p in (ROOT / "src").glob("bank*.sym"):
+        for line in p.read_text().splitlines():
+            m = re.match(r"^\s*[0-9A-Fa-f]{4}\s+([A-Za-z_]\w*)", line)
+            if m and "@deploy-only" not in line:
+                names.add(m.group(1))
+    return frozenset(names), hw
 
 
-def _expr(e: str, module: str) -> str:
-    """An operand expression (no addressing brackets)."""
-    e = e.strip()
-    if e.startswith("#"):
-        e = e[1:]
-    m = re.fullmatch(r"([<>])\(?(.*?)\)?", e)
-    if m and e[0] in "<>":
-        return f"{'LOW' if m.group(1) == '<' else 'HIGH'}({_expr(m.group(2), module)})"
-    e = re.sub(r"\b(\d{5})\$", r".L\1", e)
-    e = re.sub(r"0x([0-9A-Fa-f]+)", r"$\1", e)
-    e = re.sub(r"(?<![\w.$])(_\w+)", lambda m: _symbol(m.group(1), module), e)
-    return e
+@functools.lru_cache(maxsize=None)
+def bank_labels(bank: int) -> dict[int, str]:
+    """The labels the carve prints in a bank: src/bankNN.sym as
+    tools/disasm.py parses it (one name per address, locals start with `.`)."""
+    disasm = importlib.import_module("disasm")
+    return disasm.parse_symbols(ROOT / "src" / f"bank{bank:02x}.sym")
 
 
-def _operand(op: str, module: str) -> str:
-    op = op.strip()
-    m = re.fullmatch(r"\((hl[+-]?|de|bc|c)\)", op)
-    if m:
-        return f"[{m.group(1)}]"
-    m = re.fullmatch(r"\((.+)\)", op)
-    if m:                                   # ldh (_X+0)
-        return f"[{_expr(m.group(1), module)}]"
-    if op in REGS:
-        return op
-    return _expr(op, module)
+def qualified(labels: dict[int, str], addr: int) -> str:
+    """The .sym label at `addr` as a reference: a local one with its parent."""
+    name = labels[addr]
+    if not name.startswith("."):
+        return name
+    parent = max((a for a, n in labels.items() if a <= addr and not n.startswith(".")), default=None)
+    return f"{labels[parent]}{name}" if parent is not None else name
 
 
 def _strip_comment(line: str) -> str:
@@ -124,74 +155,178 @@ def _strip_comment(line: str) -> str:
     return "".join(out).rstrip()
 
 
-def translate(lines: list[str], module: str) -> list[str]:
-    out: list[str] = []
-    for raw in lines:
-        line = _strip_comment(raw)
-        s = line.strip()
-        if not s:
-            continue
-        if s.endswith(":"):
-            name = s[:-1]
-            if re.fullmatch(r"___\w+_end", name):
+# --- translation ----------------------------------------------------------------
+
+class Translator:
+    """One function's rows: the code and the data after it, by ROM address."""
+
+    def __init__(self, asm: str, lst: str, func: str, func_addr: int, size: int,
+                 labels: dict[int, str], syms: dict[str, tuple[int | None, int]]):
+        self.func, self.labels, self.syms = func, labels, syms
+        self.equates = module_equates(asm)
+        start_line, self.lines = split_functions(asm)[func]
+        self.addrs = listing_addrs(lst)
+        self.base = func_addr - self.addrs[start_line]
+        self.lo, self.hi = func_addr, func_addr + size
+        self.rename: dict[str, str] = {}      # SDCC data label -> reference
+        self.define: dict[str, str] = {}      # SDCC data label -> our label to define
+        self.guards: dict[str, str] = {}      # name -> value, for `IF !DEF`
+        for n, raw in self.lines:
+            s = _strip_comment(raw).strip()
+            if not s.endswith(":"):
                 continue
-            m = re.fullmatch(r"(\d{5})\$", name)
-            out.append(f".L{m.group(1)}:" if m else f"{_symbol(name, module)}:")
-            continue
-        if s.startswith((".globl", ".module", ".area")):
-            continue
-        m = re.fullmatch(r"(_\w+)\s*=\s*(\S+)", s)
-        if m:
-            out.append(f"DEF {_symbol(m.group(1), module)} EQU {_expr(m.group(2), module)}")
-            continue
-        if s.startswith(".ascii"):
-            am = re.fullmatch(r'\.ascii\s+"(.*)"', s)
-            if not am:
-                raise ValueError(f"unexpected .ascii: {s}")
-            text = am.group(1)
-            out.append("\tdb " + ", ".join(f"${ord(ch):02X}" for ch in text))
-            continue
-        if s.startswith((".db", ".dw")):
-            kind, rest = s.split(None, 1)
-            out.append(f"\t{kind[1:]} " + ", ".join(_expr(x, module) for x in rest.split(",")))
-            continue
-        parts = s.split(None, 1)
-        mn = parts[0].lower()
-        ops = [o for o in parts[1].split(",")] if len(parts) > 1 else []
-        if mn == "lda":
-            sm = re.fullmatch(r"(-?\d+)\(sp\)", ops[1].strip())
-            if not sm:
-                raise ValueError(f"unexpected lda operand: {s}")
-            n = int(sm.group(1))
-            if ops[0].strip() == "sp":
-                out.append(f"\tadd sp, {n}")
+            name = s[:-1]
+            if re.fullmatch(r"\d{5}\$", name) or name.startswith("___") or name == f"_{func}":
+                continue
+            a = self.base + self.addrs[n]
+            if a in labels:
+                self.rename[name] = qualified(labels, a)
             else:
-                out.append(f"\tld hl, sp{'+' if n >= 0 else '-'}{abs(n)}")
-            continue
-        if mn == "jp" and ops and ops[0].strip() == "(hl)":
-            out.append("\tjp hl")
-            continue
-        conv = [_operand(o, module) for o in ops]
-        out.append(f"\t{mn} " + ", ".join(conv) if conv else f"\t{mn}")
+                ours = f"{func}.{re.sub(r'^_+', '', name)}"
+                self.rename[name] = self.define[name] = ours
+
+    # operands
+    def symbol(self, name: str) -> str:
+        if name in self.rename:
+            return self.rename[name]
+        plain = name[1:] if name.startswith("_") else name
+        plain = mf.RUNTIME_ALIASES.get(plain) or mf.RUNTIME_ALIASES.get(name) or plain
+        names, hw = rgbds_names()
+        if plain in names:
+            return plain
+        if plain in self.equates:
+            self.guards[plain] = self.equates[plain]
+            return plain
+        if plain in self.syms:
+            bank, val = self.syms[plain]
+            if bank is None and val in hw:            # a GBDK register name
+                return hw[val]
+            self.guards[plain] = f"${val:04X}"
+            return plain
+        raise ValueError(f"{self.func}: no value for symbol {plain}")
+
+    def expr(self, e: str) -> str:
+        e = e.strip()
+        if e.startswith("#"):
+            e = e[1:]
+        m = re.fullmatch(r"([<>])\(?(.*?)\)?", e)
+        if m and e[0] in "<>":
+            return f"{'LOW' if m.group(1) == '<' else 'HIGH'}({self.expr(m.group(2))})"
+        e = re.sub(r"\b(\d{5})\$", lambda m: f"{self.func}.L{m.group(1)}", e)
+        e = re.sub(r"0x([0-9A-Fa-f]+)", r"$\1", e)
+        e = re.sub(r"(?<![\w.$])(_\w+)", lambda m: self.symbol(m.group(1)), e)
+        return e
+
+    def operand(self, op: str) -> str:
+        op = op.strip()
+        m = re.fullmatch(r"\((hl[+-]?|de|bc|c)\)", op)
+        if m:
+            return f"[{m.group(1)}]"
+        m = re.fullmatch(r"\((.+)\)", op)
+        if m:                                   # ldh (_X+0)
+            return f"[{self.expr(m.group(1))}]"
+        if op in REGS:
+            return op
+        return self.expr(op)
+
+    def data_rows(self, addr: int, kind: str, items: list[str]) -> list[Row]:
+        """`db`/`dw` rows, split wherever the carve prints a label inside."""
+        width = 2 if kind == "dw" else 1
+        rows: list[Row] = []
+        cur: list[str] = []
+        cur_addr = addr
+        for i, it in enumerate(items):
+            a = addr + i * width
+            if cur and a in self.labels:
+                rows.append((cur_addr, "I", f"{kind} " + ", ".join(cur)))
+                cur, cur_addr = [], a
+            cur.append(it)
+        if cur:
+            rows.append((cur_addr, "I", f"{kind} " + ", ".join(cur)))
+        return rows
+
+    def rows(self) -> list[Row]:
+        out: list[Row] = []
+        for n, raw in self.lines:
+            s = _strip_comment(raw).strip()
+            if not s:
+                continue
+            a = self.base + self.addrs[n] if n in self.addrs else None
+            if s.endswith(":"):
+                name = s[:-1]
+                m = re.fullmatch(r"(\d{5})\$", name)
+                if (m or name in self.define) and a is None:
+                    raise ValueError(f"{self.func}: no address for label {name}")
+                if m and a is not None:
+                    out.append((a, "L", f"{self.func}.L{m.group(1)}:"))
+                elif name in self.define and a is not None:
+                    out.append((a, "L", f"{self.define[name]}:"))
+                continue              # the function's own and the .sym-named labels: the carve's
+            if s.startswith((".globl", ".module", ".area")) or re.fullmatch(r"_\w+\s*=\s*\S+", s):
+                continue
+            if a is None:
+                raise ValueError(f"{self.func}: no address for line {n}: {s}")
+            if s.startswith(".ascii"):
+                am = re.fullmatch(r'\.ascii\s+"(.*)"', s)
+                if not am:
+                    raise ValueError(f"unexpected .ascii: {s}")
+                out += self.data_rows(a, "db", [f"${ord(ch):02X}" for ch in am.group(1)])
+                continue
+            if s.startswith((".db", ".dw")):
+                kind, rest = s.split(None, 1)
+                out += self.data_rows(a, kind[1:], [self.expr(x) for x in rest.split(",")])
+                continue
+            parts = s.split(None, 1)
+            mn = parts[0].lower()
+            ops = parts[1].split(",") if len(parts) > 1 else []
+            if mn == "lda":
+                sm = re.fullmatch(r"(-?\d+)\(sp\)", ops[1].strip())
+                if not sm:
+                    raise ValueError(f"unexpected lda operand: {s}")
+                k = int(sm.group(1))
+                text = f"add sp, {k}" if ops[0].strip() == "sp" else f"ld hl, sp{'+' if k >= 0 else '-'}{abs(k)}"
+            elif mn == "jp" and ops and ops[0].strip() == "(hl)":
+                text = "jp hl"
+            else:
+                conv = [self.operand(o) for o in ops]
+                text = f"{mn} " + ", ".join(conv) if conv else mn
+            out.append((a, "I", text))
+        guards = [(self.lo, "V", f"IF !DEF({k})\nDEF {k} EQU {v}\nENDC")
+                  for k, v in sorted(self.guards.items())]
+        rows = guards + out
+        # every label the carve prints inside must land on a row start
+        starts = {a for a, kind, _t in rows if kind == "I"}
+        for a in self.labels:
+            if self.lo <= a < self.hi and a not in starts:
+                raise ValueError(f"{self.func}: .sym label {self.labels[a]} at ${a:04X} "
+                                 f"is not at an instruction or data row")
+        return rows
+
+
+def annotate(asm: str, lst: str, func: str, bank: int, func_addr: int, size: int,
+             syms: dict[str, tuple[int | None, int]]) -> dict[str, object]:
+    """The rows verify_all.py saves as build/c/bankNN/Name.lines."""
+    t = Translator(asm, lst, func, func_addr, size, bank_labels(bank), syms)
+    return {"lo": func_addr, "hi": func_addr + size, "rows": t.rows()}
+
+
+def render(rows: list[Row], labels: dict[int, str], lo: int, hi: int) -> list[str]:
+    """Rows with the carve's labels, as tools/disasm.py prints them."""
+    out: list[str] = []
+    printed: set[int] = set()
+    for a, kind, text in rows:
+        if kind == "I" and a not in printed and a in labels and lo <= a < hi:
+            out.append(f"{labels[a]}:")
+            printed.add(a)
+        out.append(text if kind in "LV" else f"\t{text}")
     return out
 
 
-def references(text: list[str], defined: set[str]) -> set[str]:
-    refs: set[str] = set()
-    for line in text:
-        s = line.strip()
-        if s.endswith(":") or s.startswith("DEF "):
-            continue
-        body = s.split(None, 1)[1] if " " in s else ""
-        for tok in re.findall(r"(?<![$.\w])([A-Za-z_]\w*)", body):
-            if tok not in REGS and tok not in KEYWORDS and tok not in defined:
-                refs.add(tok)
-    return refs
-
+# --- check ------------------------------------------------------------------
 
 def check(files: list[Path]) -> int:
-    rgbasm = shutil.which("rgbasm")
-    rgblink = shutil.which("rgblink")
+    va = importlib.import_module("verify_all")
+    rgbasm, rgblink = shutil.which("rgbasm"), shutil.which("rgblink")
     if not rgbasm or not rgblink:
         sys.exit("error: rgbasm/rgblink not on PATH")
     rom = (ROOT / "lsdj9_4_0.gb").read_bytes()
@@ -212,37 +347,35 @@ def check(files: list[Path]) -> int:
             if want and c_path not in want:
                 continue
             d, asm, lst = runner.compile(c_path)
-            module = "C_" + "_".join(Path(src).with_suffix("").parts[1:])
-            funcs = split_functions(asm)
-            equates = module_equates(asm)
             for name in sorted(names):
                 m = manifest[name]
                 bank, addr = int(m["bank"], 16), int(m["addr"], 16)
                 _n, code, tail = runner.link(d, asm, lst, name, bank, addr, syms)
-                if name not in funcs:
-                    print(f"  {name}: not found in the unit")
+                try:
+                    t = Translator(asm, lst, name, addr, len(code) + len(tail), bank_labels(bank), syms)
+                    rows = t.rows()
+                except (ValueError, KeyError) as e:
+                    print(f"  {name}: {e}")
                     bad += 1
                     continue
-                text = translate(funcs[name], module)
-                defined = {t.strip()[:-1] for t in text if t.strip().endswith(":")}
-                defined |= {t.split()[1] for t in text if t.startswith("DEF ")}
-                defs, missing = [], []
-                for ref in sorted(references(text, defined)):
-                    if ref in equates:
-                        defs.append(f"DEF {ref} EQU {equates[ref]}")
-                    elif ref in syms:
+                labels = bank_labels(bank)
+                text = render(rows, labels, addr, addr + len(code) + len(tail))
+                if f"{name}:" not in text:
+                    text.insert(0, f"{name}:")
+                body = "\n".join(text)
+                # everything else the body names is an EQU of its address here
+                defined = set(re.findall(r"^([A-Za-z_][\w.]*):", body, re.M))
+                defined |= set(re.findall(r"^DEF (\w+)", body, re.M))
+                defs = []
+                for ref in sorted(set(re.findall(r"(?<![$.\w])([A-Za-z_]\w*)(?![\w.])", body))):
+                    if ref in defined or ref in REGS or ref in KEYWORDS:
+                        continue
+                    if ref in syms:
                         defs.append(f"DEF {ref} EQU ${syms[ref][1]:04X}")
-                    else:
-                        missing.append(ref)
-                if missing:
-                    print(f"  {name}: unresolved {', '.join(missing)}")
-                    bad += 1
-                    continue
                 sect = (f'SECTION "c", ROM0[${addr:04X}]' if bank == 0 else
                         f'SECTION "c", ROMX[${addr:04X}], BANK[${bank:02X}]')
-                src_text = "\n".join(defs + [sect] + text) + "\n"
                 f = work / f"{name}.asm"
-                f.write_text(src_text)
+                f.write_text("\n".join(defs + [sect, body]) + "\n")
                 r = subprocess.run([rgbasm, "-o", str(f.with_suffix(".o")), str(f)],
                                    capture_output=True, text=True)
                 if r.returncode == 0:
@@ -257,7 +390,7 @@ def check(files: list[Path]) -> int:
                 off = bank * 0x4000 + (addr - (0x4000 if bank else 0))
                 want_bytes = code + tail
                 got = img[off:off + len(want_bytes)]
-                if got != want_bytes or rom[off:off + len(code)] != code:
+                if got != want_bytes or rom[off:off + len(want_bytes)] != want_bytes:
                     k = next((i for i in range(len(want_bytes)) if i >= len(got) or got[i] != want_bytes[i]), 0)
                     print(f"  {name}: differs at +${k:X} (rgbds {got[k:k+6].hex(' ')}, "
                           f"sdcc {want_bytes[k:k+6].hex(' ')})")
@@ -278,15 +411,20 @@ def main() -> None:
         sys.exit(check([Path(x) for x in a.args]))
     if len(a.args) != 2:
         ap.error("give FILE.c FUNC, or --check")
+    va = importlib.import_module("verify_all")
     c_path, func = Path(a.args[0]).resolve(), a.args[1]
+    manifest = json.loads((ROOT / "c" / "matched.json").read_text())
+    if func not in manifest:
+        sys.exit(f"error: {func} is not a matched function")
+    m = manifest[func]
+    bank, addr = int(m["bank"], 16), int(m["addr"], 16)
+    syms = mf.load_symbols()
     with ExitStack() as st:
         runner = va.Runner(st, mf.DEFAULT_PEEP)
-        _d, asm, _lst = runner.compile(c_path)
-    module = "C_" + "_".join(c_path.relative_to(ROOT).with_suffix("").parts[1:])
-    funcs = split_functions(asm)
-    if func not in funcs:
-        sys.exit(f"error: {func} not in {c_path.name}")
-    print("\n".join(translate(funcs[func], module)))
+        d, asm, lst = runner.compile(c_path)
+        _n, code, tail = runner.link(d, asm, lst, func, bank, addr, syms)
+    ann = annotate(asm, lst, func, bank, addr, len(code) + len(tail), syms)
+    print("\n".join(render(ann["rows"], bank_labels(bank), ann["lo"], ann["hi"])))
 
 
 if __name__ == "__main__":

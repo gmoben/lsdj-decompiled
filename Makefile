@@ -54,13 +54,15 @@ carve: | $(BASEROM)
 # Functions under c/bankNN/*.c compile byte-for-byte with the period SDCC
 # 2.2.1 -- built natively from the GBDK 2.95-2 sources
 # (tools/toolchain/build_sdcc221.sh), identical in output to GBDK 2.95-3's
-# Win32 binaries -- plus tools/match/lsdj.peep. `make match` verifies them all, writes their bytes to
-# build/c/ and the manifest c/matched.json; the carve then renders those ROM
-# ranges as INCBINs of the compiled bytes -- so the C is the source of those
-# bytes and a C file that stops matching fails the build. Without a compiler
-# the same ranges INCBIN the ROM, so `compare` works everywhere.
+# Win32 binaries -- plus tools/match/lsdj.peep. `make match` verifies them all, writes their bytes
+# and their RGBDS translation (tools/match/to_rgbds.py) to build/c/ and the
+# manifest c/matched.json; the carve then renders those ROM ranges from the
+# translation -- so the C is the source of those bytes (and of the labels they
+# refer to), and a C file that stops matching fails the build. Without a
+# compiler the same ranges INCBIN the ROM, so `compare` works everywhere.
 C_SRCS := $(wildcard c/bank*/*.c) $(wildcard c/include/*.h)
-C_TOOLS := tools/match/verify_all.py tools/match/match_function.py tools/match/peep.py tools/match/lsdj.peep
+C_TOOLS := tools/match/verify_all.py tools/match/match_function.py tools/match/peep.py tools/match/lsdj.peep \
+           tools/match/to_rgbds.py tools/disasm.py
 # (Only the native build: the Win32 sdcc.exe crashes under Wine on units
 # the size of c/bank03/InstrScreen.c.)
 HAVE_C_TOOLCHAIN := $(shell test -x toolchain/sdcc-2.2.1-native/bin/sdcc && echo 1)
@@ -81,7 +83,7 @@ match: | $(BASEROM)
 
 # Auto-carve on a fresh clone: main.asm is the linker entry point; if it is
 # missing, generate the whole tree first.
-src/main.asm: $(CARVED_ASM) constants/ram.inc tools/carve_clean.py tools/gen_main.py c/matched.json $(C_STAMP) | $(BASEROM)
+src/main.asm: $(CARVED_ASM) constants/ram.inc tools/carve_clean.py tools/disasm.py tools/gen_main.py c/matched.json $(C_STAMP) | $(BASEROM)
 	tools/carve_clean.py
 
 # --- Assemble + link + fix -------------------------------------------------

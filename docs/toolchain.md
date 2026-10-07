@@ -365,8 +365,8 @@ counts what matching C already owns and the GBDK/SDCC library routines
 |---|--:|--:|--:|--:|--:|--:|--:|--:|
 | bank `$00` | 54 | 17 | 9 | 70 | 31 | 13 | 59% | 37% |
 | bank `$02` (sound engine) | 0 | 28 | 26 | 90 | 0 | 5 | 0% | 52% |
-| editor banks `$01`, `$03`-`$07`, `$1B`-`$1F` | 521 | 54 | 0 | 42 | 0 | 9 | 68% | 2% |
-| **all** | **575** | **99** | **35** | **202** | **31** | **27** | **64%** (90,980 of ~142,500) | **10%** |
+| editor banks `$01`, `$03`-`$07`, `$1B`-`$1F` | 521 | 54 | 0 | 40 | 0 | 9 | 68% | 2% |
+| **all** | **575** | **99** | **35** | **200** | **31** | **27** | **64%** (90,980 of ~142,500) | **10%** |
 
 The counts are labels: a big function's case bodies (the 13 `InstrParam*`
 inside `InstrScreenInput`) and an indirect call's return point (the
@@ -794,16 +794,25 @@ not-yet-matched C functions by size or groups them by instruction shape.
 
 `make match` (`tools/match/verify_all.py --write build/c`) compiles every
 `c/bankNN/*.c`, links each function at its ROM address, and on a match writes
-the bytes to `build/c/bankNN/Name.bin` and records the function in the
-tracked manifest `c/matched.json` (bank, address, length, source). The carve
-(`tools/carve_clean.py` → `tools/disasm.py --incbin`) then renders each such
-range not as instructions but as `INCBIN` slices of the compiled bytes — split
-at every symbol inside the range, so `ScreenDrawTable`, `.loop` and friends
-keep their labels and still reach the debugger `.sym`. With Wine and the
-toolchain present, `src/main.asm` depends on those bytes: change a C file and
-`make compare` recompiles it, re-carves, and fails if it no longer matches.
-Without Wine the same ranges `INCBIN` the ROM itself, so `compare` works
-everywhere. `make listing` disassembles the slices back inline.
+the bytes to `build/c/bankNN/Name.bin`, the function's RGBDS translation to
+`build/c/bankNN/Name.lines` (`tools/match/to_rgbds.py`: its code plus the
+literals and const data the compiler emits after it, each row with its ROM
+address), and records the function in the tracked manifest `c/matched.json`
+(bank, address, length, source). The carve (`tools/carve_clean.py` →
+`tools/disasm.py --clines`) then renders each such range from the
+translation instead of decoding the ROM: the compiler's own code with
+symbolic operands (`ld hl, wCurrentScreen + 0`, `call DrawString`,
+`jp nz, ScreenPreDraw.L00102`), its branch labels qualified by the function
+(`ScreenPreDraw.L00102:` — rgbasm takes `Parent.local:` anywhere without
+changing the scope), names the asm side lacks as guarded `DEF`s, and every
+`.sym` label inside the range printed as before — `.notWave`, `TxtSpaces13`
+and friends keep their names, and the debugger `.sym` keeps them (the `.L`
+labels are left out of it). With the compiler built
+(`tools/toolchain/build_sdcc221.sh`), `src/main.asm` depends on that output:
+change a C file and `make compare` recompiles it, re-carves, and fails if it
+no longer matches. Without it the same code ranges `INCBIN` the ROM itself,
+so `compare` works everywhere (`make listing` disassembles those slices back
+inline).
 
 This is the pret loop for this project: asm functions are replaced by
 matching C one at a time while `make compare` stays green.
@@ -898,8 +907,9 @@ shape.
       math + locals + asserts (`ReadInstrByte`), the register-reload exception
       (`DrawTileHexCell`) — all matched; rule set 6 → 28.
 - [x] `make match` regression suite; `code_kind.py` C/asm map.
-- [x] Matched C feeds the ROM build (`INCBIN` of the compiled bytes, ROM slice
-      without Wine; `make compare` is the gate).
+- [x] Matched C feeds the ROM build (first as `INCBIN`s of the compiled bytes,
+      now as its RGBDS translation; a ROM slice without the compiler;
+      `make compare` is the gate).
 - [x] A larger, branchier function: `DrawSyncField` (262 B).
 - [x] Shared header, cached batch verification, multi-function units
       (`c/bank03/InstrScreen.c`: 34 functions).
@@ -911,20 +921,27 @@ shape.
 ### Toward a moddable fork
 
 The goal past matching is a fork that adds features, so code has to be able
-to move. Today it can't: matched C enters as bytes linked at the original
-addresses, ~236 code operands in the carve are raw ROM addresses, and every
+to move. Matched C already enters as RGBDS source with symbolic operands, but
+the asm carve still prints ROM addresses as numbers — 230 `call`/`jp`
+targets and `ld rr, $4000-$7FFF` immediates (bank 0's cross-bank trampoline
+targets, table bases like `ld de, $402b` for `InstrFieldX`) — and every
 pointer table is raw `db` bytes. The milestone, pret's "shiftable":
 
 - [x] Translate matched C to RGBDS source: `tools/match/to_rgbds.py --check`
       assembles every matched function (code, literals and const data) with
       rgbasm/rgblink at its address -- all 575 byte-identical.
-- [ ] Build from that source instead of the INCBINs (labels from the `.sym`
-      inside each function, the literals owned by the C), `make compare`
-      still the gate.
-- [ ] Symbolic references in the carve: the ~236 raw ROM-address operands
-      (bank 0's cross-bank trampoline targets, jump-table bases) and the
+- [x] Build from that source instead of the INCBINs: `make match` writes
+      each function's translation to `build/c/bankNN/Name.lines` and the
+      carve renders it in place (the `.sym` labels inside each function
+      kept, the literals and const data the C emits owned by it);
+      `make compare` still the gate.
+- [ ] Symbolic references in the carve: the 230 raw ROM-address operands
+      (bank 0's cross-bank trampoline targets, table bases, the `jr cc` onto
+      its own `$ff` operand — a `rst $38` assert — as `@ + 1`) and the
       pointer tables as `dw Label`; no literal ROM addresses in the C either
-      (FieldHelp's ten strings, two `FarCall(5, 0x747D)`).
+      (FieldHelp's ten strings, three `FarCall(5, 0x747D)`). The C's other
+      `$4000-$7FFF` immediates are kit-format addresses (`$4000`, `$4052`)
+      and `gb_cmp16`'s add-form constants (`p < 0xB290` → `ld hl, $4D70`).
 - [ ] A shift test: a build with padding inserted in each bank, checked by
       an emulator smoke test (boot, every screen, playback, save/load).
 - [ ] Behaviour tests on tools/emu for builds that no longer match the ROM:

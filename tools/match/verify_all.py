@@ -14,10 +14,13 @@ extern it uses. Only changed sources (or changed symbol values) reach Wine,
 so `make match` and the pre-commit hook stay fast as the C tree grows.
 
 With --write DIR (what `make match` does), every matched function's bytes
-are written to DIR/bankNN/Name.bin and the manifest c/matched.json is
-refreshed; tools/carve_clean.py then renders those ROM ranges as INCBINs of
-the compiled bytes (or of the ROM when the bytes are absent), so the C is the
-source of those bytes in the ROM build and `make compare` verifies it.
+are written to DIR/bankNN/Name.bin, its RGBDS translation (code plus the
+literals and const data after it, each row with its ROM address:
+tools/match/to_rgbds.py) to DIR/bankNN/Name.lines, and the manifest
+c/matched.json is refreshed; tools/carve_clean.py then renders those ROM
+ranges from the translation -- RGBDS source with symbolic operands, so the
+C is the source of those bytes and of their references -- (or as INCBINs of
+the ROM when it is absent), and `make compare` verifies it.
 
 Given explicit files (which may live outside c/, e.g. work in progress) it
 checks just those, reports where each mismatch starts, and writes nothing.
@@ -38,6 +41,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 mf = importlib.import_module("match_function")
+to_rgbds = importlib.import_module("to_rgbds")
 
 DEFN = re.compile(r"^(?:[A-Za-z_][\w \t*]*?\b)?([A-Za-z_]\w*)\s*\([^;{}]*\)\s*(?:nonbanked|banked|critical)?\s*$")
 MANIFEST = mf.REPO_ROOT / "c" / "matched.json"
@@ -197,6 +201,17 @@ def main() -> None:
                         out.parent.mkdir(parents=True, exist_ok=True)
                         if not out.is_file() or out.read_bytes() != code:
                             out.write_bytes(code)
+                        # the same range as RGBDS source (code + the data after it)
+                        lines = out.with_suffix(".lines")
+                        try:
+                            text = json.dumps(to_rgbds.annotate(
+                                asm, lst, name, bank, addr, len(code) + len(tail), syms), indent=0)
+                        except (ValueError, KeyError) as e:
+                            print(f"  {name:24s} no RGBDS translation ({e}); the build INCBINs it")
+                            lines.unlink(missing_ok=True)
+                        else:
+                            if not lines.is_file() or lines.read_text() != text:
+                                lines.write_text(text)
     if write_dir is not None and not failed and not argv:
         # Full run: the manifest is the complete list of C-owned ROM ranges.
         text = json.dumps(dict(sorted(matched.items())), indent=1) + "\n"

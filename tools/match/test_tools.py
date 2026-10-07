@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Regressions for the Track 2 helper tools: rom_grep's pattern syntax,
-code_kind's never-from-SDCC operand test and match_function's --score
-address normalisation.
+code_kind's never-from-SDCC operand test, match_function's --score
+address normalisation, and to_rgbds's reading of as-gbz80 listings and
+asxxxx operands.
 
 Run with: python3 tools/match/test_tools.py
 """
@@ -12,6 +13,7 @@ import unittest
 rom_grep = importlib.import_module("rom_grep")
 code_kind = importlib.import_module("code_kind")
 match_function = importlib.import_module("match_function")
+to_rgbds = importlib.import_module("to_rgbds")
 
 
 class PatternTests(unittest.TestCase):
@@ -49,6 +51,47 @@ class ScoreTests(unittest.TestCase):
         rom = bytes.fromhex("af cd 00 20 c9")       # call $2000: outside the function
         ours = bytes.fromhex("af cd 10 20 c9")
         self.assertEqual(match_function.diff_score(ours, rom, 0x4000, 0x100), (1, 1))
+
+
+class ListingTests(unittest.TestCase):
+    # as-gbz80 listing rows: address in columns 3-6, up to six bytes, the
+    # unit.asm line number in 25-30; longer data wraps onto unnumbered rows
+    LST = "\n".join([
+        "   1294                    5746 ___CloneInstrAtCursor_end:",
+        "   1294 43 41 4E 4E 4F 54  5748 \t.ascii \"CANNOT CLONE\"",
+        "        20 43 4C 4F 4E 45",
+        "   12A0 00                 5749 \t.db 0x00",
+        "                            240 ; genLabel",
+    ])
+
+    def test_six_byte_rows_keep_their_line_number(self):
+        addrs = to_rgbds.listing_addrs(self.LST)
+        self.assertEqual(addrs[5748], 0x1294)
+        self.assertEqual(addrs[5749], 0x12A0)
+        self.assertEqual(addrs[5746], 0x1294)
+        self.assertNotIn(240, addrs)                 # no address on a comment row
+
+
+class OperandTests(unittest.TestCase):
+    def translator(self):
+        t = to_rgbds.Translator.__new__(to_rgbds.Translator)
+        t.func, t.rename, t.equates, t.guards = "F", {}, {}, {}
+        t.syms = {"hFoo": (None, 0xFF90)}
+        return t
+
+    def test_operands(self):
+        t = self.translator()
+        self.assertEqual(t.operand("(hl+)"), "[hl+]")
+        self.assertEqual(t.operand("#0x12"), "$12")
+        self.assertEqual(t.operand("00105$"), "F.L00105")
+        self.assertEqual(t.expr("#<(00105$)"), "LOW(F.L00105)")
+
+    def test_unknown_names_become_guarded_equates(self):
+        t = self.translator()
+        self.assertEqual(t.operand("(_hFoo+0)"), "[hFoo+0]")
+        self.assertEqual(t.guards, {"hFoo": "$FF90"})
+        with self.assertRaises(ValueError):
+            t.operand("_NoSuchName")
 
 
 if __name__ == "__main__":

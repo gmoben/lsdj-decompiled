@@ -21,7 +21,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tools'))
-GLOBAL = re.compile(r'^[A-Za-z_][\w.]*:')
+GLOBAL = re.compile(r'^[A-Za-z_]\w*:')   # (not `Func.L00102:`, matching C's own labels)
 INCBIN = re.compile(r'\s*INCBIN "[^"]+", \$([0-9a-fA-F]+), \$([0-9a-fA-F]+)')
 
 
