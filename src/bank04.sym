@@ -65,6 +65,7 @@
 5103 TxtPhraseNoInstr   ; "--" (no instrument)
 5106 TxtPhraseBlank3b   ; "   " (the value column's padding without kits)
 54E3 PhraseStepOnes     ; [80] constant $01 table read by the four phrase edit handlers (per-index step/enable)
+57C0 FxPrelistenFlags           ; [20] 1 per FX command (FxMnemonics order) whose value edit re-plays the note (PhraseScreenInput -> PrelistenCursorRow, which checks PRELISTEN): A C E F K M O P R S V W, the ones that change the sound; not - B D G H L T Z
 57D4 DrawInstrName      ; FarCall bank1 CopyInstrName(instr) -> wSampleNoteString, draw the 5-char name
 4C10 TxtNoteEmpty               ; "---"
 4CE1 TxtNoteOff                 ; "OFF"

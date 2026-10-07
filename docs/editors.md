@@ -113,6 +113,9 @@ bank**. The remaining `INCBIN` banks are the 21 sample kits (`$08`-`$1A`,
 
 ## The screens (LSDj manual)
 
+The [LSDj v9.2.6 manual](https://www.littlesounddj.com/lsd/latest/documentation/LSDj_9_2_6.pdf)
+(chapter 2; the closest to 9.4.0) describes every screen and field; its
+Appendix C has the SRAM map and the instrument byte layouts.
 Song, Chain, Phrase, Instrument, Table, Groove, Synth (Wave), Word/Speech,
 Project, and File — each edits the corresponding song structure in
 [`data_model.md`](data_model.md). Each screen has a **draw** routine (paints the

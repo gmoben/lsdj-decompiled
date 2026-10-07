@@ -16,6 +16,10 @@
 723F TxtTypeSpeech      ; "TYPE   SPEECH" (instrument-type field)
 77F5 TxtCopiedWord      ; "COPIED WORD"
 423D DrawPulseInstr     ; draw PULSE instrument params (type 0)
+473E TxtKitSpeedHalf          ; "0.5" (DrawKitInstr: SPEED, kit byte 2 bit 6 = half speed)
+4742 TxtKitSpeedFull          ; "  1" (DrawKitInstr: SPEED, full speed)
+4746 TxtKitLen1All            ; "ALL" (DrawKitInstr: LEN of the left kit, byte 3, when 0 = play the sample to its end)
+474A TxtKitLen2All            ; "ALL" (DrawKitInstr: LEN of the right kit, byte 11)
 474E DrawWaveInstr      ; draw WAVE instrument params (type 1)
 44DD DrawKitInstr       ; draw KIT instrument params (type 2)
 4399 DrawNoiseInstr     ; draw NOISE instrument params (type 3)

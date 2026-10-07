@@ -180,7 +180,10 @@ apply.)
    following call/jump edges from already-understood code over guessing.
 2. **Understand it.** Read it (`tools/show_func.py`, `make listing`), trace its
    callers/readers, and confirm behaviour in an emulator (`tools/emu/`) when the
-   role isn't clear from the code.
+   role isn't clear from the code. Check the [manual](https://www.littlesounddj.com/lsd/latest/documentation/LSDj_9_2_6.pdf)
+   for what a screen field or command does before naming it: its Appendix C
+   gives the SRAM map and every instrument type's byte layout (kit byte 2
+   bit 6 = SPEED 0.5X, bytes 3/11 = LEN 1/2 with 0 = ALL, …).
 3. **Change the curated inputs.** Names and comments go in `src/bankNN.sym`
    (routines, data, locals) or `constants/ram.inc` (WRAM/HRAM); a data range the
    trace decodes as code goes in `carve_clean.py`'s `MANUAL` dict.
@@ -537,4 +540,8 @@ Always, before committing:
 - [Pan Docs](https://gbdev.io/pandocs/) — hardware / memory map / I/O registers.
 - [GB Complete Technical Reference](https://gekkio.fi/files/gb-docs/gbctr.pdf) — exact CPU/instruction semantics & timing.
 - [RGBDS docs](https://rgbds.gbdev.io/docs/) — assembler/linker reference.
+- [LSDj manual v9.2.6](https://www.littlesounddj.com/lsd/latest/documentation/LSDj_9_2_6.pdf)
+  — the closest manual to 9.4.0 ([all versions](https://www.littlesounddj.com/lsd/latest/documentation/)):
+  every screen and field, the 19 commands, sync modes, and Appendix C's SRAM
+  map and instrument byte layouts. Names follow it.
 - [liblsdj](https://github.com/gb-archive/liblsdj) · [lsdj-doc](https://github.com/jkotlinski/lsdj-doc) — format/internals.

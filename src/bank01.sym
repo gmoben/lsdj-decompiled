@@ -456,5 +456,5 @@
 7E1C .setrVBK
 7E37 .readSTAT
 6F7E TxtTitle                   ; "LITTLE SOUND DJ " running on into TxtVersion: main's startup message
-56A7 ColorSetPalettes           ; [color sets][20] words: 5 BG palettes of 4 colours per set; objects use the first two and colours 5-8 (ApplyColorSet)
+56A7 ColorSetPalettes           ; [280] 7 colour sets of 20 words (ApplyColorSet indexes wColorSet*40): 5 BG palettes of 4 colours per set; objects use the first two and colours 5-8
 532C InstrTableFieldRow         ; [4] instrument-screen row of the TABLE field per type (pulse 15, wave 14, kit 17, noise 12)
