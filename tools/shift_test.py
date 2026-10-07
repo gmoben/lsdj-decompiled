@@ -33,7 +33,9 @@ from __future__ import annotations
 
 import argparse
 import io
+import multiprocessing
 import random
+import time
 import re
 import subprocess
 import sys
@@ -112,26 +114,119 @@ def build(shifts: dict[int, tuple[int, int]], name: str = "shift") -> Path:
 BUTTONS = ["a", "b", "start", "select", "up", "down", "left", "right"]
 
 
-def tour() -> list[tuple[int, list[str]]]:
-    """(frames to hold, buttons) steps: play the working song, walk the screen
-    map, step through fields, load a song in the file screen."""
-    s: list[tuple[int, list[str]]] = [(180, [])]
-    tap = lambda *b: [(4, list(b)), (12, [])]
-    chord = lambda d: [(3, ["select"]), (4, ["select", d]), (12, [])]
-    s += tap("start") + [(600, [])] + tap("start")                 # the song
-    for d in ["right", "right", "right", "right", "down", "up",    # chain .. table
-              "left", "left", "left", "down", "up", "left", "up",   # groove, project
-              "down", "right", "right", "up", "right", "down"]:     # synth / wave
-        s += chord(d) + [(30, [])]
-        for k in ["down", "down", "right", "down", "up", "left"]:
-            s += tap(k)
-    s += tap("start") + [(240, [])] + tap("start")
-    # project screen: the LOAD/SAVE button is the last field; load the 2nd song
-    s += chord("left") * 4 + chord("up") + [(30, [])]
-    s += tap("up") * 2 + tap("a") + [(40, [])] + tap("a") + [(30, [])]
-    s += tap("down") + tap("a") + [(400, [])]
-    s += tap("start") + [(400, [])] + tap("start")
-    return s
+SCREEN = {"phrase": 1, "groove": 2, "chain": 3, "song": 4, "table": 5, "instr": 6,
+          "name": 7, "wave": 8, "project": 9, "synth": 10, "word": 12, "file": 13, "help": 14}
+W_SCREEN = 0xC401        # wCurrentScreen (constants/screens.inc)
+
+
+class Driver:
+    """Plays input into one emulator and records it as (frames, keys) steps,
+    so the same input can be replayed to other builds."""
+
+    def __init__(self, pb):
+        self.pb, self.steps, self.held = pb, [], set()
+
+    def step(self, frames: int, keys=(), record: bool = True) -> None:
+        keys = set(keys)
+        for k in self.held - keys:
+            self.pb.button_release(k)
+        for k in keys - self.held:
+            self.pb.button_press(k)
+        self.held = keys
+        for _ in range(frames):
+            self.pb.tick()
+        if record:
+            self.steps.append((frames, sorted(keys)))
+
+    def tap(self, *keys: str, n: int = 1, wait: int = 12) -> None:
+        for _ in range(n):
+            self.step(4, keys)
+            self.step(wait)
+
+    def chord(self, mod: str, key: str, record: bool = True) -> None:
+        self.step(3, [mod], record)
+        self.step(4, [mod, key], record)
+        self.step(14, (), record)
+
+    def screen(self) -> int:
+        return self.pb.memory[W_SCREEN]
+
+    def goto(self, target: int) -> bool:
+        """SELECT+direction moves to `target`: a breadth-first search over
+        the screen map from save states, then the path played for real."""
+        if self.screen() == target:
+            return True
+        root = io.BytesIO()
+        self.pb.save_state(root)
+        frontier, seen = [(root.getvalue(), [])], {self.screen()}
+        while frontier:
+            nxt = []
+            for state, path in frontier:
+                for d in ("right", "left", "up", "down"):
+                    self.pb.load_state(io.BytesIO(state))
+                    self.chord("select", d, record=False)
+                    sc = self.screen()
+                    if sc == target:
+                        self.pb.load_state(io.BytesIO(root.getvalue()))
+                        for dd in path + [d]:
+                            self.chord("select", dd)
+                        return True
+                    if sc not in seen and len(path) < 6:
+                        seen.add(sc)
+                        buf = io.BytesIO()
+                        self.pb.save_state(buf)
+                        nxt.append((buf.getvalue(), path + [d]))
+            frontier = nxt
+        self.pb.load_state(io.BytesIO(root.getvalue()))
+        return False
+
+
+def recorded_tour(rom: Path, sav: bytes, dmg: bool) -> list[tuple[int, list[str]]]:
+    """The tour, recorded on `rom`: play the working song; every screen of
+    the map with cursor moves, an edit and a play; every instrument type;
+    then the file screen -- load the second song (decompression), play it,
+    save it to the empty slot (the name editor, compression)."""
+    d = Driver(open_rom(rom, sav, dmg))
+    try:
+        d.step(180)
+        d.tap("start", wait=600)
+        d.tap("start", wait=30)
+        for name in ("chain", "phrase", "groove", "instr", "table", "synth", "wave", "project", "song"):
+            if not d.goto(SCREEN[name]):
+                continue
+            d.step(30)
+            for k in ("down", "down", "right", "down", "up", "left"):
+                d.tap(k)
+            d.step(4, ["a"]); d.step(4, ["a", "right"]); d.step(4, ["a"]); d.step(16)
+            d.tap("start", wait=150)
+            d.tap("start", wait=30)
+        if d.goto(SCREEN["instr"]):                 # TYPE: pulse, wave, kit, noise
+            d.tap("up", n=8)
+            d.tap("down")
+            for _ in range(4):
+                d.step(4, ["a"]); d.step(4, ["a", "right"]); d.step(4, ["a"]); d.step(40)
+        if d.goto(SCREEN["project"]):                # file screen: LOAD/SAVE SONG is the last row
+            d.tap("down", n=11)
+            d.tap("a", wait=40)
+            d.tap("a", wait=20)                      # LOAD: the list
+            d.tap("up", n=6)                         # the second song
+            d.tap("a", wait=20)                      # "lose unsaved work?"
+            d.tap("left")
+            d.tap("a", wait=400)                     # YES
+            d.tap("start", wait=300)
+            d.tap("start", wait=30)
+        if d.goto(SCREEN["project"]):
+            d.tap("down", n=11)
+            d.tap("a", wait=40)
+            d.tap("right")                           # SAVE
+            d.tap("a", wait=30)
+            d.tap("down", n=8)                       # the empty slot
+            d.tap("a", wait=60)                      # the name editor
+            d.tap("a", wait=400)                     # save
+            d.tap("b", wait=30)
+        return d.steps
+    finally:
+        d.pb.stop(save=False)
 
 
 def monkey(seed: int, frames: int) -> list[tuple[int, list[str]]]:
@@ -164,13 +259,26 @@ def open_rom(rom: Path, sav: bytes, dmg: bool):
     return pb
 
 
-def lockstep(rom_a: Path, rom_b: Path, sav: bytes, steps, dmg: bool = False) -> tuple[int, str] | None:
-    """Run both ROMs on the same input; the first frame where the screen or
-    the sound registers differ, and which, or None."""
+def sram(pb) -> bytes:
+    """The cartridge's 16 SRAM banks (the .sav)."""
+    return b"".join(bytes(pb.memory[k, 0xA000:0xBFFF]) + bytes([pb.memory[k, 0xBFFF]])
+                    for k in range(16))
+
+
+def lockstep(rom_a: Path, rom_b: Path, sav: bytes, steps, dmg: bool = False,
+             progress=None, grace: int = 30) -> tuple[int, str] | None:
+    """Run both ROMs on the same input, comparing the screen and the sound
+    registers every frame. A shifted build is not cycle-identical -- a
+    pointer into moved data crosses a page at another step (`inc [hl] /
+    jr nz / inc hl / inc [hl]`), a few cycles -- so a redraw can slip a frame;
+    a difference counts once it lasts `grace` frames. At the end, SRAM (the
+    song data the input edited) must be identical. The first frame of a
+    lasting difference and what differs, or None."""
     import numpy as np
     a, b = open_rom(rom_a, sav, dmg), open_rom(rom_b, sav, dmg)
     held: set[str] = set()
     frame = 0
+    since: tuple[int, str] | None = None
     try:
         for count, keys in steps:
             for k in held - set(keys):
@@ -181,11 +289,29 @@ def lockstep(rom_a: Path, rom_b: Path, sav: bytes, steps, dmg: bool = False) -> 
             for _ in range(count):
                 a.tick(); b.tick()
                 frame += 1
+                if progress is not None:
+                    progress.value = frame
+                what = None
                 if a.memory[0xFF10:0xFF40] != b.memory[0xFF10:0xFF40]:
-                    return frame, "sound registers"
-                if not np.array_equal(a.screen.ndarray, b.screen.ndarray):
+                    what = "sound registers"
+                elif not np.array_equal(a.screen.ndarray, b.screen.ndarray):
+                    what = "screen"
+                if what is None:
+                    since = None
+                elif since is None:
+                    since = (frame, what)
                     save_frames(a, b, frame)
-                    return frame, "screen"
+                elif frame - since[0] >= grace:
+                    return since
+        for _ in range(grace + 60):              # settle, then the song data
+            a.tick(); b.tick()
+            frame += 1
+        if since is not None:
+            return since
+        sa, sb = sram(a), sram(b)
+        if sa != sb:
+            k = next(i for i in range(len(sa)) if sa[i] != sb[i])
+            return frame, f"SRAM (bank {k // 0x2000}, ${0xA000 + k % 0x2000:04X})"
         return None
     finally:
         a.stop(save=False); b.stop(save=False)
@@ -204,7 +330,7 @@ def symbol_at(rom: Path, bank: int, addr: int) -> str:
     return f"{best[1]}+${addr - best[0]:X}" if best else f"${addr:04x}"
 
 
-def crash_site(rom: Path, sav: bytes, steps, dmg: bool, until: int) -> str | None:
+def crash_site(rom: Path, sav: bytes, steps, dmg: bool, until: int, progress=None) -> str | None:
     """Where the build executed an $FF (rst $38: LSDj's crash vector, also
     its asserts' `jr cc, @ + 1` and DebugTrap), with the return addresses on
     the stack -- usually the stale reference itself is one call up."""
@@ -229,6 +355,8 @@ def crash_site(rom: Path, sav: bytes, steps, dmg: bool, until: int) -> str | Non
             for _ in range(count):
                 pb.tick()
                 frame += 1
+                if progress is not None:
+                    progress.value = frame
                 if hit or frame > until:
                     break
             if hit or frame > until:
@@ -242,6 +370,33 @@ def crash_site(rom: Path, sav: bytes, steps, dmg: bool, until: int) -> str | Non
     return (f"frame {frame}: $FF executed at {where[0]}-1 (bank ${bank:02X} mapped); "
             f"stack words: {' '.join(f'${w:04x}' for w in stack[1:])} "
             f"({' < '.join(where[1:])})")
+
+
+def guarded(fn, *args, stall: float = 10.0):
+    """Run fn(*args, progress=...) in a child process: PyBoy's tick() is
+    native code that never returns if the emulated CPU stops for good (a
+    stale jump into `stop` or `halt` with nothing to wake it), which no
+    Python-level timer can interrupt. Returns fn's result, or ("hung",
+    frame) when the frame count stops advancing for `stall` seconds."""
+    ctx = multiprocessing.get_context("fork")
+    progress = ctx.Value("i", 0)
+    out = ctx.Queue()
+    proc = ctx.Process(target=lambda: out.put(fn(*args, progress=progress)), daemon=True)
+    proc.start()
+    last, since = -1, time.monotonic()
+    while True:
+        proc.join(0.5)
+        if not out.empty() or not proc.is_alive():
+            break
+        if progress.value != last:
+            last, since = progress.value, time.monotonic()
+        elif time.monotonic() - since > stall:
+            proc.kill()
+            proc.join()
+            return ("hung", last)
+    result = out.get(timeout=5) if not out.empty() else ("died", progress.value)
+    proc.join()
+    return result
 
 
 def save_frames(a, b, frame: int) -> None:
@@ -271,6 +426,7 @@ def main() -> int:
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--bank", type=lambda s: int(s, 16))
     ap.add_argument("--all", action="store_true", help="each program bank in turn")
+    ap.add_argument("--together", action="store_true", help="every program bank shifted at once")
     ap.add_argument("--at", type=lambda s: int(s, 16),
                     help="insert at this address (default: the bank's start; in bank 0 $0391, past "
                          "the page-aligned tables at $0200-$0390 that code reaches with `ld d, $02` "
@@ -290,28 +446,49 @@ def main() -> int:
         sys.exit("build the ROM first (make)")
     sav_path = args.sav or (ROOT / ".emu" / "lsdj_song.sav")
     sav = sav_path.read_bytes() if sav_path.is_file() else bytes(0x20000)
-    steps = tour() + monkey(args.seed, args.frames)
     # the reference build, assembled the same way with nothing inserted
     ref = build({}, "reference")
+    steps = recorded_tour(ref, sav, args.dmg) + monkey(args.seed, args.frames)
 
     def trial(bank: int, at: int) -> tuple[int, str] | None:
-        return lockstep(ref, build({bank: (at, args.by)}), sav, steps, args.dmg)
+        return guarded(lockstep, ref, build({bank: (at, args.by)}), sav, steps, args.dmg)
 
+    def report(res, where: str) -> None:
+        if res[0] in ("hung", "died"):
+            print(f"{where}: the emulator {res[0]} after frame {res[1]} (CPU stopped for good?)")
+            return
+        print(f"{where}: diverged at frame {res[0]} ({res[1]})")
+        why = guarded(crash_site, BUILD / "shift.gb", sav, steps, args.dmg, res[0] + 120)
+        if isinstance(why, tuple):
+            print(f"  the shifted build {why[0]} after frame {why[1]} while locating the crash")
+        else:
+            print(f"  {why}" if why else "  no rst $38 in the shifted build: not a crash")
+
+    def default_at(bank: int) -> int:
+        return args.at if args.at is not None else (0x0391 if bank == 0 else 0x4000)
+
+    if args.together:
+        shifts = {b: (default_at(b), args.by) for b in PROGRAM_BANKS}
+        res = guarded(lockstep, ref, build(shifts), sav, steps, args.dmg)
+        where = f"every bank, {args.by} bytes"
+        if res is None:
+            print(f"{where}: same as the reference for {sum(c for c, _ in steps)} frames")
+            return 0
+        report(res, where)
+        return 1
     banks = PROGRAM_BANKS if args.all else [args.bank] if args.bank is not None else []
     if not banks:
-        ap.error("give --bank BB or --all")
+        ap.error("give --bank BB, --all or --together")
     bad = 0
     for bank in banks:
-        start = args.at if args.at is not None else (0x0391 if bank == 0 else 0x4000)
+        start = default_at(bank)
         res = trial(bank, start)
         where = f"bank ${bank:02X}, {args.by} bytes at ${start:04X}"
         if res is None:
             print(f"{where}: same as the reference for {sum(c for c, _ in steps)} frames")
             continue
         bad += 1
-        print(f"{where}: diverged at frame {res[0]} ({res[1]})")
-        why = crash_site(BUILD / "shift.gb", sav, steps, args.dmg, res[0] + 120)
-        print(f"  {why}" if why else "  no rst $38 in the shifted build: not a crash")
+        report(res, where)
         if args.bisect:
             points = [a for a in labels_of(bank) if a >= start]
             lo, hi = 0, len(points) - 1        # points[lo] breaks; find the last that does

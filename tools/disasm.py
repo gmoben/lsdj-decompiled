@@ -411,7 +411,7 @@ def _writes(t: str, reg: str) -> bool:
 def _reg_const(rows: list[Row], i: int, reg: str, depth: int = 0) -> tuple[int, int] | None:
     """The immediate `reg` holds before row i, following register copies back
     (`ld b, $fe / ... / ld l, b`): (row of the `ld r, $NN`, NN) or None."""
-    for k in range(i - 1, max(-1, i - 12), -1):
+    for k in range(i - 1, max(-1, i - 25), -1):   # (it stops at the register's last write)
         if not _decoded(rows[k]):
             return None
         t = rows[k][2]
@@ -475,6 +475,45 @@ def _byte_halves(rows: list[Row], i: int) -> tuple[int, int] | None:
     return None
 
 
+def _stored_halves(rows: list[Row], i: int) -> tuple[int, int, int] | None:
+    """An address stored a byte at a time (`ld [hl], $65 / inc hl /
+    ld [hl], $6f`, or through registers, `ld b, $65 / ld c, $6f / ... /
+    ld [hl], b / inc hl / ld [hl], c`: SDCC spilling a function pointer to the
+    stack, or setting a RAM handler pointer): (the value, the rows holding
+    its low and high immediates), or None. Only an address if the caller finds
+    it named (the next banked call's bank, or this bank's own)."""
+    if i + 2 >= len(rows) or not all(_decoded(r) for r in rows[i:i + 3]) \
+            or rows[i + 1][2] != "inc hl":
+        return None
+    parts = []
+    for k in (i, i + 2):
+        m = re.fullmatch(r"ld \[hl\], (\$[0-9a-f]{2}|[a-e])", rows[k][2])
+        if not m:
+            return None
+        if m.group(1).startswith("$"):
+            parts.append((k, int(m.group(1)[1:], 16)))
+        else:
+            c = _reg_const(rows, k, m.group(1))
+            if c is None:
+                return None
+            parts.append(c)
+    (k_lo, lo), (k_hi, hi) = parts
+    return hi << 8 | lo, k_lo, k_hi
+
+
+def _next_farcall_bank(rows: list[Row], i: int, far: set[int]) -> int | None:
+    """The bank of the next banked call within 40 rows (`ld a, BANK / push af /
+    inc sp / call FarCall*`)."""
+    for k in range(i, min(len(rows) - 3, i + 40)):
+        if not _decoded(rows[k]):
+            return None
+        m = re.fullmatch(r"ld a, \$([0-9a-f]{2})", rows[k][2])
+        if m and rows[k + 1][2] == "push af" and rows[k + 2][2] == "inc sp" \
+                and rows[k + 3][2].startswith("call") and rows[k + 3][3] in far:
+            return int(m.group(1), 16)
+    return None
+
+
 def _offset_halves(rows: list[Row], i: int) -> tuple[int, int] | None:
     """An address plus a constant, a byte at a time (SDCC doesn't fold
     `(UBYTE *)AsciiCharMap - 0x20`): `ld a, LO / add a, KL / (store a) /
@@ -527,6 +566,7 @@ def rom_pointers(rows: list[Row], bank: int | None, symbols: dict[int, str],
     home_globals = {a for a, n in home.items() if not n.startswith(".")}
     out: dict[int, "tuple[int, int] | str"] = {}
     notes: list[str] = []
+    index = {r[0]: k for k, r in enumerate(rows) if _decoded(r)}
     tracked: int | None = None            # bank 0: the ROMX bank this function mapped
     for i, row in enumerate(rows):
         addr, _raw, text, ref = row
@@ -559,10 +599,20 @@ def rom_pointers(rows: list[Row], bank: int | None, symbols: dict[int, str],
                 notes.append(f"${addr:04x}: {text} (bank unknown)")
             continue
         m = re.fullmatch(r"push (bc|de|hl)", text)
-        if m:
-            nxt = [r for r in rows[i:i + 10] if _decoded(r)]
-            fb = _farcall_bank(nxt, m.group(1), far)
-            pair = _pair_halves(rows, i, m.group(1)) if fb is not None else None
+        rr = m.group(1) if m else None
+        fb = None
+        if rr:
+            fb = _farcall_bank([r for r in rows[i:i + 10] if _decoded(r)], rr, far)
+        elif ref is not None and re.fullmatch(r"jp \$[0-9a-f]{4}|jr \$[0-9a-f]{4}", text) and ref in index:
+            # a jump to the shared `push rr / ld a, BANK / ... / call FarCall`
+            # tail of a switch: the pair is loaded before the jump
+            k = index[ref]
+            mk = re.fullmatch(r"push (bc|de|hl)", rows[k][2])
+            if mk:
+                rr = mk.group(1)
+                fb = _farcall_bank([r for r in rows[k:k + 10] if _decoded(r)], rr, far)
+        if rr and fb is not None:
+            pair = _pair_halves(rows, i, rr)
             if pair is not None:
                 k_hi, hi, k_lo, lo = pair
                 tb = fb
@@ -577,6 +627,21 @@ def rom_pointers(rows: list[Row], bank: int | None, symbols: dict[int, str],
                 else:
                     notes.append(f"${rows[k_lo][0]:04x}: banked call to ${hi:02x}{lo:02x} "
                                  f"in bank ${fb:02x} loaded as bytes: no name either way round")
+        if m:
+            continue
+        stored = _stored_halves(rows, i)
+        if stored is not None:
+            v, k_lo, k_hi = stored
+            fb = _next_farcall_bank(rows, i + 3, far)
+            if fb is not None:
+                tb = 0 if v < 0x4000 else fb
+                name = (home if tb == 0 else bank_syms(tb)).get(v, ".")
+            else:                         # no banked call: a name of this bank's own
+                tb = bank
+                name = symbols.get(v, ".") if bank and 0x4000 <= v < 0x8000 else "."
+            if not name.startswith("."):
+                out[rows[k_lo][0]] = (tb, v, "LOW")
+                out[rows[k_hi][0]] = (tb, v, "HIGH")
             continue
         half = _byte_halves(rows, i) or _offset_halves(rows, i)
         if half is not None:

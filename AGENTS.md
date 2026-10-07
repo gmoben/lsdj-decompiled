@@ -558,8 +558,8 @@ Always, before committing:
       are code
 - [x] Shift test (`tools/shift_test.py`): each bank's contents moved by 16
       bytes run the same as the original over a tour + 6,000 random frames
-- [ ] Wider shift coverage: DMG, odd sizes, all banks at once, more seeds,
-      the file screen's save/load
+- [x] Wider shift coverage: DMG, odd sizes, all banks at once, more seeds,
+      the file screen's load/save (a tour recorded on the reference)
 - [ ] Bank 0's page-aligned tables (`$0200`-`$0390`) in fixed sections
 - [ ] Behaviour tests for builds that no longer match: a fork's gate
 

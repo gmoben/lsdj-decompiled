@@ -188,6 +188,30 @@ class BytePointerTests(unittest.TestCase):
         ptrs, _ = disasm.rom_pointers(rows, 0, {}, self.HOME)
         self.assertEqual(ptrs, {0x3C48: (0, 0x086F, "LOW"), 0x3C50: (0, 0x086F, "HIGH")})
 
+    def test_spilled_function_pointer(self):
+        # SDCC stores a banked call's target to a stack slot a byte at a time
+        for setup in (["ld hl, $0005", "ld [hl], $65", "inc hl", "ld [hl], $6f"],
+                      ["ld b, $65", "ld c, $6f", "ld hl, $0003", "ld [hl], b", "inc hl", "ld [hl], c"]):
+            rows = self.rows(*setup, "push hl", "ld a, $02", "push af", "inc sp", "call $0c8f")
+            ptrs, _ = disasm.rom_pointers(rows, 0x06, {}, {0x0C8F: "FarCallArg2"},
+                                          lambda b: {0x6F65: "SndGetChainPhrase"} if b == 0x02 else {})
+            lo = next(a for a, r in zip(range(0x6000, 0x7000, 2), rows) if r[2] in ("ld [hl], $65", "ld b, $65"))
+            hi = next(a for a, r in zip(range(0x6000, 0x7000, 2), rows) if r[2] in ("ld [hl], $6f", "ld c, $6f"))
+            self.assertEqual(ptrs, {lo: (0x02, 0x6F65, "LOW"), hi: (0x02, 0x6F65, "HIGH")}, setup)
+
+    def test_stored_constant_without_a_name_stays(self):
+        rows = self.rows("ld hl, $c69a", "ld [hl], $49", "inc hl", "ld [hl], $07")
+        self.assertEqual(disasm.rom_pointers(rows, 0x02, {}, self.HOME)[0], {})
+
+    def test_switch_cases_jumping_to_a_shared_banked_call(self):
+        # case: ld c/b, then `jp .farCall`; .farCall: push bc / ld a, $1f / ... / call FarCall
+        rows = self.rows("ld c, $3d", "ld b, $42", "jp $6008",
+                         "push bc", "ld a, $1f", "push af", "inc sp", "call $179a")
+        rows[2] = (rows[2][0], b"", "jp $6006", 0x6006)
+        ptrs, _ = disasm.rom_pointers(rows, 0x03, {}, self.HOME,
+                                      lambda b: {0x423D: "DrawPulseInstr"} if b == 0x1F else {})
+        self.assertEqual(ptrs, {0x6000: (0x1F, 0x423D, "LOW"), 0x6002: (0x1F, 0x423D, "HIGH")})
+
     def test_ram_word_arithmetic_is_not_a_pointer(self):
         rows = self.rows("ld a, [hl]", "add a, $14", "ld [hl+], a", "ld a, [hl]", "adc a, $00",
                          "ld [hl], a")

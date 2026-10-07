@@ -951,7 +951,11 @@ The checklist:
       (`ld a, LOW(PhraseCellWidth) / add a, c / … / ld a, HIGH(…) / adc a, $00`,
       or `adc a, b` for a word index), a banked call's target pushed as two
       bytes (`ld c, LOW(InstrHReadCursorCellAt) / ld b, HIGH(…) / push bc`, also
-      through register copies), and an address plus a constant
+      through register copies, or loaded before a `jp` to a switch's shared
+      `push bc / … / call FarCall` tail), a function pointer stored a byte at
+      a time (SDCC spilling a banked call's target to the stack,
+      `ld [hl], LOW(SndGetChainPhrase) / inc hl / ld [hl], HIGH(…)`, also via
+      registers; the `wBlockSinkPtr` handler), and an address plus a constant
       (`wStringSrc = AsciiCharMap - $20` as `ld a, LOW(AsciiCharMap) /
       add a, $e0 / … / adc a, $ff`).
 - [x] Pointer tables as `dw Label`: a `.sym` tag `[N] dw` (`[N] dw @$BB` for
@@ -961,18 +965,28 @@ The checklist:
       named code now (they sat inside `Unused` fill symbols as data, their
       `jp VBlankHandler` a raw number).
 - [x] A shift test: `tools/shift_test.py` (PyBoy, in `.venv/`) builds the ROM
-      with N bytes of `$FF` padding inserted in a bank — taken back from the
-      bank's trailing fill — and runs it next to the unshifted build on the
-      same SRAM (`.emu/lsdj_song.sav` if present) and input: a scripted tour
-      (play the song, the screens) then seeded random input, comparing the
-      screen and the sound registers every frame. On a divergence it reports
-      where an `$FF` (`rst $38`: crash, assert, `DebugTrap`) ran and the call
-      chain; `--bisect` narrows down where the stale reference points. Every
-      bank passes 16 bytes at its start (bank 0: at `$0391`, past the
-      page-aligned tables at `$0200`-`$0390` that SndCalcVibOffset reaches with
-      `ld d, $02` / `ld h, $03` — a fork keeps them at their address).
-      It only proves what the input reaches: more seeds, DMG mode, odd sizes
-      and all banks at once are the next runs.
+      with N bytes of `$FF` padding inserted in a bank (`--bank`, `--all`) or
+      in every bank at once (`--together`) — taken back from each bank's
+      trailing fill — and runs it next to the unshifted build on the same
+      SRAM (`.emu/lsdj_song.sav` if present) and input: a tour recorded on
+      the reference (it finds its way round the screen map by search over
+      save states: play the song; every screen with cursor moves, an edit and
+      a play; the four instrument types; the file screen's load, play and
+      save through the name editor) then seeded random input. It compares
+      the screen and the sound registers every frame, and SRAM at the end. A
+      shifted build is not cycle-identical — a pointer into moved data
+      crosses a page at another step (`inc [hl] / jr nz / inc hl / inc [hl]`)
+      — so a difference counts once it lasts 30 frames. Each run is a child
+      process under a watchdog (PyBoy never returns from a CPU stopped for
+      good). On a divergence it reports where an `$FF` (`rst $38`: crash,
+      assert, `DebugTrap`) ran and the call chain; `--bisect` narrows down
+      the stale target. Bank 0 shifts at `$0391`, past the page-aligned
+      tables at `$0200`-`$0390` that SndCalcVibOffset reaches with
+      `ld d, $02` / `ld h, $03`, which a fork keeps in place.
+      Passing: every bank alone (16 bytes) and all at once (1, 3, 5, 7, 9, 11,
+      16, 32 bytes), CGB and DMG, seeds 1-15. Odd sizes matter: a stale
+      target can land on harmless code at one size and on a `ret` at
+      another. It proves what the input reaches, no more.
 - [ ] Behaviour tests on tools/emu for builds that no longer match the ROM:
       what a fork runs instead of `make compare`.
 
