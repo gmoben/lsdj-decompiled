@@ -16,7 +16,7 @@ extern UBYTE wFxSlotCmdTimer[];             /* $C230, [12] */
 extern UBYTE wChanFxSlots[];                /* $C2F0, [12] */
 extern UBYTE wWavLevel;                     /* $C8F3 */
 extern UBYTE wChanNextSongRow[];            /* $C2FC, [4] */
-extern UBYTE wChanStarted[];                /* $C304, [4] */
+extern UBYTE wChanStopQueued[];                /* $C304, [4] */
 extern UBYTE wChanActive[];                 /* $C0E0, [4] */
 extern UBYTE wPlayRestartPending;           /* $C4CD */
 extern UBYTE wSyncTxByte;                   /* $CBDC */
@@ -61,6 +61,16 @@ extern UBYTE wChanCmd[];                    /* $C365, [6]: 4 phrase channels, th
 extern UBYTE wChanCmdVal[];                 /* $C36B, [6] */
 extern UBYTE wLastCmd[];                    /* $C371, [68] */
 extern UBYTE wLastCmdVal[];                 /* $C3B5, [68] */
+extern UBYTE *wSpeechPtr;                   /* $C4D0: the word's allophone stream (SRAM bank 0) */
+extern UBYTE wKit2Bank;                     /* $C4F5 */
+extern UBYTE wKit2LoopEnabled;              /* $C4E5 */
+extern UBYTE wChanNote[];                   /* $C0CC, [4] */
+extern UBYTE *wWavFrameDeltaPtr;            /* $C521 */
+extern UBYTE *wWavFrameDeltaLoop;           /* $C523 */
+extern UBYTE wWavFrameTimer;                /* $C525 */
+extern UBYTE wWavSynthFrame;                /* $C694 */
+extern UBYTE wWavUploadPending;              /* $C69C */
+extern UBYTE wFxWaveParam2;                 /* $C8C3 */
 /* the working pointers' low bytes: the per-channel arrays they point into
    sit in one page, so moving to the next channel is a byte increment */
 extern UBYTE wPtrChainRow, wPtrPhraseRow, wPtrNoteCountdown, wPtrGroove;  /* $C8DF.. */
@@ -96,10 +106,18 @@ void SeedRandom16(UWORD seed);              /* bank 0 */
 void SndStepAllChannels(void);
 void SndRunChannelFxSlots(void);
 void SndSetupWaveChannel(void);
-void SndLoadWaveFrame(void);
-void SndWaveRetrigDispatch(void);
+void SndSpeechStep(void);
+void SndStepWavFrames(void);
 void SndUpdateAllChannels(void);
 void SndResetPitchState(void);
+void SelectKit2Sample(UBYTE n);             /* bank 0 */
+void TriggerWave(void);                     /* asm */
+void SndResetWavFlat(void);                 /* asm */
+void SndReadChainRow(void);                 /* asm */
+void SndDeactivateChannel(void);            /* asm */
+void SndEnterSongRow(void);                 /* asm */
+void SndClearVoiceHram(void);               /* asm */
+void LoadWaveRam(void);                     /* bank 0, asm */
 
 /* $507F: step the working pointers to the next channel */
 
@@ -276,12 +294,12 @@ void SndLiveQueueStart(UBYTE ch)
         *p = wSongRow;
         wChanLiveQueued[ch] = 0;
     }
-    wChanStarted[ch] = 0;
+    wChanStopQueued[ch] = 0;
     if (wPlayRestartPending) {
         hSoundCh = ch;
         SndStartChanFromRow();
         k = hSoundCh;
-        wChanStarted[k] = 0;
+        wChanStopQueued[k] = 0;
         wChanNextSongRow[k] = 0xFF;
     }
 }
@@ -323,7 +341,7 @@ void SndStartChannels(void)
         SndStartChanFromRow();
     }
     if (SndAnyChannelActive()) {
-        MemSet(wChanStarted, 0, 4);
+        MemSet(wChanStopQueued, 0, 4);
         MemSet(wChanNextSongRow, 0xFF, 4);
         SndSetChannelEnable();
         SndResetFxState();
@@ -358,7 +376,7 @@ void SndLiveStopRange(void)
         if (*p != 0xFF)
             *p = 0xFF;
         if (wChanActive[ch]) {
-            p = wChanStarted + ch;
+            p = wChanStopQueued + ch;
             if (!*p) {
                 *p = 1;
                 wChanLiveQueued[ch] = 0;
@@ -429,9 +447,9 @@ void SndTick(void)
         SndRunChannelFxSlots();
         SndSetupWaveChannel();
         if (wSpeechWord && wSpeechFrameTicks != 0xFF)
-            SndLoadWaveFrame();
+            SndSpeechStep();
         if (wWavPlayMode && wChanActive[2])
-            SndWaveRetrigDispatch();
+            SndStepWavFrames();
     }
     SndUpdateAllChannels();
     if (wPlayRestartPending) {
@@ -538,6 +556,110 @@ void TogglePlayback(void)
     else
         SyncStopTransport();
     wSongRow = row;
+}
+
+/* $6FB6: step the synth's frames: when the timer runs out, add the delta
+   list's next step to the frame and reload the wave; at the list's end stop
+   (play mode 1: a flat wave) or go back to the loop point */
+
+void SndStepWavFrames(void)
+{
+    if (wWavFrameDeltaPtr) {
+        if (!wWavFrameTimer) {
+            if (!*wWavFrameDeltaPtr) {
+                if (wWavPlayMode == 1) {
+                    SndResetWavFlat();
+                    return;
+                }
+                wWavFrameDeltaPtr = wWavFrameDeltaLoop;
+            }
+            if (*wWavFrameDeltaPtr) {
+                wWavSynthFrame += *wWavFrameDeltaPtr;
+                SndClearVoiceHram();
+                if (wWavPlayMode == 4) {
+                    _asm di _endasm;
+                    LoadWaveRam();
+                    _asm ei _endasm;
+                } else
+                    wWavUploadPending = 1;
+                wWavFrameDeltaPtr++;
+                wWavFrameTimer = wFxWaveParam2;
+            }
+        } else
+            wWavFrameTimer--;
+    }
+}
+
+/* $7034: speech: when the frame's ticks run out, play the word's next
+   allophone (SRAM bank 0; 0 ends the word: a flat wave) on the kit voice and
+   read the next frame's length */
+
+void SndSpeechStep(void)
+{
+    UBYTE v, n;
+
+    rRAMB = 0;
+    if (!wSpeechFrameTicks) {
+        hSoundCh = 2;
+        _asm di _endasm;
+        rRAMG = 0x0A;
+        if (*wSpeechPtr) {
+            v = *wSpeechPtr;
+            rRAMG = 0;
+            _asm ei _endasm;
+            v--;
+            wKit2Bank = v / 15 + 0x19;
+            if (wKit2Bank > 0x1A)
+                wKit2Bank += 5;
+            v = v % 15;
+            n = wChanNote[2] = v + 1;
+            _asm di _endasm;
+            wSpeechWord = 0;
+            wKit2LoopEnabled = 0;
+            SelectKit2Sample(v);
+            TriggerWave();
+            wSpeechWord = 1;
+            _asm ei _endasm;
+            wChanDispNote[2] = n;
+        } else {
+            rRAMG = 0;
+            _asm ei _endasm;
+            SndResetWavFlat();
+        }
+        wSpeechPtr++;
+        _asm di _endasm;
+        rRAMG = 0x0A;
+        wSpeechFrameTicks = *wSpeechPtr;
+        rRAMG = 0;
+        _asm ei _endasm;
+        if (wSpeechFrameTicks)
+            wSpeechPtr++;
+    }
+    wSpeechFrameTicks--;
+}
+
+/* $786F: live mode, at a chain's end: stop the channel if a stop is queued
+   (and the sound once no channel plays), else start the queued song row;
+   1 if neither, for the caller to carry on */
+
+UBYTE SndLiveChainEnd(void)
+{
+    SndReadChainRow();
+    if (wChanStopQueued[hSoundCh]) {
+        SndDeactivateChannel();
+        SndResetChanFx();
+        if (!SndAnyChannelActive()) {
+            NR52_REG = 0;
+            wPlayMode = 0;
+            SyncStopTransport();
+        }
+        return 0;
+    }
+    if (wChanNextSongRow[hSoundCh] != 0xFF) {
+        SndEnterSongRow();
+        return 0;
+    }
+    return 1;
 }
 
 /* $73B0: Z for command slot `slot`: repeat the last command that was not Z

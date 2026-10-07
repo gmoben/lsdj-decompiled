@@ -153,8 +153,8 @@
 6E24 SndLiveStopRange           ; live mode, stop the play range's channels (SELECT+START): queued starts cancelled; an active channel stops at its chain's end, or its phrase's when pressed again (wChanLiveQueued)
 6EA7 SndChanStateMachine        ; per-channel state-machine dispatch (multiple branches)
 6F65 SndGetChainPhrase          ; bounds-checked chain_phrases[chain*16+row] lookup (chain=arg sp+6, row=arg sp+7 <$10; SRAM $A080); DebugTrap on out-of-range
-6FB6 SndWaveRetrigDispatch      ; wave-channel retrigger dispatch (-> SndLoadWaveFrame)
-7034 SndLoadWaveFrame           ; stream the next synth wave frame ([$c4d0] ptr, SRAM bank 0) to the WAV channel
+6FB6 SndStepWavFrames           ; step the synth's frames: on the timer, add the delta list's next step to wWavSynthFrame and reload the wave; at the list's end stop (play mode 1) or loop
+7034 SndSpeechStep              ; speech: when the frame's ticks run out, play the word's next allophone (SRAM bank 0 stream at wSpeechPtr; 0 ends the word) on kit voice 2, then read the next frame's length
 70FB SndEnableLcdInts           ; SetInterruptEnable
 710E SndInitPlayState           ; copy $c401 -> $c4d2, clear $c528, TogglePlayback
 711F SndAdvanceChanPos          ; per-frame position advance inside SndUpdateChannel; state $ff -> SndInitPlayState
@@ -166,7 +166,7 @@
 748E SndAdvanceGrooveCursor     ; SndReadCursorByte + SndAdvanceGroove
 75C6 SndUpdateChannel           ; per-channel processor (channel = hSoundCh): advance phrase cursor, resolve song/chain row, read note/cmd; called per active channel by SndUpdateAllChannels
 77F0 SndTick                    ; one engine tick: SndStepAllChannels (sequencer) then SndUpdateAllChannels (output); self-recurses on retrigger flag $c4cd / mode $cb66
-786F SndUpdateChanAltPath       ; per-channel alt update (SndReadChainRow/4E74/5F5E)
+786F SndLiveChainEnd            ; live mode, at a chain's end: stop the channel if wChanStopQueued (the sound too once none plays), else start its queued song row (SndEnterSongRow); e = 1 if neither
 792B SndSyncStart               ; decide/perform playback start from wSyncMode + saved screen context ($c8fe)
 7B31 StartScreenPlayback        ; start the current screen's playback: the song from the cursor row (SndSyncStart), or the edited channel's chain or phrase
 7C4C TogglePlayback             ; START: stop all playback, then start the current screen's unless it was the one playing (sync stop otherwise); live mode: SndStartRange
@@ -241,14 +241,14 @@
 6EA3 .done                ; common exit of SndLiveStopRange
 6F61 .done                ; common exit of SndChanStateMachine
 6F87 .loop                ; loop head in SndGetChainPhrase
-7032 .done                ; common exit of SndWaveRetrigDispatch
+7032 .done                ; common exit of SndStepWavFrames
 735E .done                ; common exit of SndAdvanceChanPos
 73AC .done                ; common exit of SndTableMaybeHop
 75C2 .done                ; common exit of SndAdvanceGrooveCursor
 76F2 .loop                ; loop head in SndUpdateChannel
 77EC .done                ; common exit of SndUpdateChannel
 786D .done                ; common exit of SndTick
-78C2 .done                ; common exit of SndUpdateChanAltPath
+78C2 .done                ; common exit of SndLiveChainEnd
 792A .done                ; common exit of ToggleSongPlayback
 799D .loop                ; loop head in SndSyncStart
 7A03 .loop2               ; loop head in SndSyncStart

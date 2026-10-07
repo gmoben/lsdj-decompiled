@@ -45,7 +45,7 @@ extern UBYTE wChanNextSongRow[];            /* $C2FC, [4] */
 extern UBYTE wChanSongRow[];                /* $C200, [4] */
 extern UBYTE wChanLiveQueued[];             /* $C300, [4] live-mode row queued */
 extern UBYTE wChanActive[];                 /* $C0E0, [4] */
-extern UBYTE wChanStarted[];                /* $C304, [4] */
+extern UBYTE wChanStopQueued[];                /* $C304, [4] */
 UBYTE MulU8(UBYTE a, UBYTE b);
 
 extern UBYTE wCloneMode;                    /* $C531 */
@@ -289,7 +289,7 @@ void SongUpdatePlayMarker(void)
         } else if (next == row) {
             ClearSpriteY(i);
         } else {
-            if (wChanStarted[i]) {
+            if (wChanStopQueued[i]) {
                 if (on)
                     SetSpriteTile4(i);
                 else {

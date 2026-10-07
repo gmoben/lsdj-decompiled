@@ -44,8 +44,10 @@ extern volatile sfr UBYTE hBgDigitPalette;  /* $FF8D */
 extern volatile sfr UBYTE hCurrentBank;     /* $FF8E */
 extern UBYTE hGameboyType;                  /* $FF90 */
 extern volatile UBYTE rROMB0;               /* $2000, the MBC5 ROM bank register */
-extern UBYTE rRAMG;                         /* $0000, MBC5 SRAM enable ($0A on) */
-extern UBYTE rRAMB;                         /* $4000, MBC5 SRAM bank */
+/* volatile: SndSpeechStep's `rRAMG = 0x0A; x = *p; rRAMG = 0;` keeps both
+ * stores, which SDCC drops as dead for a plain global */
+extern volatile UBYTE rRAMG;                /* $0000, MBC5 SRAM enable ($0A on) */
+extern volatile UBYTE rRAMB;                /* $4000, MBC5 SRAM bank */
 
 /* GBDK's SWITCH_ROM_MBC1 is `*(UBYTE *)0x2000 = n`, which SDCC compiles through
  * de (`ld de,#0x2000; ld a,#n; ld (de),a`); the ROM has the named-variable form

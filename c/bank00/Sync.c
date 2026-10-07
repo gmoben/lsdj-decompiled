@@ -31,7 +31,7 @@ extern UBYTE wChanChain[];                  /* $C170, [4] */
 extern UBYTE wChanChainRow[];               /* $C17C, [4] */
 extern UBYTE wChanSongRow[];                /* $C200, [4] */
 extern UBYTE wChanNextSongRow[];            /* $C2FC, [4] */
-extern UBYTE wChanStarted[];                /* $C304, [4] */
+extern UBYTE wChanStopQueued[];                /* $C304, [4] */
 extern UBYTE wLiveMode;                     /* $C528 */
 extern UBYTE wPlayMinutes;                 /* $C552 */
 extern UBYTE wPlaySeconds;                 /* $C553 */
@@ -125,7 +125,7 @@ void SyncTickLSDJ(void)
         saved = wVramCursor;
         for (hSoundCh = 0; hSoundCh < 4; hSoundCh++) {
             wChanNextSongRow[hSoundCh] = 0xFF;
-            wChanStarted[hSoundCh] = 0;
+            wChanStopQueued[hSoundCh] = 0;
             wChanActive[hSoundCh] = 0;
             _asm di _endasm;
             SWITCH_ROM(2);

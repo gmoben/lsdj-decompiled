@@ -15,7 +15,7 @@ extern UBYTE wSongScroll;                   /* $C41C */
 extern UBYTE SongColOffsets[];              /* $07:$4047 */
 extern UBYTE wChanNextSongRow[];            /* $C2FC, [4] */
 extern UBYTE wChanLiveQueued[];             /* $C300, [4] */
-extern UBYTE wChanStarted[];                /* $C304, [4] */
+extern UBYTE wChanStopQueued[];                /* $C304, [4] */
 extern UBYTE wCloneMode;                    /* $C531 */
 extern UBYTE wColChain[];                   /* $C44F, [4] */
 extern UBYTE wButtons;                      /* $C575 */
@@ -233,7 +233,7 @@ UBYTE SongScreenInput(void)
         }
         MemSet(wChanNextSongRow, 0xFF, 4);
         MemSet(wChanLiveQueued, 0, 4);
-        MemSet(wChanStarted, 0, 4);
+        MemSet(wChanStopQueued, 0, 4);
         if (wLiveMode && wPlayMode && wPlayMode != 4) {
             wChanNextSongRow[wPlayStartChan] = wPlayStartRow;
             if (wPlayMode != 3)

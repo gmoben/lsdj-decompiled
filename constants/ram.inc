@@ -240,7 +240,7 @@ DEF wChanPhrase      EQU $C168  ; [4] current phrase = CHAIN_PHRASES[chain][chai
 DEF wChanPhraseRow   EQU $C16C  ; [4] current note step within the phrase (0-15)
 DEF wChanRowQueue    EQU $C100  ; queued chain-row value, PU1 (consumed at phrase end: moved to [$C1xx + wPtrChainRow], then cleared)
 DEF wChanNextSongRow EQU $C2FC  ; [4] next song row, prefetched
-DEF wChanStarted     EQU $C304  ; [4] per channel, set to 1 by SndLiveStopRange once an active channel runs; cleared by SndDeactivateChannel, SndStartChannels, SyncTickLSDJ (meaning tentative)
+DEF wChanStopQueued     EQU $C304  ; [4] live mode: stop the channel at its chain's end (SndLiveStopRange sets it, SndLiveChainEnd acts on it, the song screen blinks its marker); cleared by SndDeactivateChannel, SndStartChannels, SyncTickLSDJ
 DEF wPhraseCmdPtr    EQU $C110  ; SRAM read ptr: phrase FX command, PU1 (SndReadPhraseCmd; init $0140)
                                 ; same offset $A000+phrase*16+step, selected by SRAM bank
 DEF wPhraseCmdValPtr EQU $C128  ; SRAM read ptr: phrase FX value, PU1
@@ -694,7 +694,7 @@ DEF wColPhraseNoi    EQU $C456  ; phrase under cursor, song column NOI
 DEF wColInstrumentNoi EQU $C46B  ; instrument cache, song column NOI
 DEF wUnusedC46C EQU $C46C  ; set at reset, never read
 DEF wSpeechWord      EQU $C4CE  ; word being spoken (-> wChanNoteWav at speech note-on)
-DEF wSpeechFrameTicks EQU $C4CF  ; frames left in current allophone frame; 0 -> stream next (SndLoadWaveFrame)
+DEF wSpeechFrameTicks EQU $C4CF  ; frames left in current allophone frame; 0 -> stream next (SndSpeechStep)
 DEF wSpeechPtr       EQU $C4D0  ; allophone stream read ptr lo (SramWords $B890 base)
 DEF wSpeechPtrHi     EQU $C4D1  ; allophone stream read ptr hi
 DEF wKit1LoopStartHi EQU $C4D5  ; kit voice 1 loop-window start hi
@@ -761,7 +761,7 @@ DEF wChanFinetunePu1Hi EQU $C697  ; wChanFinetune[0] hi byte (Pu1)
 DEF wChanFinetunePu2 EQU $C698  ; wChanFinetune[1]  (Pu2)
 DEF wChanFinetuneWav EQU $C69A  ; wChanFinetune[2]  (Wav)
 DEF wChanFinetuneWavHi EQU $C69B  ; wChanFinetune[2] hi byte (Wav)
-DEF wChanFinetuneNoi EQU $C69C  ; wChanFinetune[3]  (Noi)
+DEF wWavUploadPending EQU $C69C  ; nonzero: the timer interrupt uploads hWavUploadBuf to wave RAM (SndModWavFreq; cleared after the upload)
 DEF wTimerTailBusy   EQU $C69F  ; timer-tail reentrancy guard (scope bitmap copy work)
 DEF wMsgPanelShown   EQU $C7AC  ; 4-line message panel shown (wMsgTimer=$64; special clear on expiry)
 DEF wTopBarDrawScratch EQU $C7AD  ; 16-bit top-bar draw scratch (string ptr / remaining count)

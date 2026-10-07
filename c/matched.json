@@ -2825,6 +2825,12 @@
   "len": 124,
   "src": "c/bank02/Sound.c"
  },
+ "SndLiveChainEnd": {
+  "bank": "02",
+  "addr": "786F",
+  "len": 85,
+  "src": "c/bank02/Sound.c"
+ },
  "SndLiveQueueRange": {
   "bank": "02",
   "addr": "6B9B",
@@ -2861,6 +2867,12 @@
   "len": 66,
   "src": "c/bank02/Sound.c"
  },
+ "SndSpeechStep": {
+  "bank": "02",
+  "addr": "7034",
+  "len": 199,
+  "src": "c/bank02/Sound.c"
+ },
  "SndStartChannels": {
   "bank": "02",
   "addr": "6D97",
@@ -2871,6 +2883,12 @@
   "bank": "02",
   "addr": "6E0F",
   "len": 21,
+  "src": "c/bank02/Sound.c"
+ },
+ "SndStepWavFrames": {
+  "bank": "02",
+  "addr": "6FB6",
+  "len": 126,
   "src": "c/bank02/Sound.c"
  },
  "SndTableMaybeHop": {
