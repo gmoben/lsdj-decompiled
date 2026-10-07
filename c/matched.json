@@ -701,6 +701,12 @@
   "len": 112,
   "src": "c/bank03/InstrScreen.c"
  },
+ "DrawKitInstr": {
+  "bank": "1F",
+  "addr": "44DD",
+  "len": 609,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
  "DrawKitLoopField": {
   "bank": "1F",
   "addr": "411F",

@@ -307,6 +307,100 @@ void DrawKitNameCell(UBYTE kit)
     DrawString(wSampleNoteString);
 }
 
+void DrawKitDistName(UBYTE v);              /* bank 3 */
+
+/*
+ * The KIT instrument's fields: both kits' names, VOLUME (byte 1 bits 6-5,
+ * shown 3..0 for $20/$40/$60/0), OUTPUT, LOOP, SPEED (byte 2 bit 6: 0.5X or
+ * 1X), the DIST mode, FINETUNE, both OFFSETs and LENs (0 = ALL), the pitch
+ * mode and the table.
+ */
+void DrawKitInstr(void)
+{
+    UBYTE v, flags;
+
+    wVramCursor = 0x98A4;
+    v = ReadCurInstrByte(2) & 0x3F;
+    DrawKitNameCell(v);
+    wVramCursor = 0x98C4;
+    v = ReadCurInstrByte(9) & 0x3F;
+    DrawKitNameCell(v);
+    wVramCursor = 0x9909;
+    v = ReadCurInstrByte(1);
+    switch (v & 0x60) {
+    case 0x20:
+        v = '3';
+        break;
+    case 0x40:
+        v = '2';
+        break;
+    case 0x60:
+        v = '1';
+        break;
+    default:
+        v = '0';
+    }
+    DrawStringIndexed((char)v);             /* via a copy: ld b,(hl); ld a,b */
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
+    DrawStringIndexed('/');
+    hBgDigitPalette = wShadowDigitPal;
+    hBgPalette = wShadowPal;
+    DrawFieldValue(0x0C, ReadCurInstrByte(7));
+    wVramCursor = 0x99A6;
+    DrawKitLoopField();
+    wVramCursor = 0x99C9;
+    if (0x40 & ReadCurInstrByte(2))         /* literal first: tested in b */
+        DrawString("0.5");
+    else
+        DrawString("  1");
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
+    DrawStringIndexed('X');
+    hBgDigitPalette = wShadowDigitPal;
+    hBgPalette = wShadowPal;
+    wVramCursor = 0x99E8;
+    v = ReadCurInstrByte(0x0A);
+    FarCallArg(3, FAR_FN(DrawKitDistName), v);
+    wVramCursor = 0x994B;
+    DrawHexByte(ReadCurInstrByte(8));
+    wVramCursor = 0x9968;
+    v = ReadCurInstrByte(0x0C);
+    DrawHexByte(v);
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
+    DrawStringIndexed('/');
+    hBgDigitPalette = wShadowDigitPal;
+    hBgPalette = wShadowPal;
+    v = ReadCurInstrByte(0x0D);
+    DrawHexByte(v);
+    wVramCursor = 0x9986;
+    v = ReadCurInstrByte(3);
+    if (v) {
+        DrawStringTile20();
+        DrawHexByte(v);
+    } else
+        DrawString("ALL");
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
+    DrawStringIndexed('/');
+    hBgDigitPalette = wShadowDigitPal;
+    hBgPalette = wShadowPal;
+    v = ReadCurInstrByte(0x0B);
+    if (v) {
+        DrawStringTile20();
+        DrawHexByte(v);
+    } else
+        DrawString("ALL");
+    wVramCursor = 0x9927;
+    flags = ReadCurInstrByte(5);
+    FarCallArg(1, FAR_FN(DrawSpeedModeName), flags);
+    wVramCursor = 0x9A26;
+    DrawInstrTableMode();
+    wVramCursor++;
+    DrawInstrTableField();
+}
+
 void DrawWaveInstr(void)
 {
     UBYTE v;
