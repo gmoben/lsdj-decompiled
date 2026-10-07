@@ -11,7 +11,7 @@
 59BE TxtSyncLsdj     ; "LSDJ  "
 
 ; --- Project/File data tables + strings ---
-4C6A AlnumChars      ; "0123456789ABCDEF..." digit/letter table (hex + filename display)
+4C6A AlnumChars      ; "0123456789": the name keyboard, char [4][11] -- four NUL-terminated 10-key rows (OpenNameEditor draws it, NameEditorInput reads it)
 5117 TxtSaveAs       ; "SAVE AS:"/"NAME:" prompts
 52D8 TxtSaving                  ; "SAVING..."
 5C03 TxtClockLabels  ; "PLAY %d:"/"WORKED %d:" (total/work-time clock)
@@ -113,13 +113,14 @@
 4559 TxtHelpInstrCont3          ; INSTR help page text continuation
 464F TxtHelpGrooveCont1         ; GROOVE help page text continuation
 494D TxtHelpCopyCont1           ; SELECT/COPY/PASTE help page continuation
-4C75 NameRowsAJ                 ; name-editor letter row "ABCDEFGHIJ"
-4C80 NameRowsKT                 ; name-editor letter row "KLMNOPQRST"
-4C8B NameRowsUZ                 ; name-editor letter row "UVWXYZ" + edit glyphs (x, space, >, w)
+4C75 NameRowsAJ                 ; "ABCDEFGHIJ": name keyboard row 1
+4C80 NameRowsKT                 ; "KLMNOPQRST": name keyboard row 2
+4C8B NameRowsUZ                 ; "UVWXYZx >w": name keyboard row 3 -- x and space are typed, > is backspace, w is done (NameEditorInput)
 5120 TxtNameColon               ; "NAME:"
 52E2 TxtFail1B                  ; "FAIL!"
 52E8 TxtOutOfMemory1B           ; "OUT OF MEMORY!"
 52F7 TxtOk1B                    ; "OK!  "
+52FD TxtFail1B2                 ; "FAIL!" (second instance)
 59C5 TxtSyncMidi                ; "MIDI  " sync mode name
 59CC TxtSyncKeybd               ; "KEYBD " sync mode name
 59D3 TxtSyncAnaIn               ; "ANA.IN" sync mode name
@@ -146,10 +147,10 @@
 4D18 .loop2               ; loop head in DrawProjTextField
 4EB9 .loop                ; loop head in OpenNameEditor
 4F94 .loop2               ; loop head in OpenNameEditor
-51BC .loop                ; loop head in CommitNameEdit
-51C5 .loop2               ; loop head in CommitNameEdit
-520D .loop3               ; loop head in CommitNameEdit
-5216 .loop4               ; loop head in CommitNameEdit
+51BC .oomWaitRelease
+51C5 .oomWaitPress
+520D .failWaitRelease
+5216 .failWaitPress
 5698 .done                ; common exit of NameEditorInput
 58B0 .done                ; common exit of ProjSyncModeIs567
 59B5 .done                ; common exit of DrawSyncField
@@ -214,13 +215,13 @@
 50C1 .loadKbdLetterPosb
 50DB .checkGameboyTypeb
 50EA .loadKbdCursorRow
-519A .setVramCursor
-51D1 .setVramCursorb
-51FC .setVramCursorc
-521F .setRedrawPending
-5227 .checkNameEditIsInstr
-52BE .loadNameReturnScreen
-532B .checkKbdLetterPos
+519A .outOfMemory
+51D1 .saved
+51FC .saveFailed
+521F .saveDone
+5227 .storeName
+52BE .leave
+532B .stepBack
 53F8 .pickNameField
 5421 .dispatch
 545D .aEnabled
@@ -335,10 +336,8 @@
 4BD0 .cont
 4BD1 .checkButtons
 4C2C .ret01
-4C50 .cont
-4C52 .cont_2
-4C9D .loadKbdCursorCol
-4CAD .drawTextField
+4C50 .dmgPalette
+4C52 .colorKey
 4CF3 .cont
 4CF4 .checkArg
 4D06 .cont_2
@@ -384,19 +383,18 @@
 509F .cont_7
 50BF .loadKbdLetterPos_3
 50E8 .setKbdCursorRow
-51F0 .cont
-51F3 .setVramCursor_2
-5246 .loadSpeechCursorRow
-5271 .cont_2
-5292 .cont_3
-52FD .cont
-5340 .cont
-5342 .useKbdLetterPos
-537B .cont_2
-537D .useKbdLetterPos_2
-5398 .useKbdLetterPos_3
-53DA .cont_3
-53DC .drawStringIndexed
+51F0 .savedDmgDelay
+51F3 .savedDelay
+5246 .storeWordName
+5271 .writeFirstLetter
+5292 .writeSecondLetter
+5340 .unlitDmg
+5342 .unlitDraw
+537B .litDmg
+537D .litDraw
+5398 .redrawSlot
+53DA .drawSpace
+53DC .drawSlot
 540B .instrOrWordField
 541C .wordField
 541E .setLastLetter
