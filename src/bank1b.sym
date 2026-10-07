@@ -75,7 +75,7 @@
 5716 ColorSetNames              ; 5-char COLOR SET names ("AIRY"...; indexed wColorSet*5)
 6FFE ScrollStepTable            ; scroll index-step table (TapTempoStep)
 703C EnvVolumeRamps             ; 8-byte volume ramp rows (envelope precalc family; computed base from ScrollStepTable region)
-4058 HelpMenuPtrs               ; dw pointers to the 16 help-menu line strings
+4058 HelpMenuPtrs               ; [16] dw -> the help-menu line strings
 4098 TxtHelpTitle               ; "HELP / V9.4.0"
 40A6 TxtHelpBlank1              ; "" empty help line
 40A7 TxtHelpScreens             ; "SCREENS:"
@@ -92,7 +92,7 @@
 40E4 TxtHelpLiveMode            ; "LIVE MODE"
 40EE TxtHelpSelCopy             ; "SELECT/COPY/PASTE"
 4100 TxtHelpMuteSolo            ; "MUTE/SOLO/PAN"
-4078 HelpPagePtrs               ; dw -> the 11 help content pages (entry 0 = none)
+4078 HelpPagePtrs               ; [11] dw -> the help content pages (entry 0 = none)
 408E HelpSelectLines            ; selectable help-menu line indexes (SONG..MUTE/SOLO/PAN)
 410E TxtHelpPageSong            ; "SONG SCREEN" help page
 4248 TxtHelpPageLive            ; "LIVE MODE" help page

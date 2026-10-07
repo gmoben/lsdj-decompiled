@@ -43,7 +43,7 @@
 ; Command values index the same table as the mnemonics at $0824 ("-ABCDEFGH...").
 ; B/D/G/H have null handlers here -- they act at note-trigger, not per tick.
 4790 DispatchFxCommand  ; a = command value (<19); jp FxCommandTable[a]
-47A2 FxCommandTable     ; [19] per-tick command handler pointers (0 = no per-tick action)
+47A2 FxCommandTable     ; [19] dw per-tick command handler pointers (0 = no per-tick action)
 4679 FxCmd_A            ; A: table start/stop
 476C FxCmd_C            ; C: chord
 46D8 FxCmd_E            ; E: amplitude envelope

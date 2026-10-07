@@ -55,6 +55,12 @@
 26BA .table               ; (was UpdateDispatch_Table) idx 5 -> bank $05:$4967 (TableScreenUpdate)
 26C9 .chain               ; (was UpdateDispatch_Chain) idx 3 -> bank $06:$5A62 (ChainScreenUpdate)
 26D8 .song                ; (was UpdateDispatch_Song) idx 4 -> bank $07:$47AA (SongScreenUpdate)
+0038 Rst38                      ; rst $38, LSDj's crash vector (and its asserts'): di, ld b,b (debugger break), jr CrashTrampoline
+0040 VBlankInterrupt            ; VBlank vector: push af/hl, jp VBlankHandler
+0048 STATInterrupt              ; STAT vector: reti (unused)
+0050 TimerInterrupt             ; timer vector: jp TimerHandler
+0058 SerialInterrupt            ; serial vector: jp SerialHandler
+0060 JoypadInterrupt            ; joypad vector: reti (unused)
 0061 CrashTrampoline            ; trampoline: select ROM bank 1, jp CrashHandler ($794B)
 0391 TimerHandler       ; timer IRQ body: sound/playback engine tick
 0662 TimerHandlerReturn ; timer IRQ epilogue: restore regs, wait rSTAT, reti
@@ -102,6 +108,7 @@
 2E33 DrawHexByte        ; draw byte A as two hex digits at the cursor
 2E6D DrawByte           ; draw a byte (stack arg) at the cursor
 352A DrawNumber         ; draw 16-bit value (sp+4) in base (sp+6) with optional minus sign (sp+8); recursive (high digit first), digit table $35B1 "0123456789ABCDEF"
+35B1 DigitChars                 ; "0123456789ABCDEF" (DrawNumber's digit table, indexed by the digit value)
 35C2 DrawFormat         ; printf-style draw of format string (sp+7) + varargs to the VRAM cursor: %c char, %d/%u signed/unsigned decimal & %x hex (via DrawNumber), %s string
 1298 DrawTextField      ; draw a positioned text field
 17E1 AnyChanFlagSet     ; e = nonzero if any of the 4 per-channel bytes $C423-$C426 is set (chain-screen per-channel state; caller resets the $C68C idle counter on activity)

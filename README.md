@@ -133,7 +133,9 @@ GBDK 2.95 + SDCC and reproduce real LSDj functions byte-for-byte before
 committing to C. That spike is done and the grind has begun: 575 functions
 match, the recovered compiler model is an accumulator-tracking pass plus 83
 peephole rules with ROM-wide evidence, and matched C feeds the ROM build as RGBDS source translated
-from the compiler's output, gated by `make compare`.
+from the compiler's output, gated by `make compare`. The build is movable, the base for a fork that
+adds features: every ROM address in code is a label, and `tools/shift_test.py` runs a build with a
+bank's contents shifted next to the original in an emulator.
 See [`docs/toolchain.md`](docs/toolchain.md), and try it:
 
 ```bash

@@ -148,6 +148,71 @@ class PointerTests(unittest.TestCase):
         self.assertEqual(disasm.render(rows, False, {}), "\tjr nc, @ + 1")
 
 
+class BytePointerTests(unittest.TestCase):
+    """Addresses the code loads a byte at a time."""
+    HOME = {0x179A: "FarCall"}
+
+    @staticmethod
+    def rows(*texts, start=0x6000):
+        out, a = [], start
+        for t in texts:
+            ref = int(t.split("$")[1], 16) if t.startswith("call $") else None
+            out.append((a, b"", t, ref))
+            a += 2
+        return out
+
+    def test_banked_call_target_in_two_bytes(self):
+        rows = self.rows("ld c, $fe", "ld b, $6e", "push bc", "ld a, $1f", "push af",
+                         "inc sp", "call $179a")
+        ptrs, _ = disasm.rom_pointers(rows, 0x04, {}, self.HOME,
+                                      lambda b: {0x6EFE: "InstrHReadCursorCellAt"} if b == 0x1F else {})
+        self.assertEqual(ptrs, {0x6000: (0x1F, 0x6EFE, "LOW"), 0x6002: (0x1F, 0x6EFE, "HIGH")})
+
+    def test_banked_call_target_through_register_copies(self):
+        rows = self.rows("ld b, $fe", "ld c, $6e", "ld l, b", "ld h, c", "push hl", "ld a, $1f",
+                         "push af", "inc sp", "call $179a")
+        ptrs, _ = disasm.rom_pointers(rows, 0x04, {}, self.HOME,
+                                      lambda b: {0x6EFE: "InstrHReadCursorCellAt"} if b == 0x1F else {})
+        self.assertEqual(ptrs, {0x6000: (0x1F, 0x6EFE, "LOW"), 0x6002: (0x1F, 0x6EFE, "HIGH")})
+
+    def test_table_indexed_by_a_byte_and_by_a_word(self):
+        for adc in ("adc a, $00", "adc a, b"):
+            rows = self.rows("ld a, $f0", "add a, c", "ld e, a", "ld a, $64", adc, "ld d, a")
+            ptrs, _ = disasm.rom_pointers(rows, 0x1F, {}, self.HOME)
+            self.assertEqual(ptrs, {0x6000: (0x1F, 0x64F0, "LOW"), 0x6006: (0x1F, 0x64F0, "HIGH")}, adc)
+
+    def test_address_plus_a_constant(self):
+        # wStringSrc = AsciiCharMap - $20, a byte at a time
+        rows = self.rows("ld a, $6f", "add a, $e0", "ld hl, $c564", "ld [hl], a", "ld a, $08",
+                         "adc a, $ff", start=0x3C48)
+        ptrs, _ = disasm.rom_pointers(rows, 0, {}, self.HOME)
+        self.assertEqual(ptrs, {0x3C48: (0, 0x086F, "LOW"), 0x3C50: (0, 0x086F, "HIGH")})
+
+    def test_ram_word_arithmetic_is_not_a_pointer(self):
+        rows = self.rows("ld a, [hl]", "add a, $14", "ld [hl+], a", "ld a, [hl]", "adc a, $00",
+                         "ld [hl], a")
+        self.assertEqual(disasm.rom_pointers(rows, 0x07, {}, self.HOME)[0], {})
+
+    def test_pointer_table_rows(self):
+        rows = [(0x4058, b"", "dw $4098", None), (0x405A, b"", "dw $0000", None)]
+        ptrs, notes = disasm.rom_pointers(rows, 0x1B, {}, self.HOME, table_bank={0x4058: 0x1B, 0x405A: 0x1B})
+        self.assertEqual((ptrs, notes), ({0x4058: (0x1B, 0x4098)}, []))
+
+
+class ShiftTestTests(unittest.TestCase):
+    def test_padding_goes_before_the_labels_and_comes_out_of_the_fill(self):
+        shift_test = importlib.import_module("shift_test")
+        text = "\n".join(['SECTION "x", ROMX[$4000], BANK[$01]', "Foo:", ".loop:",
+                         "\tnop                          ; $4000: 00",
+                         "\tdb $ff, $ff, $ff, $ff        ; $4001: ff ff ff ff",
+                         "\trst $38                      ; $4005: ff"])
+        out = shift_test.insert_padding(text, 0x4000, 3).splitlines()
+        self.assertEqual(out[1], "\tds 3, $ff ; shift test")
+        self.assertEqual(out[2:4], ["Foo:", ".loop:"])
+        self.assertEqual(out[-1], "")          # the rst $38 byte
+        self.assertTrue(out[-2].startswith("\tdb $ff, $ff") and out[-2].count("$ff") == 2)
+
+
 class TranslatedPointerTests(unittest.TestCase):
     def translator(self, source=""):
         t = to_rgbds.Translator.__new__(to_rgbds.Translator)

@@ -2,7 +2,7 @@
 4485 .done                ; (was CartridgeTest) common exit
 51F4 PitchSpeedNames    ; [4][5] pitch-speed display names "STEP"/"TICK"/"DRUM"/"FAST"
 764C LoadCommandHelp    ; resolve command (sp+8) -> help string in wStrBuffer + wVramCursor; shown at screen top on double-A. B/F/H/S/W are context-cased (by $C41D), the rest via CommandHelpTable
-776E CommandHelpTable   ; [command] -> "X: DESCRIPTION" string pointer (index = command*2; 0 = context-cased above)
+776E CommandHelpTable   ; [20] dw -> the "X: DESCRIPTION" help line per command (index = command*2; entry 0 points at an empty string, the end of TxtHelpSSweep)
 
 ; --- UI functions called from bank 0 (bank $01 paged in) ---
 4CF1 UiInitScreen        ; screen setup: ApplyColorSet + ClearOamBuffer + UiLoadHwTables

@@ -18,6 +18,7 @@ Usage: tools/carve_clean.py            # re-carve every src/bankNN.asm
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 from importlib import import_module
@@ -232,6 +233,20 @@ def merge_ranges(runs: list[tuple[int, int]]) -> list[tuple[int, int]]:
     return out
 
 
+def pointer_tables(bank: int) -> list[tuple[int, int, int]]:
+    """Pointer tables the bank's .sym tags `[N] dw` (N words; `[N] dw @$BB`
+    when they point into bank BB): (lo, hi) file offsets and the target bank,
+    for disasm.py --ptr-tables, which prints them as `dw Label`."""
+    out = []
+    base = bank * BANK - (0 if bank == 0 else 0x4000)
+    for addr, _name, comment in cov.read_sym(ROOT / "src" / f"bank{bank:02x}.sym"):
+        m = re.match(r"\[(\d+)\] dw\b(?: @\$([0-9A-Fa-f]{2}))?", comment)
+        if m:
+            lo = base + addr
+            out.append((lo, lo + 2 * int(m.group(1)), int(m.group(2), 16) if m.group(2) else bank))
+    return out
+
+
 def c_ranges(bank: int) -> tuple[list[str], list[tuple[int, int, str, int]]]:
     """ROM ranges owned by matching C (c/matched.json, written by `make match`).
     With the compiler present, each function's RGBDS translation
@@ -283,6 +298,9 @@ def main() -> None:
             cmd += ["--pointer-notes"]
         if data_arg:
             cmd += ["--data", data_arg]
+        tables = pointer_tables(b)
+        if tables:
+            cmd += ["--ptr-tables", ",".join(f"0x{lo:X}:0x{hi:X}:0x{tb:X}" for lo, hi, tb in tables)]
         clines, incbins = c_ranges(b)
         if incbins:
             cmd += ["--incbin", ",".join(f"0x{lo:X}:0x{hi:X}:{p}:0x{off:X}" for lo, hi, p, off in incbins)]

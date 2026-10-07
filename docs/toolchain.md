@@ -921,9 +921,11 @@ shape.
 ### Toward a moddable fork
 
 The goal past matching is a fork that adds features, so code has to be able
-to move. Code operands are symbolic now, in the asm carve and the C alike, but
-every pointer table is still raw `db` bytes. The milestone, pret's
-"shiftable":
+to move. The milestone, pret's "shiftable", is met as far as the shift test
+reaches: every program bank, its contents moved by 16 bytes, runs the same as
+the original.
+
+The checklist:
 
 - [x] Translate matched C to RGBDS source: `tools/match/to_rgbds.py --check`
       assembles every matched function (code, literals and const data) with
@@ -945,11 +947,32 @@ every pointer table is still raw `db` bytes. The milestone, pret's
       `#define`s give them). What stays a number is a constant — kit-format
       addresses (`$4000`, `$4052`), `gb_cmp16`'s add form (`p < 0xB290` →
       `ld hl, $4D70`): `tools/carve_clean.py --pointer-notes`.
-- [ ] Pointer tables as `dw Label` (data runs still hold raw addresses),
-      address halves loaded as bytes (`ld h, $xx`), and tables that rely on
-      page alignment.
-- [ ] A shift test: a build with padding inserted in each bank, checked by
-      an emulator smoke test (boot, every screen, playback, save/load).
+- [x] Addresses loaded a byte at a time: SDCC's `Table[i]`
+      (`ld a, LOW(PhraseCellWidth) / add a, c / … / ld a, HIGH(…) / adc a, $00`,
+      or `adc a, b` for a word index), a banked call's target pushed as two
+      bytes (`ld c, LOW(InstrHReadCursorCellAt) / ld b, HIGH(…) / push bc`, also
+      through register copies), and an address plus a constant
+      (`wStringSrc = AsciiCharMap - $20` as `ld a, LOW(AsciiCharMap) /
+      add a, $e0 / … / adc a, $ff`).
+- [x] Pointer tables as `dw Label`: a `.sym` tag `[N] dw` (`[N] dw @$BB` for
+      one pointing into another bank) makes the carve print the N words as
+      labels — CommandHelpTable, FxCommandTable, HexCellPrefixPtrs,
+      HelpMenuPtrs, HelpPagePtrs. The interrupt and `rst $38` vectors are
+      named code now (they sat inside `Unused` fill symbols as data, their
+      `jp VBlankHandler` a raw number).
+- [x] A shift test: `tools/shift_test.py` (PyBoy, in `.venv/`) builds the ROM
+      with N bytes of `$FF` padding inserted in a bank — taken back from the
+      bank's trailing fill — and runs it next to the unshifted build on the
+      same SRAM (`.emu/lsdj_song.sav` if present) and input: a scripted tour
+      (play the song, the screens) then seeded random input, comparing the
+      screen and the sound registers every frame. On a divergence it reports
+      where an `$FF` (`rst $38`: crash, assert, `DebugTrap`) ran and the call
+      chain; `--bisect` narrows down where the stale reference points. Every
+      bank passes 16 bytes at its start (bank 0: at `$0391`, past the
+      page-aligned tables at `$0200`-`$0390` that SndCalcVibOffset reaches with
+      `ld d, $02` / `ld h, $03` — a fork keeps them at their address).
+      It only proves what the input reaches: more seeds, DMG mode, odd sizes
+      and all banks at once are the next runs.
 - [ ] Behaviour tests on tools/emu for builds that no longer match the ROM:
       what a fork runs instead of `make compare`.
 

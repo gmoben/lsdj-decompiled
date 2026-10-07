@@ -23,9 +23,6 @@ Known gaps — asm fidelity/readability, none affect the bytes:
   16-bit immediates — mostly buffer bases handed to helpers (`ld de, $c457`
   ×21, `$C90D`, `$CA34`, …), some probably signed constants (`ld hl, $fffe`).
   ~13 named variables still carry `TBD` notes on their exact role.
-- **Code in WRAM.** The kit streamer calls `$D480` (`call $d480` at
-  `$00:$04C1`, with `h = wKitDistType`) — apparently a routine executed from
-  WRAM; where it is copied from is not yet traced.
 - **Stale names.** `SndReadGrooveOrSpeed` actually steps table
   pointers; generated local labels still echo pre-July RAM names (e.g.
   `.loadOscActive_2` in `TimerHandler`, from the old "oscilloscope" reading).

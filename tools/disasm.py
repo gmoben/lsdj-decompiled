@@ -387,7 +387,54 @@ Pointer = "tuple[int, int] | str"
 
 
 def _decoded(row: Row) -> bool:
-    return row[3] not in (C_ROW, C_TEXT) and not row[2].startswith(("db", "INCBIN"))
+    return row[3] not in (C_ROW, C_TEXT) and not row[2].startswith(("db", "dw", "INCBIN"))
+
+
+_PAIR_OF = {"a": "af", "b": "bc", "c": "bc", "d": "de", "e": "de", "h": "hl", "l": "hl"}
+
+
+def _writes(t: str, reg: str) -> bool:
+    """Whether decoded instruction text `t` may write register `reg`."""
+    pair = _PAIR_OF[reg]
+    if re.match(rf"(?:ld|ldh|inc|dec|swap|res|set|rl|rr|rlc|rrc|sla|sra|srl) {reg}\b", t):
+        return True
+    if re.match(rf"(?:pop|inc|dec) {pair}$", t) or t.startswith((f"ld {pair},", f"add {pair},")):
+        return True
+    if pair == "hl" and re.search(r"\[hl[+-]\]", t):
+        return True
+    if reg == "a" and (re.match(r"(?:add|adc|sub|sbc|and|or|xor) a\b", t)
+                       or t in ("rla", "rra", "rlca", "rrca", "cpl", "daa")):
+        return True
+    return t.startswith(("call", "rst"))     # a call may change anything
+
+
+def _reg_const(rows: list[Row], i: int, reg: str, depth: int = 0) -> tuple[int, int] | None:
+    """The immediate `reg` holds before row i, following register copies back
+    (`ld b, $fe / ... / ld l, b`): (row of the `ld r, $NN`, NN) or None."""
+    for k in range(i - 1, max(-1, i - 12), -1):
+        if not _decoded(rows[k]):
+            return None
+        t = rows[k][2]
+        m = re.fullmatch(rf"ld {reg}, (\$[0-9a-f]{{2}}|[a-e]|[hl])", t)
+        if m:
+            src = m.group(1)
+            if src.startswith("$"):
+                return k, int(src[1:], 16)
+            return _reg_const(rows, k, src, depth + 1) if depth < 3 else None
+        if _writes(t, reg):
+            return None                   # written some other way
+    return None
+
+
+def _pair_halves(rows: list[Row], i: int, rr: str) -> tuple[int, int, int, int] | None:
+    """For `push rr` at row i: the rows that load its halves with immediates
+    (`ld c, $fe / ld b, $6e / push bc`, SDCC's way with a constant word, or via
+    copies, `ld b, $fe / ld c, $6e / ld l, b / ld h, c / push hl`): (row of
+    the high byte, the byte, row of the low byte, the byte)."""
+    hi, lo = _reg_const(rows, i, rr[0]), _reg_const(rows, i, rr[1])
+    if hi is None or lo is None:
+        return None
+    return hi[0], hi[1], lo[0], lo[1]
 
 
 def _farcall_bank(nxt: list[Row], rr: str, far: set[int]) -> int | None:
@@ -405,8 +452,56 @@ def _farcall_bank(nxt: list[Row], rr: str, far: set[int]) -> int | None:
     return int(m.group(1), 16) if call is not None and call[3] in far else None
 
 
+def _byte_halves(rows: list[Row], i: int) -> tuple[int, int] | None:
+    """SDCC's `Table[i]` with the address in two immediates, starting at row i:
+    `ld a, LO / add a, r / ld x, a / ld a, HI / adc a, $00 / ld y, a` (byte
+    index; `adc a, r2` for a word index in r2:r) or `ld a, r / add a, LO /
+    ld x, a / ld a, r / adc a, HI / ld y, a`. (address, index of the HI row)
+    or None."""
+    if i + 5 >= len(rows) or not all(_decoded(r) for r in rows[i:i + 6]):
+        return None
+    t = [r[2] for r in rows[i:i + 6]]
+    if not (re.fullmatch(r"ld [b-e], a|ld [hl], a", t[2]) and re.fullmatch(r"ld [b-e], a|ld [hl], a", t[5])):
+        return None
+    lo = re.fullmatch(r"ld a, \$([0-9a-f]{2})", t[0])
+    hi = re.fullmatch(r"ld a, \$([0-9a-f]{2})", t[3])
+    if lo and hi and re.fullmatch(r"add a, (?:[a-e]|[hl])", t[1]) \
+            and re.fullmatch(r"adc a, (?:\$00|[a-e]|[hl])", t[4]):    # byte / word index
+        return int(hi.group(1), 16) << 8 | int(lo.group(1), 16), i + 3
+    lo = re.fullmatch(r"add a, \$([0-9a-f]{2})", t[1])
+    hi = re.fullmatch(r"adc a, \$([0-9a-f]{2})", t[4])
+    if lo and hi and re.fullmatch(r"ld a, [a-e]", t[0]) and re.fullmatch(r"ld a, [a-e]", t[3]):
+        return int(hi.group(1), 16) << 8 | int(lo.group(1), 16), i + 4
+    return None
+
+
+def _offset_halves(rows: list[Row], i: int) -> tuple[int, int] | None:
+    """An address plus a constant, a byte at a time (SDCC doesn't fold
+    `(UBYTE *)AsciiCharMap - 0x20`): `ld a, LO / add a, KL / (store a) /
+    ld a, HI / adc a, KH`, the stores in between not touching a. (address,
+    index of the HI row) or None; the offset stays a number."""
+    if i + 3 >= len(rows) or not _decoded(rows[i]) or not _decoded(rows[i + 1]):
+        return None
+    lo = re.fullmatch(r"ld a, \$([0-9a-f]{2})", rows[i][2])
+    if not lo or not re.fullmatch(r"add a, \$[0-9a-f]{2}", rows[i + 1][2]):
+        return None
+    for k in range(i + 2, min(len(rows) - 1, i + 7)):
+        if not _decoded(rows[k]):
+            return None
+        hi = re.fullmatch(r"ld a, \$([0-9a-f]{2})", rows[k][2])
+        if hi:
+            if re.fullmatch(r"adc a, \$[0-9a-f]{2}", rows[k + 1][2]):
+                return int(hi.group(1), 16) << 8 | int(lo.group(1), 16), k
+            return None
+        if _writes(rows[k][2], "a"):
+            return None
+    return None
+
+
 def rom_pointers(rows: list[Row], bank: int | None, symbols: dict[int, str],
-                 home: dict[int, str]) -> tuple[dict[int, "tuple[int, int] | str"], list[str]]:
+                 home: dict[int, str],
+                 bank_syms=lambda b: {},
+                 table_bank: dict[int, int] | None = None) -> tuple[dict[int, "tuple[int, int] | str"], list[str]]:
     """The 16-bit operands of decoded rows that are ROM addresses -- code that
     moves needs every one of them as a label: {row address: (bank, address)},
     or a register name for an MBC write; plus notes on operands that look like
@@ -419,6 +514,12 @@ def rom_pointers(rows: list[Row], bank: int | None, symbols: dict[int, str],
     - a ROMX bank's own `ld rr, $4000-$7FFF`, except gb_cmp16's add form
       (`ld hl, K / add hl, rr / jp c`), a constant;
     - in bank 0, a global name of its own (`ld hl, FarCallResume2 / push hl`);
+    - every non-null word of a pointer table (`dw $4098`, rows from
+      --ptr-tables; `table_bank` gives the bank each row points into);
+    - an address loaded as two bytes, SDCC's `Table[i]`: `ld a, LO / add a, r /
+      ld e, a / ld a, HI / adc a, $00 / ld d, a` (or `add a, LO` ... `adc a, HI`
+      for a word index), when the address is a ROM row -- returned for both
+      rows as (bank, address, "LOW") and (bank, address, "HIGH");
       from another bank a small number matching a home name is as likely a
       constant (`ld de, $0200` for `$200 - x`), so it stays one.
     Values that are neither (`ld bc, $0100`, kit-bank offsets) stay numbers."""
@@ -429,6 +530,14 @@ def rom_pointers(rows: list[Row], bank: int | None, symbols: dict[int, str],
     tracked: int | None = None            # bank 0: the ROMX bank this function mapped
     for i, row in enumerate(rows):
         addr, _raw, text, ref = row
+        m = re.fullmatch(r"dw \$([0-9a-f]{4})", text)
+        if m and ref is None and table_bank and addr in table_bank:
+            v, tb = int(m.group(1), 16), table_bank[addr]
+            if (tb == 0 and 0x0100 <= v < 0x4000) or (tb != 0 and 0x4000 <= v < 0x8000):
+                out[addr] = (tb, v)
+            elif v not in (0x0000, 0xFFFF):
+                notes.append(f"${addr:04x}: {text} (outside bank ${tb:02x})")
+            continue
         if not _decoded(row):
             continue
         if addr in symbols and not symbols[addr].startswith("."):
@@ -448,6 +557,34 @@ def rom_pointers(rows: list[Row], bank: int | None, symbols: dict[int, str],
                 out[addr] = (tracked, ref)
             else:
                 notes.append(f"${addr:04x}: {text} (bank unknown)")
+            continue
+        m = re.fullmatch(r"push (bc|de|hl)", text)
+        if m:
+            nxt = [r for r in rows[i:i + 10] if _decoded(r)]
+            fb = _farcall_bank(nxt, m.group(1), far)
+            pair = _pair_halves(rows, i, m.group(1)) if fb is not None else None
+            if pair is not None:
+                k_hi, hi, k_lo, lo = pair
+                tb = fb
+                # which way round: the one that names something in the callee's bank
+                for v, k_low, k_high in ((hi << 8 | lo, k_lo, k_hi), (lo << 8 | hi, k_hi, k_lo)):
+                    t_bank = 0 if v < 0x4000 else tb
+                    if (t_bank == 0 and 0x0100 <= v < 0x4000) or 0x4000 <= v < 0x8000:
+                        if v in (home if t_bank == 0 else bank_syms(t_bank)):
+                            out[rows[k_low][0]] = (t_bank, v, "LOW")
+                            out[rows[k_high][0]] = (t_bank, v, "HIGH")
+                            break
+                else:
+                    notes.append(f"${rows[k_lo][0]:04x}: banked call to ${hi:02x}{lo:02x} "
+                                 f"in bank ${fb:02x} loaded as bytes: no name either way round")
+            continue
+        half = _byte_halves(rows, i) or _offset_halves(rows, i)
+        if half is not None:
+            v, k_hi = half
+            tb = 0 if v < 0x4000 else bank
+            if tb is not None and (tb == 0 and 0x0100 <= v < 0x4000 or tb and 0x4000 <= v < 0x8000):
+                out[addr] = (tb, v, "LOW")
+                out[rows[k_hi][0]] = (tb, v, "HIGH")
             continue
         m = re.fullmatch(r"ld (bc|de|hl), \$([0-9a-f]{4})", text)
         if not m:
@@ -496,7 +633,8 @@ def disassemble(data: bytes, start: int, end: int, org: int,
                 data_ranges: list[tuple[int, int]],
                 anchors: set[int] | None = None,
                 incbins: list[IncBin] | None = None,
-                clines: list[CLines] | None = None) -> list[Row]:
+                clines: list[CLines] | None = None,
+                ptr_tables: list[tuple[int, int, int]] | None = None) -> list[Row]:
     """Return decoded rows covering file offsets [start, end).
 
     `anchors` is a set of file offsets that are known code-instruction starts
@@ -509,15 +647,20 @@ def disassemble(data: bytes, start: int, end: int, org: int,
     split at every anchor inside it so each symbol still gets its label.
 
     `clines` are ranges matching C owns, rendered from their RGBDS
-    translation: its rows replace the decode (their labels print as usual)."""
+    translation: its rows replace the decode (their labels print as usual).
+
+    `ptr_tables` are (lo, hi, bank) pointer tables: one `dw $xxxx` row per
+    word, which rom_pointers() turns into labels."""
     anchors = anchors or set()
     incbins = incbins or []
     clines = clines or []
+    ptr_tables = ptr_tables or []
 
     def next_data_edge(o: int) -> int:
         edges = [hi if lo <= o < hi else lo for lo, hi in data_ranges if o < hi]
         edges += [hi if lo <= o < hi else lo for lo, hi, _p, _f in incbins if o < hi]
         edges += [hi if lo <= o < hi else lo for lo, hi, _r in clines if o < hi]
+        edges += [hi if lo <= o < hi else lo for lo, hi, _b in ptr_tables if o < hi]
         edges += [a for a in anchors if a > o]
         return min((e for e in edges if e > o), default=end)
 
@@ -545,6 +688,11 @@ def disassemble(data: bytes, start: int, end: int, org: int,
                 else:
                     out.append((a, b"", text, C_TEXT))
             o = hi
+            continue
+        pt = next((t for t in ptr_tables if t[0] <= o < t[1]), None)
+        if pt is not None and o + 2 <= min(pt[1], end):
+            out.append((addr, data[o:o + 2], f"dw ${data[o] | data[o + 1] << 8:04x}", None))
+            o += 2
             continue
         ib = in_incbin(o)
         if ib is not None:
@@ -735,7 +883,7 @@ def build_labels(rows: list[Row], lo: int, hi: int,
     user_locals = {a: n for a, n in symbols.items() if n.startswith(".")}
     symbols = {a: n for a, n in symbols.items() if not n.startswith(".")}
     instr_addrs = {addr for addr, _raw, text, _ref in rows
-                   if not text.startswith(("db", "INCBIN"))}
+                   if not text.startswith(("db", "dw", "INCBIN"))}
     # Every row-start address (code or data): a user symbol renders on any of
     # these, so a table marked as `db` still gets its label (data labels).
     row_addrs = {addr for addr, _raw, _text, _ref in rows}
@@ -785,9 +933,10 @@ def build_labels(rows: list[Row], lo: int, hi: int,
 
 def render(rows: list[Row], comments: bool,
            labels: dict[int, str] | None = None,
-           pointers: dict[int, tuple[int, str | int]] | None = None) -> str:
-    """`pointers` maps a row to its ROM-address operand: (value, name) for a
-    fixed name, or (value, address) for a label of this bank."""
+           pointers: dict[int, tuple[str, str | int, str]] | None = None) -> str:
+    """`pointers` maps a row to its ROM-address operand: (the operand as
+    printed, a fixed name or an address of this bank to print as its label,
+    "" / "LOW" / "HIGH" for a byte of it)."""
     labels = labels or {}
     pointers = pointers or {}
     # Enclosing global label (name) per address, for scope-qualifying local refs.
@@ -825,13 +974,13 @@ def render(rows: list[Row], comments: bool,
             k = ref - addr
             text = text.replace(f"${ref:04x}", f"@ {'+' if k >= 0 else '-'} {abs(k)}")
         if addr in pointers:
-            value, tgt = pointers[addr]
+            token, tgt, part = pointers[addr]
             if isinstance(tgt, int):
                 name = labels[tgt]
                 if name.startswith(".") and enclosing.get(tgt, "") != enclosing.get(addr, ""):
                     name = enclosing.get(tgt, "") + name
                 tgt = name
-            text = text.replace(f"${value:04x}", tgt)
+            text = text.replace(token, f"{part}({tgt})" if part else tgt)
         if not text.startswith("INCBIN"):
             text = _sub_hw_regs(text)
             text = _sub_ram_syms(text)
@@ -902,6 +1051,9 @@ def main() -> None:
     ap.add_argument("--org", type=lambda s: int(s, 0), help="GB address of --start")
     ap.add_argument("--data", default="",
                     help="comma-separated lo:hi file-offset ranges to emit as db")
+    ap.add_argument("--ptr-tables", default="",
+                    help="comma-separated lo:hi:bank file-offset ranges of pointer tables "
+                         "(words pointing into bank): printed as `dw Label`")
     ap.add_argument("--pointer-notes", action="store_true",
                     help="list the operands that look like ROM addresses but stay numbers")
     ap.add_argument("--clines", default="",
@@ -986,7 +1138,12 @@ def main() -> None:
         lo_f = start + (int(doc["lo"]) - org)
         hi_f = start + (int(doc["hi"]) - org)
         clines.append((lo_f, hi_f, [(int(a), k, t) for a, k, t in doc["rows"]]))
-    rows = disassemble(data, start, end, org, data_ranges, anchors, incbins, clines)
+    ptr_tables: list[tuple[int, int, int]] = []
+    for part in filter(None, (p.strip() for p in args.ptr_tables.split(","))):
+        lo_s, hi_s, b_s = part.split(":")
+        ptr_tables.append((int(lo_s, 0), int(hi_s, 0), int(b_s, 0)))
+    table_bank = {org + (o - start): tb for lo, hi, tb in ptr_tables for o in range(lo, hi, 2)}
+    rows = disassemble(data, start, end, org, data_ranges, anchors, incbins, clines, ptr_tables)
     # ROM-address operands print as labels (rom_pointers): names from the
     # .sym files beside --symbols; a target inside a data run first gets a row
     # of its own (decode again with it as an anchor)
@@ -995,18 +1152,23 @@ def main() -> None:
     notes: list[str] = []
     same: set[int] = set()
     if args.bank is not None and not args.no_labels:
-        def own(p: "tuple[int, int] | str") -> int | None:
+        def own(p: "tuple[int, int] | tuple[int, int, str] | str") -> int | None:
             return p[1] if isinstance(p, tuple) and p[0] == args.bank \
                 and org <= p[1] < org + size else None
-        ptrs, notes = rom_pointers(rows, args.bank, symbols, home)
+        sym_dir = Path(args.symbols).parent if args.symbols else None
+
+        def bank_syms(b: int) -> dict[int, str]:
+            f = sym_dir / f"bank{b:02x}.sym" if sym_dir else None
+            return parse_symbols(f) if f and f.is_file() else {}
+        ptrs, notes = rom_pointers(rows, args.bank, symbols, home, bank_syms, table_bank)
         # (every one: the first decode's 16-byte rows may start there by chance)
         split = {start + (t - org) for t in map(own, ptrs.values())
                  if t is not None
                  and any(lo <= start + (t - org) < hi for lo, hi in data_ranges)}
         if split - anchors:
             anchors |= split
-            rows = disassemble(data, start, end, org, data_ranges, anchors, incbins, clines)
-            ptrs, notes = rom_pointers(rows, args.bank, symbols, home)
+            rows = disassemble(data, start, end, org, data_ranges, anchors, incbins, clines, ptr_tables)
+            ptrs, notes = rom_pointers(rows, args.bank, symbols, home, bank_syms, table_bank)
         same = {t for t in map(own, ptrs.values()) if t is not None}
     labels = ({} if args.no_labels
               else build_labels(rows, org, org + size, symbols, prefix, same))
@@ -1016,7 +1178,7 @@ def main() -> None:
         for a, name in parse_symbols(args.globals).items():
             if a < 0x4000:
                 labels.setdefault(a, name)
-    pointers: dict[int, tuple[int, str | int]] = {}
+    pointers: dict[int, tuple[str, str | int, str]] = {}
     if ptrs:
         sym_dir = Path(args.symbols).parent if args.symbols else None
         c_labels = {a: t[:-1] for a, _raw, t, ref in rows
@@ -1024,14 +1186,17 @@ def main() -> None:
         texts = {a: t for a, _raw, t, _ref in rows}
         for a, ptr in sorted(ptrs.items()):
             if isinstance(ptr, str):                  # an MBC register
-                pointers[a] = (int(re.search(r"\$([0-9a-f]{4})", texts[a]).group(1), 16), ptr)
+                pointers[a] = (re.search(r"\$[0-9a-f]{4}", texts[a]).group(0), ptr, "")
                 continue
-            tb, v = ptr
+            tb, v = ptr[0], ptr[1]
+            part = ptr[2] if len(ptr) > 2 else ""
+            # the operand to replace: the word, or the byte this row holds
+            token = f"${v:04x}" if not part else f"${(v & 0xFF) if part == 'LOW' else v >> 8:02x}"
             if tb == args.bank and org <= v < org + size:
                 if v in labels:
-                    pointers[a] = (v, v)
+                    pointers[a] = (token, v, part)
                 elif v in c_labels:
-                    pointers[a] = (v, c_labels[v])
+                    pointers[a] = (token, c_labels[v], part)
                 else:
                     notes.append(f"${a:04x}: {texts[a]} (no row starts at ${v:04x})")
                 continue
@@ -1039,7 +1204,7 @@ def main() -> None:
                                 (parse_symbols(sym_dir / f"bank{tb:02x}.sym")
                                  if sym_dir and (sym_dir / f"bank{tb:02x}.sym").is_file() else {}), v)
             if name:
-                pointers[a] = (v, name)
+                pointers[a] = (token, name, part)
             else:
                 notes.append(f"${a:04x}: {texts[a]} (${tb:02x}:{v:04x} has no name)")
     if notes:

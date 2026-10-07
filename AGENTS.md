@@ -126,6 +126,7 @@ idioms, and the ~200 hand-written asm functions (sound tick, sequencer core,
 | `tools/rename.py`, `tools/fold_sym.py` | Symbol maintenance: rename a global everywhere (`.sym`, constants, C, docs, tools; refuses collisions), or fold a mislabelled "function" (a loop head, case body or shared tail) into a local label of the function it belongs to |
 | `tools/show_func.py`, `rom_strings.py`, `annotate_ram.py`, `statevar.py`, `bankmap.py` | Inspection helpers: dump a function by name or address (`--bare`; a matched one is disassembled from the ROM), list the strings at an address, annotate a RAM dump, … |
 | `tools/emu/` | SameBoy-based live-verification harness (see `tools/emu/README.md`) |
+| `tools/shift_test.py` | Shift test for a movable build: pad a bank (`--bank 1f`, `--all`, `--at`, `--by`), run it next to the reference in PyBoy on the same input, report the first divergence, the `rst $38` site and call chain; `--bisect`. Needs `python3 -m venv .venv && .venv/bin/pip install pyboy`; run with `.venv/bin/python` |
 | `tools/toolchain/` | The period GBDK 2.95-3 / SDCC 2.2.1: fetch and run under Wine, or build natively (`build_sdcc221.sh`; `--debug` adds the instrumented copy `trace_alloc.py` uses) |
 | `tools/match/` | Track 2: `match_function.py --target` (compile C, link at the ROM address, diff; `--diff` aligns both disassemblies), `verify_all.py` (`make match`; cached batch check, also of files outside `c/`), `peep.py` (our peephole matcher), `code_kind.py` (which functions are matched, C, hand-written asm or library; share of C bytes matched), `shapes.py` (unmatched C functions by size, kind and parked state, or by shape), `rom_grep.py` (count a byte pattern across the code banks by owner: the evidence for a rule), `trace_alloc.py` (the allocator's view of one function: live ranges, homes, extended ranges, hoisting), `to_rgbds.py` (matched C as RGBDS source; `--check` assembles all of it byte-identically: the relocatable build's first step), `merge_c.py` (move matching functions into a module), `update_counts.py` (refresh the function/rule counts in the docs and the parked table from `c/parked.txt`) |
 | `tools/match/lsdj.peep` | Peephole rules recovered from LSDj's code — the "modified GBDK" part (`docs/toolchain.md`) |
@@ -294,10 +295,14 @@ in `docs/functionality.md`.
   through the function), a ROMX bank's own `ld rr, $4000-$7FFF` (jump tables,
   strings, tables; a target inside a data run gets a row and a label of its
   own), bank 0's `ld rr` to its own global names, and MBC5 writes (`rROMB0`,
-  `rRAMB`). Constants stay numbers: `gb_cmp16`'s add form (`ld hl, $5000 /
-  add hl, de / jp c`), kit-format addresses, small numbers from ROMX code. A
-  `jr` to an unlabelled address prints as `@ ± k`. `tools/carve_clean.py
-  --pointer-notes` lists what stays a number.
+  `rRAMB`), addresses loaded a byte at a time (SDCC's `Table[i]` as
+  `ld a, LOW(T) / add a, c / … / adc a, $00`, a banked call's target as
+  `ld c, LOW(F) / ld b, HIGH(F) / push bc`, `AsciiCharMap - $20`), and the
+  words of tagged pointer tables (`[N] dw`). Constants stay numbers:
+  `gb_cmp16`'s add form (`ld hl, $5000 / add hl, de / jp c`), kit-format
+  addresses, small numbers from ROMX code. A `jr` to an unlabelled address
+  prints as `@ ± k`. `tools/carve_clean.py --pointer-notes` lists what stays a
+  number; `tools/shift_test.py` checks the result by running a shifted build.
 - `--trace` (with `--seed ADDR,…`, auto-seeded for `--bank 0`) is disasm.py's
   own single-bank recursive descent; it **cannot** follow computed `jp hl`
   dispatch or cross-bank calls. The canonical carve (`carve_clean.py`) instead
@@ -323,7 +328,9 @@ in `docs/functionality.md`.
   that opens with a string literal (`"OUT OF MEMORY..."`) or an `[N]` size
   tag, or a `*Names` table whose comment quotes its strings
   (`coverage.is_data_symbol`). Name data that way and it is never traced or
-  rendered as instructions.
+  rendered as instructions. A table of addresses is tagged `[N] dw` (N
+  words; `[N] dw @$BB` when they point into bank BB): the carve prints it as
+  `dw Label` so the targets can move.
 - **Constants.** `SCREAMING_SNAKE_CASE` via `EQU`/`DEF` in `constants/`
   (`rRAMG`, `SOUND_CHANNEL_COUNT`). Use `hardware.inc` names for MMIO registers
   rather than raw `$FFxx` literals.
@@ -543,6 +550,18 @@ Always, before committing:
       the mechanism is in place (575 functions); now it is a grind: bank by
       bank, editor code first, asm functions stay asm
 - [ ] Recover C structures/types toward a full, readable C source tree
+
+**Phase 7 — A movable build, for a fork that adds features (`docs/toolchain.md`)**
+- [x] Matched C assembled from its RGBDS translation (`to_rgbds.py`)
+- [x] Every ROM address in code is a label: operands, addresses loaded a byte
+      at a time, banked-call targets, pointer tables (`[N] dw`); the vectors
+      are code
+- [x] Shift test (`tools/shift_test.py`): each bank's contents moved by 16
+      bytes run the same as the original over a tour + 6,000 random frames
+- [ ] Wider shift coverage: DMG, odd sizes, all banks at once, more seeds,
+      the file screen's save/load
+- [ ] Bank 0's page-aligned tables (`$0200`-`$0390`) in fixed sections
+- [ ] Behaviour tests for builds that no longer match: a fork's gate
 
 ## References
 
