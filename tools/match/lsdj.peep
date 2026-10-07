@@ -1293,8 +1293,9 @@ replace restart {
 %3:
 }
 // the `x != 0` test of a global (genCmpEq: `ld a,(hl); or a,a; jp z`) keeps
-// hl like the `cp` forms above: the ROM never reloads after it (0 sites; 3
-// keep it: ProjectScreenInput's `wSyncMode != 0` before `wSyncMode--`)
+// hl like the `cp` forms above: the ROM never reloads after it (0 sites); its
+// one compiled site keeps it (ProjectScreenInput's `wSyncMode != 0` before
+// `wSyncMode--`; the other 2 are hand-written asm: tools/match/rom_grep.py)
 replace restart {
 	ld	hl,#%1 + %2
 	ld	a,(hl)

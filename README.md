@@ -31,7 +31,7 @@ Current state:
   byte-for-byte with the original GBDK 2.95-3 / SDCC 2.2.1 plus peephole
   rules recovered from the ROM, LSDj's "modified GBDK", and the ROM build takes those functions' bytes
   from the compiled C (`make match`; see
-  [`docs/toolchain.md`](docs/toolchain.md)). About 130 functions — the sound
+  [`docs/toolchain.md`](docs/toolchain.md)). About 200 functions — the sound
   tick and sequencer core — are hand-written asm and stay that way
 
 ## Why
@@ -140,6 +140,7 @@ See [`docs/toolchain.md`](docs/toolchain.md), and try it:
 tools/toolchain/build_sdcc221.sh     # period compiler, built natively (gcc -m32, bison, flex)
 make match                           # every c/bankNN/*.c vs the ROM (cached)
 python3 tools/match/test_peep.py       # gb_cmp16, switch_chain and ifx_word_hl regressions
+python3 tools/match/test_tools.py      # rom_grep / code_kind / --score regressions
 tools/match/match_function.py --c c/bank01/DrawMessageBar.c --target DrawMessageBar
 # ==> MATCH: byte-identical to ROM $01:$74F7-$75BC
 ```
@@ -187,16 +188,19 @@ lsdj-decompiled/
 │   ├── gen_listing.py    # emit build/listing.asm — whole ROM as one annotated file
 │   ├── audit_export.py   # diff a pasted debugger export against our symbols
 │   ├── name_locals_full.py  # semantic naming of function-local labels
-│   ├── show_func.py      # dump one function's disassembly by bank:addr
+│   ├── show_func.py      # dump one function's disassembly by name or bank:addr
+│   ├── rom_strings.py    # list the NUL-terminated strings at an address
 │   ├── callgraph.py, farcall_targets.py, find_orphans.py, label_gaps.py,
 │   │   data_refs.py      # audits that drove symbol coverage to 100%
 │   ├── bankmap.py, annotate_ram.py, statevar.py, name_locals.py,
 │   │   name_firstaction.py, gen_baseline.py  # smaller/historical helpers
 │   ├── emu/              # SameBoy-based live-verification harness
-│   ├── toolchain/        # fetch + run the period compiler (under Wine)
+│   ├── toolchain/        # fetch the period compiler (Wine) or build it natively (+ debug copy)
 │   └── match/            # matching-decompilation harness (compile C, link at the
-│                         #   ROM address, diff), verify_all (make match), code_kind
-│                         #   (C vs asm map) + lsdj.peep (recovered rules)
+│                         #   ROM address, diff, --score), verify_all (make match),
+│                         #   code_kind (C/asm/library map, progress), shapes (candidates),
+│                         #   rom_grep (rule evidence), trace_alloc (allocator trace)
+│                         #   + lsdj.peep (recovered rules)
 └── .githooks/pre-commit  # ROM-leak guard + `make compare`
 ```
 

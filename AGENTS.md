@@ -84,8 +84,8 @@ betting on C. **Status:** 575 functions match (`c/`, `make match`) — including
 a 15-case `switch`, 16-bit SRAM addressing and most of the instrument screen's
 helpers — using stock GBDK 2.95-3 / SDCC 2.2.1 plus peephole rules recovered
 from the ROM (`tools/match/lsdj.peep`). Go: the rule set still grows with new
-idioms, and the ~130 hand-written asm functions (sound tick, sequencer core)
-stay asm. See
+idioms, and the ~200 hand-written asm functions (sound tick, sequencer core,
+~15 KB) and the GBDK/SDCC library routines stay asm. See
 [`docs/toolchain.md`](docs/toolchain.md).
 
 ## Repository Structure
@@ -124,12 +124,13 @@ stay asm. See
 | `tools/label_gaps.py`, `data_refs.py`, `callgraph.py`, `farcall_targets.py`, `find_orphans.py` | Audits that drove naming/labeling to zero gaps |
 | `tools/name_locals_full.py`, `name_locals.py`, `name_firstaction.py` | Semantic naming of function-local labels (generated into the `.sym`) |
 | `tools/rename.py`, `tools/fold_sym.py` | Symbol maintenance: rename a global everywhere (`.sym`, constants, C, docs, tools; refuses collisions), or fold a mislabelled "function" (a loop head, case body or shared tail) into a local label of the function it belongs to |
-| `tools/show_func.py`, `annotate_ram.py`, `statevar.py`, `bankmap.py` | Inspection helpers (dump a function, annotate a RAM dump, …) |
+| `tools/show_func.py`, `rom_strings.py`, `annotate_ram.py`, `statevar.py`, `bankmap.py` | Inspection helpers: dump a function by name or address (`--bare`; a matched one is disassembled from the ROM), list the strings at an address, annotate a RAM dump, … |
 | `tools/emu/` | SameBoy-based live-verification harness (see `tools/emu/README.md`) |
-| `tools/toolchain/` | Fetch + run the period GBDK 2.95-3 / SDCC 2.2.1 under Wine |
-| `tools/match/` | Track 2: `match_function.py --target` (compile C, link at the ROM address, diff; `--diff` aligns both disassemblies), `verify_all.py` (`make match`; cached batch check, also of files outside `c/`), `peep.py` (our peephole matcher), `code_kind.py` (which functions are C vs hand-written asm), `shapes.py` (unmatched C functions by size / shape), `merge_c.py` (move matching functions into a module), `update_counts.py` (refresh the function/rule counts in the docs and the parked table from `c/parked.txt`) |
+| `tools/toolchain/` | The period GBDK 2.95-3 / SDCC 2.2.1: fetch and run under Wine, or build natively (`build_sdcc221.sh`; `--debug` adds the instrumented copy `trace_alloc.py` uses) |
+| `tools/match/` | Track 2: `match_function.py --target` (compile C, link at the ROM address, diff; `--diff` aligns both disassemblies), `verify_all.py` (`make match`; cached batch check, also of files outside `c/`), `peep.py` (our peephole matcher), `code_kind.py` (which functions are matched, C, hand-written asm or library; share of C bytes matched), `shapes.py` (unmatched C functions by size, kind and parked state, or by shape), `rom_grep.py` (count a byte pattern across the code banks by owner: the evidence for a rule), `trace_alloc.py` (the allocator's view of one function: live ranges, homes, extended ranges, hoisting), `merge_c.py` (move matching functions into a module), `update_counts.py` (refresh the function/rule counts in the docs and the parked table from `c/parked.txt`) |
 | `tools/match/lsdj.peep` | Peephole rules recovered from LSDj's code — the "modified GBDK" part (`docs/toolchain.md`) |
 | `tools/match/test_peep.py` | Focused regressions for `gb_cmp16` (branch/boolean semantics, HL/SP-relative stores, the global-operand HL reload, zero thresholds), `switch_chain` and `ifx_word_hl` (the HL reload after `if (w)`); run with `python3 tools/match/test_peep.py` after changing any of them |
+| `tools/match/test_tools.py` | Regressions for the helper tools: `rom_grep.py`'s pattern syntax, `code_kind.py`'s never-from-SDCC operand marks, `--score`'s local-address normalisation |
 | `c/include/lsdj.h` | Shared declarations for the matching C: hardware/HRAM/WRAM variables, the SRAM layout (literal-address macros), every settled prototype |
 | `c/bankNN/*.c` | **Matching C** sources: byte-identical to the ROM when compiled with the period toolchain + `lsdj.peep`. Their bytes feed the ROM build (`c/matched.json`, written by `make match`, lists the C-owned ranges; the carve INCBINs `build/c/` or the ROM) A file marked `@stock-rules` is GBDK library code, matched with SDCC's stock rules only. |
 | `tools/gen_baseline.py` | Historical one-time bootstrap baseline generator |
@@ -212,15 +213,16 @@ Tips:
    `src/*.sym` names) following `docs/toolchain.md` → *Writing C that
    matches*; check a batch with `tools/match/verify_all.py /tmp/x.c` and one
    function with `tools/match/match_function.py --c FILE --target Name
-   --diff` (both disassemblies aligned; `--show-asm`, `--stock` to see what the
-   rules do). Settle a callee's prototype in `c/include/lsdj.h`: every call
+   --diff` (both disassemblies aligned; `--score` for a one-line distance,
+   `--show-asm`, `--stock` to see what the rules do). Settle a callee's prototype in `c/include/lsdj.h`: every call
    site shares it (SDCC 2.2.1 rejects a repeated prototype). Then move the
    matching functions into `c/bankNN/*.c` with `tools/match/merge_c.py
    BATCH.c c/bankNN/Module.c` (it re-verifies, keeps ROM order).
 3. When a remaining difference is a compiler behaviour rather than a source
    form, add a rule to `tools/match/lsdj.peep` **only with ROM-wide evidence**
    (count the stock "before" shape and the rewritten shape over the code
-   banks, as in `docs/toolchain.md`), then `make match` to confirm every earlier
+   banks with `tools/match/rom_grep.py`, as in `docs/toolchain.md`), then
+   `make match` to confirm every earlier
    function still matches. For `gb_cmp16` changes, also run
    `python3 tools/match/test_peep.py`: the add form reverses carry, clobbers HL,
    and needs an inverted numeric result when the comparison is stored.
@@ -228,8 +230,14 @@ Tips:
    must stay green; commit the C, the `.sym` fixes it uncovered, and
    `c/matched.json`.
 
-Keep work-in-progress C outside `c/` (e.g. `/tmp`): a non-matching file under
-`c/` fails the build by design.
+Keep work-in-progress C outside `c/bankNN/` (a scratch dir is fine for
+throwaway attempts): a non-matching file there fails the build by design.
+When a function won't match, park it: a line in `c/parked.txt` and the
+closest attempt as `c/parked/NAME.c` (tracked, never compiled by
+`make match`), so the next attempt starts from it. `tools/match/
+trace_alloc.py` shows the register allocator's side of a stubborn
+difference. Anything you'd run twice belongs in `tools/`, not in a scratch
+directory.
 
 ### The disassembler (`tools/disasm.py`)
 
@@ -327,9 +335,10 @@ When writing *matching C*, the source forms matter as much as the logic —
 (`rROMB0 = n`), `if (!x)` rather than `== 0`, `&buf[0]` for address loads,
 `(unsigned int)x << 4` for a 16-bit shift, one statement per update of a
 local; see [`docs/toolchain.md`](docs/toolchain.md) → *Writing C that matches*.
-Check `tools/match/code_kind.py` first: ~130 functions (the interrupt
-handlers, sound tick, bank `$02`'s sequencer core) are hand-written asm and
-are not C targets.
+Check `tools/match/code_kind.py` first: ~200 functions (~15 KB: the
+interrupt handlers, sound tick, bank `$02`'s sequencer core) are hand-written
+asm and ~30 are GBDK/SDCC library routines; neither is a C target. Its
+summary also gives the share of C bytes matched so far.
 
 Name helpers after their GBDK/SDCC equivalents where identifiable. The GBDK 2.95
 source is fetched locally to `toolchain/gbdk-2.95` (gitignored); its `.s` sources
@@ -433,7 +442,7 @@ Always, before committing:
       `ShowOutOfMemory`/`ShowTapAddChain`, `ScreenDrawDispatch` (`switch`),
       `ReadInstrByte` (16-bit math, asserts) and `DrawTileHexCell` (the
       register-reload exception): six functions, three banks
-- [x] Map what is C at all: `tools/match/code_kind.py` — ~130 functions are
+- [x] Map what is C at all: `tools/match/code_kind.py` — ~200 functions are
       hand-written asm (sound tick, envelope/pitch, tile loader, sequencer core)
 - [ ] Match a large editor function (a screen input handler) to grow the rule set
 - [x] Matched C feeds the RGBDS build: `make match` writes the bytes, the carve

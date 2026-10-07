@@ -14,13 +14,26 @@
 # Needs: git, gcc with 32-bit support (-m32; SDCC 2.2.1 assumes 32-bit
 # pointers), bison, flex, make. Output: toolchain/sdcc-2.2.1-native/bin/.
 #
+# `--debug` builds an instrumented copy into toolchain/sdcc-2.2.1-debug/bin/
+# for tools/match/trace_alloc.py: the register allocator's own trace
+# (z80/ralloc.c's D_ALLOC) switched on, plus prints gated by environment
+# variables -- LOOPDBG=1: `FUNC name` at each function, `HID sym in
+# preheader -> 0|1` (hasIncomingDefs: whether a last use inside a loop
+# extends the live range to the loop end), `DF iter change=N` per dataflow
+# pass, `LI`/`HOISTED` for loop invariants; DFV=1: `DFCH block` for each
+# block whose out-expressions changed. The emitted code is unchanged.
+#
 # Source: https://juju.nz/src/juju/gbdk-releases (GBDK release tarballs as
 # git), tag gbdk-2.95-2, commit 7ee938a8ae65290ddaf9ca234f2ef9777773c6b9.
 
 set -euo pipefail
 
+DEBUG=0
+[ "${1:-}" = "--debug" ] && DEBUG=1
+
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 DEST="$ROOT/toolchain/sdcc-2.2.1-native"
+[ "$DEBUG" = 1 ] && DEST="$ROOT/toolchain/sdcc-2.2.1-debug"
 REPO="https://juju.nz/src/juju/gbdk-releases"
 TAG="gbdk-2.95-2"
 COMMIT="7ee938a8ae65290ddaf9ca234f2ef9777773c6b9"
@@ -69,6 +82,76 @@ i = s.index("#include")
 p.write_text(s[:i] + "#include <time.h>\n#include <stdlib.h>\n#include <string.h>\n" + s[i:],
              errors="surrogateescape")
 EOF
+
+if [ "$DEBUG" = 1 ]; then
+echo "==> instrumenting (allocator trace, loop/dataflow prints; codegen unchanged)"
+python3 - <<'EOF2'
+from pathlib import Path
+
+def edit(path, old, new):
+    p = Path(path); s = p.read_text(errors="surrogateescape")
+    assert s.count(old) == 1, (path, old)
+    p.write_text(s.replace(old, new), errors="surrogateescape")
+
+edit("src/z80/ralloc.c", "    D_ALLOC\t\t= 0,", "    D_ALLOC\t\t= 1,")
+edit("src/z80/ralloc.c", 'D(D_ALLOC, ("\\n-> z80_assignRegisters: entered.\\n"));',
+     'D(D_ALLOC, ("\\n-> z80_assignRegisters: entered %s.\\n", currFunc ? currFunc->name : "?"));')
+edit("src/SDCCopt.c", """    /* if nothing passed then return nothing */
+    if (!ic)
+	return NULL ;
+""", """    /* if nothing passed then return nothing */
+    if (!ic)
+	return NULL ;
+    if (getenv("LOOPDBG"))
+	printf("FUNC %s\\n", currFunc ? currFunc->name : "?");
+""")
+edit("src/SDCClrange.c", """	if (ebp->partOfLoop && 
+	    hasIncomingDefs(ebp->partOfLoop,op)) {
+	    torange = findLoopEndSeq(ebp->partOfLoop);
+	}
+""", """	if (ebp->partOfLoop) {
+	    int hid = hasIncomingDefs(ebp->partOfLoop,op);
+	    if (getenv("LOOPDBG")) {
+		eBBlock *ph = ebp->partOfLoop->entry->preHeader;
+		printf("HID %s in %s -> %d\\n", OP_SYMBOL(op)->name,
+		       (ph && ph->entryLabel) ? ph->entryLabel->name : "?", hid);
+	    }
+	    if (hid)
+		torange = findLoopEndSeq(ebp->partOfLoop);
+	}
+""")
+edit("src/SDCCdflow.c", """	    change += ! isSetsEqualWith(ebbs[i]->outExprs,oldOut,isCseDefEqual);
+	}
+
+	if (!change) /* iterate till no change */
+""", """	    {
+		int ch = ! isSetsEqualWith(ebbs[i]->outExprs,oldOut,isCseDefEqual);
+		if (ch && getenv("DFV"))
+		    printf("DFCH %s\\n", ebbs[i]->entryLabel ? ebbs[i]->entryLabel->name : "?");
+		change += ch;
+	    }
+	}
+
+	if (getenv("LOOPDBG"))
+	    printf("DF iter change=%d\\n", change);
+	if (!change) /* iterate till no change */
+""")
+edit("src/SDCCloop.c", """		addSet(&lInvars,ivar);
+""", """		addSet(&lInvars,ivar);
+		if (getenv("LOOPDBG"))
+		    printf("LI %s ic%d %s\\n",
+			   theLoop->entry->entryLabel ? theLoop->entry->entryLabel->name : "?",
+			   ic->key, OP_SYMBOL(IC_RESULT(ic))->name);
+""")
+edit("src/SDCCloop.c", """	    preHdr->defSet = bitVectSetBit (preHdr->defSet,cdp->diCode->key);
+""", """	    if (getenv("LOOPDBG"))
+		printf("HOISTED ic%d %s -> %s\\n", cdp->diCode->key,
+		       OP_SYMBOL(IC_RESULT(cdp->diCode))->name,
+		       preHdr->entryLabel ? preHdr->entryLabel->name : "?");
+	    preHdr->defSet = bitVectSetBit (preHdr->defSet,cdp->diCode->key);
+""")
+EOF2
+fi
 
 CFLAGS="-O1 -g -w -fcommon -std=gnu89 -m32 -D_NO_GC -DYY_NO_UNISTD_H -D_POSIX_C_SOURCE=200112L -DHAVE_STRERROR"
 echo "==> configure"

@@ -9,7 +9,10 @@ whole family. Excluded: functions already owned by matching C
 
 Usage: tools/match/shapes.py [--min N]            # families with >= N members
        tools/match/shapes.py --show NAME [NAME..]  # compact asm of functions
-       tools/match/shapes.py --list [--max-bytes B] # unmatched C functions by size
+       tools/match/shapes.py --list [--max-bytes B] [--bank BB] [--no-parked] [--tiny]
+                                                   # unmatched C functions by size: kind
+                                                   # (C, or C? for an ambiguous leaf),
+                                                   # P = parked (c/parked.txt), .sym note
 """
 
 from __future__ import annotations
@@ -41,7 +44,8 @@ class Func:
         self.bank, self.name, self.addr = bank, name, addr
         self.lines: list[str] = []      # instructions and ".local:" lines
         self.size = 0
-        self.kind = "?"                 # code_kind verdict: C / ambiguous / asm
+        self.kind = "?"                 # code_kind verdict: C / C? / asm / lib / tiny
+        self.note = ""                  # the .sym comment
 
     @property
     def key(self) -> str:
@@ -52,10 +56,14 @@ def load() -> list[Func]:
     matched = json.loads((ROOT / "c" / "matched.json").read_text()) if (ROOT / "c" / "matched.json").is_file() else {}
     owned = [(int(m["bank"], 16), int(m["addr"], 16), int(m["addr"], 16) + int(m["len"])) for m in matched.values()]
     data_names = set()
+    notes: dict[tuple[int, str], str] = {}
+    syms: dict[tuple[int, str], int] = {}
     for p in (ROOT / "src").glob("bank*.sym"):
-        for _a, n, c in coverage.read_sym(p):
+        for a, n, c in coverage.read_sym(p):
             if coverage.is_data_symbol(n, c):
                 data_names.add(n)
+            notes[(int(p.stem[4:6], 16), n)] = c
+            syms[(int(p.stem[4:6], 16), n)] = a
     funcs: list[Func] = []
     for p in sorted((ROOT / "src").glob("bank*.asm")):
         bank = int(p.stem[4:], 16)
@@ -85,18 +93,33 @@ def load() -> list[Func]:
         for f in funcs:
             if f.bank == bank and f.name in kinds:
                 f.kind = kinds[f.name][0]
+            if f.bank == bank:
+                f.note = notes.get((bank, f.name), "")
     out = []
     for i, f in enumerate(funcs):
+        if f.addr < 0:                  # carved as data: no address comment
+            f.addr = syms.get((f.bank, f.name), -1)
         nxt = next((g.addr for g in funcs[i + 1:] if g.bank == f.bank and g.addr > f.addr), None)
         f.size = (nxt - f.addr) if nxt else 0
-        if f.addr < 0 or f.name in data_names or f.kind == "asm":
+        if f.addr < 0 or f.name in data_names or f.kind in ("asm", "lib", "matched"):
             continue
         if any(b == f.bank and lo <= f.addr < hi for b, lo, hi in owned):
             continue
-        if any(l.startswith(("db", "dw", "INCBIN")) for l in f.lines):
-            continue
+        if any(l.startswith(("db", "dw", "INCBIN")) for l in f.lines) and f.kind != "C":
+            continue                    # (code_kind calls a `db` carve with SDCC's prologue C)
         out.append(f)
     return out
+
+
+def parked_names() -> set[str]:
+    p = ROOT / "c" / "parked.txt"
+    if not p.is_file():
+        return set()
+    return {l.split()[0] for l in p.read_text().splitlines() if l.strip() and not l.startswith("#")}
+
+
+def by_size(f: Func) -> int:
+    return f.size
 
 
 def shape(f: Func) -> tuple[str, list[str]]:
@@ -139,6 +162,11 @@ def main() -> None:
     ap.add_argument("--show", nargs="*")
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--max-bytes", type=int, default=10**6)
+    ap.add_argument("--bank", action="append", default=[], metavar="BB",
+                    help="with --list: only this bank (hex; repeatable)")
+    ap.add_argument("--no-parked", action="store_true", help="with --list: hide parked functions")
+    ap.add_argument("--tiny", action="store_true",
+                    help="with --list: include leaves under 6 instructions")
     args = ap.parse_args()
     funcs = load()
     if args.show:
@@ -152,10 +180,19 @@ def main() -> None:
             print("\n".join("  " + l for l in f.lines))
         return
     if args.list:
-        for f in sorted(funcs, key=lambda f: f.size):
-            if f.size <= args.max_bytes:
-                print(f"{f.size:5d}  {f.key} ${f.addr:04X}")
-        print(f"{len(funcs)} unmatched C functions")
+        parked = parked_names()
+        banks = {int(b, 16) for b in args.bank}
+        rows = [f for f in funcs
+                if (f.kind in ("C", "C?") or (args.tiny and f.kind == "tiny"))
+                and (not banks or f.bank in banks)
+                and not (args.no_parked and f.name in parked)
+                and f.size <= args.max_bytes]
+        for f in sorted(rows, key=by_size):
+            print(f"{f.size:5d}  {f.kind:4s} {'P' if f.name in parked else ' '} "
+                  f"{f.key:30s} ${f.addr:04X}  {f.note[:60]}")
+        pk = [f for f in rows if f.name in parked]
+        print(f"{len(rows)} unmatched C functions, {sum(f.size for f in rows)} bytes "
+              f"({len(pk)} parked, {sum(f.size for f in pk)} bytes)")
         return
     fam: dict[str, list[tuple[Func, list[str]]]] = defaultdict(list)
     for f in funcs:

@@ -13,8 +13,8 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 | Can we run it today? | **Yes, natively.** SDCC 2.2.1 + `sdcpp`/`as-gbz80`/`link-gbz80` build from the GBDK 2.95-2 sources (`tools/toolchain/build_sdcc221.sh`, ~15 s) and emit **byte-identical** asm, objects, listings and images to GBDK 2.95-3's Win32 binaries — which still run under Wine (`fetch_gbdk295.sh`), but crash on large units (below) |
 | Is it the right toolchain? | **Yes, for the code generator**: LSDj's instruction selection, register allocation and frame idioms are SDCC 2.2.1's line for line, and GBDK 2.95 library code in the ROM is byte-identical to its sources (`display_off` ← `crt0.s`, `strcpy` ← `asm_string.s`, `set_bkg_palette` ← `cgb.s`, `set_bkg_tiles` ← `set_bk_t.s` + `set_xy_t.s`, the SDCC `mul` runtime). Stock output does **not** match on its own: LSDj's build also ran peephole rules that stock 2.95-3 lacks |
 | Matched real LSDj functions? | **Yes — 575**, in twelve banks (the list: [`c/matched.json`](../c/matched.json)): a message renderer, a 15-case `switch`, a sparse `switch`, the SRAM accessors, and the instrument screen's field accessors and draw helpers. `make match` re-verifies them all (cached: only changed sources reach the compiler), and **their bytes in the ROM build come from the compiled C** (below) |
-| Is all of LSDj C? | **No.** ~130 functions (7% of the instructions) are hand-written assembly — the interrupt handlers, sound tick, envelope/pitch and tile-loader code in bank 0, and the sequencer core in bank `$02` (`tools/match/code_kind.py`). Those stay asm; the ~830 others (every editor) are Track 2 targets |
-| Go/no-go on Track 2? | **Go, with the rule set still growing.** Every function tried has matched (each new one has cost a few rules so far), the C feeds the ROM build with `make compare` as the gate, and the hand-written asm (7%) is mapped and excluded |
+| Is all of LSDj C? | **No.** ~200 functions (~15 KB, 10% of the code with the GBDK library) are hand-written assembly — the interrupt handlers, sound tick, envelope/pitch and tile-loader code in bank 0, and the sequencer core in bank `$02` (`tools/match/code_kind.py`). Those stay asm; the C is ~142.5 KB, 64% of it matched |
+| Go/no-go on Track 2? | **Go, with the rule set still growing.** Every function tried has matched (each new one has cost a few rules so far), the C feeds the ROM build with `make compare` as the gate, and the hand-written asm is mapped and excluded |
 
 ## Matched functions
 
@@ -119,7 +119,7 @@ common (byte-pattern counts over banks `$01`-`$07`, `$1B`-`$1F`):
 | Dead stores | `ld X,a`; *a-only ops*; `ld X,a` → first store dropped (X a register or `(hl)`, also when the first store is followed by its reload) | 0 | (small; e.g. `and 3; add a,a; ld c,a` ×2) |
 | Constant reuse | `ld a,N` / `push af; inc sp` / `ld a,N` → reload dropped, also across `ldh (n),a` + `ld hl,nn; push hl`; `xor a` / `ld hl,sp+N` / `ld a,#0` → reload dropped | 0 | 10, 5, 2 |
 | Compare chains | a sparse `switch` re-reads its global before every `cp` in stock output; LSDj loads it once (one rule per chain position, up to twelve, so the pattern always carries the variable; `switch_chain` in peep.py drops what the rules leave of a longer chain, and after a case that tests a CSE'd boolean (`xor a,a; or a,c; jp nz`) reloads only `a`, as the ROM's three such chains do, WaveScreenInput's twenty `wButtons` cases). SDCC's `==` trampoline `jp cc,T; jr F; T: jp X; F:` → `jp cc,X`, every byte's `jp cc,T` of a multi-byte compare included (the only survivor in the ROM is inside GBDK's stock-compiled `gprintf`) | 0, 1 (library) | 72 |
-| Kept across a test | `ld a,r` / `bit n,a` / `jp cc` / `ld a,r` → reload dropped; `ld hl,#x` / `ld a,(hl)` / `cp a,#n` / `jp z,F` / *(dead label)* / `ld hl,#x` → reload dropped (a `!=` test; stock SDCC's Rule 5 leaves the trampoline's label behind, which makes its codegen forget `hl`), also after `or a,a` (`x != 0`); `xor a` / `ld a,#0` → `xor a` | 0, 1 (a real jump target in between), 0; 0 for `or a,a` | 68, 7, 6; 3 for `or a,a` |
+| Kept across a test | `ld a,r` / `bit n,a` / `jp cc` / `ld a,r` → reload dropped; `ld hl,#x` / `ld a,(hl)` / `cp a,#n` / `jp z,F` / *(dead label)* / `ld hl,#x` → reload dropped (a `!=` test; stock SDCC's Rule 5 leaves the trampoline's label behind, which makes its codegen forget `hl`), also after `or a,a` (`x != 0`); `xor a` / `ld a,#0` → `xor a` | 0, 1 (a real jump target in between), 0; 0 for `or a,a` | 68, 7, 6; 1 for `or a,a` (ProjectScreenInput; 2 more in hand-written asm) |
 | Register tracking (`track_a`, below) | a reload of what `a` already holds: `ld a,r` / `cp` / `jp cc` / *(dead label)* / `ld a,r` (an `\|\|` chain) → reload dropped; a stored stack local reread: `ld hl,sp+N` / `ld (hl),r` / [`add sp,M`] / `ld a,(hl)` → `ld a,r`; `ld (hl),a` / `ld de,#T` / `ld l,(hl)` → `ld l,a` (indexing a table by the value just stored) | 0, 0, 0 | 35, 25 + 141, 32 |
 | More dead stores | `ld r,#n` / `ld r,X` → `ld r,X`; `ld r,a` / … / `ld r,(hl)` → `ld r,(hl)`; `ld (hl),e` / … / `ld (hl),a` → `ld (hl),a` (nothing touching hl between); a discarded sign extension `rla` / `sbc a,a` / `ld r,a` / `ld a,X` / `and a,#n` → store dropped; the `== 0` test of a fresh `&`: `and a,#n` / `ld r,a` / `or a,a` / `jp nz` → `and a,#n` / `jp nz`; after *ALU* `a,r` / `ld (hl),a` the `ld a,(hl)` reload is dropped too | 0, 0, 0 (1 `jp z` / `if (t)` site keeps it), 0 | —, 3, 12, 69 |
 | 16-bit compare with a constant (`gb_cmp16`, below) | `xor a,a` / `ld a,lo` / `sbc a,#lo` / `ld a,hi` / `sbc a,#hi` / `jp cc` → `ld hl,#-lit` / `add hl,de` (or `bc` when the value already sits there) / `jp` on the inverted carry | 0 (its 5 `sbc` chains are 32-bit) | 28 |
@@ -356,14 +356,21 @@ releases (2001) postdating 2.95-3.
 `tools/match/code_kind.py` tags every named function by compiler fingerprints
 (SDCC addresses locals/arguments with `ld hl,sp+N` / `add sp,N` and branches
 with `jp cc`; hand-written code uses `jr` freely and `add a,l; ld l,a` address
-arithmetic):
+arithmetic; SDCC 2.2.1 never emits an absolute `ld a,[nn]` / `ld [nn],a`,
+`[hl-]` or `reti` -- none of the 575 matched functions has one). It also
+counts what matching C already owns and the GBDK/SDCC library routines
+(by their GBDK sources), and measures in bytes. As of 575 matched functions:
 
-| | C | ambiguous leaf | asm | tiny (<6 instr.) | asm share of instructions |
-|---|--:|--:|--:|--:|--:|
-| bank `$00` | 90 | 55 | 50 | 109 | 22% |
-| bank `$02` (sound engine) | 29 | 54 | 57 | 17 | 39% |
-| editor banks `$01`, `$03`-`$07`, `$1B`-`$1F` | 559 | 40 | 25 | 410 | 0-8% |
-| **all** | **678** | **149** | **132** | **536** | **7%** |
+| | matched | C | ambiguous leaf | asm | library | tiny | C bytes matched | asm + library share |
+|---|--:|--:|--:|--:|--:|--:|--:|--:|
+| bank `$00` | 54 | 17 | 9 | 70 | 31 | 13 | 59% | 37% |
+| bank `$02` (sound engine) | 0 | 28 | 26 | 90 | 0 | 5 | 0% | 52% |
+| editor banks `$01`, `$03`-`$07`, `$1B`-`$1F` | 521 | 54 | 0 | 42 | 0 | 9 | 68% | 2% |
+| **all** | **575** | **99** | **35** | **202** | **31** | **27** | **64%** (90,980 of ~142,500) | **10%** |
+
+The counts are labels: a big function's case bodies (the 13 `InstrParam*`
+inside `InstrScreenInput`) and an indirect call's return point (the
+`FarCall*Resume` labels) count separately, so the bytes are the measure.
 
 The asm is where you'd expect it: `TimerHandler` and the sound tick, the
 pitch/vibrato/envelope steppers, the tile loader, `ReadJoypad`, the OAM DMA
@@ -372,9 +379,13 @@ stub, GBDK library routines, and bank `$02`'s note/period/sequencer core
 
 Not all of GBDK's library in the ROM is asm: libc's C routines were compiled
 by GBDK's build, with the stock rules (`strlen` is `StringLength`, matched
-from gbdk-2.95-2's own `libc/strlen.c`). The heuristic also counts as C some
-asm that reads stack arguments (`DrawByte`, `DrawString`, `GetTilemapAddr`,
-`DrawTileRun`, the division helpers); those poll `rSTAT` or use `jr` freely.
+from gbdk-2.95-2's own `libc/strlen.c`). Some asm reads stack arguments like C
+does; the absolute-address signal catches `DrawByte`, `DrawString` and
+`GetTilemapAddr`, and `DrawTileRun` / `WriteVramByteSafe` (which branch with
+`jr` and poll `rSTAT`) are listed by hand. Three functions whose `.sym`
+comment began with a quoted string had been carved as data, since a leading
+`"` marks a data symbol: `DrawCrashScreen`, `CopyInstrument`,
+`DrawVerifyPanel` (all SDCC code, now disassembled).
 
 ## Writing C that matches (what we learned)
 
@@ -631,8 +642,9 @@ asm that reads stack arguments (`DrawByte`, `DrawString`, `GetTilemapAddr`,
   inline (`i < x + w`, `j == y + h - 1`) with no named copies, which leaves
   `x + w - 1`, the edge tests and the restore in the inner preheader as in the
   ROM. Their `==` operands come out swapped (`i == x` compiles with `x` on the
-  left). Instrumenting `SDCCloop.c`/`SDCCdflow.c` in a debug build shows
-  each decision (`LOOPDBG` in `/tmp/opencode/sdcc-dbg-src`).
+  left). The instrumented compiler shows each decision:
+  `tools/match/trace_alloc.py FILE.c FUNC --loops --hid` (see *Tools for
+  the grind* below).
 - **Dead code changes live ranges.** `killDeadCode` removing anything (a
   post-increment's unused old-value copy, the temp a literal store to a
   non-volatile global leaves behind) makes SDCC 2.2.1 rerun
@@ -752,6 +764,32 @@ file arguments (work in progress may live outside `c/`) it checks just those
 and prints where each mismatch starts. `tools/match/shapes.py` lists the
 not-yet-matched C functions by size or groups them by instruction shape.
 
+### Tools for the grind
+
+- `match_function.py --score` -- one line: how many rows of the aligned
+  disassemblies differ, and how many once local addresses are ignored (jump
+  targets inside the function and pointers to its literals move whenever the
+  code grows or shrinks). The quick way to compare two attempts.
+- `shapes.py --list [--bank BB] [--no-parked]` -- the unmatched C functions
+  by size, with their kind, `P` for parked and the `.sym` note;
+  `code_kind.py` prints the per-bank totals and the share of C bytes matched.
+- `tools/show_func.py NAME [--bare] [-n 0]` -- a function's disassembly; one
+  that matching C owns is disassembled from the ROM.
+- `tools/rom_strings.py BB:AAAA|NAME [COUNT]` -- the NUL-terminated strings
+  at an address (a function's literals follow its code).
+- `tools/match/rom_grep.py PATTERN [--list] [--kinds] [--tally]` -- every
+  occurrence of a byte pattern in the code banks, with the function it falls
+  in and whether matching C owns it: the ROM-wide evidence a new rule needs.
+- `tools/match/trace_alloc.py FILE.c FUNC [--hid] [--loops] [--alloc]` -- why
+  a value landed in a register or a slot: every iTemp's live range and home,
+  the dataflow passes, the hoisted invariants, which last uses were extended
+  to a loop end (hasIncomingDefs), and the allocator's own trace. It runs an
+  instrumented copy of the compiler built by
+  `tools/toolchain/build_sdcc221.sh --debug` (same code; verified identical
+  output on four modules); its work directory stays in `build/trace_alloc/`.
+- Parked attempts live in `c/parked/NAME.c` (outside `make match`), next to
+  their note in `c/parked.txt`.
+
 ## How matched C enters the build
 
 `make match` (`tools/match/verify_all.py --write build/c`) compiles every
@@ -789,7 +827,7 @@ shape.
 | `ChainWriteWaveB` | `$06:$4F42` | reverses the selection; ROM spills the first ChainReadPhraseNote result (sp+2) and keeps the second in b, where SDCC pushes the second straight from e and keeps the first in b |
 | `PlotEnvCurve` | `$1B:$7200` | matches except register naming: the ROM keeps every temporary in b (the end pointer as b/c, low byte in b), as if c were busy for the whole function; ours uses c. The $DA00 buffer is addressed as a literal pointer ((char *)0xDA00) |
 | `SynthWriteWaveCol` | `$1D:$5F29` | all but the register pair: the ROM loads the post-incremented wSynthRenderDst into c/b and pushes bc, ours gets b/c (c busy at allocation per --dumpregassign, though no live temp shows); needs `ld l,a` (track_a) and the genXor double-store rule, both in |
-| `DedupPhrases` | `$1F:$5BDE` | 4 rows (`/tmp/opencode/dedup/dedup_best.c`): no dead code anywhere, so SDCC skips the post-loop computeDataFlow and the call results (IsPhraseUsedFar/FindDupPhrase) pack into their globals as in the ROM -- `i = i + 1` / `j = j + 1` (a post-increment's dead old-value copy is killDeadCode work) and the cursor stored as `wVramCursorW = 0x98AE` through an `extern volatile UWORD` (a literal stored to a non-volatile global leaves a dead temp); `volatile UBYTE j` after `UBYTE i`. Left: the ROM's inner condition is in c and the `j + 1` temp in b, ours b/c: i holds c until the increment spills it |
+| `DedupPhrases` | `$1F:$5BDE` | 4 rows: no dead code anywhere, so SDCC skips the post-loop computeDataFlow and the call results (IsPhraseUsedFar/FindDupPhrase) pack into their globals as in the ROM -- `i = i + 1` / `j = j + 1` (a post-increment's dead old-value copy is killDeadCode work) and the cursor stored as `wVramCursorW = 0x98AE` through an `extern volatile UWORD` (a literal stored to a non-volatile global leaves a dead temp); `volatile UBYTE j` after `UBYTE i`. Left: the ROM's inner condition is in c and the `j + 1` temp in b, ours b/c: i holds c until the increment spills it |
 | `DedupChains` | `$1F:$5C78` | same shape and state as DedupPhrases (0x80 chains, IsChainUsedFar/FindDupChain/RemapChainRefs, DrawString of the trailing literal) |
 | `PhraseCellFlagB` | `$04:$597D` | register allocation: the ROM keeps the instrument in c and spills r (first assigned in both branches); ours spills the instrument from its definition. PhraseCellFlagA/C (r = 0 at the top) match |
 | `PhraseCellFlagD` | `$04:$5AC7` | same as PhraseCellFlagB; a separate j = i + 0x10 keeps i in c but spills j |
@@ -805,14 +843,14 @@ shape.
 | `FindFreeBlock` | `$1C:$415A` | UWORD p/end with `(p - end) & 0x8000` (or int p/end) gives the ROM's spilt signed difference and `bit 7` test, and UWORD p the plain `push hl` of the SRAM address; what remains is one allocation: the ROM spills `end` and keeps the ReadSongByte result in c, SDCC keeps end in bc and spills the result (leastUsedLR prefers the smaller symbol on a tie) |
 | `NameEditorInput` | `$1B:$53E8` | all but one assertion: before storing the letter the ROM computes wNameEditBuf + 1 byte-wise into b/c and tests it with the signed add form (`ld e,b; xor a,#0x80; ld d,a; ld hl,#0x8000; add hl,de; jp nc`, i.e. `(int)(wNameEditBuf + 1) > -1` -> DebugTrap); stock SDCC emits the unsigned sbc chain for that spelling and spills an `int t` local, and gb_cmp16 has no signed variant yet |
 | `DrawKitInstr` | `$1F:$44DD` | all but the HALF/FULL test: the ROM keeps `ReadCurInstrByte(2) & 0x40` in b and tests it (`ld b,e; ld a,b; and a,#0x40; ld b,a; or a,b; jp z`, the GetInstrFlags1F5 shape); `if (x & 0x40)` gives `bit 6,a`, a stack local the spilt form, and `t &= 0x40; if (t)` the genAnd internal error (gen.c 3110) |
-| `ClearOamBuffer` | `$01:$4B5E` | `for (p = 0x8000; p != 0x8030; p++)` with a `volatile UWORD p` (the unsigned-long literal compare's four-byte temp and the in-place increment match), a pointer-parameter cast per call and the second loop's `((UBYTE)p & 2) ? 0x60 : 0` inline; the ROM spills each loop's volatile-read temp (the pushed pointer copy, the `(UBYTE)p` byte) to the stack where SDCC keeps them in bc/c (19 rows); `/tmp/opencode/c/b013best.c` |
+| `ClearOamBuffer` | `$01:$4B5E` | `for (p = 0x8000; p != 0x8030; p++)` with a `volatile UWORD p` (the unsigned-long literal compare's four-byte temp and the in-place increment match), a pointer-parameter cast per call and the second loop's `((UBYTE)p & 2) ? 0x60 : 0` inline; the ROM spills each loop's volatile-read temp (the pushed pointer copy, the `(UBYTE)p` byte) to the stack where SDCC keeps them in bc/c (19 rows) |
 | `UiClearSram` | `$01:$45D1` | matches end to end with `UBYTE * volatile p` except the "W-x" word loop's `*p += i < 10 ? '0' : '7'`: the ROM spills the `*p` read to the stack (frame 7) while SDCC keeps it in c; the pointer copy, the `?:` in c and the sum all agree |
-| `FindDupPhrase` | `$1F:$549C` | four 16-byte SRAM compare loops over two phrases; matches end to end with `volatile UWORD` pointers (`x = *(UBYTE *)p; p++;` is the ROM's fetch-then-in-place increment), a `volatile UBYTE` counter, block-scoped `x, y` per loop and the section bases as `(UWORD)(UBYTE *)...` casts, except that the ROM's first loop keeps the p byte in b and the q byte in c (the later loops c/b as SDCC does): one register swap; `/tmp/opencode/c/fdp_best.c` |
+| `FindDupPhrase` | `$1F:$549C` | four 16-byte SRAM compare loops over two phrases; matches end to end with `volatile UWORD` pointers (`x = *(UBYTE *)p; p++;` is the ROM's fetch-then-in-place increment), a `volatile UBYTE` counter, block-scoped `x, y` per loop and the section bases as `(UWORD)(UBYTE *)...` casts, except that the ROM's first loop keeps the p byte in b and the q byte in c (the later loops c/b as SDCC does): one register swap |
 | `FindDupTable` | `$1F:$573C` | the same shape as FindDupPhrase over the table rows ($B680 + offset), the same first-loop register swap |
-| `ClearSynthWaveBufs` | `$1D:$58E6` | not a clear: the LOWP/HIGHP/NOTCH resonance filter (spreads each sample over two accumulator slots by a stepped 8.8 position, then divides). 67 rows (`/tmp/opencode/filt/filter_best.c`): the scratch words $CB38/$CB3A are used as a pointer and a word in the first half but as a word and a *byte* (the doubled index) in the second, so the source had overlapping scratch variables; the first half matches with `wSynthBufPtrW = (UWORD)&wSynthBufA[x]` and reads through `*(UWORD *)wSynthBufPtrW` (re-read after the MulU16 call), the second half's doubled index must live in $CB3A where ours takes a stack slot |
-| `PhraseHandleInput` | `$04:$51AE` | the phrase paste (clipboard cells into rows from wPhraseRow, a table selection's command pair shifted by +-1, kit notes merged nibble-wise). `/tmp/opencode/phi/c1.c` has the ROM's shape (a `char x` counting down with signed tests, a five-case `switch`, the column swap for kit contexts) but the ROM keeps every inner-loop temporary extended to the loop end (stored booleans, each result in its own slot) except the two CursorInstrIsKit results, which pack straight into wPhraseNoteIsKitA/B, and `v <<= 4` (in c). With everything extended (two dataflow passes: hoisted `shift + 3/4`, dead code) ours spills the first result and the shift (frame 29 vs 27); with nothing extended (one pass: `char wSelRight`, volatile store aliases, a K&R ShowMessage, explicit `c3/c4`) the frame collapses to 9 |
-| `DrawInstrumentScreen` | `$03:$4DE7` | 11 rows (`/tmp/opencode/dis/best_c21.c`): ClaimInstrSlot is called by address (`FarCallArg(0x1F, 0x492A, ...)`, the ROM's one `ld hl,#fn; push hl`), the handlers' cases run 0, 1, 3, 2 with `UWORD fn = (UWORD)f`, and `off`/`y` locals give the slots; `if ((type = ReadCurInstrByte(0)) >= 4)` gets every later register right but routes the call result through c, while the separate statement (`best_c17.c`, 14 rows) stores it straight to type's slot as the ROM does yet keeps type in c through allocation, so X lands in b and the two pairs come out reversed |
-| `WordEditorInput` | `$06:$431D` | 11 rows (`/tmp/opencode/wei/best_c8.c`, `--define wWordClipPtrB=0xC939`: $C939 is a byte there and a pointer in the cut): a twenty-case `switch (wButtons)`, the clipboard cells re-read through CSE (`WriteWordCell(wWordClipCell1[0]) ... DrawHexByte(wWordClipCell1[0])` stays in c), `v = wWordClipCell0[0]; v--;`, a `volatile UBYTE v` so the cut's first two reads land in b; the cut's last two reads go through a local the ROM keeps in c and ours in b (y still holds c until well after, in ours) |
+| `ClearSynthWaveBufs` | `$1D:$58E6` | not a clear: the LOWP/HIGHP/NOTCH resonance filter (spreads each sample over two accumulator slots by a stepped 8.8 position, then divides). 67 rows: the scratch words $CB38/$CB3A are used as a pointer and a word in the first half but as a word and a *byte* (the doubled index) in the second, so the source had overlapping scratch variables; the first half matches with `wSynthBufPtrW = (UWORD)&wSynthBufA[x]` and reads through `*(UWORD *)wSynthBufPtrW` (re-read after the MulU16 call), the second half's doubled index must live in $CB3A where ours takes a stack slot |
+| `PhraseHandleInput` | `$04:$51AE` | the phrase paste (clipboard cells into rows from wPhraseRow, a table selection's command pair shifted by +-1, kit notes merged nibble-wise). The closest attempt had the ROM's shape (a `char x` counting down with signed tests, a five-case `switch`, the column swap for kit contexts) but the ROM keeps every inner-loop temporary extended to the loop end (stored booleans, each result in its own slot) except the two CursorInstrIsKit results, which pack straight into wPhraseNoteIsKitA/B, and `v <<= 4` (in c). With everything extended (two dataflow passes: hoisted `shift + 3/4`, dead code) ours spills the first result and the shift (frame 29 vs 27); with nothing extended (one pass: `char wSelRight`, volatile store aliases, a K&R ShowMessage, explicit `c3/c4`) the frame collapses to 9 |
+| `DrawInstrumentScreen` | `$03:$4DE7` | 11 rows: ClaimInstrSlot is called by address (`FarCallArg(0x1F, 0x492A, ...)`, the ROM's one `ld hl,#fn; push hl`), the handlers' cases run 0, 1, 3, 2 with `UWORD fn = (UWORD)f`, and `off`/`y` locals give the slots; `if ((type = ReadCurInstrByte(0)) >= 4)` gets every later register right but routes the call result through c, while the separate statement (14 rows) stores it straight to type's slot as the ROM does yet keeps type in c through allocation, so X lands in b and the two pairs come out reversed |
+| `WordEditorInput` | `$06:$431D` | 11 rows (`--define wWordClipPtrB=0xC939`: $C939 is a byte there and a pointer in the cut): a twenty-case `switch (wButtons)`, the clipboard cells re-read through CSE (`WriteWordCell(wWordClipCell1[0]) ... DrawHexByte(wWordClipCell1[0])` stays in c), `v = wWordClipCell0[0]; v--;`, a `volatile UBYTE v` so the cut's first two reads land in b; the cut's last two reads go through a local the ROM keeps in c and ours in b (y still holds c until well after, in ours) |
 
 ## What's still unknown
 

@@ -57,7 +57,7 @@ be extra peephole rules on top of GBDK 2.95-3's SDCC 2.2.1 — recovered well
 enough to compile six functions back to identical bytes
 ([`toolchain.md`](toolchain.md)). Not everything is C: bank `$02`'s sequencer
 core and bank 0's interrupt handlers, sound tick, envelope/pitch steppers and
-tile loader (~130 functions, 7% of the instructions) are hand-written assembly
+tile loader (~200 functions, ~15 KB) are hand-written assembly
 (`tools/match/code_kind.py`).
 
 ## Bank map

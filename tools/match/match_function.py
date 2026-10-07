@@ -593,6 +593,42 @@ def asm_diff(code: bytes, target: bytes, addr: int) -> None:
             print(f"  {mark}{a:34s} {b}")
 
 
+_ADDR = re.compile(r"\$([0-9a-f]{4})\b")
+
+
+def diff_score(code: bytes, target: bytes, addr: int, span: int) -> tuple[int, int]:
+    """(differing rows, differing rows once local addresses are ignored) of the
+    aligned disassemblies. A local address -- a jump target inside the
+    function or a pointer to its literals, both of which move together when
+    the code grows or shrinks -- lies in [addr, addr + span); an instruction
+    pair that differs only in such addresses is not counted the second time."""
+    import difflib
+    sys.path.insert(0, str(REPO_ROOT / "tools"))
+    disasm = importlib.import_module("disasm")
+
+    def rows(b: bytes) -> list[str]:
+        return [r[2] for r in disasm.disassemble(b, 0, len(b), addr, [])]
+
+    def local(t: str) -> str:
+        return _ADDR.sub(lambda m: "$L" if addr <= int(m.group(1), 16) < addr + span
+                         else m.group(0), t)
+
+    ours, rom = rows(code), rows(target)
+    sm = difflib.SequenceMatcher(None, rom, ours, autojunk=False)
+    raw = loose = 0
+    for tag, i1, i2, j1, j2 in sm.get_opcodes():
+        if tag == "equal":
+            continue
+        n = max(i2 - i1, j2 - j1)
+        raw += n
+        for k in range(n):
+            a = rom[i1 + k] if i1 + k < i2 else None
+            b = ours[j1 + k] if j1 + k < j2 else None
+            if a is None or b is None or local(a) != local(b):
+                loose += 1
+    return raw, loose
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -618,6 +654,10 @@ def main() -> None:
                     help="with --target: on a mismatch, print both disassemblies aligned")
     ap.add_argument("--dump", type=Path, metavar="FILE",
                     help="with --target: also write the linked function bytes to FILE")
+    ap.add_argument("--score", action="store_true",
+                    help="with --target: print how many rows of the aligned disassemblies "
+                         "differ, also with local jump targets and literal addresses ignored "
+                         "(a quick measure of how close an attempt is)")
     args = ap.parse_args()
 
     if not args.c.is_file():
@@ -659,6 +699,10 @@ def main() -> None:
                   + (f" (ROM routine spans {extent} bytes to the next symbol)"
                      if extent is not None else "")
                   + ("" if peep is None else f"; rules: {peep.name}"))
+            if args.score:
+                span = max(len(code), extent or 0) + 0x100
+                raw, loose = diff_score(code, rom[off:off + max(len(code), (extent or 0))], addr, span)
+                print(f"score: {raw} differing row(s); {loose} with local addresses ignored")
             if args.diff and code != target:
                 # compare the ROM over the same span plus a little slack
                 asm_diff(code, rom[off:off + max(len(code), (extent or 0))], addr)
