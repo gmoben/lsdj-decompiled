@@ -90,6 +90,48 @@ void FileUpgradeV1(void)
     FileForEachInstrType(2, FileUpgradeV1Kit);
 }
 
+/* Version 3 to 4, pulse and wave instruments: byte 5's bits 2-1 move on.
+   2 sets bit 4; 4 clears them and sets bit 4; 6 leaves 2 in them and sets
+   bit 4. The `(char)` reads are the ROM's `ld b,c; ld a,b` copies, and the
+   `& 0xF9` stays in a for the `|` (peep.py's chained_bitwise). */
+void FileUpgradeV3Pulse(void)
+{
+    UBYTE v;
+
+    v = FileReadInstrByte(5);
+    switch ((char)v & 6) {
+    case 2:
+        v |= 0x10;
+        break;
+    case 4:
+        v = ((char)v & 0xF9) | 0x10;
+        break;
+    case 6:
+        v = ((char)v & 0xF9) | 0x14;
+        break;
+    }
+    FileWriteInstrByte(5, v);
+}
+
+/* The same for kits: 2 sets bit 4, 4 sets bit 7, then bits 2-1 are cleared
+   and bit 0 set. */
+void FileUpgradeV3Kit(void)
+{
+    UBYTE v;
+
+    v = FileReadInstrByte(5);
+    switch ((char)v & 6) {
+    case 2:
+        v |= 0x10;
+        break;
+    case 4:
+        v |= 0x80;
+        break;
+    }
+    v = ((char)v & 0xF9) | 1;
+    FileWriteInstrByte(5, v);
+}
+
 void FileUpgradeV3(void)
 {
     FileForEachInstrType(0, FileUpgradeV3Pulse);

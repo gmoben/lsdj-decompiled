@@ -446,5 +446,37 @@ class HramReuseTests(unittest.TestCase):
         self.assertEqual(self.run_pass(in_block), self.READ_C + store + self.INDEX_C)
 
 
+
+class ChainedBitwiseTest(unittest.TestCase):
+    """A bitwise result kept in a for the next literal op (FileUpgradeV3Kit)."""
+
+    HEAD = ["_F:", "\tpush\tbc", "\tld\tb,c", "\tld\ta,b", "\tand\ta,#0xF9"]
+
+    def test_store_dead_across_a_call_is_dropped(self):
+        tail = ["\tor\ta,#0x01", "\tld\tc,a", "\tpush\taf", "\tinc\tsp",
+                "\tcall\t_FileWriteInstrByte", "\tlda\tsp,2(sp)", "00101$:", "\tpop\tbc", "\tret"]
+        out, n = peep.chained_bitwise(self.HEAD + ["\tld\tb,a"] + tail)
+        self.assertEqual((out, n), (self.HEAD + tail, 1))
+
+    def test_store_dead_through_a_jump_is_dropped(self):
+        # FileUpgradeV3Pulse's cases join at the write
+        tail = ["\tor\ta,#0x10", "\tld\tc,a", "\tjp\t00105$", "00104$:", "\tld\tc,#0x00",
+                "00105$:", "\tld\ta,c", "\tpush\taf", "\tpop\tbc", "\tret"]
+        out, n = peep.chained_bitwise(self.HEAD + ["\tld\tb,a"] + tail)
+        self.assertEqual((out, n), (self.HEAD + tail, 1))
+
+    def test_store_read_later_or_on_a_branch_stays(self):
+        read = self.HEAD + ["\tld\tb,a", "\tor\ta,#0x01", "\tld\tc,a", "\tld\ta,b", "\tret"]
+        self.assertEqual(peep.chained_bitwise(read), (read, 0))
+        branch = self.HEAD + ["\tld\tb,a", "\tor\ta,#0x01", "\tjp\tz,00103$", "\tpop\tbc",
+                              "\tret", "00103$:", "\tld\ta,b", "\tret"]
+        self.assertEqual(peep.chained_bitwise(branch), (branch, 0))
+
+    def test_d_and_e_die_at_a_call_and_cp_is_not_chained(self):
+        de = self.HEAD + ["\tld\te,a", "\txor\ta,#0x0F", "\tcall\t_G", "\tld\ta,e", "\tret"]
+        self.assertEqual(peep.chained_bitwise(de)[1], 1)
+        cp = self.HEAD + ["\tld\tb,a", "\tcp\ta,#0x02", "\tret"]
+        self.assertEqual(peep.chained_bitwise(cp), (cp, 0))
+
 if __name__ == "__main__":
     unittest.main()

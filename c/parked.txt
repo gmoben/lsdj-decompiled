@@ -2,8 +2,6 @@
 # renders this into docs/toolchain.md). Remove a line when the function matches. Keep the closest
 # attempt as c/parked/NAME.c (make match only compiles c/bankNN/): scratch dirs get wiped.
 SetInstrFlags54 $03:$4B5E  -- the tail matches with the target chosen as a word, `FarCallArgW(1, ReadCurInstrByte(0) == 3 ? (UWORD)DrawSpeedGlyph : (UWORD)DrawSpeedModeName, v)` (a UWORD-typed FarCallArg to alias: no frame, `ld l,b; ld h,c; push hl`; FAR_FN's second cast spills). What remains is the mask: the ROM keeps `t & 0xF8` in c for `v |= ...` (`and a,$f8; ld c,a; ld a,(hl); or a,c`), but stock opPreservesA packs an AND into a whenever the OR's other operand is a symbol, so genOr emits `ld a,(hl); or a,a` (wrong code). Every spelling packs: char/UBYTE t, decimal 248, two statements, the literal first, casts
-FileUpgradeV3Pulse $1C:$628B -- same `ld b,c; ld a,b; and; or #n; ld c,a` tail as V3Kit
-FileUpgradeV3Kit   $1C:$62D3 -- with `(char)v` casts all but one byte matches: the tail's `and a,$f9` result stays in a for `| 1` in the ROM, ours stores it to b (stock packing refuses a literal operand)
 FileUpgradeV0Kit   $1C:$6134 -- all 5 byte locals + a 16-bit temp on the stack (frame 7); ours keeps 2 in registers, 8-bit clear (~0x20 folds)
 FileUpgradeV2      $1C:$622D -- only an `ld hl,sp+0` reload after `or a,a; jp z` (&& chain on a named local): ROM keeps hl there, but reloads in switch chains
 RemoveBookmark     $07:$63B5 -- the ROM spills i (sp+2) and keeps each call result in c; ours keeps i in c. A UWORD p removes the conversion copy but not that; declaration order, an early return and a named result don't change it

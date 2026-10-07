@@ -1593,6 +1593,80 @@ def dead_stores(lines: list[str], jump_targets: set[str]) -> tuple[list[str], in
     return [l for i, l in enumerate(lines) if i not in drop], len(drop)
 
 
+# --- a bitwise result chained into the next literal op ----------------------
+#
+# LSDj's compiler kept the result of `x & n` (or `|`, `^`) in `a` when the
+# next operation took it as its left operand with a literal on the right:
+# the ROM has `and a,#0xF9; or a,#0x01` (FileUpgradeV3Kit, V3Pulse,
+# SyncSetSendMode, the sound engine's `and a,#0x0F; xor a,#0x0F`) and never
+# `and a,#n; ld r,a; or a,#m`. Stock SDCC 2.2.1 will not leave it in `a`
+# (opPreservesA wants a symbol as the other operand), so the temporary gets
+# a register, and once track_a has dropped the reload only its store is
+# left. That store is dropped when the register is dead on every path that
+# follows: rewritten or popped before any read, or the function returns. `b`
+# and `c` survive calls (the callee saves them); `d` and `e` do not.
+
+_BITWISE_LIT = re.compile(r"(?:and|or|xor)\s+a,#")
+
+
+def _reg_dead_after(code: list[tuple[int, str]], k: int, r: str,
+                    labels: dict[str, int], seen: set[str]) -> bool:
+    """Register r is not read before it is rewritten on any path from
+    code[k] on (code: one function's non-blank lines)."""
+    while k < len(code):
+        t = code[k][1]
+        if t.endswith(":"):
+            k += 1
+            continue
+        mn, ops = _ops(t)
+        if mn in ("ret", "reti"):
+            if not ops:
+                return True
+        elif mn == "call":
+            if r in ("d", "e"):
+                return True
+        elif mn in ("jp", "jr"):
+            target = ops[-1] if ops else ""
+            if target not in labels:
+                return False                  # jp (hl), or out of the function
+            if target not in seen:
+                seen.add(target)
+                if not _reg_dead_after(code, labels[target], r, labels, seen):
+                    return False
+            if len(ops) == 1:
+                return True
+        elif mn in ("rst", "halt", "stop"):
+            return False
+        elif _reads_reg(mn, ops, r):
+            return False
+        elif mn == "ld" and len(ops) == 2 and ops[0] == r:
+            return True
+        elif mn == "pop" and ops and r in _PAIR_OF.get(ops[0], ""):
+            return True
+        k += 1
+    return True
+
+
+def chained_bitwise(lines: list[str]) -> tuple[list[str], int]:
+    """Drop the dead `ld r,a` between two bitwise ops with literals."""
+    drop: set[int] = set()
+    bounds = [i for i, l in enumerate(lines)
+              if _strip(l).strip().endswith(":") and not _LOCAL.fullmatch(_strip(l).strip()[:-1])]
+    bounds.append(len(lines))
+    for lo, hi in zip(bounds, bounds[1:]):
+        code = [(i, _strip(lines[i]).strip()) for i in range(lo + 1, hi) if _strip(lines[i]).strip()]
+        labels = {t[:-1]: k for k, (_, t) in enumerate(code) if t.endswith(":")}
+        for k in range(1, len(code) - 1):
+            mn, ops = _ops(code[k][1])
+            if not (mn == "ld" and len(ops) == 2 and ops[0] in ("b", "c", "d", "e") and ops[1] == "a"):
+                continue
+            if not (_BITWISE_LIT.match(code[k - 1][1]) and _BITWISE_LIT.match(code[k + 1][1])):
+                continue
+            if _reg_dead_after(code, k + 1, ops[0], labels, set()):
+                drop.add(code[k][0])
+    return [l for i, l in enumerate(lines) if i not in drop], len(drop)
+
+
 def dead_mem_stores(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
     """Drop `ld (hl),X` when the next thing that touches `hl` or `(hl)` in its
     block is another `ld (hl),Y`: the slot is rewritten unread. SDCC emits

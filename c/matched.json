@@ -1367,6 +1367,18 @@
   "len": 39,
   "src": "c/bank1c/FileUpgrade.c"
  },
+ "FileUpgradeV3Kit": {
+  "bank": "1C",
+  "addr": "62D3",
+  "len": 60,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileUpgradeV3Pulse": {
+  "bank": "1C",
+  "addr": "628B",
+  "len": 72,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
  "FileUpgradeV4": {
   "bank": "1C",
   "addr": "6336",
