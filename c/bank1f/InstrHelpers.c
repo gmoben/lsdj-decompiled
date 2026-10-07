@@ -98,8 +98,8 @@ void MapMoveRight(void);                    /* bank 5 */
 void MapMoveUp(void);                       /* bank 5 */
 void MapMoveDown(void);                     /* bank 5 */
 void InstrSelectPrevPage(void);             /* bank 3 */
-void StopAllPlayback(void);                 /* bank 2 */
-void StopPlayback(void);                    /* bank 2 */
+void ToggleSongPlayback(void);                 /* bank 2 */
+void TogglePlayback(void);                    /* bank 2 */
 UBYTE ClaimInstrSlot(UBYTE instr);
 UBYTE InstrHCountUsedTables(void);
 void ReadTableRowCmds(UBYTE t);
@@ -1583,11 +1583,11 @@ UBYTE WordScreenInput(void)
         return 1;
     case 0xC0:
         if (!wButtonsSame)
-            FarCall(2, FAR_FN(StopAllPlayback));
+            FarCall(2, FAR_FN(ToggleSongPlayback));
         return 1;
     case 0x80:
         if (!wButtonsSame && !wBHeld)
-            FarCall(2, FAR_FN(StopPlayback));
+            FarCall(2, FAR_FN(TogglePlayback));
         return 1;
     }
     return 0;

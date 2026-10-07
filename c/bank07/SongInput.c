@@ -66,7 +66,7 @@ void MarkChainUsed(void);                   /* bank 1 */
 void ShowTapAddChain(void);                 /* bank 1 */
 void SndLiveStopRange(void);                /* bank 2 */
 void SndStartRange(void);                /* bank 2 */
-void StopPlayback(void);                    /* bank 2 */
+void TogglePlayback(void);                    /* bank 2 */
 void SaveSelectionState(void);              /* bank 5 */
 void MapMoveUp(void);                       /* bank 5 */
 void MapMoveDown(void);                     /* bank 5 */
@@ -357,8 +357,8 @@ UBYTE SongScreenInput(void)
                 FarCall(2, FAR_FN(SndLiveStopRange));
         } else {
             if (wPlayMode)
-                FarCall(2, FAR_FN(StopPlayback));
-            FarCall(2, FAR_FN(StopPlayback));
+                FarCall(2, FAR_FN(TogglePlayback));
+            FarCall(2, FAR_FN(TogglePlayback));
         }
         return 1;
     } else if (wButtons == 0x80) {
@@ -372,7 +372,7 @@ UBYTE SongScreenInput(void)
         else if (wSyncMode == 1 && !wPlayMode && wSyncTick != 0xFF)
             SongBeginSelection();
         else
-            FarCall(2, FAR_FN(StopPlayback));
+            FarCall(2, FAR_FN(TogglePlayback));
         return 1;
     } else if (wButtons == 0x82) {
         if (!wButtonsSame)

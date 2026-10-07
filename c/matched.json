@@ -1403,6 +1403,12 @@
   "len": 25,
   "src": "c/bank02/Sound.c"
  },
+ "FxCmd_R": {
+  "bank": "02",
+  "addr": "649D",
+  "len": 218,
+  "src": "c/bank02/Sound.c"
+ },
  "FxCmd_T": {
   "bank": "02",
   "addr": "6669",
@@ -2843,6 +2849,12 @@
   "len": 36,
   "src": "c/bank02/Sound.c"
  },
+ "SndRunFxSlot": {
+  "bank": "02",
+  "addr": "6685",
+  "len": 15,
+  "src": "c/bank02/Sound.c"
+ },
  "SndSetPlayRange": {
   "bank": "02",
   "addr": "6B59",
@@ -2877,6 +2889,30 @@
   "bank": "02",
   "addr": "6694",
   "len": 83,
+  "src": "c/bank02/Sound.c"
+ },
+ "SndZPhrase": {
+  "bank": "02",
+  "addr": "743E",
+  "len": 15,
+  "src": "c/bank02/Sound.c"
+ },
+ "SndZRepeat": {
+  "bank": "02",
+  "addr": "73B0",
+  "len": 142,
+  "src": "c/bank02/Sound.c"
+ },
+ "SndZTableCmd1": {
+  "bank": "02",
+  "addr": "744D",
+  "len": 34,
+  "src": "c/bank02/Sound.c"
+ },
+ "SndZTableCmd2": {
+  "bank": "02",
+  "addr": "746F",
+  "len": 31,
   "src": "c/bank02/Sound.c"
  },
  "SongBeginSelection": {
@@ -3029,16 +3065,10 @@
   "len": 49,
   "src": "c/bank00/Helpers.c"
  },
- "StopAllPlayback": {
+ "StartScreenPlayback": {
   "bank": "02",
-  "addr": "78C4",
-  "len": 103,
-  "src": "c/bank02/Sound.c"
- },
- "StopPlayback": {
-  "bank": "02",
-  "addr": "7C4C",
-  "len": 175,
+  "addr": "7B31",
+  "len": 283,
   "src": "c/bank02/Sound.c"
  },
  "StringLength": {
@@ -3370,6 +3400,18 @@
   "addr": "6413",
   "len": 42,
   "src": "c/bank07/SongScreen.c"
+ },
+ "TogglePlayback": {
+  "bank": "02",
+  "addr": "7C4C",
+  "len": 175,
+  "src": "c/bank02/Sound.c"
+ },
+ "ToggleSongPlayback": {
+  "bank": "02",
+  "addr": "78C4",
+  "len": 103,
+  "src": "c/bank02/Sound.c"
  },
  "UiClearBgMap": {
   "bank": "01",

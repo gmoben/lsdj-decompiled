@@ -45,7 +45,7 @@ extern UBYTE wPrelisten;                    /* $C56E */
 extern UBYTE wLiveStartCol;                 /* $C571 */
 extern UBYTE wSavedLiveMode;                /* $C572 */
 extern UBYTE wLiveMode;                     /* $C528 */
-void StopPlayback(void);                    /* bank 2 */
+void TogglePlayback(void);                    /* bank 2 */
 void SyncSetSendMode(void);                 /* bank 0 */
 extern UBYTE wDrawStep;                     /* $C405 */
 extern UBYTE wNameEditBuf[];                /* $C431, [5] */
@@ -800,7 +800,7 @@ void PrelistenCursorRow(void)
     if (!note)
         return;
     if (wLiveStartCol != 0xFF) {
-        FarCall(2, FAR_FN(StopPlayback));
+        FarCall(2, FAR_FN(TogglePlayback));
         wLiveMode = wSavedLiveMode;
     }
     if (wPlayMode)
@@ -812,7 +812,7 @@ void PrelistenCursorRow(void)
     wLiveStartCol = wSongCol;
     if (wSyncMode == 1)
         SyncSetSendMode();
-    FarCall(2, FAR_FN(StopPlayback));
+    FarCall(2, FAR_FN(TogglePlayback));
 }
 
 UBYTE DrawInstrName(UBYTE row, UBYTE instr)

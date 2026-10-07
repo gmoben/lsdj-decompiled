@@ -62,8 +62,8 @@ void MapMoveRight(void);                    /* bank 5 */
 void MapMoveDown(void);                     /* bank 5 */
 void GetSynthFieldHelp(void);               /* bank 5 */
 void SaveSelectionState(void);              /* bank 5 */
-void StopAllPlayback(void);                 /* bank 2 */
-void StopPlayback(void);                    /* bank 2 */
+void ToggleSongPlayback(void);                 /* bank 2 */
+void TogglePlayback(void);                    /* bank 2 */
 
 extern UBYTE wSynthRenderIdx;               /* $C9F0 */
 extern UBYTE wSynthSegLen1;                 /* $C9E8 */
@@ -476,7 +476,7 @@ UBYTE GrooveScreenInput(void)
         return 1;
     case 0xC0:
         if (!wButtonsSame)
-            FarCall(2, FAR_FN(StopAllPlayback));
+            FarCall(2, FAR_FN(ToggleSongPlayback));
         return 1;
     case 0x80:
         if (wButtonsSame || wBHeld)
@@ -489,7 +489,7 @@ UBYTE GrooveScreenInput(void)
             wCurrentScreen = 3;
             break;
         }
-        FarCall(2, FAR_FN(StopPlayback));
+        FarCall(2, FAR_FN(TogglePlayback));
         wCurrentScreen = 2;
         return 1;
     case 0x44:
@@ -1865,12 +1865,12 @@ UBYTE SynthScreenInput(void)
     case 0xC0:
         if (wButtonsSame)
             return 1;
-        FarCall(2, FAR_FN(StopAllPlayback));
+        FarCall(2, FAR_FN(ToggleSongPlayback));
         return 1;
     case 0x80:
         if (wButtonsSame || wBHeld)
             return 1;
-        FarCall(2, FAR_FN(StopPlayback));
+        FarCall(2, FAR_FN(TogglePlayback));
         return 1;
     case 0x48:
         if (wButtonsSame)

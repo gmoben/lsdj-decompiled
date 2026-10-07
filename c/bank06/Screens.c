@@ -98,8 +98,8 @@ void PasteWaveSelection(void);
 void SaveSelectionState(void);              /* $05:$743F */
 void MapMoveLeft(void);                     /* $05:$4233 */
 void MapMoveDown(void);                     /* $05:$4287 */
-void StopAllPlayback(void);                 /* $02:$78C4 */
-void StopPlayback(void);                    /* $02:$7C4C */
+void ToggleSongPlayback(void);                 /* $02:$78C4 */
+void TogglePlayback(void);                    /* $02:$7C4C */
 void CopySelection(void);                   /* bank $1C */
 extern char TxtCopy[];                      /* $06:$5467 "COPY" */
 
@@ -523,12 +523,12 @@ UBYTE WaveScreenInput(void)
     case 0xC0:
         if (wButtonsSame)
             return 1;
-        FarCall(2, FAR_FN(StopAllPlayback));
+        FarCall(2, FAR_FN(ToggleSongPlayback));
         return 1;
     case 0x80:
         if (wButtonsSame || wBHeld)
             return 1;
-        FarCall(2, FAR_FN(StopPlayback));
+        FarCall(2, FAR_FN(TogglePlayback));
         return 1;
     case 0x42:
         if (wButtonsSame)

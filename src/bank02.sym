@@ -156,23 +156,26 @@
 6FB6 SndWaveRetrigDispatch      ; wave-channel retrigger dispatch (-> SndLoadWaveFrame)
 7034 SndLoadWaveFrame           ; stream the next synth wave frame ([$c4d0] ptr, SRAM bank 0) to the WAV channel
 70FB SndEnableLcdInts           ; SetInterruptEnable
-710E SndInitPlayState           ; copy $c401 -> $c4d2, clear $c528, StopPlayback
+710E SndInitPlayState           ; copy $c401 -> $c4d2, clear $c528, TogglePlayback
 711F SndAdvanceChanPos          ; per-frame position advance inside SndUpdateChannel; state $ff -> SndInitPlayState
 7362 SndTableMaybeHop           ; B in a table (MayBe hop): with the high digit's probability (/16), hop to the low digit's row (arg: the right command column); e = 1 if it hopped
-73B0 FxCmd_Z                    ; Z: repeat the last command with a random amount (0..digit) added to each digit
+73B0 SndZRepeat                 ; Z for a command slot (slot, last): repeat the last command that was not Z or H (wLastCmd[last]) with wLastCmdVal[last] + 0..each Z digit; e = the command
+743E SndZPhrase                 ; Z in a phrase (tail-jumped from SndReadPhraseCmd): SndZRepeat(hSoundCh, hSoundCh)
+744D SndZTableCmd1              ; Z in a table's CMD1 column: SndZRepeat(4, 4 + the channel's table)
+746F SndZTableCmd2              ; Z in a table's CMD2 column: SndZRepeat(5, $24 + the channel's table)
 748E SndAdvanceGrooveCursor     ; SndReadCursorByte + SndAdvanceGroove
 75C6 SndUpdateChannel           ; per-channel processor (channel = hSoundCh): advance phrase cursor, resolve song/chain row, read note/cmd; called per active channel by SndUpdateAllChannels
 77F0 SndTick                    ; one engine tick: SndStepAllChannels (sequencer) then SndUpdateAllChannels (output); self-recurses on retrigger flag $c4cd / mode $cb66
 786F SndUpdateChanAltPath       ; per-channel alt update (SndReadChainRow/4E74/5F5E)
 792B SndSyncStart               ; decide/perform playback start from wSyncMode + saved screen context ($c8fe)
-7B31 SndCheckSyncState          ; sync-state check (cp $01/$ff)
-7C4C StopPlayback               ; stop for current screen context: audio off, wPlayMode=0, clear channel state; LIVE -> SndStartRange
+7B31 StartScreenPlayback        ; start the current screen's playback: the song from the cursor row (SndSyncStart), or the edited channel's chain or phrase
+7C4C TogglePlayback             ; START: stop all playback, then start the current screen's unless it was the one playing (sync stop otherwise); live mode: SndStartRange
 7CFB SndCmdJumpTable            ; command jump table (jp hl)
 7F24 SndSetupLfo                ; dispatch by hSoundCh -> SndSetupLfoPU1/PU2/WavNoi (vibrato/LFO setup)
 7F33 SndSetupLfoWavNoi          ; LFO setup for ch2/3 (WAV/NOI): clear $cbcd, init from $c2db
 7F3E SndSetupLfoPU2             ; LFO setup for ch1 (PU2): clear $cbc6, init from $c2d9
 7F49 SndSetupLfoPU1             ; LFO setup for ch0 (PU1): $cbbf, call bank0 $2f9a
-78C4 StopAllPlayback            ; stop playback in screen context AND song context (temporarily forces wCurrentScreen=SONG); LIVE -> SndLiveStopRange
+78C4 ToggleSongPlayback         ; SELECT+START on any screen: TogglePlayback as if on the song screen (all four channels); live mode: SndLiveStopRange
 5EDA NoiseFreqTable             ; [noise note] -> NR43 poly/divisor byte (120 entries)
 5F52 SetNoisePoly               ; a = NoiseFreqTable[a] -> rAUD4POLY (NR43); noise-channel pitch
 7FF0 WavFreqTable               ; WAV channel sample-rate steps (SndUpdateWavFreq)
@@ -246,22 +249,22 @@
 77EC .done                ; common exit of SndUpdateChannel
 786D .done                ; common exit of SndTick
 78C2 .done                ; common exit of SndUpdateChanAltPath
-792A .done                ; common exit of StopAllPlayback
+792A .done                ; common exit of ToggleSongPlayback
 799D .loop                ; loop head in SndSyncStart
 7A03 .loop2               ; loop head in SndSyncStart
 7AA3 .loop3               ; loop head in SndSyncStart
 7B2D .done                ; common exit of SndSyncStart
-7C73 .loop                ; loop head in StopPlayback
-7CF7 .done                ; common exit of StopPlayback
+7C73 .loop                ; loop head in TogglePlayback
+7CF7 .done                ; common exit of TogglePlayback
 7D7F .done                ; common exit of SndCmdJumpTable
 
 ; --- structural local names (loop heads / common exits) ---
 6AC1 .onChain             ; wCurrentScreen == case in SndLiveQueueStart
 6AEF .notPhrase           ; wButtons == case in SndLiveQueueStart
-78D0 .notSong             ; wButtons == case in StopAllPlayback
-7B51 .notSong             ; wButtons == case in SndCheckSyncState
-7B8F .onChain             ; wCurrentScreen == case in SndCheckSyncState
-7C0D .notSong2            ; wButtons == case in SndCheckSyncState
+78D0 .notSong             ; wButtons == case in ToggleSongPlayback
+7B51 .notSong             ; wButtons == case in StartScreenPlayback
+7B8F .onChain             ; wCurrentScreen == case in StartScreenPlayback
+7C0D .notSong2            ; wButtons == case in StartScreenPlayback
 
 
 
@@ -643,9 +646,6 @@
 7377 .rand
 739B .sndApplyTablePitch
 73AA .cont
-743E .readSoundCh
-744D .readSoundCh_2
-746F .readSoundCh_3
 750A .loadPtrNoteCountdown
 7517 .readSoundCh
 7556 .checkKbdTranspose

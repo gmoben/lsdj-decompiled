@@ -79,7 +79,7 @@ void LoadProjectSettings(void);             /* bank 1 */
 void UiClearSram(void);                     /* bank 1 */
 void MapMoveRight(void);                    /* bank 5 */
 void MapMoveDown(void);                     /* bank 5 */
-void StopPlayback(void);                    /* bank 2 */
+void TogglePlayback(void);                    /* bank 2 */
 
 extern UBYTE wKbdLetterPos;                 /* $C42C */
 extern UBYTE wNameEditBuf[];                /* $C431, [5] */
@@ -1077,7 +1077,7 @@ UBYTE ProjectScreenInput(void)
         di
         _endasm;
         wCurrentScreen = 4;
-        FarCall(2, FAR_FN(StopPlayback));
+        FarCall(2, FAR_FN(TogglePlayback));
         wCurrentScreen = 9;
         if (wPlayMode)
             DrawSyncSubSetting();

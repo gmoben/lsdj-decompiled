@@ -726,10 +726,13 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
         # --- (hl) == a register: after `ld (hl),e` (or a load) the byte at hl is e until
         # either changes (183 ROM sites reread it as `ld a,e`, 1 from (hl))
         if hl_reg is not None and not (mn == "ld" and len(ops) == 2 and ops[1] == "(hl)"):
-            # (a load from (hl) keeps the equality whatever it writes)
+            # (a load from (hl) keeps the equality whatever it writes; so does
+            # a store through de/bc: 3 ROM sites copy the register after one,
+            # none rereads -- StartScreenPlayback's `wChanActive[wSongCol] = 1;
+            # wPlayStartChan = wSongCol` is `ld c,(hl); ...; ld (de),a; ld a,c`)
             w = _written(mn, ops)
             if hl_reg in w or {"h", "l"} & w or mn in _WRITES_ALL or (mn in ("jp", "jr") and len(ops) == 1) \
-                    or (mn == "ld" and ops and ops[0].startswith("(")) \
+                    or (mn == "ld" and ops and ops[0].startswith("(") and ops[0] not in ("(de)", "(bc)")) \
                     or (mn in ("inc", "dec") and ops == ["(hl)"]):
                 hl_reg = None
         if mn == "ld" and len(ops) == 2 and ops[0] == "(hl)" and ops[1] in ("b", "c", "d", "e"):

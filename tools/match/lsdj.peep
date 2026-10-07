@@ -181,6 +181,18 @@ replace restart {
 	push	af
 	inc	sp
 }
+// an sfr pushed twice is read once, like the loads above (SndZPhrase's
+// SndZRepeat(hSoundCh, hSoundCh); no reload after a push survives in the ROM)
+replace restart {
+	ldh	a,%1
+	push	af
+	inc	sp
+	ldh	a,%1
+} by {
+	ldh	a,%1
+	push	af
+	inc	sp
+}
 replace restart {
 	ld	a,%1
 	ldh	%2,a

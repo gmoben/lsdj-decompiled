@@ -264,8 +264,11 @@ DEF wTableCmd1PtrNoi EQU $C11E  ; SRAM read ptr: table CMD1 column, NOI
 DEF wTableCmd2PtrNoi EQU $C126  ; SRAM read ptr: table CMD2 column, NOI
 DEF wTableCmd1ValPtrNoi EQU $C136  ; SRAM read ptr: table CMD1 value, NOI
 DEF wTableCmd2ValPtrNoi EQU $C13E  ; SRAM read ptr: table CMD2 value, NOI
-DEF wChanCmd         EQU $C365  ; [4] command read for the current step, per channel
-DEF wChanCmdVal      EQU $C36B  ; [4] command value for the current step, per channel
+DEF wChanCmd         EQU $C365  ; [6] command read for the current step: the 4 phrase channels, then the channel's table CMD1 and CMD2 (slots 4, 5)
+DEF wChanCmdVal      EQU $C36B  ; [6] its value, same slots (Z's digits while Z runs: SndZRepeat)
+DEF wLastCmd        EQU $C371  ; [68] the last command that was not Z or H, for Z to repeat: the 4 phrase channels,
+                                ; then each table's CMD1 (4 + table) and CMD2 ($24 + table)
+DEF wLastCmdVal     EQU $C3B5  ; [68] its value, same slots
 ; Current-channel state pointers (16-bit; low byte seeded by InitSoundStatePtrs,
 ; high byte set on channel select). These match the InitSoundStatePtrs cluster
 ; ($C8DF=$7C->wChanChainRow, etc.):
@@ -439,7 +442,7 @@ DEF wHelpSrcPtr      EQU $C7C4  ; [1] 16-bit source pointer of the staged help s
 DEF wClipboardSave   EQU $C7C6  ; [252] ResetEditorState keeps wClipboardBuf here across ResetWorkState
 DEF wPlayChanFirst   EQU $C8DD  ; first channel to start playing (SndStartChannels)
 DEF wPlayChanLast    EQU $C8DE  ; last channel to start playing
-DEF wSavedScreen     EQU $C8FE  ; wCurrentScreen saved around song-context stop (StopAllPlayback)
+DEF wSavedScreen     EQU $C8FE  ; wCurrentScreen, saved while ToggleSongPlayback poses as the song screen
 DEF wFileBlockCounts EQU $C959  ; per-file block counts, 32 slots (CountFileBlocks)
 DEF wFileNameBuf     EQU $C987  ; 8-char filename buffer (CopyFileName)
 DEF wFileListActive  EQU $C998  ; cursor is inside the file list (not a string buffer)
@@ -664,8 +667,8 @@ DEF wChanVibShapeWav EQU $C363  ; wChanVibShape[2]  (Wav)
 DEF wChanVibShapeWavHi EQU $C364  ; wChanVibShape[2] hi byte (Wav)
 DEF wTableCmd1       EQU $C369  ; current-channel table CMD1 command (scratch)
 DEF wTableCmd2       EQU $C36A  ; current-channel table CMD2 command (scratch)
-DEF wChanCmdValPu2 EQU $C36D  ; wChanCmdVal[1]  (Pu2)
-DEF wChanCmdValPu2Hi EQU $C36E  ; wChanCmdVal[1] hi byte (Pu2)
+DEF wChanCmdValWav EQU $C36D  ; wChanCmdVal[2] (WAV)
+DEF wChanCmdValNoi EQU $C36E  ; wChanCmdVal[3] (NOI)
 DEF wTableCmd1Val    EQU $C36F  ; current-channel table CMD1 value (scratch)
 DEF wTableCmd2Val    EQU $C370  ; current-channel table CMD2 value (scratch)
 DEF wChanPitchModActivePu2  EQU $C3FA  ; wChanPitchModActive[1] = Pu2 channel
@@ -769,6 +772,7 @@ DEF wChanCmdRateNoi   EQU $C8C9  ; wChanCmdRate[3] = Noi channel
 DEF wChanCmdCountdownPu2 EQU $C8CB  ; command countdown, PU2
 DEF wChanCmdCountdownWav EQU $C8CC  ; command countdown, WAV
 DEF wChanCmdCountdownNoi EQU $C8CD  ; command countdown, NOI
+DEF wFxSlotRetrigRate EQU $C8CE ; [12] R's retrig period per FX slot: (second digit - 1) x (command rate + 1); $0F (R?0) retrigs once
 DEF wNoiVibPrevOfs   EQU $C8DA  ; last applied noise vib offset (noise pitch is note-stepped)
 DEF wNoiPitchFrac    EQU $C8DB  ; noise pitch-slide fractional accumulator (quarter-semitones)
 DEF wNoiChordPrevOfs EQU $C8DC  ; last applied noise chord/arp offset

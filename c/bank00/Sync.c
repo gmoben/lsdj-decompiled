@@ -66,7 +66,7 @@ void SyncApplyMode(void);
 void SyncTickLSDJ(void);
 void SyncSetSendMode(void);
 void SyncSetRecvMode(void);
-void StopPlayback(void);                    /* bank 2 */
+void TogglePlayback(void);                    /* bank 2 */
 void SndResetChanFx(void);           /* bank 2 */
 void SndResetFxState(void);                 /* bank 2 */
 void SndEnableLcdInts(void);                /* bank 2 */
@@ -145,7 +145,7 @@ void SyncTickLSDJ(void)
         wPlayMode = wCurrentScreen;
         _asm di _endasm;
         SWITCH_ROM(2);
-        StopPlayback();
+        TogglePlayback();
         _asm ei _endasm;
     }
 }
@@ -156,8 +156,8 @@ void SyncTickMidi(void)
         SyncTickLSDJ();
     } else {
         SWITCH_ROM(2);
-        StopPlayback();
-        StopPlayback();
+        TogglePlayback();
+        TogglePlayback();
     }
 }
 

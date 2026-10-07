@@ -35,6 +35,14 @@ extern UBYTE wSavedScreen;                  /* $C8FE */
 extern UBYTE wChanRowQueue[];               /* $C100, [4] */
 extern UBYTE wChain;                        /* $C418 */
 extern char wChainRow;                      /* $C41A: a char here (copied through a register on use) */
+extern UBYTE wSyncRun;                      /* $CB6B */
+extern UBYTE wSyncStartRow;                 /* $CB6A */
+extern UBYTE wPlayStartChan;                /* $C94C */
+extern UBYTE wPlayStartRow;                 /* $C94D */
+extern UBYTE wButtons;                      /* $C575 */
+extern UBYTE wChanChain[];                  /* $C170, [4] */
+extern UBYTE wChanChainRow[];               /* $C17C, [4] */
+extern UBYTE wChanPhrase[];                 /* $C168, [4] */
 extern UBYTE wSyncSerialIeMask;             /* $CB6D */
 extern UBYTE wPlayChanFirst;                /* $C8DD */
 extern UBYTE wPlayChanLast;                 /* $C8DE */
@@ -43,6 +51,16 @@ extern UBYTE wTableCmd2Val;                 /* $C370 */
 extern UBYTE wLiveMode;                     /* $C528 */
 extern UBYTE wChanVibShape[];               /* $C35F, [4] */
 extern UBYTE wNoiPSlideStart;                 /* $C8C5 */
+extern UBYTE wChanCmdRate[];                /* $C8C6, [4] */
+extern UBYTE wChanRetrigTimer[];            /* $C148, [4] */
+extern UBYTE wChanRetrigRate[];             /* $C14C, [4] */
+extern UBYTE wFxSlotRetrigRate[];           /* $C8CE, [12] */
+extern UBYTE wChanEnvVolOffset[];           /* $C224, [12]: R's volume digit, by FX slot */
+extern UBYTE wFxSlotEnvTimer[];             /* $C23C, [12] */
+extern UBYTE wChanCmd[];                    /* $C365, [6]: 4 phrase channels, the table's CMD1 and CMD2 */
+extern UBYTE wChanCmdVal[];                 /* $C36B, [6] */
+extern UBYTE wLastCmd[];                    /* $C371, [68] */
+extern UBYTE wLastCmdVal[];                 /* $C3B5, [68] */
 /* the working pointers' low bytes: the per-channel arrays they point into
    sit in one page, so moving to the next channel is a byte increment */
 extern UBYTE wPtrChainRow, wPtrPhraseRow, wPtrNoteCountdown, wPtrGroove;  /* $C8DF.. */
@@ -51,19 +69,23 @@ extern UBYTE wPtrGrooveRow, wPtrPhrase, wPtrNoteSrc;                       /* ..
 void SndWritePanning(UBYTE v);              /* bank 0 */
 void SetInterruptEnable(UBYTE ie);          /* bank 0 */
 UBYTE Random16(void);                       /* bank 0 (this file reads the low byte) */
+UBYTE MulU8(UBYTE a, UBYTE b);              /* bank 0 */
 void SetSyncSendRate(void);                 /* bank 7 */
 void SndSetPlayRange(void);
 void SndLiveQueueStart(UBYTE ch);
 UBYTE SndGetChainPhrase(UBYTE chain, UBYTE row);
+UBYTE SndRandomUpTo(UBYTE n);
 void SndTableHop(UBYTE v);           /* asm */
 void ApplyPitchBend(void);                  /* asm */
 UBYTE SndAnyChannelActive(void);
 void SndStartChannels(void);
-void StopPlayback(void);
+void TogglePlayback(void);
 void SndEnableLcdInts(void);
 void SndLiveStopRange(void);
-void SndCheckSyncState(void);
+void StartScreenPlayback(void);
 void SyncStopTransport(void);               /* bank 0 */
+void SyncSetSendMode(void);                 /* bank 0 */
+void SndSyncStart(void);
 void SndKillNote(void);
 void SndResetChanFx(void);                  /* asm */
 void SndStartChanFromRow(void);
@@ -77,6 +99,7 @@ void SndSetupWaveChannel(void);
 void SndLoadWaveFrame(void);
 void SndWaveRetrigDispatch(void);
 void SndUpdateAllChannels(void);
+void SndResetPitchState(void);
 
 /* $507F: step the working pointers to the next channel */
 
@@ -98,6 +121,37 @@ UBYTE SndRandomUpTo(UBYTE n)
     if (!n)
         return 0;
     return Random16() % (n + 1);
+}
+
+/* $649D: R, retrig (R8x: resync). The first digit changes the volume on each
+   retrig; the second sets the rate in command-rate steps (1 fastest, F
+   slowest, 0 once: stored as $0F) */
+
+void FxCmd_R(void)
+{
+    UBYTE vol;
+    UBYTE n;
+    UBYTE k;
+
+    vol = hFxValue & 0xF0;
+    if (vol == 0x80) {
+        n = hFxValue & 0x0F;
+        n = MulU8(n, wChanCmdRate[hSoundCh] + 1);
+        k = hSoundCh;
+        wChanRetrigTimer[k] = ++n;
+        wChanRetrigRate[k] = n & 0x0F;
+    } else {
+        n = (hFxValue - 1) & 0x0F;
+        if (n != 0x0F)
+            n = MulU8(n, wChanCmdRate[hSoundCh] + 1);
+        wFxSlotRetrigRate[wFxChannel] = n;
+        wChanFxSlots[wFxChannel] |= 2;
+        wChanEnvVolOffset[wFxChannel] = vol;
+        if (wFxChannel < 4)
+            wFxSlotEnvTimer[wFxChannel] = 0;
+        else
+            SndResetPitchState();
+    }
 }
 
 /* $6577: kill this channel's note: its FX and FX slots, pitch slide, table,
@@ -165,6 +219,14 @@ const UBYTE EnvReleaseSpeeds[8] = {0x00, 0x06, 0x0B, 0x11, 0x16, 0x1C, 0x22, 0x2
 UBYTE EnvReleaseSpeed(void)
 {
     return EnvReleaseSpeeds[hFxValue & 7];
+}
+
+/* $6685: a delayed K's slot ran out: kill that channel's note */
+
+void SndRunFxSlot(void)
+{
+    hSoundCh = wFxChannel & 3;
+    SndKillNote();
 }
 
 /* $6694: step the WAV output level (NR32 bits 5-6: $20 100%, $40 50%,
@@ -333,7 +395,7 @@ void SndInitPlayState(void)
 {
     wPlayMode = wCurrentScreen;
     wLiveMode = 0;
-    StopPlayback();
+    TogglePlayback();
 }
 
 /* $7362: B in a table, MayBe hop: with the probability in the high digit of
@@ -385,7 +447,7 @@ void SndTick(void)
 
 /* $78C4: stop playback in both contexts, the screen's and the song's */
 
-void StopAllPlayback(void)
+void ToggleSongPlayback(void)
 {
     if (wCurrentScreen == 4)
         DebugTrap();
@@ -396,19 +458,62 @@ void StopAllPlayback(void)
     if (wSyncMode == 1 || wSyncMode == 3)
         wSyncTick = 0xFF;
     if (wPlayMode && wPlayMode != 4)
-        StopPlayback();
+        TogglePlayback();
     if (wSavedScreen)
         DebugTrap();
     wSavedScreen = wCurrentScreen;
     wCurrentScreen = 4;
-    StopPlayback();
+    TogglePlayback();
     wCurrentScreen = wSavedScreen;
     wSavedScreen = 0;
 }
 
+/* $7B31: start the current screen's playback: the song from the cursor row
+   (SndSyncStart), the chain from the cursor's chain row, or the phrase */
+
+void StartScreenPlayback(void)
+{
+    if (wSyncMode == 1 && wSyncTick == 0xFF) {
+        wSyncRun = wCurrentScreen == 4;
+        SyncSetSendMode();
+    }
+    if (wButtons & 0x80)
+        wSyncStartRow = wSongRow;
+    else
+        wSongRow = wSyncStartRow;
+    SndSetChannelEnable();
+    SndResetFxState();
+    switch (wCurrentScreen) {
+    case 4:
+        SndSyncStart();
+        break;
+    case 3:
+        wChanActive[wSongCol] = 1;
+        wPlayStartChan = wSongCol;
+        wPlayStartRow = wSongRow;
+        hSoundCh = wSongCol;
+        if (wChain & 0x80)
+            DebugTrap();
+        wChanChain[wSongCol] = wChain;
+        wChanChainRow[wSongCol] = wChainRow - 1;
+        if (SndGetChainPhrase(wChain, wChainRow) == 0xFF)
+            wChanChainRow[wSongCol] = 0xFF;
+        break;
+    default:
+        wChanActive[wSongCol] = 1;
+        wPlayStartChan = wSongCol;
+        wPlayStartRow = wSongRow;
+        hSoundCh = wSongCol;
+        wChanPhrase[wSongCol] = wPhrase;
+        break;
+    }
+    wPlayMode = wCurrentScreen;
+    SndEnableLcdInts();
+}
+
 /* $7C4C: stop the current screen's playback */
 
-void StopPlayback(void)
+void TogglePlayback(void)
 {
     UBYTE mode, row;
 
@@ -429,8 +534,41 @@ void StopPlayback(void)
     MemSet(wChanNextSongRow, 0xFF, 4);
     ClearSprites012();
     if (mode != wCurrentScreen)
-        SndCheckSyncState();
+        StartScreenPlayback();
     else
         SyncStopTransport();
     wSongRow = row;
+}
+
+/* $73B0: Z for command slot `slot`: repeat the last command that was not Z
+   or H (wLastCmd[last]) with its value plus 0..each Z digit; returns the
+   command */
+
+UBYTE SndZRepeat(UBYTE slot, UBYTE last)
+{
+    wChanCmdVal[slot] = wLastCmdVal[last] + (SndRandomUpTo(wChanCmdVal[slot] >> 4) << 4)
+                        + SndRandomUpTo(wChanCmdVal[slot] & 0x0F);
+    wChanCmd[slot] = wLastCmd[last];
+    return wChanCmd[slot];
+}
+
+/* $743E: Z in a phrase: this channel's last command */
+
+UBYTE SndZPhrase(void)
+{
+    return SndZRepeat(hSoundCh, hSoundCh);
+}
+
+/* $744D: Z in a table's CMD1 column: that table's last CMD1 */
+
+UBYTE SndZTableCmd1(void)
+{
+    return SndZRepeat(4, wChanTable[hSoundCh] + 4);
+}
+
+/* $746F: Z in a table's CMD2 column */
+
+UBYTE SndZTableCmd2(void)
+{
+    return SndZRepeat(5, wChanTable[hSoundCh] + 0x24);
 }

@@ -238,5 +238,27 @@ class WordTestHlTests(unittest.TestCase):
         self.assertEqual(tracked[7], "\tdec\thl")
 
 
+class HlRegisterTests(unittest.TestCase):
+    """After `ld c,(hl)` the byte at hl is c: a reread becomes `ld a,c`, even
+    across a store through de (StartScreenPlayback), but not across one
+    through hl or a change of c."""
+
+    INDEX = ["\tld\thl,#_wSongCol + 0", "\tld\tc,(hl)", "\tld\ta,#<_wChanActive",
+             "\tadd\ta,c", "\tld\te,a", "\tld\ta,#>_wChanActive", "\tadc\ta,#0x00",
+             "\tld\td,a", "\tld\ta,#0x01"]
+    STORE = ["\tld\thl,#_wPlayStartChan + 0", "\tld\t(hl),a"]
+
+    def test_store_through_de_keeps_the_register(self):
+        source = self.INDEX + ["\tld\t(de),a", "\tld\ta,(hl)"] + self.STORE
+        out, _ = peep.track_a(source, set())
+        self.assertEqual(out[10], "\tld\ta,c")
+
+    def test_store_through_hl_or_new_register_value_rereads(self):
+        through_hl = self.INDEX + ["\tld\t(hl),a", "\tld\ta,(hl)"] + self.STORE
+        self.assertNotIn("\tld\ta,c", peep.track_a(through_hl, set())[0][9:])
+        changed = self.INDEX + ["\tld\t(de),a", "\tinc\tc", "\tld\ta,(hl)"] + self.STORE
+        self.assertEqual(peep.track_a(changed, set())[0][11], "\tld\ta,(hl)")
+
+
 if __name__ == "__main__":
     unittest.main()
