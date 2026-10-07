@@ -37,7 +37,7 @@ UBYTE ProjSyncModeIs015(void);
 void DrawPrelistenField(void);
 UBYTE GetNextButtons(void);                 /* bank 0 */
 UWORD StringLength(char *s);                /* bank 0 */
-UBYTE ProjCalcFieldTile(void);
+UBYTE ProjCursorFieldWidth(void);
 void DrawNameEditArrows(char *s);
 void ProjHelpSelectNext(void);
 void ProjHelpOpenSelected(void);
@@ -128,7 +128,7 @@ void ProjDrawHelpEntry(UBYTE selected)
 
     e = HelpSelectLines[wHelpCursorRow];
     len = StringLength(HelpMenuPtrs[e]);
-    DrawTextField(0, e, len, selected ? 0 : 2);
+    ColorField(0, e, len, selected ? 0 : 2);
 }
 
 void ProjRedrawHelpSel(void)
@@ -195,7 +195,7 @@ void DrawNameEditArrows(char *s)
             start = col;
             break;
         case '>':
-            DrawTextField(start, row, col - start, 1);
+            ColorField(start, row, col - start, 1);
             break;
         default:
             DrawStringIndexed(*s);
@@ -249,12 +249,12 @@ void ProjDrawNameFieldHw(void)
 
     x = wKbdCursorCol + 5;
     y = wKbdCursorRow + 8;
-    DrawTextField(x, y, 1, hGameboyType ? 3 : 2);
+    ColorField(x, y, 1, hGameboyType ? 3 : 2);
 }
 
 void ProjDrawNameField(void)
 {
-    DrawTextField(wKbdCursorCol + 5, wKbdCursorRow + 8, 1, 0);
+    ColorField(wKbdCursorCol + 5, wKbdCursorRow + 8, 1, 0);
 }
 
 /* A w x h frame at (x, y): corner/edge tiles through the identity map,
@@ -272,7 +272,7 @@ void DrawProjTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE h)
 
     for (i = x; i < x + w; i++) {
         for (j = y; j < y + h; j++) {
-            DrawTextField(i, j, 1, 0);
+            ColorField(i, j, 1, 0);
             GetTilemapAddr(i, j);
             wStringSrc = IdentityCharMap;
             hBgPalette = hGameboyType ? 0x48 : 0xD2;
@@ -364,13 +364,13 @@ void OpenNameEditor(void)
     wVramCursor = 0x9965;
     DrawString(AlnumChars + 33);
     if (wCurrentScreen == 0x0D) {
-        DrawTextField(5, 6, 0x0A, hGameboyType ? 3 : 2);
-        DrawTextField(wKbdLetterPos + 5, 6, 1, hGameboyType ? 4 : 1);
+        ColorField(5, 6, 0x0A, hGameboyType ? 3 : 2);
+        ColorField(wKbdLetterPos + 5, 6, 1, hGameboyType ? 4 : 1);
     } else {
-        DrawTextField(0x0A, 6, wNameEditIsInstr ? 5 : 3, hGameboyType ? 3 : 2);
-        DrawTextField(wKbdLetterPos + 0x0A, 6, 1, hGameboyType ? 4 : 1);
+        ColorField(0x0A, 6, wNameEditIsInstr ? 5 : 3, hGameboyType ? 3 : 2);
+        ColorField(wKbdLetterPos + 0x0A, 6, 1, hGameboyType ? 4 : 1);
     }
-    DrawTextField(wKbdCursorCol + 5, wKbdCursorRow + 8, 1, hGameboyType ? 3 : 2);
+    ColorField(wKbdCursorCol + 5, wKbdCursorRow + 8, 1, hGameboyType ? 3 : 2);
     wCurrentScreen = 7;
 }
 
@@ -431,10 +431,10 @@ void DrawNameEditCursor(UBYTE x, UBYTE n)
     if (wKbdLetterPos == n && (c = wNameEditBuf[n])) {
         wNameEditBuf[n] = 0;
     } else if (wKbdLetterPos) {
-        DrawTextField(x + wKbdLetterPos, 6, 1, hGameboyType ? 3 : 2);
+        ColorField(x + wKbdLetterPos, 6, 1, hGameboyType ? 3 : 2);
         wKbdLetterPos--;
         wNameEditBuf[wKbdLetterPos] = 0;
-        DrawTextField(x + wKbdLetterPos, 6, 1, hGameboyType ? 4 : 1);
+        ColorField(x + wKbdLetterPos, 6, 1, hGameboyType ? 4 : 1);
     }
     GetTilemapAddr(x + wKbdLetterPos, 6);
     hBgDigitPalette = wShadowDigitPal;
@@ -493,9 +493,9 @@ void ProjDrawSyncField(void)
     UBYTE pal, y;
 
     pal = wProjCursor < 8;
-    wProjDrawScratch2 = ProjCalcFieldTile();
+    wProjDrawScratch2 = ProjCursorFieldWidth();
     y = ProjFieldY[wProjCursor];
-    DrawTextField(ProjFieldX[wProjCursor], y, wProjDrawScratch2, pal);
+    ColorField(ProjFieldX[wProjCursor], y, wProjDrawScratch2, pal);
 }
 
 void ProjDrawSyncFieldHw(void)
@@ -503,9 +503,9 @@ void ProjDrawSyncFieldHw(void)
     UBYTE pal, y;
 
     pal = hGameboyType ? 3 : 2;
-    wProjDrawScratch3 = ProjCalcFieldTile();
+    wProjDrawScratch3 = ProjCursorFieldWidth();
     y = ProjFieldY[wProjCursor];
-    DrawTextField(ProjFieldX[wProjCursor], y, wProjDrawScratch3, pal);
+    ColorField(ProjFieldX[wProjCursor], y, wProjDrawScratch3, pal);
 }
 
 void DrawDecimalField(UBYTE v)
@@ -927,8 +927,8 @@ UBYTE ProjectScreenInput(void)
         } else {
         menuRight:
             wProjMenuItem = 1;
-            DrawTextField(5, 9, 3, 0);
-            DrawTextField(12, 9, 2, hGameboyType ? 3 : 2);
+            ColorField(5, 9, 3, 0);
+            ColorField(12, 9, 2, hGameboyType ? 3 : 2);
         }
         return 1;
     case 0x04:
@@ -944,8 +944,8 @@ UBYTE ProjectScreenInput(void)
         } else {
         menuLeft:
             wProjMenuItem = 0;
-            DrawTextField(5, 9, 3, hGameboyType ? 3 : 2);
-            DrawTextField(12, 9, 2, 0);
+            ColorField(5, 9, 3, hGameboyType ? 3 : 2);
+            ColorField(12, 9, 2, 0);
         }
         return 1;
     case 0x70:
@@ -955,8 +955,8 @@ UBYTE ProjectScreenInput(void)
             goto openMenu;
         if (!wProjMenuActive || wProjMenuItem)
             break;
-        DrawTextField(5, 9, 3, 0);
-        DrawTextField(12, 9, 2, 0);
+        ColorField(5, 9, 3, 0);
+        ColorField(12, 9, 2, 0);
         FarCall(0x1C, FAR_FN(FormatFileSpace));
         WriteSongByte(1, 0xBFB6, 0);
         WriteSongByte(1, 0xBFB8, 0);
@@ -1024,12 +1024,12 @@ UBYTE ProjectScreenInput(void)
                 DrawString("YES");
                 wVramCursor = (UBYTE *)0x992C;
                 DrawString("NO");
-                DrawTextField(12, 9, 2, hGameboyType ? 3 : 2);
+                ColorField(12, 9, 2, hGameboyType ? 3 : 2);
                 return 1;
             closeMenu:
                 wProjMenuActive = 0;
-                DrawTextField(5, 9, 3, 0);
-                DrawTextField(12, 9, 2, 0);
+                ColorField(5, 9, 3, 0);
+                ColorField(12, 9, 2, 0);
                 if (wProjMenuItem)
                     goto redraw;
             reset:

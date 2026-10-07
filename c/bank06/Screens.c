@@ -147,12 +147,12 @@ void WriteWordCell(UBYTE v)
 
 void ChainDrawWaveCell(void)
 {
-    DrawTextField(WordColX[wWordEditCol], wWordEditRow + 2, WordColWidth[wWordEditCol], wWordEditCol);
+    ColorField(WordColX[wWordEditCol], wWordEditRow + 2, WordColWidth[wWordEditCol], wWordEditCol);
 }
 
 void ChainDrawWaveCellHw(void)
 {
-    DrawTextField(WordColX[wWordEditCol], wWordEditRow + 2, WordColWidth[wWordEditCol], hGameboyType ? 3 : 2);
+    ColorField(WordColX[wWordEditCol], wWordEditRow + 2, WordColWidth[wWordEditCol], hGameboyType ? 3 : 2);
 }
 
 void DrawWordScreen(void)
@@ -761,7 +761,7 @@ void ChainDrawCellLo(void)
     if (r & 0xF0)
         DebugTrap();
     c = wChainCol;
-    DrawTextField(ChainColX[wChainCol], wChainRow + 2, 2, c && hGameboyType);
+    ColorField(ChainColX[wChainCol], wChainRow + 2, 2, c && hGameboyType);
 }
 
 void LoadChainRow(void)
@@ -814,7 +814,7 @@ void DrawChainScreen(void)
         DebugTrap();
     pal = hGameboyType ? 3 : 2;
     y = wChainRow + 2;
-    DrawTextField(ChainColX[wChainCol], y, 2, pal);
+    ColorField(ChainColX[wChainCol], y, 2, pal);
     FarCall(0x1F, FAR_FN(DrawAllChanStatus));
 }
 
@@ -829,7 +829,7 @@ void ChainScreenUpdate(void)
 
 void ChainDrawCellHw(void)
 {
-    DrawTextField(ChainColX[wChainCol], wChainRow + 2, 2, hGameboyType ? 3 : 2);
+    ColorField(ChainColX[wChainCol], wChainRow + 2, 2, hGameboyType ? 3 : 2);
 }
 
 void ChainOpenPhrase(void)
@@ -942,13 +942,13 @@ void DrawChainSelection(void)
     for (x = 0; x < 2; x++) {
         for (y = top ? top - 1 : 0; y < (bottom == 0x10 ? 0x10 : bottom + 1); y = y + 1) {
             if (x < left || x >= right || y < top || y >= bottom)
-                DrawTextField(ChainColX[x], y + 2, 2, hGameboyType ? x : 0);
+                ColorField(ChainColX[x], y + 2, 2, hGameboyType ? x : 0);
         }
     }
     /* ...and the rectangle highlighted */
     for (x = left; x < right; x++)
         for (y = top; y < bottom; y = y + 1)
-            DrawTextField(ChainColX[x], y + 2, 2, hGameboyType ? 3 : 2);
+            ColorField(ChainColX[x], y + 2, 2, hGameboyType ? 3 : 2);
 }
 
 void DrawKitSampleNames(UBYTE ch, UBYTE note)

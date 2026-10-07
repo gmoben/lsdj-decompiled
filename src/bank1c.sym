@@ -47,8 +47,8 @@
 5098 FileStopSound              ; SetInterruptEnable + FileClearChanState (silence before load/save)
 50B3 LoadFile                   ; FILE load action: keep key delay/repeat + sync modes, FileLoadSlotInfo the slot (FAIL! waits a press), restore props, set active file, LoadProjectSettings + RedrawScreen
 5361 DrawFileTextField          ; draw a file-screen text field (highlight-aware) at computed coords
-5531 FileDrawField              ; DrawTextField wrapper
-5563 FileDrawFieldChecked       ; bounds-check (<$10) then DrawTextField
+5531 FileDrawField              ; ColorField wrapper
+5563 FileDrawFieldChecked       ; bounds-check (<$10) then ColorField
 5597 FileValidateName           ; validate a name (FileFindSlotEnd; char range $0a/$1f/$20 checks)
 55F1 DrawFileList               ; draw the visible file slots (wFileScroll window, names + block counts)
 5892 .drawLabel           ; (was DrawLoadLabel) draw the "LOAD" prompt string

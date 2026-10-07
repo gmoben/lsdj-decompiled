@@ -6,7 +6,7 @@
 4000 MixerKernel                ; 27-byte asm kit mixer step (ldh a,[c] .. ldh [c],a), copied to WRAM by InitKitMixer; ends at DrawHelpMenu
 4A62 DrawHelpScreen   ; Help screen (idx 14): renders the help/command-list text
 5C17 DrawProjectScreen ; Project screen draw: edits song-global properties at SRAM bank1 $BFB2+ (song offset $3FB2: tempo/transpose/sync/font/colorset/clone; see data_model.md)
-58B1 DrawSyncField   ; Project SYNC field ($58B1-$59B6): draw the wSyncMode name (TxtSyncOff..TxtSyncAnOut) at VRAM $9885, then at $98A0 either the sub-setting label (PS/2 DELAY / TICKS/STEP, ProjSyncModeIs567) + wSyncMode2 in hex, or a blank; CGB attribute row via DrawTextField. Matched in C: c/bank1b/DrawSyncField.c
+58B1 DrawSyncField   ; Project SYNC field ($58B1-$59B6): draw the wSyncMode name (TxtSyncOff..TxtSyncAnOut) at VRAM $9885, then at $98A0 either the sub-setting label (PS/2 DELAY / TICKS/STEP, ProjSyncModeIs567) + wSyncMode2 in hex, or a blank; CGB attribute row via ColorField. Matched in C: c/bank1b/DrawSyncField.c
 59B7 TxtSyncOff      ; "OFF   " sync-mode name (six consecutive 7-byte strings, each its own symbol: DrawSyncField pushes them as plain addresses)
 59BE TxtSyncLsdj     ; "LSDJ  "
 
@@ -31,10 +31,10 @@
 4ADB ProjHelpReset              ; $c933=0, refresh ($17fb), DrawHelpScreen
 4AE7 DrawNameEditArrows         ; draw the name editor '<' '>' arrows at the letter position
 4B6D ProjHelpOpenSelected       ; activate selected help entry $c934: set $c933, load its string via DrawNameEditArrows
-4C30 ProjDrawNameFieldHw        ; draw text field at $c42d/$c42e (palette per hGameboyType) via DrawTextField
-4C96 ProjDrawNameField          ; draw text field at $c42d/$c42e (palette 0) via DrawTextField
+4C30 ProjDrawNameFieldHw        ; draw text field at $c42d/$c42e (palette per hGameboyType) via ColorField
+4C96 ProjDrawNameField          ; draw text field at $c42d/$c42e (palette 0) via ColorField
 4CBA DrawProjTextField          ; draw a project-screen text field (highlight-aware) at computed coords
-5303 DrawNameEditCursor         ; letter-position highlight in the name editor (wKbdLetterPos, DrawTextField)
+5303 DrawNameEditCursor         ; letter-position highlight in the name editor (wKbdLetterPos, ColorField)
 569C DrawFontColorFields        ; draw the FONT (wFont) and COLOR SET (wColorSet) project rows
 5782 SaveSyncMode               ; wSyncMode -> song property $bfbd
 5796 DrawSyncMode2Field         ; draw + persist wSyncMode2 (song property $bfbf)
@@ -45,8 +45,8 @@
 5876 DrawKeyRepeatField         ; draw the KEY DELAY/REPEAT values (wKeyDelay/wKeyRepeat)
 5896 ProjSyncModeIs567          ; return 1 if wSyncMode in {5,6,7}
 5952 .drawSubSetting            ; (was mislabeled as a function DrawSyncModeField: its `push bc` is the DrawString argument, its `pop bc; ret` DrawSyncField's epilogue)
-5A07 ProjCalcFieldTile          ; compute a field tile/value from index $c9a4 (ROM $5776) + flag $c9a3
-5A42 ProjDrawSyncField          ; draw a project/sync field via ProjCalcFieldTile + DrawTextField (index $c9a4)
+5A07 ProjCursorFieldWidth       ; the cursor field's width in tiles: ProjFieldWidth[wProjCursor], 2 more on field 11 while the file browser is up
+5A42 ProjDrawSyncField          ; draw a project/sync field via ProjCursorFieldWidth + ColorField (index $c9a4)
 5A90 ProjDrawSyncFieldHw        ; like ProjDrawSyncField but palette per hGameboyType
 5AE3 DrawDecimalField           ; draw a small decimal value ("%d" via DrawFormat)
 5B09 ProjSyncModeIs015          ; return 1 if wSyncMode in {0,1,5}
@@ -538,5 +538,18 @@
 74A5 .step_3
 7565 .computeEnvelope_2
 575C ProjFieldX         ; [12] x of the 12 project screen fields (ProjDrawSyncField)
-5768 ProjFieldY         ; [26] their rows
+5768 ProjFieldY         ; [14] their rows
+5776 ProjFieldWidth     ; [12] the fields' widths in tiles (ProjCursorFieldWidth; ColorField's run)
 4BAF HelpPageRefs       ; [20] dw per help-menu line: &HelpPagePtrs[k], the page it opens
+
+; --- pointer targets (tools/name_targets.py) ---
+407A .song
+407C .live
+407E .chain
+4080 .phrase
+4082 .instr
+4084 .groove
+4086 .wave
+4088 .cmds
+408A .copy
+408C .mute

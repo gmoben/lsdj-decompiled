@@ -81,7 +81,7 @@ void SongEraseCursor(void)
     pal = IsBookmarked(wSongRow);
     if (y >= 0x12)
         DebugTrap();
-    DrawTextField(x, y, 2, pal);
+    ColorField(x, y, 2, pal);
 }
 
 void WriteSongCell(UBYTE col, UBYTE row, UBYTE chain)
@@ -168,7 +168,7 @@ void SongDrawCursor(void)
     y = wSongRow + 2 - wSongScroll;
     if (y >= 0x12)
         DebugTrap();
-    DrawTextField(SongColOffsets[wSongCol], y, 2, hGameboyType ? 3 : 2);
+    ColorField(SongColOffsets[wSongCol], y, 2, hGameboyType ? 3 : 2);
 }
 
 void SongReadRow(void)
@@ -191,8 +191,8 @@ void SongDrawRowNum(void)
         row = wSongScroll;
         for (y = 2; y != 18; y++, row++) {
             pal = (row & 4) ? 1 : 2;
-            DrawTextField(0, y, 2, pal);
-            DrawTextField(2, y, 12, IsBookmarked(row));
+            ColorField(0, y, 2, pal);
+            ColorField(2, y, 12, IsBookmarked(row));
         }
     }
     wVramCursor = (UBYTE *)0x9840;
@@ -366,9 +366,9 @@ void SongRowPalettes(UBYTE y)
         }
     }
     if (hGameboyType) {
-        DrawTextField(0, y, 2, shadow ? 1 : 2);
-        DrawTextField(2, y, 12, bm);
-        DrawTextField(MulU8(wSongCol, 3) + 3, y, 2, 3);
+        ColorField(0, y, 2, shadow ? 1 : 2);
+        ColorField(2, y, 12, bm);
+        ColorField(MulU8(wSongCol, 3) + 3, y, 2, 3);
     }
 }
 

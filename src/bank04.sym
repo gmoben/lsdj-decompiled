@@ -661,3 +661,13 @@
 7D13 .farCall_8
 429E PhraseColX0        ; x of the phrase screen columns, draw mode 0 (2 2 6 9 10)
 42A3 PhraseColX1        ; the same with wPhraseDrawMode set (2 5 9 12 13)
+
+; --- pointer targets (tools/name_targets.py) ---
+52AB .jumpTable
+5D1E .jumpTable
+6288 .jumpTable2
+66D9 .jumpTable3
+6B54 .jumpTable4
+7023 .jumpTable5
+7621 .jumpTable6
+7955 .jumpTable7

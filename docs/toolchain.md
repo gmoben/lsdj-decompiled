@@ -567,7 +567,7 @@ comment began with a quoted string had been carved as data, since a leading
   that leaves the loop counts 1). So a value the ROM keeps in a register
   while a named local goes to the stack was an expression in the source:
   `if (IsBookmarked(i + wSongRow)) wSongRow = i + wSongRow;` (one CSE'd
-  temporary; `SongFindNextRow`), `DrawTextField(…, c && hGameboyType)`
+  temporary; `SongFindNextRow`), `ColorField(…, c && hGameboyType)`
   (`ChainDrawCellLo`).
 - **A call result with a slot of its own**: `v = f()` makes v the call
   temporary's spill location (`updateSpillLocation` in SDCCcse.c), so a
@@ -623,7 +623,7 @@ comment began with a quoted string had been carved as data, since a leading
   first store), `v = (0x3F - v) & 0x3F` to `sub; ld b,a; and; ld c,a` — stock
   SDCC 2.2.1's accumulator packing (`packRegsForAccUse2`) never covers `-`.
 - **Arguments are evaluated right to left**, so writing a lookup inline in a
-  call (`DrawTextField(X[t][f], Y[t][f], W[t][f], gbc ? 3 : 2)`) orders and
+  call (`ColorField(X[t][f], Y[t][f], W[t][f], gbc ? 3 : 2)`) orders and
   spills the temporaries differently from computing them into locals first;
   the ROM has both.
 - **Per-type tables are 2-D arrays**: `InstrFieldX[type][field]` with
@@ -828,13 +828,18 @@ address), and records the function in the tracked manifest `c/matched.json`
 (bank, address, length, source). The carve (`tools/carve_clean.py` →
 `tools/disasm.py --clines`) then renders each such range from the
 translation instead of decoding the ROM: the compiler's own code with
-symbolic operands (`ld hl, wCurrentScreen + 0`, `call DrawString`,
-`jp nz, ScreenPreDraw.L00102`), its branch labels qualified by the function
-(`ScreenPreDraw.L00102:` — rgbasm takes `Parent.local:` anywhere without
-changing the scope), names the asm side lacks as guarded `DEF`s, and every
-`.sym` label inside the range printed as before — `.notWave`, `TxtSpaces13`
-and friends keep their names, and the debugger `.sym` keeps them (the `.L`
-labels are left out of it). With the compiler built
+symbolic operands (`ld hl, wCurrentScreen`, `call DrawString`,
+`jp nz, .notWave`). A branch goes to the `.sym` label at its target (the
+disassembly named every jump target), written as a local reference in its
+own scope and `Parent.local` outside it; SDCC's labels nothing jumps to (its
+fall-through blocks) are dropped, so no `00102$`-style number reaches the
+source. The few targets the `.sym` lacks are named from what is there: a
+switch's jump table after the variable it switches on (`.soundChCases`,
+else `.jumpTable`) and a string literal after its text (`.strSaveSong`).
+Names the asm side lacks become guarded `DEF`s, and every `.sym` label
+inside the range is printed as before (`tools/name_targets.py` names the
+asm side's own leftovers the same way: jump tables, strings, pointer-table
+entries). With the compiler built
 (`tools/toolchain/build_sdcc221.sh`), `src/main.asm` depends on that output:
 change a C file and `make compare` recompiles it, re-carves, and fails if it
 no longer matches. Without it the same code ranges `INCBIN` the ROM itself,

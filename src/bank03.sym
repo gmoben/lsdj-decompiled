@@ -13,7 +13,7 @@
 4105 InstrByte9IsZero           ; 1 if instrument byte 9 == 0 (kit row dashes gate; 12 uses)
 4118 IsInstrTableOn             ; instrument byte 6 bit 5 (table on) as 0/1
 4133 InstrTableOn               ; set instrument byte 6 bit 5 (table on)
-4170 DrawInstrCursor            ; draw the cursor highlight on field wInstrField (DrawTextField from InstrFieldX/Y/W[type][field], palette 3 CGB / 2)
+4170 DrawInstrCursor            ; draw the cursor highlight on field wInstrField (ColorField from InstrFieldX/Y/W[type][field], palette 3 CGB / 2)
 4257 SetInstrPitchByte          ; write instrument byte 5 (pitch flags) and redraw its transpose ON/OFF (bank 1 DrawOnOffName)
 4293 InstrTransposeOff          ; clear instrument byte 5 bit 5 (transpose) via SetInstrPitchByte
 4679 EraseInstrCursor           ; erase the cursor highlight on field wInstrField (palette 1)
@@ -702,3 +702,33 @@
 7A38 .farCall_5
 7A75 .cont_20
 7AAD .cont
+
+; --- pointer targets (tools/name_targets.py) ---
+4F4C .jumpTable
+553C .jumpTable
+5782 .jumpTable2
+5833 .jumpTable3
+59BB .jumpTable4
+59E5 .jumpTable5
+5B7F .jumpTable6
+5E29 .jumpTable7
+6136 .jumpTable8
+628F .jumpTable9
+62B9 .jumpTable10
+6454 .jumpTable11
+6A21 .jumpTable
+6B5A .jumpTable2
+7179 .jumpTable3
+7A7F .strAtk
+7A83 .strOn
+7A87 .strAtk2
+7A8B .str1
+7A8F .strSafe
+7A94 .strOn2
+7A98 .strOff
+7A9C .strOn3
+7AA0 .strOff2
+7AA4 .strAll
+7AA8 .str05
+7AAC .strFree
+7AB1 .strAll2

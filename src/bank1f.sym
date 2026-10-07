@@ -89,12 +89,12 @@
 620F InstrHScanTableRows        ; scan 16 table rows from a pointer
 62BD TableIsReferenced          ; e=1 if table n is referenced by any instrument or A command (CleanInstrData)
 6B3B DrawPhraseCellValue        ; draw the cell under the phrase cursor ($fe/$ff specials, $c90c state)
-6CA2 DrawPhraseCellField        ; highlight phrase cell (col,row): DrawTextField from the PhraseCell* layout tables (x,w,pal by row flag)
+6CA2 DrawPhraseCellField        ; highlight phrase cell (col,row): ColorField from the PhraseCell* layout tables (x,w,pal by row flag)
 6EFE InstrHReadCursorCellAt     ; read cell at cursor $c415/$c416 (DrawPhraseCellField)
 6F14 DrawChanStatus            ; draw channel status cell at (16, ch+6) from wChanModFlag[ch]
 70A8 InstrHGetParamPlus4        ; return $c429 + 4
 70B6 InstrHDrawParamField       ; draw a field from $c429 (parity-based) via InstrHGetParamPlus4
-70DF DrawInstrParamField        ; draw an instrument parameter text field (InstrHGetParamPlus4 + DrawTextField)
+70DF DrawInstrParamField        ; draw an instrument parameter text field (InstrHGetParamPlus4 + ColorField)
 ; --- functions called from bank 0 (this bank paged in) ---
 4A26 InitRemapTable             ; fill $c9b8..+16 with identity 0..15 (remap table for clone/dedupe)
 7801 TxtCutWord        ; "CUT WORD"
@@ -694,3 +694,10 @@
 77C7 .ret01_2
 77EA .ret01_3
 77EF .cont_11
+
+; --- pointer targets (tools/name_targets.py) ---
+4113 .strAtk
+4117 .strOn
+411B .strOff
+5D15 .strOk
+5DC6 .strOk

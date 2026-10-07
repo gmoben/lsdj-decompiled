@@ -446,7 +446,7 @@ DEF wSavedScreen     EQU $C8FE  ; wCurrentScreen, saved while ToggleSongPlayback
 DEF wFileBlockCounts EQU $C959  ; per-file block counts, 32 slots (CountFileBlocks)
 DEF wFileNameBuf     EQU $C987  ; 8-char filename buffer (CopyFileName)
 DEF wFileListActive  EQU $C998  ; cursor is inside the file list (not a string buffer)
-DEF wProjCursor      EQU $C9A4  ; project-screen cursor row (ProjCalcFieldTile index)
+DEF wProjCursor      EQU $C9A4  ; project-screen cursor row (ProjCursorFieldWidth index)
 DEF wSynthBufA       EQU $CAB8  ; [64] 64-byte synth wave work buffer A (ClearSynthWaveBufs)
 DEF wSynthBufB       EQU $CAF8  ; [64] 64-byte synth wave work buffer B
 DEF wOverwriteStart  EQU $CB61  ; nonzero while the synth OVERWRITE? prompt is open (OverwritePromptInput clears it)
@@ -850,7 +850,7 @@ DEF wPhraseDedupScratch2 EQU $C9C9  ; scratch: FindDupPhrase result
 DEF wPhraseDedupScratch3 EQU $C9CA  ; scratch (bank1f phrase dedup)
 DEF wPhraseDedupScratch4 EQU $C9CB  ; scratch (bank1f phrase dedup)
 DEF wPhraseDedupScratch5 EQU $C9CC  ; scratch (bank1f phrase dedup)
-DEF wDrawTextScratch EQU $C9CD  ; transient tile-value scratch for DrawTextField (bank1f)
+DEF wDrawTextScratch EQU $C9CD  ; transient tile-value scratch for ColorField (bank1f)
 DEF wChanMuteShown   EQU $C9CE  ; [4] per channel: 1 while the channel cell shows MUTE (DrawChanStatus clears it with blanks)
 DEF wChanMuteShownPtr EQU $C9D2 ; DrawChanStatus's static pointer into wChanMuteShown
 DEF wGrooveCacheValid EQU $C9D5  ; groove step-cache built flag (GrooveBuildCache sets, GrooveResetState clears)
@@ -962,7 +962,7 @@ DEF wNoteOctave      EQU $C693  ; octave/fine index stored by NoteToPeriod; inde
 DEF wTableHopCountersWav EQU $C1C0  ; [32] table H-hop repeat counters, WAV slice
 DEF wTableHopCountersNoi EQU $C1E0  ; [32] table H-hop repeat counters, NOI slice
 DEF wSelHoldFrames   EQU $C676  ; frames SELECT has been held (ProcessInput resets on other input)
-DEF wAttrRowBuf     EQU $C677  ; [20] CGB attribute row buffer: DrawTextField fills it with the palette and set_bkg_tiles writes it to VRAM bank 1
+DEF wAttrRowBuf     EQU $C677  ; [20] CGB attribute row buffer: ColorField fills it with the palette and set_bkg_tiles writes it to VRAM bank 1
 DEF wFxWaveParam     EQU $C8C2  ; W command value latch (lo nibble; consumed via SndSetKitParams)
 DEF wFxWaveParam2    EQU $C8C3  ; W command companion latch
 DEF wSynthRenderState EQU $CB3A ; synth render params copied at buffer init (3 words: +0/+2/+4)

@@ -132,7 +132,7 @@ void GrooveDrawField(void)
     if (r & 0xF0)
         DebugTrap();
     pal = (wGrooveRow & 2) ? 0 : 1;
-    DrawTextField(2, wGrooveRow + 2, 2, pal);
+    ColorField(2, wGrooveRow + 2, 2, pal);
 }
 
 void DrawGrooveSteps(void)
@@ -159,7 +159,7 @@ void DrawGrooveSteps(void)
             v = hGameboyType ? 3 : 2;
         else
             v = (i & 2) ? 0 : 1;
-        DrawTextField(2, i + 2, 2, v);
+        ColorField(2, i + 2, 2, v);
     }
     DrawGrooveRow();
 }
@@ -237,7 +237,7 @@ void GrooveDrawFieldHw(void)
     r = wGrooveRow;
     if (r & 0xF0)
         DebugTrap();
-    DrawTextField(2, wGrooveRow + 2, 2, hGameboyType ? 3 : 2);
+    ColorField(2, wGrooveRow + 2, 2, hGameboyType ? 3 : 2);
 }
 
 void GrooveRowPalettes(UBYTE row)
@@ -595,7 +595,7 @@ void GrooveDrawSelection(void)
         y = i + 2;
         if (i & 0xF0)
             DebugTrap();
-        DrawTextField(2, y, 2, hGameboyType ? 3 : 2);
+        ColorField(2, y, 2, hGameboyType ? 3 : 2);
     }
 }
 
@@ -1055,7 +1055,7 @@ void SynthEraseCursor(void)
     UBYTE x;
 
     for (x = SynthFieldX[wSynthCursor]; x < SynthFieldX[wSynthCursor] + SynthFieldWidth[wSynthCursor]; x++)
-        DrawTextField(x, SynthFieldLayout[wSynthCursor], 1, 1);
+        ColorField(x, SynthFieldLayout[wSynthCursor], 1, 1);
 }
 
 void SynthDrawCursor(void)
@@ -1063,7 +1063,7 @@ void SynthDrawCursor(void)
     UBYTE x;
 
     for (x = SynthFieldX[wSynthCursor]; x < SynthFieldX[wSynthCursor] + SynthFieldWidth[wSynthCursor]; x++)
-        DrawTextField(x, SynthFieldLayout[wSynthCursor], 1, hGameboyType ? 3 : 2);
+        ColorField(x, SynthFieldLayout[wSynthCursor], 1, hGameboyType ? 3 : 2);
 }
 
 void DrawSynthDistField(UBYTE v)
@@ -1208,7 +1208,7 @@ void BuildOverwritePrompt(void)
         for (y = 4; (UWORD)y < 11; y++) {
             wStringSrc = IdentityCharMap;
             hBgPalette = hGameboyType ? 0x48 : 0xD2;
-            DrawTextField(x, y, 1, 0);
+            ColorField(x, y, 1, 0);
             GetTilemapAddr(x, y);
             if (x == 3) {
                 if (y == 4)
@@ -1258,8 +1258,8 @@ void DrawOverwriteChoice(void)
         w2 = 3;
         w1 = 2;
     }
-    DrawTextField(x1, 9, w1, 0);
-    DrawTextField(x2, 9, w2, hGameboyType ? 3 : 2);
+    ColorField(x1, 9, w1, 0);
+    ColorField(x2, 9, w2, hGameboyType ? 3 : 2);
 }
 
 /* Open the confirmation dialog; OverwritePromptInput handles the choice. */

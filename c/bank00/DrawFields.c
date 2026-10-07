@@ -4,7 +4,7 @@
  * MATCHING C (period GBDK 2.95-3 / SDCC 2.2.1 + tools/match/lsdj.peep);
  * `make match` verifies every function here against the ROM.
  *
- * DrawTextField colours a field: on CGB it fills wAttrRowBuf with the palette
+ * ColorField colours a field: on CGB it fills wAttrRowBuf with the palette
  * and writes it to VRAM bank 1 with set_bkg_tiles, on DMG it draws a tile run.
  * The tempo (a stored 0-39 stands for 256-295; the three sync speeds show
  * as 2X/3X/6X), the channel header and the pulse duty / pan values. The
@@ -20,7 +20,7 @@ extern volatile sfr UBYTE VBK_REG;          /* $FF4F */
 extern UBYTE wAttrRowBuf[];                 /* $C677, [20] */
 void DrawTileRun(UBYTE x, UBYTE y, UBYTE w, UBYTE h, UBYTE tile);   /* asm */
 
-void DrawTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE pal)
+void ColorField(UBYTE x, UBYTE y, UBYTE w, UBYTE pal)
 {
     if (!w)
         return;

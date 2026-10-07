@@ -64,10 +64,10 @@ void DrawInstrCursor(void)
 
     type = ReadCurInstrByte(0) & 3;
     if (type == 1 && InstrByte9IsZero() && wInstrField == 9) {
-        DrawTextField(0x0B, 0x0C, 2, hGameboyType ? 3 : 2);
+        ColorField(0x0B, 0x0C, 2, hGameboyType ? 3 : 2);
         return;
     }
-    DrawTextField(InstrFieldX[type][wInstrField], InstrFieldY[type][wInstrField],
+    ColorField(InstrFieldX[type][wInstrField], InstrFieldY[type][wInstrField],
                   InstrFieldW[type][wInstrField], hGameboyType ? 3 : 2);
 }
 
@@ -226,13 +226,13 @@ void EraseInstrCursor(void)
 
     type = ReadCurInstrByte(0) & 3;
     if (type == 1 && InstrByte9IsZero() && wInstrField == 9) {
-        DrawTextField(0x0B, 0x0C, 2, 1);
+        ColorField(0x0B, 0x0C, 2, 1);
         return;
     }
     x = InstrFieldX[type][wInstrField];
     r = InstrFieldW[type][wInstrField] + x;
     y = InstrFieldY[type][wInstrField];
-    DrawTextField(x, y, r - x, 1);
+    ColorField(x, y, r - x, 1);
 }
 
 void SetInstrByte8(void)
@@ -542,14 +542,14 @@ void DrawWaveSynthField(void)
     if (InstrByte9IsZero()) {
         DrawString("WAVE ");
         wVramCursor = (UBYTE *)0x998B;
-        DrawTextField(0x0B, 0x0C, 1, 1);
+        ColorField(0x0B, 0x0C, 1, 1);
         hBgDigitPalette = wShadowDigitPal;
         hBgPalette = wShadowPal;
         DrawHexByte(ReadCurInstrByte(3));
     } else {
         DrawString("SYNTH");
         wVramCursor = (UBYTE *)0x998B;
-        DrawTextField(0x0B, 0x0C, 1, 0);
+        ColorField(0x0B, 0x0C, 1, 0);
         DrawStringIndexed(' ');
         hBgDigitPalette = wShadowDigitPal;
         hBgPalette = wShadowPal;

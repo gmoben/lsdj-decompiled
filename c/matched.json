@@ -311,6 +311,12 @@
   "len": 434,
   "src": "c/bank1b/ProjectScreen.c"
  },
+ "ColorField": {
+  "bank": "00",
+  "addr": "1298",
+  "len": 110,
+  "src": "c/bank00/DrawFields.c"
+ },
  "CompressIsDefaultWave": {
   "bank": "1C",
   "addr": "43C1",
@@ -909,12 +915,6 @@
   "bank": "00",
   "addr": "2CA4",
   "len": 34,
-  "src": "c/bank00/DrawFields.c"
- },
- "DrawTextField": {
-  "bank": "00",
-  "addr": "1298",
-  "len": 110,
   "src": "c/bank00/DrawFields.c"
  },
  "DrawTileHexCell": {

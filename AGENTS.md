@@ -122,7 +122,7 @@ idioms, and the ~200 hand-written asm functions (sound tick, sequencer core,
 | `tools/gen_listing.py` | `build/listing.asm`: the whole ROM as one annotated file |
 | `tools/audit_export.py` | Diff a pasted Emulicious export (`emulicious.out`) against our symbols |
 | `tools/label_gaps.py`, `data_refs.py`, `callgraph.py`, `farcall_targets.py`, `find_orphans.py` | Audits that drove naming/labeling to zero gaps |
-| `tools/name_locals_full.py`, `name_locals.py`, `name_firstaction.py` | Semantic naming of function-local labels (generated into the `.sym`) |
+| `tools/name_locals_full.py`, `name_locals.py`, `name_firstaction.py`, `name_targets.py` | Semantic naming of function-local labels (generated into the `.sym`); `name_targets.py` names the targets an operand points at (jump tables after their variable, strings after their text) so no `.L_xxxx` reaches the source |
 | `tools/rename.py`, `tools/fold_sym.py` | Symbol maintenance: rename a global everywhere (`.sym`, constants, C, docs, tools; refuses collisions), or fold a mislabelled "function" (a loop head, case body or shared tail) into a local label of the function it belongs to |
 | `tools/show_func.py`, `rom_strings.py`, `annotate_ram.py`, `statevar.py`, `bankmap.py` | Inspection helpers: dump a function by name or address (`--bare`; a matched one is disassembled from the ROM), list the strings at an address, annotate a RAM dump, … |
 | `tools/emu/` | SameBoy-based live-verification harness (see `tools/emu/README.md`) |

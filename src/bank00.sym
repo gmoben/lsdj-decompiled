@@ -110,7 +110,7 @@
 352A DrawNumber         ; draw 16-bit value (sp+4) in base (sp+6) with optional minus sign (sp+8); recursive (high digit first), digit table $35B1 "0123456789ABCDEF"
 35B1 DigitChars                 ; "0123456789ABCDEF" (DrawNumber's digit table, indexed by the digit value)
 35C2 DrawFormat         ; printf-style draw of format string (sp+7) + varargs to the VRAM cursor: %c char, %d/%u signed/unsigned decimal & %x hex (via DrawNumber), %s string
-1298 DrawTextField      ; draw a positioned text field
+1298 ColorField                 ; color a field of w tiles at (x, y) with palette pal: CGB attributes through wAttrRowBuf, a DrawTileRun on DMG
 17E1 AnyChanFlagSet     ; e = nonzero if any of the 4 per-channel bytes $C423-$C426 is set (chain-screen per-channel state; caller resets the $C68C idle counter on activity)
 17FB ClearBgTilemap     ; fill the visible 20x18 BG tilemap ($9800) with tile 0, rSTAT-gated
 ; --- dynamic VRAM tile loader: queue of tile-graphics load requests ($CBE6 table, $CBE4 slot counter) ---
@@ -355,7 +355,7 @@
 0EEF .loop                ; loop head in ProcessInput
 1089 .loop2               ; loop head in ProcessInput
 1294 .done                ; common exit of ProcessInput
-1304 .done                ; common exit of DrawTextField
+1304 .done                ; common exit of ColorField
 1439 .loop                ; loop head in main.mainLoop
 14AE .loop                ; loop head in DebugNop
 15B7 .loop                ; loop head in SelectKit1Sample

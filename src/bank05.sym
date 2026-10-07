@@ -29,7 +29,7 @@
 4AA8 TableDrawCursor            ; refresh the table cursor cell (select mode -> DrawTableSelection; palette by CGB)
 61CA CutCopyTableSelection      ; arg? "CUT" (copy+clear) : "COPY": table selection -> clipboard (clipType 5)
 64A3 TablePasteCells            ; table-screen paste: clipboard cells into rows from wTableRow (a phrase selection's CMD pair too; swaps the two CMD/value pairs; "PASTE" for more than one row)
-676A DrawTableSelection         ; table selection (wClipboardType==5) redraw vs the cursor: cells around the rectangle in their column palettes, the inside highlighted (DrawTextField)
+676A DrawTableSelection         ; table selection (wClipboardType==5) redraw vs the cursor: cells around the rectangle in their column palettes, the inside highlighted (ColorField)
 ; --- functions called from bank 0 (this bank paged in) ---
 4B5D TableScreenInput           ; table screen (5) input handler, from DispatchScreenInput: dispatch on wButtons
 4040 MapDrawTopRow      ; draw the map top-row entries (PROJECT + WAVE/SYNTH) at wMapProjectCol/wMapSynthCol, screen row 15
@@ -542,3 +542,15 @@
 738A TxtHelpCutoff              ; "FILTER CUTOFF FREQUENCY"
 73A2 TxtHelpResonance           ; "RESONANCE CONTROL..."
 73EA TxtHelpLimit               ; "LIMIT SIGNAL VERTICALLY..."
+
+; --- pointer targets (tools/name_targets.py) ---
+4CEB .jumpTable
+4F4C .jumpTable2
+4FBB .jumpTable3
+527E .jumpTable4
+52ED .jumpTable5
+5598 .jumpTable6
+5607 .jumpTable7
+58F2 .jumpTable8
+5961 .jumpTable9
+5C7E .jumpTable10

@@ -1321,7 +1321,7 @@ void DrawPhraseCellField(UBYTE col, UBYTE row)
         w = PhraseCellWidthAlt[col];
         pal = PhraseCellPalAlt[col];
     }
-    DrawTextField(x, y, w, pal);
+    ColorField(x, y, w, pal);
 }
 
 void DrawPhraseSelection(void)
@@ -1388,12 +1388,12 @@ UBYTE InstrHGetParamPlus4(void)
 
 void InstrHDrawParamField(void)
 {
-    DrawTextField(0, InstrHGetParamPlus4(), 3, !(wSpeechCursorRow & 1));
+    ColorField(0, InstrHGetParamPlus4(), 3, !(wSpeechCursorRow & 1));
 }
 
 void DrawInstrParamField(void)
 {
-    DrawTextField(0, InstrHGetParamPlus4(), 3, hGameboyType ? 3 : 2);
+    ColorField(0, InstrHGetParamPlus4(), 3, hGameboyType ? 3 : 2);
 }
 
 void DrawSpeechInstrScreen(void)

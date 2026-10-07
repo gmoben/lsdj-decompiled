@@ -27,7 +27,7 @@
 65B3 TxtClip                    ; "CLIP"
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
-40AE GrooveDrawField        ; draw groove value field at cursor $c9d4 (palette by bit1) via DrawTextField
+40AE GrooveDrawField        ; draw groove value field at cursor $c9d4 (palette by bit1) via ColorField
 425B DrawGrooveRow              ; draw one groove row (step<16; ticks via ReadGrooveStep, state $c9d5/$c9d6)
 435D GrooveBuildCache       ; once ($c9d5 guard): build the 16-step groove display cache $c9d6 (via $405a)
 4394 GrooveDrawFieldHw      ; like GrooveDrawField but palette per hGameboyType

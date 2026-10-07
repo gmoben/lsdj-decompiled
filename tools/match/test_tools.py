@@ -89,15 +89,51 @@ class OperandTests(unittest.TestCase):
         t = self.translator()
         self.assertEqual(t.operand("(hl+)"), "[hl+]")
         self.assertEqual(t.operand("#0x12"), "$12")
-        self.assertEqual(t.operand("00105$"), "F.L00105")
-        self.assertEqual(t.expr("#<(00105$)"), "LOW(F.L00105)")
+        self.assertEqual(t.operand("00105$"), "\x0000105\x00")   # named by resolve_labels
+        self.assertEqual(t.expr("#<(00105$)"), "LOW(\x0000105\x00)")
 
     def test_unknown_names_become_guarded_equates(self):
         t = self.translator()
-        self.assertEqual(t.operand("(_hFoo+0)"), "[hFoo+0]")
+        self.assertEqual(t.operand("(_hFoo+0)"), "[hFoo]")
+        self.assertEqual(t.operand("#_hFoo + 0 + 1"), "hFoo + 1")
         self.assertEqual(t.guards, {"hFoo": "$FF90"})
         with self.assertRaises(ValueError):
             t.operand("_NoSuchName")
+
+
+class LabelTests(unittest.TestCase):
+    """SDCC's labels take the .sym names at their addresses, written from
+    where they are used; fall-through labels go; the rest are named."""
+
+    def translator(self, labels, targets, texts=None):
+        t = to_rgbds.Translator.__new__(to_rgbds.Translator)
+        t.func, t.labels, t.targets, t.texts = "F", labels, targets, texts or {}
+        t.globals = sorted((a, n) for a, n in labels.items() if not n.startswith("."))
+        return t
+
+    def test_sym_names_scoped_references_and_dropped_labels(self):
+        labels = {0x4000: "F", 0x4010: ".notSong", 0x4020: "G", 0x4030: ".tail"}
+        t = self.translator(labels, {"00105": 0x4010, "00106": 0x4012, "00107": 0x4030})
+        rows = [(0x4000, "I", "jp nz, \x0000105\x00"), (0x4010, "L", "\x0000105\x00:"),
+                (0x4012, "L", "\x0000106\x00:"), (0x4020, "I", "jp \x0000105\x00"),
+                (0x4022, "I", "jp \x0000107\x00")]
+        self.assertEqual(t.resolve_labels(rows), [
+            (0x4000, "I", "jp nz, .notSong"), (0x4020, "I", "jp F.notSong"),
+            (0x4022, "I", "jp .tail")])
+
+    def test_jump_table_and_literal_names(self):
+        t = self.translator({0x4000: "F"}, {"00109": 0x4008, "__str_3": 0x4020},
+                            {"__str_3": "SAVE SONG?"})
+        rows = [(0x4000, "I", "ldh a, [hSoundCh+0]"), (0x4002, "I", "ld e, a"),
+                (0x4003, "I", "ld d, $00"), (0x4005, "I", "ld hl, \x0000109\x00"),
+                (0x4008, "L", "\x0000109\x00:"), (0x4008, "I", "jp $4100"),
+                (0x400B, "I", "jp $4110"), (0x4010, "I", "ld hl, \x00__str_3\x00"),
+                (0x4020, "L", "\x00__str_3\x00:")]
+        out = [text for _a, _k, text in t.resolve_labels(rows)]
+        self.assertIn("ld hl, .soundChCases", out)
+        self.assertIn(".soundChCases:", out)
+        self.assertIn("ld hl, .strSaveSong", out)
+        self.assertIn(".strSaveSong:", out)
 
 
 class PointerTests(unittest.TestCase):

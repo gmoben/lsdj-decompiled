@@ -93,10 +93,10 @@ void MapDrawTopRow(void)
     DrawStringIndexed(wLiveMode ? 'L' : 'S');
     DrawString("CPI");
     DrawStringIndexed(wInstrument == 0x40 ? 'W' : 'T');
-    DrawTextField(15, 16, 5, 1);
-    DrawTextField(x, wMapRow + 15, 1, 2);
-    DrawTextField(x, (wMapRow + 1) % 3 + 15, 1, 1);
-    DrawTextField(x, (wMapRow + 2) % 3 + 15, 1, 1);
+    ColorField(15, 16, 5, 1);
+    ColorField(x, wMapRow + 15, 1, 2);
+    ColorField(x, (wMapRow + 1) % 3 + 15, 1, 1);
+    ColorField(x, (wMapRow + 2) % 3 + 15, 1, 1);
 }
 
 void MapEnterScreen(void)
@@ -316,7 +316,7 @@ void TableEraseCursor(void)
         return;
     end = TableColX[wTableCol] + TableColWidth[wTableCol];
     for (x = TableColX[wTableCol]; x < end; x++)
-        DrawTextField(x, y, 1, TableColPalette[wTableCol]);
+        ColorField(x, y, 1, TableColPalette[wTableCol]);
 }
 
 void ReadTableStep(void)
@@ -399,7 +399,7 @@ void DrawTableScreen(void)
     i = TableColX[wTableCol];
     w = TableColWidth[wTableCol];
     pal = hGameboyType ? 3 : 2;
-    DrawTextField(i, a1, w, pal);
+    ColorField(i, a1, w, pal);
     FarCall(0x1F, FAR_FN(DrawAllChanStatus));
     if (wCursorMode == 4)
         DrawTableSelection();
@@ -459,7 +459,7 @@ void TableDrawCursor(void)
     if (wCursorMode == 4)
         DrawTableSelection();
     else
-        DrawTextField(TableColX[wTableCol], wTableRow + 2, TableColWidth[wTableCol], hGameboyType ? 3 : 2);
+        ColorField(TableColX[wTableCol], wTableRow + 2, TableColWidth[wTableCol], hGameboyType ? 3 : 2);
     switch (wTableCol) {
     case 2:
     case 3:
@@ -658,13 +658,13 @@ void DrawTableSelection(void)
     for (x = left ? left - 1 : 0; x < (right == 6 ? 6 : right + 1); x++) {
         for (y = top ? top - 1 : 0; y < (bottom == 0x10 ? 0x10 : bottom + 1); y = y + 1) {
             if (x < left || x >= right || y < top || y >= bottom)
-                DrawTextField(TableColX[x], y + 2, TableColWidth[x], x ? 1 - (x & 1) : 0);
+                ColorField(TableColX[x], y + 2, TableColWidth[x], x ? 1 - (x & 1) : 0);
         }
     }
     /* ...and the rectangle highlighted */
     for (x = left; x < right; x++)
         for (y = top; y < bottom; y = y + 1)
-            DrawTextField(TableColX[x], y + 2, TableColWidth[x], hGameboyType ? 3 : 2);
+            ColorField(TableColX[x], y + 2, TableColWidth[x], hGameboyType ? 3 : 2);
 }
 
 void GetSynthFieldHelp(void)

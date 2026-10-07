@@ -701,3 +701,6 @@
 7E6A .readSoundCh_3
 7E96 .toSndUpdatePitchModFlagCur
 7E99 .readSoundCh_4
+
+; --- pointer targets (tools/name_targets.py) ---
+6715 .soundChCases

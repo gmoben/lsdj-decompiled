@@ -17,11 +17,15 @@ function's text runs from its start label through the literals and const
 data SDCC places after it, up to the next function.
 
 Labels: the carve keeps printing every src/bankNN.sym label (so every tool
-reading the generated .asm still sees them); the translation adds only its
-own, fully qualified (`Func.L00105:`, `Func.str_3:`), which RGBDS resolves
-whatever the scope, and refers to a literal or table by its .sym name when it
-has one. Each row carries its ROM address (from as-gbz80's listing), which
-is how the carve interleaves the two.
+reading the generated .asm still sees them), and the C's jumps and literals
+refer to those by name: an SDCC label (`00105$`) becomes the .sym label at
+its address (`.notSong`), as a local reference where the jump is in the same
+scope and `Parent.local` elsewhere. Labels nothing refers to (SDCC's
+fall-through blocks) are dropped. The translation defines only names the
+.sym lacks: a switch's jump table (`.screenCases`, after what it switches
+on, else `.jumpTable`) and a string literal (`.strSaveSong`, after its
+text). Each row carries its ROM address (from as-gbz80's listing), which is
+how the carve interleaves the two.
 
 verify_all.py --write saves each matched function's rows as
 build/c/bankNN/Name.lines (JSON); tools/carve_clean.py renders them in place.
@@ -198,22 +202,32 @@ class Translator:
         self.addrs = listing_addrs(lst)
         self.base = func_addr - self.addrs[start_line]
         self.lo, self.hi = func_addr, func_addr + size
-        self.rename: dict[str, str] = {}      # SDCC data label -> reference
-        self.define: dict[str, str] = {}      # SDCC data label -> our label to define
+        self.rename: dict[str, str] = {}      # SDCC data label -> its placeholder
+        self.targets: dict[str, int] = {}     # placeholder key -> the label's ROM address
+        self.texts: dict[str, str] = {}       # a literal's key -> its text (for its name)
         self.guards: dict[str, str] = {}      # name -> value, for `IF !DEF`
+        self.globals = sorted((a, n) for a, n in labels.items() if not n.startswith("."))
+        key = None
         for n, raw in self.lines:
             s = _strip_comment(raw).strip()
+            am = re.fullmatch(r'\.ascii\s+"(.*)"', s)
+            if am and key is not None:
+                self.texts[key] = self.texts.get(key, "") + am.group(1)
             if not s.endswith(":"):
                 continue
             name = s[:-1]
-            if re.fullmatch(r"\d{5}\$", name) or name.startswith("___") or name == f"_{func}":
+            key = None
+            if name.startswith("___") or name == f"_{func}":
                 continue
-            a = self.base + self.addrs[n]
-            if a in labels:
-                self.rename[name] = qualified(labels, a)
-            else:
-                ours = f"{func}.{re.sub(r'^_+', '', name)}"
-                self.rename[name] = self.define[name] = ours
+            m = re.fullmatch(r"(\d{5})\$", name)
+            if n not in self.addrs:
+                if m:
+                    continue              # checked in rows() if something jumps there
+                raise ValueError(f"{func}: no address for label {name}")
+            key = m.group(1) if m else name
+            self.targets[key] = self.base + self.addrs[n]
+            if not m:
+                self.rename[name] = f"\x00{key}\x00"
 
     # operands
     def symbol(self, name: str) -> str:
@@ -242,10 +256,11 @@ class Translator:
         m = re.fullmatch(r"([<>])\(?(.*?)\)?", e)
         if m and e[0] in "<>":
             return f"{'LOW' if m.group(1) == '<' else 'HIGH'}({self.expr(m.group(2))})"
-        e = re.sub(r"\b(\d{5})\$", lambda m: f"{self.func}.L{m.group(1)}", e)
+        e = re.sub(r"\b(\d{5})\$", lambda m: f"\x00{m.group(1)}\x00", e)
         e = re.sub(r"0x([0-9A-Fa-f]+)", r"$\1", e)
         e = re.sub(r"(?<![\w.$])(_\w+)", lambda m: self.symbol(m.group(1)), e)
-        return e
+        e = re.sub(r"\s*\+\s*0(?=\s*\+)", "", e)    # SDCC's `#_x + 0 + 1`: `x + 1`
+        return re.sub(r"\s*\+\s*0$", "", e)        # SDCC's `#_x + 0`: just `x`
 
     def operand(self, op: str) -> str:
         op = op.strip()
@@ -306,6 +321,101 @@ class Translator:
                     out[k2] = (rows[k2][0], "I", f"ld [hl], HIGH({name})")
         return out
 
+    # labels
+    def scope_of(self, addr: int) -> str:
+        """The global label a local one at `addr` belongs to (the last one the
+        carve prints at or before it)."""
+        names = [n for a, n in self.globals if a <= addr]
+        return names[-1] if names else self.func
+
+    def propose(self, key: str, addr: int, rows: list[Row]) -> str:
+        """A name for a label the .sym lacks: a string literal after its text,
+        a switch's jump table after what it switches on."""
+        if key in self.texts:
+            words = re.findall(r"[A-Za-z0-9]+", self.texts[key])
+            return ".str" + ("".join(w.capitalize() for w in words)[:24] or "Blank")
+        if not re.fullmatch(r"\d{5}", key):
+            return "." + re.sub(r"^_+", "", key)
+        ph = f"\x00{key}\x00"
+        texts = [t for _a, kind, t in rows if kind == "I"]
+        at = next((i for i, t in enumerate(texts) if t == f"ld hl, {ph}"), None)
+        body = [t for a, kind, t in rows if kind == "I" and a >= addr][:2]
+        if at is not None and body and all(t.startswith("jp ") for t in body):
+            return self.switch_name(texts[max(0, at - 8):at])
+        refs = [a for a, kind, t in rows if kind == "I" and ph in t]
+        if any(a >= addr for a in refs):
+            return ".loop"
+        first = body[0] if body else ""
+        if first.startswith(("add sp", "pop ", "ret")):
+            return ".done"
+        m = re.fullmatch(r"call (\w+)", first)
+        return "." + m.group(1)[0].lower() + m.group(1)[1:] if m else ".cont"
+
+    @staticmethod
+    def switch_name(before: list[str]) -> str:
+        """A jump table named after the variable genJumpTab indexes it by
+        (`ld e,X; ld d,$00; ld hl,table`): `.currentScreenCases`, or
+        `.jumpTable` for a local."""
+        var = re.compile(r"(?:ldh a, \[|ld hl, )[wh]([A-Z]\w*)(?:\s*\+\s*0)?\]?")
+        i = next((j for j in range(len(before) - 1, -1, -1) if before[j].startswith("ld e, ")), None)
+        if i is None:
+            return ".jumpTable"
+        src = before[i][len("ld e, "):]
+        want = "ld hl, " if src == "[hl]" else ("ld a, " if src == "a" else None)
+        for t in reversed(before[:i]) if want else ():
+            if src == "a" and t.startswith("ldh a, "):
+                m = var.fullmatch(t)
+                return "." + m.group(1)[0].lower() + m.group(1)[1:] + "Cases" if m else ".jumpTable"
+            if t.startswith(want) or (src == "a" and re.match(r"\w+ a\b", t)):
+                m = var.fullmatch(t)
+                return "." + m.group(1)[0].lower() + m.group(1)[1:] + "Cases" if m else ".jumpTable"
+        return ".jumpTable"
+
+    def resolve_labels(self, rows: list[Row]) -> list[Row]:
+        """Name each placeholder's label and write every reference to it from
+        where it sits: `.local` in the label's own scope, `Parent.local`
+        outside it, a global label by its name."""
+        names: dict[str, str] = {}
+        taken: dict[str, set[str]] = {}
+        for a, n in self.labels.items():
+            if n.startswith("."):
+                taken.setdefault(self.scope_of(a), set()).add(n)
+        used = {k for _a, _kind, t in rows for k in re.findall(r"\x00([^\x00]+)\x00(?!:)", t)}
+        for k, a in sorted(self.targets.items(), key=lambda kv: kv[1]):
+            if a in self.labels:
+                names[k] = self.labels[a]
+                continue
+            if re.fullmatch(r"\d{5}", k) and k not in used:
+                continue
+            base = self.propose(k, a, rows)
+            name, n = base, 1
+            while name in taken.setdefault(self.scope_of(a), set()):
+                n += 1
+                name = f"{base}{n}"
+            taken[self.scope_of(a)].add(name)
+            names[k] = name
+        missing = used - names.keys()
+        if missing:
+            raise ValueError(f"{self.func}: no address for label {sorted(missing)[0]}")
+
+        def ref(k: str, at: int) -> str:
+            name = names[k]
+            if not name.startswith("."):
+                return name
+            scope = self.scope_of(self.targets[k])
+            return name if self.scope_of(at) == scope else f"{scope}{name}"
+
+        out: list[Row] = []
+        for a, kind, t in rows:
+            if kind == "L":
+                k = t[1:-2]
+                if k not in names or self.targets[k] in self.labels:
+                    continue                  # nothing jumps here, or the carve prints the .sym's
+                out.append((a, kind, f"{names[k]}:"))
+            else:
+                out.append((a, kind, re.sub(r"\x00([^\x00]+)\x00", lambda m: ref(m.group(1), a), t)))
+        return out
+
     def rows(self) -> list[Row]:
         out: list[Row] = []
         for n, raw in self.lines:
@@ -316,12 +426,9 @@ class Translator:
             if s.endswith(":"):
                 name = s[:-1]
                 m = re.fullmatch(r"(\d{5})\$", name)
-                if (m or name in self.define) and a is None:
-                    raise ValueError(f"{self.func}: no address for label {name}")
-                if m and a is not None:
-                    out.append((a, "L", f"{self.func}.L{m.group(1)}:"))
-                elif name in self.define and a is not None:
-                    out.append((a, "L", f"{self.define[name]}:"))
+                k = m.group(1) if m else name
+                if k in self.targets and self.targets[k] not in self.labels:
+                    out.append((self.targets[k], "L", f"\x00{k}\x00:"))
                 continue              # the function's own and the .sym-named labels: the carve's
             if s.startswith((".globl", ".module", ".area")) or re.fullmatch(r"_\w+\s*=\s*\S+", s):
                 continue
@@ -353,6 +460,7 @@ class Translator:
                 text = f"{mn} " + ", ".join(conv) if conv else mn
             out.append((a, "I", text))
         out = self.rom_operands(out)
+        out = self.resolve_labels(out)
         guards = [(self.lo, "V", f"IF !DEF({k})\nDEF {k} EQU {v}\nENDC")
                   for k, v in sorted(self.guards.items())]
         rows = guards + out

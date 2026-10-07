@@ -267,7 +267,7 @@ void MapDrawTopRow(void);
 /* --- bank $1B: project screen ---------------------------------------------- */
 
 void UpdateInstrEnvelope(void);
-void DrawTextField(UBYTE a, UBYTE b, UBYTE c, UBYTE d);
+void ColorField(UBYTE a, UBYTE b, UBYTE c, UBYTE d);
 UBYTE ProjSyncModeIs567(void);
 
 /* --- bank $1F -------------------------------------------------------------- */

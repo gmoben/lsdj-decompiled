@@ -67,7 +67,7 @@
 5B00 ChainOpenPhrase            ; open the phrase under the chain cursor (RestoreSelectionState, load phrase)
 6D55 CutCopyChainSelection      ; arg!=0 -> "CUT " (copy+clear) else "COPY": chain selection -> clipboard (clipType 3; phrases via SndGetChainPhrase, transposes)
 6F0D ChainPasteCells            ; SELECT+A paste on the chain screen: clipboard cells into rows wSelTop..wSelBottom (column 0 phrases via WriteChainPhrase, column 1 transposes), "PASTE" message when more than one row
-7006 DrawChainSelection         ; chain selection (wClipboardType==3) redraw vs the cursor: cells around the rectangle in their column palettes, the inside highlighted (DrawTextField)
+7006 DrawChainSelection         ; chain selection (wClipboardType==3) redraw vs the cursor: cells around the rectangle in their column palettes, the inside highlighted (ColorField)
 71ED DrawKitSampleNames         ; draw the playing kit sample names (wKit1Bank/wKit2Bank) at the tilemap position
 73C0 DrawStringAtCursor         ; set wVramCursor + DrawString (9-use draw helper)
 73DC ChainSyncStatusFlag        ; read $cb69, return status flag

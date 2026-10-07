@@ -8,7 +8,7 @@
  * The Project screen's SYNC row: the mode name at tilemap $9885, then at $98A0
  * either the sub-setting label ("PS/2 DELAY " for KEYBD, "TICKS/STEP " for the
  * analog modes) followed by wSyncMode2 in hex, or a blank; on CGB the
- * attribute row is set with DrawTextField.
+ * attribute row is set with ColorField.
  *
  * Exercises: a sparse `switch` (SDCC emits a `cp` chain, `or a,a` for case 0,
  * and LSDj's compiler loads the operand once), plain-symbol string arguments
@@ -58,10 +58,10 @@ void DrawSyncField(void)
         hBgPalette = wShadowPal;
         DrawHexByte(wSyncMode2);
         if (hGameboyType)
-            DrawTextField(0x0B, 5, 2, 1);
+            ColorField(0x0B, 5, 2, 1);
     } else {
         DrawString(TxtBlank13);
         if (hGameboyType)
-            DrawTextField(0x0B, 5, 2, 0);
+            ColorField(0x0B, 5, 2, 0);
     }
 }

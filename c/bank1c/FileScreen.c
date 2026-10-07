@@ -628,7 +628,7 @@ void DrawFileTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE h)
         for (j = y; j < y + h; j++) {
             wStringSrc = IdentityCharMap;
             hBgPalette = hGameboyType ? 0x48 : 0xD2;
-            DrawTextField(i, j, 1, 0);
+            ColorField(i, j, 1, 0);
             GetTilemapAddr(i, j);
             if (i == x) {
                 if (j == y)
@@ -665,7 +665,7 @@ void DrawFileTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE h)
 
 void FileDrawField(UBYTE pal)
 {
-    DrawTextField(FileFieldX[wFileField], 2, FileFieldWidth[wFileField], pal);
+    ColorField(FileFieldX[wFileField], 2, FileFieldWidth[wFileField], pal);
 }
 
 void FileDrawFieldChecked(UBYTE pal)
@@ -675,7 +675,7 @@ void FileDrawFieldChecked(UBYTE pal)
     r = wFileCursor - wFileScroll;
     if (r >= 0x10)
         DebugTrap();
-    DrawTextField(3, wFileCursor + 4 - wFileScroll, 0x0E, pal);
+    ColorField(3, wFileCursor + 4 - wFileScroll, 0x0E, pal);
 }
 
 void FileValidateName(void)
@@ -881,7 +881,7 @@ UBYTE FileScreenInput(void)
             return 0;
         if (wFilePromptActive) {
             wFilePromptActive = 0;
-            DrawTextField(6, 9, 6, 0);
+            ColorField(6, 9, 6, 0);
             if (wFilePromptNo)
                 goto cancel;
             if (!wFileEraseArmed) {
@@ -937,7 +937,7 @@ UBYTE FileScreenInput(void)
                     DrawString("YES");
                     wVramCursor = 0x992B;
                     DrawString("NO");
-                    DrawTextField(0x0B, 9, 2, hGameboyType ? 3 : 2);
+                    ColorField(0x0B, 9, 2, hGameboyType ? 3 : 2);
                     return 1;
                 }
                 return 0;
@@ -998,8 +998,8 @@ UBYTE FileScreenInput(void)
             break;
         if (wFilePromptActive) {
             wFilePromptNo = 0;
-            DrawTextField(6, 9, 3, hGameboyType ? 3 : 2);
-            DrawTextField(0x0B, 9, 2, 0);
+            ColorField(6, 9, 3, hGameboyType ? 3 : 2);
+            ColorField(0x0B, 9, 2, 0);
         } else if (!wFileListActive && wFileField) {
             FileDrawField(1);
             wFileField--;
@@ -1011,8 +1011,8 @@ UBYTE FileScreenInput(void)
             break;
         if (wFilePromptActive) {
             wFilePromptNo = 1;
-            DrawTextField(6, 9, 3, 0);
-            DrawTextField(0x0B, 9, 2, hGameboyType ? 3 : 2);
+            ColorField(6, 9, 3, 0);
+            ColorField(0x0B, 9, 2, hGameboyType ? 3 : 2);
         } else if (!wFileListActive && wFileField < 3 - 1) {
             FileDrawField(1);
             wFileField++;
