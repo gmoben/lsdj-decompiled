@@ -483,7 +483,8 @@ deferred tables below). Named intuitively (never `Lut<addr>`):
   (→ `synth_params $3EB2`), `DefaultInstrument`.
 - display tables: `NoteNames` (chromatic), `ChannelNames` (song),
   `SineTable`/`SynthDispatchJumps` (synth),
-  `WaveSourceNames`/`InstrOptionNames`/`InstrParamJumps` (instrument),
+  `WaveSourceNames`/`InstrOptionNames` (instrument; the `InstrParamJumps` once
+  named here is InstrScreenInput's own A+LEFT kit jump table, `.decKitFields`),
   `AlnumChars`/`TxtClockLabels`/`CloneModeNames`/`SyncModeNames` (project; the
   last since split into `TxtSyncOff`…`TxtSyncAnOut`, six separate strings), and
   ~50 UI message strings (`TxtCopiedInstr`, `TxtOutOfMemory`, …; cross-bank
