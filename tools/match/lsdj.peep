@@ -1276,6 +1276,16 @@ replace restart {
 } by {
 }
 
+// a literal loaded into a and overwritten by an sfr read at once: genCmp's
+// `x > n` with an sfr x (`xor a,a; ld a,#n; ldh a,(_x); sbc a,a`, the switch
+// bound in FxCmd_E_NoteOn); the ROM never loads a twice in a row
+replace restart {
+	ld	a,#%1
+	ldh	a,%2
+} by {
+	ldh	a,%2
+}
+
 // a load into a that the next stack read overwrites unread: SDCC's gencjneshort
 // fetches a stack right operand into a over an a-packed left (`ld a,(de)`, then
 // `cp a,a`); the ROM never has `ld a,X; ld hl,...; ld a,(hl)` (FreeUnusedInstrs'

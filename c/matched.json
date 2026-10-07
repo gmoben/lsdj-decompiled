@@ -983,6 +983,12 @@
   "len": 20,
   "src": "c/bank02/Sound.c"
  },
+ "EnvReleaseTarget": {
+  "bank": "02",
+  "addr": "69DF",
+  "len": 19,
+  "src": "c/bank02/Sound.c"
+ },
  "EraseFile": {
   "bank": "1C",
   "addr": "4D58",
@@ -1384,6 +1390,30 @@
   "addr": "4CCD",
   "len": 567,
   "src": "c/bank1f/InstrHelpers.c"
+ },
+ "FxCmd_E_Noi": {
+  "bank": "02",
+  "addr": "6A5E",
+  "len": 54,
+  "src": "c/bank02/Sound.c"
+ },
+ "FxCmd_E_NoteOn": {
+  "bank": "02",
+  "addr": "7CFB",
+  "len": 134,
+  "src": "c/bank02/Sound.c"
+ },
+ "FxCmd_E_Pu1": {
+  "bank": "02",
+  "addr": "69F2",
+  "len": 54,
+  "src": "c/bank02/Sound.c"
+ },
+ "FxCmd_E_Pu2": {
+  "bank": "02",
+  "addr": "6A28",
+  "len": 54,
+  "src": "c/bank02/Sound.c"
  },
  "FxCmd_K": {
   "bank": "02",

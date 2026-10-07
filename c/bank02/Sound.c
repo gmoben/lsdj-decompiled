@@ -71,6 +71,11 @@ extern UBYTE wWavFrameTimer;                /* $C525 */
 extern UBYTE wWavSynthFrame;                /* $C694 */
 extern UBYTE wWavUploadPending;              /* $C69C */
 extern UBYTE wFxWaveParam2;                 /* $C8C3 */
+extern UBYTE wChanFreqHi[];                 /* $C2E0, [4] */
+extern UBYTE wChanEnv[];                    /* $C2D8, [4] */
+extern UBYTE wEnvStagePu1, wEnvSpeedPu1, wEnvCounterPu1, wEnvTargetPu1;    /* $CBBF.. */
+extern UBYTE wEnvStagePu2, wEnvSpeedPu2, wEnvCounterPu2, wEnvTargetPu2;    /* $CBC6.. */
+extern UBYTE wEnvStageNoi, wEnvSpeedNoi, wEnvCounterNoi, wEnvTargetNoi;    /* $CBCD.. */
 /* the working pointers' low bytes: the per-channel arrays they point into
    sit in one page, so moving to the next channel is a byte increment */
 extern UBYTE wPtrChainRow, wPtrPhraseRow, wPtrNoteCountdown, wPtrGroove;  /* $C8DF.. */
@@ -118,6 +123,12 @@ void SndDeactivateChannel(void);            /* asm */
 void SndEnterSongRow(void);                 /* asm */
 void SndClearVoiceHram(void);               /* asm */
 void LoadWaveRam(void);                     /* bank 0, asm */
+void TriggerPU1(void);                      /* asm */
+void TriggerPU2(void);                      /* asm */
+void TriggerNoise(void);                    /* asm */
+void SndSetupLfo(void);                     /* asm */
+UBYTE EnvReleaseSpeed(void);
+UBYTE EnvReleaseTarget(void);
 
 /* $507F: step the working pointers to the next channel */
 
@@ -268,6 +279,74 @@ void SndWavLevelStep(UBYTE v)
             wWavLevel &= 0x60;
             v -= 0x10;
         }
+    }
+}
+
+/* $69DF: E's release direction (the second digit's bit 3: 9-F fade up): the
+   volume the envelope fades toward */
+
+UBYTE EnvReleaseTarget(void)
+{
+    return (hFxValue & 8) ? 0x0F : 0;
+}
+
+/* $69F2: E on PU1: restart the envelope (retriggering the note when its
+   length bit is set), then fade at the release digit's speed */
+
+void FxCmd_E_Pu1(void)
+{
+    UBYTE v;
+
+    if (wChanFreqHi[0] & 0x40)
+        TriggerPU1();
+    wEnvStagePu1 = 0;
+    SndSetupLfo();
+    v = EnvReleaseSpeed();
+    wEnvSpeedPu1 = v;
+    if (v) {
+        wEnvCounterPu1 = wEnvSpeedPu1;
+        wEnvTargetPu1 = EnvReleaseTarget();
+        wEnvStagePu1 = 3;
+    }
+}
+
+/* $6A28: E on PU2: restart the envelope (retriggering the note when its
+   length bit is set), then fade at the release digit's speed */
+
+void FxCmd_E_Pu2(void)
+{
+    UBYTE v;
+
+    if (wChanFreqHi[1] & 0x40)
+        TriggerPU2();
+    wEnvStagePu2 = 0;
+    SndSetupLfo();
+    v = EnvReleaseSpeed();
+    wEnvSpeedPu2 = v;
+    if (v) {
+        wEnvCounterPu2 = wEnvSpeedPu2;
+        wEnvTargetPu2 = EnvReleaseTarget();
+        wEnvStagePu2 = 3;
+    }
+}
+
+/* $6A5E: E on NOI: restart the envelope (retriggering the note when its
+   length bit is set), then fade at the release digit's speed */
+
+void FxCmd_E_Noi(void)
+{
+    UBYTE v;
+
+    if (wChanFreqHi[3] & 0x40)
+        TriggerNoise();
+    wEnvStageNoi = 0;
+    SndSetupLfo();
+    v = EnvReleaseSpeed();
+    wEnvSpeedNoi = v;
+    if (v) {
+        wEnvCounterNoi = wEnvSpeedNoi;
+        wEnvTargetNoi = EnvReleaseTarget();
+        wEnvStageNoi = 3;
     }
 }
 
@@ -693,4 +772,35 @@ UBYTE SndZTableCmd1(void)
 UBYTE SndZTableCmd2(void)
 {
     return SndZRepeat(5, wChanTable[hSoundCh] + 0x24);
+}
+
+/* $7CFB: E at a note-on: on PU1, PU2 and NOI stop the fade and take the
+   first digit as the envelope's volume (e = 5: the release runs as the note
+   plays); on WAV set the output level from the value (e = 0) */
+
+UBYTE FxCmd_E_NoteOn(void)
+{
+    UBYTE v;
+
+    v = wChanCmdVal[hSoundCh];
+    switch (hSoundCh) {
+    case 0:
+        wEnvStagePu1 = 0;
+        wEnvSpeedPu1 = 0;
+        break;
+    case 1:
+        wEnvStagePu2 = 0;
+        wEnvSpeedPu2 = 0;
+        break;
+    case 2:
+        v <<= 4;
+        wWavLevel = ~(v << 1) + 1;
+        return 0;
+    case 3:
+        wEnvStageNoi = 0;
+        wEnvSpeedNoi = 0;
+        break;
+    }
+    wChanEnv[hSoundCh] = v >> 4;
+    return 5;
 }

@@ -259,6 +259,14 @@ class HlRegisterTests(unittest.TestCase):
         changed = self.INDEX + ["\tld\t(de),a", "\tinc\tc", "\tld\ta,(hl)"] + self.STORE
         self.assertEqual(peep.track_a(changed, set())[0][11], "\tld\ta,(hl)")
 
+    def test_conditional_jump_ends_it_for_a_global_only(self):
+        # FxCmd_E_Pu1: `wEnvSpeedPu1 = v; if (v) wEnvCounterPu1 = wEnvSpeedPu1;`
+        test = ["\txor\ta,a", "\tor\ta,c", "\tjp\tz,00102$", "\tld\ta,(hl)"]
+        source = ["\tld\thl,#_wEnvSpeedPu1 + 0", "\tld\t(hl),c"] + test
+        self.assertEqual(peep.track_a(source, set())[0][5], "\tld\ta,(hl)")
+        stack = ["\tlda\thl,2(sp)", "\tld\t(hl),c"] + test
+        self.assertEqual(peep.track_a(stack, set())[0][5], "\tld\ta,c")
+
 
 if __name__ == "__main__":
     unittest.main()

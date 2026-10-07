@@ -143,7 +143,10 @@
 66E7 SndResetPitchState         ; per-channel jp-table: clear wChanSlideNoteSrc, center wChanPitchCur ($8000), reset wChanCmdStep
 6904 SndTableStepDispatch       ; table-step jump table (jp hl), SndClampNoteRange
 69C3 EnvReleaseSpeed            ; E's release digit (hFxValue & 7) -> the envelope fade speed (EnvReleaseSpeeds)
-69DF SndTriggerPU1Plus          ; TriggerPU1 then SndSetupLfo
+69DF EnvReleaseTarget           ; E's release direction (the second digit's bit 3, 9-F fade up): the volume the envelope fades toward, $0F or 0
+69F2 FxCmd_E_Pu1                ; E on PU1 (from FxCmd_E): restart the envelope (retriggering when the length bit is set), then fade at EnvReleaseSpeed toward EnvReleaseTarget
+6A28 FxCmd_E_Pu2                ; E on PU2, as FxCmd_E_Pu1
+6A5E FxCmd_E_Noi                ; E on NOI, as FxCmd_E_Pu1
 6A94 SndLiveQueueStart          ; live mode: queue channel (arg) to start the song row's chain when its current one ends; again on the same row (chain/phrase screen) start at the edited chain row, sooner; with a sync restart pending, start now
 6B59 SndSetPlayRange            ; the channels to play (wPlayChanFirst..Last): the song cursor's column, or on the song screen in selection mode the selection's columns
 6B9B SndLiveQueueRange          ; live mode: queue a start for each channel in the play range (SndLiveQueueStart)
@@ -170,7 +173,7 @@
 792B SndSyncStart               ; decide/perform playback start from wSyncMode + saved screen context ($c8fe)
 7B31 StartScreenPlayback        ; start the current screen's playback: the song from the cursor row (SndSyncStart), or the edited channel's chain or phrase
 7C4C TogglePlayback             ; START: stop all playback, then start the current screen's unless it was the one playing (sync stop otherwise); live mode: SndStartRange
-7CFB SndCmdJumpTable            ; command jump table (jp hl)
+7CFB FxCmd_E_NoteOn             ; E at a note-on (NoteToPeriod): PU1/PU2/NOI stop the fade, the first digit sets wChanEnv (e = 5: the release runs); WAV sets wWavLevel (e = 0)
 7F24 SndSetupLfo                ; dispatch by hSoundCh -> SndSetupLfoPU1/PU2/WavNoi (vibrato/LFO setup)
 7F33 SndSetupLfoWavNoi          ; LFO setup for ch2/3 (WAV/NOI): clear $cbcd, init from $c2db
 7F3E SndSetupLfoPU2             ; LFO setup for ch1 (PU2): clear $cbc6, init from $c2d9
@@ -225,9 +228,9 @@
 689C .done                ; common exit of SndResetPitchState
 6902 .done2               ; common exit of SndResetPitchState
 69BF .done                ; common exit of SndTableStepDispatch
-6A26 .done                ; common exit of SndTriggerPU1Plus
-6A5C .done2               ; common exit of SndTriggerPU1Plus
-6A92 .done3               ; common exit of SndTriggerPU1Plus
+6A26 .done                ; common exit of FxCmd_E_Pu1
+6A5C .done2               ; common exit of FxCmd_E_Pu2
+6A92 .done3               ; common exit of FxCmd_E_Noi
 6B55 .done                ; common exit of SndLiveQueueStart
 6B9A .done                ; common exit of SndSetPlayRange
 6BA3 .loop                ; loop head in SndLiveQueueRange
@@ -256,7 +259,7 @@
 7B2D .done                ; common exit of SndSyncStart
 7C73 .loop                ; loop head in TogglePlayback
 7CF7 .done                ; common exit of TogglePlayback
-7D7F .done                ; common exit of SndCmdJumpTable
+7D7F .done                ; common exit of FxCmd_E_NoteOn
 
 ; --- structural local names (loop heads / common exits) ---
 6AC1 .onChain             ; wCurrentScreen == case in SndLiveQueueStart
@@ -602,11 +605,8 @@
 69A5 .useChanCmdCountdown
 69ED .cont
 69EF .cont_2
-69F2 .testBit6
 6A00 .startEnvPu1
-6A28 .testBit6_2
 6A36 .startEnvPu2
-6A5E .testBit6_3
 6ADD .loadChainRow
 6AFB .add16
 6B0A .loadSongRow

@@ -729,9 +729,14 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
             # (a load from (hl) keeps the equality whatever it writes; so does
             # a store through de/bc: 3 ROM sites copy the register after one,
             # none rereads -- StartScreenPlayback's `wChanActive[wSongCol] = 1;
-            # wPlayStartChan = wSongCol` is `ld c,(hl); ...; ld (de),a; ld a,c`)
+            # wPlayStartChan = wSongCol` is `ld c,(hl); ...; ld (de),a; ld a,c`).
+            # A conditional jump ends it for a global: FxCmd_E_Pu1/Pu2/Noi's
+            # `wEnvSpeedPu1 = v; if (v) wEnvCounterPu1 = wEnvSpeedPu1;` reread
+            # it (`ld (hl),c; or a,c; jp z; ld a,(hl)`, 3 sites), while a stack
+            # slot keeps it (PhraseScreenInput's `ld (hl),e; ...; jp c; ld a,e`)
             w = _written(mn, ops)
-            if hl_reg in w or {"h", "l"} & w or mn in _WRITES_ALL or (mn in ("jp", "jr") and len(ops) == 1) \
+            if hl_reg in w or {"h", "l"} & w or mn in _WRITES_ALL \
+                    or (mn in ("jp", "jr") and (len(ops) == 1 or (hl is not None and hl[0] == "imm"))) \
                     or (mn == "ld" and ops and ops[0].startswith("(") and ops[0] not in ("(de)", "(bc)")) \
                     or (mn in ("inc", "dec") and ops == ["(hl)"]):
                 hl_reg = None
