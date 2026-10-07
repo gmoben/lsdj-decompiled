@@ -855,6 +855,523 @@ void ChainOpenPhrase(void)
     }
 }
 
+extern UBYTE wChainCellValue;               /* $C945 */
+extern UBYTE wChainCellEmpty;               /* $C946 */
+extern UBYTE wDrawStep;                     /* $C405 */
+extern UBYTE wSongScroll;                   /* $C41C */
+extern UBYTE wQuickMarking;                 /* $C412 */
+extern UBYTE wMuteSoloLatch;                /* $C56A */
+extern UBYTE wChainScopeDirty;              /* $C403 */
+void MapMoveRight(void);                    /* $05:$4253 */
+void MapMoveUp(void);                       /* $05:$426A */
+void ShowTapAddPhrase(void);                /* bank 1 */
+void MarkPhraseUsed(void);                  /* bank 1 */
+void CutCopyChainSelection(UBYTE cut);
+void ChainPasteCells(void);
+void DrawChainSelection(void);
+
+/* $5BD0: the chain screen's input, an if chain on wButtons: A writes a
+   phrase (the column's last, or a new one) or the transpose kept from the
+   last edit; the directions move the cursor; A+RIGHT/UP/LEFT/DOWN step the
+   phrase (by 1 / 16) or the transpose (by 1 / an octave, 4 on the noise
+   channel) under the cursor or across the selection; B+LEFT/RIGHT change
+   channel, B+UP/DOWN the song row; A+B cuts the cell; select+A pastes (or,
+   in a selection, cuts); start and select+start play; select+directions
+   move on the screen map; B in a selection copies it; select+B selects,
+   then widens to the column and the screen. 1 when the key was taken */
+
+UBYTE ChainScreenInput(void)
+{
+    UBYTE x, y, x1, y0, y1, v, left, right;
+    UBYTE isA;
+    char cx, cy;
+
+    if (wChain & 0x80)
+        DebugTrap();
+    isA = wButtons == 0x10;
+    if (!isA)
+        wDrawStep = 0;
+    if (wCursorMode == 4 && wButtons == 0x43) {
+        wChainCol = wSelLeft;
+        wChainRow = wSelTop;
+        FarCall(5, 0x747D);
+        if (hGameboyType) {
+            FarCall(1, 0x6CD7);
+            FarCall(5, 0x4040);
+        }
+        DrawChainScreen();
+        ShowMessage("CANCEL SELECT");
+        ChainDrawCellHw();
+        return 1;
+    }
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
+    if (wAPressEnabled && isA) {
+        if (wCursorMode == 4)
+            return 0;
+        hBgDigitPalette = wSelectDigitPal;
+        hBgPalette = wSelectPal;
+        GetTilemapAddr(ChainColX[wChainCol], wChainRow + 2);
+        switch (wChainCol) {
+        case 0:
+            if (wDrawStep++ && wChainCellEmpty) {
+                v = FarCallByte(1, FAR_FN(AllocNextFreePhrase));
+                wDrawStep = 0;
+            } else {
+                v = FarCallArg2P(2, FAR_FN(SndGetChainPhrase), wChain, wChainRow);
+                wChainCellEmpty = v == 0xFF;
+                if (wChainCellEmpty) {
+                    v = wColPhrase[wSongCol];
+                    if (v == 0xFF) {
+                        v = FarCallByte(1, FAR_FN(AllocNextFreePhrase));
+                        wChainCellEmpty = 0;
+                    } else
+                        FarCallArg(1, FAR_FN(MarkPhraseUsed), v);
+                }
+            }
+            if (v != 0xFF) {
+                FarCallArg3P(0x1F, FAR_FN(WriteChainPhrase), wChain, (char)wChainRow, v);
+                DrawHexByte(v);
+                wColPhrase[wSongCol] = v;
+            }
+            return 1;
+        case 1:
+            if (!ChainReadTrans(wChain, (char)wChainRow)) {
+                SetChainTranspose(wChain, (char)wChainRow, wChainCellValue);
+                DrawHexByte(wChainCellValue);
+                return 1;
+            }
+        }
+    }
+    if (wButtons == 0x01) {
+        if (wChainCol == 1)
+            return 0;
+        if (wCursorMode != 4)
+            ChainDrawCellLo();
+        wChainCol++;
+        if (wCursorMode == 4)
+            DrawChainSelection();
+        else
+            ChainDrawCellHw();
+        return 1;
+    }
+    if (wButtons == 0x02) {
+        if (!wChainCol)
+            return 0;
+        if (wCursorMode != 4)
+            ChainDrawCellLo();
+        wChainCol--;
+        if (wCursorMode == 4)
+            DrawChainSelection();
+        else
+            ChainDrawCellHw();
+        return 1;
+    }
+    if (wButtons == 0x04) {
+        if (!wChainRow)
+            return 0;
+        if (wCursorMode != 4)
+            ChainDrawCellLo();
+        wChainRow--;
+        DrawChainPos();
+        if (wCursorMode == 4)
+            DrawChainSelection();
+        else
+            ChainDrawCellHw();
+        return 1;
+    }
+    if (wButtons == 0x08) {
+        if (wChainRow == 0x0F)
+            return 0;
+        if (wCursorMode != 4)
+            ChainDrawCellLo();
+        wChainRow++;
+        DrawChainPos();
+        if (wCursorMode == 4)
+            DrawChainSelection();
+        else
+            ChainDrawCellHw();
+        return 1;
+    }
+    if (wButtons == 0x11) {
+        cx = wChainCol;
+        x1 = cx;
+        cy = wChainRow;
+        y1 = cy;
+        if (wCursorMode == 4) {
+            x = wSelLeft;
+            y0 = wSelTop;
+        } else {
+            x = cx;
+            y0 = cy;
+        }
+        SortBytePair(&x, &x1);
+        SortBytePair(&y0, &y1);
+        x1++;
+        y1++;
+        hBgDigitPalette = wSelectDigitPal;
+        hBgPalette = wSelectPal;
+        wChainScopeDirty = 1;
+        for (; x < x1; x++) {
+            for (y = y0; y < y1; y++) {
+                switch (x) {
+                case 0:
+                    v = FarCallArg2P(2, FAR_FN(SndGetChainPhrase), wChain, y);
+                    if (v != 0xFE) {
+                        v = v + 1;
+                        FarCallArg3P(0x1F, FAR_FN(WriteChainPhrase), wChain, y, v);
+                        GetTilemapAddr(ChainColX[0], y + 2);
+                        DrawHexByte(v);
+                    }
+                    break;
+                case 1:
+                    GetTilemapAddr(ChainColX[1], y + 2);
+                    v = ChainReadTrans(wChain, y) + 1;
+                    SetChainTranspose(wChain, y, v);
+                    DrawHexByte(v);
+                    wChainCellValue = v;
+                    break;
+                }
+            }
+        }
+        return 1;
+    }
+    if (wButtons == 0x14) {
+        cx = wChainCol;
+        x1 = cx;
+        cy = wChainRow;
+        y1 = cy;
+        if (wCursorMode == 4) {
+            x = wSelLeft;
+            y0 = wSelTop;
+        } else {
+            x = cx;
+            y0 = cy;
+        }
+        SortBytePair(&x, &x1);
+        SortBytePair(&y0, &y1);
+        x1++;
+        y1++;
+        wChainScopeDirty = 1;
+        hBgDigitPalette = wSelectDigitPal;
+        hBgPalette = wSelectPal;
+        for (; x < x1; x++) {
+            for (y = y0; y < y1; y++) {
+                switch (x) {
+                case 0:
+                    v = FarCallArg2P(2, FAR_FN(SndGetChainPhrase), wChain, y);
+                    if (v == 0xFF)
+                        v = wColPhrase[wSongCol];
+                    else if (v >= 0xEF)
+                        v = 0xFE;
+                    else
+                        v = v + 0x10;
+                    FarCallArg3P(0x1F, FAR_FN(WriteChainPhrase), wChain, y, v);
+                    GetTilemapAddr(ChainColX[0], y + 2);
+                    DrawHexByte(v);
+                    break;
+                case 1:
+                    GetTilemapAddr(ChainColX[1], y + 2);
+                    v = ChainReadTrans(wChain, y);
+                    v = v + (wSongCol == 3 ? 4 : 12);
+                    SetChainTranspose(wChain, y, v);
+                    DrawHexByte(v);
+                    wChainCellValue = v;
+                    break;
+                }
+            }
+        }
+        return 1;
+    }
+    if (wButtons == 0x12) {
+        cx = wChainCol;
+        x1 = cx;
+        cy = wChainRow;
+        y1 = cy;
+        if (wCursorMode == 4) {
+            x = wSelLeft;
+            y0 = wSelTop;
+        } else {
+            x = cx;
+            y0 = cy;
+        }
+        SortBytePair(&x, &x1);
+        SortBytePair(&y0, &y1);
+        x1++;
+        y1++;
+        wChainScopeDirty = 1;
+        hBgDigitPalette = wSelectDigitPal;
+        hBgPalette = wSelectPal;
+        for (; x < x1; x++) {
+            for (y = y0; y < y1; y++) {
+                switch (x) {
+                case 0:
+                    v = FarCallArg2P(2, FAR_FN(SndGetChainPhrase), wChain, y);
+                    if (v) {
+                        v = v - 1;
+                        FarCallArg3P(0x1F, FAR_FN(WriteChainPhrase), wChain, y, v);
+                        GetTilemapAddr(ChainColX[0], y + 2);
+                        DrawHexByte(v);
+                    }
+                    break;
+                case 1:
+                    GetTilemapAddr(ChainColX[1], y + 2);
+                    v = ChainReadTrans(wChain, y) - 1;
+                    SetChainTranspose(wChain, y, v);
+                    DrawHexByte(v);
+                    wChainCellValue = v;
+                    break;
+                }
+            }
+        }
+        return 1;
+    }
+    if (wButtons == 0x18) {
+        cx = wChainCol;
+        x1 = cx;
+        cy = wChainRow;
+        y1 = cy;
+        if (wCursorMode == 4) {
+            x = wSelLeft;
+            y0 = wSelTop;
+        } else {
+            x = cx;
+            y0 = cy;
+        }
+        SortBytePair(&x, &x1);
+        SortBytePair(&y0, &y1);
+        x1++;
+        y1++;
+        wChainScopeDirty = 1;
+        hBgDigitPalette = wSelectDigitPal;
+        hBgPalette = wSelectPal;
+        for (; x < x1; x++) {
+            for (y = y0; y < y1; y++) {
+                switch (x) {
+                case 0:
+                    GetTilemapAddr(ChainColX[0], y + 2);
+                    v = FarCallArg2P(2, FAR_FN(SndGetChainPhrase), wChain, y);
+                    if (v == 0xFF)
+                        v = wColPhrase[wSongCol];
+                    else if (v < 0x10)
+                        v = 0;
+                    else
+                        v = v - 0x10;
+                    FarCallArg3P(0x1F, FAR_FN(WriteChainPhrase), wChain, y, v);
+                    DrawHexByte(v);
+                    break;
+                case 1:
+                    GetTilemapAddr(ChainColX[1], y + 2);
+                    v = ChainReadTrans(wChain, y);
+                    v = v - (wSongCol == 3 ? 4 : 12);
+                    SetChainTranspose(wChain, y, v);
+                    DrawHexByte(v);
+                    wChainCellValue = v;
+                    break;
+                }
+            }
+        }
+        return 1;
+    }
+    if (wBHeld && wButtons == 0x21) {
+        wBHeld = 0;
+        for (x = wSongCol + 1; x < 4; ++x)
+            if (ChainScreenEnter(x))
+                return 1;
+        return 0;
+    }
+    if (wBHeld && wButtons == 0x22) {
+        wBHeld = 0;
+        for (x = wSongCol - 1; x < 4; --x)
+            if (ChainScreenEnter(x))
+                return 1;
+        return 0;
+    }
+    if (wBHeld && wButtons == 0x24) {
+        wBHeld = 0;
+        wMsgStrPtr = 0;
+        if (!wSongRow) {
+            if (wAPressEnabled) {
+                ChainDrawCellLo();
+                wChainRow = 0;
+                DrawChainScreen();
+            }
+            return 0;
+        }
+        wSongRow--;
+        wChain = GetCursorChain();
+        if (wChain & 0x80) {
+            wSongRow++;
+            wChain = GetCursorChain();
+            if (wChain & 0x80)
+                wChain = 0;
+        }
+        DrawChainScreen();
+        return 1;
+    }
+    if (wBHeld && wButtons == 0x28) {
+        wBHeld = 0;
+        wMsgStrPtr = 0;
+        if (wSongRow == 0xFF)
+            return 0;
+        wSongRow++;
+        if ((wSongRow - wSongScroll) & 0xF0)
+            wSongScroll = wSongRow & 0xF0;
+        wChain = GetCursorChain();
+        if (wChain & 0x80) {
+            wSongRow--;
+            wChain = GetCursorChain();
+            if (wChain & 0x80)
+                wChain = 0;
+        }
+        DrawChainScreen();
+        return 1;
+    }
+    if (wButtons == 0x30) {
+        if (!wAPressEnabled)
+            return 0;
+        wAPressEnabled = 0;
+        wCursorMode = 2;
+        wSelLeft = wChainCol;
+        wSelRight = 2;
+        wSelTop = wChainRow;
+        wSelBottom = wSelTop + 1;
+        wClipboardType = 3;
+        if (!wChainCol) {
+            v = FarCallArg2P(2, FAR_FN(SndGetChainPhrase), wChain, (char)wChainRow);
+            wColPhrase[wSongCol] = v;
+            WriteClipboardCell(0, (char)wChainRow, v);
+        }
+        wChainCellValue = ChainReadTrans(wChain, (char)wChainRow);
+        WriteClipboardCell(1, (char)wChainRow, wChainCellValue);
+        if (!wChainCol)
+            FarCallArg3P(0x1F, FAR_FN(WriteChainPhrase), wChain, (char)wChainRow, 0xFF);
+        else
+            SetChainTranspose(wChain, (char)wChainRow, 0);
+        DrawChainScreen();
+        return 1;
+    }
+    if (wButtons == 0x50) {
+        if (wCursorMode == 1)
+            return 0;
+        if (wClipboardType != 3)
+            return 0;
+        if (!wSelectHeld)
+            return 0;
+        if (wCursorMode == 4) {
+            wSelectHeld = 0;
+            if (wAPressEnabled || wSelLeft != wChainCol || wSelTop != wChainRow)
+                CutCopyChainSelection(1);
+            else
+                ChainOpenPhrase();
+            return 0;
+        }
+        ChainDrawCellLo();
+        ChainPasteCells();
+        DrawChainScreen();
+        return 1;
+    }
+    if (wButtons == 0x70 && wCursorMode == 4) {
+        ChainOpenPhrase();
+        return 1;
+    }
+    if (wButtons == 0xC0) {
+        if (wButtonsSame)
+            return 1;
+        FarCall(2, FAR_FN(ToggleSongPlayback));
+        return 1;
+    }
+    if (wButtons == 0x80) {
+        if (wButtonsSame || wBHeld) {
+            if (wMuteSoloLatch == 2)
+                wMuteSoloLatch = 1;
+            return 1;
+        }
+        if (!wPlayMode && FarCallArg2P(2, FAR_FN(SndGetChainPhrase), wChain, (char)wChainRow) == 0xFF
+                && FarCallArg2P(2, FAR_FN(SndGetChainPhrase), wChain, 0) == 0xFF)
+            return 0;
+        FarCall(2, FAR_FN(TogglePlayback));
+        return 1;
+    }
+    if (wButtons == 0x41) {
+        if (wButtonsSame)
+            return 0;
+        if (!ChainLoadCursorPhrase()) {
+            FarCall(1, FAR_FN(ShowTapAddPhrase));
+            return 0;
+        }
+        FarCall(5, MapMoveRight);
+        FarCall(4, FAR_FN(RedrawScreen));
+        return 1;
+    }
+    if (wButtons == 0x42) {
+        if (wButtonsSame)
+            return 0;
+        FarCall(5, MapMoveLeft);
+        FarCall(4, FAR_FN(RedrawScreen));
+        return 1;
+    }
+    if (wButtons == 0x44) {
+        if (wButtonsSame)
+            return 0;
+        ChainLoadCursorPhrase();
+        FarCall(5, MapMoveUp);
+        FarCall(7, FAR_FN(RedrawScreen));
+        return 1;
+    }
+    if (wButtons == 0x48) {
+        if (wButtonsSame)
+            return 0;
+        FarCall(5, MapMoveDown);
+        FarCall(7, FAR_FN(RedrawScreen));
+        return 1;
+    }
+    if (wCursorMode == 4 && wButtons == 0x20) {
+        if (!wAPressEnabled)
+            return 0;
+        CutCopyChainSelection(0);
+        return 1;
+    }
+    if (wButtons == 0x60) {
+        if (!wSelectHeld)
+            return 0;
+        if (wCursorMode == 4 && wClipboardType == 3) {
+            left = wSelLeft;
+            right = (char)wChainCol;
+            y0 = wSelTop;
+            y1 = (char)wChainRow;
+            wQuickMarking = 1;
+            SortBytePair(&y0, &y1);
+            if (y0 || y1 != 0x0F) {
+                wSelTop = 0;
+                wChainRow = 0x0F;
+                wSelectHeld = 0;
+                DrawChainSelection();
+                return 1;
+            }
+            SortBytePair(&left, &right);
+            if (left || right != 1) {
+                wSelLeft = 0;
+                wChainCol = 1;
+                wSelectHeld = 0;
+                DrawChainSelection();
+                return 1;
+            }
+            wSelectHeld = 0;
+            CutCopyChainSelection(0);
+            return 1;
+        }
+        FarCall(5, SaveSelectionState);
+        wQuickMarking = 0;
+        wSelLeft = wChainCol;
+        wSelTop = wChainRow;
+        wSelectHeld = 0;
+        ShowMessage("SELECT");
+        return 1;
+    }
+    return 0;
+}
+
 void CutCopyChainSelection(UBYTE cut)
 {
     UBYTE x, y;

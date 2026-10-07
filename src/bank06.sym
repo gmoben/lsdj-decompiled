@@ -87,7 +87,7 @@
 ; --- functions called from bank 0 (this bank paged in) ---
 74AD DrawSyncStatus             ; draw the sync/lead status by wSyncMode (1/3/6/7 cases)
 72C4 UpdateStatusPanel          ; per-frame status update for most screens: pending sample-name cells (wChanDispNote) at x=17, the tempo field when wTempo changed, the scope
-5BD0 ChainScreenInput           ; chain screen (3) input handler, from DispatchScreenInput: dispatch on wButtons
+5BD0 ChainScreenInput           ; the chain screen's input: A writes a phrase/transpose, the directions move, A+directions step phrases (1/16) or transposes (1/octave) over the cell or selection, B+directions change channel or song row, A+B cuts, select+A pastes, start plays, select+B selects
 507F WaveScreenInput            ; wave-screen input dispatch (wButtons)
 431D WordEditorInput            ; word screen (12) input handler, from DispatchScreenInput: cursor over wWordEditRow/Col, dispatch on wButtons
 5391 TxtSelect         ; "SELECT" (pairs with TxtCancelSelect)
@@ -144,16 +144,16 @@
 59DB .loop2               ; loop head in DrawChainScreen
 5ABC .done                ; common exit of ChainScreenUpdate
 5BCC .done                ; common exit of ChainOpenPhrase
-5F76 .loop                ; loop head in ChainScreenInput
-5F84 .loop2               ; loop head in ChainScreenInput
-6168 .loop3               ; loop head in ChainScreenInput
-6176 .loop4               ; loop head in ChainScreenInput
-63B2 .loop5               ; loop head in ChainScreenInput
-63C0 .loop6               ; loop head in ChainScreenInput
-659C .loop7               ; loop head in ChainScreenInput
-65AA .loop8               ; loop head in ChainScreenInput
-676D .loop9               ; loop head in ChainScreenInput
-67B1 .loop10              ; loop head in ChainScreenInput
+5F76 .incColumns ; loop head in ChainScreenInput
+5F84 .incRows ; loop head in ChainScreenInput
+6168 .bigColumns ; loop head in ChainScreenInput
+6176 .bigRows ; loop head in ChainScreenInput
+63B2 .decColumns ; loop head in ChainScreenInput
+63C0 .decRows ; loop head in ChainScreenInput
+659C .bigDecColumns ; loop head in ChainScreenInput
+65AA .bigDecRows ; loop head in ChainScreenInput
+676D .nextChanLoop ; loop head in ChainScreenInput
+67B1 .prevChanLoop ; loop head in ChainScreenInput
 6D3C .done                ; common exit of ChainScreenInput
 6DA2 .loop                ; loop head in CutCopyChainSelection
 6DD0 .loop2               ; loop head in CutCopyChainSelection
@@ -215,35 +215,35 @@
 5323 .b                   ; wButtons == case in WaveScreenInput
 5349 .selA                ; wButtons == case in WaveScreenInput
 5737 .notChain            ; wButtons == case in ClonePhraseAtCursor
-5BEC .notA                ; wButtons == case in ChainScreenInput
-5C68 .notSelRightLeft     ; wButtons == case in ChainScreenInput
-5E0A .notRight            ; wButtons == case in ChainScreenInput
-5E2D .notRight2           ; wButtons == case in ChainScreenInput
-5E66 .notLeft             ; wButtons == case in ChainScreenInput
-5EA2 .notUp               ; wButtons == case in ChainScreenInput
-5EB9 .notRightLeftUpDown  ; wButtons == case in ChainScreenInput
-5EDF .notDown             ; wButtons == case in ChainScreenInput
-60D1 .notARight           ; wButtons == case in ChainScreenInput
-631B .notAUp              ; wButtons == case in ChainScreenInput
-6505 .notALeft            ; wButtons == case in ChainScreenInput
-674E .notADown            ; wButtons == case in ChainScreenInput
-6792 .notBRight           ; wButtons == case in ChainScreenInput
-67D6 .notBLeft            ; wButtons == case in ChainScreenInput
-6840 .notBUp              ; wButtons == case in ChainScreenInput
-686C .notSelStartABRightLeftUpDown ; wButtons == case in ChainScreenInput
-68AF .notBDown            ; wButtons == case in ChainScreenInput
-69B1 .notAB               ; wButtons == case in ChainScreenInput
-69C8 .notRight3           ; wButtons == case in ChainScreenInput
-6A31 .notSelA             ; wButtons == case in ChainScreenInput
-6A49 .notSelAB            ; wButtons == case in ChainScreenInput
-6A72 .notSelStart         ; wButtons == case in ChainScreenInput
-6B09 .notStart            ; wButtons == case in ChainScreenInput
-6B5B .notSelRight         ; wButtons == case in ChainScreenInput
-6B91 .notSelLeft          ; wButtons == case in ChainScreenInput
-6BCA .notSelUp            ; wButtons == case in ChainScreenInput
-6C00 .notSelDown          ; wButtons == case in ChainScreenInput
-6C2B .notB                ; wButtons == case in ChainScreenInput
-6D3A .notSelB             ; wButtons == case in ChainScreenInput
+5BEC .aFalse
+5C68 .notCancelSelect
+5E0A .right
+5E2D .testLeft
+5E66 .testUp
+5EA2 .testDown
+5EB9 .down
+5EDF .testARight
+60D1 .testAUp
+631B .testALeft
+6505 .testADown
+674E .testBRight
+6792 .testBLeft
+67D6 .testBUp
+6840 .testBDown
+686C .songRowDown
+68AF .testAB
+69B1 .testSelA
+69C8 .selAClip
+6A31 .testSelAB
+6A49 .testSelStart
+6A72 .testStart
+6B09 .testSelRight
+6B5B .testSelLeft
+6B91 .testSelUp
+6BCA .testSelDown
+6C00 .testB
+6C2B .testSelB
+6D3A .none
 
 
 
@@ -298,36 +298,36 @@
 5A11 .okb
 5A20 .loadChainRow
 5AD0 .loadChainRow
-5BDF .ok
-5BF7 .checkCursorMode
-5C54 .drawChainScreen
-5C89 .loadSelectDigitPal
-5CCA .incDrawStep
-5DF3 .checkButtons
-5E14 .incChainCol
-5E25 .chainDrawCellHw
-5E4D .decChainCol
-5E5E .chainDrawCellHwb
-5E86 .decChainRow
-5E9A .chainDrawCellHwc
-5EC3 .incChainRow
-5ED7 .chainDrawCellHwd
-6814 .decSongRow
-6838 .drawChainScreenb
-687D .loadSongRow
-6887 .getCursorChain
-68A7 .drawChainScreenc
-68C5 .setAPressEnabled
-69A9 .drawChainScreend
-69D6 .checkSelectHeld
-6A1B .chainOpenPhrase
-6A23 .chainDrawCellLo
-6A9E .checkPlayMode
-6B1F .chainLoadCursorPhrase
-6BA7 .chainLoadCursorPhraseb
-6C9B .setSelTop
-6CDB .setSelLeft
-6CF2 .setSelectHeld
+5BDF .chainOk
+5BF7 .selTest
+5C54 .cancelRedraw
+5C89 .writeCell
+5CCA .phraseCell
+5DF3 .directions
+5E14 .colRight
+5E25 .rightCursor
+5E4D .colLeft
+5E5E .leftCursor
+5E86 .rowUp
+5E9A .upCursor
+5EC3 .rowDown
+5ED7 .downCursor
+6814 .songRowUp
+6838 .songUpDraw
+687D .scrollSong
+6887 .songDownChain
+68A7 .songDownDraw
+68C5 .cutCell
+69A9 .cutDraw
+69D6 .selAHeld
+6A1B .openPhrase
+6A23 .pasteCells
+6A9E .startPlay
+6B1F .mapRight
+6BA7 .mapUp
+6C9B .widenRows
+6CDB .widenColumns
+6CF2 .copyScreen
 6D64 .setCursorMode
 6D9B .loadSelLeft
 6FD4 .incChainRow
@@ -477,107 +477,107 @@
 5ACE .setChainRow
 5B3A .loadSongCol
 5BBE .farCall
-5BED .setDrawStep
-5C04 .cont
-5C05 .checkButtons_2
-5CF5 .loadChainRow
-5D1E .cont_2
-5D1F .setWordEditCol
-5D57 .cont_3
-5D6A .checkArg
-5DAE .ret01
-5DB3 .loadChainRow_2
-5E28 .ret01_2
-5E43 .chainDrawCellLo_2
-5E61 .ret01_3
-5E7C .chainDrawCellLo_3
-5E9D .ret01_4
-5EDA .ret01_5
-5F0E .cont_4
-5F14 .cont_5
-5FA0 .cont_6
-5FA1 .checkArg_2
-5FB4 .cont_7
-5FB5 .cont_8
-5FBF .cont_9
-5FF5 .cont_10
-5FF6 .cont_11
-6061 .cont_12
-60B8 .cont_13
-60C2 .cont_14
-60CC .ret01_6
-6100 .cont_15
-6106 .cont_16
-6192 .cont_17
-6193 .checkArg_3
-61A6 .cont_18
-61A7 .cont_19
-61B1 .cont_20
-61EA .cont_21
-61EB .setSongCol
-6209 .checkArg_4
-621F .cont_22
-622A .cont_23
-6286 .cont_24
-62C6 .cont_25
-62C7 .cont_26
-62D3 .cont_27
-62D5 .cont_28
-6302 .cont_29
-630C .cont_30
-6316 .ret01_7
-634A .cont_31
-6350 .cont_32
-63DC .cont_33
-63DD .checkArg_5
-63F0 .cont_34
-63F1 .cont_35
-63FB .cont_36
-6494 .cont_37
-64EC .cont_38
-64F6 .cont_39
-6500 .ret01_8
-6534 .cont_40
-653A .cont_41
-65C6 .cont_42
-65C7 .checkArg_6
-65DA .cont_43
-65DB .cont_44
-65E5 .cont_45
-663C .cont_46
-663D .setSongCol_2
-665B .checkArg_7
-6671 .cont_47
-667C .cont_48
-66BA .cont_49
-66F9 .cont_50
-66FA .cont_51
-6706 .cont_52
-6708 .cont_53
-6735 .cont_54
-673F .cont_55
-6749 .ret01_9
-6787 .cont_56
-678D .ret00
-67CB .cont_57
-67D1 .ret00_2
-680F .ret00_3
-693C .loadChainRow_3
-6993 .loadChainRow_4
-69E3 .setSelectHeld_2
-6A0F .pasteChainSelection
-6A1E .ret00_4
-6A5F .farCall
-6A8B .checkSelectPal
-6A99 .ret01_10
-6AF6 .farCall_2
-6B3B .farCall_3
-6B71 .farCall_4
-6BE0 .farCall_5
-6C1D .pasteChainSelection_2
-6C41 .checkClipboardType
-6CB2 .cont_58
-6D05 .farCall_6
+5BED .aStore
+5C04 .selFalse
+5C05 .selStore
+5CF5 .readPhrase
+5D1E .notEmptyCell
+5D1F .storeEmpty
+5D57 .markColPhrase
+5D6A .writePhrase
+5DAE .wrote
+5DB3 .transposeCell
+5E28 .rightDone
+5E43 .left
+5E61 .leftDone
+5E7C .up
+5E9D .upDone
+5EDA .downDone
+5F0E .incOne
+5F14 .incSorted
+5FA0 .incNotPhraseCol
+5FA1 .incPhraseColTest
+5FB4 .incNotTransCol
+5FB5 .incTransColTest
+5FBF .incPhrase
+5FF5 .incNotLast
+5FF6 .incLastTest
+6061 .incTranspose
+60B8 .incNextRow
+60C2 .incNextCol
+60CC .incDone
+6100 .bigOne
+6106 .bigSorted
+6192 .bigNotPhraseCol
+6193 .bigPhraseColTest
+61A6 .bigNotTransCol
+61A7 .bigTransColTest
+61B1 .bigPhrase
+61EA .bigNotEmpty
+61EB .bigEmptyTest
+6209 .bigStep
+621F .bigAdd
+622A .bigWrite
+6286 .bigTranspose
+62C6 .bigNotNoise
+62C7 .bigNoiseTest
+62D3 .bigOctave
+62D5 .bigAddTranspose
+6302 .bigNextRow
+630C .bigNextCol
+6316 .bigDone
+634A .decOne
+6350 .decSorted
+63DC .decNotPhraseCol
+63DD .decPhraseColTest
+63F0 .decNotTransCol
+63F1 .decTransColTest
+63FB .decPhrase
+6494 .decTranspose
+64EC .decNextRow
+64F6 .decNextCol
+6500 .decDone
+6534 .bigDecOne
+653A .bigDecSorted
+65C6 .bigDecNotPhraseCol
+65C7 .bigDecPhraseColTest
+65DA .bigDecNotTransCol
+65DB .bigDecTransColTest
+65E5 .bigDecPhrase
+663C .bigDecNotEmpty
+663D .bigDecEmptyTest
+665B .bigDecStep
+6671 .bigDecSub
+667C .bigDecWrite
+66BA .bigDecTranspose
+66F9 .bigDecNotNoise
+66FA .bigDecNoiseTest
+6706 .bigDecOctave
+6708 .bigDecSubTranspose
+6735 .bigDecNextRow
+673F .bigDecNextCol
+6749 .bigDecDone
+6787 .nextChanSkip
+678D .nextChanNone
+67CB .prevChanSkip
+67D1 .prevChanNone
+680F .songTop
+693C .cutTranspose
+6993 .clearTranspose
+69E3 .selAInSelection
+6A0F .cutSelection
+6A1E .selADone
+6A5F .toggleSong
+6A8B .startHeld
+6A99 .startDone
+6AF6 .togglePlay
+6B3B .mapRightGo
+6B71 .mapLeft
+6BE0 .mapDown
+6C1D .copySelection
+6C41 .selB
+6CB2 .selBColumns
+6D05 .startSelection
 6DBD .cont
 6DBE .cont_2
 6DCC .cont_3

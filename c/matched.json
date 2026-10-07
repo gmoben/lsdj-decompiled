@@ -149,6 +149,12 @@
   "len": 195,
   "src": "c/bank06/Screens.c"
  },
+ "ChainScreenInput": {
+  "bank": "06",
+  "addr": "5BD0",
+  "len": 4464,
+  "src": "c/bank06/Screens.c"
+ },
  "ChainScreenUpdate": {
   "bank": "06",
   "addr": "5A62",
