@@ -3551,6 +3551,12 @@
   "len": 99,
   "src": "c/bank05/TableScreen.c"
  },
+ "TableScreenInput": {
+  "bank": "05",
+  "addr": "4B5D",
+  "len": 5720,
+  "src": "c/bank05/TableScreen.c"
+ },
  "TableScreenUpdate": {
   "bank": "05",
   "addr": "4967",

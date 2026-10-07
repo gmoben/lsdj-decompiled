@@ -31,7 +31,7 @@
 64A3 TablePasteCells            ; table-screen paste: clipboard cells into rows from wTableRow (a phrase selection's CMD pair too; swaps the two CMD/value pairs; "PASTE" for more than one row)
 676A DrawTableSelection         ; table selection (wClipboardType==5) redraw vs the cursor: cells around the rectangle in their column palettes, the inside highlighted (ColorField)
 ; --- functions called from bank 0 (this bank paged in) ---
-4B5D TableScreenInput           ; table screen (5) input handler, from DispatchScreenInput: dispatch on wButtons
+4B5D TableScreenInput           ; the table screen's input: A writes envelopes/transposes/commands (a free table on an A command's value), A+directions step cells by 1/16 over the row or selection, B+directions change table, A+B cuts, select+A pastes, start plays, select+DOWN opens a G command's groove, select+B selects
 4040 MapDrawTopRow      ; draw the map top-row entries (PROJECT + WAVE/SYNTH) at wMapProjectCol/wMapSynthCol, screen row 15
 61C3 TxtSelect05       ; "SELECT" (pairs with TxtCancelSelect05)
 
@@ -92,16 +92,16 @@
 4965 .done                ; common exit of TableInputFlag
 4AA4 .done                ; common exit of TableScreenUpdate
 4B59 .done                ; common exit of TableDrawCursor
-4F1F .loop                ; loop head in TableScreenInput
-508E .loop2               ; loop head in TableScreenInput
-5251 .loop3               ; loop head in TableScreenInput
-53BD .loop4               ; loop head in TableScreenInput
-556B .loop5               ; loop head in TableScreenInput
-56E3 .loop6               ; loop head in TableScreenInput
-58C5 .loop7               ; loop head in TableScreenInput
-5A3B .loop8               ; loop head in TableScreenInput
-5F34 .loop9               ; loop head in TableScreenInput
-5FD2 .loop10              ; loop head in TableScreenInput
+4F1F .incLoop ; loop head in TableScreenInput
+508E .incCmdLoop ; loop head in TableScreenInput
+5251 .decLoop ; loop head in TableScreenInput
+53BD .decCmdLoop ; loop head in TableScreenInput
+556B .bigLoop ; loop head in TableScreenInput
+56E3 .bigCmdLoop ; loop head in TableScreenInput
+58C5 .bigDecLoop ; loop head in TableScreenInput
+5A3B .bigDecCmdLoop ; loop head in TableScreenInput
+5F34 .grooveShift ; loop head in TableScreenInput
+5FD2 .grooveShift2 ; loop head in TableScreenInput
 61B1 .done                ; common exit of TableScreenInput
 6265 .loop                ; loop head in CutCopyTableSelection
 6291 .loop2               ; loop head in CutCopyTableSelection
@@ -117,11 +117,11 @@
 6D21 .done                ; common exit of DrawInstrFieldHelp
 
 ; --- structural local names (loop heads / common exits) ---
-4B85 .notA                ; wButtons == case in TableScreenInput
-4E70 .right               ; wButtons == case in TableScreenInput
-4E89 .left                ; wButtons == case in TableScreenInput
-4EA1 .up                  ; wButtons == case in TableScreenInput
-4EBB .down                ; wButtons == case in TableScreenInput
+4B85 .aFalse
+4E70 .right
+4E89 .left
+4EA1 .up
+4EBB .down
 
 
 
@@ -170,74 +170,74 @@
 4B06 .checkTableCol
 4B36 .setTableCellAPtr
 4B49 .setTableCellAPtrb
-4B6C .ok
-4B90 .checkButtons
-4C0B .checkCursorMode
-4C54 .drawTableScreen
-4C68 .checkAPressEnabled
-4CBB .setTableCellAPtr
-4CCB .checkTableCol
-4D61 .checkTableColb
-4DA8 .incDrawStep
-4E19 .incDrawStepb
-4E81 .tableDrawCursor
-4E95 .decTableCol
-4EB3 .tableDrawCursorb
-4ECD .tableDrawCursorc
-4ED5 .checkCursorModeb
-4F58 .setTableCellAPtrb
-4F6B .setTableCellAPtrc
-5064 .checkTableColc
-50C0 .loadSelectDigitPal
-5207 .checkCursorModec
-528A .setTableCellAPtrd
-529D .setTableCellAPtre
-5367 .checkTableCold
-53EE .loadSelectDigitPalb
-5521 .checkCursorModed
-55A4 .setTableCellAPtrf
-55B7 .setTableCellAPtrg
-56B9 .checkTableCole
-5714 .loadSelectDigitPalc
-57FB .checkSongCol
-581B .checkSongColb
-587B .checkCursorModee
-58FE .setTableCellAPtrh
-5911 .setTableCellAPtri
-59E5 .checkTableColf
-5A6C .loadSelectDigitPald
-5B41 .checkSongColc
-5B5E .checkSongCold
-5BBE .checkTable
-5BC8 .setMsgStrPtr
-5BD8 .checkTableb
-5BE1 .setMsgStrPtrb
-5BF1 .checkTablec
-5C00 .setTable
-5C05 .setMsgStrPtrc
-5C15 .loadTable
-5C24 .setTableb
-5C29 .setMsgStrPtrd
-5C39 .checkAPressEnabledb
-5C90 .setSelLeft
-5CD3 .setSelLeftb
-5D16 .setSelLeftc
-5DAD .setSelLeftd
-5E41 .drawTableScreenb
-5E49 .checkCursorModef
-5E74 .checkClipboardType
-5E82 .checkTableColg
-5E92 .tableColumnLookup
-5EA0 .checkButtonsSame
-5EC0 .checkButtonsSameb
-5EE8 .checkButtonsSamec
-5F0F .checkButtonsSamed
-606F .checkButtonsSamee
-6097 .checkCursorModeg
-60B6 .checkSelectHeld
-6115 .setSelTop
-6155 .setSelLefte
-616C .setSelectHeld
+4B6C .tableOk
+4B90 .dispatch
+4C0B .cancelSelect
+4C54 .cancelRedraw
+4C68 .aPress
+4CBB .cmd1Columns
+4CCB .aColumn
+4D61 .aCommand
+4DA8 .aCmdHelp
+4E19 .aValue
+4E81 .rightCursor
+4E95 .colLeft
+4EB3 .upCursor
+4ECD .downCursor
+4ED5 .incRows
+4F58 .incCmd1Ptrs
+4F6B .incCmd2Ptrs
+5064 .incCmdTarget
+50C0 .incCmdDraw
+5207 .decRows
+528A .decCmd1Ptrs
+529D .decCmd2Ptrs
+5367 .decCommand
+53EE .decCmdDraw
+5521 .bigRows
+55A4 .bigCmd1Ptrs
+55B7 .bigCmd2Ptrs
+56B9 .bigCmdTarget
+5714 .bigCmdDraw
+57FB .bigWaveCmd
+581B .bigPitchCmd
+587B .bigDecRows
+58FE .bigDecCmd1Ptrs
+5911 .bigDecCmd2Ptrs
+59E5 .bigDecCommand
+5A6C .bigDecCmdDraw
+5B41 .bigDecWaveCmd
+5B5E .bigDecPitchCmd
+5BBE .nextTable
+5BC8 .nextTableDraw
+5BD8 .prevTable
+5BE1 .prevTableDraw
+5BF1 .nextTables
+5C00 .lastTable
+5C05 .nextTablesDraw
+5C15 .prevTables
+5C24 .firstTable
+5C29 .prevTablesDraw
+5C39 .cutCell
+5C90 .cutEnvelope
+5CD3 .cutTranspose
+5D16 .cutCmd1
+5DAD .cutCmd2
+5E41 .cutDraw
+5E49 .selA
+5E74 .selAClip
+5E82 .selAColumn
+5E92 .pasteCells
+5EA0 .selStart
+5EC0 .start
+5EE8 .mapUp
+5F0F .mapDown
+606F .mapLeft
+6097 .copySelection
+60B6 .selB
+6115 .widenRows
+6155 .widenColumns
+616C .copyScreen
 6210 .comparePtrBytes
 622F .checkSelLeft
 623C .checkSelRight
@@ -300,117 +300,117 @@
 4A7A .setSpriteY
 4AC7 .cont
 4AC9 .loadTableCol
-4B86 .setDrawStep
-4C63 .ret01
-4CFD .loadTableRow
-4D2F .loadTableRow_2
-4D6F .cont
-4D71 .setCursorButtonHold
-4DC7 .checkArg
-4DDC .loadTableRow_3
-4E6B .ret01_2
-4F0A .setTableRow
-4F18 .cont_2
-4F7B .loadTableCol
-4FCD .tableReadEnv
-4FFD .setTableRow_2
-5007 .tableReadTrans
-5036 .cont_3
-5072 .cont_4
-5074 .setCursorButtonHold_2
-50F1 .cont_5
-5114 .tableGetCellB
-5143 .tableGetCellB_2
-5177 .add16
-5186 .add16_2
-5195 .checkArg_2
-51A4 .cont_6
-51AB .checkArg_3
-51BC .cont_7
-51C2 .cont_8
-51C5 .writeTableCmd2
-51F8 .cont_9
-5202 .ret01_3
-523C .setTableRow_3
-524A .cont_10
-52AD .loadTableCol_2
-52FF .tableReadEnv_2
-5314 .drawTableEnv
-532E .setTableRow_4
-5338 .tableReadTrans_2
-5375 .cont_11
-5377 .setCursorButtonHold_3
-53A8 .cont_12
-541F .cont_13
-5442 .tableGetCellB_3
-5471 .tableGetCellB_4
-54A1 .add16_3
-54B0 .checkArg_4
-54BF .cont_14
-54C6 .checkSongCol_2
-54D6 .cont_15
-54DC .cont_16
-54DF .writeTableCmd2_2
-5512 .cont_17
-551C .ret01_4
-5556 .setTableRow_5
-5564 .cont_18
-55C7 .loadTableCol_3
-5619 .tableReadEnv_3
-5649 .tableReadTrans_3
-5664 .cont_19
-5666 .drawHexByte
-568B .cont_20
-56C7 .cont_21
-56C9 .setCursorButtonHold_4
-5745 .cont_22
-5768 .tableGetCellB_5
-5797 .tableGetCellB_6
-57D0 .cont_23
-57E2 .cont_24
-57F4 .checkSongCol_3
-580D .checkArg_5
-5829 .cont_25
-582B .cont_26
-5833 .cont_27
-5839 .writeTableCmd2_3
-586C .cont_28
-5876 .ret01_5
-58B0 .setTableRow_6
-58BE .cont_29
-5921 .loadTableCol_4
-5973 .tableReadEnv_4
-59A3 .tableReadTrans_4
-59BE .cont_30
-59C0 .drawHexByte_2
-59F3 .cont_31
-59F5 .setCursorButtonHold_5
-5A26 .cont_32
-5A9D .cont_33
-5AC0 .tableGetCellB_7
-5AEF .tableGetCellB_8
-5B28 .cont_34
-5B3A .checkSongCol_4
-5B53 .checkSongCol_5
-5B6C .cont_35
-5B6E .cont_36
-5B76 .cont_37
-5B7C .writeTableCmd2_4
-5BAF .cont_38
-5BB9 .ret01_6
-5D55 .loadTableRow_4
-5DEC .loadTableRow_5
-5EAD .farCall
-5ED0 .ret01_7
-5ED5 .farCall_2
-5F25 .setTable_2
-5F3C .step
-5FB5 .loadTableCol_5
-5FDA .step_2
-6050 .farCall_3
-612C .cont_39
-617F .showMessage
-61AF .cont_40
+4B86 .aStore
+4C63 .cancelDone
+4CFD .aEnvelope
+4D2F .aTranspose
+4D6F .aCmd1
+4D71 .aCmdTarget
+4DC7 .aCmdAlias
+4DDC .aCmdWrite
+4E6B .aDone
+4F0A .incOne
+4F18 .incSorted
+4F7B .incCell
+4FCD .incEnvelope
+4FFD .incEnvelopeKept
+5007 .incTranspose
+5036 .incCommand
+5072 .incCmd1
+5074 .incCmdTargetSet
+50F1 .incCmdHelp
+5114 .incCmdValue
+5143 .incValue
+5177 .incTableCmd
+5186 .incHopCmd
+5195 .incPanCmd
+51A4 .incPanRight
+51AB .incWaveCmd
+51BC .incWaveStep
+51C2 .incValueStep
+51C5 .incValueWrite
+51F8 .incNextRow
+5202 .incDone
+523C .decOne
+524A .decSorted
+52AD .decCell
+52FF .decEnvelope
+5314 .decEnvelopeDraw
+532E .decEnvelopeKept
+5338 .decTranspose
+5375 .decCmd1
+5377 .decCmdTargetSet
+53A8 .decCmdRead
+541F .decCmdHelp
+5442 .decCmdValue
+5471 .decValue
+54A1 .decTableCmd
+54B0 .decPanCmd
+54BF .decPanLeft
+54C6 .decWaveCmd
+54D6 .decWaveStep
+54DC .decValueStep
+54DF .decValueWrite
+5512 .decNextRow
+551C .decDone
+5556 .bigOne
+5564 .bigSorted
+55C7 .bigCell
+5619 .bigEnvelope
+5649 .bigTranspose
+5664 .bigOctave
+5666 .bigTransposeDraw
+568B .bigCommand
+56C7 .bigCmd1
+56C9 .bigCmdTargetSet
+5745 .bigCmdHelp
+5768 .bigCmdValue
+5797 .bigValue
+57D0 .bigTableCmd
+57E2 .bigHopCmd
+57F4 .bigPanCmd
+580D .bigWaveStep
+5829 .bigPitchOctave
+582B .bigPitchStep
+5833 .bigValueStep
+5839 .bigValueWrite
+586C .bigNextRow
+5876 .bigDone
+58B0 .bigDecOne
+58BE .bigDecSorted
+5921 .bigDecCell
+5973 .bigDecEnvelope
+59A3 .bigDecTranspose
+59BE .bigDecOctave
+59C0 .bigDecTransposeDraw
+59F3 .bigDecCmd1
+59F5 .bigDecCmdTargetSet
+5A26 .bigDecCmdRead
+5A9D .bigDecCmdHelp
+5AC0 .bigDecCmdValue
+5AEF .bigDecValue
+5B28 .bigDecTableCmd
+5B3A .bigDecPanCmd
+5B53 .bigDecWaveStep
+5B6C .bigDecPitchOctave
+5B6E .bigDecPitchStep
+5B76 .bigDecValueStep
+5B7C .bigDecValueWrite
+5BAF .bigDecNextRow
+5BB9 .bigDecDone
+5D55 .cutCmd1Clip
+5DEC .cutCmd2Clip
+5EAD .toggleSong
+5ED0 .startDone
+5ED5 .togglePlay
+5F25 .grooveCmd1
+5F3C .grooveShiftTest
+5FB5 .grooveCmd2
+5FDA .grooveShiftTest2
+6050 .mapDownGo
+612C .selBColumns
+617F .startSelection
+61AF .none
 61D9 .cont
 61E8 .cont_2
 61ED .showMessage
@@ -544,13 +544,13 @@
 73EA TxtHelpLimit               ; "LIMIT SIGNAL VERTICALLY..."
 
 ; --- pointer targets (tools/name_targets.py) ---
-4CEB .jumpTable
-4F4C .jumpTable2
-4FBB .jumpTable3
-527E .jumpTable4
-52ED .jumpTable5
-5598 .jumpTable6
-5607 .jumpTable7
-58F2 .jumpTable8
-5961 .jumpTable9
-5C7E .jumpTable10
+4CEB .columnCases
+4F4C .incPtrCases
+4FBB .incColumnCases
+527E .decPtrCases
+52ED .decColumnCases
+5598 .bigPtrCases
+5607 .bigColumnCases
+58F2 .bigDecPtrCases
+5961 .bigDecColumnCases
+5C7E .cutCases

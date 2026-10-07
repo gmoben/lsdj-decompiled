@@ -474,6 +474,711 @@ void TableDrawCursor(void)
     }
 }
 
+extern UBYTE wTableEnvCache;                /* $C931 */
+extern UBYTE wTableTransCache;              /* $C932 */
+extern UBYTE wGroove;                       /* $C417 */
+extern UBYTE wDrawStep;                     /* $C405 */
+extern UBYTE wPendingCmds[];                /* $C457, [16] */
+extern UBYTE wPendingCmdTarget;             /* $C467 */
+extern UBYTE wColLastCmd[];                 /* $C44B, [4] */
+extern UBYTE wSelectHeld;                   /* $C40A */
+extern UBYTE wBHeld;                        /* $C40B */
+extern UBYTE wAPressEnabled;                /* $C409 */
+extern UBYTE wButtons;                      /* $C575 */
+void LoadCommandHelp(void);                 /* bank 1 */
+void ToggleSongPlayback(void);              /* bank 2 */
+void TogglePlayback(void);                  /* bank 2 */
+void CutCopyTableSelection(UBYTE cut);
+void TablePasteCells(void);
+void SaveSelectionState(void);
+
+/* $4B5D: the table screen's input, a switch on wButtons: A writes the
+   envelope or transpose kept from the last edit, the column's command (the
+   last one used, its help on a second press) or, on the value of an A
+   command pressed twice, a free table; the directions move the cursor;
+   A+RIGHT/LEFT and A+UP/DOWN step the cell by 1 and 16 (an octave, 4 on
+   the noise channel, for transposes; command letters skip those tables do
+   not take) over the cursor row or the selection; B+directions change
+   table; A+B cuts the cell; select+A pastes (in a selection: cuts); start
+   and select+start play; select+UP/LEFT/DOWN move on the screen map, DOWN
+   opening the groove a G command names; B copies a selection; select+B
+   selects, then widens to the column and the screen. 1 when taken */
+
+UBYTE TableScreenInput(void)
+{
+    UBYTE y, y1, v;
+
+    if (wTable >= 0x20)
+        DebugTrap();
+    hBgDigitPalette = wSelectDigitPal;
+    hBgPalette = wSelectPal;
+    if (wButtons != 0x10)
+        wDrawStep = 0;
+    switch (wButtons) {
+    case 0x43:
+        if (wCursorMode == 4) {
+            wTableCol = wSelLeft;
+            wTableRow = wSelTop;
+            FarCall(5, RestoreSelectionState);
+            if (hGameboyType) {
+                FarCall(1, FAR_FN(UiDrawTextHw));
+                FarCall(5, MapDrawTopRow);
+            }
+            DrawTableScreen();
+            TableDrawCursor();
+            ShowMessage("CANCEL SELECT");
+        }
+        return 1;
+    case 0x10:
+        if (!wAPressEnabled || wCursorMode == 4)
+            break;
+        GetTilemapAddr(TableColX[wTableCol], wTableRow + 2);
+        if (wTableCol > 3) {
+            wTableCellAPtr = 0xBA80;
+            wTableCellBPtr = 0xBC80;
+        } else {
+            wTableCellAPtr = 0xB680;
+            wTableCellBPtr = 0xB880;
+        }
+        switch (wTableCol) {
+        case 0:
+            if (!TableReadEnv((char)wTableRow)) {
+                DrawTableEnv(wTableEnvCache);
+                TableWriteEnv((char)wTableRow, wTableEnvCache);
+            }
+            break;
+        case 1:
+            if (!TableReadTrans((char)wTableRow)) {
+                DrawHexByte(wTableTransCache);
+                TableWriteTrans((char)wTableRow, wTableTransCache);
+            }
+            break;
+        case 2:
+        case 4:
+            wPendingCmdTarget = (wTableCol == 4 ? 1 : 0) + 1;
+            v = TableReadCmd((char)wTableRow);
+            if (!v) {
+                v = wColLastCmd[wSongCol];
+                if (!v)
+                    DebugTrap();
+            } else if (wDrawStep++)
+                FarCallArg(1, FAR_FN(LoadCommandHelp), v);
+            if (v == 0x0A && wTableCol == 4)
+                v = 1;
+            wPendingCmds[wTableRow] = v;
+            DrawCmdLetter(v);
+            hBgDigitPalette = 4;
+            hBgPalette = 1;
+            DrawFieldValue(v, TableReadVal((char)wTableRow));
+            break;
+        case 3:
+        case 5:
+            if (wDrawStep++ == 1) {
+                v = TableReadCmd((char)wTableRow);
+                if (v == 1) {
+                    v = FarCallByte(0x1F, FAR_FN(FindFreeTable));
+                    if (v != 0xFF) {
+                        TableWriteVal((char)wTableRow, v);
+                        DrawHexByte(v);
+                    }
+                }
+            }
+            break;
+        }
+        return 1;
+    case 0x01:
+        TableEraseCursor();
+        if (++wTableCol == 6)
+            wTableCol--;
+        TableDrawCursor();
+        return 1;
+    case 0x02:
+        TableEraseCursor();
+        if (!wTableCol)
+            wTableCol++;
+        wTableCol--;
+        TableDrawCursor();
+        return 1;
+    case 0x04:
+        TableEraseCursor();
+        if ((char)--wTableRow == 0xFF)
+            wTableRow++;
+        TableDrawCursor();
+        return 1;
+    case 0x08:
+        TableEraseCursor();
+        if (++wTableRow == 0x10)
+            wTableRow = 0x0F;
+        TableDrawCursor();
+        return 1;
+    case 0x11:
+        if (wCursorMode == 4) {
+            y = wSelTop;
+            y1 = (char)wTableRow;
+            SortBytePair(&y, &y1);
+        } else {
+            y1 = (char)wTableRow;
+            y = (char)wTableRow;
+        }
+        y1++;
+        for (; y < y1; y++) {
+            switch (wTableCol) {
+            case 2:
+            case 3:
+                wTableCellAPtr = 0xB680;
+                wTableCellBPtr = 0xB880;
+                break;
+            case 4:
+            case 5:
+                wTableCellAPtr = 0xBA80;
+                wTableCellBPtr = 0xBC80;
+                break;
+            }
+            GetTilemapAddr(TableColX[wTableCol], y + 2);
+            switch (wTableCol) {
+            case 0:
+                v = TableReadEnv(y);
+                if ((v & 0x0F) != 0x0F) {
+                    v++;
+                    DrawTableEnv(v);
+                    TableWriteEnv(y, v);
+                }
+                wTableEnvCache = v;
+                break;
+            case 1:
+                v = TableReadTrans(y);
+                v++;
+                DrawHexByte(v);
+                TableWriteTrans(y, v);
+                wTableTransCache = v;
+                break;
+            case 2:
+            case 4:
+                if (!wPendingCmds[y])
+                    if (!(wPendingCmds[y] = TableReadCmd(y)))
+                        break;
+                wPendingCmdTarget = (wTableCol == 4 ? 1 : 0) + 1;
+                if (wPendingCmds[y] < 0x13)
+                    do
+                        wPendingCmds[y]++;
+                    while (TableInputFlag(wPendingCmds[y]));
+                hBgDigitPalette = wSelectDigitPal;
+                hBgPalette = wSelectPal;
+                DrawCmdLetter(wPendingCmds[y]);
+                if (wMsgStrPtr || wMsgTimer)
+                    FarCallArg(1, FAR_FN(LoadCommandHelp), wPendingCmds[y]);
+                hBgDigitPalette = 4;
+                hBgPalette = 1;
+                DrawFieldValue(wPendingCmds[y], TableReadVal(y));
+                break;
+            case 3:
+            case 5:
+                v = TableReadVal(y);
+                switch (TableReadCmd(y)) {
+                case 0:
+                    break;
+                case 1:
+                    v++;
+                    if (v > 0x20)
+                        v = 0x20;
+                    break;
+                case 7:
+                    v++;
+                    if (v > 0x1F)
+                        v = 0x1F;
+                    break;
+                case 0x0C:
+                    if (v == 1)
+                        v = 3;
+                    else
+                        v = 2;
+                    break;
+                case 0x12:
+                    if (v != 3 || wSongCol == 2)
+                        v++;
+                    break;
+                default:
+                    v++;
+                }
+                TableWriteVal(y, v);
+                hBgDigitPalette = wSelectDigitPal;
+                hBgPalette = wSelectPal;
+                DrawFieldValue(TableReadCmd(y), v);
+                break;
+            }
+        }
+        return 1;
+    case 0x12:
+        if (wCursorMode == 4) {
+            y = wSelTop;
+            y1 = (char)wTableRow;
+            SortBytePair(&y, &y1);
+        } else {
+            y1 = (char)wTableRow;
+            y = (char)wTableRow;
+        }
+        y1++;
+        for (; y < y1; y++) {
+            switch (wTableCol) {
+            case 2:
+            case 3:
+                wTableCellAPtr = 0xB680;
+                wTableCellBPtr = 0xB880;
+                break;
+            case 4:
+            case 5:
+                wTableCellAPtr = 0xBA80;
+                wTableCellBPtr = 0xBC80;
+                break;
+            }
+            GetTilemapAddr(TableColX[wTableCol], y + 2);
+            switch (wTableCol) {
+            case 0:
+                v = TableReadEnv(y);
+                if (v & 0x0F) {
+                    v--;
+                    DrawTableEnv(v);
+                    TableWriteEnv(y, v);
+                }
+                wTableEnvCache = v;
+                break;
+            case 1:
+                v = TableReadTrans(y);
+                v--;
+                DrawHexByte(v);
+                TableWriteTrans(y, v);
+                wTableTransCache = v;
+                break;
+            case 2:
+            case 4:
+                wPendingCmdTarget = (wTableCol == 4 ? 1 : 0) + 1;
+                if (!wPendingCmds[y])
+                    wPendingCmds[y] = TableReadCmd(y);
+                if (wPendingCmds[y] > 1)
+                    do
+                        wPendingCmds[y]--;
+                    while (TableInputFlag(wPendingCmds[y]));
+                hBgDigitPalette = wSelectDigitPal;
+                hBgPalette = wSelectPal;
+                DrawCmdLetter(wPendingCmds[y]);
+                if (wMsgStrPtr || wMsgTimer)
+                    FarCallArg(1, FAR_FN(LoadCommandHelp), wPendingCmds[y]);
+                hBgDigitPalette = 4;
+                hBgPalette = 1;
+                DrawFieldValue(wPendingCmds[y], TableReadVal(y));
+                break;
+            case 3:
+            case 5:
+                v = TableReadVal(y);
+                switch (TableReadCmd(y)) {
+                case 1:
+                case 7:
+                    v--;
+                    if (v > 0x1F)
+                        v = 0;
+                    break;
+                case 0x0C:
+                    if (v == 2)
+                        v = 3;
+                    else
+                        v = 1;
+                    break;
+                case 0x12:
+                    if (v || wSongCol == 2)
+                        v--;
+                    break;
+                default:
+                    v--;
+                }
+                TableWriteVal(y, v);
+                hBgDigitPalette = wSelectDigitPal;
+                hBgPalette = wSelectPal;
+                DrawFieldValue(TableReadCmd(y), v);
+                break;
+            }
+        }
+        return 1;
+    case 0x14:
+        if (wCursorMode == 4) {
+            y = wSelTop;
+            y1 = (char)wTableRow;
+            SortBytePair(&y, &y1);
+        } else {
+            y1 = (char)wTableRow;
+            y = (char)wTableRow;
+        }
+        y1++;
+        for (; y < y1; y++) {
+            switch (wTableCol) {
+            case 2:
+            case 3:
+                wTableCellAPtr = 0xB680;
+                wTableCellBPtr = 0xB880;
+                break;
+            case 4:
+            case 5:
+                wTableCellAPtr = 0xBA80;
+                wTableCellBPtr = 0xBC80;
+                break;
+            }
+            GetTilemapAddr(TableColX[wTableCol], y + 2);
+            switch (wTableCol) {
+            case 0:
+                v = TableReadEnv(y);
+                v += 0x10;
+                DrawTableEnv(v);
+                TableWriteEnv(y, v);
+                wTableEnvCache = v;
+                break;
+            case 1:
+                v = TableReadTrans(y);
+                v += wSongCol == 3 ? 4 : 12;
+                DrawHexByte(v);
+                TableWriteTrans(y, v);
+                wTableTransCache = v;
+                break;
+            case 2:
+            case 4:
+                if (!wPendingCmds[y])
+                    if (!(wPendingCmds[y] = TableReadCmd(y)))
+                        break;
+                wPendingCmdTarget = (wTableCol == 4 ? 1 : 0) + 1;
+                if (wPendingCmds[y] < 0x13)
+                    do
+                        wPendingCmds[y]++;
+                    while (TableInputFlag(wPendingCmds[y]));
+                hBgDigitPalette = wSelectDigitPal;
+                hBgPalette = wSelectPal;
+                DrawCmdLetter(wPendingCmds[y]);
+                if (wMsgStrPtr || wMsgTimer)
+                    FarCallArg(1, FAR_FN(LoadCommandHelp), wPendingCmds[y]);
+                hBgDigitPalette = 4;
+                hBgPalette = 1;
+                DrawFieldValue(wPendingCmds[y], TableReadVal(y));
+                break;
+            case 3:
+            case 5:
+                v = TableReadVal(y);
+                switch (TableReadCmd(y)) {
+                case 0:
+                    break;
+                case 1:
+                    v += 0x10;
+                    if (v > 0x20)
+                        v = 0x20;
+                    break;
+                case 7:
+                    v += 0x10;
+                    if (v > 0x1F)
+                        v = 0x1F;
+                    break;
+                case 0x0C:
+                    v = 3;
+                    break;
+                case 0x12:
+                    if (wSongCol == 2)
+                        v += 0x10;
+                    else if (v != 3)
+                        v++;
+                    break;
+                case 0x0F:
+                    v += wSongCol == 3 ? 4 : 0x10;
+                    break;
+                default:
+                    v += 0x10;
+                }
+                TableWriteVal(y, v);
+                hBgDigitPalette = wSelectDigitPal;
+                hBgPalette = wSelectPal;
+                DrawFieldValue(TableReadCmd(y), v);
+                break;
+            }
+        }
+        return 1;
+    case 0x18:
+        if (wCursorMode == 4) {
+            y = wSelTop;
+            y1 = (char)wTableRow;
+            SortBytePair(&y, &y1);
+        } else {
+            y1 = (char)wTableRow;
+            y = (char)wTableRow;
+        }
+        y1++;
+        for (; y < y1; y++) {
+            switch (wTableCol) {
+            case 2:
+            case 3:
+                wTableCellAPtr = 0xB680;
+                wTableCellBPtr = 0xB880;
+                break;
+            case 4:
+            case 5:
+                wTableCellAPtr = 0xBA80;
+                wTableCellBPtr = 0xBC80;
+                break;
+            }
+            GetTilemapAddr(TableColX[wTableCol], y + 2);
+            switch (wTableCol) {
+            case 0:
+                v = TableReadEnv(y);
+                v -= 0x10;
+                DrawTableEnv(v);
+                TableWriteEnv(y, v);
+                wTableEnvCache = v;
+                break;
+            case 1:
+                v = TableReadTrans(y);
+                v -= wSongCol == 3 ? 4 : 12;
+                DrawHexByte(v);
+                TableWriteTrans(y, v);
+                wTableTransCache = v;
+                break;
+            case 2:
+            case 4:
+                wPendingCmdTarget = (wTableCol == 4 ? 1 : 0) + 1;
+                if (!wPendingCmds[y])
+                    wPendingCmds[y] = TableReadCmd(y);
+                if (wPendingCmds[y] > 1)
+                    do
+                        wPendingCmds[y]--;
+                    while (TableInputFlag(wPendingCmds[y]));
+                hBgDigitPalette = wSelectDigitPal;
+                hBgPalette = wSelectPal;
+                DrawCmdLetter(wPendingCmds[y]);
+                if (wMsgStrPtr || wMsgTimer)
+                    FarCallArg(1, FAR_FN(LoadCommandHelp), wPendingCmds[y]);
+                hBgDigitPalette = 4;
+                hBgPalette = 1;
+                DrawFieldValue(wPendingCmds[y], TableReadVal(y));
+                break;
+            case 3:
+            case 5:
+                v = TableReadVal(y);
+                switch (TableReadCmd(y)) {
+                case 0:
+                    break;
+                case 1:
+                case 7:
+                    v -= 0x10;
+                    if (v > 0x1F)
+                        v = 0;
+                    break;
+                case 0x0C:
+                    v = 0;
+                    break;
+                case 0x12:
+                    if (wSongCol == 2)
+                        v -= 0x10;
+                    else if (v)
+                        v--;
+                    break;
+                case 0x0F:
+                    v -= wSongCol == 3 ? 4 : 0x10;
+                    break;
+                default:
+                    v -= 0x10;
+                }
+                TableWriteVal(y, v);
+                hBgDigitPalette = wSelectDigitPal;
+                hBgPalette = wSelectPal;
+                DrawFieldValue(TableReadCmd(y), v);
+                break;
+            }
+        }
+        return 1;
+    case 0x21:
+        if (wTable < 0x1F)
+            wTable++;
+        wMsgStrPtr = 0;
+        DrawTableScreen();
+        return 1;
+    case 0x22:
+        if (wTable)
+            wTable--;
+        wMsgStrPtr = 0;
+        DrawTableScreen();
+        return 1;
+    case 0x24:
+        if (wTable < 0x10)
+            wTable += 0x10;
+        else
+            wTable = 0x1F;
+        wMsgStrPtr = 0;
+        DrawTableScreen();
+        return 1;
+    case 0x28:
+        if (wTable & 0x10)
+            wTable -= 0x10;
+        else
+            wTable = 0;
+        wMsgStrPtr = 0;
+        DrawTableScreen();
+        return 1;
+    case 0x30:
+        if (!wAPressEnabled)
+            break;
+        wAPressEnabled = 0;
+        TableEraseCursor();
+        wCursorMode = 2;
+        wSelTop = wTableRow;
+        wSelBottom = wSelTop + 1;
+        wClipboardType = 5;
+        switch (wTableCol) {
+        case 0:
+            wSelLeft = 0;
+            wSelRight = 1;
+            wTableEnvCache = TableReadEnv((char)wTableRow);
+            WriteClipboardCell(0, (char)wTableRow, wTableEnvCache);
+            TableWriteEnv((char)wTableRow, 0);
+            break;
+        case 1:
+            wSelLeft = 1;
+            wSelRight = 2;
+            wTableTransCache = TableReadTrans((char)wTableRow);
+            WriteClipboardCell(1, (char)wTableRow, wTableTransCache);
+            TableWriteTrans((char)wTableRow, 0);
+            break;
+        case 2:
+        case 3:
+            wSelLeft = 2;
+            wSelRight = 4;
+            wTableCellAPtr = 0xB680;
+            wTableCellBPtr = 0xB880;
+            v = TableReadCmd((char)wTableRow);
+            if (v)
+                wColLastCmd[wSongCol] = v;
+            WriteClipboardCell(2, (char)wTableRow, v);
+            WriteClipboardCell(3, (char)wTableRow, TableReadVal((char)wTableRow));
+            TableWriteCmd((char)wTableRow, 0);
+            TableWriteVal((char)wTableRow, 0);
+            break;
+        case 4:
+        case 5:
+            wSelLeft = 4;
+            wSelRight = 6;
+            wTableCellAPtr = 0xBA80;
+            wTableCellBPtr = 0xBC80;
+            v = TableReadCmd((char)wTableRow);
+            if (v)
+                wColLastCmd[wSongCol] = v;
+            WriteClipboardCell(4, (char)wTableRow, v);
+            WriteClipboardCell(5, (char)wTableRow, TableReadVal((char)wTableRow));
+            TableWriteCmd((char)wTableRow, 0);
+            TableWriteVal((char)wTableRow, 0);
+            break;
+        }
+        DrawTableScreen();
+        return 1;
+    case 0x50:
+        if (wCursorMode == 1 || !wSelectHeld)
+            break;
+        if (wCursorMode == 4) {
+            wSelectHeld = 0;
+            CutCopyTableSelection(1);
+            break;
+        }
+        if ((wClipboardType == 5 || wClipboardType == 1) && (wTableCol || !wSelLeft)) {
+            TableEraseCursor();
+            TablePasteCells();
+            DrawTableScreen();
+            return 1;
+        }
+        break;
+    case 0xC0:
+        if (wButtonsSame)
+            return 1;
+        FarCall(2, FAR_FN(ToggleSongPlayback));
+        return 1;
+    case 0x80:
+        if (wButtonsSame || wBHeld)
+            return 1;
+        FarCall(2, FAR_FN(TogglePlayback));
+        return 1;
+    case 0x44:
+        if (wButtonsSame)
+            break;
+        FarCall(5, MapMoveUp);
+        FarCall(1, RedrawScreen);
+        return 1;
+    case 0x48: {
+        UWORD a, b;
+
+        if (wButtonsSame)
+            break;
+        if (wTableCol == 2 || wTableCol == 3) {
+            a = (UWORD)0xB680 + ((UWORD)wTable << 4);
+            a += (UWORD)wTableRow;
+            if (ReadSongByte(1, a) == 7) {
+                b = (UWORD)0xB880 + ((UWORD)wTable << 4);
+                b += (UWORD)wTableRow;
+                wGroove = ReadSongByte(1, b) & 0x1F;
+            }
+        } else if (wTableCol > 3) {
+            b = (UWORD)0xBA80 + ((UWORD)wTable << 4);
+            b += (UWORD)wTableRow;
+            if (ReadSongByte(1, b) == 7) {
+                b = (UWORD)0xBC80 + ((UWORD)wTable << 4);
+                b += (UWORD)wTableRow;
+                wGroove = ReadSongByte(1, b) & 0x1F;
+            }
+        }
+        FarCall(5, MapMoveDown);
+        FarCall(1, RedrawScreen);
+        return 1;
+    }
+    case 0x42:
+        if (wButtonsSame)
+            break;
+        FarCall(5, MapMoveLeft);
+        FarCall(5, FAR_FN(RedrawScreen));
+        return 1;
+    case 0x20:
+        if (wCursorMode != 4 || !wAPressEnabled)
+            break;
+        CutCopyTableSelection(0);
+        return 1;
+    case 0x60: {
+        UBYTE left, right;
+
+        if (!wSelectHeld)
+            break;
+        if (wCursorMode == 4 && wClipboardType == 5) {
+            left = wSelLeft;
+            right = wTableCol;
+            y = wSelTop;
+            y1 = (char)wTableRow;
+            SortBytePair(&y, &y1);
+            if (y || y1 != 0x0F) {
+                wSelTop = 0;
+                wTableRow = 0x0F;
+                wSelectHeld = 0;
+                DrawTableSelection();
+                return 1;
+            }
+            SortBytePair(&left, &right);
+            if (left || right != 5) {
+                wSelLeft = 0;
+                wTableCol = 5;
+                wSelectHeld = 0;
+                DrawTableSelection();
+                return 1;
+            }
+            wSelectHeld = 0;
+            CutCopyTableSelection(0);
+            return 1;
+        }
+        ShowMessage("SELECT");
+        FarCall(5, SaveSelectionState);
+        wSelLeft = wTableCol;
+        wSelTop = wTableRow;
+        wSelectHeld = 0;
+        return 1;
+    }
+    }
+    return 0;
+}
+
 void CutCopyTableSelection(UBYTE cut)
 {
     UBYTE x, y;
