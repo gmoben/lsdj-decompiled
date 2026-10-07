@@ -268,5 +268,39 @@ class HlRegisterTests(unittest.TestCase):
         self.assertEqual(peep.track_a(stack, set())[0][5], "\tld\ta,c")
 
 
+class HramReuseTests(unittest.TestCase):
+    """track_hram: a reload into the register holding the byte goes; no copy
+    from another register; `a` serves only across an ordering test; a store
+    through a pointer loaded from memory ends the reuse."""
+
+    READ_C = ["\tldh\ta,(_hSoundCh+0)", "\tld\tc,a"]
+    READ_B = ["\tldh\ta,(_hSoundCh+0)", "\tld\tb,a"]
+    INDEX_C = ["\tld\ta,#<_wArr", "\tadd\ta,c", "\tld\te,a", "\tld\ta,#>_wArr",
+               "\tadc\ta,#0x00", "\tld\td,a", "\tld\ta,#0x00", "\tld\t(de),a"]
+
+    def run_pass(self, lines):
+        return peep.track_hram(lines, set())[0]
+
+    def test_reload_into_the_holding_register_goes_even_after_a_store(self):
+        out = self.run_pass(self.READ_C + self.INDEX_C + self.READ_C + self.INDEX_C)
+        self.assertEqual(out, self.READ_C + self.INDEX_C + self.INDEX_C)
+
+    def test_no_copy_from_another_register(self):
+        source = self.READ_C + self.INDEX_C + self.READ_B + ["\tld\tde,#_wArr"]
+        self.assertEqual(self.run_pass(source), source)
+
+    def test_a_serves_only_across_an_ordering_test(self):
+        ordering = ["\tldh\ta,(_hSoundCh+0)", "\tcp\ta,#0x04", "\tjp\tnc,00109$"] + self.READ_C
+        self.assertEqual(self.run_pass(ordering), ordering[:3] + ["\tld\tc,a"])
+        equality = ["\tldh\ta,(_hSoundCh+0)", "\tcp\ta,#0x02", "\tjp\tnz,00109$",
+                    "\tldh\ta,(_hSoundCh+0)", "\tadd\ta,a"]
+        self.assertEqual(self.run_pass(equality), equality)
+
+    def test_store_through_a_loaded_pointer_ends_it(self):
+        store = ["\tlda\thl,0(sp)", "\tld\te,(hl)", "\tinc\thl", "\tld\td,(hl)", "\tld\t(de),a"]
+        source = self.READ_C + store + self.READ_C + self.INDEX_C
+        self.assertEqual(self.run_pass(source), source)
+
+
 if __name__ == "__main__":
     unittest.main()

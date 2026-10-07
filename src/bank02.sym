@@ -160,13 +160,13 @@
 7034 SndSpeechStep              ; speech: when the frame's ticks run out, play the word's next allophone (SRAM bank 0 stream at wSpeechPtr; 0 ends the word) on kit voice 2, then read the next frame's length
 70FB SndEnableLcdInts           ; SetInterruptEnable
 710E SndInitPlayState           ; copy $c401 -> $c4d2, clear $c528, TogglePlayback
-711F SndAdvanceChanPos          ; per-frame position advance inside SndUpdateChannel; state $ff -> SndInitPlayState
+711F SndPhraseHop               ; H in a phrase: HFF stops the song; else, once a tick, go to the low digit's row of this phrase (after the high digit's count of hops) or, playing a chain or the song, of the chain's next phrase; e = 0 no hop, 2 stopped, 1 hopped
 7362 SndTableMaybeHop           ; B in a table (MayBe hop): with the high digit's probability (/16), hop to the low digit's row (arg: the right command column); e = 1 if it hopped
 73B0 SndZRepeat                 ; Z for a command slot (slot, last): repeat the last command that was not Z or H (wLastCmd[last]) with wLastCmdVal[last] + 0..each Z digit; e = the command
 743E SndZPhrase                 ; Z in a phrase (tail-jumped from SndReadPhraseCmd): SndZRepeat(hSoundCh, hSoundCh)
 744D SndZTableCmd1              ; Z in a table's CMD1 column: SndZRepeat(4, 4 + the channel's table)
 746F SndZTableCmd2              ; Z in a table's CMD2 column: SndZRepeat(5, $24 + the channel's table)
-748E SndAdvanceGrooveCursor     ; SndReadCursorByte + SndAdvanceGroove
+748E SndReadChanStep            ; read the channel's next step: its note (or the PS/2 keyboard's), the groove's ticks less any D delay owed, its instrument (or the keyboard's), then the transpose (a kit note on WAV is masked instead)
 75C6 SndUpdateChannel           ; per-channel processor (channel = hSoundCh): advance phrase cursor, resolve song/chain row, read note/cmd; called per active channel by SndUpdateAllChannels
 77F0 SndTick                    ; one engine tick: SndStepAllChannels (sequencer) then SndUpdateAllChannels (output); self-recurses on retrigger flag $c4cd / mode $cb66
 786F SndLiveChainEnd            ; live mode, at a chain's end: stop the channel if wChanStopQueued (the sound too once none plays), else start its queued song row (SndEnterSongRow); e = 1 if neither
@@ -245,9 +245,9 @@
 6F61 .done                ; common exit of SndLiveStartQueued
 6F87 .loop                ; loop head in SndGetChainPhrase
 7032 .done                ; common exit of SndStepWavFrames
-735E .done                ; common exit of SndAdvanceChanPos
+735E .done                ; common exit of SndPhraseHop
 73AC .done                ; common exit of SndTableMaybeHop
-75C2 .done                ; common exit of SndAdvanceGrooveCursor
+75C2 .done                ; common exit of SndReadChanStep
 76F2 .loop                ; loop head in SndUpdateChannel
 77EC .done                ; common exit of SndUpdateChannel
 786D .done                ; common exit of SndTick

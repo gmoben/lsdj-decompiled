@@ -2897,6 +2897,12 @@
   "len": 36,
   "src": "c/bank02/Sound.c"
  },
+ "SndReadChanStep": {
+  "bank": "02",
+  "addr": "748E",
+  "len": 312,
+  "src": "c/bank02/SoundChan.c"
+ },
  "SndRunFxSlot": {
   "bank": "02",
   "addr": "6685",
@@ -2944,6 +2950,12 @@
   "addr": "77F0",
   "len": 127,
   "src": "c/bank02/Sound.c"
+ },
+ "SndUpdateChannel": {
+  "bank": "02",
+  "addr": "75C6",
+  "len": 554,
+  "src": "c/bank02/SoundChan.c"
  },
  "SndWavLevelStep": {
   "bank": "02",

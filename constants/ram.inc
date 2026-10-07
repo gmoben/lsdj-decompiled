@@ -555,10 +555,10 @@ DEF wChanTableRow1Noi  EQU $C20B  ; wChanTableRow1[3] = Noi channel
 DEF wChanTableRow2Pu2  EQU $C20D  ; wChanTableRow2[1] = Pu2 channel
 DEF wChanTableRow2Wav  EQU $C20E  ; wChanTableRow2[2] = Wav channel
 DEF wChanTableRow2Noi  EQU $C20F  ; wChanTableRow2[3] = Noi channel
-DEF wChanInstrPu1Hi EQU $C211  ; wChanInstr[0] hi byte (Pu1)
-DEF wChanInstrPu2 EQU $C212  ; wChanInstr[1]  (Pu2)
-DEF wChanInstrPu2Hi EQU $C213  ; wChanInstr[1] hi byte (Pu2)
-DEF wChanInstrWav EQU $C214  ; wChanInstr[2]  (Wav)
+DEF wChanInstrPu2 EQU $C211  ; wChanInstr[1] (PU2)
+DEF wChanInstrWav EQU $C212  ; wChanInstr[2] (WAV)
+DEF wChanInstrNoi EQU $C213  ; wChanInstr[3] (NOI)
+DEF wChanHopCount EQU $C214  ; [4] H's hops left per channel: the high digit, counted down to the last hop (SndPhraseHop)
 DEF wChanChordPu2     EQU $C219  ; wChanChord[1] = Pu2 channel
 DEF wChanChordWav     EQU $C21A  ; wChanChord[2] = Wav channel
 DEF wChanChordNoi     EQU $C21B  ; wChanChord[3] = Noi channel

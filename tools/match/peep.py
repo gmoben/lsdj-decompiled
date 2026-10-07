@@ -879,7 +879,14 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
         elif mn in _ALU and (not ops or ops[0] == "a"):
             eq, a_alu = set(), True
         elif mn in ("jp", "jr") and len(ops) == 2:
-            pass                      # a conditional jump: `a` and `hl` survive the fall-through
+            # a conditional jump: `a` and `hl` survive the fall-through, but
+            # after an equality test `a` no longer stands for the byte at hl:
+            # SndPhraseHop's `*wPtrPhraseRow = wSeqNoteLatch; if
+            # (wSeqNoteLatch) AdvanceCurChanCursors(wSeqNoteLatch);` reloads
+            # it (`ld a,(hl); ld (de),a; or a,a; jp z; ld a,(hl)`, 2 sites,
+            # none reusing it), like track_hram's `ldh` rereads
+            if ops[0] in ("z", "nz"):
+                eq.discard("(hl)")
         elif mn in _NEUTRAL:
             if mn == "push":
                 level += 2
@@ -990,20 +997,27 @@ def _written(mn: str, ops: list[str]) -> set[str]:
 
 
 def track_hram(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
-    """Reuse an HRAM byte read with `ldh` across a conditional jump.
+    """Skip an `ldh` reload of an HRAM byte a register still holds.
 
     SDCC 2.2.1 rereads an `sfr` at every use: its CSE never substitutes a
     register for a direct-space global (`isGlobalInNearSpace`, an 8051
-    optimisation applied to every port). LSDj's compiler reused a value read
-    *before a conditional jump* -- a loop condition's `hSoundCh < 4` serves
-    the body's three array indexes in SyncTickLSDJ -- but reread within one
-    block (HandleInputCombos, 3 sites; outside the sound engine, whose bank-2
-    code goes both ways, no site contradicts this). An HRAM store, a call or
-    a jump target ends the reuse. A reread becomes `ld a,r`, goes when `a`
-    still holds the value, and `ldh a,(X); ld r,a` goes when r does and `a`
-    is overwritten next."""
+    optimisation applied to every port). LSDj's compiler skipped loading the
+    byte into a register that already held it: `ldh a,(X); ld r,a` goes when
+    r holds X, within a block or across a jump (HandleInputCombos' two
+    `hSoundCh` indexes in one block, SyncTickLSDJ's loop body,
+    SndUpdateChannel's D across `if (d)`). It never copied the byte over from
+    another register: a reload into b while c holds it stays (the `+=` target
+    in SndUpdateChannel and HandleInputCombos). `a` itself serves a reread
+    only across an ordering test (SyncTickLSDJ's `hSoundCh < 4`: `cp #4; jp
+    nc`); after an equality test the byte is reread (`cp; jp nz; ldh a,(X)`:
+    SndUpdateChannel, SndUpdateWavFreq, SndResetPitchState). An HRAM store, a
+    call, a jump target or a store through a pointer loaded from memory (`ld
+    e,(hl); inc hl; ld d,(hl); ld (de),a`, the `+=` in SndUpdateChannel's D)
+    ends the reuse; a store to an array element (`#arr + c` in de) does not."""
     out: list[str] = []
-    holds: dict[str, tuple[str, bool]] = {}   # register -> (`(X)`, read before a jump)
+    holds: dict[str, str] = {}    # register -> the `(X)` it holds
+    a_ok = False                  # `a`'s byte has crossed an ordering test since its read
+    de_loaded = False             # de was last loaded from memory (a pointer of unknown target)
     dropped = 0
     scope = 0
     code = [i for i, l in enumerate(lines) if _strip(l).strip()]
@@ -1017,6 +1031,11 @@ def track_hram(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int
         return (m2 in ("ld", "ldh") and len(o2) == 2 and o2[0] == "a" and o2[1] != "a"
                 and not o2[1].startswith("(hl")) or (m2 == "xor" and o2 == ["a", "a"])
 
+    def forget() -> None:
+        nonlocal a_ok
+        holds.clear()
+        a_ok = False
+
     for idx, raw in enumerate(lines):
         if idx in skip:
             continue
@@ -1027,53 +1046,59 @@ def track_hram(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int
         if t.endswith(":"):
             if not _LOCAL.fullmatch(t[:-1]):
                 scope += 1
-                holds.clear()
+                forget()
             elif f"{scope}:{t[:-1]}" in jump_targets:
-                holds.clear()
+                forget()
             out.append(raw)
             continue
         mn, ops = _ops(t)
         if mn == "ldh" and len(ops) == 2 and ops[0] == "a" and ops[1].startswith("("):
             src = ops[1]
-            if holds.get("a") == (src, True):
+            if holds.get("a") == src and a_ok:
                 dropped += 1
                 continue
-            r = next((r for r, v in holds.items() if v == (src, True) and r != "a"), None)
-            if r is not None:
-                n1 = nxt.get(idx)
-                if n1 is not None and _ops(_strip(lines[n1]).strip()) == ("ld", [r, "a"]) \
-                        and overwrites_a(nxt.get(n1)):
+            n1 = nxt.get(idx)
+            if n1 is not None:
+                m1, o1 = _ops(_strip(lines[n1]).strip())
+                if m1 == "ld" and len(o1) == 2 and o1[1] == "a" and o1[0] in _REGS \
+                        and holds.get(o1[0]) == src and overwrites_a(nxt.get(n1)):
                     skip.add(n1)          # `ldh a,(X); ld r,a` with r == (X): both go
                     dropped += 2
                     continue
-                out.append(f"\tld\ta,{r}")
-                dropped += 1
-                holds["a"] = (src, True)
-            else:
-                out.append(raw)
-                holds["a"] = (src, False)
+            out.append(raw)
+            holds["a"] = src
+            a_ok = False
             continue
         if mn == "ldh" and len(ops) == 2 and ops[1] == "a":
-            holds.clear()                 # an HRAM store: forget every reuse
+            forget()                      # an HRAM store: forget every reuse
             out.append(raw)
             continue
         if mn in ("jp", "jr") and len(ops) == 2:
-            holds = {r: (x, True) for r, (x, _) in holds.items()}
+            a_ok = ops[0] in ("c", "nc") and "a" in holds
             out.append(raw)
             continue
         if mn in _WRITES_ALL or (mn in ("jp", "jr") and len(ops) == 1):
-            holds.clear()
+            forget()
             out.append(raw)
             continue
+        if mn == "ld" and len(ops) == 2 and ops[0] == "(de)" and de_loaded:
+            forget()                      # a store through a pointer of unknown target
+            out.append(raw)
+            continue
+        w = _written(mn, ops)
         if mn == "ld" and len(ops) == 2 and ops[1] == "a" and ops[0] in _REGS:
             if "a" in holds:
                 holds[ops[0]] = holds["a"]
             else:
                 holds.pop(ops[0], None)
-            out.append(raw)
-            continue
-        for r in _written(mn, ops):
-            holds.pop(r, None)
+        else:
+            for r in w:
+                holds.pop(r, None)
+            if "a" in w:
+                a_ok = False
+        if {"d", "e"} & w:
+            de_loaded = mn == "ld" and len(ops) == 2 and ops[0] in ("d", "e") \
+                and ops[1] in ("(hl)", "(hl+)", "(hl-)")
         out.append(raw)
     return out, dropped
 
