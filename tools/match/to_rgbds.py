@@ -144,6 +144,34 @@ def qualified(labels: dict[int, str], addr: int) -> str:
     return f"{labels[parent]}{name}" if parent is not None else name
 
 
+def source_addresses(source: str, labels: dict[int, str]) -> dict[int, str]:
+    """ROM addresses the C names with a macro whose value is the number the
+    original source evidently used (`#define TxtHelpPan ((char *)0x6E0C)`:
+    stored a byte at a time, which an address of a symbol never is) -- those
+    whose name is the .sym label at that address."""
+    out: dict[int, str] = {}
+    for m in re.finditer(r"^\s*#define\s+(\w+)\s+\(\(\s*(?:const\s+)?\w+\s*\*\s*\)\s*"
+                         r"0x([0-9A-Fa-f]{4})\s*\)", source, re.M):
+        name, addr = m.group(1), int(m.group(2), 16)
+        if labels.get(addr) == name:
+            out[addr] = name
+    return out
+
+
+def _farcall_bank(texts: list[str], rr: str) -> int | None:
+    """The bank of a banked call whose target `rr` holds (`FarCall(5, 0x747D)`):
+    `push rr`, then `ld a, BANK / push af / inc sp`, then a FarCall* call."""
+    if f"push {rr}" not in texts:
+        return None
+    j = texts.index(f"push {rr}")
+    m = re.fullmatch(r"ld a, \$([0-9A-Fa-f]{2})", texts[j + 1]) if j + 1 < len(texts) else None
+    if not m or texts[j + 2:j + 4] != ["push af", "inc sp"]:
+        return None
+    call = next((t for t in texts[j + 4:j + 8] if t.startswith("call ")), "")
+    disasm = importlib.import_module("disasm")
+    return int(m.group(1), 16) if call[5:].strip() in disasm.FARCALL_NAMES else None
+
+
 def _strip_comment(line: str) -> str:
     out, q = [], False
     for ch in line:
@@ -161,8 +189,10 @@ class Translator:
     """One function's rows: the code and the data after it, by ROM address."""
 
     def __init__(self, asm: str, lst: str, func: str, func_addr: int, size: int,
-                 labels: dict[int, str], syms: dict[str, tuple[int | None, int]]):
+                 labels: dict[int, str], syms: dict[str, tuple[int | None, int]],
+                 source: str = ""):
         self.func, self.labels, self.syms = func, labels, syms
+        self.named = source_addresses(source, labels)
         self.equates = module_equates(asm)
         start_line, self.lines = split_functions(asm)[func]
         self.addrs = listing_addrs(lst)
@@ -245,6 +275,37 @@ class Translator:
             rows.append((cur_addr, "I", f"{kind} " + ", ".join(cur)))
         return rows
 
+    def rom_operands(self, rows: list[Row]) -> list[Row]:
+        """ROM addresses the C spells as numbers, as labels (a build where
+        code moves needs them): a banked call's target and the addresses
+        source_addresses() found -- `ld rr` operands, and the two bytes the
+        compiler stores one at a time (`ld [hl], $25 / inc hl / ld [hl], $6D`)."""
+        disasm = importlib.import_module("disasm")
+        idx = [k for k, r in enumerate(rows) if r[1] == "I"]
+        texts = [rows[k][2] for k in idx]
+        out = list(rows)
+        for n, k in enumerate(idx):
+            m = re.fullmatch(r"ld (bc|de|hl), \$([0-9A-Fa-f]{4})", texts[n])
+            if m:
+                rr, v = m.group(1), int(m.group(2), 16)
+                name = self.named.get(v)
+                if name is None:
+                    bank = _farcall_bank(texts[n + 1:n + 14], rr)
+                    if bank is not None:
+                        name = disasm.name_in_bank(bank_labels(0 if v < 0x4000 else bank), v)
+                if name:
+                    out[k] = (rows[k][0], "I", f"ld {rr}, {name}")
+                continue
+            m = re.fullmatch(r"ld \[hl\], \$([0-9A-Fa-f]{2})", texts[n])
+            if m and texts[n + 1:n + 2] == ["inc hl"] and n + 2 < len(texts):
+                m2 = re.fullmatch(r"ld \[hl\], \$([0-9A-Fa-f]{2})", texts[n + 2])
+                name = self.named.get(int(m.group(1), 16) | int(m2.group(1), 16) << 8) if m2 else None
+                if name:
+                    out[k] = (rows[k][0], "I", f"ld [hl], LOW({name})")
+                    k2 = idx[n + 2]
+                    out[k2] = (rows[k2][0], "I", f"ld [hl], HIGH({name})")
+        return out
+
     def rows(self) -> list[Row]:
         out: list[Row] = []
         for n, raw in self.lines:
@@ -291,6 +352,7 @@ class Translator:
                 conv = [self.operand(o) for o in ops]
                 text = f"{mn} " + ", ".join(conv) if conv else mn
             out.append((a, "I", text))
+        out = self.rom_operands(out)
         guards = [(self.lo, "V", f"IF !DEF({k})\nDEF {k} EQU {v}\nENDC")
                   for k, v in sorted(self.guards.items())]
         rows = guards + out
@@ -304,9 +366,9 @@ class Translator:
 
 
 def annotate(asm: str, lst: str, func: str, bank: int, func_addr: int, size: int,
-             syms: dict[str, tuple[int | None, int]]) -> dict[str, object]:
+             syms: dict[str, tuple[int | None, int]], source: str = "") -> dict[str, object]:
     """The rows verify_all.py saves as build/c/bankNN/Name.lines."""
-    t = Translator(asm, lst, func, func_addr, size, bank_labels(bank), syms)
+    t = Translator(asm, lst, func, func_addr, size, bank_labels(bank), syms, source)
     return {"lo": func_addr, "hi": func_addr + size, "rows": t.rows()}
 
 
@@ -352,7 +414,8 @@ def check(files: list[Path]) -> int:
                 bank, addr = int(m["bank"], 16), int(m["addr"], 16)
                 _n, code, tail = runner.link(d, asm, lst, name, bank, addr, syms)
                 try:
-                    t = Translator(asm, lst, name, addr, len(code) + len(tail), bank_labels(bank), syms)
+                    t = Translator(asm, lst, name, addr, len(code) + len(tail), bank_labels(bank),
+                                   syms, c_path.read_text())
                     rows = t.rows()
                 except (ValueError, KeyError) as e:
                     print(f"  {name}: {e}")
@@ -423,7 +486,7 @@ def main() -> None:
         runner = va.Runner(st, mf.DEFAULT_PEEP)
         d, asm, lst = runner.compile(c_path)
         _n, code, tail = runner.link(d, asm, lst, func, bank, addr, syms)
-    ann = annotate(asm, lst, func, bank, addr, len(code) + len(tail), syms)
+    ann = annotate(asm, lst, func, bank, addr, len(code) + len(tail), syms, c_path.read_text())
     print("\n".join(render(ann["rows"], bank_labels(bank), ann["lo"], ann["hi"])))
 
 

@@ -205,7 +205,8 @@ def main() -> None:
                         lines = out.with_suffix(".lines")
                         try:
                             text = json.dumps(to_rgbds.annotate(
-                                asm, lst, name, bank, addr, len(code) + len(tail), syms), indent=0)
+                                asm, lst, name, bank, addr, len(code) + len(tail), syms,
+                                c_path.read_text()), indent=0)
                         except (ValueError, KeyError) as e:
                             print(f"  {name:24s} no RGBDS translation ({e}); the build INCBINs it")
                             lines.unlink(missing_ok=True)

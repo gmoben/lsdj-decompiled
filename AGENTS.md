@@ -287,6 +287,17 @@ in `docs/functionality.md`.
 - Labels are generated for in-range branch/call targets, plus named interrupt
   vectors and `Entry`; `$FFxx` I/O accesses become `hardware.inc` register
   names. Both are byte-safe (they resolve to the same addresses).
+- ROM-address operands print as labels (`rom_pointers()`), so code can move:
+  a banked call's target by its bank (`ld bc, GetInstrEnv1F` pushed before
+  `ld a, $1f / push af / inc sp / call FarCall*`), bank 0's inline trampolines
+  (`call ProcessLinkQueue` after `ld [hl], $07` to `rROMB0`, the bank tracked
+  through the function), a ROMX bank's own `ld rr, $4000-$7FFF` (jump tables,
+  strings, tables; a target inside a data run gets a row and a label of its
+  own), bank 0's `ld rr` to its own global names, and MBC5 writes (`rROMB0`,
+  `rRAMB`). Constants stay numbers: `gb_cmp16`'s add form (`ld hl, $5000 /
+  add hl, de / jp c`), kit-format addresses, small numbers from ROMX code. A
+  `jr` to an unlabelled address prints as `@ ± k`. `tools/carve_clean.py
+  --pointer-notes` lists what stays a number.
 - `--trace` (with `--seed ADDR,…`, auto-seeded for `--bank 0`) is disasm.py's
   own single-bank recursive descent; it **cannot** follow computed `jp hl`
   dispatch or cross-bank calls. The canonical carve (`carve_clean.py`) instead
@@ -517,8 +528,8 @@ Always, before committing:
       convention below) is skipped by the trace and rendered as `db` by
       `carve_clean.py` — all 415 named data symbols now render as data
       (coverage 79% → an honest 77%, still 0 code-like bytes)
-- [ ] Render bank 0's 22 inline-trampoline call targets by name (disasm.py
-      tracking the `$2000` bank write, as `coverage.py` already does)
+- [x] Render bank 0's 22 inline-trampoline call targets by name (disasm.py
+      tracks the `$2000` bank write through each function)
 - [ ] Re-verify/rename the five draw-named per-screen input handlers and
       `SndReadGrooveOrSpeed`; regenerate local labels that echo pre-July RAM names
 - [ ] Name `$CB64`, the ~40 immediate-only RAM addresses, the WRAM routine at

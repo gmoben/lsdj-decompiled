@@ -266,7 +266,8 @@ def main() -> None:
     seeds = [(b, a) for b, addrs in ent.items() for a in addrs]
     code, _ = cov.global_trace(rom, seeds)
 
-    want = {int(a, 16) for a in sys.argv[1:]}
+    notes = "--pointer-notes" in sys.argv[1:]    # list operands left as numbers
+    want = {int(a, 16) for a in sys.argv[1:] if not a.startswith("-")}
     banks = sorted(int(p.name[4:6], 16) for p in (ROOT / "src").glob("bank*.sym"))
     for b in banks:
         if want and b not in want:
@@ -278,6 +279,8 @@ def main() -> None:
                "--comments", "-o", f"src/bank{b:02x}.asm"]
         if b != 0:
             cmd += ["--globals", "src/bank00.sym"]
+        if notes:
+            cmd += ["--pointer-notes"]
         if data_arg:
             cmd += ["--data", data_arg]
         clines, incbins = c_ranges(b)

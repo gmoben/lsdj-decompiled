@@ -921,11 +921,9 @@ shape.
 ### Toward a moddable fork
 
 The goal past matching is a fork that adds features, so code has to be able
-to move. Matched C already enters as RGBDS source with symbolic operands, but
-the asm carve still prints ROM addresses as numbers — 230 `call`/`jp`
-targets and `ld rr, $4000-$7FFF` immediates (bank 0's cross-bank trampoline
-targets, table bases like `ld de, $402b` for `InstrFieldX`) — and every
-pointer table is raw `db` bytes. The milestone, pret's "shiftable":
+to move. Code operands are symbolic now, in the asm carve and the C alike, but
+every pointer table is still raw `db` bytes. The milestone, pret's
+"shiftable":
 
 - [x] Translate matched C to RGBDS source: `tools/match/to_rgbds.py --check`
       assembles every matched function (code, literals and const data) with
@@ -935,13 +933,21 @@ pointer table is raw `db` bytes. The milestone, pret's "shiftable":
       carve renders it in place (the `.sym` labels inside each function
       kept, the literals and const data the C emits owned by it);
       `make compare` still the gate.
-- [ ] Symbolic references in the carve: the 230 raw ROM-address operands
-      (bank 0's cross-bank trampoline targets, table bases, the `jr cc` onto
-      its own `$ff` operand — a `rst $38` assert — as `@ + 1`) and the
-      pointer tables as `dw Label`; no literal ROM addresses in the C either
-      (FieldHelp's ten strings, three `FarCall(5, 0x747D)`). The C's other
-      `$4000-$7FFF` immediates are kit-format addresses (`$4000`, `$4052`)
-      and `gb_cmp16`'s add-form constants (`p < 0xB290` → `ld hl, $4D70`).
+- [x] Symbolic code operands: every ROM address a `call`/`jp`/`ld rr` uses
+      prints as a label, in the asm carve (`rom_pointers()` in
+      tools/disasm.py: banked-call targets by their bank, bank 0's 22
+      trampolines by the tracked `$2000` write, 37 switch jump tables and
+      strings inside data blocks with labels of their own, the `jr cc` onto
+      its own `$ff` operand — a `rst $38` assert — as `@ + 1`) and in the C
+      (`rom_operands()` in tools/match/to_rgbds.py: the three
+      `FarCall(5, 0x747D)`; FieldHelp's ten strings, which the C has to store
+      byte-wise as numbers to match, are `LOW()`/`HIGH()` of the names its
+      `#define`s give them). What stays a number is a constant — kit-format
+      addresses (`$4000`, `$4052`), `gb_cmp16`'s add form (`p < 0xB290` →
+      `ld hl, $4D70`): `tools/carve_clean.py --pointer-notes`.
+- [ ] Pointer tables as `dw Label` (data runs still hold raw addresses),
+      address halves loaded as bytes (`ld h, $xx`), and tables that rely on
+      page alignment.
 - [ ] A shift test: a build with padding inserted in each bank, checked by
       an emulator smoke test (boot, every screen, playback, save/load).
 - [ ] Behaviour tests on tools/emu for builds that no longer match the ROM:

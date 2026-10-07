@@ -26,9 +26,6 @@ Known gaps — asm fidelity/readability, none affect the bytes:
 - **Code in WRAM.** The kit streamer calls `$D480` (`call $d480` at
   `$00:$04C1`, with `h = wKitDistType`) — apparently a routine executed from
   WRAM; where it is copied from is not yet traced.
-- **Cross-bank call targets.** Bank 0's 22 inline-trampoline `call`/`jp`
-  targets in `$4000`-`$7FFF` print as raw addresses: the bank comes from the
-  preceding `$2000` write, which `coverage.py` tracks but `disasm.py` doesn't.
 - **Stale names.** `SndReadGrooveOrSpeed` actually steps table
   pointers; generated local labels still echo pre-July RAM names (e.g.
   `.loadOscActive_2` in `TimerHandler`, from the old "oscilloscope" reading).

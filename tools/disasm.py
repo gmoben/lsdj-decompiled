@@ -11,6 +11,11 @@ never changes the bytes.
 `--selftest` round-trips every opcode through the real `rgbasm`/`rgblink`, which
 proves the opcode table is correct before it touches the ROM.
 
+Operands become names where that is certain: RAM/hardware addresses from
+constants/ram.inc and hardware.inc, branch targets, and ROM addresses
+(`rom_pointers()`: banked-call targets, bank 0's trampolines, a ROMX bank's own
+pointers) -- so code can move.
+
 Usage:
     tools/disasm.py --selftest
     tools/disasm.py --rom lsdj9_4_0.gb --bank 0 --data 0x104:0x150 -o src/bank00.asm
@@ -371,6 +376,122 @@ C_ROW, C_TEXT = -1, -2
 CLines = tuple[int, int, list[tuple[int, str, str]]]
 
 
+# Banked calls: the caller pushes the callee's arguments, its address and its
+# bank, then calls one of these bank-0 routines (src/bank00.sym).
+FARCALL_NAMES = frozenset({"FarCall", "FarCallArg", "FarCallByte", "FarCallArgByte",
+                           "FarCallArg2V", "FarCallArg2", "FarCallArg3"})
+# `ld hl, nn` / `ld [hl], x` with nn one of these is an MBC5 register write
+MBC_REGS = {0x2000: "rROMB0", 0x4000: "rRAMB"}
+# A ROM-address operand: (bank, address) to print as a label, or a fixed name.
+Pointer = "tuple[int, int] | str"
+
+
+def _decoded(row: Row) -> bool:
+    return row[3] not in (C_ROW, C_TEXT) and not row[2].startswith(("db", "INCBIN"))
+
+
+def _farcall_bank(nxt: list[Row], rr: str, far: set[int]) -> int | None:
+    """The bank of a banked call whose target `rr` holds: `push rr`, then
+    `ld a, BANK / push af / inc sp`, then (after any further pushes) a call
+    to a FarCall* routine."""
+    texts = [r[2] for r in nxt]
+    if f"push {rr}" not in texts:
+        return None
+    j = texts.index(f"push {rr}")
+    m = re.fullmatch(r"ld a, \$([0-9a-f]{2})", texts[j + 1]) if j + 1 < len(texts) else None
+    if not m or texts[j + 2:j + 4] != ["push af", "inc sp"]:
+        return None
+    call = next((r for r in nxt[j + 4:j + 8] if r[2].startswith("call")), None)
+    return int(m.group(1), 16) if call is not None and call[3] in far else None
+
+
+def rom_pointers(rows: list[Row], bank: int | None, symbols: dict[int, str],
+                 home: dict[int, str]) -> tuple[dict[int, "tuple[int, int] | str"], list[str]]:
+    """The 16-bit operands of decoded rows that are ROM addresses -- code that
+    moves needs every one of them as a label: {row address: (bank, address)},
+    or a register name for an MBC write; plus notes on operands that look like
+    ROM addresses but stay numbers.
+
+    - a banked call's target: `ld rr, nn` pushed right before
+      `ld a, BANK / push af / inc sp / call FarCall*`;
+    - bank 0's inline trampolines: `call`/`jp`/`ld rr` into $4000-$7FFF after
+      the function wrote the bank to $2000;
+    - a ROMX bank's own `ld rr, $4000-$7FFF`, except gb_cmp16's add form
+      (`ld hl, K / add hl, rr / jp c`), a constant;
+    - in bank 0, a global name of its own (`ld hl, FarCallResume2 / push hl`);
+      from another bank a small number matching a home name is as likely a
+      constant (`ld de, $0200` for `$200 - x`), so it stays one.
+    Values that are neither (`ld bc, $0100`, kit-bank offsets) stay numbers."""
+    far = {a for a, n in home.items() if n in FARCALL_NAMES}
+    home_globals = {a for a, n in home.items() if not n.startswith(".")}
+    out: dict[int, "tuple[int, int] | str"] = {}
+    notes: list[str] = []
+    tracked: int | None = None            # bank 0: the ROMX bank this function mapped
+    for i, row in enumerate(rows):
+        addr, _raw, text, ref = row
+        if not _decoded(row):
+            continue
+        if addr in symbols and not symbols[addr].startswith("."):
+            tracked = None
+        m = re.fullmatch(r"ld \[hl\], \$([0-9a-f]{2})", text)
+        if m and i and rows[i - 1][2] == "ld hl, $2000":
+            tracked = int(m.group(1), 16)
+        if text == "ld [$2000], a":
+            for k in range(i - 1, max(-1, i - 4), -1):
+                mm = re.fullmatch(r"ld a, \$([0-9a-f]{2})", rows[k][2])
+                if mm:
+                    tracked = int(mm.group(1), 16)
+                    break
+        if bank == 0 and ref is not None and 0x4000 <= ref < 0x8000 \
+                and text.startswith(("call", "jp")):
+            if tracked is not None:
+                out[addr] = (tracked, ref)
+            else:
+                notes.append(f"${addr:04x}: {text} (bank unknown)")
+            continue
+        m = re.fullmatch(r"ld (bc|de|hl), \$([0-9a-f]{4})", text)
+        if not m:
+            continue
+        rr, v = m.group(1), int(m.group(2), 16)
+        nxt: list[Row] = []
+        for r in rows[i + 1:i + 14]:
+            if not _decoded(r):
+                break
+            nxt.append(r)
+        texts = [r[2] for r in nxt]
+        if rr == "hl" and v in MBC_REGS and texts and texts[0].startswith("ld [hl], "):
+            out[addr] = MBC_REGS[v]
+            continue
+        fb = _farcall_bank(nxt, rr, far)
+        if fb is not None and 0x0100 <= v < 0x8000:
+            out[addr] = (0 if v < 0x4000 else fb, v)
+            continue
+        if 0x4000 <= v < 0x8000:
+            if texts and re.fullmatch(r"add hl, (bc|de)", texts[0]) and \
+                    any(re.fullmatch(r"j[pr] n?c, .*", t) for t in texts[1:3]):
+                continue                  # gb_cmp16's add form: a constant
+            if bank == 0:
+                if tracked is not None:
+                    out[addr] = (tracked, v)
+                else:
+                    notes.append(f"${addr:04x}: {text} (bank unknown)")
+            else:
+                out[addr] = (bank, v)
+        elif bank == 0 and v in home_globals and v >= 0x0100:
+            out[addr] = (0, v)
+    return out, notes
+
+
+def name_in_bank(syms: dict[int, str], addr: int) -> str | None:
+    """The .sym name at `addr` as a reference from another bank: a local one
+    with the global before it."""
+    name = syms.get(addr)
+    if name is None or not name.startswith("."):
+        return name
+    parent = max((a for a, n in syms.items() if a < addr and not n.startswith(".")), default=None)
+    return f"{syms[parent]}{name}" if parent is not None else None
+
+
 def disassemble(data: bytes, start: int, end: int, org: int,
                 data_ranges: list[tuple[int, int]],
                 anchors: set[int] | None = None,
@@ -597,7 +718,8 @@ def parse_symbols(path: Path) -> dict[int, str]:
 
 def build_labels(rows: list[Row], lo: int, hi: int,
                  symbols: dict[int, str] | None = None,
-                 prefix: str = "L") -> dict[int, str]:
+                 prefix: str = "L",
+                 extra_targets: set[int] | None = None) -> dict[int, str]:
     """Name interrupt vectors/entry, branch/call targets, and user symbols
     (which take precedence). `call` targets and symbols are *function entries* and
     get global labels (`prefix`+addr, e.g. `L06_5947`, unique across ROMX banks);
@@ -625,6 +747,8 @@ def build_labels(rows: list[Row], lo: int, hi: int,
     for _addr, _raw, text, ref in rows:
         if ref is not None and lo <= ref < hi and ref in instr_addrs:
             (call_targets if text.startswith("call") else branch_targets).add(ref)
+    # addresses an operand points at (a jump table, a string): local labels too
+    branch_targets |= {a for a in (extra_targets or set()) if lo <= a < hi and a in row_addrs}
     labels: dict[int, str] = {}
     for a, name in VECTOR_NAMES.items():
         if lo <= a < hi and a in instr_addrs:
@@ -660,8 +784,12 @@ def build_labels(rows: list[Row], lo: int, hi: int,
 
 
 def render(rows: list[Row], comments: bool,
-           labels: dict[int, str] | None = None) -> str:
+           labels: dict[int, str] | None = None,
+           pointers: dict[int, tuple[int, str | int]] | None = None) -> str:
+    """`pointers` maps a row to its ROM-address operand: (value, name) for a
+    fixed name, or (value, address) for a label of this bank."""
     labels = labels or {}
+    pointers = pointers or {}
     # Enclosing global label (name) per address, for scope-qualifying local refs.
     enclosing: dict[int, str] = {}
     cur_global = ""
@@ -691,6 +819,19 @@ def render(rows: list[Row], comments: bool,
                 # cross-function reference to a local label -> full path
                 tgt = enclosing.get(ref, "") + tgt
             text = text.replace(f"${ref:04x}", tgt)
+        elif ref is not None and text.startswith("jr"):
+            # no label there (e.g. its own operand byte, `jr nc, @ + 1`:
+            # rst $38 unless carry): relative, as the encoding is
+            k = ref - addr
+            text = text.replace(f"${ref:04x}", f"@ {'+' if k >= 0 else '-'} {abs(k)}")
+        if addr in pointers:
+            value, tgt = pointers[addr]
+            if isinstance(tgt, int):
+                name = labels[tgt]
+                if name.startswith(".") and enclosing.get(tgt, "") != enclosing.get(addr, ""):
+                    name = enclosing.get(tgt, "") + name
+                tgt = name
+            text = text.replace(f"${value:04x}", tgt)
         if not text.startswith("INCBIN"):
             text = _sub_hw_regs(text)
             text = _sub_ram_syms(text)
@@ -761,6 +902,8 @@ def main() -> None:
     ap.add_argument("--org", type=lambda s: int(s, 0), help="GB address of --start")
     ap.add_argument("--data", default="",
                     help="comma-separated lo:hi file-offset ranges to emit as db")
+    ap.add_argument("--pointer-notes", action="store_true",
+                    help="list the operands that look like ROM addresses but stay numbers")
     ap.add_argument("--clines", default="",
                     help="comma-separated build/c/bankNN/Name.lines files: matching C's "
                          "RGBDS translation, rendered in place of the decode")
@@ -844,15 +987,67 @@ def main() -> None:
         hi_f = start + (int(doc["hi"]) - org)
         clines.append((lo_f, hi_f, [(int(a), k, t) for a, k, t in doc["rows"]]))
     rows = disassemble(data, start, end, org, data_ranges, anchors, incbins, clines)
+    # ROM-address operands print as labels (rom_pointers): names from the
+    # .sym files beside --symbols; a target inside a data run first gets a row
+    # of its own (decode again with it as an anchor)
+    home = symbols if args.bank == 0 else (parse_symbols(args.globals) if args.globals else {})
+    ptrs: dict[int, "tuple[int, int] | str"] = {}
+    notes: list[str] = []
+    same: set[int] = set()
+    if args.bank is not None and not args.no_labels:
+        def own(p: "tuple[int, int] | str") -> int | None:
+            return p[1] if isinstance(p, tuple) and p[0] == args.bank \
+                and org <= p[1] < org + size else None
+        ptrs, notes = rom_pointers(rows, args.bank, symbols, home)
+        # (every one: the first decode's 16-byte rows may start there by chance)
+        split = {start + (t - org) for t in map(own, ptrs.values())
+                 if t is not None
+                 and any(lo <= start + (t - org) < hi for lo, hi in data_ranges)}
+        if split - anchors:
+            anchors |= split
+            rows = disassemble(data, start, end, org, data_ranges, anchors, incbins, clines)
+            ptrs, notes = rom_pointers(rows, args.bank, symbols, home)
+        same = {t for t in map(own, ptrs.values()) if t is not None}
     labels = ({} if args.no_labels
-              else build_labels(rows, org, org + size, symbols, prefix))
+              else build_labels(rows, org, org + size, symbols, prefix, same))
     # Name cross-bank calls into home (bank 0): substitute references to home
     # addresses with their global names (defined in bank00.asm when assembled).
     if args.globals and args.bank not in (0, None) and not args.no_labels:
         for a, name in parse_symbols(args.globals).items():
             if a < 0x4000:
                 labels.setdefault(a, name)
-    body = render(rows, comments=args.comments, labels=labels)
+    pointers: dict[int, tuple[int, str | int]] = {}
+    if ptrs:
+        sym_dir = Path(args.symbols).parent if args.symbols else None
+        c_labels = {a: t[:-1] for a, _raw, t, ref in rows
+                    if ref == C_TEXT and re.fullmatch(r"[A-Za-z_][\w.]*:", t)}
+        texts = {a: t for a, _raw, t, _ref in rows}
+        for a, ptr in sorted(ptrs.items()):
+            if isinstance(ptr, str):                  # an MBC register
+                pointers[a] = (int(re.search(r"\$([0-9a-f]{4})", texts[a]).group(1), 16), ptr)
+                continue
+            tb, v = ptr
+            if tb == args.bank and org <= v < org + size:
+                if v in labels:
+                    pointers[a] = (v, v)
+                elif v in c_labels:
+                    pointers[a] = (v, c_labels[v])
+                else:
+                    notes.append(f"${a:04x}: {texts[a]} (no row starts at ${v:04x})")
+                continue
+            name = name_in_bank(home if tb == 0 else
+                                (parse_symbols(sym_dir / f"bank{tb:02x}.sym")
+                                 if sym_dir and (sym_dir / f"bank{tb:02x}.sym").is_file() else {}), v)
+            if name:
+                pointers[a] = (v, name)
+            else:
+                notes.append(f"${a:04x}: {texts[a]} (${tb:02x}:{v:04x} has no name)")
+    if notes:
+        print(f"bank ${args.bank:02X}: {len(notes)} ROM-address-like operand(s) left as numbers"
+              + ("" if args.pointer_notes else " (--pointer-notes lists them)"), file=sys.stderr)
+        if args.pointer_notes:
+            print("\n".join("  " + n for n in notes), file=sys.stderr)
+    body = render(rows, comments=args.comments, labels=labels, pointers=pointers)
     section = args.section
     if section is None:
         if args.bank == 0:
