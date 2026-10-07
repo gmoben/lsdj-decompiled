@@ -31,8 +31,8 @@
 44B2 NoiseFreeStr      ; "FREE" (noise S command, 0)
 648F PhraseScreenUpdate ; per-frame visual update (screen idx 1 = Phrase)
 4000 DrawInstrTableMode         ; draw the instrument's table mode at its type's row: " OFF", or STEP/TICK by byte 5 bit 3 when the table is on (byte 6 bit 5)
-4157 GetInstrEnv1F                             ; read instrument byte 1 = envelope/volume
-4169 GetInstrByte1F9                         ; read instrument byte 9 (kit row gate: 0 -> dashes)
+4157 InstrEnvHasSecond          ; 1 if the envelope's first value moves on (byte 1's speed nibble nonzero), so its second value is used
+4169 InstrEnvHasThird           ; 1 if the envelope reaches its third value (bytes 1 and 9 both have a nonzero speed nibble)
 5091 IsPhraseUsedFar            ; FarCall bank01 IsPhraseUsed
 5413 MarkChainPhrasesUsed       ; mark all phrases of chain arg used (rows<16, $ff skipped)
 5461 IsChainUsedFar             ; FarCall bank01 IsChainUsed
@@ -147,7 +147,7 @@
 ; --- structural local names (loop heads / common exits) ---
 40C5 .done                ; common exit of DrawInstrTableField
 4111 .done                ; common exit of GetInstrFlags1F5
-4168 .done                ; common exit of GetInstrEnv1F
+4168 .done                ; common exit of InstrEnvHasSecond
 4234 .done                ; common exit of DrawInstrEnvFields
 43B7 .done                ; common exit of DrawNoiseInstr
 48E7 .loop                ; loop head in WriteChainPhrase

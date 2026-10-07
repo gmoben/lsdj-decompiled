@@ -311,6 +311,12 @@
   "len": 384,
   "src": "c/bank03/InstrScreen.c"
  },
+ "CloneSynthOrTable": {
+  "bank": "03",
+  "addr": "53DE",
+  "len": 65,
+  "src": "c/bank03/InstrScreen.c"
+ },
  "CloneTableAtCursor": {
   "bank": "04",
   "addr": "55EB",
@@ -1559,12 +1565,6 @@
   "len": 17,
   "src": "c/bank03/InstrScreen.c"
  },
- "GetInstrByte1F9": {
-  "bank": "1F",
-  "addr": "4169",
-  "len": 33,
-  "src": "c/bank1f/InstrHelpers.c"
- },
  "GetInstrByte2": {
   "bank": "03",
   "addr": "49E7",
@@ -1583,12 +1583,6 @@
   "len": 13,
   "src": "c/bank03/InstrScreen.c"
  },
- "GetInstrEnv1F": {
-  "bank": "1F",
-  "addr": "4157",
-  "len": 18,
-  "src": "c/bank1f/InstrHelpers.c"
- },
  "GetInstrEnvBytes": {
   "bank": "1B",
   "addr": "70B8",
@@ -1605,12 +1599,6 @@
   "bank": "03",
   "addr": "4BE9",
   "len": 16,
-  "src": "c/bank03/InstrScreen.c"
- },
- "GetInstrType4": {
-  "bank": "03",
-  "addr": "53DE",
-  "len": 65,
   "src": "c/bank03/InstrScreen.c"
  },
  "GetScreenPalette": {
@@ -1768,6 +1756,18 @@
   "addr": "414F",
   "len": 33,
   "src": "c/bank03/InstrScreen.c"
+ },
+ "InstrEnvHasSecond": {
+  "bank": "1F",
+  "addr": "4157",
+  "len": 18,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
+ "InstrEnvHasThird": {
+  "bank": "1F",
+  "addr": "4169",
+  "len": 33,
+  "src": "c/bank1f/InstrHelpers.c"
  },
  "InstrEnvelopeChanged": {
   "bank": "03",
@@ -1955,6 +1955,12 @@
   "len": 44,
   "src": "c/bank03/InstrScreen.c"
  },
+ "InstrScreenInput": {
+  "bank": "03",
+  "addr": "541F",
+  "len": 9820,
+  "src": "c/bank03/InstrScreen.c"
+ },
  "InstrSelectNextUsed": {
   "bank": "03",
   "addr": "4638",
@@ -2007,6 +2013,12 @@
   "bank": "03",
   "addr": "4133",
   "len": 28,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "InstrTablePrev": {
+  "bank": "03",
+  "addr": "48D6",
+  "len": 78,
   "src": "c/bank03/InstrScreen.c"
  },
  "InstrTableSub16": {
@@ -2847,12 +2859,6 @@
   "bank": "03",
   "addr": "4257",
   "len": 36,
-  "src": "c/bank03/InstrScreen.c"
- },
- "SetInstrTable5": {
-  "bank": "03",
-  "addr": "48D6",
-  "len": 78,
   "src": "c/bank03/InstrScreen.c"
  },
  "SetInstrType": {

@@ -304,6 +304,18 @@ class SwitchChainTests(unittest.TestCase):
                  for i, l in enumerate(source)]
         self.assertEqual(peep.switch_chain(other, set()), (other, 0))
 
+    def test_int_case_widens_from_a(self):
+        # InstrScreenInput's kit fields: `case (int)9:` copies the variable
+        # into bc for a 16-bit compare; LSDj takes it from `a`
+        head = self.LOAD + ["\tcp\ta,#0x08", "\tjp\tz,00107$"]
+        tail = ["\tld\tb,#0x00", "\tld\ta,c", "\tcp\ta,#0x09"]
+        for reload in (self.LOAD[:1], []):
+            out, n = peep.switch_chain(head + reload + ["\tld\tc,(hl)"] + tail, set())
+            self.assertEqual(n, 1)
+            self.assertEqual(out, head + ["\tld\tc,a"] + tail)
+        other = head + ["\tld\thl,#_wButtonsSame + 0", "\tld\tc,(hl)"] + tail
+        self.assertEqual(peep.switch_chain(other, set()), (other, 0))
+
 
 
 class WordTestHlTests(unittest.TestCase):
@@ -359,6 +371,20 @@ class HlRegisterTests(unittest.TestCase):
         self.assertEqual(peep.track_a(source, set())[0][5], "\tld\ta,(hl)")
         stack = ["\tlda\thl,2(sp)", "\tld\t(hl),c"] + test
         self.assertEqual(peep.track_a(stack, set())[0][5], "\tld\ta,c")
+
+    def test_copy_of_a_stored_stack_byte_survives_a_bit_test(self):
+        # InstrScreenInput's kit flags: `v = ReadCurInstrByte(5); if (!(v &
+        # 64)) v |= 0x40;` -- the byte is copied, tested and ORed unreloaded
+        source = ["\tlda\thl,7(sp)", "\tld\t(hl),e", "\tlda\tsp,1(sp)", "\tld\tc,(hl)",
+                  "\tld\ta,c", "\tbit\t6,a", "\tjp\tnz,00102$", "\tld\ta,(hl)",
+                  "\tor\ta,#0x40", "\tld\t(hl),a"]
+        out, _ = peep.track_a(source, set())
+        self.assertEqual(out[3:8], ["\tld\tc,e", "\tld\ta,c", "\tbit\t6,a", "\tjp\tnz,00102$",
+                                    "\tor\ta,#0x40"])
+        # an equality test rereads it (PhraseScreenInput's `if (k)`)
+        tested = ["\tlda\thl,0(sp)", "\tld\t(hl),a", "\tor\ta,a", "\tjp\tz,00102$",
+                  "\tld\ta,(hl)", "\tadd\ta,#0x10"]
+        self.assertEqual(peep.track_a(tested, set())[0][4], "\tld\ta,(hl)")
 
 
 class HramReuseTests(unittest.TestCase):

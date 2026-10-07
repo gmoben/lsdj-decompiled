@@ -714,7 +714,12 @@ def switch_chain(lines: list[str], jump_targets: set[str]) -> tuple[list[str], i
     jp nz,L` in the middle of the chain: SynthScreenInput's `wButtons ==
     0x10`, also TableScreenInput and ProjectScreenInput) clobbers `a` but
     not `hl`, so after it only the `ld a,(hl)` comes back (3 such sites; the
-    7 `ld hl,nn` reloads after that test in the ROM load another global)."""
+    7 `ld hl,nn` reloads after that test in the ROM load another global).
+
+    A case value of type int (`case (int)9:`) widens the variable into a
+    register pair for a 16-bit compare; inside the chain that copy is taken
+    from `a` (`ld c,a`, InstrScreenInput's kit fields 9/11/13), not reread
+    through `hl`."""
     out: list[str] = []
     n = 0
     scope = 0
@@ -743,6 +748,15 @@ def switch_chain(lines: list[str], jump_targets: set[str]) -> tuple[list[str], i
             while k < len(lines) and not _strip(lines[k]).strip():
                 k += 1
             nxt = _strip(lines[k]).strip() if k < len(lines) else ""
+            widen = re.fullmatch(r"ld\s+([bcde]),\(hl\)", nxt)
+            if widen and cur == m.group(1):
+                # an int-typed case widens the variable `a` still holds
+                n += 1
+                out.extend(l for l in lines[i + 1:k])
+                out.append(f"\tld\t{widen.group(1)},a")
+                cur = None
+                i = k + 1
+                continue
             if nxt == "ld\ta,(hl)":
                 if cur == m.group(1):
                     n += 1
@@ -760,6 +774,13 @@ def switch_chain(lines: list[str], jump_targets: set[str]) -> tuple[list[str], i
                 continue
             cur = hl_g = None
             out.append(raw)
+            i += 1
+            continue
+        widen = re.fullmatch(r"ld\s+([bcde]),\(hl\)", t)
+        if widen and cur is not None:
+            n += 1                          # the same widening once a rule dropped `ld hl`
+            out.append(f"\tld\t{widen.group(1)},a")
+            cur = None
             i += 1
             continue
         if cur is not None and (t == "xor\ta,a" or re.fullmatch(r"or\s+a,[bcde]", t)):
@@ -844,6 +865,7 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
     level = 0                     # bytes pushed since the block began
     a_alu = False                 # `a` holds a fresh ALU result
     hl_reg = None                 # b..e the byte at (hl) equals (`ld (hl),e` / `ld e,(hl)`)
+    hl_copies: set[str] = set()   # other registers copied from that byte (`ld c,(hl)` -> `ld c,e`)
     hl_is_a = False               # the byte at (hl) is `a`, stored by `ld (hl),a` (not a pointer read)
     a_ptr = False                 # `a` was loaded through de/bc (`ld a,(de)`)
     a_pair = None                 # that pair ("de"/"bc") while the byte is still `a`
@@ -856,6 +878,7 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
         nonlocal hl, hl_reg, hl_is_a
         hl = None
         hl_reg = None
+        hl_copies.clear()
         hl_is_a = False
         eq.discard("(hl)")
 
@@ -883,6 +906,7 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
         # the 46 sites that reuse the register stored a byte value
         for r in _written(mn, ops):
             pair_half.discard(r)
+            hl_copies.discard(r)
         if mn == "ld" and ops in (["c", "d"], ["b", "e"]):
             prev = next((_strip(l).strip() for l in reversed(out) if _strip(l).strip()), "")
             if (ops == ["b", "e"] and prev == "ld\tc,d") or (ops == ["c", "d"] and prev == "ld\tb,e"):
@@ -928,9 +952,11 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
                     or (mn == "ld" and ops and ops[0].startswith("(") and ops[0] not in ("(de)", "(bc)")) \
                     or (mn in ("inc", "dec") and ops == ["(hl)"]):
                 hl_reg = None
+                hl_copies.clear()
         if mn == "ld" and len(ops) == 2 and ops[0] == "(hl)" and ops[1] in ("b", "c", "d", "e"):
             eq.discard("(hl)")
             hl_reg = None if _rmw_store(out, ops[1]) or ops[1] in pair_half else ops[1]
+            hl_copies.clear()
             out.append(raw)
             continue
         if mn == "ld" and len(ops) == 2 and ops[1] == "(hl)" and ops[0] in ("l", "h") \
@@ -954,12 +980,14 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
                     dropped += 1
                     continue
                 raw = raw.replace("(hl)", hl_reg, 1)
+                hl_copies.add(ops[0])
                 mn, ops = _ops(_strip(raw).strip())
             else:
                 # a load sets up the same equality: after `ld c,(hl)` the ROM
                 # never rereads the byte (171 `ld a,c`, 0 `ld a,(hl)`); stock
                 # genCast's sign extension does (LoadSynthShape)
                 hl_reg = ops[0]
+                hl_copies.clear()
         # --- hl ---
         # hl is followed (for the `(hl)` reload below) but its own reloads
         # are left alone: whether LSDj's compiler kept hl across a compare
@@ -977,6 +1005,7 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
                     raw = "\tdec\thl"
                     hl = ("stk", want)
                     hl_reg = None
+                    hl_copies.clear()
                     hl_is_a = False
                     eq.discard("(hl)")
                     out.append(raw)
@@ -996,8 +1025,11 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
                 dropped += 1
                 continue
             eq, a_alu = {ops[1]}, False
-            if hl_reg is not None and ops[1] == hl_reg:
-                eq.add("(hl)")       # `ld (hl),e; ld a,e`: `a` is the byte at hl too
+            if hl_reg is not None and (ops[1] == hl_reg or ops[1] in hl_copies):
+                # `ld (hl),e; ld a,e`: `a` is the byte at hl too; so after a
+                # copy of it (`ld (hl),e; ld c,e; ld a,c; bit 6,a; jp nz`: the
+                # byte is not reread, InstrScreenInput's kit flag toggles)
+                eq.add("(hl)")
         elif mn == "ld" and ops == ["a", "(hl)"]:
             if "(hl)" in eq:
                 dropped += 1
@@ -1059,6 +1091,7 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
                 if hl is not None and hl[0] == "stk":
                     hl = ("stk", hl[1] + (1 if ops[1] == "(hl+)" else -1))
                     hl_reg = None
+                    hl_copies.clear()
                     hl_is_a = False
                 else:
                     forget_hl()
@@ -1072,8 +1105,15 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
             # SndPhraseHop's `*wPtrPhraseRow = wSeqNoteLatch; if
             # (wSeqNoteLatch) AdvanceCurChanCursors(wSeqNoteLatch);` reloads
             # it (`ld a,(hl); ld (de),a; or a,a; jp z; ld a,(hl)`, 2 sites,
-            # none reusing it), like track_hram's `ldh` rereads
-            if ops[0] in ("z", "nz"):
+            # none reusing it), like track_hram's `ldh` rereads; so does a
+            # stack slot (PhraseScreenInput's `k = v & 0xF0; if (k)`: `ld
+            # (hl),a; or a,a; jp z; ld a,(hl)`, 7 sites). A bit test of a
+            # stack byte keeps it: InstrScreenInput's kit flag toggles test a
+            # copy of the byte just stored (`ld (hl),e; ld c,e; ld a,c; bit
+            # 6,a; jp nz`) and OR straight into it (4 sites)
+            prev = next((_strip(l).strip() for l in reversed(out) if _strip(l).strip()), "")
+            if ops[0] in ("z", "nz") and not (hl is not None and hl[0] == "stk"
+                                              and prev.startswith("bit\t")):
                 eq.discard("(hl)")
         elif mn in _NEUTRAL:
             if mn == "push":

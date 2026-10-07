@@ -172,16 +172,16 @@ void DrawTableFlag(void)
     GetInstrFlags1F5(0x20, 9);
 }
 
-UBYTE GetInstrEnv1F(void)
+UBYTE InstrEnvHasSecond(void)
 {
     return ReadCurInstrByte(1) & 0x0F;
 }
 
-UBYTE GetInstrByte1F9(void)
+UBYTE InstrEnvHasThird(void)
 {
     UBYTE a, b;
 
-    a = GetInstrEnv1F();
+    a = InstrEnvHasSecond();
     b = ReadCurInstrByte(9) & 0x0F;
     return a && b;
 }
@@ -198,10 +198,10 @@ void DrawInstrEnvFields(void)
     hBgPalette = wShadowPal;
     wVramCursor = 0x98A5;
     DrawHexByte(ReadCurInstrByte(1));
-    if (GetInstrEnv1F()) {
+    if (InstrEnvHasSecond()) {
         wVramCursor = 0x98A8;
         DrawHexByte(ReadCurInstrByte(9));
-        if (GetInstrByte1F9()) {
+        if (InstrEnvHasThird()) {
             v = ReadCurInstrByte(10);
             wVramCursor = 0x98AB;
             if (v & 0xF0)

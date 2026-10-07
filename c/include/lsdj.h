@@ -155,6 +155,7 @@ UBYTE FarCallArg2(UBYTE bank, UWORD fn, UBYTE a, UBYTE b);
 UBYTE FarCallArg2P(UBYTE bank, void (*fn)(void), UBYTE a, UBYTE b);  /* the same routine taking FAR_FN(f) (match_function.py aliases it) */
 void FarCallArg3(UBYTE bank, UWORD fn, UBYTE a, UBYTE b, UBYTE c);
 void FarCallArg3P(UBYTE bank, void (*fn)(void), UBYTE a, UBYTE b, UBYTE c);  /* the same routine taking FAR_FN(f) (match_function.py aliases it) */
+UBYTE FarCallByteU(UBYTE bank, UBYTE (*fn)(void));  /* FarCallByte for a callee declared returning UBYTE: `ld bc,#f` (aliased) */
 #ifndef FARCALL_C
 /* their callers pass a function; FarCall.c defines them taking a UWORD */
 void FarCallArg2V(UBYTE bank, void (*fn)(void), UBYTE a, UBYTE b);
@@ -283,7 +284,8 @@ UBYTE ProjSyncModeIs567(void);
 
 void DrawInstrTableField(void);
 void DrawInstrTableMode(void);
-UBYTE GetInstrEnv1F(void);
+UBYTE InstrEnvHasSecond(void);
+UBYTE InstrEnvHasThird(void);
 UBYTE FindFreeTable(void);
 void DrawInstrEnvFields(void);
 

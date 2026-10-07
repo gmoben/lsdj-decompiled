@@ -37,7 +37,7 @@
 47A2 InstrTableModePrev         ; table mode down: clear byte 5 bit 3 (table step) if set, else table off; redraw
 482E InstrTableModeNext         ; table mode up: table on, then set byte 5 bit 3 (table step); redraw
 489D InstrTableNext             ; table on: table number +1 (up to $1F), then FarCall bank $1F DrawInstrTableField
-48D6 SetInstrTable5             ; write instrument byte 6 = table (bits0-4) + enable (bit5)
+48D6 InstrTablePrev             ; A+LEFT on the TABLE field: the previous table number; at 0 (a fresh press) the mode steps back twice and the cursor leaves the field
 495C InstrTableSub16            ; table on: clear table-number bit 4 (-16)
 498B DrawInstrByte10            ; draw the instr byte-10 field cell at row 14 (dashes gate via InstrByte9IsZero)
 49B7 DrawInstrByte11            ; draw the instr byte-11 field cell ("--" when byte 9 is zero)
@@ -73,7 +73,7 @@
 52BF SetInstrLen5               ; write instrument byte 3 = length (bit6=limited, bits0-5; wave v16+: synth<<4)
 531C SetInstrLen6               ; write instrument byte 3 = length (bit6=limited, bits0-5; wave v16+: synth<<4)
 537A SetInstrLen7               ; write instrument byte 3 = length (bit6=limited, bits0-5; wave v16+: synth<<4)
-53DE GetInstrType4              ; read instrument byte 0 = type (0=PULSE 1=WAVE 2=KIT 3=NOISE)
+53DE CloneSynthOrTable          ; clone what the instrument screen's cursor names: the softsynth on a WAVE instrument's synth field, else the instrument's table (CloneInstrTable)
 ; --- functions called from bank 0 (this bank paged in) ---
 541F InstrScreenInput           ; instrument-screen input entry (speech $40 -> WordScreenInput via FarCallByte)
 4790 GetInstrByte5Flag8 ; read current instr byte 5 & $08 (table AUTOMATE-class flag; unreferenced)
@@ -107,7 +107,7 @@
 482C .done                ; common exit of InstrTableModePrev
 489B .done                ; common exit of InstrTableModeNext
 48D4 .done                ; common exit of InstrTableNext
-4922 .done                ; common exit of SetInstrTable5
+4922 .done                ; common exit of InstrTablePrev
 495A .done                ; common exit of InstrTableAdd16
 4989 .done                ; common exit of InstrTableSub16
 49B5 .done                ; common exit of DrawInstrByte10
@@ -161,8 +161,8 @@
 697B InstrParamByte2Alt         ; param handler: instrument byte 2 (alternate draw)
 69A2 InstrParamByte10           ; param handler: instrument byte 10 (kit distortion $d0-$d3)
 69F1 InstrParamTablePrev        ; table field handler: InstrField5Prev + InstrTableModePrev/Table5
-69F7 InstrParamTableSet         ; table field handler: InstrTableModePrev + SetInstrTable5
-69FD InstrParamTableSet2        ; table field handler: SetInstrTable5 entry
+69F7 InstrParamTableSet         ; table field handler: InstrTableModePrev + InstrTablePrev
+69FD InstrParamTableSet2        ; table field handler: InstrTablePrev entry
 
 
 

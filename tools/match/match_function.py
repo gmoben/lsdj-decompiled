@@ -385,6 +385,7 @@ RUNTIME_ALIASES = {
     "DrawFormat2": "DrawFormat",  # the varargs DrawFormat called with two values
     "FarCallArg3P": "FarCallArg3",  # FarCallArg3 called with a function pointer (two cast temps)
     "FarCallArg2P": "FarCallArg2",  # FarCallArg2 called with a function pointer (two cast temps: FreeUnusedInstrs)
+    "FarCallByteU": "FarCallByte",  # FarCallByte with a callee declared returning UBYTE (pushed from bc; a mismatched prototype folds it into `ld hl,#f`)
     "wVramCursorW": "wVramCursor",  # the VRAM cursor as a plain word (DrawTopBar's 32-bit `< 0x9811`)
     "hFxValueMem": "hFxValue",  # hFxValue tested as a plain global (ld hl; or a,(hl): FxCmd_K) where the file reads it with ldh
     "hFxValueS": "hFxValue",    # hFxValue as a signed byte: widened with one cast (FxCmd_F_Wav's step)
