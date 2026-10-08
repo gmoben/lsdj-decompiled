@@ -2759,6 +2759,12 @@
   "len": 313,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "RemoveBookmark": {
+  "bank": "07",
+  "addr": "63B5",
+  "len": 94,
+  "src": "c/bank07/SongScreen.c"
+ },
  "RenderSynthWave": {
   "bank": "1D",
   "addr": "6035",

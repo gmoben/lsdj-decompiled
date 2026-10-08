@@ -566,6 +566,22 @@ void AddBookmark(UBYTE row)
     }
 }
 
+/* Clear every bookmark slot holding row, then re-sort. The address is
+   written out in both calls: CSE makes it one converted temporary in one
+   slot, which spills i as the ROM does (a named UBYTE *p gets a slot of its
+   own beside the conversion's; a UWORD p keeps i in c). */
+void RemoveBookmark(UBYTE row)
+{
+    UBYTE i;
+
+    if (!IsBookmarked(row))
+        return;
+    for (i = 0; i < 0x10; i++)
+        if (row == ReadSongByte(0, SramBookmarks + i))
+            WriteBookmarkByte(SramBookmarks + i, 0xFF);
+    SortBookmarks();
+}
+
 void ToggleBookmark(UBYTE row)
 {
     if (IsBookmarked(row))

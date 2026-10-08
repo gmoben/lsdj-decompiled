@@ -319,7 +319,7 @@
 5DFB .checkIsCGB
 6258 .ok
 6267 .okb
-640C .sortBookmarks
+640C .sort
 6602 .setVramCursor
 687B .setMsgStrPtr
 68D2 .incLinkQueueHead
@@ -507,7 +507,7 @@
 6361 .checkArg
 636D .cont
 63A2 .writeBookmarkByte
-6406 .sortBookmarks_2
+6406 .next
 6431 .addBookmark
 64A1 .cont
 64BA .sortBookmarks
