@@ -19,7 +19,7 @@ void ResetDisplayState(void);               /* $00:$339A */
 UWORD LoadTilesDispatch(UBYTE *tiles);      /* $00:$337D */
 void RequestTileSlot(UWORD slot);           /* $00:$338B */
 void GfxFillVramRegions(void);
-void GfxCopyVramRegion(UWORD dst, UWORD src);
+void GfxCopyVramRegion(UWORD src, UWORD dst);  /* $1E:$7A4B, parked: one tile, src to dst */
 void WriteVramByteSafe(UWORD addr, UBYTE v);    /* $00:$17EC */
 
 /* $4000: the top row's column labels for the screen about to be drawn
