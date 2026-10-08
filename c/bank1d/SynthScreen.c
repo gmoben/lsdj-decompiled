@@ -47,7 +47,7 @@ void ClearSynthWaveBufs2(void);
 void SynthFilterPass(void);
 void DrawGrooveSteps(void);
 void DrawGrooveRow(void);
-void CopySelection(void);                   /* $1C:$71CD */
+void SendLinkClipboard(void);                   /* $1C:$71CD */
 void DrawAllChanStatus(void);
 void DrawSynthNumber(void);
 void BuildOverwritePrompt(void);
@@ -558,7 +558,7 @@ void GrooveCutCopy(UBYTE cut)
             WriteGrooveByte(row, row ? 0 : 6);
     }
     wGrooveRow = wSelTop;
-    FarCall(0x1C, FAR_FN(CopySelection));
+    FarCall(0x1C, FAR_FN(SendLinkClipboard));
     DrawGrooveSteps();
 }
 
@@ -1909,7 +1909,7 @@ UBYTE SynthScreenInput(void)
         wSelRight = 1;
         wSelTop = 0;
         wSelBottom = 0x10;
-        FarCall(0x1C, FAR_FN(CopySelection));
+        FarCall(0x1C, FAR_FN(SendLinkClipboard));
         return 1;
     case 0x50:
         if (wCursorMode == 1 || wClipboardType != 0x0A)

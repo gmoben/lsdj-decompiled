@@ -2723,6 +2723,12 @@
   "len": 259,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "ReceiveLinkClipboard": {
+  "bank": "1C",
+  "addr": "7310",
+  "len": 242,
+  "src": "c/bank1c/FileScreen.c"
+ },
  "RedrawScreenFar": {
   "bank": "1D",
   "addr": "6E00",
@@ -2854,6 +2860,12 @@
   "addr": "227C",
   "len": 209,
   "src": "c/bank00/Sync.c"
+ },
+ "SendLinkClipboard": {
+  "bank": "1C",
+  "addr": "71CD",
+  "len": 289,
+  "src": "c/bank1c/FileScreen.c"
  },
  "SetChainTranspose": {
   "bank": "06",

@@ -97,13 +97,13 @@
 749E FileDecompressByte         ; decode one compressed byte ($c0/$e0 RLE tokens; FileDecompressRun)
 7513 FileDecompressRun          ; decode an RLE run (ReadCompressedByte, FileDecompNextBank)
 ; --- functions called from bank 0 (this bank paged in) ---
-7310 EnableSerialSync           ; cursorMode=1, $cb65=1, enable the serial interrupt, SendSyncHandshake
+7310 ReceiveLinkClipboard       ; ProcessSyncByte's $FE: receive the linked Game Boy's clipboard (type, bounds, cells into wClipboardBuf) for pasting
 5B0C FileScreenInput            ; file-screen input dispatch (wButtons; clears $c997)
 40F2 CheckFileMagicAll          ; e=0 if the SRAM file space is initialized: 64K 'rb' set, else 'jk' + 128K marker set
 
 4057 CheckFileMagic64           ; e=1 if the 'rb' format markers are missing (SRAM banks 4/5/7)
 47B1 FormatFileSpace            ; zero filenames+versions (bank4 $a000-$a13f), reset the block alloc table
-71CD CopySelection              ; copy the selection rect (wSelLeft/Top/Right/Bottom) into the clipboard scratch
+71CD SendLinkClipboard          ; after a copy on linked Game Boys not playing (SYNC = LSDJ): send $FE, the clipboard type, the selection bounds and the cells (manual 5.1.4 Clipboard Transfer)
 
 ; --- per-instrument-type migration callbacks (passed to FileForEachInstrType) ---
 6134 FileUpgradeV0Kit    ; V0 kit-instrument field migration (callback)
@@ -235,12 +235,12 @@
 70F7 .done                ; common exit of FileUpgradeSong
 714B .loop                ; loop head in ReadWorkingSongByte
 7177 .loop                ; loop head in FileCompressRun
-727D .loop                ; loop head in CopySelection
-72AA .loop2               ; loop head in CopySelection
-72EA .done                ; common exit of CopySelection
+727D .column
+72AA .cell
+72EA .done                ; common exit of SendLinkClipboard
 72EF .loop                ; loop head in SyncTransferByte
-7389 .loop                ; loop head in EnableSerialSync
-73B6 .loop2               ; loop head in EnableSerialSync
+7389 .column
+73B6 .cell
 744B .loop                ; loop head in FlushBlockToSram
 747D .loop                ; loop head in VerifyBlockAgainstSram
 74AA .loop                ; loop head in FileDecompressByte
@@ -348,14 +348,14 @@
 70D9 .fileUpgradeV19
 70DF .fileUpgradeV21
 71AA .ok
-71DC .ok
-71EB .okb
-71FA .okc
-7207 .okd
-7214 .oke
-72E2 .syncSetRecvMode
-73F1 .setCursorMode
-73F6 .syncSetRecvMode
+71DC .modeOk
+71EB .colsOk
+71FA .rowsOk
+7207 .rightOk
+7214 .bottomOk
+72E2 .sent
+73F1 .received
+73F6 .finish
 74D3 .fileDecompNextBank
 74D8 .decompressBlock
 
@@ -633,11 +633,11 @@
 7197 .step
 71C1 .cont
 71C3 .cont_2
-7225 .cont
-7228 .setOverwriteEnd
-72DC .syncSetRecvMode_2
+7225 .skip
+7228 .send
+72DC .nextColumn
 7301 .loadSyncRxByte
-73EB .setCursorMode_2
+73EB .nextColumn
 7417 .storeCompByte
 7432 .loadDecompPos
 7485 .incBlockDstPage

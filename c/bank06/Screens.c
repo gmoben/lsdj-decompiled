@@ -100,7 +100,7 @@ void MapMoveLeft(void);                     /* $05:$4233 */
 void MapMoveDown(void);                     /* $05:$4287 */
 void ToggleSongPlayback(void);                 /* $02:$78C4 */
 void TogglePlayback(void);                    /* $02:$7C4C */
-void CopySelection(void);                   /* bank $1C */
+void SendLinkClipboard(void);                   /* bank $1C */
 extern char TxtCopy[];                      /* $06:$5467 "COPY" */
 
 UBYTE ChainScaleValue(UBYTE v)
@@ -626,7 +626,7 @@ void CopyWaveSelection(void)
     wSelTop = 0;
     wSelBottom = 0x12;
     wCursorMode = 2;
-    FarCall(0x1C, FAR_FN(CopySelection));
+    FarCall(0x1C, FAR_FN(SendLinkClipboard));
 }
 
 void PasteWaveSelection(void)
@@ -1422,7 +1422,7 @@ void CutCopyChainSelection(UBYTE cut)
             }
         }
     }
-    FarCall(0x1C, FAR_FN(CopySelection));
+    FarCall(0x1C, FAR_FN(SendLinkClipboard));
     wChainCol = wSelLeft;
     wChainRow = wSelTop;
     ShowMessage(cut ? "CUT " : "COPY");

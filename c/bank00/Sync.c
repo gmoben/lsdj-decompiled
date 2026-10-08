@@ -72,7 +72,7 @@ void SndResetFxState(void);                 /* bank 2 */
 void SndEnableLcdInts(void);                /* bank 2 */
 void SndRunFrame(void);                     /* bank 2 */
 void DrawSyncSubSetting(void);              /* bank $1B */
-void EnableSerialSync(void);                /* bank $1C */
+void ReceiveLinkClipboard(void);                /* bank $1C */
 
 void LoadSyncSetting(void)
 {
@@ -389,7 +389,7 @@ void ProcessSyncByte(void)
         } else if (wSyncRxByte == 0xFE) {
             saved = hCurrentBank;
             SWITCH_ROM(0x1C);
-            EnableSerialSync();
+            ReceiveLinkClipboard();
             SWITCH_ROM(saved);
             return;
         }

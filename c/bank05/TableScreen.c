@@ -15,7 +15,7 @@ extern UBYTE wSelTop;                       /* $C40E */
 extern UBYTE wSelRight;                     /* $C40F */
 extern UBYTE wSelBottom;                    /* $C410 */
 extern UBYTE wClipboardType;                /* $C411 */
-void CopySelection(void);                   /* bank $1C */
+void SendLinkClipboard(void);                   /* bank $1C */
 extern UBYTE wTable;                        /* $C41B, the table being edited */
 extern UWORD wTableCellAPtr;                /* $C447: CMD column base, an address held as an integer */
 extern UWORD wTableCellBPtr;                /* $C449: its value column */
@@ -1252,7 +1252,7 @@ void CutCopyTableSelection(UBYTE cut)
     }
     wTableCol = wSelLeft;
     wTableRow = wSelTop;
-    FarCall(0x1C, FAR_FN(CopySelection));
+    FarCall(0x1C, FAR_FN(SendLinkClipboard));
     DrawTableScreen();
 }
 

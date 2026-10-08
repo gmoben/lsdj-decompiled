@@ -26,7 +26,7 @@ extern UBYTE wSelTop;                       /* $C40E */
 extern UBYTE wClipboardType;                /* $C411 */
 extern UBYTE wSelRight;                     /* $C40F */
 extern UBYTE wSelBottom;                    /* $C410 */
-void CopySelection(void);                   /* $1C:$71CD */
+void SendLinkClipboard(void);                   /* $1C:$71CD */
 void PhraseReadNote(void);                  /* $04:$4968, (row) */
 void WritePhraseNote(void);                 /* $04:$418F, (row, v) */
 void PhraseReadFx(void);                    /* $04:$4AEA, (phrase, row) */
@@ -1375,7 +1375,7 @@ void CutCopyPhraseSelection(UBYTE cut)
     }
     if (wSelRight == 1)
         wSelRight = 3;
-    FarCall(0x1C, FAR_FN(CopySelection));
+    FarCall(0x1C, FAR_FN(SendLinkClipboard));
     wPhraseCol = wSelLeft;
     wPhraseRow = wSelTop;
     FarCall(4, FAR_FN(DrawPhraseScreen));

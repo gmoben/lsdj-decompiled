@@ -18,7 +18,7 @@ void CopyTableData(UBYTE from, UBYTE to);
 void ShowOutOfMemory(void);
 void WriteInstrName(UBYTE instr);
 void CopyInstrName(UBYTE instr);            /* UiHelpers.c */
-void CopySelection(void);                   /* $1C */
+void SendLinkClipboard(void);                   /* $1C */
 
 UBYTE CheckSongInitFlag(void)
 {
@@ -151,7 +151,7 @@ void CopyInstrument(void)
     wSelRight = 2;
     wSelTop = 0;
     wSelBottom = 16;
-    FarCall(0x1C, FAR_FN(CopySelection));
+    FarCall(0x1C, FAR_FN(SendLinkClipboard));
 }
 
 void CopySong16(UBYTE bank, UWORD src, UWORD dst)

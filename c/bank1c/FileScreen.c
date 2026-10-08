@@ -1084,6 +1084,14 @@ void FileUpgradeRetrigRate(UBYTE *p)
     }
 }
 
+extern UBYTE wSelTop;                       /* $C40E */
+extern UBYTE wSelRight;                     /* $C40F */
+extern UBYTE wSelBottom;                    /* $C410 */
+extern UBYTE wClipboardType;                /* $C411 */
+extern UBYTE wClipboardBuf[][42];           /* $C57A, 6 columns of 42 cells */
+extern UBYTE wSyncXferActive;               /* $CB65 */
+void SyncSetRecvMode(void);                 /* bank 0 */
+
 void FileSendSyncByte(UBYTE v)
 {
     UBYTE s;
@@ -1096,10 +1104,80 @@ void FileSendSyncByte(UBYTE v)
     delay(hGameboyType ? 6 : 3);
 }
 
+/* After a copy on two linked Game Boys that are not playing (SYNC = LSDJ):
+   send $FE, the clipboard type and the selection bounds, then the
+   clipboard's cells column by column, for the other one to paste (the
+   manual's "Clipboard Transfer"). */
+void SendLinkClipboard(void)
+{
+    UBYTE x, y, ok;
+
+    if (wCursorMode != 2)
+        DebugTrap();
+    if (wSelLeft >= wSelRight)
+        DebugTrap();
+    if (wSelTop >= wSelBottom)
+        DebugTrap();
+    if (wSelRight > 6)
+        DebugTrap();
+    if (wSelBottom > 0x2A)
+        DebugTrap();
+    if (wPlayMode || wSyncMode != 1)
+        return;
+    wSyncXferActive = 1;
+    SetInterruptEnable(0);
+    FileSendSyncByte(0xFE);
+    FileSendSyncByte(wClipboardType);
+    FileSendSyncByte(wSelLeft);
+    FileSendSyncByte(wSelTop);
+    FileSendSyncByte(wSelRight);
+    FileSendSyncByte(wSelBottom);
+    for (x = wSelLeft; x < wSelRight; x++) {
+        y = wSelTop;
+        while (ok = y < wSelBottom) {
+            FileSendSyncByte(wClipboardBuf[x][y]);
+            y = y + 1;
+        }
+    }
+    SyncSetRecvMode();
+    wSyncXferActive = 0;
+}
+
 void SyncTransferByte(UBYTE *out)
 {
     while (wSyncState == 2 && joypad() == 0)
         ;
     *out = wSyncRxByte;
     SendSyncHandshake();
+}
+
+/* ProcessSyncByte's $FE: receive a clipboard sent by SendLinkClipboard on the
+   linked Game Boy -- its type, the selection bounds and, when they are
+   sane, the cells (the column offset multiplied inside the loop and
+   hoisted by SDCC, which gives the ROM's spills). */
+void ReceiveLinkClipboard(void)
+{
+    UBYTE x, y, ok;
+
+    wCursorMode = 1;
+    wSyncXferActive = 1;
+    SetInterruptEnable(8);
+    SendSyncHandshake();
+    SyncTransferByte(&wClipboardType);
+    SyncTransferByte(&wSelLeft);
+    SyncTransferByte(&wSelTop);
+    SyncTransferByte(&wSelRight);
+    SyncTransferByte(&wSelBottom);
+    if (wSelLeft < wSelRight && wSelTop < wSelBottom && wSelRight <= 6 && wSelBottom <= 0x2A) {
+        for (x = wSelLeft; x < wSelRight; x++) {
+            y = wSelTop;
+            while (ok = y < wSelBottom) {
+                SyncTransferByte(&wClipboardBuf[x][y]);
+                y = y + 1;
+            }
+        }
+        wCursorMode = 2;
+    }
+    SyncSetRecvMode();
+    wSyncXferActive = 0;
 }
