@@ -182,7 +182,7 @@ call, `d`/`e` do not): FileUpgradeV3Pulse/V3Kit's `((char)v & 0xF9) |
 1`. The opposite case is not modelled: with the AND result as the
 *right* operand of an OR with a variable, stock packs it into `a` and
 genOr emits `ld a,(hl); or a,a` (wrong code), where the ROM keeps it in
-a register (parked SetInstrFlags54). `gb_cmp16` also re-seats `hl` after the compare it rewrites: stock SDCC
+a register (parked SetVibratoShape). `gb_cmp16` also re-seats `hl` after the compare it rewrites: stock SDCC
 leaves `hl` at the operand's high byte and may continue from there
 (`dec hl; ld a,(hl+)`), while the add form clobbers it, so the ROM
 reloads `ld hl,sp+0` (DrawBlocksUsed), or `ld hl,#G` for a global operand
@@ -686,7 +686,7 @@ comment began with a quoted string had been carved as data, since a leading
   other call sites through `FAR_FN`. A cast to another pointer type, `banked`
   or `nonbanked` all fold away.
 - **String literals** are emitted right after the function that uses them, as
-  in the ROM (`DrawInstrByte11`'s `"--"` at `$03:$49E4`). Precisely, SDCC
+  in the ROM (`DrawWaveSpeed`'s `"--"` at `$03:$49E4`). Precisely, SDCC
   flushes its constant segment after each function it compiles, in the order
   things were put there: `const` data defined at file scope since the last
   flush first (`const UBYTE SpeedGlyphTiles[]` just above `DrawSpeedModeName`
@@ -941,7 +941,7 @@ shape.
 
 | Function | Where | What differs |
 |----------|-------|--------------|
-| `SetInstrFlags54` | `$03:$4B5E` | the tail matches with the target chosen as a word, `FarCallArgW(1, ReadCurInstrByte(0) == 3 ? (UWORD)DrawSpeedGlyph : (UWORD)DrawSpeedModeName, v)` (a UWORD-typed FarCallArg to alias: no frame, `ld l,b; ld h,c; push hl`; FAR_FN's second cast spills). What remains is the mask: the ROM keeps `t & 0xF8` in c for `v \|= ...` (`and a,$f8; ld c,a; ld a,(hl); or a,c`), but stock opPreservesA packs an AND into a whenever the OR's other operand is a symbol, so genOr emits `ld a,(hl); or a,a` (wrong code). Every spelling packs: char/UBYTE t, decimal 248, two statements, the literal first, casts |
+| `SetVibratoShape` | `$03:$4B5E` | the tail matches with the target chosen as a word, `FarCallArgW(1, ReadCurInstrByte(0) == 3 ? (UWORD)DrawSpeedGlyph : (UWORD)DrawSpeedModeName, v)` (a UWORD-typed FarCallArg to alias: no frame, `ld l,b; ld h,c; push hl`; FAR_FN's second cast spills). What remains is the mask: the ROM keeps `t & 0xF8` in c for `v \|= ...` (`and a,$f8; ld c,a; ld a,(hl); or a,c`), but stock opPreservesA packs an AND into a whenever the OR's other operand is a symbol, so genOr emits `ld a,(hl); or a,a` (wrong code). Every spelling packs: char/UBYTE t, decimal 248, two statements, the literal first, casts |
 | `FileUpgradeV0Kit` | `$1C:$6134` | `UBYTE a, f, b, la, lb` (slots 6..2) and `a &= ~(UWORD)0x20` get all but the first clear: the ROM zero-extends a into a spilt word (sp+0) and ANDs its low byte straight from the slot into b (`ld a,(hl); and a,#0xDF; ld b,a; ld (sp+6),b`), a 1-byte result over a 2-byte operand; stock either computes the high byte too (`inc hl; ld c,(hl)`) or, with `(UWORD)a & 0xDF`, narrows first through b and folds the result into a. Signed spellings sign-extend (`rla; sbc a,a`); volatile locals break the call-result stores |
 | `RemoveBookmark` | `$07:$63B5` | the ROM spills i (sp+2) and keeps each call result in c; ours keeps i in c. A UWORD p removes the conversion copy but not that; declaration order, an early return and a named result don't change it |
 | `CopySynthParam` | `$06:$493F` | ROM keeps s = wSynth >> 4 in c, packs ChainCalcParamAddr's result straight into p (sp+0) and stores a copy of s to sp+2 before the mask; UWORD/pointer p and three mask spellings tried |
@@ -979,7 +979,7 @@ shape.
    SDCC 2.2.1's one-level hoisting from stale dataflow (see Writing C).
 2. **The complete compiler model.** An accumulator-tracking pass plus 86
    rules so far; most new functions need nothing new, but each new idiom can
-   surface a rule. One function so far (`SetInstrFlags54`, `$03:$4B5E`)
+   surface a rule. One function so far (`SetVibratoShape`, `$03:$4B5E`)
    points at a register-allocation difference no rule can express: stock
    SDCC keeps the result of an `&` in `a` for the `|` that follows and then
    clobbers it (wrong code), LSDj's compiler keeps it in `c`. Not a fixed

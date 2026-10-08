@@ -10,25 +10,25 @@
 4AB4 TxtHard                    ; " HARD"
 4DE7 DrawInstrumentScreen ; screen idx 6: draws instrument params (reads instruments[] 119x)
 4FC4 InstrTypeNames     ; [4][6] type names "PULSE"/" WAVE"/"  KIT"/"NOISE" (indexed by type*6)
-4105 InstrByte9IsZero           ; 1 if instrument byte 9 == 0 (kit row dashes gate; 12 uses)
+4105 WavePlayIsManual           ; 1 if the wave PLAY mode is MANUAL (SPEED/LENGTH/LOOP POS then show dashes)
 4118 IsInstrTableOn             ; instrument byte 6 bit 5 (table on) as 0/1
 4133 InstrTableOn               ; set instrument byte 6 bit 5 (table on)
 4170 DrawInstrCursor            ; draw the cursor highlight on field wInstrField (ColorField from InstrFieldX/Y/W[type][field], palette 3 CGB / 2)
 4257 SetInstrPitchByte          ; write instrument byte 5 (pitch flags) and redraw its transpose ON/OFF (bank 1 DrawOnOffName)
 4293 InstrTransposeOff          ; clear instrument byte 5 bit 5 (transpose) via SetInstrPitchByte
 4679 EraseInstrCursor           ; erase the cursor highlight on field wInstrField (palette 1)
-4741 SetInstrByte8              ; write instrument byte 8 (kit pitch / pulse finetune)
-4769 SetInstrByte82             ; write instrument byte 8 (kit pitch / pulse finetune)
+4741 InstrCmdRateInc            ; A+RIGHT on CMD/RATE: byte 8 one up (to F), redrawn
+4769 InstrCmdRateDec            ; A+LEFT on CMD/RATE: byte 8 one down (to 0), redrawn
 4924 InstrTableAdd16            ; table on, fresh press: set table-number bit 4 (+16)
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
-40F8 GetInstrByte9              ; read instrument byte 9 (kit row gate: 0 -> dashes)
+40F8 GetWavePlayMode            ; the wave PLAY mode: byte 9 (MANUAL, ONCE, LOOP, PINGPONG, RESYNC = PlayModeNames)
 414F InstrCheckFieldOption      ; return 1 if option-table[c] (ROM $40F4) minus 1 == current field $c427, else 0
 427B InstrTransposeOn           ; set instrument byte 5 bit 5 (transpose) via SetInstrPitchByte
 42AB SynthWavesModified         ; 1 if synth n's 256-byte wave page (SRAM bank 3) differs from DefaultWaveFrameB3 repeated
 42FF FindFreeSynth              ; first synth (0-15) whose waves are still default; else 'OUT OF SYNTHS!' message and $FF
 436D InstrTableNew              ; give the instrument the first free table (FarCallByte bank $1F FindFreeTable), switched on; SDCC bug clears byte 6's other bits
-43C0 SetInstrLen                ; write instrument byte 3 = length (bit6=limited, bits0-5; wave v16+: synth<<4)
+43C0 InstrSynthNew              ; A twice on a wave instrument's SYNTH field (PLAY not MANUAL): give it a free synth (FindFreeSynth), drawn and stored in byte 3 bits 7-4
 441A CloneSynth                 ; clone the current instrument's synth into a free synth slot (params + 256 wave bytes), then point the instrument at it
 45A7 InstrScreenFrame           ; shared instrument-screen frame draw (map row, tempo field, marker sprites)
 45D3 InstrSelectPrevUsed        ; step wInstrument back to the previous allocated instrument (SramInstrAlloc), then redraw
@@ -39,24 +39,24 @@
 489D InstrTableNext             ; table on: table number +1 (up to $1F), then FarCall bank $1F DrawInstrTableField
 48D6 InstrTablePrev             ; A+LEFT on the TABLE field: the previous table number; at 0 (a fresh press) the mode steps back twice and the cursor leaves the field
 495C InstrTableSub16            ; table on: clear table-number bit 4 (-16)
-498B DrawInstrByte10            ; draw the instr byte-10 field cell at row 14 (dashes gate via InstrByte9IsZero)
-49B7 DrawInstrByte11            ; draw the instr byte-11 field cell ("--" when byte 9 is zero)
-49E7 GetInstrByte2              ; read instrument byte 2 (pulse tune / kit half-speed+keep-attack / wave synth pre-v16)
-49FD DrawInstrRow14             ; draw the type-dependent row-14 fields (dispatch by byte 9 = 2/3/4)
+498B DrawWaveLength             ; draw the wave LENGTH at $99CC ("-" when PLAY is MANUAL)
+49B7 DrawWaveSpeed              ; draw the wave SPEED at $99AB ("--" when PLAY is MANUAL)
+49E7 GetWaveLoopPos             ; the wave LOOP POS as stored: F ^ byte 2 bits 3-0
+49FD DrawWaveLoopPos            ; draw the wave LOOP POS at $99EC (LOOP, PINGPONG and RESYNC only; length less loop position, 0 if negative)
 4A44 DrawKitDistName            ; draw the kit DIST mode: $d0-$d3 -> " HARD"/" SOFT"/" FOLD"/" WRAP"
-4ACF GetInstrByte11             ; read current instrument byte 11
+4ACF GetWaveSpeed               ; the wave SPEED: byte 11 + 3
 4AE0 SetInstrByte11             ; write current instrument byte 11
-4AF4 GetInstrByte10             ; read current instrument byte 10 (KIT: dist mode $d0-$d3)
+4AF4 GetWaveLength              ; the wave LENGTH as shown: F - byte 10 bits 3-0
 4B0A SetInstrByte10             ; write current instrument byte 10 (nibble-asserted path)
 4B29 SetInstrByte2              ; write instrument byte 2 (pulse tune / kit half-speed+keep-attack / wave synth pre-v16)
-4B4C GetInstrFlags53            ; read instrument byte 5 flags (bit3 = table STEP/AUTOMATE mode, vibrato bits)
-4B5E SetInstrFlags54            ; write instrument byte 5 flags (bit3 = table STEP/AUTOMATE mode, vibrato bits)
-4BAC InstrField5Next            ; read instr field5, step +2 (wrap 6->1), write back via SetInstrFlags54
-4BCB InstrField5Prev            ; read instr field5, step -2 (wrap <0 ->4), write back via SetInstrFlags54
+4B4C GetVibratoShape            ; the PITCH field's vibrato shape: instrument byte 5 bits 2-0 (sine/saw/square << 1, bit 0 = up)
+4B5E SetVibratoShape            ; store the vibrato shape in byte 5 bits 2-0 and redraw the PITCH field (DrawSpeedGlyph for noise, else DrawSpeedModeName)
+4BAC VibratoShapeNext           ; A+RIGHT on PITCH: next vibrato shape (triangle, saw, square down, then up)
+4BCB VibratoShapePrev           ; A+LEFT on PITCH: previous vibrato shape
 4BE9 GetInstrType3              ; read instrument byte 0 = type (0=PULSE 1=WAVE 2=KIT 3=NOISE)
 4BF9 InstrPitchModeUp           ; pitch mode up: byte 5 bits 4/6/7 (bit 7 = top), redraw via DrawSpeedModeName
 4C64 InstrPitchModeDown         ; pitch mode down: byte 5 bits 4/6/7, redraw via DrawSpeedModeName
-4CD9 DrawInstrByte12            ; read instr byte 12 + draw label/hex pair
+4CD9 DrawWaveFinetune           ; draw the wave FINETUNE (byte 12) signed at $990A
 4D15 DrawWaveSynthField         ; draw the WAVE/SYNTH field: 'WAVE ' + byte 3 (hex), or 'SYNTH' + byte 3 >> 4
 4DD7 InstrEnvelopeChanged       ; FarCall bank1b UpdateInstrEnvelope after a field edit
 4FDC DrawKitNameField           ; draw kit number (hex) + 6-char kit name (ReadKitName -> wSampleNoteString)
@@ -69,10 +69,10 @@
 51BC InstrFieldDecLo            ; current field byte: -1 on the lo nibble (clamp 0)
 51F4 InstrFieldIncHi            ; current field byte: +$10 on the hi nibble (clamp $f0)
 5231 InstrFieldDecHi            ; current field byte: -$10 on the hi nibble
-526B SetInstrLen4               ; write instrument byte 3 = length (bit6=limited, bits0-5; wave v16+: synth<<4)
-52BF SetInstrLen5               ; write instrument byte 3 = length (bit6=limited, bits0-5; wave v16+: synth<<4)
-531C SetInstrLen6               ; write instrument byte 3 = length (bit6=limited, bits0-5; wave v16+: synth<<4)
-537A SetInstrLen7               ; write instrument byte 3 = length (bit6=limited, bits0-5; wave v16+: synth<<4)
+526B InstrLengthInc             ; A+RIGHT on LENGTH (byte 3, bit 6 = limited, shown as 3F - bits 5-0): one longer, past 3F to UNLIM
+52BF InstrLengthDec             ; A+LEFT on LENGTH: one shorter, from UNLIM to 3F
+531C InstrLengthBigInc          ; A+UP on LENGTH: 16 longer, past 3F to UNLIM
+537A InstrLengthBigDec          ; A+DOWN on LENGTH: 16 shorter, from UNLIM to 30
 53DE CloneSynthOrTable          ; clone what the instrument screen's cursor names: the softsynth on a WAVE instrument's synth field, else the instrument's table (CloneInstrTable)
 ; --- functions called from bank 0 (this bank paged in) ---
 541F InstrScreenInput           ; instrument-screen input entry (speech $40 -> WordScreenInput via FarCallByte)
@@ -94,7 +94,7 @@
 4302 .loop                ; loop head in FindFreeSynth
 4339 .done                ; common exit of FindFreeSynth
 43BE .done                ; common exit of InstrTableNew
-4416 .done                ; common exit of SetInstrLen
+4416 .done                ; common exit of InstrSynthNew
 4466 .loop                ; loop head in CloneSynth
 4596 .done                ; common exit of CloneSynth
 45E4 .loop                ; loop head in InstrSelectPrevUsed
@@ -102,22 +102,22 @@
 4637 .done                ; common exit of InstrSelectPrevPage
 4641 .loop                ; loop head in InstrSelectNextUsed
 473D .done                ; common exit of EraseInstrCursor
-4767 .done                ; common exit of SetInstrByte8
-478E .done                ; common exit of SetInstrByte82
+4767 .done                ; common exit of InstrCmdRateInc
+478E .done                ; common exit of InstrCmdRateDec
 482C .done                ; common exit of InstrTableModePrev
 489B .done                ; common exit of InstrTableModeNext
 48D4 .done                ; common exit of InstrTableNext
 4922 .done                ; common exit of InstrTablePrev
 495A .done                ; common exit of InstrTableAdd16
 4989 .done                ; common exit of InstrTableSub16
-49B5 .done                ; common exit of DrawInstrByte10
-49E2 .done                ; common exit of DrawInstrByte11
-4A42 .done                ; common exit of DrawInstrRow14
+49B5 .done                ; common exit of DrawWaveLength
+49E2 .done                ; common exit of DrawWaveSpeed
+4A42 .done                ; common exit of DrawWaveLoopPos
 4AB3 .done                ; common exit of DrawKitDistName
-4BC9 .done                ; common exit of InstrField5Next
-4BE7 .done                ; common exit of InstrField5Prev
+4BC9 .done                ; common exit of VibratoShapeNext
+4BE7 .done                ; common exit of VibratoShapePrev
 4C60 .done                ; common exit of InstrPitchModeUp
-4D13 .done                ; common exit of DrawInstrByte12
+4D13 .done                ; common exit of DrawWaveFinetune
 4DC9 .done                ; common exit of DrawWaveSynthField
 4EC6 .loop                ; loop head in DrawInstrumentScreen
 4F9D .loop2               ; loop head in DrawInstrumentScreen
@@ -134,10 +134,10 @@
 51F2 .done                ; common exit of InstrFieldDecLo
 522F .done                ; common exit of InstrFieldIncHi
 5269 .done                ; common exit of InstrFieldDecHi
-52B9 .done                ; common exit of SetInstrLen4
-5316 .done                ; common exit of SetInstrLen5
-5374 .done                ; common exit of SetInstrLen6
-53D8 .done                ; common exit of SetInstrLen7
+52B9 .done                ; common exit of InstrLengthInc
+5316 .done                ; common exit of InstrLengthDec
+5374 .done                ; common exit of InstrLengthBigInc
+53D8 .done                ; common exit of InstrLengthBigDec
 6EC8 .bigKitKitLoop        ; loop head in InstrScreenInput
 74C9 .bigDecKitKitLoop     ; loop head in InstrScreenInput
 7A77 .done                 ; common exit of InstrScreenInput
@@ -175,12 +175,12 @@
 485C .setInstrTable
 485F .loadSelectDigitPal
 4881 .loadShadowDigitPal
-49A9 .getInstrByte10
-49D5 .getInstrByte11
-4A1A .getInstrByte10
+49A9 .notManual
+49D5 .notManual
+4A1A .looped
 4B16 .ok
 4CA3 .getInstrType3
-4D08 .drawStringTile20
+4D08 .positive
 4DF7 .ok
 4E11 .loadInstrument
 4E68 .instrScreenFrame
@@ -379,8 +379,8 @@
 
 
 ; --- full local naming (block signature) ---
-4113 .cont
-4114 .cont_2
+4113 .notManual
+4114 .result
 412E .cont
 4130 .cont_2
 416B .cont
@@ -408,18 +408,18 @@
 47D7 .readCurInstrByte
 48B9 .writeCurrentInstrByte
 4907 .writeCurrentInstrByte
-4A2C .cont
-4A2E .drawByte
-4A39 .drawStringIndexed
+4A2C .negative
+4A2E .draw
+4A39 .dash
 4A67 .drawString
 4A73 .drawString_2
 4A7F .drawString_3
 4A8B .drawString_4
 4A97 .drawStringIndexed
-4B95 .cont
-4B99 .cont_2
-4BC1 .setInstrFlags54
-4BDF .setInstrFlags54
+4B95 .notNoise
+4B99 .redraw
+4BC1 .store
+4BDF .store
 4C1D .testBit6
 4C37 .cont
 4C3D .writeCurrentInstrByte
@@ -452,19 +452,19 @@
 51D1 .writeCurrentInstrByte
 520C .writeCurrentInstrByte
 5246 .writeCurrentInstrByte
-5285 .writeCurrentInstrByte
-52B0 .drawString
-52D8 .cont
-52E2 .writeCurrentInstrByte
-530D .drawString
-533A .cont
-533E .cont_2
-5340 .writeCurrentInstrByte
-536B .drawString
-5390 .cont
-53A0 .cont_2
-53A4 .writeCurrentInstrByte
-53CF .drawString
+5285 .write
+52B0 .unlim
+52D8 .limited
+52E2 .write
+530D .unlim
+533A .stepped
+533E .toUnlim
+5340 .write
+536B .unlim
+5390 .limited
+53A0 .toShortest
+53A4 .write
+53CF .unlim
 540A .farCall
 5418 .setDefaultNotes
 5470 .aTested

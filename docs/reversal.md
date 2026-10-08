@@ -631,7 +631,7 @@ from the kit; NOISE its own scheme).
      function. Names that kept a `_XXXX` address suffix (e.g. `InstrGetField5_4B4C`)
      were accurate behavioral names where the stem repeated and the suffix only
      disambiguated; none remain — the instrument accessors were renamed from the
-     liblsdj-documented format (`InstrGetField5_4B4C` → `GetInstrFlags53`).
+     liblsdj-documented format (`InstrGetField5_4B4C` → `GetVibratoShape`).
   4. **Re-review pass (correctness).** After labelling, every bank's theme was
      re-verified against the actual entry/dispatch code. This caught and fixed
      several *systematic* mislabels from the earlier heuristic pass:

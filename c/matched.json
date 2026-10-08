@@ -593,24 +593,6 @@
   "len": 23,
   "src": "c/bank1b/ProjectScreen.c"
  },
- "DrawInstrByte10": {
-  "bank": "03",
-  "addr": "498B",
-  "len": 44,
-  "src": "c/bank03/InstrScreen.c"
- },
- "DrawInstrByte11": {
-  "bank": "03",
-  "addr": "49B7",
-  "len": 45,
-  "src": "c/bank03/InstrScreen.c"
- },
- "DrawInstrByte12": {
-  "bank": "03",
-  "addr": "4CD9",
-  "len": 60,
-  "src": "c/bank03/InstrScreen.c"
- },
  "DrawInstrCursor": {
   "bank": "03",
   "addr": "4170",
@@ -640,12 +622,6 @@
   "addr": "70DF",
   "len": 41,
   "src": "c/bank1f/InstrHelpers.c"
- },
- "DrawInstrRow14": {
-  "bank": "03",
-  "addr": "49FD",
-  "len": 71,
-  "src": "c/bank03/InstrScreen.c"
  },
  "DrawInstrTableField": {
   "bank": "1F",
@@ -1013,17 +989,41 @@
   "len": 49,
   "src": "c/bank06/Screens.c"
  },
+ "DrawWaveFinetune": {
+  "bank": "03",
+  "addr": "4CD9",
+  "len": 60,
+  "src": "c/bank03/InstrScreen.c"
+ },
  "DrawWaveInstr": {
   "bank": "1F",
   "addr": "474E",
   "len": 375,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "DrawWaveLength": {
+  "bank": "03",
+  "addr": "498B",
+  "len": 44,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "DrawWaveLoopPos": {
+  "bank": "03",
+  "addr": "49FD",
+  "len": 71,
+  "src": "c/bank03/InstrScreen.c"
+ },
  "DrawWaveScreen": {
   "bank": "06",
   "addr": "4F18",
   "len": 42,
   "src": "c/bank06/Screens.c"
+ },
+ "DrawWaveSpeed": {
+  "bank": "03",
+  "addr": "49B7",
+  "len": 45,
+  "src": "c/bank03/InstrScreen.c"
  },
  "DrawWaveSynthField": {
   "bank": "03",
@@ -1589,34 +1589,10 @@
   "len": 29,
   "src": "c/bank1c/FileScreen.c"
  },
- "GetInstrByte10": {
-  "bank": "03",
-  "addr": "4AF4",
-  "len": 22,
-  "src": "c/bank03/InstrScreen.c"
- },
- "GetInstrByte11": {
-  "bank": "03",
-  "addr": "4ACF",
-  "len": 17,
-  "src": "c/bank03/InstrScreen.c"
- },
- "GetInstrByte2": {
-  "bank": "03",
-  "addr": "49E7",
-  "len": 22,
-  "src": "c/bank03/InstrScreen.c"
- },
  "GetInstrByte5Flag8": {
   "bank": "03",
   "addr": "4790",
   "len": 18,
-  "src": "c/bank03/InstrScreen.c"
- },
- "GetInstrByte9": {
-  "bank": "03",
-  "addr": "40F8",
-  "len": 13,
   "src": "c/bank03/InstrScreen.c"
  },
  "GetInstrEnvBytes": {
@@ -1624,12 +1600,6 @@
   "addr": "70B8",
   "len": 328,
   "src": "c/bank1b/ProjectScreen.c"
- },
- "GetInstrFlags53": {
-  "bank": "03",
-  "addr": "4B4C",
-  "len": 18,
-  "src": "c/bank03/InstrScreen.c"
  },
  "GetInstrType3": {
   "bank": "03",
@@ -1654,6 +1624,36 @@
   "addr": "2BC4",
   "len": 120,
   "src": "c/bank00/DrawFields.c"
+ },
+ "GetVibratoShape": {
+  "bank": "03",
+  "addr": "4B4C",
+  "len": 18,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "GetWaveLength": {
+  "bank": "03",
+  "addr": "4AF4",
+  "len": 22,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "GetWaveLoopPos": {
+  "bank": "03",
+  "addr": "49E7",
+  "len": 22,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "GetWavePlayMode": {
+  "bank": "03",
+  "addr": "40F8",
+  "len": 13,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "GetWaveSpeed": {
+  "bank": "03",
+  "addr": "4ACF",
+  "len": 17,
+  "src": "c/bank03/InstrScreen.c"
  },
  "GfxFillVramRegions": {
   "bank": "1E",
@@ -1781,16 +1781,22 @@
   "len": 63,
   "src": "c/bank1f/InstrHelpers.c"
  },
- "InstrByte9IsZero": {
-  "bank": "03",
-  "addr": "4105",
-  "len": 19,
-  "src": "c/bank03/InstrScreen.c"
- },
  "InstrCheckFieldOption": {
   "bank": "03",
   "addr": "414F",
   "len": 33,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "InstrCmdRateDec": {
+  "bank": "03",
+  "addr": "4769",
+  "len": 39,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "InstrCmdRateInc": {
+  "bank": "03",
+  "addr": "4741",
+  "len": 40,
   "src": "c/bank03/InstrScreen.c"
  },
  "InstrEnvHasSecond": {
@@ -1809,18 +1815,6 @@
   "bank": "03",
   "addr": "4DD7",
   "len": 16,
-  "src": "c/bank03/InstrScreen.c"
- },
- "InstrField5Next": {
-  "bank": "03",
-  "addr": "4BAC",
-  "len": 31,
-  "src": "c/bank03/InstrScreen.c"
- },
- "InstrField5Prev": {
-  "bank": "03",
-  "addr": "4BCB",
-  "len": 30,
   "src": "c/bank03/InstrScreen.c"
  },
  "InstrFieldDecHi": {
@@ -1973,6 +1967,30 @@
   "len": 36,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "InstrLengthBigDec": {
+  "bank": "03",
+  "addr": "537A",
+  "len": 96,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "InstrLengthBigInc": {
+  "bank": "03",
+  "addr": "531C",
+  "len": 90,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "InstrLengthDec": {
+  "bank": "03",
+  "addr": "52BF",
+  "len": 89,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "InstrLengthInc": {
+  "bank": "03",
+  "addr": "526B",
+  "len": 80,
+  "src": "c/bank03/InstrScreen.c"
+ },
  "InstrPitchModeDown": {
   "bank": "03",
   "addr": "4C64",
@@ -2013,6 +2031,12 @@
   "bank": "03",
   "addr": "45D3",
   "len": 72,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "InstrSynthNew": {
+  "bank": "03",
+  "addr": "43C0",
+  "len": 90,
   "src": "c/bank03/InstrScreen.c"
  },
  "InstrTableAdd16": {
@@ -2847,48 +2871,6 @@
   "bank": "03",
   "addr": "4B29",
   "len": 35,
-  "src": "c/bank03/InstrScreen.c"
- },
- "SetInstrByte8": {
-  "bank": "03",
-  "addr": "4741",
-  "len": 40,
-  "src": "c/bank03/InstrScreen.c"
- },
- "SetInstrByte82": {
-  "bank": "03",
-  "addr": "4769",
-  "len": 39,
-  "src": "c/bank03/InstrScreen.c"
- },
- "SetInstrLen": {
-  "bank": "03",
-  "addr": "43C0",
-  "len": 90,
-  "src": "c/bank03/InstrScreen.c"
- },
- "SetInstrLen4": {
-  "bank": "03",
-  "addr": "526B",
-  "len": 80,
-  "src": "c/bank03/InstrScreen.c"
- },
- "SetInstrLen5": {
-  "bank": "03",
-  "addr": "52BF",
-  "len": 89,
-  "src": "c/bank03/InstrScreen.c"
- },
- "SetInstrLen6": {
-  "bank": "03",
-  "addr": "531C",
-  "len": 90,
-  "src": "c/bank03/InstrScreen.c"
- },
- "SetInstrLen7": {
-  "bank": "03",
-  "addr": "537A",
-  "len": 96,
   "src": "c/bank03/InstrScreen.c"
  },
  "SetInstrPitchByte": {
@@ -3743,6 +3725,18 @@
   "len": 236,
   "src": "c/bank01/UiHelpers.c"
  },
+ "VibratoShapeNext": {
+  "bank": "03",
+  "addr": "4BAC",
+  "len": 31,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "VibratoShapePrev": {
+  "bank": "03",
+  "addr": "4BCB",
+  "len": 30,
+  "src": "c/bank03/InstrScreen.c"
+ },
  "WaveFrameModified": {
   "bank": "1F",
   "addr": "5F20",
@@ -3754,6 +3748,12 @@
   "addr": "4BA7",
   "len": 174,
   "src": "c/bank06/Screens.c"
+ },
+ "WavePlayIsManual": {
+  "bank": "03",
+  "addr": "4105",
+  "len": 19,
+  "src": "c/bank03/InstrScreen.c"
  },
  "WaveScreenInput": {
   "bank": "06",

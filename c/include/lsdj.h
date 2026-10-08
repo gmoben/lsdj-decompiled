@@ -252,7 +252,7 @@ void EraseInstrCursor(void);
 UBYTE FindFreeSynth(void);
 UBYTE SynthWavesModified(UBYTE synth);
 void InstrTableModePrev(void);
-UBYTE GetInstrByte2(void);
+UBYTE GetWaveLoopPos(void);
 UBYTE GetInstrType3(void);
 void WriteKitNumber(UBYTE field, UBYTE kit);
 void InstrEnvelopeChanged(void);
@@ -260,14 +260,14 @@ void KitSelectEnsure(void);
 void CloneSynth(void);
 void InstrTableOn(void);
 UBYTE IsInstrTableOn(void);
-UBYTE GetInstrByte9(void);
-UBYTE InstrByte9IsZero(void);
+UBYTE GetWavePlayMode(void);
+UBYTE WavePlayIsManual(void);
 void SetInstrPitchByte(UBYTE v);
 void InstrSelectPrevUsed(void);
-UBYTE GetInstrByte10(void);
-UBYTE GetInstrByte11(void);
-UBYTE GetInstrFlags53(void);
-void SetInstrFlags54(UBYTE v);
+UBYTE GetWaveLength(void);
+UBYTE GetWaveSpeed(void);
+UBYTE GetVibratoShape(void);
+void SetVibratoShape(UBYTE v);
 
 /* --- bank 5 ---------------------------------------------------------------- */
 void RestoreSelectionState(void);           /* $05:$747D (far) */

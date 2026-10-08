@@ -109,11 +109,11 @@ void WritePhraseInstrument(UBYTE phrase, UBYTE row, UBYTE instr);
 void DrawFieldValue(UBYTE kind, UBYTE v);   /* bank 0, DrawFields.c */
 extern char PlayModeNames[];                /* $00:$0839, five 9-byte names "  MANUAL".."  RESYNC" */
 void DrawPulseDuty(UBYTE duty);             /* bank 0 */
-void DrawInstrByte12(void);                 /* $03:$4CD9 */
+void DrawWaveFinetune(void);                 /* $03:$4CD9 */
 void DrawWaveSynthField(void);              /* $03:$4D15 */
-void DrawInstrByte10(void);                 /* $03:$498B */
-void DrawInstrRow14(void);                  /* $03:$49FD */
-void DrawInstrByte11(void);                 /* $03:$49B7 */
+void DrawWaveLength(void);                 /* $03:$498B */
+void DrawWaveLoopPos(void);                  /* $03:$49FD */
+void DrawWaveSpeed(void);                 /* $03:$49B7 */
 
 void InstrScreenFrame(void);                /* $03:$45A7 */
 extern UBYTE wLiveMode;                     /* $C528 */
@@ -435,11 +435,11 @@ void DrawWaveInstr(void)
     FarCallArg(1, FAR_FN(DrawOnOffName), v);
     wVramCursor = 0x992C;
     DrawByte(ReadCurInstrByte(8));
-    FarCall(3, DrawInstrByte12);
+    FarCall(3, DrawWaveFinetune);
     FarCall(3, DrawWaveSynthField);
-    FarCall(3, DrawInstrByte10);
-    FarCall(3, DrawInstrRow14);
-    FarCall(3, DrawInstrByte11);
+    FarCall(3, DrawWaveLength);
+    FarCall(3, DrawWaveLoopPos);
+    FarCall(3, DrawWaveSpeed);
     wVramCursor = 0x9965;
     v = ReadCurInstrByte(9);
     DrawString(PlayModeNames + (v < 5 ? v : 5) * 9);

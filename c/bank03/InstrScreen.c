@@ -53,14 +53,14 @@ void WriteCurrentInstrByte(UBYTE field, UBYTE val)
     WriteInstrByte(wInstrument, field, val);
 }
 
-UBYTE GetInstrByte9(void)
+UBYTE GetWavePlayMode(void)
 {
     return ReadCurInstrByte(9);
 }
 
-UBYTE InstrByte9IsZero(void)
+UBYTE WavePlayIsManual(void)
 {
-    return GetInstrByte9() == 0;
+    return GetWavePlayMode() == 0;
 }
 
 UBYTE IsInstrTableOn(void)
@@ -89,7 +89,7 @@ void DrawInstrCursor(void)
     UBYTE type;
 
     type = ReadCurInstrByte(0) & 3;
-    if (type == 1 && InstrByte9IsZero() && wInstrField == 9) {
+    if (type == 1 && WavePlayIsManual() && wInstrField == 9) {
         ColorField(0x0B, 0x0C, 2, hGameboyType ? 3 : 2);
         return;
     }
@@ -154,7 +154,7 @@ void InstrTableNew(void)
     FarCall(0x1F, FAR_FN(DrawInstrTableField));
 }
 
-void SetInstrLen(void)
+void InstrSynthNew(void)
 {
     UBYTE v;
 
@@ -251,7 +251,7 @@ void EraseInstrCursor(void)
     UBYTE type, x, y, r;
 
     type = ReadCurInstrByte(0) & 3;
-    if (type == 1 && InstrByte9IsZero() && wInstrField == 9) {
+    if (type == 1 && WavePlayIsManual() && wInstrField == 9) {
         ColorField(0x0B, 0x0C, 2, 1);
         return;
     }
@@ -261,7 +261,7 @@ void EraseInstrCursor(void)
     ColorField(x, y, r - x, 1);
 }
 
-void SetInstrByte8(void)
+void InstrCmdRateInc(void)
 {
     UBYTE v;
 
@@ -273,7 +273,7 @@ void SetInstrByte8(void)
     }
 }
 
-void SetInstrByte82(void)
+void InstrCmdRateDec(void)
 {
     UBYTE v;
 
@@ -387,37 +387,37 @@ void InstrTableSub16(void)
     }
 }
 
-void DrawInstrByte10(void)
+void DrawWaveLength(void)
 {
     wVramCursor = (UBYTE *)0x99CC;
-    if (InstrByte9IsZero())
+    if (WavePlayIsManual())
         DrawStringIndexed('-');
     else
-        DrawByte(GetInstrByte10());
+        DrawByte(GetWaveLength());
 }
 
-void DrawInstrByte11(void)
+void DrawWaveSpeed(void)
 {
     wVramCursor = (UBYTE *)0x99AB;
-    if (InstrByte9IsZero())
+    if (WavePlayIsManual())
         DrawString("--");                   /* the literal lands right after the function ($49E4) */
     else
-        DrawHexByte(GetInstrByte11() + 1);
+        DrawHexByte(GetWaveSpeed() + 1);
 }
 
-UBYTE GetInstrByte2(void)
+UBYTE GetWaveLoopPos(void)
 {
     return 0x0F ^ (ReadCurInstrByte(2) & 0x0F);
 }
 
-void DrawInstrRow14(void)
+void DrawWaveLoopPos(void)
 {
     UBYTE v, d;
 
     wVramCursor = (UBYTE *)0x99EC;
-    v = GetInstrByte9();
+    v = GetWavePlayMode();
     if (v == 2 || v == 3 || v == 4) {
-        d = GetInstrByte10() - GetInstrByte2();
+        d = GetWaveLength() - GetWaveLoopPos();
         if (d & 0xF0)
             d = 0;
         DrawByte(d);
@@ -447,7 +447,7 @@ void DrawKitDistName(UBYTE v)
     }
 }
 
-UBYTE GetInstrByte11(void)
+UBYTE GetWaveSpeed(void)
 {
     return ReadCurInstrByte(11) + 3;
 }
@@ -457,7 +457,7 @@ void SetInstrByte11(UBYTE v)
     WriteCurrentInstrByte(11, v - 3);
 }
 
-UBYTE GetInstrByte10(void)
+UBYTE GetWaveLength(void)
 {
     return 0x0F - (ReadCurInstrByte(10) & 0x0F);
 }
@@ -474,34 +474,34 @@ void SetInstrByte2(UBYTE v)
     WriteCurrentInstrByte(2, 0x0F ^ ((ReadCurInstrByte(2) & 0xF0) | v));
 }
 
-UBYTE GetInstrFlags53(void)
+UBYTE GetVibratoShape(void)
 {
     return ReadCurInstrByte(5) & 0x07;
 }
 
-void InstrField5Next(void)
+void VibratoShapeNext(void)
 {
     UBYTE v;
 
-    v = GetInstrFlags53();
+    v = GetVibratoShape();
     if (v < 5) {
         v += 2;
         if (v == 6)
             v = 1;
-        SetInstrFlags54(v);
+        SetVibratoShape(v);
     }
 }
 
-void InstrField5Prev(void)
+void VibratoShapePrev(void)
 {
     UBYTE v;
 
-    v = GetInstrFlags53();
+    v = GetVibratoShape();
     if (v) {
         v -= 2;
         if (v == 0xFF)
             v = 4;
-        SetInstrFlags54(v);
+        SetVibratoShape(v);
     }
 }
 
@@ -545,7 +545,7 @@ void InstrPitchModeDown(void)
     FarCallArg(1, FAR_FN(DrawSpeedModeName), v);
 }
 
-void DrawInstrByte12(void)
+void DrawWaveFinetune(void)
 {
     UBYTE v;
 
@@ -565,7 +565,7 @@ void DrawWaveSynthField(void)
     hBgDigitPalette = 4;
     hBgPalette = 1;
     wVramCursor = (UBYTE *)0x9980;
-    if (InstrByte9IsZero()) {
+    if (WavePlayIsManual()) {
         DrawString("WAVE ");
         wVramCursor = (UBYTE *)0x998B;
         ColorField(0x0B, 0x0C, 1, 1);
@@ -722,7 +722,7 @@ void InstrFieldDecHi(UBYTE field)
     InstrEnvelopeChanged();
 }
 
-void SetInstrLen4(void)
+void InstrLengthInc(void)
 {
     UBYTE v;
 
@@ -742,7 +742,7 @@ void SetInstrLen4(void)
         DrawString(TxtUnlim);
 }
 
-void SetInstrLen5(void)
+void InstrLengthDec(void)
 {
     UBYTE v, t;
 
@@ -765,7 +765,7 @@ void SetInstrLen5(void)
         DrawString(TxtUnlim);
 }
 
-void SetInstrLen6(void)
+void InstrLengthBigInc(void)
 {
     UBYTE v, t;
 
@@ -787,7 +787,7 @@ void SetInstrLen6(void)
         DrawString(TxtUnlim);
 }
 
-void SetInstrLen7(void)
+void InstrLengthBigDec(void)
 {
     UBYTE v, t;
 
@@ -816,7 +816,7 @@ void CloneSynthOrTable(void)
     UBYTE t;
 
     t = ReadCurInstrByte(0) & 3;
-    if (t == 1 && wInstrField == 9 && !InstrByte9IsZero())
+    if (t == 1 && wInstrField == 9 && !WavePlayIsManual())
         CloneSynth();
     else
         FarCall(1, FAR_FN(CloneInstrTable));
@@ -879,7 +879,7 @@ UBYTE InstrScreenInput(void)
             case 0x0D:
                 wInstrField--;
             case 0x0C:
-                switch (GetInstrByte9()) {
+                switch (GetWavePlayMode()) {
                 case 1:
                     wInstrField--;
                     break;
@@ -926,11 +926,11 @@ UBYTE InstrScreenInput(void)
                     wInstrField++;
                     break;
                 case 0x0B:
-                    if (GetInstrByte9() == 0 || GetInstrByte9() == 1)
+                    if (GetWavePlayMode() == 0 || GetWavePlayMode() == 1)
                         wInstrField += 2;
                     break;
                 case 9:
-                    if (InstrByte9IsZero())
+                    if (WavePlayIsManual())
                         wInstrField += 4;
                 }
             wInstrField++;
@@ -1106,7 +1106,7 @@ UBYTE InstrScreenInput(void)
                 DrawFieldValue(0x0C, v);
                 break;
             case 7:
-                SetInstrLen4();
+                InstrLengthInc();
                 break;
             case 8:
                 v = ReadCurInstrByte(4);
@@ -1117,13 +1117,13 @@ UBYTE InstrScreenInput(void)
                 break;
             case 9:
                 if (!wButtonsSame)
-                    InstrField5Next();
+                    VibratoShapeNext();
                 break;
             case 0x0A:
                 InstrTransposeOff();
                 break;
             case 0x0D:
-                SetInstrByte8();
+                InstrCmdRateInc();
                 break;
             case 0x0B:
                 v = ReadCurInstrByte(2);
@@ -1175,11 +1175,11 @@ UBYTE InstrScreenInput(void)
                 DrawFieldValue(0x0C, v);
                 break;
             case 4:
-                InstrField5Next();
+                VibratoShapeNext();
                 break;
             case 9:
                 v = ReadCurInstrByte(3);
-                if (InstrByte9IsZero()) {
+                if (WavePlayIsManual()) {
                     if (v != 0xFF) {
                         wVramCursor--;
                         ++v;
@@ -1203,33 +1203,33 @@ UBYTE InstrScreenInput(void)
                     WriteCurrentInstrByte(3, ReadCurInstrByte(3) & 0xF0);
                     hBgDigitPalette = wShadowDigitPal;
                     hBgPalette = wShadowPal;
-                    DrawInstrByte11();
-                    DrawInstrByte10();
-                    DrawInstrRow14();
+                    DrawWaveSpeed();
+                    DrawWaveLength();
+                    DrawWaveLoopPos();
                     DrawWaveSynthField();
                 }
                 break;
             case 0x0B:
-                v = GetInstrByte10();
+                v = GetWaveLength();
                 if (v != 0x0F) {
                     ++v;
                     SetInstrByte10(v);
                     DrawByte(v);
                     hBgDigitPalette = wShadowDigitPal;
                     hBgPalette = wShadowPal;
-                    DrawInstrRow14();
+                    DrawWaveLoopPos();
                 }
                 break;
             case 0x0C:
-                v = GetInstrByte2();
+                v = GetWaveLoopPos();
                 if (v & 0x0F) {
                     --v;
                     SetInstrByte2(v);
-                    DrawInstrRow14();
+                    DrawWaveLoopPos();
                 }
                 break;
             case 0x0A:
-                v = GetInstrByte11();
+                v = GetWaveSpeed();
                 if (v < 0xFE) {
                     ++v;
                     SetInstrByte11(v);
@@ -1240,13 +1240,13 @@ UBYTE InstrScreenInput(void)
                 InstrTransposeOff();
                 break;
             case 7:
-                SetInstrByte8();
+                InstrCmdRateInc();
                 break;
             case 6:
                 v = ReadCurInstrByte(0x0C) + 1;
                 if (v != 0x80) {
                     WriteCurrentInstrByte(0x0C, v);
-                    DrawInstrByte12();
+                    DrawWaveFinetune();
                 }
                 break;
             case 0x0D:
@@ -1358,7 +1358,7 @@ UBYTE InstrScreenInput(void)
                 }
                 break;
             case 6:
-                InstrField5Next();
+                VibratoShapeNext();
                 break;
             case 0x10:
                 InstrTableModeNext();
@@ -1388,11 +1388,11 @@ UBYTE InstrScreenInput(void)
                 DrawFieldValue(0x0C, v);
                 break;
             case 6:
-                SetInstrLen4();
+                InstrLengthInc();
                 break;
             case 8:
                 if (!wButtonsSame)
-                    InstrField5Next();
+                    VibratoShapeNext();
                 break;
             case 7:
                 WriteCurrentInstrByte(2, 1);
@@ -1402,7 +1402,7 @@ UBYTE InstrScreenInput(void)
                 InstrTransposeOff();
                 break;
             case 0x0A:
-                SetInstrByte8();
+                InstrCmdRateInc();
                 break;
             case 0x0B:
                 InstrTableModeNext();
@@ -1451,7 +1451,7 @@ UBYTE InstrScreenInput(void)
                 DrawFieldValue(0x0C, v);
                 break;
             case 7:
-                SetInstrLen5();
+                InstrLengthDec();
                 break;
             case 8:
                 v = ReadCurInstrByte(4);
@@ -1462,13 +1462,13 @@ UBYTE InstrScreenInput(void)
                 break;
             case 9:
                 if (!wButtonsSame)
-                    InstrField5Prev();
+                    VibratoShapePrev();
                 break;
             case 0x0A:
                 InstrTransposeOn();
                 break;
             case 0x0D:
-                SetInstrByte82();
+                InstrCmdRateDec();
                 break;
             case 0x0B:
                 v = ReadCurInstrByte(2);
@@ -1520,11 +1520,11 @@ UBYTE InstrScreenInput(void)
                 DrawFieldValue(0x0C, v);
                 break;
             case 4:
-                InstrField5Prev();
+                VibratoShapePrev();
                 break;
             case 9:
                 v = ReadCurInstrByte(3);
-                if (InstrByte9IsZero()) {
+                if (WavePlayIsManual()) {
                     if (v) {
                         wVramCursor--;
                         --v;
@@ -1547,35 +1547,35 @@ UBYTE InstrScreenInput(void)
                     DrawString(PlayModeNames + v * 9);
                     hBgDigitPalette = wShadowDigitPal;
                     hBgPalette = wShadowPal;
-                    DrawInstrByte11();
-                    DrawInstrByte10();
-                    DrawInstrRow14();
+                    DrawWaveSpeed();
+                    DrawWaveLength();
+                    DrawWaveLoopPos();
                     DrawWaveSynthField();
                 }
                 break;
             case 0x0B:
-                v = GetInstrByte10();
+                v = GetWaveLength();
                 if (v & 0x0F) {
                     --v;
                     SetInstrByte10(v);
                     DrawByte(v);
-                    if (v < GetInstrByte2())
+                    if (v < GetWaveLoopPos())
                         SetInstrByte2(v);
                     hBgDigitPalette = wShadowDigitPal;
                     hBgPalette = wShadowPal;
-                    DrawInstrRow14();
+                    DrawWaveLoopPos();
                 }
                 break;
             case 0x0C:
-                v = GetInstrByte2();
-                if (v < GetInstrByte10()) {
+                v = GetWaveLoopPos();
+                if (v < GetWaveLength()) {
                     ++v;
                     SetInstrByte2(v);
-                    DrawInstrRow14();
+                    DrawWaveLoopPos();
                 }
                 break;
             case 0x0A:
-                v = GetInstrByte11();
+                v = GetWaveSpeed();
                 if (v) {
                     --v;
                     SetInstrByte11(v);
@@ -1586,13 +1586,13 @@ UBYTE InstrScreenInput(void)
                 InstrTransposeOn();
                 break;
             case 7:
-                SetInstrByte82();
+                InstrCmdRateDec();
                 break;
             case 6:
                 v = ReadCurInstrByte(0x0C) - 1;
                 if (v != 0x7F) {
                     WriteCurrentInstrByte(0x0C, v);
-                    DrawInstrByte12();
+                    DrawWaveFinetune();
                 }
                 break;
             case 0x0D:
@@ -1707,7 +1707,7 @@ UBYTE InstrScreenInput(void)
                 }
                 break;
             case 6:
-                InstrField5Prev();
+                VibratoShapePrev();
                 break;
             case 0x10:
                 InstrTableModePrev();
@@ -1737,11 +1737,11 @@ UBYTE InstrScreenInput(void)
                 DrawFieldValue(0x0C, v);
                 break;
             case 6:
-                SetInstrLen5();
+                InstrLengthDec();
                 break;
             case 8:
                 if (!wButtonsSame)
-                    InstrField5Prev();
+                    VibratoShapePrev();
                 break;
             case 7:
                 WriteCurrentInstrByte(2, 0);
@@ -1751,7 +1751,7 @@ UBYTE InstrScreenInput(void)
                 InstrTransposeOn();
                 break;
             case 0x0A:
-                SetInstrByte82();
+                InstrCmdRateDec();
                 break;
             case 0x0B:
                 InstrTableModePrev();
@@ -1790,7 +1790,7 @@ UBYTE InstrScreenInput(void)
                 DrawFieldValue(0x0C, 3);
                 break;
             case 7:
-                SetInstrLen6();
+                InstrLengthBigInc();
                 break;
             case 8:
                 v = ReadCurInstrByte(4);
@@ -1836,7 +1836,7 @@ UBYTE InstrScreenInput(void)
                 InstrPitchModeDown();
                 break;
             case 0x0A:
-                v = GetInstrByte11();
+                v = GetWaveSpeed();
                 if (v < 0xEF) {
                     v += 0x10;
                     SetInstrByte11(v);
@@ -1844,7 +1844,7 @@ UBYTE InstrScreenInput(void)
                 }
                 break;
             case 9:
-                if (InstrByte9IsZero()) {
+                if (WavePlayIsManual()) {
                     v = ReadCurInstrByte(3);
                     if (v < 0xF0) {
                         wVramCursor--;
@@ -1855,27 +1855,27 @@ UBYTE InstrScreenInput(void)
                 }
                 break;
             case 0x0B:
-                v = 0x0F - GetInstrByte10();
+                v = 0x0F - GetWaveLength();
                 SetInstrByte10(0x0F);
                 DrawStringIndexed(0x46);
-                v = GetInstrByte2() + v;
+                v = GetWaveLoopPos() + v;
                 if (v & 0xF0)
                     v = 0x0F;
                 SetInstrByte2(v);
                 hBgDigitPalette = wShadowDigitPal;
                 hBgPalette = wShadowPal;
-                DrawInstrRow14();
+                DrawWaveLoopPos();
                 break;
             case 0x0C:
                 SetInstrByte2(0);
-                DrawInstrRow14();
+                DrawWaveLoopPos();
                 break;
             case 6:
                 v = ReadCurInstrByte(0x0C) + 0x10;
                 if ((v & 0xF0) == 0x80)
                     v = 0x7F;
                 WriteCurrentInstrByte(0x0C, v);
-                DrawInstrByte12();
+                DrawWaveFinetune();
                 break;
             case 0x0D:
                 InstrTableModeNext();
@@ -1974,7 +1974,7 @@ UBYTE InstrScreenInput(void)
                 DrawFieldValue(0x0C, 3);
                 break;
             case 6:
-                SetInstrLen6();
+                InstrLengthBigInc();
                 break;
             case 0x0B:
                 InstrTableModeNext();
@@ -2014,7 +2014,7 @@ UBYTE InstrScreenInput(void)
                 DrawFieldValue(0x0C, 0);
                 break;
             case 7:
-                SetInstrLen7();
+                InstrLengthBigDec();
                 break;
             case 8:
                 v = ReadCurInstrByte(4);
@@ -2065,11 +2065,11 @@ UBYTE InstrScreenInput(void)
                 hBgDigitPalette = wShadowDigitPal;
                 hBgPalette = wShadowPal;
             case 0x0C:
-                SetInstrByte2(GetInstrByte10());
-                DrawInstrRow14();
+                SetInstrByte2(GetWaveLength());
+                DrawWaveLoopPos();
                 break;
             case 0x0A:
-                v = GetInstrByte11();
+                v = GetWaveSpeed();
                 if (v < 0x10)
                     v = 0;
                 else
@@ -2078,7 +2078,7 @@ UBYTE InstrScreenInput(void)
                 DrawHexByte(v + 1);
                 break;
             case 9:
-                if (InstrByte9IsZero()) {
+                if (WavePlayIsManual()) {
                     v = ReadCurInstrByte(3);
                     if (v >= 0x10) {
                         wVramCursor--;
@@ -2093,7 +2093,7 @@ UBYTE InstrScreenInput(void)
                 if ((v & 0xF0) == 0x70)
                     v = 0x80;
                 WriteCurrentInstrByte(0x0C, v);
-                DrawInstrByte12();
+                DrawWaveFinetune();
                 break;
             case 0x0D:
                 InstrTableModePrev();
@@ -2195,7 +2195,7 @@ UBYTE InstrScreenInput(void)
                 DrawFieldValue(0x0C, 0);
                 break;
             case 6:
-                SetInstrLen7();
+                InstrLengthBigDec();
                 break;
             case 0x0B:
                 InstrTableModePrev();
@@ -2216,8 +2216,8 @@ UBYTE InstrScreenInput(void)
                 if (InstrCheckFieldOption(type)) {
                     GetTilemapAddr(InstrFieldX[type][wInstrField], InstrFieldY[type][wInstrField]);
                     InstrTableNew();
-                } else if (type == 1 && wInstrField == 9 && !InstrByte9IsZero()) {
-                    SetInstrLen();
+                } else if (type == 1 && wInstrField == 9 && !WavePlayIsManual()) {
+                    InstrSynthNew();
                     return 1;
                 }
                 FarCallArg(5, DrawInstrFieldHelp, type);
