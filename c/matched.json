@@ -59,12 +59,6 @@
   "len": 343,
   "src": "c/bank1f/InstrHelpers.c"
  },
- "ChainCalcParamAddr": {
-  "bank": "06",
-  "addr": "4901",
-  "len": 62,
-  "src": "c/bank06/Screens.c"
- },
  "ChainDrawCellHw": {
   "bank": "06",
   "addr": "5ABE",
@@ -77,22 +71,10 @@
   "len": 84,
   "src": "c/bank06/Screens.c"
  },
- "ChainDrawCursorByte": {
-  "bank": "06",
-  "addr": "4EAC",
-  "len": 17,
-  "src": "c/bank06/Screens.c"
- },
  "ChainDrawLeadStatus": {
   "bank": "06",
   "addr": "7469",
   "len": 53,
-  "src": "c/bank06/Screens.c"
- },
- "ChainDrawRow16": {
-  "bank": "06",
-  "addr": "4F02",
-  "len": 22,
   "src": "c/bank06/Screens.c"
  },
  "ChainDrawSyncStatus": {
@@ -161,31 +143,7 @@
   "len": 92,
   "src": "c/bank06/Screens.c"
  },
- "ChainSetCursorSprite": {
-  "bank": "06",
-  "addr": "4B16",
-  "len": 42,
-  "src": "c/bank06/Screens.c"
- },
- "ChainWriteCursorPair": {
-  "bank": "06",
-  "addr": "4B40",
-  "len": 103,
-  "src": "c/bank06/Screens.c"
- },
- "ChainWriteWaveA": {
-  "bank": "06",
-  "addr": "4EBD",
-  "len": 69,
-  "src": "c/bank06/Screens.c"
- },
- "ChainWriteWaveC": {
-  "bank": "06",
-  "addr": "4FA9",
-  "len": 82,
-  "src": "c/bank06/Screens.c"
- },
- "ChainWriteWaveD": {
+ "ChangeWaveRange": {
   "bank": "06",
   "addr": "4FFB",
   "len": 83,
@@ -983,10 +941,16 @@
   "len": 599,
   "src": "c/bank06/Screens.c"
  },
- "DrawWaveCursor": {
+ "DrawWaveColumns": {
   "bank": "06",
-  "addr": "504E",
-  "len": 49,
+  "addr": "4F02",
+  "len": 22,
+  "src": "c/bank06/Screens.c"
+ },
+ "DrawWaveCursorColumn": {
+  "bank": "06",
+  "addr": "4EAC",
+  "len": 17,
   "src": "c/bank06/Screens.c"
  },
  "DrawWaveFinetune": {
@@ -1007,11 +971,23 @@
   "len": 44,
   "src": "c/bank03/InstrScreen.c"
  },
+ "DrawWaveLine": {
+  "bank": "06",
+  "addr": "504E",
+  "len": 49,
+  "src": "c/bank06/Screens.c"
+ },
  "DrawWaveLoopPos": {
   "bank": "03",
   "addr": "49FD",
   "len": 71,
   "src": "c/bank03/InstrScreen.c"
+ },
+ "DrawWaveRange": {
+  "bank": "06",
+  "addr": "4EBD",
+  "len": 69,
+  "src": "c/bank06/Screens.c"
  },
  "DrawWaveScreen": {
   "bank": "06",
@@ -1481,6 +1457,12 @@
   "len": 56,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "FlipWaveRange": {
+  "bank": "06",
+  "addr": "4FA9",
+  "len": 82,
+  "src": "c/bank06/Screens.c"
+ },
  "FormatFileSpace": {
   "bank": "1C",
   "addr": "47B1",
@@ -1630,6 +1612,12 @@
   "addr": "4B4C",
   "len": 18,
   "src": "c/bank03/InstrScreen.c"
+ },
+ "GetWaveEditRange": {
+  "bank": "06",
+  "addr": "4B40",
+  "len": 103,
+  "src": "c/bank06/Screens.c"
  },
  "GetWaveLength": {
   "bank": "03",
@@ -2801,6 +2789,12 @@
   "len": 49,
   "src": "c/bank05/TableScreen.c"
  },
+ "ReverseWaveRange": {
+  "bank": "06",
+  "addr": "4F42",
+  "len": 103,
+  "src": "c/bank06/Screens.c"
+ },
  "SaveFile": {
   "bank": "1C",
   "addr": "4E10",
@@ -2932,6 +2926,12 @@
   "addr": "5DD8",
   "len": 113,
   "src": "c/bank07/KbdLink.c"
+ },
+ "SetWaveCursorSprite": {
+  "bank": "06",
+  "addr": "4B16",
+  "len": 42,
+  "src": "c/bank06/Screens.c"
  },
  "ShowMax16Marks": {
   "bank": "01",
@@ -3460,6 +3460,12 @@
   "addr": "68F9",
   "len": 570,
   "src": "c/bank1d/SynthScreen.c"
+ },
+ "SynthLockByteAddr": {
+  "bank": "06",
+  "addr": "4901",
+  "len": 62,
+  "src": "c/bank06/Screens.c"
  },
  "SynthOverwriteWaves": {
   "bank": "1D",

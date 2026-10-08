@@ -37,21 +37,21 @@
 414F ChainDrawWaveCellHw        ; like ChainDrawWaveCell but palette per hGameboyType
 4306 DrawWaveCellPair           ; draw a wave cell in both variants (ChainDrawWaveCell + Hw) for the row
 48AB TilemapAddr                ; the BG tilemap address of cell x,y: $9800 | (y*32 + x)
-4901 ChainCalcParamAddr         ; pick SRAM base $bfc4/$bfc5 by bit3 of arg (= SynthCalcParamAddr)
-493F CopySynthParam             ; copy one synth parameter byte (ChainCalcParamAddr src->dst)
+4901 SynthLockByteAddr          ; the SRAM byte holding synth x's lock bit ("synths locked?" $BFC4-$BFC5): $BFC5 for 0-7, $BFC4 for 8-F
+493F LockCurrentSynth           ; set the current synth's (wSynth >> 4) bit in its lock byte; WriteWaveSample calls it before editing a wave
 4992 ReadWaveSample             ; sample (i+1)&31 of the edited synth wave frame (SRAM bank 3 $A000 + wSynth*16), inverted: $0F ^ nibble
 4AB0 WaveSetSpriteColumns       ; set the x of wave sprites 3..10 and 11..18
-4B16 ChainSetCursorSprite       ; compute cursor sprite X/Y from $c42b/$c93b ($c413==4)
-4B40 ChainWriteCursorPair       ; store $c42b through two arg pointers
+4B16 SetWaveCursorSprite        ; place the wave cursor and selection-anchor sprites from wWaveCursor/wWaveSelStart (WaveSetSpriteColumns)
+4B40 GetWaveEditRange           ; the wave screen's edit range into *start/*end (end exclusive): the cursor sample, or the selection from wWaveSelStart (wCursorMode 4)
 4BA7 WaveInitSprites            ; init the 16 wave-sample sprites (3..18): y, tile 5, attr ; x via WaveSetSpriteColumns
 4C55 DrawWaveColumn             ; wave graph column col: samples 2col/2col+1 as dots (one tile or a half-tile pair, CGB/DMG tiles), wWaveColEmpty rows blank, their hex values below
-4EAC ChainDrawCursorByte        ; draw $c42b>>1 via DrawWaveColumn
-4EBD ChainWriteWaveA            ; write wave data via ChainWriteCursorPair
-4F02 ChainDrawRow16             ; draw 16 bytes via DrawWaveColumn
-4F42 ChainWriteWaveB            ; write wave data via ChainWriteCursorPair (variant)
-4FA9 ChainWriteWaveC            ; write wave data via ChainWriteCursorPair (variant)
-4FFB ChainWriteWaveD            ; write wave data via ChainWriteCursorPair (variant)
-504E DrawWaveCursor             ; draw the wave-screen cursor nibbles (WriteWaveSample + ChainDrawCursorByte x2)
+4EAC DrawWaveCursorColumn       ; redraw the wave column under the cursor (DrawWaveColumn(wWaveCursor >> 1))
+4EBD DrawWaveRange              ; redraw the wave columns of the edit range
+4F02 DrawWaveColumns            ; draw all 16 wave columns
+4F42 ReverseWaveRange           ; A+LEFT/RIGHT on a wave selection: reverse its samples, then redraw
+4FA9 FlipWaveRange              ; A+UP/DOWN (help: FLIP SAMPLE): each sample in the edit range becomes F - v, then redraw
+4FFB ChangeWaveRange            ; UP/DOWN (help: CHANGE SAMPLE): add d (1 or -1) to each sample in the edit range, then redraw
+504E DrawWaveLine               ; A+LEFT/RIGHT (help: DRAW LINE): copy the cursor's sample into the next column (d = +-1) and move there
 5398 CopyWaveSelection          ; wave-screen COPY: selection -> clipboard (clipType 8), shows "COPY"
 546C PasteWaveSelection         ; wave screen: paste the clipboard samples at the cursor
 54FA GetCursorChain             ; read the chain number under the song cursor (ReadSeqByte(wSongCol, wSongRow))
@@ -113,7 +113,7 @@
 431C .done                ; common exit of DrawWaveCellPair
 48A7 .done                ; common exit of WordEditorInput
 48BA .loop                ; loop head in TilemapAddr
-4974 .loop                ; loop head in CopySynthParam
+4974 .loop                ; loop head in LockCurrentSynth
 49B2 .loop                ; loop head in ReadWaveSample
 4A22 .loop                ; loop head in WriteWaveSample
 4AB7 .loop                ; loop head in WaveSetSpriteColumns
@@ -122,13 +122,13 @@
 4BB1 .loop                ; loop head in WaveInitSprites
 4C04 .loop2               ; loop head in WaveInitSprites
 4DF8 .loop                ; loop head in DrawWaveColumn
-4EE2 .loop                ; loop head in ChainWriteWaveA
-4EFE .done                ; common exit of ChainWriteWaveA
-4F05 .loop                ; loop head in ChainDrawRow16
-4F16 .done                ; common exit of ChainDrawRow16
-4F60 .loop                ; loop head in ChainWriteWaveB
-4FC7 .loop                ; loop head in ChainWriteWaveC
-5019 .loop                ; loop head in ChainWriteWaveD
+4EE2 .loop                ; loop head in DrawWaveRange
+4EFE .done                ; common exit of DrawWaveRange
+4F05 .loop                ; loop head in DrawWaveColumns
+4F16 .done                ; common exit of DrawWaveColumns
+4F60 .loop                ; loop head in ReverseWaveRange
+4FC7 .loop                ; loop head in FlipWaveRange
+5019 .loop                ; loop head in ChangeWaveRange
 5381 .done                ; common exit of WaveScreenInput
 53D3 .loop                ; loop head in CopyWaveSelection
 5495 .loop                ; loop head in PasteWaveSelection
@@ -263,20 +263,20 @@
 4939 .ok
 49A0 .ok
 4A18 .ok
-4C4E .chainSetCursorSprite
+4C4E .placeCursor
 4CF3 .checkGameboyType
 4D26 .checkGameboyTypeb
 4D6C .checkGameboyTypec
 4DC1 .checkGameboyTyped
 4E4C .loadSelectDigitPal
-4FA2 .chainWriteWaveA
-4FF4 .chainWriteWaveA
-5047 .chainWriteWaveA
+4FA2 .redraw
+4FF4 .redraw
+5047 .redraw
 512B .incWaveCursor
 514C .decWaveCursor
 5266 .checkSynth
 52D5 .setSelectHeld
-531B .chainSetCursorSprite
+531B .placeCursor
 5331 .checkAPressEnabled
 533E .copyWaveSelection
 5357 .checkClipboardType
@@ -389,7 +389,7 @@
 49B7 .step
 49F9 .shift
 4A01 .cont
-4A27 .copySynthParam
+4A27 .shiftStep
 4A83 .cont
 4A9D .writeSongByte
 4ACC .cont

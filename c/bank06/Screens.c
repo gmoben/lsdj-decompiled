@@ -40,11 +40,11 @@ UBYTE ReadWaveSample(UBYTE i);
 void WaveInitSprites(void);
 void WaveSetSpriteColumns(UBYTE s, UBYTE x);
 void ReadKitSampleName(UBYTE kit, UBYTE sample);   /* bank 0 */
-void ChainWriteCursorPair(UBYTE *a, UBYTE *b);
-void ChainWriteWaveA(void);
-void CopySynthParam(void);
-void ChainDrawRow16(void);
-void ChainSetCursorSprite(void);
+void GetWaveEditRange(UBYTE *a, UBYTE *b);
+void DrawWaveRange(void);
+void LockCurrentSynth(void);
+void DrawWaveColumns(void);
+void SetWaveCursorSprite(void);
 
 void DrawAllChanStatus(void);               /* bank $1F */
 extern char NoteNames[];                    /* $06:$76E4, [][3] */
@@ -92,7 +92,7 @@ extern UBYTE wSynthScreen;                  /* $C441 */
 extern UBYTE wSelectHeld;                   /* $C40A */
 extern UBYTE wBHeld;                        /* $C40B */
 extern UBYTE wAPressEnabled;                /* $C409 */
-void ChainWriteWaveB(void);
+void ReverseWaveRange(void);
 void CopyWaveSelection(void);
 void PasteWaveSelection(void);
 void SaveSelectionState(void);              /* $05:$743F */
@@ -223,7 +223,7 @@ UBYTE *TilemapAddr(UBYTE x, UBYTE y)
     return (UBYTE *)a;
 }
 
-UWORD ChainCalcParamAddr(UBYTE x)
+UWORD SynthLockByteAddr(UBYTE x)
 {
     UWORD p;
 
@@ -259,7 +259,7 @@ void WriteWaveSample(UBYTE pos, UBYTE v)
     if (pos >= 0x20)
         DebugTrap();
     p = SramWaveFrames + ((UWORD)wSynth << 4);
-    CopySynthParam();
+    LockCurrentSynth();
     v ^= 0x0F;
     pos = (pos + 1) & 0x1F;
     p += pos >> 1;
@@ -285,7 +285,7 @@ void WaveSetSpriteColumns(UBYTE y1, UBYTE y2)
         SetOAMByte((i << 2) + 1, y2);
 }
 
-void ChainSetCursorSprite(void)
+void SetWaveCursorSprite(void)
 {
     UBYTE x, s;
 
@@ -296,7 +296,7 @@ void ChainSetCursorSprite(void)
     WaveSetSpriteColumns(s, x);
 }
 
-void ChainWriteCursorPair(UBYTE *a, UBYTE *b)
+void GetWaveEditRange(UBYTE *a, UBYTE *b)
 {
     *a = wWaveCursor;
     *b = wWaveCursor;
@@ -326,7 +326,7 @@ void WaveInitSprites(void)
         SetOAMByte(i++, 5);
         SetOAMByte(i++, 0x82);
     }
-    ChainSetCursorSprite();
+    SetWaveCursorSprite();
 }
 
 /* One column of the wave graph: samples 2*col and 2*col+1 as dots (one
@@ -380,23 +380,23 @@ void DrawWaveColumn(UBYTE col)
     DrawByte(ReadWaveSample(col * 2 + 1));
 }
 
-void ChainDrawCursorByte(void)
+void DrawWaveCursorColumn(void)
 {
     DrawWaveColumn(wWaveCursor >> 1);
 }
 
-void ChainWriteWaveA(void)
+void DrawWaveRange(void)
 {
     UBYTE start, end, t;
 
-    ChainWriteCursorPair(&start, &end);
+    GetWaveEditRange(&start, &end);
     t = start;
     start = t & 0xFE;
     for (; start < end; start += 2)
         DrawWaveColumn(start >> 1);
 }
 
-void ChainDrawRow16(void)
+void DrawWaveColumns(void)
 {
     UBYTE i;
 
@@ -410,47 +410,65 @@ void DrawWaveScreen(void)
     hBgDigitPalette = 4;
     hBgPalette = 1;
     FarCall(1, FAR_FN(DrawTopBar));
-    ChainDrawRow16();
+    DrawWaveColumns();
     FarCall(5, MapDrawTopRow);
 }
 
-void ChainWriteWaveC(void)
+/* Reverse the samples of the range: swap them from both ends inwards. The
+   second read is inline and only the first is named: the ROM spills the
+   first result and keeps the second in b (named, the second is pushed
+   from e and the first stays in b). */
+void ReverseWaveRange(void)
+{
+    UBYTE start, end, v;
+
+    GetWaveEditRange(&start, &end);
+    while (start < --end) {
+        v = ReadWaveSample(start);
+        WriteWaveSample(start, ReadWaveSample(end));
+        WriteWaveSample(end, v);
+        ++start;
+    }
+    DrawWaveRange();
+}
+
+void FlipWaveRange(void)
 {
     UBYTE start, end, t;
 
-    ChainWriteCursorPair(&start, &end);
+    GetWaveEditRange(&start, &end);
     while (start < end) {
         WriteWaveSample(start, 0x0F - ReadWaveSample(start));
         t = start;
         start = t + 1;
     }
-    ChainWriteWaveA();
+    DrawWaveRange();
 }
 
-void ChainWriteWaveD(UBYTE d)
+void ChangeWaveRange(UBYTE d)
 {
     UBYTE start, end, t;
 
-    ChainWriteCursorPair(&start, &end);
+    GetWaveEditRange(&start, &end);
     while (start < end) {
         WriteWaveSample(start, ReadWaveSample(start) + d);
         t = start;
         start = t + 1;
     }
-    ChainWriteWaveA();
+    DrawWaveRange();
 }
 
-void DrawWaveCursor(UBYTE d)
+void DrawWaveLine(UBYTE d)
 {
     UBYTE n, v;
 
     n = (wWaveCursor + d) & 0x1F;
     v = ReadWaveSample(wWaveCursor);
     WriteWaveSample(n, v);
-    ChainDrawCursorByte();
+    DrawWaveCursorColumn();
     wWaveCursor = n;
-    ChainDrawCursorByte();
-    ChainSetCursorSprite();
+    DrawWaveCursorColumn();
+    SetWaveCursorSprite();
 }
 
 UBYTE WaveScreenInput(void)
@@ -468,37 +486,37 @@ UBYTE WaveScreenInput(void)
         if (!wButtonsSame || wWaveCursor != 0x1F) {
             wWaveCursor++;
             wWaveCursor = (char)wWaveCursor & 0x1F;
-            ChainSetCursorSprite();
+            SetWaveCursorSprite();
         }
         return 1;
     case 0x02:
         if (!wButtonsSame || wWaveCursor) {
             wWaveCursor--;
             wWaveCursor = (char)wWaveCursor & 0x1F;
-            ChainSetCursorSprite();
+            SetWaveCursorSprite();
         }
         return 1;
     case 0x04:
-        ChainWriteWaveD(1);
+        ChangeWaveRange(1);
         return 1;
     case 0x08:
-        ChainWriteWaveD(0xFF);
+        ChangeWaveRange(0xFF);
         return 1;
     case 0x12:
         if (wCursorMode == 4)
-            ChainWriteWaveB();
+            ReverseWaveRange();
         else
-            DrawWaveCursor(0xFF);
+            DrawWaveLine(0xFF);
         return 1;
     case 0x11:
         if (wCursorMode == 4)
-            ChainWriteWaveB();
+            ReverseWaveRange();
         else
-            DrawWaveCursor(1);
+            DrawWaveLine(1);
         return 1;
     case 0x14:
     case 0x18:
-        ChainWriteWaveC();
+        FlipWaveRange();
         return 1;
     case 0x21:
         wSynth++;
@@ -560,7 +578,7 @@ UBYTE WaveScreenInput(void)
             wWaveCursor = 0x1F;
             break;
         }
-        ChainSetCursorSprite();
+        SetWaveCursorSprite();
         return 1;
     case 0x20:
         if (wCursorMode != 4)
@@ -568,7 +586,7 @@ UBYTE WaveScreenInput(void)
         if (!wAPressEnabled)
             return 0;
         CopyWaveSelection();
-        ChainSetCursorSprite();
+        SetWaveCursorSprite();
         return 1;
     case 0x50:
         if (wCursorMode != 2)
@@ -630,8 +648,8 @@ void PasteWaveSelection(void)
         wWaveCursor &= 0x1F;
     }
     ShowMessage("PASTE");
-    ChainDrawRow16();
-    ChainSetCursorSprite();
+    DrawWaveColumns();
+    SetWaveCursorSprite();
 }
 
 UBYTE GetCursorChain(void)
