@@ -910,6 +910,35 @@ UBYTE PhraseCellFlagA(UBYTE row)
     return r;
 }
 
+/* As PhraseCellFlagA for the instrument after this one. r is only ever
+   assigned in the branches, and the ROM keeps it in its slot for every
+   access (`volatile`); as a plain local SDCC folds `r = k2` into the next
+   `|=`, starts r there and spills the instrument instead. */
+UBYTE PhraseCellFlagB(UBYTE row)
+{
+    volatile UBYTE r;
+    UBYTE kit, i, k2;
+
+    i = ReadPhraseInstr(wPhrase, row);
+    kit = 0;
+    if (i == 0xFF)
+        return 0;
+    if (i < 0x40) {
+        kit = ReadInstrByte(i, 0) == 2;
+        i++;
+    } else
+        i = 0x40;
+    if (i < 0x40) {
+        k2 = ReadInstrByte(i, 0);
+        k2 = k2 == 2;
+        r = k2;
+        r |= !(kit == k2);
+    } else
+        r = 1;
+    r |= DrawInstrName(row, i);
+    return r;
+}
+
 UBYTE PhraseCellFlagC(UBYTE row)
 {
     UBYTE r, kit, i, k2;
@@ -930,6 +959,28 @@ UBYTE PhraseCellFlagC(UBYTE row)
     k2 = k2 == 2;
     r |= k2;
     r |= !(kit == k2);
+    r |= DrawInstrName(row, i);
+    return r;
+}
+
+/* As PhraseCellFlagB for the instrument 0x10 further on. */
+UBYTE PhraseCellFlagD(UBYTE row)
+{
+    volatile UBYTE r;
+    UBYTE kit, i, k2;
+
+    i = ReadPhraseInstr(wPhrase, row);
+    if (i > 0x30)
+        return 0;
+    kit = ReadInstrByte(i, 0) == 2;
+    i += 0x10;
+    if (i < 0x40) {
+        k2 = ReadInstrByte(i, 0);
+        k2 = k2 == 2;
+        r = k2;
+        r |= !(kit == k2);
+    } else
+        r = 1;
     r |= DrawInstrName(row, i);
     return r;
 }

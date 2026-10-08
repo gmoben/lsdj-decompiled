@@ -2375,10 +2375,22 @@
   "len": 164,
   "src": "c/bank04/PhraseScreen.c"
  },
+ "PhraseCellFlagB": {
+  "bank": "04",
+  "addr": "597D",
+  "len": 163,
+  "src": "c/bank04/PhraseScreen.c"
+ },
  "PhraseCellFlagC": {
   "bank": "04",
   "addr": "5A20",
   "len": 167,
+  "src": "c/bank04/PhraseScreen.c"
+ },
+ "PhraseCellFlagD": {
+  "bank": "04",
+  "addr": "5AC7",
+  "len": 151,
   "src": "c/bank04/PhraseScreen.c"
  },
  "PhraseCheckColFD": {
