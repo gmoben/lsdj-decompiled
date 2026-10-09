@@ -1026,6 +1026,13 @@ not-yet-matched C functions by size or groups them by instruction shape.
 
 ### Tools for the grind
 
+`match_function.py --func NAME --target NAME` now trims the compiled unit to
+that one function before the peephole passes and the assembler (the passes
+are per function; on a 60-function unit they took minutes on the whole asm,
+under a second on one function). `make match` / `verify_all.py` still run
+the whole unit, so the literal pool that follows a function in the ROM is
+checked there, not in a trimmed single-function run.
+
 - `match_function.py --score` -- one line: how many rows of the aligned
   disassemblies differ, and how many once local addresses are ignored (jump
   targets inside the function and pointers to its literals move whenever the

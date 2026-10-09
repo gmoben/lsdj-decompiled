@@ -202,9 +202,35 @@ def repair_globls(asm: str) -> str:
 STOCK_MARK = re.compile(r"@stock-rules\b")
 
 
+TRIMMED = False   # set when compile_unit dropped other functions from the unit
+
+
+def trim_to_function(asm: str, func: str) -> str:
+    """The unit's asm with every *other* function body (between its
+    ``___<name>_start:`` and ``___<name>_end:`` labels) removed, so that the
+    peephole passes and the assembler only see `func`. The passes are local
+    to a function; on a 2,000-line unit they take minutes on the whole asm
+    and well under a second on one function. Neighbours `func` calls become
+    externs, which is what `isolate` arranges anyway."""
+    global TRIMMED
+    name = func.lstrip("_")
+    out, skip = [], False
+    for line in asm.splitlines():
+        m = re.match(r"^___(\w+?)_(start|end):", line)
+        if m and m.group(1) != name:
+            skip = m.group(2) == "start"
+            TRIMMED = True
+            continue
+        if not skip:
+            out.append(line)
+    return "\n".join(out) + "\n"
+
+
 def compile_unit(work: Path, env: dict[str, str], c_path: Path,
-                 peep: Path | None) -> tuple[str, str]:
+                 peep: Path | None, func: str | None = None) -> tuple[str, str]:
     """C -> asxxxx asm -> object + listing in `work`. Returns (asm, lst) text.
+    With `func`, the other functions of the unit are dropped from the asm
+    before the peephole passes (see trim_to_function).
 
     A unit whose source says `@stock-rules` (in a comment) is GBDK library
     code: GBDK's own build compiled it, with SDCC's stock peephole rules and
@@ -233,6 +259,8 @@ def compile_unit(work: Path, env: dict[str, str], c_path: Path,
                     "see docs/toolchain.md.".format(rc))
         sys.exit("error: sdcc produced no assembly." + hint)
     asm.write_text(repair_globls(asm.read_text(errors="replace")))
+    if func:
+        asm.write_text(trim_to_function(asm.read_text(errors="replace"), func))
     if peep is not None:
         peep_mod = importlib.import_module("peep")
         rules = peep_mod.parse_rules(peep.read_text())
@@ -693,7 +721,7 @@ def main() -> None:
         rom = args.rom.read_bytes()
 
     with workdir() as (work, env):
-        asm, lst = compile_unit(work, env, args.c, peep)
+        asm, lst = compile_unit(work, env, args.c, peep, args.func if args.target else None)
         if args.show_asm:
             print("=== SDCC 2.2.1 assembly ===")
             print(asm)
@@ -729,7 +757,7 @@ def main() -> None:
                     print(f"    | {line}")
                 sys.exit(2)
             rom_tail = rom[off + len(code):off + len(code) + len(tail)]
-            if tail != rom_tail:
+            if tail != rom_tail and not TRIMMED:   # a trimmed unit's pool is everyone's literals
                 k = next(i for i in range(len(tail)) if i >= len(rom_tail) or tail[i] != rom_tail[i])
                 print(f"==> MISMATCH: the code matches, but the {len(tail)} byte(s) of literals/const "
                       f"data after it differ from ${addr + len(code) + k:04X} "
