@@ -51,6 +51,9 @@ extern UBYTE PitchCurveCgb[];               /* $01:$4382, CGB */
 void ApplyColorSet(void);
 void ClearOamBuffer(void);
 void UiLoadHwTables(void);
+void ClearSramWindow(void);                 /* $01:$7DE9, asm: zero the SRAM window */
+void ClearBookmarks(void);                  /* $07:$643D */
+extern UBYTE DefaultWaveFrameB1[];          /* $01:$40EA, [16] */
 void WriteVramByteSafeP(UBYTE *addr, UBYTE v);   /* WriteVramByteSafe with a pointer address (aliased) */
 extern UBYTE wOamBuffer[];                  /* $DD00, the OAM shadow: 40 sprites x {y, x, tile, prop} */
 extern volatile UBYTE wOamDirty;            /* $CBD1 */
@@ -214,6 +217,94 @@ void DrawCartTest(void)
         for (;;)
             ;
     }
+}
+
+/* $45D1: format the SRAM song: zero every bank, default the grooves (6/6),
+   the sequence, the word names "W-0".."W-x" (digits then letters), the
+   instrument names, the synth parameters, the wave frames and the
+   properties, with the 'rb' markers and $BFFF = $16. p is a plain
+   pointer: it owns bc in the allocator's books and is the operand of
+   its own copies and reads, which therefore spill themselves (the word
+   loop's `*p += ...`); s2 is a volatile byte so the third saved
+   property byte is stored while the other two keep b and c. */
+void UiClearSram(void)
+{
+    UBYTE *p;
+    UBYTE i;
+    volatile UBYTE s2;
+    UBYTE s0, s1;
+
+    _asm
+        di
+    _endasm;
+    rRAMG = 0x0A;
+    rRAMB = 0;
+    ClearSramWindow();
+    FarCall(7, FAR_FN(ClearBookmarks));
+    *(UBYTE *)0xBE78 = 'r';
+    *(UBYTE *)0xBE79 = 'b';
+    for (p = (UBYTE *)0xB090; p != (UBYTE *)0xB290; ) {
+        *p = 6;
+        p++;
+        *p = 6;
+        p += 0x0F;
+    }
+    MemSet((UBYTE *)0xB290, 0xFF, 0x400);
+    p = (UBYTE *)0xBDD0;
+    i = 0;
+    do {
+        *p = 'W';
+        p++;
+        *p = '-';
+        p++;
+        *p = i;
+        *p += i < 10 ? '0' : '7';
+        p++;
+        i++;
+    } while (p != (UBYTE *)0xBDFA);
+    rRAMB = 1;
+    s0 = *(UBYTE *)0xBFB6;
+    s1 = *(UBYTE *)0xBFB7;
+    s2 = *(UBYTE *)0xBFB8;
+    ClearSramWindow();
+    MemSet((UBYTE *)0xBFC6, 0xFF, 4);
+    *(UBYTE *)0xBFB6 = s0;
+    *(UBYTE *)0xBFB7 = s1;
+    *(UBYTE *)0xBFB8 = s2;
+    *(UBYTE *)0xBFC3 = 1;
+    rRAMB = 3;
+    ClearSramWindow();
+    MemSet((UBYTE *)0xB000, 0xFF, 0xFF0);
+    rRAMB = 2;
+    ClearSramWindow();
+    _asm
+        di
+    _endasm;
+    rRAMG = 0x0A;
+    rRAMB = 1;
+    *(UBYTE *)0xBE80 = 'r';
+    *(UBYTE *)0xBE81 = 'b';
+    *(UBYTE *)0xBFB4 = 0x80;
+    *(UBYTE *)0xBFBA = 7;
+    *(UBYTE *)0xBFBB = 2;
+    wColorSet = 0;
+    MemSet((UBYTE *)0xA080, 0xFF, 0x800);
+    for (p = (UBYTE *)0xBEB2; p != (UBYTE *)0xBFB2; p += 0x10) {
+        p[5] = 0x10;
+        p[9] = 0x10;
+        p[6] = 0xFF;
+        p[10] = 0xFF;
+    }
+    rRAMB = 3;
+    *(UBYTE *)0xBFF0 = 'r';
+    *(UBYTE *)0xBFF1 = 'b';
+    for (p = (UBYTE *)0xA000; p < (UBYTE *)0xB000; p += 0x10)
+        memcpy((void *)p, DefaultWaveFrameB1, 0x10);
+    *(UBYTE *)0xBFFF = 0x16;
+    _asm
+        ei
+    _endasm;
+    rRAMG = 0;
 }
 
 UBYTE CheckJkMarker(void)

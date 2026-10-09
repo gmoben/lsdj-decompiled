@@ -16,7 +16,7 @@
 48D4 WriteSongInitFlag   ; WriteSongByte $be78 (set the 'rb' init marker)
 4D67 MarkChainUsed              ; set chain (arg)'s bit in the chain allocation map (SramChainAlloc + chain/8, bit chain&7); asserts chain < $80
 4EA3 .writeSongByte       ; (was WriteSongByteWrap) thin WriteSongByte wrapper
-45D1 UiClearSram         ; enable SRAM + ClearSramWindow
+45D1 UiClearSram         ; format the SRAM song: zero the banks, default grooves/sequence/word names/instr names/synth params/wave frames/properties, 'rb' markers, $bfff=$16
 
 ; --- UI message / status strings (db "..."; referenced by the draw code) ---
 4557 TxtCartridgeTest           ; "CARTRIDGE TEST"
@@ -184,10 +184,10 @@
 44F5 .loop                ; loop head in DrawCartTest
 4552 .loop2               ; loop head in DrawCartTest
 4555 .done                ; common exit of DrawCartTest
-4603 .loop                ; loop head in UiClearSram
-4655 .loop2               ; loop head in UiClearSram
-4763 .loop3               ; loop head in UiClearSram
-47D0 .loop4               ; loop head in UiClearSram
+4603 .grooveLoop          ; loop head in UiClearSram: p != $b290
+4655 .wordNameLoop        ; loop head in UiClearSram: "W-" + a digit per word
+4763 .synthParamLoop      ; loop head in UiClearSram: synth parameter defaults, 16 bytes per synth
+47D0 .waveFrameLoop       ; loop head in UiClearSram: p < $b000
 4846 .done                ; common exit of CheckJkMarker
 48D2 .done                ; common exit of CheckSongInitFlag
 4A40 .done                ; common exit of CopyInstrName
@@ -342,21 +342,21 @@
 4527 .drawString_2
 45B6 .cont
 45BF .cont_2
-45D4 .cont
-45D5 .clearSramWindow
-45F3 .cont_2
-460B .step
-4612 .cont_3
-4620 .cont_4
-4639 .memSet
-4663 .cont_5
-4671 .cont_6
-4697 .cont_7
-4699 .cont_8
-46AA .cont_9
-4772 .cont_10
-47B8 .cont_11
-4801 .cont_12
+45D4 .disableInts         ; di, then enable SRAM and select bank 0
+45D5 .clearSramWindow     ; rRAMG=$0a, rRAMB=0, ClearSramWindow, ClearBookmarks (bank 7)
+45F3 .rbMarker0           ; 'rb' at $be78, then the groove loop from $b090
+460B .grooveHiTest        ; the high byte of the end test
+4612 .grooveDefault       ; *p++ = 6, *p = 6, p += 15: a 6/6 groove
+4620 .grooveSecond        ; the second step byte
+4639 .sequenceClear       ; MemSet($b290, $ff, $400), then the word names from $bdd0
+4663 .wordNameDash        ; '-'
+4671 .wordNameDigit       ; *p = i, then add '0' (i < 10) or '7' (letters)
+4697 .wordNameLetter      ; i >= 10: '7' (A-F follow '9' + 7)
+4699 .wordNameAdd         ; *p += the offset
+46AA .wordNameNext        ; i++, loop until p == $bdfa; then bank 1 and the saved property bytes
+4772 .synthParamDefault   ; bytes 5/9 = $10, 6/10 = $ff
+47B8 .waveFrames          ; bank 3: 'rb' at $bff0, then the default wave frame into every frame
+4801 .finish              ; $bfff = $16, ei, disable SRAM
 482B .readSongByte
 4844 .cont
 4876 .readSongByte
