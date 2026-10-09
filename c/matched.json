@@ -3485,6 +3485,12 @@
   "len": 570,
   "src": "c/bank1d/SynthScreen.c"
  },
+ "SynthLoadSignalWave": {
+  "bank": "1D",
+  "addr": "5F90",
+  "len": 165,
+  "src": "c/bank1d/SynthScreen.c"
+ },
  "SynthLockByteAddr": {
   "bank": "06",
   "addr": "4901",

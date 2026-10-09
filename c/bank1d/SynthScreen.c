@@ -87,7 +87,7 @@ extern char SynthSeedTableE[];              /* $1E:$77EC, shape 0 / signal 2 */
 extern char SynthSeedTableF[];              /* $1E:$78EC, shape 1 / signal 2 */
 UWORD SynthCalcParamAddr(UBYTE x);
 void SynthApplyFilter(void);
-void SynthReadWaveSram(void);
+void SynthLoadSignalWave(void);
 void SynthRenderWaveType(void);
 void SynthComposeWave(void);
 void SynthWriteWaveCol(void);
@@ -903,6 +903,30 @@ void SynthApplyFilter(void)
     }
 }
 
+/* $5F90: load the custom-wave SIGNAL (W.FX: wave $F0 + synth, 16 packed
+   bytes at SRAM $AF00 + 16 * synth) into wSynthShapeBuf as 32 signed words,
+   each nibble n becoming 120 - 16 * n. */
+void SynthLoadSignalWave(void)
+{
+    UBYTE i;
+    UWORD p;
+    char v;
+    int w;
+
+    i = 0;
+    p = wSynthScreen;
+    p <<= 4;
+    p += (UWORD)0xAF00;
+    while (i != 0x20) {
+        v = 0xFF ^ ReadSongByte(3, p);
+        w = (char)((v & 0xF0) + 0x88);
+        *(int *)(wSynthShapeBuf + (i++ << 1)) = w;
+        w = (char)(((v & 0x0F) << 4) + 0x88);
+        *(int *)(wSynthShapeBuf + (i++ << 1)) = w;
+        p++;
+    }
+}
+
 void RenderSynthWave(void)
 {
     if (wSynthRenderIdx >= 0x10)
@@ -912,7 +936,7 @@ void RenderSynthWave(void)
     wSynthSegLen2 = wSynthCurveSeg2[wSynthRenderIdx];
     wSynthFilterCutoff = wSynthCurveCutoff[wSynthRenderIdx];
     if (wSynthSignalType == 3)
-        SynthReadWaveSram();
+        SynthLoadSignalWave();
     else
         SynthRenderWaveType();
     SynthComposeWave();

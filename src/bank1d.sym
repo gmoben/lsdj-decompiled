@@ -45,7 +45,7 @@
 5E53 SynthFilterPass            ; filter/transform 32 wave samples using $c9ec
 5F00 SynthApplyFilter           ; dispatch filter by $c9eb (2->ClearSynthWaveBufs2, 3->SynthFilterPass, else 58E6); gated $c9ec
 5F29 SynthWriteWaveCol          ; write an edited wave column (<$20) from the edit state ($cb60) into song data
-5F90 SynthReadWaveSram          ; read synth wave bytes from SRAM $AF00 + $c441*32
+5F90 SynthLoadSignalWave        ; load the custom-wave SIGNAL (W.FX: wave $F0 + synth, 16 packed bytes at SRAM $AF00 + 16 * synth) into wSynthShapeBuf as 32 signed words
 60A7 SynthCalcParamAddr         ; pick SRAM base $bfc4/$bfc5 by bit3 of arg -> synth param pointer
 6115 SynthReadParam             ; read synth param via SynthCalcParamAddr + ReadSongByte (bank1)
 6144 SynthClearFlag             ; clear synth x's bit in the flag pair at $BFC4/$BFC5 (SynthCalcParamAddr)
@@ -166,9 +166,9 @@
 5F28 .done                ; common exit of SynthApplyFilter
 5F30 .loop                ; loop head in SynthWriteWaveCol
 5F8C .done                ; common exit of SynthWriteWaveCol
-5FA2 .loop                ; loop head in SynthReadWaveSram
-5FBC .loop2               ; loop head in SynthReadWaveSram
-6031 .done                ; common exit of SynthReadWaveSram
+5FA2 .shiftLoop           ; loop head in SynthLoadSignalWave: p <<= 4 done one bit per pass in p's slot
+5FBC .byteLoop            ; loop head in SynthLoadSignalWave: one packed SRAM byte (two samples) per pass
+6031 .done                ; common exit of SynthLoadSignalWave
 6138 .loop                ; loop head in SynthReadParam
 6171 .loop                ; loop head in SynthClearFlag
 61B2 .loop                ; loop head in SynthFillWaveRange
@@ -485,8 +485,8 @@
 5CF5 .cont_3
 5E82 .index
 5EEB .cont
-5FAA .step
-602E .cont
+5FAA .shiftStep           ; the shift count test (a = 4 + 1, entered first)
+602E .nextByte            ; p++ done (the high byte skipped without a carry), back to .byteLoop
 60C2 .cont
 60CF .checkArg
 613B .step
