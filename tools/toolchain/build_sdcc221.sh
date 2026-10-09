@@ -94,6 +94,38 @@ def edit(path, old, new):
     p.write_text(s.replace(old, new), errors="surrogateescape")
 
 edit("src/z80/ralloc.c", "    D_ALLOC\t\t= 0,", "    D_ALLOC\t\t= 1,")
+# names instead of pointers in the allocator trace (symbols, registers, iCode sequence numbers)
+for old, new in [
+    ('("allocReg: alloced %p\\n", &regsZ80[i])', '("allocReg: alloced %s\\n", regsZ80[i].name)'),
+    ('("freeReg: freed %p\\n", reg)', '("freeReg: freed %s\\n", reg->name)'),
+    ('("createStackSpil: for sym %p\\n", sym)', '("createStackSpil: for sym %s\\n", sym->name)'),
+    ('("spillThis: spilling %p\\n", sym)', '("spillThis: spilling %s\\n", sym->name)'),
+    ('("selectSpil: finding spill for ic %p\\n", ic)', '("selectSpil: finding spill for ic seq%d\\n", ic->seq)'),
+    ('("getRegGpr: on ic %p\\n", ic)', '("getRegGpr: on ic seq%d\\n", ic->seq)'),
+    ('("deassignLRs: in loop on sym %p nregs %u\\n", sym, sym->nRegs)', '("deassignLRs: in loop on sym %s nregs %u\\n", sym->name, sym->nRegs)'),
+    ('("reassingLR: on sym %p\\n", sym)', '("reassingLR: on sym %s\\n", sym->name)'),
+    ('("positionRegs: on result %p opsum %p line %u\\n", result, opsym, lineno)', '("positionRegs: on result %s opsum %s line %u\\n", result->name, opsym->name, lineno)'),
+    ('("tryAllocRegPair: succeded for sym %p\\n", sym)', '("tryAllocRegPair: succeded for sym %s\\n", sym->name)'),
+    ('("tryAllocRegPair: failed on sym %p\\n", sym)', '("tryAllocRegPair: failed on sym %s\\n", sym->name)'),
+    ('("serialRegAssign: in loop on result %p\\n", sym)', '("serialRegAssign: in loop on result %s (seq%d)\\n", sym->name, ic->seq)'),
+    ('    D(D_ALLOC, ("spilSomething: spilling on ic %p\\n", ic));\n\n    /* get something we can spil */\n    ssym = selectSpil(ic,ebp,forSym);\n',
+     '    D(D_ALLOC, ("spilSomething: spilling on ic seq%d\\n", ic->seq));\n\n    /* get something we can spil */\n    ssym = selectSpil(ic,ebp,forSym);\n    D(D_ALLOC, ("spilSomething: victim %s\\n", ssym->name));\n'),
+]:
+    edit("src/z80/ralloc.c", old, new)
+# BUSYC=lo-hi (an experiment knob): register c is held by a phantom occupant for iCode seq in [lo, hi]
+edit("src/z80/ralloc.c", """	    /* take away registers from live
+	       ranges that end at this instruction */	   
+	    deassignLRs (ic, ebbs[i]) ;		
+""", """	    /* take away registers from live
+	       ranges that end at this instruction */	   
+	    deassignLRs (ic, ebbs[i]) ;		
+	    if (getenv("BUSYC")) {
+		int lo = 0, hi = 0; static int held = 0;
+		sscanf(getenv("BUSYC"), "%d-%d", &lo, &hi);
+		if (ic->seq >= lo && ic->seq <= hi && !held && regsZ80[0].isFree) { regsZ80[0].isFree = 0; held = 1; }
+		else if ((ic->seq < lo || ic->seq > hi) && held) { regsZ80[0].isFree = 1; held = 0; }
+	    }
+""")
 edit("src/z80/ralloc.c", 'D(D_ALLOC, ("\\n-> z80_assignRegisters: entered.\\n"));',
      'D(D_ALLOC, ("\\n-> z80_assignRegisters: entered %s.\\n", currFunc ? currFunc->name : "?"));')
 edit("src/SDCCopt.c", """    /* if nothing passed then return nothing */
