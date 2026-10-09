@@ -3533,6 +3533,12 @@
   "len": 277,
   "src": "c/bank1d/SynthScreen.c"
  },
+ "SynthFilterLowHigh": {
+  "bank": "1D",
+  "addr": "58E6",
+  "len": 727,
+  "src": "c/bank1d/SynthScreen.c"
+ },
  "SynthFilterPass": {
   "bank": "1D",
   "addr": "5E53",

@@ -17,6 +17,11 @@ extern UBYTE *wGrooveCachePtr;              /* $C9E6 */
 extern UBYTE wSynthFilterType;              /* $C9EB */
 extern UBYTE wSynthFilterCutoff;            /* $C9EC */
 extern UBYTE wSynthWaveBuf[];               /* $CA34, [32] */
+extern UBYTE wSynthBufA[];                  /* $CAB8, [64]: filter accumulator, sample * weight per slot */
+extern UBYTE wSynthBufB[];                  /* $CAF8, [64]: filter accumulator, weight per slot */
+extern UBYTE *wSynthFilterPtr;              /* $CB38 */
+extern UWORD wSynthFilterPtrW;              /* $CB38, the same word (aliased by match_function.py) */
+extern UWORD wSynthFilterVal;               /* $CB3A */
 extern UBYTE wSynthWaveTmp[];               /* $CB40, [32] */
 extern UBYTE wSynth;                        /* $C42A */
 extern UBYTE wSynthCursor;                  /* $C442 */
@@ -42,7 +47,6 @@ UBYTE ReadSynthParam(UBYTE field);          /* the current synth's param byte */
 void WriteSynthParam(UBYTE field, UBYTE v);
 void WriteGrooveByte(UBYTE step, UBYTE v);
 UBYTE ReadGrooveStep(UBYTE step);
-void ClearSynthWaveBufs(void);
 void ClearSynthWaveBufs2(void);
 void SynthFilterPass(void);
 void DrawGrooveSteps(void);
@@ -873,6 +877,67 @@ UBYTE SynthWrapIndex32(UBYTE v)
     return (v + 1) & 0x1F;
 }
 
+/* $58E6: the LOWP/HIGHP filter (every type but BANDP and ALLP). Each of
+   the 32 samples is scattered over two accumulator slots at an 8.8 position
+   that advances by a cutoff-driven step (the slower the step, the more
+   samples a slot averages: a low cutoff smears the wave); HIGHP reverses
+   direction after 15 samples. A second pass divides each slot's sum by its
+   weight; LOWP fills a slot's missing weight with the mid level 8.
+   The slot pointer and value live in two scratch words ($CB38/$CB3A); the
+   second half reuses the value's low byte for the doubled index and the
+   pointer word for the value -- the index is a block-scope extern, which
+   this compiler keeps in a register and spills into the global. */
+void SynthFilterLowHigh(void)
+{
+    UWORD acc;
+    UBYTE step;
+    UBYTE i;
+    UBYTE pos;
+    UWORD frac;
+    UWORD sample;
+    UWORD ua;
+    UWORD ub;
+    UBYTE next2;
+    extern UBYTE wSynthFilterIdx;           /* $CB3A, wSynthFilterVal's low byte (aliased by match_function.py) */
+
+    acc = 0;
+    step = -(wSynthFilterCutoff + (wSynthFilterCutoff >> 5));
+    MemSet(wSynthBufA, 0, 0x40);
+    MemSet(wSynthBufB, 0, 0x40);
+    for (i = 0; i < 0x20; i++) {
+        pos = acc >> 8;
+        frac = (UBYTE)acc;
+        sample = wSynthWaveBuf[SynthWrapIndex32(i)];
+        next2 = ((pos + 1) & 0x1F) << 1;
+        wSynthFilterPtr = wSynthBufA + next2;
+        wSynthFilterVal = *(UWORD *)wSynthFilterPtr;
+        *(UWORD *)wSynthFilterPtr = wSynthFilterVal + sample * frac;
+        wSynthFilterVal = *(UWORD *)(wSynthBufB + next2);
+        wSynthFilterVal += frac;
+        *(UWORD *)(wSynthBufB + next2) = wSynthFilterVal;
+        frac = 0x100 - frac;
+        wSynthFilterIdx = pos << 1;
+        wSynthFilterPtrW = *(UWORD *)(wSynthBufA + wSynthFilterIdx);
+        *(UWORD *)(wSynthBufA + wSynthFilterIdx) = wSynthFilterPtrW + sample * frac;
+        *(UWORD *)(wSynthBufB + wSynthFilterIdx) += frac;
+        if (wSynthFilterType == 0 || i < 0x0F)
+            acc += step;
+        else
+            acc += 0x200 - step;
+    }
+    for (i = 0; i < 0x20; i++) {
+        ua = *(UWORD *)(wSynthBufA + (i << 1));
+        ub = *(UWORD *)(wSynthBufB + (i << 1));
+        if (wSynthFilterType == 0) {
+            if ((ub - 0x100) & 0x8000) {
+                ua += (0x100 - ub) << 3;
+                ub = 0x100;
+            }
+        }
+        wSynthWaveBuf[SynthWrapIndex32(i)] = ua / ub;
+    }
+}
+
 void SynthFilterPass(void)
 {
     UBYTE i;
@@ -898,7 +963,7 @@ void SynthApplyFilter(void)
             SynthFilterPass();
             break;
         default:
-            ClearSynthWaveBufs();
+            SynthFilterLowHigh();
         }
     }
 }

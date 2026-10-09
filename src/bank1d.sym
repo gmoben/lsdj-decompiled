@@ -40,8 +40,8 @@
 5323 SynthComposeWave           ; main synth wave composition (wSynthRenderIdx, buffer $ca34); large
 5695 SynthRenderWaveType        ; dispatch waveform shape by type $c9e9 (jump table $56bd); buffer $ca94
 58DA SynthWrapIndex32           ; return (arg+1) & $1f (wave sample index wrap)
-58E6 ClearSynthWaveBufs         ; clear the two 64-byte synth wave work buffers ($cab8/$caf8)
-5BBD ClearSynthWaveBufs2        ; duplicate of ClearSynthWaveBufs (second compile)
+58E6 SynthFilterLowHigh         ; synth filter LOWP/HIGHP (any type but 2/3): scatter each of the 32 samples over two accumulator slots at a cutoff-driven 8.8 position, then normalise each slot by its weight (type 0 fills missing weight with 8)
+5BBD ClearSynthWaveBufs2        ; duplicate of SynthFilterLowHigh (second compile)
 5E53 SynthFilterPass            ; filter/transform 32 wave samples using $c9ec
 5F00 SynthApplyFilter           ; dispatch filter by $c9eb (2->ClearSynthWaveBufs2, 3->SynthFilterPass, else 58E6); gated $c9ec
 5F29 SynthWriteWaveCol          ; write an edited wave column (<$20) from the edit state ($cb60) into song data
@@ -152,10 +152,10 @@
 5691 .done                ; common exit of SynthComposeWave
 583C .loop                ; loop head in SynthRenderWaveType
 58D6 .done                ; common exit of SynthRenderWaveType
-592C .loop                ; loop head in ClearSynthWaveBufs
-5AF7 .loop2               ; loop head in ClearSynthWaveBufs
-5B5A .loop3               ; loop head in ClearSynthWaveBufs
-5BB9 .done                ; common exit of ClearSynthWaveBufs
+592C .scatterLoop         ; SynthFilterLowHigh: for each of the 32 source samples, scatter it over two accumulator slots
+5AF7 .normaliseLoop       ; SynthFilterLowHigh: for each slot, output = sum / weight
+5B5A .shiftLeft           ; SynthFilterLowHigh: (0x100 - weight) <<= 3, the fill of a slot that has no weight
+5BB9 .done                ; common exit of SynthFilterLowHigh
 5BF7 .loop                ; loop head in ClearSynthWaveBufs2
 5C10 .loop2               ; loop head in ClearSynthWaveBufs2
 5C58 .loop3               ; loop head in ClearSynthWaveBufs2
@@ -474,12 +474,12 @@
 58A4 .cont_5
 58AF .cont_6
 58B7 .loadBank1EBlock_3
-5AA7 .cont
-5AC3 .cont_2
-5AED .cont_3
-5AF3 .checkArg
-5B62 .step
-5B7D .synthWrapIndex32
+5AA7 .stepForward         ; LOWP, or the first 15 samples: position += step
+5AC3 .stepBack            ; HIGHP from sample 15 on: position += 2.0 - step
+5AED .nextSample
+5AF3 .normalise           ; second pass: i = 0
+5B62 .shiftCount
+5B7D .writeSample         ; wave[wrap(i)] = sum / weight
 5C55 .cont
 5CF2 .cont_2
 5CF5 .cont_3

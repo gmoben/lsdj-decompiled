@@ -193,6 +193,14 @@ def repair_globls(asm: str) -> str:
     # them; GBDK's driver assembled with -g. Declare them so they link.
     missing += [f"\t.globl {n}" for n in sorted(set(re.findall(r"^\s*call\s+(__\w+)", asm, re.M)))
                 if n not in have]
+    # A variable declared `extern` inside a function body is a global the
+    # compiler never declares (it treats the symbol as a register-equivalent
+    # local whose spill location is the global: LSDj's synth filters keep
+    # their scratch bytes that way). Declare every `#_name` the code refers
+    # to that nothing defines or declares, so the linker sees the global.
+    defined = set(re.findall(r"^(_\w+):", asm, re.M))
+    missing += [f"\t.globl {n}" for n in sorted(set(re.findall(r"#(_[A-Za-z]\w*)", asm)))
+                if n not in have and n not in defined and not n.startswith("__")]
     if missing:
         at = next((i for i, l in enumerate(out) if re.match(r"\s*\.globl\b", l)), 0)
         out[at:at] = missing
@@ -429,6 +437,8 @@ RUNTIME_ALIASES = {
     "WriteCurrentInstrByteC": "WriteCurrentInstrByte",  # WriteCurrentInstrByte with a `char` value (SetVibratoShape)
     "WriteVramByteSafeP": "WriteVramByteSafe",  # WriteVramByteSafe with a pointer address: the cast of a UWORD counter is the spilt argument copy (ClearOamBuffer)
     "WriteVramByteSafeC": "WriteVramByteSafe",  # char value: the (char)global cast copy evaluated before dst++ owns c and is spilt into the global (GfxCopyVramRegion)
+    "wSynthFilterPtrW": "wSynthFilterPtr",  # the low-/high-pass filter's slot pointer read as a word: the slot value in the second half of the scatter loop (SynthFilterLowHigh)
+    "wSynthFilterIdx": "wSynthFilterVal",  # the filter's slot value's low byte: the doubled sample index, a block-scope extern the compiler spills the index into (SynthFilterLowHigh)
 }
 
 

@@ -448,7 +448,7 @@ DEF wFileBlockCounts EQU $C959  ; per-file block counts, 32 slots (CountFileBloc
 DEF wFileNameBuf     EQU $C987  ; 8-char filename buffer (CopyFileName)
 DEF wFileListActive  EQU $C998  ; cursor is inside the file list (not a string buffer)
 DEF wProjCursor      EQU $C9A4  ; project-screen cursor row (ProjCursorFieldWidth index)
-DEF wSynthBufA       EQU $CAB8  ; [64] 64-byte synth wave work buffer A (ClearSynthWaveBufs)
+DEF wSynthBufA       EQU $CAB8  ; [64] 64-byte synth wave work buffer A (SynthFilterLowHigh)
 DEF wSynthBufB       EQU $CAF8  ; [64] 64-byte synth wave work buffer B
 DEF wOverwriteStart  EQU $CB61  ; nonzero while the synth OVERWRITE? prompt is open (OverwritePromptInput clears it)
 DEF wOverwriteEnd    EQU $CB62  ; the prompt's choice: 0 = left (accept: SynthClearFlag), 1 = right
@@ -867,7 +867,7 @@ DEF wSynthSegLen3    EQU $C9EF  ; synth param: fill count -> curve buf $CA84 (fi
 DEF wSynthRenderActive EQU $C9F1  ; idle synth render in progress (cleared at frame $10)
 DEF wSynthRenderDst  EQU $C9F2  ; 16-bit SRAM dest ptr for rendered waves ($A0xx)
 DEF wSynthShapeBuf  EQU $C9F4  ; [32] words: signed seed samples from bank $1E (LoadSynthShape), accumulated into by SynthRenderWaveA/B
-DEF wSynthBufPtr     EQU $CB38  ; 16-bit scratch ptr into wSynthBufA (render/smoothing)
+DEF wSynthFilterPtr  EQU $CB38  ; low-/high-pass synth filter: pointer to the accumulator slot scattered into (SynthFilterLowHigh); the slot value in the loop's second half
 DEF wSynthNavSide    EQU $CB63  ; synth screen: last horizontal nav direction (cursor column side)
 DEF wSyncXferActive  EQU $CB65  ; link song-transfer in progress (skips ProcessSyncByte)
 DEF wSyncStartRow    EQU $CB6A  ; saved/target song row for sync start (B-held save/restore)
@@ -966,7 +966,7 @@ DEF wSelHoldFrames   EQU $C676  ; frames SELECT has been held (ProcessInput rese
 DEF wAttrRowBuf     EQU $C677  ; [20] CGB attribute row buffer: ColorField fills it with the palette and set_bkg_tiles writes it to VRAM bank 1
 DEF wFxWaveParam     EQU $C8C2  ; W command value latch (lo nibble; consumed via SndSetKitParams)
 DEF wFxWaveParam2    EQU $C8C3  ; W command companion latch
-DEF wSynthRenderState EQU $CB3A ; synth render params copied at buffer init (3 words: +0/+2/+4)
+DEF wSynthFilterVal  EQU $CB3A  ; low-/high-pass synth filter: the accumulator slot value; its low byte the doubled sample index in the loop's second half
 DEF wSynthWaveBuf   EQU $CA34  ; [32] rendered synth wave samples, one nibble each (SynthComposeWave; SynthWriteWaveCol packs them into SRAM)
 DEF wSynthCurveSeg2  EQU $CA54  ; [16] per-wave interpolated synth parameter curves (SynthFillWaveRange from SynthLoadParams,
 DEF wSynthCurveCutoff EQU $CA64 ;      read back per wave by RenderSynthWave into wSynthSegLen2/wSynthFilterCutoff/
