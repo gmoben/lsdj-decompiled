@@ -106,7 +106,7 @@
 71CD SendLinkClipboard          ; after a copy on linked Game Boys not playing (SYNC = LSDJ): send $FE, the clipboard type, the selection bounds and the cells (manual 5.1.4 Clipboard Transfer)
 
 ; --- per-instrument-type migration callbacks (passed to FileForEachInstrType) ---
-6134 FileUpgradeV0Kit    ; V0 kit-instrument field migration (callback)
+6134 FileUpgradeV0Kit    ; save-format 0 kit instrument: the loop bits of kit bytes 2/9 move into byte 5 (bits 6/5), the kit numbers shift up by 8
 61E6 FileUpgradeV1Kit    ; V1 kit-instrument field migration (callback)
 628B FileUpgradeV3Pulse  ; V3 pulse-instrument field migration (callback)
 62D3 FileUpgradeV3Kit    ; V3 kit-instrument field migration (callback)
@@ -533,8 +533,8 @@
 609B .fileDrawFieldChecked_5
 60A3 .cont_15
 6129 .incFileScroll
-61B7 .cont
-61C4 .fileWriteInstrByte
+61B7 .kit1LoopOff         ; kit 1 had no loop bit: test kit 2's
+61C4 .writeByte5          ; write back byte 5 (loop flags)
 6246 .body
 627D .next
 6284 .nextDone

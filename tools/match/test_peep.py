@@ -447,6 +447,29 @@ class HramReuseTests(unittest.TestCase):
 
 
 
+class DeadLoadTest(unittest.TestCase):
+    """Any side-effect-free `ld r,X` rewritten unread in its block goes,
+    and so does the `inc hl` that fed it (FileUpgradeV0Kit's narrowed
+    16-bit `&`: the ROM keeps no dead register load of any kind)."""
+
+    def test_dead_high_byte_load_and_its_step_go(self):
+        src = ["_F:", "\tld\ta,(hl)", "\tand\ta,#0xDF", "\tld\tb,a", "\tinc\thl", "\tld\tc,(hl)",
+               "\tlda\thl,6(sp)", "\tld\t(hl),b", "\tlda\thl,4(sp)", "\tld\tc,(hl)", "\tld\tb,#0x00",
+               "\tld\ta,c", "\tret"]
+        out, n = peep.dead_stores(src, set())
+        self.assertEqual(n, 1)
+        self.assertNotIn("\tld\tc,(hl)", out[:7])
+        out2, n2 = peep.dead_hl_steps(out, set())
+        self.assertEqual(n2, 1)
+        self.assertNotIn("\tinc\thl", out2)
+
+    def test_loads_with_side_effects_or_reads_stay(self):
+        src = ["_F:", "\tld\tc,(hl+)", "\tld\tc,#0x01", "\tld\tb,(hl)", "\tld\ta,b", "\tld\tb,#0x02", "\tret"]
+        self.assertEqual(peep.dead_stores(src, set()), (src, 0))
+        step = ["_F:", "\tinc\thl", "\tld\ta,(hl)", "\tlda\thl,2(sp)", "\tret"]
+        self.assertEqual(peep.dead_hl_steps(step, set()), (step, 0))
+
+
 class ChainedBitwiseTest(unittest.TestCase):
     """A bitwise result kept in a for the next literal op (FileUpgradeV3Kit)."""
 

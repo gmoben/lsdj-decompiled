@@ -68,6 +68,35 @@ void FileForEachInstrType(UBYTE type, void (*fn)())
     }
 }
 
+/* $6134: the save-format 0 kit instrument: move the "loop" bit (bit 5) of
+   both kit-number bytes (2 and 9) into bits 6/5 of byte 5 and shift the
+   kit numbers up by 8. `a &= ~(UWORD)0x20` is the author's spelling: the
+   16-bit mask zero-extends the byte into a spilt word and narrows the
+   16-bit AND back to the byte -- the first through b, the second handed
+   its registers by the dying word -- and the dead high-byte load the
+   narrowing leaves is dropped by the peephole (dead_stores). */
+void FileUpgradeV0Kit(void)
+{
+    UBYTE a, f, b, la, lb;
+
+    a = FileReadInstrByte(2);
+    f = FileReadInstrByte(5);
+    b = FileReadInstrByte(9);
+    la = a & 0x20;
+    lb = b & 0x20;
+    a &= ~(UWORD)0x20;
+    b &= ~(UWORD)0x20;
+    a += 8;
+    b += 8;
+    FileWriteInstrByte(2, a);
+    FileWriteInstrByte(9, b);
+    if (la)
+        f |= 0x40;
+    if (lb)
+        f |= 0x20;
+    FileWriteInstrByte(5, f);
+}
+
 void FileUpgradeV0(void)
 {
     FileForEachInstrType(2, FileUpgradeV0Kit);

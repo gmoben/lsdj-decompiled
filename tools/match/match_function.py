@@ -280,6 +280,7 @@ def compile_unit(work: Path, env: dict[str, str], c_path: Path,
             lines, _ = peep_mod.track_de(lines, targets)
             lines, _ = peep_mod.dead_stores(lines, targets)
             lines, _ = peep_mod.dead_mem_stores(lines, targets)
+            lines, _ = peep_mod.dead_hl_steps(lines, targets)
             lines, _ = peep_mod.chained_bitwise(lines)
         asm.write_text("\n".join(lines) + "\n")
     elif stock:

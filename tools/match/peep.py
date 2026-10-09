@@ -1554,8 +1554,16 @@ def _restores_reg(mn: str, ops: list[str], r: str) -> bool:
     return mn == "ld" and len(ops) == 2 and ops[0] == r
 
 
+_DEAD_LOAD_SRC = re.compile(r"a|b|c|d|e|h|l|\(hl\)|\(bc\)|\(de\)|#.*")
+
+
 def dead_stores(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
-    """Drop `ld r,a` (r = b, c, d, e) overwritten unread within its block."""
+    """Drop `ld r,X` (r = b, c, d, e; X a register, `(hl)`, `(bc)`, `(de)` or
+    a literal -- a load without side effects) overwritten unread within its
+    block. The ROM has none of any kind: of its 2,411 `ld r,(hl)` and 1,367
+    `ld r,#n` not one is rewritten before it is read (stock SDCC 2.2.1 emits
+    them, e.g. the high byte of a 16-bit `&` whose result is then narrowed
+    to a byte: FileUpgradeV0Kit)."""
     code = [(i, _ops(_strip(l).strip())) for i, l in enumerate(lines) if _strip(l).strip()]
     scope, scopes = 0, {}
     for i, (mn, ops) in code:
@@ -1566,13 +1574,7 @@ def dead_stores(lines: list[str], jump_targets: set[str]) -> tuple[list[str], in
     drop: set[int] = set()
     for k, (i, (mn, ops)) in enumerate(code):
         if not (mn == "ld" and len(ops) == 2 and ops[0] in ("b", "c", "d", "e")
-                and (ops[1] == "a"
-                     # a call result copied to its register (`call; ld c,e`)
-                     # and never read: SDCC leaves it when the cast that
-                     # follows reads e itself (CommitNameEdit's row * 3);
-                     # the ROM has no such copy before its register is
-                     # rewritten
-                     or (ops[1] == "e" and k > 0 and code[k - 1][1][0] == "call"))):
+                and _DEAD_LOAD_SRC.fullmatch(ops[1])):
             continue
         r = ops[0]
         for j, (mn2, ops2) in code[k + 1:]:
@@ -1590,6 +1592,40 @@ def dead_stores(lines: list[str], jump_targets: set[str]) -> tuple[list[str], in
                 break
             if mn2 in ("ld", "pop") and ops2 and (ops2[0] == r or r in _PAIR_OF.get(ops2[0], "")):
                 break                         # overwritten some other way: kept
+    return [l for i, l in enumerate(lines) if i not in drop], len(drop)
+
+
+def dead_hl_steps(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
+    """Drop `inc hl` / `dec hl` whose hl is rewritten (`ld hl,`, `lda hl,`,
+    `pop hl`) before any read within the block: the step left behind a
+    dead `ld r,(hl)`. The ROM has none of its 3,312 `inc/dec hl` followed by
+    an hl rewrite unread."""
+    code = [(i, _ops(_strip(l).strip())) for i, l in enumerate(lines) if _strip(l).strip()]
+    scope, scopes = 0, {}
+    for i, (mn, ops) in code:
+        t = _strip(lines[i]).strip()
+        if t.endswith(":") and not _LOCAL.fullmatch(t[:-1]):
+            scope += 1
+        scopes[i] = scope
+    drop: set[int] = set()
+    for k, (i, (mn, ops)) in enumerate(code):
+        if not (mn in ("inc", "dec") and ops == ["hl"]):
+            continue
+        for j, (mn2, ops2) in code[k + 1:]:
+            t = _strip(lines[j]).strip()
+            if t.endswith(":"):
+                if not _LOCAL.fullmatch(t[:-1]) or f"{scopes[j]}:{t[:-1]}" in jump_targets:
+                    break
+                continue
+            if mn2 in ("jp", "jr", "call", "ret", "reti", "rst", "halt", "stop"):
+                break
+            text = " ".join(ops2)
+            if (mn2 == "ld" and ops2 and ops2[0] == "hl") or (mn2 == "lda" and ops2 and ops2[0] == "hl") \
+                    or (mn2 == "pop" and ops2 == ["hl"]):
+                drop.add(i)
+                break
+            if re.search(r"\b(hl|h|l)\b", text) or "(hl" in text:
+                break
     return [l for i, l in enumerate(lines) if i not in drop], len(drop)
 
 
