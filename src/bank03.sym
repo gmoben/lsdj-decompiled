@@ -416,8 +416,8 @@
 4A7F .drawString_3
 4A8B .drawString_4
 4A97 .drawStringIndexed
-4B95 .notNoise
-4B99 .redraw
+4B95 .notNoise           ; instrument type != 3 (noise): redraw through DrawSpeedModeName
+4B99 .redraw             ; far call the chosen drawer (bank 1) with the shape byte
 4BC1 .store
 4BDF .store
 4C1D .testBit6

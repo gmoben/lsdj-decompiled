@@ -396,6 +396,8 @@ RUNTIME_ALIASES = {
     "FarCallArg0": "FarCallArg",  # FarCallArg called with (bank, fn) only -- hFxValue set by hand (ProcessLinkQueue)
     "ReadSongBytesW": "ReadSongBytes",  # ReadSongBytes with a word source address (FileUpgradeV11 pushes its UWORD cursors)
     "ReadInstrByteS": "ReadInstrByte",  # ReadInstrByte returning `char`: the cast gives the call result its own slot (FileUpgradeV11)
+    "FarCallArgWC": "FarCallArg",  # FarCallArg with the target as a plain UWORD and a `char` argument: a `?:` over two addresses pushed from bc without a frame (SetVibratoShape)
+    "WriteCurrentInstrByteC": "WriteCurrentInstrByte",  # WriteCurrentInstrByte with a `char` value (SetVibratoShape)
 }
 
 

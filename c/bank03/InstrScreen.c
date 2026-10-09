@@ -47,6 +47,8 @@ void MapMoveUp(void);                       /* $05:$426A */
 void MapMoveDown(void);                     /* $05:$4287 */
 void ToggleSongPlayback(void);              /* $02:$78C4 */
 void TogglePlayback(void);                  /* $02:$7C4C */
+void WriteCurrentInstrByteC(UBYTE field, char val);   /* WriteCurrentInstrByte taking a char (aliased) */
+void FarCallArgWC(UBYTE bank, UWORD fn, char arg);     /* FarCallArg with a word target and a char argument (aliased) */
 
 void WriteCurrentInstrByte(UBYTE field, UBYTE val)
 {
@@ -477,6 +479,21 @@ void SetInstrByte2(UBYTE v)
 UBYTE GetVibratoShape(void)
 {
     return ReadCurInstrByte(5) & 0x07;
+}
+
+/* $4B5E: store the vibrato shape in instrument byte 5 bits 2-0 (v: sin/saw/
+   sqr << 1 | up) and redraw the PITCH field. A signed v: the OR reads it
+   through a cast that sits between the mask and the OR, which keeps the
+   masked byte in c; the callees take a char for the same reason. */
+void SetVibratoShape(char v)
+{
+    char t;
+
+    t = ReadCurInstrByte(5);
+    t &= 0xF8;
+    v |= t;
+    WriteCurrentInstrByteC(5, v);
+    FarCallArgWC(1, ReadCurInstrByte(0) == 3 ? (UWORD)DrawSpeedGlyph : (UWORD)DrawSpeedModeName, v);
 }
 
 void VibratoShapeNext(void)

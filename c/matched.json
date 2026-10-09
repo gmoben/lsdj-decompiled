@@ -2957,6 +2957,12 @@
   "len": 113,
   "src": "c/bank07/KbdLink.c"
  },
+ "SetVibratoShape": {
+  "bank": "03",
+  "addr": "4B5E",
+  "len": 78,
+  "src": "c/bank03/InstrScreen.c"
+ },
  "SetWaveCursorSprite": {
   "bank": "06",
   "addr": "4B16",

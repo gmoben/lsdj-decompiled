@@ -267,7 +267,7 @@ void InstrSelectPrevUsed(void);
 UBYTE GetWaveLength(void);
 UBYTE GetWaveSpeed(void);
 UBYTE GetVibratoShape(void);
-void SetVibratoShape(UBYTE v);
+void SetVibratoShape(char v);               /* the shape byte is signed here: its OR reads it through a cast */
 
 /* --- bank 5 ---------------------------------------------------------------- */
 void RestoreSelectionState(void);           /* $05:$747D (far) */
