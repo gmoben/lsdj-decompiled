@@ -41,9 +41,9 @@
 5695 SynthRenderWaveType        ; dispatch waveform shape by type $c9e9 (jump table $56bd); buffer $ca94
 58DA SynthWrapIndex32           ; return (arg+1) & $1f (wave sample index wrap)
 58E6 SynthFilterLowHigh         ; synth filter LOWP/HIGHP (any type but 2/3): scatter each of the 32 samples over two accumulator slots at a cutoff-driven 8.8 position, then normalise each slot by its weight (type 0 fills missing weight with 8)
-5BBD ClearSynthWaveBufs2        ; duplicate of SynthFilterLowHigh (second compile)
+5BBD SynthFilterBandPass        ; synth filter BANDP: halve the wave an octave per cutoff doubling (pair averages), then the LOWP/HIGHP scatter-and-normalise core with the position masked to the shortened wave
 5E53 SynthFilterPass            ; filter/transform 32 wave samples using $c9ec
-5F00 SynthApplyFilter           ; dispatch filter by $c9eb (2->ClearSynthWaveBufs2, 3->SynthFilterPass, else 58E6); gated $c9ec
+5F00 SynthApplyFilter           ; dispatch filter by $c9eb (2->SynthFilterBandPass, 3->SynthFilterPass, else 58E6); gated $c9ec
 5F29 SynthWriteWaveCol          ; write an edited wave column (<$20) from the edit state ($cb60) into song data
 5F90 SynthLoadSignalWave        ; load the custom-wave SIGNAL (W.FX: wave $F0 + synth, 16 packed bytes at SRAM $AF00 + 16 * synth) into wSynthShapeBuf as 32 signed words
 60A7 SynthCalcParamAddr         ; pick SRAM base $bfc4/$bfc5 by bit3 of arg -> synth param pointer
@@ -156,11 +156,11 @@
 5AF7 .normaliseLoop       ; SynthFilterLowHigh: for each slot, output = sum / weight
 5B5A .shiftLeft           ; SynthFilterLowHigh: (0x100 - weight) <<= 3, the fill of a slot that has no weight
 5BB9 .done                ; common exit of SynthFilterLowHigh
-5BF7 .loop                ; loop head in ClearSynthWaveBufs2
-5C10 .loop2               ; loop head in ClearSynthWaveBufs2
-5C58 .loop3               ; loop head in ClearSynthWaveBufs2
-5C8F .loop4               ; loop head in ClearSynthWaveBufs2
-5E4F .done                ; common exit of ClearSynthWaveBufs2
+5BF7 .octaveLoop          ; SynthFilterBandPass: while the step is below 0x80, halve the wave
+5C10 .halveLoop           ; SynthFilterBandPass: wave[i] = (wave[k] + wave[k + 1]) / 2 over the shortened wave
+5C58 .scatterLoop         ; SynthFilterBandPass: scatter samples until the position reaches 0x20
+5C8F .normaliseLoop       ; SynthFilterBandPass: output = sum / weight for each slot
+5E4F .done                ; common exit of SynthFilterBandPass
 5E68 .loop                ; loop head in SynthFilterPass
 5E7D .loop2               ; loop head in SynthFilterPass
 5F28 .done                ; common exit of SynthApplyFilter
@@ -480,9 +480,9 @@
 5AF3 .normalise           ; second pass: i = 0
 5B62 .shiftCount
 5B7D .writeSample         ; wave[wrap(i)] = sum / weight
-5C55 .cont
-5CF2 .cont_2
-5CF5 .cont_3
+5C55 .mask                ; SynthFilterBandPass: n-- gives the position mask
+5CF2 .return
+5CF5 .scatter             ; SynthFilterBandPass: the sample goes into two slots (the LOWP/HIGHP core)
 5E82 .index
 5EEB .cont
 5FAA .shiftStep           ; the shift count test (a = 4 + 1, entered first)

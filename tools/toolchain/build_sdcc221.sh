@@ -107,9 +107,10 @@ for old, new in [
     ('("positionRegs: on result %p opsum %p line %u\\n", result, opsym, lineno)', '("positionRegs: on result %s opsum %s line %u\\n", result->name, opsym->name, lineno)'),
     ('("tryAllocRegPair: succeded for sym %p\\n", sym)', '("tryAllocRegPair: succeded for sym %s\\n", sym->name)'),
     ('("tryAllocRegPair: failed on sym %p\\n", sym)', '("tryAllocRegPair: failed on sym %s\\n", sym->name)'),
-    ('("serialRegAssign: in loop on result %p\\n", sym)', '("serialRegAssign: in loop on result %s (seq%d)\\n", sym->name, ic->seq)'),
+    ('("serialRegAssign: in loop on result %p\\n", sym)', '("serialRegAssign: in loop on result %s (seq%d used%d nregs%d)\\n", sym->name, ic->seq, sym->used, sym->nRegs)'),
     ('    D(D_ALLOC, ("spilSomething: spilling on ic %p\\n", ic));\n\n    /* get something we can spil */\n    ssym = selectSpil(ic,ebp,forSym);\n',
      '    D(D_ALLOC, ("spilSomething: spilling on ic seq%d\\n", ic->seq));\n\n    /* get something we can spil */\n    ssym = selectSpil(ic,ebp,forSym);\n    D(D_ALLOC, ("spilSomething: victim %s\\n", ssym->name));\n'),
+    ('("spilSomething: victim %s\\n", ssym->name)', '("spilSomething: victim %s (used%d)\\n", ssym->name, ssym->used)'),
 ]:
     edit("src/z80/ralloc.c", old, new)
 # BUSYC=lo-hi (an experiment knob): register c is held by a phantom occupant for iCode seq in [lo, hi]

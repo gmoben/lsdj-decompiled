@@ -974,8 +974,8 @@ DEF wSynthCurveSeg1  EQU $CA74  ;      wSynthSegLen1/wSynthSegLen3); the C addre
 DEF wSynthCurveSeg3  EQU $CA84
 DEF wSynthCurveAmp   EQU $CA94  ; [16] per-frame mix amplitude, interpolated from the two nibbles of synth parameter 2
 DEF wSynthCurveLimit EQU $CAA4  ; [16] per-frame distortion-window control: synth parameters 13/14 biased by $0F
-DEF wSynthRenderPtr  EQU $CB3C  ; 16-bit scratch ptr into the $CA34 wave scratch (render/smoothing)
-DEF wSynthRenderVal  EQU $CB3E  ; 16-bit render scratch (wSynthBufA value, DivU16 operand)
+DEF wSynthBandDst    EQU $CB3C  ; band-pass synth filter (SynthFilterBandPass): output pointer in the halving and normalise loops; the slot value in the scatter
+DEF wSynthBandSlot   EQU $CB3E  ; band-pass synth filter: the accumulator slot pointer; the BufB value and the doubled index in the scatter; the BufA value in the normalise loop
 DEF wSynthWaveTmp    EQU $CB40  ; [32] filter-pass scratch copy of wSynthWaveBuf (SynthFilterPass writes it, then memcpy back)
 DEF wWaveEditX       EQU $CB60  ; wave-editor pen X: (column*4) & $f0 (SynthWriteWaveCol)
 DEF wNotePeriodLo    EQU $CD28  ; RAM copy of the note->period table (NoteToPeriod indexes by note)

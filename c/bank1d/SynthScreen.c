@@ -47,7 +47,7 @@ UBYTE ReadSynthParam(UBYTE field);          /* the current synth's param byte */
 void WriteSynthParam(UBYTE field, UBYTE v);
 void WriteGrooveByte(UBYTE step, UBYTE v);
 UBYTE ReadGrooveStep(UBYTE step);
-void ClearSynthWaveBufs2(void);
+void SynthFilterBandPass(void);
 void SynthFilterPass(void);
 void DrawGrooveSteps(void);
 void DrawGrooveRow(void);
@@ -957,7 +957,7 @@ void SynthApplyFilter(void)
     if (wSynthFilterCutoff) {
         switch (wSynthFilterType) {
         case 2:
-            ClearSynthWaveBufs2();
+            SynthFilterBandPass();
             break;
         case 3:
             SynthFilterPass();
