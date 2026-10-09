@@ -1293,6 +1293,28 @@ UWORD GetInstrEnvBytes(void)
     return total;
 }
 
+extern UBYTE wEnvPlotX;                     /* $CBD8, the last plotted column */
+
+/* $7200: plot envelope column x (clamped to $3F) at height y into the
+   graph buffer ($DA00, wDecompBuf), filling the columns since wEnvPlotX
+   with y and keeping the higher of the two at x. The buffer is addressed
+   as a `char *`: the store's (char)y is the loop invariant the ROM holds in
+   c, and the compare at x reuses that signed copy. */
+void PlotEnvCurve(UBYTE x, UBYTE y)
+{
+    if (x > 0x3F)
+        x = 0x3F;
+    while (wEnvPlotX + 1 < x) {
+        wEnvPlotX = wEnvPlotX + 1;
+        if (wEnvPlotX >= 0x40)
+            DebugTrap();
+        ((char *)0xDA00)[wEnvPlotX] = y;
+    }
+    if (((char *)0xDA00)[x] < y)
+        ((char *)0xDA00)[x] = y;
+    wEnvPlotX = x;
+}
+
 /* The instrument screen's envelope graph: the attack/decay/release
    segments of instrument bytes 1, 9 and 10 plotted over 64 columns, the
    time axis scaled by GetInstrEnvBytes' total (500 at least) */

@@ -2507,6 +2507,12 @@
   "len": 82,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "PlotEnvCurve": {
+  "bank": "1B",
+  "addr": "7200",
+  "len": 110,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
  "PositionWavSprites": {
   "bank": "00",
   "addr": "3176",

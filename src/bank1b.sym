@@ -165,7 +165,7 @@
 6B76 .done                ; common exit of TapTempoStep
 6B99 .loop                ; loop head in InitKitMixer
 6BAA .loop2               ; loop head in InitKitMixer
-720E .loop                ; loop head in PlotEnvCurve
+720E .fillLoop            ; loop head in PlotEnvCurve: while wEnvPlotX + 1 < x, fill the next column with y
 72BF .loop                ; loop head in ComputeEnvelope
 7318 .loop2               ; loop head in ComputeEnvelope
 7333 .loop3               ; loop head in ComputeEnvelope
@@ -316,7 +316,7 @@
 69A0 .checkGameboyTypeApply
 6A19 .checkButtonsSameApply
 6B72 .setTempo
-722A .ok
+722A .colOk               ; column < $40: store y at $DA00 + wEnvPlotX
 7568 .computeEnvelope
 
 
@@ -521,8 +521,8 @@
 71A6 .cont
 71AD .mulU16_2
 71F7 .cont_2
-723E .cont
-7263 .setSavedSelBottom
+723E .fillDone            ; at column x: keep the higher of the stored byte and y (signed)
+7263 .setPlotX            ; wEnvPlotX = x
 72BB .cont
 72C7 .memSet
 7338 .divU16
