@@ -113,7 +113,7 @@
 431C .done                ; common exit of DrawWaveCellPair
 48A7 .done                ; common exit of WordEditorInput
 48BA .loop                ; loop head in TilemapAddr
-4974 .loop                ; loop head in LockCurrentSynth
+4974 .shiftLoop           ; loop head in LockCurrentSynth: 1 << (s & 7), one bit per pass
 49B2 .loop                ; loop head in ReadWaveSample
 4A22 .loop                ; loop head in WriteWaveSample
 4AB7 .loop                ; loop head in WaveSetSpriteColumns
@@ -385,7 +385,7 @@
 48C2 .step
 491C .cont
 4929 .checkArg
-4977 .step
+4977 .shiftStep           ; the shift count test (entered first)
 49B7 .step
 49F9 .shift
 4A01 .cont

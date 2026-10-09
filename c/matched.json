@@ -2243,6 +2243,12 @@
   "len": 170,
   "src": "c/bank00/Helpers.c"
  },
+ "LockCurrentSynth": {
+  "bank": "06",
+  "addr": "493F",
+  "len": 83,
+  "src": "c/bank06/Screens.c"
+ },
  "MapCancelSelection": {
   "bank": "05",
   "addr": "421A",

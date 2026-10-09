@@ -233,6 +233,26 @@ UWORD SynthLockByteAddr(UBYTE x)
     return p;
 }
 
+/* $493F: mark the current synth (wSynth >> 4) locked: set its bit in the
+   lock byte SynthLockByteAddr picks ($BFC4/$BFC5). m is a frame byte that
+   only ever receives s (a volatile local nothing reads models it); r named
+   so the OR reads it twice. */
+void LockCurrentSynth(void)
+{
+    UBYTE s;
+    volatile UBYTE m;
+    UWORD p;
+    UBYTE r;
+
+    s = wSynth;
+    s >>= 4;
+    p = SynthLockByteAddr(s);
+    r = ReadSongByte(1, p);
+    m = s;
+    r |= 1 << (s & 7);
+    WriteSongByte(1, p, r);
+}
+
 UBYTE ReadWaveSample(UBYTE i)
 {
     UBYTE *p;
