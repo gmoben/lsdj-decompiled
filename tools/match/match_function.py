@@ -399,6 +399,16 @@ RUNTIME_ALIASES = {
     "FarCallArgWC": "FarCallArg",  # FarCallArg with the target as a plain UWORD and a `char` argument: a `?:` over two addresses pushed from bc without a frame (SetVibratoShape)
     "WriteCurrentInstrByteC": "WriteCurrentInstrByte",  # WriteCurrentInstrByte with a `char` value (SetVibratoShape)
     "WriteVramByteSafeP": "WriteVramByteSafe",  # WriteVramByteSafe with a pointer address: the cast of a UWORD counter is the spilt argument copy (ClearOamBuffer)
+    "DrawHexByteC": "DrawHexByte",  # char parameter: the (char)i cast copy that lives in i's slot (DedupPhrases)
+    "FindDupPhraseC": "FindDupPhrase",  # (char a, UBYTE b)
+    "RemapPhraseRefsC": "RemapPhraseRefs",  # (UBYTE from, char to)
+    "FindDupChainC": "FindDupChain",
+    "RemapChainRefsC": "RemapChainRefs",
+    "FindDupTableC": "FindDupTable",
+    "RemapCmdTableRefsC": "RemapCmdTableRefs",
+    "FindDupPhraseCC": "FindDupPhrase",
+    "RemapPhraseRefsCC": "RemapPhraseRefs",
+    "WriteSongByteC": "WriteSongByte",  # (UBYTE, UWORD, char)
 }
 
 
