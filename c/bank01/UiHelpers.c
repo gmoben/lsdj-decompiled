@@ -51,6 +51,12 @@ extern UBYTE PitchCurveCgb[];               /* $01:$4382, CGB */
 void ApplyColorSet(void);
 void ClearOamBuffer(void);
 void UiLoadHwTables(void);
+void WriteVramByteSafeP(UBYTE *addr, UBYTE v);   /* WriteVramByteSafe with a pointer address (aliased) */
+extern UBYTE wOamBuffer[];                  /* $DD00, the OAM shadow: 40 sprites x {y, x, tile, prop} */
+extern volatile UBYTE wOamDirty;            /* $CBD1 */
+
+typedef struct { UBYTE y, x, tile, prop; } OamEntry;
+#define OamShadow ((OamEntry *)0xDD00)      /* the OAM shadow as GBDK's sprite records */
 UBYTE TestSram(void);                       /* bank 0 */
 UBYTE *GetScreenPalette(void);
 void UiDrawScreenCgb(UWORD s);              /* asm */
@@ -256,6 +262,31 @@ void UiLoadHwTables(void)
 {
     memcpy(wNotePeriodLo, wIsCGB ? PitchCurveCgb : PitchCurve, 0xD8);
     memcpy(wNotePeriods, wIsCGB ? NoteFreqDeltaTable : NoteFreqTable, 0xD8);
+}
+
+/* $4B5E: clear the OAM shadow and the sprite tiles ($8000-$802F and
+   $8050-$805F, the second half a 2-column pattern), place the three WAV
+   display sprites and wait for the next OAM DMA before enabling sprites.
+   p is a plain word that is the operand of every cast on it, so the cast
+   copies spill themselves and p ends in its slot. */
+void ClearOamBuffer(void)
+{
+    UWORD p;
+
+    MemSet(wOamBuffer, 0, 0xA0);
+    wOamDirty = 1;
+    for (p = 0x8000; p != 0x8030; p++)
+        WriteVramByteSafeP((UBYTE *)p, 0);
+    for (p = 0x8050; p != 0x8060; p++)
+        WriteVramByteSafeP((UBYTE *)p, ((UBYTE)p & 2) ? 0x60 : 0);
+    OamShadow[0].x = 0x90;
+    OamShadow[1].x = 0x98;
+    OamShadow[1].tile = 1;
+    OamShadow[2].x = 0xA0;
+    OamShadow[2].tile = 2;
+    while (wOamDirty)
+        ;
+    LCDC_REG |= 2;
 }
 
 void ApplyColorSet(void)

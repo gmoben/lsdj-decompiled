@@ -398,6 +398,7 @@ RUNTIME_ALIASES = {
     "ReadInstrByteS": "ReadInstrByte",  # ReadInstrByte returning `char`: the cast gives the call result its own slot (FileUpgradeV11)
     "FarCallArgWC": "FarCallArg",  # FarCallArg with the target as a plain UWORD and a `char` argument: a `?:` over two addresses pushed from bc without a frame (SetVibratoShape)
     "WriteCurrentInstrByteC": "WriteCurrentInstrByte",  # WriteCurrentInstrByte with a `char` value (SetVibratoShape)
+    "WriteVramByteSafeP": "WriteVramByteSafe",  # WriteVramByteSafe with a pointer address: the cast of a UWORD counter is the spilt argument copy (ClearOamBuffer)
 }
 
 

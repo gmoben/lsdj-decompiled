@@ -41,7 +41,7 @@
 493B CopyInstrName              ; copy instrument arg's 5-char name -> wNameEditBuf (speech $40 -> "SPCH")
 4A49 WriteInstrName             ; wNameEditBuf -> instrument name storage ($be7a + instr*5)
 4B15 UiLoadHwTables             ; load CGB/DMG-specific tables: palette-ish -> $cd28, 216-byte note-period table -> wNotePeriods ($cf28)
-4B5E ClearOamBuffer             ; MemSet(wOamBuffer,0,$a0) + sprite state reset
+4B5E ClearOamBuffer             ; clear the OAM shadow ($dd00, $a0 bytes) and sprite tiles $8000-$802f/$8050-$805f, place the WAV sprites, wait for the OAM DMA, enable sprites
 4C61 ApplyColorSet              ; load the wColorSet CGB BG+OBJ palettes (hw $11 check, set_bkg_palette)
 4CFB MarkPhraseUsed             ; set the phrase-alloc bit (song $3E82 bitmap) for phrase arg
 5208 DrawSpeedGlyph             ; draw the 2-tile speed icon (SpeedGlyphTiles[value&7])
@@ -191,9 +191,9 @@
 4846 .done                ; common exit of CheckJkMarker
 48D2 .done                ; common exit of CheckSongInitFlag
 4A40 .done                ; common exit of CopyInstrName
-4B7E .loop                ; loop head in ClearOamBuffer
-4BD5 .loop2               ; loop head in ClearOamBuffer
-4C4F .loop3               ; loop head in ClearOamBuffer
+4B7E .clearLoop           ; loop head in ClearOamBuffer: p != $8030 (32-bit compare), one tile byte per pass
+4BD5 .patternLoop         ; loop head in ClearOamBuffer: p != $8060
+4C4F .waitOamDma          ; spin until the timer's OAM DMA clears wOamDirty
 4CEF .done                ; common exit of ApplyColorSet
 4D49 .loop                ; loop head in MarkPhraseUsed
 4DB5 .loop                ; loop head in MarkChainUsed
@@ -375,14 +375,14 @@
 4B2B .checkIsCGB
 4B49 .cont_2
 4B4E .cont_3
-4BAA .cont
-4BCB .cont_2
-4BCE .cont_3
-4C01 .testBit1
-4C11 .cont_4
-4C15 .cont_5
-4C2E .cont_6
-4C31 .cont_7
+4BAA .clearByte           ; write 0 to the tile byte at p
+4BCB .clearNext           ; p++ done (high byte skipped without a carry)
+4BCE .patternStart        ; second range: p = $8050
+4C01 .testBit1            ; bit 1 of the low address byte picks $60 or 0
+4C11 .patternZero         ; even pair: 0
+4C15 .patternWrite        ; write the chosen byte at p
+4C2E .patternNext         ; p++ done, back to .patternLoop
+4C31 .placeSprites        ; the three WAV display sprites' x and tiles
 4CD9 .loadColorSet
 4CE8 .cont
 4CEA .setrBGP
