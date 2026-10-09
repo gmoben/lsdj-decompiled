@@ -20,7 +20,7 @@
 # variables -- LOOPDBG=1: `FUNC name` at each function, `HID sym in
 # preheader -> 0|1` (hasIncomingDefs: whether a last use inside a loop
 # extends the live range to the loop end), `DF iter change=N` per dataflow
-# pass, `LI`/`HOISTED` for loop invariants; DFV=1: `DFCH block` for each
+# pass, `LI`/`HOISTED` for loop invariants; DFV=1: `DFCH block` for each (DFV=2: with its old/new expression sets)
 # block whose out-expressions changed. The emitted code is unchanged.
 #
 # Source: https://juju.nz/src/juju/gbdk-releases (GBDK release tarballs as
@@ -126,8 +126,20 @@ edit("src/SDCCdflow.c", """	    change += ! isSetsEqualWith(ebbs[i]->outExprs,ol
 	if (!change) /* iterate till no change */
 """, """	    {
 		int ch = ! isSetsEqualWith(ebbs[i]->outExprs,oldOut,isCseDefEqual);
-		if (ch && getenv("DFV"))
+		if (ch && getenv("DFV")) {
 		    printf("DFCH %s\\n", ebbs[i]->entryLabel ? ebbs[i]->entryLabel->name : "?");
+		    if (getenv("DFV")[0] == '2') {   /* the expressions that came or went */
+			set *sp; int which;
+			for (which = 0; which < 2; which++)
+			    for (sp = which ? ebbs[i]->outExprs : oldOut; sp; sp = sp->next) {
+				cseDef *cd = sp->item; iCode *dic = cd->diCode;
+				printf("  %s %s = op%d %s %s\\n", which ? "NEW" : "OLD",
+				       IS_SYMOP(cd->sym) ? OP_SYMBOL(cd->sym)->name : "?", dic->op,
+				       (IC_LEFT(dic) && IS_SYMOP(IC_LEFT(dic))) ? OP_SYMBOL(IC_LEFT(dic))->name : (IC_LEFT(dic) ? "lit" : "-"),
+				       (IC_RIGHT(dic) && IS_SYMOP(IC_RIGHT(dic))) ? OP_SYMBOL(IC_RIGHT(dic))->name : (IC_RIGHT(dic) ? "lit" : "-"));
+			    }
+		    }
+		}
 		change += ch;
 	    }
 	}

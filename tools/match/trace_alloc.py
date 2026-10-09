@@ -54,7 +54,7 @@ def run(c_file: Path, func: str, dfv: bool) -> tuple[Path, str]:
         shutil.copy(h, work / h.name)
     env = dict(os.environ, LOOPDBG="1", PATH=f"{DEBUG_BIN}:{os.environ.get('PATH', '')}")
     if dfv:
-        env["DFV"] = "1"
+        env["DFV"] = os.environ.get("DFV", "1")
     flags = os.environ.get("LSDJ_SDCC_FLAGS", "").split()   # as tools/match/match_function.py
     p = subprocess.run(["sdcc", "-mgbz80", "-S", "--dumpall", *flags, c_file.name],
                        cwd=work, env=env, capture_output=True, text=True, errors="replace")
