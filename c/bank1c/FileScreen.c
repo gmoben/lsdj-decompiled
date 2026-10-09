@@ -140,6 +140,41 @@ UBYTE CheckFileMagicAll(void)
     return 0;
 }
 
+/* $415A: claim the first free block of the allocation table ($A141 on;
+   to $A180 on the 64K-only SRAM format, wFsCheckResult, else $A200) for
+   the file being compressed: mark it with wCompByte, return its bank and
+   SRAM address through the pointers (range-checked). 0 when the table is
+   full. */
+UBYTE FindFreeBlock(UBYTE *bank, UWORD *src)
+{
+    UWORD p, end;
+
+    p = 0xA141;
+    end = wFsCheckResult ? 0xA180 : 0xA200;
+    if (wCompByte >= 0x20)
+        DebugTrap();
+    wFileBlockIdx = 1;
+    while ((p - end) & 0x8000) {
+        if (ReadSongByte(4, p) > 0x1F) {
+            WriteSongByte(4, p, wCompByte);
+            *bank = (wFileBlockIdx >> 4) + 4;
+            *src = ((UWORD)(wFileBlockIdx & 0x0F) << 9) + (UWORD)0xA000;
+            if (*bank < 4 || *bank >= 0x10)
+                DebugTrap();
+            if (*src < 0xA000 || *src >= 0xC000)
+                DebugTrap();
+            wVramCursor = 0x98EC;
+            hBgDigitPalette = 4;
+            hBgPalette = 1;
+            DrawByte(++wCompProgress);
+            return 1;
+        }
+        wFileBlockIdx++;
+        p++;
+    }
+    return 0;
+}
+
 UBYTE FileSlotHalfBase(void)
 {
     return wFsCheckResult ? 0x40 : 0xC0;

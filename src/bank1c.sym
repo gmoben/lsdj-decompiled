@@ -25,7 +25,7 @@
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 4000 FileWriteCompressedSram    ; low-level compressed-output writer to SRAM (bank $c979, ptr $c97a; di-guarded)
-415A FindFreeBlock              ; scan the block alloc table ($a141+) for a free block ($c56b selects the SRAM half)
+415A FindFreeBlock              ; claim the first free block of the allocation table ($a141 on, to $a180 on the 64K-only format [wFsCheckResult], else $a200): mark it wCompByte, return its bank + SRAM address; e=0 when full
 42D6 FileSlotHalfBase           ; return $40 or $c0 depending on $c56b (which save half)
 42E9 FileScanSlotNames          ; scan file-slot names in SRAM ($A140, bank4) from index $c958
 4335 GetFileBlockCount          ; wFileBlockCounts[i] (i < $20): the blocks file i uses
@@ -142,7 +142,7 @@
 ; --- structural local names (loop heads / common exits) ---
 40F0 .done                ; common exit of CheckFileMagic64
 4158 .done                ; common exit of CheckFileMagicAll
-41A6 .loop                ; loop head in FindFreeBlock
+41A6 .scanLoop            ; loop head in FindFreeBlock: while p - end is negative
 42D2 .done                ; common exit of FindFreeBlock
 42EF .loop                ; loop head in FileScanSlotNames
 4333 .done                ; common exit of FileScanSlotNames
@@ -260,9 +260,9 @@
 
 ; --- first-action / assert local names ---
 400D .ok
-41A1 .ok
-424A .okb
-42A1 .okc
+41A1 .compByteOk          ; wCompByte in range; scan from block 1
+424A .bankOk              ; bank in range; range-check the SRAM address as a long
+42A1 .srcOk               ; both in range: progress counter + draw it, return 1
 4341 .ok
 435E .ok
 464F .clearDecompPos
@@ -369,13 +369,13 @@
 40EE .cont
 4101 .readSongByte
 4156 .cont
-417C .cont
-4189 .loadCompByte
-4247 .cont_2
-429E .setVramCursor
-42C2 .incSyncSendAccum
-42CD .cont_3
-42D0 .cont_4
+417C .sram128k            ; no 64K-only marker: the table runs to $a200 (192 blocks)
+4189 .endSet              ; end of table chosen; check wCompByte < $20
+4247 .bankBad             ; the returned bank outside 4..$0F: DebugTrap
+429E .srcBad              ; the returned SRAM address outside $a000..$bfff: DebugTrap
+42C2 .blockUsed           ; the entry is taken (< $20): next block index, p++
+42CD .nextBlock           ; p++ done (high byte skipped without a carry), back to .scanLoop
+42D0 .tableFull           ; p reached end: return 0
 42E4 .cont
 42E6 .cont_2
 4320 .incSyncSendAccum

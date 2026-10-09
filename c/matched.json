@@ -1445,6 +1445,12 @@
   "len": 43,
   "src": "c/bank04/PhraseScreen.c"
  },
+ "FindFreeBlock": {
+  "bank": "1C",
+  "addr": "415A",
+  "len": 380,
+  "src": "c/bank1c/FileScreen.c"
+ },
  "FindFreeSynth": {
   "bank": "03",
   "addr": "42FF",
