@@ -38,6 +38,7 @@ Usage: tools/match/peep.py RULES.peep FILE.asm      # rewrites FILE.asm in place
 
 from __future__ import annotations
 
+import functools
 import re
 import sys
 from pathlib import Path
@@ -100,8 +101,14 @@ def _token_regex(p: str) -> str:
                    for x in parts)
 
 
-def _match_line(pat: list[str], src: str, binds: dict[str, str]) -> bool:
-    toks = src.split()
+@functools.lru_cache(maxsize=None)
+def _token_pattern(p: str) -> "re.Pattern[str]":
+    return re.compile(_token_regex(p))
+
+
+def _match_toks(pat: list[str], toks: list[str], binds: dict[str, str]) -> bool:
+    """Match one pattern line against a source line's tokens, extending
+    `binds` (left untouched on failure)."""
     if len(toks) != len(pat):
         return False
     trial = dict(binds)
@@ -110,7 +117,7 @@ def _match_line(pat: list[str], src: str, binds: dict[str, str]) -> bool:
             if p != t:
                 return False
             continue
-        m = re.fullmatch(_token_regex(p), t)
+        m = _token_pattern(p).fullmatch(t)
         if not m:
             return False
         for k, v in m.groupdict().items():
@@ -123,8 +130,13 @@ def _match_line(pat: list[str], src: str, binds: dict[str, str]) -> bool:
     return True
 
 
+def _match_line(pat: list[str], src: str, binds: dict[str, str]) -> bool:
+    return _match_toks(pat, src.split(), binds)
+
+
 def _keep_labels_reachable(pat: list[list[str]], rep: list[str], binds: dict[str, str],
-                           lines: list[str], idx: list[int]) -> bool:
+                           lines: list[str], idx: list[int],
+                           edited: list[int] | None = None) -> bool:
     """A rule may drop a label (`%n:` in the pattern, not in the replacement).
     References to it outside the matched lines must not dangle. When the
     label was a trampoline (`%n:` then `jp %m`) and every such reference is
@@ -156,11 +168,17 @@ def _keep_labels_reachable(pat: list[list[str]], rep: list[str], binds: dict[str
             edits[j] = f"\tjp\t{ops[0]},{target}"
     for j, s in edits.items():
         lines[j] = s
+        if edited is not None:
+            edited.append(j)
     return True
 
 
-def apply(rules: list[Rule], lines: list[str]) -> tuple[list[str], int]:
-    """Return (rewritten lines, number of replacements)."""
+def apply_full(rules: list[Rule], lines: list[str]) -> tuple[list[str], int]:
+    """The reference matcher: for each rule in order, every position of the
+    file; a `restart` rule's replacement starts over from the first rule.
+    Quadratic in the unit (minutes on a 17,000-line unit); `apply` below is
+    the same algorithm skipping the positions whose text a rule has already
+    seen. Kept for the equivalence check in test_peep.py."""
     lines = list(lines)
     n_replaced = 0
     restart = True
@@ -204,6 +222,217 @@ def apply(rules: list[Rule], lines: list[str]) -> tuple[list[str], int]:
                     restart = True
                     break
                 i = idx[0] + len(out)
+            if restart:
+                break
+    return lines, n_replaced
+
+
+_LABEL_LINE = re.compile(r"^[\w$.]+:")
+_JUMPISH = ("jp", "jr", "call", "djnz", "rst")
+
+
+def _tokens(line: str) -> list[str] | None:
+    """The line's tokens without its comment; None for a blank/comment line."""
+    t = _strip(line).split()
+    return t or None
+
+
+def _touches_labels(ls: list[str]) -> bool:
+    """Whether any of these lines defines or refers to a label (changing the
+    reference counts the global rules depend on)."""
+    for l in ls:
+        t = _strip(l).strip()
+        if not t:
+            continue
+        if _LABEL_LINE.match(t) or t.split(None, 1)[0] in _JUMPISH:
+            return True
+    return False
+
+
+class _Dirty:
+    """Sorted, disjoint half-open intervals of positions a rule still has to
+    attempt (every position, initially)."""
+
+    __slots__ = ("iv",)
+
+    def __init__(self, n: int):
+        self.iv: list[list[int]] = [[0, n]] if n else []
+
+    def add(self, lo: int, hi: int) -> None:
+        if lo >= hi:
+            return
+        out: list[list[int]] = []
+        placed = False
+        for a, b in self.iv:
+            if b < lo:
+                out.append([a, b])
+            elif a > hi:
+                if not placed:
+                    out.append([lo, hi])
+                    placed = True
+                out.append([a, b])
+            else:                      # overlapping or adjacent: merge
+                lo, hi = min(lo, a), max(hi, b)
+        if not placed:
+            out.append([lo, hi])
+        self.iv = out
+
+    def remove(self, lo: int, hi: int) -> None:
+        """Positions [lo, hi) were attempted: no longer dirty."""
+        out: list[list[int]] = []
+        for a, b in self.iv:
+            if b <= lo or a >= hi:
+                out.append([a, b])
+                continue
+            if a < lo:
+                out.append([a, lo])
+            if b > hi:
+                out.append([hi, b])
+        self.iv = out
+
+    def first_at_or_after(self, cursor: int) -> int | None:
+        for a, b in self.iv:
+            if b > cursor:
+                return max(a, cursor)
+        return None
+
+    def shift(self, at: int, removed: int, added: int) -> None:
+        """Lines [at, at+removed) were replaced by `added` lines: move the
+        positions after them, clip the ones inside, and mark the new lines."""
+        delta = added - removed
+        end = at + removed
+        out: list[list[int]] = []
+        for a, b in self.iv:
+            if a >= end:
+                a, b = a + delta, b + delta
+            else:
+                if a > at:
+                    a = at
+                if b > end:
+                    b += delta
+                elif b > at:
+                    b = at
+            if a < b:
+                out.append([a, b])
+        self.iv = out
+        self.add(at, at + added)
+
+
+def _back_nonblank(toks: list, at: int, count: int) -> int:
+    """The index of the `count`-th non-blank line before `at` (0 if fewer)."""
+    i = at
+    seen = 0
+    while i > 0 and seen < count:
+        i -= 1
+        if toks[i] is not None:
+            seen += 1
+    return i
+
+
+def apply(rules: list[Rule], lines: list[str]) -> tuple[list[str], int]:
+    """Return (rewritten lines, number of replacements). The same result as
+    apply_full, computed incrementally: a rule only (re)attempts the
+    positions whose match window changed since it last looked -- every
+    position at first, then the lines each replacement rewrote plus the
+    window that can reach them. The `labelRefCount` rules and the ones that
+    drop a label also depend on the jumps of the whole function, so a
+    replacement that adds or removes a label or a jump re-dirties the
+    enclosing function for them."""
+    lines = list(lines)
+    toks: list[list[str] | None] = [_tokens(l) for l in lines]
+    n_rules = len(rules)
+    maxpat = max((len(r[0]) for r in rules), default=1)
+    is_global = []
+    for pat, rep, _do_restart, cond in rules:
+        kept = {r.strip() for r in rep}
+        drops = any(len(p) == 1 and re.fullmatch(r"%\d+:", p[0]) and p[0] not in kept for p in pat)
+        is_global.append(bool(cond is not None and cond[1] >= 0) or drops)
+    dirty = [_Dirty(len(lines)) for _ in rules]
+    n_replaced = 0
+
+    def rewrite(at: int, removed: int, out: list[str], edited: list[int]) -> None:
+        """Apply a replacement (lines [at, at+removed) -> out; `edited` are
+        the jumps _keep_labels_reachable retargeted, in the old numbering)
+        and re-dirty what it can affect."""
+        old = lines[at:at + removed]
+        delta = len(out) - removed
+        edited = [e + delta if e >= at + removed else e for e in edited]
+        lines[at:at + removed] = out
+        toks[at:at + removed] = [_tokens(l) for l in out]
+        for e in edited:
+            toks[e] = _tokens(lines[e])
+        labels = _touches_labels(old) or _touches_labels(out) or bool(edited)
+        lo = _back_nonblank(toks, at, maxpat)
+        hi = at + len(out)
+        for e in edited:
+            lo = min(lo, _back_nonblank(toks, e, maxpat))
+            hi = max(hi, e + 1)
+        slo = shi = 0
+        if labels:
+            slo, shi = _scope_bounds(lines, min(at, len(lines) - 1)) if lines else (0, 0)
+            for e in edited:
+                elo, ehi = _scope_bounds(lines, e)
+                slo, shi = min(slo, elo), max(shi, ehi)
+        for k in range(n_rules):
+            d = dirty[k]
+            d.shift(at, removed, len(out))
+            d.add(lo, hi)
+            if labels and is_global[k]:
+                d.add(slo, shi)
+
+    restart = True
+    while restart:
+        restart = False
+        for r, (pat, rep, do_restart, cond) in enumerate(rules):
+            d = dirty[r]
+            cursor = 0
+            while True:
+                p = d.first_at_or_after(cursor)
+                if p is None:
+                    break
+                # the attempt at p is the attempt at the first non-blank line from p
+                j = p
+                while j < len(lines) and toks[j] is None:
+                    j += 1
+                if j >= len(lines):
+                    d.remove(p, len(lines))
+                    break
+                j0 = j
+                idx: list[int] = []
+                binds: dict[str, str] = {}
+                ok = True
+                for pl in pat:
+                    while j < len(lines) and toks[j] is None:
+                        j += 1
+                    if j >= len(lines) or not _match_toks(pl, toks[j], binds):
+                        ok = False
+                        break
+                    idx.append(j)
+                    j += 1
+                if ok and cond is not None:
+                    if cond[1] < 0:
+                        ok = binds.get(cond[0], "") in ("a", "b", "c", "d", "e", "h", "l")
+                    else:
+                        label = binds.get(cond[0], "")
+                        ok = bool(label) and _label_refs(lines, label, idx[0]) == cond[1]
+                edited: list[int] = []
+                if ok:
+                    ok = _keep_labels_reachable(pat, rep, binds, lines, idx, edited)
+                d.remove(p, j0 + 1)
+                if not ok:
+                    cursor = j0 + 1
+                    continue
+                out: list[str] = []
+                for rl in rep:
+                    def sub(m: re.Match[str]) -> str:
+                        return binds.get(m.group(0), m.group(0))
+                    out.append(re.sub(r"%\d+", sub, rl))
+                rewrite(idx[0], idx[-1] + 1 - idx[0], out, edited)
+                n_replaced += 1
+                if do_restart:
+                    restart = True
+                    break
+                cursor = idx[0] + len(out)
             if restart:
                 break
     return lines, n_replaced

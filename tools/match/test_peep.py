@@ -501,5 +501,47 @@ class ChainedBitwiseTest(unittest.TestCase):
         cp = self.HEAD + ["\tld\tb,a", "\tcp\ta,#0x02", "\tret"]
         self.assertEqual(peep.chained_bitwise(cp), (cp, 0))
 
+class IncrementalApplyTest(unittest.TestCase):
+    """`apply` (a rule re-attempts only the positions a replacement could
+    have changed) gives the reference full-scan matcher's output: restart
+    rules, a non-restart rule continuing past its replacement, a
+    `labelRefCount` rule enabled by a jump another rule removed, and a
+    dropped trampoline label whose conditional jumps are retargeted."""
+
+    RULES = """
+replace restart { ld a,%1 ; ld %2,a } by { ld %2,%1 }
+replace { ld %1,%2 ; ld %1,%3 } by { ld %1,%3 }
+replace restart { jp %1 ; %1: } by { %1: }
+replace restart { %1: } by { } if labelRefCount %1 0
+replace restart { jp %1 ; %2: ; jp %3 } by { jp %1 ; %2: ; jp %3 } if labelRefCount %2 99
+replace restart { or a,a ; jp z,%1 ; %2: ; jp %3 } by { or a,a ; jp nz,%3 ; %2: ; jp %3 }
+"""
+
+    def src(self, n):
+        out = ["_F:"]
+        for k in range(n):
+            out += [f"\tld\ta,(hl)", f"\tld\tc,a", f"\tld\tc,#{k}", f"\tld\tc,b",
+                    f"\tjp\t{100 + k}$", f"{100 + k}$:", "", f"\tor\ta,a", f"\tjp\tz,{200 + k}$",
+                    f"{300 + k}$:", f"\tjp\t{400 + k}$", f"{200 + k}$:", f"\tld\ta,c", "; comment",
+                    f"\tjp\tnz,{300 + k}$", f"{400 + k}$:"]
+        out.append("\tret")
+        return out
+
+    def test_matches_full_scan(self):
+        rules = peep.parse_rules(self.RULES.replace(" ; ", "\n"))
+        self.assertEqual(len(rules), 6)
+        src = self.src(12)
+        full, n_full = peep.apply_full(rules, src)
+        inc, n_inc = peep.apply(rules, src)
+        self.assertGreater(n_full, 12)
+        self.assertEqual(inc, full)
+        self.assertEqual(n_inc, n_full)
+
+    def test_ruleless_and_empty(self):
+        rules = peep.parse_rules(self.RULES.replace(" ; ", "\n"))
+        self.assertEqual(peep.apply(rules, []), ([], 0))
+        self.assertEqual(peep.apply([], ["\tnop"]), (["\tnop"], 0))
+
+
 if __name__ == "__main__":
     unittest.main()
