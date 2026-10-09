@@ -416,6 +416,22 @@ So LSDj's compiler is **GBDK 2.95-3's SDCC 2.2.1 + extra peephole rules** —
 consistent with LSDj's own "modified GBDK 2.95", and with LSDj's first
 releases (2001) postdating 2.95-3.
 
+The bundled SDCC is a **CVS snapshot of 1 August 2000** (`gen.c 1.44`, CVS
+tag `gbdk-295-2`), and SDCC's full history survives in a git mirror
+(<https://git.eris-associates.co.uk/active/sdcc>, Gitea: the per-file
+commit lists are a few API pages deep). Every z80/allocator fix committed
+*after* that date is a bug this compiler still has, and the diffs show the
+exact buggy code -- reading them is faster than inferring a quirk from
+behaviour. Confirmed that way so far: the `deassignLRs` register hand-over
+loop `for (i = 0; i < max(sym->nRegs, result->nRegs); i++)` (fixed
+2000-09-09 as "Fixed Big BUG in register allocator": a dying 2-register
+symbol gives its first register to a 1-register result and never frees the
+second), CSE ignoring casts (fixed 2001-04-22/25: the "pointer compares
+with its element's sign" bullet below), loop-invariant hoisting of
+expressions over `volatile` operands (fixed 2001-03-17), nested loops that
+share a last block overwriting each other's induction set (2001-10-27), and
+loop induction being off for the z80 ports (switched on 2001-08-09).
+
 ## What is C and what is asm
 
 `tools/match/code_kind.py` tags every named function by compiler fingerprints
@@ -653,6 +669,28 @@ comment began with a quoted string had been carved as data, since a leading
   as a far call's last argument it gives `c` up to the function-pointer
   temporary (the reversed `ld b,lo; ld c,hi` pair) and is pushed straight
   from the global.
+- **A symbol spilt later held its register earlier**: `isspilt` is per
+  symbol, so a local the allocator evicts half-way through a function is
+  generated as a stack variable *everywhere* -- yet in the allocator's
+  bookkeeping it occupied its register from its definition to the eviction,
+  and that invisible occupancy decided where the earlier temporaries went.
+  DrawFreedTables' and DedupPhrases' outer call result sits in `b` because
+  a plain `UBYTE i` held `c` until the inner loop's compare evicted it; the
+  code never shows `i` in a register (`volatile i` puts the result in `c`).
+- **A string literal argument changes the loops around it**: `"OK"` is a
+  `_code *`, `DrawString`'s parameter a generic `char *`, so the call copies
+  the address into a generic-pointer temporary; CSE's `findCheaperOp`
+  rewrites the push to the raw address (neither temporary has a spill
+  location), the copy is dead, and `killDeadCode`'s change reruns
+  `computeDataFlow`. Reaching definitions converge only as far as the CSE
+  expression sets do (`change` is measured on `outExprs`), and the extra
+  passes let an inner loop's definitions flow round the outer back edge
+  into the inner preheader: `hasIncomingDefs` then extends every inner
+  temporary to the loop end, call results included, which stops the
+  `global = call()` fold and spills them. `char *s; s = "OK";
+  DrawString(s);` gives the copy a spill location (`s`), nothing is dead,
+  the passes stay at two, and the chain folds to the same `ld hl,#str;
+  push hl` (DedupChains 111 -> 2 bytes, DrawFreedTables' loops).
 - **An instruction's own operands can't be its spill victims**:
   `computeSpillable` drops the instruction's `uses` from the candidates, so
   when the registers run out at `t = v & 0xF0` (c = the loop counter, b = v,
@@ -989,10 +1027,10 @@ shape.
 | `LockCurrentSynth` | `$06:$493F` | sets the current synth's bit in the lock bytes $BFC4/5 (SynthLockByteAddr picks the byte). `s = wSynth; s >>= 4; p = SynthLockByteAddr(s); WriteSongByte(1, p, ReadSongByte(1, p) \| (1 << (s & 7)));` gets every register: the split statement gives s a third use, so p (two) spills at its definition and s keeps c. Left: the ROM's frame byte sp+2, where the `(short)s` copy for the mask is spilt into s's slot (`ld hl,sp+2; ld (hl),c`); ours takes c from the dying s (deassignLRs hand-over), and by selectSpil's use counts the copy (one use) never loses to the read result (one use). Named t, volatile t, an early copy and a reused s tried |
 | `PlotEnvCurve` | `$1B:$7200` | matches except register naming: the ROM keeps every temporary in b (the end pointer as b/c, low byte in b), as if c were busy for the whole function; ours uses c. The $DA00 buffer is addressed as a literal pointer ((char *)0xDA00) |
 | `SynthWriteWaveCol` | `$1D:$5F29` | `for (i = 0; i < 0x20; i += 2) { wWaveEditX = wSynthWaveBuf[i] << 4; wWaveEditX = (wSynthWaveBuf[i + 1] + wWaveEditX) ^ 0xFF; WriteSongByte(3, (UWORD)wSynthRenderDst++, wWaveEditX); }` is all but the pointer copy's pair: the ROM gets c/b (`push bc`), stock b/c (`ld l,b; ld h,c; push hl`). trace_alloc --alloc: i holds c from the start (the body's temps get b), so the 2-byte copy finds only b free and spills i for its second register. The ROM's c/b needs i spilt first; a `(char)wWaveEditX` argument adds a copy spilt into the global, but selectSpil takes that (least used) before i; volatile i gives c/b but moves the body's temps to c |
-| `DedupPhrases` | `$1F:$5BDE` | 2 bytes: `volatile UBYTE i, j;` (both only ever in their slots), `for (i = 0; i < 0xFF; i = i + 1) { if (!IsPhraseUsedFar(i)) continue; wVramCursorW = 0x98AE; DrawHexByte(i); for (j = i + 1; j < 0xFF; j = j + 1) { wPhraseDedupScratch = IsPhraseUsedFar(j); if (...) { wPhraseDedupScratch2 = FindDupPhrase(i, j); if (...) RemapPhraseRefs(j, i); } } }` (wVramCursorW an `extern volatile UWORD`) matches all but the outer IsPhraseUsedFar result, which the ROM takes in b: c is busy there in the ROM. A plain i holds c there (b, right) but then also at the inner bound (b, where the ROM has c); a plain j makes the bound the victim at `j + 1` (j is that ic's operand) |
-| `DedupChains` | `$1F:$5C78` | same shape and state as DedupPhrases (0x80 chains, IsChainUsedFar/FindDupChain/RemapChainRefs, DrawString of the trailing literal) |
+| `DedupPhrases` | `$1F:$5BDE` | 2 bytes with `volatile UBYTE i, j;` (`/tmp/opencode/ddp/d5.c`): the outer IsPhraseUsedFar result lands in c where the ROM has b. A plain `UBYTE i` holds c in the allocator's books until the inner compare evicts it (see Writing C: a symbol spilt later), which gives the ROM's `ld b,e` but then the inner `j < 0xFF` boolean takes b and `j + 1` c (4 bytes, `m_p2.c`); the ROM needs both registers busy at that compare (i evicted, boolean in c) and b free again at `j + 1`. Plain j (p1) keeps j in b and spills the boolean; char-parameter casts of i (hoisted, spill location i) and the loop-form variants do not fit |
+| `DedupChains` | `$1F:$5C78` | same shape as DedupPhrases: `/tmp/opencode/ddp/minc_d.c` (`volatile UBYTE i, j; char *s;` ... `s = "OK"; DrawString(s);`) is 2 bytes off, the same outer-result register. The pointer local matters: a bare `DrawString("OK")` leaves a dead generic-pointer copy whose removal reruns the dataflow and extends every inner-loop temporary (111 bytes off, see Writing C: a string literal argument) |
 | `GfxCopyVramRegion` | `$1E:$7A4B` | `WriteVramByteSafe(dst++, wVramCopyScratch = GfxReadVramByte(src++))` gives the right order and both reversed pairs but a 2-byte frame: SDCC's `=` hands the push the call result (no spill location); the ROM re-reads the global, so its temp spilled into it. Both `src++`/`dst++` old-value pairs are reversed (`ld b,(hl); inc hl; ld c,(hl)`): c is busy at both, so a byte temp lives across the second with the call result spilled *into* wVramCopyScratch (one-byte frame, `ld (hl),e`, re-read for the push); SDCC's `=` hands the push the call result, which has no spill location (frame 2), and the two-statement form frees c |
-| `DrawFreedTables` | `$1F:$5D18` | nested loops: the ROM keeps IsTableFree(j)'s result in c to the inner loop's end (j++ goes through b) yet packs FindDupTable's result straight into wPhraseDedupScratch5 (`ld (hl),e`); SDCC 2.2.1 extends both call results' live ranges (hasIncomingDefs), spilling one to a new slot (frame 7 vs 6); see DedupPhrases for the dead-code/dataflow mechanism (the pack needs no post-loop computeDataFlow) |
+| `DrawFreedTables` | `$1F:$5D18` | `/tmp/opencode/ddp/mt_s1.c` (`UBYTE i; volatile UBYTE j; char *s;`, `IsTableFree((UWORD)i)`, `s = "OK"; DrawString(s);`) has the ROM's loop shape: the outer cast spilt as 'nothing spillable' (i is its operand), the outer result in b, the inner boolean spilt into the dead cast's slot, the inner result in c, FindDupTable's folded into the global. Left: the ROM also spills the inner `(UWORD)j` cast to its own slot (sp+0..1, frame 6 vs 4) where ours gets [c b], and `j + 1` ends in b (ours c) -- the same 'both registers busy at the inner loop head' residue as DedupPhrases |
 | `FindDupChain` | `$1F:$5644` | the first `SramChainPhrases + oa` is computed into a spill slot and copied byte-wise into pa (frame 11) while the second goes through bc; both scans keep their byte values in b/c with one i on the stack (block-scoped locals get their own slots here) |
 | `DrawPhraseCellValue` | `$1F:$6B3B` | the `hGameboyType ? 3 : 2` temp sits in b and the width read spills into wDrawTextScratch (re-read for the push); SDCC spills the ?: temp and keeps the width in c (frame 3 vs 2) |
 | `CountFileBlocks` | `$1C:$48D4` | `(*wFileBlockCountPtr)++` on the global pointer: the ROM reads the pointer global for both the read and the write (frame 7, the read value spilled into the 32-bit compare's slot); SDCC copies the pointer into a spill slot for the write (packRegsForOneuse refuses across the intervening pointer get); UWORD-with-cast and volatile forms differ more |
