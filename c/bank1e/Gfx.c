@@ -21,6 +21,8 @@ void RequestTileSlot(UWORD slot);           /* $00:$338B */
 void GfxFillVramRegions(void);
 void GfxCopyVramRegion(UWORD src, UWORD dst);  /* $1E:$7A4B, parked: one tile, src to dst */
 void WriteVramByteSafe(UWORD addr, UBYTE v);    /* $00:$17EC */
+void WriteVramByteSafeC(UWORD addr, char v);   /* WriteVramByteSafe with a char value (aliased by match_function.py): the cast copy of the scratch byte is GfxCopyVramRegion's register occupant */
+extern UBYTE wVramCopyScratch;              /* $C9B4 */
 
 /* $4000: the top row's column labels for the screen about to be drawn
    (raw tile indices through IdentityCharMap; nothing on the wave screen) */
@@ -138,6 +140,22 @@ UBYTE GfxReadVramByte(UBYTE *p)
     while (STAT_REG & 2)
         ;
     return *p;
+}
+
+/* $7A4B: copy one tile (16 bytes) from VRAM address src to dst through
+   the scratch byte, one WriteVramByteSafe per byte. The value argument is
+   a char: its cast copy of the scratch byte is evaluated before dst++
+   (arguments right to left), owns c, and is evicted into the global by
+   the pointer copy -- which is why the ROM's second pair is [b c] and the
+   push still reads the scratch byte from memory. */
+void GfxCopyVramRegion(UWORD src, UWORD dst)
+{
+    UBYTE i;
+
+    for (i = 0; i != 0x10; i++) {
+        wVramCopyScratch = GfxReadVramByte((UBYTE *)src++);
+        WriteVramByteSafeC(dst++, wVramCopyScratch);
+    }
 }
 
 /* $7AA0: the font (wFont) and UI tiles into VRAM. On CGB the palettes are

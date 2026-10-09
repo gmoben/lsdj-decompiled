@@ -34,7 +34,7 @@
 7A1B .loop2               ; loop head in GfxFillVramRegions
 7A36 .done                ; common exit of GfxFillVramRegions
 7A39 .loop                ; loop head in GfxReadVramByte
-7A52 .loop                ; loop head in GfxCopyVramRegion
+7A52 .copyLoop            ; loop head in GfxCopyVramRegion: 16 bytes, src++ read, dst++ safe write
 7A9C .done                ; common exit of GfxCopyVramRegion
 
 ; --- structural local names (loop heads / common exits) ---

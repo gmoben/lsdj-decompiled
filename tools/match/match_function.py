@@ -399,6 +399,7 @@ RUNTIME_ALIASES = {
     "FarCallArgWC": "FarCallArg",  # FarCallArg with the target as a plain UWORD and a `char` argument: a `?:` over two addresses pushed from bc without a frame (SetVibratoShape)
     "WriteCurrentInstrByteC": "WriteCurrentInstrByte",  # WriteCurrentInstrByte with a `char` value (SetVibratoShape)
     "WriteVramByteSafeP": "WriteVramByteSafe",  # WriteVramByteSafe with a pointer address: the cast of a UWORD counter is the spilt argument copy (ClearOamBuffer)
+    "WriteVramByteSafeC": "WriteVramByteSafe",  # char value: the (char)global cast copy evaluated before dst++ owns c and is spilt into the global (GfxCopyVramRegion)
 }
 
 
