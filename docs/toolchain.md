@@ -1003,6 +1003,45 @@ not-yet-matched C functions by size or groups them by instruction shape.
 - Parked attempts live in `c/parked/NAME.c` (outside `make match`), next to
   their note in `c/parked.txt`.
 
+When the ROM has a value in a *different register or slot* than the C gives,
+the allocator's rules decide it, and they are few (`src/z80/ralloc.c` of the
+snapshot; every post-August-2000 fix in SDCC's history is a bug still in it,
+see "Compiler versions checked"). The checklist, in the order it pays to try:
+
+1. **Where does the register pressure come from?** A symbol spilt *later*
+   still held its register at every earlier allocation (`isspilt` is per
+   symbol, so the code shows it in memory everywhere): a plain local that
+   the ROM only ever touches in its slot may be exactly that. The ROM's
+   choice of `b` over `c` for a temporary says `c` was owned at that point.
+2. **Who is excluded from eviction?** `computeSpillable` drops the current
+   instruction's operands, so a value that is an operand of the instruction
+   that runs out of registers is never the victim -- the *other* live symbol
+   is, or (if nothing is spillable) the new result spills itself. A
+   sign-changing cast copy moves the use away from the original (`char v`).
+3. **What has a spill location?** Named locals and cast copies of named
+   symbols do (a copy's location is its source: free to evict), call results
+   assigned to a named local or non-volatile global do (`updateSpillLocation`),
+   bare temporaries don't -- and `spillThis` prefers spilling a new value
+   with a location when every live range it would displace is used more.
+4. **Is it the hand-over?** A dying operand gives its registers to the
+   result defined in the same instruction (no `allocReg`, so the "c first"
+   order doesn't apply); a dying 2-register operand into a 1-register result
+   leaks the second register for the rest of the function.
+5. **Did something get hoisted or extended?** A loop-invariant cast copy of
+   a parameter is hoisted into the preheader and owns a register for the
+   whole loop without a visible instruction; inner-loop temporaries are
+   extended to the loop end when their definitions reach the inner preheader
+   (which depends on how many dataflow passes ran -- a dead iCode killed
+   anywhere in the function adds passes).
+6. **Did CSE substitute or refuse?** A near-space global's read is never
+   replaced by its temporary; a cast copy is (CSE ignores casts here); a
+   literal base folds an expression into a stack result where a symbol base
+   does not (`packRegsForAssign`'s one-symbol-operand rule).
+7. **Is the accumulator packing chain intact?** A one-byte result is packed
+   into `a` only while each use is the very next iCode and preserves `a`
+   (`opPreservesA`); an implicit conversion of a binary operation's *left*
+   operand is emitted after both operands and breaks the chain.
+
 ## How matched C enters the build
 
 `make match` (`tools/match/verify_all.py --write build/c`) compiles every
