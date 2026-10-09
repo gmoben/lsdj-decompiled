@@ -883,6 +883,150 @@ void InstrHScanUsedChains(void)
             MarkChainPhrasesUsed(i);
 }
 
+/* The three duplicate scanners share one register story. The row offsets
+   oa/ob and the row pointers p/q all live in their slots; the first sum
+   goes through t, a UWORD declared last and used once, which the
+   allocator spills by the use-count rule so the sum is written to its
+   slot and cast into p byte-wise, while every other sum is a temporary
+   in bc cast into its pointer. `*p++ != *q++` keeps the two bytes as
+   location-less temporaries: i holds c into the first loop, so the
+   first byte lands in b there and in c in the later loops. */
+UBYTE FindDupPhrase(UBYTE a, UBYTE b)
+{
+    UBYTE *p, *q;
+    UWORD oa, ob;
+    UBYTE i;
+    UWORD t;
+
+    oa = a;
+    ob = b;
+    _asm
+        di
+    _endasm;
+    rRAMG = 0x0A;
+    oa <<= 4;
+    ob <<= 4;
+    t = oa + (UWORD)0xA000;                 /* bank 0: phrase notes */
+    p = (UBYTE *)t;
+    q = (UBYTE *)(ob + (UWORD)0xA000);
+    rRAMB = 0;
+    for (i = 0; i < 0x10; i++) {
+        if (*p++ != *q++)
+            return 0;
+    }
+    rRAMB = 3;
+    p = (UBYTE *)(oa + (UWORD)0xB000);                      /* bank 3: phrase instruments */
+    q = (UBYTE *)(ob + (UWORD)0xB000);
+    for (i = 0; i < 0x10; i++) {
+        if (*p++ != *q++)
+            return 0;
+    }
+    rRAMB = 2;
+    p = (UBYTE *)(oa | (UWORD)0xA000);      /* bank 2: phrase commands */
+    q = (UBYTE *)(ob | (UWORD)0xA000);
+    for (i = 0; i < 0x10; i++) {
+        if (*p++ != *q++)
+            return 0;
+    }
+    p = (UBYTE *)(oa + (UWORD)0xAFF0);                      /* bank 2: command values */
+    q = (UBYTE *)(ob + (UWORD)0xAFF0);
+    for (i = 0; i < 0x10; i++) {
+        if (*p++ != *q++)
+            return 0;
+    }
+    return 1;
+}
+
+UBYTE FindDupChain(UBYTE a, UBYTE b)
+{
+    UBYTE *p, *q;
+    UWORD oa, ob;
+    UBYTE i;
+    UWORD t;
+
+    oa = a;
+    ob = b;
+    _asm
+        di
+    _endasm;
+    rRAMG = 0x0A;
+    oa <<= 4;
+    ob <<= 4;
+    t = oa + (UWORD)0xA080;                 /* bank 1: chain phrases */
+    p = (UBYTE *)t;
+    q = (UBYTE *)(ob + (UWORD)0xA080);
+    rRAMB = 1;
+    for (i = 0; i < 0x10; i++) {
+        if (*p++ != *q++)
+            return 0;
+    }
+    p = (UBYTE *)(oa + (UWORD)0xA880);                      /* bank 1: chain transposes */
+    q = (UBYTE *)(ob + (UWORD)0xA880);
+    for (i = 0; i < 0x10; i++) {
+        if (*p++ != *q++)
+            return 0;
+    }
+    return 1;
+}
+
+UBYTE FindDupTable(UBYTE a, UBYTE b)
+{
+    UBYTE *p, *q;
+    UWORD oa, ob;
+    UBYTE i;
+    UWORD t;
+
+    oa = a;
+    ob = b;
+    oa <<= 4;
+    ob <<= 4;
+    _asm
+        di
+    _endasm;
+    rRAMG = 0x0A;
+    rRAMB = 1;
+    t = oa + (UWORD)0xB680;                 /* bank 1: table fx 1 */
+    p = (UBYTE *)t;
+    q = (UBYTE *)(ob + (UWORD)0xB680);
+    for (i = 0; i < 0x10; i++) {
+        if (*p++ != *q++)
+            return 0;
+    }
+    p = (UBYTE *)(oa + (UWORD)0xB880);                      /* bank 1: table fx 1 values */
+    q = (UBYTE *)(ob + (UWORD)0xB880);
+    for (i = 0; i < 0x10; i++) {
+        if (*p++ != *q++)
+            return 0;
+    }
+    p = (UBYTE *)(oa + (UWORD)0xBA80);                      /* bank 1: table fx 2 */
+    q = (UBYTE *)(ob + (UWORD)0xBA80);
+    for (i = 0; i < 0x10; i++) {
+        if (*p++ != *q++)
+            return 0;
+    }
+    p = (UBYTE *)(oa + (UWORD)0xBC80);                      /* bank 1: table fx 2 values */
+    q = (UBYTE *)(ob + (UWORD)0xBC80);
+    for (i = 0; i < 0x10; i++) {
+        if (*p++ != *q++)
+            return 0;
+    }
+    p = (UBYTE *)(oa + (UWORD)0xB690);                      /* bank 0: table envelopes */
+    q = (UBYTE *)(ob + (UWORD)0xB690);
+    rRAMB = 0;
+    for (i = 0; i < 0x10; i++) {
+        if (*p++ != *q++)
+            return 0;
+    }
+    p = (UBYTE *)(oa + (UWORD)0xB480);                      /* bank 1: table transposes */
+    q = (UBYTE *)(ob + (UWORD)0xB480);
+    rRAMB = 1;
+    for (i = 0; i < 0x10; i++) {
+        if (*p++ != *q++)
+            return 0;
+    }
+    return 1;
+}
+
 void RemapPhraseRefs(UBYTE from, UBYTE to)
 {
     UBYTE *p;

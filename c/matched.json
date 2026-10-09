@@ -1451,6 +1451,24 @@
   "len": 43,
   "src": "c/bank04/PhraseScreen.c"
  },
+ "FindDupChain": {
+  "bank": "1F",
+  "addr": "5644",
+  "len": 248,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
+ "FindDupPhrase": {
+  "bank": "1F",
+  "addr": "549C",
+  "len": 424,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
+ "FindDupTable": {
+  "bank": "1F",
+  "addr": "573C",
+  "len": 602,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
  "FindFreeBlock": {
   "bank": "1C",
   "addr": "415A",

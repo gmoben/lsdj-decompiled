@@ -65,9 +65,9 @@
 52B3 BuildUsedTablesMap         ; rebuild the used-tables map ($c47d, 32 slots): scan instrs, phrases, tables
 52DA RemapSeqChains             ; walk the 4 sequence columns remapping chain refs (CleanSongData step)
 5478 InstrHScanUsedChains       ; for each chain 0..127 used (IsChainUsedFar), process (MarkChainPhrasesUsed)
-549C FindDupPhrase              ; scan phrase-note rows ($0000) for a duplicate of the candidate
-5644 FindDupChain               ; scan chain rows ($2080) for a duplicate
-573C FindDupTable               ; scan table rows ($3680) for a duplicate
+549C FindDupPhrase        ; does phrase b equal phrase a? compares the 16 notes, instruments, commands and command values; 1 = duplicate
+5644 FindDupChain         ; does chain b equal chain a? compares the 16 phrases and transposes; 1 = duplicate
+573C FindDupTable         ; does table b equal table a? compares fx 1/values, fx 2/values, envelopes and transposes; 1 = duplicate
 5996 RemapPhraseRefs            ; walk all chains ($2080..) replacing dup phrase refs with the canonical one
 5A12 RemapChainRefs             ; walk the song sequence ($B290-$B68F) replacing references to a duplicate chain with the canonical one
 5A8E RemapCmdTableRefs          ; walk phrase/table cmd values replacing dup table refs (A command)
@@ -197,27 +197,27 @@
 545D .done                ; common exit of MarkChainPhrasesUsed
 547B .loop                ; loop head in InstrHScanUsedChains
 549A .done                ; common exit of InstrHScanUsedChains
-54B9 .loop                ; loop head in FindDupPhrase
-54C8 .loop2               ; loop head in FindDupPhrase
-5506 .loop3               ; loop head in FindDupPhrase
-5561 .loop4               ; loop head in FindDupPhrase
-55B6 .loop5               ; loop head in FindDupPhrase
-560C .loop6               ; loop head in FindDupPhrase
-5640 .done                ; common exit of FindDupPhrase
-5661 .loop                ; loop head in FindDupChain
-5670 .loop2               ; loop head in FindDupChain
-56AE .loop3               ; loop head in FindDupChain
-5704 .loop4               ; loop head in FindDupChain
-5738 .done                ; common exit of FindDupChain
-5753 .loop                ; loop head in FindDupTable
-5762 .loop2               ; loop head in FindDupTable
-57A6 .loop3               ; loop head in FindDupTable
-57FC .loop4               ; loop head in FindDupTable
-5852 .loop5               ; loop head in FindDupTable
-58A8 .loop6               ; loop head in FindDupTable
-5903 .loop7               ; loop head in FindDupTable
-595E .loop8               ; loop head in FindDupTable
-5992 .done                ; common exit of FindDupTable
+54B9 .shiftALoop          ; loop head: row offset a <<= 4 (16 bytes per phrase) in FindDupPhrase
+54C8 .shiftBLoop          ; loop head: row offset b <<= 4 in FindDupPhrase
+5506 .noteLoop            ; loop head: bank 0 notes, 16 bytes in FindDupPhrase
+5561 .instrLoop           ; loop head: instrument column in FindDupPhrase
+55B6 .cmdLoop             ; loop head: command column in FindDupPhrase
+560C .valLoop             ; loop head: command values in FindDupPhrase
+5640 .done                ; common exit in FindDupPhrase
+5661 .shiftALoop          ; loop head: row offset a <<= 4 (16 bytes per chain) in FindDupChain
+5670 .shiftBLoop          ; loop head: row offset b <<= 4 in FindDupChain
+56AE .phraseLoop          ; loop head: chain phrases, 16 bytes
+5704 .transposeLoop       ; loop head: chain transposes
+5738 .done                ; common exit in FindDupChain
+5753 .shiftALoop          ; loop head: row offset a <<= 4 (16 bytes per table column) in FindDupTable
+5762 .shiftBLoop          ; loop head: row offset b <<= 4 in FindDupTable
+57A6 .fx1Loop             ; loop head: bank 1 fx 1 column ($B680) in FindDupTable
+57FC .val1Loop            ; loop head: fx 1 values in FindDupTable
+5852 .fx2Loop             ; loop head: fx 2 column in FindDupTable
+58A8 .val2Loop            ; loop head: fx 2 values in FindDupTable
+5903 .envLoop             ; loop head: table envelopes in FindDupTable
+595E .transposeLoop       ; loop head: table transposes in FindDupTable
+5992 .done                ; common exit in FindDupTable
 59A7 .loop                ; loop head in RemapPhraseRefs
 59DF .loop2               ; loop head in RemapPhraseRefs
 5A23 .loop                ; loop head in RemapChainRefs
@@ -476,60 +476,60 @@
 540E .cont_3
 5457 .cont
 5496 .step
-54C1 .step
-54D0 .step_2
-551B .cont
-5528 .ret00
-5532 .cont_2
-5538 .cont_3
-5576 .cont_4
-5583 .ret00_2
-558D .cont_5
-5593 .cont_6
-55CB .cont_7
-55D8 .ret00_3
-55E2 .cont_8
-55E8 .cont_9
-5621 .cont_10
-562E .ret00_4
-5638 .cont_11
-563E .cont_12
-5669 .step
-5678 .step_2
-56C3 .cont
-56D0 .ret00
-56DA .cont_2
-56E0 .cont_3
-5719 .cont_4
-5726 .ret00_2
-5730 .cont_5
-5736 .cont_6
-575B .step
-576A .step_2
-57BB .cont
-57C8 .ret00
-57D2 .cont_2
-57D8 .cont_3
-5811 .cont_4
-581E .ret00_2
-5828 .cont_5
-582E .cont_6
-5867 .cont_7
-5874 .ret00_3
-587E .cont_8
-5884 .cont_9
-58BD .cont_10
-58CA .ret00_4
-58D4 .cont_11
-58DA .cont_12
-5918 .cont_13
-5925 .ret00_5
-592F .cont_14
-5935 .cont_15
-5973 .cont_16
-5980 .ret00_6
-598A .cont_17
-5990 .cont_18
+54C1 .shiftAStep          ; shift count step for a in FindDupPhrase
+54D0 .shiftBStep          ; shift count step for b in FindDupPhrase
+551B .noteNextP           ; p incremented, read *q in FindDupPhrase
+5528 .noteCompare         ; q incremented, compare the bytes in FindDupPhrase
+5532 .noteNext            ; i++ in FindDupPhrase
+5538 .instruments         ; bank 3: row pointers at $B000 + offset in FindDupPhrase
+5576 .instrNextP          ; p incremented, read *q in FindDupPhrase
+5583 .instrCompare        ; compare the bytes in FindDupPhrase
+558D .instrNext           ; i++ in FindDupPhrase
+5593 .commands            ; bank 2: row pointers at $A000 | offset in FindDupPhrase
+55CB .cmdNextP            ; p incremented, read *q in FindDupPhrase
+55D8 .cmdCompare          ; compare the bytes in FindDupPhrase
+55E2 .cmdNext             ; i++ in FindDupPhrase
+55E8 .cmdValues           ; bank 2: row pointers at $AFF0 + offset in FindDupPhrase
+5621 .valNextP            ; p incremented, read *q in FindDupPhrase
+562E .valCompare          ; compare the bytes in FindDupPhrase
+5638 .valNext             ; i++ in FindDupPhrase
+563E .duplicate           ; all four columns equal: return 1 in FindDupPhrase
+5669 .shiftAStep          ; shift count step for a in FindDupChain
+5678 .shiftBStep          ; shift count step for b in FindDupChain
+56C3 .phraseNextP         ; p incremented, read *q in FindDupChain
+56D0 .phraseCompare       ; compare the bytes in FindDupChain
+56DA .phraseNext          ; i++ in FindDupChain
+56E0 .transposes          ; row pointers at $A880 + offset in FindDupChain
+5719 .transposeNextP      ; p incremented, read *q in FindDupChain
+5726 .transposeCompare    ; compare the bytes in FindDupChain
+5730 .transposeNext       ; i++ in FindDupChain
+5736 .duplicate           ; both columns equal: return 1 in FindDupChain
+575B .shiftAStep          ; shift count step for a in FindDupTable
+576A .shiftBStep          ; shift count step for b in FindDupTable
+57BB .fx1NextP            ; p incremented, read *q in FindDupTable
+57C8 .fx1Compare          ; compare the bytes in FindDupTable
+57D2 .fx1Next             ; i++ in FindDupTable
+57D8 .fx1Values           ; row pointers at $B880 + offset in FindDupTable
+5811 .val1NextP           ; p incremented, read *q in FindDupTable
+581E .val1Compare         ; compare the bytes in FindDupTable
+5828 .val1Next            ; i++ in FindDupTable
+582E .fx2                 ; row pointers at $BA80 + offset in FindDupTable
+5867 .fx2NextP            ; p incremented, read *q in FindDupTable
+5874 .fx2Compare          ; compare the bytes in FindDupTable
+587E .fx2Next             ; i++ in FindDupTable
+5884 .fx2Values           ; row pointers at $BC80 + offset in FindDupTable
+58BD .val2NextP           ; p incremented, read *q in FindDupTable
+58CA .val2Compare         ; compare the bytes in FindDupTable
+58D4 .val2Next            ; i++ in FindDupTable
+58DA .envelopes           ; bank 0: row pointers at $B690 + offset in FindDupTable
+5918 .envNextP            ; p incremented, read *q in FindDupTable
+5925 .envCompare          ; compare the bytes in FindDupTable
+592F .envNext             ; i++ in FindDupTable
+5935 .transposes          ; bank 1: row pointers at $B480 + offset in FindDupTable
+5973 .transposeNextP      ; p incremented, read *q in FindDupTable
+5980 .transposeCompare    ; compare the bytes in FindDupTable
+598A .transposeNext       ; i++ in FindDupTable
+5990 .duplicate           ; all six columns equal: return 1 in FindDupTable
 59B3 .cont
 59BE .step
 59C2 .cont_2
