@@ -1068,6 +1068,13 @@ checked there, not in a trimmed single-function run.
 - `tools/match/rom_grep.py PATTERN [--list] [--kinds] [--tally]` -- every
   occurrence of a byte pattern in the code banks, with the function it falls
   in and whether matching C owns it: the ROM-wide evidence a new rule needs.
+- `tools/match/rom_bigrams.py --build`, then `rom_bigrams.py FUNC ATTEMPT.c`
+  -- the adjacent-instruction pairs (numbers and labels abstracted) of every
+  function matched from C, cached in `build/rom_bigrams.json`, and the pairs
+  an attempt's linked disassembly has that the ROM has nowhere. A missing
+  peephole rule shows up as such a pair (the dead `ld r,(hl)` after a
+  narrowed 16-bit `&` did); an attempt whose pairs are all ROM-known differs
+  by allocation alone.
 - `tools/match/trace_alloc.py FILE.c FUNC [--hid] [--loops] [--alloc]` -- why
   a value landed in a register or a slot: every iTemp's live range and home,
   the dataflow passes, the hoisted invariants, which last uses were extended
