@@ -268,6 +268,20 @@ edit("src/z80/ralloc.c", """    /* if the result has been spilt then cannot shar
     if (opsym->isspilt || getenv("NO_POSITION"))
 	return ;""")
 #   NOEXTEND=name,...  temp `name` is not extended to its loop's end by hasIncomingDefs
+#   NOSSA_OPS=chars    no SSA copy either when the value is the result of the iCode just
+#                      generated and its op is one of the chars (e.g. NOSSA_OPS='+<^&|-*'; '@' for a
+#                      pointer read, '=' for an assignment, 'c' for a cast)
+edit("src/SDCCicode.c", """    return IS_ITEMP(right) && lic && lic->op == CALL &&
+	IC_RESULT(lic) && IC_RESULT(lic)->key == right->key;
+}""", """    if (getenv("NOSSA_OPS") && IS_ITEMP(right) && lic && IC_RESULT(lic) && IC_RESULT(lic)->key == right->key) {
+	int op = lic->op == GET_VALUE_AT_ADDRESS ? '@' : lic->op == CAST ? 'c' : lic->op == LEFT_OP ? '<' :
+	    lic->op == RIGHT_OP ? '>' : lic->op == BITWISEAND ? '&' : lic->op;
+	if (op < 256 && strchr(getenv("NOSSA_OPS"), op))
+	    return 1;
+    }
+    return IS_ITEMP(right) && lic && lic->op == CALL &&
+	IC_RESULT(lic) && IC_RESULT(lic)->key == right->key;
+}""")
 edit("src/SDCClrange.c", """	if (ebp->partOfLoop && 
 	    hasIncomingDefs(ebp->partOfLoop,op)) {
 	    torange = findLoopEndSeq(ebp->partOfLoop);
