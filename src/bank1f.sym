@@ -88,7 +88,7 @@
 61C4 ResetSynthParams           ; reset synth n's 16 params (SRAM bank 1, $BEB2 + n*16) to DefaultSynthParams
 620F InstrHScanTableRows        ; scan 16 table rows from a pointer
 62BD TableIsReferenced          ; e=1 if table n is referenced by any instrument or A command (CleanInstrData)
-6B3B DrawPhraseCellValue        ; draw the cell under the phrase cursor ($fe/$ff specials, $c90c state)
+6B3B HighlightPhraseCell        ; colour phrase cell (col,row) as the cursor/selection: ColorField at PhraseCellX/XAlt + 3 in the shifted draw mode, the PhraseCellWidth/WidthAlt width through wDrawTextScratch, palette 3 on CGB / 2 on DMG (row flag $fe/$ff picks the normal tables, else the Alt ones)
 6CA2 DrawPhraseCellField        ; highlight phrase cell (col,row): ColorField from the PhraseCell* layout tables (x,w,pal by row flag)
 6EFE InstrHReadCursorCellAt     ; read cell at cursor $c415/$c416 (DrawPhraseCellField)
 6F14 DrawChanStatus            ; draw channel status cell at (16, ch+6) from wChanOutput[ch]
@@ -109,8 +109,8 @@
 64FF CanEnterSongCol            ; e=1 if song column (arg<4) can take the cursor (channel active/enterable)
 6656 HasEnterableColRight       ; e=1 if any song column right of wSongCol is enterable (phrase-screen '>' arrow)
 6677 HasEnterableColLeft        ; e=1 if any song column left of wSongCol is enterable ('<' arrow)
-6C1E DrawPhraseCursor           ; draw the phrase cursor cell: DrawPhraseCellValue(wPhraseCol, wPhraseRow) via the PhraseCell* tables
-6D58 DrawPhraseSelection        ; phrase selection (wClipboardType==1) redraw vs the cursor: the one-cell ring around the rectangle via DrawPhraseCellField, the inside via DrawPhraseCellValue
+6C1E DrawPhraseCursor           ; draw the phrase cursor cell: HighlightPhraseCell(wPhraseCol, wPhraseRow) via the PhraseCell* tables
+6D58 DrawPhraseSelection        ; phrase selection (wClipboardType==1) redraw vs the cursor: the one-cell ring around the rectangle via DrawPhraseCellField, the inside via HighlightPhraseCell
 7072 DrawAllChanStatus          ; draw the 4 channel status cells (DrawChanStatus 0-3)
 7108 DrawSpeechInstrScreen      ; instrument screen for SPEECH type: "TYPE   SPEECH" + word list (pseudo-screen $0b)
 724D WordScreenInput            ; word screen input (wButtons): rename, move, map exits, cut/copy/paste of a word (allophones at $B890 + 32n, names at $BDD0 + 3n); 1 = handled
@@ -269,7 +269,7 @@
 673E .loop                ; loop head in CutCopyPhraseSelection
 675E .loop2               ; loop head in CutCopyPhraseSelection
 6B2E .done                ; common exit of CutCopyPhraseSelection
-6C1A .done                ; common exit of DrawPhraseCellValue
+6C1A .done                ; common exit of HighlightPhraseCell
 6C5D .loop                ; loop head in DrawWordRow
 6C9A .done                ; common exit of DrawWordRow
 6D54 .done                ; common exit of DrawPhraseCellField
@@ -344,9 +344,9 @@
 672F .incSelRight
 683E .checkSelRightc
 6AF4 .checkSelRightd
-6B5B .ok
-6B8D .checkGameboyType
-6BCF .checkGameboyTypeb
+6B5B .rowOk               ; HighlightPhraseCell: row < $10
+6B8D .normalRow           ; HighlightPhraseCell: row flag $fe/$ff: the normal layout tables
+6BCF .altRow              ; HighlightPhraseCell: any other row flag: the Alt layout tables
 6CD7 .loadPhraseRow
 6CE5 .ok
 6D84 .loadSelLeft
@@ -623,13 +623,13 @@
 6AE4 .cont_16
 6AEE .checkSelRight_2
 6B02 .farCall
-6B58 .incDefaultNotes
-6B68 .cont
-6B75 .cont_2
-6B9A .cont_3
-6B9C .cont_4
-6BDE .cont_5
-6BE2 .cont_6
+6B58 .badRow              ; HighlightPhraseCell: row >= $10: DebugTrap
+6B68 .xShifted            ; HighlightPhraseCell: x += 3 applied (or not)
+6B75 .xVisible            ; HighlightPhraseCell: x >= 0
+6B9A .normalDmg           ; HighlightPhraseCell: palette 2 (DMG)
+6B9C .normalColor         ; HighlightPhraseCell: palette chosen; width through wDrawTextScratch
+6BDE .altDmg              ; HighlightPhraseCell: palette 2 (DMG)
+6BE2 .altColor            ; HighlightPhraseCell: palette chosen; width through wDrawTextScratch
 6C6F .readSongByte
 6C83 .drawStringIndexed
 6C91 .drawString

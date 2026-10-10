@@ -1811,6 +1811,12 @@
   "len": 109,
   "src": "c/bank1b/ProjectScreen.c"
  },
+ "HighlightPhraseCell": {
+  "bank": "1F",
+  "addr": "6B3B",
+  "len": 227,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
  "InitAndLoadSong": {
   "bank": "00",
   "addr": "0DDB",

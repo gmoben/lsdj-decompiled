@@ -40,6 +40,7 @@ extern UBYTE wColPhrase[];                  /* $C453, [4] */
 extern UBYTE wColChain[];                   /* $C44F, [4] */
 extern UBYTE wDedupTableIsDup;              /* $C9CC */
 extern UBYTE wDedupPhraseUsed;              /* $C9C8 */
+extern UBYTE wDrawTextScratch;              /* $C9CD: ColorField's width, stored before the call */
 extern UBYTE wDedupPhraseIsDup;             /* $C9C9 */
 extern UBYTE wDedupChainUsed;               /* $C9CA */
 extern UBYTE wDedupChainIsDup;              /* $C9CB */
@@ -67,7 +68,6 @@ extern UBYTE DefaultInstrWave[];            /* $4A0D, [11] */
 extern UBYTE DefaultInstrKit[];             /* $4A18, [14] */
 UBYTE IsChainUsed(UBYTE chain);
 void DrawPhraseCellField(UBYTE col, UBYTE row);
-void DrawPhraseCellValue(UBYTE col, UBYTE row);
 UBYTE InstrHGetTableUsed(UBYTE t);
 void InstrHMarkTableUsed(UBYTE t);
 UBYTE IsPhraseUsedFar(UBYTE phrase);
@@ -1592,13 +1592,30 @@ void CutCopyPhraseSelection(UBYTE cut)
     FarCall(4, FAR_FN(DrawPhraseScreen));
 }
 
+void HighlightPhraseCell(UBYTE col, UBYTE row)
+{
+    char x;
+
+    x = PhraseCellX[col];
+    if (row & 0xF0)
+        DebugTrap();
+    if (wPhraseDrawMode)
+        x += 3;
+    if (x < 0)
+        return;
+    if (wPhraseRowFlags[row] == 0xFE || wPhraseRowFlags[row] == 0xFF)
+        ColorField(x, row + 2, (wDrawTextScratch = PhraseCellWidth[col], wDrawTextScratch), hGameboyType ? 3 : 2);
+    else
+        ColorField(PhraseCellXAlt[col], row + 2, (wDrawTextScratch = PhraseCellWidthAlt[col], wDrawTextScratch), hGameboyType ? 3 : 2);
+}
+
 void DrawPhraseCursor(void)
 {
     UBYTE row, col;
 
     row = wPhraseRow;
     col = wPhraseCol;
-    DrawPhraseCellValue(col, row);
+    HighlightPhraseCell(col, row);
 }
 
 void DrawWordRow(UBYTE n)
@@ -1678,7 +1695,7 @@ void DrawPhraseSelection(void)
     /* ...and the rectangle itself drawn as the cursor cell */
     for (x = left; x < right; x++)
         for (y = top; y < bottom; y = y + 1)
-            DrawPhraseCellValue(x, y);
+            HighlightPhraseCell(x, y);
 }
 
 void InstrHReadCursorCellAt(void)
