@@ -205,6 +205,12 @@ edit("src/z80/ralloc.c", """	    /* take away registers from live
 		    }
 	    }
 """)
+edit("src/z80/ralloc.c", """    for (i=0;i< _nRegs;i++ )
+	regsZ80[i].isFree = 1;
+}""", """    for (i=0;i< _nRegs;i++ )
+	regsZ80[i].isFree = 1;
+    { int h; for (h = 0; h < 8; h++) heldRegs[h] = 0; }
+}""")
 edit("src/z80/ralloc.c", 'D(D_ALLOC, ("\\n-> z80_assignRegisters: entered.\\n"));',
      'D(D_ALLOC, ("\\n-> z80_assignRegisters: entered %s (regAssigned bits carried over: %d).\\n", currFunc ? currFunc->name : "?", regAssigned ? bitVectnBitsOn(regAssigned) : 0));')
 edit("src/SDCCopt.c", """    /* if nothing passed then return nothing */
@@ -223,6 +229,14 @@ edit("src/SDCCopt.c", """    /* if nothing passed then return nothing */
 #   ALLOC_BFIRST=1     single registers are allocated b first
 #   NO_POSITION=1      positionRegs disabled
 #   IFX_LATE=1         symbols dying at an IFX are freed at the following iCode
+#   PAIR_SPILL_FIRST=1 a two-register request with no free pair spills (the stock victims) until
+#                      a pair is free and then takes the pair in order (c b), instead of taking the
+#                      free register first and the spilt one second (b c)
+#   HOLD_CALLRES=1     a call result's register is not freed when the result dies but held until
+#                      the next two-register request (released just before it)
+#   HOLD_PAIR_HI=1     a dying register pair's second register (regs[1]) is held the same way
+#   HANDOVER_SPILT=1   the hand-over of a dying operand's registers to the result happens even
+#                      when the result is spilt or rematerialisable (stock skips those)
 #   KEYOF=name:K,...   force the operand key of global symbol `name` to K (a global's key is
 #                      assigned on its first use in the unit and kept for later functions,
 #                      where it can coincide with a temp's key: isOperandEqual compares keys)
@@ -281,6 +295,68 @@ edit("src/z80/ralloc.c", """    /* if the result has been spilt then cannot shar
 	return ;""", """    /* if the result has been spilt then cannot share */
     if (opsym->isspilt || getenv("NO_POSITION"))
 	return ;""")
+edit("src/z80/ralloc.c", """static regs *allocReg (short type)
+{""", """static int heldRegs[8];
+static void releaseHeld(void)
+{
+    int i;
+    for (i = 0; i < 8; i++)
+	if (heldRegs[i]) { D(D_ALLOC, ("releaseHeld: %s\\n", regsZ80[heldRegs[i] - 1].name)); regsZ80[heldRegs[i] - 1].isFree = 1; heldRegs[i] = 0; }
+}
+static void holdReg(regs *reg)
+{
+    int i;
+    for (i = 0; i < 8; i++)
+	if (!heldRegs[i]) { heldRegs[i] = (reg - regsZ80) + 1; D(D_ALLOC, ("holdReg: %s\\n", reg->name)); return; }
+}
+static regs *allocReg (short type)
+{""")
+edit("src/z80/ralloc.c", """bool tryAllocatingRegPair(symbol *sym)
+{
+    int i;
+    wassert(sym->nRegs == 2);""", """bool tryAllocatingRegPair(symbol *sym)
+{
+    int i;
+    wassert(sym->nRegs == 2);
+    releaseHeld();""")
+edit("src/z80/ralloc.c", """	    /* free the remaining */
+	    for (; i < sym->nRegs ; i++) {
+		if (psym) {
+		    if (!symHasReg(psym,sym->regs[i]))
+			freeReg(sym->regs[i]);
+		} else
+		    freeReg(sym->regs[i]);""", """	    /* free the remaining */
+	    for (; i < sym->nRegs ; i++) {
+		if ((getenv("HOLD_CALLRES") && sym->isCallRes) ||
+		    (getenv("HOLD_PAIR_HI") && sym->nRegs == 2 && i == 1)) {
+		    holdReg(sym->regs[i]);
+		    continue;
+		}
+		if (psym) {
+		    if (!symHasReg(psym,sym->regs[i]))
+			freeReg(sym->regs[i]);
+		} else
+		    freeReg(sym->regs[i]);""")
+edit("src/z80/ralloc.c", """		! result->isspilt        &&            /* and does not already have them */
+		! result->remat          &&""", """		(getenv("HANDOVER_SPILT") || (! result->isspilt && ! result->remat)) &&""")
+edit("src/z80/ralloc.c", """		/* else we assign registers to it */		
+		regAssigned = bitVectSetBit(regAssigned,sym->key);""", """		/* else we assign registers to it */		
+		regAssigned = bitVectSetBit(regAssigned,sym->key);
+		if (ic->op == CALL || ic->op == PCALL) sym->isCallRes = 1;""")
+edit("src/SDCCsymt.h", """    unsigned isspilt    :1      ;  /* has to be spilt */""", """    unsigned isspilt    :1      ;  /* has to be spilt */
+    unsigned isCallRes  :1      ;  /* LSDj experiment knobs: the symbol is a call's result */""")
+edit("src/z80/ralloc.c", """		if ((sym->nRegs == 2)&&tryAllocatingRegPair(sym)) {
+		}
+		else {""", """		if (sym->nRegs == 2 && getenv("PAIR_SPILL_FIRST")) {
+		    int guard = 0;
+		    while (nFreeRegs(0) < 2 && guard++ < 4 &&
+			   !bitVectIsZero(computeSpillable(ic)) && spilSomething(ic, ebbs[i], sym))
+			;
+		    D(D_ALLOC, ("PAIR_SPILL_FIRST: %d free after spilling\\n", nFreeRegs(0)));
+		}
+		if ((sym->nRegs == 2)&&tryAllocatingRegPair(sym)) {
+		}
+		else {""")
 #   NOEXTEND=name,...  temp `name` is not extended to its loop's end by hasIncomingDefs
 #   NOSSA_OPS=chars    no SSA copy either when the value is the result of the iCode just
 #                      generated and its op is one of the chars (e.g. NOSSA_OPS='+<^&|-*'; '@' for a

@@ -1143,7 +1143,10 @@ minute instead of twenty.
   definition (what a use before the definition or a `volatile` would do,
   without touching the code elsewhere), `SPILLAT=iTemp0:94` evicts a
   symbol from its register when the walk reaches that sequence number
-  (what a phantom allocation there would do); `LSDJ_NATIVE_BIN=toolchain/
+  (what a phantom allocation there would do), and the hypothesis switches
+  listed in the script (`PAIR_SPILL_FIRST`, `HOLD_CALLRES`, `HOLD_PAIR_HI`,
+  `HANDOVER_SPILT`, `DEASSIGN_STRICT`, `CND_ALLOC`, `HANDOVER_NONE`,
+  `ALLOC_BFIRST`, `NO_POSITION`, `IFX_LATE`); `LSDJ_NATIVE_BIN=toolchain/
   sdcc-2.2.1-debug/bin BUSYC=82-82 match_function.py ...` compiles an
   attempt under them.
 - `tools/match/perturb.py FILE.c FUNC` -- searches those knobs (every
@@ -1287,6 +1290,36 @@ shape.
    SDCC 2.3.1 is not LSDj's compiler either: it has the 16-bit compare
    (`gb_cmp16`) but saves `bc` around each call instead of in the prologue,
    which the ROM never does.
+   **The phantom register.** The six parked functions share one residue:
+   the ROM allocates as if a register were held by an occupant no symbol
+   accounts for, and the debug build's BUSYC/BUSYB knobs pin each window
+   (the function is byte-identical with the register held over it, and
+   nothing else makes it so): SynthWriteWaveCol c from the first
+   instruction to the loop body's last byte temporary (seq 3..17, released
+   before the pointer pair at 21); WordEditorInput c from the first
+   instruction through the cut's second ReadWordCell result (1..93,
+   released before the third read's call at 99); SynthFilterBandPass c from
+   the SynthWrapIndex32 result's death (79) to the BufB word's pair request
+   (90); DrawInstrumentScreen b from the far-call pair's death (11) or any
+   later point up to the `type * 18` multiply (47) through the column read
+   (52), released before the pair at 56; FileUpgradeClearRange b from the
+   second loop's cast pair's death (26) to the function's end;
+   CountFileBlocks both registers unspillable at the `*ptr` read. The
+   windows end right before a two-register request or a call, and begin at
+   the function start, at a pair's or a call result's death, or at no
+   visible event. Not the hand-over leak (SynthWriteWaveCol and
+   WordEditorInput have no register pairs before their windows), not a
+   carry-over from the previous function in the file (`freeAllRegs` runs
+   after every function and the predecessors leak nothing), not a key
+   collision, not dead-code-block liveness (no `noPath` blocks). Rules
+   tried in the debug build and rejected on the matched set: spill before
+   pairing (`PAIR_SPILL_FIRST`: fits SynthWriteWaveCol and BandPass
+   exactly but gives [c b] where 11 of 80 matched functions keep stock's
+   [b c], e.g. InstrPitchModeDown), holding a call result's register or a
+   dying pair's second register until the next pair request
+   (`HOLD_CALLRES`, `HOLD_PAIR_HI`: 11-12 of 60 broken, no parked function
+   improved), handing a dying operand's registers to a spilt result
+   (`HANDOVER_SPILT`: 41 of 60 broken), plus the six earlier switches.
 3. **Flags.** The default `lcc` compile is `sdcc -mgbz80 --c1mode` after a
    separate `sdcpp` pass (`-DGB=1 -DGAMEBOY=1 -DINT_16_BITS …`); nothing so far
    needed more.
