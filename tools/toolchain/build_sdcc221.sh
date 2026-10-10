@@ -179,6 +179,20 @@ edit("src/z80/ralloc.c", """	    /* take away registers from live
 		if (ic->seq >= lo && ic->seq <= hi && !heldb && regsZ80[1].isFree) { regsZ80[1].isFree = 0; heldb = 1; }
 		else if ((ic->seq < lo || ic->seq > hi) && heldb) { regsZ80[1].isFree = 1; heldb = 0; }
 	    }
+	    /* SPILLAT=name:seq,...: these symbols are evicted (spilt) when the walk reaches seq,
+	       as a phantom allocation at that point would do */
+	    if (getenv("SPILLAT")) {
+		char buf[256]; char *tok; strncpy(buf, getenv("SPILLAT"), 255); buf[255] = 0;
+		for (tok = strtok(buf, ","); tok; tok = strtok(NULL, ",")) {
+		    char nm[64]; int at = -1; symbol *s; int k;
+		    if (sscanf(tok, "%63[^:]:%d", nm, &at) == 2 && at == ic->seq)
+			for (s = hTabFirstItem(liveRanges, &k); s; s = hTabNextItem(liveRanges, &k))
+			    if (!strcmp(s->name, nm) && !s->isspilt && bitVectBitValue(regAssigned, s->key)) {
+				D(D_ALLOC, ("SPILLAT: evicting %s at seq%d\\n", s->name, ic->seq));
+				spillThis(s);
+			    }
+		}
+	    }
 	    /* SPILLSYM=name,name: these symbols are spilt at their definition (as a use before the
 	       definition or a volatile would do, without changing the code elsewhere) */
 	    if (getenv("SPILLSYM") && IC_RESULT(ic) && IS_SYMOP(IC_RESULT(ic))) {

@@ -530,6 +530,38 @@ def _hl_stack_offset(lines: list[str], at: int) -> int | None:
     return None
 
 
+def _hl_global_offset(lines: list[str], at: int) -> tuple[str, int] | None:
+    """The global and offset hl holds just before line `at`, found the way
+    `_hl_stack_offset` finds a stack offset, back to the last `ld hl,#G` or
+    `ld hl,#G + N` (a byte promoted into a pair: WordEditorInput's
+    `(UWORD)wSpeechCursorRow < 13` loads `ld c,(hl); ld b,#0x00` and leaves
+    hl at the byte it goes on to increment)."""
+    off = 0
+    k = at - 1
+    while k >= 0:
+        t = _strip(lines[k]).strip()
+        k -= 1
+        if not t:
+            continue
+        m = re.fullmatch(r"ld\s+hl,#(\w+)(?: \+ (\d+))?", t)
+        if m:
+            return m.group(1), int(m.group(2) or 0) + off
+        if t == "inc\thl" or "(hl+)" in t:
+            off += 1
+            continue
+        if t == "dec\thl" or "(hl-)" in t:
+            off -= 1
+            continue
+        if re.fullmatch(r"j[pr]\s+n?[cz],\S+", t):
+            continue
+        mn = t.split()[0] if t else ""
+        if t.endswith(":") or mn in ("jp", "jr", "call", "ret", "reti", "rst", "push", "pop") \
+                or re.match(r"(ld|add|inc|dec)\s+(hl|h|l)\b", t) or t.startswith("ld\thl") \
+                or t.startswith("lda\t"):
+            return None
+    return None
+
+
 def ifx_word_hl(lines: list[str]) -> tuple[list[str], int]:
     """Reload hl after `if (w)` on a stack word.
 
@@ -665,12 +697,18 @@ def gb_cmp16(lines: list[str], zero: bool = False) -> tuple[list[str], int]:
                     # stepped up to the low byte, then to the high byte
                     known = _hl_stack_offset(lines, idx[0])
                     known = known + 2 if known is not None else None
-                elif not fetch:
+                glob = None
+                if not fetch:
                     # the operand was already in a pair; hl may still point at
                     # a stack byte the code goes on to use (DrawSpeechInstrScreen's
-                    # `row < 4 + 14` then `GetTilemapAddr(0, row)`)
+                    # `row < 4 + 14` then `GetTilemapAddr(0, row)`) or at the
+                    # global byte it was promoted from (WordEditorInput's
+                    # `(UWORD)wSpeechCursorRow < 13` then `wSpeechCursorRow++`)
                     known = _hl_stack_offset(lines, idx[0])
-                glob = None
+                    if known is None:
+                        found = _hl_global_offset(lines, idx[0])
+                        if found:
+                            glob, known = found
                 if fetch and fetch[0].startswith("\tld\thl,#"):
                     # a global: hl was left at its high byte the same way
                     # (CompressSong's `wCompDst < 0x7FFF` then `wCompDst + 1`)
@@ -723,7 +761,8 @@ def _reseat_hl(lines: list[str], i: int, off: int, glob: str | None = None) -> N
         ok = negation(adj) or ("(hl" in nxt and not nxt.endswith(":"))
     if not ok:
         return
-    lines[start:adj] = ([f"\tld\thl,#{glob} + {off}"] if glob else [f"\tlda\thl,{off}(sp)"])
+    lines[start:adj] = ([f"\tld\thl,#{glob}" + (f" + {off}" if off else "")] if glob
+                        else [f"\tlda\thl,{off}(sp)"])
 
 
 # --- signed 16-bit compares with a constant ---------------------------------

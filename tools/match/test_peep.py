@@ -170,10 +170,22 @@ class Compare16Tests(unittest.TestCase):
         result, count = gb_cmp16(source)
         self.assertEqual(count, 1)
         jump = result.index("\tjp\tc,001skip$")
-        self.assertEqual(result[jump + 1], "\tld\thl,#0xC006 + 0")
+        self.assertEqual(result[jump + 1], "\tld\thl,#0xC006")
         for value in (0, 0x1234, 0x7FFE, 0x7FFF, 0xFFFF):
             with self.subTest(value=value):
                 self.assertEqual(execute(source, value), execute(result, value))
+
+    def test_promoted_global_byte_in_a_pair_reloads_hl_for_the_next_use(self):
+        # WordEditorInput: `(UWORD)wSpeechCursorRow < 13` promotes the byte
+        # into bc and leaves hl at it for the `wSpeechCursorRow++` that follows
+        source = ["\tld\thl,#_wSpeechCursorRow", "\tld\tc,(hl)", "\tld\tb,#0x00",
+                  "\txor\ta,a", "\tld\ta,c", "\tsbc\ta,#0x0D", "\tld\ta,b",
+                  "\tsbc\ta,#0x00", "\tjp\tnc,001skip$", "\tinc\t(hl)"]
+        result, count = gb_cmp16(source)
+        self.assertEqual(count, 1)
+        self.assertIn("\tadd\thl,bc", result)
+        jump = result.index("\tjp\tc,001skip$")
+        self.assertEqual(result[jump + 1:], ["\tld\thl,#_wSpeechCursorRow", "\tinc\t(hl)"])
 
     def test_zero_threshold_and_intervening_label_are_not_rewritten(self):
         for ending in (["\tld\ta,#0x00", "\trla"], ["\tjp\tnc,001done$"]):
