@@ -1396,6 +1396,16 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
                 level -= int(m.group(1))
             else:
                 forget_hl()
+        elif mn == "ld" and ops[:1] == ["(hl)"] and len(ops) == 2 and ops[1].startswith("#"):
+            # a literal stored through hl (`g = n`) leaves `a` standing for n
+            # and nothing else: ResetWorkState's `wWordClipCell0[0] = 1`
+            # reloads `ld a,#1` after six `g = 0` stores, TogglePlayback's
+            # `wSongPlaying = 0; hSoundCh = 0` keeps the 0 in `a` (the ROM's
+            # two sites; the tracker apparently took the stored literal for
+            # `a`'s value, kept here only when it already was)
+            if ops[1] not in eq:
+                eq, a_alu = set(), False
+                via.clear()
         elif mn == "ld" and len(ops) == 2 and ops[0].startswith("(") and ops[0] not in ("(hl+)", "(hl-)"):
             if ops[0] != "(hl)" and ops[1] != "a":
                 eq.discard("(hl)")    # a store elsewhere may alias (storing `a` itself cannot break a == (hl))

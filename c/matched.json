@@ -2885,6 +2885,12 @@
   "len": 59,
   "src": "c/bank1f/InstrHelpers.c"
  },
+ "ResetWorkState": {
+  "bank": "00",
+  "addr": "3A33",
+  "len": 855,
+  "src": "c/bank00/ResetWorkState.c"
+ },
  "RestoreSelectionState": {
   "bank": "05",
   "addr": "747D",

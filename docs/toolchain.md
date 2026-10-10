@@ -12,7 +12,7 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 | What compiled LSDj? | **GBDK 2.95-3** (19 Aug 2000) → **SDCC 2.2.1** (`gbz80` target), default `asxxxx` assembler/linker, small memory model — **plus an accumulator-tracking optimisation stock SDCC lacks** (the "modified GBDK"), modelled here as an accumulator-tracking pass plus 86 peephole rules (below), **and one iCode difference**: no SSA copy when a call's result is assigned to a global (patched into the native build, see *Writing C*) |
 | Can we run it today? | **Yes, natively.** SDCC 2.2.1 + `sdcpp`/`as-gbz80`/`link-gbz80` build from the GBDK 2.95-2 sources (`tools/toolchain/build_sdcc221.sh`, ~15 s) and emit **byte-identical** asm, objects, listings and images to GBDK 2.95-3's Win32 binaries — which still run under Wine (`fetch_gbdk295.sh`), but crash on large units (below) |
 | Is it the right toolchain? | **Yes, for the code generator**: LSDj's instruction selection, register allocation and frame idioms are SDCC 2.2.1's line for line, and GBDK 2.95 library code in the ROM is byte-identical to its sources (`display_off` ← `crt0.s`, `strcpy` ← `asm_string.s`, `set_bkg_palette` ← `cgb.s`, `set_bkg_tiles` ← `set_bk_t.s` + `set_xy_t.s`, the SDCC `mul` runtime). Stock output does **not** match on its own: LSDj's build also ran peephole rules that stock 2.95-3 lacks |
-| Matched real LSDj functions? | **Yes — 671**, in 13 banks (the list: [`c/matched.json`](../c/matched.json)): a message renderer, a 15-case `switch`, a sparse `switch`, the SRAM accessors, and the instrument screen's field accessors and draw helpers. `make match` re-verifies them all (cached: only changed sources reach the compiler), and **their bytes in the ROM build come from the compiled C** (below) |
+| Matched real LSDj functions? | **Yes — 672**, in 13 banks (the list: [`c/matched.json`](../c/matched.json)): a message renderer, a 15-case `switch`, a sparse `switch`, the SRAM accessors, and the instrument screen's field accessors and draw helpers. `make match` re-verifies them all (cached: only changed sources reach the compiler), and **their bytes in the ROM build come from the compiled C** (below) |
 | Is all of LSDj C? | **No.** ~200 functions (~15 KB, 10% of the code with the GBDK library) are hand-written assembly — the interrupt handlers, sound tick, envelope/pitch and tile-loader code in bank 0, and the sequencer core in bank `$02` (`tools/match/code_kind.py`). Those stay asm; the C is ~142.5 KB, 64% of it matched |
 | Go/no-go on Track 2? | **Go, with the rule set still growing.** Every function tried has matched (each new one has cost a few rules so far), the C feeds the ROM build with `make compare` as the gate, and the hand-written asm is mapped and excluded |
 
@@ -120,7 +120,7 @@ common (byte-pattern counts over banks `$01`-`$07`, `$1B`-`$1F`):
 | Register reload | `ld r,a` / `ld a,r` → `ld r,a` (r = b, c, d, e, h, l; **not** `(hl)`); `ld c,e` … `ld e,c` (a returned value) even across `add sp,N` | 2 (both with a jump label between) + 1 (below) | 69, 34 |
 | Reload of a stored value | `ld (hl),a`; `ld a,(hl)` → reload dropped, whatever `a` held (an ALU result, a stack copy through `(hl+)`, …); **kept** after a pointer read (`ld a,(de)` / `ld a,(bc)`: all 43 reloads in the ROM) | 0 | 31+ |
 | Dead stores | `ld X,a`; *a-only ops*; `ld X,a` → first store dropped (X a register or `(hl)`, also when the first store is followed by its reload) | 0 | (small; e.g. `and 3; add a,a; ld c,a` ×2) |
-| Constant reuse | `ld a,N` / `push af; inc sp` / `ld a,N` → reload dropped, also across `ldh (n),a` + `ld hl,nn; push hl`; `xor a` / `ld hl,sp+N` / `ld a,#0` → reload dropped; an sfr pushed twice, `ldh a,(X)` / `push af; inc sp` / `ldh a,(X)` → reload dropped (SndZPhrase) | 0 | 10, 5, 2, 1 |
+| Constant reuse | `ld a,N` / `push af; inc sp` / `ld a,N` → reload dropped, also across `ldh (n),a` + `ld hl,nn; push hl`; `xor a` / `ld hl,sp+N` / `ld a,#0` → reload dropped; an sfr pushed twice, `ldh a,(X)` / `push af; inc sp` / `ldh a,(X)` → reload dropped (SndZPhrase); a literal stored through hl (`ld (hl),#n`, a global `g = n`) leaves `a` standing for n and nothing else: the next `ld a,N` stays unless N is that literal (ResetWorkState's `wWordClipCell0[0] = 1` after six `g = 0` stores reloads; TogglePlayback's `hSoundCh = 0` after `wSongPlaying = 0` reuses the 0) | 0 | 10, 5, 2, 1; 1 kept, 1 reused |
 | Compare chains | a sparse `switch` re-reads its global before every `cp` in stock output; LSDj loads it once, and an int-typed case widens the copy in `a` (`ld c,a` for `ld hl,#G; ld c,(hl)`, InstrScreenInput's kit chains) (one rule per chain position, up to twelve, so the pattern always carries the variable; `switch_chain` in peep.py drops what the rules leave of a longer chain, and after a case that tests a CSE'd boolean (`xor a,a; or a,c; jp nz`) reloads only `a`, as the ROM's three such chains do, WaveScreenInput's twenty `wButtons` cases). SDCC's `==` trampoline `jp cc,T; jr F; T: jp X; F:` → `jp cc,X`, every byte's `jp cc,T` of a multi-byte compare included (the only survivor in the ROM is inside GBDK's stock-compiled `gprintf`) | 0, 1 (library) | 72 |
 | Kept across a test | `ld a,r` / `bit n,a` / `jp cc` / `ld a,r` → reload dropped; `ld hl,#x` / `ld a,(hl)` / `cp a,#n` / `jp z,F` / *(dead label)* / `ld hl,#x` → reload dropped (a `!=` test; stock SDCC's Rule 5 leaves the trampoline's label behind, which makes its codegen forget `hl`) unless a constant is stored there next (`ld (hl),#n`: ProcessInput's `wLiveStartCol = 0xFF`, the ROM's one store after such a test; `inc`/`dec (hl)` keep hl), also after `or a,a` (`x != 0`); `xor a` / `ld a,#0` → `xor a` | 0, 1 (a real jump target in between), 0; 0 for `or a,a` | 68, 7, 6; 1 for `or a,a` (ProjectScreenInput; 2 more in hand-written asm) |
 | Register tracking (`track_a`, below) | a reload of what `a` already holds: `ld a,r` / `cp` / `jp cc` / *(dead label)* / `ld a,r` (an `\|\|` chain) → reload dropped; a stored stack local reread: `ld hl,sp+N` / `ld (hl),r` / [`add sp,M`] / `ld a,(hl)` → `ld a,r`; `ld (hl),a` / `ld de,#T` / `ld l,(hl)` → `ld l,a` (indexing a table by the value just stored) | 0, 0, 0 | 35, 25 + 141, 32 |
@@ -789,6 +789,13 @@ comment began with a quoted string had been carved as data, since a leading
   `x = *p` would be the least-used victim at `y`'s definition. `i` holds
   c into the first loop, hence `b` for the first byte there and `c` in the
   later loops (FindDupPhrase/Chain/Table).
+- **An array's address after the array was indexed is `&arr[0]`**:
+  `wPtrChainRow = wChanChainRow` after `wChanChainRow[3] = 0xFF` reuses the
+  `&wChanChainRow` temporary of the element store (CSE) and stores the
+  address as two literal bytes (`ld (hl),#<arr; inc hl; ld (hl),#>arr`); the
+  ROM loads it into de (`ld de,#arr; ld hl,#ptr; ld (hl),e; inc hl; ld
+  (hl),d`, an address-of folded into the store), which `&wChanChainRow[0]`
+  gives -- its `+ 0` is a fresh temporary (ResetWorkState's nine pointers).
 - **A cast copy of a global is an occupant that costs nothing**: a
   `char` parameter fed a `UBYTE` global makes a same-size cast copy whose
   spill location is the global itself (`geniCodeCast`), and arguments are
@@ -1144,7 +1151,8 @@ minute instead of twenty.
   without touching the code elsewhere), `SPILLAT=iTemp0:94` evicts a
   symbol from its register when the walk reaches that sequence number
   (what a phantom allocation there would do), and the hypothesis switches
-  listed in the script (`PAIR_SPILL_FIRST`, `HOLD_CALLRES`, `HOLD_PAIR_HI`,
+  listed in the script (`PAIR_SPILL_FIRST`, `PAIR_SPILL_FIRST_LOADS`,
+  `PAIR_NORMALIZE`, `HOLD_CALLRES`, `HOLD_PAIR_HI`,
   `HANDOVER_SPILT`, `DEASSIGN_STRICT`, `CND_ALLOC`, `HANDOVER_NONE`,
   `ALLOC_BFIRST`, `NO_POSITION`, `IFX_LATE`); `LSDJ_NATIVE_BIN=toolchain/
   sdcc-2.2.1-debug/bin BUSYC=82-82 match_function.py ...` compiles an
@@ -1315,7 +1323,11 @@ shape.
    tried in the debug build and rejected on the matched set: spill before
    pairing (`PAIR_SPILL_FIRST`: fits SynthWriteWaveCol and BandPass
    exactly but gives [c b] where 11 of 80 matched functions keep stock's
-   [b c], e.g. InstrPitchModeDown), holding a call result's register or a
+   [b c], e.g. InstrPitchModeDown; restricted to pairs defined by a load
+   from memory, `PAIR_SPILL_FIRST_LOADS`, still 3 of 80: SaveFile,
+   WordScreenInput, TableScreenUpdate's pointer read stays [b c]; the
+   codegen-side swap `PAIR_NORMALIZE` leaves the hand-over copies stale),
+   holding a call result's register or a
    dying pair's second register until the next pair request
    (`HOLD_CALLRES`, `HOLD_PAIR_HI`: 11-12 of 60 broken, no parked function
    improved), handing a dying operand's registers to a spilt result

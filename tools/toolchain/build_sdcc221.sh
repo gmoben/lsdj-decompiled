@@ -229,6 +229,8 @@ edit("src/SDCCopt.c", """    /* if nothing passed then return nothing */
 #   ALLOC_BFIRST=1     single registers are allocated b first
 #   NO_POSITION=1      positionRegs disabled
 #   IFX_LATE=1         symbols dying at an IFX are freed at the following iCode
+#   PAIR_SPILL_FIRST_LOADS=1  the same, only for a pair defined by an assignment from memory or
+#                      a pointer read (SynthWriteWaveCol's `:= wSynthRenderDst`, BandPass's BufB word)
 #   PAIR_SPILL_FIRST=1 a two-register request with no free pair spills (the stock victims) until
 #                      a pair is free and then takes the pair in order (c b), instead of taking the
 #                      free register first and the spilt one second (b c)
@@ -237,6 +239,9 @@ edit("src/SDCCopt.c", """    /* if nothing passed then return nothing */
 #   HOLD_PAIR_HI=1     a dying register pair's second register (regs[1]) is held the same way
 #   HANDOVER_SPILT=1   the hand-over of a dying operand's registers to the result happens even
 #                      when the result is spilt or rematerialisable (stock skips those)
+#   PAIR_NORMALIZE=1   (codegen) a two-register temporary allocated b then c, when defined by an
+#                      assignment from memory or a pointer read, has its registers swapped to c b
+#                      at that definition, so it is loaded as the pair bc and pushed as one
 #   KEYOF=name:K,...   force the operand key of global symbol `name` to K (a global's key is
 #                      assigned on its first use in the unit and kept for later functions,
 #                      where it can coincide with a temp's key: isOperandEqual compares keys)
@@ -295,6 +300,23 @@ edit("src/z80/ralloc.c", """    /* if the result has been spilt then cannot shar
 	return ;""", """    /* if the result has been spilt then cannot share */
     if (opsym->isspilt || getenv("NO_POSITION"))
 	return ;""")
+edit("src/z80/gen.c", """    /* must be in a register */
+    sym->aop = op->aop = aop = newAsmop(AOP_REG);
+    aop->size = sym->nRegs;
+    for ( i = 0 ; i < sym->nRegs ;i++)
+        aop->aopu.aop_reg[i] = sym->regs[i];
+}""", """    /* must be in a register */
+    if (getenv("PAIR_NORMALIZE") && result && sym->nRegs == 2 && sym->regs[0] && sym->regs[1] &&
+	sym->regs[0]->rIdx == B_IDX && sym->regs[1]->rIdx == C_IDX &&
+	((ic->op == '=' && !POINTER_SET(ic) && !IS_OP_LITERAL(IC_RIGHT(ic))) || ic->op == GET_VALUE_AT_ADDRESS)) {
+	regs *t = sym->regs[0]; sym->regs[0] = sym->regs[1]; sym->regs[1] = t;
+	emitcode("", "; PAIR_NORMALIZE: %s now c b", sym->name);
+    }
+    sym->aop = op->aop = aop = newAsmop(AOP_REG);
+    aop->size = sym->nRegs;
+    for ( i = 0 ; i < sym->nRegs ;i++)
+        aop->aopu.aop_reg[i] = sym->regs[i];
+}""")
 edit("src/z80/ralloc.c", """static regs *allocReg (short type)
 {""", """static int heldRegs[8];
 static void releaseHeld(void)
@@ -347,7 +369,9 @@ edit("src/SDCCsymt.h", """    unsigned isspilt    :1      ;  /* has to be spilt 
     unsigned isCallRes  :1      ;  /* LSDj experiment knobs: the symbol is a call's result */""")
 edit("src/z80/ralloc.c", """		if ((sym->nRegs == 2)&&tryAllocatingRegPair(sym)) {
 		}
-		else {""", """		if (sym->nRegs == 2 && getenv("PAIR_SPILL_FIRST")) {
+		else {""", """		if (sym->nRegs == 2 && (getenv("PAIR_SPILL_FIRST") ||
+		    (getenv("PAIR_SPILL_FIRST_LOADS") &&
+		     ((ic->op == '=' && !POINTER_SET(ic) && !IS_OP_LITERAL(IC_RIGHT(ic))) || ic->op == GET_VALUE_AT_ADDRESS)))) {
 		    int guard = 0;
 		    while (nFreeRegs(0) < 2 && guard++ < 4 &&
 			   !bitVectIsZero(computeSpillable(ic)) && spilSomething(ic, ebbs[i], sym))

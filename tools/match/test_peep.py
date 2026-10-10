@@ -398,6 +398,17 @@ class HlRegisterTests(unittest.TestCase):
                   "\tld\ta,(hl)", "\tadd\ta,#0x10"]
         self.assertEqual(peep.track_a(tested, set())[0][4], "\tld\ta,(hl)")
 
+    def test_a_literal_store_through_hl_keeps_a_only_when_equal(self):
+        # ResetWorkState: `a` held 1, six `g = 0` stores, then `cell[0] = 1`
+        # reloads the 1; TogglePlayback: `a` held 0, `wSongPlaying = 0`, then
+        # `hSoundCh = 0` stores `a` unreloaded
+        reload = ["\tld\ta,#0x01", "\tld\t(de),a", "\tld\thl,#_g", "\tld\t(hl),#0x00",
+                  "\tld\tde,#_cell", "\tld\ta,#0x01", "\tld\t(de),a"]
+        self.assertEqual(peep.track_a(reload, set())[0], reload)
+        keep = ["\tld\ta,#0x00", "\tld\t(de),a", "\tld\thl,#_g", "\tld\t(hl),#0x00",
+                "\tld\tde,#_cell", "\tld\ta,#0x00", "\tld\t(de),a"]
+        self.assertEqual(peep.track_a(keep, set())[0], keep[:5] + keep[6:])
+
 
 class HramReuseTests(unittest.TestCase):
     """track_hram: a reload into the register holding the byte goes; no copy
