@@ -67,6 +67,8 @@ extern UBYTE wSelTop;                       /* $C40E */
 extern UBYTE wSelRight;                     /* $C40F */
 extern UBYTE wSelBottom;                    /* $C410 */
 extern UBYTE wClipboardType;                /* $C411 */
+extern UBYTE wPhraseNoteIsKitA;             /* $C92D: the pasted note's instrument is a kit (column 0) */
+extern UBYTE wPhraseNoteIsKitB;             /* $C92E: (column 1) */
 extern UBYTE wChain;                        /* $C418 */
 extern UBYTE wChainRow;                     /* $C41A */
 extern UBYTE wButtons;                      /* $C575 */
@@ -79,7 +81,6 @@ void InstrHReadCursorCellAt(void);          /* bank $1F */
 void HasEnterableColRight(void);            /* bank $1F */
 void HasEnterableColLeft(void);             /* bank $1F */
 void CutCopyPhraseSelection(void);          /* bank $1F */
-void PhraseHandleInput(void);
 void MapMoveLeft(void);                     /* $05:$4233 */
 void MapMoveRight(void);                    /* $05:$4253 */
 void MapMoveUp(void);                       /* $05:$426A */
@@ -749,6 +750,98 @@ UBYTE PhraseCheckEditContext(UBYTE x)
     if (wPhraseCol == 0)
         return wSelLeft == 1;
     return ReadClipboardCell(1, x) == 0xFF;
+}
+
+void PastePhraseSelection(void)
+{
+    char x;
+    UBYTE y;
+    UBYTE savedLeft, savedRight;
+    char shift;
+    UBYTE v;
+    UBYTE ctx;
+    UBYTE c4, c3;
+
+    savedLeft = wSelLeft;
+    savedRight = wSelRight;
+    shift = 0;
+    if (wClipboardType == 5) {
+        switch (wSelRight - wSelLeft) {
+        default:
+            return;
+        case 2:
+            switch (wSelLeft) {
+            case 2:
+                shift = -1;
+                break;
+            case 4:
+                shift = 1;
+                break;
+            default:
+                return;
+            }
+            wSelLeft = 3;
+            wSelRight = 5;
+        }
+    }
+    y = wSelTop;
+    c4 = shift + 4;
+    c3 = shift + 3;
+    for (; y < wSelBottom; y++) {
+        for (x = wSelRight - 1; !(x < (char)wSelLeft); x--) {
+            ctx = PhraseCheckEditContext(y);
+            if (ctx) {
+                if (x < 2)
+                    x ^= 1;
+            }
+            switch (x) {
+            case 0:
+                wPhraseNoteIsKitA = CursorInstrIsKit();
+                if (wPhraseNoteIsKitA) {
+                    v = ReadClipboardCell(ctx, y);
+                    if (v == 0xFF)
+                        break;
+                    v <<= 4;
+                    v = (PhraseReadNote(wPhraseRow) & 0x0F) + v;
+                    WritePhraseNote(wPhraseRow, v);
+                }
+                break;
+            case 1:
+                v = ReadClipboardCell(ctx ^ 1, y);
+                if (!(wSongCol == 3)) {
+                    if (v == 0xFF)
+                        break;
+                }
+                wPhraseNoteIsKitB = CursorInstrIsKit();
+                if (wPhraseNoteIsKitB)
+                    v = (PhraseReadNote(wPhraseRow) & 0xF0) + v;
+                WritePhraseNote(wPhraseRow, v);
+                break;
+            case 2:
+                WritePhraseInstrument(wPhrase, wPhraseRow, ReadClipboardCell(2, y));
+                break;
+            case 3:
+                WritePhraseFx(wPhrase, wPhraseRow, ReadClipboardCell(c3, y));
+                break;
+            case 4:
+                WritePhraseFxVal(wPhrase, wPhraseRow, ReadClipboardCell(c4, y));
+                break;
+            }
+            if (ctx) {
+                if (x < 2)
+                    x ^= 1;
+            }
+        }
+        wPhraseRow++;
+        if ((char)wPhraseRow == 0x10)
+            wPhraseRow = 0;
+    }
+    if (shift) {
+        wSelLeft = savedLeft;
+        wSelRight = savedRight;
+    }
+    if (wSelBottom - wSelTop > 1)
+        ShowMessage("PASTE");
 }
 
 void CloneInstrument(UBYTE src, UBYTE dst)
@@ -1842,7 +1935,7 @@ UBYTE PhraseScreenInput(void)
                     return 0;
             }
         FarCall(0x1F, FAR_FN(InstrHReadCursorCellAt));
-        PhraseHandleInput();
+        PastePhraseSelection();
         DrawPhraseScreen();
         return 1;
     }

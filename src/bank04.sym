@@ -41,7 +41,7 @@
 4CC4 DrawNoteCell               ; draw wSampleNoteString (note name) or "OFF"
 510A CursorInstrIsKit           ; 1 if the instrument in effect at the cursor (FindCursorInstr) is a kit
 5136 PhraseCheckEditContext     ; predicate over mode $c41d / col $c415 / wSelLeft / CursorInstrIsKit
-51AE PhraseHandleInput          ; main phrase-screen cursor/edit handler ($c411 mode, wSelLeft/wSelTop); large
+51AE PastePhraseSelection       ; paste the clipboard (wClipboardType) into the phrase: for rows wSelTop..wSelBottom and columns wSelRight-1 down to wSelLeft, each cell by column (kit notes merged nibble-wise, instrument, command, value); a 3-wide table-command selection (wClipboardType 5) shifts its command pair by -1/+1; PASTE message for multi-row pastes
 5491 CloneInstrument            ; copy instrument src to dst: its 16 bytes, then its name (CopyInstrName / WriteInstrName)
 55EB CloneTableAtCursor         ; clone the table referenced by the cmd value under the cursor (FindFreeTable+CopyTableData)
 567D PhraseCursorOnEditCell     ; return 1 if cursor is on the active cmd cell ($c416==wSelTop and $c415==wSelLeft)
@@ -105,9 +105,9 @@
 4DFC .loop4               ; loop head in DrawPhraseScreen
 4E84 .loop5               ; loop head in DrawPhraseScreen
 51AC .done                ; common exit of PhraseCheckEditContext
-521F .loop                ; loop head in PhraseHandleInput
-5233 .loop2               ; loop head in PhraseHandleInput
-5487 .done                ; common exit of PhraseHandleInput
+521F .nextRow             ; PastePhraseSelection: for each row y of the selection
+5233 .nextCol             ; PastePhraseSelection: for each column x, right to left
+5487 .done                ; common exit of PastePhraseSelection
 5494 .loop                ; loop head in CloneInstrument
 55CD .done                ; common exit of CloneInstrAtCursor
 5679 .done                ; common exit of CloneTableAtCursor
@@ -211,13 +211,13 @@
 5158 .clearSelLeft
 5167 .phraseCurNoteIsKit
 5175 .loadPhraseCol
-51DC .checkSelLeft
-51FE .setSelLeft
-5208 .loadSelTop
-52BA .phraseCurNoteIsKit
-5366 .phraseCurNoteIsKitb
-5443 .incPhraseRow
-546E .loadSelBottom
+51DC .cmdPairWidth2       ; PastePhraseSelection: a 3-wide table-command selection: which column?
+51FE .selectCmdCols       ; PastePhraseSelection: paste into columns 3..4
+5208 .rowsStart           ; PastePhraseSelection: y = wSelTop, the shifted command columns
+52BA .pasteNoteHi         ; PastePhraseSelection: column 0 of a kit note (high nibble)
+5366 .pasteNoteLo         ; PastePhraseSelection: column 1 (low nibble on a kit)
+5443 .rowDone             ; PastePhraseSelection: wPhraseRow++ wraps at $10
+546E .checkRows           ; PastePhraseSelection: PASTE message for a multi-row paste
 56D1 .checkPhraseCol
 56E2 .checkPhraseColb
 5772 .checkPlayMode
@@ -400,25 +400,25 @@
 5190 .getScreenScratchCell2
 51A9 .cont_3
 51AA .cont_4
-51ED .cont
-51F4 .cont_2
-51FB .setSelLeft_2
-527A .cont_3
-52E2 .cont_4
-52E3 .cont_5
-5323 .cont_6
-534A .cont_7
-534B .checkArg
-535E .cont_8
-535F .phraseCurNoteIsKit_2
-538C .loadPhraseRow
-539F .getScreenScratchCell2
-53C7 .getScreenScratchCell2_2
-53F0 .getScreenScratchCell2_3
-5416 .cont_9
-5439 .incPhraseRow_2
-5453 .cont_10
-5459 .setSelLeft_3
+51ED .shiftLeft           ; PastePhraseSelection: pair in columns 2..3: shift = -1
+51F4 .shiftRight          ; PastePhraseSelection: pair in columns 4..5: shift = +1
+51FB .badPair             ; PastePhraseSelection: any other width: nothing to paste
+527A .colSwapped          ; PastePhraseSelection: kit context: columns 0/1 swapped
+52E2 .hiNotEmpty          ; PastePhraseSelection: high nibble == $FF test
+52E3 .hiTested            ; PastePhraseSelection
+5323 .colLo               ; PastePhraseSelection: column 1: read cell ctx ^ 1
+534A .notInstrCol         ; PastePhraseSelection: wSongCol == 3 test
+534B .instrColTested      ; PastePhraseSelection
+535E .loNotEmpty          ; PastePhraseSelection: low nibble == $FF test
+535F .loTested            ; PastePhraseSelection
+538C .writeNote           ; PastePhraseSelection: WritePhraseNote(wPhraseRow, v)
+539F .pasteInstr          ; PastePhraseSelection: column 2
+53C7 .pasteCmd            ; PastePhraseSelection: column 3 (+ shift)
+53F0 .pasteCmdVal         ; PastePhraseSelection: column 4 (+ shift)
+5416 .colDone             ; PastePhraseSelection: swap columns 0/1 back
+5439 .colStep             ; PastePhraseSelection: x--
+5453 .rowStep             ; PastePhraseSelection: y++
+5459 .restoreSel          ; PastePhraseSelection: restore wSelLeft/wSelRight after a shifted pair
 54BB .cont
 557F .farCallByte
 5597 .copyInstrBytes
@@ -663,7 +663,7 @@
 42A3 PhraseColX1        ; the same with wPhraseDrawMode set (2 5 9 12 13)
 
 ; --- pointer targets (tools/name_targets.py) ---
-52AB .jumpTable
+52AB .jumpTable           ; PastePhraseSelection: switch (x)
 5D1E .aColumnTable
 6288 .incColumnTable
 66D9 .bigColumnTable

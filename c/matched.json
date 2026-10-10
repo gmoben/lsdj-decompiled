@@ -2423,6 +2423,12 @@
   "len": 185,
   "src": "c/bank01/SongAlloc.c"
  },
+ "PastePhraseSelection": {
+  "bank": "04",
+  "addr": "51AE",
+  "len": 733,
+  "src": "c/bank04/PhraseScreen.c"
+ },
  "PasteSongSelection": {
   "bank": "07",
   "addr": "5970",
