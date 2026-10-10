@@ -69,6 +69,9 @@ KNOWN_ASM = {
     # compiled-looking but runs off its end into ScreenDrawDispatch (no
     # `call; ret`): no C function ends without returning
     "00:RedrawScreen",
+    # the boot code's tail (falls in from Start's hardware setup, `ei; jp
+    # main`, then crt0's `halt; jr` idle): the modified crt0, not C
+    "00:SerialInit",
 }
 
 # GBDK 2.95-3 / SDCC 2.2.1 library code linked into bank 0, by the source it
