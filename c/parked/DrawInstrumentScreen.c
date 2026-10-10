@@ -4,8 +4,6 @@
 extern UBYTE InstrFieldX[][18];
 extern UBYTE InstrFieldY[][18];
 extern UBYTE InstrFieldCounts[];
-extern UBYTE InstrFieldYF[];
-extern UBYTE InstrFieldXF[];
 extern UBYTE wInstrFieldCount;              /* $C905 */
 extern UBYTE wNameEditBuf[];                /* $C431 */
 extern char InstrTypeNames[];               /* $03:$4FC4 */
@@ -25,7 +23,6 @@ void DrawInstrumentScreen(void)
 {
     UBYTE i;
     UBYTE type;
-    UBYTE off;
     UWORD fn;
 
     if (wInstrument > 0x40)
@@ -46,8 +43,7 @@ void DrawInstrumentScreen(void)
     InstrScreenFrame();
     hBgDigitPalette = wShadowDigitPal;
     hBgPalette = wShadowPal;
-    off = MulU8(type, 18);
-    GetTilemapAddr(InstrFieldX[0][off], InstrFieldY[0][off]);
+    GetTilemapAddr(InstrFieldX[type][0], InstrFieldY[type][0]);
     FarCallArg(1, FAR_FN(CopyInstrName), wInstrument);
     for (i = 0; i < 5; i++) {
         UBYTE c = wNameEditBuf[i];
@@ -55,8 +51,8 @@ void DrawInstrumentScreen(void)
             c = ' ';
         DrawStringIndexed(c);
     }
-    GetTilemapAddr(*((UBYTE *)&InstrFieldXF[off] + 1), *((UBYTE *)&InstrFieldYF[off] + 1));
-    DrawString(InstrTypeNames + MulU8(type, 6));
+    GetTilemapAddr(InstrFieldX[type][1], InstrFieldY[type][1]);
+    DrawString(InstrTypeNames + type * 6);
     switch (type) {
     case 0:
         fn = (UWORD)DrawPulseInstr;
