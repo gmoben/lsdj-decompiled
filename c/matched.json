@@ -395,6 +395,24 @@
   "len": 149,
   "src": "c/bank1c/FileScreen.c"
  },
+ "DedupChains": {
+  "bank": "1F",
+  "addr": "5C78",
+  "len": 157,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
+ "DedupPhrases": {
+  "bank": "1F",
+  "addr": "5BDE",
+  "len": 154,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
+ "DedupTables": {
+  "bank": "1F",
+  "addr": "5D18",
+  "len": 174,
+  "src": "c/bank1f/InstrHelpers.c"
+ },
  "DispatchScreenInput": {
   "bank": "00",
   "addr": "2A71",

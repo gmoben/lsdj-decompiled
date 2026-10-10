@@ -11,6 +11,12 @@
 # byte-identical asm, objects, listings and linked images to the Win32 ones
 # (docs/toolchain.md); tools/match prefers them when present.
 #
+# One deliberate difference from stock: LSDj's compiler made no SSA copy
+# when a function call's result is assigned to a global (the patch below,
+# "LSDj's compiler"); the Win32 sdcc.exe does, so it is not byte-identical
+# for the three functions where that shows (DedupPhrases, DedupChains,
+# DrawFreedTables).
+#
 # Needs: git, gcc with 32-bit support (-m32; SDCC 2.2.1 assumes 32-bit
 # pointers), bison, flex, make. Output: toolchain/sdcc-2.2.1-native/bin/.
 #
@@ -83,6 +89,47 @@ p.write_text(s[:i] + "#include <time.h>\n#include <stdlib.h>\n#include <string.h
              errors="surrogateescape")
 EOF
 
+echo "==> patching to LSDj's compiler (one iCode-generation difference from stock 2.2.1)"
+python3 - <<'EOF'
+from pathlib import Path
+
+def edit(path, old, new):
+    p = Path(path); s = p.read_text(errors="surrogateescape")
+    assert s.count(old) == 1, (path, old)
+    p.write_text(s.replace(old, new), errors="surrogateescape")
+
+# Stock 2.2.1 copies every value assigned to a non-volatile global through
+# a fresh temporary first ("this is SSA"); the register allocator's
+# packRegsForAssign merges the copy away again unless the temporary's live
+# range was stretched to a loop end, in which case the copy stays and the
+# allocation around it changes. LSDj's compiler makes no such copy when the
+# value is a function call's result: every other matched function compiles
+# identically either way, and DedupPhrases / DedupChains / DrawFreedTables
+# ($1F:$5BDE / $5C78 / $5D18) only match without the copy (docs/toolchain.md).
+# Dropping the copy for every assignment is too much: ten functions that
+# read the global back (LoadSyncSetting ...) then keep the value in a register.
+edit("src/SDCCicode.c", """operand *geniCodeAssign (operand *left, operand *right, int nosupdate)
+{""", """/* LSDj's compiler (tools/toolchain/build_sdcc221.sh): is `right` the
+   result of the function call just generated? */
+static int isFreshCallResult (operand *right)
+{
+    iCode *lic = iCodeChain ? iCodeChain->item : NULL;
+    return IS_ITEMP(right) && lic && lic->op == CALL &&
+	IC_RESULT(lic) && IC_RESULT(lic)->key == right->key;
+}
+
+operand *geniCodeAssign (operand *left, operand *right, int nosupdate)
+{""")
+edit("src/SDCCicode.c", """    if (IS_TRUE_SYMOP(left) && 
+	!isOperandVolatile(left,FALSE) &&
+	isOperandGlobal(left)) {
+	symbol *sym = NULL;""", """    if (IS_TRUE_SYMOP(left) && 
+	!isOperandVolatile(left,FALSE) &&
+	isOperandGlobal(left) &&
+	!isFreshCallResult(right)) {      /* LSDj's compiler: no SSA copy of a call's result */
+	symbol *sym = NULL;""")
+EOF
+
 if [ "$DEBUG" = 1 ]; then
 echo "==> instrumenting (allocator trace, loop/dataflow prints; codegen unchanged)"
 python3 - <<'EOF2'
@@ -126,9 +173,26 @@ edit("src/z80/ralloc.c", """	    /* take away registers from live
 		if (ic->seq >= lo && ic->seq <= hi && !held && regsZ80[0].isFree) { regsZ80[0].isFree = 0; held = 1; }
 		else if ((ic->seq < lo || ic->seq > hi) && held) { regsZ80[0].isFree = 1; held = 0; }
 	    }
+	    if (getenv("BUSYB")) {
+		int lo = 0, hi = 0; static int heldb = 0;
+		sscanf(getenv("BUSYB"), "%d-%d", &lo, &hi);
+		if (ic->seq >= lo && ic->seq <= hi && !heldb && regsZ80[1].isFree) { regsZ80[1].isFree = 0; heldb = 1; }
+		else if ((ic->seq < lo || ic->seq > hi) && heldb) { regsZ80[1].isFree = 1; heldb = 0; }
+	    }
+	    /* SPILLSYM=name,name: these symbols are spilt at their definition (as a use before the
+	       definition or a volatile would do, without changing the code elsewhere) */
+	    if (getenv("SPILLSYM") && IC_RESULT(ic) && IS_SYMOP(IC_RESULT(ic))) {
+		symbol *rs = OP_SYMBOL(IC_RESULT(ic));
+		char buf[256]; char *tok; strncpy(buf, getenv("SPILLSYM"), 255); buf[255] = 0;
+		for (tok = strtok(buf, ","); tok; tok = strtok(NULL, ","))
+		    if (!strcmp(tok, rs->name) && !rs->isspilt && rs->nRegs && !bitVectBitValue(regAssigned, rs->key)) {
+			D(D_ALLOC, ("SPILLSYM: spilling %s at seq%d\\n", rs->name, ic->seq));
+			spillThis(rs);
+		    }
+	    }
 """)
 edit("src/z80/ralloc.c", 'D(D_ALLOC, ("\\n-> z80_assignRegisters: entered.\\n"));',
-     'D(D_ALLOC, ("\\n-> z80_assignRegisters: entered %s.\\n", currFunc ? currFunc->name : "?"));')
+     'D(D_ALLOC, ("\\n-> z80_assignRegisters: entered %s (regAssigned bits carried over: %d).\\n", currFunc ? currFunc->name : "?", regAssigned ? bitVectnBitsOn(regAssigned) : 0));')
 edit("src/SDCCopt.c", """    /* if nothing passed then return nothing */
     if (!ic)
 	return NULL ;
@@ -138,16 +202,88 @@ edit("src/SDCCopt.c", """    /* if nothing passed then return nothing */
     if (getenv("LOOPDBG"))
 	printf("FUNC %s\\n", currFunc ? currFunc->name : "?");
 """)
+# Hypothesis knobs (experiments on what a modified allocator might have done):
+#   DEASSIGN_STRICT=1  a dying symbol's registers are freed one iCode later (liveTo < seq)
+#   CND_ALLOC=1        conditional temps (compare feeding the next IFX) get a register too
+#   HANDOVER_NONE=1    no hand-over of a dying operand's registers to the result
+#   ALLOC_BFIRST=1     single registers are allocated b first
+#   NO_POSITION=1      positionRegs disabled
+#   IFX_LATE=1         symbols dying at an IFX are freed at the following iCode
+#   KEYOF=name:K,...   force the operand key of global symbol `name` to K (a global's key is
+#                      assigned on its first use in the unit and kept for later functions,
+#                      where it can coincide with a temp's key: isOperandEqual compares keys)
+edit("src/SDCCicode.c", """    if (!sym->key)
+	sym->key = ++operandKey ;
+
+    /* if this an implicit variable, means struct/union */""", """    if (!sym->key) {
+	sym->key = ++operandKey ;
+	if (getenv("KEYDBG") && !sym->level)
+	    printf("KEY %s %d in %s\\n", sym->name, sym->key, currFunc ? currFunc->name : "?");
+    }
+    if (getenv("KEYOF") && !sym->level) {
+	char buf[512]; char *tok; strncpy(buf, getenv("KEYOF"), 511); buf[511] = 0;
+	for (tok = strtok(buf, ","); tok; tok = strtok(NULL, ",")) {
+	    char *colon = strchr(tok, ':');
+	    if (colon && !strncmp(tok, sym->name, colon - tok) && !sym->name[colon - tok])
+		sym->key = atoi(colon + 1);
+	}
+    }
+
+    /* if this an implicit variable, means struct/union */""")
+edit("src/z80/ralloc.c", """	symbol *psym= NULL;
+	/* if it does not end here */
+	if (sym->liveTo > ic->seq )
+	    continue ;
+""", """	symbol *psym= NULL;
+	/* if it does not end here */
+	if (sym->liveTo > ic->seq )
+	    continue ;
+	if (getenv("DEASSIGN_STRICT") && sym->liveTo == ic->seq)
+	    continue ;
+	if (getenv("IFX_LATE") && ic->op == IFX && sym->liveTo == ic->seq)
+	    continue ;
+""")
+edit("src/z80/ralloc.c", """	    /* if the type is marked as a conditional */
+	    if (sym->regType == REG_CND)
+		continue ;
+""", """	    /* if the type is marked as a conditional */
+	    if (sym->regType == REG_CND && !getenv("CND_ALLOC"))
+		continue ;
+""")
+edit("src/z80/ralloc.c", """		(result = OP_SYMBOL(IC_RESULT(ic))) && /* has a result */
+		result->liveTo > ic->seq &&            /* and will live beyond this */""",
+"""		!getenv("HANDOVER_NONE") &&
+		(result = OP_SYMBOL(IC_RESULT(ic))) && /* has a result */
+		result->liveTo > ic->seq &&            /* and will live beyond this */""")
+edit("src/z80/ralloc.c", """    for ( i = 0 ; i < _nRegs ; i++ ) {
+	/* For now we allocate from any free */
+	if (regsZ80[i].isFree ) {""", """    for ( i = 0 ; i < _nRegs ; i++ ) {
+	int k = getenv("ALLOC_BFIRST") ? _nRegs - 1 - i : i;
+	/* For now we allocate from any free */
+	if (regsZ80[k].isFree ) {
+	    i = k;""")
+edit("src/z80/ralloc.c", """    /* if the result has been spilt then cannot share */
+    if (opsym->isspilt)
+	return ;""", """    /* if the result has been spilt then cannot share */
+    if (opsym->isspilt || getenv("NO_POSITION"))
+	return ;""")
+#   NOEXTEND=name,...  temp `name` is not extended to its loop's end by hasIncomingDefs
 edit("src/SDCClrange.c", """	if (ebp->partOfLoop && 
 	    hasIncomingDefs(ebp->partOfLoop,op)) {
 	    torange = findLoopEndSeq(ebp->partOfLoop);
 	}
 """, """	if (ebp->partOfLoop) {
 	    int hid = hasIncomingDefs(ebp->partOfLoop,op);
+	    if (hid && getenv("NOEXTEND") && strstr(getenv("NOEXTEND"), OP_SYMBOL(op)->name))
+		hid = 0;
 	    if (getenv("LOOPDBG")) {
 		eBBlock *ph = ebp->partOfLoop->entry->preHeader;
-		printf("HID %s in %s -> %d\\n", OP_SYMBOL(op)->name,
+		printf("HID %s in %s -> %d (defs", OP_SYMBOL(op)->name,
 		       (ph && ph->entryLabel) ? ph->entryLabel->name : "?", hid);
+		if (OP_DEFS(op)) { int b; for (b = 0; b < OP_DEFS(op)->size; b++) if (bitVectBitValue(OP_DEFS(op), b)) printf(" ic%d", b); }
+		printf("; preheader outDefs");
+		if (ph && ph->outDefs) { int b; for (b = 0; b < ph->outDefs->size; b++) if (bitVectBitValue(ph->outDefs, b)) printf(" ic%d", b); }
+		printf(")\\n");
 	    }
 	    if (hid)
 		torange = findLoopEndSeq(ebp->partOfLoop);
@@ -211,11 +347,11 @@ log="$work/build.log"
     make -C support/cpp CC="gcc -m32" CFLAGS="$CFLAGS"
     make -C as CC="gcc -m32"
     make -C link CC="gcc -m32"
-} > "$log" 2>&1 || { tail -30 "$log"; exit 1; }
+} > "$log" 2>&1 || { grep -n "error" "$log" | head -20; tail -30 "$log"; exit 1; }
 
 mkdir -p "$DEST/bin"
 for t in sdcc sdcpp as-gbz80 link-gbz80; do
-    [ -x "bin/$t" ] || { echo "error: bin/$t was not built (see $log)" >&2; tail -30 "$log"; exit 1; }
+    [ -x "bin/$t" ] || { echo "error: bin/$t was not built (see $log)" >&2; grep -n "error" "$log" | head -20; tail -30 "$log"; exit 1; }
     cp "bin/$t" "$DEST/bin/$t"
 done
 echo "$COMMIT" > "$DEST/SOURCE_COMMIT"

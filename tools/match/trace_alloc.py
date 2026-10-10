@@ -75,7 +75,7 @@ def segment(trace: str, func: str) -> tuple[list[str], list[str]]:
         if m:
             cur, in_alloc = m.group(1), False
             continue
-        m = re.match(r"-> z80_assignRegisters: entered (\w+)\.", line)
+        m = re.match(r"-> z80_assignRegisters: entered (\w+)(?: \([^)]*\))?\.", line)
         if m:
             cur, in_alloc = m.group(1), True
             continue

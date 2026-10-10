@@ -73,9 +73,15 @@ def use_native() -> bool:
     return (NATIVE / "sdcc").is_file() and not os.environ.get("LSDJ_USE_WINE")
 
 
+# Bumped when build_sdcc221.sh changes what the native compiler emits (the
+# cache key below): 3 = no SSA copy of a call result assigned to a global.
+NATIVE_REV = 3
+
+
 def toolchain_id() -> str:
-    """Identifies the compiler for caches (both builds emit the same code)."""
-    return (f"native:{NATIVE}" if use_native() else f"wine:{GBDK}") + " ".join([""] + SDCC_FLAGS)
+    """Identifies the compiler for caches."""
+    return ((f"native:{NATIVE}:r{NATIVE_REV}" if use_native() else f"wine:{GBDK}")
+            + " ".join([""] + SDCC_FLAGS))
 WINEPREFIX = Path(os.environ.get("WINEPREFIX", REPO_ROOT / "toolchain" / ".wine"))
 DEFAULT_PEEP = REPO_ROOT / "tools" / "match" / "lsdj.peep"
 INCLUDE_DIR = REPO_ROOT / "c" / "include"   # shared prototypes/externs (lsdj.h)

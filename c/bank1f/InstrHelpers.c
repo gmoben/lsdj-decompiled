@@ -38,17 +38,18 @@ void WriteInstrName(UBYTE instr);           /* $01:$4A49 */
 UBYTE IsPhraseUsed(UBYTE phrase);
 extern UBYTE wColPhrase[];                  /* $C453, [4] */
 extern UBYTE wColChain[];                   /* $C44F, [4] */
-extern UBYTE wPhraseDedupScratch5;          /* $C9CC */
+extern UBYTE wDedupTableIsDup;              /* $C9CC */
+extern UBYTE wDedupPhraseUsed;              /* $C9C8 */
+extern UBYTE wDedupPhraseIsDup;             /* $C9C9 */
+extern UBYTE wDedupChainUsed;               /* $C9CA */
+extern UBYTE wDedupChainIsDup;              /* $C9CB */
 void FreePhrase(void);                      /* $01:$4DD3 */
 void FreeChain(void);                       /* $01:$4E43 */
 void MarkChainUsed(void);                   /* $01:$4D67 */
 void ShowOutOfMemory(void);                 /* $01:$75BD */
-void DrawFreedTables(void);
 UBYTE FreeUnusedInstrs(void);
 UBYTE InstrHCountUsedPhrases(void);
 UBYTE InstrHCountUsedChains(void);
-void DedupPhrases(void);
-void DedupChains(void);
 void RemapSeqChains(void);
 void RebuildPhraseAllocMap(void);
 UBYTE FindDupTable(UBYTE a, UBYTE b);
@@ -1121,6 +1122,72 @@ void RemapCmdTableRefs(UBYTE from, UBYTE to)
     }
 }
 
+void DedupPhrases(void)
+{
+    UBYTE i, j;
+
+    for (i = 0; i < 0xFF; i = i + 1) {
+        if (!IsPhraseUsedFar(i))
+            continue;
+        wVramCursor = (UBYTE *)0x98AE;
+        DrawHexByte(i);
+        for (j = i + 1; j < 0xFF; j = j + 1) {
+            wDedupPhraseUsed = IsPhraseUsedFar(j);
+            if (wDedupPhraseUsed) {
+                wDedupPhraseIsDup = FindDupPhrase(i, j);
+                if (wDedupPhraseIsDup)
+                    RemapPhraseRefs(j, i);
+            }
+        }
+    }
+    wVramCursor = (UBYTE *)0x98AE;
+    DrawStringTile20();
+    DrawStringTile20();
+}
+
+void DedupChains(void)
+{
+    UBYTE i, j;
+
+    for (i = 0; i < 0x80; i = i + 1) {
+        if (!IsChainUsedFar(i))
+            continue;
+        wVramCursor = (UBYTE *)0x98AE;
+        DrawHexByte(i);
+        for (j = i + 1; j < 0x80; j = j + 1) {
+            wDedupChainUsed = IsChainUsedFar(j);
+            if (wDedupChainUsed) {
+                wDedupChainIsDup = FindDupChain(i, j);
+                if (wDedupChainIsDup)
+                    RemapChainRefs(j, i);
+            }
+        }
+    }
+    wVramCursor = (UBYTE *)0x98AE;
+    DrawString("OK");
+}
+
+void DedupTables(void)
+{
+    UBYTE i, j;
+
+    for (i = 0; i < 0x20; i = i + 1) {
+        if (IsTableFree(i))
+            continue;
+        wVramCursor = (UBYTE *)0x98AE;
+        DrawHexByte(i);
+        for (j = i + 1; j < 0x20; j = j + 1) {
+            if (IsTableFree(j))
+                continue;
+            wDedupTableIsDup = FindDupTable(i, j);
+            if (wDedupTableIsDup)
+                RemapCmdTableRefs(j, i);
+        }
+    }
+    wVramCursor = (UBYTE *)0x98AE;
+    DrawString("OK");
+}
+
 UBYTE InstrHCountUsedPhrases(void)
 {
     UBYTE n, i;
@@ -1353,7 +1420,7 @@ void CleanInstrData(void)
 {
     wVramCursor = 0x98A4;
     DrawString("DE-DUPE...");
-    DrawFreedTables();
+    DedupTables();
     wVramCursor = 0x98C4;
     DrawString("FREEING:");
     wVramCursor = 0x98E4;

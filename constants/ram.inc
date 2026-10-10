@@ -846,11 +846,11 @@ DEF wTileSlotPtr     EQU $C9B5  ; 16-bit scratch ptr (LoadTilesDispatch -> Reque
 DEF wTileSlotPtrHi   EQU $C9B6  ; hi byte of wTileSlotPtr
 DEF wInstrRemapDirty EQU $C9B7  ; instrument remap table populated/dirty flag
 DEF wInstrRemapTable EQU $C9B8  ; [16] instrument-slot remap/claim table ($FF = empty; InitRemapTable)
-DEF wPhraseDedupScratch EQU $C9C8  ; scratch: IsPhraseUsedFar result (bank1f dedup)
-DEF wPhraseDedupScratch2 EQU $C9C9  ; scratch: FindDupPhrase result
-DEF wPhraseDedupScratch3 EQU $C9CA  ; scratch (bank1f phrase dedup)
-DEF wPhraseDedupScratch4 EQU $C9CB  ; scratch (bank1f phrase dedup)
-DEF wPhraseDedupScratch5 EQU $C9CC  ; scratch (bank1f phrase dedup)
+DEF wDedupPhraseUsed EQU $C9C8  ; DedupPhrases: IsPhraseUsedFar(j) in the inner loop
+DEF wDedupPhraseIsDup EQU $C9C9  ; DedupPhrases: FindDupPhrase(i, j)
+DEF wDedupChainUsed EQU $C9CA  ; DedupChains: IsChainUsedFar(j) in the inner loop
+DEF wDedupChainIsDup EQU $C9CB  ; DedupChains: FindDupChain(i, j)
+DEF wDedupTableIsDup EQU $C9CC  ; DedupTables: FindDupTable(i, j)
 DEF wDrawTextScratch EQU $C9CD  ; transient tile-value scratch for ColorField (bank1f)
 DEF wChanMuteShown   EQU $C9CE  ; [4] per channel: 1 while the channel cell shows MUTE (DrawChanStatus clears it with blanks)
 DEF wChanMuteShownPtr EQU $C9D2 ; DrawChanStatus's static pointer into wChanMuteShown
