@@ -74,8 +74,9 @@ def use_native() -> bool:
 
 
 # Bumped when build_sdcc221.sh changes what the native compiler emits (the
-# cache key below): 3 = no SSA copy of a call result assigned to a global.
-NATIVE_REV = 3
+# cache key below): 3 = no SSA copy of a call result assigned to a global,
+# 4 = zero-filled bit-vector growth, 5 = lsdj-alloc directives.
+NATIVE_REV = 5
 
 
 def toolchain_id() -> str:
@@ -214,6 +215,18 @@ def repair_globls(asm: str) -> str:
 
 
 STOCK_MARK = re.compile(r"@stock-rules\b")
+# `lsdj-alloc(Func): KIND=spec KIND=spec` in a comment: register-allocation
+# directives for one function (docs/toolchain.md, "The phantom register"),
+# passed to the compiler as LSDJ_ALLOC="Func:KIND=spec ..." (build_sdcc221.sh).
+ALLOC_MARK = re.compile(r"lsdj-alloc\((\w+)\):\s*([^*\n]*)")
+
+
+def alloc_directives(source: str) -> str:
+    """The LSDJ_ALLOC value for a unit's `lsdj-alloc(...)` comments."""
+    out = []
+    for func, specs in ALLOC_MARK.findall(source):
+        out += [f"{func}:{spec}" for spec in specs.split()]
+    return " ".join(out)
 
 
 TRIMMED = False   # set when compile_unit dropped other functions from the unit
@@ -251,9 +264,13 @@ def compile_unit(work: Path, env: dict[str, str], c_path: Path,
     none of LSDj's, so lsdj.peep and the tracking passes are skipped for it.
     Its compiler compared words the way LSDj's did, and signed ones with 0
     too, so gb_cmp16 still runs (abs's `num < 0`)."""
-    stock = peep is not None and bool(STOCK_MARK.search(c_path.read_text(errors="replace")))
+    source = c_path.read_text(errors="replace")
+    stock = peep is not None and bool(STOCK_MARK.search(source))
     if stock:
         peep = None
+    directives = alloc_directives(source)
+    if directives:
+        env = dict(env, LSDJ_ALLOC=directives)
     for stale in ("unit.asm", "unit.o", "unit.lst", "unit.ihx"):   # reused work dir
         (work / stale).unlink(missing_ok=True)
     shutil.copyfile(c_path, work / "unit.c")
@@ -440,6 +457,12 @@ RUNTIME_ALIASES = {
     "ReadSongBytesW": "ReadSongBytes",  # ReadSongBytes with a word source address (FileUpgradeV11 pushes its UWORD cursors)
     "ReadInstrByteS": "ReadInstrByte",  # ReadInstrByte returning `char`: the cast gives the call result its own slot (FileUpgradeV11)
     "FarCallArgWC": "FarCallArg",  # FarCallArg with the target as a plain UWORD and a `char` argument: a `?:` over two addresses pushed from bc without a frame (SetVibratoShape)
+    "FarCallArgW": "FarCallArg",  # FarCallArg with the target as a plain UWORD (DrawInstrumentScreen's `fn` local set by a switch)
+    "FarCallW": "FarCall",  # FarCall with the target as a plain UWORD (DrawInstrumentScreen)
+    "wSynthBandDstW": "wSynthBandDst",  # the band-pass filter's output pointer read as a word: the slot value in the scatter (SynthFilterBandPass)
+    "wSynthBandSlotW": "wSynthBandSlot",  # the band-pass filter's slot pointer as a word: the BufB value, the BufA value in the normalise loop
+    "wSynthBandIdx": "wSynthBandSlot",  # its low byte: the doubled index in the scatter's second half (a block-scope extern)
+    "wWordClipPtrB": "wWordClipPtr",  # the word clipboard pointer's low byte: the kit sample number cached there in WordEditorInput's A press
     "WriteCurrentInstrByteC": "WriteCurrentInstrByte",  # WriteCurrentInstrByte with a `char` value (SetVibratoShape)
     "WriteVramByteSafeP": "WriteVramByteSafe",  # WriteVramByteSafe with a pointer address: the cast of a UWORD counter is the spilt argument copy (ClearOamBuffer)
     "WriteVramByteSafeC": "WriteVramByteSafe",  # char value: the (char)global cast copy evaluated before dst++ owns c and is spilt into the global (GfxCopyVramRegion)

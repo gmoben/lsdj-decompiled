@@ -253,13 +253,13 @@
 42C4 .loadShadowDigitPal
 42F4 .chainDrawWaveCellHw
 4312 .chainDrawWaveCell
-4402 .loadWordEditCol
-441E .ok
-44AA .loadWordEditColb
-44F2 .loadWordEditColc
-45AC .accessWord
-47C7 .drawWordScreen
-47DD .drawWordScreenb
+4402 .cut                 ; WordEditorInput: SELECT+B: cut the word into the clipboard
+441E .cutClipOk           ; WordEditorInput: clipboard type already a word, or not in a selection
+44AA .paste               ; WordEditorInput: SELECT+A: paste the clipboard word
+44F2 .enterCells          ; WordEditorInput: A: re-enter the clipboard cells
+45AC .enterLength         ; WordEditorInput: A on the length column
+47C7 .bDownClamped        ; WordEditorInput: B+DOWN: row clamped at 0
+47DD .bUpClamped          ; WordEditorInput: B+UP: row clamped at 13
 4939 .ok
 49A0 .ok
 4A18 .ok
@@ -359,29 +359,29 @@
 4279 .drawSample          ; (was DrawSampleNameFull) the word screen's sample-name column
 42BB .drawString
 42DB .readSongByte
-43C8 .ret01
-45A2 .setWordEditCol
-45E8 .ret00
-4604 .drawHexByte
-4618 .checkArg
-4657 .writeWordCell
-467C .drawHexByte_2
-4690 .add16
-46D0 .writeWordCell_2
-46FE .drawHexByte_3
-4712 .add16_2
-471D .drawSampleNameCell
-4727 .writeWordCell_3
-4755 .drawHexByte_4
-4769 .add16_3
-4774 .drawSampleNameCell_2
-477E .writeWordCell_4
-4799 .ret01_2
-47B2 .ret01_3
-486A .farCall
-488D .ret01_4
-4892 .farCall_2
-48A5 .cont
+43C8 .upDone              ; WordEditorInput: the row already 0
+45A2 .restoreCol          ; WordEditorInput: nothing entered: put the column back
+45E8 .enterFail           ; WordEditorInput: A changed nothing: return 0
+4604 .plusLenDraw         ; WordEditorInput: A+RIGHT on the length: draw the byte
+4618 .plusAllophone       ; WordEditorInput: A+RIGHT on the allophone column
+4657 .plusWrite           ; WordEditorInput: write the incremented cell
+467C .minusLenDraw        ; WordEditorInput: A+LEFT on the length: draw the byte
+4690 .minusAllophone      ; WordEditorInput: A+LEFT on the allophone column
+46D0 .minusWrite          ; WordEditorInput: write the decremented cell
+46FE .pageUpLenDraw       ; WordEditorInput: A+UP on the length: draw the byte
+4712 .pageUpAllophone     ; WordEditorInput: A+UP on the allophone column
+471D .pageUpClamped       ; WordEditorInput: allophone clamped to $3b
+4727 .pageUpWrite         ; WordEditorInput: write the +$10 cell
+4755 .pageDownLenDraw     ; WordEditorInput: A+DOWN on the length: draw the byte
+4769 .pageDownAllophone   ; WordEditorInput: A+DOWN on the allophone column
+4774 .pageDownClamped     ; WordEditorInput: allophone wrapped back to 1
+477E .pageDownWrite       ; WordEditorInput: write the -$10 cell
+4799 .bLeftDone           ; WordEditorInput: B+LEFT: already on the first row
+47B2 .bRightDone          ; WordEditorInput: B+RIGHT: already on the last row
+486A .selStartToggle      ; WordEditorInput: SELECT+START: toggle song playback
+488D .startDone           ; WordEditorInput: START held or with B: nothing
+4892 .startToggle         ; WordEditorInput: START: toggle playback
+48A5 .noCase              ; WordEditorInput: no handled button combination: return 0
 48C2 .step
 491C .cont
 4929 .checkArg

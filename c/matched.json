@@ -353,6 +353,12 @@
   "len": 207,
   "src": "c/bank06/Screens.c"
  },
+ "CountFileBlocks": {
+  "bank": "1C",
+  "addr": "48D4",
+  "len": 149,
+  "src": "c/bank1c/FileScreen.c"
+ },
  "CrashHandler": {
   "bank": "01",
   "addr": "794B",
@@ -616,6 +622,12 @@
   "addr": "4000",
   "len": 141,
   "src": "c/bank1f/InstrHelpers.c"
+ },
+ "DrawInstrumentScreen": {
+  "bank": "03",
+  "addr": "4DE7",
+  "len": 477,
+  "src": "c/bank03/InstrScreen.c"
  },
  "DrawKbdCursor": {
   "bank": "1B",
@@ -1215,6 +1227,12 @@
   "bank": "1C",
   "addr": "6A57",
   "len": 27,
+  "src": "c/bank1c/FileUpgrade.c"
+ },
+ "FileUpgradeClearRange": {
+  "bank": "1C",
+  "addr": "65B9",
+  "len": 229,
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeReadByte": {
@@ -3569,6 +3587,12 @@
   "len": 277,
   "src": "c/bank1d/SynthScreen.c"
  },
+ "SynthFilterBandPass": {
+  "bank": "1D",
+  "addr": "5BBD",
+  "len": 662,
+  "src": "c/bank1d/SynthScreen.c"
+ },
  "SynthFilterLowHigh": {
   "bank": "1D",
   "addr": "58E6",
@@ -3675,6 +3699,12 @@
   "bank": "1D",
   "addr": "58DA",
   "len": 12,
+  "src": "c/bank1d/SynthScreen.c"
+ },
+ "SynthWriteWaveCol": {
+  "bank": "1D",
+  "addr": "5F29",
+  "len": 103,
   "src": "c/bank1d/SynthScreen.c"
  },
  "TableDrawCursor": {
@@ -3915,6 +3945,12 @@
   "bank": "06",
   "addr": "4AB0",
   "len": 102,
+  "src": "c/bank06/Screens.c"
+ },
+ "WordEditorInput": {
+  "bank": "06",
+  "addr": "431D",
+  "len": 1422,
   "src": "c/bank06/Screens.c"
  },
  "WordScreenInput": {

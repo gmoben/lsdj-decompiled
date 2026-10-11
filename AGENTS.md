@@ -80,7 +80,7 @@ original compiler — a period-correct, modified **GBDK 2.95 + its SDCC build**,
 a matching bank/link layout. SDCC matching is less-trodden than the MIPS/ARM/PPC
 decomp scene, and "modified GBDK" was an unknown, so Track 2 is **gated behind a
 toolchain-recovery spike**: reproduce real LSDj functions byte-for-byte before
-betting on C. **Status:** 672 functions match (`c/`, `make match`) — including
+betting on C. **Status:** 678 functions match (`c/`, `make match`) — including
 a 15-case `switch`, 16-bit SRAM addressing and most of the instrument screen's
 helpers — using stock GBDK 2.95-3 / SDCC 2.2.1 plus peephole rules recovered
 from the ROM (`tools/match/lsdj.peep`). Go: the rule set still grows with new
@@ -240,7 +240,10 @@ When a function won't match, park it: a line in `c/parked.txt` and the
 closest attempt as `c/parked/NAME.c` (tracked, never compiled by
 `make match`), so the next attempt starts from it. `tools/match/
 trace_alloc.py` shows the register allocator's side of a stubborn
-difference. Anything you'd run twice belongs in `tools/`, not in a scratch
+difference; when that side is a register the ROM holds for no symbol, an
+`lsdj-alloc(Func): BUSYC=lo-hi` comment carries the window
+(docs/toolchain.md, "Allocator directives"): six functions need one, the
+last resort after the spellings are exhausted. Anything you'd run twice belongs in `tools/`, not in a scratch
 directory.
 
 ### The disassembler (`tools/disasm.py`)
@@ -470,7 +473,7 @@ Always, before committing:
       RGBDS translation, the carve renders it in place (ROM INCBIN without the
       compiler), `make compare` is the gate
 - [x] Go/no-go on Track 2: **go** — the rule set still grows with new idioms
-      (`docs/toolchain.md`); 672 functions in 13 banks match so far
+      (`docs/toolchain.md`); 678 functions in 13 banks match so far
 
 **Phase 2 — asm skeleton (Track 1)**
 - [x] Byte-exact SM83→RGBDS disassembler (`tools/disasm.py`, opcode self-test)
@@ -547,7 +550,7 @@ Always, before committing:
 - [ ] Reproduce the original bank/link layout under the recovered toolchain
       (only needed to build banks from C wholesale)
 - [x] Replace asm functions with matching C, keeping `make compare` green —
-      the mechanism is in place (672 functions); now it is a grind: bank by
+      the mechanism is in place (678 functions); now it is a grind: bank by
       bank, editor code first, asm functions stay asm
 - [ ] Recover C structures/types toward a full, readable C source tree
 

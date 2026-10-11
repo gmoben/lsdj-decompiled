@@ -158,7 +158,7 @@
 47C8 .loop                ; loop head in FormatFileSpace
 4802 .loop2               ; loop head in FormatFileSpace
 4870 .loop                ; loop head in FileFindSlotEnd
-48EF .loop                ; loop head in CountFileBlocks
+48EF .blockLoop           ; CountFileBlocks: each allocation-table entry $A141..$A1FF
 4965 .done                ; common exit of CountFileBlocks
 4977 .loop                ; loop head in FileListSlots
 49E9 .loop                ; loop head in FreeFileBlocks
@@ -206,9 +206,9 @@
 6469 .loop2               ; loop head in FileUpgradeV7
 64A9 .loop3               ; loop head in FileUpgradeV7
 658F .loop                ; loop head in FileUpgradeReadByte
-65D1 .loop                ; loop head in FileUpgradeClearRange
-65FE .loop2               ; loop head in FileUpgradeClearRange
-661B .loop3               ; loop head in FileUpgradeClearRange
+65D1 .markLoop            ; FileUpgradeClearRange: mark each sequence row's chain in $DA00
+65FE .chainLoop           ; FileUpgradeClearRange: each of the 128 chains
+661B .stepLoop            ; FileUpgradeClearRange: the used chain's 16 transposes
 66BC .loop                ; loop head in FileUpgradeV11
 66F1 .loop2               ; loop head in FileUpgradeV11
 674A .loop3               ; loop head in FileUpgradeV11
@@ -407,8 +407,8 @@
 48C3 .cont
 48CA .cont_2
 48CD .cont_3
-491A .cont
-4929 .readSongByte
+491A .blockRead           ; CountFileBlocks: not at the end: read the entry
+4929 .ptrIncDone          ; CountFileBlocks: p++ done (the high byte carried or not)
 49A2 .cont
 49B1 .readSongByte
 49CD .cont_2
@@ -563,10 +563,10 @@
 6594 .step
 65B5 .cont
 65B6 .cont_2
-65F6 .cont
-6627 .cont_2
-6628 .cont_3
-6691 .cont_4
+65F6 .markNext            ; FileUpgradeClearRange: next row (an empty row is skipped)
+6627 .stepsLeft           ; FileUpgradeClearRange: j != 16: the boolean is 0
+6628 .stepTest            ; FileUpgradeClearRange: store and test the materialised `j == 16`
+6691 .chainNext           ; FileUpgradeClearRange: next chain
 671D .loadSongReadBuf
 6756 .cont
 6757 .cont_2

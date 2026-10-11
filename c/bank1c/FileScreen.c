@@ -14,6 +14,7 @@ extern UBYTE wChanActive[];                 /* $C0E0, [8] */
 extern UBYTE wFsCheckResult;                /* $C56B */
 extern UBYTE wFileBlockIdx;                 /* $C958 */
 extern UBYTE wFileBlockCounts[];            /* $C959, [32] */
+extern UBYTE *wFileBlockCountPtr;           /* $C990 */
 extern UBYTE wCompByte;                     /* $C97F */
 extern UBYTE wCompBank;                     /* $C979 */
 extern UWORD wCompSrc;                      /* $C97A, an SRAM address */
@@ -393,6 +394,37 @@ UBYTE FileFindSlotEnd(void)
         }
     }
     return m;
+}
+
+/*
+ * Count the blocks each file owns: clear the 32 counts, then walk the block
+ * allocation table ($A141..$A1FF, bank 4) and bump the count of every file
+ * number below 32 -- the increment through wFileBlockCountPtr, written as
+ * two statements so the store re-reads the pointer global as the ROM does.
+ * `while (p != 0xA200)` is the 32-bit compare (a UWORD against a constant
+ * above 32767).
+ *
+ * lsdj-alloc(CountFileBlocks): NOSPILLAT=iTemp0:27 SPILLAT=iTemp0:28
+ * -- at the count's read nothing is spillable (p keeps bc, the read spills
+ * itself into the dead long's slot), and p is evicted at the `+ 1` that
+ * follows (docs/toolchain.md, "The phantom register").
+ */
+void CountFileBlocks(void)
+{
+    UWORD p;
+    UBYTE v;
+    UBYTE t;
+
+    p = 0xA141;
+    MemSet(wFileBlockCounts, 0, 0x20);
+    while (p != 0xA200) {
+        v = ReadSongByte(4, p++);
+        if (v < 0x20) {
+            wFileBlockCountPtr = &wFileBlockCounts[v];
+            t = *wFileBlockCountPtr + 1;
+            *wFileBlockCountPtr = t;
+        }
+    }
 }
 
 UBYTE FileListSlots(void)

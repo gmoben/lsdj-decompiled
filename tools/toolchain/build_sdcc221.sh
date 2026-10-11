@@ -71,6 +71,19 @@ for h in ("src/SDCCglobl.h", "src/SDCCset.h", "src/SDCChasht.h"):
     Path(h).write_text(s)
 edit("src/Makefile.in", "LIBS\t\t= -lgc -lm @LIBS@", "LIBS\t\t= -lm")
 edit("src/Makefile.in", "all: ports checkconf $(LIBGC) $(TARGET)", "all: ports checkconf $(TARGET)")
+# A bit vector that grows (`bitVectSetBit` past its size) must come back
+# zero-filled: SDCC reads the new bits as "unset", and the GC's realloc
+# (grow = GC_malloc + copy) gave it that; plain realloc leaves the old heap
+# contents there (a whole-unit compile showed a dead temporary's key
+# "register-assigned" into the following functions).
+edit("src/SDCCbitv.c", """    bvp->size = size;
+    bvp->bSize= bSize;
+    bvp->vect = GC_realloc(bvp->vect, bSize);
+    return bvp;""", """    bvp->vect = GC_realloc(bvp->vect, bSize);
+    memset(bvp->vect + bvp->bSize, 0, bSize - bvp->bSize);
+    bvp->size = size;
+    bvp->bSize= bSize;
+    return bvp;""")
 # Modern flex defines yylineno itself and no longer has YY_PROTO.
 edit("src/SDCC.lex", "int   yylineno = 1               ;", "/* yylineno: defined by flex */")
 edit("src/SDCC.lex", "int yywrap YY_PROTO((void))", "int yywrap(void)")
@@ -128,6 +141,87 @@ edit("src/SDCCicode.c", """    if (IS_TRUE_SYMOP(left) &&
 	isOperandGlobal(left) &&
 	!isFreshCallResult(right)) {      /* LSDj's compiler: no SSA copy of a call's result */
 	symbol *sym = NULL;""")
+
+# Per-function allocator directives (LSDJ_ALLOC="Func:KIND=spec ..."): six
+# functions of the ROM allocate as if a register were held by an occupant no
+# symbol accounts for, or a symbol were unspillable at one point
+# (docs/toolchain.md, "The phantom register"); a `lsdj-alloc(Func): ...`
+# comment in the C source names the window and tools/match/match_function.py
+# passes it here. KINDs: BUSYC=lo-hi / BUSYB=lo-hi hold register c / b for
+# iCode sequence numbers lo..hi; SPILLSYM=sym spills sym at its definition;
+# SPILLAT=sym:seq evicts sym when the walk reaches seq; NOSPILLAT=sym:seq
+# keeps sym out of the spill candidates at seq.
+edit("src/z80/ralloc.c", """static regs *allocReg (short type)
+{""", """/* LSDj's compiler reproduced per function (tools/toolchain/build_sdcc221.sh):
+   LSDJ_ALLOC lists directives "Function:KIND=spec" separated by spaces or
+   commas; lsdjAlloc(kind, idx, spec) copies the idx-th spec of KIND for the
+   function being compiled and returns 1, or returns 0. */
+static int lsdjAlloc(const char *kind, int idx, char *spec, int specsz)
+{
+    const char *env = getenv("LSDJ_ALLOC");
+    char buf[2048]; char *tok, *save; int n = 0;
+    if (!env || !currFunc) return 0;
+    strncpy(buf, env, sizeof(buf) - 1); buf[sizeof(buf) - 1] = 0;
+    for (tok = strtok_r(buf, " ,", &save); tok; tok = strtok_r(NULL, " ,", &save)) {
+	char *colon = strchr(tok, ':'); char *eq;
+	if (!colon) continue;
+	eq = strchr(colon + 1, '=');
+	if (!eq) continue;
+	if ((int)(colon - tok) != (int)strlen(currFunc->name) || strncmp(tok, currFunc->name, colon - tok)) continue;
+	if ((int)(eq - colon - 1) != (int)strlen(kind) || strncmp(colon + 1, kind, eq - colon - 1)) continue;
+	if (n++ == idx) { strncpy(spec, eq + 1, specsz - 1); spec[specsz - 1] = 0; return 1; }
+    }
+    return 0;
+}
+
+static regs *allocReg (short type)
+{""")
+edit("src/z80/ralloc.c", """    spillable = bitVectIntersect(spillable,regAssigned);
+    return spillable;""", """    spillable = bitVectIntersect(spillable,regAssigned);
+    {	/* LSDj's compiler: NOSPILLAT=sym:seq */
+	char spec[128]; int n;
+	for (n = 0; lsdjAlloc("NOSPILLAT", n, spec, sizeof spec); n++) {
+	    char nm[64]; int at = -1; symbol *s; int k;
+	    if (sscanf(spec, "%63[^:]:%d", nm, &at) == 2 && at == ic->seq)
+		for (s = hTabFirstItem(liveRanges, &k); s; s = hTabNextItem(liveRanges, &k))
+		    if (!strcmp(s->name, nm))
+			bitVectUnSetBit(spillable, s->key);
+	}
+    }
+    return spillable;""")
+edit("src/z80/ralloc.c", """	    /* take away registers from live
+	       ranges that end at this instruction */	   
+	    deassignLRs (ic, ebbs[i]) ;		
+""", """	    /* take away registers from live
+	       ranges that end at this instruction */	   
+	    deassignLRs (ic, ebbs[i]) ;		
+	    {	/* LSDj's compiler: per-function allocator directives (lsdjAlloc) */
+		char spec[128]; int d, n;
+		static int lsdjHeld[2]; static symbol *lsdjFunc;
+		if (lsdjFunc != currFunc) { lsdjHeld[0] = lsdjHeld[1] = 0; lsdjFunc = currFunc; }
+		for (d = 0; d < 2; d++) {
+		    int lo, hi, in = 0;
+		    for (n = 0; lsdjAlloc(d ? "BUSYB" : "BUSYC", n, spec, sizeof spec); n++)
+			if (sscanf(spec, "%d-%d", &lo, &hi) == 2 && ic->seq >= lo && ic->seq <= hi)
+			    in = 1;
+		    if (in && !lsdjHeld[d] && regsZ80[d].isFree) { regsZ80[d].isFree = 0; lsdjHeld[d] = 1; }
+		    else if (!in && lsdjHeld[d]) { regsZ80[d].isFree = 1; lsdjHeld[d] = 0; }
+		}
+		for (n = 0; lsdjAlloc("SPILLAT", n, spec, sizeof spec); n++) {
+		    char nm[64]; int at = -1; symbol *s; int k;
+		    if (sscanf(spec, "%63[^:]:%d", nm, &at) == 2 && at == ic->seq)
+			for (s = hTabFirstItem(liveRanges, &k); s; s = hTabNextItem(liveRanges, &k))
+			    if (!strcmp(s->name, nm) && !s->isspilt && bitVectBitValue(regAssigned, s->key))
+				spillThis(s);
+		}
+		if (IC_RESULT(ic) && IS_SYMOP(IC_RESULT(ic)))
+		    for (n = 0; lsdjAlloc("SPILLSYM", n, spec, sizeof spec); n++) {
+			symbol *rs = OP_SYMBOL(IC_RESULT(ic));
+			if (!strcmp(spec, rs->name) && !rs->isspilt && rs->nRegs && !bitVectBitValue(regAssigned, rs->key))
+			    spillThis(rs);
+		    }
+	    }
+""")
 EOF
 
 if [ "$DEBUG" = 1 ]; then
@@ -210,6 +304,18 @@ edit("src/z80/ralloc.c", """    for (i=0;i< _nRegs;i++ )
 }""", """    for (i=0;i< _nRegs;i++ )
 	regsZ80[i].isFree = 1;
     { int h; for (h = 0; h < 8; h++) heldRegs[h] = 0; }
+    if (regAssigned) {
+	int k; symbol *s;
+	for (k = 0; k < regAssigned->size; k++)
+	    if (bitVectBitValue(regAssigned, k)) {
+		const char *nm = "?";
+		for (s = hTabFirstItem(liveRanges, &i); s; s = hTabNextItem(liveRanges, &i))
+		    if (s->key == k) { nm = s->name; break; }
+		D(D_ALLOC, ("LEAKBIT: key %d (%s) still regAssigned at %s end; regs %s %s\\n", k, nm,
+			    currFunc ? currFunc->name : "?",
+			    s && s->regs[0] ? s->regs[0]->name : "-", s && s->regs[1] ? s->regs[1]->name : "-"));
+	    }
+    }
 }""")
 edit("src/z80/ralloc.c", 'D(D_ALLOC, ("\\n-> z80_assignRegisters: entered.\\n"));',
      'D(D_ALLOC, ("\\n-> z80_assignRegisters: entered %s (regAssigned bits carried over: %d).\\n", currFunc ? currFunc->name : "?", regAssigned ? bitVectnBitsOn(regAssigned) : 0));')

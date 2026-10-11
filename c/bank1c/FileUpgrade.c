@@ -295,6 +295,51 @@ UBYTE FileUpgradeReadByte(UBYTE i)
 }
 
 /*
+ * v11 -> v12, second half: the chain transposes were semitones; now they
+ * are a note offset in the high nibble. Mark in $DA00 the chains the
+ * sequence uses (FileUpgradeReadByte: row by row, channel 3), then rescale
+ * each used chain's 16 transposes through bank 6's ChainReadTrans /
+ * SetChainTranspose by address (v / 12 << 4).
+ *
+ * lsdj-alloc(FileUpgradeClearRange): BUSYB=26-62
+ * -- register b held from the second loop's pointer cast to the end: v and
+ * every temporary of the three statements stay in memory (docs/toolchain.md,
+ * "The phantom register").
+ */
+void FileUpgradeClearRange(void)
+{
+    UBYTE i;
+    UBYTE *p;
+    UBYTE j;
+    char v;
+    
+    UBYTE t;
+
+    i = 0;
+    MemSet((UBYTE *)0xDA00, 0, 0x80);
+    do {
+        t = FileUpgradeReadByte(i);
+        if (t < 0x80) {
+            p = (UBYTE *)0xDA00 + (UWORD)t;
+            *p = 1;
+        }
+    } while (++i);
+    do {
+        p = (UBYTE *)0xDA00 + (UWORD)i;
+        if (*p) {
+            j = 0;
+            while (!(j == 0x10)) {
+                v = FarCallArg2(6, 0x56AA, i, j);
+                v = v / 12;
+                v <<= 4;
+                FarCallArg3(6, 0x5655, i, j, v);
+                j++;
+            }
+        }
+    } while (++i != 0x80);
+}
+
+/*
  * v11 -> v12: noise instruments (type 3) used to take their shape from the
  * phrase note. For every phrase, each step played by a noise instrument has
  * its note rewritten to the instrument's byte 4 with the high nibble moved by

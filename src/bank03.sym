@@ -119,8 +119,8 @@
 4C60 .done                ; common exit of InstrPitchModeUp
 4D13 .done                ; common exit of DrawWaveFinetune
 4DC9 .done                ; common exit of DrawWaveSynthField
-4EC6 .loop                ; loop head in DrawInstrumentScreen
-4F9D .loop2               ; loop head in DrawInstrumentScreen
+4EC6 .nameLoop            ; DrawInstrumentScreen: the 5 name characters, blanks for 0
+4F9D .eraseLoop           ; DrawInstrumentScreen: CGB: erase the cursor of every field
 4FC0 .done                ; common exit of DrawInstrumentScreen
 4FF2 .done                ; common exit of DrawKitNameField
 5060 .loop                ; loop head in KitSelectNext
@@ -181,10 +181,10 @@
 4B16 .ok
 4CA3 .getInstrType3
 4D08 .positive
-4DF7 .ok
-4E11 .loadInstrument
-4E68 .instrScreenFrame
-4FBA .getInstrType
+4DF7 .instrOk             ; DrawInstrumentScreen: instrument number in range
+4E11 .notSpeech           ; DrawInstrumentScreen: a real instrument (not the speech one)
+4E68 .fieldOk             ; DrawInstrumentScreen: cursor field within the type's field count
+4FBA .cursor              ; DrawInstrumentScreen: draw the cursor, refresh the envelope
 517A .drawInstrumentScreen
 543D .notSpeech
 5462 .latchDone
@@ -428,15 +428,15 @@
 4CB2 .writeCurrentInstrByte
 4D74 .drawString
 4DD1 .cont
-4E45 .setDefaultNotes
-4EDF .drawStringIndexed
-4EED .index
-4F58 .cont
-4F5F .cont_2
-4F66 .cont_3
-4F6D .cont_4
-4F71 .farCall
-4FB3 .setInstrField
+4E45 .typeOk              ; DrawInstrumentScreen: type < 4 (else reset to 0)
+4EDF .nameChar            ; DrawInstrumentScreen: character not 0
+4EED .nameDone            ; DrawInstrumentScreen: the type label at field 1
+4F58 .typePulse           ; DrawInstrumentScreen: type 0: DrawPulseInstr
+4F5F .typeWave            ; DrawInstrumentScreen: type 1: DrawWaveInstr
+4F66 .typeNoise           ; DrawInstrumentScreen: type 3: DrawNoiseInstr
+4F6D .typeKit             ; DrawInstrumentScreen: type 2: DrawKitInstr
+4F71 .drawType            ; DrawInstrumentScreen: far call the type's drawer, then the channel status
+4FB3 .eraseDone           ; DrawInstrumentScreen: restore the cursor field
 5023 .cont
 504B .cont
 504D .readCurInstrByte
@@ -703,7 +703,7 @@
 7A75 .ignored
 
 ; --- pointer targets (tools/name_targets.py) ---
-4F4C .jumpTable
+4F4C .typeJumpTable       ; DrawInstrumentScreen: switch (type): the drawer per type
 553C .upTypes
 5782 .leftTypes
 5833 .rightTypes

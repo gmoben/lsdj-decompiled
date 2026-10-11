@@ -102,6 +102,11 @@ extern UBYTE wSynthWaveShape;               /* $C9E9 */
 extern UBYTE wSynthFilterParam;             /* $C9EE, distortion: CLIP/FOLD/WRAP */
 extern UBYTE wSynthRenderActive;            /* $C9F1 */
 extern UBYTE *wSynthRenderDst;              /* $C9F2 */
+extern UWORD *wSynthBandDst;                /* $CB3C, band-pass filter: output pointer / the slot value */
+extern UWORD wSynthBandDstW;                /* $CB3C, the same word (aliased by match_function.py) */
+extern UBYTE *wSynthBandSlot;               /* $CB3E, band-pass filter: the slot pointer / the BufB value */
+extern UWORD wSynthBandSlotW;               /* $CB3E, the same word (aliased by match_function.py) */
+extern UBYTE wWaveEditX;                    /* $CB60 */
 void SynthFillWaveRange(UBYTE a, UBYTE b, UBYTE *buf);
 
 void WriteGrooveByte(UBYTE step, UBYTE v)
@@ -938,6 +943,75 @@ void SynthFilterLowHigh(void)
     }
 }
 
+/* The BANDP filter: halve the wave an octave per cutoff doubling over a
+ * shortened n (the two copies through a volatile k), then the LOWP/HIGHP
+ * scatter core in a `for (;;)` whose head computes pos/frac/sample and, at
+ * pos == 0x20, runs the normalise loop and returns.
+ *
+ * lsdj-alloc(SynthFilterBandPass): BUSYC=82-82
+ * -- register c held when `next2 = i << 1` is allocated, so next2 takes b
+ * and the BufB word comes out as the pair bc (docs/toolchain.md, "The
+ * phantom register"). */
+void SynthFilterBandPass(void)
+{
+    UWORD acc;
+    UBYTE step;
+    UBYTE i;
+    UBYTE n;
+    volatile UBYTE k;
+    UBYTE pos;
+    UWORD frac;
+    UWORD sample;
+    UBYTE next2;
+    extern UBYTE wSynthBandIdx;             /* $CB3E */
+
+    acc = 0;
+    step = -wSynthFilterCutoff;
+    i = 0;
+    n = 0x20;
+    MemSet(wSynthBufA, 0, 0x40);
+    MemSet(wSynthBufB, 0, 0x40);
+    while (step < 0x80) {
+        k = 0;
+        step <<= 1;
+        n >>= 1;
+        for (i = 0; i < n; i++) {
+            wSynthBandDst = (UWORD *)(wSynthWaveBuf + i);
+            *(UBYTE *)wSynthBandDst = (wSynthWaveBuf[k++] + wSynthWaveBuf[k++]) >> 1;
+        }
+    }
+    n--;
+    for (;;) {
+        pos = acc >> 8;
+        frac = (UBYTE)acc;
+        sample = wSynthWaveBuf[SynthWrapIndex32(i)];
+        if (pos == 0x20) {
+            for (i = 0; i < 0x20; i++) {
+                wSynthBandDst = (UWORD *)(wSynthWaveBuf + SynthWrapIndex32(i));
+                next2 = i << 1;
+                wSynthBandSlotW = *(UWORD *)(wSynthBufA + next2);
+                *(UBYTE *)wSynthBandDst = wSynthBandSlotW / *(UWORD *)(wSynthBufB + next2);
+            }
+            return;
+        }
+        next2 = ((pos + 1) & 0x1F) << 1;
+        wSynthBandSlot = wSynthBufA + next2;
+        wSynthBandDstW = *(UWORD *)wSynthBandSlot;
+        *(UWORD *)wSynthBandSlot = wSynthBandDstW + sample * frac;
+        wSynthBandSlotW = *(UWORD *)(wSynthBufB + next2);
+        wSynthBandSlotW += frac;
+        *(UWORD *)(wSynthBufB + next2) = wSynthBandSlotW;
+        frac = 0x100 - frac;
+        wSynthBandIdx = pos << 1;
+        wSynthBandDstW = *(UWORD *)(wSynthBufA + wSynthBandIdx);
+        *(UWORD *)(wSynthBufA + wSynthBandIdx) = wSynthBandDstW + sample * frac;
+        *(UWORD *)(wSynthBufB + wSynthBandIdx) += frac;
+        acc += step;
+        i++;
+        i &= n;
+    }
+}
+
 void SynthFilterPass(void)
 {
     UBYTE i;
@@ -965,6 +1039,21 @@ void SynthApplyFilter(void)
         default:
             SynthFilterLowHigh();
         }
+    }
+}
+
+/* lsdj-alloc(SynthWriteWaveCol): BUSYC=1-17
+ * -- register c held from the first instruction to the loop body's last
+ * byte temporary, so i takes b and is evicted by the body, and the pointer
+ * pair comes out as bc (docs/toolchain.md, "The phantom register"). */
+void SynthWriteWaveCol(void)
+{
+    UBYTE i;
+
+    for (i = 0; i < 0x20; i += 2) {
+        wWaveEditX = wSynthWaveBuf[i] << 4;
+        wWaveEditX = (wSynthWaveBuf[i + 1] + wWaveEditX) ^ 0xFF;
+        WriteSongByte(3, (UWORD)wSynthRenderDst++, wWaveEditX);
     }
 }
 
