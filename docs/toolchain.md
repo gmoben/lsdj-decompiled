@@ -1400,8 +1400,11 @@ untouched (`make match` verifies all 678).
       (`c/bank03/InstrScreen.c`: 34 functions).
 - [x] A screen input handler (300+ instructions): Wave, Word, Groove, Synth,
       Project and Song screens matched.
-- [ ] Grow the C tree bank by bank (editor code first; the asm functions
-      stay asm).
+- [x] Grow the C tree bank by bank (editor code first; the asm functions
+      stay asm): every C function in the ROM is matched (678, 141,700 bytes),
+      six of them through an `lsdj-alloc` directive (above). The ~225 asm
+      functions (the interrupt handlers, the sound driver's core, the tile
+      loader, the mixer kernel) stay asm.
 
 ### Toward a moddable fork
 
