@@ -59,6 +59,17 @@ class ScoreTests(unittest.TestCase):
         self.assertEqual(match_function.diff_score(ours, rom, 0x4000, 0x100), (1, 1))
 
 
+class AllocDirectiveTests(unittest.TestCase):
+    def test_comments_become_function_scoped_directives(self):
+        src = ("/* lsdj-alloc(WordEditorInput): BUSYC=1-93 */\n"
+               "/* notes...\n * lsdj-alloc(CountFileBlocks): NOSPILLAT=iTemp0:27 SPILLAT=iTemp0:28\n */\n"
+               "void f(void) {}\n")
+        self.assertEqual(match_function.alloc_directives(src),
+                         "WordEditorInput:BUSYC=1-93 CountFileBlocks:NOSPILLAT=iTemp0:27 "
+                         "CountFileBlocks:SPILLAT=iTemp0:28")
+        self.assertEqual(match_function.alloc_directives("/* no directive */"), "")
+
+
 class ListingTests(unittest.TestCase):
     # as-gbz80 listing rows: address in columns 3-6, up to six bytes, the
     # unit.asm line number in 25-30; longer data wraps onto unnumbered rows
