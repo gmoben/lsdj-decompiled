@@ -611,7 +611,7 @@ void DrawPhraseScreen(void)
     UBYTE i;
     UBYTE t;
     UBYTE cur;
-    UBYTE ins;
+    UBYTE instr;
     UBYTE note;
     UWORD addr;
     UBYTE *p;
@@ -634,8 +634,8 @@ void DrawPhraseScreen(void)
     }
     cur = 0xFF;
     for (i = 0; i < 0x10; i++) {
-        ins = wUsedTableMap[i];
-        switch (ins) {
+        instr = wUsedTableMap[i];
+        switch (instr) {
         case 0x40:
             cur = 0xFF;
             wPhraseRowFlags[i] = 0xFE;
@@ -644,9 +644,9 @@ void DrawPhraseScreen(void)
             wPhraseRowFlags[i] = cur;
             break;
         default:
-            if (ReadSongByte(1, ((UWORD)ins << 4) + (UWORD)0xB080) == 2) {
-                cur = ins;
-                wPhraseRowFlags[i] = ins;
+            if (ReadSongByte(1, ((UWORD)instr << 4) + (UWORD)0xB080) == 2) {
+                cur = instr;
+                wPhraseRowFlags[i] = instr;
             } else {
                 cur = 0xFF;
                 wPhraseRowFlags[i] = 0xFF;
@@ -685,7 +685,7 @@ void DrawPhraseScreen(void)
         } else {
             if (wPhraseDrawMode)
                 DrawString("   ");
-            if (ins == 0x40) {
+            if (instr == 0x40) {
                 t = wSongReadBuf[i];
                 FarCallArg(0x1F, FAR_FN(DrawWordRow), t);
             } else {
@@ -700,10 +700,10 @@ void DrawPhraseScreen(void)
             set_bkg_tiles(2, i + 2, 13, 1, p);
             VBK_REG = 0;
         }
-        if (ins == 0xFF)
+        if (instr == 0xFF)
             DrawString("--");
         else
-            DrawHexByte(ins);
+            DrawHexByte(instr);
         DrawStringTile20();
         hBgDigitPal = wShadedDigitPal;
         hBgPal = wShadedPal;

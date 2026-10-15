@@ -116,7 +116,7 @@ UBYTE randw(void);                       /* bank 0 (this file reads the low byte
 UBYTE MulU8(UBYTE a, UBYTE b);              /* bank 0 */
 void SetSyncSendRate(void);                 /* bank 7 */
 void SndSetPlayRange(void);
-void SndLiveQueueStart(UBYTE ch);
+void SndLiveQueueStart(UBYTE chan);
 UBYTE SndGetChainPhrase(UBYTE chain, UBYTE row);
 UBYTE SndRandomUpTo(UBYTE n);
 void SndTableHop(UBYTE v);           /* asm */
@@ -226,18 +226,18 @@ void FxCmd_R(void)
 
 void SndKillNote(void)
 {
-    UBYTE ch;
+    UBYTE chan;
 
     SndResetChanFx();
     wChanFxSlots[hSoundChan] = 0;
     wChanFxSlots[hSoundChan + 4] = 0;
     wChanFxSlots[hSoundChan + 8] = 0;
     wChanPitchRate[hSoundChan] = 0;
-    ch = hSoundChan;
-    wChanTable[ch] = 0xFF;
-    wChanDispNote[ch] = 0;
-    wChanChord[ch] = 0;
-    wChanVibShape[ch] = 0;
+    chan = hSoundChan;
+    wChanTable[chan] = 0xFF;
+    wChanDispNote[chan] = 0;
+    wChanChord[chan] = 0;
+    wChanVibShape[chan] = 0;
 }
 
 /* $65F3: K, kill the note: now (K00) or after the value's ticks, one fewer
@@ -593,27 +593,27 @@ void FxCmd_E_Noi(void)
    screen), start it at the edited chain row, sooner (wChanLiveQueued); with
    a sync restart pending, start it now */
 
-void SndLiveQueueStart(UBYTE ch)
+void SndLiveQueueStart(UBYTE chan)
 {
     UBYTE *p;
     UBYTE k;
 
-    p = wChanNextSongRow + ch;
+    p = wChanNextSongRow + chan;
     if (wSongRow == *p) {
         if (wCurScreen == 3 || wCurScreen == 1) {
             if (SndGetChainPhrase(wChain, wChainRow) == 0xFF)
                 return;
-            wChanRowQueue[ch] = wChainRow;
+            wChanRowQueue[chan] = wChainRow;
         } else
-            wChanRowQueue[ch] = 0;
-        wChanLiveQueued[ch] = 1;
+            wChanRowQueue[chan] = 0;
+        wChanLiveQueued[chan] = 1;
     } else {
         *p = wSongRow;
-        wChanLiveQueued[ch] = 0;
+        wChanLiveQueued[chan] = 0;
     }
-    wChanStopQueued[ch] = 0;
+    wChanStopQueued[chan] = 0;
     if (wPlayRestartPending) {
-        hSoundChan = ch;
+        hSoundChan = chan;
         SndStartChanFromRow();
         k = hSoundChan;
         wChanStopQueued[k] = 0;
@@ -640,11 +640,11 @@ void SndSetPlayRange(void)
 
 void SndLiveQueueRange(void)
 {
-    UBYTE ch;
+    UBYTE chan;
 
     SndSetPlayRange();
-    for (ch = wPlayChanFirst; ch <= wPlayChanLast; ch++)
-        SndLiveQueueStart(ch);
+    for (chan = wPlayChanFirst; chan <= wPlayChanLast; chan++)
+        SndLiveQueueStart(chan);
 }
 
 /* $6D97: start the channels in the play range from the song row */
@@ -684,21 +684,21 @@ void SndStartRange(void)
 
 void SndLiveStopRange(void)
 {
-    UBYTE ch;
+    UBYTE chan;
     UBYTE *p;
 
     SndSetPlayRange();
-    for (ch = wPlayChanFirst; ch <= wPlayChanLast; ch++) {
-        p = wChanNextSongRow + ch;
+    for (chan = wPlayChanFirst; chan <= wPlayChanLast; chan++) {
+        p = wChanNextSongRow + chan;
         if (*p != 0xFF)
             *p = 0xFF;
-        if (wChanActive[ch]) {
-            p = wChanStopQueued + ch;
+        if (wChanActive[chan]) {
+            p = wChanStopQueued + chan;
             if (!*p) {
                 *p = 1;
-                wChanLiveQueued[ch] = 0;
+                wChanLiveQueued[chan] = 0;
             } else
-                wChanLiveQueued[ch] = 1;
+                wChanLiveQueued[chan] = 1;
         }
     }
 }

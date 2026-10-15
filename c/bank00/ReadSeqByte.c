@@ -12,16 +12,16 @@
 
 #include "lsdj.h"
 
-UBYTE ReadSeqByte(UBYTE channel, UBYTE step)
+UBYTE ReadSeqByte(UBYTE chan, UBYTE step)
 {
     UBYTE *p;
     UBYTE v;
 
-    if (channel >= 4)
+    if (chan >= 4)
         DebugTrap();
     if (step >= 0xC0)
         DebugTrap();
     p = SramSequence + ((unsigned int)step << 2);
-    v = ReadSongByte(0, p + channel);
+    v = ReadSongByte(0, p + chan);
     return (v & 0x80) ? 0xFF : v;
 }

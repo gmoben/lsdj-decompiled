@@ -68,7 +68,7 @@ void DrawAllChanStatus(void);               /* $271A: the B combos, ahead of the
 UBYTE HandleInputCombos(void)
 {
     UBYTE saved;
-    UBYTE changed, ch, v;
+    UBYTE changed, chan, v;
 
     if (wCurScreen == 7 || wCurScreen == 8 || wCurScreen == 9
             || wCurScreen == 0x0D || wCurScreen == 0x0E)
@@ -129,11 +129,11 @@ UBYTE HandleInputCombos(void)
         return 0;
     if (wButtons == 0x20 && wMuteSoloLatch) {
         if (wMuteSoloLatch == 1 || wAPressEnabled) {
-            ch = !(wKbdActionChan == 0xFF) ? wKbdActionChan : wSongCol;
-            wChanOutput[ch] &= 3;
-            wChanOutputOverride[ch] = 0;
-            wChanOutputSoloSaved[ch] = 0;
-            hSoundChan = ch;
+            chan = !(wKbdActionChan == 0xFF) ? wKbdActionChan : wSongCol;
+            wChanOutput[chan] &= 3;
+            wChanOutputOverride[chan] = 0;
+            wChanOutputSoloSaved[chan] = 0;
+            hSoundChan = chan;
             SWITCH_ROM(2);
             SndWritePanning(wChanOutput[hSoundChan]);
         } else {

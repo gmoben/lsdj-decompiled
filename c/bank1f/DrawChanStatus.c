@@ -23,15 +23,15 @@ int StrLength(const char *s);
 const UBYTE ChanStatusAttrSel[4] = {3, 3, 3, 3};
 const UBYTE ChanStatusAttrNorm[4] = {0, 1, 1, 1};
 
-void DrawChanStatus(UBYTE ch)
+void DrawChanStatus(UBYTE chan)
 {
     UBYTE y;
     char *s;
     UBYTE c;
 
-    y = ch + 6;
+    y = chan + 6;
     SetVramCursor(0x10, y);
-    c = ch;
+    c = chan;
     if (wChanOutput[c] & 0x80) {
         s = "MUTE";
         hBgDigitPal = wHighlightDigitPal;

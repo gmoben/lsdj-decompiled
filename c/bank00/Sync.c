@@ -277,12 +277,12 @@ void HandleTooBusy(void)
     SWITCH_ROM(saved);
 }
 
-UBYTE ReadSeqByteRaw(UBYTE channel, UBYTE step)
+UBYTE ReadSeqByteRaw(UBYTE chan, UBYTE step)
 {
     UBYTE *p;
 
     p = SramSequence + ((unsigned int)step << 2);
-    return ReadSongByteRaw(0, p + channel);
+    return ReadSongByteRaw(0, p + chan);
 }
 
 UBYTE ReadChainByte(UBYTE chain, UBYTE row)
@@ -295,26 +295,26 @@ UBYTE ReadChainByte(UBYTE chain, UBYTE row)
 
 void SyncSeekSongPos(void)
 {
-    UBYTE ch, row, chain;
+    UBYTE chan, row, chain;
 
     SndResetFxState();
-    for (ch = 0; ch < 4; ch++) {
+    for (chan = 0; chan < 4; chan++) {
         row = (wSyncMode == 1) ? wSyncRxPos : wSyncStartRow;
-        chain = ReadSeqByteRaw(ch, row);
+        chain = ReadSeqByteRaw(chan, row);
         while (row && (chain & 0x80)) {
             row--;
-            chain = ReadSeqByteRaw(ch, row);
+            chain = ReadSeqByteRaw(chan, row);
         }
         if (chain & 0x80) {
-            wChanActive[ch] = 0;
+            wChanActive[chan] = 0;
         } else {
-            wChanSongRow[ch] = row;
-            wChanChainRow[ch] = 0xFF;
-            if ((wChanPhrase[ch] = ReadChainByte(chain, 0)) == 0xFF) {
-                wChanActive[ch] = 0;
+            wChanSongRow[chan] = row;
+            wChanChainRow[chan] = 0xFF;
+            if ((wChanPhrase[chan] = ReadChainByte(chain, 0)) == 0xFF) {
+                wChanActive[chan] = 0;
             } else {
-                wChanChain[ch] = chain;
-                wChanActive[ch] = 1;
+                wChanChain[chan] = chain;
+                wChanActive[chan] = 1;
             }
         }
     }
@@ -323,7 +323,7 @@ void SyncSeekSongPos(void)
 
 void SendByteStep(void)
 {
-    UBYTE saved, ch;
+    UBYTE saved, chan;
 
     wSyncTxByte = 0xFF;
     if (wSendByteNest++) {
@@ -332,7 +332,7 @@ void SendByteStep(void)
         return;
     }
     saved = hCurBank;
-    ch = hSoundChan;
+    chan = hSoundChan;
     do {
         _asm ei _endasm;
         if (wSyncRxPos <= 0xBF) {
@@ -368,7 +368,7 @@ void SendByteStep(void)
         _asm di _endasm;
     } while (--wSendByteNest);
     _asm ei _endasm;
-    hSoundChan = ch;
+    hSoundChan = chan;
 }
 
 void ProcessSyncByte(void)

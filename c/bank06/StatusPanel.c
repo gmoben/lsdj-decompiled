@@ -37,15 +37,15 @@ extern UBYTE wSndUpdateFlags;               /* $C8F5 */
 extern UBYTE wTempoShadow;                  /* $C947 */
 void DrawTileHexCell(UBYTE v);                /* c/bank06/DrawTileHexCell.c */
 void DrawNoteName(UBYTE col, UBYTE v);
-void DrawStatusNote(UBYTE ch, UBYTE note);
+void DrawStatusNote(UBYTE chan, UBYTE note);
 void ChainUpdateScope(void);
 
-void DrawStatusNote(UBYTE ch, UBYTE note)
+void DrawStatusNote(UBYTE chan, UBYTE note)
 {
     UBYTE c, n;
 
-    SetVramCursor(17, ch + 6);
-    if (wSndUpdateFlags && ch == 2) {
+    SetVramCursor(17, chan + 6);
+    if (wSndUpdateFlags && chan == 2) {
         wSampleNoteString[0] = 0;
         if (note & 0xF0)
             ReadKitSampleName(wKit1Bank, note >> 4);
@@ -60,7 +60,7 @@ void DrawStatusNote(UBYTE ch, UBYTE note)
         DrawString(wSampleNoteString);
         return;
     }
-    switch (ch) {
+    switch (chan) {
     case 3:
         n = *(UBYTE *)0xC2E7;               /* wNoiNote, read through the literal */
         n++;
@@ -71,7 +71,7 @@ void DrawStatusNote(UBYTE ch, UBYTE note)
         break;
     }
     if (note <= 0x6C)
-        DrawNoteName(ch, note);
+        DrawNoteName(chan, note);
 }
 
 void UpdateStatusPanel(void)
