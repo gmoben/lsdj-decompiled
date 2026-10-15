@@ -14,7 +14,7 @@
 # One deliberate difference from stock: LSDj's compiler made no SSA copy
 # when a function call's result is assigned to a global (the patch below,
 # "LSDj's compiler"); the Win32 sdcc.exe does, so it is not byte-identical
-# for the three functions where that shows (DedupPhrases, DedupChains,
+# for the three functions where that shows (DeduplicatePhrases, DeduplicateChains,
 # DrawFreedTables).
 #
 # Needs: git, gcc with 32-bit support (-m32; SDCC 2.2.1 assumes 32-bit
@@ -117,10 +117,10 @@ def edit(path, old, new):
 # range was stretched to a loop end, in which case the copy stays and the
 # allocation around it changes. LSDj's compiler makes no such copy when the
 # value is a function call's result: every other matched function compiles
-# identically either way, and DedupPhrases / DedupChains / DrawFreedTables
+# identically either way, and DeduplicatePhrases / DeduplicateChains / DrawFreedTables
 # ($1F:$5BDE / $5C78 / $5D18) only match without the copy (docs/toolchain.md).
 # Dropping the copy for every assignment is too much: ten functions that
-# read the global back (LoadSyncSetting ...) then keep the value in a register.
+# read the global back (SyncLoadSetting ...) then keep the value in a register.
 edit("src/SDCCicode.c", """operand *geniCodeAssign (operand *left, operand *right, int nosupdate)
 {""", """/* LSDj's compiler (tools/toolchain/build_sdcc221.sh): is `right` the
    result of the function call just generated? */
@@ -336,7 +336,7 @@ edit("src/SDCCopt.c", """    /* if nothing passed then return nothing */
 #   NO_POSITION=1      positionRegs disabled
 #   IFX_LATE=1         symbols dying at an IFX are freed at the following iCode
 #   PAIR_SPILL_FIRST_LOADS=1  the same, only for a pair defined by an assignment from memory or
-#                      a pointer read (SynthWriteWaveCol's `:= wSynthRenderDst`, BandPass's BufB word)
+#                      a pointer read (WriteSynthWaveColumn's `:= wSynthRenderDestination`, BandPass's BufB word)
 #   PAIR_SPILL_FIRST=1 a two-register request with no free pair spills (the stock victims) until
 #                      a pair is free and then takes the pair in order (c b), instead of taking the
 #                      free register first and the spilt one second (b c)

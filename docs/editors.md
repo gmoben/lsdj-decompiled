@@ -85,7 +85,7 @@ stubs' bank + call target):
 | 6 Instrument | `InstrumentScreenInput` `$03:$541F` | | 14 Help | `HelpScreenInput` `$1B:$4BC3` |
 | 7 (name editor) | `NameEditorInput` `$1B:$53E8` | | 0, 11 | — |
 
-Matching `DispatchScreenInput` in C (`c/bank00/DispatchScreenDraw.c`) settled
+Matching `DispatchScreenInput` in C (`c/bank00/ScreenDispatch.c`) settled
 the handlers' names: five of them had been named after a first action (a cursor
 highlight, a field draw) and three after `Edit`.
 Index 7 has no draw routine but does have an input handler: the on-screen

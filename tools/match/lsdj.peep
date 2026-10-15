@@ -181,8 +181,8 @@ replace restart {
 	push	af
 	inc	sp
 }
-// an sfr pushed twice is read once, like the loads above (SndZPhrase's
-// SndZRepeat(hSoundCh, hSoundCh); no reload after a push survives in the ROM)
+// an sfr pushed twice is read once, like the loads above (SoundZPhrase's
+// SoundZRepeat(hSoundChannel, hSoundChannel); no reload after a push survives in the ROM)
 replace restart {
 	ldh	a,%1
 	push	af
@@ -971,8 +971,8 @@ replace restart {
 	jp	%3,%4
 }
 // A constant stored to the byte just tested with `!=` reloads hl (the next
-// rule's drop does not apply): ProcessInput's `if (wLiveStartCol != 0xFF) {
-// wLiveStartCol = 0xFF;`, the ROM's only such store after a compare; the
+// rule's drop does not apply): ProcessInput's `if (wLiveStartColumn != 0xFF) {
+// wLiveStartColumn = 0xFF;`, the ROM's only such store after a compare; the
 // `inc (hl)` / `dec (hl)` after one (5 sites) keep hl. Dropping the dead
 // label keeps the next rule off.
 replace restart {
@@ -1282,7 +1282,7 @@ replace {
 }
 
 // genXor stores a literal-left result twice (`ld (hl),a; ld (hl),a`); the ROM
-// never has the pair (SynthWriteWaveCol)
+// never has the pair (WriteSynthWaveColumn)
 replace {
 	ld	(hl),a
 	ld	(hl),a
@@ -1299,7 +1299,7 @@ replace restart {
 
 // a literal loaded into a and overwritten by an sfr read at once: genCmp's
 // `x > n` with an sfr x (`xor a,a; ld a,#n; ldh a,(_x); sbc a,a`, the switch
-// bound in FxCmd_E_NoteOn); the ROM never loads a twice in a row
+// bound in Command_E_NoteOn); the ROM never loads a twice in a row
 replace restart {
 	ld	a,#%1
 	ldh	a,%2
@@ -1309,8 +1309,8 @@ replace restart {
 
 // a load into a that the next stack read overwrites unread: SDCC's gencjneshort
 // fetches a stack right operand into a over an a-packed left (`ld a,(de)`, then
-// `cp a,a`); the ROM never has `ld a,X; ld hl,...; ld a,(hl)` (FreeUnusedInstrs'
-// wColInstrument test; CheckRomChecksum's `(sum & 0xFF) == lo`, `ld a,c`)
+// `cp a,a`); the ROM never has `ld a,X; ld hl,...; ld a,(hl)` (FreeUnusedInstruments'
+// wColumnInstrument test; CheckRomChecksum's `(sum & 0xFF) == lo`, `ld a,c`)
 replace restart {
 	ld	a,%1
 	lda	hl,%2
@@ -1322,7 +1322,7 @@ replace restart {
 // genAnd's `if (!(x & n))` (jmpTrueOrFalse's IC_TRUE trampoline): the ROM
 // folds it into one jump; no `and a,n; jr nz,L; jp M; L: jp X; M:` is left
 // (DrawPhraseScreen's `note & 0xF0`; the one unfolded trampoline in the ROM
-// follows a `cp (hl)`, CloneInstrTable)
+// follows a `cp (hl)`, CloneInstrumentTable)
 replace restart {
 	and	a,%1
 	jr	nz,%2

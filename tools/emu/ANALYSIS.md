@@ -74,12 +74,12 @@ python3 tools/emu/diffstate.py c520 48 KEY a+up       # which byte does this set
 ```
 Recipes:
 - **Cursor**: move UP/DOWN/LEFT/RIGHT on an editor; the byte that ±1s is the
-  cursor row/col. (SONG col=`wSongCol`, row=`wSongRow`; CHAIN `wChainCol/Row`;
+  cursor row/col. (SONG col=`wSongColumn`, row=`wSongRow`; CHAIN `wChainColumn/Row`;
   GROOVE `wGrooveRow`; etc.)
 - **Setting value**: put the cursor on the line, `A+up`/`A+down`/`A+left/right`,
   diff. e.g. TEMPO edit → `wTempo $C529` changed 124→134.
 - **Ignore the input-flag noise** that shows on every press: `wButtonsSame
-  $C408`, `wAHeld/wSelectHeld $C40A/C`, `wButtonReadIdx/WriteIdx $C56F/70`.
+  $C408`, `wAHeld/wSelectHeld $C40A/C`, `wButtonReadIndex/WriteIdx $C56F/70`.
 - **Stop playback first** (`KEY start` on SONG) so the sound engine doesn't add
   noise to UI diffs.
 
@@ -135,7 +135,7 @@ confirm it against our code and the running ROM. Recurring pitfalls:
   (e.g. `$c333` is the per-channel TRANSPOSE — our table code proves it).
 - **Bit layouts** (instrument param bytes: byte5 = PITCH_SHAPE/TABLE_STEP/
   PITCH_SPEED/TRANSPOSE, byte7 = OUTPUT/pan, byte8 = COMMAND_RATE, byteB =
-  FINETUNE) must be re-checked bit-for-bit against `SetupSoundPU1`'s masks.
+  FINETUNE) must be re-checked bit-for-bit against `SoundSetupPu1`'s masks.
 
 Keep this repo self-contained: never cite or link an external disassembly in our
 files, commits, or comments — fold only *verified* facts back in, in our terms.
@@ -152,7 +152,7 @@ files, commits, or comments — fold only *verified* facts back in, in our terms
   (A / A+B / A+up / A+down), PHRASE `note(row,steps,instr)` (places a note + steps
   pitch), `fx(row,steps)` (places an FX command). CLI mirrors the API
   (`song.py note 5 4`, `song.py goto phrase`, `song.py moveto 1 3`). Findings from
-  building it: PHRASE `wPhraseCol` is **1=NOTE 2=INSTR 3=CMD 4=CMD-value** (col 0
+  building it: PHRASE `wPhraseColumn` is **1=NOTE 2=INSTR 3=CMD 4=CMD-value** (col 0
   unreachable — ram.inc was off by one). Note-edit keys (verified): **A+up/down =
   octave ±1, A+left/right = semitone ±1**; `place` (A) enters the last-used note.
   `set_instr_type` reaches any TYPE deterministically (a+left×4 clamp to PULSE,
