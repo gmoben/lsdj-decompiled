@@ -52,9 +52,9 @@
 5597 FileValidateName           ; validate a name (FileFindSlotEnd; char range $0a/$1f/$20 checks)
 55F1 DrawFileList               ; draw the visible file slots (wFileScroll window, names + block counts)
 5892 .drawLabel           ; (was DrawLoadLabel) draw the "LOAD" prompt string
-58C1 FileMatchName              ; compare a slot name (ReadSongByte) against the name buffer (GetFileBlockCount)
-590B FileCopyNameToBuffer          ; move wFileCursor back to the previous slot that is empty or the open file (SRAM bank 4 $A140); asserts < $20
-594A FileCheckNameLength           ; return whether (wFileCursor-wFileScroll) exceeds $0b (name length)
+58C1 SeekNextWritableSlot       ; move wFileCursor down to the next slot a save may use: an empty one or the open file (not past the list's end)
+590B SeekPreviousWritableSlot   ; move wFileCursor up to the previous slot a save may use: an empty one or the open file
+594A FileCursorBelowWindow      ; whether wFileCursor is below the 12-row file list window (wFileCursor - wFileScroll > 11)
 595F FileCalculateCompressedSize     ; read 4 size bytes + MulU16 -> total compressed size
 59E6 DrawBlocksUsed             ; BLOCKS USED/FREE panel (FileCalculateCompressedSize, 33-block bound)
 60CC FileReadInstrumentByte          ; read byte[arg] of the instrument currently being iterated (for upgrade/migration)
@@ -186,10 +186,10 @@
 56ED .loop2               ; loop head in DrawFileList
 57A8 .done                ; common exit of DrawFileList
 57D5 .loop                ; loop head in DrawFileScreen
-58C6 .loop                ; loop head in FileMatchName
-5909 .done                ; common exit of FileMatchName
-5910 .loop                ; loop head in FileCopyNameToBuffer
-5948 .done                ; common exit of FileCopyNameToBuffer
+58C6 .loop                ; loop head in SeekNextWritableSlot
+5909 .done                ; common exit of SeekNextWritableSlot
+5910 .loop                ; loop head in SeekPreviousWritableSlot
+5948 .done                ; common exit of SeekPreviousWritableSlot
 5AD0 .done                ; common exit of DrawBlocksUsed
 5C9B .loop                ; loop head in FileScreenInput
 600A .loop2               ; loop head in FileScreenInput
@@ -290,10 +290,10 @@
 5DF5 .ok
 5E27 .checkAPressEnabledb
 5E95 .setCurrentScreen
-5FF2 .fileMatchName
+5FF2 .seekNextWritableSlot
 6001 .okb
 601A .checkGameboyTypeb
-6064 .fileCopyNameToBuffer
+6064 .seekPreviousWritableSlot
 6073 .okc
 608C .checkGameboyTypec
 6FDF .setVramCursor

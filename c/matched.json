@@ -75,7 +75,7 @@
   "bank": "01",
   "addr": "4C61",
   "len": 144,
-  "src": "c/bank01/UiHelpers.c"
+  "src": "c/bank01/Display.c"
  },
  "ApplySynthPhase": {
   "bank": "1D",
@@ -147,7 +147,7 @@
   "bank": "1C",
   "addr": "40F2",
   "len": 104,
-  "src": "c/bank1c/FileScreen.c"
+  "src": "c/bank1c/FileSystem.c"
  },
  "CheckInstrumentFieldOption": {
   "bank": "03",
@@ -159,7 +159,7 @@
   "bank": "01",
   "addr": "4811",
   "len": 55,
-  "src": "c/bank01/UiHelpers.c"
+  "src": "c/bank01/CartridgeTest.c"
  },
  "CheckPhraseEditContext": {
   "bank": "04",
@@ -201,7 +201,7 @@
   "bank": "01",
   "addr": "6D23",
   "len": 48,
-  "src": "c/bank01/UiHelpers.c"
+  "src": "c/bank01/Display.c"
  },
  "ClearBookmarks": {
   "bank": "07",
@@ -219,13 +219,13 @@
   "bank": "01",
   "addr": "781F",
   "len": 65,
-  "src": "c/bank01/UiHelpers.c"
+  "src": "c/bank01/TopBar.c"
  },
  "ClearOamBuffer": {
   "bank": "01",
   "addr": "4B5E",
   "len": 259,
-  "src": "c/bank01/UiHelpers.c"
+  "src": "c/bank01/Display.c"
  },
  "ClearSpriteY": {
   "bank": "00",
@@ -417,13 +417,13 @@
   "bank": "1C",
   "addr": "43C1",
   "len": 94,
-  "src": "c/bank1c/FileScreen.c"
+  "src": "c/bank1c/Compression.c"
  },
  "CompressSong": {
   "bank": "1C",
   "addr": "441F",
   "len": 708,
-  "src": "c/bank1c/FileScreen.c"
+  "src": "c/bank1c/Compression.c"
  },
  "ComputeEnvelope": {
   "bank": "1B",
@@ -435,7 +435,7 @@
   "bank": "1C",
   "addr": "4352",
   "len": 103,
-  "src": "c/bank1c/FileScreen.c"
+  "src": "c/bank1c/FileSystem.c"
  },
  "CopyInstrument": {
   "bank": "01",
@@ -447,7 +447,7 @@
   "bank": "01",
   "addr": "493B",
   "len": 265,
-  "src": "c/bank01/UiHelpers.c"
+  "src": "c/bank01/InstrumentNames.c"
  },
  "CopySong16": {
   "bank": "01",
@@ -483,7 +483,7 @@
   "bank": "1C",
   "addr": "48D4",
   "len": 149,
-  "src": "c/bank1c/FileScreen.c"
+  "src": "c/bank1c/FileSystem.c"
  },
  "CountModifiedSynths": {
   "bank": "1F",
@@ -513,7 +513,7 @@
   "bank": "01",
   "addr": "794B",
   "len": 10,
-  "src": "c/bank01/UiHelpers.c"
+  "src": "c/bank01/CrashScreen.c"
  },
  "CursorInstrumentIsKit": {
   "bank": "04",
@@ -555,7 +555,7 @@
   "bank": "1C",
   "addr": "46E3",
   "len": 149,
-  "src": "c/bank1c/FileScreen.c"
+  "src": "c/bank1c/Compression.c"
  },
  "DeduplicateChains": {
   "bank": "1F",
@@ -627,7 +627,7 @@
   "bank": "01",
   "addr": "4487",
   "len": 208,
-  "src": "c/bank01/UiHelpers.c"
+  "src": "c/bank01/CartridgeTest.c"
  },
  "DrawChainCursor": {
   "bank": "06",
@@ -675,7 +675,7 @@
   "bank": "01",
   "addr": "7955",
   "len": 549,
-  "src": "c/bank01/UiHelpers.c"
+  "src": "c/bank01/CrashScreen.c"
  },
  "DrawDecimalField": {
   "bank": "1B",
@@ -921,7 +921,7 @@
   "bank": "01",
   "addr": "522D",
   "len": 30,
-  "src": "c/bank01/UiHelpers.c"
+  "src": "c/bank01/FieldNames.c"
  },
  "DrawOverwriteChoice": {
   "bank": "1D",
@@ -1023,7 +1023,7 @@
   "bank": "01",
   "addr": "6CD7",
   "len": 76,
-  "src": "c/bank01/UiHelpers.c"
+  "src": "c/bank01/Display.c"
  },
  "DrawSongCursor": {
   "bank": "07",
@@ -1065,13 +1065,13 @@
   "bank": "01",
   "addr": "5208",
   "len": 37,
-  "src": "c/bank01/UiHelpers.c"
+  "src": "c/bank01/FieldNames.c"
  },
  "DrawSpeedModeName": {
   "bank": "01",
   "addr": "518C",
   "len": 98,
-  "src": "c/bank01/UiHelpers.c"
+  "src": "c/bank01/FieldNames.c"
  },
  "DrawStatusNote": {
   "bank": "06",
@@ -1209,7 +1209,7 @@
   "bank": "01",
   "addr": "6D53",
   "len": 555,
-  "src": "c/bank01/UiHelpers.c"
+  "src": "c/bank01/TopBar.c"
  },
  "DrawVerifyPanel": {
   "bank": "1C",
@@ -1359,7 +1359,7 @@
   "bank": "1C",
   "addr": "4C1A",
   "len": 318,
-  "src": "c/bank1c/FileScreen.c"
+  "src": "c/bank1c/FileSystem.c"
  },
  "EraseGrooveCursor": {
   "bank": "1D",
@@ -1457,22 +1457,16 @@
   "len": 135,
   "src": "c/bank1c/FileUpgrade.c"
  },
- "FileCheckNameLength": {
-  "bank": "1C",
-  "addr": "594A",
-  "len": 21,
-  "src": "c/bank1c/FileScreen.c"
- },
  "FileClearChannelState": {
   "bank": "1C",
   "addr": "5077",
   "len": 27,
   "src": "c/bank1c/FileScreen.c"
  },
- "FileCopyNameToBuffer": {
+ "FileCursorBelowWindow": {
   "bank": "1C",
-  "addr": "590B",
-  "len": 63,
+  "addr": "594A",
+  "len": 21,
   "src": "c/bank1c/FileScreen.c"
  },
  "FileDrawField": {
@@ -1491,7 +1485,7 @@
   "bank": "1C",
   "addr": "4862",
   "len": 114,
-  "src": "c/bank1c/FileScreen.c"
+  "src": "c/bank1c/FileSystem.c"
  },
  "FileForEachInstrumentType": {
   "bank": "1C",
@@ -1503,19 +1497,13 @@
   "bank": "1C",
   "addr": "4969",
   "len": 107,
-  "src": "c/bank1c/FileScreen.c"
+  "src": "c/bank1c/FileSystem.c"
  },
  "FileLoadSlotInfo": {
   "bank": "1C",
   "addr": "4FA5",
   "len": 210,
-  "src": "c/bank1c/FileScreen.c"
- },
- "FileMatchName": {
-  "bank": "1C",
-  "addr": "58C1",
-  "len": 74,
-  "src": "c/bank1c/FileScreen.c"
+  "src": "c/bank1c/FileSystem.c"
  },
  "FileReadInstrumentByte": {
   "bank": "1C",
@@ -1527,7 +1515,7 @@
   "bank": "1C",
   "addr": "42E9",
   "len": 76,
-  "src": "c/bank1c/FileScreen.c"
+  "src": "c/bank1c/FileSystem.c"
  },
  "FileScreenInput": {
   "bank": "1C",
@@ -1539,13 +1527,13 @@
   "bank": "1C",
   "addr": "719C",
   "len": 49,
-  "src": "c/bank1c/FileScreen.c"
+  "src": "c/bank1c/LinkClipboard.c"
  },
  "FileSlotHalfBase": {
   "bank": "1C",
   "addr": "42D6",
   "len": 19,
-  "src": "c/bank1c/FileScreen.c"
+  "src": "c/bank1c/FileSystem.c"
  },
  "FileStopSound": {
   "bank": "1C",
@@ -1581,7 +1569,7 @@
   "bank": "1C",
   "addr": "6973",
   "len": 52,
-  "src": "c/bank1c/FileScreen.c"
+  "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeSong": {
   "bank": "1C",
@@ -1803,13 +1791,13 @@
   "bank": "1C",
   "addr": "5597",
   "len": 90,
-  "src": "c/bank1c/FileScreen.c"
+  "src": "c/bank1c/FileSystem.c"
  },
  "FileWriteCompressedSram": {
   "bank": "1C",
   "addr": "4000",
   "len": 71,
-  "src": "c/bank1c/FileScreen.c"
+  "src": "c/bank1c/Compression.c"
  },
  "FileWriteInstrumentByte": {
   "bank": "1C",
@@ -1857,7 +1845,7 @@
   "bank": "1C",
   "addr": "415A",
   "len": 380,
-  "src": "c/bank1c/FileScreen.c"
+  "src": "c/bank1c/FileSystem.c"
  },
  "FindFreeSynth": {
   "bank": "03",
@@ -1893,13 +1881,13 @@
   "bank": "1C",
   "addr": "47B1",
   "len": 177,
-  "src": "c/bank1c/FileScreen.c"
+  "src": "c/bank1c/FileSystem.c"
  },
  "FormatSramSong": {
   "bank": "01",
   "addr": "45D1",
   "len": 576,
-  "src": "c/bank01/UiHelpers.c"
+  "src": "c/bank01/CartridgeTest.c"
  },
  "FreeChain": {
   "bank": "01",
@@ -1911,7 +1899,7 @@
   "bank": "1C",
   "addr": "49D4",
   "len": 114,
-  "src": "c/bank1c/FileScreen.c"
+  "src": "c/bank1c/FileSystem.c"
  },
  "FreePhrase": {
   "bank": "01",
@@ -1947,7 +1935,7 @@
   "bank": "1C",
   "addr": "4335",
   "len": 29,
-  "src": "c/bank1c/FileScreen.c"
+  "src": "c/bank1c/FileSystem.c"
  },
  "GetInstrumentByte5Flag8": {
   "bank": "03",
@@ -1971,7 +1959,7 @@
   "bank": "01",
   "addr": "55C9",
   "len": 222,
-  "src": "c/bank01/UiHelpers.c"
+  "src": "c/bank01/Display.c"
  },
  "GetTempoTimerValue": {
   "bank": "00",
@@ -2109,7 +2097,7 @@
   "bank": "01",
   "addr": "4CF1",
   "len": 10,
-  "src": "c/bank01/UiHelpers.c"
+  "src": "c/bank01/Display.c"
  },
  "InitializeWaveSprites": {
   "bank": "06",
@@ -2271,7 +2259,7 @@
   "bank": "01",
   "addr": "4B15",
   "len": 73,
-  "src": "c/bank01/UiHelpers.c"
+  "src": "c/bank01/Display.c"
  },
  "LoadPhraseRow": {
   "bank": "04",
@@ -2283,7 +2271,7 @@
   "bank": "01",
   "addr": "7C86",
   "len": 355,
-  "src": "c/bank01/UiHelpers.c"
+  "src": "c/bank01/EditorState.c"
  },
  "LoadSongCursorChain": {
   "bank": "07",
@@ -2433,7 +2421,7 @@
   "bank": "1C",
   "addr": "4DD1",
   "len": 63,
-  "src": "c/bank1c/FileScreen.c"
+  "src": "c/bank1c/FileUpgrade.c"
  },
  "MoveHelpCursorDown": {
   "bank": "1B",
@@ -2973,7 +2961,7 @@
   "bank": "1C",
   "addr": "7310",
   "len": 242,
-  "src": "c/bank1c/FileScreen.c"
+  "src": "c/bank1c/LinkClipboard.c"
  },
  "RedrawHelpCursor": {
   "bank": "1B",
@@ -3075,7 +3063,7 @@
   "bank": "01",
   "addr": "7BDE",
   "len": 168,
-  "src": "c/bank01/UiHelpers.c"
+  "src": "c/bank01/EditorState.c"
  },
  "ResetGrooveState": {
   "bank": "1D",
@@ -3191,6 +3179,18 @@
   "len": 37,
   "src": "c/bank07/SongScreen.c"
  },
+ "SeekNextWritableSlot": {
+  "bank": "1C",
+  "addr": "58C1",
+  "len": 74,
+  "src": "c/bank1c/FileScreen.c"
+ },
+ "SeekPreviousWritableSlot": {
+  "bank": "1C",
+  "addr": "590B",
+  "len": 63,
+  "src": "c/bank1c/FileScreen.c"
+ },
  "SendByteStep": {
   "bank": "00",
   "addr": "227C",
@@ -3201,7 +3201,7 @@
   "bank": "1C",
   "addr": "71CD",
   "len": 289,
-  "src": "c/bank1c/FileScreen.c"
+  "src": "c/bank1c/LinkClipboard.c"
  },
  "SetChainTranspose": {
   "bank": "06",
@@ -3339,7 +3339,7 @@
   "bank": "01",
   "addr": "764C",
   "len": 290,
-  "src": "c/bank01/UiHelpers.c"
+  "src": "c/bank01/TopBar.c"
  },
  "ShowInstrumentFieldHelp": {
   "bank": "05",
@@ -3645,7 +3645,7 @@
   "bank": "1C",
   "addr": "4057",
   "len": 155,
-  "src": "c/bank1c/FileScreen.c"
+  "src": "c/bank1c/FileSystem.c"
  },
  "StartMapTransition": {
   "bank": "05",
@@ -3741,7 +3741,7 @@
   "bank": "1C",
   "addr": "72EE",
   "len": 34,
-  "src": "c/bank1c/FileScreen.c"
+  "src": "c/bank1c/LinkClipboard.c"
  },
  "SynthFramesModified": {
   "bank": "1F",
@@ -3807,13 +3807,13 @@
   "bank": "01",
   "addr": "445A",
   "len": 45,
-  "src": "c/bank01/UiHelpers.c"
+  "src": "c/bank01/CartridgeTest.c"
  },
  "TestSramLow": {
   "bank": "01",
   "addr": "4000",
   "len": 234,
-  "src": "c/bank01/UiHelpers.c"
+  "src": "c/bank01/CartridgeTest.c"
  },
  "TilemapAddress": {
   "bank": "06",
@@ -3855,13 +3855,13 @@
   "bank": "01",
   "addr": "7878",
   "len": 205,
-  "src": "c/bank01/UiHelpers.c"
+  "src": "c/bank01/TopBar.c"
  },
  "UpdatePlayClock": {
   "bank": "01",
   "addr": "4FEC",
   "len": 173,
-  "src": "c/bank01/UiHelpers.c"
+  "src": "c/bank01/Clocks.c"
  },
  "UpdateSongPlayMarker": {
   "bank": "07",
@@ -3879,7 +3879,7 @@
   "bank": "01",
   "addr": "50A0",
   "len": 236,
-  "src": "c/bank01/UiHelpers.c"
+  "src": "c/bank01/Clocks.c"
  },
  "WaveFrameModified": {
   "bank": "1F",
@@ -3951,7 +3951,7 @@
   "bank": "01",
   "addr": "4A49",
   "len": 204,
-  "src": "c/bank01/UiHelpers.c"
+  "src": "c/bank01/InstrumentNames.c"
  },
  "WriteKitNumber": {
   "bank": "03",

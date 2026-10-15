@@ -38,6 +38,12 @@ void FileUpgradeV2(void);
 void ReadSongBytesW(UBYTE bank, UWORD source, UBYTE *destination);  /* ReadSongBytes taking a word address (aliased by match_function.py) */
 char ReadInstrumentByteS(UBYTE instrument, UBYTE field);  /* ReadInstrumentByte returning char (aliased): the cast to UBYTE keeps the call result in its own slot */
 
+void MigrateTempoProperties(void)
+{
+    WriteSongByte(1, (UBYTE *)0xBFCB, ReadSongByte(1, (UBYTE *)0xBFB3));
+    WriteSongByte(1, (UBYTE *)0xBFCA, ReadSongByte(1, (UBYTE *)0xBFB2));
+}
+
 UWORD FileCalculateCompressedSize(void)
 {
     UWORD n;
@@ -423,6 +429,19 @@ void FileUpgradeV12(void)
 {
     FileForEachInstrumentType(0, FileUpgradeV12Pulse);
     FileForEachInstrumentType(3, FileUpgradeV12Pulse);
+}
+
+void FileUpgradeRetrigRate(UBYTE *p)
+{
+    UBYTE v;
+
+    v = *p;
+    if ((v & 0xF0) != 0x80) {
+        *p = v & 0xF0;
+        v++;
+        v &= 0x0F;
+        *p |= v;
+    }
 }
 
 void FileUpgradeV13(void)
