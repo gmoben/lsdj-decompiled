@@ -338,6 +338,27 @@ class KitTests(unittest.TestCase):
         self.assertEqual(gen_main.db_text(b'\x80"'), 'db $80, "\\""')
 
 
+class DocsTests(unittest.TestCase):
+    def test_brace_names_resolve(self):
+        """`Prefix{A,B}Suffix` in the docs names symbols the renames cannot
+        see as whole words: every expansion must be a current name."""
+        import re
+        root = Path(__file__).resolve().parents[2]
+        names = set()
+        for p in (root / "src").glob("bank*.sym"):
+            names |= set(re.findall(r"^[0-9A-F]{4} ([A-Za-z_][\w.]*)", p.read_text(), re.M))
+        for p in (root / "constants").glob("*.inc"):
+            names |= set(re.findall(r"^DEF ([A-Za-z_]\w*)", p.read_text(), re.M))
+        for p in (root / "c").rglob("*.[ch]"):
+            names |= set(re.findall(r"\b([A-Za-z_]\w*)\s*\(", p.read_text()))
+        missing = []
+        for f in list((root / "docs").glob("*.md")) + [root / "AGENTS.md", root / "README.md"]:
+            for m in re.finditer(r"`([A-Za-z_]\w*)\{([\w,]+)\}(\w*)`", f.read_text()):
+                missing += [f"{f.name}: {m.group(1)}{x}{m.group(3)}" for x in m.group(2).split(",")
+                            if m.group(1) + x + m.group(3) not in names]
+        self.assertEqual(missing, [])
+
+
 class BytePointerTests(unittest.TestCase):
     """Addresses the code loads a byte at a time."""
     HOME = {0x179A: "FarCall"}
