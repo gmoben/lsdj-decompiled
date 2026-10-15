@@ -543,7 +543,7 @@ bank 7 **song bookmarks** ($0FF0) and **PS/2 keyboard** subsystems, the
 bank 1C **file-format migration callbacks** (`FileUpgradeV<n><Type>`, e.g.
 `FileUpgradeV0Kit`, passed to `FileForEachInstrumentType`), the **FX-command help
 strings** (`TxtHelpA..Z` + the B/F/H/S/W screen variants) behind
-`CommandHelpPointers`, the bank 1E **font tile blocks** (`TilesFont0A`…`TilesFont2C`,
+`CommandHelpPointers`, the bank 1E **font tile blocks** (`TilesFontY2K`…`TilesFontKikoShaded`,
 selected by `wFont` `$C52E`) and **synth waveform
 tables**, and the phrase/chain/instr **allocation bitmap** functions
 (`AllocateNextFreePhrase`/`FreeChain`/`AllocateNextFreeInstrument`/`FindFreeTable`…).

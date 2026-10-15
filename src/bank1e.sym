@@ -9,16 +9,16 @@
 7AA0 LoadFontTiles              ; font (wFont) + UI icon tiles into VRAM after ResetDisplayState; CGB fixes the palettes and loads one block, DMG three (+ right-third blank on colour set bit 1)
 
 ; --- tile data blocks (LoadTilesDispatch streams) + synth waveforms ---
-42C8 TilesUiIcons       ; UI/icon tile block loaded on every palette init
-462A TilesFont2A        ; font 2 (wFont==2) tile block A
-4B1C TilesFont2B        ; font 2 tile block B (DMG path)
-4FEE TilesFont2C        ; font 2 tile block C (DMG path)
-54C0 TilesFont0A        ; font 0 (default) tile block A
-59B2 TilesFont0B        ; font 0 tile block B (DMG path)
-5E84 TilesFont0C        ; font 0 tile block C (DMG path)
-6356 TilesFont1A        ; font 1 (wFont==1) tile block A
-6848 TilesFont1B        ; font 1 tile block B (DMG path)
-6D1A TilesFont1C        ; font 1 tile block C (DMG path)
+42C8 TilesUiIcons       ; UI tiles (screen labels, channel names, borders), loaded after the font: a character map, then 46 tiles (gfx/ui_icons.png)
+462A TilesFontKiko              ; font KIKO (wFont 2): a character map, then 71 tiles (gfx/font_kiko.png); CGB loads only this block
+4B1C TilesFontKikoHighlight     ; font KIKO inverted, the DMG cursor highlight: a character map, then 69 tiles (gfx/font_kiko_highlight.png)
+4FEE TilesFontKikoShaded        ; font KIKO on a dotted ground, DMG shaded cells: a character map, then 69 tiles (gfx/font_kiko_shaded.png)
+54C0 TilesFontY2K               ; font Y2K (wFont 0, the default): a character map, then 71 tiles (gfx/font_y2k.png); CGB loads only this block
+59B2 TilesFontY2KHighlight      ; font Y2K inverted, the DMG cursor highlight: a character map, then 69 tiles (gfx/font_y2k_highlight.png)
+5E84 TilesFontY2KShaded         ; font Y2K on a dotted ground, DMG shaded cells: a character map, then 69 tiles (gfx/font_y2k_shaded.png)
+6356 TilesFontZero              ; font ZERO (wFont 1): a character map, then 71 tiles (gfx/font_zero.png); CGB loads only this block
+6848 TilesFontZeroHighlight     ; font ZERO inverted, the DMG cursor highlight: a character map, then 69 tiles (gfx/font_zero_highlight.png)
+6D1A TilesFontZeroShaded        ; font ZERO on a dotted ground, DMG shaded cells: a character map, then 69 tiles (gfx/font_zero_shaded.png)
 71EC SynthSeedTableA    ; [512] bank-$1E seed cycles: waveform shape 0, signal 0 (32 signed bytes per cycle)
 720C SynthWaveTables    ; [480] interior of SynthSeedTableA, retained debugger name for its second cycle
 73EC SynthSeedTableB    ; [256] seed cycles: waveform shape 0, signal 1

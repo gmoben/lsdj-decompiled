@@ -20,6 +20,8 @@
 # The carved .asm IS the ROM re-encoded as text, so it is never committed.
 # `make` regenerates it from your ROM + the tracked src/*.sym curation.
 /src/*.asm
+# The graphics the carve extracts (gfx/*.png) are the ROM's data too.
+/gfx/*.png
 # Disassembly text exported from the debugger (same reasoning):
 /emulicious.out
 /build/listing.asm

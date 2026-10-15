@@ -12,9 +12,11 @@ extern UBYTE wFont;                         /* $C52E */
 extern UBYTE wColorSet;                     /* $C52F */
 extern UWORD wTileSlotPointer;                  /* $C9B5 */
 extern UBYTE TilesUiIcons[];                /* $1E:$42C8 */
-extern UBYTE TilesFont0A[], TilesFont0B[], TilesFont0C[];   /* $1E:$54C0.. */
-extern UBYTE TilesFont1A[], TilesFont1B[], TilesFont1C[];   /* $1E:$6356.. */
-extern UBYTE TilesFont2A[], TilesFont2B[], TilesFont2C[];   /* $1E:$462A.. */
+/* the fonts' tile blocks, each with its highlight and shaded variant
+   ($1E:$54C0, $6356, $462A) */
+extern UBYTE TilesFontY2K[], TilesFontY2KHighlight[], TilesFontY2KShaded[];
+extern UBYTE TilesFontZero[], TilesFontZeroHighlight[], TilesFontZeroShaded[];
+extern UBYTE TilesFontKiko[], TilesFontKikoHighlight[], TilesFontKikoShaded[];
 void ResetDisplayState(void);               /* $00:$339A */
 UWORD LoadTilesDispatch(UBYTE *tiles);      /* $00:$337D */
 void RequestTileSlot(UWORD slot);           /* $00:$338B */
@@ -172,30 +174,30 @@ void LoadFontTiles(void)
         wHighlightDigitPalette = 4;
         wShadedPalette = 1;
         wHighlightPalette = 1;
-        a = TilesFont0A;
+        a = TilesFontY2K;
         switch (wFont) {
         case 1:
-            a = TilesFont1A;
+            a = TilesFontZero;
             break;
         case 2:
-            a = TilesFont2A;
+            a = TilesFontKiko;
             break;
         }
         wTileSlotPointer = LoadTilesDispatch(a);
     } else {
-        a = TilesFont0A;
-        b = TilesFont0B;
-        c = TilesFont0C;
+        a = TilesFontY2K;
+        b = TilesFontY2KHighlight;
+        c = TilesFontY2KShaded;
         switch (wFont) {
         case 1:
-            a = TilesFont1A;
-            b = TilesFont1B;
-            c = TilesFont1C;
+            a = TilesFontZero;
+            b = TilesFontZeroHighlight;
+            c = TilesFontZeroShaded;
             break;
         case 2:
-            a = TilesFont2A;
-            b = TilesFont2B;
-            c = TilesFont2C;
+            a = TilesFontKiko;
+            b = TilesFontKikoHighlight;
+            c = TilesFontKikoShaded;
             break;
         }
         wTileSlotPointer = LoadTilesDispatch(a);

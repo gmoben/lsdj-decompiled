@@ -28,6 +28,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 cov = import_module("coverage")
 disasm = import_module("disasm")
+gfx = import_module("gfx")
 
 BANK = 0x4000
 ROOT = Path(__file__).resolve().parents[1]
@@ -256,6 +257,30 @@ def pointer_tables(bank: int) -> list[tuple[int, int, int]]:
     return out
 
 
+def tile_blocks(rom: bytes, bank: int) -> list[tuple[int, int, str]]:
+    """The bank's tile blocks: `Tiles*` symbols whose header (tools/gfx.py)
+    sizes them, with no other symbol inside. (lo, hi) file offsets and the
+    asset name their tiles go to (gfx/<name>.png)."""
+    sym = ROOT / "src" / f"bank{bank:02x}.sym"
+    if not sym.is_file():
+        return []
+    rows = cov.read_sym(sym)
+    lo_cpu = 0x4000 if bank else 0
+    addrs = sorted({a for a, _n, _c in rows})
+    out = []
+    for addr, name, _c in rows:
+        if not name.startswith("Tiles"):
+            continue
+        lo = bank * BANK + (addr - lo_cpu)
+        size = gfx.block_size(rom[lo:lo + 2])
+        nxt = next((a for a in addrs if a > addr), lo_cpu + BANK)
+        if size > 2 and nxt - addr >= size:
+            out.append((lo, lo + size, gfx.asset_name(name)))
+        else:
+            print(f"bank ${bank:02X}: {name} is not a tile block of its own; left as bytes")
+    return out
+
+
 def c_ranges(bank: int) -> tuple[list[str], list[tuple[int, int, str, int]]]:
     """ROM ranges owned by matching C (c/matched.json, written by `make match`).
     With the compiler present, each function's RGBDS translation
@@ -310,6 +335,11 @@ def main() -> None:
         tables = pointer_tables(b)
         if tables:
             cmd += ["--ptr-tables", ",".join(f"0x{lo:X}:0x{hi:X}:0x{tb:X}" for lo, hi, tb in tables)]
+        blocks = tile_blocks(rom, b)
+        for lo, hi, name in blocks:
+            gfx.write_png(ROOT / gfx.GFX_DIR / f"{name}.png", gfx.block_tiles(rom[lo:hi]))
+        if blocks:
+            cmd += ["--tiles", ",".join(f"0x{lo:X}:0x{hi:X}:{name}" for lo, hi, name in blocks)]
         clines, incbins = c_ranges(b)
         if incbins:
             cmd += ["--incbin", ",".join(f"0x{lo:X}:0x{hi:X}:{p}:0x{off:X}" for lo, hi, p, off in incbins)]
@@ -320,6 +350,8 @@ def main() -> None:
         n_c = len(clines) + len(incbins)
         extra = (f", {n_c} function(s) from matching C"
                  + (f" ({len(incbins)} as ROM INCBINs)" if incbins else "")) if n_c else ""
+        if blocks:
+            extra += f", {len(blocks)} tile block(s) to {gfx.GFX_DIR}/"
         print(f"bank ${b:02X}: {len(runs)} data run(s), {db} bytes marked db{extra}")
 
     subprocess.run(["python3", "tools/gen_main.py"], cwd=ROOT, check=True)

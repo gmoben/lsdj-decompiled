@@ -23,6 +23,7 @@ split_c = importlib.import_module("split_c")
 rename = importlib.import_module("rename")
 name_locals_full = importlib.import_module("name_locals_full")
 disasm = importlib.import_module("disasm")
+gfx = importlib.import_module("gfx")
 
 
 class PatternTests(unittest.TestCase):
@@ -216,6 +217,36 @@ class FillTests(unittest.TestCase):
         self.assertEqual([t for _a, _b, t, _r in rows],
                          ["ret", "; Free space: 16,383 bytes to the end of the bank.", "ds $8000 - @, $ff"])
         self.assertEqual(rows[1][3], disasm.NOTE)
+
+
+class TileBlockTests(unittest.TestCase):
+    """A tile block: header, the character map the loader skips, 2bpp tiles
+    (tools/gfx.py), rendered as bytes and an INCBIN of gfx/<name>.png."""
+
+    BLOCK = bytes([0x01, 2]) + bytes(range(128)) + bytes([0xFF, 0x00] * 8) + bytes([0x0F, 0xF0] * 8)
+
+    def test_names_and_sizes(self):
+        self.assertEqual([gfx.asset_name(n) for n in ("TilesFontY2KHighlight", "TilesUiIcons", "TilesFontZero")],
+                         ["font_y2k_highlight", "ui_icons", "font_zero"])
+        self.assertEqual(gfx.block_size(bytes([1, 71])), 2 + 128 + 71 * 16)
+        self.assertEqual((gfx.prefix_size(2), gfx.prefix_size(0)), (0, 256))
+        self.assertEqual(gfx.block_tiles(self.BLOCK), self.BLOCK[130:])
+
+    def test_pixels_and_png(self):
+        image = gfx.tile_pixels(gfx.block_tiles(self.BLOCK))
+        self.assertEqual((len(image), len(image[0])), (8, 128))
+        self.assertEqual(image[0][:16], [1] * 8 + [2] * 4 + [1] * 4)
+        png = gfx.png_bytes(image)
+        self.assertEqual(png[:8], b"\x89PNG\r\n\x1a\n")
+        self.assertEqual(png[16:26], bytes([0, 0, 0, 128, 0, 0, 0, 8, 2, 3]))   # 128x8, 2 bits, indexed
+
+    def test_block_rows(self):
+        rows = disasm._emit_tiles(self.BLOCK, 0, len(self.BLOCK), 0x54C0, "font_test")
+        texts = [t for _a, _b, t, _r in rows]
+        self.assertEqual(texts[0], "; 2 tiles from gfx/font_test.png, after a character map (the tile for each ASCII code)")
+        self.assertEqual((texts[1], len(texts)), ("db $01, 2", 11))
+        self.assertEqual(texts[-1], 'INCBIN "build/gfx/font_test.2bpp", 0, 2 * 16')
+        self.assertEqual(b"".join(b for _a, b, _t, _r in rows), self.BLOCK)
 
 
 class BytePointerTests(unittest.TestCase):

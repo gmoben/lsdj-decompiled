@@ -169,7 +169,7 @@ lsdj-decompiled/
 │   ├── screens.inc       # screen indices (wCurrentScreen) -> editor
 │   └── song.inc          # song-data memory map (offsets, counts)
 ├── data/                 # extracted data tables (added as carved)
-├── gfx/                  # graphics assets (added as carved)
+├── gfx/                  # the fonts and UI tiles as PNGs: the carve extracts them from your ROM
 ├── docs/
 │   ├── rom_map.md        # ROM / memory map and per-bank notes
 │   ├── bank_map.md       # per-bank classification (generated)
@@ -186,6 +186,7 @@ lsdj-decompiled/
 │   ├── coverage.py       # whole-ROM reachability tracing
 │   ├── carve_clean.py    # regenerate src/bankNN.asm (code/data split + symbols)
 │   ├── gen_main.py       # generate main.asm (INCLUDE carved banks, INCBIN kits)
+│   ├── gfx.py            # the tile block format; the PNGs the carve writes
 │   ├── gen_sym.py        # build the debugger symbol file (code + RAM + SRAM)
 │   ├── gen_ram_sections.py  # named WRAM/SRAM sections for the linker map
 │   ├── gen_listing.py    # emit build/listing.asm — whole ROM as one annotated file

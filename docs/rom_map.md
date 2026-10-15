@@ -146,7 +146,7 @@ xor a / ldh [rSCY],[rSCX],[rSTAT],[rWY],a   ; reset scroll/LCD status/window
 
 ## Banks $1D/$1E: synth rendering
 
-The matching C in `c/bank1d/SynthScreen.c` covers the two weighted waveform
+The matching C in `c/bank1d/SynthRender.c` covers the two weighted waveform
 mixers (`$4D81`, `$5190`), composition/distortion (`$5323`), and shape
 dispatch (`$5695`). `LoadSynthShape` in bank 0 temporarily selects bank
 `$1E` and sign-extends a 32-byte seed cycle into the 32-word accumulator
@@ -182,6 +182,30 @@ at `$6D6F` opens the overwrite confirmation and sets `$CB61`/`$CB62` flags;
 it does not itself write wave data. The dialog's text uses bank 0's
 `AsciiCharacterMap` (`$086F`, with `wStringSource` biased by -`$20`) and
 `IdentityCharacterMap` (`$08C8`) for its border tiles.
+
+## Bank $1E: fonts and UI tiles
+
+`LoadFontTiles` (`$1E:$7AA0`) loads the font the PROJECT screen picks
+(`wFont`: 0 Y2K, the default, 1 ZERO, 2 KIKO; `FontNames`) and the UI tiles
+through bank 0's tile loader (`LoadTilesDispatch` → `LoadTilesToVram`,
+`CopyTileData`). A tile block is a mode byte and a tile count, a prefix the
+loader skips by the mode's low two bits (1: a 128-byte character map, the
+tile for each ASCII code; 2: none; otherwise 256 bytes), then the tiles, raw
+2bpp. All ten blocks are mode 1:
+
+| Blocks | Tiles | Loaded |
+|--------|-------|--------|
+| `TilesFontY2K`, `TilesFontZero`, `TilesFontKiko` | 71 | always; on CGB the only font block (its palettes shade and highlight cells) |
+| `TilesFontY2KShaded`, … | 69 | DMG, second: the font on a dotted ground (`wShadedPalette`) |
+| `TilesFontY2KHighlight`, … | 69 | DMG, third: the font inverted, the cursor highlight (`wHighlightPalette`) |
+| `TilesUiIcons` | 46 | after the font: screen labels (NOTE, INSTR, CMD, …), channel names, borders |
+
+Nothing reads the blocks' character maps: text is drawn through bank 0's
+`AsciiCharacterMap`. The carve writes each block's tiles to
+`gfx/<name>.png` (`tools/gfx.py`: an indexed PNG, colours 0-3 white to
+black, sixteen tiles a row) and the build converts it back with
+`rgbgfx -c embedded`; the header and the character map stay bytes in
+`src/bank1e.asm`.
 
 ## References
 

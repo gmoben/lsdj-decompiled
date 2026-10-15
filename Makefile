@@ -37,7 +37,7 @@ OBJ    := $(BUILD)/main.o
 SYM    := $(BUILD)/lsdj9_4_0.sym
 MAP    := $(BUILD)/lsdj9_4_0.map
 
-.PHONY: all compare verify-rom sym carve listing audit match clean tidy baseline
+.PHONY: all compare verify-rom sym carve gfx listing audit match clean tidy baseline
 .SECONDARY:
 
 all: $(TARGET)
@@ -49,6 +49,17 @@ all: $(TARGET)
 CARVED_ASM := $(wildcard src/bank*.sym)
 carve: | $(BASEROM)
 	tools/carve_clean.py
+
+# --- Graphics ----------------------------------------------------------------
+# The carve writes the tile blocks' tiles to gfx/*.png -- the ROM's data, like
+# the carve, so extracted from your ROM and never committed -- and rgbgfx
+# converts them back for the carve's INCBINs (tools/gfx.py has the format).
+GFX_2BPP := $(patsubst gfx/%.png,$(BUILD)/gfx/%.2bpp,$(wildcard gfx/*.png))
+$(BUILD)/gfx/%.2bpp: gfx/%.png
+	@mkdir -p $(@D)
+	$(RGBGFX) -c embedded -o $@ $<
+gfx: $(GFX_2BPP)
+	@:
 
 # --- Matching C (Track 2) --------------------------------------------------
 # Functions under c/bankNN/*.c compile byte-for-byte with the period SDCC
@@ -83,15 +94,18 @@ match: | $(BASEROM)
 
 # Auto-carve on a fresh clone: main.asm is the linker entry point; if it is
 # missing, generate the whole tree first.
-src/main.asm: $(CARVED_ASM) constants/ram.inc tools/carve_clean.py tools/disasm.py tools/gen_main.py c/matched.json $(C_STAMP) | $(BASEROM)
+src/main.asm: $(CARVED_ASM) constants/ram.inc tools/carve_clean.py tools/disasm.py tools/gfx.py tools/gen_main.py c/matched.json $(C_STAMP) | $(BASEROM)
 	tools/carve_clean.py
 
 # --- Assemble + link + fix -------------------------------------------------
 src/ramsections.asm: constants/ram.inc tools/gen_ram_sections.py tools/gen_sym.py
 	tools/gen_ram_sections.py
 
-$(OBJ): src/main.asm src/ramsections.asm include/hardware.inc $(BUILD)/rgbdscheck.o | $(BASEROM)
+# The sub-make converts the PNGs a fresh carve has just written (this make
+# read gfx/ before the carve ran).
+$(OBJ): src/main.asm src/ramsections.asm include/hardware.inc $(BUILD)/rgbdscheck.o $(GFX_2BPP) | $(BASEROM)
 	@mkdir -p $(@D)
+	@$(MAKE) --no-print-directory gfx
 	$(RGBASM) $(RGBASMFLAGS) -o $@ $<
 
 $(BUILD)/rgbdscheck.o: rgbdscheck.asm
@@ -155,9 +169,9 @@ baseline: | $(BASEROM)
 
 # --- Housekeeping ----------------------------------------------------------
 # `clean` also removes the deployed root symbol copy (.emu/ is gitignored
-# runtime) and the generated disassembly, which may INCBIN build/c/ bytes.
+# runtime) and the generated disassembly and graphics.
 clean:
-	rm -rf $(BUILD) $(ROMSYM) src/bank*.asm src/main.asm src/ramsections.asm
+	rm -rf $(BUILD) $(ROMSYM) src/bank*.asm src/main.asm src/ramsections.asm gfx/*.png
 
 tidy:
 	rm -f $(OBJ) $(BUILD)/rgbdscheck.o $(SYM) $(MAP) $(ROMSYM)
