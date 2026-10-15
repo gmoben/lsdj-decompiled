@@ -77,9 +77,9 @@ void ClearSpriteY(UBYTE sprite)
     SetOamByte(sprite * 4 + 0x0C, 0);
 }
 
-void SetSpriteX(UBYTE sprite, UBYTE col)
+void SetSpriteX(UBYTE sprite, UBYTE column)
 {
-    SetOamByte(sprite * 4 + 0x0D, (col << 3) + 8);
+    SetOamByte(sprite * 4 + 0x0D, (column << 3) + 8);
 }
 
 void SetSpriteY(UBYTE sprite, UBYTE row)
@@ -99,7 +99,7 @@ void SetSpriteTile4(UBYTE sprite)
     SetOamByte(sprite * 4 + 0x0E, 4);
 }
 
-void SetSpriteAttribute(UBYTE sprite, UBYTE attr)
+void SetSpriteAttribute(UBYTE sprite, UBYTE attribute)
 {
-    SetOamByte(sprite * 4 + 0x0F, attr);
+    SetOamByte(sprite * 4 + 0x0F, attribute);
 }

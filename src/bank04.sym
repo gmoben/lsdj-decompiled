@@ -431,8 +431,8 @@
 56A4 .cont_3
 56B2 .cont_4
 56B6 .cont_5
-56CC .ret00
-5716 .ret01
+56CC .return00
+5716 .return01
 571B .cont
 5741 .loadPhraseRow
 57B0 .farCall
@@ -459,7 +459,7 @@
 59F4 .kitsCompared
 5A04 .noNext
 5A08 .drawName
-5A46 .ret00
+5A46 .return00
 5A4B .readInstrumentByte
 5A68 .cont
 5A69 .cont_2
@@ -478,7 +478,7 @@
 5B32 .kitsCompared
 5B42 .noNext
 5B46 .drawName
-5B7F .ret00
+5B7F .return00
 5B8A .readInstrumentByte
 5BA1 .cont
 5BA2 .cont_2

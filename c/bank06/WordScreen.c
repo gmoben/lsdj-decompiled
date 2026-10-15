@@ -155,7 +155,7 @@ void MoveWordCursorDown(void)
 UBYTE WordScreenInput(void)
 {
     UBYTE v;
-    UBYTE col;
+    UBYTE column;
     UBYTE y;
 
     hBgDigitPalette = wHighlightDigitPalette;
@@ -225,7 +225,7 @@ UBYTE WordScreenInput(void)
     case 0x10:
         if (!wAPressEnabled)
             return 0;
-        col = wWordColumn;
+        column = wWordColumn;
         if (!wWordColumn) {
             if (!ReadWordCell() && wWordClipboardCell0[0]) {
                 WriteWordCell(wWordClipboardCell0[0]);
@@ -243,11 +243,11 @@ UBYTE WordScreenInput(void)
                 hBgDigitPalette = wShadedDigitPalette;
                 hBgPalette = wShadedPalette;
                 DrawHexByte(wWordClipboardCell1[0]);
-                wWordColumn = col;
+                wWordColumn = column;
                 DrawWordCursor();
                 return 1;
             }
-            wWordColumn = col;
+            wWordColumn = column;
         } else if (!ReadWordCell()) {
             WriteWordCell(wWordClipboardCell1[0]);
             SetVramCursor(6, y);

@@ -152,8 +152,8 @@
 1A26 SoundStepPitchVibratoPu2  ; ch1: as PU1 for +2/+3 offsets (-> SoundUpdatePitchModulationFlagPu2); vib phase wChannelVibratoAccumulatorPu2 -> wChannelVibratoOffset+2
 1AA7 SoundStepPitchVibratoWav  ; ch2: as PU1 for +4/+5 offsets (-> SoundUpdatePitchModulationFlagWav); vib phase wChannelVibratoAccumulatorWav -> wChannelVibratoOffset+4
 1CBA SoundStepPitchVibratoNoi  ; ch3 (noise): vibrato via SoundCalculateVibratoOffset then >>5 scale; advance vib phase wChannelVibratoAccumulatorNoi (no period table)
-1B28 SoundInterpPeriod     ; note(d)+frac(e) -> 16-bit period(de) from table at wChannelPeriodTablePointer(bc), fractional interpolation; octave-wrap special cases ($6C/$B6/$F8/$FF)
-1BA7 SoundWriteFrequencyPu1     ; ch0: wChannelOutNote+transpose[wChannelNoteOffset]+finetune+vib+pitch -> SoundInterpPeriod -> wChannelFrequency + rAUD1LOW/HIGH/LEN
+1B28 SoundInterpolatePeriod     ; note(d)+frac(e) -> 16-bit period(de) from table at wChannelPeriodTablePointer(bc), fractional interpolation; octave-wrap special cases ($6C/$B6/$F8/$FF)
+1BA7 SoundWriteFrequencyPu1     ; ch0: wChannelOutNote+transpose[wChannelNoteOffset]+finetune+vib+pitch -> SoundInterpolatePeriod -> wChannelFrequency + rAUD1LOW/HIGH/LEN
 1BF6 SoundWriteFrequencyPu2     ; ch1: like PU1 -> wChannelFrequency+2 + rAUD2LOW/HIGH/LEN
 1C3D SoundWriteFrequencyWav     ; ch2: like PU1 -> wChannelFrequency+4 + rAUD3LOW/HIGH (rAUD3LEN=0)
 1C7C SoundUpdatePitchModulationFlagCurrent ; dispatch by hSoundChannel -> SndUpdatePitchModFlag{PU1 (ch0),PU2 (ch1),Wav (>=2)}
@@ -324,7 +324,7 @@
 005D Unused005D          ; $ff fill, Serial vector tail
 005E Unused005E          ; $ff fill, Serial vector tail
 005F Unused005F          ; $ff fill, Serial vector tail
-1BA1 SoundInterpResume            ; resume point pushed by the manual call at $1B99 (SoundInterpPeriod)
+1BA1 SoundInterpolateResume            ; resume point pushed by the manual call at $1B99 (SoundInterpolatePeriod)
 2D12 TxtNoi                     ; "NOI"
 2D16 TxtPu1                     ; "PU1"
 2D1A TxtPu2                     ; "PU2"
@@ -362,8 +362,8 @@
 1800 .loop                ; loop head in ClearBgTilemap
 1802 .loop2               ; loop head in ClearBgTilemap
 188E .loop                ; loop head in VBlankHandler
-1B2D .loop                ; loop head in SoundInterpPeriod
-1B43 .loop2               ; loop head in SoundInterpPeriod
+1B2D .loop                ; loop head in SoundInterpolatePeriod
+1B43 .loop2               ; loop head in SoundInterpolatePeriod
 1CFC .done                ; common exit of GetNextButtons
 1D6A .done                ; common exit of SyncStartTransport
 1D9C .done                ; common exit of SyncStopTransport

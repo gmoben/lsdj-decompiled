@@ -20,19 +20,19 @@ extern volatile sfr UBYTE VBK_REG;          /* $FF4F */
 extern UBYTE wAttributeRowBuffer[];                 /* $C677, [20] */
 void DrawTileRun(UBYTE x, UBYTE y, UBYTE w, UBYTE h, UBYTE tile);   /* asm */
 
-void ColorField(UBYTE x, UBYTE y, UBYTE w, UBYTE pal)
+void ColorField(UBYTE x, UBYTE y, UBYTE w, UBYTE palette)
 {
     if (!w)
         return;
     if (hGameboyType) {
         if (w > 20)
             DebugTrap();
-        FillMemory(wAttributeRowBuffer, pal, w);
+        FillMemory(wAttributeRowBuffer, palette, w);
         VBK_REG = 1;
         set_bkg_tiles(x, y, w, 1, wAttributeRowBuffer);
         VBK_REG = 0;
     } else
-        DrawTileRun(x, y, w, 1, pal);
+        DrawTileRun(x, y, w, 1, palette);
 }
 
 UWORD GetTempoTimerValue(void)

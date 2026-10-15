@@ -57,7 +57,7 @@ KNOWN_ASM = {
     # epilogue), register arguments (`push de` as a ModU8 call), `add a,l;
     # ld l,a` / `inc l` address steps, `swap`, `stop`, unrolled `ld [hl+],a`,
     # tail-jumping dispatchers, the `ld b,b` debugger marker
-    "00:SoundInterpResume", "00:DebugTrap", "00:KitIndexToBank", "00:AnyChannelFlagSet",
+    "00:SoundInterpolateResume", "00:DebugTrap", "00:KitIndexToBank", "00:AnyChannelFlagSet",
     "00:SwitchToDoubleSpeed", "00:VibratoOffsetJumps",
     "02:SoundCommandTableJump", "02:SoundRandom15", "02:SoundTriggerNote", "02:SoundSetupChannel",
     "02:SoundClearChannelCommandSlots", "02:SoundAdvanceChannelCursors", "02:SoundCountdownStep",

@@ -33,7 +33,7 @@ UBYTE IsBookmarked(UBYTE row);
 void AddBookmark(UBYTE row);
 void RemoveBookmark(UBYTE row);
 void ShowMax16Marks(void);                  /* bank 1 */
-void ScanSongSram(UBYTE *src, UBYTE *dst);  /* asm */
+void ScanSongSram(UBYTE *source, UBYTE *destination);  /* asm */
 void SaveSelectionState(void);              /* bank 5 */
 void SoundStartRange(void);                /* bank 2 */
 
@@ -56,10 +56,10 @@ UBYTE IsSongChainUsed(void);                /* bank $1F */
 void WriteChainPhrase(void);                /* bank $1F */
 void AllocNextFreePhrase(void);             /* bank 1 */
 void ShowOutOfMemory(void);                 /* bank 1 */
-void ClonePhraseAtCursor(UBYTE src, UBYTE dst);    /* bank 6 */
+void ClonePhraseAtCursor(UBYTE source, UBYTE destination);    /* bank 6 */
 UBYTE ReadChainTranspose(UBYTE chain, UBYTE step);     /* bank 6 */
 void SetChainTranspose(UBYTE chain, UBYTE row, UBYTE v);   /* bank 6 */
-void WriteSongCell(UBYTE col, UBYTE row, UBYTE chain);
+void WriteSongCell(UBYTE column, UBYTE row, UBYTE chain);
 
 void CopySongColumn(UBYTE *p, UBYTE *q)
 {
@@ -74,28 +74,28 @@ void CopySongColumn(UBYTE *p, UBYTE *q)
 
 void EraseSongCursor(void)
 {
-    UBYTE x, y, pal;
+    UBYTE x, y, palette;
 
     x = SongColumnOffsets[wSongColumn];
     y = wSongRow + 2 - wSongScroll;
-    pal = IsBookmarked(wSongRow);
+    palette = IsBookmarked(wSongRow);
     if (y >= 0x12)
         DebugTrap();
-    ColorField(x, y, 2, pal);
+    ColorField(x, y, 2, palette);
 }
 
-void WriteSongCell(UBYTE col, UBYTE row, UBYTE chain)
+void WriteSongCell(UBYTE column, UBYTE row, UBYTE chain)
 {
     UBYTE *p;
 
-    if (col >= 4)
+    if (column >= 4)
         DebugTrap();
     if (row > 0xBF)
         DebugTrap();
     if (chain != 0xFF && chain >= 0x80)
         DebugTrap();
     p = SramSequence + ((UWORD)row << 2);
-    WriteSongByte(0, p + col, chain);
+    WriteSongByte(0, p + column, chain);
 }
 
 UBYTE CloneSongChain(UBYTE chain)
@@ -185,13 +185,13 @@ void ReadSongRow(void)
 void DrawSongRowNumber(void)
 {
     UBYTE y;
-    UBYTE row, pal;
+    UBYTE row, palette;
 
     if (hGameboyType) {
         row = wSongScroll;
         for (y = 2; y != 18; y++, row++) {
-            pal = (row & 4) ? 1 : 2;
-            ColorField(0, y, 2, pal);
+            palette = (row & 4) ? 1 : 2;
+            ColorField(0, y, 2, palette);
             ColorField(2, y, 12, IsBookmarked(row));
         }
     }
@@ -323,11 +323,11 @@ void SetSongRowPalettes(UBYTE y)
     UBYTE bm;
     UBYTE v;
     UBYTE shadow;
-    UBYTE i, cur;
+    UBYTE i, current;
 
     bm = IsBookmarked(wSongRow);
-    cur = wSongScroll + y - 2;
-    shadow = cur & (UBYTE)4;
+    current = wSongScroll + y - 2;
+    shadow = current & (UBYTE)4;
     if (shadow) {
         hBgDigitPalette = wShadedDigitPalette;
         hBgPalette = wShadedPalette;
@@ -346,8 +346,8 @@ void SetSongRowPalettes(UBYTE y)
     for (i = 0; i < 4; i++) {
         v = ReadSequenceByte(i, wSongRow);
         DrawStringIndexed(' ');
-        cur = i == wSongColumn;
-        if (cur) {
+        current = i == wSongColumn;
+        if (current) {
             hBgDigitPalette = wHighlightDigitPalette;
             hBgPalette = wHighlightPalette;
         }
@@ -355,7 +355,7 @@ void SetSongRowPalettes(UBYTE y)
             DrawString("--");                   /* the literal lands right after the function ($492A) */
         else
             DrawHexByte(v);
-        if (cur) {
+        if (current) {
             if (bm) {
                 hBgDigitPalette = wShadedDigitPalette;
                 hBgPalette = wShadedPalette;
@@ -595,7 +595,7 @@ void ClearBookmarks(void)
     FillMemory(SramBookmarks, 0xFF, 0x10);
 }
 
-void AdjustBookmarksOnDelete(UBYTE lo, UBYTE hi)
+void AdjustBookmarksOnDelete(UBYTE low, UBYTE high)
 {
     UBYTE i, v;
     UBYTE *p;
@@ -604,12 +604,12 @@ void AdjustBookmarksOnDelete(UBYTE lo, UBYTE hi)
     do {
         p = SramBookmarks + i;
         v = ReadSongByte(0, p);
-        if (v != 0xFF && v >= lo) {
-            if (v < hi) {
+        if (v != 0xFF && v >= low) {
+            if (v < high) {
                 WriteBookmarkByte(p, 0xFF);
             } else {
-                v -= hi;
-                v += lo;
+                v -= high;
+                v += low;
                 WriteBookmarkByte(p, v);
             }
         }

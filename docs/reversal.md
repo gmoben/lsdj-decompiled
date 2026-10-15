@@ -55,7 +55,7 @@ control-transfer entry point:
   write — so the trace follows control flow **through** bank switches.
  - it follows direct branches/calls, **jump tables** (`jp hl` over a `jp`-list or
    a 2-byte address array), and LSDj's two **farcall helpers** `FarCall` (`$179A`,
-   caller pushes `addr` then `bank`) and `FarCallArgument` (`$17BB`, same but also
+   caller pushes `address` then `bank`) and `FarCallArgument` (`$17BB`, same but also
    passes one byte argument). The helper switches bank and calls; every call
    site's `(bank, addr)` pair is extracted as an entry point.
 - conservative throughout (jump-table targets must be in range and start on a
@@ -144,7 +144,7 @@ label strings ("ATK", "ON", "0.5") with code, so
 forcing data ranges would risk *hiding* code — the conservative carve is correct.
 
 The coverage tracer resolves the **computed-address farcall**: when a
-`call $179A` pushes an immediate `bank` but reads the `addr` from a pointer
+`call $179A` pushes an immediate `bank` but reads the `address` from a pointer
 table (`ld a,[hl+]; ld h,[hl]; ld l,a`), it reads the table from the *caller's*
 bank and validates targets in the *callee's* bank.
 

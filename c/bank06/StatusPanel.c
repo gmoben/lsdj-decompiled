@@ -36,16 +36,16 @@ extern UBYTE wNoteTranspose;                /* $C4D3 */
 extern UBYTE wSoundUpdateFlags;               /* $C8F5 */
 extern UBYTE wTempoShadow;                  /* $C947 */
 void DrawTileHexCell(UBYTE v);                /* c/bank06/DrawTileHexCell.c */
-void DrawNoteName(UBYTE col, UBYTE v);
-void DrawStatusNote(UBYTE chan, UBYTE note);
+void DrawNoteName(UBYTE column, UBYTE v);
+void DrawStatusNote(UBYTE channel, UBYTE note);
 void UpdateScope(void);
 
-void DrawStatusNote(UBYTE chan, UBYTE note)
+void DrawStatusNote(UBYTE channel, UBYTE note)
 {
     UBYTE c, n;
 
-    SetVramCursor(17, chan + 6);
-    if (wSoundUpdateFlags && chan == 2) {
+    SetVramCursor(17, channel + 6);
+    if (wSoundUpdateFlags && channel == 2) {
         wSampleNoteString[0] = 0;
         if (note & 0xF0)
             ReadKitSampleName(wKit1Bank, note >> 4);
@@ -60,7 +60,7 @@ void DrawStatusNote(UBYTE chan, UBYTE note)
         DrawString(wSampleNoteString);
         return;
     }
-    switch (chan) {
+    switch (channel) {
     case 3:
         n = *(UBYTE *)0xC2E7;               /* wNoiNote, read through the literal */
         n++;
@@ -71,7 +71,7 @@ void DrawStatusNote(UBYTE chan, UBYTE note)
         break;
     }
     if (note <= 0x6C)
-        DrawNoteName(chan, note);
+        DrawNoteName(channel, note);
 }
 
 void UpdateStatusPanel(void)
@@ -161,14 +161,14 @@ void DrawSyncStatus(void)
     }
 }
 
-void DrawNoteName(UBYTE col, UBYTE v)
+void DrawNoteName(UBYTE column, UBYTE v)
 {
     char *p;
     UBYTE t;
 
     if (!v) {
         DrawString(TxtNoNote);
-    } else if (col == 3) {
+    } else if (column == 3) {
         t = v - 1;
         if (t < 0x3C) {
             DrawHexByte(t);
@@ -201,7 +201,7 @@ void DrawNoteName(UBYTE col, UBYTE v)
         p = NoteNames + (UWORD)v * 3;
         DrawStringIndexed(p[0]);
         DrawStringIndexed(p[1]);
-        DrawStringIndexed(col == 2 ? p[2] - 1 : p[2]);
+        DrawStringIndexed(column == 2 ? p[2] - 1 : p[2]);
     } else {
         DrawString(TxtNoteBad);
     }

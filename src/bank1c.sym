@@ -381,7 +381,7 @@
 4320 .incrementSyncSendAccumulator
 43AA .cont
 43D6 .checkArgument
-440E .ret00
+440E .return00
 4413 .cont
 4419 .cont_2
 447A .loadCompressDestination
@@ -396,7 +396,7 @@
 46A7 .setCompressBank
 46DD .cont
 4701 .filePutDecompressByte
-472F .ret01
+472F .return01
 4734 .checkDecompressPosition
 476C .writeDecompressByte
 4774 .cont
@@ -507,11 +507,11 @@
 5BE1 .cont
 5BE4 .fileDrawFieldChecked
 5C09 .farCall_2
-5C4F .ret01
+5C4F .return01
 5C54 .fileDrawFieldChecked_2
 5D62 .cont_2
 5D64 .cont_3
-5D7D .ret00
+5D7D .return00
 5DC4 .cont_4
 5DC5 .setFileScroll
 5E04 .fileDrawField

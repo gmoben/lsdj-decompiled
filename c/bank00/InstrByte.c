@@ -28,29 +28,29 @@
 
 #include "lsdj.h"
 
-void WriteInstrumentByte(UBYTE instr, UBYTE field, UBYTE val)
+void WriteInstrumentByte(UBYTE instrument, UBYTE field, UBYTE value)
 {
     UBYTE *p;
 
-    if (instr >= 0x40)
+    if (instrument >= 0x40)
         DebugTrap();
     if (field >= 0x10)
         DebugTrap();
-    if (field == 0 && val >= 4)
+    if (field == 0 && value >= 4)
         DebugTrap();
-    p = SramInstrs + ((unsigned int)instr << 4);
-    WriteSongByte(1, p + (unsigned int)field, val);   /* the cast: field into bc, p into hl */
+    p = SramInstrs + ((unsigned int)instrument << 4);
+    WriteSongByte(1, p + (unsigned int)field, value);   /* the cast: field into bc, p into hl */
 }
 
-UBYTE ReadInstrumentByte(UBYTE instr, UBYTE field)
+UBYTE ReadInstrumentByte(UBYTE instrument, UBYTE field)
 {
     UBYTE *p;
 
-    if (instr >= 0x40)
+    if (instrument >= 0x40)
         DebugTrap();
     if (field >= 0x10)
         DebugTrap();
-    p = SramInstrs + ((unsigned int)instr << 4);
+    p = SramInstrs + ((unsigned int)instrument << 4);
     return ReadSongByte(1, p + field);
 }
 

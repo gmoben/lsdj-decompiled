@@ -63,8 +63,8 @@ void MarkChainUsed(UBYTE chain);            /* bank 1 */
 void InitializeRemapTable(void);                  /* bank $1F */
 void SoundTogglePlayback(void);                  /* bank 2 */
 void SyncApplyMode(void);
-void WritePhraseCommand(UBYTE phrase, UBYTE row, UBYTE fx);  /* bank 4 */
-void WriteTableCommand(UBYTE row, UBYTE fx);    /* bank 5 */
+void WritePhraseCommand(UBYTE phrase, UBYTE row, UBYTE command);  /* bank 4 */
+void WriteTableCommand(UBYTE row, UBYTE command);    /* bank 5 */
 void ResetGrooveState(void);                /* bank $1D */
 UBYTE HandleButtonEvent(void);
 extern UBYTE wKeyboardActionChannel;                  /* $CB9A */

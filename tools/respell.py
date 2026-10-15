@@ -46,7 +46,7 @@ volatile while sfr _asm _endasm UBYTE BYTE UWORD WORD DWORD UDWORD NULL""".split
 WORD = re.compile(r"[A-Z]+(?![a-z])|[A-Z][a-z]*|[a-z]+|[0-9]+")
 
 
-def respell(name: str, words: dict[str, str], known: frozenset[str] = frozenset()) -> str:
+def respell(name: str, words: dict[str, str], known: frozenset[str] = frozenset(), dedup: bool = True) -> str:
     """`name` with each short word spelt out (see the module doc). A last word
     one letter (b-f) past a short word is a de-duplication letter only if
     it is not a word of its own, which `known` holds (Mode is not Mod+e)."""
@@ -64,7 +64,7 @@ def respell(name: str, words: dict[str, str], known: frozenset[str] = frozenset(
             last = pi == len(parts) - 1 and ti == len(toks) - 1
             if full is None and cap.endswith("s") and cap[:-1] in words:
                 full = words[cap[:-1]] + "s"
-            if full is None and last and len(cap) > 2 and cap[-1] in "bcdef" and cap[:-1] in words and cap not in known:
+            if full is None and dedup and last and len(cap) > 2 and cap[-1] in "bcdef" and cap[:-1] in words and cap not in known:
                 full = words[cap[:-1]] + cap[-1]          # the labeller's de-duplication letter
             if full is None:
                 piece = tok
@@ -159,9 +159,12 @@ def respell_c_locals(words: dict[str, str], sets: dict[str, str], dry: bool) -> 
         text = f.read_text()
         reserved_here = reserved | set(re.findall(r"^\s*#\s*define\s+(\w+)", text, re.M))
         pre, chunks = mc.split(text) if f.suffix == ".c" else (text, [])
-        for _, body in [("", pre)] + chunks:
+        # a function is one scope; a declaration line (a prototype's parameters) is its own
+        blank = lambda t: re.sub(r"/\*.*?\*/", lambda m: re.sub(r"[^\n]", " ", m.group(0)), t, flags=re.S)
+        scopes = blank(pre).splitlines() + [blank(body) for _, body in chunks]
+        for body in scopes:
             ids = {m.group(0) for m in CODE.finditer(body) if m.group(0)[0].isalpha() or m.group(0)[0] == "_"}
-            local = {i: sets.get(i) or respell(i, words) for i in ids
+            local = {i: sets.get(i) or respell(i, words, dedup=False) for i in ids
                      if i not in reserved_here and i[:1].islower() and not exempt_c(i)}
             local = {o: n for o, n in local.items() if n != o}
             for o, n in local.items():
@@ -179,15 +182,36 @@ def respell_c_locals(words: dict[str, str], sets: dict[str, str], dry: bool) -> 
     if not dry:
         for f, new in changes.items():
             f.write_text(new)
-        for d in [*(ROOT / "docs").glob("*.md"), ROOT / "AGENTS.md"]:
-            s = d.read_text()
-            t = re.sub(r"`[^`\n]+`", lambda m: rename.TOKEN.sub(
-                lambda t2: spans.get(t2.group(0), t2.group(0)), m.group(0)), s)
-            if t != s:
-                d.write_text(t)
+        respell_doc_spans(spans)
     print(f"{'would respell' if dry else 'respelt'} {total} C identifier use(s) in {len(changes)} file(s): "
           + ", ".join(f"{o} -> {n}" for o, n in sorted(spans.items())))
     return total
+
+
+def respell_doc_spans(mapping: dict[str, str]) -> None:
+    """Respell the docs' quotes of C: a code span changes only if the
+    respelt span is C the tree now holds (whitespace aside), so paths, asm
+    (`inc`) and placeholders keep their words; the rest are listed."""
+    norm = lambda t: re.sub(r"\s+", " ", t).strip()
+    ctext = norm(" ".join(p.read_text() for p in (ROOT / "c").rglob("*.c")))
+    unsure = []
+    for d in [*(ROOT / "docs").glob("*.md"), ROOT / "AGENTS.md"]:
+        s = d.read_text()
+
+        def fix(m: re.Match[str]) -> str:
+            span = m.group(0)
+            new = rename.TOKEN.sub(lambda t: mapping.get(t.group(0), t.group(0)), span)
+            if new == span:
+                return span
+            if norm(new[1:-1]) in ctext:
+                return new
+            unsure.append(f"{d.relative_to(ROOT)}: {span}")
+            return span
+        t = re.sub(r"`[^`\n]+`", fix, s)
+        if t != s:
+            d.write_text(t)
+    if unsure:
+        print("code spans left as they are (not C the tree holds):\n  " + "\n  ".join(unsure[:40]))
 
 
 def exempt_c(name: str) -> bool:

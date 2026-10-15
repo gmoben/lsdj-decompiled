@@ -11,63 +11,63 @@
 
 /* $0BFE: call fn in ROM bank `bank`, returning its byte */
 
-UBYTE FarCallByte(UBYTE bank, UWORD fn)
+UBYTE FarCallByte(UBYTE bank, UWORD function)
 {
     UBYTE old, r;
 
     old = hCurrentBank;
     SWITCH_ROM(bank);
-    r = ((UBYTE (*)(void))fn)();
+    r = ((UBYTE (*)(void))function)();
     SWITCH_ROM(old);
     return r;
 }
 
 /* $0C29: call fn(arg) in ROM bank `bank`, returning its byte */
 
-UBYTE FarCallArgumentByte(UBYTE bank, UWORD fn, UBYTE arg)
+UBYTE FarCallArgumentByte(UBYTE bank, UWORD function, UBYTE argument)
 {
     UBYTE old, r;
 
     old = hCurrentBank;
     SWITCH_ROM(bank);
-    r = ((UBYTE (*)(UBYTE))fn)(arg);
+    r = ((UBYTE (*)(UBYTE))function)(argument);
     SWITCH_ROM(old);
     return r;
 }
 
 /* $0C5A: call fn(a, b) in ROM bank `bank` */
 
-void FarCallArgument2V(UBYTE bank, UWORD fn, UBYTE a, UBYTE b)
+void FarCallArgument2V(UBYTE bank, UWORD function, UBYTE a, UBYTE b)
 {
     UBYTE old;
 
     old = hCurrentBank;
     SWITCH_ROM(bank);
-    ((void (*)(UBYTE, UBYTE))fn)(a, b);
+    ((void (*)(UBYTE, UBYTE))function)(a, b);
     SWITCH_ROM(old);
 }
 
 /* $0C8F: call fn(a, b) in ROM bank `bank`, returning its byte */
 
-UBYTE FarCallArgument2(UBYTE bank, UWORD fn, UBYTE a, UBYTE b)
+UBYTE FarCallArgument2(UBYTE bank, UWORD function, UBYTE a, UBYTE b)
 {
     UBYTE old, r;
 
     old = hCurrentBank;
     SWITCH_ROM(bank);
-    r = ((UBYTE (*)(UBYTE, UBYTE))fn)(a, b);
+    r = ((UBYTE (*)(UBYTE, UBYTE))function)(a, b);
     SWITCH_ROM(old);
     return r;
 }
 
 /* $0CC5: call fn(a, b, c) in ROM bank `bank` */
 
-void FarCallArgument3(UBYTE bank, UWORD fn, UBYTE a, UBYTE b, UBYTE c)
+void FarCallArgument3(UBYTE bank, UWORD function, UBYTE a, UBYTE b, UBYTE c)
 {
     UBYTE old;
 
     old = hCurrentBank;
     SWITCH_ROM(bank);
-    ((void (*)(UBYTE, UBYTE, UBYTE))fn)(a, b, c);
+    ((void (*)(UBYTE, UBYTE, UBYTE))function)(a, b, c);
     SWITCH_ROM(old);
 }

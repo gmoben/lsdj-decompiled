@@ -382,7 +382,7 @@
 43E2 .loadGrooveRow
 43E6 .setGrooveRow
 442D .testBit1
-4521 .ret01
+4521 .return01
 4616 .setGrooveRow_2
 4624 .cont
 464A .cont_2
@@ -395,8 +395,8 @@
 47E5 .cont_7
 4855 .drawGrooveRow_2
 4977 .readGrooveStep
-49F9 .ret01_2
-4A0E .ret01_3
+49F9 .return01_2
+4A0E .return01_3
 4A13 .loadMapColumn
 4A31 .farCall
 4B16 .grooveScreenHardware
@@ -588,9 +588,9 @@
 7106 .shift
 7124 .writeSynthParameter
 7131 .cont
-7168 .ret01
+7168 .return01
 7197 .setDrawStep
-722C .ret01_2
+722C .return01_2
 72AC .checkOverwriteEnd
 72B9 .setSynthCursor_2
 7376 .loadSynthCursor_2
@@ -646,10 +646,10 @@
 7B1E .readSynthParameterPair2_6
 7B2E .readSynthParameterPair2_7
 7B3E .readSynthParameterPair2_8
-7B68 .ret01_3
-7B81 .ret01_4
+7B68 .return01_3
+7B81 .return01_4
 7B93 .farCall
-7BB6 .ret01_5
+7BB6 .return01_5
 7BBB .farCall_2
 7BDB .farCall_3
 7BFD .farCall_4
@@ -657,7 +657,7 @@
 7C78 .showMessage
 7C9A .index
 7CDA .setSelectionLeft_2
-7D19 .ret00
+7D19 .return00
 7D1E .showMessage_2
 7D36 .index_2
 7D74 .synthDataAddress_2

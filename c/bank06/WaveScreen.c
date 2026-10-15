@@ -31,7 +31,7 @@ extern UBYTE wSelectionBottom;                    /* $C410 */
 extern UBYTE wClipboardType;                /* $C411 */
 extern UBYTE wButtons;                      /* $C575 */
 extern UBYTE wWaveColumnEmpty[];               /* $C93D, [8] */
-void WriteVramByteSafe(UBYTE *addr, UBYTE v);  /* $00:$17EC */
+void WriteVramByteSafe(UBYTE *address, UBYTE v);  /* $00:$17EC */
 extern UBYTE wSynthScreen;                  /* $C441 */
 extern UBYTE wSelectHeld;                   /* $C40A */
 extern UBYTE wBHeld;                        /* $C40B */
@@ -106,20 +106,20 @@ UBYTE ReadWaveSample(UBYTE i)
     return 0x0F ^ v;
 }
 
-void WriteWaveSample(UBYTE pos, UBYTE v)
+void WriteWaveSample(UBYTE position, UBYTE v)
 {
     UBYTE *p;
     UBYTE b;
 
-    if (pos >= 0x20)
+    if (position >= 0x20)
         DebugTrap();
     p = SramWaveFrames + ((UWORD)wSynth << 4);
     LockCurrentSynth();
     v ^= 0x0F;
-    pos = (pos + 1) & 0x1F;
-    p += pos >> 1;
+    position = (position + 1) & 0x1F;
+    p += position >> 1;
     b = ReadSongByte(3, (UWORD)p);
-    if (pos & 1) {
+    if (position & 1) {
         b &= 0xF0;
         v = (v & 0x0F) | b;
     } else {
@@ -188,17 +188,17 @@ void InitializeWaveSprites(void)
    tile when they share a row, the half-tile pair otherwise; CGB and DMG
    tile numbers), the empty tile on the column's other rows, and the two
    values in hex below the graph. */
-void DrawWaveColumn(UBYTE col)
+void DrawWaveColumn(UBYTE column)
 {
     UBYTE s0, s1, i, j;
     UBYTE *p;
     char t;
 
-    s0 = ReadWaveSample(col * 2);
-    s1 = ReadWaveSample(col * 2 + 1);
+    s0 = ReadWaveSample(column * 2);
+    s1 = ReadWaveSample(column * 2 + 1);
     i = s0 >> 1;
     j = s1 >> 1;
-    p = TilemapAddress(col + 2, 13 - i);
+    p = TilemapAddress(column + 2, 13 - i);
     FillMemory(wWaveColumnEmpty, 1, 8);
     wWaveColumnEmpty[i] = 0;
     wWaveColumnEmpty[j] = 0;
@@ -208,10 +208,10 @@ void DrawWaveColumn(UBYTE col)
                           : ((s1 & 1) ? (hGameboyType ? 0x56 : 0xE0) : (hGameboyType ? 0x57 : 0xE1)));
     } else {
         WriteVramByteSafe(p, (s0 & 1) ? (hGameboyType ? 0x50 : 0xDA) : (hGameboyType ? 0x53 : 0xDD));
-        p = TilemapAddress(col + 2, 13 - j);
+        p = TilemapAddress(column + 2, 13 - j);
         WriteVramByteSafe(p, (s1 & 1) ? (hGameboyType ? 0x51 : 0xDB) : (hGameboyType ? 0x52 : 0xDC));
     }
-    p = TilemapAddress(col + 2, 6);
+    p = TilemapAddress(column + 2, 6);
     for (i = 7; ; i--) {
         if (wWaveColumnEmpty[i])
             WriteVramByteSafe(p, 3);
@@ -219,20 +219,20 @@ void DrawWaveColumn(UBYTE col)
             break;
         p += 0x20;
     }
-    if (col & 2) {
+    if (column & 2) {
         hBgDigitPalette = wShadedDigitPalette;
         hBgPalette = wShadedPalette;
     } else {
         hBgDigitPalette = wHighlightDigitPalette;
         hBgPalette = wHighlightPalette;
     }
-    t = col;                        /* a char copy: the test and the x read b */
+    t = column;                        /* a char copy: the test and the x read b */
     if (t & 8)
         SetVramCursor(t * 2 - 14, 14);
     else
-        SetVramCursor(col * 2 + 2, 5);
-    DrawByte(ReadWaveSample(col * 2));
-    DrawByte(ReadWaveSample(col * 2 + 1));
+        SetVramCursor(column * 2 + 2, 5);
+    DrawByte(ReadWaveSample(column * 2));
+    DrawByte(ReadWaveSample(column * 2 + 1));
 }
 
 void DrawWaveCursorColumn(void)

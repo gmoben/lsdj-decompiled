@@ -462,7 +462,7 @@
 4D88 .loadChannelActive
 4DD2 .setChannelChain
 4E53 .cont
-4E65 .ret00
+4E65 .return00
 4F63 .setChannelTableStep
 4F6F .setChannelTableStep_2
 4F7D .setChannelNoteStep_2
@@ -500,7 +500,7 @@
 5516 .checkChannelRestart
 557E .storeFrameSkip
 55E2 .setChannelNoteTrigger
-55EC .ret00
+55EC .return00
 55FB .soundDecodeNibbles
 5612 .soundDecodeNibbles
 564B .readSoundChannel
@@ -568,10 +568,10 @@
 616F .loadWavLevel
 6180 .loadChannelNote_2
 6197 .loadWavLevel_2
-61C9 .ret11
+61C9 .return11
 61D7 .cont
-61DA .ret10
-61DE .ret01
+61DA .return10
+61DE .return01
 61E0 .readSoundChannel
 61F0 .readAUDTERM
 62CF .pitch
@@ -659,7 +659,7 @@
 777D .readSoundChannel_3
 77D4 .readSoundChannel_4
 785E .setOscillatorActive
-78A0 .ret00
+78A0 .return00
 78A5 .readSoundChannel
 78C0 .cont
 793B .cont

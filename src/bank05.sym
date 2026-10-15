@@ -289,7 +289,7 @@
 47F9 .add16
 48FC .cont
 48FE .cont_2
-4944 .ret01
+4944 .return01
 4956 .cont
 4957 .cont_2
 4963 .cont_3

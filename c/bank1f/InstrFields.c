@@ -59,10 +59,10 @@ void DrawInstrumentTableField(void)
  * a register for the test (`and; ld c,a; or a,c`): SDCC fuses `x & lit`
  * into its `if` only with the literal on the right.
  */
-void DrawKitLoopMode(UBYTE loopBit, UBYTE atkByte)
+void DrawKitLoopMode(UBYTE loopBit, UBYTE attackByte)
 {
     if (ReadCurrentInstrumentByte(5) & loopBit) {
-        if (0x80 & ReadCurrentInstrumentByte(atkByte))
+        if (0x80 & ReadCurrentInstrumentByte(attackByte))
             DrawString("ATK");
         else
             DrawString(" ON");

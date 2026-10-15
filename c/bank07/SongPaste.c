@@ -18,42 +18,42 @@ extern UBYTE wSongScroll;                   /* $C41C */
 extern UBYTE wSelectionTop;                       /* $C40E */
 extern UBYTE wSelectionRight;                     /* $C40F */
 extern UBYTE wSelectionBottom;                    /* $C410 */
-void WriteSongSramBytes(UWORD src, UWORD dst, UBYTE n);   /* asm $07:$7422; this unit casts both pointers */
+void WriteSongSramBytes(UWORD source, UWORD destination, UBYTE n);   /* asm $07:$7422; this unit casts both pointers */
 void AdjustBookmarksOnInsert(UBYTE from, UBYTE to);
-void WriteSongCell(UBYTE col, UBYTE row, UBYTE chain);
+void WriteSongCell(UBYTE column, UBYTE row, UBYTE chain);
 
 void PasteSongSelection(void)
 {
-    UBYTE col;
+    UBYTE column;
     UBYTE n;
-    UBYTE colOff;
+    UBYTE columnOffset;
     UBYTE h;
-    UBYTE *src;
+    UBYTE *source;
     UBYTE *p;
     UBYTE w;
 
-    colOff = 0;
+    columnOffset = 0;
     w = wSelectionRight - wSelectionLeft;
     if (w == 1)
-        colOff = wSelectionLeft - wSongColumn;
+        columnOffset = wSelectionLeft - wSongColumn;
     h = wSelectionBottom - wSelectionTop;
     if (!wSelectionLeft && wSelectionRight == 4)
         AdjustBookmarksOnInsert(wSongRow, wSongRow + h);
     if (wSongRow + h < 0xBF) {
-        for (col = wSelectionLeft; col < wSelectionRight; col++) {
-            p = (UBYTE *)0xB58C + (col - colOff);
-            src = p - ((UWORD)h << 2);
+        for (column = wSelectionLeft; column < wSelectionRight; column++) {
+            p = (UBYTE *)0xB58C + (column - columnOffset);
+            source = p - ((UWORD)h << 2);
             if ((UWORD)p < (UWORD)0xB290)
                 DebugTrap();
             if ((UWORD)p >= (UWORD)0xB590)
                 DebugTrap();
             n = (UWORD)0xC0 - (wSongRow + h);
-            WriteSongSramBytes((UWORD)src, (UWORD)p, n);
+            WriteSongSramBytes((UWORD)source, (UWORD)p, n);
         }
     }
     for (n = 0; n < h; n++) {
-        for (col = wSelectionLeft; col < wSelectionRight; col++) {
-            WriteSongCell(col - colOff, wSongRow, ReadClipboardCell(col, n));
+        for (column = wSelectionLeft; column < wSelectionRight; column++) {
+            WriteSongCell(column - columnOffset, wSongRow, ReadClipboardCell(column, n));
         }
         if (wSongRow == 0xBF)
             break;

@@ -59,7 +59,7 @@ void BeginSongSelection(void);
 void DrawSongCursorRow(void);
 void ToggleBookmark(UBYTE row);
 void DrawChannelHeader(void);
-void WriteSongCell(UBYTE col, UBYTE row, UBYTE chain);
+void WriteSongCell(UBYTE column, UBYTE row, UBYTE chain);
 void CopySongColumn(UWORD p, UWORD q);    /* defined with pointers in SongScreen.c */
 UBYTE IsSongChainUsed(void);                /* bank $1F */
 void MarkChainUsed(void);                   /* bank 1 */

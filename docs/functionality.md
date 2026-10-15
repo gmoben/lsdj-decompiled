@@ -55,7 +55,7 @@ reset rSCY/rSCX/rSTAT/rWY ; clear scroll, LCD status, window
     evaluator `SoundCalculateVibratoOffset` (`$1986`, ctrl table `$0200` + dispatch `$0300`).
     `SndWriteFreq{PU1,PU2,Wav}` (`$1BA7`/`$1BF6`/`$1C3D`) then fold note +
     transpose + finetune + vibrato + pitch into a 16-bit period via
-    `SoundInterpPeriod` (`$1B28`, period-table lookup with fractional interpolation)
+    `SoundInterpolatePeriod` (`$1B28`, period-table lookup with fractional interpolation)
     and write `wChannelFrequency` + `rAUD{1,2,3}LOW/HIGH/LEN`.
     `SndUpdatePitchModFlag{PU1,PU2,Wav}` (`$1CA8`/`$1C96`/`$1C84`, dispatched by
     `SoundUpdatePitchModulationFlagCurrent` `$1C7C`) cache a "pitch is modulating" flag at

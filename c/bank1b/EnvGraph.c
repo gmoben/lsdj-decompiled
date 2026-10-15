@@ -21,38 +21,38 @@ UWORD GetInstrumentEnvelopeBytes(void)
 {
     UWORD total;
     UBYTE v, v2, v3;
-    char vol;
-    UBYTE len;
-    char vol2;
-    UBYTE len2;
-    char vol3;
-    UBYTE len3;
+    char volume;
+    UBYTE length;
+    char volume2;
+    UBYTE length2;
+    char volume3;
+    UBYTE length3;
     int d;
 
     total = 0;
     v = ReadCurrentInstrumentByte(1);
-    vol = v >> 4;
-    len = ExponentialCurve16[v & 0x0F];
-    if (len) {
+    volume = v >> 4;
+    length = ExponentialCurve16[v & 0x0F];
+    if (length) {
         v2 = ReadCurrentInstrumentByte(9);
-        vol2 = v2 >> 4;
-        len2 = ExponentialCurve16[v2 & 0x0F];
-        total = abs(vol2 - vol);
+        volume2 = v2 >> 4;
+        length2 = ExponentialCurve16[v2 & 0x0F];
+        total = abs(volume2 - volume);
         if (total == 0)
             total = 1;
-        total = total * len;
-        if (len2) {
+        total = total * length;
+        if (length2) {
             v3 = ReadCurrentInstrumentByte(10);
-            vol3 = v3 >> 4;
-            len3 = ExponentialCurve16[v3 & 0x0F];
-            d = vol3 - vol2;
+            volume3 = v3 >> 4;
+            length3 = ExponentialCurve16[v3 & 0x0F];
+            d = volume3 - volume2;
             if (abs(d))
                 d = abs(d);
             else
                 d = 1;
-            total += d * len2;
-            d = vol3;
-            total += d * len3;
+            total += d * length2;
+            d = volume3;
+            total += d * length3;
         }
     }
     return total;
@@ -85,63 +85,63 @@ void PlotEnvelopeCurve(UBYTE x, UBYTE y)
    time axis scaled by GetInstrumentEnvelopeBytes' total (500 at least) */
 void ComputeEnvelope(void)
 {
-    UWORD pos;
+    UWORD position;
     UWORD total;
     UBYTE v;
-    UBYTE vol;
-    UBYTE len;
+    UBYTE volume;
+    UBYTE length;
     UBYTE v2;
-    UBYTE vol2;
-    UBYTE len2;
-    UBYTE vol3;
-    UBYTE len3;
+    UBYTE volume2;
+    UBYTE length2;
+    UBYTE volume3;
+    UBYTE length3;
     UBYTE v3;
 
-    pos = 0;
+    position = 0;
     total = GetInstrumentEnvelopeBytes();
     v = ReadCurrentInstrumentByte(1);
-    vol = v >> 4;
-    len = ExponentialCurve16[v & 0x0F];
+    volume = v >> 4;
+    length = ExponentialCurve16[v & 0x0F];
     if (total < 500)
         total = 500;
     total >>= 3;
     FillMemory(wDecompressBuffer, 0, 0xC0);
-    PlotEnvelopeCurve(0, vol);
-    if (len) {
+    PlotEnvelopeCurve(0, volume);
+    if (length) {
         v2 = ReadCurrentInstrumentByte(9);
-        vol2 = v2 >> 4;
-        len2 = ExponentialCurve16[v2 & 0x0F];
+        volume2 = v2 >> 4;
+        length2 = ExponentialCurve16[v2 & 0x0F];
         do {
-            pos += len;
-            PlotEnvelopeCurve((pos << 3) / total, vol);
-            if (vol2 < vol)
-                vol--;
-            else if (vol < vol2)
-                vol++;
-        } while (vol != vol2);
-        if (len2) {
+            position += length;
+            PlotEnvelopeCurve((position << 3) / total, volume);
+            if (volume2 < volume)
+                volume--;
+            else if (volume < volume2)
+                volume++;
+        } while (volume != volume2);
+        if (length2) {
             v3 = ReadCurrentInstrumentByte(10);
-            vol3 = v3 >> 4;
-            len3 = ExponentialCurve16[v3 & 0x0F];
+            volume3 = v3 >> 4;
+            length3 = ExponentialCurve16[v3 & 0x0F];
             do {
-                pos += len2;
-                PlotEnvelopeCurve((pos << 3) / total, vol);
-                if (vol3 < vol)
-                    vol--;
-                else if (vol < vol3)
-                    vol++;
-            } while (vol != vol3);
-            if (len3) {
-                while (vol) {
-                    pos += len3;
-                    PlotEnvelopeCurve((pos << 3) / total, vol);
-                    vol--;
+                position += length2;
+                PlotEnvelopeCurve((position << 3) / total, volume);
+                if (volume3 < volume)
+                    volume--;
+                else if (volume < volume3)
+                    volume++;
+            } while (volume != volume3);
+            if (length3) {
+                while (volume) {
+                    position += length3;
+                    PlotEnvelopeCurve((position << 3) / total, volume);
+                    volume--;
                 }
             }
         }
     }
-    PlotEnvelopeCurve((pos << 3) / total, vol);
-    PlotEnvelopeCurve(0x3F, vol);
+    PlotEnvelopeCurve((position << 3) / total, volume);
+    PlotEnvelopeCurve(0x3F, volume);
     OrBitsIntoDaBuffer();
     UploadTilesToVram();
 }

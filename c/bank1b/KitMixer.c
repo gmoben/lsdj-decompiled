@@ -16,25 +16,25 @@ void MixerKernel(void);                     /* $1B:$4000, the 27-byte asm mixer 
 
 void InitializeKitMixer(void)
 {
-    UBYTE *dst;
-    UBYTE *src;
+    UBYTE *destination;
+    UBYTE *source;
     UBYTE i;
     UBYTE b;
 
-    dst = (UBYTE *)0xD480;
+    destination = (UBYTE *)0xD480;
     memcpy((UBYTE *)0xD000, KitMixTable, 0x480);
     for (i = 0; i != 0x10; i++) {
-        src = (UBYTE *)(UWORD)MixerKernel;
+        source = (UBYTE *)(UWORD)MixerKernel;
         do {
-            b = *src;
-            *dst = b;
-            dst = dst + 1;
-            src = src + 1;
-        } while (src != (UBYTE *)(UWORD)DrawHelpMenu);
+            b = *source;
+            *destination = b;
+            destination = destination + 1;
+            source = source + 1;
+        } while (source != (UBYTE *)(UWORD)DrawHelpMenu);
         if (i != 0x0F) {
-            *dst++ = 0x0C;
-            *dst++ = 0x1C;
+            *destination++ = 0x0C;
+            *destination++ = 0x1C;
         }
     }
-    *dst = 0xC9;
+    *destination = 0xC9;
 }

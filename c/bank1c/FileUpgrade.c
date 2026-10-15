@@ -14,9 +14,9 @@ extern UBYTE wFileInstrumentIndex;                 /* $C9A1, the instrument bein
 extern UBYTE FileUpgradeRemapTable[];       /* $1C:$68F1, [8] */
 extern UBYTE NoiseNoteRemapTable[];         /* $1C:$6E3C, [112] */
 
-void FileForEachInstrumentType(UBYTE type, void (*fn)());
+void FileForEachInstrumentType(UBYTE type, void (*function)());
 UBYTE FileReadInstrumentByte(UBYTE field);
-void FileWriteInstrumentByte(UBYTE field, UBYTE val);
+void FileWriteInstrumentByte(UBYTE field, UBYTE value);
 UBYTE FileUpgradeRemapBits(UBYTE v);
 UBYTE FileUpgradeClampNibble(UBYTE v);
 void FileUpgradeV0Kit(void);
@@ -35,8 +35,8 @@ void FileUpgradeV17bPulse(void);
 void FileUpgradeRetrigRate(UBYTE *p);          /* $1C:$6973 */
 void FileUpgradeClearRange(void);           /* $1C:$65B9 */
 void FileUpgradeV2(void);
-void ReadSongBytesW(UBYTE bank, UWORD src, UBYTE *dst);  /* ReadSongBytes taking a word address (aliased by match_function.py) */
-char ReadInstrumentByteS(UBYTE instr, UBYTE field);  /* ReadInstrumentByte returning char (aliased): the cast to UBYTE keeps the call result in its own slot */
+void ReadSongBytesW(UBYTE bank, UWORD source, UBYTE *destination);  /* ReadSongBytes taking a word address (aliased by match_function.py) */
+char ReadInstrumentByteS(UBYTE instrument, UBYTE field);  /* ReadInstrumentByte returning char (aliased): the cast to UBYTE keeps the call result in its own slot */
 
 UWORD FileCalculateCompressedSize(void)
 {
@@ -55,16 +55,16 @@ UBYTE FileReadInstrumentByte(UBYTE field)
     return ReadInstrumentByte(wFileInstrumentIndex, field);
 }
 
-void FileWriteInstrumentByte(UBYTE field, UBYTE val)
+void FileWriteInstrumentByte(UBYTE field, UBYTE value)
 {
-    WriteInstrumentByte(wFileInstrumentIndex, field, val);
+    WriteInstrumentByte(wFileInstrumentIndex, field, value);
 }
 
-void FileForEachInstrumentType(UBYTE type, void (*fn)())
+void FileForEachInstrumentType(UBYTE type, void (*function)())
 {
     for (wFileInstrumentIndex = 0; wFileInstrumentIndex < 0x40; wFileInstrumentIndex++) {
         if (FileReadInstrumentByte(0) == type)
-            (*fn)();
+            (*function)();
     }
 }
 
@@ -124,12 +124,12 @@ void FileUpgradeV1(void)
 void FileUpgradeV2(void)
 {
     UWORD p;
-    UBYTE v, lo;
+    UBYTE v, low;
 
     for (p = 0xB690; p != (UWORD)0xB890; p++) {
         v = ReadSongByte(0, p);
-        lo = v & 0x0F;
-        if (lo && lo != 0x0F)
+        low = v & 0x0F;
+        if (low && low != 0x0F)
             WriteSongByte(0, p, v + 1);
     }
 }

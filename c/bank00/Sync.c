@@ -244,13 +244,13 @@ void SyncSendAnalogClock(void)
 UBYTE CheckRomChecksum(void)
 {
     UBYTE bank;
-    UBYTE lo;
-    volatile UBYTE hi;      /* (UWORD)hi is widened afresh for the last test */
+    UBYTE low;
+    volatile UBYTE high;      /* (UWORD)hi is widened afresh for the last test */
     UWORD sum;
     UWORD p;
 
-    lo = *(UBYTE *)0x014F;  /* HeaderChecksumLow */
-    hi = *(UBYTE *)0x014E;  /* HeaderChecksumHigh */
+    low = *(UBYTE *)0x014F;  /* HeaderChecksumLow */
+    high = *(UBYTE *)0x014E;  /* HeaderChecksumHigh */
     sum = 0;
     for (p = 0; p < 0x4000; p++)
         sum += *(UBYTE *)p;
@@ -258,11 +258,11 @@ UBYTE CheckRomChecksum(void)
         *(UBYTE *)0x2000 = bank;
         sum += ChecksumRomBank();
     }
-    sum -= hi;
-    sum -= lo;
+    sum -= high;
+    sum -= low;
     /* SDCC compiles the low-byte test to `cp a,a` (lo fetched into a over
        the byte it is compared with), so only the high byte is checked */
-    return (sum & 0xFF) == lo && (sum >> 8) == hi;
+    return (sum & 0xFF) == low && (sum >> 8) == high;
 }
 
 void HandleTooBusy(void)
@@ -277,12 +277,12 @@ void HandleTooBusy(void)
     SWITCH_ROM(saved);
 }
 
-UBYTE ReadSequenceByteRaw(UBYTE chan, UBYTE step)
+UBYTE ReadSequenceByteRaw(UBYTE channel, UBYTE step)
 {
     UBYTE *p;
 
     p = SramSequence + ((unsigned int)step << 2);
-    return ReadSongByteRaw(0, p + chan);
+    return ReadSongByteRaw(0, p + channel);
 }
 
 UBYTE ReadChainByte(UBYTE chain, UBYTE row)
@@ -295,26 +295,26 @@ UBYTE ReadChainByte(UBYTE chain, UBYTE row)
 
 void SyncSeekSongPosition(void)
 {
-    UBYTE chan, row, chain;
+    UBYTE channel, row, chain;
 
     SoundResetCommandState();
-    for (chan = 0; chan < 4; chan++) {
+    for (channel = 0; channel < 4; channel++) {
         row = (wSyncMode == 1) ? wSyncReceivePosition : wSyncStartRow;
-        chain = ReadSequenceByteRaw(chan, row);
+        chain = ReadSequenceByteRaw(channel, row);
         while (row && (chain & 0x80)) {
             row--;
-            chain = ReadSequenceByteRaw(chan, row);
+            chain = ReadSequenceByteRaw(channel, row);
         }
         if (chain & 0x80) {
-            wChannelActive[chan] = 0;
+            wChannelActive[channel] = 0;
         } else {
-            wChannelSongRow[chan] = row;
-            wChannelChainRow[chan] = 0xFF;
-            if ((wChannelPhrase[chan] = ReadChainByte(chain, 0)) == 0xFF) {
-                wChannelActive[chan] = 0;
+            wChannelSongRow[channel] = row;
+            wChannelChainRow[channel] = 0xFF;
+            if ((wChannelPhrase[channel] = ReadChainByte(chain, 0)) == 0xFF) {
+                wChannelActive[channel] = 0;
             } else {
-                wChannelChain[chan] = chain;
-                wChannelActive[chan] = 1;
+                wChannelChain[channel] = chain;
+                wChannelActive[channel] = 1;
             }
         }
     }
@@ -323,7 +323,7 @@ void SyncSeekSongPosition(void)
 
 void SendByteStep(void)
 {
-    UBYTE saved, chan;
+    UBYTE saved, channel;
 
     wSyncTransmitByte = 0xFF;
     if (wSendByteNest++) {
@@ -332,7 +332,7 @@ void SendByteStep(void)
         return;
     }
     saved = hCurrentBank;
-    chan = hSoundChannel;
+    channel = hSoundChannel;
     do {
         _asm ei _endasm;
         if (wSyncReceivePosition <= 0xBF) {
@@ -368,7 +368,7 @@ void SendByteStep(void)
         _asm di _endasm;
     } while (--wSendByteNest);
     _asm ei _endasm;
-    hSoundChannel = chan;
+    hSoundChannel = channel;
 }
 
 void ProcessSyncByte(void)

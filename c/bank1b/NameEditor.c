@@ -27,11 +27,11 @@ extern UBYTE wNameEditIsInstrument;              /* $C430 */
 extern UBYTE wInstrument;                   /* $C576 */
 void FileStopSound(void);                   /* $1C:$5098 */
 UBYTE SaveFile(UBYTE f);                    /* $1C:$4E10 */
-void WriteInstrumentName(UBYTE instr);           /* $01:$4A49 */
+void WriteInstrumentName(UBYTE instrument);           /* $01:$4A49 */
 void DrawProjectTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE h);
 void delay(UWORD d);
 extern char AlphanumericCharacters[][11];               /* $1B:$4C6A, the name keyboard: "0123456789", "ABCDEFGHIJ", "KLMNOPQRST", "UVWXYZx >w" */
-void CopyInstrumentName(UBYTE instr);            /* $01:$493B */
+void CopyInstrumentName(UBYTE instrument);            /* $01:$493B */
 
 void DrawNameEditCursor(void)
 {

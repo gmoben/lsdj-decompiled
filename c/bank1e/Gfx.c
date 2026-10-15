@@ -19,9 +19,9 @@ void ResetDisplayState(void);               /* $00:$339A */
 UWORD LoadTilesDispatch(UBYTE *tiles);      /* $00:$337D */
 void RequestTileSlot(UWORD slot);           /* $00:$338B */
 void FillVramRegions(void);
-void CopyVramTile(UWORD src, UWORD dst);  /* $1E:$7A4B, parked: one tile, src to dst */
-void WriteVramByteSafe(UWORD addr, UBYTE v);    /* $00:$17EC */
-void WriteVramByteSafeC(UWORD addr, char v);   /* WriteVramByteSafe with a char value (aliased by match_function.py): the cast copy of the scratch byte is CopyVramTile's register occupant */
+void CopyVramTile(UWORD source, UWORD destination);  /* $1E:$7A4B, parked: one tile, src to dst */
+void WriteVramByteSafe(UWORD address, UBYTE v);    /* $00:$17EC */
+void WriteVramByteSafeC(UWORD address, char v);   /* WriteVramByteSafe with a char value (aliased by match_function.py): the cast copy of the scratch byte is CopyVramTile's register occupant */
 extern UBYTE wVramCopyScratch;              /* $C9B4 */
 
 /* $4000: the top row's column labels for the screen about to be drawn
@@ -148,13 +148,13 @@ UBYTE ReadVramByte(UBYTE *p)
    (arguments right to left), owns c, and is evicted into the global by
    the pointer copy -- which is why the ROM's second pair is [b c] and the
    push still reads the scratch byte from memory. */
-void CopyVramTile(UWORD src, UWORD dst)
+void CopyVramTile(UWORD source, UWORD destination)
 {
     UBYTE i;
 
     for (i = 0; i != 0x10; i++) {
-        wVramCopyScratch = ReadVramByte((UBYTE *)src++);
-        WriteVramByteSafeC(dst++, wVramCopyScratch);
+        wVramCopyScratch = ReadVramByte((UBYTE *)source++);
+        WriteVramByteSafeC(destination++, wVramCopyScratch);
     }
 }
 

@@ -23,15 +23,15 @@ int StringLength(const char *s);
 const UBYTE ChanStatusAttrSel[4] = {3, 3, 3, 3};
 const UBYTE ChanStatusAttrNorm[4] = {0, 1, 1, 1};
 
-void DrawChannelStatus(UBYTE chan)
+void DrawChannelStatus(UBYTE channel)
 {
     UBYTE y;
     char *s;
     UBYTE c;
 
-    y = chan + 6;
+    y = channel + 6;
     SetVramCursor(0x10, y);
-    c = chan;
+    c = channel;
     if (wChannelOutput[c] & 0x80) {
         s = "MUTE";
         hBgDigitPalette = wHighlightDigitPalette;

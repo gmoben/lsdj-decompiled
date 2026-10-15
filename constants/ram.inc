@@ -293,7 +293,7 @@ DEF wChannelPitchCurrent    EQU $C337  ; [4] 16-bit current pitch value (default
 DEF wChannelFinetune    EQU $C696  ; per-pulse-channel finetune (PU1 $C696, PU2 $C697); SoundWriteFrequencyPu1 subtracts it as a
                                 ; fine (low-byte) pitch adjustment in the period calc. From instrument finetune param (byte $B)
 DEF wChannelPeriodTablePointer EQU $C356 ; [4] 16-bit per-channel pointer to the note-period table for pitch interpolation
-                                ; (SoundInterpPeriod). SoundNoteToPeriod sets it to wNotePeriods ($CF28), or an alt table when
+                                ; (SoundInterpolatePeriod). SoundNoteToPeriod sets it to wNotePeriods ($CF28), or an alt table when
                                 ; wChannelSlideNoteSource is set. Pitched channels only (ch0-2; noise excluded)
 DEF wChannelEnvelope         EQU $C2D8  ; [4] envelope value -> rAUDxENV (ch2/WAV = wave level rAUD3LEVEL)
 ; Per-channel software-envelope working struct, 7 bytes/channel (channel N at base + N*7:

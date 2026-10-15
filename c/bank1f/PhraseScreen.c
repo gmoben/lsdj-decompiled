@@ -35,10 +35,10 @@ extern UBYTE PhraseCellWidthAlternate[];          /* $64EB */
 extern UBYTE PhraseCellWidth[];             /* $64F0 */
 extern UBYTE PhraseCellPaletteAlternate[];            /* $64F5 */
 extern UBYTE PhraseCellPalette[];               /* $64FA */
-void UnhighlightPhraseCell(UBYTE col, UBYTE row);
-UBYTE CanEnterSongColumn(UBYTE col);
+void UnhighlightPhraseCell(UBYTE column, UBYTE row);
+UBYTE CanEnterSongColumn(UBYTE column);
 void ErasePhraseCursor(void);
-void WritePhraseInstrument(UBYTE phrase, UBYTE row, UBYTE instr);
+void WritePhraseInstrument(UBYTE phrase, UBYTE row, UBYTE instrument);
 extern UBYTE wLiveMode;                     /* $C528 */
 extern UBYTE wChain;                        /* $C418 */
 extern UBYTE wChainRow;                     /* $C41A */
@@ -58,39 +58,39 @@ void PhraseScreenUpdate(void)
         ClearSpriteY(0);
 }
 
-UBYTE CanEnterSongColumn(UBYTE col)
+UBYTE CanEnterSongColumn(UBYTE column)
 {
     UBYTE chain, row, phrase;
-    void (*fn)(void);
+    void (*function)(void);
 
-    if (col >= 4)
+    if (column >= 4)
         DebugTrap();
     wMessageStringPointer = 0;
-    if (wLiveMode && wChannelActive[col]) {
-        chain = wChannelChain[col];
+    if (wLiveMode && wChannelActive[column]) {
+        chain = wChannelChain[column];
         if (chain & 0x80)
             return 0;
-        phrase = wChannelPhrase[col];
+        phrase = wChannelPhrase[column];
         if (phrase & 0x80)
             return 0;
-        row = wChannelChainRow[col];
+        row = wChannelChainRow[column];
         if (row & 0xF0)
             return 0;
-        wSongRow = wChannelSongRow[col];
+        wSongRow = wChannelSongRow[column];
     } else {
-        chain = ReadSequenceByte(col, wSongRow);
+        chain = ReadSequenceByte(column, wSongRow);
         if (chain & 0x80)
             return 0;
         row = wChainRow;
-        fn = FAR_FN(SoundGetChainPhrase);
-        phrase = FarCallArgument2(2, (UWORD)fn, chain, wChainRow);
+        function = FAR_FN(SoundGetChainPhrase);
+        phrase = FarCallArgument2(2, (UWORD)function, chain, wChainRow);
         while (phrase == 0xFF && row)
-            phrase = FarCallArgument2(2, (UWORD)fn, chain, --row);
+            phrase = FarCallArgument2(2, (UWORD)function, chain, --row);
         if (phrase == 0xFF)
             return 0;
     }
     ErasePhraseCursor();
-    wSongColumn = col;
+    wSongColumn = column;
     wChain = chain;
     wChainRow = row;
     wPhrase = phrase;
@@ -125,11 +125,11 @@ UBYTE HasEnterableColumnLeft(void)
 void CutCopyPhraseSelection(UBYTE cut)
 {
     UBYTE x, y, t;
-    UBYTE cutInstr = cut;
+    UBYTE cutInstrument = cut;
 
     if (wClipboardType != 1)
         return;
-    ShowMessage(cutInstr ? "CUT" : "COPY");
+    ShowMessage(cutInstrument ? "CUT" : "COPY");
     wCursorMode = 2;
     wSelectionRight = wPhraseColumn;
     wSelectionBottom = wPhraseRow;
@@ -140,7 +140,7 @@ void CutCopyPhraseSelection(UBYTE cut)
     if (wSelectionRight == 3)
         wSelectionRight = 4;
     if (wSelectionRight == 1 && wSongColumn == 2) {
-        cutInstr = 0;
+        cutInstrument = 0;
         wSelectionRight = 2;
     }
     wSelectionRight++;
@@ -160,8 +160,8 @@ void CutCopyPhraseSelection(UBYTE cut)
                 }
                 if (wSelectionRight == 1 && wSongColumn == 2) {
                     WriteClipboardCell(1, y, 0xFF);
-                    cutInstr = 0;
-                    goto instr;
+                    cutInstrument = 0;
+                    goto instrument;
                 }
                 break;
             case 1:
@@ -178,9 +178,9 @@ void CutCopyPhraseSelection(UBYTE cut)
                 }
                 break;
             case 2:
-            instr:
+            instrument:
                 WriteClipboardCell(2, y, FarCallArgument2P(4, FAR_FN(ReadPhraseInstrument), wPhrase, y));
-                if (cutInstr)
+                if (cutInstrument)
                     FarCallArgument3P(4, FAR_FN(WritePhraseInstrument), wPhrase, y, 0xFF);
                 break;
             case 3:
@@ -204,11 +204,11 @@ void CutCopyPhraseSelection(UBYTE cut)
     FarCall(4, FAR_FN(DrawPhraseScreen));
 }
 
-void HighlightPhraseCell(UBYTE col, UBYTE row)
+void HighlightPhraseCell(UBYTE column, UBYTE row)
 {
     char x;
 
-    x = PhraseCellX[col];
+    x = PhraseCellX[column];
     if (row & 0xF0)
         DebugTrap();
     if (wPhraseDrawMode)
@@ -216,28 +216,28 @@ void HighlightPhraseCell(UBYTE col, UBYTE row)
     if (x < 0)
         return;
     if (wPhraseRowFlags[row] == 0xFE || wPhraseRowFlags[row] == 0xFF)
-        ColorField(x, row + 2, (wDrawTextScratch = PhraseCellWidth[col], wDrawTextScratch), hGameboyType ? 3 : 2);
+        ColorField(x, row + 2, (wDrawTextScratch = PhraseCellWidth[column], wDrawTextScratch), hGameboyType ? 3 : 2);
     else
-        ColorField(PhraseCellXAlternate[col], row + 2, (wDrawTextScratch = PhraseCellWidthAlternate[col], wDrawTextScratch), hGameboyType ? 3 : 2);
+        ColorField(PhraseCellXAlternate[column], row + 2, (wDrawTextScratch = PhraseCellWidthAlternate[column], wDrawTextScratch), hGameboyType ? 3 : 2);
 }
 
 void DrawPhraseCursor(void)
 {
-    UBYTE row, col;
+    UBYTE row, column;
 
     row = wPhraseRow;
-    col = wPhraseColumn;
-    HighlightPhraseCell(col, row);
+    column = wPhraseColumn;
+    HighlightPhraseCell(column, row);
 }
 
-void UnhighlightPhraseCell(UBYTE col, UBYTE row)
+void UnhighlightPhraseCell(UBYTE column, UBYTE row)
 {
     char x;
     UBYTE y;
-    UBYTE pal;
+    UBYTE palette;
     UBYTE w;
 
-    x = PhraseCellX[col];
+    x = PhraseCellX[column];
     y = row + 2;
     if (wPhraseDrawMode)
         x += 3;
@@ -246,25 +246,25 @@ void UnhighlightPhraseCell(UBYTE col, UBYTE row)
     if (wPhraseRow & 0xF0)
         DebugTrap();
     if (wPhraseRowFlags[row] == 0xFE || wPhraseRowFlags[row] == 0xFF) {
-        w = PhraseCellWidth[col];
-        pal = PhraseCellPalette[col];
+        w = PhraseCellWidth[column];
+        palette = PhraseCellPalette[column];
     } else {
-        x = PhraseCellXAlternate[col];
-        w = PhraseCellWidthAlternate[col];
-        pal = PhraseCellPaletteAlternate[col];
+        x = PhraseCellXAlternate[column];
+        w = PhraseCellWidthAlternate[column];
+        palette = PhraseCellPaletteAlternate[column];
     }
-    ColorField(x, y, w, pal);
+    ColorField(x, y, w, palette);
 }
 
 void DrawPhraseSelection(void)
 {
     UBYTE x, y, left, top, right, bottom;
-    UBYTE col;
+    UBYTE column;
 
     if (wClipboardType != 1)
         return;
-    col = wPhraseColumn;               /* the ROM reads the column into c for the test only */
-    if (wSelectionLeft < col) {
+    column = wPhraseColumn;               /* the ROM reads the column into c for the test only */
+    if (wSelectionLeft < column) {
         left = wSelectionLeft;
         right = wPhraseColumn + 1;
     } else {
@@ -293,9 +293,9 @@ void DrawPhraseSelection(void)
 
 void ErasePhraseCursor(void)
 {
-    UBYTE row, col;
+    UBYTE row, column;
 
     row = wPhraseRow;
-    col = wPhraseColumn;
-    UnhighlightPhraseCell(col, row);
+    column = wPhraseColumn;
+    UnhighlightPhraseCell(column, row);
 }

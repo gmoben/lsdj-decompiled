@@ -68,7 +68,7 @@ void DrawAllChannelStatus(void);               /* $271A: the B combos, ahead of 
 UBYTE HandleInputCombos(void)
 {
     UBYTE saved;
-    UBYTE changed, chan, v;
+    UBYTE changed, channel, v;
 
     if (wCurrentScreen == 7 || wCurrentScreen == 8 || wCurrentScreen == 9
             || wCurrentScreen == 0x0D || wCurrentScreen == 0x0E)
@@ -129,11 +129,11 @@ UBYTE HandleInputCombos(void)
         return 0;
     if (wButtons == 0x20 && wMuteSoloLatch) {
         if (wMuteSoloLatch == 1 || wAPressEnabled) {
-            chan = !(wKeyboardActionChannel == 0xFF) ? wKeyboardActionChannel : wSongColumn;
-            wChannelOutput[chan] &= 3;
-            wChannelOutputOverride[chan] = 0;
-            wChannelOutputSoloSaved[chan] = 0;
-            hSoundChannel = chan;
+            channel = !(wKeyboardActionChannel == 0xFF) ? wKeyboardActionChannel : wSongColumn;
+            wChannelOutput[channel] &= 3;
+            wChannelOutputOverride[channel] = 0;
+            wChannelOutputSoloSaved[channel] = 0;
+            hSoundChannel = channel;
             SWITCH_ROM(2);
             SoundWritePanning(wChannelOutput[hSoundChannel]);
         } else {

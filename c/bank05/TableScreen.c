@@ -39,7 +39,7 @@ extern UBYTE wSavedSelectionBottom;
 
 void UpdateMapTopRow(void);
 void GotoMapCursorScreen(void);
-void StartMapTransition(UBYTE dir);
+void StartMapTransition(UBYTE direction);
 void CancelSelectionMode(void);
 
 void DrawAllChannelStatus(void);               /* bank $1F */
@@ -135,9 +135,9 @@ void GotoMapCursorScreen(void)
     }
 }
 
-void StartMapTransition(UBYTE dir)
+void StartMapTransition(UBYTE direction)
 {
-    wMapMoveDirection = dir;
+    wMapMoveDirection = direction;
     SCX_REG = 0;
     SCY_REG = 0;
 }
@@ -188,13 +188,13 @@ void MoveMapCursorDown(void)
     StartMapTransition(3);
 }
 
-void DrawCommandLetter(UBYTE cmd)
+void DrawCommandLetter(UBYTE command)
 {
     UBYTE c, ok;
 
-    ok = cmd <= 0x13;
+    ok = command <= 0x13;
     if (ok)
-        c = CommandMnemonics[cmd];
+        c = CommandMnemonics[command];
     else
         c = '?';
     DrawStringIndexed(c);
@@ -230,7 +230,7 @@ void WriteTableEnvelope(UBYTE step, UBYTE v)
     WriteSongByte(0, p + step, v);
 }
 
-void WriteTableCommand(UBYTE step, UBYTE cmd)
+void WriteTableCommand(UBYTE step, UBYTE command)
 {
     UBYTE *p;
 
@@ -239,10 +239,10 @@ void WriteTableCommand(UBYTE step, UBYTE cmd)
         DebugTrap();
     if (wTable >= 0x20)
         DebugTrap();
-    if (cmd > 0x13)
+    if (command > 0x13)
         DebugTrap();
     p += (UWORD)wTable << 4;
-    WriteSongByte(1, p + step, cmd);
+    WriteSongByte(1, p + step, command);
 }
 
 void WriteTableValue(UBYTE step, UBYTE v)
@@ -356,7 +356,7 @@ void DrawTableScreen(void)
     UBYTE a1;
     UBYTE w;
     UBYTE a2;
-    UBYTE x, pal;
+    UBYTE x, palette;
 
     if (wTable >= 0x20)
         DebugTrap();
@@ -398,8 +398,8 @@ void DrawTableScreen(void)
     a1 = wTableRow + 2;
     i = TableColumnX[wTableColumn];
     w = TableColumnWidth[wTableColumn];
-    pal = hGameboyType ? 3 : 2;
-    ColorField(i, a1, w, pal);
+    palette = hGameboyType ? 3 : 2;
+    ColorField(i, a1, w, palette);
     FarCall(0x1F, FAR_FN(DrawAllChannelStatus));
     if (wCursorMode == 4)
         DrawTableSelection();

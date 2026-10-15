@@ -54,7 +54,7 @@ void LoadHardwareTables(void);
 void ClearSramWindow(void);                 /* $01:$7DE9, asm: zero the SRAM window */
 void ClearBookmarks(void);                  /* $07:$643D */
 extern UBYTE DefaultWaveFrameB1[];          /* $01:$40EA, [16] */
-void WriteVramByteSafeP(UBYTE *addr, UBYTE v);   /* WriteVramByteSafe with a pointer address (aliased) */
+void WriteVramByteSafeP(UBYTE *address, UBYTE v);   /* WriteVramByteSafe with a pointer address (aliased) */
 extern UBYTE wOamBuffer[];                  /* $DD00, the OAM shadow: 40 sprites x {y, x, tile, prop} */
 extern volatile UBYTE wOamDirty;            /* $CBD1 */
 
@@ -316,17 +316,17 @@ UBYTE CheckJkMarker(void)
     return 1;
 }
 
-void CopyInstrumentName(UBYTE instr)
+void CopyInstrumentName(UBYTE instrument)
 {
     UBYTE *p;
 
-    if (instr > 0x40)
+    if (instrument > 0x40)
         DebugTrap();
-    if (instr == 0x40) {
+    if (instrument == 0x40) {
         strcpy(wNameEditBuffer, "SPCH");
         return;
     }
-    p = (UBYTE *)0xBE7A + (UWORD)instr * 5;
+    p = (UBYTE *)0xBE7A + (UWORD)instrument * 5;
     wNameEditBuffer[0] = ReadSongByte(0, p++);
     wNameEditBuffer[1] = ReadSongByte(0, p++);
     wNameEditBuffer[2] = ReadSongByte(0, p++);
@@ -335,13 +335,13 @@ void CopyInstrumentName(UBYTE instr)
     wNameEditBuffer[5] = 0;
 }
 
-void WriteInstrumentName(UBYTE instr)
+void WriteInstrumentName(UBYTE instrument)
 {
     UBYTE *p;
 
-    if (instr >= 0x40)
+    if (instrument >= 0x40)
         DebugTrap();
-    p = (UBYTE *)0xBE7A + (UWORD)instr * 5;
+    p = (UBYTE *)0xBE7A + (UWORD)instrument * 5;
     WriteSongByte(0, p++, wNameEditBuffer[0]);
     WriteSongByte(0, p++, wNameEditBuffer[1]);
     WriteSongByte(0, p++, wNameEditBuffer[2]);
@@ -382,15 +382,15 @@ void ClearOamBuffer(void)
 
 void ApplyColorSet(void)
 {
-    UWORD *pal;
+    UWORD *palette;
     UBYTE v;
 
     if (wBootHardwareId == 0x11) {
         LCDC_REG &= 0x7F;
-        pal = &ColorSetPalettes[wColorSet * 20];
-        set_bkg_palette(0, 5, pal);
-        LoadObjPalette(0, 2, pal);
-        memcpy(wFileNameScratch, (UBYTE *)(pal + 5), 8);
+        palette = &ColorSetPalettes[wColorSet * 20];
+        set_bkg_palette(0, 5, palette);
+        LoadObjPalette(0, 2, palette);
+        memcpy(wFileNameScratch, (UBYTE *)(palette + 5), 8);
         LoadObjPalette(2, 1, (UWORD *)wFileNameScratch);
         LCDC_REG |= 0x80;
     } else {
@@ -667,17 +667,17 @@ void DrawTopBar(void)
         DrawChannelHeader();
 }
 
-void ShowCommandHelp(UBYTE cmd)
+void ShowCommandHelp(UBYTE command)
 {
     UBYTE *saved;
     UBYTE *s;
 
     saved = wVramCursor;
-    if (!cmd)
+    if (!command)
         return;
-    if (cmd > 0x13)
+    if (command > 0x13)
         DebugTrap();
-    switch (cmd) {
+    switch (command) {
     case 2:
         s = wCurrentScreen == 1 ? TxtHelpBNote : TxtHelpBHop;
         break;
@@ -704,7 +704,7 @@ void ShowCommandHelp(UBYTE cmd)
         s = wSongColumn == 2 ? TxtHelpW : TxtHelpWShort;
         break;
     default:
-        s = CommandHelpPointers[cmd];
+        s = CommandHelpPointers[command];
         break;
     }
     ShowMessage(s);

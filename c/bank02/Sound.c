@@ -116,7 +116,7 @@ UBYTE randw(void);                       /* bank 0 (this file reads the low byte
 UBYTE MulU8(UBYTE a, UBYTE b);              /* bank 0 */
 void SetSyncSendRate(void);                 /* bank 7 */
 void SoundSetPlayRange(void);
-void SoundLiveQueueStart(UBYTE chan);
+void SoundLiveQueueStart(UBYTE channel);
 UBYTE SoundGetChainPhrase(UBYTE chain, UBYTE row);
 UBYTE SoundRandomUpTo(UBYTE n);
 void SoundTableHop(UBYTE v);           /* asm */
@@ -160,7 +160,7 @@ void SoundSetupLfo(void);                     /* asm */
 UBYTE SoundEnvelopeReleaseSpeed(void);
 UBYTE SoundEnvelopeReleaseTarget(void);
 void SoundClampNoteRange(UBYTE n);            /* asm */
-void SoundCommandParsePitchValue(UBYTE *env);        /* asm */
+void SoundCommandParsePitchValue(UBYTE *envelope);        /* asm */
 void SoundReadTableEnvelope(void);               /* asm */
 void SoundReadTableTranspose(void);              /* asm */
 void SoundTriggerNote(void);                     /* asm */
@@ -196,12 +196,12 @@ UBYTE SoundRandomUpTo(UBYTE n)
 
 void Command_R(void)
 {
-    UBYTE vol;
+    UBYTE volume;
     UBYTE n;
     UBYTE k;
 
-    vol = hCommandValue & 0xF0;
-    if (vol == 0x80) {
+    volume = hCommandValue & 0xF0;
+    if (volume == 0x80) {
         n = hCommandValue & 0x0F;
         n = MulU8(n, wChannelCommandRate[hSoundChannel] + 1);
         k = hSoundChannel;
@@ -213,7 +213,7 @@ void Command_R(void)
             n = MulU8(n, wChannelCommandRate[hSoundChannel] + 1);
         wCommandSlotRetrigRate[wCommandChannel] = n;
         wChannelCommandSlots[wCommandChannel] |= 2;
-        wChannelEnvelopeVolumeOffset[wCommandChannel] = vol;
+        wChannelEnvelopeVolumeOffset[wCommandChannel] = volume;
         if (wCommandChannel < 4)
             wCommandSlotEnvelopeTimer[wCommandChannel] = 0;
         else
@@ -226,18 +226,18 @@ void Command_R(void)
 
 void SoundKillNote(void)
 {
-    UBYTE chan;
+    UBYTE channel;
 
     SoundResetChannelCommand();
     wChannelCommandSlots[hSoundChannel] = 0;
     wChannelCommandSlots[hSoundChannel + 4] = 0;
     wChannelCommandSlots[hSoundChannel + 8] = 0;
     wChannelPitchRate[hSoundChannel] = 0;
-    chan = hSoundChannel;
-    wChannelTable[chan] = 0xFF;
-    wChannelDisplayNote[chan] = 0;
-    wChannelChord[chan] = 0;
-    wChannelVibratoShape[chan] = 0;
+    channel = hSoundChannel;
+    wChannelTable[channel] = 0xFF;
+    wChannelDisplayNote[channel] = 0;
+    wChannelChord[channel] = 0;
+    wChannelVibratoShape[channel] = 0;
 }
 
 /* $65F3: K, kill the note: now (K00) or after the value's ticks, one fewer
@@ -414,7 +414,7 @@ void Command_F_Wav(void)
 
 void SoundNoiPitchStep(void)
 {
-    UBYTE v, neg, ofs;
+    UBYTE v, neg, offset;
 
     v = wChannelVibratoShape[3];
     if (v) {
@@ -434,9 +434,9 @@ void SoundNoiPitchStep(void)
         }
     }
     if (wChannelVibratoSpeed[7]) {
-        ofs = SoundStepPitchVibratoNoi();
-        SoundClampNoteRange(ofs - wNoiVibratoPreviousOffset);
-        wNoiVibratoPreviousOffset = ofs;
+        offset = SoundStepPitchVibratoNoi();
+        SoundClampNoteRange(offset - wNoiVibratoPreviousOffset);
+        wNoiVibratoPreviousOffset = offset;
     }
 }
 
@@ -593,27 +593,27 @@ void Command_E_Noi(void)
    screen), start it at the edited chain row, sooner (wChannelLiveQueued); with
    a sync restart pending, start it now */
 
-void SoundLiveQueueStart(UBYTE chan)
+void SoundLiveQueueStart(UBYTE channel)
 {
     UBYTE *p;
     UBYTE k;
 
-    p = wChannelNextSongRow + chan;
+    p = wChannelNextSongRow + channel;
     if (wSongRow == *p) {
         if (wCurrentScreen == 3 || wCurrentScreen == 1) {
             if (SoundGetChainPhrase(wChain, wChainRow) == 0xFF)
                 return;
-            wChannelRowQueue[chan] = wChainRow;
+            wChannelRowQueue[channel] = wChainRow;
         } else
-            wChannelRowQueue[chan] = 0;
-        wChannelLiveQueued[chan] = 1;
+            wChannelRowQueue[channel] = 0;
+        wChannelLiveQueued[channel] = 1;
     } else {
         *p = wSongRow;
-        wChannelLiveQueued[chan] = 0;
+        wChannelLiveQueued[channel] = 0;
     }
-    wChannelStopQueued[chan] = 0;
+    wChannelStopQueued[channel] = 0;
     if (wPlayRestartPending) {
-        hSoundChannel = chan;
+        hSoundChannel = channel;
         SoundStartChannelFromRow();
         k = hSoundChannel;
         wChannelStopQueued[k] = 0;
@@ -640,11 +640,11 @@ void SoundSetPlayRange(void)
 
 void SoundLiveQueueRange(void)
 {
-    UBYTE chan;
+    UBYTE channel;
 
     SoundSetPlayRange();
-    for (chan = wPlayChannelFirst; chan <= wPlayChannelLast; chan++)
-        SoundLiveQueueStart(chan);
+    for (channel = wPlayChannelFirst; channel <= wPlayChannelLast; channel++)
+        SoundLiveQueueStart(channel);
 }
 
 /* $6D97: start the channels in the play range from the song row */
@@ -684,21 +684,21 @@ void SoundStartRange(void)
 
 void SoundLiveStopRange(void)
 {
-    UBYTE chan;
+    UBYTE channel;
     UBYTE *p;
 
     SoundSetPlayRange();
-    for (chan = wPlayChannelFirst; chan <= wPlayChannelLast; chan++) {
-        p = wChannelNextSongRow + chan;
+    for (channel = wPlayChannelFirst; channel <= wPlayChannelLast; channel++) {
+        p = wChannelNextSongRow + channel;
         if (*p != 0xFF)
             *p = 0xFF;
-        if (wChannelActive[chan]) {
-            p = wChannelStopQueued + chan;
+        if (wChannelActive[channel]) {
+            p = wChannelStopQueued + channel;
             if (!*p) {
                 *p = 1;
-                wChannelLiveQueued[chan] = 0;
+                wChannelLiveQueued[channel] = 0;
             } else
-                wChannelLiveQueued[chan] = 1;
+                wChannelLiveQueued[channel] = 1;
         }
     }
 }

@@ -37,11 +37,11 @@ void DrawHelpMenu(void)
 void DrawHelpCursor(UBYTE erase)
 {
     UBYTE e;
-    UBYTE len;
+    UBYTE length;
 
     e = HelpEntryLines[wHelpRow];
-    len = StringLength(HelpMenuPointers[e]);
-    ColorField(0, e, len, erase ? 0 : 2);
+    length = StringLength(HelpMenuPointers[e]);
+    ColorField(0, e, length, erase ? 0 : 2);
 }
 
 void RedrawHelpCursor(void)
@@ -92,27 +92,27 @@ void CloseHelpEntry(void)
 void DrawHelpPage(char *s)
 {
     UBYTE row;
-    UBYTE col;
+    UBYTE column;
     UBYTE start;
 
     row = 0;
-    col = 0;
+    column = 0;
     wVramCursor = 0x9800;
     while (*s) {
         switch (*s) {
         case '\n':
             SetVramCursor(0, ++row);
-            col = 0;
+            column = 0;
             break;
         case '<':
-            start = col;
+            start = column;
             break;
         case '>':
-            ColorField(start, row, col - start, 1);
+            ColorField(start, row, column - start, 1);
             break;
         default:
             DrawStringIndexed(*s);
-            col++;
+            column++;
         }
         ++s;
     }

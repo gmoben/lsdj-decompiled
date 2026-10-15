@@ -16,8 +16,8 @@ extern UBYTE wColumnPhrase[];                  /* $C453, [4] */
 extern UBYTE InstrumentTableFieldRow[];          /* $01:$532C, [4] */
 void CopyTableData(UBYTE from, UBYTE to);
 void ShowOutOfMemory(void);
-void WriteInstrumentName(UBYTE instr);
-void CopyInstrumentName(UBYTE instr);            /* UiHelpers.c */
+void WriteInstrumentName(UBYTE instrument);
+void CopyInstrumentName(UBYTE instrument);            /* UiHelpers.c */
 void SendLinkClipboard(void);                   /* $1C */
 
 UBYTE CheckSongInitializedMarker(void)
@@ -154,26 +154,26 @@ void CopyInstrument(void)
     FarCall(0x1C, FAR_FN(SendLinkClipboard));
 }
 
-void CopySong16(UBYTE bank, UWORD src, UWORD dst)
+void CopySong16(UBYTE bank, UWORD source, UWORD destination)
 {
     UBYTE i, v;
 
     for (i = 0; i < 0x10; i++) {
-        v = ReadSongByte(bank, src);
-        WriteSongByte(bank, dst, v);
-        src = src + 1;
-        dst = dst + 1;
+        v = ReadSongByte(bank, source);
+        WriteSongByte(bank, destination, v);
+        source = source + 1;
+        destination = destination + 1;
     }
 }
 
-void CopyTableData(UBYTE src, UBYTE dst)
+void CopyTableData(UBYTE source, UBYTE destination)
 {
     UWORD s, d;
     UWORD s1, s2, s3, s4, s5, s6;
     UWORD d1, d2, d3, d4, d5, d6;
 
-    s = (UWORD)src << 4;
-    d = (UWORD)dst << 4;
+    s = (UWORD)source << 4;
+    d = (UWORD)destination << 4;
     s1 = (UWORD)0xB680 + s;
     s2 = (UWORD)0xB880 + s;
     s3 = (UWORD)0xBA80 + s;

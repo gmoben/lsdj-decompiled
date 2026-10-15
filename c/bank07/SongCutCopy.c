@@ -18,12 +18,12 @@ extern UBYTE wSelectionRight;                     /* $C40F */
 extern UBYTE wSelectionBottom;                    /* $C410 */
 extern UBYTE wClipboardType;                /* $C411 */
 extern UBYTE wSongSelectionRow;                   /* $C94B */
-void CopySongColumn(UWORD src, UWORD dst);   /* this unit's prototype (the ROM casts the pointer args) */
+void CopySongColumn(UWORD source, UWORD destination);   /* this unit's prototype (the ROM casts the pointer args) */
 void EraseSongCursor(void);
 void ScrollSongToCursor(void);
 void RedrawSongRow(void);
-void AdjustBookmarksOnDelete(UBYTE lo, UBYTE hi);
-void WriteSongCell(UBYTE col, UBYTE row, UBYTE chain);
+void AdjustBookmarksOnDelete(UBYTE low, UBYTE high);
+void WriteSongCell(UBYTE column, UBYTE row, UBYTE chain);
 
 void CutCopySongSelection(UBYTE isCut)
 {
@@ -38,7 +38,7 @@ void CutCopySongSelection(UBYTE isCut)
     UWORD x;
     UWORD t;
     char *msg;
-    UBYTE col;
+    UBYTE column;
 
     if (wClipboardType != 4)
         return;
@@ -74,8 +74,8 @@ void CutCopySongSelection(UBYTE isCut)
         if (isCut) {
             n = wSelectionBottom - wSelectionTop;
             p = (UBYTE *)0xB290 + ((UWORD)wSelectionTop << 2);
-            col = wSongColumn;
-            p += col;
+            column = wSongColumn;
+            p += column;
             q = p + ((UWORD)n << 2);
             x = (UWORD)p;
             CopySongColumn((UWORD)q, x);

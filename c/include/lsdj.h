@@ -146,36 +146,36 @@ void SoundGetChainPhrase(void);               /* $02:$6F65 (far): chain_phrases[
 
 /* runtime (hand-written asm) */
 void DebugTrap(void);                                   /* `ld b,b` + rst $38 assert */
-void FarCall(UBYTE bank, void (*fn)(void));
-void FarCallArgument(UBYTE bank, void (*fn)(void), UBYTE arg);    /* FAR_FN(f) for the byte-wise form */
+void FarCall(UBYTE bank, void (*function)(void));
+void FarCallArgument(UBYTE bank, void (*function)(void), UBYTE argument);    /* FAR_FN(f) for the byte-wise form */
 
 /* far calls with arguments or a byte result (C: c/bank00/FarCall.c) */
-UBYTE FarCallArgumentByte(UBYTE bank, UWORD fn, UBYTE arg);         /* returns fn's byte */
-UBYTE FarCallArgument2(UBYTE bank, UWORD fn, UBYTE a, UBYTE b);
-UBYTE FarCallArgument2P(UBYTE bank, void (*fn)(void), UBYTE a, UBYTE b);  /* the same routine taking FAR_FN(f) (match_function.py aliases it) */
-void FarCallArgument3(UBYTE bank, UWORD fn, UBYTE a, UBYTE b, UBYTE c);
-void FarCallArgument3P(UBYTE bank, void (*fn)(void), UBYTE a, UBYTE b, UBYTE c);  /* the same routine taking FAR_FN(f) (match_function.py aliases it) */
-UBYTE FarCallByteU(UBYTE bank, UBYTE (*fn)(void));  /* FarCallByte for a callee declared returning UBYTE: `ld bc,#f` (aliased) */
+UBYTE FarCallArgumentByte(UBYTE bank, UWORD function, UBYTE argument);         /* returns fn's byte */
+UBYTE FarCallArgument2(UBYTE bank, UWORD function, UBYTE a, UBYTE b);
+UBYTE FarCallArgument2P(UBYTE bank, void (*function)(void), UBYTE a, UBYTE b);  /* the same routine taking FAR_FN(f) (match_function.py aliases it) */
+void FarCallArgument3(UBYTE bank, UWORD function, UBYTE a, UBYTE b, UBYTE c);
+void FarCallArgument3P(UBYTE bank, void (*function)(void), UBYTE a, UBYTE b, UBYTE c);  /* the same routine taking FAR_FN(f) (match_function.py aliases it) */
+UBYTE FarCallByteU(UBYTE bank, UBYTE (*function)(void));  /* FarCallByte for a callee declared returning UBYTE: `ld bc,#f` (aliased) */
 #ifndef FARCALL_C
 /* their callers pass a function; FarCall.c defines them taking a UWORD */
-void FarCallArgument2V(UBYTE bank, void (*fn)(void), UBYTE a, UBYTE b);
-UBYTE FarCallByte(UBYTE bank, void (*fn)(void));    /* returns fn's byte result */
+void FarCallArgument2V(UBYTE bank, void (*function)(void), UBYTE a, UBYTE b);
+UBYTE FarCallByte(UBYTE bank, void (*function)(void));    /* returns fn's byte result */
 #endif
 #define FAR_FN(f) ((void (*)(void))(UWORD)(f))
 
 /* song data access */
 #ifdef SONG_BYTE_PTR
-UBYTE ReadSongByte(UBYTE bank, UBYTE *addr);    /* bank 3 declares the address a pointer */
+UBYTE ReadSongByte(UBYTE bank, UBYTE *address);    /* bank 3 declares the address a pointer */
 #else
-UBYTE ReadSongByte(UBYTE bank, UWORD addr);
+UBYTE ReadSongByte(UBYTE bank, UWORD address);
 #endif
-void WriteSongByte(UBYTE bank, UWORD addr, UBYTE val);
-UBYTE ReadSongByteRaw(UBYTE bank, UWORD addr);  /* no range asserts */
-void ReadSongBytes(UBYTE bank, UBYTE *src, UBYTE *dst);  /* 16 bytes */
-void WriteInstrumentByte(UBYTE instr, UBYTE field, UBYTE val);
-UBYTE ReadInstrumentByte(UBYTE instr, UBYTE field);
+void WriteSongByte(UBYTE bank, UWORD address, UBYTE value);
+UBYTE ReadSongByteRaw(UBYTE bank, UWORD address);  /* no range asserts */
+void ReadSongBytes(UBYTE bank, UBYTE *source, UBYTE *destination);  /* 16 bytes */
+void WriteInstrumentByte(UBYTE instrument, UBYTE field, UBYTE value);
+UBYTE ReadInstrumentByte(UBYTE instrument, UBYTE field);
 UBYTE ReadCurrentInstrumentByte(UBYTE field);
-UBYTE ReadSequenceByte(UBYTE chan, UBYTE row);
+UBYTE ReadSequenceByte(UBYTE channel, UBYTE row);
 void ReadKitName(UBYTE kit);                            /* -> wSampleNoteString */
 UBYTE KitExists(UBYTE kit);
 
@@ -195,15 +195,15 @@ void printf(char *fmt, UWORD v);            /* printf-style, varargs */
 void printf2(char *fmt, UWORD a, UWORD b);  /* the same routine with two values (match_function.py aliases it) */
 void SetVramCursor(UBYTE x, UBYTE y);                  /* sets wVramCursor (asm) */
 void ClearMarkerSprites(void);
-char *strcpy(char *dest, char *src);
+char *strcpy(char *dest, char *source);
 void FillMemory(UBYTE *dest, UBYTE value, UWORD count);
-void memcpy(UBYTE *dst, UBYTE *src, UWORD n);
+void memcpy(UBYTE *destination, UBYTE *source, UWORD n);
 
 /* misc */
 void SortBytePair(UBYTE *a, UBYTE *b);               /* swap so *a <= *b */
-UBYTE ReadClipboardCell(UBYTE col, UBYTE row);         /* wClipboardBuffer[col*42 + row] */
-void WriteClipboardCell(UBYTE col, UBYTE row, UBYTE v);
-void LoadSynthShape(char *src);              /* bank $1E seed bytes -> wSynthShapeBuffer */
+UBYTE ReadClipboardCell(UBYTE column, UBYTE row);         /* wClipboardBuffer[col*42 + row] */
+void WriteClipboardCell(UBYTE column, UBYTE row, UBYTE v);
+void LoadSynthShape(char *source);              /* bank $1E seed bytes -> wSynthShapeBuffer */
 
 /* --- the screens' draw entry points (DispatchScreenDraw, bank 0) ----------- */
 
@@ -212,10 +212,10 @@ void ClearBgTilemap(void);                  /* $17FB: tile 0 over the visible BG
 extern UBYTE CommandMnemonics[];                 /* $0824: "-ABCDEFGHKLMOPRSTVWZ", the command letters */
 void SetSpriteY(UBYTE sprite, UBYTE row);   /* play-position marker sprites */
 void ClearSpriteY(UBYTE sprite);
-void SetSpriteX(UBYTE sprite, UBYTE col);
+void SetSpriteX(UBYTE sprite, UBYTE column);
 void SetSpriteTile3(UBYTE sprite);
 void SetSpriteTile4(UBYTE sprite);
-void SetSpriteAttribute(UBYTE sprite, UBYTE attr);
+void SetSpriteAttribute(UBYTE sprite, UBYTE attribute);
 void SetOamByte(UWORD offset, UBYTE v);         /* wOamBuffer[offset] = v if changed */
 void ClearSprites012(void);
 void PositionWavSprites(void);
@@ -246,7 +246,7 @@ void CloneInstrumentTable(void);
 
 /* --- bank 3: instrument screen --------------------------------------------- */
 
-void WriteCurrentInstrumentByte(UBYTE field, UBYTE val);
+void WriteCurrentInstrumentByte(UBYTE field, UBYTE value);
 void DrawInstrumentCursor(void);
 void EraseInstrumentCursor(void);
 UBYTE FindFreeSynth(void);

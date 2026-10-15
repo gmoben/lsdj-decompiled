@@ -47,10 +47,10 @@ void MoveMapCursorUp(void);                       /* $05:$426A */
 void MoveMapCursorDown(void);                     /* $05:$4287 */
 void SoundToggleSongPlayback(void);              /* $02:$78C4 */
 void SoundTogglePlayback(void);                  /* $02:$7C4C */
-void WriteCurrentInstrumentByteC(UBYTE field, char val);   /* WriteCurrentInstrumentByte taking a char (aliased) */
-void FarCallArgumentWC(UBYTE bank, UWORD fn, char arg);     /* FarCallArgument with a word target and a char argument (aliased) */
-void FarCallArgumentW(UBYTE bank, UWORD fn, UBYTE arg);     /* FarCallArgument with a word target (aliased) */
-void FarCallW(UBYTE bank, UWORD fn);                  /* FarCall with a word target (aliased) */
+void WriteCurrentInstrumentByteC(UBYTE field, char value);   /* WriteCurrentInstrumentByte taking a char (aliased) */
+void FarCallArgumentWC(UBYTE bank, UWORD function, char argument);     /* FarCallArgument with a word target and a char argument (aliased) */
+void FarCallArgumentW(UBYTE bank, UWORD function, UBYTE argument);     /* FarCallArgument with a word target (aliased) */
+void FarCallW(UBYTE bank, UWORD function);                  /* FarCall with a word target (aliased) */
 extern UBYTE wInstrumentFieldCount;              /* $C905 */
 extern UBYTE wNameEditBuffer[];                /* $C431 */
 extern char InstrumentTypeNames[];               /* $03:$4FC4, [4][6] */
@@ -63,9 +63,9 @@ void DrawNoiseInstrument(void);
 void CopyInstrumentName(void);                   /* bank 1 */
 UBYTE MulU8(UBYTE a, UBYTE b);
 
-void WriteCurrentInstrumentByte(UBYTE field, UBYTE val)
+void WriteCurrentInstrumentByte(UBYTE field, UBYTE value)
 {
-    WriteInstrumentByte(wInstrument, field, val);
+    WriteInstrumentByte(wInstrument, field, value);
 }
 
 UBYTE GetWavePlayMode(void)
@@ -632,7 +632,7 @@ void DrawInstrumentScreen(void)
 {
     UBYTE i;
     UBYTE type;
-    UWORD fn;
+    UWORD function;
 
     if (wInstrument > 0x40)
         DebugTrap();
@@ -664,19 +664,19 @@ void DrawInstrumentScreen(void)
     DrawString(InstrumentTypeNames + type * 6);
     switch (type) {
     case 0:
-        fn = (UWORD)DrawPulseInstrument;
+        function = (UWORD)DrawPulseInstrument;
         break;
     case 1:
-        fn = (UWORD)DrawWaveInstrument;
+        function = (UWORD)DrawWaveInstrument;
         break;
     case 3:
-        fn = (UWORD)DrawNoiseInstrument;
+        function = (UWORD)DrawNoiseInstrument;
         break;
     case 2:
-        fn = (UWORD)DrawKitInstrument;
+        function = (UWORD)DrawKitInstrument;
         break;
     }
-    FarCallW(0x1F, fn);
+    FarCallW(0x1F, function);
     FarCall(0x1F, FAR_FN(DrawAllChannelStatus));
     if (hGameboyType) {
         i = wInstrumentField;

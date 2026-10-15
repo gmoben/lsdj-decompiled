@@ -389,7 +389,7 @@
 41A7 .cont_2
 41CD .cont_3
 41D1 .mulU8
-42E5 .ret01
+42E5 .return01
 42EA .cont
 42F1 .cont_2
 4319 .step

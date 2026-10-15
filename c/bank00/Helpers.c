@@ -19,31 +19,31 @@ extern int wSynthShapeBuffer[];                /* $C9F4, [32] */
 
 UBYTE KitIndexToBank(UBYTE kit);            /* hand-written asm */
 
-UBYTE ReadClipboardCell(UBYTE col, UBYTE row)
+UBYTE ReadClipboardCell(UBYTE column, UBYTE row)
 {
     UBYTE *p;
 
-    if (col >= 6)
+    if (column >= 6)
         DebugTrap(); 
    if (row >= 42)
         DebugTrap();
-    p = wClipboardBuffer + col * 42;
+    p = wClipboardBuffer + column * 42;
     return p[row];
 }
 
-void WriteClipboardCell(UBYTE col, UBYTE row, UBYTE v)
+void WriteClipboardCell(UBYTE column, UBYTE row, UBYTE v)
 {
     UBYTE *p;
 
-    if (col >= 6)
+    if (column >= 6)
         DebugTrap();
     if (row >= 42)
         DebugTrap();
-    p = wClipboardBuffer + col * 42;
+    p = wClipboardBuffer + column * 42;
     p[row] = v;
 }
 
-void LoadSynthShape(char *src)
+void LoadSynthShape(char *source)
 {
     UBYTE saved, i;
     char v;
@@ -51,14 +51,14 @@ void LoadSynthShape(char *src)
     saved = hCurrentBank;
     SWITCH_ROM(0x1E);
     for (i = 0; i < 0x20; i++) {
-        v = *src;
+        v = *source;
         if (v & 0x80) {
             wSynthShapeBuffer[i] = v;
             wSynthShapeBuffer[i] |= 0xFF00;
         } else {
             wSynthShapeBuffer[i] = v;
         }
-        src++;
+        source++;
     }
     SWITCH_ROM(saved);
 }

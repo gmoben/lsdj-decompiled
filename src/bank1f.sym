@@ -411,7 +411,7 @@
 49BE .loop
 49D1 .cont_6
 49F9 .cont_7
-49FC .ret01
+49FC .return01
 49FE .done
 4A58 .step
 4A5C .setProjectCursor
@@ -567,7 +567,7 @@
 5E72 .step
 5F16 .cont
 5F31 .index
-5F6D .ret01
+5F6D .return01
 5F72 .cont
 5F79 .cont_2
 5F7F .cont_3
@@ -576,15 +576,15 @@
 5FE1 .step
 5FE5 .cont
 603B .cont
-603C .ret01
+603C .return01
 6048 .cont_2
 6068 .cont_3
 606E .cont_4
 60C9 .cont
-60CA .ret01
+60CA .return01
 60D6 .cont_2
 60FD .cont_3
-60FE .ret01_2
+60FE .return01_2
 610A .cont_4
 6140 .cont_5
 6146 .cont_6
@@ -598,11 +598,11 @@
 64D6 .clearSpriteY
 6547 .add16
 655F .add16_2
-6574 .ret00
+6574 .return00
 6579 .setSongRow
 65E1 .cont
 65E2 .cont_2
-660B .ret00_2
+660B .return00_2
 66AD .cont
 66BC .cont_2
 66C1 .showMessage
@@ -689,9 +689,9 @@
 76EE .mulU16_2
 775B .cont_9
 7782 .cont_10
-7788 .ret01
-77C7 .ret01_2
-77EA .ret01_3
+7788 .return01
+77C7 .return01_2
+77EA .return01_3
 77EF .cont_11
 
 ; --- pointer targets (tools/name_targets.py) ---

@@ -39,7 +39,7 @@ extern char TxtFail[];                      /* $07:$71B5 */
 extern char TxtOk[];                        /* $07:$71BB */
 void KeyboardDrainQueue(void);
 UBYTE HexDigitCharacter(UBYTE v);
-void CopyInstrumentName(UBYTE instr);            /* bank 1 */
+void CopyInstrumentName(UBYTE instrument);            /* bank 1 */
 void ClearMessageBar(void);                 /* bank 1 */
 void ClearBgMapAndAttributes(void);                    /* bank 1 */
 
@@ -66,7 +66,7 @@ void DrawKeyboardInstrumentName(void);
 void DrawKeyboardOctave(void);
 UBYTE ProcessKeyboardNote(UBYTE sc);
 void Command_A(void);                         /* bank 2 */
-void FarCallArgument0(UBYTE bank, void (*fn)(void));   /* FarCallArgument called without its byte (hCommandValue set by hand; aliased) */
+void FarCallArgument0(UBYTE bank, void (*function)(void));   /* FarCallArgument called without its byte (hCommandValue set by hand; aliased) */
 
 void SetSyncSendRate(void)
 {
@@ -185,17 +185,17 @@ void DrawKeyboardOctave(void)
 
 UBYTE ProcessLinkQueue(void)
 {
-    UBYTE mod;
+    UBYTE modifier;
     UBYTE key;
     UBYTE t;
     UBYTE u;
     UBYTE code;
 
     code = wLinkQueueBuffer[wLinkQueueHead];
-    mod = wKeyboardCommandAccumulator + wKeyboardCommandModifier;
+    modifier = wKeyboardCommandAccumulator + wKeyboardCommandModifier;
     key = code | wKeyboardSustain;
     if (code & 0x80)
-        mod |= 4;
+        modifier |= 4;
     wLinkQueueHead++;
     wLinkQueueHead &= 0x0F;
     switch (code) {
@@ -215,7 +215,7 @@ UBYTE ProcessLinkQueue(void)
     }
     wKeyboardSustain = 0;
     wKeyboardCommandModifier = 0;
-    if (mod & 4) {
+    if (modifier & 4) {
         if (key <= 0xA0 && key >= 0x80) {
             wKeyboardInstrument = key + 0x80;
             DrawKeyboardInstrumentName();
@@ -275,31 +275,31 @@ UBYTE ProcessLinkQueue(void)
         wBHeld = 1;
         return 0x28;
     case 0x2D:
-        if (mod & 2) {
+        if (modifier & 2) {
             wSelectHeld = 1;
             return 0xC0;
         }
         return 0x80;
     case 0x6B:
-        if (!(mod & 1)) {
+        if (!(modifier & 1)) {
             wSelectHeld = 1;
             return 0x42;
         }
         return 0x02;
     case 0x17:
-        if (!(mod & 1)) {
+        if (!(modifier & 1)) {
             wSelectHeld = 1;
             return 0x41;
         }
         return 0x01;
     case 0x57:
-        if (!(mod & 1)) {
+        if (!(modifier & 1)) {
             wSelectHeld = 1;
             return 0x44;
         }
         return 0x04;
     case 0x27:
-        if (!(mod & 1)) {
+        if (!(modifier & 1)) {
             wSelectHeld = 1;
             return 0x48;
         }
@@ -399,7 +399,7 @@ msg:
         wMessageTimer = 0x64;
         return 0xFF;
     case 0xC0:
-        if (!(mod & 2))
+        if (!(modifier & 2))
             goto note;
     case 0x40:
         wKeyboardActionChannel = 0;
@@ -408,7 +408,7 @@ msg:
         wBHeld = 1;
         return 0x60;
     case 0xC8:
-        if (!(mod & 2))
+        if (!(modifier & 2))
             goto note;
     case 0x48:
         wKeyboardActionChannel = 1;
@@ -417,7 +417,7 @@ msg:
         wBHeld = 1;
         return 0x60;
     case 0x8F:
-        if (!(mod & 2))
+        if (!(modifier & 2))
             goto note;
     case 0x0F:
         wKeyboardActionChannel = 2;
@@ -426,7 +426,7 @@ msg:
         wBHeld = 1;
         return 0x60;
     case 0xF0:
-        if (!(mod & 2))
+        if (!(modifier & 2))
             goto note;
     case 0x70:
         wKeyboardActionChannel = 3;

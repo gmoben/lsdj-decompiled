@@ -72,7 +72,7 @@ void FileDecompressByte(void);              /* $1C:$749E */
 void VerifyBlockAgainstSram(void);         /* $1C:$746E */
 void DrawFileList(void);                    /* $1C:$55F1 */
 int StringLength(const char *s);            /* bank00/GbdkLib.c, nonbanked */
-UBYTE FindFreeBlock(UBYTE *bank, UWORD *src);   /* $1C:$415A */
+UBYTE FindFreeBlock(UBYTE *bank, UWORD *source);   /* $1C:$415A */
 UBYTE CompressSong(void);                   /* $1C:$441F */
 UBYTE DrawVerifyPanel(UBYTE f);             /* $1C:$4778 */
 UBYTE FileLoadSlotInfo(UBYTE slot, UBYTE verify);
@@ -91,7 +91,7 @@ UBYTE FileClassifyToken(void);              /* asm */
 UBYTE CheckFileMagic64(void);
 void FreeFileBlocks(UBYTE f);
 void EraseFileName(UBYTE f);
-UBYTE ReadWorkingSongByte(UWORD addr);      /* asm */
+UBYTE ReadWorkingSongByte(UWORD address);      /* asm */
 void WriteCompressedByte(UBYTE v);          /* asm, v also in a */
 void FileCompressRun(UBYTE v);              /* asm, v in a */
 void FileClearChannelState(void);
@@ -146,7 +146,7 @@ UBYTE CheckFileMagicAll(void)
    the file being compressed: mark it with wCompressByte, return its bank and
    SRAM address through the pointers (range-checked). 0 when the table is
    full. */
-UBYTE FindFreeBlock(UBYTE *bank, UWORD *src)
+UBYTE FindFreeBlock(UBYTE *bank, UWORD *source)
 {
     UWORD p, end;
 
@@ -159,10 +159,10 @@ UBYTE FindFreeBlock(UBYTE *bank, UWORD *src)
         if (ReadSongByte(4, p) > 0x1F) {
             WriteSongByte(4, p, wCompressByte);
             *bank = (wFileBlockIndex >> 4) + 4;
-            *src = ((UWORD)(wFileBlockIndex & 0x0F) << 9) + (UWORD)0xA000;
+            *source = ((UWORD)(wFileBlockIndex & 0x0F) << 9) + (UWORD)0xA000;
             if (*bank < 4 || *bank >= 0x10)
                 DebugTrap();
-            if (*src < 0xA000 || *src >= 0xC000)
+            if (*source < 0xA000 || *source >= 0xC000)
                 DebugTrap();
             wVramCursor = 0x98EC;
             hBgDigitPalette = 4;
@@ -248,26 +248,26 @@ UBYTE CompressIsDefaultWave(void)
  */
 UBYTE CompressSong(void)
 {
-    UBYTE cur;
+    UBYTE current;
     UBYTE next;
     UBYTE k;
     UBYTE bank;
-    UWORD src;
+    UWORD source;
 
     wCompressDestination = 0;
     wDecompressPosition = 0;
     wWorkSongPage = 0xFF;
-    cur = ReadSongByte(0, 0xA000);
+    current = ReadSongByte(0, 0xA000);
     next = ReadSongByte(0, 0xA001);
     do {
-        if (cur == 0xC0) {
+        if (current == 0xC0) {
             WriteCompressedByte(0xC0);
             WriteCompressedByte(0xC0);
-            cur = next;
+            current = next;
             wCompressDestination++;
             if (wCompressDestination < 0x7FFF)
                 next = ReadWorkingSongByte(wCompressDestination + 1);
-        } else if (cur == 0x71 && next == 0x32 && CompressIsDefaultWave()) {
+        } else if (current == 0x71 && next == 0x32 && CompressIsDefaultWave()) {
             k = 0;
             do {
                 k = k + 1;
@@ -276,40 +276,40 @@ UBYTE CompressSong(void)
             WriteCompressedByte(0xE0);
             WriteCompressedByte(0xF0);
             WriteCompressedByte(k);
-            cur = ReadWorkingSongByte(wCompressDestination);
+            current = ReadWorkingSongByte(wCompressDestination);
             next = ReadWorkingSongByte(wCompressDestination + 1);
-        } else if (cur == 0xE0) {
+        } else if (current == 0xE0) {
             WriteCompressedByte(0xE0);
             WriteCompressedByte(0xE0);
-            cur = next;
+            current = next;
             wCompressDestination++;
             if (wCompressDestination < 0x7FFF)
                 next = ReadWorkingSongByte(wCompressDestination + 1);
-        } else if (cur == next && wCompressDestination < 0x7FFD
+        } else if (current == next && wCompressDestination < 0x7FFD
                    && next == ReadWorkingSongByte(wCompressDestination + 2)
                    && ReadWorkingSongByte(wCompressDestination + 2) == ReadWorkingSongByte(wCompressDestination + 3)) {
-            FileCompressRun(cur);
+            FileCompressRun(current);
             if (wCompressDestination < 0x8000) {
-                cur = ReadWorkingSongByte(wCompressDestination);
+                current = ReadWorkingSongByte(wCompressDestination);
                 if (wCompressDestination < 0x7FFF)
                     next = ReadWorkingSongByte(wCompressDestination + 1);
             }
         } else {
-            WriteCompressedByte(cur);
-            cur = next;
+            WriteCompressedByte(current);
+            current = next;
             wCompressDestination++;
             if (wCompressDestination < 0x7FFF)
                 next = ReadWorkingSongByte(wCompressDestination + 1);
         }
         if (wDecompressPosition > 0xFB && (wCompressSource & 0x100)) {
             WriteCompressedByte(0xE0);
-            if (!FindFreeBlock(&bank, &src))
+            if (!FindFreeBlock(&bank, &source))
                 return 0;
             WriteCompressedByte(wFileBlockIndex);
             if (wDecompressPosition)
                 FileWriteCompressedSram();
             wCompressBank = bank;
-            wCompressSource = src;
+            wCompressSource = source;
         }
     } while (!(wCompressDestination & 0x8000));
     WriteCompressedByte(0xE0);
@@ -457,10 +457,10 @@ void FreeFileBlocks(UBYTE f)
 void LoadFileListState(void)
 {
     UBYTE ver;
-    char mod;
+    char modifier;
     UBYTE i;
 
-    mod = ReadSongByte(1, 0xBFC1);
+    modifier = ReadSongByte(1, 0xBFC1);
     wFileCursor = ReadSongByte(4, 0xA140);
     CountFileBlocks();
     if (wFileCursor == 0xFF) {
@@ -493,7 +493,7 @@ void LoadFileListState(void)
         wTopBarString[i] = ver + 0x30;
         i++;
         wTopBarMarkPointer = &wTopBarString[i];
-        wTopBarString[i++] = mod;
+        wTopBarString[i++] = modifier;
         wTopBarString[i] = 0;
     } else {
         wTopBarString[i] = ver + 0x30;
@@ -501,7 +501,7 @@ void LoadFileListState(void)
             wTopBarString[i] += 7;
         i++;
         wTopBarMarkPointer = &wTopBarString[i];
-        wTopBarString[i++] = mod;
+        wTopBarString[i++] = modifier;
         wTopBarString[i] = 0;
     }
     if (i >= 0x0D)
@@ -742,19 +742,19 @@ void DrawFileTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE h)
     hBgPalette = 1;
 }
 
-void FileDrawField(UBYTE pal)
+void FileDrawField(UBYTE palette)
 {
-    ColorField(FileFieldX[wFileField], 2, FileFieldWidth[wFileField], pal);
+    ColorField(FileFieldX[wFileField], 2, FileFieldWidth[wFileField], palette);
 }
 
-void FileDrawFieldChecked(UBYTE pal)
+void FileDrawFieldChecked(UBYTE palette)
 {
     UBYTE r;
 
     r = wFileCursor - wFileScroll;
     if (r >= 0x10)
         DebugTrap();
-    ColorField(3, wFileCursor + 4 - wFileScroll, 0x0E, pal);
+    ColorField(3, wFileCursor + 4 - wFileScroll, 0x0E, palette);
 }
 
 void FileValidateName(void)

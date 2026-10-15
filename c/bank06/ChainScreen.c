@@ -28,7 +28,7 @@ void LoadChainRow(void);
 void AllocNextFreePhrase(void);             /* bank 1 */
 void WriteChainPhrase(void);                /* bank $1F */
 void ShowOutOfMemory(void);                 /* bank 1 */
-void ClonePhraseAtCursor(UBYTE src, UBYTE dst);
+void ClonePhraseAtCursor(UBYTE source, UBYTE destination);
 extern UBYTE wSelectionTop;                       /* $C40E */
 extern UBYTE wSelectionRight;                     /* $C40F */
 extern UBYTE wSelectionBottom;                    /* $C410 */
@@ -68,29 +68,29 @@ UBYTE LoadChainCursorPhrase(void)
     }
 }
 
-UBYTE ChainScreenEnter(UBYTE col)
+UBYTE ChainScreenEnter(UBYTE column)
 {
     UBYTE chain, row;
 
     chain = wChain;
     row = wSongRow;
-    if (col >= 4)
+    if (column >= 4)
         DebugTrap();
     wMessageStringPointer = 0;
-    if (wLiveMode && wChannelActive[col]) {
-        wChain = wChannelChain[col];
-        wSongRow = wChannelSongRow[col];
+    if (wLiveMode && wChannelActive[column]) {
+        wChain = wChannelChain[column];
+        wSongRow = wChannelSongRow[column];
     } else {
-        wChain = ReadSequenceByte(col, wSongRow);
+        wChain = ReadSequenceByte(column, wSongRow);
         while (wChain == 0xFF && wSongRow)
-            wChain = ReadSequenceByte(col, --wSongRow);
+            wChain = ReadSequenceByte(column, --wSongRow);
     }
     if (wChain & 0x80) {
         wChain = chain;
         wSongRow = row;
         return 0;
     }
-    wSongColumn = col;
+    wSongColumn = column;
     DrawChainScreen();
     return 1;
 }
@@ -129,20 +129,20 @@ UBYTE ReadChainTranspose(UBYTE chain, UBYTE step)
     return ReadSongByte(1, p + step);
 }
 
-void ClonePhraseAtCursor(UBYTE src, UBYTE dst)
+void ClonePhraseAtCursor(UBYTE source, UBYTE destination)
 {
     UBYTE *s1, *d1, *s2, *d2, *s3, *d3, *s4, *d4;
     UWORD soff, doff;
     UBYTE v;
     UBYTE i;
 
-    soff = (UWORD)src << 4;
-    doff = (UWORD)dst << 4;
+    soff = (UWORD)source << 4;
+    doff = (UWORD)destination << 4;
     if (wCurrentScreen == 3)
         ShowMessage(TxtClonedPhrase);
-    if (src == 0xFF)
+    if (source == 0xFF)
         DebugTrap();
-    if (dst == 0xFF)
+    if (destination == 0xFF)
         DebugTrap();
     s1 = (UBYTE *)0xA000 + soff;
     s2 = (UBYTE *)0xB000 + soff;
@@ -188,7 +188,7 @@ void LoadChainRow(void)
 void DrawChainScreen(void)
 {
     UBYTE y;
-    UBYTE i, v, pal, r;
+    UBYTE i, v, palette, r;
 
     if (wChain & 0x80)
         DebugTrap();
@@ -223,9 +223,9 @@ void DrawChainScreen(void)
     r = wChainRow;
     if (r & 0xF0)
         DebugTrap();
-    pal = hGameboyType ? 3 : 2;
+    palette = hGameboyType ? 3 : 2;
     y = wChainRow + 2;
-    ColorField(ChainColumnX[wChainColumn], y, 2, pal);
+    ColorField(ChainColumnX[wChainColumn], y, 2, palette);
     FarCall(0x1F, FAR_FN(DrawAllChannelStatus));
 }
 
@@ -846,12 +846,12 @@ void PasteChainCells(void)
 void DrawChainSelection(void)
 {
     UBYTE x, y, left, top, right, bottom;
-    UBYTE col;
+    UBYTE column;
 
     if (wClipboardType != 3)
         return;
-    col = wChainColumn;                /* into c for the test only, as DrawPhraseSelection */
-    if (wSelectionLeft < col) {
+    column = wChainColumn;                /* into c for the test only, as DrawPhraseSelection */
+    if (wSelectionLeft < column) {
         left = wSelectionLeft;
         right = wChainColumn + 1;
     } else {

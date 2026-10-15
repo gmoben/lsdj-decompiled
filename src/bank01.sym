@@ -330,14 +330,14 @@
 40A0 .cont_3
 40A1 .cont_4
 40BF .cont_5
-40C0 .ret00
+40C0 .return00
 40CC .cont_6
 40D9 .cont_7
 40DF .cont_8
 4229 .cont
-4475 .ret00
+4475 .return00
 447A .step
-447E .ret01
+447E .return01
 44CA .drawString
 4527 .drawString_2
 45B6 .cont

@@ -66,13 +66,13 @@ UBYTE ReadGrooveStep(UBYTE step)
 
 void EraseGrooveCursor(void)
 {
-    UBYTE r, pal;
+    UBYTE r, palette;
 
     r = wGrooveRow;
     if (r & 0xF0)
         DebugTrap();
-    pal = (wGrooveRow & 2) ? 0 : 1;
-    ColorField(2, wGrooveRow + 2, 2, pal);
+    palette = (wGrooveRow & 2) ? 0 : 1;
+    ColorField(2, wGrooveRow + 2, 2, palette);
 }
 
 void DrawGrooveSteps(void)

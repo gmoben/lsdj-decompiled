@@ -123,22 +123,22 @@ UBYTE ProjectSyncModeIs567(void)
 
 void EraseProjectCursor(void)
 {
-    UBYTE pal, y;
+    UBYTE palette, y;
 
-    pal = wProjectCursor < 8;
+    palette = wProjectCursor < 8;
     wProjectDrawScratch2 = ProjectCursorFieldWidth();
     y = ProjectFieldY[wProjectCursor];
-    ColorField(ProjectFieldX[wProjectCursor], y, wProjectDrawScratch2, pal);
+    ColorField(ProjectFieldX[wProjectCursor], y, wProjectDrawScratch2, palette);
 }
 
 void DrawProjectCursor(void)
 {
-    UBYTE pal, y;
+    UBYTE palette, y;
 
-    pal = hGameboyType ? 3 : 2;
+    palette = hGameboyType ? 3 : 2;
     wProjectDrawScratch3 = ProjectCursorFieldWidth();
     y = ProjectFieldY[wProjectCursor];
-    ColorField(ProjectFieldX[wProjectCursor], y, wProjectDrawScratch3, pal);
+    ColorField(ProjectFieldX[wProjectCursor], y, wProjectDrawScratch3, palette);
 }
 
 void DrawDecimalField(UBYTE v)
