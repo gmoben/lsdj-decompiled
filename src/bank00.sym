@@ -33,7 +33,7 @@
 0DDB InitAndLoadSong    ; second-stage boot (runs once before MainLoop): SwitchToDoubleSpeed, ClearBgTilemap, init subsystems, load the working song (bank1 $4CF1/$4848) or ResetWorkState if empty, set palettes + load song properties
 1377 .mainLoop            ; (was MainLoop) poll ready flags, then process a frame (-> ProcessInput)
 1CFF LoadSyncSetting    ; read song sync property ($BFBD) -> wSyncMode/wSyncMode2
-254F ScreenDrawDispatch ; jp table $2563 indexed by wCurScreen ($C401): per-screen draw
+254F ScreenDrawDispatch ; jp table ScreenDrawTable indexed by wCurScreen ($C401): per-screen draw
 2563 ScreenDrawTable    ; 15x jp: screen index -> "select bank N; call draw; ret"
 ; --- per-screen draw dispatch stubs (select bank, call the screen's draw) ---
 2593 DrawDispatch_Phrase     ; idx 1 -> bank $04:$4CE5 (Phrase: note/instr/cmd/val grid)
@@ -146,8 +146,8 @@
 1AFF SndApplyWavVib ; apply WAV-channel vibrato: if wChanVibSpeed+5, compute offset (SndCalcVibOffset) -> wChanVibOffset+4/5 and advance vib phase wChanVibAccumWav; shared by SndStepPitchVibWav + SndModWavFreq
 1815 TickWorkTimeClock   ; bump saturating counter wWorkClockSubFrame (<$80), advance wWorkTimeAccum ($C69D); wrap at $0E00 -> wWorkTimeTicks ($C577), clear wIdleHalt
 20DB HandleTooBusy       ; CPU-overload handler (redraw backlog overflowed while playing): reset playback (bank2 $710E: exit live mode + sound reinit) and ShowMessage "TOO BUSY!"
-1986 SndCalcVibOffset    ; eval vibrato/mod waveform: (phase>>2)+e indexes ctrl table $0200; bit7 -> negate; dispatch via $0300 -> signed offset in hl
-19A1 SndCalcVibOffsetNeg ; SndCalcVibOffset bit7-set helper: complement A then dispatch via $0300
+1986 SndCalcVibOffset    ; eval vibrato/mod waveform: (phase>>2)+e indexes ctrl table TimesTwoTable; bit7 -> negate; dispatch via VibOffsetJumps -> signed offset in hl
+19A1 SndCalcVibOffsetNeg ; SndCalcVibOffset bit7-set helper: complement A then dispatch via VibOffsetJumps
 19A6 SndStepPitchVibPu1  ; ch0: accumulate wChanPitchRate->wChanPitchCur, clamp to wChanPitchTarget (-> SndUpdatePitchModFlagPu1); advance vib phase wChanVibAccum -> wChanVibOffset
 1A26 SndStepPitchVibPu2  ; ch1: as PU1 for +2/+3 offsets (-> SndUpdatePitchModFlagPu2); vib phase wChanVibAccumPu2 -> wChanVibOffset+2
 1AA7 SndStepPitchVibWav  ; ch2: as PU1 for +4/+5 offsets (-> SndUpdatePitchModFlagWav); vib phase wChanVibAccumWav -> wChanVibOffset+4
@@ -253,7 +253,7 @@
 0015 BitMaskBit2         ; bit mask $04 (BitMasks descending set)
 0016 BitMaskBit1         ; bit mask $02 (BitMasks descending set)
 0017 BitMaskBit0         ; bit mask $01 (BitMasks descending set)
-0018 BitMasksAsc         ; ascending bit masks: [$0018+n] = 1<<n (this byte: bit 0)
+0018 BitMasksAsc         ; ascending bit masks: [BitMasksAsc+n] = 1<<n (this byte: bit 0)
 0019 BitMaskAsc1         ; bit mask $02 (ascending set)
 001A BitMaskAsc2         ; bit mask $04 (ascending set)
 001B BitMaskAsc3         ; bit mask $08 (ascending set)
@@ -917,4 +917,4 @@
 39FE .cont
 3A01 set_xy_tt          ; GBDK .set_xy_tt (set_xy_t.s): copy a w x h tile block from bc to (x d, y e) of the map at hl, rSTAT-gated
 3A0D .readStat
-0300 VibOffsetJumps             ; jp-hl dispatch table of per-shape vibrato-offset fragments (SndCalcVibOffset via $0300)
+0300 VibOffsetJumps             ; jp-hl dispatch table of per-shape vibrato-offset fragments (SndCalcVibOffset via VibOffsetJumps)

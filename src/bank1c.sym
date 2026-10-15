@@ -60,8 +60,8 @@
 60CC FileReadInstrByte          ; read byte[arg] of the instrument currently being iterated (for upgrade/migration)
 60E0 FileWriteInstrByte         ; write byte[arg] of the instrument currently being iterated
 60F5 FileForEachInstrType       ; for each of the 64 instruments whose byte-0 (type) == arg, invoke the callback ptr
-61D6 FileUpgradeV0              ; song upgrade step v0->v1: patch type-2 instruments (callback $6134)
-621D FileUpgradeV1              ; song upgrade step v1->v2: type-2 instruments, subtract 8 from fields 2 & 9 (callback $61e6)
+61D6 FileUpgradeV0              ; song upgrade step v0->v1: patch type-2 instruments (callback FileUpgradeV0Kit)
+621D FileUpgradeV1              ; song upgrade step v1->v2: type-2 instruments, subtract 8 from fields 2 & 9 (callback FileUpgradeV1Kit)
 622D FileUpgradeV2              ; song upgrade step v2->v3: patch song data (WriteSongByte)
 630F FileUpgradeV3              ; song upgrade step v3->v4: patch instruments (FileForEachInstrType)
 6336 FileUpgradeV4              ; song upgrade step v4->v5: patch song data (WriteSongByte)
@@ -74,7 +74,7 @@
 6585 FileUpgradeReadByte        ; upgrade helper: read a working-song byte (ReadSongByte)
 65B9 FileUpgradeClearRange      ; upgrade helper: clear a range (MemSet; reads via FileUpgradeReadByte)
 669E FileUpgradeV11             ; song upgrade step v11->v12: noise-instrument phrase notes -> instrument byte 4, high nibble moved by octave
-68C5 FileUpgradeRemapBits       ; upgrade helper: recursive bit/nibble remap via ROM table $68f1
+68C5 FileUpgradeRemapBits       ; upgrade helper: recursive bit/nibble remap via ROM table FileUpgradeRemapTable
 6959 FileUpgradeV12             ; song upgrade step v12->v13: patch instruments (FileForEachInstrType)
 6973 FileUpgradeRetrigRate      ; version 13: an R command value gets 1 added to its rate digit (mod 16), except R8x (resync)
 69A7 FileUpgradeV13             ; song upgrade step v13->v14: patch phrase data
@@ -90,7 +90,7 @@
 6FC7 FileUpgradeSong            ; song-format migration: read stored version ($bfff[3]); if < $16 show "UPGRADING..." and run FileUpgradeV<n> for n=version..$15, then stamp version $16
 7109 FileClassifyToken          ; classify a byte for compression ($04/$10/$a0/$c0 tokens)
 7167 FileCompressRun            ; RLE-encode a run (WriteCompressedByte x2, ReadWorkingSongByte)
-719C FileSendSyncByte           ; send a sync byte (SendSyncByte, $3983; arg<$81)
+719C FileSendSyncByte           ; send sync byte arg: assert no transfer is running (rSC & $81), wSyncTxByte = arg, SendSyncByte, then delay(6 on CGB, 3 on DMG)
 72EE SyncTransferByte           ; link-port byte exchange step (wSyncState, joypad, SendSyncHandshake)
 741D FilePutDecompressByte          ; append decompressed byte to wDecompressBuf buffer (wDecompressPos cursor)
 7426 FileDecompressNextBank         ; decompression: advance source / switch SRAM bank (wBlockDstBank, wDecompressOk)

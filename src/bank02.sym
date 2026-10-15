@@ -61,7 +61,7 @@
 649D FxCmd_R            ; R: retrig
 65F3 FxCmd_K            ; K: kill note
 7DD1 FxCmd_V            ; V: vibrato
-7D81 VibDepthTable      ; [16] vibrato depth curve, FxCmd_V reads [$7D81 + (hFxVal & $0f)]
+7D81 VibDepthTable      ; [16] vibrato depth curve, FxCmd_V reads [VibDepthTable + (hFxVal & $0f)]
 7D91 VibRateTableA      ; [16] 16-bit vibrato rate (type A); [$7D91 + 2*(hFxVal>>4)]
 7DB1 VibRateTableB      ; [16] 16-bit vibrato rate (type B); selected by wChanVibType
 7EAC KitPitchTable              ; per-pitch kit sample step deltas (SndSetKitParams)
@@ -180,7 +180,7 @@
 7F24 SndSetupLfo                ; dispatch by hSoundChan -> SndSetupLfoPu1/PU2/WavNoi (vibrato/LFO setup)
 7F33 SndSetupLfoWavNoi          ; LFO setup for ch2/3 (WAV/NOI): clear wEnvStageNoi, init from wChanEnvNoi
 7F3E SndSetupLfoPu2             ; LFO setup for ch1 (PU2): clear wEnvStagePu2, init from wChanEnvPu2
-7F49 SndSetupLfoPu1             ; LFO setup for ch0 (PU1): wEnvStagePu1, call bank0 $2f9a
+7F49 SndSetupLfoPu1             ; LFO setup for ch0 (PU1): wEnvStagePu1, call bank0 FadeEnvStepDown
 78C4 ToggleSongPlayback         ; SELECT+START on any screen: TogglePlayback as if on the song screen (all four channels); live mode: SndLiveStopRange
 5EDA NoiseFreqTable             ; [noise note] -> NR43 poly/divisor byte (120 entries)
 5F52 SetNoisePoly               ; a = NoiseFreqTable[a] -> rAUD4POLY (NR43); noise-channel pitch

@@ -29,7 +29,7 @@
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 40AE EraseGrooveCursor          ; restore the groove cursor step's palette (alternating per two rows)
 425B DrawGrooveRow              ; draw one groove row (step<16; ticks via ReadGrooveStep, state wGrooveCacheValid/wGrooveStepCache)
-435D GrooveBuildCache       ; once (wGrooveCacheValid guard): build the 16-step groove display cache wGrooveStepCache (via $405a)
+435D GrooveBuildCache       ; once (wGrooveCacheValid guard): build the 16-step groove display cache wGrooveStepCache (via ReadGrooveStep)
 4394 DrawGrooveCursor           ; highlight the groove cursor step (palette 3 on CGB, 2 on DMG)
 43CF GrooveRowPalettes          ; pick a groove row's draw palettes: select colours inside the sorted wSelectionTop..wGrooveRow range (select mode) or on the cursor row, 4/1 stripe on rows with bit 1, else shadow
 4B6C GrooveCutCopy              ; cut/copy the groove selection (arg 1 = cut: rows cleared to 0, row 0 to 6)
@@ -50,7 +50,7 @@
 6115 SynthReadParam             ; read synth param via SynthCalcParamAddr + ReadSongByte (bank1)
 6144 SynthClearFlag             ; clear synth x's bit in the flag pair at $BFC4/$BFC5 (SynthCalcParamAddr)
 6193 SynthFillWaveRange         ; fill/interpolate a wave value range (16-step; <-SynthLoadWaveTable)
-62A8 DrawSynthField             ; draw the synth PHASE field: switch (jp-table $62bb) -> " PINCH"/"  WARP"/"RESYNC"/"RESYN2"
+62A8 DrawSynthField             ; draw the synth PHASE field: switch (jp-table SynthDispatchJumps) -> " PINCH"/"  WARP"/"RESYNC"/"RESYN2"
 636E DrawSynthFilterField       ; draw the FILTER type field (" LOWP"...; "-----" empty; jp-table $63a6)
 6414 DrawSynthWaveField         ; draw the waveform type row (glyph strings "iiii"/"mmmm"; jp-table $6437)
 649F EraseSynthCursor           ; restore palette 1 over the cursor field's cells (SynthFieldX/Width/Layout[wSynthCursor])

@@ -2,7 +2,7 @@
 4000 ScreenPreDraw       ; top-row column labels for the screen about to be drawn (raw tiles; none on the wave screen); ScreenDrawDispatch prologue
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
-79FA GfxFillVramRegions         ; write $ff to VRAM $9480-$97FF and $8800-$88CF (via $17ec vblank tile writer)
+79FA GfxFillVramRegions         ; write $ff to VRAM $9480-$97FF and $8800-$88CF (via WriteVramByteSafe vblank tile writer)
 7A38 GfxReadVramByte            ; wait for safe LCD access (rSTAT mode), read [de], return byte in e
 7A4B GfxCopyVramRegion          ; copy one tile (16 bytes) from VRAM address src (1st arg, GfxReadVramByte) to dst (2nd, WriteVramByteSafe)
 ; --- indirect (FarCall) target ---

@@ -40,7 +40,7 @@
 4AB8 SongBeginSelection         ; SaveSelectionState, seed wSel* rect from the song cursor
 4AFD SongLoadCursorChain        ; read seq[wSongRow,wSongCol] ($ff -> empty path), validate+cache via SongCloneChain
 5736 CutCopySongSelection       ; cut (isCut arg) or copy the song selection rect into the clipboard; a cut shifts each column up and clears the tail ($FF), AdjustBookmarksOnDelete, CUT/COPIED CHAINS
-5929 .endSelection        ; (was SongEndSelection) finish selection ($0dbc), restore cursor from wSelectionLeft/wSongSelectionRow
+5929 .endSelection        ; (was SongEndSelection) finish selection (ShowMessage), restore cursor from wSelectionLeft/wSongSelectionRow
 5970 PasteSongSelection         ; paste the clipboard rows into the song grid at the cursor: shifts the columns down (SongWriteSramBytes) to make room, writes the cells, PASTED CHAINS
 5B1D SongEditSelection          ; apply the current edit op across the selection rect (clipType 4; 7 uses in SongScreenInput)
 627C SortBookmarks              ; bubble-sort the 16-byte song bookmarks row ($aff0, song offset $0FF0)
