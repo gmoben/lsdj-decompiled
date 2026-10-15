@@ -29,8 +29,8 @@
 4AA6 HelpSelectPrev         ; move help selection up: redraw old highlighted, dec $c934, redraw new normal
 4AC5 GotoProjScreen          ; wCurScreen=9 + RedrawScreen (FarCall home $24dd)
 4ADB HelpReset              ; $c933=0, refresh ($17fb), DrawHelpScreen
-4AE7 DrawNameEditArrows         ; draw the name editor '<' '>' arrows at the letter position
-4B6D HelpOpenSelected       ; activate selected help entry $c934: set $c933, load its string via DrawNameEditArrows
+4AE7 DrawHelpPage               ; draw help page s from $9800: '\n' starts the next row, a '<'..'>' span is highlighted (ColorField), other bytes are glyphs
+4B6D HelpOpenSelected       ; open the help entry at wHelpRow: unhighlight its menu line, clear the BG map, set wHelpOpenEntry, draw its page (DrawHelpPage)
 4C30 DrawNameEditCursor         ; highlight the name editor's keyboard key under the cursor ((5, 8) + wNameEditCol/Row; palette 3 CGB / 2 DMG)
 4C96 EraseNameEditCursor        ; un-highlight the name editor's keyboard key under the cursor (palette 0)
 4CBA DrawProjTextField          ; draw a project-screen text field (highlight-aware) at computed coords
@@ -141,8 +141,8 @@
 4A61 .done                ; common exit of RedrawHelpSelection
 4AA4 .done                ; common exit of HelpSelectNext
 4AC4 .done                ; common exit of HelpSelectPrev
-4AF9 .loop                ; loop head in DrawNameEditArrows
-4B69 .done                ; common exit of DrawNameEditArrows
+4AF9 .loop                ; loop head in DrawHelpPage
+4B69 .done                ; common exit of DrawHelpPage
 4CD7 .loop                ; loop head in DrawProjTextField
 4D18 .loop2               ; loop head in DrawProjTextField
 4EB9 .loop                ; loop head in OpenNameEditor
@@ -327,7 +327,7 @@
 4A35 .cont_2
 4A58 .drawHelpEntry
 4A8E .drawHelpEntry
-4B17 .getTilemapAddr
+4B17 .setVramCursor
 4B2D .cont
 4B35 .cont_2
 4B54 .drawStringIndexed

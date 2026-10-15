@@ -83,7 +83,7 @@ void DrawSpeechInstrScreen(void)
     p = (UBYTE *)0xBDD0;
     row = 4;
     while (row < 4 + 14) {
-        GetTilemapAddr(0, row);
+        SetVramCursor(0, row);
         if (row & 1) {
             hBgDigitPal = wShadowDigitPal;
             hBgPal = wShadowPal;
@@ -201,7 +201,7 @@ UBYTE SpeechInstrInput(void)
             p++;
         }
         if (wButtons == 0x30) {
-            GetTilemapAddr(0, SpeechCursorY());
+            SetVramCursor(0, SpeechCursorY());
             hBgDigitPal = wSelectDigitPal;
             hBgPal = wSelectPal;
             p -= 3;
@@ -233,7 +233,7 @@ UBYTE SpeechInstrInput(void)
         p = (UWORD)wSpeechRow * 3 + (UWORD)0xBDD0;
         hBgDigitPal = wSelectDigitPal;
         hBgPal = wSelectPal;
-        GetTilemapAddr(0, SpeechCursorY());
+        SetVramCursor(0, SpeechCursorY());
         for (i = 0; i < 3; i++) {
             if (p >= (UWORD)0xBE78)
                 DebugTrap();

@@ -377,7 +377,7 @@ void SongDrawCursorRow(void)
     UBYTE row;
 
     row = wSongRow + 2 - wSongScroll;
-    GetTilemapAddr(0, row);
+    SetVramCursor(0, row);
     SongRowPalettes(row);
 }
 

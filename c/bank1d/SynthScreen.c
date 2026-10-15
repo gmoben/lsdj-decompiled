@@ -861,7 +861,7 @@ void BuildOverwritePrompt(void)
             wStringSrc = IdentityCharMap;
             hBgPal = hGameboyType ? 0x48 : 0xD2;
             ColorField(x, y, 1, 0);
-            GetTilemapAddr(x, y);
+            SetVramCursor(x, y);
             if (x == 3) {
                 if (y == 4)
                     DrawStringIndexed(0);
@@ -1189,7 +1189,7 @@ UBYTE SynthScreenInput(void)
         DrawSynthCursor();
         return 1;
     case 0x11:
-        GetTilemapAddr(SynthFieldX[wSynthCursor], SynthFieldLayout[wSynthCursor]);
+        SetVramCursor(SynthFieldX[wSynthCursor], SynthFieldLayout[wSynthCursor]);
         switch (wSynthCursor) {
         case 0:
             if (wButtonsSame)
@@ -1290,7 +1290,7 @@ UBYTE SynthScreenInput(void)
         SynthLoadParams();
         return 1;
     case 0x12:
-        GetTilemapAddr(SynthFieldX[wSynthCursor], SynthFieldLayout[wSynthCursor]);
+        SetVramCursor(SynthFieldX[wSynthCursor], SynthFieldLayout[wSynthCursor]);
         switch (wSynthCursor) {
         case 0:
             if (wButtonsSame)
@@ -1391,7 +1391,7 @@ UBYTE SynthScreenInput(void)
         SynthLoadParams();
         return 1;
     case 0x14:
-        GetTilemapAddr(SynthFieldX[wSynthCursor], SynthFieldLayout[wSynthCursor]);
+        SetVramCursor(SynthFieldX[wSynthCursor], SynthFieldLayout[wSynthCursor]);
         switch (wSynthCursor) {
         case 6:
             SynthFieldIncHi();
@@ -1445,7 +1445,7 @@ UBYTE SynthScreenInput(void)
         SynthLoadParams();
         return 1;
     case 0x18:
-        GetTilemapAddr(SynthFieldX[wSynthCursor], SynthFieldLayout[wSynthCursor]);
+        SetVramCursor(SynthFieldX[wSynthCursor], SynthFieldLayout[wSynthCursor]);
         switch (wSynthCursor) {
         case 6:
             SynthFieldDecHi();

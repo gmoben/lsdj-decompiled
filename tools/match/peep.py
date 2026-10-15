@@ -465,7 +465,7 @@ _CMP16 = [
       r"jp\s+(n?c),(\S+)"],
      lambda g: (["\tld\te,(hl)", "\tinc\thl", "\tld\td,(hl)"], "de", g[0], g[1], g[2], g[3])),
     # hl one past the operand's low byte (a 16-bit temp just stored byte by
-    # byte, DrawChainCell's `(UWORD)t < 0x78`): stepped back, then fetched
+    # byte, DrawNoteName's `(UWORD)t < 0x78`): stepped back, then fetched
     ([r"xor\s+a,a", r"dec\s+hl", r"ld\s+a,\(hl\)", rf"sbc\s+a,{_HEX}", r"inc\s+hl", r"ld\s+a,\(hl\)",
       rf"sbc\s+a,{_HEX}", r"jp\s+(n?c),(\S+)"],
      lambda g: (["\tdec\thl", "\tld\te,(hl)", "\tinc\thl", "\tld\td,(hl)"], "de", g[0], g[1], g[2], g[3])),
@@ -701,7 +701,7 @@ def gb_cmp16(lines: list[str], zero: bool = False) -> tuple[list[str], int]:
                 if not fetch:
                     # the operand was already in a pair; hl may still point at
                     # a stack byte the code goes on to use (DrawSpeechInstrScreen's
-                    # `row < 4 + 14` then `GetTilemapAddr(0, row)`) or at the
+                    # `row < 4 + 14` then `SetVramCursor(0, row)`) or at the
                     # global byte it was promoted from (WordScreenInput's
                     # `(UWORD)wSpeechRow < 13` then `wSpeechRow++`)
                     known = _hl_stack_offset(lines, idx[0])

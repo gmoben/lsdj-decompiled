@@ -20,7 +20,7 @@ void DrawHelpMenu(void);
 void DrawHelpEntry(UBYTE selected);
 void RedrawHelpSelection(void);
 UWORD StrLength(char *s);                /* bank 0 */
-void DrawNameEditArrows(char *s);
+void DrawHelpPage(char *s);
 void HelpSelectNext(void);
 void HelpOpenSelected(void);
 
@@ -29,7 +29,7 @@ void DrawHelpMenu(void)
     UBYTE i;
 
     for (i = 0; HelpMenuPtrs[i]; i++) {
-        GetTilemapAddr(0, i);
+        SetVramCursor(0, i);
         DrawString(HelpMenuPtrs[i]);
     }
 }
@@ -89,7 +89,7 @@ void HelpReset(void)
     DrawHelpScreen();
 }
 
-void DrawNameEditArrows(char *s)
+void DrawHelpPage(char *s)
 {
     UBYTE row;
     UBYTE col;
@@ -101,7 +101,7 @@ void DrawNameEditArrows(char *s)
     while (*s) {
         switch (*s) {
         case '\n':
-            GetTilemapAddr(0, ++row);
+            SetVramCursor(0, ++row);
             col = 0;
             break;
         case '<':
@@ -123,7 +123,7 @@ void HelpOpenSelected(void)
     DrawHelpEntry(1);
     ClearBgTilemap();
     wHelpOpenEntry = HelpSelectLines[wHelpRow];
-    DrawNameEditArrows(*HelpPageRefs[wHelpRow]);
+    DrawHelpPage(*HelpPageRefs[wHelpRow]);
 }
 
 UBYTE HelpScreenInput(void)

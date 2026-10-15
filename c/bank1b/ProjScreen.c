@@ -259,7 +259,7 @@ void ProjScreenRefresh(void)
  */
 UBYTE ProjScreenInput(void)
 {
-    GetTilemapAddr(ProjFieldX[wProjCursor], ProjFieldY[wProjCursor]);
+    SetVramCursor(ProjFieldX[wProjCursor], ProjFieldY[wProjCursor]);
     hBgDigitPal = wSelectDigitPal;
     hBgPal = wSelectPal;
     if (wButtons != 0x10)

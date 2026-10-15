@@ -63,7 +63,7 @@ void DrawProjTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE h)
     for (i = x; i < x + w; i++) {
         for (j = y; j < y + h; j++) {
             ColorField(i, j, 1, 0);
-            GetTilemapAddr(i, j);
+            SetVramCursor(i, j);
             wStringSrc = IdentityCharMap;
             hBgPal = hGameboyType ? 0x48 : 0xD2;
             if (i == x) {
@@ -226,7 +226,7 @@ void NameEditBackspace(UBYTE x, UBYTE n)
         wNameEditBuf[wNameEditPos] = 0;
         ColorField(x + wNameEditPos, 6, 1, hGameboyType ? 4 : 1);
     }
-    GetTilemapAddr(x + wNameEditPos, 6);
+    SetVramCursor(x + wNameEditPos, 6);
     hBgDigitPal = wShadowDigitPal;
     hBgPal = wShadowPal;
     DrawStringIndexed(wNameEditBuf[wNameEditPos] ? wNameEditBuf[wNameEditPos] : ' ');
@@ -275,7 +275,7 @@ UBYTE NameEditorInput(void)
             DebugTrap();
         wNameEditBuf[wNameEditPos] = ch;
         wNameEditBuf[wNameEditPos + 1] = 0;
-        GetTilemapAddr(x + wNameEditPos, 6);
+        SetVramCursor(x + wNameEditPos, 6);
         hBgDigitPal = wShadowDigitPal;
         hBgPal = wShadowPal;
         DrawStringIndexed(ch);

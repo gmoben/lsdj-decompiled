@@ -112,7 +112,7 @@ void DrawWordScreen(void)
     p = (UWORD)0xB890 + ((UWORD)wSpeechRow << 5);
     i = 0;
     while (i < 16) {
-        GetTilemapAddr(2, i + 2);
+        SetVramCursor(2, i + 2);
         hBgDigitPal = 4;
         hBgPal = 1;
         s = ReadSongByte(0, p++);
@@ -161,7 +161,7 @@ UBYTE WordScreenInput(void)
     hBgDigitPal = wSelectDigitPal;
     hBgPal = wSelectPal;
     y = wWordRow + 2;
-    GetTilemapAddr(wWordCol * 4 + 2, y);
+    SetVramCursor(wWordCol * 4 + 2, y);
     switch (wButtons) {
     case 0x04:
         if (wWordRow) {
@@ -231,7 +231,7 @@ UBYTE WordScreenInput(void)
                 WriteWordCell(wWordClipCell0[0]);
                 wWordCol = 1;
                 WriteWordCell(wWordClipCell1[0]);
-                GetTilemapAddr(2, y);
+                SetVramCursor(2, y);
                 hBgDigitPal = 4;
                 hBgPal = 1;
                 v = wWordClipCell0[0];
@@ -250,7 +250,7 @@ UBYTE WordScreenInput(void)
             wWordCol = col;
         } else if (!ReadWordCell()) {
             WriteWordCell(wWordClipCell1[0]);
-            GetTilemapAddr(6, y);
+            SetVramCursor(6, y);
             hBgDigitPal = wSelectDigitPal;
             hBgPal = wSelectPal;
             DrawHexByte(wWordClipCell1[0]);

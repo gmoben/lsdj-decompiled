@@ -21,7 +21,7 @@ extern UBYTE wRowBufCol3[];                 /* $C49D, [16] their values */
 extern UBYTE PhraseColX0[];                 /* $04:$429E */
 extern UBYTE PhraseColX1[];                 /* $04:$42A3 */
 
-void DrawChainCell(void);                   /* bank 6 */
+void DrawNoteName(void);                   /* bank 6 */
 void DrawChainPos(void);                    /* bank 6 */
 void DrawWordRow(UBYTE n);                  /* bank $1F */
 void DrawAllChanStatus(void);               /* bank $1F */
@@ -88,9 +88,9 @@ void MapMoveDown(void);                     /* $05:$4287 */
 void ToggleSongPlayback(void);              /* $02:$78C4 */
 void SaveSelectionState(void);              /* $05:$743F */
 
-void DrawChainCellFar(UBYTE x)
+void DrawNoteNameFar(UBYTE x)
 {
-    FarCallArg2V(6, DrawChainCell, wSongCol, x);
+    FarCallArg2V(6, DrawNoteName, wSongCol, x);
 }
 
 void DrawPhraseCursorFar(void)
@@ -196,7 +196,7 @@ void PhraseDrawCursorGlyph(UBYTE row)
 
     y = row + 2;
     tbl = wPhraseDrawMode ? PhraseColX1 : PhraseColX0;
-    GetTilemapAddr(tbl[wPhraseCol], y);
+    SetVramCursor(tbl[wPhraseCol], y);
 }
 
 UBYTE PhraseInstrEntered(void)
@@ -305,7 +305,7 @@ void PhraseEditUp(UBYTE row)
     if (full)
         DrawPhraseScreen();
     else
-        DrawChainCellFar(v);
+        DrawNoteNameFar(v);
 }
 
 void PhraseEditDown(UBYTE row)
@@ -375,7 +375,7 @@ void PhraseEditDown(UBYTE row)
     if (full)
         DrawPhraseScreen();
     else
-        DrawChainCellFar(v);
+        DrawNoteNameFar(v);
 }
 
 void PhraseEditRight(UBYTE row)
@@ -411,7 +411,7 @@ void PhraseEditRight(UBYTE row)
     if (full)
         DrawPhraseScreen();
     else
-        DrawChainCellFar(row);
+        DrawNoteNameFar(row);
 }
 
 void PhraseEditLeft(UBYTE row)
@@ -445,7 +445,7 @@ void PhraseEditLeft(UBYTE row)
     if (full)
         DrawPhraseScreen();
     else
-        DrawChainCellFar(v);
+        DrawNoteNameFar(v);
 }
 
 UBYTE ReadPhraseInstr(UBYTE phrase, UBYTE row)
@@ -654,7 +654,7 @@ void DrawPhraseScreen(void)
         }
         hBgDigitPal = 4;
         hBgPal = 1;
-        GetTilemapAddr(2, i + 2);
+        SetVramCursor(2, i + 2);
         if (cur != 0xFF) {
             note = wSongReadBuf[i];
             addr = ((UWORD)cur << 4) + (UWORD)0xB082;
@@ -690,7 +690,7 @@ void DrawPhraseScreen(void)
                 FarCallArg(0x1F, FAR_FN(DrawWordRow), t);
             } else {
                 t = wSongReadBuf[i];
-                DrawChainCellFar(t);
+                DrawNoteNameFar(t);
             }
             DrawStringTile20();
         }

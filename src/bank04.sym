@@ -10,7 +10,7 @@
 4968 PhraseReadNote             ; read phrase_notes[wPhrase][row] (SRAM bank 0 $A000); asserts row < $10, wPhrase != $FF
 4C14 LoadPhraseRow        ; load the 4 phrase columns for phrase[wPhrase] into row buffers
 4CE5 DrawPhraseScreen     ; screen idx 1: the phrase grid (note or kit samples, instrument, command, value per step), its CGB row attributes, cursor and channel status
-4000 DrawChainCellFar           ; FarCall bank06 DrawChainCell(wSongCol, row) -- chain info cell on the phrase screen
+4000 DrawNoteNameFar            ; FarCall bank 6 DrawNoteName(wSongCol, x): the phrase screen's note column
 5533 CloneInstrAtCursor         ; clone the instrument under the cursor: alloc+CloneInstr; fail -> "CANNOT CLONE"
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
@@ -23,7 +23,7 @@
 4106 SetColInstr           ; cache the last-used instrument per channel column (wColInstr+wSongCol; WAV specials)
 418F WritePhraseNote            ; write phrase_notes[wPhrase][row] = v (SRAM bank 0 $A000); asserts row < $10, wPhrase != $FF
 41F0 WritePhraseInstr      ; write phrase_instruments[phrase][row] = instr (SRAM bank 3 $B000); asserts instr <= $40 or $FF
-4257 PhraseDrawCursorGlyph      ; pick glyph data ($429e/$42a3 by $c90c) + col $c415, then GetTilemapAddr
+4257 PhraseDrawCursorGlyph      ; pick glyph data ($429e/$42a3 by $c90c) + col $c415, then SetVramCursor
 42A8 PhraseInstrEntered         ; after instrument entry: WritePhraseInstr, update wColInstr, redraw
 43CD PhraseEditUp               ; A+UP edit on the cursor cell (note: +octave; hex fields: +$10)
 457C PhraseEditDown             ; A+DOWN edit on the cursor cell (-octave / -$10)
@@ -321,7 +321,7 @@
 44F2 .checkCursorMode_2
 4538 .cont_6
 4543 .phraseResolveCursorNote
-456E .drawChainCellFar
+456E .drawNoteNameFar
 45BE .step
 45F1 .loadSongCol
 4618 .cont
@@ -336,20 +336,20 @@
 46B3 .add16
 46C5 .cont_9
 46D0 .phraseResolveCursorNote
-46FD .drawChainCellFar
+46FD .drawNoteNameFar
 474A .step
 4784 .loadSongCol
 47BD .phraseModeTile_2
 47D4 .cont
 47D8 .phraseResolveCursorNote
-4803 .drawChainCellFar
+4803 .drawNoteNameFar
 4850 .step
 488C .loadSongCol
 48A6 .checkArg
 48C3 .cont
 48C6 .phraseModeTile_2
 48DF .phraseResolveCursorNote
-490A .drawChainCellFar
+490A .drawNoteNameFar
 493F .index
 49A3 .step
 4A0A .step

@@ -176,7 +176,7 @@ void InstrSynthNew(void)
     v = FindFreeSynth();
     if (v == 0xFF)
         return;
-    GetTilemapAddr(InstrFieldX[1][9], InstrFieldY[1][9]);   /* WAVE: the synth field */
+    SetVramCursor(InstrFieldX[1][9], InstrFieldY[1][9]);   /* WAVE: the synth field */
     hBgDigitPal = wSelectDigitPal;
     hBgPal = wSelectPal;
     DrawByte(v);
@@ -625,7 +625,7 @@ void InstrEnvChanged(void)
  *
  * lsdj-alloc(DrawInstrScreen): BUSYB=47-52
  * -- register b held from the `type * 18` multiply to the first
- * GetTilemapAddr's column read: type is evicted by the multiply's result,
+ * SetVramCursor's column read: type is evicted by the multiply's result,
  * that result and the row value are spilt in turn and the column takes c
  * (docs/toolchain.md, "The phantom register"). */
 void DrawInstrScreen(void)
@@ -652,7 +652,7 @@ void DrawInstrScreen(void)
     InstrScreenFrame();
     hBgDigitPal = wShadowDigitPal;
     hBgPal = wShadowPal;
-    GetTilemapAddr(InstrFieldX[type][0], InstrFieldY[type][0]);
+    SetVramCursor(InstrFieldX[type][0], InstrFieldY[type][0]);
     FarCallArg(1, FAR_FN(CopyInstrName), wInstr);
     for (i = 0; i < 5; i++) {
         UBYTE c = wNameEditBuf[i];
@@ -660,7 +660,7 @@ void DrawInstrScreen(void)
             c = ' ';
         DrawStringIndexed(c);
     }
-    GetTilemapAddr(InstrFieldX[type][1], InstrFieldY[type][1]);
+    SetVramCursor(InstrFieldX[type][1], InstrFieldY[type][1]);
     DrawString(InstrTypeNames + type * 6);
     switch (type) {
     case 0:
@@ -1171,7 +1171,7 @@ UBYTE InstrScreenInput(void)
         DrawInstrCursor();
         return 1;
     case 0x11:
-        GetTilemapAddr(InstrFieldX[type][wInstrField], InstrFieldY[type][wInstrField]);
+        SetVramCursor(InstrFieldX[type][wInstrField], InstrFieldY[type][wInstrField]);
         if (wInstrField == 1) {
             if (type < 3)
                 SetInstrType(type + 1);
@@ -1521,7 +1521,7 @@ UBYTE InstrScreenInput(void)
                 SetInstrType(type - 1);
             return 1;
         }
-        GetTilemapAddr(InstrFieldX[type][wInstrField], InstrFieldY[type][wInstrField]);
+        SetVramCursor(InstrFieldX[type][wInstrField], InstrFieldY[type][wInstrField]);
         switch (type) {
         case 0:
             switch (wInstrField) {
@@ -1865,7 +1865,7 @@ UBYTE InstrScreenInput(void)
         }
         return 1;
     case 0x14:
-        GetTilemapAddr(InstrFieldX[type][wInstrField], InstrFieldY[type][wInstrField]);
+        SetVramCursor(InstrFieldX[type][wInstrField], InstrFieldY[type][wInstrField]);
         switch (type) {
         case 0:
             switch (wInstrField) {
@@ -2090,7 +2090,7 @@ UBYTE InstrScreenInput(void)
         }
         return 1;
     case 0x18:
-        GetTilemapAddr(InstrFieldX[type][wInstrField], InstrFieldY[type][wInstrField]);
+        SetVramCursor(InstrFieldX[type][wInstrField], InstrFieldY[type][wInstrField]);
         switch (type) {
         case 0:
             switch (wInstrField) {
@@ -2317,7 +2317,7 @@ UBYTE InstrScreenInput(void)
                 FarCall(0x1B, FAR_FN(OpenNameEditor));
             } else if (wDrawStep++ == 1) {
                 if (InstrCheckFieldOption(type)) {
-                    GetTilemapAddr(InstrFieldX[type][wInstrField], InstrFieldY[type][wInstrField]);
+                    SetVramCursor(InstrFieldX[type][wInstrField], InstrFieldY[type][wInstrField]);
                     InstrTableNew();
                 } else if (type == 1 && wInstrField == 9 && !WavePlayIsManual()) {
                     InstrSynthNew();
@@ -2326,7 +2326,7 @@ UBYTE InstrScreenInput(void)
                 FarCallArg(5, DrawInstrFieldHelp, type);
             } else if (wDrawStep == 1 && InstrCheckFieldOption(type) && !IsInstrTableOn()) {
                 InstrTableOn();
-                GetTilemapAddr(InstrFieldX[type][wInstrField - 1], InstrFieldY[type][wInstrField - 1]);
+                SetVramCursor(InstrFieldX[type][wInstrField - 1], InstrFieldY[type][wInstrField - 1]);
                 hBgDigitPal = wShadowDigitPal;
                 hBgPal = wShadowPal;
                 FarCall(0x1F, DrawInstrTableMode);

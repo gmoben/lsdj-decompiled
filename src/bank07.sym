@@ -30,7 +30,7 @@
 4540 SongScrollToCursor         ; clamp song top-row $c41c so cursor $c41e stays visible
 4657 SongUpdatePlayMarker       ; per-channel play-position markers from wChanSongRow/wChanNextSongRow (<-SongScreenUpdate)
 47CF SongRowPalettes            ; pick row draw palettes (cursor/bookmark-aware)
-492D SongDrawCursorRow          ; draw cursor-row string (GetTilemapAddr at $c41e-$c41c, SongRowPalettes)
+492D SongDrawCursorRow          ; draw cursor-row string (SetVramCursor at $c41e-$c41c, SongRowPalettes)
 494E SongScrollUp               ; scroll the song grid for the row above: SongScrollVramUp (+ VramCopyRowUp on CGB), redraw row 2 ($9840)
 4973 SongScrollDown             ; scroll the song grid for the row below: SongScrollVramDown (+ VramCopyRowDown on CGB), redraw row 17 ($9A20)
 4998 SongFindNextRow            ; scan down 1..16 from cursor $c41e, wrapping at 0 -> $ff

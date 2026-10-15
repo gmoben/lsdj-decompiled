@@ -257,7 +257,7 @@ void ChainOpenPhrase(void)
     if (n != 0xFF) {
         ClonePhraseAtCursor(ph, n);
         FarCallArg3(0x1F, (UWORD)WriteChainPhrase, wChain, (char)wChainRow, n);
-        GetTilemapAddr(2, wChainRow + 2);
+        SetVramCursor(2, wChainRow + 2);
         hBgDigitPal = wSelectDigitPal;
         hBgPal = wSelectPal;
         DrawHexByte(n);
@@ -321,7 +321,7 @@ UBYTE ChainScreenInput(void)
             return 0;
         hBgDigitPal = wSelectDigitPal;
         hBgPal = wSelectPal;
-        GetTilemapAddr(ChainColX[wChainCol], wChainRow + 2);
+        SetVramCursor(ChainColX[wChainCol], wChainRow + 2);
         switch (wChainCol) {
         case 0:
             if (wDrawStep++ && wChainCellEmpty) {
@@ -430,12 +430,12 @@ UBYTE ChainScreenInput(void)
                     if (v != 0xFE) {
                         v = v + 1;
                         FarCallArg3P(0x1F, FAR_FN(WriteChainPhrase), wChain, y, v);
-                        GetTilemapAddr(ChainColX[0], y + 2);
+                        SetVramCursor(ChainColX[0], y + 2);
                         DrawHexByte(v);
                     }
                     break;
                 case 1:
-                    GetTilemapAddr(ChainColX[1], y + 2);
+                    SetVramCursor(ChainColX[1], y + 2);
                     v = ChainReadTranspose(wChain, y) + 1;
                     SetChainTranspose(wChain, y, v);
                     DrawHexByte(v);
@@ -477,11 +477,11 @@ UBYTE ChainScreenInput(void)
                     else
                         v = v + 0x10;
                     FarCallArg3P(0x1F, FAR_FN(WriteChainPhrase), wChain, y, v);
-                    GetTilemapAddr(ChainColX[0], y + 2);
+                    SetVramCursor(ChainColX[0], y + 2);
                     DrawHexByte(v);
                     break;
                 case 1:
-                    GetTilemapAddr(ChainColX[1], y + 2);
+                    SetVramCursor(ChainColX[1], y + 2);
                     v = ChainReadTranspose(wChain, y);
                     v = v + (wSongCol == 3 ? 4 : 12);
                     SetChainTranspose(wChain, y, v);
@@ -520,12 +520,12 @@ UBYTE ChainScreenInput(void)
                     if (v) {
                         v = v - 1;
                         FarCallArg3P(0x1F, FAR_FN(WriteChainPhrase), wChain, y, v);
-                        GetTilemapAddr(ChainColX[0], y + 2);
+                        SetVramCursor(ChainColX[0], y + 2);
                         DrawHexByte(v);
                     }
                     break;
                 case 1:
-                    GetTilemapAddr(ChainColX[1], y + 2);
+                    SetVramCursor(ChainColX[1], y + 2);
                     v = ChainReadTranspose(wChain, y) - 1;
                     SetChainTranspose(wChain, y, v);
                     DrawHexByte(v);
@@ -559,7 +559,7 @@ UBYTE ChainScreenInput(void)
             for (y = y0; y < y1; y++) {
                 switch (x) {
                 case 0:
-                    GetTilemapAddr(ChainColX[0], y + 2);
+                    SetVramCursor(ChainColX[0], y + 2);
                     v = FarCallArg2P(2, FAR_FN(SndGetChainPhrase), wChain, y);
                     if (v == 0xFF)
                         v = wColPhrase[wSongCol];
@@ -571,7 +571,7 @@ UBYTE ChainScreenInput(void)
                     DrawHexByte(v);
                     break;
                 case 1:
-                    GetTilemapAddr(ChainColX[1], y + 2);
+                    SetVramCursor(ChainColX[1], y + 2);
                     v = ChainReadTranspose(wChain, y);
                     v = v - (wSongCol == 3 ? 4 : 12);
                     SetChainTranspose(wChain, y, v);

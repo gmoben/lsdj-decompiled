@@ -355,7 +355,7 @@ subtracts byte by byte. `gb_cmp16` rewrites the stock form before the rules
 run: a stack operand is fetched into `de`, a value already in `bc` or `de`
 is used in place, and a stack slot `hl` already points at (a call result
 just stored through it, TapTempoStep's `sum < 0x100`) is fetched from
-there -- also one byte past it, stepping back first (DrawChainCell's
+there -- also one byte past it, stepping back first (DrawNoteName's
 `(UWORD)t < 0x78` after a two-byte store), or one byte below it, stepping
 up (SpeechInstrInput's `p >= 0xBDD0` right after the `i < 0x10` loop test)
 -- the following hl-relative use reloaded with `ld hl,sp+N` as the add
@@ -484,7 +484,7 @@ Not all of GBDK's library in the ROM is asm: libc's C routines were compiled
 by GBDK's build, with the stock rules (`strlen` is `StrLength`, matched
 from gbdk-2.95-2's own `libc/strlen.c`). Some asm reads stack arguments like C
 does; the absolute-address signal catches `DrawByte`, `DrawString` and
-`GetTilemapAddr`, and `DrawTileRun` / `WriteVramByteSafe` (which branch with
+`SetVramCursor`, and `DrawTileRun` / `WriteVramByteSafe` (which branch with
 `jr` and poll `rSTAT`) are listed by hand. Three functions whose `.sym`
 comment began with a quoted string had been carved as data, since a leading
 `"` marks a data symbol: `DrawCrashScreen`, `CopyInstr`,
@@ -511,7 +511,7 @@ comment began with a quoted string had been carved as data, since a leading
   old-value copy (`rOp := s`) survives CSE for a true symbol (the temp is
   "cheaper"), so a parameter's `s++` compiles to `ld hl,#1; add hl,bc` and
   a store, while `++s` (or `s += 1`) is the in-place `inc (hl); jr nz; inc
-  hl; inc (hl)` -- DrawNameEditArrows walks its string with `++s`. A
+  hl; inc (hl)` -- DrawHelpPage walks its string with `++s`. A
   local's copy is replaced by the local, so `p++` already increments in
   place there (FileUpgradeV7).
 - **Bank 3 declares `ReadSongByte`'s address a pointer** (`#define
@@ -1307,7 +1307,7 @@ takes registers from the live ranges ending at an instruction:
 | `SynthWriteWaveCol` ($1D:$5F29) | `BUSYC=1-17` | c held from the first instruction to the loop body's last byte temporary: i takes b and is evicted by the body, the pointer pair comes out as bc |
 | `SynthFilterBandPass` ($1D:$5BBD) | `BUSYC=82-82` | c held when `next2 = i << 1` is allocated, so the BufB word pushed to DivU16 comes out as bc |
 | `WordScreenInput` ($06:$431D) | `BUSYC=1-93` | c held from the first instruction through the cut's second ReadWordCell result: the first two results take b, y and v never hold a register |
-| `DrawInstrScreen` ($03:$4DE7) | `BUSYB=47-52` | b held from the `type * 18` multiply to the first GetTilemapAddr's column read: type evicted by the multiply's result, the result and the row value spilt in turn |
+| `DrawInstrScreen` ($03:$4DE7) | `BUSYB=47-52` | b held from the `type * 18` multiply to the first SetVramCursor's column read: type evicted by the multiply's result, the result and the row value spilt in turn |
 | `FileUpgradeClearRange` ($1C:$65B9) | `BUSYB=26-62` | b held from the second loop's pointer cast to the end: v and every temporary of the inner loop's three statements in memory |
 | `CountFileBlocks` ($1C:$48D4) | `NOSPILLAT=iTemp0:27 SPILLAT=iTemp0:28` | at the count's read nothing is spillable (p keeps bc and the read spills itself into the dead long's slot); p is evicted at the `+ 1` that follows |
 

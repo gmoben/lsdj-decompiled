@@ -228,9 +228,9 @@ void DrawWaveCol(UBYTE col)
     }
     t = col;                        /* a char copy: the test and the x read b */
     if (t & 8)
-        GetTilemapAddr(t * 2 - 14, 14);
+        SetVramCursor(t * 2 - 14, 14);
     else
-        GetTilemapAddr(col * 2 + 2, 5);
+        SetVramCursor(col * 2 + 2, 5);
     DrawByte(ReadWaveSample(col * 2));
     DrawByte(ReadWaveSample(col * 2 + 1));
 }

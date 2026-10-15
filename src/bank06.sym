@@ -68,7 +68,7 @@
 6D55 CutCopyChainSelection      ; arg!=0 -> "CUT " (copy+clear) else "COPY": chain selection -> clipboard (clipType 3; phrases via SndGetChainPhrase, transposes)
 6F0D ChainPasteCells            ; SELECT+A paste on the chain screen: clipboard cells into rows wSelectionTop..wSelBottom (column 0 phrases via WriteChainPhrase, column 1 transposes), "PASTE" message when more than one row
 7006 DrawChainSelection         ; chain selection (wClipboardType==3) redraw vs the cursor: cells around the rectangle in their column palettes, the inside highlighted (ColorField)
-71ED DrawKitSampleNames         ; draw the playing kit sample names (wKit1Bank/wKit2Bank) at the tilemap position
+71ED DrawStatusNote             ; draw channel ch's playing note in the status panel at (17, ch + 6): a kit's sample name on the wave channel, wNoiNote on the noise channel, else DrawNoteName (PU2 shifted by wNoteTranspose)
 73C0 DrawSyncStatusText         ; draw string s in the status panel's sync slot ($99B0, palette 4/1)
 73DC SyncStatusFlag        ; read $cb69, return status flag
 740C DrawSyncStatusLsdj         ; sync mode LSDJ: WAIT while handshaking, LEAD while running, else SYNC or blank (SyncStatusFlag)
@@ -80,7 +80,7 @@
 75B1 TxtHexCellPrefix1          ; "F "
 75B4 TxtHexCellPrefix2          ; "G#"
 75B7 TxtHexCellPrefix3          ; "C "
-75BA DrawChainCell              ; draw one chain-row cell: "---" empty or phrase hex (+bookmark tile via $ff88)
+75BA DrawNoteName               ; draw note v for channel col: '---' for 0; the noise channel's values (hex below $3C, the kit notes C 5..C 8); else a NoteNames entry (the wave channel an octave down); '???' past the table
 784C ChainShiftSamples          ; sla each of N bytes from de (scope/visualization helper)
 786F ChainDrawScopePoint        ; plot oscilloscope point (ChainShiftSamples + $cba. buffer)
 78B8 ChainUpdateScope           ; update scope from $cba2/$cba3/$cba4
@@ -166,13 +166,13 @@
 7174 .loop3               ; loop head in DrawChainSelection
 7190 .loop4               ; loop head in DrawChainSelection
 71E9 .done                ; common exit of DrawChainSelection
-72C0 .done                ; common exit of DrawKitSampleNames
+72C0 .done                ; common exit of DrawStatusNote
 72D7 .loop                ; loop head in UpdateStatusPanel
 7453 .done                ; common exit of DrawSyncStatusLsdj
 749C .done                ; common exit of DrawSyncStatusMidi
 750E .done                ; common exit of ChainDrawStatusWord
 75A2 .done                ; common exit of DrawTileHexCell
-76E0 .done                ; common exit of DrawChainCell
+76E0 .done                ; common exit of DrawNoteName
 
 ; --- structural local names (loop heads / common exits) ---
 43B6 .up                  ; wButtons == case in WordScreenInput
@@ -651,8 +651,8 @@
 76CC .drawStringIndexed
 76D7 .drawString_7
 7890 .setKbdInstr
-782C TxtNoNote                  ; "---" DrawChainCell's empty cell (string literals after NoteNames)
-7830 TxtKitNoteC5               ; "C 5" DrawChainCell: kit sample $73
+782C TxtNoNote                  ; "---" DrawNoteName's empty cell (string literals after NoteNames)
+7830 TxtKitNoteC5               ; "C 5" DrawNoteName: kit sample $73
 7834 TxtKitNoteF5               ; "F 5" kit sample $74
 7838 TxtKitNoteC6               ; "C 6" kit sample $75
 783C TxtKitNoteC7               ; "C 7" kit sample $76

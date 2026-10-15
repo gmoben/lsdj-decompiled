@@ -195,7 +195,7 @@
 20B3 ChecksumRomBank    ; 16-bit sum of all bytes in the current ROM bank ($4000-$7FFF) -> de
 20C4 TestSram           ; write/read-back test of SRAM bank $A000-$BFFF (writes 0); e = end offset on success / high byte on failure
 343F abs                        ; GBDK libc/abs.c: the absolute value of a signed word
-33B9 GetTilemapAddr    ; (col,row 16-bit arg) -> BG map address $9800 + row*$20 + col
+33B9 SetVramCursor              ; point wVramCursor at BG map cell (x, y): $9800 + y*32 + x (the next DrawString/DrawHexByte draws there)
 3831 strcpy            ; GBDK/SDCC strcpy(dest=sp+2, src=sp+4): copy until NUL (byte-exact match)
 3843 memcpy            ; SDCC memcpy(dest=sp+4, src=sp+6, n=sp+8): copy n bytes (16-bit count)
 3863 StrCompare                     ; SDCC strcmp (rgbasm reserves STRCMP): s1=sp+2, s2=sp+4, byte compare -> de = 0 (equal) / +1 / -1

@@ -93,7 +93,7 @@ UBYTE SongScreenInput(void)
     UBYTE top;
     UBYTE bot;
 
-    GetTilemapAddr(SongColOffsets[wSongCol], wSongRow + 2 - wSongScroll);
+    SetVramCursor(SongColOffsets[wSongCol], wSongRow + 2 - wSongScroll);
     hBgDigitPal = wSelectDigitPal;
     hBgPal = wSelectPal;
     if (wButtons != 0x10)

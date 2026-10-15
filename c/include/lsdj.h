@@ -193,7 +193,7 @@ void DrawTempo(UWORD tempo);
 void printf(char *fmt, UWORD v);            /* printf-style, varargs */
 #endif
 void printf2(char *fmt, UWORD a, UWORD b);  /* the same routine with two values (match_function.py aliases it) */
-void GetTilemapAddr(UBYTE x, UBYTE y);                  /* sets wVramCursor (asm) */
+void SetVramCursor(UBYTE x, UBYTE y);                  /* sets wVramCursor (asm) */
 void ClearMarkerSprites(void);
 char *strcpy(char *dest, char *src);
 void MemSet(UBYTE *dest, UBYTE value, UWORD count);

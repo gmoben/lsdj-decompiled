@@ -36,15 +36,15 @@ extern UBYTE wNoteTranspose;                /* $C4D3 */
 extern UBYTE wSndUpdateFlags;               /* $C8F5 */
 extern UBYTE wTempoShadow;                  /* $C947 */
 void DrawTileHexCell(UBYTE v);                /* c/bank06/DrawTileHexCell.c */
-void DrawChainCell(UBYTE col, UBYTE v);
-void DrawKitSampleNames(UBYTE ch, UBYTE note);
+void DrawNoteName(UBYTE col, UBYTE v);
+void DrawStatusNote(UBYTE ch, UBYTE note);
 void ChainUpdateScope(void);
 
-void DrawKitSampleNames(UBYTE ch, UBYTE note)
+void DrawStatusNote(UBYTE ch, UBYTE note)
 {
     UBYTE c, n;
 
-    GetTilemapAddr(17, ch + 6);
+    SetVramCursor(17, ch + 6);
     if (wSndUpdateFlags && ch == 2) {
         wSampleNoteString[0] = 0;
         if (note & 0xF0)
@@ -64,14 +64,14 @@ void DrawKitSampleNames(UBYTE ch, UBYTE note)
     case 3:
         n = *(UBYTE *)0xC2E7;               /* wNoiNote, read through the literal */
         n++;
-        DrawChainCell(3, n);
+        DrawNoteName(3, n);
         return;
     case 1:
         note += wNoteTranspose;
         break;
     }
     if (note <= 0x6C)
-        DrawChainCell(ch, note);
+        DrawNoteName(ch, note);
 }
 
 void UpdateStatusPanel(void)
@@ -89,7 +89,7 @@ void UpdateStatusPanel(void)
             continue;
         n = wChanDispNote[i];
         if (n) {
-            DrawKitSampleNames(i, n);
+            DrawStatusNote(i, n);
             wChanDispNote[i] = 0;
             if (i == 2)
                 PositionWavSprites();
@@ -99,7 +99,7 @@ void UpdateStatusPanel(void)
             n = *p;
             if (n != 0) {
                 if (n == 1) {
-                    GetTilemapAddr(17, i + 6);
+                    SetVramCursor(17, i + 6);
                     DrawString("   ");
                 }
                 *p = n - 1;
@@ -161,7 +161,7 @@ void DrawSyncStatus(void)
     }
 }
 
-void DrawChainCell(UBYTE col, UBYTE v)
+void DrawNoteName(UBYTE col, UBYTE v)
 {
     char *p;
     UBYTE t;

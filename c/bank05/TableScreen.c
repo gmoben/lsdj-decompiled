@@ -82,12 +82,12 @@ void MapDrawTopRow(void)
 
     hBgDigitPal = 4;
     hBgPal = 1;
-    GetTilemapAddr(wMapProjCol + 15, 15);
+    SetVramCursor(wMapProjCol + 15, 15);
     DrawStringIndexed('P');
-    GetTilemapAddr(wMapSynthCol + 15, 15);
+    SetVramCursor(wMapSynthCol + 15, 15);
     DrawString("YW");
     x = wMapCol + 15;
-    GetTilemapAddr(x, 17);
+    SetVramCursor(x, 17);
     DrawStringIndexed('G');
     wVramCursor = (UBYTE *)0x9A0F;
     DrawStringIndexed(wLiveMode ? 'L' : 'S');
@@ -532,7 +532,7 @@ UBYTE TableScreenInput(void)
     case 0x10:
         if (!wAPressEnabled || wCursorMode == 4)
             break;
-        GetTilemapAddr(TableColX[wTableCol], wTableRow + 2);
+        SetVramCursor(TableColX[wTableCol], wTableRow + 2);
         if (wTableCol > 3) {
             wTableCellAPtr = 0xBA80;
             wTableCellBPtr = 0xBC80;
@@ -634,7 +634,7 @@ UBYTE TableScreenInput(void)
                 wTableCellBPtr = 0xBC80;
                 break;
             }
-            GetTilemapAddr(TableColX[wTableCol], y + 2);
+            SetVramCursor(TableColX[wTableCol], y + 2);
             switch (wTableCol) {
             case 0:
                 v = TableReadEnv(y);
@@ -731,7 +731,7 @@ UBYTE TableScreenInput(void)
                 wTableCellBPtr = 0xBC80;
                 break;
             }
-            GetTilemapAddr(TableColX[wTableCol], y + 2);
+            SetVramCursor(TableColX[wTableCol], y + 2);
             switch (wTableCol) {
             case 0:
                 v = TableReadEnv(y);
@@ -821,7 +821,7 @@ UBYTE TableScreenInput(void)
                 wTableCellBPtr = 0xBC80;
                 break;
             }
-            GetTilemapAddr(TableColX[wTableCol], y + 2);
+            SetVramCursor(TableColX[wTableCol], y + 2);
             switch (wTableCol) {
             case 0:
                 v = TableReadEnv(y);
@@ -918,7 +918,7 @@ UBYTE TableScreenInput(void)
                 wTableCellBPtr = 0xBC80;
                 break;
             }
-            GetTilemapAddr(TableColX[wTableCol], y + 2);
+            SetVramCursor(TableColX[wTableCol], y + 2);
             switch (wTableCol) {
             case 0:
                 v = TableReadEnv(y);

@@ -708,7 +708,7 @@ void DrawFileTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE h)
             wStringSrc = IdentityCharMap;
             hBgPal = hGameboyType ? 0x48 : 0xD2;
             ColorField(i, j, 1, 0);
-            GetTilemapAddr(i, j);
+            SetVramCursor(i, j);
             if (i == x) {
                 if (j == y)
                     DrawStringIndexed(0);
@@ -824,7 +824,7 @@ void DrawFileList(void)
     if (row < 12) {
         c = row + wFileScroll;
         if (c < 0x20) {
-            GetTilemapAddr(0, row + 4);
+            SetVramCursor(0, row + 4);
             hBgDigitPal = wShadowDigitPal;
             hBgPal = wShadowPal;
             DrawHexByte(c);

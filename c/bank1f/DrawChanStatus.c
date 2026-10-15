@@ -30,7 +30,7 @@ void DrawChanStatus(UBYTE ch)
     UBYTE c;
 
     y = ch + 6;
-    GetTilemapAddr(0x10, y);
+    SetVramCursor(0x10, y);
     c = ch;
     if (wChanOutput[c] & 0x80) {
         s = "MUTE";

@@ -919,7 +919,7 @@ void DrawCrashScreen(void)
         DrawString("AST");
     }
     for (i = 0; i < 10; i++) {
-        GetTilemapAddr(1, i + 8);
+        SetVramCursor(1, i + 8);
         DrawHexByte(wCrashStack[(i << 1) + 1]);
         DrawHexByte(wCrashStack[i << 1]);
     }

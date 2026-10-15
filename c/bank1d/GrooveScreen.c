@@ -86,7 +86,7 @@ void DrawGrooveSteps(void)
     hBgDigitPal = 4;
     hBgPal = 1;
     for (i = 0; i < 0x10; i++) {
-        GetTilemapAddr(1, i + 2);
+        SetVramCursor(1, i + 2);
         v = wSongReadBuf[i];
         if (!v)
             DrawString(" --    ");
@@ -138,7 +138,7 @@ void DrawGrooveRow(void)
             b = ReadGrooveStep(i + 1);
         }
         if (b) {
-            GetTilemapAddr(5, i + 2);
+            SetVramCursor(5, i + 2);
             if (i & 2) {
                 hBgDigitPal = 4;
                 hBgPal = 1;
@@ -236,7 +236,7 @@ UBYTE GrooveScreenInput(void)
         if (!wAPressEnabled)
             break;
         if (!ReadGrooveStep(wGrooveRow)) {
-            GetTilemapAddr(2, v);
+            SetVramCursor(2, v);
             DrawHexByte(6);
             WriteGrooveByte(wGrooveRow, 6);
         }
@@ -277,7 +277,7 @@ UBYTE GrooveScreenInput(void)
             if (v < 0xFF)
                 v++;
             wGrooveStepCache[top] = v;
-            GetTilemapAddr(2, top + 2);
+            SetVramCursor(2, top + 2);
             DrawHexByte(v);
         }
         DrawGrooveRow();
@@ -295,7 +295,7 @@ UBYTE GrooveScreenInput(void)
         end = bot;
         end++;
         for (; top < end; top++) {
-            GetTilemapAddr(2, top + 2);
+            SetVramCursor(2, top + 2);
             v = wGrooveStepCache[top];
             if (v > 1)
                 v--;
@@ -331,11 +331,11 @@ UBYTE GrooveScreenInput(void)
             }
             if (v2 && v) {
                 wGrooveStepCache[top] = v;
-                GetTilemapAddr(2, top + 2);
+                SetVramCursor(2, top + 2);
                 GrooveRowPalettes(top);
                 DrawHexByte(v);
                 wGrooveStepCache[top + 1] = v2;
-                GetTilemapAddr(2, top + 3);
+                SetVramCursor(2, top + 3);
                 GrooveRowPalettes(top + 1);
                 DrawHexByte(v2);
             }

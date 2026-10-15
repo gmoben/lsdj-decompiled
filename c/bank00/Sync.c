@@ -132,7 +132,7 @@ void SyncTickLsdj(void)
             SndResetChanFx();
             _asm ei _endasm;
             if (wCurScreen == 4) {
-                GetTilemapAddr(hSoundChan * 3 + 2, (wChanSongRow[hSoundChan] & 0x0F) + 2);
+                SetVramCursor(hSoundChan * 3 + 2, (wChanSongRow[hSoundChan] & 0x0F) + 2);
                 DrawStringTile20();
             }
         }

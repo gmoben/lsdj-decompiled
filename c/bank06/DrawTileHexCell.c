@@ -5,7 +5,7 @@
  *
  *     tools/match/match_function.py --c c/bank06/DrawTileHexCell.c --target DrawTileHexCell
  *
- * Called from DrawChainCell for cell values above $77. Rebases the value by
+ * Called from DrawNoteName for cell values above $77. Rebases the value by
  * -60, derives t = (v+1)/4 - 9 and a 2-character prefix HexCellPrefixPtrs[v&3]
  * ("D ", "F ", "G#", "C "), then draws either prefix[0] '-' |t| (t negative)
  * or the prefix followed by t (via DrawString / DrawByte). The table and the

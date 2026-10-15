@@ -449,18 +449,6 @@
   "len": 208,
   "src": "c/bank01/UiHelpers.c"
  },
- "DrawChainCell": {
-  "bank": "06",
-  "addr": "75BA",
-  "len": 298,
-  "src": "c/bank06/StatusPanel.c"
- },
- "DrawChainCellFar": {
-  "bank": "04",
-  "addr": "4000",
-  "len": 27,
-  "src": "c/bank04/PhraseScreen.c"
- },
  "DrawChainCursor": {
   "bank": "06",
   "addr": "5ABE",
@@ -587,6 +575,12 @@
   "len": 61,
   "src": "c/bank1b/HelpScreen.c"
  },
+ "DrawHelpPage": {
+  "bank": "1B",
+  "addr": "4AE7",
+  "len": 134,
+  "src": "c/bank1b/HelpScreen.c"
+ },
  "DrawHelpScreen": {
   "bank": "1B",
   "addr": "4A62",
@@ -701,23 +695,11 @@
   "len": 38,
   "src": "c/bank03/InstrScreen.c"
  },
- "DrawKitSampleNames": {
-  "bank": "06",
-  "addr": "71ED",
-  "len": 215,
-  "src": "c/bank06/StatusPanel.c"
- },
  "DrawMessageBar": {
   "bank": "01",
   "addr": "74F7",
   "len": 198,
   "src": "c/bank01/DrawMessageBar.c"
- },
- "DrawNameEditArrows": {
-  "bank": "1B",
-  "addr": "4AE7",
-  "len": 134,
-  "src": "c/bank1b/HelpScreen.c"
  },
  "DrawNameEditCursor": {
   "bank": "1B",
@@ -735,6 +717,18 @@
   "bank": "04",
   "addr": "4CC4",
   "len": 29,
+  "src": "c/bank04/PhraseScreen.c"
+ },
+ "DrawNoteName": {
+  "bank": "06",
+  "addr": "75BA",
+  "len": 298,
+  "src": "c/bank06/StatusPanel.c"
+ },
+ "DrawNoteNameFar": {
+  "bank": "04",
+  "addr": "4000",
+  "len": 27,
   "src": "c/bank04/PhraseScreen.c"
  },
  "DrawOnOffName": {
@@ -856,6 +850,12 @@
   "addr": "518C",
   "len": 98,
   "src": "c/bank01/UiHelpers.c"
+ },
+ "DrawStatusNote": {
+  "bank": "06",
+  "addr": "71ED",
+  "len": 215,
+  "src": "c/bank06/StatusPanel.c"
  },
  "DrawSyncField": {
   "bank": "1B",

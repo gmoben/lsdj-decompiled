@@ -350,7 +350,8 @@ in `docs/functionality.md`.
   sits in. A screen's cursor highlight pair is `Draw<Screen>Cursor` /
   `Erase<Screen>Cursor`; a screen's handlers are `Draw<Screen>Screen` /
   `<Screen>ScreenInput` / `<Screen>ScreenUpdate`; a banked-call wrapper is
-  `<Name>Far`. A grid screen's cursor is `w<Screen>Row`/`w<Screen>Col`
+  `<Name>Far`. `Get`/`Read` return a value; a routine that only points
+  state somewhere is `Set` (`SetVramCursor` aims the next draw). A grid screen's cursor is `w<Screen>Row`/`w<Screen>Col`
   (`wPhraseRow`, `wWordCol`), a one-index cursor `w<Screen>Cursor`
   (`wSynthCursor`). The *word* screen (screen 12) edits a word's allophones; the
   *speech* instrument screen lists the words (`SpeechInstrInput`).
