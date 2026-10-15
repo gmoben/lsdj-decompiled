@@ -35,7 +35,7 @@ void DrawAllChanStatus(void);
 void CutCopyGrooveSelection(UBYTE cut);
 void PasteGrooveSelection(void);
 void DrawGrooveSelection(void);
-void MapMoveUp(void);                       /* bank 5 */
+void MoveMapCursorUp(void);                       /* bank 5 */
 void SaveSelectionState(void);              /* bank 5 */
 void ToggleSongPlayback(void);                 /* bank 2 */
 void TogglePlayback(void);                    /* bank 2 */
@@ -224,8 +224,8 @@ UBYTE GrooveScreenInput(void)
             wGrooveRow = wSelectionTop;
             FarCall(5, 0x747D);
             if (hGameboyType) {
-                FarCall(1, FAR_FN(UiDrawTextHw));
-                FarCall(5, MapDrawTopRow);
+                FarCall(1, FAR_FN(DrawScreenPalMap));
+                FarCall(5, DrawMapTopRow);
             }
             DrawGrooveScreen();
             DrawGrooveCursor();
@@ -435,7 +435,7 @@ UBYTE GrooveScreenInput(void)
     case 0x44:
         if (wButtonsSame)
             break;
-        FarCall(5, MapMoveUp);
+        FarCall(5, MoveMapCursorUp);
         FarCall(5, FAR_FN(RedrawScreen));
         return 1;
     case 0x20:

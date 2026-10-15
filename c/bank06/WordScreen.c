@@ -27,9 +27,9 @@ extern UBYTE wClipboardType;                /* $C411 */
 extern UBYTE wButtons;                      /* $C575 */
 extern UBYTE wBHeld;                        /* $C40B */
 extern UBYTE wAPressEnabled;                /* $C409 */
-void MapMoveLeft(void);                     /* $05:$4233 */
-void MapMoveUp(void);                       /* $05:$426A */
-void MapMoveDown(void);                     /* $05:$4287 */
+void MoveMapCursorLeft(void);                     /* $05:$4233 */
+void MoveMapCursorUp(void);                       /* $05:$426A */
+void MoveMapCursorDown(void);                     /* $05:$4287 */
 void ToggleSongPlayback(void);                 /* $02:$78C4 */
 void TogglePlayback(void);                    /* $02:$7C4C */
 
@@ -343,19 +343,19 @@ UBYTE WordScreenInput(void)
     case 0x42:
         if (wButtonsSame)
             break;
-        FarCall(5, MapMoveLeft);
+        FarCall(5, MoveMapCursorLeft);
         FarCall(4, FAR_FN(RedrawScreen));
         return 1;
     case 0x44:
         if (wButtonsSame)
             break;
-        FarCall(5, MapMoveUp);
+        FarCall(5, MoveMapCursorUp);
         FarCall(4, FAR_FN(RedrawScreen));
         return 1;
     case 0x48:
         if (wButtonsSame)
             break;
-        FarCall(5, MapMoveDown);
+        FarCall(5, MoveMapCursorDown);
         FarCall(4, FAR_FN(RedrawScreen));
         return 1;
     case 0xC0:

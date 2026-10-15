@@ -23,8 +23,8 @@ void UpdateSongPlayMarker(void);
 void SetSongRowPals(UBYTE row);
 void ScrollSongVramUp(void);
 void ScrollSongVramDown(void);
-void VramCopyRowUp(void);
-void VramCopyRowDown(void);
+void CopyVramRowUp(void);
+void CopyVramRowDown(void);
 void FindNextSongRow(void);
 void FindPrevSongRow(void);
 void WriteBookmarkByte(UWORD p, UBYTE v);
@@ -260,7 +260,7 @@ void DrawSongScreen(void)
     RedrawSongRow();
     FarCall(0x1F, FAR_FN(DrawAllChanStatus));
     DrawTempoField();
-    FarCall(5, MapDrawTopRow);
+    FarCall(5, DrawMapTopRow);
 }
 
 void UpdateSongPlayMarker(void)
@@ -385,7 +385,7 @@ void ScrollSongUp(void)
 {
     ScrollSongVramUp();
     if (hGameboyType)
-        VramCopyRowUp();
+        CopyVramRowUp();
     wVramCursor = (UBYTE *)0x9840;
     SetSongRowPals(2);
     wPartialRedrawDone = 1;
@@ -395,7 +395,7 @@ void ScrollSongDown(void)
 {
     ScrollSongVramDown();
     if (hGameboyType)
-        VramCopyRowDown();
+        CopyVramRowDown();
     wVramCursor = (UBYTE *)0x9A20;
     SetSongRowPals(0x11);
     wPartialRedrawDone = 1;

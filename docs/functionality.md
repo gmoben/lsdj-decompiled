@@ -70,7 +70,7 @@ reset rSCY/rSCX/rSTAT/rWY ; clear scroll, LCD status, window
   HRAM execution).
 - **Input** — `ReadJoypad` (`$18BF`): standard two-pass matrix read (d-pad then
   buttons via `rJOYP`), returns a combined button bitmask.
-- **Sync (link cable)** — `SerialHandler` (`$34BD`), `SerialInit` (`$01AA`),
+- **Sync (link cable)** — `SerialHandler` (`$34BD`), `InitSerial` (`$01AA`),
   `SendSyncByte`/`SendSyncHandshake` (`$3467`/`$347A`), `ProcessSyncByte`
   (`$234D`). Each sync tick `DispatchSyncClock` (`$1E93`) resets `wSyncTick` and
   routes to the active mode handler (LSDJ/MIDI). Master/slave clock sync over the

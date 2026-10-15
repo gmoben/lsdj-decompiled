@@ -25,7 +25,7 @@ void DrawNoteName(void);                   /* bank 6 */
 void DrawChainPos(void);                    /* bank 6 */
 void DrawWordRow(UBYTE n);                  /* bank $1F */
 void DrawAllChanStatus(void);               /* bank $1F */
-void ScreenPreDraw(void);                   /* bank $1E */
+void DrawScreenColLabels(void);                   /* bank $1E */
 void DrawFieldVal(UBYTE kind, UBYTE v);   /* bank 0 */
 UBYTE KitIndexToBank(UBYTE kit);            /* bank 0, asm */
 void ReadKitSampleName(UBYTE kit, UBYTE sample);   /* bank 0, asm */
@@ -81,10 +81,10 @@ void ErasePhraseCursor(void);          /* bank $1F */
 void HasEnterableColRight(void);            /* bank $1F */
 void HasEnterableColLeft(void);             /* bank $1F */
 void CutCopyPhraseSelection(void);          /* bank $1F */
-void MapMoveLeft(void);                     /* $05:$4233 */
-void MapMoveRight(void);                    /* $05:$4253 */
-void MapMoveUp(void);                       /* $05:$426A */
-void MapMoveDown(void);                     /* $05:$4287 */
+void MoveMapCursorLeft(void);                     /* $05:$4233 */
+void MoveMapCursorRight(void);                    /* $05:$4253 */
+void MoveMapCursorUp(void);                       /* $05:$426A */
+void MoveMapCursorDown(void);                     /* $05:$4287 */
 void ToggleSongPlayback(void);              /* $02:$78C4 */
 void SaveSelectionState(void);              /* $05:$743F */
 
@@ -722,7 +722,7 @@ void DrawPhraseScreen(void)
     else
         DrawPhraseCursorFar();
     FarCall(0x1F, FAR_FN(DrawAllChanStatus));
-    FarCall(0x1E, FAR_FN(ScreenPreDraw));
+    FarCall(0x1E, FAR_FN(DrawScreenColLabels));
 }
 
 UBYTE CursorInstrIsKit(void)
@@ -1959,7 +1959,7 @@ UBYTE PhraseScreenInput(void)
     if (wButtons == 0x42) {
         if (wButtonsSame)
             return 0;
-        FarCall(5, MapMoveLeft);
+        FarCall(5, MoveMapCursorLeft);
         FarCall(4, FAR_FN(RedrawScreen));
         return 1;
     }
@@ -1968,14 +1968,14 @@ UBYTE PhraseScreenInput(void)
             return 0;
         if (wPhraseCol > 2 && ReadPhraseFx(wPhrase, (char)wPhraseRow) == 7)
             wGroove = ReadPhraseFxVal(wPhrase, (char)wPhraseRow);
-        FarCall(5, MapMoveDown);
+        FarCall(5, MoveMapCursorDown);
         FarCall(7, FAR_FN(RedrawScreen));
         return 1;
     }
     if (wButtons == 0x44) {
         if (wButtonsSame)
             return 0;
-        FarCall(5, MapMoveUp);
+        FarCall(5, MoveMapCursorUp);
         FarCall(7, FAR_FN(RedrawScreen));
         return 1;
     }
@@ -1998,14 +1998,14 @@ UBYTE PhraseScreenInput(void)
             if (table < 0x20) {
                 wTable = table;
                 wInstr = 0xFF;
-                FarCall(5, MapMoveRight);
-                FarCall(5, MapMoveRight);
+                FarCall(5, MoveMapCursorRight);
+                FarCall(5, MoveMapCursorRight);
                 FarCall(7, FAR_FN(RedrawScreen));
                 wInstr = instr;
                 return 1;
             }
         }
-        FarCall(5, MapMoveRight);
+        FarCall(5, MoveMapCursorRight);
         FarCall(4, FAR_FN(RedrawScreen));
         return 1;
     }

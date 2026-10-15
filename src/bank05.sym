@@ -12,10 +12,10 @@
 4967 TableScreenUpdate  ; per-frame visual update (screen idx 5)
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
-4000 MapUpdateTopRow            ; recompute wMapProjCol/wMapSynthCol from wMapCol when on the map middle row
-4167 MapEnterScreen             ; SEL+B screen map: set wCurScreen from wMapRow/wMapCol (row0=PROJECT/WAVE/SYNTH, row1=SONG CHAIN PHRASE INSTR TABLE, row2=GROOVE)
-420C MapStartTransition         ; store move direction (1=up 2=right 3=down 4=left) -> wMapMoveDir, reset rSCX/rSCY
-421A MapCancelSelection         ; if select mode (wCursorMode==4) restore pre-selection state before leaving the screen
+4000 UpdateMapTopRow            ; recompute wMapProjCol/wMapSynthCol from wMapCol when on the map middle row
+4167 GotoMapCursorScreen             ; SEL+B screen map: set wCurScreen from wMapRow/wMapCol (row0=PROJECT/WAVE/SYNTH, row1=SONG CHAIN PHRASE INSTR TABLE, row2=GROOVE)
+420C StartMapTransition         ; store move direction (1=up 2=right 3=down 4=left) -> wMapMoveDir, reset rSCX/rSCY
+421A CancelSelectionMode        ; if select mode (wCursorMode==4), restore the pre-selection state (the screen map's step before leaving a screen)
 42A4 DrawCmdLetter              ; draw an FX command letter cell (FxMnemonics char via DrawStringIndexed; >$13 asserted)
 42E7 ReadTableCmd               ; read the command column (wTableCellAPtr) at step; 0 unless a command (<= $13)
 43B7 WriteTableCmd              ; write the command column (wTableCellAPtr) at step; asserts cmd <= $13
@@ -32,14 +32,14 @@
 676A DrawTableSelection         ; table selection (wClipboardType==5) redraw vs the cursor: cells around the rectangle in their column palettes, the inside highlighted (ColorField)
 ; --- functions called from bank 0 (this bank paged in) ---
 4B5D TableScreenInput           ; the table screen's input: A writes envelopes/transposes/commands (a free table on an A command's value), A+directions step cells by 1/16 over the row or selection, B+directions change table, A+B cuts, select+A pastes, start plays, select+DOWN opens a G command's groove, select+B selects
-4040 MapDrawTopRow      ; draw the map top-row entries (PROJECT + WAVE/SYNTH) at wMapProjCol/wMapSynthCol, screen row 15
+4040 DrawMapTopRow      ; draw the map top-row entries (PROJECT + WAVE/SYNTH) at wMapProjCol/wMapSynthCol, screen row 15
 61C3 TxtSelect05       ; "SELECT" (pairs with TxtCancelSelect05)
 
 ; --- screen-map navigation (SEL+direction) + selection save ---
-4233 MapMoveLeft        ; dec wMapCol, MapEnterScreen, MapStartTransition(4), MapDrawTopRow
-4253 MapMoveRight       ; inc wMapCol, MapEnterScreen, MapStartTransition(2), MapUpdateTopRow
-426A MapMoveUp          ; dec wMapRow, MapEnterScreen, MapStartTransition(1)
-4287 MapMoveDown        ; inc wMapRow (max 2), MapEnterScreen, MapStartTransition(3)
+4233 MoveMapCursorLeft        ; dec wMapCol, GotoMapCursorScreen, StartMapTransition(4), DrawMapTopRow
+4253 MoveMapCursorRight       ; inc wMapCol, GotoMapCursorScreen, StartMapTransition(2), UpdateMapTopRow
+426A MoveMapCursorUp          ; dec wMapRow, GotoMapCursorScreen, StartMapTransition(1)
+4287 MoveMapCursorDown        ; inc wMapRow (max 2), GotoMapCursorScreen, StartMapTransition(3)
 7208 ShowSynthFieldHelp         ; show the selected synth field's help line (ShowMessage; a jump table on wSynthCursor)
 743F SaveSelectionState ; wCursorMode/wClipboardType/wSelectionLeft/Top/Right/... -> wSavedCursorMode save area
 747D RestoreSelectionState ; wSavedCursorMode save area -> wCursorMode/wClipboardType/wSel*
@@ -71,9 +71,9 @@
 42E1 TableColPal            ; normal palette of the six table screen columns (1 on the command columns)
 
 ; --- structural local names (loop heads / common exits) ---
-403F .done                ; common exit of MapUpdateTopRow
-420A .done                ; common exit of MapEnterScreen
-4231 .done                ; common exit of MapCancelSelection
+403F .done                ; common exit of UpdateMapTopRow
+420A .done                ; common exit of GotoMapCursorScreen
+4231 .done                ; common exit of CancelSelectionMode
 4319 .loop                ; loop head in ReadTableCmd
 4384 .loop                ; loop head in WriteTableEnv
 43F5 .loop                ; loop head in WriteTableCmd

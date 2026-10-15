@@ -5,11 +5,11 @@
 776E CmdHelpTable   ; [20] dw -> the "X: DESCRIPTION" help line per command (index = command*2; entry 0 points at an empty string, the end of TxtHelpSSweep)
 
 ; --- UI functions called from bank 0 (bank $01 paged in) ---
-4CF1 UiInitScreen        ; screen setup: ApplyColorSet + ClearOamBuf + LoadHwTables
+4CF1 InitScreen        ; screen setup: ApplyColorSet + ClearOamBuf + LoadHwTables
 4487 DrawCartTest               ; boot CARTRIDGE TEST screen (ROM checksum + SRAM self-test)
 4FEC UpdatePlayClock            ; per-frame PLAY clock: wPlayFrames counts to 60 (one frame skipped every 4 s), then seconds/minutes; redraws m:ss on the project screen
-7860 UiShowMessage       ; set up the timed status message (wMessageTimer / wMessageStrPtr)
-7878 UiUpdateMessage     ; timed message + wSelectHeld handling
+7860 IsMessageActive            ; 1 while a message is up or pending (wMessageTimer or wMessageStrPtr set)
+7878 UpdateMessage     ; timed message + wSelectHeld handling
 4811 CheckJkMarker              ; check the 'jk' SRAM-init marker at $a13e/$a13f (unreferenced)
 4848 CheckSongInitFlag   ; ReadSongByte $be78/$be79 ('rb' memory-init marker)
 50A0 UpdateWorkClock            ; apply one work-time minute: song WORKED h:mm ($BFB2/$BFB3) and the total d:hh:mm ($BFB6-$BFB8) in SRAM bank 1
@@ -49,16 +49,16 @@
 52EB CopySong16                 ; copy a 16-byte song-data row src->dst via Read/WriteSongByte
 5331 CopyTableData              ; copy table src->dst across the table column regions (song $3680/$3880/$3A80)
 55C9 GetScreenPal           ; -> de = CGB BG palette block for wCurScreen (INSTR varies by instr type)
-6CD7 UiDrawTextHw               ; read instrument (GetScreenPal); draw via CGB path (UiDrawScreenCgb) or DMG path (UiDrawScreenDmg) per hGameboyType
-6D23 UiClearBgMap               ; clear BG tilemap from $9800 (VBK-aware: bank1 attrs on CGB)
+6CD7 DrawScreenPalMap           ; the current screen's palette map (GetScreenPal): CopyScreenMapCgb on CGB, CopyScreenMapDmg on DMG (the message cancelled); none clears the attribute map
+6D23 ClearBgMapAndAttrs               ; clear BG tilemap from $9800 (VBK-aware: bank1 attrs on CGB)
 6D53 DrawTopBar                 ; top status bar: active message (wMessageStrPtr) or screen title + hex number
 7955 DrawCrashScreen            ; the crash screen: "DONT PANIC!", the bank, the stack pointer and 10 stack words, play mode, screen, hardware, sync, AST, the version; then hangs
 7BDE ResetEditorState           ; clear selection rect, clipboard type, cursor mode (+wQuickMarking)
 7DE9 ClearSramWindow           ; zero the whole $A000-$BFFF SRAM window (8 bytes/iter until h==$c0); used during init/format
-7DFB UiDrawScreenCgb            ; copy 18x20 chars (arg ptr) -> $9800 with per-char CGB palette attribute (VBK1)
-7E4E UiDrawScreenDmg            ; copy 18x20 chars (arg ptr) -> $9800 (DMG, no palette attrs)
-7E74 CrashSaveStack             ; save the crash's stack pointer (wCrashSP) and 20 bytes from the stack (wCrashStack), then DrawCrashScreen
-7ED3 UiLoadObjPal           ; upload object palette: write rOBPI/rOBPD from [bc], index/count from args
+7DFB CopyScreenMapCgb           ; copy the 20x18 map at arg to the BG attribute map ($9800, VBK 1)
+7E4E CopyScreenMapDmg           ; copy the 20x18 map at arg to the BG map ($9800; rSTAT-gated)
+7E74 SaveCrashStack             ; save the crash's stack pointer (wCrashSP) and 20 bytes from the stack (wCrashStack), then DrawCrashScreen
+7ED3 LoadObjPal           ; upload object palette: write rOBPI/rOBPD from [bc], index/count from args
 ; --- indirect (FarCall) target ---
 75BD ShowOutOfMemory ; push TxtOutOfMemory, call ShowMessage
 75F8 ShowTapAddChain ; push TxtTapAddChain, call ShowMessage
@@ -142,7 +142,7 @@
 7BD1 TxtGba                     ; "GBA"
 7BD5 TxtSynColon                ; "SYN:"
 7BDA TxtAst                     ; "AST"
-794B CrashHandler               ; crash entry: di, SRAM locked (rRAMG = 0), CrashSaveStack
+794B CrashHandler               ; crash entry: di, SRAM locked (rRAMG = 0), SaveCrashStack
 40FA NoteFreqTable              ; [semitone 0-107] -> GB frequency period (108 x dw, copied by LoadHwTables)
 41D2 NoteFreqDeltaTable         ; companion 108 x dw pitch table (finetune/delta variant, LoadHwTables)
 42AA PitchCurve                 ; [216] rising pitch-response curve (LoadHwTables copies it)
@@ -217,10 +217,10 @@
 555D .loop2               ; loop head in PasteInstr
 55B8 .done                ; common exit of PasteInstr
 56A5 .done                ; common exit of GetScreenPal
-6D1F .done                ; common exit of UiDrawTextHw
-6D33 .loop                ; loop head in UiClearBgMap
-6D3F .loop2               ; loop head in UiClearBgMap
-6D51 .done                ; common exit of UiClearBgMap
+6D1F .done                ; common exit of DrawScreenPalMap
+6D33 .loop                ; loop head in ClearBgMapAndAttrs
+6D3F .loop2               ; loop head in ClearBgMapAndAttrs
+6D51 .done                ; common exit of ClearBgMapAndAttrs
 6EA6 .loop                ; loop head in DrawTopBar
 6F33 .loop2               ; loop head in DrawTopBar
 6F7A .done                ; common exit of DrawTopBar
@@ -229,22 +229,22 @@
 758D .loop3               ; loop head in DrawMessageBar
 776A .done                ; common exit of ShowCmdHelp
 783A .loop                ; loop head in ClearMessageBar
-78AF .loop                ; loop head in UiUpdateMessage
-7943 .done                ; common exit of UiUpdateMessage
+78AF .loop                ; loop head in UpdateMessage
+7943 .done                ; common exit of UpdateMessage
 7A99 .stackLoop           ; loop head in DrawCrashScreen: the 10 stack words
 7B73 .hang                ; DrawCrashScreen's endless loop
 7C82 .done                ; common exit of ResetEditorState
 7D45 .loop                ; loop head in LoadProjSettings
 7DE5 .done                ; common exit of LoadProjSettings
 7DEC .loop                ; loop head in ClearSramWindow
-7E06 .loop                ; loop head in UiDrawScreenCgb
-7E09 .loop2               ; loop head in UiDrawScreenCgb
-7E20 .loop3               ; loop head in UiDrawScreenCgb
-7E38 .loop4               ; loop head in UiDrawScreenCgb
-7E59 .loop                ; loop head in UiDrawScreenDmg
-7E5C .loop2               ; loop head in UiDrawScreenDmg
-7E5E .loop3               ; loop head in UiDrawScreenDmg
-7EE9 .loop                ; loop head in UiLoadObjPal
+7E06 .loop                ; loop head in CopyScreenMapCgb
+7E09 .loop2               ; loop head in CopyScreenMapCgb
+7E20 .loop3               ; loop head in CopyScreenMapCgb
+7E38 .loop4               ; loop head in CopyScreenMapCgb
+7E59 .loop                ; loop head in CopyScreenMapDmg
+7E5C .loop2               ; loop head in CopyScreenMapDmg
+7E5E .loop3               ; loop head in CopyScreenMapDmg
+7EE9 .loop                ; loop head in LoadObjPal
 
 ; --- structural local names (loop heads / common exits) ---
 560D .onPhrase            ; wCurScreen == case in GetScreenPal
@@ -299,7 +299,7 @@
 551E .checkSelectHeld
 5552 .writeInstrByte
 5588 .loadInstr
-559E .uiDrawTextHw
+559E .drawScreenPalMap
 6CF2 .setMessageStrPtr
 6ED1 .drawStringTile20
 6F67 .checkCurScreen
@@ -423,7 +423,7 @@
 5672 .cont_5
 5678 .cont_6
 56A2 .cont_7
-6D19 .uiDrawScreenDmg
+6D19 .copyScreenMapDmg
 6D4D .setrVBK
 6D7C .checkCurScreen_2
 6E08 .setMessageStrPtr

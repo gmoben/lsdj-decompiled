@@ -38,9 +38,9 @@ extern UBYTE wSelectHeld;                   /* $C40A */
 extern UBYTE wBHeld;                        /* $C40B */
 extern UBYTE wAPressEnabled;                /* $C409 */
 void SaveSelectionState(void);              /* $05:$743F */
-void MapMoveLeft(void);                     /* $05:$4233 */
-void MapMoveUp(void);                       /* $05:$426A */
-void MapMoveDown(void);                     /* $05:$4287 */
+void MoveMapCursorLeft(void);                     /* $05:$4233 */
+void MoveMapCursorUp(void);                       /* $05:$426A */
+void MoveMapCursorDown(void);                     /* $05:$4287 */
 void ToggleSongPlayback(void);                 /* $02:$78C4 */
 void TogglePlayback(void);                    /* $02:$7C4C */
 void SendLinkClipboard(void);                   /* bank $1C */
@@ -273,7 +273,7 @@ extern UBYTE wSongScroll;                   /* $C41C */
 extern UBYTE wQuickMarking;                 /* $C412 */
 extern UBYTE wMuteSoloLatch;                /* $C56A */
 extern UBYTE wChainScopeDirty;              /* $C403 */
-void MapMoveRight(void);                    /* $05:$4253 */
+void MoveMapCursorRight(void);                    /* $05:$4253 */
 void ShowTapAddPhrase(void);                /* bank 1 */
 void MarkPhraseUsed(void);                  /* bank 1 */
 void CutCopyChainSelection(UBYTE cut);
@@ -710,14 +710,14 @@ UBYTE ChainScreenInput(void)
             FarCall(1, FAR_FN(ShowTapAddPhrase));
             return 0;
         }
-        FarCall(5, MapMoveRight);
+        FarCall(5, MoveMapCursorRight);
         FarCall(4, FAR_FN(RedrawScreen));
         return 1;
     }
     if (wButtons == 0x42) {
         if (wButtonsSame)
             return 0;
-        FarCall(5, MapMoveLeft);
+        FarCall(5, MoveMapCursorLeft);
         FarCall(4, FAR_FN(RedrawScreen));
         return 1;
     }
@@ -725,14 +725,14 @@ UBYTE ChainScreenInput(void)
         if (wButtonsSame)
             return 0;
         LoadChainCursorPhrase();
-        FarCall(5, MapMoveUp);
+        FarCall(5, MoveMapCursorUp);
         FarCall(7, FAR_FN(RedrawScreen));
         return 1;
     }
     if (wButtons == 0x48) {
         if (wButtonsSame)
             return 0;
-        FarCall(5, MapMoveDown);
+        FarCall(5, MoveMapCursorDown);
         FarCall(7, FAR_FN(RedrawScreen));
         return 1;
     }

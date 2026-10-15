@@ -18,16 +18,16 @@ extern UBYTE TilesFont2A[], TilesFont2B[], TilesFont2C[];   /* $1E:$462A.. */
 void ResetDisplayState(void);               /* $00:$339A */
 UWORD LoadTilesDispatch(UBYTE *tiles);      /* $00:$337D */
 void RequestTileSlot(UWORD slot);           /* $00:$338B */
-void GfxFillVramRegions(void);
-void GfxCopyVramRegion(UWORD src, UWORD dst);  /* $1E:$7A4B, parked: one tile, src to dst */
+void FillVramRegions(void);
+void CopyVramTile(UWORD src, UWORD dst);  /* $1E:$7A4B, parked: one tile, src to dst */
 void WriteVramByteSafe(UWORD addr, UBYTE v);    /* $00:$17EC */
-void WriteVramByteSafeC(UWORD addr, char v);   /* WriteVramByteSafe with a char value (aliased by match_function.py): the cast copy of the scratch byte is GfxCopyVramRegion's register occupant */
+void WriteVramByteSafeC(UWORD addr, char v);   /* WriteVramByteSafe with a char value (aliased by match_function.py): the cast copy of the scratch byte is CopyVramTile's register occupant */
 extern UBYTE wVramCopyScratch;              /* $C9B4 */
 
 /* $4000: the top row's column labels for the screen about to be drawn
    (raw tile indices through IdentityCharMap; nothing on the wave screen) */
 
-void ScreenPreDraw(void)
+void DrawScreenColLabels(void)
 {
     if (wCurScreen == 8)
         return;
@@ -124,7 +124,7 @@ void ScreenPreDraw(void)
 }
 
 /* $79FA: blank the right third of the tile rows (two VRAM ranges) */
-void GfxFillVramRegions(void)
+void FillVramRegions(void)
 {
     UWORD p;
 
@@ -135,7 +135,7 @@ void GfxFillVramRegions(void)
 }
 
 /* $7A38: wait until the LCD lets the CPU at VRAM, then read a byte */
-UBYTE GfxReadVramByte(UBYTE *p)
+UBYTE ReadVramByte(UBYTE *p)
 {
     while (STAT_REG & 2)
         ;
@@ -148,12 +148,12 @@ UBYTE GfxReadVramByte(UBYTE *p)
    (arguments right to left), owns c, and is evicted into the global by
    the pointer copy -- which is why the ROM's second pair is [b c] and the
    push still reads the scratch byte from memory. */
-void GfxCopyVramRegion(UWORD src, UWORD dst)
+void CopyVramTile(UWORD src, UWORD dst)
 {
     UBYTE i;
 
     for (i = 0; i != 0x10; i++) {
-        wVramCopyScratch = GfxReadVramByte((UBYTE *)src++);
+        wVramCopyScratch = ReadVramByte((UBYTE *)src++);
         WriteVramByteSafeC(dst++, wVramCopyScratch);
     }
 }
@@ -202,11 +202,11 @@ void LoadFontTiles(void)
         LoadTilesDispatch((UBYTE *)(UWORD)c);  /* each through a cast temp in bc */
         LoadTilesDispatch((UBYTE *)(UWORD)b);
         if (wColorSet & 2)
-            GfxFillVramRegions();
+            FillVramRegions();
     }
     LoadTilesDispatch(TilesUiIcons);
-    GfxCopyVramRegion(0x9020, 0x8030);
-    GfxCopyVramRegion(0x9280, 0x8040);
+    CopyVramTile(0x9020, 0x8030);
+    CopyVramTile(0x9280, 0x8040);
     _asm ei _endasm;
     RequestTileSlot(wTileSlotPtr);
 }

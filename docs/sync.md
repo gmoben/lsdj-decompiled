@@ -51,7 +51,7 @@ same `SerialHandler` / `ProcessSyncByte` machinery (and the `$FD`-`$FF`
 transport commands) drives every mode. `KEYBD` reuses the serial port for
 scan-code input rather than tempo.
 
-## Boot arming — `SerialInit` (`$01AA`)
+## Boot arming — `InitSerial` (`$01AA`)
 
 ```
 xor a ; ldh [rSC], a        ; idle

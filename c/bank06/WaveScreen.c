@@ -40,8 +40,8 @@ void ReverseWaveRange(void);
 void CopyWaveSelection(void);
 void PasteWaveSelection(void);
 void SaveSelectionState(void);              /* $05:$743F */
-void MapMoveLeft(void);                     /* $05:$4233 */
-void MapMoveDown(void);                     /* $05:$4287 */
+void MoveMapCursorLeft(void);                     /* $05:$4233 */
+void MoveMapCursorDown(void);                     /* $05:$4287 */
 void ToggleSongPlayback(void);                 /* $02:$78C4 */
 void TogglePlayback(void);                    /* $02:$7C4C */
 void SendLinkClipboard(void);                   /* bank $1C */
@@ -266,7 +266,7 @@ void DrawWaveScreen(void)
     hBgPal = 1;
     FarCall(1, FAR_FN(DrawTopBar));
     DrawWaveCols();
-    FarCall(5, MapDrawTopRow);
+    FarCall(5, DrawMapTopRow);
 }
 
 /* Reverse the samples of the range: swap them from both ends inwards. The
@@ -408,13 +408,13 @@ UBYTE WaveScreenInput(void)
             return 0;
         if (wSynth < 0xF0)
             wSynthScreen = wSynth >> 4;
-        FarCall(5, MapMoveLeft);
+        FarCall(5, MoveMapCursorLeft);
         FarCall(7, FAR_FN(RedrawScreen));
         return 1;
     case 0x48:
         if (wButtonsSame)
             return 0;
-        FarCall(5, MapMoveDown);
+        FarCall(5, MoveMapCursorDown);
         FarCall(7, FAR_FN(RedrawScreen));
         return 1;
     case 0x60:

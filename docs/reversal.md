@@ -131,7 +131,7 @@ instruction lines vs 146 `db`). A static dispatch audit found the dispatch is
 **entirely ROM-based, not RAM-indirect**: bank `$1F` has only two real `jp hl`
 sites and both are ROM jump-tables (`$401B`, `$679D`); there are **no** RAM-fed
 `jp hl` and **no** `push addr; ret` trampolines. The reach is a **multi-hop static**
-path: the master screen dispatch (`ScreenDrawDispatch` → jp-table `$2563` →
+path: the master screen dispatch (`DispatchScreenDraw` → jp-table `$2563` →
 `DrawDispatch_<screen>`) bank-switches into a per-screen handler (the instrument
 editor lives in bank `$03` at `DrawInstrScreen $4DE7`, reached via an inline
 `ld a,N; ld [$2000],a; call` trampoline), which then `FarCall`s into bank-`$1F`
@@ -537,7 +537,7 @@ FarCall/FarCallByte immediates, including the swapped `ld l,b/ld h,c` sites),
 `find_orphans.py --code-only` 0 (jump-table callbacks, dead-but-linked
 utilities), and `label_gaps.py` **`_DATA_` 0** (every referenced data address
 labeled). Highlights of the final sweeps: the bank 5 **screen-map navigation**
-subsystem (`MapMoveLeft/Right/Up/Down`, `MapEnterScreen`, wMapCol/wMapRow), the
+subsystem (`MoveMapCursorLeft/Right/Up/Down`, `GotoMapCursorScreen`, wMapCol/wMapRow), the
 bank 7 **song bookmarks** ($0FF0) and **PS/2 keyboard** subsystems, the
 bank 1C **file-format migration callbacks** (`FileUpgradeV<n><Type>`, e.g.
 `FileUpgradeV0Kit`, passed to `FileForEachInstrType`), the **FX-command help

@@ -231,7 +231,7 @@ void PasteInstr(void)
     WriteInstrName(wInstr);
     if (hGameboyType)
         ClearBgTilemap();
-    UiDrawTextHw();
+    DrawScreenPalMap();
     FarCall(3, FAR_FN(DrawInstrScreen));
     ShowMessage("PASTED INSTR");
 }

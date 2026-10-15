@@ -113,6 +113,12 @@
   "len": 343,
   "src": "c/bank1f/PhraseScreen.c"
  },
+ "CancelSelectionMode": {
+  "bank": "05",
+  "addr": "421A",
+  "len": 25,
+  "src": "c/bank05/TableScreen.c"
+ },
  "ChainScreenEnter": {
   "bank": "06",
   "addr": "5563",
@@ -196,6 +202,12 @@
   "addr": "62DD",
   "len": 160,
   "src": "c/bank1f/SongData.c"
+ },
+ "ClearBgMapAndAttrs": {
+  "bank": "01",
+  "addr": "6D23",
+  "len": 48,
+  "src": "c/bank01/UiHelpers.c"
  },
  "ClearBookmarks": {
   "bank": "07",
@@ -395,6 +407,12 @@
   "len": 317,
   "src": "c/bank01/SongAlloc.c"
  },
+ "CopyVramTile": {
+  "bank": "1E",
+  "addr": "7A4B",
+  "len": 85,
+  "src": "c/bank1e/Gfx.c"
+ },
  "CopyWaveSelection": {
   "bank": "06",
   "addr": "5398",
@@ -545,10 +563,22 @@
   "len": 174,
   "src": "c/bank1f/SongData.c"
  },
+ "DispatchScreenDraw": {
+  "bank": "00",
+  "addr": "254F",
+  "len": 252,
+  "src": "c/bank00/ScreenDrawDispatch.c"
+ },
  "DispatchScreenInput": {
   "bank": "00",
   "addr": "2A71",
   "len": 284,
+  "src": "c/bank00/ScreenDrawDispatch.c"
+ },
+ "DispatchScreenUpdate": {
+  "bank": "00",
+  "addr": "264B",
+  "len": 207,
   "src": "c/bank00/ScreenDrawDispatch.c"
  },
  "DispatchSyncClock": {
@@ -833,6 +863,12 @@
   "len": 38,
   "src": "c/bank03/InstrScreen.c"
  },
+ "DrawMapTopRow": {
+  "bank": "05",
+  "addr": "4040",
+  "len": 288,
+  "src": "c/bank05/TableScreen.c"
+ },
  "DrawMessageBar": {
   "bank": "01",
   "addr": "74F7",
@@ -964,6 +1000,18 @@
   "addr": "423D",
   "len": 338,
   "src": "c/bank1f/InstrFields.c"
+ },
+ "DrawScreenColLabels": {
+  "bank": "1E",
+  "addr": "4000",
+  "len": 712,
+  "src": "c/bank1e/Gfx.c"
+ },
+ "DrawScreenPalMap": {
+  "bank": "01",
+  "addr": "6CD7",
+  "len": 76,
+  "src": "c/bank01/UiHelpers.c"
  },
  "DrawSongCursor": {
   "bank": "07",
@@ -1775,6 +1823,12 @@
   "len": 277,
   "src": "c/bank1d/SynthScreen.c"
  },
+ "FillVramRegions": {
+  "bank": "1E",
+  "addr": "79FA",
+  "len": 62,
+  "src": "c/bank1e/Gfx.c"
+ },
  "FindCursorInstr": {
   "bank": "04",
   "addr": "4087",
@@ -2027,23 +2081,11 @@
   "len": 17,
   "src": "c/bank03/InstrScreen.c"
  },
- "GfxCopyVramRegion": {
-  "bank": "1E",
-  "addr": "7A4B",
-  "len": 85,
-  "src": "c/bank1e/Gfx.c"
- },
- "GfxFillVramRegions": {
-  "bank": "1E",
-  "addr": "79FA",
-  "len": 62,
-  "src": "c/bank1e/Gfx.c"
- },
- "GfxReadVramByte": {
-  "bank": "1E",
-  "addr": "7A38",
-  "len": 19,
-  "src": "c/bank1e/Gfx.c"
+ "GotoMapCursorScreen": {
+  "bank": "05",
+  "addr": "4167",
+  "len": 165,
+  "src": "c/bank05/TableScreen.c"
  },
  "GotoProjScreen": {
   "bank": "1B",
@@ -2176,6 +2218,12 @@
   "addr": "4A26",
   "len": 63,
   "src": "c/bank1f/SongData.c"
+ },
+ "InitScreen": {
+  "bank": "01",
+  "addr": "4CF1",
+  "len": 10,
+  "src": "c/bank01/UiHelpers.c"
  },
  "InitWaveSprites": {
   "bank": "06",
@@ -2387,60 +2435,6 @@
   "len": 83,
   "src": "c/bank06/WaveScreen.c"
  },
- "MapCancelSelection": {
-  "bank": "05",
-  "addr": "421A",
-  "len": 25,
-  "src": "c/bank05/TableScreen.c"
- },
- "MapDrawTopRow": {
-  "bank": "05",
-  "addr": "4040",
-  "len": 288,
-  "src": "c/bank05/TableScreen.c"
- },
- "MapEnterScreen": {
-  "bank": "05",
-  "addr": "4167",
-  "len": 165,
-  "src": "c/bank05/TableScreen.c"
- },
- "MapMoveDown": {
-  "bank": "05",
-  "addr": "4287",
-  "len": 29,
-  "src": "c/bank05/TableScreen.c"
- },
- "MapMoveLeft": {
-  "bank": "05",
-  "addr": "4233",
-  "len": 32,
-  "src": "c/bank05/TableScreen.c"
- },
- "MapMoveRight": {
-  "bank": "05",
-  "addr": "4253",
-  "len": 23,
-  "src": "c/bank05/TableScreen.c"
- },
- "MapMoveUp": {
-  "bank": "05",
-  "addr": "426A",
-  "len": 29,
-  "src": "c/bank05/TableScreen.c"
- },
- "MapStartTransition": {
-  "bank": "05",
-  "addr": "420C",
-  "len": 14,
-  "src": "c/bank05/TableScreen.c"
- },
- "MapUpdateTopRow": {
-  "bank": "05",
-  "addr": "4000",
-  "len": 64,
-  "src": "c/bank05/TableScreen.c"
- },
  "MarkChainPhrasesUsed": {
   "bank": "1F",
   "addr": "5413",
@@ -2525,6 +2519,30 @@
   "len": 31,
   "src": "c/bank1b/HelpScreen.c"
  },
+ "MoveMapCursorDown": {
+  "bank": "05",
+  "addr": "4287",
+  "len": 29,
+  "src": "c/bank05/TableScreen.c"
+ },
+ "MoveMapCursorLeft": {
+  "bank": "05",
+  "addr": "4233",
+  "len": 32,
+  "src": "c/bank05/TableScreen.c"
+ },
+ "MoveMapCursorRight": {
+  "bank": "05",
+  "addr": "4253",
+  "len": 23,
+  "src": "c/bank05/TableScreen.c"
+ },
+ "MoveMapCursorUp": {
+  "bank": "05",
+  "addr": "426A",
+  "len": 29,
+  "src": "c/bank05/TableScreen.c"
+ },
  "MoveWordCursorDown": {
   "bank": "06",
   "addr": "4306",
@@ -2565,6 +2583,12 @@
   "bank": "03",
   "addr": "4638",
   "len": 65,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "NextVibShape": {
+  "bank": "03",
+  "addr": "4BAC",
+  "len": 31,
   "src": "c/bank03/InstrScreen.c"
  },
  "OpenChainPhrase": {
@@ -2765,6 +2789,12 @@
   "len": 72,
   "src": "c/bank03/InstrScreen.c"
  },
+ "PrevVibShape": {
+  "bank": "03",
+  "addr": "4BCB",
+  "len": 30,
+  "src": "c/bank03/InstrScreen.c"
+ },
  "ProcessInput": {
   "bank": "00",
   "addr": "0ED6",
@@ -2932,6 +2962,12 @@
   "addr": "453B",
   "len": 99,
   "src": "c/bank05/TableScreen.c"
+ },
+ "ReadVramByte": {
+  "bank": "1E",
+  "addr": "7A38",
+  "len": 19,
+  "src": "c/bank1e/Gfx.c"
  },
  "ReadWaveSample": {
   "bank": "06",
@@ -3142,24 +3178,6 @@
   "addr": "582C",
   "len": 39,
   "src": "c/bank1b/ProjScreen.c"
- },
- "ScreenDrawDispatch": {
-  "bank": "00",
-  "addr": "254F",
-  "len": 252,
-  "src": "c/bank00/ScreenDrawDispatch.c"
- },
- "ScreenPreDraw": {
-  "bank": "1E",
-  "addr": "4000",
-  "len": 712,
-  "src": "c/bank1e/Gfx.c"
- },
- "ScreenUpdateDispatch": {
-  "bank": "00",
-  "addr": "264B",
-  "len": 207,
-  "src": "c/bank00/ScreenDrawDispatch.c"
  },
  "ScrollSongDown": {
   "bank": "07",
@@ -3593,6 +3611,12 @@
   "len": 1448,
   "src": "c/bank1f/SpeechInstrScreen.c"
  },
+ "StartMapTransition": {
+  "bank": "05",
+  "addr": "420C",
+  "len": 14,
+  "src": "c/bank05/TableScreen.c"
+ },
  "StartScreenPlayback": {
   "bank": "02",
   "addr": "7B31",
@@ -3803,30 +3827,6 @@
   "len": 103,
   "src": "c/bank02/Sound.c"
  },
- "UiClearBgMap": {
-  "bank": "01",
-  "addr": "6D23",
-  "len": 48,
-  "src": "c/bank01/UiHelpers.c"
- },
- "UiDrawTextHw": {
-  "bank": "01",
-  "addr": "6CD7",
-  "len": 76,
-  "src": "c/bank01/UiHelpers.c"
- },
- "UiInitScreen": {
-  "bank": "01",
-  "addr": "4CF1",
-  "len": 10,
-  "src": "c/bank01/UiHelpers.c"
- },
- "UiUpdateMessage": {
-  "bank": "01",
-  "addr": "7878",
-  "len": 205,
-  "src": "c/bank01/UiHelpers.c"
- },
  "UnhighlightPhraseCell": {
   "bank": "1F",
   "addr": "6CA2",
@@ -3844,6 +3844,18 @@
   "addr": "754F",
   "len": 33,
   "src": "c/bank1b/EnvGraph.c"
+ },
+ "UpdateMapTopRow": {
+  "bank": "05",
+  "addr": "4000",
+  "len": 64,
+  "src": "c/bank05/TableScreen.c"
+ },
+ "UpdateMessage": {
+  "bank": "01",
+  "addr": "7878",
+  "len": 205,
+  "src": "c/bank01/UiHelpers.c"
  },
  "UpdatePlayClock": {
   "bank": "01",
@@ -3868,18 +3880,6 @@
   "addr": "50A0",
   "len": 236,
   "src": "c/bank01/UiHelpers.c"
- },
- "VibShapeNext": {
-  "bank": "03",
-  "addr": "4BAC",
-  "len": 31,
-  "src": "c/bank03/InstrScreen.c"
- },
- "VibShapePrev": {
-  "bank": "03",
-  "addr": "4BCB",
-  "len": 30,
-  "src": "c/bank03/InstrScreen.c"
  },
  "WaveFrameModified": {
   "bank": "1F",

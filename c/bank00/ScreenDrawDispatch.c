@@ -12,12 +12,12 @@
  * bounds check and a `jp hl` into a table of `jp`s; empty cases (0, 7, 11)
  * become their own `jp end` trampolines, in source order, which is how the
  * ROM has them, so the original spelled them out. Case bodies follow source
- * order too: ScreenUpdateDispatch lists the table screen (5) before chain (3)
+ * order too: DispatchScreenUpdate lists the table screen (5) before chain (3)
  * and song (4), and HandleButtonEvent the SELECT case first.
  *
  * The callees live in other banks and are called directly (nonbanked, as
  * everything in LSDj); the link step resolves them from src/bankNN.sym.
- * RedrawScreen ($24DD) is asm: it ends by jumping into ScreenDrawDispatch.
+ * RedrawScreen ($24DD) is asm: it ends by jumping into DispatchScreenDraw.
  */
 
 #include "lsdj.h"
@@ -167,7 +167,7 @@ void ResetScreenSprites(void)
     ClearMarkerSprites();
 }
 
-void ScreenDrawDispatch(void)
+void DispatchScreenDraw(void)
 {
     switch (wCurScreen) {
     case 0:
@@ -215,7 +215,7 @@ void ScreenDrawDispatch(void)
     }
 }
 
-void ScreenUpdateDispatch(void)
+void DispatchScreenUpdate(void)
 {
     if (wRedrawPending) {
         if (--wFullRedrawTimer) {

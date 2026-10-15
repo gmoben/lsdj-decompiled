@@ -46,7 +46,7 @@ extern UBYTE wChanActive[];                 /* $C0E0, [4] */
 extern UBYTE wChanChain[];                  /* $C170, [4] */
 extern UBYTE wChanChainRow[];               /* $C17C, [4] */
 extern UBYTE wChanSongRow[];                /* $C200, [4] */
-void ScreenPreDraw(void);                   /* $1E:$4000 */
+void DrawScreenColLabels(void);                   /* $1E:$4000 */
 
 void PhraseScreenUpdate(void)
 {
@@ -95,7 +95,7 @@ UBYTE CanEnterSongCol(UBYTE col)
     wChainRow = row;
     wPhrase = phrase;
     FarCall(4, FAR_FN(DrawPhraseScreen));
-    FarCall(0x1E, FAR_FN(ScreenPreDraw));
+    FarCall(0x1E, FAR_FN(DrawScreenColLabels));
     return 1;
 }
 

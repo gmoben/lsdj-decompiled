@@ -1,5 +1,5 @@
 ; LSDj screen indices -- the value in wCurScreen ($C401), used by
-; ScreenDrawDispatch ($254F) / ScreenUpdateDispatch ($264B). See docs/editors.md.
+; DispatchScreenDraw ($254F) / DispatchScreenUpdate ($264B). See docs/editors.md.
 ;
 ; Identified by each screen's song-structure access and drawn strings; together
 ; they form LSDj's complete, canonical set of 12 screens. Indices 0/7/11 are

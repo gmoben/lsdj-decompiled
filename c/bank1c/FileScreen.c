@@ -978,7 +978,7 @@ UBYTE FileScreenInput(void)
             if (hGameboyType)
                 ClearBgTilemap();
             else
-                FarCall(1, FAR_FN(UiDrawTextHw));
+                FarCall(1, FAR_FN(DrawScreenPalMap));
             DrawFileScreen();
         } else if (wFileListActive) {
             FileDrawFieldChecked(2);
@@ -1061,7 +1061,7 @@ UBYTE FileScreenInput(void)
             if (hGameboyType)
                 ClearBgTilemap();
             wFileListActive = 0;
-            FarCall(1, FAR_FN(UiDrawTextHw));
+            FarCall(1, FAR_FN(DrawScreenPalMap));
             DrawFileScreen();
         } else if (wFileListActive) {
             FileDrawFieldChecked(0);

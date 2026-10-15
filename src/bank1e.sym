@@ -1,10 +1,10 @@
 ; Bank $1E -- screen pre-draw helper
-4000 ScreenPreDraw       ; top-row column labels for the screen about to be drawn (raw tiles; none on the wave screen); ScreenDrawDispatch prologue
+4000 DrawScreenColLabels       ; top-row column labels for the screen about to be drawn (raw tiles; none on the wave screen); DispatchScreenDraw prologue
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
-79FA GfxFillVramRegions         ; write $ff to VRAM $9480-$97FF and $8800-$88CF (via WriteVramByteSafe vblank tile writer)
-7A38 GfxReadVramByte            ; wait for safe LCD access (rSTAT mode), read [de], return byte in e
-7A4B GfxCopyVramRegion          ; copy one tile (16 bytes) from VRAM address src (1st arg, GfxReadVramByte) to dst (2nd, WriteVramByteSafe)
+79FA FillVramRegions         ; write $ff to VRAM $9480-$97FF and $8800-$88CF (via WriteVramByteSafe vblank tile writer)
+7A38 ReadVramByte            ; wait for safe LCD access (rSTAT mode), read [de], return byte in e
+7A4B CopyVramTile          ; copy one tile (16 bytes) from VRAM address src (1st arg, ReadVramByte) to dst (2nd, WriteVramByteSafe)
 ; --- indirect (FarCall) target ---
 7AA0 LoadFontTiles              ; font (wFont) + UI icon tiles into VRAM after ResetDisplayState; CGB fixes the palettes and loads one block, DMG three (+ right-third blank on colour set bit 1)
 
@@ -29,22 +29,22 @@
 79EC TxtSpaces13        ; 13-space blank string
 
 ; --- structural local names (loop heads / common exits) ---
-42C6 .done                ; common exit of ScreenPreDraw
-79FE .loop                ; loop head in GfxFillVramRegions
-7A1B .loop2               ; loop head in GfxFillVramRegions
-7A36 .done                ; common exit of GfxFillVramRegions
-7A39 .loop                ; loop head in GfxReadVramByte
-7A52 .copyLoop            ; loop head in GfxCopyVramRegion: 16 bytes, src++ read, dst++ safe write
-7A9C .done                ; common exit of GfxCopyVramRegion
+42C6 .done                ; common exit of DrawScreenColLabels
+79FE .loop                ; loop head in FillVramRegions
+7A1B .loop2               ; loop head in FillVramRegions
+7A36 .done                ; common exit of FillVramRegions
+7A39 .loop                ; loop head in ReadVramByte
+7A52 .copyLoop            ; loop head in CopyVramTile: 16 bytes, src++ read, dst++ safe write
+7A9C .done                ; common exit of CopyVramTile
 
 ; --- structural local names (loop heads / common exits) ---
-400D .notWave             ; wButtons == case in ScreenPreDraw
-4066 .onPhrase            ; wCurScreen == case in ScreenPreDraw
-413F .onChain             ; wCurScreen == case in ScreenPreDraw
-4176 .onTable             ; wCurScreen == case in ScreenPreDraw
-41D9 .onGroove            ; wCurScreen == case in ScreenPreDraw
-4211 .onWord              ; wCurScreen == case in ScreenPreDraw
-4248 .onSong              ; wCurScreen == case in ScreenPreDraw
+400D .notWave             ; wButtons == case in DrawScreenColLabels
+4066 .onPhrase            ; wCurScreen == case in DrawScreenColLabels
+413F .onChain             ; wCurScreen == case in DrawScreenColLabels
+4176 .onTable             ; wCurScreen == case in DrawScreenColLabels
+41D9 .onGroove            ; wCurScreen == case in DrawScreenColLabels
+4211 .onWord              ; wCurScreen == case in DrawScreenColLabels
+4248 .onSong              ; wCurScreen == case in DrawScreenColLabels
 
 
 

@@ -46,9 +46,9 @@ void DrawSynthNumber(void);
 void BuildOverwritePrompt(void);
 void RedrawScreenFar(void);
 void ClearSynthFlag(UBYTE x);
-void MapMoveLeft(void);                     /* bank 5 */
-void MapMoveRight(void);                    /* bank 5 */
-void MapMoveDown(void);                     /* bank 5 */
+void MoveMapCursorLeft(void);                     /* bank 5 */
+void MoveMapCursorRight(void);                    /* bank 5 */
+void MoveMapCursorDown(void);                     /* bank 5 */
 void ShowSynthFieldHelp(void);               /* bank 5 */
 void ToggleSongPlayback(void);                 /* bank 2 */
 void TogglePlayback(void);                    /* bank 2 */
@@ -808,7 +808,7 @@ void DrawSynthScreen(void)
     DrawTempoField();
     FarCall(0x1F, FAR_FN(DrawAllChanStatus));
     DrawSynthNumber();
-    FarCall(5, MapDrawTopRow);
+    FarCall(5, DrawMapTopRow);
 }
 
 void LoadSynthParams(void)
@@ -1527,13 +1527,13 @@ UBYTE SynthScreenInput(void)
     case 0x48:
         if (wButtonsSame)
             return 0;
-        FarCall(5, MapMoveDown);
+        FarCall(5, MoveMapCursorDown);
         RedrawScreenFar();
         return 1;
     case 0x42:
         if (wButtonsSame)
             return 0;
-        FarCall(5, MapMoveLeft);
+        FarCall(5, MoveMapCursorLeft);
         RedrawScreenFar();
         return 1;
     case 0x41:
@@ -1545,7 +1545,7 @@ UBYTE SynthScreenInput(void)
             wSynth &= 0x0F;
             wSynth += wSynthScreen << 4;
         }
-        FarCall(5, MapMoveRight);
+        FarCall(5, MoveMapCursorRight);
         FarCall(7, RedrawScreen);
         return 1;
     case 0x60:

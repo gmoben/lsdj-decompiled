@@ -53,7 +53,7 @@ void RedrawHelpCursor(void)
 
 void DrawHelpScreen(void)
 {
-    FarCall(1, FAR_FN(UiDrawTextHw));
+    FarCall(1, FAR_FN(DrawScreenPalMap));
     DrawHelpMenu();
     RedrawHelpCursor();
 }

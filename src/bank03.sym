@@ -51,8 +51,8 @@
 4B29 SetInstrByte2              ; write instrument byte 2 (pulse tune / kit half-speed+keep-attack / wave synth pre-v16)
 4B4C GetVibShape            ; the PITCH field's vibrato shape: instrument byte 5 bits 2-0 (sine/saw/square << 1, bit 0 = up)
 4B5E SetVibShape            ; store the vibrato shape in byte 5 bits 2-0 and redraw the PITCH field (DrawSpeedGlyph for noise, else DrawSpeedModeName)
-4BAC VibShapeNext           ; A+RIGHT on PITCH: next vibrato shape (triangle, saw, square down, then up)
-4BCB VibShapePrev           ; A+LEFT on PITCH: previous vibrato shape
+4BAC NextVibShape           ; A+RIGHT on PITCH: next vibrato shape (triangle, saw, square down, then up)
+4BCB PrevVibShape           ; A+LEFT on PITCH: previous vibrato shape
 4BE9 GetInstrType3              ; read instrument byte 0 = type (0=PULSE 1=WAVE 2=KIT 3=NOISE)
 4BF9 NextInstrPitchMode           ; pitch mode up: byte 5 bits 4/6/7 (bit 7 = top), redraw via DrawSpeedModeName
 4C64 PrevInstrPitchMode         ; pitch mode down: byte 5 bits 4/6/7, redraw via DrawSpeedModeName
@@ -114,8 +114,8 @@
 49E2 .done                ; common exit of DrawWaveSpeed
 4A42 .done                ; common exit of DrawWaveLoopPos
 4AB3 .done                ; common exit of DrawKitDistName
-4BC9 .done                ; common exit of VibShapeNext
-4BE7 .done                ; common exit of VibShapePrev
+4BC9 .done                ; common exit of NextVibShape
+4BE7 .done                ; common exit of PrevVibShape
 4C60 .done                ; common exit of NextInstrPitchMode
 4D13 .done                ; common exit of DrawWaveFinetune
 4DC9 .done                ; common exit of DrawWaveSynthField

@@ -40,7 +40,7 @@ UBYTE randw(void);                       /* bank 0, a 16-bit LCG; the SRAM test 
 extern UBYTE wFileNameTmp[];
 extern UWORD ColorSetPalettes[];            /* $01:$56A7, [sets][20] */
 void set_bkg_palette(UBYTE first, UBYTE nb, UWORD *rgb);   /* GBDK */
-void UiLoadObjPal(UBYTE first, UBYTE nb, UWORD *rgb);
+void LoadObjPal(UBYTE first, UBYTE nb, UWORD *rgb);
 extern UBYTE wNotePeriodLo[];               /* $CD28 */
 extern UBYTE wNotePeriods[];                /* $CF28 */
 extern UBYTE NoteFreqTable[];               /* $01:$40FA, DMG */
@@ -62,8 +62,8 @@ typedef struct { UBYTE y, x, tile, prop; } OamEntry;
 #define OamShadow ((OamEntry *)0xDD00)      /* the OAM shadow as GBDK's sprite records */
 UBYTE TestSram(void);                       /* bank 0 */
 UBYTE *GetScreenPal(void);
-void UiDrawScreenCgb(UWORD s);              /* asm */
-void UiDrawScreenDmg(UBYTE *s);             /* asm */
+void CopyScreenMapCgb(UWORD s);              /* asm */
+void CopyScreenMapDmg(UBYTE *s);             /* asm */
 
 void LoadSyncSetting(void);                 /* bank 0 */
 void LoadFontTiles(void);              /* bank $1E */
@@ -389,9 +389,9 @@ void ApplyColorSet(void)
         LCDC_REG &= 0x7F;
         pal = &ColorSetPalettes[wColorSet * 20];
         set_bkg_palette(0, 5, pal);
-        UiLoadObjPal(0, 2, pal);
+        LoadObjPal(0, 2, pal);
         memcpy(wFileNameTmp, (UBYTE *)(pal + 5), 8);
-        UiLoadObjPal(2, 1, (UWORD *)wFileNameTmp);
+        LoadObjPal(2, 1, (UWORD *)wFileNameTmp);
         LCDC_REG |= 0x80;
     } else {
         v = (wColorSet & 1) ? 0x1B : 0xE4;
@@ -400,7 +400,7 @@ void ApplyColorSet(void)
     }
 }
 
-void UiInitScreen(void)
+void InitScreen(void)
 {
     ApplyColorSet();
     ClearOamBuf();
@@ -552,7 +552,7 @@ UBYTE *GetScreenPal(void)
     return 0;
 }
 
-void UiDrawTextHw(void)
+void DrawScreenPalMap(void)
 {
     UBYTE *s;
 
@@ -565,13 +565,13 @@ void UiDrawTextHw(void)
         wMessageStrPtr = 0;
         wMessageTimer = 0;
         if (hGameboyType)
-            UiDrawScreenCgb((UWORD)s);
+            CopyScreenMapCgb((UWORD)s);
         else
-            UiDrawScreenDmg(s);
+            CopyScreenMapDmg(s);
     }
 }
 
-void UiClearBgMap(void)
+void ClearBgMapAndAttrs(void)
 {
     UBYTE *p = (UBYTE *)0x9800;
 
@@ -726,7 +726,7 @@ void ClearMessageBar(void)
     wMessagePanelShown = 1;
 }
 
-void UiUpdateMessage(void)
+void UpdateMessage(void)
 {
     UBYTE i;
 
@@ -851,16 +851,16 @@ void LoadProjSettings(UBYTE keep)
 /* $794B: the crash entry: interrupts off, SRAM locked, then the stack dump
    and the crash screen */
 
-void CrashSaveStack(void);                  /* asm: saves sp and 20 stack bytes, then DrawCrashScreen */
+void SaveCrashStack(void);                  /* asm: saves sp and 20 stack bytes, then DrawCrashScreen */
 
 void CrashHandler(void)
 {
     _asm di _endasm;
     rRAMG = 0;
-    CrashSaveStack();
+    SaveCrashStack();
 }
 
-/* $7955: the crash screen, reached from CrashSaveStack: "DONT PANIC!", the
+/* $7955: the crash screen, reached from SaveCrashStack: "DONT PANIC!", the
    ROM bank, the stack pointer and 10 words from the stack, the play mode,
    the screen, the hardware, the sync mode and whether an assertion fired
    (AST), then the version; then it hangs */
@@ -933,7 +933,7 @@ void DrawCrashScreen(void)
     SCY_REG = 0;
     SCX_REG = 0;
     DebugNop();
-    UiClearBgMap();
+    ClearBgMapAndAttrs();
     while (1)
         ;
 }

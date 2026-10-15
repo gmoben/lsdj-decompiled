@@ -205,7 +205,7 @@ UBYTE ReadClipboardCell(UBYTE col, UBYTE row);         /* wClipboardBuf[col*42 +
 void WriteClipboardCell(UBYTE col, UBYTE row, UBYTE v);
 void LoadSynthShape(char *src);              /* bank $1E seed bytes -> wSynthShapeBuf */
 
-/* --- the screens' draw entry points (ScreenDrawDispatch, bank 0) ----------- */
+/* --- the screens' draw entry points (DispatchScreenDraw, bank 0) ----------- */
 
 void RedrawScreen(void);                    /* $24DD: full repaint of the current screen */
 void ClearBgTilemap(void);                  /* $17FB: tile 0 over the visible BG map */
@@ -238,7 +238,7 @@ void DrawHelpScreen(void);          /* $1B:$4A62 */
 void ShowMessage(char *text);
 void DrawMessageBar(void);
 void DrawTopBar(void);
-void UiDrawTextHw(void);
+void DrawScreenPalMap(void);
 void DrawOnOffName(UBYTE v);
 void DrawSpeedModeName(UBYTE v);
 void DrawSpeedGlyph(UBYTE v);
@@ -272,7 +272,7 @@ void SetVibShape(char v);               /* the shape byte is signed here: its OR
 /* --- bank 5 ---------------------------------------------------------------- */
 void RestoreSelectionState(void);           /* $05:$747D (far) */
 
-void MapDrawTopRow(void);
+void DrawMapTopRow(void);
 
 /* --- bank $1B: project screen ---------------------------------------------- */
 

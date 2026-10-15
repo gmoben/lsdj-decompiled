@@ -68,9 +68,9 @@ void SndLiveStopRange(void);                /* bank 2 */
 void SndStartRange(void);                /* bank 2 */
 void TogglePlayback(void);                    /* bank 2 */
 void SaveSelectionState(void);              /* bank 5 */
-void MapMoveUp(void);                       /* bank 5 */
-void MapMoveDown(void);                     /* bank 5 */
-void MapMoveRight(void);                    /* bank 5 */
+void MoveMapCursorUp(void);                       /* bank 5 */
+void MoveMapCursorDown(void);                     /* bank 5 */
+void MoveMapCursorRight(void);                    /* bank 5 */
 
 /*
  * The song screen's input, an if/else chain on wButtons: A writes the chain
@@ -295,13 +295,13 @@ UBYTE SongScreenInput(void)
     } else if (wButtons == 0x44) {
         if (wButtonsSame)
             return 0;
-        FarCall(5, MapMoveUp);
+        FarCall(5, MoveMapCursorUp);
         FarCall(7, FAR_FN(RedrawScreen));
         return 1;
     } else if (wButtons == 0x48) {
         if (wButtonsSame)
             return 0;
-        FarCall(5, MapMoveDown);
+        FarCall(5, MoveMapCursorDown);
         FarCall(7, FAR_FN(RedrawScreen));
         return 1;
     } else if (wButtons == 0x30) {
@@ -397,7 +397,7 @@ UBYTE SongScreenInput(void)
         }
         while (wChainRow && FarCallArg2(2, (UWORD)SndGetChainPhrase, wChain, (char)wChainRow) == 0xFF)
             wChainRow--;
-        FarCall(5, MapMoveRight);
+        FarCall(5, MoveMapCursorRight);
         FarCall(4, FAR_FN(RedrawScreen));
         return 1;
     } else if (wButtons == 0x20) {

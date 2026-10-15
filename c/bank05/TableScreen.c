@@ -37,10 +37,10 @@ extern UBYTE wSavedSelectionTop;
 extern UBYTE wSavedSelectionRight;
 extern UBYTE wSavedSelectionBottom;
 
-void MapUpdateTopRow(void);
-void MapEnterScreen(void);
-void MapStartTransition(UBYTE dir);
-void MapCancelSelection(void);
+void UpdateMapTopRow(void);
+void GotoMapCursorScreen(void);
+void StartMapTransition(UBYTE dir);
+void CancelSelectionMode(void);
 
 void DrawAllChanStatus(void);               /* bank $1F */
 extern UBYTE wChanInstr[];                  /* $C210, [4] */
@@ -58,7 +58,7 @@ extern UBYTE wRowBufCol5[];                 /* $C4BD, [16] */
 
 void DrawFieldVal(UBYTE kind, UBYTE v);   /* bank 0, DrawFields.c */
 
-void MapUpdateTopRow(void)
+void UpdateMapTopRow(void)
 {
     if (wMapRow != 1)
         return;
@@ -76,7 +76,7 @@ void MapUpdateTopRow(void)
     }
 }
 
-void MapDrawTopRow(void)
+void DrawMapTopRow(void)
 {
     UBYTE x;
 
@@ -99,7 +99,7 @@ void MapDrawTopRow(void)
     ColorField(x, (wMapRow + 2) % 3 + 15, 1, 1);
 }
 
-void MapEnterScreen(void)
+void GotoMapCursorScreen(void)
 {
     switch (wMapRow) {
     case 0:
@@ -135,57 +135,57 @@ void MapEnterScreen(void)
     }
 }
 
-void MapStartTransition(UBYTE dir)
+void StartMapTransition(UBYTE dir)
 {
     wMapMoveDir = dir;
     SCX_REG = 0;
     SCY_REG = 0;
 }
 
-void MapCancelSelection(void)
+void CancelSelectionMode(void)
 {
     if (wCursorMode == 4)
         FarCall(5, RestoreSelectionState);
 }
 
-void MapMoveLeft(void)
+void MoveMapCursorLeft(void)
 {
-    MapCancelSelection();
+    CancelSelectionMode();
     wMapCol--;
     if (wMapCol == 0xFF)
         DebugTrap();
-    MapEnterScreen();
-    MapStartTransition(4);
-    MapUpdateTopRow();
+    GotoMapCursorScreen();
+    StartMapTransition(4);
+    UpdateMapTopRow();
 }
 
-void MapMoveRight(void)
+void MoveMapCursorRight(void)
 {
-    MapCancelSelection();
+    CancelSelectionMode();
     wMapCol++;
-    MapEnterScreen();
-    MapStartTransition(2);
-    MapUpdateTopRow();
+    GotoMapCursorScreen();
+    StartMapTransition(2);
+    UpdateMapTopRow();
 }
 
-void MapMoveUp(void)
+void MoveMapCursorUp(void)
 {
-    MapCancelSelection();
+    CancelSelectionMode();
     wMapRow--;
     if (wMapRow == 0xFF)
         DebugTrap();
-    MapEnterScreen();
-    MapStartTransition(1);
+    GotoMapCursorScreen();
+    StartMapTransition(1);
 }
 
-void MapMoveDown(void)
+void MoveMapCursorDown(void)
 {
-    MapCancelSelection();
+    CancelSelectionMode();
     wMapRow++;
     if (wMapRow == 3)
         DebugTrap();
-    MapEnterScreen();
-    MapStartTransition(3);
+    GotoMapCursorScreen();
+    StartMapTransition(3);
 }
 
 void DrawCmdLetter(UBYTE cmd)
@@ -521,8 +521,8 @@ UBYTE TableScreenInput(void)
             wTableRow = wSelectionTop;
             FarCall(5, RestoreSelectionState);
             if (hGameboyType) {
-                FarCall(1, FAR_FN(UiDrawTextHw));
-                FarCall(5, MapDrawTopRow);
+                FarCall(1, FAR_FN(DrawScreenPalMap));
+                FarCall(5, DrawMapTopRow);
             }
             DrawTableScreen();
             DrawTableCursor();
@@ -1098,7 +1098,7 @@ UBYTE TableScreenInput(void)
     case 0x44:
         if (wButtonsSame)
             break;
-        FarCall(5, MapMoveUp);
+        FarCall(5, MoveMapCursorUp);
         FarCall(1, RedrawScreen);
         return 1;
     case 0x48: {
@@ -1123,14 +1123,14 @@ UBYTE TableScreenInput(void)
                 wGroove = ReadSongByte(1, b) & 0x1F;
             }
         }
-        FarCall(5, MapMoveDown);
+        FarCall(5, MoveMapCursorDown);
         FarCall(1, RedrawScreen);
         return 1;
     }
     case 0x42:
         if (wButtonsSame)
             break;
-        FarCall(5, MapMoveLeft);
+        FarCall(5, MoveMapCursorLeft);
         FarCall(5, FAR_FN(RedrawScreen));
         return 1;
     case 0x20:

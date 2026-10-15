@@ -13,11 +13,11 @@ Entry $0100 -> Start $0150 (init) -> main $1306 (InitAndLoadSong $0DDB, ...) -> 
     ProcessInput $0ED6: drain the button queue (GetNextButtons); per event
       HandleButtonEvent $2B8D -> HandleInputCombos + DispatchScreenInput
       ($2A71, jp table $2A86 by wCurScreen -> the screen's input handler)
-    ScreenUpdateDispatch $264B (screens 1-5), then a bank-1 UI tail
-      (UpdatePlayClock, UpdateWorkClock, UiShowMessage)
+    DispatchScreenUpdate $264B (screens 1-5), then a bank-1 UI tail
+      (UpdatePlayClock, UpdateWorkClock, IsMessageActive)
   otherwise, while wSynthRenderActive ($C9F1): one RenderSynthWave step
       (bank $1D) per pass, 16 steps
-  ScreenDrawDispatch $254F (via RedrawScreen): jp ($2563 + 3*wCurScreen)
+  DispatchScreenDraw $254F (via RedrawScreen): jp ($2563 + 3*wCurScreen)
       -> the active screen's draw routine (selects its bank, calls it)
 ```
 
@@ -45,7 +45,7 @@ Key mechanisms:
 ## Screen dispatch — the editor index (bank 0)
 
 The current screen is `wCurScreen` = **`$C401`** (0–14).
-`ScreenDrawDispatch` (`$254F`) does `hl = $2563 + 3*screen; jp hl` into a
+`DispatchScreenDraw` (`$254F`) does `hl = $2563 + 3*screen; jp hl` into a
 15-entry `jp` table (`ScreenDrawTable`, `$2563`). Each target is a stub that
 selects the screen's ROM bank (`$FF8E` + `$2000`) and `call`s its draw routine:
 
@@ -85,13 +85,13 @@ stubs' bank + call target):
 | 6 Instrument | `InstrScreenInput` `$03:$541F` | | 14 Help | `HelpScreenInput` `$1B:$4BC3` |
 | 7 (name editor) | `NameEditorInput` `$1B:$53E8` | | 0, 11 | — |
 
-Matching `DispatchScreenInput` in C (`c/bank00/ScreenDrawDispatch.c`) settled
+Matching `DispatchScreenInput` in C (`c/bank00/DispatchScreenDraw.c`) settled
 the handlers' names: five of them had been named after a first action (a cursor
 highlight, a field draw) and three after `Edit`.
 Index 7 has no draw routine but does have an input handler: the on-screen
 name keyboard used by the Project/File screens.
 
-A **second** dispatch, `ScreenUpdateDispatch` (`$264B`), runs each frame for
+A **second** dispatch, `DispatchScreenUpdate` (`$264B`), runs each frame for
 screens **1–5 only** (the active music editors) via its own 5-entry table
 (`$268D`) — a per-frame **visual refresh** (redraws the playing rows), distinct
 from the (interleaved) input-edit code. So `$C401` drives parallel *draw* and
@@ -103,7 +103,7 @@ from the (interleaved) input-edit code. So `$C401` drives parallel *draw* and
 | Groove (2) | `GrooveScreenUpdate` `$1D:$4215` | | Table (5) | `TableScreenUpdate` `$05:$4967` |
 | Chain (3) | `ChainScreenUpdate` `$06:$5A62` | | | |
 
-Before most screen draws, the dispatch prologue calls `ScreenPreDraw`
+Before most screen draws, the dispatch prologue calls `DrawScreenColLabels`
 (`$1E:$4000`). Runtime variables are collected in
 [`../constants/ram.inc`](../constants/ram.inc).
 
@@ -210,7 +210,7 @@ left are the 21 sample kits (`$08`-`$1A`, `$20`-`$21`, emitted as labeled
 per-kit/per-sample sections) and the 30 empty banks (`$22`-`$3F`).
 
 The whole screen system is named: the spine (`main.mainLoop`, `ProcessInput`,
-`HandleButtonEvent`, `DispatchScreenInput`, `ScreenDrawDispatch` +
-`ScreenDrawTable`, `ScreenUpdateDispatch` + `ScreenUpdateDispatch.jumpTable`,
+`HandleButtonEvent`, `DispatchScreenInput`, `DispatchScreenDraw` +
+`ScreenDrawTable`, `DispatchScreenUpdate` + `DispatchScreenUpdate.jumpTable`,
 `RedrawScreen`), every draw/update/input handler, the per-field helpers, and
 the sync subsystem ([`sync.md`](sync.md)).

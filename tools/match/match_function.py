@@ -465,7 +465,7 @@ RUNTIME_ALIASES = {
     "wWordClipPtrB": "wWordClipPtr",  # the word clipboard pointer's low byte: the kit sample number cached there in WordScreenInput's A press
     "WriteCurInstrByteC": "WriteCurInstrByte",  # WriteCurInstrByte with a `char` value (SetVibShape)
     "WriteVramByteSafeP": "WriteVramByteSafe",  # WriteVramByteSafe with a pointer address: the cast of a UWORD counter is the spilt argument copy (ClearOamBuf)
-    "WriteVramByteSafeC": "WriteVramByteSafe",  # char value: the (char)global cast copy evaluated before dst++ owns c and is spilt into the global (GfxCopyVramRegion)
+    "WriteVramByteSafeC": "WriteVramByteSafe",  # char value: the (char)global cast copy evaluated before dst++ owns c and is spilt into the global (CopyVramTile)
     "wSynthFilterPtrW": "wSynthFilterPtr",  # the low-/high-pass filter's slot pointer read as a word: the slot value in the second half of the scatter loop (SynthFilterLowHigh)
     "wSynthFilterIdx": "wSynthFilterVal",  # the filter's slot value's low byte: the doubled sample index, a block-scope extern the compiler spills the index into (SynthFilterLowHigh)
 }

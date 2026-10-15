@@ -61,8 +61,8 @@ void FileValidateName(void);                /* bank $1C */
 void LoadFileListState(void);               /* bank $1C */
 void LoadProjSettings(void);             /* bank 1 */
 void FormatSramSong(void);                     /* bank 1 */
-void MapMoveRight(void);                    /* bank 5 */
-void MapMoveDown(void);                     /* bank 5 */
+void MoveMapCursorRight(void);                    /* bank 5 */
+void MoveMapCursorDown(void);                     /* bank 5 */
 void TogglePlayback(void);                    /* bank 2 */
 extern UBYTE wSramFsFlag;                   /* $C9A3 */
 extern UBYTE wSongTranspose;                /* $C444 */
@@ -240,9 +240,9 @@ void RefreshProjScreen(void)
         ;
     if (hGameboyType)
         ClearBgTilemap();
-    FarCall(1, FAR_FN(UiDrawTextHw));
+    FarCall(1, FAR_FN(DrawScreenPalMap));
     DrawProjScreen();
-    FarCall(5, MapDrawTopRow);
+    FarCall(5, DrawMapTopRow);
     wRedrawPending = 0;
 }
 
@@ -272,7 +272,7 @@ UBYTE ProjScreenInput(void)
         _asm
         ei
         _endasm;
-        FarCall(5, MapMoveDown);
+        FarCall(5, MoveMapCursorDown);
         FarCall(5, FAR_FN(RedrawScreen));
         _asm
         ei
@@ -284,7 +284,7 @@ UBYTE ProjScreenInput(void)
         if (!(char)wMapCol)
             return 0;
         wSelectHeld = 0;
-        FarCall(5, MapMoveRight);
+        FarCall(5, MoveMapCursorRight);
         FarCall(4, FAR_FN(RedrawScreen));
         return 1;
     case 0x01:
@@ -685,9 +685,9 @@ UBYTE ProjScreenInput(void)
                 if (hGameboyType)
                     ClearBgTilemap();
                 else
-                    FarCall(1, FAR_FN(UiDrawTextHw));
+                    FarCall(1, FAR_FN(DrawScreenPalMap));
                 FarCall(0, FAR_FN(RedrawScreen));
-                FarCall(5, MapDrawTopRow);
+                FarCall(5, DrawMapTopRow);
             }
             return 1;
         }
@@ -697,9 +697,9 @@ UBYTE ProjScreenInput(void)
             wProjMenuActive = 0;
             if (hGameboyType)
                 ClearBgTilemap();
-            FarCall(1, FAR_FN(UiDrawTextHw));
+            FarCall(1, FAR_FN(DrawScreenPalMap));
             DrawProjScreen();
-            FarCall(5, MapDrawTopRow);
+            FarCall(5, DrawMapTopRow);
         }
         return 1;
     case 0x80:

@@ -43,8 +43,8 @@ coverage = importlib.import_module("coverage")   # tools/coverage.py: read_sym, 
 # with no `jr` or no stack-frame access to give it away (register-passing
 # helpers, `ldh a,(c)` kernels, unrolled sample shifts).
 KNOWN_ASM = {
-    "01:CrashSaveStack", "01:UiDrawScreenCgb",
-    "01:UiDrawScreenDmg", "01:UiLoadObjPal",
+    "01:SaveCrashStack", "01:CopyScreenMapCgb",
+    "01:CopyScreenMapDmg", "01:LoadObjPal",
     "06:DrawScopePoint", "06:ShiftScopeSamples",
     "07:DrawHexOrDashes", "07:ScanSongSram", "07:WriteSongSramBytes",
     "1b:MixerKernel",
@@ -66,12 +66,12 @@ KNOWN_ASM = {
     # an `hl`-argument call wrapped in the C convention: RequestTileSlot pops
     # its frame before setting the return value, which SDCC never does
     "00:LoadTilesDispatch", "00:RequestTileSlot",
-    # compiled-looking but runs off its end into ScreenDrawDispatch (no
+    # compiled-looking but runs off its end into DispatchScreenDraw (no
     # `call; ret`): no C function ends without returning
     "00:RedrawScreen",
     # the boot code's tail (falls in from Start's hardware setup, `ei; jp
     # main`, then crt0's `halt; jr` idle): the modified crt0, not C
-    "00:SerialInit",
+    "00:InitSerial",
 }
 
 # GBDK 2.95-3 / SDCC 2.2.1 library code linked into bank 0, by the source it

@@ -18,10 +18,10 @@ extern UBYTE wButtons;                      /* $C575 */
 extern UBYTE wClipboardType;                /* $C411 */
 UBYTE SpeechCursorY(void);
 void OpenNameEditor(void);                  /* bank $1B */
-void MapMoveLeft(void);                     /* bank 5 */
-void MapMoveRight(void);                    /* bank 5 */
-void MapMoveUp(void);                       /* bank 5 */
-void MapMoveDown(void);                     /* bank 5 */
+void MoveMapCursorLeft(void);                     /* bank 5 */
+void MoveMapCursorRight(void);                    /* bank 5 */
+void MoveMapCursorUp(void);                       /* bank 5 */
+void MoveMapCursorDown(void);                     /* bank 5 */
 void PrevInstrPage(void);             /* bank 3 */
 void ToggleSongPlayback(void);                 /* bank 2 */
 void TogglePlayback(void);                    /* bank 2 */
@@ -72,7 +72,7 @@ void DrawSpeechInstrScreen(void)
     UBYTE row, i, c;
 
     wCurScreen = 0x0B;
-    FarCall(1, FAR_FN(UiDrawTextHw));
+    FarCall(1, FAR_FN(DrawScreenPalMap));
     FarCall(0x1F, FAR_FN(DrawAllChanStatus));
     wCurScreen = 6;
     FarCall(3, FAR_FN(DrawInstrScreenFrame));
@@ -153,25 +153,25 @@ UBYTE SpeechInstrInput(void)
     case 0x48:
         if (wButtonsSame)
             break;
-        FarCall(5, MapMoveDown);
+        FarCall(5, MoveMapCursorDown);
         RedrawScreenFar1F();
         return 1;
     case 0x44:
         if (wButtonsSame)
             break;
-        FarCall(5, MapMoveUp);
+        FarCall(5, MoveMapCursorUp);
         RedrawScreenFar1F();
         return 1;
     case 0x41:
         if (wButtonsSame)
             break;
-        FarCall(5, MapMoveRight);
+        FarCall(5, MoveMapCursorRight);
         RedrawScreenFar1F();
         return 1;
     case 0x42:
         if (wButtonsSame)
             break;
-        FarCall(5, MapMoveLeft);
+        FarCall(5, MoveMapCursorLeft);
         RedrawScreenFar1F();
         return 1;
     case 0x30:

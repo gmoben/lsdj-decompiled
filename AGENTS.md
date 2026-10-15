@@ -498,7 +498,7 @@ Always, before committing:
 - [x] Match harness with a link step (`match_function.py --target NAME`) and a
       regression suite (`make match`)
 - [x] **Goal:** byte-match `DrawMessageBar` (`$01:$74F7`) in C — matched, then
-      `ShowOutOfMemory`/`ShowTapAddChain`, `ScreenDrawDispatch` (`switch`),
+      `ShowOutOfMemory`/`ShowTapAddChain`, `DispatchScreenDraw` (`switch`),
       `ReadInstrByte` (16-bit math, asserts) and `DrawTileHexCell` (the
       register-reload exception): six functions, three banks
 - [x] Map what is C at all: `tools/match/code_kind.py` — ~200 functions are

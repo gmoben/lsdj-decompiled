@@ -357,7 +357,7 @@ DEF hWavUploadBuf    EQU $FFA0  ; [16] staged waveform pop-streamed into WAV RAM
 ENDC
 
 ; --- Main loop ---------------------------------------------------------------
-DEF wRedrawPending   EQU $C56C  ; MainLoop: nonzero -> run ScreenUpdateDispatch this frame
+DEF wRedrawPending   EQU $C56C  ; MainLoop: nonzero -> run DispatchScreenUpdate this frame
 DEF wSynthRenderIdx  EQU $C9F0  ; MainLoop idle: which softsynth wave to render (0-15)
 
 ; --- Input (joypad queue: ReadJoypad enqueues, GetNextButtons dequeues) -------
@@ -438,8 +438,8 @@ DEF wRowBufCol5      EQU $C4BD  ; [16] shared row buffer, sixth column (table: v
 DEF wTopBarStr       EQU $C555  ; top-bar/title string buffer (DrawTopBar draws it directly)
 DEF wPlayFrames      EQU $C6A8  ; PLAY clock frame divider (UpdatePlayClock: 60 frames = 1 s, restarted at 1 every 4th
                                 ; second to track the 59.73 Hz frame rate); 0 while stopped
-DEF wCrashStack      EQU $C7B0  ; [20] the crash's stack dump: 20 bytes copied from above the stack pointer (CrashSaveStack), shown as 10 words
-DEF wCrashSP      EQU $C7C4  ; the stack pointer at the crash (CrashSaveStack), shown after STK:
+DEF wCrashStack      EQU $C7B0  ; [20] the crash's stack dump: 20 bytes copied from above the stack pointer (SaveCrashStack), shown as 10 words
+DEF wCrashSP      EQU $C7C4  ; the stack pointer at the crash (SaveCrashStack), shown after STK:
 DEF wClipboardSave   EQU $C7C6  ; [252] ResetEditorState keeps wClipboardBuf here across ResetWorkState
 DEF wPlayChanFirst   EQU $C8DD  ; first channel to start playing (SndStartChans)
 DEF wPlayChanLast    EQU $C8DE  ; last channel to start playing
@@ -742,11 +742,11 @@ DEF wWavFrameDeltaPtrHi EQU $C522  ; wave-frame delta list cursor hi
 DEF wWavFrameDeltaLoop EQU $C523  ; saved delta-list reload ptr lo (list end, mode != once)
 DEF wWavFrameDeltaLoopHi EQU $C524  ; saved delta-list reload ptr hi
 DEF wWavFrameTimer   EQU $C525  ; wave-frame step countdown (reload = wFxWaveParam2; W cmd hi nibble sets)
-DEF wMessageNoPause     EQU $C530  ; 1 while a message SELECT cannot pause (set at reset: the startup banner); cleared when a message ends, on redraw, on a live-mode switch (UiUpdateMessage)
+DEF wMessageNoPause     EQU $C530  ; 1 while a message SELECT cannot pause (set at reset: the startup banner); cleared when a message ends, on redraw, on a live-mode switch (UpdateMessage)
 DEF wTopBarMarkPtr   EQU $C562  ; 16-bit ptr to the unsaved-'!' char slot in the top bar
 DEF wMuteSoloLatch    EQU $C56A  ; set to 1 after B+SELECT (mute) and 2 after B+START (solo) in HandleInputCombos; B alone releases it (SongScreenInput turns 2 into 1)
 DEF wFsCheckResult   EQU $C56B  ; CheckFileMagicAll result (drives file-screen variant)
-DEF wPartialRedrawDone EQU $C56D  ; partial row redraw done; ScreenUpdateDispatch skips full update
+DEF wPartialRedrawDone EQU $C56D  ; partial row redraw done; DispatchScreenUpdate skips full update
 DEF wLiveStartCol    EQU $C571  ; LIVE queued start column ($FF = none; saves wLiveMode)
 DEF wSavedLiveMode   EQU $C572  ; saved wLiveMode across queued LIVE start
 DEF wTimerTickInc    EQU $C579  ; per-tick work-time increment ($0C CGB / $06 DMG)

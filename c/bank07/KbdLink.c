@@ -41,7 +41,7 @@ void KbdDrainQueue(void);
 UBYTE HexDigitChar(UBYTE v);
 void CopyInstrName(UBYTE instr);            /* bank 1 */
 void ClearMessageBar(void);                 /* bank 1 */
-void UiClearBgMap(void);                    /* bank 1 */
+void ClearBgMapAndAttrs(void);                    /* bank 1 */
 
 extern UBYTE wKbdHeldNote;                  /* $CB7E */
 extern UBYTE wKbdNoteQueued;                /* $CB92 */
@@ -551,7 +551,7 @@ void DrawKbdCalibScreen(void)
 {
     UBYTE k;
 
-    FarCall(1, UiClearBgMap);
+    FarCall(1, ClearBgMapAndAttrs);
     ClearBgTilemap();
     hBgDigitPal = 4;
     hBgPal = 1;

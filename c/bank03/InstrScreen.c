@@ -41,10 +41,10 @@ void ShowInstrFieldHelp(void);              /* $05:$69BD */
 void PasteInstr(void);                 /* $01:$5503 */
 void CopyInstr(void);                  /* $01:$5253 */
 void SpeechInstrInput(void);                 /* $1F:$724D */
-void MapMoveLeft(void);                     /* $05:$4233 */
-void MapMoveRight(void);                    /* $05:$4253 */
-void MapMoveUp(void);                       /* $05:$426A */
-void MapMoveDown(void);                     /* $05:$4287 */
+void MoveMapCursorLeft(void);                     /* $05:$4233 */
+void MoveMapCursorRight(void);                    /* $05:$4253 */
+void MoveMapCursorUp(void);                       /* $05:$426A */
+void MoveMapCursorDown(void);                     /* $05:$4287 */
 void ToggleSongPlayback(void);              /* $02:$78C4 */
 void TogglePlayback(void);                  /* $02:$7C4C */
 void WriteCurInstrByteC(UBYTE field, char val);   /* WriteCurInstrByte taking a char (aliased) */
@@ -216,7 +216,7 @@ void DrawInstrScreenFrame(void)
 {
     hBgDigitPal = 4;
     hBgPal = 1;
-    FarCall(5, MapDrawTopRow);
+    FarCall(5, DrawMapTopRow);
     FarCall(1, FAR_FN(DrawTopBar));
     DrawTempoField();
     ClearMarkerSprites();
@@ -232,7 +232,7 @@ void PrevUsedInstr(void)
             if (ReadSongByte(1, SramInstrAlloc + (UWORD)wInstr))
                 break;
         }
-        FarCall(1, FAR_FN(UiDrawTextHw));
+        FarCall(1, FAR_FN(DrawScreenPalMap));
         DrawInstrScreen();
     }
 }
@@ -257,7 +257,7 @@ void NextUsedInstr(void)
         if (ReadSongByte(1, SramInstrAlloc + (UWORD)wInstr))
             break;
     }
-    FarCall(1, FAR_FN(UiDrawTextHw));
+    FarCall(1, FAR_FN(DrawScreenPalMap));
     DrawInstrScreen();
 }
 
@@ -509,7 +509,7 @@ void SetVibShape(char v)
     FarCallArgWC(1, ReadCurInstrByte(0) == 3 ? (UWORD)DrawSpeedGlyph : (UWORD)DrawSpeedModeName, v);
 }
 
-void VibShapeNext(void)
+void NextVibShape(void)
 {
     UBYTE v;
 
@@ -522,7 +522,7 @@ void VibShapeNext(void)
     }
 }
 
-void VibShapePrev(void)
+void PrevVibShape(void)
 {
     UBYTE v;
 
@@ -761,7 +761,7 @@ void SetInstrType(UBYTE type)
     if (wInstrField >= n)
         wInstrField = n - 1;
     WriteCurInstrByte(0, t);
-    FarCall(1, FAR_FN(UiDrawTextHw));
+    FarCall(1, FAR_FN(DrawScreenPalMap));
     if (t == 2)
         EnsureKitExists();
     DrawInstrScreen();
@@ -1220,7 +1220,7 @@ UBYTE InstrScreenInput(void)
                 break;
             case 9:
                 if (!wButtonsSame)
-                    VibShapeNext();
+                    NextVibShape();
                 break;
             case 0x0A:
                 SetInstrTransposeOff();
@@ -1278,7 +1278,7 @@ UBYTE InstrScreenInput(void)
                 DrawFieldVal(0x0C, v);
                 break;
             case 4:
-                VibShapeNext();
+                NextVibShape();
                 break;
             case 9:
                 v = ReadCurInstrByte(3);
@@ -1461,7 +1461,7 @@ UBYTE InstrScreenInput(void)
                 }
                 break;
             case 6:
-                VibShapeNext();
+                NextVibShape();
                 break;
             case 0x10:
                 NextInstrTableMode();
@@ -1495,7 +1495,7 @@ UBYTE InstrScreenInput(void)
                 break;
             case 8:
                 if (!wButtonsSame)
-                    VibShapeNext();
+                    NextVibShape();
                 break;
             case 7:
                 WriteCurInstrByte(2, 1);
@@ -1565,7 +1565,7 @@ UBYTE InstrScreenInput(void)
                 break;
             case 9:
                 if (!wButtonsSame)
-                    VibShapePrev();
+                    PrevVibShape();
                 break;
             case 0x0A:
                 SetInstrTransposeOn();
@@ -1623,7 +1623,7 @@ UBYTE InstrScreenInput(void)
                 DrawFieldVal(0x0C, v);
                 break;
             case 4:
-                VibShapePrev();
+                PrevVibShape();
                 break;
             case 9:
                 v = ReadCurInstrByte(3);
@@ -1810,7 +1810,7 @@ UBYTE InstrScreenInput(void)
                 }
                 break;
             case 6:
-                VibShapePrev();
+                PrevVibShape();
                 break;
             case 0x10:
                 PrevInstrTableMode();
@@ -1844,7 +1844,7 @@ UBYTE InstrScreenInput(void)
                 break;
             case 8:
                 if (!wButtonsSame)
-                    VibShapePrev();
+                    PrevVibShape();
                 break;
             case 7:
                 WriteCurInstrByte(2, 0);
@@ -2359,25 +2359,25 @@ UBYTE InstrScreenInput(void)
             wSynth = ReadCurInstrByte(3);
             wSynthScreen = wSynth >> 4;
         }
-        FarCall(5, MapMoveUp);
+        FarCall(5, MoveMapCursorUp);
         FarCall(4, FAR_FN(RedrawScreen));
         break;
     case 0x48:
         if (wButtonsSame)
             break;
-        FarCall(5, MapMoveDown);
+        FarCall(5, MoveMapCursorDown);
         FarCall(4, FAR_FN(RedrawScreen));
         break;
     case 0x42:
         if (wButtonsSame)
             break;
-        FarCall(5, MapMoveLeft);
+        FarCall(5, MoveMapCursorLeft);
         FarCall(4, FAR_FN(RedrawScreen));
         return 1;
     case 0x41:
         if (wButtonsSame)
             break;
-        FarCall(5, MapMoveRight);
+        FarCall(5, MoveMapCursorRight);
         v = ReadCurInstrByte(6);
         if (v & 0x20)
             wTable = v & 0x1F;

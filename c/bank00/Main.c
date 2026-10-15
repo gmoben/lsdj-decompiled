@@ -43,7 +43,7 @@ extern char TxtTitle[];                     /* $01:$6F7E */
 void SwitchToDoubleSpeed(void);             /* asm */
 void ResetWorkState(void);
 void InitKitMixer(void);                    /* bank $1B */
-void UiInitScreen(void);                    /* bank 1 */
+void InitScreen(void);                    /* bank 1 */
 UBYTE CheckSongInitFlag(void);              /* bank 1 */
 void LoadFontTiles(void);              /* bank $1E */
 void DrawCartTest(void);                    /* bank 1 */
@@ -95,12 +95,12 @@ extern UBYTE wKeyDelayTimer, wKeyRepeatTimer;   /* $C406, $C407 */
 extern UBYTE wAPressEnabled;                /* $C409 */
 extern UBYTE wSelectHeld;                   /* $C40A */
 extern UBYTE wBHeld;                        /* $C40B */
-void ScreenUpdateDispatch(void);
+void DispatchScreenUpdate(void);
 UBYTE AnyChanFlagSet(void);
 void UpdatePlayClock(void);                   /* bank 1 */
 void UpdateWorkClock(void);                  /* bank 1 */
-UBYTE UiShowMessage(void);                  /* bank 1 */
-void UiUpdateMessage(void);                 /* bank 1 */
+UBYTE IsMessageActive(void);                  /* bank 1 */
+void UpdateMessage(void);                 /* bank 1 */
 void SetInterruptEnable(UBYTE ie);          /* asm */
 UBYTE joypad(void);                         /* GBDK */
 void WaitInterrupt(void);                   /* asm */
@@ -274,7 +274,7 @@ void InitAndLoadSong(void)
     SWITCH_ROM(0x1B);
     InitKitMixer();
     SWITCH_ROM(0x01);
-    UiInitScreen();
+    InitScreen();
     if (!CheckSongInitFlag()) {
         ResetWorkState();
         FarCall(0x1E, FAR_FN(LoadFontTiles));
@@ -339,7 +339,7 @@ void main(void)
         wRedrawPending--;
         if (!ProcessInput() || wPlayMode || wSyncMode == 6 || wSyncTick != 0xFF)
             wIdleFrames = 0;
-        ScreenUpdateDispatch();
+        DispatchScreenUpdate();
         if (AnyChanFlagSet())
             wIdleFrames = 0;
         SWITCH_ROM(1);
@@ -349,10 +349,10 @@ void main(void)
             wIdleFrames = 0;
             UpdateWorkClock();
         }
-        if (UiShowMessage())
+        if (IsMessageActive())
             wIdleFrames = 0;
         if (!wRedrawPending)
-            UiUpdateMessage();
+            UpdateMessage();
         else
             wIdleFrames = 0;
         if (++wIdleFrames > 7) {

@@ -13,7 +13,7 @@
 5962 TxtCopiedChains    ; "COPIED CHAINS"
 5B0F TxtPastedChains    ; "PASTED CHAINS"
 40D0 WriteSongCell              ; write song[row][col] = chain (SRAM bank 0 $B290); asserts col < 4, row <= $BF, chain < $80 or $FF
-7220 VramCopyByteSafe   ; spin until rSTAT mode<2 (VRAM free), then copy [de]->[hl], inc e/l
+7220 CopyVramByteSafe   ; spin until rSTAT mode<2 (VRAM free), then copy [de]->[hl], inc e/l
 4574 DrawSongScreen      ; screen idx 4: draws the song sequence (4 channels = PU1/PU2/WAV/NOI)
 47AA SongScreenUpdate   ; per-frame visual update (screen idx 4)
 4139 CloneSongChain             ; song screen chain clone (CLONED CHAIN / +PHRASES in deep mode): new chain via IsSongChainUsed, copy its 16 phrases (deep: clone each phrase once via the wClonePhraseMap map), transposes; returns the new chain or $ff
@@ -31,8 +31,8 @@
 4657 UpdateSongPlayMarker       ; per-channel play-position markers from wChanSongRow/wChanNextSongRow (<-SongScreenUpdate)
 47CF SetSongRowPals            ; pick row draw palettes (cursor/bookmark-aware)
 492D DrawSongCursorRow          ; draw cursor-row string (SetVramCursor at wSongRow-wSongScroll, SetSongRowPals)
-494E ScrollSongUp               ; scroll the song grid for the row above: ScrollSongVramUp (+ VramCopyRowUp on CGB), redraw row 2 ($9840)
-4973 ScrollSongDown             ; scroll the song grid for the row below: ScrollSongVramDown (+ VramCopyRowDown on CGB), redraw row 17 ($9A20)
+494E ScrollSongUp               ; scroll the song grid for the row above: ScrollSongVramUp (+ CopyVramRowUp on CGB), redraw row 2 ($9840)
+4973 ScrollSongDown             ; scroll the song grid for the row below: ScrollSongVramDown (+ CopyVramRowDown on CGB), redraw row 17 ($9A20)
 4998 FindNextSongRow            ; scan down 1..16 from cursor wSongRow, wrapping at 0 -> $ff
 49E7 PageSongCursorDown         ; PgDn: advance song cursor wSongRow by a page (wCursorMode==4 guard)
 4A25 FindPrevSongRow            ; scan up 1..16 from cursor wSongRow, wrapping
@@ -60,8 +60,8 @@
 704E KbdPollScancode            ; drain the queue, then expect 20 key records (3, [7,] $27) from the keyboard: 1 if all arrive (the calibration taps)
 71BF DrawSongColVals       ; draw 16 song-row values into the column (wSongReadBuf, IsBookmarked)
 720A DrawHexOrDashes            ; draw space then [bc]: bit7 ? "--" : hex byte
-722B VramCopyRowDown            ; copy tilemap row 2 -> row 3 (VBK-aware, calib screen)
-7276 VramCopyRowUp              ; copy tilemap row 17 -> row 16 (VBK-aware, calib screen)
+722B CopyVramRowDown            ; copy tilemap row 2 -> row 3 (VBK-aware, calib screen)
+7276 CopyVramRowUp              ; copy tilemap row 17 -> row 16 (VBK-aware, calib screen)
 72C1 ScrollSongVramUp           ; shift VRAM rows up ($9a00 -> $9a20, 15 bytes, hblank-safe)
 735B ScrollSongVramDown         ; shift VRAM rows down (counterpart of ScrollSongVramUp)
 73F5 ScanSongSram               ; copy [hl] -> [de] in SRAM bank 0 (di-guarded), both += 4, until hl reaches $B590
@@ -158,8 +158,8 @@
 7137 .loop2               ; loop head in DrawKbdCalibScreen
 716F .done                ; common exit of DrawKbdCalibScreen
 71C4 .loop                ; loop head in DrawSongColVals
-7237 .loop                ; loop head in VramCopyRowDown
-7282 .loop                ; loop head in VramCopyRowUp
+7237 .loop                ; loop head in CopyVramRowDown
+7282 .loop                ; loop head in CopyVramRowUp
 72CA .loop                ; loop head in ScrollSongVramUp
 72D3 .loop2               ; loop head in ScrollSongVramUp
 72DC .loop3               ; loop head in ScrollSongVramUp

@@ -88,7 +88,7 @@ MANUAL: dict[int, list[tuple[int, int]]] = {
     0x04: [(0xC10, 0xC14), (0xCE1, 0xCE5), (0x10D8, 0x10FF), (0x14E3, 0x1500), (0x15D1, 0x15DE)],
     # bank 1D: softsynth shape banks ($4EF0/$50F0) decoded as code.
     0x1D: [(0x35A, 0x35D), (0xEF0, 0x1190), (0x20E6, 0x2116), (0x2DE7, 0x2E00)],
-    # bank 1E: everything between ScreenPreDraw and GfxFillVramRegions is
+    # bank 1E: everything between DrawScreenColLabels and FillVramRegions is
     # data (font/UI tile blocks + synth waveform tables + a blank string).
     0x1E: [(0x2C8, 0x39FA)],
     # bank 1F: OOM-instr + OUT OF TABLES + DE-DUPE panel strings, the
