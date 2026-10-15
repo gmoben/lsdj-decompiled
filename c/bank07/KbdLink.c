@@ -140,13 +140,13 @@ UBYTE HexDigitCharacter(UBYTE d)
 
 void DrawKeyboardInstrumentName(void)
 {
-    UBYTE i;
+    UBYTE letter;
 
     DrawKeyboardInstrumentState();
     FarCallArgument(1, FAR_FN(CopyInstrumentName), wKeyboardInstrument);
     if (wNameEditBuffer[0]) {
-        for (i = 0; i < 5; i++)
-            wSampleNoteString[i] = wNameEditBuffer[i] ? wNameEditBuffer[i] : ' ';
+        for (letter = 0; letter < 5; letter++)
+            wSampleNoteString[letter] = wNameEditBuffer[letter] ? wNameEditBuffer[letter] : ' ';
     } else {
         wSampleNoteString[0] = 'I';
         wSampleNoteString[1] = HexDigitCharacter(wKeyboardInstrument >> 4);
@@ -524,10 +524,10 @@ void KeyboardDrainQueue(void)
 
 UBYTE KeyboardPollScancode(void)
 {
-    UBYTE i, b;
+    UBYTE attempt, b;
 
     KeyboardDrainQueue();
-    for (i = 0; i != 20; i++) {
+    for (attempt = 0; attempt != 20; attempt++) {
         b = LinkDequeueByte();
         if (b != 3)
             return 0;

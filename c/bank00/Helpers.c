@@ -45,18 +45,18 @@ void WriteClipboardCell(UBYTE column, UBYTE row, UBYTE v)
 
 void LoadSynthShape(char *source)
 {
-    UBYTE saved, i;
+    UBYTE saved, position;
     char v;
 
     saved = hCurrentBank;
     SWITCH_ROM(0x1E);
-    for (i = 0; i < 0x20; i++) {
+    for (position = 0; position < 0x20; position++) {
         v = *source;
         if (v & 0x80) {
-            wSynthShapeBuffer[i] = v;
-            wSynthShapeBuffer[i] |= 0xFF00;
+            wSynthShapeBuffer[position] = v;
+            wSynthShapeBuffer[position] |= 0xFF00;
         } else {
-            wSynthShapeBuffer[i] = v;
+            wSynthShapeBuffer[position] = v;
         }
         source++;
     }

@@ -725,7 +725,7 @@ UBYTE ProjectScreenInput(void)
 void TapTempoStep(void)
 {
     UWORD sum;
-    UBYTE i;
+    UBYTE tap;
 
     sum = 0;
     if (wTapTempoCount == 0xFF || wWorkClockSubFrame == 0x80) {
@@ -742,8 +742,8 @@ void TapTempoStep(void)
     wTapTempoCount++;
     if (wTapTempoCount < 3)
         return;
-    for (i = 0; i < wTapTempoCount; i++)
-        sum += wTapTempoBuffer[i];
+    for (tap = 0; tap < wTapTempoCount; tap++)
+        sum += wTapTempoBuffer[tap];
     sum <<= 3;
     sum /= wTapTempoCount;
     sum = 0x6FFE / sum;

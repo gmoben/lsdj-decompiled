@@ -876,7 +876,7 @@ void DebugNop(void);                        /* bank 0 */
 
 void DrawCrashScreen(void)
 {
-    int i;
+    int entry;
 
     ClearBgTilemap();
     hBgDigitPalette = 4;
@@ -918,10 +918,10 @@ void DrawCrashScreen(void)
         wVramCursor = (UBYTE *)0x9A27;
         DrawString("AST");
     }
-    for (i = 0; i < 10; i++) {
-        SetVramCursor(1, i + 8);
-        DrawHexByte(wCrashStack[(i << 1) + 1]);
-        DrawHexByte(wCrashStack[i << 1]);
+    for (entry = 0; entry < 10; entry++) {
+        SetVramCursor(1, entry + 8);
+        DrawHexByte(wCrashStack[(entry << 1) + 1]);
+        DrawHexByte(wCrashStack[entry << 1]);
     }
     wVramCursor = (UBYTE *)0x98C9;
     DrawStringIndexed(TxtVersion[0]);

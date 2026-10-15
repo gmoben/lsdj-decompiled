@@ -353,6 +353,14 @@ in `docs/functionality.md`.
   (`SoundTriggerPu1`, `wChannelFrequencyPu2`). Exempt: `Txt`
   labels mirror their text, `SCREAMING_SNAKE` constants mirror the song
   format's documentation (`SONG_INSTRUMENTS`).
+- **C locals.** Locals and parameters spell their words out too (`channel`,
+  `column`, `length`). A loop variable is named for what it walks
+  (`channel`, `row`, `step`, `instrument`, `position` in a wave, `address`
+  in SRAM), not `i`; a letter stays for screen coordinates (`x`, `y`), a
+  value temporary (`v`) and a variable one function reuses for unrelated
+  things. Renaming a local is byte-neutral; splitting one into two is not
+  (a second local can move the stack frame), so a shared variable gets one
+  name that fits both uses.
 - **Name patterns.** Routines are verb-first (`OpenChainPhrase`,
   `ReadTableEnvelope`, `MoveHelpCursorDown`); predicates read subject-first
   (`KitExists`, `WaveFrameModified`) and a getter may be a noun phrase

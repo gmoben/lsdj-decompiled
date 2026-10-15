@@ -34,16 +34,16 @@ extern UBYTE MessageBarAttributeRow[];               /* $01:$7484, 20 x $04 */
 
 void DrawMessageBar(void)
 {
-    UBYTE i;
+    UBYTE position;
     UBYTE *saved;
 
     wMessagePanelShown = 0;
     wMessageStringPointer = &wStringBuffer[0];
-    for (i = 0; i < 20; i++) {
-        if (!wStringBuffer[i]) {
-            while (i < 20)
-                wStringBuffer[i++] = ' ';
-            wStringBuffer[i] = 0;
+    for (position = 0; position < 20; position++) {
+        if (!wStringBuffer[position]) {
+            while (position < 20)
+                wStringBuffer[position++] = ' ';
+            wStringBuffer[position] = 0;
             break;
         }
     }
@@ -56,8 +56,8 @@ void DrawMessageBar(void)
     hBgPalette = wHighlightPalette;
     saved = wVramCursor;
     wVramCursor = (UBYTE *)0x9800;
-    for (i = 0; i < 20; i++)
-        DrawStringIndexed(wMessageStringPointer[i]);
+    for (position = 0; position < 20; position++)
+        DrawStringIndexed(wMessageStringPointer[position]);
     wVramCursor = saved;
     wMessageTimer = 50;
 }

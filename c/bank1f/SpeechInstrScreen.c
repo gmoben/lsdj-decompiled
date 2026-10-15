@@ -30,13 +30,13 @@ void DrawInstrumentScreenFrame(void);                /* $03:$45A7 */
 void DrawWordRow(UBYTE n)
 {
     UBYTE *p;
-    UBYTE i, c, w;
+    UBYTE letter, c, w;
 
     w = n;
     w--;
     if (w < 14) {
         p = SramWordNames + (unsigned int)w * 3;
-        for (i = 0; i < 3; i++) {
+        for (letter = 0; letter < 3; letter++) {
             c = ReadSongByte(0, p++);
             if (!c)
                 c = ' ';
@@ -69,7 +69,7 @@ void DrawSpeechCursor(void)
 void DrawSpeechInstrumentScreen(void)
 {
     UBYTE *p;
-    UBYTE row, i, c;
+    UBYTE row, letter, c;
 
     wCurrentScreen = 0x0B;
     FarCall(1, FAR_FN(DrawScreenPaletteMap));
@@ -91,19 +91,19 @@ void DrawSpeechInstrumentScreen(void)
             hBgDigitPalette = 4;
             hBgPalette = 1;
         }
-        i = 0;
-        while (i < 3) {
+        letter = 0;
+        while (letter < 3) {
             c = ReadSongByte(0, p);
             if (!c)
                 break;
             DrawStringIndexed(c);
             p = p + 1;
-            i = i + 1;
+            letter = letter + 1;
         }
-        while (i < 3) {
+        while (letter < 3) {
             DrawStringIndexed(' ');
             p = p + 1;
-            i = i + 1;
+            letter = letter + 1;
         }
         row++;
     }
@@ -120,7 +120,7 @@ void DrawSpeechInstrumentScreen(void)
 UBYTE SpeechInstrumentInput(void)
 {
     UWORD p;
-    UBYTE i;
+    UBYTE cell;
     UBYTE v;
 
     switch (wButtons) {
@@ -185,19 +185,19 @@ UBYTE SpeechInstrumentInput(void)
         wClipboardType = 0x0B;
         wCursorMode = 2;
         p = ((UWORD)wSpeechRow << 5) + (UWORD)0xB890;
-        for (i = 0; i < 0x10; i++) {
-            WriteClipboardCell(0, i, ReadSongByte(0, p));
+        for (cell = 0; cell < 0x10; cell++) {
+            WriteClipboardCell(0, cell, ReadSongByte(0, p));
             if (wButtons == 0x30)
                 WriteSongByte(0, p, 0);
             p++;
-            WriteClipboardCell(1, i, ReadSongByte(0, p));
+            WriteClipboardCell(1, cell, ReadSongByte(0, p));
             if (wButtons == 0x30)
                 WriteSongByte(0, p, 0);
             p++;
         }
         p = (UWORD)wSpeechRow * 3 + (UWORD)0xBDD0;
-        for (i = 0; i < 3; i++) {
-            WriteClipboardCell(2, i, ReadSongByte(0, p));
+        for (cell = 0; cell < 3; cell++) {
+            WriteClipboardCell(2, cell, ReadSongByte(0, p));
             p++;
         }
         if (wButtons == 0x30) {
@@ -209,10 +209,10 @@ UBYTE SpeechInstrumentInput(void)
             DrawStringIndexed('W');
             WriteSongByte(0, p++, '-');
             DrawStringIndexed('-');
-            i = wSpeechRow;
-            i += wSpeechRow < 10 ? '0' : '7';
-            WriteSongByte(0, p, i);
-            DrawStringIndexed((char)i);
+            cell = wSpeechRow;
+            cell += wSpeechRow < 10 ? '0' : '7';
+            WriteSongByte(0, p, cell);
+            DrawStringIndexed((char)cell);
         }
         return 1;
     case 0x50:
@@ -222,22 +222,22 @@ UBYTE SpeechInstrumentInput(void)
             return 0;
         ShowMessage("PASTED WORD");
         p = ((UWORD)wSpeechRow << 5) + (UWORD)0xB890;
-        for (i = 0; i < 0x10; i++) {
+        for (cell = 0; cell < 0x10; cell++) {
             if (p >= (UWORD)0xBDD0)
                 DebugTrap();
-            WriteSongByte(0, p++, ReadClipboardCell(0, i));
+            WriteSongByte(0, p++, ReadClipboardCell(0, cell));
             if (p >= (UWORD)0xBDD0)
                 DebugTrap();
-            WriteSongByte(0, p++, ReadClipboardCell(1, i));
+            WriteSongByte(0, p++, ReadClipboardCell(1, cell));
         }
         p = (UWORD)wSpeechRow * 3 + (UWORD)0xBDD0;
         hBgDigitPalette = wHighlightDigitPalette;
         hBgPalette = wHighlightPalette;
         SetVramCursor(0, SpeechCursorY());
-        for (i = 0; i < 3; i++) {
+        for (cell = 0; cell < 3; cell++) {
             if (p >= (UWORD)0xBE78)
                 DebugTrap();
-            v = ReadClipboardCell(2, i);
+            v = ReadClipboardCell(2, cell);
             WriteSongByte(0, p++, v);
             if (v)
                 DrawStringIndexed((char)v);

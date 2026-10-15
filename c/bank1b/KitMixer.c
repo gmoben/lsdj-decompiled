@@ -18,12 +18,12 @@ void InitializeKitMixer(void)
 {
     UBYTE *destination;
     UBYTE *source;
-    UBYTE i;
+    UBYTE copy;
     UBYTE b;
 
     destination = (UBYTE *)0xD480;
     memcpy((UBYTE *)0xD000, KitMixTable, 0x480);
-    for (i = 0; i != 0x10; i++) {
+    for (copy = 0; copy != 0x10; copy++) {
         source = (UBYTE *)(UWORD)MixerKernel;
         do {
             b = *source;
@@ -31,7 +31,7 @@ void InitializeKitMixer(void)
             destination = destination + 1;
             source = source + 1;
         } while (source != (UBYTE *)(UWORD)DrawHelpMenu);
-        if (i != 0x0F) {
+        if (copy != 0x0F) {
             *destination++ = 0x0C;
             *destination++ = 0x1C;
         }

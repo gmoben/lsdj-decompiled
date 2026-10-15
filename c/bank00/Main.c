@@ -119,7 +119,7 @@ UBYTE ProcessInput(void)
     UBYTE r;
     UBYTE v;
     UBYTE *p;
-    UBYTE i;
+    UBYTE row;
     UBYTE ok;
 
     wKeyboardActionChannel = 0xFF;
@@ -187,8 +187,8 @@ UBYTE ProcessInput(void)
             return 0;
         }
         if (wPendingCommandTarget != 0xFF) {
-            for (i = 0; i < 0x10; i++) {
-                p = &wPendingCommands[i];
+            for (row = 0; row < 0x10; row++) {
+                p = &wPendingCommands[row];
                 v = *p;
                 if (v) {
                     if (v > 0x13)
@@ -196,19 +196,19 @@ UBYTE ProcessInput(void)
                     switch (wPendingCommandTarget) {
                     case 0:
                         SWITCH_ROM(4);
-                        WritePhraseCommand(wPhrase, i, v);
+                        WritePhraseCommand(wPhrase, row, v);
                         break;
                     case 1:
                         SWITCH_ROM(5);
                         wTableCellAPointer = 0xB680;
                         wTableCellBPointer = 0xB880;
-                        WriteTableCommand(i, v);
+                        WriteTableCommand(row, v);
                         break;
                     case 2:
                         SWITCH_ROM(5);
                         wTableCellAPointer = 0xBA80;
                         wTableCellBPointer = 0xBC80;
-                        WriteTableCommand(i, v);
+                        WriteTableCommand(row, v);
                         break;
                     }
                     wColumnLastCommand[wSongColumn] = v;

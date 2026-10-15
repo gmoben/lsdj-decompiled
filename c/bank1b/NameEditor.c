@@ -58,32 +58,32 @@ void EraseNameEditCursor(void)
  */
 void DrawProjectTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE h)
 {
-    UBYTE i, j;
+    UBYTE column, row;
 
-    for (i = x; i < x + w; i++) {
-        for (j = y; j < y + h; j++) {
-            ColorField(i, j, 1, 0);
-            SetVramCursor(i, j);
+    for (column = x; column < x + w; column++) {
+        for (row = y; row < y + h; row++) {
+            ColorField(column, row, 1, 0);
+            SetVramCursor(column, row);
             wStringSource = IdentityCharacterMap;
             hBgPalette = hGameboyType ? 0x48 : 0xD2;
-            if (i == x) {
-                if (j == y)
+            if (column == x) {
+                if (row == y)
                     DrawStringIndexed(0);
-                else if (j == y + h - 1)
+                else if (row == y + h - 1)
                     DrawStringIndexed(3);
                 else
                     DrawStringIndexed(7);
-            } else if (i == x + w - 1) {
-                if (j == y)
+            } else if (column == x + w - 1) {
+                if (row == y)
                     DrawStringIndexed(1);
-                else if (j == y + h - 1)
+                else if (row == y + h - 1)
                     DrawStringIndexed(2);
                 else
                     DrawStringIndexed(5);
             } else {
-                if (j == y)
+                if (row == y)
                     DrawStringIndexed(4);
-                else if (j == y + h - 1)
+                else if (row == y + h - 1)
                     DrawStringIndexed(6);
                 else {
                     hBgDigitPalette = 4;
@@ -101,7 +101,7 @@ void DrawProjectTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE h)
 
 void OpenNameEditor(void)
 {
-    UBYTE i, v;
+    UBYTE letter, v;
 
     ClearMarkerSprites();
     wNameReturnScreen = wCurrentScreen;
@@ -134,8 +134,8 @@ void OpenNameEditor(void)
         wNameEditRow = 3;
     } else {
         wVramCursor = 0x98CA;
-        for (i = 0; i < (wNameEditIsInstrument ? 5 : 3); i++) {
-            v = wNameEditBuffer[i];
+        for (letter = 0; letter < (wNameEditIsInstrument ? 5 : 3); letter++) {
+            v = wNameEditBuffer[letter];
             DrawStringIndexed(v ? v : ' ');
         }
         hBgDigitPalette = 4;

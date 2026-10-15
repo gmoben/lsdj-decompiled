@@ -27,7 +27,7 @@ void WriteSongCell(UBYTE column, UBYTE row, UBYTE chain);
 
 void CutCopySongSelection(UBYTE isCut)
 {
-    UBYTE n;
+    UBYTE rowsLeft;
     UBYTE *q;
     UBYTE * volatile p;
     UBYTE d2;
@@ -72,18 +72,18 @@ void CutCopySongSelection(UBYTE isCut)
             wSongRow++;
         }
         if (isCut) {
-            n = wSelectionBottom - wSelectionTop;
+            rowsLeft = wSelectionBottom - wSelectionTop;
             p = (UBYTE *)0xB290 + ((UWORD)wSelectionTop << 2);
             column = wSongColumn;
             p += column;
-            q = p + ((UWORD)n << 2);
+            q = p + ((UWORD)rowsLeft << 2);
             x = (UWORD)p;
             CopySongColumn((UWORD)q, x);
-            while (n) {
-                t = n;
+            while (rowsLeft) {
+                t = rowsLeft;
                 x = 0xC0 - t;
                 WriteSongCell(wSongColumn, x, 0xFF);
-                n--;
+                rowsLeft--;
             }
         }
         wSongColumn++;

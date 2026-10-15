@@ -148,14 +148,14 @@ void ComputeEnvelope(void)
 
 void UpdateEnvelopeSprites(void)
 {
-    UBYTE i, t, u;
+    UBYTE sprite, t, u;
 
-    for (i = 0; i != 8; i++) {
-        t = i << 2;
+    for (sprite = 0; sprite != 8; sprite++) {
+        t = sprite << 2;
         SetOamByte(t + 0x0C, 0x40);
-        u = (i << 3) + 0x30;
+        u = (sprite << 3) + 0x30;
         SetOamByte(t + 0x0D, u);
-        SetOamByte(t + 0x0E, u = i + 6);
+        SetOamByte(t + 0x0E, u = sprite + 6);
     }
 }
 

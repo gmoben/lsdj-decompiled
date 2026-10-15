@@ -247,13 +247,13 @@ UBYTE CheckRomChecksum(void)
     UBYTE low;
     volatile UBYTE high;      /* (UWORD)hi is widened afresh for the last test */
     UWORD sum;
-    UWORD p;
+    UWORD address;
 
     low = *(UBYTE *)0x014F;  /* HeaderChecksumLow */
     high = *(UBYTE *)0x014E;  /* HeaderChecksumHigh */
     sum = 0;
-    for (p = 0; p < 0x4000; p++)
-        sum += *(UBYTE *)p;
+    for (address = 0; address < 0x4000; address++)
+        sum += *(UBYTE *)address;
     for (bank = 1; bank < 0x40; bank++) {
         *(UBYTE *)0x2000 = bank;
         sum += ChecksumRomBank();

@@ -26,11 +26,11 @@ void OpenHelpEntry(void);
 
 void DrawHelpMenu(void)
 {
-    UBYTE i;
+    UBYTE line;
 
-    for (i = 0; HelpMenuPointers[i]; i++) {
-        SetVramCursor(0, i);
-        DrawString(HelpMenuPointers[i]);
+    for (line = 0; HelpMenuPointers[line]; line++) {
+        SetVramCursor(0, line);
+        DrawString(HelpMenuPointers[line]);
     }
 }
 

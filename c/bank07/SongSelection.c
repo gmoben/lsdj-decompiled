@@ -29,7 +29,7 @@ const UBYTE SongSelectionAttribute[32] = {             /* $07:$5DB8: CGB attribu
 
 void EditSongSelection(void)
 {
-    UBYTE i;
+    UBYTE column;
     UBYTE x0;
     UBYTE y0;
     UBYTE x1;
@@ -71,9 +71,9 @@ void EditSongSelection(void)
     }
     wSongColumn = wSongPasteColumn;
     wSongRow = wSongPasteRow;
-    for (i = x0; i < x1; i++) {
+    for (column = x0; column < x1; column++) {
         y = y0 + 2;
-        if (i >= 4)
+        if (column >= 4)
             DebugTrap();
         if (y >= 0x12)
             DebugTrap();
@@ -81,10 +81,10 @@ void EditSongSelection(void)
             DebugTrap();
         if (hGameboyType) {
             VBK_REG = 1;
-            set_bkg_tiles(SongColumnOffsets[i], y, 2, y1 - y0, SongSelectionAttribute);
+            set_bkg_tiles(SongColumnOffsets[column], y, 2, y1 - y0, SongSelectionAttribute);
             VBK_REG = 0;
         } else {
-            DrawTileRun(SongColumnOffsets[i], y, 2, y1 - y0, 2);
+            DrawTileRun(SongColumnOffsets[column], y, 2, y1 - y0, 2);
         }
     }
 }
