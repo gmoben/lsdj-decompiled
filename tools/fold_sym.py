@@ -19,6 +19,8 @@ import re
 import sys
 from pathlib import Path
 
+import symfile
+
 ROOT = Path(__file__).resolve().parent.parent
 GLOBAL = re.compile(r"^([0-9A-F]{4}) ([A-Za-z_]\w*)(\s+;.*)?$")
 
@@ -80,6 +82,7 @@ def main() -> None:
             break
         else:
             sys.exit(f"error: {name} is not a global symbol")
+    symfile.align_files()
 
 
 if __name__ == "__main__":

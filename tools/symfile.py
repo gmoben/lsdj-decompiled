@@ -1,0 +1,99 @@
+#!/usr/bin/env python3
+"""The layout of the curated symbol files, and the aligner that keeps it.
+
+src/bankNN.sym lines are `ADDR Name`, with a comment's `;` at column 32
+(a longer name takes one space); constants/ram.inc lines are
+`DEF Name EQU value`, `EQU` at column 38 and a comment's `;` at column 49,
+and a comment continued on the next lines keeps its `;` in the same column.
+Every tool that writes these files ends with align_files(), and
+tools/match/test_tools.py checks they stay aligned.
+
+    tools/symfile.py           # align them in place
+    tools/symfile.py --check   # exit 1 if any is not aligned
+"""
+
+from __future__ import annotations
+
+import re
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+SYM_COMMENT = 32
+EQU_COLUMN = 38
+RAM_COMMENT = 49
+
+SYM_LINE = re.compile(r"^([0-9A-Fa-f]{4} \S+)[ \t]*(;.*)?$")
+DEF_LINE = re.compile(r"^(DEF \S+)[ \t]+EQU[ \t]+([^;]*?)[ \t]*(;.*)?$")
+CONTINUED = re.compile(r"^[ \t]+(;.*)$")
+
+
+def pad(text: str, column: int) -> str:
+    """`text` padded with spaces to `column`, and at least one space."""
+    return text + " " * max(1, column - len(text))
+
+
+def _lines(text: str, align_line) -> str:
+    out = [align_line(line) for line in text.splitlines()]
+    return "\n".join(out) + ("\n" if text.endswith("\n") else "")
+
+
+def align_sym(text: str) -> str:
+    def line(s: str) -> str:
+        m = SYM_LINE.match(s)
+        if not m:
+            return s.rstrip()
+        return pad(m.group(1), SYM_COMMENT) + m.group(2) if m.group(2) else m.group(1)
+    return _lines(text, line)
+
+
+def align_ram(text: str) -> str:
+    def line(s: str) -> str:
+        m = DEF_LINE.match(s)
+        if m:
+            head = pad(m.group(1), EQU_COLUMN) + "EQU " + m.group(2)
+            return pad(head, RAM_COMMENT) + m.group(3) if m.group(3) else head
+        m = CONTINUED.match(s)
+        if m:
+            return " " * RAM_COMMENT + m.group(1)
+        return s.rstrip()
+    return _lines(text, line)
+
+
+def files() -> list[tuple[Path, object]]:
+    return ([(p, align_sym) for p in sorted((ROOT / "src").glob("bank*.sym"))]
+            + [(ROOT / "constants" / "ram.inc", align_ram)])
+
+
+def unaligned() -> list[Path]:
+    return [p for p, align in files() if align(p.read_text()) != p.read_text()]
+
+
+def align_files() -> list[Path]:
+    """Align every curated symbol file in place; the ones that changed."""
+    changed = []
+    for p, align in files():
+        text = p.read_text()
+        new = align(text)
+        if new != text:
+            p.write_text(new)
+            changed.append(p)
+    return changed
+
+
+def main() -> int:
+    if sys.argv[1:] == ["--check"]:
+        bad = unaligned()
+        for p in bad:
+            print(f"{p.relative_to(ROOT)}: not aligned (tools/symfile.py aligns it)")
+        return 1 if bad else 0
+    if sys.argv[1:]:
+        print(__doc__)
+        return 2
+    for p in align_files():
+        print(f"aligned {p.relative_to(ROOT)}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

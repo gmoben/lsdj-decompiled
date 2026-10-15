@@ -1,27 +1,27 @@
 ; Bank $1C -- File screen (save/load) + song (de)compression
-57BB DrawFileScreen      ; screen idx 13: draws the file/save-load browser
+57BB DrawFileScreen             ; screen idx 13: draws the file/save-load browser
 
 ; --- File-screen strings + a LUT (db; referenced by the draw/save-load code) ---
-4047 DefaultWaveFrameB1C ; [16] default wave frame (32-nibble ramp), source at $43FC
-43B9 TxtEmpty           ; "[EMPTY]" (empty file slot)
-47A3 TxtVerify          ; "VERIFY..."
-4C11 TxtEmpty2          ; "[EMPTY] "
-534E TxtLoading         ; "LOADING...1/"
-57AC TxtEmpty3          ; "[EMPTY]      0"
-5AD4 FileNoAttributeTiles                ; [2] = $03 $03: CGB attribute bytes under the "NO" prompt (set_bkg_tiles, DrawBlocksUsed)
-60A9 TxtFileErased      ; "FILE ERASED!"
-70F9 TxtUpgrading        ; "UPGRADING..."
+4047 DefaultWaveFrameB1C        ; [16] default wave frame (32-nibble ramp), source at $43FC
+43B9 TxtEmpty                   ; "[EMPTY]" (empty file slot)
+47A3 TxtVerify                  ; "VERIFY..."
+4C11 TxtEmpty2                  ; "[EMPTY] "
+534E TxtLoading                 ; "LOADING...1/"
+57AC TxtEmpty3                  ; "[EMPTY]      0"
+5AD4 FileNoAttributeTiles       ; [2] = $03 $03: CGB attribute bytes under the "NO" prompt (set_bkg_tiles, DrawBlocksUsed)
+60A9 TxtFileErased              ; "FILE ERASED!"
+70F9 TxtUpgrading               ; "UPGRADING..."
 6E3C NoiseNoteRemapTable        ; [112] FileUpgradeV18's noise-note remap: (note - $20) as high nibble x low 3 bits -> 1..$3C, +$3C unless bit 3
 ; --- song compressor (SAVE); see docs/save_format.md ---
-715B WriteCompressedByte ; emit one byte to the compressed output stream
-711F ReadWorkingSongByte ; read a byte of the working song (input to compress)
+715B WriteCompressedByte        ; emit one byte to the compressed output stream
+711F ReadWorkingSongByte        ; read a byte of the working song (input to compress)
 ; --- song decompressor (LOAD) ---
-7402 ReadCompressedByte  ; read next byte from the compressed stream (ptr wCompressSourceHigh/wBlockDestinationBank)
+7402 ReadCompressedByte         ; read next byte from the compressed stream (ptr wCompressSourceHigh/wBlockDestinationBank)
 74E0 LoadCompressedBlock        ; copy 512-byte compressed block a (SRAM bank 4 + a>>4, $A000 + (a&15)*$200) into the $DB00 buffer and point wCompressSource at it; ends with reti
-753E EmitDefaultWave     ; $F0 run: emit a default wavetable frame
-758E EmitDefaultInstrument ; $F1 run: emit a default instrument
+753E EmitDefaultWave            ; $F0 run: emit a default wavetable frame
+758E EmitDefaultInstrument      ; $F1 run: emit a default instrument
 ; --- file screen ---
-589A FileActionNames    ; action names "LOAD"/"SAVE"/"ERASE" (5-byte stride, indexed by action type)
+589A FileActionNames            ; action names "LOAD"/"SAVE"/"ERASE" (5-byte stride, indexed by action type)
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 4000 FileWriteCompressedSram    ; low-level compressed-output writer to SRAM (bank wCompressBank, ptr wCompressSource; di-guarded)
@@ -41,9 +41,9 @@
 4A46 LoadFileListState          ; read active-file marker ($bfc1) + init map, cursor restrict, block counts
 4C1A EraseFileName              ; clear the 8-char filename slot in the $a000 name table
 4D58 EraseFile                  ; FILE erase action: FreeFileBlocks + EraseFileName + refresh (TxtFileErased)
-4DD1 MigrateTempoProperties          ; copy legacy property bytes $bfb2/$bfb3 -> $bfca/$bfcb (format fixup)
+4DD1 MigrateTempoProperties     ; copy legacy property bytes $bfb2/$bfb3 -> $bfca/$bfcb (format fixup)
 4FA5 FileLoadSlotInfo           ; load slot info for index (arg<$20 -> wCompressByte); calls FileScanSlotNames
-5077 FileClearChannelState         ; zero the 8 wChannelActive bytes ($C0E0..7) backward
+5077 FileClearChannelState      ; zero the 8 wChannelActive bytes ($C0E0..7) backward
 5098 FileStopSound              ; SetInterruptEnable + FileClearChannelState (silence before load/save)
 50B3 LoadFile                   ; FILE load action: keep key delay/repeat + sync modes, FileLoadSlotInfo the slot (FAIL! waits a press), restore props, set active file, LoadProjectSettings + RedrawScreen
 5361 DrawFileTextField          ; draw a file-screen text field (highlight-aware) at computed coords
@@ -51,15 +51,15 @@
 5563 FileDrawFieldChecked       ; bounds-check (<$10) then ColorField
 5597 FileValidateName           ; validate a name (FileFindSlotEnd; char range $0a/$1f/$20 checks)
 55F1 DrawFileList               ; draw the visible file slots (wFileScroll window, names + block counts)
-5892 .drawLabel           ; draw the "LOAD" prompt string
+5892 .drawLabel                 ; draw the "LOAD" prompt string
 58C1 SeekNextWritableSlot       ; move wFileCursor down to the next slot a save may use: an empty one or the open file (not past the list's end)
 590B SeekPreviousWritableSlot   ; move wFileCursor up to the previous slot a save may use: an empty one or the open file
 594A FileCursorBelowWindow      ; whether wFileCursor is below the 12-row file list window (wFileCursor - wFileScroll > 11)
-595F FileCalculateCompressedSize     ; read 4 size bytes + MulU16 -> total compressed size
+595F FileCalculateCompressedSize ; read 4 size bytes + MulU16 -> total compressed size
 59E6 DrawBlocksUsed             ; BLOCKS USED/FREE panel (FileCalculateCompressedSize, 33-block bound)
-60CC FileReadInstrumentByte          ; read byte[arg] of the instrument currently being iterated (for upgrade/migration)
-60E0 FileWriteInstrumentByte         ; write byte[arg] of the instrument currently being iterated
-60F5 FileForEachInstrumentType       ; for each of the 64 instruments whose byte-0 (type) == arg, invoke the callback ptr
+60CC FileReadInstrumentByte     ; read byte[arg] of the instrument currently being iterated (for upgrade/migration)
+60E0 FileWriteInstrumentByte    ; write byte[arg] of the instrument currently being iterated
+60F5 FileForEachInstrumentType  ; for each of the 64 instruments whose byte-0 (type) == arg, invoke the callback ptr
 61D6 FileUpgradeV0              ; song upgrade step v0->v1: patch type-2 instruments (callback FileUpgradeV0Kit)
 621D FileUpgradeV1              ; song upgrade step v1->v2: type-2 instruments, subtract 8 from fields 2 & 9 (callback FileUpgradeV1Kit)
 622D FileUpgradeV2              ; song upgrade step v2->v3: patch song data (WriteSongByte)
@@ -92,8 +92,8 @@
 7167 FileCompressRun            ; RLE-encode a run (WriteCompressedByte x2, ReadWorkingSongByte)
 719C FileSendSyncByte           ; send sync byte arg: assert no transfer is running (rSC & $81), wSyncTransmitByte = arg, SendSyncByte, then delay(6 on CGB, 3 on DMG)
 72EE SyncTransferByte           ; link-port byte exchange step (wSyncState, joypad, SendSyncHandshake)
-741D FilePutDecompressByte          ; append decompressed byte to wDecompressBuffer buffer (wDecompressPosition cursor)
-7426 FileDecompressNextBank         ; decompression: advance source / switch SRAM bank (wBlockDestinationBank, wDecompressOk)
+741D FilePutDecompressByte      ; append decompressed byte to wDecompressBuffer buffer (wDecompressPosition cursor)
+7426 FileDecompressNextBank     ; decompression: advance source / switch SRAM bank (wBlockDestinationBank, wDecompressOk)
 749E FileDecompressByte         ; decode one compressed byte ($c0/$e0 RLE tokens; FileDecompressRun)
 7513 FileDecompressRun          ; decode an RLE run (ReadCompressedByte, FileDecompressNextBank)
 ; --- functions called from bank 0 (this bank paged in) ---
@@ -106,20 +106,20 @@
 71CD SendLinkClipboard          ; after a copy on linked Game Boys not playing (SYNC = LSDJ): send $FE, the clipboard type, the selection bounds and the cells (manual 5.1.4 Clipboard Transfer)
 
 ; --- per-instrument-type migration callbacks (passed to FileForEachInstrumentType) ---
-6134 FileUpgradeV0Kit    ; save-format 0 kit instrument: the loop bits of kit bytes 2/9 move into byte 5 (bits 6/5), the kit numbers shift up by 8
-61E6 FileUpgradeV1Kit    ; V1 kit-instrument field migration (callback)
-628B FileUpgradeV3Pulse  ; V3 pulse-instrument field migration (callback)
-62D3 FileUpgradeV3Kit    ; V3 kit-instrument field migration (callback)
-6395 FileUpgradeV5Wave   ; V5 wave-instrument field migration (callback)
-63D6 FileUpgradeV6Wave   ; V6 wave-instrument field migration (callback)
-64E7 FileUpgradeV8Wave   ; V8 wave-instrument field migration (callback)
-6513 FileUpgradeV9Wave   ; V9 wave-instrument field migration (callback)
-6540 FileUpgradeV10Pulse ; V10 pulse-instrument field migration (callback)
-68F1 FileUpgradeRemapTable ; [8] nibble remap for FileUpgradeRemapBits: 00 06 08 09 0a 0b 0c 0c
-68F9 FileUpgradeV12Pulse ; V12 pulse/noise-instrument field migration (callback; remaps bytes 1/9 via FileUpgradeRemapBits)
-6A72 FileUpgradeV14Pulse ; V14 pulse-instrument field migration (callback)
-6AEC FileUpgradeV15Wave  ; V15 wave-instrument field migration (callback)
-6C29 FileUpgradeV17bPulse ; V17b pulse-instrument field migration (callback)
+6134 FileUpgradeV0Kit           ; save-format 0 kit instrument: the loop bits of kit bytes 2/9 move into byte 5 (bits 6/5), the kit numbers shift up by 8
+61E6 FileUpgradeV1Kit           ; V1 kit-instrument field migration (callback)
+628B FileUpgradeV3Pulse         ; V3 pulse-instrument field migration (callback)
+62D3 FileUpgradeV3Kit           ; V3 kit-instrument field migration (callback)
+6395 FileUpgradeV5Wave          ; V5 wave-instrument field migration (callback)
+63D6 FileUpgradeV6Wave          ; V6 wave-instrument field migration (callback)
+64E7 FileUpgradeV8Wave          ; V8 wave-instrument field migration (callback)
+6513 FileUpgradeV9Wave          ; V9 wave-instrument field migration (callback)
+6540 FileUpgradeV10Pulse        ; V10 pulse-instrument field migration (callback)
+68F1 FileUpgradeRemapTable      ; [8] nibble remap for FileUpgradeRemapBits: 00 06 08 09 0a 0b 0c 0c
+68F9 FileUpgradeV12Pulse        ; V12 pulse/noise-instrument field migration (callback; remaps bytes 1/9 via FileUpgradeRemapBits)
+6A72 FileUpgradeV14Pulse        ; V14 pulse-instrument field migration (callback)
+6AEC FileUpgradeV15Wave         ; V15 wave-instrument field migration (callback)
+6C29 FileUpgradeV17bPulse       ; V17b pulse-instrument field migration (callback)
 4E10 SaveFile                   ; FILE save action: clear the slot name, free its blocks, compress + verify (DrawVerifyPanel), bump the file generation ($a100+n), copy wNameEditBuffer; 0 fail, 2 verify fail, 1 ok
 589F TxtSave                    ; "SAVE"
 58A4 TxtErase                   ; "ERASE"
@@ -136,133 +136,133 @@
 60C9 TxtNo1Cb                   ; "NO"
 743C FlushBlockToSram           ; copy the 256-byte staging page (wDecompressBuffer) to SRAM [wBlockDestinationPage]<<8; wrap $c0->$a0, bank++
 746E VerifyBlockAgainstSram     ; compare the staging page with the SRAM block (save VERIFY step)
-4559 CompressSongMiddle ; @deploy-only: interior of CompressSong (walker artifact)
-4F4C SaveFileMiddle ; @deploy-only: interior of SaveFile (walker artifact)
+4559 CompressSongMiddle         ; @deploy-only: interior of CompressSong (walker artifact)
+4F4C SaveFileMiddle             ; @deploy-only: interior of SaveFile (walker artifact)
 
 ; --- structural local names (loop heads / common exits) ---
-40F0 .done                ; common exit of SramHasFileBanks
-4158 .done                ; common exit of CheckFileMagicAll
-41A6 .scanLoop            ; loop head in FindFreeBlock: while p - end is negative
-42D2 .done                ; common exit of FindFreeBlock
-42EF .loop                ; loop head in FileScanSlotNames
-4333 .done                ; common exit of FileScanSlotNames
-43B7 .done                ; common exit of CopyFileName
-43DA .loop                ; loop head in CompressIsDefaultWave
-441B .done                ; common exit of CompressIsDefaultWave
-4454 .loop                ; loop head in CompressSong
-44BE .loop2               ; loop head in CompressSong
-46DF .done                ; common exit of CompressSong
-4711 .loop                ; loop head in DecompressBlock
-4722 .loop2               ; loop head in DecompressBlock
-4776 .done                ; common exit of DecompressBlock
-47C8 .loop                ; loop head in FormatFileSpace
-4802 .loop2               ; loop head in FormatFileSpace
-4870 .loop                ; loop head in FileFindSlotEnd
-48EF .blockLoop           ; CountFileBlocks: each allocation-table entry $A141..$A1FF
-4965 .done                ; common exit of CountFileBlocks
-4977 .loop                ; loop head in FileListSlots
-49E9 .loop                ; loop head in FreeFileBlocks
-4A42 .done                ; common exit of FreeFileBlocks
-4AB9 .loop                ; loop head in LoadFileListState
-4C0D .done                ; common exit of LoadFileListState
-4C35 .loop                ; loop head in EraseFileName
-4C9E .loop2               ; loop head in EraseFileName
-4CEE .loop3               ; loop head in EraseFileName
-4D54 .done                ; common exit of EraseFileName
-4E39 .loop                ; loop head in SaveFile
-4F53 .loop2               ; loop head in SaveFile
-4FA1 .done                ; common exit of SaveFile
-5073 .done                ; common exit of FileLoadSlotInfo
-507A .loop                ; loop head in FileClearChannelState
-51E3 .loop                ; loop head in LoadFile
-51EC .loop2               ; loop head in LoadFile
-51F5 .loop3               ; loop head in LoadFile
-534A .done                ; common exit of LoadFile
-537E .loop                ; loop head in DrawFileTextField
-53BF .loop2               ; loop head in DrawFileTextField
-55BE .loop                ; loop head in FileValidateName
-55EF .done                ; common exit of FileValidateName
-562C .loop                ; loop head in DrawFileList
-56ED .loop2               ; loop head in DrawFileList
-57A8 .done                ; common exit of DrawFileList
-57D5 .loop                ; loop head in DrawFileScreen
-58C6 .loop                ; loop head in SeekNextWritableSlot
-5909 .done                ; common exit of SeekNextWritableSlot
-5910 .loop                ; loop head in SeekPreviousWritableSlot
-5948 .done                ; common exit of SeekPreviousWritableSlot
-5AD0 .done                ; common exit of DrawBlocksUsed
-5C9B .loop                ; loop head in FileScreenInput
-600A .loop2               ; loop head in FileScreenInput
-607C .loop3               ; loop head in FileScreenInput
-60A5 .done                ; common exit of FileScreenInput
-60F4 .done                ; common exit of FileWriteInstrumentByte
-6105 .loop                ; loop head in FileForEachInstrumentType
-6130 .done                ; common exit of FileForEachInstrumentType
-6237 .loop                ; loop head in FileUpgradeV2
-6287 .done                ; common exit of FileUpgradeV2
-6340 .loop                ; loop head in FileUpgradeV4
-6391 .done                ; common exit of FileUpgradeV4
-6430 .loop                ; loop head in FileUpgradeV7
-6469 .loop2               ; loop head in FileUpgradeV7
-64A9 .loop3               ; loop head in FileUpgradeV7
-658F .loop                ; loop head in FileUpgradeReadByte
-65D1 .markLoop            ; FileUpgradeClearRange: mark each sequence row's chain in wDecompressBuffer
-65FE .chainLoop           ; FileUpgradeClearRange: each of the 128 chains
-661B .stepLoop            ; FileUpgradeClearRange: the used chain's 16 transposes
-66BC .loop                ; loop head in FileUpgradeV11
-66F1 .loop2               ; loop head in FileUpgradeV11
-674A .loop3               ; loop head in FileUpgradeV11
-6812 .loop4               ; loop head in FileUpgradeV11
-683A .loop5               ; loop head in FileUpgradeV11
-68C1 .done                ; common exit of FileUpgradeV11
-69A3 .done                ; common exit of FileUpgradeRetrigRate
-69B8 .loop                ; loop head in FileUpgradeV13
-69E9 .loop2               ; loop head in FileUpgradeV13
-6A1F .loop3               ; loop head in FileUpgradeV13
-6B2D .loop                ; loop head in FileUpgradeV16
-6BB1 .loop                ; loop head in FileUpgradeV17
-6C25 .done                ; common exit of FileUpgradeV17
-6C74 .loop                ; loop head in FileUpgradeV18
-6CA9 .loop2               ; loop head in FileUpgradeV18
-6D02 .loop3               ; loop head in FileUpgradeV18
-6E38 .done                ; common exit of FileUpgradeV18
-6EBD .loop                ; loop head in FileUpgradeV19
-6EE2 .done                ; common exit of FileUpgradeV19
-6F6F .done2               ; common exit of FileUpgradeV19
-6F79 .loop                ; loop head in FileUpgradeV21
-6FC3 .done                ; common exit of FileUpgradeV21
-6FF0 .loop                ; loop head in FileUpgradeSong
-70F7 .done                ; common exit of FileUpgradeSong
-714B .loop                ; loop head in ReadWorkingSongByte
-7177 .loop                ; loop head in FileCompressRun
+40F0 .done                      ; common exit of SramHasFileBanks
+4158 .done                      ; common exit of CheckFileMagicAll
+41A6 .scanLoop                  ; loop head in FindFreeBlock: while p - end is negative
+42D2 .done                      ; common exit of FindFreeBlock
+42EF .loop                      ; loop head in FileScanSlotNames
+4333 .done                      ; common exit of FileScanSlotNames
+43B7 .done                      ; common exit of CopyFileName
+43DA .loop                      ; loop head in CompressIsDefaultWave
+441B .done                      ; common exit of CompressIsDefaultWave
+4454 .loop                      ; loop head in CompressSong
+44BE .loop2                     ; loop head in CompressSong
+46DF .done                      ; common exit of CompressSong
+4711 .loop                      ; loop head in DecompressBlock
+4722 .loop2                     ; loop head in DecompressBlock
+4776 .done                      ; common exit of DecompressBlock
+47C8 .loop                      ; loop head in FormatFileSpace
+4802 .loop2                     ; loop head in FormatFileSpace
+4870 .loop                      ; loop head in FileFindSlotEnd
+48EF .blockLoop                 ; CountFileBlocks: each allocation-table entry $A141..$A1FF
+4965 .done                      ; common exit of CountFileBlocks
+4977 .loop                      ; loop head in FileListSlots
+49E9 .loop                      ; loop head in FreeFileBlocks
+4A42 .done                      ; common exit of FreeFileBlocks
+4AB9 .loop                      ; loop head in LoadFileListState
+4C0D .done                      ; common exit of LoadFileListState
+4C35 .loop                      ; loop head in EraseFileName
+4C9E .loop2                     ; loop head in EraseFileName
+4CEE .loop3                     ; loop head in EraseFileName
+4D54 .done                      ; common exit of EraseFileName
+4E39 .loop                      ; loop head in SaveFile
+4F53 .loop2                     ; loop head in SaveFile
+4FA1 .done                      ; common exit of SaveFile
+5073 .done                      ; common exit of FileLoadSlotInfo
+507A .loop                      ; loop head in FileClearChannelState
+51E3 .loop                      ; loop head in LoadFile
+51EC .loop2                     ; loop head in LoadFile
+51F5 .loop3                     ; loop head in LoadFile
+534A .done                      ; common exit of LoadFile
+537E .loop                      ; loop head in DrawFileTextField
+53BF .loop2                     ; loop head in DrawFileTextField
+55BE .loop                      ; loop head in FileValidateName
+55EF .done                      ; common exit of FileValidateName
+562C .loop                      ; loop head in DrawFileList
+56ED .loop2                     ; loop head in DrawFileList
+57A8 .done                      ; common exit of DrawFileList
+57D5 .loop                      ; loop head in DrawFileScreen
+58C6 .loop                      ; loop head in SeekNextWritableSlot
+5909 .done                      ; common exit of SeekNextWritableSlot
+5910 .loop                      ; loop head in SeekPreviousWritableSlot
+5948 .done                      ; common exit of SeekPreviousWritableSlot
+5AD0 .done                      ; common exit of DrawBlocksUsed
+5C9B .loop                      ; loop head in FileScreenInput
+600A .loop2                     ; loop head in FileScreenInput
+607C .loop3                     ; loop head in FileScreenInput
+60A5 .done                      ; common exit of FileScreenInput
+60F4 .done                      ; common exit of FileWriteInstrumentByte
+6105 .loop                      ; loop head in FileForEachInstrumentType
+6130 .done                      ; common exit of FileForEachInstrumentType
+6237 .loop                      ; loop head in FileUpgradeV2
+6287 .done                      ; common exit of FileUpgradeV2
+6340 .loop                      ; loop head in FileUpgradeV4
+6391 .done                      ; common exit of FileUpgradeV4
+6430 .loop                      ; loop head in FileUpgradeV7
+6469 .loop2                     ; loop head in FileUpgradeV7
+64A9 .loop3                     ; loop head in FileUpgradeV7
+658F .loop                      ; loop head in FileUpgradeReadByte
+65D1 .markLoop                  ; FileUpgradeClearRange: mark each sequence row's chain in wDecompressBuffer
+65FE .chainLoop                 ; FileUpgradeClearRange: each of the 128 chains
+661B .stepLoop                  ; FileUpgradeClearRange: the used chain's 16 transposes
+66BC .loop                      ; loop head in FileUpgradeV11
+66F1 .loop2                     ; loop head in FileUpgradeV11
+674A .loop3                     ; loop head in FileUpgradeV11
+6812 .loop4                     ; loop head in FileUpgradeV11
+683A .loop5                     ; loop head in FileUpgradeV11
+68C1 .done                      ; common exit of FileUpgradeV11
+69A3 .done                      ; common exit of FileUpgradeRetrigRate
+69B8 .loop                      ; loop head in FileUpgradeV13
+69E9 .loop2                     ; loop head in FileUpgradeV13
+6A1F .loop3                     ; loop head in FileUpgradeV13
+6B2D .loop                      ; loop head in FileUpgradeV16
+6BB1 .loop                      ; loop head in FileUpgradeV17
+6C25 .done                      ; common exit of FileUpgradeV17
+6C74 .loop                      ; loop head in FileUpgradeV18
+6CA9 .loop2                     ; loop head in FileUpgradeV18
+6D02 .loop3                     ; loop head in FileUpgradeV18
+6E38 .done                      ; common exit of FileUpgradeV18
+6EBD .loop                      ; loop head in FileUpgradeV19
+6EE2 .done                      ; common exit of FileUpgradeV19
+6F6F .done2                     ; common exit of FileUpgradeV19
+6F79 .loop                      ; loop head in FileUpgradeV21
+6FC3 .done                      ; common exit of FileUpgradeV21
+6FF0 .loop                      ; loop head in FileUpgradeSong
+70F7 .done                      ; common exit of FileUpgradeSong
+714B .loop                      ; loop head in ReadWorkingSongByte
+7177 .loop                      ; loop head in FileCompressRun
 727D .column
 72AA .cell
-72EA .done                ; common exit of SendLinkClipboard
-72EF .loop                ; loop head in SyncTransferByte
+72EA .done                      ; common exit of SendLinkClipboard
+72EF .loop                      ; loop head in SyncTransferByte
 7389 .column
 73B6 .cell
-744B .loop                ; loop head in FlushBlockToSram
-747D .loop                ; loop head in VerifyBlockAgainstSram
-74AA .loop                ; loop head in FileDecompressByte
-74B3 .loop2               ; loop head in FileDecompressByte
-74FC .loop                ; loop head in LoadCompressedBlock
-7502 .loop2               ; loop head in LoadCompressedBlock
-7528 .loop                ; loop head in FileDecompressRun
+744B .loop                      ; loop head in FlushBlockToSram
+747D .loop                      ; loop head in VerifyBlockAgainstSram
+74AA .loop                      ; loop head in FileDecompressByte
+74B3 .loop2                     ; loop head in FileDecompressByte
+74FC .loop                      ; loop head in LoadCompressedBlock
+7502 .loop2                     ; loop head in LoadCompressedBlock
+7528 .loop                      ; loop head in FileDecompressRun
 
 ; --- structural local names (loop heads / common exits) ---
-5EAB .left                ; wButtons == case in FileScreenInput
-5F32 .right               ; wButtons == case in FileScreenInput
-5FBE .down                ; wButtons == case in FileScreenInput
-6034 .up                  ; wButtons == case in FileScreenInput
+5EAB .left                      ; wButtons == case in FileScreenInput
+5F32 .right                     ; wButtons == case in FileScreenInput
+5FBE .down                      ; wButtons == case in FileScreenInput
+6034 .up                        ; wButtons == case in FileScreenInput
 
 
 
 
 ; --- first-action / assert local names ---
 400D .ok
-41A1 .compressByteOk          ; wCompressByte in range; scan from block 1
-424A .bankOk              ; bank in range; range-check the SRAM address as a long
-42A1 .sourceOk               ; both in range: progress counter + draw it, return 1
+41A1 .compressByteOk            ; wCompressByte in range; scan from block 1
+424A .bankOk                    ; bank in range; range-check the SRAM address as a long
+42A1 .sourceOk                  ; both in range: progress counter + draw it, return 1
 4341 .ok
 435E .ok
 464F .clearDecompressPosition
@@ -334,13 +334,13 @@
 ; --- full local naming (block signature) ---
 40EE .cont
 4156 .cont
-417C .sram128k            ; no 64K-only marker: the table runs to $a200 (192 blocks)
-4189 .endSet              ; end of table chosen; check wCompressByte < $20
-4247 .bankBad             ; the returned bank outside 4..$0F: DebugTrap
-429E .sourceBad              ; the returned SRAM address outside $a000..$bfff: DebugTrap
-42C2 .blockUsed           ; the entry is taken (< $20): next block index, p++
-42CD .nextBlock           ; p++ done (high byte skipped without a carry), back to .scanLoop
-42D0 .tableFull           ; p reached end: return 0
+417C .sram128k                  ; no 64K-only marker: the table runs to $a200 (192 blocks)
+4189 .endSet                    ; end of table chosen; check wCompressByte < $20
+4247 .bankBad                   ; the returned bank outside 4..$0F: DebugTrap
+429E .sourceBad                 ; the returned SRAM address outside $a000..$bfff: DebugTrap
+42C2 .blockUsed                 ; the entry is taken (< $20): next block index, p++
+42CD .nextBlock                 ; p++ done (high byte skipped without a carry), back to .scanLoop
+42D0 .tableFull                 ; p reached end: return 0
 42E4 .cont
 42E6 .cont_2
 4320 .incrementSyncSendAccumulator
@@ -367,8 +367,8 @@
 48C3 .cont
 48CA .cont_2
 48CD .cont_3
-491A .blockRead           ; CountFileBlocks: not at the end: read the entry
-4929 .pointerIncrementDone          ; CountFileBlocks: p++ done (the high byte carried or not)
+491A .blockRead                 ; CountFileBlocks: not at the end: read the entry
+4929 .pointerIncrementDone      ; CountFileBlocks: p++ done (the high byte carried or not)
 49A2 .cont
 49CD .cont_2
 4A38 .cont
@@ -471,8 +471,8 @@
 609B .fileDrawFieldChecked_5
 60A3 .cont_15
 6129 .incrementFileScroll
-61B7 .kit1LoopOff         ; kit 1 had no loop bit: test kit 2's
-61C4 .writeByte5          ; write back byte 5 (loop flags)
+61B7 .kit1LoopOff               ; kit 1 had no loop bit: test kit 2's
+61C4 .writeByte5                ; write back byte 5 (loop flags)
 6246 .body
 627D .next
 6284 .nextDone
@@ -500,10 +500,10 @@
 6594 .step
 65B5 .cont
 65B6 .cont_2
-65F6 .markNext            ; FileUpgradeClearRange: next row (an empty row is skipped)
-6627 .stepsLeft           ; FileUpgradeClearRange: j != 16: the boolean is 0
-6628 .stepTest            ; FileUpgradeClearRange: store and test the materialised `j == 16`
-6691 .chainNext           ; FileUpgradeClearRange: next chain
+65F6 .markNext                  ; FileUpgradeClearRange: next row (an empty row is skipped)
+6627 .stepsLeft                 ; FileUpgradeClearRange: j != 16: the boolean is 0
+6628 .stepTest                  ; FileUpgradeClearRange: store and test the materialised `j == 16`
+6691 .chainNext                 ; FileUpgradeClearRange: next chain
 671D .loadSongReadBuffer
 6756 .cont
 6757 .cont_2
@@ -574,8 +574,8 @@
 7485 .incrementBlockDestinationPage
 74AF .incrementDecompressPosition
 74C9 .fileDecompressNextBank_2
-5092 FileFieldX         ; x of the three file screen fields (0, 5, 10)
-5095 FileFieldWidth     ; their widths (4, 4, 5)
+5092 FileFieldX                 ; x of the three file screen fields (0, 5, 10)
+5095 FileFieldWidth             ; their widths (4, 4, 5)
 
 ; --- full local naming (block signature) ---
 7156 .cont

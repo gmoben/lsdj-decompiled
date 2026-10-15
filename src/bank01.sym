@@ -1,133 +1,133 @@
 ; Bank $01 -- UI string table + help text (incl. the FX command help popups)
-4485 .done                ; common exit
-51F4 PitchSpeedNames    ; [4][5] pitch-speed display names "STEP"/"TICK"/"DRUM"/"FAST"
-764C ShowCommandHelp                ; show command cmd's help line on double-A (ShowMessage; wVramCursor kept): B and H by screen (phrase or table), F, S and W by channel (wSongColumn), the rest from CommandHelpPointers
-776E CommandHelpPointers   ; [20] dw -> the "X: DESCRIPTION" help line per command (index = command*2; entry 0 points at an empty string, the end of TxtHelpSSweep)
+4485 .done                      ; common exit
+51F4 PitchSpeedNames            ; [4][5] pitch-speed display names "STEP"/"TICK"/"DRUM"/"FAST"
+764C ShowCommandHelp            ; show command cmd's help line on double-A (ShowMessage; wVramCursor kept): B and H by screen (phrase or table), F, S and W by channel (wSongColumn), the rest from CommandHelpPointers
+776E CommandHelpPointers        ; [20] dw -> the "X: DESCRIPTION" help line per command (index = command*2; entry 0 points at an empty string, the end of TxtHelpSSweep)
 
 ; --- UI functions called from bank 0 (bank $01 paged in) ---
-4CF1 InitializeScreen        ; screen setup: ApplyColorSet + ClearOamBuffer + LoadHardwareTables
+4CF1 InitializeScreen           ; screen setup: ApplyColorSet + ClearOamBuffer + LoadHardwareTables
 4487 DrawCartTest               ; boot CARTRIDGE TEST screen (ROM checksum + SRAM self-test)
 4FEC UpdatePlayClock            ; per-frame PLAY clock: wPlayFrames counts to 60 (one frame skipped every 4 s), then seconds/minutes; redraws m:ss on the project screen
 7860 IsMessageActive            ; 1 while a message is up or pending (wMessageTimer or wMessageStringPointer set)
-7878 UpdateMessage     ; timed message + wSelectHeld handling
+7878 UpdateMessage              ; timed message + wSelectHeld handling
 4811 CheckJkMarker              ; check the 'jk' SRAM-init marker at $a13e/$a13f (unreferenced)
-4848 CheckSongInitializedMarker   ; ReadSongByte $be78/$be79 ('rb' memory-init marker)
+4848 CheckSongInitializedMarker ; ReadSongByte $be78/$be79 ('rb' memory-init marker)
 50A0 UpdateWorkClock            ; apply one work-time minute: song WORKED h:mm ($BFB2/$BFB3) and the total d:hh:mm ($BFB6-$BFB8) in SRAM bank 1
-48D4 WriteSongInitializedMarker   ; WriteSongByte $be78 (set the 'rb' init marker)
+48D4 WriteSongInitializedMarker ; WriteSongByte $be78 (set the 'rb' init marker)
 4D67 MarkChainUsed              ; set chain (arg)'s bit in the chain allocation map (SramChainAllocation + chain/8, bit chain&7); asserts chain < $80
-4EA3 .writeSongByte       ; thin WriteSongByte wrapper
+4EA3 .writeSongByte             ; thin WriteSongByte wrapper
 45D1 FormatSramSong             ; format the SRAM song: zero the banks, default grooves/sequence/word names/instr names/synth params/wave frames
 
 ; --- UI message / status strings (db "..."; referenced by the draw code) ---
 4557 TxtCartridgeTest           ; "CARTRIDGE TEST"
 4A44 TxtSpch                    ; "SPCH" default speech-instrument name
-52DE TxtCopiedInstr     ; "COPIED INSTR"
-54F6 TxtClonedTable     ; "CLONED TABLE"
-55BC TxtPastedInstr     ; "PASTED INSTR"
-75C7 TxtOutOfMemory     ; "OUT OF MEMORY. CLEAN SONG DATA IN PROJECT SCREEN"
-7602 TxtTapAddChain     ; "TAP A TO ADD CHAIN!"
-7620 TxtTapAddPhrase    ; "TAP A TO ADD PHRASE!"
-763F TxtMax16Marks      ; "MAX 16 MARKS"
-7945 TxtBlank5          ; 5 spaces + NUL (blank/clear string)
+52DE TxtCopiedInstr             ; "COPIED INSTR"
+54F6 TxtClonedTable             ; "CLONED TABLE"
+55BC TxtPastedInstr             ; "PASTED INSTR"
+75C7 TxtOutOfMemory             ; "OUT OF MEMORY. CLEAN SONG DATA IN PROJECT SCREEN"
+7602 TxtTapAddChain             ; "TAP A TO ADD CHAIN!"
+7620 TxtTapAddPhrase            ; "TAP A TO ADD PHRASE!"
+763F TxtMax16Marks              ; "MAX 16 MARKS"
+7945 TxtBlank5                  ; 5 spaces + NUL (blank/clear string)
 
 ; --- data tables (were decoded as code) ---
-40EA DefaultWaveFrameB1  ; [16] default wave frame (32-nibble ramp), memcpy'd into wave_frames by $47E5
-57BF ScreenPaletteChain             ; [18][20] ground tiles, CHAIN screen (DrawScreenPaletteMap)
-7498 TxtBlankString2   ; blank (zero) display string (ref $6D98)
+40EA DefaultWaveFrameB1         ; [16] default wave frame (32-nibble ramp), memcpy'd into wave_frames by $47E5
+57BF ScreenPaletteChain         ; [18][20] ground tiles, CHAIN screen (DrawScreenPaletteMap)
+7498 TxtBlankString2            ; blank (zero) display string (ref $6D98)
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
-4000 TestSramLow                 ; cartridge RAM test, SRAM banks 0-3: write/read-back pattern (part of DrawCartTest)
-445A TestSramHigh                 ; cartridge RAM test, SRAM banks 4-15 (jp TestSramHigh.done on mismatch)
-493B CopyInstrumentName              ; copy instrument arg's 5-char name -> wNameEditBuffer (speech $40 -> "SPCH")
-4A49 WriteInstrumentName             ; wNameEditBuffer -> instrument name storage ($be7a + instr*5)
-4B15 LoadHardwareTables               ; load the clock-dependent tables: PitchCurve -> wNotePeriodLow, NoteFrequencyTable -> wNotePeriods, the Super Game Boy's versions on an SGB (wIsSgb)
+4000 TestSramLow                ; cartridge RAM test, SRAM banks 0-3: write/read-back pattern (part of DrawCartTest)
+445A TestSramHigh               ; cartridge RAM test, SRAM banks 4-15 (jp TestSramHigh.done on mismatch)
+493B CopyInstrumentName         ; copy instrument arg's 5-char name -> wNameEditBuffer (speech $40 -> "SPCH")
+4A49 WriteInstrumentName        ; wNameEditBuffer -> instrument name storage ($be7a + instr*5)
+4B15 LoadHardwareTables         ; load the clock-dependent tables: PitchCurve -> wNotePeriodLow, NoteFrequencyTable -> wNotePeriods, the Super Game Boy's versions on an SGB (wIsSgb)
 4B5E ClearOamBuffer             ; clear the OAM shadow (wOamBuffer, $a0 bytes) and sprite tiles $8000-$802f/$8050-$805f, place the WAV sprites, wait for the OAM DMA, enable sprites
 4C61 ApplyColorSet              ; load the wColorSet CGB BG+OBJ palettes (hw $11 check, set_bkg_palette)
 4CFB MarkPhraseUsed             ; set the phrase-alloc bit (song $3E82 bitmap) for phrase arg
 5208 DrawSpeedGlyph             ; draw the 2-tile speed icon (SpeedGlyphTiles[value&7])
-5243 .drawString          ; draw the string pointed to by bc (shared tail of the flag-name drawers)
+5243 .drawString                ; draw the string pointed to by bc (shared tail of the flag-name drawers)
 52EB CopySong16                 ; copy a 16-byte song-data row src->dst via Read/WriteSongByte
 5331 CopyTableData              ; copy table src->dst across the table column regions (song $3680/$3880/$3A80)
 55C9 GetScreenPalette           ; -> de = CGB BG palette block for wCurrentScreen (INSTR varies by instr type)
-6CD7 DrawScreenPaletteMap           ; the current screen's palette map (GetScreenPalette): CopyScreenMapCgb on CGB, CopyScreenMapDmg on DMG (the message cancelled); none clears the attribute map
-6D23 ClearBgMapAndAttributes               ; clear BG tilemap from $9800 (VBK-aware: bank1 attrs on CGB)
+6CD7 DrawScreenPaletteMap       ; the current screen's palette map (GetScreenPalette): CopyScreenMapCgb on CGB, CopyScreenMapDmg on DMG (the message cancelled); none clears the attribute map
+6D23 ClearBgMapAndAttributes    ; clear BG tilemap from $9800 (VBK-aware: bank1 attrs on CGB)
 6D53 DrawTopBar                 ; top status bar: active message (wMessageStringPointer) or screen title + hex number
 7955 DrawCrashScreen            ; the crash screen: "DONT PANIC!", the bank, the stack pointer and 10 stack words, play mode, screen, hardware, sync, AST, the version; then hangs
 7BDE ResetEditorState           ; clear selection rect, clipboard type, cursor mode (+wQuickMarking)
-7DE9 ClearSramWindow           ; zero the whole $A000-$BFFF SRAM window (8 bytes/iter until h==$c0); used during init/format
+7DE9 ClearSramWindow            ; zero the whole $A000-$BFFF SRAM window (8 bytes/iter until h==$c0); used during init/format
 7DFB CopyScreenMapCgb           ; copy the 20x18 map at arg to the BG map ($9800) as CGB tiles + attributes: below $48 palette 0, $48-$8C palette 1 (the shaded block, tile - $45), $8D up palette 2 (the highlight block, tile - $8A)
 7E4E CopyScreenMapDmg           ; copy the 20x18 map at arg to the BG map ($9800; rSTAT-gated)
 7E74 SaveCrashStack             ; save the crash's stack pointer (wCrashSP) and 20 bytes from the stack (wCrashStack), then DrawCrashScreen
-7ED3 LoadObjPalette           ; upload object palette: write rOBPI/rOBPD from [bc], index/count from args
+7ED3 LoadObjPalette             ; upload object palette: write rOBPI/rOBPD from [bc], index/count from args
 ; --- indirect (FarCall) target ---
-75BD ShowOutOfMemory ; push TxtOutOfMemory, call ShowMessage
-75F8 ShowTapAddChain ; push TxtTapAddChain, call ShowMessage
+75BD ShowOutOfMemory            ; push TxtOutOfMemory, call ShowMessage
+75F8 ShowTapAddChain            ; push TxtTapAddChain, call ShowMessage
 
 ; --- song-data allocation, clipboard, message bar (FarCall targets) ---
-4E43 FreeChain          ; clear chain-alloc bit (song $3EA2 bitmap) and write back
-4EB3 AllocateNextFreePhrase ; scan phrase-alloc bitmap ($3E82) from current phrase, mark first free; full -> ShowOutOfMemory, ret $ff
-5253 CopyInstrument     ; copy the instrument ("COPIED INSTR"): wClipboardType=6, 16 instr bytes -> screen scratch
-546E CloneInstrumentTable    ; on instr TABLE field: alloc table copy (bank1f), "CLONED TABLE", write #|$20
-5503 PasteInstrument    ; if select-held + clipboardType==6: paste 16 bytes back into instrument
-74F7 DrawMessageBar     ; render wStringBuffer (20 ch) to tilemap row 0 + CGB attrs (MessageBarAttributeRow)
-7616 ShowTapAddPhrase   ; push TxtTapAddPhrase, call ShowMessage
-7635 ShowMax16Marks     ; push TxtMax16Marks, call ShowMessage
-781F ClearMessageBar    ; zero wMessageStringPointer, fill top bar with spaces
-7C86 LoadProjectSettings ; audio off; read key-repeat/sync/clone/colorset from song properties ($bfbc+), clamp, re-init palettes
+4E43 FreeChain                  ; clear chain-alloc bit (song $3EA2 bitmap) and write back
+4EB3 AllocateNextFreePhrase     ; scan phrase-alloc bitmap ($3E82) from current phrase, mark first free; full -> ShowOutOfMemory, ret $ff
+5253 CopyInstrument             ; copy the instrument ("COPIED INSTR"): wClipboardType=6, 16 instr bytes -> screen scratch
+546E CloneInstrumentTable       ; on instr TABLE field: alloc table copy (bank1f), "CLONED TABLE", write #|$20
+5503 PasteInstrument            ; if select-held + clipboardType==6: paste 16 bytes back into instrument
+74F7 DrawMessageBar             ; render wStringBuffer (20 ch) to tilemap row 0 + CGB attrs (MessageBarAttributeRow)
+7616 ShowTapAddPhrase           ; push TxtTapAddPhrase, call ShowMessage
+7635 ShowMax16Marks             ; push TxtMax16Marks, call ShowMessage
+781F ClearMessageBar            ; zero wMessageStringPointer, fill top bar with spaces
+7C86 LoadProjectSettings        ; audio off; read key-repeat/sync/clone/colorset from song properties ($bfbc+), clamp, re-init palettes
 
 ; --- FX command help strings (CommandHelpPointers targets; shown on double-A) ---
-6FB8 TxtHelpA           ; "A: RUN TABLE [00-1F=PLAY, 20=STOP]"
-6FDB TxtHelpBNote       ; "B: MAYBE PLAY NOTE; ..." (phrase screen)
-7016 TxtHelpBHop        ; "B: MAYBE HOP; ..." (table screen)
-705E TxtHelpC           ; "C: CHORD [EACH DIGIT=SEMITONES TO ADD]"
-7085 TxtHelpD           ; "D: DELAY NOTE [TICKS]"
-709B TxtHelpE           ; "E: VOLUME ENVELOPE; ..."
-7123 TxtHelpFTune       ; "F: FINETUNE [PU2 TUNE,FINETUNE]"
-7143 TxtHelpFOffset     ; "F: KIT/SYNTH OFFSET; 01-7F=INCREASE, FF-80=DECREASE"
-7177 TxtHelpG           ; "G: SET GROOVE [00-1F]"
-718D TxtHelpHPhrase     ; "H0X: HOP TO NEXT PHRASE; ..." (phrase screen)
-71EF TxtHelpHTable      ; "H: HOP TO STEP; ..." (table screen)
-723A TxtHelpK           ; "K: KILL NOTE AFTER N TICKS"
-7255 TxtHelpL           ; "L: SLIDE TO NOTE, DIGITS=TIME. ..."
-72AE TxtHelpM           ; "M: MASTER VOLUME [LEFT,RIGHT] ..."
-730A TxtHelpO           ; "O: SET OUTPUT [LEFT/RIGHT]"
-7325 TxtHelpP           ; "P: PITCH BEND [01-7F=UP, FF-80=DOWN, 00=OFF]"
-7352 TxtHelpR           ; "R: RETRIG; ..."
-73BC TxtHelpT           ; "T: SET TEMPO; 28-FF=40-255 BPM, 00-27=256-295 BPM"
-73EE TxtHelpV           ; "V: VIBRATO [SPEED,DEPTH]; V00=STOP"
-7411 TxtHelpWShort      ; "W: WAVE"
-7419 TxtHelpW           ; "W: WAVE [SPEED,LENGTH] 0=NO CHANGE"
-743C TxtHelpZ           ; "Z: RANDOMIZE; ..."
-7796 TxtHelpSKit        ; "S: MOVE KIT LOOP POINTS; ..." (kit instr)
-77DF TxtHelpSNoise      ; "S: ADD TO NOISE SHAPE; DIGITS ARE INDEPENDENT"
-780D TxtHelpSSweep      ; "S: SET PU1 SWEEP" (pulse 1)
+6FB8 TxtHelpA                   ; "A: RUN TABLE [00-1F=PLAY, 20=STOP]"
+6FDB TxtHelpBNote               ; "B: MAYBE PLAY NOTE; ..." (phrase screen)
+7016 TxtHelpBHop                ; "B: MAYBE HOP; ..." (table screen)
+705E TxtHelpC                   ; "C: CHORD [EACH DIGIT=SEMITONES TO ADD]"
+7085 TxtHelpD                   ; "D: DELAY NOTE [TICKS]"
+709B TxtHelpE                   ; "E: VOLUME ENVELOPE; ..."
+7123 TxtHelpFTune               ; "F: FINETUNE [PU2 TUNE,FINETUNE]"
+7143 TxtHelpFOffset             ; "F: KIT/SYNTH OFFSET; 01-7F=INCREASE, FF-80=DECREASE"
+7177 TxtHelpG                   ; "G: SET GROOVE [00-1F]"
+718D TxtHelpHPhrase             ; "H0X: HOP TO NEXT PHRASE; ..." (phrase screen)
+71EF TxtHelpHTable              ; "H: HOP TO STEP; ..." (table screen)
+723A TxtHelpK                   ; "K: KILL NOTE AFTER N TICKS"
+7255 TxtHelpL                   ; "L: SLIDE TO NOTE, DIGITS=TIME. ..."
+72AE TxtHelpM                   ; "M: MASTER VOLUME [LEFT,RIGHT] ..."
+730A TxtHelpO                   ; "O: SET OUTPUT [LEFT/RIGHT]"
+7325 TxtHelpP                   ; "P: PITCH BEND [01-7F=UP, FF-80=DOWN, 00=OFF]"
+7352 TxtHelpR                   ; "R: RETRIG; ..."
+73BC TxtHelpT                   ; "T: SET TEMPO; 28-FF=40-255 BPM, 00-27=256-295 BPM"
+73EE TxtHelpV                   ; "V: VIBRATO [SPEED,DEPTH]; V00=STOP"
+7411 TxtHelpWShort              ; "W: WAVE"
+7419 TxtHelpW                   ; "W: WAVE [SPEED,LENGTH] 0=NO CHANGE"
+743C TxtHelpZ                   ; "Z: RANDOMIZE; ..."
+7796 TxtHelpSKit                ; "S: MOVE KIT LOOP POINTS; ..." (kit instr)
+77DF TxtHelpSNoise              ; "S: ADD TO NOISE SHAPE; DIGITS ARE INDEPENDENT"
+780D TxtHelpSSweep              ; "S: SET PU1 SWEEP" (pulse 1)
 
 ; --- message bar attributes + screen name strings ---
-7484 MessageBarAttributeRow      ; [20] 20 x $04: CGB attribute row for the top message bar
-74AC TxtScreenLive      ; "LIVE"
-74B1 TxtScreenSong      ; "SONG"
-74B6 TxtScreenChain     ; "CHAIN "
-74BD TxtScreenPhrase    ; "PHRASE "
-74C5 TxtScreenTable     ; "TABLE "
-74CC TxtScreenProject   ; "PROJECT "
-74D5 TxtScreenFile      ; "FILE "
-74DB TxtScreenInstr     ; "INSTR "
-74E2 TxtScreenWave      ; "WAVE "
-74E8 TxtScreenSynth     ; "SYNTH "
-74EF TxtScreenGroove    ; "GROOVE "
+7484 MessageBarAttributeRow     ; [20] 20 x $04: CGB attribute row for the top message bar
+74AC TxtScreenLive              ; "LIVE"
+74B1 TxtScreenSong              ; "SONG"
+74B6 TxtScreenChain             ; "CHAIN "
+74BD TxtScreenPhrase            ; "PHRASE "
+74C5 TxtScreenTable             ; "TABLE "
+74CC TxtScreenProject           ; "PROJECT "
+74D5 TxtScreenFile              ; "FILE "
+74DB TxtScreenInstr             ; "INSTR "
+74E2 TxtScreenWave              ; "WAVE "
+74E8 TxtScreenSynth             ; "SYNTH "
+74EF TxtScreenGroove            ; "GROOVE "
 
 ; --- unreferenced allocation/draw helpers (linked but dead) ---
-4DD3 FreePhrase         ; clear phrase-alloc bit (song $3E82 bitmap) and write back (unreferenced)
-4F59 IsChainUsed        ; e = chain-alloc bit for chain arg <$80 (unreferenced)
-4F99 IsPhraseUsed       ; e = phrase-alloc bit for phrase arg != $ff (unreferenced)
-518C DrawSpeedModeName  ; draw "STEP"/"TICK"/"DRUM"/"FAST" by arg flag bits (unreferenced)
-51F4 TxtStep            ; "STEP"
-51F9 TxtTick            ; "TICK"
-51FE TxtDrum            ; "DRUM"
-5203 TxtFast            ; "FAST"
-522D DrawOnOffName      ; draw " ON"/"OFF" by arg bit 5 (unreferenced)
-524B TxtOff             ; "OFF"
-524F TxtOn              ; " ON"
+4DD3 FreePhrase                 ; clear phrase-alloc bit (song $3E82 bitmap) and write back (unreferenced)
+4F59 IsChainUsed                ; e = chain-alloc bit for chain arg <$80 (unreferenced)
+4F99 IsPhraseUsed               ; e = phrase-alloc bit for phrase arg != $ff (unreferenced)
+518C DrawSpeedModeName          ; draw "STEP"/"TICK"/"DRUM"/"FAST" by arg flag bits (unreferenced)
+51F4 TxtStep                    ; "STEP"
+51F9 TxtTick                    ; "TICK"
+51FE TxtDrum                    ; "DRUM"
+5203 TxtFast                    ; "FAST"
+522D DrawOnOffName              ; draw " ON"/"OFF" by arg bit 5 (unreferenced)
+524B TxtOff                     ; "OFF"
+524F TxtOn                      ; " ON"
 4566 TxtRomDots                 ; "ROM..."
 51EE SpeedGlyphTiles            ; 6 tile indices for the speed icon pairs
 7B7A TxtDontPanic               ; "DONT PANIC!"
@@ -143,25 +143,25 @@
 7BD5 TxtSynColon                ; "SYN:"
 7BDA TxtAst                     ; "AST"
 794B CrashHandler               ; crash entry: di, SRAM locked (rRAMG = 0), SaveCrashStack
-40FA NoteFrequencyTable              ; [108] UWORD GB frequency period per semitone 0-107 (LoadHardwareTables copies it)
+40FA NoteFrequencyTable         ; [108] UWORD GB frequency period per semitone 0-107 (LoadHardwareTables copies it)
 41D2 NoteFrequencyTableSgb      ; [108] UWORD NoteFrequencyTable for the Super Game Boy, 41 cents flat to undo its 2.4% fast clock (LoadHardwareTables picks it by wIsSgb)
 42AA PitchCurve                 ; [216] rising pitch-response curve (LoadHardwareTables copies it)
 4382 PitchCurveSgb              ; [216] PitchCurve for the Super Game Boy (LoadHardwareTables picks it by wIsSgb)
-5927 ScreenPaletteTable             ; [18][20] ground tiles, TABLE screen (DrawScreenPaletteMap)
-5A8F ScreenPalettePhrase            ; [18][20] ground tiles, PHRASE screen (DrawScreenPaletteMap)
-5BF7 ScreenPaletteGroove            ; [18][20] ground tiles, GROOVE screen (DrawScreenPaletteMap)
-5D5F ScreenPaletteProject           ; [18][20] ground tiles, PROJECT screen (DrawScreenPaletteMap)
-5EC7 ScreenPaletteSong              ; [18][20] ground tiles, SONG screen (DrawScreenPaletteMap)
-602F ScreenPaletteInstrumentPulse        ; [18][20] ground tiles, INSTR screen, PULSE type (DrawScreenPaletteMap)
-6197 ScreenPaletteInstrumentWave         ; [18][20] ground tiles, INSTR screen, WAVE type (DrawScreenPaletteMap)
-62FF ScreenPaletteInstrumentKit          ; [18][20] ground tiles, INSTR screen, KIT type (DrawScreenPaletteMap)
-6467 ScreenPaletteInstrumentNoise        ; [18][20] ground tiles, INSTR screen, NOISE type (DrawScreenPaletteMap)
-65CF ScreenPaletteSpeech            ; [18][20] ground tiles, SPEECH instrument / word list (DrawScreenPaletteMap)
-6737 ScreenPaletteWave              ; [18][20] ground tiles, WAVE screen (DrawScreenPaletteMap)
-689F ScreenPaletteSynth             ; [18][20] ground tiles, SYNTH screen (DrawScreenPaletteMap)
-6A07 ScreenPaletteWord              ; [18][20] ground tiles, WORD screen (DrawScreenPaletteMap)
-6B6F ScreenPaletteFile              ; [18][20] ground tiles, FILE screen (DrawScreenPaletteMap)
-4144 NoteFrequency37                 ; [71] UWORD NoteFrequencyTable from entry 37 on (period $0714; a label inside it, kept for the debugger)
+5927 ScreenPaletteTable         ; [18][20] ground tiles, TABLE screen (DrawScreenPaletteMap)
+5A8F ScreenPalettePhrase        ; [18][20] ground tiles, PHRASE screen (DrawScreenPaletteMap)
+5BF7 ScreenPaletteGroove        ; [18][20] ground tiles, GROOVE screen (DrawScreenPaletteMap)
+5D5F ScreenPaletteProject       ; [18][20] ground tiles, PROJECT screen (DrawScreenPaletteMap)
+5EC7 ScreenPaletteSong          ; [18][20] ground tiles, SONG screen (DrawScreenPaletteMap)
+602F ScreenPaletteInstrumentPulse ; [18][20] ground tiles, INSTR screen, PULSE type (DrawScreenPaletteMap)
+6197 ScreenPaletteInstrumentWave ; [18][20] ground tiles, INSTR screen, WAVE type (DrawScreenPaletteMap)
+62FF ScreenPaletteInstrumentKit ; [18][20] ground tiles, INSTR screen, KIT type (DrawScreenPaletteMap)
+6467 ScreenPaletteInstrumentNoise ; [18][20] ground tiles, INSTR screen, NOISE type (DrawScreenPaletteMap)
+65CF ScreenPaletteSpeech        ; [18][20] ground tiles, SPEECH instrument / word list (DrawScreenPaletteMap)
+6737 ScreenPaletteWave          ; [18][20] ground tiles, WAVE screen (DrawScreenPaletteMap)
+689F ScreenPaletteSynth         ; [18][20] ground tiles, SYNTH screen (DrawScreenPaletteMap)
+6A07 ScreenPaletteWord          ; [18][20] ground tiles, WORD screen (DrawScreenPaletteMap)
+6B6F ScreenPaletteFile          ; [18][20] ground tiles, FILE screen (DrawScreenPaletteMap)
+4144 NoteFrequency37            ; [71] UWORD NoteFrequencyTable from entry 37 on (period $0714; a label inside it, kept for the debugger)
 4247 NoteFrequencySgb58High     ; [1] the high byte of NoteFrequencyTableSgb entry 58 (a label inside it, kept for the debugger)
 5099 TxtPctDColon               ; "%d:"
 509D TxtPctD01                  ; "%d"
@@ -175,103 +175,103 @@
 6F93 TxtVerPatch                ; '0' patch digit + "  (c) 2000 JOHAN KOTLINSKI"
 
 ; --- structural local names (loop heads / common exits) ---
-4015 .loop                ; loop head in TestSramLow
-402A .loop2               ; loop head in TestSramLow
-4079 .loop3               ; loop head in TestSramLow
-408E .loop4               ; loop head in TestSramLow
-40E6 .done                ; common exit of TestSramLow
-4462 .loop                ; loop head in TestSramHigh
-44F5 .loop                ; loop head in DrawCartTest
-4552 .loop2               ; loop head in DrawCartTest
-4555 .done                ; common exit of DrawCartTest
-4603 .grooveLoop          ; loop head in FormatSramSong: p != $b290
-4655 .wordNameLoop        ; loop head in FormatSramSong: "W-" + a digit per word
-4763 .synthParameterLoop      ; loop head in FormatSramSong: synth parameter defaults, 16 bytes per synth
-47D0 .waveFrameLoop       ; loop head in FormatSramSong: p < $b000
-4846 .done                ; common exit of CheckJkMarker
-48D2 .done                ; common exit of CheckSongInitializedMarker
-4A40 .done                ; common exit of CopyInstrumentName
-4B7E .clearLoop           ; loop head in ClearOamBuffer: p != $8030 (32-bit compare), one tile byte per pass
-4BD5 .patternLoop         ; loop head in ClearOamBuffer: p != $8060
-4C4F .waitOamDma          ; spin until the timer's OAM DMA clears wOamDirty
-4CEF .done                ; common exit of ApplyColorSet
-4D49 .loop                ; loop head in MarkPhraseUsed
-4DB5 .loop                ; loop head in MarkChainUsed
-4E21 .loop                ; loop head in FreePhrase
-4E91 .loop                ; loop head in FreeChain
-4ED7 .loop                ; loop head in AllocateNextFreePhrase
-4F07 .loop2               ; loop head in AllocateNextFreePhrase
-4F55 .done                ; common exit of AllocateNextFreePhrase
-4F8D .loop                ; loop head in IsChainUsed
-4FDE .loop                ; loop head in IsPhraseUsed
-5097 .done                ; common exit of UpdatePlayClock
-518A .done                ; common exit of UpdateWorkClock
-5269 .loop                ; loop head in CopyInstrument
-5297 .loop2               ; loop head in CopyInstrument
-52EE .loop                ; loop head in CopySong16
-532A .done                ; common exit of CopySong16
-5342 .loop                ; loop head in CopyTableData
-5356 .loop2               ; loop head in CopyTableData
-54F2 .done                ; common exit of CloneInstrumentTable
-5534 .loop                ; loop head in PasteInstrument
-555D .loop2               ; loop head in PasteInstrument
-55B8 .done                ; common exit of PasteInstrument
-56A5 .done                ; common exit of GetScreenPalette
-6D1F .done                ; common exit of DrawScreenPaletteMap
-6D33 .loop                ; loop head in ClearBgMapAndAttributes
-6D3F .loop2               ; loop head in ClearBgMapAndAttributes
-6D51 .done                ; common exit of ClearBgMapAndAttributes
-6EA6 .loop                ; loop head in DrawTopBar
-6F33 .loop2               ; loop head in DrawTopBar
-6F7A .done                ; common exit of DrawTopBar
-750A .loop                ; loop head in DrawMessageBar
-751F .loop2               ; loop head in DrawMessageBar
-758D .loop3               ; loop head in DrawMessageBar
-776A .done                ; common exit of ShowCommandHelp
-783A .loop                ; loop head in ClearMessageBar
-78AF .loop                ; loop head in UpdateMessage
-7943 .done                ; common exit of UpdateMessage
-7A99 .stackLoop           ; loop head in DrawCrashScreen: the 10 stack words
-7B73 .hang                ; DrawCrashScreen's endless loop
-7C82 .done                ; common exit of ResetEditorState
-7D45 .loop                ; loop head in LoadProjectSettings
-7DE5 .done                ; common exit of LoadProjectSettings
-7DEC .loop                ; loop head in ClearSramWindow
-7E06 .loop                ; loop head in CopyScreenMapCgb
-7E09 .loop2               ; loop head in CopyScreenMapCgb
-7E20 .loop3               ; loop head in CopyScreenMapCgb
-7E38 .loop4               ; loop head in CopyScreenMapCgb
-7E59 .loop                ; loop head in CopyScreenMapDmg
-7E5C .loop2               ; loop head in CopyScreenMapDmg
-7E5E .loop3               ; loop head in CopyScreenMapDmg
-7EE9 .loop                ; loop head in LoadObjPalette
+4015 .loop                      ; loop head in TestSramLow
+402A .loop2                     ; loop head in TestSramLow
+4079 .loop3                     ; loop head in TestSramLow
+408E .loop4                     ; loop head in TestSramLow
+40E6 .done                      ; common exit of TestSramLow
+4462 .loop                      ; loop head in TestSramHigh
+44F5 .loop                      ; loop head in DrawCartTest
+4552 .loop2                     ; loop head in DrawCartTest
+4555 .done                      ; common exit of DrawCartTest
+4603 .grooveLoop                ; loop head in FormatSramSong: p != $b290
+4655 .wordNameLoop              ; loop head in FormatSramSong: "W-" + a digit per word
+4763 .synthParameterLoop        ; loop head in FormatSramSong: synth parameter defaults, 16 bytes per synth
+47D0 .waveFrameLoop             ; loop head in FormatSramSong: p < $b000
+4846 .done                      ; common exit of CheckJkMarker
+48D2 .done                      ; common exit of CheckSongInitializedMarker
+4A40 .done                      ; common exit of CopyInstrumentName
+4B7E .clearLoop                 ; loop head in ClearOamBuffer: p != $8030 (32-bit compare), one tile byte per pass
+4BD5 .patternLoop               ; loop head in ClearOamBuffer: p != $8060
+4C4F .waitOamDma                ; spin until the timer's OAM DMA clears wOamDirty
+4CEF .done                      ; common exit of ApplyColorSet
+4D49 .loop                      ; loop head in MarkPhraseUsed
+4DB5 .loop                      ; loop head in MarkChainUsed
+4E21 .loop                      ; loop head in FreePhrase
+4E91 .loop                      ; loop head in FreeChain
+4ED7 .loop                      ; loop head in AllocateNextFreePhrase
+4F07 .loop2                     ; loop head in AllocateNextFreePhrase
+4F55 .done                      ; common exit of AllocateNextFreePhrase
+4F8D .loop                      ; loop head in IsChainUsed
+4FDE .loop                      ; loop head in IsPhraseUsed
+5097 .done                      ; common exit of UpdatePlayClock
+518A .done                      ; common exit of UpdateWorkClock
+5269 .loop                      ; loop head in CopyInstrument
+5297 .loop2                     ; loop head in CopyInstrument
+52EE .loop                      ; loop head in CopySong16
+532A .done                      ; common exit of CopySong16
+5342 .loop                      ; loop head in CopyTableData
+5356 .loop2                     ; loop head in CopyTableData
+54F2 .done                      ; common exit of CloneInstrumentTable
+5534 .loop                      ; loop head in PasteInstrument
+555D .loop2                     ; loop head in PasteInstrument
+55B8 .done                      ; common exit of PasteInstrument
+56A5 .done                      ; common exit of GetScreenPalette
+6D1F .done                      ; common exit of DrawScreenPaletteMap
+6D33 .loop                      ; loop head in ClearBgMapAndAttributes
+6D3F .loop2                     ; loop head in ClearBgMapAndAttributes
+6D51 .done                      ; common exit of ClearBgMapAndAttributes
+6EA6 .loop                      ; loop head in DrawTopBar
+6F33 .loop2                     ; loop head in DrawTopBar
+6F7A .done                      ; common exit of DrawTopBar
+750A .loop                      ; loop head in DrawMessageBar
+751F .loop2                     ; loop head in DrawMessageBar
+758D .loop3                     ; loop head in DrawMessageBar
+776A .done                      ; common exit of ShowCommandHelp
+783A .loop                      ; loop head in ClearMessageBar
+78AF .loop                      ; loop head in UpdateMessage
+7943 .done                      ; common exit of UpdateMessage
+7A99 .stackLoop                 ; loop head in DrawCrashScreen: the 10 stack words
+7B73 .hang                      ; DrawCrashScreen's endless loop
+7C82 .done                      ; common exit of ResetEditorState
+7D45 .loop                      ; loop head in LoadProjectSettings
+7DE5 .done                      ; common exit of LoadProjectSettings
+7DEC .loop                      ; loop head in ClearSramWindow
+7E06 .loop                      ; loop head in CopyScreenMapCgb
+7E09 .loop2                     ; loop head in CopyScreenMapCgb
+7E20 .loop3                     ; loop head in CopyScreenMapCgb
+7E38 .loop4                     ; loop head in CopyScreenMapCgb
+7E59 .loop                      ; loop head in CopyScreenMapDmg
+7E5C .loop2                     ; loop head in CopyScreenMapDmg
+7E5E .loop3                     ; loop head in CopyScreenMapDmg
+7EE9 .loop                      ; loop head in LoadObjPalette
 
 ; --- structural local names (loop heads / common exits) ---
-560D .onPhrase            ; wCurrentScreen == case in GetScreenPalette
-5613 .onGroove            ; wCurrentScreen == case in GetScreenPalette
-5619 .onChain             ; wCurrentScreen == case in GetScreenPalette
-561F .onSong              ; wCurrentScreen == case in GetScreenPalette
-5625 .onTable             ; wCurrentScreen == case in GetScreenPalette
-562B .onInstrument             ; wCurrentScreen == case in GetScreenPalette
-567E .onWave              ; wCurrentScreen == case in GetScreenPalette
-5684 .onProject              ; wCurrentScreen == case in GetScreenPalette
-568A .onSynth             ; wCurrentScreen == case in GetScreenPalette
-5690 .onSpeech            ; wCurrentScreen == case in GetScreenPalette
-5696 .onWord              ; wCurrentScreen == case in GetScreenPalette
-569C .onFile              ; wCurrentScreen == case in GetScreenPalette
-6D7B .notFile             ; wButtons == case in DrawTopBar
-6DB1 .onProject              ; wCurrentScreen == case in DrawTopBar
-6DF4 .onSong              ; wCurrentScreen == case in DrawTopBar
-6E20 .onChain             ; wCurrentScreen == case in DrawTopBar
-6E37 .onPhrase            ; wCurrentScreen == case in DrawTopBar
-6E4E .onTable             ; wCurrentScreen == case in DrawTopBar
-6E65 .onProject2          ; wCurrentScreen == case in DrawTopBar
-6EDA .onInstrument             ; wCurrentScreen == case in DrawTopBar
-6EF1 .onWave              ; wCurrentScreen == case in DrawTopBar
-6F08 .onSynth             ; wCurrentScreen == case in DrawTopBar
-6F1F .onGroove            ; wCurrentScreen == case in DrawTopBar
-76A7 .notPhrase           ; wButtons == case in ShowCommandHelp
-76C5 .notPhrase2          ; wButtons == case in ShowCommandHelp
+560D .onPhrase                  ; wCurrentScreen == case in GetScreenPalette
+5613 .onGroove                  ; wCurrentScreen == case in GetScreenPalette
+5619 .onChain                   ; wCurrentScreen == case in GetScreenPalette
+561F .onSong                    ; wCurrentScreen == case in GetScreenPalette
+5625 .onTable                   ; wCurrentScreen == case in GetScreenPalette
+562B .onInstrument              ; wCurrentScreen == case in GetScreenPalette
+567E .onWave                    ; wCurrentScreen == case in GetScreenPalette
+5684 .onProject                 ; wCurrentScreen == case in GetScreenPalette
+568A .onSynth                   ; wCurrentScreen == case in GetScreenPalette
+5690 .onSpeech                  ; wCurrentScreen == case in GetScreenPalette
+5696 .onWord                    ; wCurrentScreen == case in GetScreenPalette
+569C .onFile                    ; wCurrentScreen == case in GetScreenPalette
+6D7B .notFile                   ; wButtons == case in DrawTopBar
+6DB1 .onProject                 ; wCurrentScreen == case in DrawTopBar
+6DF4 .onSong                    ; wCurrentScreen == case in DrawTopBar
+6E20 .onChain                   ; wCurrentScreen == case in DrawTopBar
+6E37 .onPhrase                  ; wCurrentScreen == case in DrawTopBar
+6E4E .onTable                   ; wCurrentScreen == case in DrawTopBar
+6E65 .onProject2                ; wCurrentScreen == case in DrawTopBar
+6EDA .onInstrument              ; wCurrentScreen == case in DrawTopBar
+6EF1 .onWave                    ; wCurrentScreen == case in DrawTopBar
+6F08 .onSynth                   ; wCurrentScreen == case in DrawTopBar
+6F1F .onGroove                  ; wCurrentScreen == case in DrawTopBar
+76A7 .notPhrase                 ; wButtons == case in ShowCommandHelp
+76C5 .notPhrase2                ; wButtons == case in ShowCommandHelp
 4ED1 .haveStart                 ; starting phrase resolved ($ff cache -> 0)
 4F0A .maskBit                   ; shift the bit mask into place for the candidate's alloc bit
 4F29 .found                     ; free phrase found and claimed -> return it in e
@@ -339,20 +339,20 @@
 45B6 .cont
 45BF .cont_2
 45D4 .disableInterrupts         ; di, then enable SRAM and select bank 0
-45D5 .clearSramWindow     ; rRAMG=$0a, rRAMB=0, ClearSramWindow, ClearBookmarks (bank 7)
-45F3 .rbMarker0           ; 'rb' at $be78, then the groove loop from $b090
-460B .grooveHighTest        ; the high byte of the end test
-4612 .grooveDefault       ; *p++ = 6, *p = 6, p += 15: a 6/6 groove
-4620 .grooveSecond        ; the second step byte
-4639 .sequenceClear       ; FillMemory($b290, $ff, $400), then the word names from $bdd0
-4663 .wordNameDash        ; '-'
-4671 .wordNameDigit       ; *p = i, then add '0' (i < 10) or '7' (letters)
-4697 .wordNameLetter      ; i >= 10: '7' (A-F follow '9' + 7)
-4699 .wordNameAdd         ; *p += the offset
-46AA .wordNameNext        ; i++, loop until p == $bdfa; then bank 1 and the saved property bytes
-4772 .synthParameterDefault   ; bytes 5/9 = $10, 6/10 = $ff
-47B8 .waveFrames          ; bank 3: 'rb' at $bff0, then the default wave frame into every frame
-4801 .finish              ; $bfff = $16, ei, disable SRAM
+45D5 .clearSramWindow           ; rRAMG=$0a, rRAMB=0, ClearSramWindow, ClearBookmarks (bank 7)
+45F3 .rbMarker0                 ; 'rb' at $be78, then the groove loop from $b090
+460B .grooveHighTest            ; the high byte of the end test
+4612 .grooveDefault             ; *p++ = 6, *p = 6, p += 15: a 6/6 groove
+4620 .grooveSecond              ; the second step byte
+4639 .sequenceClear             ; FillMemory($b290, $ff, $400), then the word names from $bdd0
+4663 .wordNameDash              ; '-'
+4671 .wordNameDigit             ; *p = i, then add '0' (i < 10) or '7' (letters)
+4697 .wordNameLetter            ; i >= 10: '7' (A-F follow '9' + 7)
+4699 .wordNameAdd               ; *p += the offset
+46AA .wordNameNext              ; i++, loop until p == $bdfa; then bank 1 and the saved property bytes
+4772 .synthParameterDefault     ; bytes 5/9 = $10, 6/10 = $ff
+47B8 .waveFrames                ; bank 3: 'rb' at $bff0, then the default wave frame into every frame
+4801 .finish                    ; $bfff = $16, ei, disable SRAM
 4844 .cont
 48D0 .cont
 4962 .mulU16
@@ -364,14 +364,14 @@
 4B2B .checkIsSgb
 4B49 .cont_2
 4B4E .cont_3
-4BAA .clearByte           ; write 0 to the tile byte at p
-4BCB .clearNext           ; p++ done (high byte skipped without a carry)
-4BCE .patternStart        ; second range: p = $8050
-4C01 .testBit1            ; bit 1 of the low address byte picks $60 or 0
-4C11 .patternZero         ; even pair: 0
-4C15 .patternWrite        ; write the chosen byte at p
-4C2E .patternNext         ; p++ done, back to .patternLoop
-4C31 .placeSprites        ; the three WAV display sprites' x and tiles
+4BAA .clearByte                 ; write 0 to the tile byte at p
+4BCB .clearNext                 ; p++ done (high byte skipped without a carry)
+4BCE .patternStart              ; second range: p = $8050
+4C01 .testBit1                  ; bit 1 of the low address byte picks $60 or 0
+4C11 .patternZero               ; even pair: 0
+4C15 .patternWrite              ; write the chosen byte at p
+4C2E .patternNext               ; p++ done, back to .patternLoop
+4C31 .placeSprites              ; the three WAV display sprites' x and tiles
 4CD9 .loadColorSet
 4CE8 .cont
 4CEA .setrBGP
@@ -382,7 +382,7 @@
 4F90 .step
 4FE1 .step
 500A .cont
-500D .tick                 ; once a second: advance the PLAY clock, redraw it on the project screen
+500D .tick                      ; once a second: advance the PLAY clock, redraw it on the project screen
 51A1 .testBit4
 51B5 .testBit6
 51D9 .drawString
@@ -434,7 +434,7 @@
 7E37 .readStat
 6F7E TxtTitle                   ; "LITTLE SOUND DJ " running on into TxtVersion: main's startup message
 56A7 ColorSetPalettes           ; [35][4] RGB the 7 colour sets, 5 BG palettes of 4 colours each (ApplyColorSet indexes wColorSet*40); objects use the first two and colours 5-8
-532C InstrumentTableFieldRow         ; [4] instrument-screen row of the TABLE field per type (pulse 15, wave 14, kit 17, noise 12)
+532C InstrumentTableFieldRow    ; [4] instrument-screen row of the TABLE field per type (pulse 15, wave 14, kit 17, noise 12)
 
 ; --- pointer targets (tools/name_targets.py) ---
 781E .stringEmpty

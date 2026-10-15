@@ -33,6 +33,8 @@ import re
 import sys
 from pathlib import Path
 
+import symfile
+
 ROOT = Path(__file__).resolve().parent.parent
 TOKEN = re.compile(r"(?<![\w$.])[A-Za-z_]\w*")
 FILE_SUFFIX = re.compile(r"\.(?:c|h|md|py|inc|sym|asm|sh)\b")   # FooBar.c is a path, not the symbol
@@ -218,6 +220,7 @@ def apply(pairs: list[tuple[str, str, str | None]], c_only: frozenset[str] = fro
                     lambda m: f"{m.group(1)}; {comment}", s, flags=re.M)
         if s2 != s:
             inc.write_text(s2)
+    symfile.align_files()
     labels = sum(n for _, n in relabelled.values())
     shown = ", ".join(f"{o} -> {n}" for o, n, _ in pairs[:20]) + (f", ... ({len(pairs)} names)" if len(pairs) > 20 else "")
     return f"renamed {shown} in {len(changed)} file(s) and {labels} local label(s): {', '.join(changed)}"

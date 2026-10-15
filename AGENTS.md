@@ -128,6 +128,7 @@ sequencer core, ~15 KB) and the GBDK/SDCC library routines stay asm. See
 | `tools/label_gaps.py`, `data_refs.py`, `callgraph.py`, `farcall_targets.py`, `find_orphans.py` | Audits that drove naming/labeling to zero gaps |
 | `tools/name_locals_full.py`, `name_locals.py`, `name_firstaction.py`, `name_targets.py` | Semantic naming of function-local labels (generated into the `.sym`); `name_targets.py` names the targets an operand points at (jump tables after their variable, strings after their text) so no `.L_xxxx` reaches the source |
 | `tools/rename.py`, `tools/fold_sym.py` | Symbol maintenance: rename a global everywhere (`.sym`, constants, C, docs, tools, and the local labels that spell it; refuses collisions), or fold a mislabelled "function" (a loop head, case body or shared tail) into a local label of the function it belongs to; a brace form in the docs (`SoundWriteFrequency{Pu1,Pu2,Wav}`) is not a whole word, so `test_tools.py` checks every expansion is a current name |
+| `tools/symfile.py` | The curated symbol files' layout: a `.sym` comment's `;` at column 32, `ram.inc`'s `EQU` at 38 and `;` at 49 (a longer name takes one space). The tools that write them (`rename.py`, `respell.py`, `fold_sym.py`, `name_locals.py`) align them after; run it after a hand edit; `--check`, and `test_tools.py`, fail on a file out of line |
 | `tools/show_func.py`, `rom_strings.py`, `annotate_ram.py`, `statevar.py`, `bankmap.py` | Inspection helpers: dump a function by name or address (`--bare`; a matched one is disassembled from the ROM), list the strings at an address, annotate a RAM dump, … |
 | `tools/emu/` | SameBoy-based live-verification harness (see `tools/emu/README.md`) |
 | `tools/shift_test.py` | Shift test for a movable build: pad a bank (`--bank 1f`, `--all`, `--at`, `--by`), run it next to the reference in PyBoy on the same input, report the first divergence, the `rst $38` site and call chain; `--bisect`. Needs `python3 -m venv .venv && .venv/bin/pip install pyboy`; run with `.venv/bin/python` |
@@ -193,7 +194,8 @@ apply.)
    gives the SRAM map and every instrument type's byte layout (kit byte 2
    bit 6 = SPEED 0.5X, bytes 3/11 = LEN 1/2 with 0 = ALL, …).
 3. **Change the curated inputs.** Names and comments go in `src/bankNN.sym`
-   (routines, data, locals) or `constants/ram.inc` (WRAM/HRAM); a data range the
+   (routines, data, locals) or `constants/ram.inc` (WRAM/HRAM), their comments
+   in one column (`tools/symfile.py` lines them up); a data range the
    trace decodes as code goes in `carve_clean.py`'s `MANUAL` dict.
 4. **Keep the bytes identical.** `make compare` regenerates and must still pass.
    Names and code↔data re-rendering never change bytes; if `compare` breaks, a

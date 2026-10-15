@@ -203,6 +203,7 @@ lsdj-decompiled/
 │   ├── gfx.py            # the tile block format; the PNGs the carve writes
 │   ├── kits.py           # the kit format; the WAVs the carve writes, converted back
 │   ├── gen_sym.py        # build the debugger symbol file (code + RAM + SRAM)
+│   ├── symfile.py        # line up the .sym and ram.inc comments (the tools that write them call it)
 │   ├── gen_ram_sections.py  # named WRAM/SRAM sections for the linker map
 │   ├── gen_listing.py    # emit build/listing.asm — whole ROM as one annotated file
 │   ├── audit_export.py   # diff a pasted debugger export against our symbols

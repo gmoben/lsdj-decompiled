@@ -1,15 +1,15 @@
 ; Bank $1E -- screen pre-draw helper
-4000 DrawScreenColumnLabels       ; top-row column labels for the screen about to be drawn (raw tiles; none on the wave screen); DispatchScreenDraw prologue
+4000 DrawScreenColumnLabels     ; top-row column labels for the screen about to be drawn (raw tiles; none on the wave screen); DispatchScreenDraw prologue
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
-79FA FillVramRegions         ; write $ff to VRAM $9480-$97FF and $8800-$88CF (via WriteVramByteSafe vblank tile writer)
-7A38 ReadVramByte            ; wait for safe LCD access (rSTAT mode), read [de], return byte in e
-7A4B CopyVramTile          ; copy one tile (16 bytes) from VRAM address src (1st arg, ReadVramByte) to dst (2nd, WriteVramByteSafe)
+79FA FillVramRegions            ; write $ff to VRAM $9480-$97FF and $8800-$88CF (via WriteVramByteSafe vblank tile writer)
+7A38 ReadVramByte               ; wait for safe LCD access (rSTAT mode), read [de], return byte in e
+7A4B CopyVramTile               ; copy one tile (16 bytes) from VRAM address src (1st arg, ReadVramByte) to dst (2nd, WriteVramByteSafe)
 ; --- indirect (FarCall) target ---
 7AA0 LoadFontTiles              ; font (wFont) + UI icon tiles into VRAM after ResetDisplayState; CGB fixes the palettes and loads one block, DMG three (+ right-third blank on colour set bit 1)
 
 ; --- tile data blocks (LoadTilesDispatch streams) + synth waveforms ---
-42C8 TilesUiIcons       ; UI tiles (screen labels, channel names, borders), loaded after the font: a character map, then 46 tiles (gfx/ui_icons.png)
+42C8 TilesUiIcons               ; UI tiles (screen labels, channel names, borders), loaded after the font: a character map, then 46 tiles (gfx/ui_icons.png)
 462A TilesFontKiko              ; font KIKO (wFont 2): a character map, then 71 tiles (gfx/font_kiko.png); CGB loads only this block
 4B1C TilesFontKikoHighlight     ; font KIKO inverted, the DMG cursor highlight: a character map, then 69 tiles (gfx/font_kiko_highlight.png)
 4FEE TilesFontKikoShaded        ; font KIKO on a dotted ground, DMG shaded cells: a character map, then 69 tiles (gfx/font_kiko_shaded.png)
@@ -19,32 +19,32 @@
 6356 TilesFontZero              ; font ZERO (wFont 1): a character map, then 71 tiles (gfx/font_zero.png); CGB loads only this block
 6848 TilesFontZeroHighlight     ; font ZERO inverted, the DMG cursor highlight: a character map, then 69 tiles (gfx/font_zero_highlight.png)
 6D1A TilesFontZeroShaded        ; font ZERO on a dotted ground, DMG shaded cells: a character map, then 69 tiles (gfx/font_zero_shaded.png)
-71EC SynthSeedTableA    ; [512] BYTE bank-$1E seed cycles: waveform shape 0, signal 0 (32 signed bytes per cycle)
-720C SynthWaveTables    ; [480] BYTE SynthSeedTableA from its second cycle on (a label inside it, kept for the debugger)
-73EC SynthSeedTableB    ; [256] BYTE seed cycles: waveform shape 0, signal 1
-74EC SynthSeedTableC    ; [512] BYTE seed cycles: waveform shape 1, signal 0
-76EC SynthSeedTableD    ; [256] BYTE seed cycles: waveform shape 1, signal 1
-77EC SynthSeedTableE    ; [256] BYTE seed cycles: waveform shape 0, signal 2
-78EC SynthSeedTableF    ; [256] BYTE seed cycles: waveform shape 1, signal 2
-79EC TxtSpaces13        ; 13-space blank string
+71EC SynthSeedTableA            ; [512] BYTE bank-$1E seed cycles: waveform shape 0, signal 0 (32 signed bytes per cycle)
+720C SynthWaveTables            ; [480] BYTE SynthSeedTableA from its second cycle on (a label inside it, kept for the debugger)
+73EC SynthSeedTableB            ; [256] BYTE seed cycles: waveform shape 0, signal 1
+74EC SynthSeedTableC            ; [512] BYTE seed cycles: waveform shape 1, signal 0
+76EC SynthSeedTableD            ; [256] BYTE seed cycles: waveform shape 1, signal 1
+77EC SynthSeedTableE            ; [256] BYTE seed cycles: waveform shape 0, signal 2
+78EC SynthSeedTableF            ; [256] BYTE seed cycles: waveform shape 1, signal 2
+79EC TxtSpaces13                ; 13-space blank string
 
 ; --- structural local names (loop heads / common exits) ---
-42C6 .done                ; common exit of DrawScreenColumnLabels
-79FE .loop                ; loop head in FillVramRegions
-7A1B .loop2               ; loop head in FillVramRegions
-7A36 .done                ; common exit of FillVramRegions
-7A39 .loop                ; loop head in ReadVramByte
-7A52 .copyLoop            ; loop head in CopyVramTile: 16 bytes, src++ read, dst++ safe write
-7A9C .done                ; common exit of CopyVramTile
+42C6 .done                      ; common exit of DrawScreenColumnLabels
+79FE .loop                      ; loop head in FillVramRegions
+7A1B .loop2                     ; loop head in FillVramRegions
+7A36 .done                      ; common exit of FillVramRegions
+7A39 .loop                      ; loop head in ReadVramByte
+7A52 .copyLoop                  ; loop head in CopyVramTile: 16 bytes, src++ read, dst++ safe write
+7A9C .done                      ; common exit of CopyVramTile
 
 ; --- structural local names (loop heads / common exits) ---
-400D .notWave             ; wButtons == case in DrawScreenColumnLabels
-4066 .onPhrase            ; wCurrentScreen == case in DrawScreenColumnLabels
-413F .onChain             ; wCurrentScreen == case in DrawScreenColumnLabels
-4176 .onTable             ; wCurrentScreen == case in DrawScreenColumnLabels
-41D9 .onGroove            ; wCurrentScreen == case in DrawScreenColumnLabels
-4211 .onWord              ; wCurrentScreen == case in DrawScreenColumnLabels
-4248 .onSong              ; wCurrentScreen == case in DrawScreenColumnLabels
+400D .notWave                   ; wButtons == case in DrawScreenColumnLabels
+4066 .onPhrase                  ; wCurrentScreen == case in DrawScreenColumnLabels
+413F .onChain                   ; wCurrentScreen == case in DrawScreenColumnLabels
+4176 .onTable                   ; wCurrentScreen == case in DrawScreenColumnLabels
+41D9 .onGroove                  ; wCurrentScreen == case in DrawScreenColumnLabels
+4211 .onWord                    ; wCurrentScreen == case in DrawScreenColumnLabels
+4248 .onSong                    ; wCurrentScreen == case in DrawScreenColumnLabels
 
 
 

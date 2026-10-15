@@ -261,6 +261,7 @@ def main() -> None:
         return
     print(rename.apply([(o, n, None) for o, n in pairs], c_only=frozenset(o for o, _ in pairs if o in aliases)))
     print(f"respelt {respell_labels(words, dry=False)} other local label(s)")
+    rename.symfile.align_files()
 
 
 if __name__ == "__main__":

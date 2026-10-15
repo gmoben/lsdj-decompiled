@@ -16,6 +16,8 @@ Usage: tools/name_locals.py [--bank 0xNN] [--dry-run]
 """
 import argparse, glob, os, re
 
+import symfile
+
 ADDR = re.compile(r'; \$([0-9a-f]{4}):')
 GLOBAL = re.compile(r'^([A-Za-z_][\w]*):')
 LOCAL = re.compile(r'^\.L_([0-9A-F]{4}):')
@@ -213,7 +215,8 @@ def main():
             with open(sp, 'a') as f:
                 f.write('\n; --- structural local names (loop heads / common exits) ---\n')
                 for a, name, cmt in sorted(ents):
-                    f.write(f'{a:04X} {name:<20} ; {cmt}\n')
+                    f.write(f'{a:04X} {name} ; {cmt}\n')
+    symfile.align_files()
     print(f'TOTAL: {total}')
 
 

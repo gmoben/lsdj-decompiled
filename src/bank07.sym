@@ -4,43 +4,43 @@
 
 ; --- Song-screen strings + display tables (db; clipboard/output/channel) ---
 6889 TxtOct78                   ; "O7-8"
-6E2C ChannelNames       ; channel display names "PU1"/"PU2"/"PU1+2"/...
-4373 TxtClonedChain     ; "CLONED CHAIN"
-4380 TxtClonedChainPhrases ; "CLONED CHAIN+PHRASES"
-56FE TxtCancelSelect07  ; "CANCEL SELECT"
-492A TxtDashes          ; "--" (SetSongRowPalettes: cell with bit 7 set)
-5957 TxtCutChains       ; "CUT CHAINS"
-5962 TxtCopiedChains    ; "COPIED CHAINS"
-5B0F TxtPastedChains    ; "PASTED CHAINS"
+6E2C ChannelNames               ; channel display names "PU1"/"PU2"/"PU1+2"/...
+4373 TxtClonedChain             ; "CLONED CHAIN"
+4380 TxtClonedChainPhrases      ; "CLONED CHAIN+PHRASES"
+56FE TxtCancelSelect07          ; "CANCEL SELECT"
+492A TxtDashes                  ; "--" (SetSongRowPalettes: cell with bit 7 set)
+5957 TxtCutChains               ; "CUT CHAINS"
+5962 TxtCopiedChains            ; "COPIED CHAINS"
+5B0F TxtPastedChains            ; "PASTED CHAINS"
 40D0 WriteSongCell              ; write song[row][col] = chain (SRAM bank 0 $B290); asserts col < 4, row <= $BF, chain < $80 or $FF
-7220 CopyVramByteSafe   ; spin until rSTAT mode<2 (VRAM free), then copy [de]->[hl], inc e/l
-4574 DrawSongScreen      ; screen idx 4: draws the song sequence (4 channels = PU1/PU2/WAV/NOI)
-47AA SongScreenUpdate   ; per-frame visual update (screen idx 4)
+7220 CopyVramByteSafe           ; spin until rSTAT mode<2 (VRAM free), then copy [de]->[hl], inc e/l
+4574 DrawSongScreen             ; screen idx 4: draws the song sequence (4 channels = PU1/PU2/WAV/NOI)
+47AA SongScreenUpdate           ; per-frame visual update (screen idx 4)
 4139 CloneSongChain             ; song screen chain clone (CLONED CHAIN / +PHRASES in deep mode): new chain via IsSongChainUsed, copy its 16 phrases (deep: clone each phrase once via the wClonePhraseMap map), transposes; returns the new chain or $ff
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 4000 CopySongColumn             ; copy a song column from p to q (stride 4) until p reaches $B590 (ScanSongSram); asserts both >= $B290, q < $B590
-404B SongChannelActiveMask         ; OR wChannelActive[0..3] -> combined active flag
+404B SongChannelActiveMask      ; OR wChannelActive[0..3] -> combined active flag
 4084 EraseSongCursor            ; restore the cursor cell palette (1 if the row is bookmarked, else 0) at SongColumnOffsets[wSongColumn]
-4366 .showCloneMessage    ; show "CLONED CHAIN" / "CLONED CHAIN+PHRASES" popup
+4366 .showCloneMessage          ; show "CLONED CHAIN" / "CLONED CHAIN+PHRASES" popup
 4395 DrawSongCursor             ; highlight the cursor cell (palette 3 on CGB, 2 on DMG) at SongColumnOffsets[wSongColumn]
 43E4 ReadSongRow                ; read song row wSongScroll from SRAM ($B290, ReadSongBytes) -> wSongReadBuffer (16 bytes)
-4463 DrawSongRowNumber             ; draw a song row number + bookmark marker (wSongScroll window, 18 rows)
+4463 DrawSongRowNumber          ; draw a song row number + bookmark marker (wSongScroll window, 18 rows)
 451E RedrawSongRow              ; ReadSongRow + draw the row at VRAM $9842 (palettes, DrawSongColumnValues/4395)
 4540 ScrollSongToCursor         ; clamp song top-row wSongScroll so cursor wSongRow stays visible
 4657 UpdateSongPlayMarker       ; per-channel play-position markers from wChannelSongRow/wChannelNextSongRow (<-SongScreenUpdate)
-47CF SetSongRowPalettes            ; pick row draw palettes (cursor/bookmark-aware)
+47CF SetSongRowPalettes         ; pick row draw palettes (cursor/bookmark-aware)
 492D DrawSongCursorRow          ; draw cursor-row string (SetVramCursor at wSongRow-wSongScroll, SetSongRowPalettes)
 494E ScrollSongUp               ; scroll the song grid for the row above: ScrollSongVramUp (+ CopyVramRowUp on CGB), redraw row 2 ($9840)
 4973 ScrollSongDown             ; scroll the song grid for the row below: ScrollSongVramDown (+ CopyVramRowDown on CGB), redraw row 17 ($9A20)
 4998 FindNextSongRow            ; scan down 1..16 from cursor wSongRow, wrapping at 0 -> $ff
 49E7 PageSongCursorDown         ; PgDn: advance song cursor wSongRow by a page (wCursorMode==4 guard)
-4A25 FindPreviousSongRow            ; scan up 1..16 from cursor wSongRow, wrapping
+4A25 FindPreviousSongRow        ; scan up 1..16 from cursor wSongRow, wrapping
 4A79 PageSongCursorUp           ; PgUp: retreat song cursor wSongRow by a page
 4AB8 BeginSongSelection         ; SaveSelectionState, seed wSel* rect from the song cursor
 4AFD LoadSongCursorChain        ; read seq[wSongRow,wSongColumn] ($ff -> empty path), validate+cache via CloneSongChain
 5736 CutCopySongSelection       ; cut (isCut arg) or copy the song selection rect into the clipboard; a cut shifts each column up and clears the tail ($FF), AdjustBookmarksOnDelete, CUT/COPIED CHAINS
-5929 .endSelection        ; finish selection (ShowMessage), restore cursor from wSelectionLeft/wSongSelectionRow
+5929 .endSelection              ; finish selection (ShowMessage), restore cursor from wSelectionLeft/wSongSelectionRow
 5970 PasteSongSelection         ; paste the clipboard rows into the song grid at the cursor: shifts the columns down (WriteSongSramBytes) to make room, writes the cells, PASTED CHAINS
 5B1D EditSongSelection          ; apply the current edit op across the selection rect (clipType 4; 7 uses in SongScreenInput)
 627C SortBookmarks              ; bubble-sort the 16-byte song bookmarks row ($aff0, song offset $0FF0)
@@ -50,14 +50,14 @@
 6413 ToggleBookmark             ; song row in list ? RemoveBookmark : AddBookmark
 644F AdjustBookmarksOnDelete    ; song rows [lo,hi) removed: drop bookmarks inside, shift later ones up, re-sort
 64CA AdjustBookmarksOnInsert    ; song rows shifted (src->dst): rebase bookmarks, drop wrapped, re-sort
-6543 DrawKeyboardInstrumentState          ; keyboard state cell (arrows by wKeyboardPulseChannels) + instrument hex (wKeyboardInstrument) at row 12
-672A HexDigitCharacter               ; return hex char "0123456789ABCDEF"[arg]
-674D DrawKeyboardInstrumentName           ; DrawKeyboardInstrumentState + instrument name via CopyInstrumentName -> wSampleNoteString
-6812 DrawKeyboardOctave              ; draw the keyboard octave range ("O3-4".."O7-8") from wKeyboardTranspose
-6E50 ProcessKeyboardNote             ; PS/2 keyboard note -> play/preview on the channel (wKeyboardHeldNote; screen/col aware)
+6543 DrawKeyboardInstrumentState ; keyboard state cell (arrows by wKeyboardPulseChannels) + instrument hex (wKeyboardInstrument) at row 12
+672A HexDigitCharacter          ; return hex char "0123456789ABCDEF"[arg]
+674D DrawKeyboardInstrumentName ; DrawKeyboardInstrumentState + instrument name via CopyInstrumentName -> wSampleNoteString
+6812 DrawKeyboardOctave         ; draw the keyboard octave range ("O3-4".."O7-8") from wKeyboardTranspose
+6E50 ProcessKeyboardNote        ; PS/2 keyboard note -> play/preview on the channel (wKeyboardHeldNote; screen/col aware)
 7012 LinkDequeueByte            ; wait for a queued link byte and pop it from the wLinkQueueBuffer ring (index wLinkQueueHead, 16 entries)
-7033 KeyboardDrainQueue              ; delay(10), drop every queued link byte, then SendSyncHandshake
-704E KeyboardPollScancode            ; drain the queue, then expect 20 key records (3, [7,] $27) from the keyboard: 1 if all arrive (the calibration taps)
+7033 KeyboardDrainQueue         ; delay(10), drop every queued link byte, then SendSyncHandshake
+704E KeyboardPollScancode       ; drain the queue, then expect 20 key records (3, [7,] $27) from the keyboard: 1 if all arrive (the calibration taps)
 71BF DrawSongColumnValues       ; draw 16 song-row values into the column (wSongReadBuffer, IsBookmarked)
 720A DrawHexOrDashes            ; draw space then [bc]: bit7 ? "--" : hex byte
 722B CopyVramRowDown            ; copy tilemap row 2 -> row 3 (VBK-aware, calib screen)
@@ -77,8 +77,8 @@
 5E49 TempoTimerTable            ; [256] UWORD tempo timer value per BPM byte
 6049 TempoTimerTableSgb         ; [256] UWORD TempoTimerTable for the Super Game Boy: counts 2.4% longer for its fast clock
 662A KeyboardNoteMap            ; [128] note per PS/2 scancode & $7F (0 = none), + wKeyboardTranspose octave offset
-66AA KeyboardFunctionMap              ; [128] function code per PS/2 scancode & $7F (channel mutes/cursor keys)
-7097 DrawCalibrationScreen    ; PS/2 "KEYBOARD CALIBRATION" screen (tap down-arrow prompt)
+66AA KeyboardFunctionMap        ; [128] function code per PS/2 scancode & $7F (channel mutes/cursor keys)
+7097 DrawCalibrationScreen      ; PS/2 "KEYBOARD CALIBRATION" screen (tap down-arrow prompt)
 7171 TxtKeyboardCalibration     ; "KEYBOARD CALIBRATION"
 7186 TxtTapDownArrowKey         ; "TAP DOWN ARROW KEY"
 7199 TxtOnPs2Keyboard           ; "ON PS/2 KEYBOARD"
@@ -89,139 +89,139 @@
 6893 TxtOct56                   ; "O5-6"
 6898 TxtOct45                   ; "O4-5"
 689D TxtOct34                   ; "O3-4"
-4047 SongColumnOffsets             ; [4] per-song-column x offsets (col+1)*3: $03,$06,$09,$0c
-5DB8 SongSelectionAttribute               ; [32] CGB attribute 3 (selection palette) for set_bkg_tiles in EditSongSelection
-403F SongColumnFlags               ; [8] per-column flag row (precedes SongColumnOffsets)
+4047 SongColumnOffsets          ; [4] per-song-column x offsets (col+1)*3: $03,$06,$09,$0c
+5DB8 SongSelectionAttribute     ; [32] CGB attribute 3 (selection palette) for set_bkg_tiles in EditSongSelection
+403F SongColumnFlags            ; [8] per-column flag row (precedes SongColumnOffsets)
 
 ; --- structural local names (loop heads / common exits) ---
-4106 .loop                ; loop head in WriteSongCell
-4194 .loop                ; loop head in CloneSongChain
-41D7 .loop2               ; loop head in CloneSongChain
-436F .done                ; common exit of CloneSongChain
-43F1 .loop                ; loop head in ReadSongRow
-4476 .loop                ; loop head in DrawSongRowNumber
-44D8 .loop2               ; loop head in DrawSongRowNumber
-451A .done                ; common exit of DrawSongRowNumber
-4572 .done                ; common exit of ScrollSongToCursor
-4662 .loop                ; loop head in UpdateSongPlayMarker
-47A6 .done                ; common exit of UpdateSongPlayMarker
-47BC .loop                ; loop head in SongScreenUpdate
-47CD .done                ; common exit of SongScreenUpdate
-483A .loop                ; loop head in SetSongRowPalettes
-4926 .done                ; common exit of SetSongRowPalettes
-499F .loop                ; loop head in FindNextSongRow
-49E3 .done                ; common exit of FindNextSongRow
-4A23 .done                ; common exit of PageSongCursorDown
-4A2C .loop                ; loop head in FindPreviousSongRow
-4A75 .done                ; common exit of FindPreviousSongRow
-4AB6 .done                ; common exit of PageSongCursorUp
-4B39 .done                ; common exit of LoadSongCursorChain
-4C91 .loop                ; loop head in SongScreenInput
-525C .loop2               ; loop head in SongScreenInput
-54A8 .loop3               ; loop head in SongScreenInput
-54EF .loop4               ; loop head in SongScreenInput
-56FA .done                ; common exit of SongScreenInput
-57A6 .loop                ; loop head in CutCopySongSelection
-57C7 .loop2               ; loop head in CutCopySongSelection
-5849 .loop3               ; loop head in CutCopySongSelection
-5879 .loop4               ; loop head in CutCopySongSelection
-58AA .loop5               ; loop head in CutCopySongSelection
-5953 .done                ; common exit of CutCopySongSelection
-59D7 .loop                ; loop head in PasteSongSelection
-59FF .loop2               ; loop head in PasteSongSelection
-5A77 .loop3               ; loop head in PasteSongSelection
-5A88 .loop4               ; loop head in PasteSongSelection
-5B0B .done                ; common exit of PasteSongSelection
-5C16 .loop                ; loop head in EditSongSelection
-5C47 .loop2               ; loop head in EditSongSelection
-5D0C .loop3               ; loop head in EditSongSelection
-5DB4 .done                ; common exit of EditSongSelection
-627F .loop                ; loop head in SortBookmarks
-6286 .loop2               ; loop head in SortBookmarks
-6334 .loop                ; loop head in IsBookmarked
-6378 .done                ; common exit of IsBookmarked
-63B3 .done                ; common exit of AddBookmark
-63CC .loop                ; loop head in RemoveBookmark
-640F .done                ; common exit of RemoveBookmark
-643B .done                ; common exit of ToggleBookmark
-6456 .loop                ; loop head in AdjustBookmarksOnDelete
-64D1 .loop                ; loop head in AdjustBookmarksOnInsert
-6774 .loop                ; loop head in DrawKeyboardInstrumentName
-6C48 .loop                ; loop head in ProcessLinkQueue
-6E28 .done                ; common exit of ProcessLinkQueue
-700E .done                ; common exit of ProcessKeyboardNote
-7013 .loop                ; loop head in LinkDequeueByte
-703C .loop                ; loop head in KeyboardDrainQueue
-7054 .loop                ; loop head in KeyboardPollScancode
-7095 .done                ; common exit of KeyboardPollScancode
-7101 .loop                ; loop head in DrawCalibrationScreen
-7137 .loop2               ; loop head in DrawCalibrationScreen
-716F .done                ; common exit of DrawCalibrationScreen
-71C4 .loop                ; loop head in DrawSongColumnValues
-7237 .loop                ; loop head in CopyVramRowDown
-7282 .loop                ; loop head in CopyVramRowUp
-72CA .loop                ; loop head in ScrollSongVramUp
-72D3 .loop2               ; loop head in ScrollSongVramUp
-72DC .loop3               ; loop head in ScrollSongVramUp
-72E5 .loop4               ; loop head in ScrollSongVramUp
-72EE .loop5               ; loop head in ScrollSongVramUp
-72F7 .loop6               ; loop head in ScrollSongVramUp
-7300 .loop7               ; loop head in ScrollSongVramUp
-7309 .loop8               ; loop head in ScrollSongVramUp
-7312 .loop9               ; loop head in ScrollSongVramUp
-731B .loop10              ; loop head in ScrollSongVramUp
-7324 .loop11              ; loop head in ScrollSongVramUp
-732D .loop12              ; loop head in ScrollSongVramUp
-7336 .loop13              ; loop head in ScrollSongVramUp
-733F .loop14              ; loop head in ScrollSongVramUp
-7364 .loop                ; loop head in ScrollSongVramDown
-736D .loop2               ; loop head in ScrollSongVramDown
-7376 .loop3               ; loop head in ScrollSongVramDown
-737F .loop4               ; loop head in ScrollSongVramDown
-7388 .loop5               ; loop head in ScrollSongVramDown
-7391 .loop6               ; loop head in ScrollSongVramDown
-739A .loop7               ; loop head in ScrollSongVramDown
-73A3 .loop8               ; loop head in ScrollSongVramDown
-73AC .loop9               ; loop head in ScrollSongVramDown
-73B5 .loop10              ; loop head in ScrollSongVramDown
-73BE .loop11              ; loop head in ScrollSongVramDown
-73C7 .loop12              ; loop head in ScrollSongVramDown
-73D0 .loop13              ; loop head in ScrollSongVramDown
-73D9 .loop14              ; loop head in ScrollSongVramDown
-73FE .loop                ; loop head in ScanSongSram
-742E .loop                ; loop head in WriteSongSramBytes
+4106 .loop                      ; loop head in WriteSongCell
+4194 .loop                      ; loop head in CloneSongChain
+41D7 .loop2                     ; loop head in CloneSongChain
+436F .done                      ; common exit of CloneSongChain
+43F1 .loop                      ; loop head in ReadSongRow
+4476 .loop                      ; loop head in DrawSongRowNumber
+44D8 .loop2                     ; loop head in DrawSongRowNumber
+451A .done                      ; common exit of DrawSongRowNumber
+4572 .done                      ; common exit of ScrollSongToCursor
+4662 .loop                      ; loop head in UpdateSongPlayMarker
+47A6 .done                      ; common exit of UpdateSongPlayMarker
+47BC .loop                      ; loop head in SongScreenUpdate
+47CD .done                      ; common exit of SongScreenUpdate
+483A .loop                      ; loop head in SetSongRowPalettes
+4926 .done                      ; common exit of SetSongRowPalettes
+499F .loop                      ; loop head in FindNextSongRow
+49E3 .done                      ; common exit of FindNextSongRow
+4A23 .done                      ; common exit of PageSongCursorDown
+4A2C .loop                      ; loop head in FindPreviousSongRow
+4A75 .done                      ; common exit of FindPreviousSongRow
+4AB6 .done                      ; common exit of PageSongCursorUp
+4B39 .done                      ; common exit of LoadSongCursorChain
+4C91 .loop                      ; loop head in SongScreenInput
+525C .loop2                     ; loop head in SongScreenInput
+54A8 .loop3                     ; loop head in SongScreenInput
+54EF .loop4                     ; loop head in SongScreenInput
+56FA .done                      ; common exit of SongScreenInput
+57A6 .loop                      ; loop head in CutCopySongSelection
+57C7 .loop2                     ; loop head in CutCopySongSelection
+5849 .loop3                     ; loop head in CutCopySongSelection
+5879 .loop4                     ; loop head in CutCopySongSelection
+58AA .loop5                     ; loop head in CutCopySongSelection
+5953 .done                      ; common exit of CutCopySongSelection
+59D7 .loop                      ; loop head in PasteSongSelection
+59FF .loop2                     ; loop head in PasteSongSelection
+5A77 .loop3                     ; loop head in PasteSongSelection
+5A88 .loop4                     ; loop head in PasteSongSelection
+5B0B .done                      ; common exit of PasteSongSelection
+5C16 .loop                      ; loop head in EditSongSelection
+5C47 .loop2                     ; loop head in EditSongSelection
+5D0C .loop3                     ; loop head in EditSongSelection
+5DB4 .done                      ; common exit of EditSongSelection
+627F .loop                      ; loop head in SortBookmarks
+6286 .loop2                     ; loop head in SortBookmarks
+6334 .loop                      ; loop head in IsBookmarked
+6378 .done                      ; common exit of IsBookmarked
+63B3 .done                      ; common exit of AddBookmark
+63CC .loop                      ; loop head in RemoveBookmark
+640F .done                      ; common exit of RemoveBookmark
+643B .done                      ; common exit of ToggleBookmark
+6456 .loop                      ; loop head in AdjustBookmarksOnDelete
+64D1 .loop                      ; loop head in AdjustBookmarksOnInsert
+6774 .loop                      ; loop head in DrawKeyboardInstrumentName
+6C48 .loop                      ; loop head in ProcessLinkQueue
+6E28 .done                      ; common exit of ProcessLinkQueue
+700E .done                      ; common exit of ProcessKeyboardNote
+7013 .loop                      ; loop head in LinkDequeueByte
+703C .loop                      ; loop head in KeyboardDrainQueue
+7054 .loop                      ; loop head in KeyboardPollScancode
+7095 .done                      ; common exit of KeyboardPollScancode
+7101 .loop                      ; loop head in DrawCalibrationScreen
+7137 .loop2                     ; loop head in DrawCalibrationScreen
+716F .done                      ; common exit of DrawCalibrationScreen
+71C4 .loop                      ; loop head in DrawSongColumnValues
+7237 .loop                      ; loop head in CopyVramRowDown
+7282 .loop                      ; loop head in CopyVramRowUp
+72CA .loop                      ; loop head in ScrollSongVramUp
+72D3 .loop2                     ; loop head in ScrollSongVramUp
+72DC .loop3                     ; loop head in ScrollSongVramUp
+72E5 .loop4                     ; loop head in ScrollSongVramUp
+72EE .loop5                     ; loop head in ScrollSongVramUp
+72F7 .loop6                     ; loop head in ScrollSongVramUp
+7300 .loop7                     ; loop head in ScrollSongVramUp
+7309 .loop8                     ; loop head in ScrollSongVramUp
+7312 .loop9                     ; loop head in ScrollSongVramUp
+731B .loop10                    ; loop head in ScrollSongVramUp
+7324 .loop11                    ; loop head in ScrollSongVramUp
+732D .loop12                    ; loop head in ScrollSongVramUp
+7336 .loop13                    ; loop head in ScrollSongVramUp
+733F .loop14                    ; loop head in ScrollSongVramUp
+7364 .loop                      ; loop head in ScrollSongVramDown
+736D .loop2                     ; loop head in ScrollSongVramDown
+7376 .loop3                     ; loop head in ScrollSongVramDown
+737F .loop4                     ; loop head in ScrollSongVramDown
+7388 .loop5                     ; loop head in ScrollSongVramDown
+7391 .loop6                     ; loop head in ScrollSongVramDown
+739A .loop7                     ; loop head in ScrollSongVramDown
+73A3 .loop8                     ; loop head in ScrollSongVramDown
+73AC .loop9                     ; loop head in ScrollSongVramDown
+73B5 .loop10                    ; loop head in ScrollSongVramDown
+73BE .loop11                    ; loop head in ScrollSongVramDown
+73C7 .loop12                    ; loop head in ScrollSongVramDown
+73D0 .loop13                    ; loop head in ScrollSongVramDown
+73D9 .loop14                    ; loop head in ScrollSongVramDown
+73FE .loop                      ; loop head in ScanSongSram
+742E .loop                      ; loop head in WriteSongSramBytes
 
 ; --- structural local names (loop heads / common exits) ---
-4D22 .rightLeft           ; wButtons == case in SongScreenInput
+4D22 .rightLeft                 ; wButtons == case in SongScreenInput
 
 ; --- structural local names (loop heads / common exits) ---
-4B7C .notA                ; wButtons == case in SongScreenInput
-4B94 .notB                ; wButtons == case in SongScreenInput
-4BF0 .notSelectionRightLeft ; wButtons == case in SongScreenInput
-4D5D .notRight            ; wButtons == case in SongScreenInput
-4DB1 .notLeft             ; wButtons == case in SongScreenInput
-4E2A .notUp               ; wButtons == case in SongScreenInput
-4E97 .notDown             ; wButtons == case in SongScreenInput
-4EA7 .notBDown            ; wButtons == case in SongScreenInput
-4EB7 .notBUp              ; wButtons == case in SongScreenInput
-4FDA .notSelectionLeft    ; wButtons == case in SongScreenInput
-5037 .notARight           ; wButtons == case in SongScreenInput
-5095 .notAUp              ; wButtons == case in SongScreenInput
-50F4 .notALeft            ; wButtons == case in SongScreenInput
-516D .notADown            ; wButtons == case in SongScreenInput
-51A3 .notSelectionUp      ; wButtons == case in SongScreenInput
-51D9 .notSelectionDown    ; wButtons == case in SongScreenInput
-52E9 .notAB               ; wButtons == case in SongScreenInput
-5300 .notRight2           ; wButtons == case in SongScreenInput
-5371 .notSelectionA       ; wButtons == case in SongScreenInput
-5389 .notSelectionAB      ; wButtons == case in SongScreenInput
-53FA .notSelectionStart   ; wButtons == case in SongScreenInput
-5472 .notStart            ; wButtons == case in SongScreenInput
-548B .notStartLeft        ; wButtons == case in SongScreenInput
-553E .notSelectionRight   ; wButtons == case in SongScreenInput
-56F8 .notSelectionB       ; wButtons == case in SongScreenInput
-6EC8 .notPhrase           ; wButtons == case in ProcessKeyboardNote
-6FFE .notPhrase2          ; wButtons == case in ProcessKeyboardNote
+4B7C .notA                      ; wButtons == case in SongScreenInput
+4B94 .notB                      ; wButtons == case in SongScreenInput
+4BF0 .notSelectionRightLeft     ; wButtons == case in SongScreenInput
+4D5D .notRight                  ; wButtons == case in SongScreenInput
+4DB1 .notLeft                   ; wButtons == case in SongScreenInput
+4E2A .notUp                     ; wButtons == case in SongScreenInput
+4E97 .notDown                   ; wButtons == case in SongScreenInput
+4EA7 .notBDown                  ; wButtons == case in SongScreenInput
+4EB7 .notBUp                    ; wButtons == case in SongScreenInput
+4FDA .notSelectionLeft          ; wButtons == case in SongScreenInput
+5037 .notARight                 ; wButtons == case in SongScreenInput
+5095 .notAUp                    ; wButtons == case in SongScreenInput
+50F4 .notALeft                  ; wButtons == case in SongScreenInput
+516D .notADown                  ; wButtons == case in SongScreenInput
+51A3 .notSelectionUp            ; wButtons == case in SongScreenInput
+51D9 .notSelectionDown          ; wButtons == case in SongScreenInput
+52E9 .notAB                     ; wButtons == case in SongScreenInput
+5300 .notRight2                 ; wButtons == case in SongScreenInput
+5371 .notSelectionA             ; wButtons == case in SongScreenInput
+5389 .notSelectionAB            ; wButtons == case in SongScreenInput
+53FA .notSelectionStart         ; wButtons == case in SongScreenInput
+5472 .notStart                  ; wButtons == case in SongScreenInput
+548B .notStartLeft              ; wButtons == case in SongScreenInput
+553E .notSelectionRight         ; wButtons == case in SongScreenInput
+56F8 .notSelectionB             ; wButtons == case in SongScreenInput
+6EC8 .notPhrase                 ; wButtons == case in ProcessKeyboardNote
+6FFE .notPhrase2                ; wButtons == case in ProcessKeyboardNote
 
 
 

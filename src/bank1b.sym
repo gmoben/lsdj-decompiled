@@ -4,77 +4,77 @@
 ; tables are still shown as code (byte-safe) and will be refined.
 
 4000 MixerKernel                ; 27-byte asm kit mixer step (ldh a,[c] .. ldh [c],a), copied to WRAM by InitializeKitMixer; ends at DrawHelpMenu
-4A62 DrawHelpScreen   ; Help screen (idx 14): renders the help/command-list text
-5C17 DrawProjectScreen ; Project screen draw: edits song-global properties at SRAM bank1 $BFB2+ (song offset $3FB2: tempo/transpose/sync/font/colorset/clone; see data_model.md)
-58B1 DrawSyncField   ; Project SYNC field ($58B1-$59B6): draw the wSyncMode name (TxtSyncOff..TxtSyncAnOut) at VRAM $9885, then at $98A0 either the sub-setting label (PS/2 DELAY / TICKS/STEP, SyncModeHasParameter) + wSyncMode2 in hex, or a blank; CGB attribute row via ColorField. Matched in C: c/bank1b/DrawSyncField.c
-59B7 TxtSyncOff      ; "OFF   " sync-mode name (six consecutive 7-byte strings, each its own symbol: DrawSyncField pushes them as plain addresses)
-59BE TxtSyncLsdj     ; "LSDJ  "
+4A62 DrawHelpScreen             ; Help screen (idx 14): renders the help/command-list text
+5C17 DrawProjectScreen          ; Project screen draw: edits song-global properties at SRAM bank1 $BFB2+ (song offset $3FB2: tempo/transpose/sync/font/colorset/clone; see data_model.md)
+58B1 DrawSyncField              ; Project SYNC field ($58B1-$59B6): draw the wSyncMode name (TxtSyncOff..TxtSyncAnOut) at VRAM $9885, then at $98A0 either the sub-setting label (PS/2 DELAY / TICKS/STEP, SyncModeHasParameter) + wSyncMode2 in hex, or a blank; CGB attribute row via ColorField. Matched in C: c/bank1b/DrawSyncField.c
+59B7 TxtSyncOff                 ; "OFF   " sync-mode name (six consecutive 7-byte strings, each its own symbol: DrawSyncField pushes them as plain addresses)
+59BE TxtSyncLsdj                ; "LSDJ  "
 
 ; --- Project/File data tables + strings ---
-4C6A AlphanumericCharacters      ; "0123456789": the name keyboard, char [4][11] -- four NUL-terminated 10-key rows (OpenNameEditor draws it, NameEditorInput reads it)
-5117 TxtSaveAs       ; "SAVE AS:"/"NAME:" prompts
+4C6A AlphanumericCharacters     ; "0123456789": the name keyboard, char [4][11] -- four NUL-terminated 10-key rows (OpenNameEditor draws it, NameEditorInput reads it)
+5117 TxtSaveAs                  ; "SAVE AS:"/"NAME:" prompts
 52D8 TxtSaving                  ; "SAVING..."
-5C03 TxtClockLabels  ; "PLAY %d:"/"WORKED %d:" (total/work-time clock)
-6A5C CloneModeNames2 ; "SLIM", "DEEP": ProjectScreenInput's string literals (then the reset menu's)
+5C03 TxtClockLabels             ; "PLAY %d:"/"WORKED %d:" (total/work-time clock)
+6A5C CloneModeNames2            ; "SLIM", "DEEP": ProjectScreenInput's string literals (then the reset menu's)
 6C38 KitMixTable                ; [64][16] the kit instrument's CLIP curves for mixing two kits, a page each -- HARD, SOFT, FOLD, WRAP (MixerKernel: h = the page, l = the two sample nibbles, a row per high nibble); InitializeKitMixer copies them with MasterVolumeTable to wKitMixTable ($D000)
 7038 MasterVolumeTable          ; [8][16] the master-volume transition LUT, copied after KitMixTable to wMasterVolumeTable ($D400; Command_M indexes it by rAUDVOL & $70)
-5D4F CloneModeNames  ; clone-mode display names "DEEP"/"SLIM" (5-byte stride)
-5B7A DrawSyncSubSetting ; draw PS/2 DELAY (KEYBD) or TICKS/STEP (analog) value beside SYNC
+5D4F CloneModeNames             ; clone-mode display names "DEEP"/"SLIM" (5-byte stride)
+5B7A DrawSyncSubSetting         ; draw PS/2 DELAY (KEYBD) or TICKS/STEP (analog) value beside SYNC
 5126 CommitNameEdit             ; name-editor done (start, or the keyboard's done key): store the name (instrument, speech word) or save the song under it (FILE flow: "SAVING..."), back to wNameReturnScreen
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 401B DrawHelpMenu               ; draw the HELP menu: HelpMenuPointers[i] at column 0, row i, up to the NULL
 49F8 DrawHelpCursor             ; the help menu's cursor: colour menu line HelpEntryLines[wHelpRow] across its text, palette 2 (highlight) or, with erase, 0
 4A4D RedrawHelpCursor           ; draw the help menu's cursor unless an entry is open (DrawHelpScreen's last step)
-4A79 MoveHelpCursorDown             ; move the help menu's cursor down (to row 9 at most): erase it, wHelpRow++, draw it
-4AA6 MoveHelpCursorUp               ; move the help menu's cursor up (to row 0 at most): erase it, wHelpRow--, draw it
+4A79 MoveHelpCursorDown         ; move the help menu's cursor down (to row 9 at most): erase it, wHelpRow++, draw it
+4AA6 MoveHelpCursorUp           ; move the help menu's cursor up (to row 0 at most): erase it, wHelpRow--, draw it
 4AC5 GotoProjectScreen          ; wCurrentScreen=9 + RedrawScreen (FarCall home $24dd)
 4ADB CloseHelpEntry             ; close the open help entry: wHelpOpenEntry = 0, ClearBgTilemap, DrawHelpScreen
 4AE7 DrawHelpPage               ; draw help page s from $9800: '\n' starts the next row, a '<'..'>' span is highlighted (ColorField), other bytes are glyphs
-4B6D OpenHelpEntry       ; open the help entry at wHelpRow: unhighlight its menu line, clear the BG map, set wHelpOpenEntry, draw its page (DrawHelpPage)
+4B6D OpenHelpEntry              ; open the help entry at wHelpRow: unhighlight its menu line, clear the BG map, set wHelpOpenEntry, draw its page (DrawHelpPage)
 4C30 DrawNameEditCursor         ; highlight the name editor's keyboard key under the cursor ((5, 8) + wNameEditColumn/Row; palette 3 CGB / 2 DMG)
 4C96 EraseNameEditCursor        ; un-highlight the name editor's keyboard key under the cursor (palette 0)
-4CBA DrawProjectTextField          ; draw a project-screen text field (highlight-aware) at computed coords
+4CBA DrawProjectTextField       ; draw a project-screen text field (highlight-aware) at computed coords
 5303 BackspaceNameEdit          ; name-editor backspace (select, or the keyboard's backspace key): clear the letter at the last slot, else step the letter highlight back and clear the letter there
 569C DrawFontColorFields        ; draw the FONT (wFont) and COLOR SET (wColorSet) project rows
 5782 SaveSyncMode               ; wSyncMode -> song property $bfbd
 5796 DrawSyncMode2Field         ; draw + persist wSyncMode2 (song property $bfbf)
-57C1 ProjectSyncStateFlag          ; predicate combining wSyncMode (1/3) and wSyncRun
-582C SaveTempoProperties             ; wTempo -> $bfb4, wTempoMode -> $bfcc song properties
-5853 DrawProjectTempo              ; draw the tempo at the VRAM cursor: DrawTempo(GetTempoTimerValue())
-5861 RedrawProjectTempo            ; wait while wRedrawPending < 6, then DrawProjectTempo at $9846
+57C1 ProjectSyncStateFlag       ; predicate combining wSyncMode (1/3) and wSyncRun
+582C SaveTempoProperties        ; wTempo -> $bfb4, wTempoMode -> $bfcc song properties
+5853 DrawProjectTempo           ; draw the tempo at the VRAM cursor: DrawTempo(GetTempoTimerValue())
+5861 RedrawProjectTempo         ; wait while wRedrawPending < 6, then DrawProjectTempo at $9846
 5876 DrawKeyRepeatField         ; draw the KEY DELAY/REPEAT values (wKeyDelay/wKeyRepeat)
 5896 SyncModeHasParameter       ; 1 if wSyncMode has a sync parameter row (KEYBD: the PS/2 delay; the analog modes: ticks per step)
 5952 .drawSubSetting            ; (was mislabeled as a function DrawSyncModeField: its `push bc` is the DrawString argument, its `pop bc; ret` DrawSyncField's epilogue)
-5A07 ProjectCursorFieldWidth       ; the cursor field's width in tiles: ProjectFieldWidth[wProjectCursor], 2 more on field 11 while the file browser is up
-5A42 EraseProjectCursor            ; restore the palette of the project screen field under wProjectCursor (1 for fields 0-7)
-5A90 DrawProjectCursor             ; highlight the project screen field under wProjectCursor (ProjectFieldX/Y, ProjectCursorFieldWidth)
+5A07 ProjectCursorFieldWidth    ; the cursor field's width in tiles: ProjectFieldWidth[wProjectCursor], 2 more on field 11 while the file browser is up
+5A42 EraseProjectCursor         ; restore the palette of the project screen field under wProjectCursor (1 for fields 0-7)
+5A90 DrawProjectCursor          ; highlight the project screen field under wProjectCursor (ProjectFieldX/Y, ProjectCursorFieldWidth)
 5AE3 DrawDecimalField           ; draw a small decimal value ("%d" via printf)
 5B09 PrelistenAvailable         ; 1 if the sync mode allows prelisten (OFF, LSDJ, KEYBD); the PRELISTEN field shows N/A otherwise
 5B23 DrawPrelistenField         ; PRELISTEN field: "ON "/"OFF"/"N/A" by wPrelisten + sync mode
-5B62 RedrawProjectPrelisten        ; PRELISTEN field at $992A in the shadow palette (DrawPrelistenField)
+5B62 RedrawProjectPrelisten     ; PRELISTEN field at $992A in the shadow palette (DrawPrelistenField)
 5D7C RefreshProjectScreen       ; drain buttons, clear tilemap, DrawProjectScreen + map row
-6988 .applySettings     ; ProjectScreenInput: the reset path after RESET MEMORY! (delay, LoadProjectSettings(0), redraw)
+6988 .applySettings             ; ProjectScreenInput: the reset path after RESET MEMORY! (delay, LoadProjectSettings(0), redraw)
 6A8C TapTempoStep               ; TAP tempo: on each tap record the frames since the last one (wWorkClockSubFrame) into wTapTempoBuffer (8-deep, oldest dropped), reset on a -frame gap; from 3 taps on, tempo = ffe / (8 * mean interval), capped at 
-70B8 GetInstrumentEnvelopeBytes           ; read the instrument's envelope input bytes (x2 ReadCurrentInstrumentByte)
-7200 PlotEnvelopeCurve               ; plot env-graph column y at x into wDecompressBuffer, filling gap from wEnvelopePlotX (<$40)
+70B8 GetInstrumentEnvelopeBytes ; read the instrument's envelope input bytes (x2 ReadCurrentInstrumentByte)
+7200 PlotEnvelopeCurve          ; plot env-graph column y at x into wDecompressBuffer, filling gap from wEnvelopePlotX (<$40)
 726E ComputeEnvelope            ; plot the instrument envelope graph (bytes 1/9/10 segments over 64 columns, time scaled by GetInstrumentEnvelopeBytes) into wDecompressBuffer, upload
-74E4 UpdateEnvelopeSprites           ; write the envelope OAM markers (SetOamByte x2, 8-slot bound)
+74E4 UpdateEnvelopeSprites      ; write the envelope OAM markers (SetOamByte x2, 8-slot bound)
 ; --- functions called from bank 0 (this bank paged in) ---
-6B7A InitializeKitMixer               ; build the kit sample mixer in WRAM: KitMixTable -> $d000 (1152 B), then MixerKernel unrolled 16x at $d480 with inc c / inc e between copies and a ret after the last
+6B7A InitializeKitMixer         ; build the kit sample mixer in WRAM: KitMixTable -> $d000 (1152 B), then MixerKernel unrolled 16x at $d480 with inc c / inc e between copies and a ret after the last
 5DBF ProjectScreenInput         ; project screen (9) input (wButtons): field edits saved to the song properties, tap tempo, clean, file screen, RESET CARTRIDGE? menu; 1 = handled
 53E8 NameEditorInput            ; name-editor input (screen 7): d-pad moves the keyboard cursor, A types the key, select = backspace, start = done, B = cancel
 4BC3 HelpScreenInput            ; HELP screen input: UP/DOWN move the selection, A opens the entry, B closes it or returns to the project screen
 
 4E8A OpenNameEditor             ; save screen -> wNameReturnScreen, init letter input (wNameEditPosition) for instr/file/word names
-754F UpdateInstrumentEnvelope        ; ComputeEnvelope + UpdateEnvelopeSprites unless the instrument is WAVE (1) or KIT (2)
+754F UpdateInstrumentEnvelope   ; ComputeEnvelope + UpdateEnvelopeSprites unless the instrument is WAVE (1) or KIT (2)
 5B06 TxtPctD1B                  ; "%d"
 5B56 TxtOn1B                    ; "ON "
 5B5A TxtOff1B                   ; "OFF"
 5B5E TxtNA                      ; "N/A"
 5707 FontNames                  ; 5-char FONT names "Y2K ", "ZERO", "KIKO" (indexed wFont*5; DrawFontColorFields)
 5716 ColorSetNames              ; 5-char COLOR SET names ("AIRY"...; indexed wColorSet*5)
-4058 HelpMenuPointers               ; [16] dw -> the help-menu line strings
+4058 HelpMenuPointers           ; [16] dw -> the help-menu line strings
 4098 TxtHelpTitle               ; "HELP / V9.4.0"
 40A6 TxtHelpBlank1              ; "" empty help line
 40A7 TxtHelpScreens             ; "SCREENS:"
@@ -91,7 +91,7 @@
 40E4 TxtHelpLiveMode            ; "LIVE MODE"
 40EE TxtHelpSelCopy             ; "SELECT/COPY/PASTE"
 4100 TxtHelpMuteSolo            ; "MUTE/SOLO/PAN"
-4078 HelpPagePointers               ; [11] dw -> the help content pages (entry 0 = none)
+4078 HelpPagePointers           ; [11] dw -> the help content pages (entry 0 = none)
 408E HelpEntryLines             ; [10] the menu line of each help entry (SONG..MUTE/SOLO/PAN), by wHelpRow
 410E TxtHelpPageSong            ; "SONG SCREEN" help page
 4248 TxtHelpPageLive            ; "LIVE MODE" help page
@@ -135,67 +135,67 @@
 6A7E TxtResetMemory             ; "RESET MEMORY!"
 
 ; --- structural local names (loop heads / common exits) ---
-4022 .loop                ; loop head in DrawHelpMenu
-4054 .done                ; common exit of DrawHelpMenu
-4A61 .done                ; common exit of RedrawHelpCursor
-4AA4 .done                ; common exit of MoveHelpCursorDown
-4AC4 .done                ; common exit of MoveHelpCursorUp
-4AF9 .loop                ; loop head in DrawHelpPage
-4B69 .done                ; common exit of DrawHelpPage
-4CD7 .loop                ; loop head in DrawProjectTextField
-4D18 .loop2               ; loop head in DrawProjectTextField
-4EB9 .loop                ; loop head in OpenNameEditor
-4F94 .loop2               ; loop head in OpenNameEditor
+4022 .loop                      ; loop head in DrawHelpMenu
+4054 .done                      ; common exit of DrawHelpMenu
+4A61 .done                      ; common exit of RedrawHelpCursor
+4AA4 .done                      ; common exit of MoveHelpCursorDown
+4AC4 .done                      ; common exit of MoveHelpCursorUp
+4AF9 .loop                      ; loop head in DrawHelpPage
+4B69 .done                      ; common exit of DrawHelpPage
+4CD7 .loop                      ; loop head in DrawProjectTextField
+4D18 .loop2                     ; loop head in DrawProjectTextField
+4EB9 .loop                      ; loop head in OpenNameEditor
+4F94 .loop2                     ; loop head in OpenNameEditor
 51BC .outOfMemoryWaitRelease
 51C5 .outOfMemoryWaitPress
 520D .failWaitRelease
 5216 .failWaitPress
-5698 .done                ; common exit of NameEditorInput
-58B0 .done                ; common exit of SyncModeHasParameter
-59B5 .done                ; common exit of DrawSyncField
-5B22 .done                ; common exit of PrelistenAvailable
-5B54 .done                ; common exit of DrawPrelistenField
-5C01 .done                ; common exit of DrawSyncSubSetting
-5D7D .loop                ; loop head in RefreshProjectScreen
-5D86 .loop2               ; loop head in RefreshProjectScreen
-6A5A .doneApply                ; common exit of ProjectScreenInput
-6AF8 .loop                ; loop head in TapTempoStep
-6B2A .loop2               ; loop head in TapTempoStep
-6B76 .done                ; common exit of TapTempoStep
-6B99 .loop                ; loop head in InitializeKitMixer
-6BAA .loop2               ; loop head in InitializeKitMixer
-720E .fillLoop            ; loop head in PlotEnvelopeCurve: while wEnvelopePlotX + 1 < x, fill the next column with y
-72BF .loop                ; loop head in ComputeEnvelope
-7318 .loop2               ; loop head in ComputeEnvelope
-7333 .loop3               ; loop head in ComputeEnvelope
-73A7 .loop4               ; loop head in ComputeEnvelope
-73CF .loop5               ; loop head in ComputeEnvelope
-7429 .loop6               ; loop head in ComputeEnvelope
-7458 .loop7               ; loop head in ComputeEnvelope
-749D .loop8               ; loop head in ComputeEnvelope
-74EB .loop                ; loop head in UpdateEnvelopeSprites
-754B .done                ; common exit of UpdateEnvelopeSprites
-756E .done                ; common exit of UpdateInstrumentEnvelope
+5698 .done                      ; common exit of NameEditorInput
+58B0 .done                      ; common exit of SyncModeHasParameter
+59B5 .done                      ; common exit of DrawSyncField
+5B22 .done                      ; common exit of PrelistenAvailable
+5B54 .done                      ; common exit of DrawPrelistenField
+5C01 .done                      ; common exit of DrawSyncSubSetting
+5D7D .loop                      ; loop head in RefreshProjectScreen
+5D86 .loop2                     ; loop head in RefreshProjectScreen
+6A5A .doneApply                 ; common exit of ProjectScreenInput
+6AF8 .loop                      ; loop head in TapTempoStep
+6B2A .loop2                     ; loop head in TapTempoStep
+6B76 .done                      ; common exit of TapTempoStep
+6B99 .loop                      ; loop head in InitializeKitMixer
+6BAA .loop2                     ; loop head in InitializeKitMixer
+720E .fillLoop                  ; loop head in PlotEnvelopeCurve: while wEnvelopePlotX + 1 < x, fill the next column with y
+72BF .loop                      ; loop head in ComputeEnvelope
+7318 .loop2                     ; loop head in ComputeEnvelope
+7333 .loop3                     ; loop head in ComputeEnvelope
+73A7 .loop4                     ; loop head in ComputeEnvelope
+73CF .loop5                     ; loop head in ComputeEnvelope
+7429 .loop6                     ; loop head in ComputeEnvelope
+7458 .loop7                     ; loop head in ComputeEnvelope
+749D .loop8                     ; loop head in ComputeEnvelope
+74EB .loop                      ; loop head in UpdateEnvelopeSprites
+754B .done                      ; common exit of UpdateEnvelopeSprites
+756E .done                      ; common exit of UpdateInstrumentEnvelope
 
 ; --- structural local names (loop heads / common exits) ---
-4BED .down                ; wButtons == case in HelpScreenInput
-4BF8 .up                  ; wButtons == case in HelpScreenInput
-4C03 .a                   ; wButtons == case in HelpScreenInput
-4C16 .b                   ; wButtons == case in HelpScreenInput
-4EF4 .notFile             ; wButtons == case in OpenNameEditor
-5450 .aPress              ; wButtons == case in NameEditorInput
-558E .select              ; wButtons == case in NameEditorInput
-55A1 .start               ; wButtons == case in NameEditorInput
-55A9 .down                ; wButtons == case in NameEditorInput
-55DE .right               ; wButtons == case in NameEditorInput
-5613 .up                  ; wButtons == case in NameEditorInput
-5647 .left                ; wButtons == case in NameEditorInput
-567B .cancel              ; wButtons == case in NameEditorInput
-5DFF .notA                ; wButtons == case in ProjectScreenInput
-5EE1 .right               ; wButtons == case in ProjectScreenInput
-5EEE .left                ; wButtons == case in ProjectScreenInput
-64FB .down                ; wButtons == case in ProjectScreenInput
-6587 .up                  ; wButtons == case in ProjectScreenInput
+4BED .down                      ; wButtons == case in HelpScreenInput
+4BF8 .up                        ; wButtons == case in HelpScreenInput
+4C03 .a                         ; wButtons == case in HelpScreenInput
+4C16 .b                         ; wButtons == case in HelpScreenInput
+4EF4 .notFile                   ; wButtons == case in OpenNameEditor
+5450 .aPress                    ; wButtons == case in NameEditorInput
+558E .select                    ; wButtons == case in NameEditorInput
+55A1 .start                     ; wButtons == case in NameEditorInput
+55A9 .down                      ; wButtons == case in NameEditorInput
+55DE .right                     ; wButtons == case in NameEditorInput
+5613 .up                        ; wButtons == case in NameEditorInput
+5647 .left                      ; wButtons == case in NameEditorInput
+567B .cancel                    ; wButtons == case in NameEditorInput
+5DFF .notA                      ; wButtons == case in ProjectScreenInput
+5EE1 .right                     ; wButtons == case in ProjectScreenInput
+5EEE .left                      ; wButtons == case in ProjectScreenInput
+64FB .down                      ; wButtons == case in ProjectScreenInput
+6587 .up                        ; wButtons == case in ProjectScreenInput
 
 
 
@@ -311,7 +311,7 @@
 677C .setCurrentScreen
 6794 .checkSyncModeb
 6B72 .setTempo
-722A .columnOk               ; column < $40: store y at wDecompressBuffer + wEnvelopePlotX
+722A .columnOk                  ; column < $40: store y at wDecompressBuffer + wEnvelopePlotX
 7568 .computeEnvelope
 
 
@@ -478,8 +478,8 @@
 71A6 .cont
 71AD .mulU16_2
 71F7 .cont_2
-723E .fillDone            ; at column x: keep the higher of the stored byte and y (signed)
-7263 .setPlotX            ; wEnvelopePlotX = x
+723E .fillDone                  ; at column x: keep the higher of the stored byte and y (signed)
+7263 .setPlotX                  ; wEnvelopePlotX = x
 72BB .cont
 72C7 .fillMemory
 7338 .divU16
@@ -492,10 +492,10 @@
 748D .cont_4
 74A5 .step_3
 7565 .computeEnvelope_2
-575C ProjectFieldX         ; [12] x of the 12 project screen fields (EraseProjectCursor)
-5768 ProjectFieldY         ; [14] their rows
-5776 ProjectFieldWidth     ; [12] the fields' widths in tiles (ProjectCursorFieldWidth; ColorField's run)
-4BAF HelpPageRefs       ; [20] dw per help-menu line: &HelpPagePointers[k], the page it opens
+575C ProjectFieldX              ; [12] x of the 12 project screen fields (EraseProjectCursor)
+5768 ProjectFieldY              ; [14] their rows
+5776 ProjectFieldWidth          ; [12] the fields' widths in tiles (ProjectCursorFieldWidth; ColorField's run)
+4BAF HelpPageRefs               ; [20] dw per help-menu line: &HelpPagePointers[k], the page it opens
 
 ; --- pointer targets (tools/name_targets.py) ---
 407A .song

@@ -26,6 +26,7 @@ disasm = importlib.import_module("disasm")
 gfx = importlib.import_module("gfx")
 kits = importlib.import_module("kits")
 gen_main = importlib.import_module("gen_main")
+symfile = importlib.import_module("symfile")
 
 
 class PatternTests(unittest.TestCase):
@@ -546,6 +547,25 @@ class RelabelTests(unittest.TestCase):
     def test_a_collision_in_a_scope_stops_the_rename(self):
         with self.assertRaises(SystemExit):
             self.relabel("4000 Foo\n4002 .loadQuuxCursor\n4004 .loadQuuxMarker", [("wQuuxMarker", "wQuuxCursor")])
+
+
+class SymLayoutTests(unittest.TestCase):
+    def test_sym_comments_in_one_column(self):
+        text = ("; --- a group\n4000 Foo ; the foo\n4002 .loop\t  \n"
+                "4004 DrawFooBarBazQuuxCorgeGrault ; longer than the column\n")
+        self.assertEqual(symfile.align_sym(text),
+                         "; --- a group\n" + "4000 Foo".ljust(32) + "; the foo\n4002 .loop\n"
+                         "4004 DrawFooBarBazQuuxCorgeGrault ; longer than the column\n")
+
+    def test_ram_equ_and_comments_in_columns(self):
+        text = "DEF wFoo EQU $C401 ; the foo\n   ; continued\nDEF FOO_INC EQU 1\n"
+        self.assertEqual(symfile.align_ram(text),
+                         "DEF wFoo".ljust(38) + "EQU $C401".ljust(11) + "; the foo\n"
+                         + " " * 49 + "; continued\n" + "DEF FOO_INC".ljust(38) + "EQU 1\n")
+
+    def test_the_curated_files_are_aligned(self):
+        self.assertEqual([p.name for p in symfile.unaligned()], [], "run tools/symfile.py")
+
 
 if __name__ == "__main__":
     unittest.main()

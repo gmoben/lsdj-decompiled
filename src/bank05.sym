@@ -1,30 +1,30 @@
 ; --- Table-screen clipboard strings (db) ---
-61B5 TxtCancelSelect05  ; "CANCEL SELECT"
-6764 TxtPaste05         ; "PASTE"
-72A3 TxtSignalWave      ; "SIGNAL WAVE" (W command / FX usage help)
+61B5 TxtCancelSelect05          ; "CANCEL SELECT"
+6764 TxtPaste05                 ; "PASTE"
+72A3 TxtSignalWave              ; "SIGNAL WAVE" (W command / FX usage help)
 
 ; Bank $05 -- Table screen. tables[wTable][16], 4 columns in SRAM:
 ; envelope $B690 (bank0), transpose $B480, cmd1 $B680, cmd2 $BA80 (bank1).
-4360 WriteTableEnvelope              ; write table_envelopes[wTable][step] = v (SRAM bank 0 $B690); asserts step < $10, wTable < $20
-4491 WriteTableTranspose            ; write table_transposes[wTable][step] = v (SRAM bank 1 $B480); asserts step < $10, wTable < $20
-4668 ReadTableStep       ; read the 4 columns (env/transpose/cmd1/cmd2) for table[wTable][step]
-4762 DrawTableScreen     ; screen idx 5: draws the table (env/transpose/cmd cols)
-4967 TableScreenUpdate  ; per-frame visual update (screen idx 5)
+4360 WriteTableEnvelope         ; write table_envelopes[wTable][step] = v (SRAM bank 0 $B690); asserts step < $10, wTable < $20
+4491 WriteTableTranspose        ; write table_transposes[wTable][step] = v (SRAM bank 1 $B480); asserts step < $10, wTable < $20
+4668 ReadTableStep              ; read the 4 columns (env/transpose/cmd1/cmd2) for table[wTable][step]
+4762 DrawTableScreen            ; screen idx 5: draws the table (env/transpose/cmd cols)
+4967 TableScreenUpdate          ; per-frame visual update (screen idx 5)
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 4000 UpdateMapTopRow            ; recompute wMapProjectColumn/wMapSynthColumn from wMapColumn when on the map middle row
-4167 GotoMapCursorScreen             ; SEL+B screen map: set wCurrentScreen from wMapRow/wMapColumn (row0=PROJECT/WAVE/SYNTH, row1=SONG CHAIN PHRASE INSTR TABLE, row2=GROOVE)
+4167 GotoMapCursorScreen        ; SEL+B screen map: set wCurrentScreen from wMapRow/wMapColumn (row0=PROJECT/WAVE/SYNTH, row1=SONG CHAIN PHRASE INSTR TABLE, row2=GROOVE)
 420C StartMapTransition         ; store move direction (1=up 2=right 3=down 4=left) -> wMapMoveDirection, reset rSCX/rSCY
 421A CancelSelectionMode        ; if select mode (wCursorMode==4), restore the pre-selection state (the screen map's step before leaving a screen)
-42A4 DrawCommandLetter              ; draw an FX command letter cell (CommandMnemonics char via DrawStringIndexed; >$13 asserted)
-42E7 ReadTableCommand               ; read the command column (wTableCellAPointer) at step; 0 unless a command (<= $13)
-43B7 WriteTableCommand              ; write the command column (wTableCellAPointer) at step; asserts cmd <= $13
-442A WriteTableValue              ; write the value column (wTableCellBPointer) at step
+42A4 DrawCommandLetter          ; draw an FX command letter cell (CommandMnemonics char via DrawStringIndexed; >$13 asserted)
+42E7 ReadTableCommand           ; read the command column (wTableCellAPointer) at step; 0 unless a command (<= $13)
+43B7 WriteTableCommand          ; write the command column (wTableCellAPointer) at step; asserts cmd <= $13
+442A WriteTableValue            ; write the value column (wTableCellBPointer) at step
 44E8 ReadTableEnvelope          ; read table_envelopes[table][row<$10] from SRAM (bounds-checked)
-453B ReadTableValue               ; read the value column (wTableCellBPointer) at step
-459E ReadTableTranspose        ; read table_transposes[table][row<$10] from SRAM (bounds-checked)
+453B ReadTableValue             ; read the value column (wTableCellBPointer) at step
+459E ReadTableTranspose         ; read table_transposes[table][row<$10] from SRAM (bounds-checked)
 45F1 EraseTableCursor           ; restore the cursor cells to their column palette (TableColumnPalette) at row wTableRow+2, unless selecting
-472B DrawTableEnvelope               ; draw a table envelope cell (lo-nibble $F -> hi-nibble + release glyph)
+472B DrawTableEnvelope          ; draw a table envelope cell (lo-nibble $F -> hi-nibble + release glyph)
 4930 TableInputFlag             ; return e=flag derived from input code (arg sp+4: 4 or $0a) and column wTableColumn
 4AA8 DrawTableCursor            ; refresh the table cursor cell (select mode -> DrawTableSelection; palette by CGB)
 61CA CutCopyTableSelection      ; arg? "CUT" (copy+clear) : "COPY": table selection -> clipboard (clipType 5)
@@ -32,19 +32,19 @@
 676A DrawTableSelection         ; table selection (wClipboardType==5) redraw vs the cursor: cells around the rectangle in their column palettes, the inside highlighted (ColorField)
 ; --- functions called from bank 0 (this bank paged in) ---
 4B5D TableScreenInput           ; the table screen's input: A writes envelopes/transposes/commands (a free table on an A command's value), A+directions step cells by 1/16 over the row or selection, B+directions change table, A+B cuts, select+A pastes, start plays, select+DOWN opens a G command's groove, select+B selects
-4040 DrawMapTopRow      ; draw the map top-row entries (PROJECT + WAVE/SYNTH) at wMapProjectColumn/wMapSynthColumn, screen row 15
-61C3 TxtSelect05       ; "SELECT" (pairs with TxtCancelSelect05)
+4040 DrawMapTopRow              ; draw the map top-row entries (PROJECT + WAVE/SYNTH) at wMapProjectColumn/wMapSynthColumn, screen row 15
+61C3 TxtSelect05                ; "SELECT" (pairs with TxtCancelSelect05)
 
 ; --- screen-map navigation (SEL+direction) + selection save ---
-4233 MoveMapCursorLeft        ; dec wMapColumn, GotoMapCursorScreen, StartMapTransition(4), DrawMapTopRow
-4253 MoveMapCursorRight       ; inc wMapColumn, GotoMapCursorScreen, StartMapTransition(2), UpdateMapTopRow
-426A MoveMapCursorUp          ; dec wMapRow, GotoMapCursorScreen, StartMapTransition(1)
-4287 MoveMapCursorDown        ; inc wMapRow (max 2), GotoMapCursorScreen, StartMapTransition(3)
+4233 MoveMapCursorLeft          ; dec wMapColumn, GotoMapCursorScreen, StartMapTransition(4), DrawMapTopRow
+4253 MoveMapCursorRight         ; inc wMapColumn, GotoMapCursorScreen, StartMapTransition(2), UpdateMapTopRow
+426A MoveMapCursorUp            ; dec wMapRow, GotoMapCursorScreen, StartMapTransition(1)
+4287 MoveMapCursorDown          ; inc wMapRow (max 2), GotoMapCursorScreen, StartMapTransition(3)
 7208 ShowSynthFieldHelp         ; show the selected synth field's help line (ShowMessage; a jump table on wSynthCursor)
-743F SaveSelectionState ; wCursorMode/wClipboardType/wSelectionLeft/Top/Right/... -> wSavedCursorMode save area
-747D RestoreSelectionState ; wSavedCursorMode save area -> wCursorMode/wClipboardType/wSel*
-69BD ShowInstrumentFieldHelp ; instrument-screen help line: the string for wInstrumentField under instrument type arg (TYPE row: TxtHelpInstrType) -> ShowMessage
-6F38 TxtHelpInstrType   ; "USE PULSE IN PU1/PU2; WAVE/KIT IN WAV; NOISE IN NOI"
+743F SaveSelectionState         ; wCursorMode/wClipboardType/wSelectionLeft/Top/Right/... -> wSavedCursorMode save area
+747D RestoreSelectionState      ; wSavedCursorMode save area -> wCursorMode/wClipboardType/wSel*
+69BD ShowInstrumentFieldHelp    ; instrument-screen help line: the string for wInstrumentField under instrument type arg (TYPE row: TxtHelpInstrType) -> ShowMessage
+6F38 TxtHelpInstrType           ; "USE PULSE IN PU1/PU2; WAVE/KIT IN WAV; NOISE IN NOI"
 6D25 TxtHelpEnvStage1           ; "ENVELOPE STAGE 1: ..." (ShowInstrumentFieldHelp reaches these ten shared strings by constant address)
 6D72 TxtHelpEnvStage2           ; "ENVELOPE STAGE 2: ..."
 6DBF TxtHelpEnvStage3           ; "ENVELOPE STAGE 3: ..."
@@ -66,55 +66,55 @@
 7108 TxtHelpPitchShift          ; "PITCH SHIFT"
 649A TxtCut05                   ; "CUT"
 649E TxtCopy05                  ; "COPY"
-42D5 TableColumnX                  ; [6] x of the six table screen columns (VOL TSP CMD VAL CMD VAL)
-42DB TableColumnWidth              ; [6] widths of the six table screen columns
-42E1 TableColumnPalette            ; [6] normal palette of the six table screen columns (1 on the command columns)
+42D5 TableColumnX               ; [6] x of the six table screen columns (VOL TSP CMD VAL CMD VAL)
+42DB TableColumnWidth           ; [6] widths of the six table screen columns
+42E1 TableColumnPalette         ; [6] normal palette of the six table screen columns (1 on the command columns)
 
 ; --- structural local names (loop heads / common exits) ---
-403F .done                ; common exit of UpdateMapTopRow
-420A .done                ; common exit of GotoMapCursorScreen
-4231 .done                ; common exit of CancelSelectionMode
-4319 .loop                ; loop head in ReadTableCommand
-4384 .loop                ; loop head in WriteTableEnvelope
-43F5 .loop                ; loop head in WriteTableCommand
-445C .loop                ; loop head in WriteTableValue
-44B5 .loop                ; loop head in WriteTableTranspose
-450C .loop                ; loop head in ReadTableEnvelope
-456D .loop                ; loop head in ReadTableValue
-45C2 .loop                ; loop head in ReadTableTranspose
-4636 .loop                ; loop head in EraseTableCursor
-4664 .done                ; common exit of EraseTableCursor
-4678 .loop                ; loop head in ReadTableStep
-4760 .done                ; common exit of DrawTableEnvelope
-47D9 .loop                ; loop head in DrawTableScreen
-4824 .loop2               ; loop head in DrawTableScreen
-492C .done                ; common exit of DrawTableScreen
-4965 .done                ; common exit of TableInputFlag
-4AA4 .done                ; common exit of TableScreenUpdate
-4B59 .done                ; common exit of DrawTableCursor
-4F1F .incrementLoop ; loop head in TableScreenInput
-508E .incrementCommandLoop ; loop head in TableScreenInput
-5251 .decrementLoop ; loop head in TableScreenInput
-53BD .decrementCommandLoop ; loop head in TableScreenInput
-556B .bigLoop ; loop head in TableScreenInput
-56E3 .bigCommandLoop ; loop head in TableScreenInput
-58C5 .bigDecrementLoop ; loop head in TableScreenInput
-5A3B .bigDecrementCommandLoop ; loop head in TableScreenInput
-5F34 .grooveShift ; loop head in TableScreenInput
-5FD2 .grooveShift2 ; loop head in TableScreenInput
-61B1 .done                ; common exit of TableScreenInput
-6265 .loop                ; loop head in CutCopyTableSelection
-6291 .loop2               ; loop head in CutCopyTableSelection
-6496 .done                ; common exit of CutCopyTableSelection
-652E .loop                ; loop head in PasteTableCells
-6550 .loop2               ; loop head in PasteTableCells
-6760 .done                ; common exit of PasteTableCells
-681B .loop                ; loop head in DrawTableSelection
-687B .loop2               ; loop head in DrawTableSelection
-692C .loop3               ; loop head in DrawTableSelection
-6957 .loop4               ; loop head in DrawTableSelection
-69B9 .done                ; common exit of DrawTableSelection
-6D21 .done                ; common exit of ShowInstrumentFieldHelp
+403F .done                      ; common exit of UpdateMapTopRow
+420A .done                      ; common exit of GotoMapCursorScreen
+4231 .done                      ; common exit of CancelSelectionMode
+4319 .loop                      ; loop head in ReadTableCommand
+4384 .loop                      ; loop head in WriteTableEnvelope
+43F5 .loop                      ; loop head in WriteTableCommand
+445C .loop                      ; loop head in WriteTableValue
+44B5 .loop                      ; loop head in WriteTableTranspose
+450C .loop                      ; loop head in ReadTableEnvelope
+456D .loop                      ; loop head in ReadTableValue
+45C2 .loop                      ; loop head in ReadTableTranspose
+4636 .loop                      ; loop head in EraseTableCursor
+4664 .done                      ; common exit of EraseTableCursor
+4678 .loop                      ; loop head in ReadTableStep
+4760 .done                      ; common exit of DrawTableEnvelope
+47D9 .loop                      ; loop head in DrawTableScreen
+4824 .loop2                     ; loop head in DrawTableScreen
+492C .done                      ; common exit of DrawTableScreen
+4965 .done                      ; common exit of TableInputFlag
+4AA4 .done                      ; common exit of TableScreenUpdate
+4B59 .done                      ; common exit of DrawTableCursor
+4F1F .incrementLoop             ; loop head in TableScreenInput
+508E .incrementCommandLoop      ; loop head in TableScreenInput
+5251 .decrementLoop             ; loop head in TableScreenInput
+53BD .decrementCommandLoop      ; loop head in TableScreenInput
+556B .bigLoop                   ; loop head in TableScreenInput
+56E3 .bigCommandLoop            ; loop head in TableScreenInput
+58C5 .bigDecrementLoop          ; loop head in TableScreenInput
+5A3B .bigDecrementCommandLoop   ; loop head in TableScreenInput
+5F34 .grooveShift               ; loop head in TableScreenInput
+5FD2 .grooveShift2              ; loop head in TableScreenInput
+61B1 .done                      ; common exit of TableScreenInput
+6265 .loop                      ; loop head in CutCopyTableSelection
+6291 .loop2                     ; loop head in CutCopyTableSelection
+6496 .done                      ; common exit of CutCopyTableSelection
+652E .loop                      ; loop head in PasteTableCells
+6550 .loop2                     ; loop head in PasteTableCells
+6760 .done                      ; common exit of PasteTableCells
+681B .loop                      ; loop head in DrawTableSelection
+687B .loop2                     ; loop head in DrawTableSelection
+692C .loop3                     ; loop head in DrawTableSelection
+6957 .loop4                     ; loop head in DrawTableSelection
+69B9 .done                      ; common exit of DrawTableSelection
+6D21 .done                      ; common exit of ShowInstrumentFieldHelp
 
 ; --- structural local names (loop heads / common exits) ---
 4B85 .aFalse

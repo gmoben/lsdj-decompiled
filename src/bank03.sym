@@ -2,47 +2,47 @@
 4000 WriteCurrentInstrumentByte ; write value to field[arg] of the current instrument (wInstrument) via WriteInstrumentByte
 
 ; --- Instrument-screen data tables + strings ---
-4DCB WaveSourceNames  ; "WAVE"/"SYNTH" (wave-instrument source)
-7A7B InstrumentOptionNames ; instrument param value strings "ON"/"ATK"/"OFF"/"SAFE"/...
+4DCB WaveSourceNames            ; "WAVE"/"SYNTH" (wave-instrument source)
+7A7B InstrumentOptionNames      ; instrument param value strings "ON"/"ATK"/"OFF"/"SAFE"/...
 433B TxtOutOfSynths             ; "OUT OF SYNTHS! CLEAN INSTR DATA IN PROJECT SCREEN"
-459A TxtClonedSynth   ; "CLONED SYNTH"
+459A TxtClonedSynth             ; "CLONED SYNTH"
 4AB4 TxtHard                    ; " HARD"
-4DE7 DrawInstrumentScreen ; screen idx 6: draws instrument params (reads instruments[] 119x)
-4FC4 InstrumentTypeNames     ; [4][6] type names "PULSE"/" WAVE"/"  KIT"/"NOISE" (indexed by type*6)
+4DE7 DrawInstrumentScreen       ; screen idx 6: draws instrument params (reads instruments[] 119x)
+4FC4 InstrumentTypeNames        ; [4][6] type names "PULSE"/" WAVE"/"  KIT"/"NOISE" (indexed by type*6)
 4105 WavePlayIsManual           ; 1 if the wave PLAY mode is MANUAL (SPEED/LENGTH/LOOP POS then show dashes)
-4118 IsInstrumentTableOn             ; instrument byte 6 bit 5 (table on) as 0/1
-4133 SetInstrumentTableOn               ; set instrument byte 6 bit 5 (table on)
-4170 DrawInstrumentCursor            ; draw the cursor highlight on field wInstrumentField (ColorField from InstrumentFieldX/Y/W[type][field], palette 3 CGB / 2)
-4257 SetInstrumentPitchByte          ; write instrument byte 5 (pitch flags) and redraw its transpose ON/OFF (bank 1 DrawOnOffName)
-4293 SetInstrumentTransposeOff          ; clear instrument byte 5 bit 5 (transpose) via SetInstrumentPitchByte
-4679 EraseInstrumentCursor           ; erase the cursor highlight on field wInstrumentField (palette 1)
-4741 RaiseInstrumentCommandRate            ; A+RIGHT on CMD/RATE: byte 8 one up (to F), redrawn
-4769 LowerInstrumentCommandRate            ; A+LEFT on CMD/RATE: byte 8 one down (to 0), redrawn
-4924 AddInstrumentTable16            ; table on, fresh press: set table-number bit 4 (+16)
+4118 IsInstrumentTableOn        ; instrument byte 6 bit 5 (table on) as 0/1
+4133 SetInstrumentTableOn       ; set instrument byte 6 bit 5 (table on)
+4170 DrawInstrumentCursor       ; draw the cursor highlight on field wInstrumentField (ColorField from InstrumentFieldX/Y/W[type][field], palette 3 CGB / 2)
+4257 SetInstrumentPitchByte     ; write instrument byte 5 (pitch flags) and redraw its transpose ON/OFF (bank 1 DrawOnOffName)
+4293 SetInstrumentTransposeOff  ; clear instrument byte 5 bit 5 (transpose) via SetInstrumentPitchByte
+4679 EraseInstrumentCursor      ; erase the cursor highlight on field wInstrumentField (palette 1)
+4741 RaiseInstrumentCommandRate ; A+RIGHT on CMD/RATE: byte 8 one up (to F), redrawn
+4769 LowerInstrumentCommandRate ; A+LEFT on CMD/RATE: byte 8 one down (to 0), redrawn
+4924 AddInstrumentTable16       ; table on, fresh press: set table-number bit 4 (+16)
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 40F8 GetWavePlayMode            ; the wave PLAY mode: byte 9 (MANUAL, ONCE, LOOP, PINGPONG, RESYNC = PlayModeNames)
-414F CheckInstrumentFieldOption      ; return 1 if option-table[c] (ROM InstrumentFieldCounts) minus 1 == current field wInstrumentField, else 0
-427B SetInstrumentTransposeOn           ; set instrument byte 5 bit 5 (transpose) via SetInstrumentPitchByte
+414F CheckInstrumentFieldOption ; return 1 if option-table[c] (ROM InstrumentFieldCounts) minus 1 == current field wInstrumentField, else 0
+427B SetInstrumentTransposeOn   ; set instrument byte 5 bit 5 (transpose) via SetInstrumentPitchByte
 42AB SynthWavesModified         ; 1 if synth n's 256-byte wave page (SRAM bank 3) differs from DefaultWaveFrameB3 repeated
 42FF FindFreeSynth              ; first synth (0-15) whose waves are still default; else 'OUT OF SYNTHS!' message and $FF
-436D AllocateInstrumentTable              ; give the instrument the first free table (FarCallByte bank $1F FindFreeTable), switched on; SDCC bug clears byte 6's other bits
-43C0 AllocateInstrumentSynth              ; A twice on a wave instrument's SYNTH field (PLAY not MANUAL): give it a free synth (FindFreeSynth), drawn and stored in byte 3 bits 7-4
+436D AllocateInstrumentTable    ; give the instrument the first free table (FarCallByte bank $1F FindFreeTable), switched on; SDCC bug clears byte 6's other bits
+43C0 AllocateInstrumentSynth    ; A twice on a wave instrument's SYNTH field (PLAY not MANUAL): give it a free synth (FindFreeSynth), drawn and stored in byte 3 bits 7-4
 441A CloneSynth                 ; clone the current instrument's synth into a free synth slot (params + 256 wave bytes), then point the instrument at it
-45A7 DrawInstrumentScreenFrame           ; shared instrument-screen frame draw (map row, tempo field, marker sprites)
-45D3 PreviousUsedInstrument        ; step wInstrument back to the previous allocated instrument (SramInstrumentAllocation), then redraw
-461B PreviousInstrumentPage        ; wInstrument -= 16 (clamped to 0), then PreviousUsedInstrument
-4638 NextUsedInstrument        ; step wInstrument on to the next allocated instrument (stops at $40, speech), then redraw
-47A2 PreviousInstrumentTableMode         ; table mode down: clear byte 5 bit 3 (table step) if set, else table off; redraw
-482E NextInstrumentTableMode         ; table mode up: table on, then set byte 5 bit 3 (table step); redraw
-489D NextInstrumentTable             ; table on: table number +1 (up to $1F), then FarCall bank $1F DrawInstrumentTableField
-48D6 PreviousInstrumentTable             ; A+LEFT on the TABLE field: the previous table number; at 0 (a fresh press) the mode steps back twice and the cursor leaves the field
-495C SubInstrumentTable16            ; table on: clear table-number bit 4 (-16)
+45A7 DrawInstrumentScreenFrame  ; shared instrument-screen frame draw (map row, tempo field, marker sprites)
+45D3 PreviousUsedInstrument     ; step wInstrument back to the previous allocated instrument (SramInstrumentAllocation), then redraw
+461B PreviousInstrumentPage     ; wInstrument -= 16 (clamped to 0), then PreviousUsedInstrument
+4638 NextUsedInstrument         ; step wInstrument on to the next allocated instrument (stops at $40, speech), then redraw
+47A2 PreviousInstrumentTableMode ; table mode down: clear byte 5 bit 3 (table step) if set, else table off; redraw
+482E NextInstrumentTableMode    ; table mode up: table on, then set byte 5 bit 3 (table step); redraw
+489D NextInstrumentTable        ; table on: table number +1 (up to $1F), then FarCall bank $1F DrawInstrumentTableField
+48D6 PreviousInstrumentTable    ; A+LEFT on the TABLE field: the previous table number; at 0 (a fresh press) the mode steps back twice and the cursor leaves the field
+495C SubInstrumentTable16       ; table on: clear table-number bit 4 (-16)
 498B DrawWaveLength             ; draw the wave LENGTH at $99CC ("-" when PLAY is MANUAL)
 49B7 DrawWaveSpeed              ; draw the wave SPEED at $99AB ("--" when PLAY is MANUAL)
-49E7 GetWaveLoopPosition             ; the wave LOOP POS as stored: F ^ byte 2 bits 3-0
-49FD DrawWaveLoopPosition            ; draw the wave LOOP POS at $99EC (LOOP, PINGPONG and RESYNC only; length less loop position, 0 if negative)
-4A44 DrawKitDistortionName            ; draw the kit DIST mode: $d0-$d3 -> " HARD"/" SOFT"/" FOLD"/" WRAP"
+49E7 GetWaveLoopPosition        ; the wave LOOP POS as stored: F ^ byte 2 bits 3-0
+49FD DrawWaveLoopPosition       ; draw the wave LOOP POS at $99EC (LOOP, PINGPONG and RESYNC only; length less loop position, 0 if negative)
+4A44 DrawKitDistortionName      ; draw the kit DIST mode: $d0-$d3 -> " HARD"/" SOFT"/" FOLD"/" WRAP"
 4ACF GetWaveSpeed               ; the wave SPEED: byte 11 + 3
 4AE0 SetWaveSpeed               ; set the wave instrument's SPEED: byte 11 is the speed - 3 (GetWaveSpeed)
 4AF4 GetWaveLength              ; the wave LENGTH as shown: F - byte 10 bits 3-0
@@ -51,95 +51,95 @@
 4B4C GetVibratoShape            ; the PITCH field's vibrato shape: instrument byte 5 bits 2-0 (sine/saw/square << 1, bit 0 = up)
 4B5E SetVibratoShape            ; store the vibrato shape in byte 5 bits 2-0 and redraw the PITCH field (DrawSpeedGlyph for noise, else DrawSpeedModeName)
 4BAC NextVibratoShape           ; A+RIGHT on PITCH: next vibrato shape (triangle, saw, square down, then up)
-4BCB PreviousVibratoShape           ; A+LEFT on PITCH: previous vibrato shape
-4BE9 GetInstrumentType3              ; read instrument byte 0 = type (0=PULSE 1=WAVE 2=KIT 3=NOISE)
-4BF9 NextInstrumentPitchMode           ; pitch mode up: byte 5 bits 4/6/7 (bit 7 = top), redraw via DrawSpeedModeName
-4C64 PreviousInstrumentPitchMode         ; pitch mode down: byte 5 bits 4/6/7, redraw via DrawSpeedModeName
+4BCB PreviousVibratoShape       ; A+LEFT on PITCH: previous vibrato shape
+4BE9 GetInstrumentType3         ; read instrument byte 0 = type (0=PULSE 1=WAVE 2=KIT 3=NOISE)
+4BF9 NextInstrumentPitchMode    ; pitch mode up: byte 5 bits 4/6/7 (bit 7 = top), redraw via DrawSpeedModeName
+4C64 PreviousInstrumentPitchMode ; pitch mode down: byte 5 bits 4/6/7, redraw via DrawSpeedModeName
 4CD9 DrawWaveFinetune           ; draw the wave FINETUNE (byte 12) signed at $990A
 4D15 DrawWaveSynthField         ; draw the WAVE/SYNTH field: 'WAVE ' + byte 3 (hex), or 'SYNTH' + byte 3 >> 4
-4DD7 InstrumentEnvelopeChanged       ; FarCall bank1b UpdateInstrumentEnvelope after a field edit
+4DD7 InstrumentEnvelopeChanged  ; FarCall bank1b UpdateInstrumentEnvelope after a field edit
 4FDC DrawKitNameField           ; draw kit number (hex) + 6-char kit name (ReadKitName -> wSampleNoteString)
 5002 WriteKitNumber             ; write kit# into the field's low 6 bits (top flag bits preserved via $c0 mask)
-503A NextKit              ; step to the next existing kit bank (KitExists scan), WriteKitNumber
-508C PreviousKit              ; step to the previous existing kit (bound $3f), WriteKitNumber
+503A NextKit                    ; step to the next existing kit bank (KitExists scan), WriteKitNumber
+508C PreviousKit                ; step to the previous existing kit (bound $3f), WriteKitNumber
 50DF EnsureKitExists            ; point either kit field of the current instrument (bytes 2 and 9) that names a missing kit at kit 0
-5128 SetInstrumentType               ; write instrument byte 0 = type (0=PULSE 1=WAVE 2=KIT 3=NOISE)
-5181 RaiseInstrumentFieldLow            ; current field byte: +1 on the lo nibble (clamp $0f), redraw + InstrumentEnvelopeChanged
-51BC LowerInstrumentFieldLow            ; current field byte: -1 on the lo nibble (clamp 0)
-51F4 RaiseInstrumentFieldHigh            ; current field byte: +$10 on the hi nibble (clamp $f0)
-5231 LowerInstrumentFieldHigh            ; current field byte: -$10 on the hi nibble
-526B RaiseInstrumentLength             ; A+RIGHT on LENGTH (byte 3, bit 6 = limited, shown as 3F - bits 5-0): one longer, past 3F to UNLIM
-52BF LowerInstrumentLength             ; A+LEFT on LENGTH: one shorter, from UNLIM to 3F
-531C RaiseInstrumentLengthBig          ; A+UP on LENGTH: 16 longer, past 3F to UNLIM
-537A LowerInstrumentLengthBig          ; A+DOWN on LENGTH: 16 shorter, from UNLIM to 30
+5128 SetInstrumentType          ; write instrument byte 0 = type (0=PULSE 1=WAVE 2=KIT 3=NOISE)
+5181 RaiseInstrumentFieldLow    ; current field byte: +1 on the lo nibble (clamp $0f), redraw + InstrumentEnvelopeChanged
+51BC LowerInstrumentFieldLow    ; current field byte: -1 on the lo nibble (clamp 0)
+51F4 RaiseInstrumentFieldHigh   ; current field byte: +$10 on the hi nibble (clamp $f0)
+5231 LowerInstrumentFieldHigh   ; current field byte: -$10 on the hi nibble
+526B RaiseInstrumentLength      ; A+RIGHT on LENGTH (byte 3, bit 6 = limited, shown as 3F - bits 5-0): one longer, past 3F to UNLIM
+52BF LowerInstrumentLength      ; A+LEFT on LENGTH: one shorter, from UNLIM to 3F
+531C RaiseInstrumentLengthBig   ; A+UP on LENGTH: 16 longer, past 3F to UNLIM
+537A LowerInstrumentLengthBig   ; A+DOWN on LENGTH: 16 shorter, from UNLIM to 30
 53DE CloneSynthOrTable          ; clone what the instrument screen's cursor names: the softsynth on a WAVE instrument's synth field, else the instrument's table (CloneInstrumentTable)
 ; --- functions called from bank 0 (this bank paged in) ---
-541F InstrumentScreenInput           ; instrument-screen input entry (speech $40 -> SpeechInstrumentInput via FarCallByte)
-4790 GetInstrumentByte5Flag8 ; read current instr byte 5 & $08 (table AUTOMATE-class flag; unreferenced)
+541F InstrumentScreenInput      ; instrument-screen input entry (speech $40 -> SpeechInstrumentInput via FarCallByte)
+4790 GetInstrumentByte5Flag8    ; read current instr byte 5 & $08 (table AUTOMATE-class flag; unreferenced)
 4ABA TxtSoft                    ; " SOFT"
 4AC0 TxtFold                    ; " FOLD"
 4AC6 TxtWrap                    ; " WRAP"
 4025 TxtUnlim                   ; "UNLIM"
-402B InstrumentFieldX                ; [4][18] per-type cursor X per field (NOISE row: 13): indexed [type][field]
-406E InstrumentFieldY                ; [4][18] per-type cursor Y per field (NOISE row: 13)
-40B1 InstrumentFieldW                ; [4][18] per-type cursor width per field (NOISE row: 13)
-40F4 InstrumentFieldCounts           ; [4] fields per instrument type: PULSE 16, WAVE 15, KIT 18, NOISE 13
+402B InstrumentFieldX           ; [4][18] per-type cursor X per field (NOISE row: 13): indexed [type][field]
+406E InstrumentFieldY           ; [4][18] per-type cursor Y per field (NOISE row: 13)
+40B1 InstrumentFieldW           ; [4][18] per-type cursor width per field (NOISE row: 13)
+40F4 InstrumentFieldCounts      ; [4] fields per instrument type: PULSE 16, WAVE 15, KIT 18, NOISE 13
 4015 DefaultWaveFrameB3         ; [16] default wave frame (bank 3's copy)
 
 ; --- structural local names (loop heads / common exits) ---
-4253 .done                ; common exit of DrawInstrumentCursor
-42BE .loop                ; loop head in SynthWavesModified
-42FB .done                ; common exit of SynthWavesModified
-4302 .loop                ; loop head in FindFreeSynth
-4339 .done                ; common exit of FindFreeSynth
-43BE .done                ; common exit of AllocateInstrumentTable
-4416 .done                ; common exit of AllocateInstrumentSynth
-4466 .loop                ; loop head in CloneSynth
-4596 .done                ; common exit of CloneSynth
-45E4 .loop                ; loop head in PreviousUsedInstrument
-4619 .done                ; common exit of PreviousUsedInstrument
-4637 .done                ; common exit of PreviousInstrumentPage
-4641 .loop                ; loop head in NextUsedInstrument
-473D .done                ; common exit of EraseInstrumentCursor
-4767 .done                ; common exit of RaiseInstrumentCommandRate
-478E .done                ; common exit of LowerInstrumentCommandRate
-482C .done                ; common exit of PreviousInstrumentTableMode
-489B .done                ; common exit of NextInstrumentTableMode
-48D4 .done                ; common exit of NextInstrumentTable
-4922 .done                ; common exit of PreviousInstrumentTable
-495A .done                ; common exit of AddInstrumentTable16
-4989 .done                ; common exit of SubInstrumentTable16
-49B5 .done                ; common exit of DrawWaveLength
-49E2 .done                ; common exit of DrawWaveSpeed
-4A42 .done                ; common exit of DrawWaveLoopPosition
-4AB3 .done                ; common exit of DrawKitDistortionName
-4BC9 .done                ; common exit of NextVibratoShape
-4BE7 .done                ; common exit of PreviousVibratoShape
-4C60 .done                ; common exit of NextInstrumentPitchMode
-4D13 .done                ; common exit of DrawWaveFinetune
-4DC9 .done                ; common exit of DrawWaveSynthField
-4EC6 .nameLoop            ; DrawInstrumentScreen: the 5 name characters, blanks for 0
-4F9D .eraseLoop           ; DrawInstrumentScreen: CGB: erase the cursor of every field
-4FC0 .done                ; common exit of DrawInstrumentScreen
-4FF2 .done                ; common exit of DrawKitNameField
-5060 .loop                ; loop head in NextKit
-5088 .done                ; common exit of NextKit
-50B2 .loop                ; loop head in PreviousKit
-50DB .done                ; common exit of PreviousKit
-50E4 .loop                ; loop head in EnsureKitExists
-5124 .done                ; common exit of EnsureKitExists
-517D .done                ; common exit of SetInstrumentType
-51BA .done                ; common exit of RaiseInstrumentFieldLow
-51F2 .done                ; common exit of LowerInstrumentFieldLow
-522F .done                ; common exit of RaiseInstrumentFieldHigh
-5269 .done                ; common exit of LowerInstrumentFieldHigh
-52B9 .done                ; common exit of RaiseInstrumentLength
-5316 .done                ; common exit of LowerInstrumentLength
-5374 .done                ; common exit of RaiseInstrumentLengthBig
-53D8 .done                ; common exit of LowerInstrumentLengthBig
-6EC8 .bigKitKitLoop        ; loop head in InstrumentScreenInput
-74C9 .bigDecrementKitKitLoop     ; loop head in InstrumentScreenInput
-7A77 .done                 ; common exit of InstrumentScreenInput
+4253 .done                      ; common exit of DrawInstrumentCursor
+42BE .loop                      ; loop head in SynthWavesModified
+42FB .done                      ; common exit of SynthWavesModified
+4302 .loop                      ; loop head in FindFreeSynth
+4339 .done                      ; common exit of FindFreeSynth
+43BE .done                      ; common exit of AllocateInstrumentTable
+4416 .done                      ; common exit of AllocateInstrumentSynth
+4466 .loop                      ; loop head in CloneSynth
+4596 .done                      ; common exit of CloneSynth
+45E4 .loop                      ; loop head in PreviousUsedInstrument
+4619 .done                      ; common exit of PreviousUsedInstrument
+4637 .done                      ; common exit of PreviousInstrumentPage
+4641 .loop                      ; loop head in NextUsedInstrument
+473D .done                      ; common exit of EraseInstrumentCursor
+4767 .done                      ; common exit of RaiseInstrumentCommandRate
+478E .done                      ; common exit of LowerInstrumentCommandRate
+482C .done                      ; common exit of PreviousInstrumentTableMode
+489B .done                      ; common exit of NextInstrumentTableMode
+48D4 .done                      ; common exit of NextInstrumentTable
+4922 .done                      ; common exit of PreviousInstrumentTable
+495A .done                      ; common exit of AddInstrumentTable16
+4989 .done                      ; common exit of SubInstrumentTable16
+49B5 .done                      ; common exit of DrawWaveLength
+49E2 .done                      ; common exit of DrawWaveSpeed
+4A42 .done                      ; common exit of DrawWaveLoopPosition
+4AB3 .done                      ; common exit of DrawKitDistortionName
+4BC9 .done                      ; common exit of NextVibratoShape
+4BE7 .done                      ; common exit of PreviousVibratoShape
+4C60 .done                      ; common exit of NextInstrumentPitchMode
+4D13 .done                      ; common exit of DrawWaveFinetune
+4DC9 .done                      ; common exit of DrawWaveSynthField
+4EC6 .nameLoop                  ; DrawInstrumentScreen: the 5 name characters, blanks for 0
+4F9D .eraseLoop                 ; DrawInstrumentScreen: CGB: erase the cursor of every field
+4FC0 .done                      ; common exit of DrawInstrumentScreen
+4FF2 .done                      ; common exit of DrawKitNameField
+5060 .loop                      ; loop head in NextKit
+5088 .done                      ; common exit of NextKit
+50B2 .loop                      ; loop head in PreviousKit
+50DB .done                      ; common exit of PreviousKit
+50E4 .loop                      ; loop head in EnsureKitExists
+5124 .done                      ; common exit of EnsureKitExists
+517D .done                      ; common exit of SetInstrumentType
+51BA .done                      ; common exit of RaiseInstrumentFieldLow
+51F2 .done                      ; common exit of LowerInstrumentFieldLow
+522F .done                      ; common exit of RaiseInstrumentFieldHigh
+5269 .done                      ; common exit of LowerInstrumentFieldHigh
+52B9 .done                      ; common exit of RaiseInstrumentLength
+5316 .done                      ; common exit of LowerInstrumentLength
+5374 .done                      ; common exit of RaiseInstrumentLengthBig
+53D8 .done                      ; common exit of LowerInstrumentLengthBig
+6EC8 .bigKitKitLoop             ; loop head in InstrumentScreenInput
+74C9 .bigDecrementKitKitLoop    ; loop head in InstrumentScreenInput
+7A77 .done                      ; common exit of InstrumentScreenInput
 
 ; --- structural local names (loop heads / common exits) ---
 546F .aFalse
@@ -168,10 +168,10 @@
 4B16 .ok
 4CA3 .getInstrumentType3
 4D08 .positive
-4DF7 .instrumentOk             ; DrawInstrumentScreen: instrument number in range
-4E11 .notSpeech           ; DrawInstrumentScreen: a real instrument (not the speech one)
-4E68 .fieldOk             ; DrawInstrumentScreen: cursor field within the type's field count
-4FBA .cursor              ; DrawInstrumentScreen: draw the cursor, refresh the envelope
+4DF7 .instrumentOk              ; DrawInstrumentScreen: instrument number in range
+4E11 .notSpeech                 ; DrawInstrumentScreen: a real instrument (not the speech one)
+4E68 .fieldOk                   ; DrawInstrumentScreen: cursor field within the type's field count
+4FBA .cursor                    ; DrawInstrumentScreen: draw the cursor, refresh the envelope
 517A .drawInstrumentScreen
 543D .notSpeech
 5462 .latchDone
@@ -335,7 +335,7 @@
 4442 .cont
 44D6 .cont_2
 4535 .cont_3
-4540 .copyWave         ; wave-page copy loop body (was mislabelled SetInstrLen3)
+4540 .copyWave                  ; wave-page copy loop body (was mislabelled SetInstrLen3)
 4558 .destinationIncrementDone
 4608 .farCall
 4666 .farCall
@@ -347,8 +347,8 @@
 4A73 .drawString_2
 4A7F .drawString_3
 4A8B .drawString_4
-4B95 .notNoise           ; instrument type != 3 (noise): redraw through DrawSpeedModeName
-4B99 .redraw             ; far call the chosen drawer (bank 1) with the shape byte
+4B95 .notNoise                  ; instrument type != 3 (noise): redraw through DrawSpeedModeName
+4B99 .redraw                    ; far call the chosen drawer (bank 1) with the shape byte
 4BC1 .store
 4BDF .store
 4C1D .testBit6
@@ -357,15 +357,15 @@
 4C9A .getInstrumentType3_2
 4D74 .drawString
 4DD1 .cont
-4E45 .typeOk              ; DrawInstrumentScreen: type < 4 (else reset to 0)
-4EDF .nameCharacter            ; DrawInstrumentScreen: character not 0
-4EED .nameDone            ; DrawInstrumentScreen: the type label at field 1
-4F58 .typePulse           ; DrawInstrumentScreen: type 0: DrawPulseInstrument
-4F5F .typeWave            ; DrawInstrumentScreen: type 1: DrawWaveInstrument
-4F66 .typeNoise           ; DrawInstrumentScreen: type 3: DrawNoiseInstrument
-4F6D .typeKit             ; DrawInstrumentScreen: type 2: DrawKitInstrument
-4F71 .drawType            ; DrawInstrumentScreen: far call the type's drawer, then the channel status
-4FB3 .eraseDone           ; DrawInstrumentScreen: restore the cursor field
+4E45 .typeOk                    ; DrawInstrumentScreen: type < 4 (else reset to 0)
+4EDF .nameCharacter             ; DrawInstrumentScreen: character not 0
+4EED .nameDone                  ; DrawInstrumentScreen: the type label at field 1
+4F58 .typePulse                 ; DrawInstrumentScreen: type 0: DrawPulseInstrument
+4F5F .typeWave                  ; DrawInstrumentScreen: type 1: DrawWaveInstrument
+4F66 .typeNoise                 ; DrawInstrumentScreen: type 3: DrawNoiseInstrument
+4F6D .typeKit                   ; DrawInstrumentScreen: type 2: DrawKitInstrument
+4F71 .drawType                  ; DrawInstrumentScreen: far call the type's drawer, then the channel status
+4FB3 .eraseDone                 ; DrawInstrumentScreen: restore the cursor field
 5023 .cont
 504B .cont
 506B .kitExists
@@ -509,7 +509,7 @@
 7A75 .ignored
 
 ; --- pointer targets (tools/name_targets.py) ---
-4F4C .typeJumpTable       ; DrawInstrumentScreen: switch (type): the drawer per type
+4F4C .typeJumpTable             ; DrawInstrumentScreen: switch (type): the drawer per type
 553C .upTypes
 5782 .leftTypes
 5833 .rightTypes
