@@ -8,7 +8,7 @@
 4373 TxtClonedChain     ; "CLONED CHAIN"
 4380 TxtClonedChainPhrases ; "CLONED CHAIN+PHRASES"
 56FE TxtCancelSelect07  ; "CANCEL SELECT"
-492A TxtDashes          ; "--" (SongRowPalettes: cell with bit 7 set)
+492A TxtDashes          ; "--" (SetSongRowPals: cell with bit 7 set)
 5957 TxtCutChains       ; "CUT CHAINS"
 5962 TxtCopiedChains    ; "COPIED CHAINS"
 5B0F TxtPastedChains    ; "PASTED CHAINS"
@@ -16,33 +16,33 @@
 7220 VramCopyByteSafe   ; spin until rSTAT mode<2 (VRAM free), then copy [de]->[hl], inc e/l
 4574 DrawSongScreen      ; screen idx 4: draws the song sequence (4 channels = PU1/PU2/WAV/NOI)
 47AA SongScreenUpdate   ; per-frame visual update (screen idx 4)
-4139 SongCloneChain             ; song screen chain clone (CLONED CHAIN / +PHRASES in deep mode): new chain via IsSongChainUsed, copy its 16 phrases (deep: clone each phrase once via the wClonePhraseMap map), transposes; returns the new chain or $ff
+4139 CloneSongChain             ; song screen chain clone (CLONED CHAIN / +PHRASES in deep mode): new chain via IsSongChainUsed, copy its 16 phrases (deep: clone each phrase once via the wClonePhraseMap map), transposes; returns the new chain or $ff
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
-4000 SongCopyCol             ; copy a song column from p to q (stride 4) until p reaches $B590 (SongScanSram); asserts both >= $B290, q < $B590
+4000 CopySongCol             ; copy a song column from p to q (stride 4) until p reaches $B590 (ScanSongSram); asserts both >= $B290, q < $B590
 404B SongChanActiveMask         ; OR wChanActive[0..3] -> combined active flag
 4084 EraseSongCursor            ; restore the cursor cell palette (1 if the row is bookmarked, else 0) at SongColOffsets[wSongCol]
 4366 .showCloneMessage    ; (was SongShowCloneMsg) show "CLONED CHAIN" / "CLONED CHAIN+PHRASES" popup
 4395 DrawSongCursor             ; highlight the cursor cell (palette 3 on CGB, 2 on DMG) at SongColOffsets[wSongCol]
-43E4 SongReadRow                ; read song row wSongScroll from SRAM ($B290, ReadSongBytes) -> wSongReadBuf (16 bytes)
-4463 SongDrawRowNumber             ; draw a song row number + bookmark marker (wSongScroll window, 18 rows)
-451E SongRedrawRow              ; SongReadRow + draw the row at VRAM $9842 (palettes, SongDrawColVals/4395)
-4540 SongScrollToCursor         ; clamp song top-row wSongScroll so cursor wSongRow stays visible
-4657 SongUpdatePlayMarker       ; per-channel play-position markers from wChanSongRow/wChanNextSongRow (<-SongScreenUpdate)
-47CF SongRowPalettes            ; pick row draw palettes (cursor/bookmark-aware)
-492D SongDrawCursorRow          ; draw cursor-row string (SetVramCursor at wSongRow-wSongScroll, SongRowPalettes)
-494E SongScrollUp               ; scroll the song grid for the row above: SongScrollVramUp (+ VramCopyRowUp on CGB), redraw row 2 ($9840)
-4973 SongScrollDown             ; scroll the song grid for the row below: SongScrollVramDown (+ VramCopyRowDown on CGB), redraw row 17 ($9A20)
-4998 SongFindNextRow            ; scan down 1..16 from cursor wSongRow, wrapping at 0 -> $ff
-49E7 SongCursorPageDown         ; PgDn: advance song cursor wSongRow by a page (wCursorMode==4 guard)
-4A25 SongFindPrevRow            ; scan up 1..16 from cursor wSongRow, wrapping
-4A79 SongCursorPageUp           ; PgUp: retreat song cursor wSongRow by a page
-4AB8 SongBeginSelection         ; SaveSelectionState, seed wSel* rect from the song cursor
-4AFD SongLoadCursorChain        ; read seq[wSongRow,wSongCol] ($ff -> empty path), validate+cache via SongCloneChain
+43E4 ReadSongRow                ; read song row wSongScroll from SRAM ($B290, ReadSongBytes) -> wSongReadBuf (16 bytes)
+4463 DrawSongRowNumber             ; draw a song row number + bookmark marker (wSongScroll window, 18 rows)
+451E RedrawSongRow              ; ReadSongRow + draw the row at VRAM $9842 (palettes, DrawSongColVals/4395)
+4540 ScrollSongToCursor         ; clamp song top-row wSongScroll so cursor wSongRow stays visible
+4657 UpdateSongPlayMarker       ; per-channel play-position markers from wChanSongRow/wChanNextSongRow (<-SongScreenUpdate)
+47CF SetSongRowPals            ; pick row draw palettes (cursor/bookmark-aware)
+492D DrawSongCursorRow          ; draw cursor-row string (SetVramCursor at wSongRow-wSongScroll, SetSongRowPals)
+494E ScrollSongUp               ; scroll the song grid for the row above: ScrollSongVramUp (+ VramCopyRowUp on CGB), redraw row 2 ($9840)
+4973 ScrollSongDown             ; scroll the song grid for the row below: ScrollSongVramDown (+ VramCopyRowDown on CGB), redraw row 17 ($9A20)
+4998 FindNextSongRow            ; scan down 1..16 from cursor wSongRow, wrapping at 0 -> $ff
+49E7 PageSongCursorDown         ; PgDn: advance song cursor wSongRow by a page (wCursorMode==4 guard)
+4A25 FindPrevSongRow            ; scan up 1..16 from cursor wSongRow, wrapping
+4A79 PageSongCursorUp           ; PgUp: retreat song cursor wSongRow by a page
+4AB8 BeginSongSelection         ; SaveSelectionState, seed wSel* rect from the song cursor
+4AFD LoadSongCursorChain        ; read seq[wSongRow,wSongCol] ($ff -> empty path), validate+cache via CloneSongChain
 5736 CutCopySongSelection       ; cut (isCut arg) or copy the song selection rect into the clipboard; a cut shifts each column up and clears the tail ($FF), AdjustBookmarksOnDelete, CUT/COPIED CHAINS
 5929 .endSelection        ; (was SongEndSelection) finish selection (ShowMessage), restore cursor from wSelectionLeft/wSongSelectionRow
-5970 PasteSongSelection         ; paste the clipboard rows into the song grid at the cursor: shifts the columns down (SongWriteSramBytes) to make room, writes the cells, PASTED CHAINS
-5B1D SongEditSelection          ; apply the current edit op across the selection rect (clipType 4; 7 uses in SongScreenInput)
+5970 PasteSongSelection         ; paste the clipboard rows into the song grid at the cursor: shifts the columns down (WriteSongSramBytes) to make room, writes the cells, PASTED CHAINS
+5B1D EditSongSelection          ; apply the current edit op across the selection rect (clipType 4; 7 uses in SongScreenInput)
 627C SortBookmarks              ; bubble-sort the 16-byte song bookmarks row ($aff0, song offset $0FF0)
 6320 IsBookmarked               ; -> e=1 if song row (arg) is in the bookmarks list, else 0
 637C AddBookmark                ; append song row to bookmarks; full -> ShowMax16Marks
@@ -51,21 +51,21 @@
 644F AdjustBookmarksOnDelete    ; song rows [lo,hi) removed: drop bookmarks inside, shift later ones up, re-sort
 64CA AdjustBookmarksOnInsert    ; song rows shifted (src->dst): rebase bookmarks, drop wrapped, re-sort
 6543 DrawKbdInstrState          ; keyboard state cell (arrows by wKbdPulseChans) + instrument hex (wKbdInstr) at row 12
-672A SongHexDigit               ; return hex char "0123456789ABCDEF"[arg]
+672A HexDigitChar               ; return hex char "0123456789ABCDEF"[arg]
 674D DrawKbdInstrName           ; DrawKbdInstrState + instrument name via CopyInstrName -> wSampleNoteString
 6812 DrawKbdOctave              ; draw the keyboard octave range ("O3-4".."O7-8") from wKbdTranspose
 6E50 ProcessKbdNote             ; PS/2 keyboard note -> play/preview on the channel (wKbdHeldNote; screen/col aware)
 7012 LinkDequeueByte            ; wait for a queued link byte and pop it from the wLinkQueueBuf ring (index wLinkQueueHead, 16 entries)
 7033 KbdDrainQueue              ; delay(10), drop every queued link byte, then SendSyncHandshake
 704E KbdPollScancode            ; drain the queue, then expect 20 key records (3, [7,] $27) from the keyboard: 1 if all arrive (the calibration taps)
-71BF SongDrawColVals       ; draw 16 song-row values into the column (wSongReadBuf, IsBookmarked)
+71BF DrawSongColVals       ; draw 16 song-row values into the column (wSongReadBuf, IsBookmarked)
 720A DrawHexOrDashes            ; draw space then [bc]: bit7 ? "--" : hex byte
 722B VramCopyRowDown            ; copy tilemap row 2 -> row 3 (VBK-aware, calib screen)
 7276 VramCopyRowUp              ; copy tilemap row 17 -> row 16 (VBK-aware, calib screen)
-72C1 SongScrollVramUp           ; shift VRAM rows up ($9a00 -> $9a20, 15 bytes, hblank-safe)
-735B SongScrollVramDown         ; shift VRAM rows down (counterpart of SongScrollVramUp)
-73F5 SongScanSram               ; copy [hl] -> [de] in SRAM bank 0 (di-guarded), both += 4, until hl reaches $B590
-7422 SongWriteSramBytes         ; write N bytes (count arg) to SRAM (di, bank-select, $0a enable)
+72C1 ScrollSongVramUp           ; shift VRAM rows up ($9a00 -> $9a20, 15 bytes, hblank-safe)
+735B ScrollSongVramDown         ; shift VRAM rows down (counterpart of ScrollSongVramUp)
+73F5 ScanSongSram               ; copy [hl] -> [de] in SRAM bank 0 (di-guarded), both += 4, until hl reaches $B590
+7422 WriteSongSramBytes         ; write N bytes (count arg) to SRAM (di, bank-select, $0a enable)
 ; --- functions called from bank 0 (this bank paged in) ---
 68A2 ProcessLinkQueue           ; drain the link-port ring buffer (wLinkQueueBuf+, head wLinkQueueHead): keyboard scancodes / sync bytes
 4B3B SongScreenInput            ; song screen (4) input (wButtons): chain entry, cursor moves, chain number steps, clear/delete, live mode, selections, bookmarks, playback; 1 = handled
@@ -90,32 +90,32 @@
 6898 TxtOct45                   ; "O4-5"
 689D TxtOct34                   ; "O3-4"
 4047 SongColOffsets             ; per-song-column x offsets (col+1)*3: $03,$06,$09,$0c
-5DB8 SongSelectionAttr               ; [32] CGB attribute 3 (selection palette) for set_bkg_tiles in SongEditSelection
+5DB8 SongSelectionAttr               ; [32] CGB attribute 3 (selection palette) for set_bkg_tiles in EditSongSelection
 403F SongColFlags               ; 8-byte per-column flag row (precedes SongColOffsets)
 
 ; --- structural local names (loop heads / common exits) ---
 4106 .loop                ; loop head in WriteSongCell
-4194 .loop                ; loop head in SongCloneChain
-41D7 .loop2               ; loop head in SongCloneChain
-436F .done                ; common exit of SongCloneChain
-43F1 .loop                ; loop head in SongReadRow
-4476 .loop                ; loop head in SongDrawRowNumber
-44D8 .loop2               ; loop head in SongDrawRowNumber
-451A .done                ; common exit of SongDrawRowNumber
-4572 .done                ; common exit of SongScrollToCursor
-4662 .loop                ; loop head in SongUpdatePlayMarker
-47A6 .done                ; common exit of SongUpdatePlayMarker
+4194 .loop                ; loop head in CloneSongChain
+41D7 .loop2               ; loop head in CloneSongChain
+436F .done                ; common exit of CloneSongChain
+43F1 .loop                ; loop head in ReadSongRow
+4476 .loop                ; loop head in DrawSongRowNumber
+44D8 .loop2               ; loop head in DrawSongRowNumber
+451A .done                ; common exit of DrawSongRowNumber
+4572 .done                ; common exit of ScrollSongToCursor
+4662 .loop                ; loop head in UpdateSongPlayMarker
+47A6 .done                ; common exit of UpdateSongPlayMarker
 47BC .loop                ; loop head in SongScreenUpdate
 47CD .done                ; common exit of SongScreenUpdate
-483A .loop                ; loop head in SongRowPalettes
-4926 .done                ; common exit of SongRowPalettes
-499F .loop                ; loop head in SongFindNextRow
-49E3 .done                ; common exit of SongFindNextRow
-4A23 .done                ; common exit of SongCursorPageDown
-4A2C .loop                ; loop head in SongFindPrevRow
-4A75 .done                ; common exit of SongFindPrevRow
-4AB6 .done                ; common exit of SongCursorPageUp
-4B39 .done                ; common exit of SongLoadCursorChain
+483A .loop                ; loop head in SetSongRowPals
+4926 .done                ; common exit of SetSongRowPals
+499F .loop                ; loop head in FindNextSongRow
+49E3 .done                ; common exit of FindNextSongRow
+4A23 .done                ; common exit of PageSongCursorDown
+4A2C .loop                ; loop head in FindPrevSongRow
+4A75 .done                ; common exit of FindPrevSongRow
+4AB6 .done                ; common exit of PageSongCursorUp
+4B39 .done                ; common exit of LoadSongCursorChain
 4C91 .loop                ; loop head in SongScreenInput
 525C .loop2               ; loop head in SongScreenInput
 54A8 .loop3               ; loop head in SongScreenInput
@@ -132,10 +132,10 @@
 5A77 .loop3               ; loop head in PasteSongSelection
 5A88 .loop4               ; loop head in PasteSongSelection
 5B0B .done                ; common exit of PasteSongSelection
-5C16 .loop                ; loop head in SongEditSelection
-5C47 .loop2               ; loop head in SongEditSelection
-5D0C .loop3               ; loop head in SongEditSelection
-5DB4 .done                ; common exit of SongEditSelection
+5C16 .loop                ; loop head in EditSongSelection
+5C47 .loop2               ; loop head in EditSongSelection
+5D0C .loop3               ; loop head in EditSongSelection
+5DB4 .done                ; common exit of EditSongSelection
 627F .loop                ; loop head in SortBookmarks
 6286 .loop2               ; loop head in SortBookmarks
 6334 .loop                ; loop head in IsBookmarked
@@ -157,39 +157,39 @@
 7101 .loop                ; loop head in DrawKbdCalibScreen
 7137 .loop2               ; loop head in DrawKbdCalibScreen
 716F .done                ; common exit of DrawKbdCalibScreen
-71C4 .loop                ; loop head in SongDrawColVals
+71C4 .loop                ; loop head in DrawSongColVals
 7237 .loop                ; loop head in VramCopyRowDown
 7282 .loop                ; loop head in VramCopyRowUp
-72CA .loop                ; loop head in SongScrollVramUp
-72D3 .loop2               ; loop head in SongScrollVramUp
-72DC .loop3               ; loop head in SongScrollVramUp
-72E5 .loop4               ; loop head in SongScrollVramUp
-72EE .loop5               ; loop head in SongScrollVramUp
-72F7 .loop6               ; loop head in SongScrollVramUp
-7300 .loop7               ; loop head in SongScrollVramUp
-7309 .loop8               ; loop head in SongScrollVramUp
-7312 .loop9               ; loop head in SongScrollVramUp
-731B .loop10              ; loop head in SongScrollVramUp
-7324 .loop11              ; loop head in SongScrollVramUp
-732D .loop12              ; loop head in SongScrollVramUp
-7336 .loop13              ; loop head in SongScrollVramUp
-733F .loop14              ; loop head in SongScrollVramUp
-7364 .loop                ; loop head in SongScrollVramDown
-736D .loop2               ; loop head in SongScrollVramDown
-7376 .loop3               ; loop head in SongScrollVramDown
-737F .loop4               ; loop head in SongScrollVramDown
-7388 .loop5               ; loop head in SongScrollVramDown
-7391 .loop6               ; loop head in SongScrollVramDown
-739A .loop7               ; loop head in SongScrollVramDown
-73A3 .loop8               ; loop head in SongScrollVramDown
-73AC .loop9               ; loop head in SongScrollVramDown
-73B5 .loop10              ; loop head in SongScrollVramDown
-73BE .loop11              ; loop head in SongScrollVramDown
-73C7 .loop12              ; loop head in SongScrollVramDown
-73D0 .loop13              ; loop head in SongScrollVramDown
-73D9 .loop14              ; loop head in SongScrollVramDown
-73FE .loop                ; loop head in SongScanSram
-742E .loop                ; loop head in SongWriteSramBytes
+72CA .loop                ; loop head in ScrollSongVramUp
+72D3 .loop2               ; loop head in ScrollSongVramUp
+72DC .loop3               ; loop head in ScrollSongVramUp
+72E5 .loop4               ; loop head in ScrollSongVramUp
+72EE .loop5               ; loop head in ScrollSongVramUp
+72F7 .loop6               ; loop head in ScrollSongVramUp
+7300 .loop7               ; loop head in ScrollSongVramUp
+7309 .loop8               ; loop head in ScrollSongVramUp
+7312 .loop9               ; loop head in ScrollSongVramUp
+731B .loop10              ; loop head in ScrollSongVramUp
+7324 .loop11              ; loop head in ScrollSongVramUp
+732D .loop12              ; loop head in ScrollSongVramUp
+7336 .loop13              ; loop head in ScrollSongVramUp
+733F .loop14              ; loop head in ScrollSongVramUp
+7364 .loop                ; loop head in ScrollSongVramDown
+736D .loop2               ; loop head in ScrollSongVramDown
+7376 .loop3               ; loop head in ScrollSongVramDown
+737F .loop4               ; loop head in ScrollSongVramDown
+7388 .loop5               ; loop head in ScrollSongVramDown
+7391 .loop6               ; loop head in ScrollSongVramDown
+739A .loop7               ; loop head in ScrollSongVramDown
+73A3 .loop8               ; loop head in ScrollSongVramDown
+73AC .loop9               ; loop head in ScrollSongVramDown
+73B5 .loop10              ; loop head in ScrollSongVramDown
+73BE .loop11              ; loop head in ScrollSongVramDown
+73C7 .loop12              ; loop head in ScrollSongVramDown
+73D0 .loop13              ; loop head in ScrollSongVramDown
+73D9 .loop14              ; loop head in ScrollSongVramDown
+73FE .loop                ; loop head in ScanSongSram
+742E .loop                ; loop head in WriteSongSramBytes
 
 ; --- structural local names (loop heads / common exits) ---
 4D22 .rightLeft           ; wButtons == case in SongScreenInput
@@ -247,11 +247,11 @@
 4981 .setVramCursor
 49D3 .loadSongRow
 49F6 .songReadCellVal
-4A18 .songRedrawRow
+4A18 .redrawSongRow
 4A1E .songDrawCellHw
 4A64 .loadSongRow
 4A88 .songReadCellVal
-4AAB .songRedrawRow
+4AAB .redrawSongRow
 4AB1 .songDrawCellHw
 4B36 .songDrawCellHw
 4B87 .checkButtons
@@ -274,8 +274,8 @@
 4FC3 .setPlayMode
 4FC8 .drawSongScreen
 51F7 .setBHeld
-52E1 .songRedrawRow
-534D .songLoadCursorChain
+52E1 .redrawSongRow
+534D .loadSongCursorChain
 5355 .checkClipboardType
 5363 .songReadCellVal
 53AF .checkLiveModec
@@ -413,20 +413,20 @@
 4CCD .checkArg
 4D03 .ret01
 4D27 .songReadCellVal_2
-4D48 .songEditSelection
+4D48 .editSongSelection
 4D58 .ret01_2
 4D76 .ret00
 4D7B .songReadCellVal_3
-4D9C .songEditSelection_2
+4D9C .editSongSelection_2
 4DAC .ret01_3
 4DC7 .loadSelectionTop
 4DEE .songReadCellVal_4
 4E11 .songDrawCellHw_2
-4E1B .songEditSelection_3
+4E1B .editSongSelection_3
 4E25 .ret01_4
 4E5B .songReadCellVal_5
 4E7E .songDrawCellHw_3
-4E88 .songEditSelection_4
+4E88 .editSongSelection_4
 4E92 .ret01_5
 4F4F .memSet
 4FD5 .ret01_6

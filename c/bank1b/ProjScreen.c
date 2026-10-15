@@ -24,7 +24,7 @@ extern UBYTE wPlayMinutes;                 /* $C552 */
 extern UBYTE wProjDrawScratch;              /* $C9A7 */
 extern UBYTE wProjDrawScratch2;             /* $C9A8 */
 extern UBYTE wProjDrawScratch3;             /* $C9A9 */
-void ProjDrawTempo(void);
+void DrawProjTempo(void);
 UBYTE ProjSyncModeIs015(void);
 void DrawPrelistenField(void);
 UBYTE GetNextButtons(void);                 /* bank 0 */
@@ -94,17 +94,17 @@ void SaveTempoProps(void)
     WriteSongByte(1, SramPropTempoMode, wTempoMode);
 }
 
-void ProjDrawTempo(void)
+void DrawProjTempo(void)
 {
     DrawTempo(GetTempoTimerVal());
 }
 
-void ProjRedrawTempo(void)
+void RedrawProjTempo(void)
 {
     while (wRedrawPending < 6)
         ;
     wVramCursor = (UBYTE *)0x9846;
-    ProjDrawTempo();
+    DrawProjTempo();
 }
 
 void DrawKeyRepeatField(void)
@@ -163,7 +163,7 @@ void DrawPrelistenField(void)
         DrawString("N/A");
 }
 
-void ProjRedrawPrelisten(void)
+void RedrawProjPrelisten(void)
 {
     wVramCursor = (UBYTE *)0x992A;
     hBgDigitPal = wShadedDigitPal;
@@ -199,7 +199,7 @@ void DrawProjScreen(void)
     wVramCursor = 0x9846;
     hBgDigitPal = wShadedDigitPal;
     hBgPal = wShadedPal;
-    ProjDrawTempo();
+    DrawProjTempo();
     wVramCursor = 0x986A;
     DrawHexByte(wSongTranspose);
     wVramCursor = 0x98E5;
@@ -232,7 +232,7 @@ void DrawProjScreen(void)
     wTapTempoCount = 0xFF;
 }
 
-void ProjScreenRefresh(void)
+void RefreshProjScreen(void)
 {
     while (GetNextButtons())
         ;
@@ -301,7 +301,7 @@ UBYTE ProjScreenInput(void)
             if (ProjSyncStateFlag()) {
                 wTickRepeat++;
                 DrawTempo(GetTempoTimerVal() + 1);
-                ProjRedrawTempo();
+                RedrawProjTempo();
                 return 1;
             }
             if (wTempo != 0x27)
@@ -309,7 +309,7 @@ UBYTE ProjScreenInput(void)
             else if (wTempoMode < 3)
                 wTempoMode++;
             FarCall(7, FAR_FN(SetSyncSendRate));
-            ProjDrawTempo();
+            DrawProjTempo();
             SaveTempoProps();
             return 1;
         case 1:
@@ -334,7 +334,7 @@ UBYTE ProjScreenInput(void)
             hBgDigitPal = wHighlightDigitPal;
             hBgPal = wHighlightPal;
             DrawSyncField();
-            ProjRedrawPrelisten();
+            RedrawProjPrelisten();
             return 1;
         case 3:
             if (wSyncMode2 < 0xFF) {
@@ -395,7 +395,7 @@ UBYTE ProjScreenInput(void)
             if (ProjSyncStateFlag()) {
                 wFrameSkip++;
                 DrawTempo(GetTempoTimerVal() - 1);
-                ProjRedrawTempo();
+                RedrawProjTempo();
                 return 1;
             }
             if (wTempoMode)
@@ -403,7 +403,7 @@ UBYTE ProjScreenInput(void)
             else if (wTempo != 0x28)
                 wTempo--;
             FarCall(7, FAR_FN(SetSyncSendRate));
-            ProjDrawTempo();
+            DrawProjTempo();
             SaveTempoProps();
             return 1;
         case 1:
@@ -428,7 +428,7 @@ UBYTE ProjScreenInput(void)
             hBgDigitPal = wHighlightDigitPal;
             hBgPal = wHighlightPal;
             DrawSyncField();
-            ProjRedrawPrelisten();
+            RedrawProjPrelisten();
             return 1;
         case 3:
             if (wSyncMode2 > 1) {
@@ -478,7 +478,7 @@ UBYTE ProjScreenInput(void)
             if (wTempo >= 0x28 && wTempo < 0x32)
                 wTempo = 0x27;
             FarCall(7, FAR_FN(SetSyncSendRate));
-            ProjDrawTempo();
+            DrawProjTempo();
             SaveTempoProps();
             return 1;
         case 1:
@@ -512,7 +512,7 @@ UBYTE ProjScreenInput(void)
             if (wTempo >= 0x1E && wTempo < 0x28)
                 wTempo = 0x28;
             FarCall(7, FAR_FN(SetSyncSendRate));
-            ProjDrawTempo();
+            DrawProjTempo();
             SaveTempoProps();
             return 1;
         case 1:
@@ -604,7 +604,7 @@ UBYTE ProjScreenInput(void)
                 break;
             TapTempoStep();
             FarCall(7, FAR_FN(SetSyncSendRate));
-            ProjDrawTempo();
+            DrawProjTempo();
             SaveTempoProps();
             return 1;
         case 9:
@@ -612,14 +612,14 @@ UBYTE ProjScreenInput(void)
             EraseProjCursor();
             DrawProjTextField(3, 4, 0x0F, 8);
             FarCall(0x1F, FAR_FN(CleanSongData));
-            ProjScreenRefresh();
+            RefreshProjScreen();
             return 1;
         case 10:
             FarCall(0x1C, FAR_FN(FileStopSound));
             EraseProjCursor();
             DrawProjTextField(3, 4, 0x0F, 9);
             FarCall(0x1F, FAR_FN(CleanInstrData));
-            ProjScreenRefresh();
+            RefreshProjScreen();
             return 1;
         case 8:
             wCurScreen = 0x0E;

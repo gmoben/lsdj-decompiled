@@ -4,7 +4,7 @@
  * MATCHING C (period GBDK 2.95-3 / SDCC 2.2.1 + tools/match/lsdj.peep);
  * `make match` verifies every function here against the ROM.
  *
- * Its own unit: this file's prototype of SongCopyCol takes two UWORDs
+ * Its own unit: this file's prototype of CopySongCol takes two UWORDs
  * (the ROM casts the pointer arguments; SongScreen.c defines it with
  * pointer parameters), and the song pointers are `UBYTE * volatile` (every
  * use reloads them from the stack).
@@ -18,10 +18,10 @@ extern UBYTE wSelectionRight;                     /* $C40F */
 extern UBYTE wSelectionBottom;                    /* $C410 */
 extern UBYTE wClipboardType;                /* $C411 */
 extern UBYTE wSongSelectionRow;                   /* $C94B */
-void SongCopyCol(UWORD src, UWORD dst);   /* this unit's prototype (the ROM casts the pointer args) */
+void CopySongCol(UWORD src, UWORD dst);   /* this unit's prototype (the ROM casts the pointer args) */
 void EraseSongCursor(void);
-void SongScrollToCursor(void);
-void SongRedrawRow(void);
+void ScrollSongToCursor(void);
+void RedrawSongRow(void);
 void AdjustBookmarksOnDelete(UBYTE lo, UBYTE hi);
 void WriteSongCell(UBYTE col, UBYTE row, UBYTE chain);
 
@@ -78,7 +78,7 @@ void CutCopySongSelection(UBYTE isCut)
             p += col;
             q = p + ((UWORD)n << 2);
             x = (UWORD)p;
-            SongCopyCol((UWORD)q, x);
+            CopySongCol((UWORD)q, x);
             while (n) {
                 t = n;
                 x = 0xC0 - t;
@@ -94,6 +94,6 @@ void CutCopySongSelection(UBYTE isCut)
     ShowMessage(msg);
     wSongCol = wSelectionLeft;
     wSongRow = isCut ? wSelectionTop : wSongSelectionRow;
-    SongScrollToCursor();
-    SongRedrawRow();
+    ScrollSongToCursor();
+    RedrawSongRow();
 }

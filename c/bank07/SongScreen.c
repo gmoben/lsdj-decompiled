@@ -13,31 +13,31 @@ extern UBYTE wPartialRedrawDone;            /* $C56D */
 extern UBYTE SongColOffsets[];              /* $07:$4047, x of each channel column */
 
 void EraseSongCursor(void);
-UBYTE SongCloneChain(UBYTE chain);
+UBYTE CloneSongChain(UBYTE chain);
 void DrawSongCursor(void);
-void SongReadRow(void);
-void SongDrawRowNumber(void);
-void SongDrawColVals(void);
-void SongRedrawRow(void);
-void SongUpdatePlayMarker(void);
-void SongRowPalettes(UBYTE row);
-void SongScrollVramUp(void);
-void SongScrollVramDown(void);
+void ReadSongRow(void);
+void DrawSongRowNumber(void);
+void DrawSongColVals(void);
+void RedrawSongRow(void);
+void UpdateSongPlayMarker(void);
+void SetSongRowPals(UBYTE row);
+void ScrollSongVramUp(void);
+void ScrollSongVramDown(void);
 void VramCopyRowUp(void);
 void VramCopyRowDown(void);
-void SongFindNextRow(void);
-void SongFindPrevRow(void);
+void FindNextSongRow(void);
+void FindPrevSongRow(void);
 void WriteBookmarkByte(UWORD p, UBYTE v);
 void SortBookmarks(void);
 UBYTE IsBookmarked(UBYTE row);
 void AddBookmark(UBYTE row);
 void RemoveBookmark(UBYTE row);
 void ShowMax16Marks(void);                  /* bank 1 */
-void SongScanSram(UBYTE *src, UBYTE *dst);  /* asm */
+void ScanSongSram(UBYTE *src, UBYTE *dst);  /* asm */
 void SaveSelectionState(void);              /* bank 5 */
 void SndStartRange(void);                /* bank 2 */
 
-void SongScrollToCursor(void);
+void ScrollSongToCursor(void);
 void DrawAllChanStatus(void);               /* bank $1F */
 
 extern UBYTE wPlayMarkerTimer;              /* $C950 */
@@ -57,11 +57,11 @@ void WriteChainPhrase(void);                /* bank $1F */
 void AllocNextFreePhrase(void);             /* bank 1 */
 void ShowOutOfMemory(void);                 /* bank 1 */
 void ClonePhraseAtCursor(UBYTE src, UBYTE dst);    /* bank 6 */
-UBYTE ChainReadTranspose(UBYTE chain, UBYTE step);     /* bank 6 */
+UBYTE ReadChainTranspose(UBYTE chain, UBYTE step);     /* bank 6 */
 void SetChainTranspose(UBYTE chain, UBYTE row, UBYTE v);   /* bank 6 */
 void WriteSongCell(UBYTE col, UBYTE row, UBYTE chain);
 
-void SongCopyCol(UBYTE *p, UBYTE *q)
+void CopySongCol(UBYTE *p, UBYTE *q)
 {
     if (q >= (UBYTE *)0xB590)
         DebugTrap();
@@ -69,7 +69,7 @@ void SongCopyCol(UBYTE *p, UBYTE *q)
         DebugTrap();
     if (q < SramSequence)
         DebugTrap();
-    SongScanSram(p, q);
+    ScanSongSram(p, q);
 }
 
 void EraseSongCursor(void)
@@ -98,7 +98,7 @@ void WriteSongCell(UBYTE col, UBYTE row, UBYTE chain)
     WriteSongByte(0, p + col, chain);
 }
 
-UBYTE SongCloneChain(UBYTE chain)
+UBYTE CloneSongChain(UBYTE chain)
 {
     UBYTE v;
     UBYTE i;
@@ -151,7 +151,7 @@ UBYTE SongCloneChain(UBYTE chain)
         } else {
             FarCallArg3P(0x1F, FAR_FN(WriteChainPhrase), v, i, ph);
         }
-        ph = FarCallArg2(6, FAR_FN(ChainReadTranspose), chain, i);
+        ph = FarCallArg2(6, FAR_FN(ReadChainTranspose), chain, i);
         FarCallArg3P(6, FAR_FN(SetChainTranspose), v, i, ph);
         i++;
     }
@@ -171,7 +171,7 @@ void DrawSongCursor(void)
     ColorField(SongColOffsets[wSongCol], y, 2, hGameboyType ? 3 : 2);
 }
 
-void SongReadRow(void)
+void ReadSongRow(void)
 {
     UBYTE *p;
 
@@ -182,7 +182,7 @@ void SongReadRow(void)
     ReadSongBytes(0, p + 0x30, (UBYTE *)0xC49D);
 }
 
-void SongDrawRowNumber(void)
+void DrawSongRowNumber(void)
 {
     UBYTE y;
     UBYTE row, pal;
@@ -212,19 +212,19 @@ void SongDrawRowNumber(void)
     }
 }
 
-void SongRedrawRow(void)
+void RedrawSongRow(void)
 {
-    SongReadRow();
-    SongDrawRowNumber();
+    ReadSongRow();
+    DrawSongRowNumber();
     hBgDigitPal = 4;
     hBgPal = 1;
     wVramCursor = (UBYTE *)0x9842;
-    SongDrawColVals();
+    DrawSongColVals();
     DrawSongCursor();
     wPartialRedrawDone = 1;
 }
 
-void SongScrollToCursor(void)
+void ScrollSongToCursor(void)
 {
     UBYTE d;
 
@@ -256,14 +256,14 @@ void DrawSongScreen(void)
     SetSpriteTile3(5);
     SetSpriteTile3(6);
     SetSpriteTile3(7);
-    SongScrollToCursor();
-    SongRedrawRow();
+    ScrollSongToCursor();
+    RedrawSongRow();
     FarCall(0x1F, FAR_FN(DrawAllChanStatus));
     DrawTempoField();
     FarCall(5, MapDrawTopRow);
 }
 
-void SongUpdatePlayMarker(void)
+void UpdateSongPlayMarker(void)
 {
     UBYTE i;
     UBYTE next;
@@ -311,14 +311,14 @@ void SongScreenUpdate(void)
     UBYTE i;
 
     if (wPlayMode == 4) {
-        SongUpdatePlayMarker();
+        UpdateSongPlayMarker();
     } else {
         for (i = 0; i != 8; i++)
             ClearSpriteY(i);
     }
 }
 
-void SongRowPalettes(UBYTE y)
+void SetSongRowPals(UBYTE y)
 {
     UBYTE bm;
     UBYTE v;
@@ -372,36 +372,36 @@ void SongRowPalettes(UBYTE y)
     }
 }
 
-void SongDrawCursorRow(void)
+void DrawSongCursorRow(void)
 {
     UBYTE row;
 
     row = wSongRow + 2 - wSongScroll;
     SetVramCursor(0, row);
-    SongRowPalettes(row);
+    SetSongRowPals(row);
 }
 
-void SongScrollUp(void)
+void ScrollSongUp(void)
 {
-    SongScrollVramUp();
+    ScrollSongVramUp();
     if (hGameboyType)
         VramCopyRowUp();
     wVramCursor = (UBYTE *)0x9840;
-    SongRowPalettes(2);
+    SetSongRowPals(2);
     wPartialRedrawDone = 1;
 }
 
-void SongScrollDown(void)
+void ScrollSongDown(void)
 {
-    SongScrollVramDown();
+    ScrollSongVramDown();
     if (hGameboyType)
         VramCopyRowDown();
     wVramCursor = (UBYTE *)0x9A20;
-    SongRowPalettes(0x11);
+    SetSongRowPals(0x11);
     wPartialRedrawDone = 1;
 }
 
-void SongFindNextRow(void)
+void FindNextSongRow(void)
 {
     UBYTE i;
 
@@ -420,28 +420,28 @@ void SongFindNextRow(void)
         wSongRow = 0xBF;
 }
 
-UBYTE SongCursorPageDown(void)
+UBYTE PageSongCursorDown(void)
 {
     UBYTE d;
 
     if (wCursorMode == 4)
         return 0;
     EraseSongCursor();
-    SongFindNextRow();
+    FindNextSongRow();
     d = wSongRow - wSongScroll;
     if (d >= 0x10) {
         wSongScroll += 0x10;
         d = wSongScroll & 0xF0;
         if (d >= 0xB0)
             wSongScroll = 0xB0;
-        SongRedrawRow();
+        RedrawSongRow();
     } else {
         DrawSongCursor();
     }
     return 1;
 }
 
-void SongFindPrevRow(void)
+void FindPrevSongRow(void)
 {
     UBYTE i;
 
@@ -460,27 +460,27 @@ void SongFindPrevRow(void)
         wSongRow = 0;
 }
 
-UBYTE SongCursorPageUp(void)
+UBYTE PageSongCursorUp(void)
 {
     UBYTE d;
 
     if (wCursorMode == 4)
         return 0;
     EraseSongCursor();
-    SongFindPrevRow();
+    FindPrevSongRow();
     if (wSongRow < wSongScroll) {
         wSongScroll -= 0x10;
         d = wSongScroll & 0xF0;
         if (d == 0xF0)
             wSongScroll = 0;
-        SongRedrawRow();
+        RedrawSongRow();
     } else {
         DrawSongCursor();
     }
     return 1;
 }
 
-void SongBeginSelection(void)
+void BeginSongSelection(void)
 {
     wSavedSongCol = wSongCol;
     FarCall(5, SaveSelectionState);
@@ -491,7 +491,7 @@ void SongBeginSelection(void)
     wSongCol = wSavedSongCol;
 }
 
-void SongLoadCursorChain(void)
+void LoadSongCursorChain(void)
 {
     UBYTE c;
 
@@ -500,7 +500,7 @@ void SongLoadCursorChain(void)
         return;
     c &= 0x7F;
     EraseSongCursor();
-    c = SongCloneChain(c);
+    c = CloneSongChain(c);
     if (c != 0xFF)
         DrawHexByte(c);
     DrawSongCursor();

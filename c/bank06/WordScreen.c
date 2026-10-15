@@ -133,7 +133,7 @@ void DrawWordScreen(void)
     DrawWordCursor();
 }
 
-void WordCursorDown(void)
+void MoveWordCursorDown(void)
 {
     if (wWordRow == 0x0F)
         return;
@@ -171,7 +171,7 @@ UBYTE WordScreenInput(void)
         }
         return 1;
     case 0x08:
-        WordCursorDown();
+        MoveWordCursorDown();
         return 1;
     case 0x02:
         EraseWordCursor();
@@ -220,7 +220,7 @@ UBYTE WordScreenInput(void)
         WriteWordCell(wClipboardBuf[1]);
         wWordCol = v;
         DrawWordScreen();
-        WordCursorDown();
+        MoveWordCursorDown();
         return 1;
     case 0x10:
         if (!wAPressEnabled)

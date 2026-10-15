@@ -32,8 +32,8 @@
 4F37 FillChan4         ; write a -> 4 consecutive bytes [hl] (clears a per-channel [4] array)
 ; --- Table macro playback (per-channel; runs the instrument's table) ----------
 4668 ProcessChanTable ; advance/apply the channel's table (wChanTable/Played/Countdown); calls the column readers
-574B ReadTableEnv  ; read table_envelopes[wChanTable][row] (song $1690 = SRAM bank0 $B690)
-587D ReadTableTranspose ; read table_transposes[wChanTable][row] (song $3480 = SRAM bank1 $B480)
+574B SndReadTableEnv  ; read table_envelopes[wChanTable][row] (song $1690 = SRAM bank0 $B690)
+587D SndReadTableTranspose ; read table_transposes[wChanTable][row] (song $3480 = SRAM bank1 $B480)
 487E ReadGroove         ; read grooves[wChanGroove][wChanGrooveRow] (song $1090 = SRAM bank0 $B090) via wPtrGroove/wPtrGrooveRow
 ; --- Sequencer: song row -> chain -> phrase resolution ------------------------
 48D2 AdvanceSongRow     ; on wChanChain[ch]==$FF, walk chain_assignments (loop-back) -> next chain

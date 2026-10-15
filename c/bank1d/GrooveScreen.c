@@ -32,9 +32,9 @@ void DrawGrooveSteps(void);
 void DrawGrooveRow(void);
 void SendLinkClipboard(void);                   /* $1C:$71CD */
 void DrawAllChanStatus(void);
-void GrooveCutCopy(UBYTE cut);
+void CutCopyGrooveSelection(UBYTE cut);
 void PasteGrooveSelection(void);
-void GrooveDrawSelection(void);
+void DrawGrooveSelection(void);
 void MapMoveUp(void);                       /* bank 5 */
 void SaveSelectionState(void);              /* bank 5 */
 void ToggleSongPlayback(void);                 /* bank 2 */
@@ -156,7 +156,7 @@ void DrawGrooveRow(void)
     }
 }
 
-void GrooveBuildCache(void)
+void BuildGrooveCache(void)
 {
     UBYTE i, v;
 
@@ -180,7 +180,7 @@ void DrawGrooveCursor(void)
     ColorField(2, wGrooveRow + 2, 2, hGameboyType ? 3 : 2);
 }
 
-void GrooveRowPalettes(UBYTE row)
+void SetGrooveRowPals(UBYTE row)
 {
     UBYTE a, b;
 
@@ -248,7 +248,7 @@ UBYTE GrooveScreenInput(void)
             wGrooveRow--;
         DrawGrooveCursor();
         if (wCursorMode == 4)
-            GrooveDrawSelection();
+            DrawGrooveSelection();
         DrawGrooveRow();
         return 1;
     case 0x08:
@@ -258,11 +258,11 @@ UBYTE GrooveScreenInput(void)
             wGrooveRow--;
         DrawGrooveCursor();
         if (wCursorMode == 4)
-            GrooveDrawSelection();
+            DrawGrooveSelection();
         DrawGrooveRow();
         return 1;
     case 0x11:
-        GrooveBuildCache();
+        BuildGrooveCache();
         if (wCursorMode == 4 && (!wSelectionLeft || !wSelectionRight)) {
             top = wSelectionTop;
             bot = wGrooveRow;
@@ -283,7 +283,7 @@ UBYTE GrooveScreenInput(void)
         DrawGrooveRow();
         return 1;
     case 0x12:
-        GrooveBuildCache();
+        BuildGrooveCache();
         if (wCursorMode == 4 && (!wSelectionLeft || !wSelectionRight)) {
             top = wSelectionTop;
             bot = wGrooveRow;
@@ -306,7 +306,7 @@ UBYTE GrooveScreenInput(void)
         return 1;
     case 0x14:
     case 0x18:
-        GrooveBuildCache();
+        BuildGrooveCache();
         if (wCursorMode == 4 && (!wSelectionLeft || !wSelectionRight)) {
             top = wSelectionTop;
             bot = wGrooveRow;
@@ -332,11 +332,11 @@ UBYTE GrooveScreenInput(void)
             if (v2 && v) {
                 wGrooveStepCache[top] = v;
                 SetVramCursor(2, top + 2);
-                GrooveRowPalettes(top);
+                SetGrooveRowPals(top);
                 DrawHexByte(v);
                 wGrooveStepCache[top + 1] = v2;
                 SetVramCursor(2, top + 3);
-                GrooveRowPalettes(top + 1);
+                SetGrooveRowPals(top + 1);
                 DrawHexByte(v2);
             }
             top += 2;
@@ -405,7 +405,7 @@ UBYTE GrooveScreenInput(void)
             break;
         if (wCursorMode == 4) {
             wSelectHeld = 0;
-            GrooveCutCopy(1);
+            CutCopyGrooveSelection(1);
             break;
         }
         wSelectHeld = 0;
@@ -443,7 +443,7 @@ UBYTE GrooveScreenInput(void)
             break;
         if (!wAPressEnabled)
             break;
-        GrooveCutCopy(0);
+        CutCopyGrooveSelection(0);
         return 1;
     case 0x60:
         if (!wSelectHeld)
@@ -458,10 +458,10 @@ UBYTE GrooveScreenInput(void)
                     wGrooveRow--;
                 wSelectionTop = 0;
                 wSelectHeld = 0;
-                GrooveDrawSelection();
+                DrawGrooveSelection();
                 return 1;
             }
-            GrooveCutCopy(0);
+            CutCopyGrooveSelection(0);
             return 1;
         }
         ShowMessage("SELECT");
@@ -474,7 +474,7 @@ UBYTE GrooveScreenInput(void)
     return 0;
 }
 
-void GrooveCutCopy(UBYTE cut)
+void CutCopyGrooveSelection(UBYTE cut)
 {
     UBYTE row;
 
@@ -518,7 +518,7 @@ void PasteGrooveSelection(void)
     DrawGrooveSteps();
 }
 
-void GrooveDrawSelection(void)
+void DrawGrooveSelection(void)
 {
     UBYTE end, y, i;
 
@@ -539,7 +539,7 @@ void GrooveDrawSelection(void)
     }
 }
 
-void GrooveResetState(void)
+void ResetGrooveState(void)
 {
     UBYTE i;
 

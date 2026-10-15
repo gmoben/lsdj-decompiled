@@ -50,7 +50,7 @@ UBYTE GetCursorChain(void)
     return ReadSeqByte(wSongCol, wSongRow);
 }
 
-UBYTE ChainLoadCursorPhrase(void)
+UBYTE LoadChainCursorPhrase(void)
 {
     UBYTE row, ph;
 
@@ -119,7 +119,7 @@ void SetChainTranspose(UBYTE chain, UBYTE row, UBYTE v)
     WriteSongByte(1, p + row, v);
 }
 
-UBYTE ChainReadTranspose(UBYTE chain, UBYTE step)
+UBYTE ReadChainTranspose(UBYTE chain, UBYTE step)
 {
     UBYTE *p;
 
@@ -243,7 +243,7 @@ void DrawChainCursor(void)
     ColorField(ChainColX[wChainCol], wChainRow + 2, 2, hGameboyType ? 3 : 2);
 }
 
-void ChainOpenPhrase(void)
+void OpenChainPhrase(void)
 {
     UBYTE ph;
     UBYTE n;
@@ -277,7 +277,7 @@ void MapMoveRight(void);                    /* $05:$4253 */
 void ShowTapAddPhrase(void);                /* bank 1 */
 void MarkPhraseUsed(void);                  /* bank 1 */
 void CutCopyChainSelection(UBYTE cut);
-void ChainPasteCells(void);
+void PasteChainCells(void);
 void DrawChainSelection(void);
 
 /* $5BD0: the chain screen's input, an if chain on wButtons: A writes a
@@ -346,7 +346,7 @@ UBYTE ChainScreenInput(void)
             }
             return 1;
         case 1:
-            if (!ChainReadTranspose(wChain, (char)wChainRow)) {
+            if (!ReadChainTranspose(wChain, (char)wChainRow)) {
                 SetChainTranspose(wChain, (char)wChainRow, wChainCellVal);
                 DrawHexByte(wChainCellVal);
                 return 1;
@@ -436,7 +436,7 @@ UBYTE ChainScreenInput(void)
                     break;
                 case 1:
                     SetVramCursor(ChainColX[1], y + 2);
-                    v = ChainReadTranspose(wChain, y) + 1;
+                    v = ReadChainTranspose(wChain, y) + 1;
                     SetChainTranspose(wChain, y, v);
                     DrawHexByte(v);
                     wChainCellVal = v;
@@ -482,7 +482,7 @@ UBYTE ChainScreenInput(void)
                     break;
                 case 1:
                     SetVramCursor(ChainColX[1], y + 2);
-                    v = ChainReadTranspose(wChain, y);
+                    v = ReadChainTranspose(wChain, y);
                     v = v + (wSongCol == 3 ? 4 : 12);
                     SetChainTranspose(wChain, y, v);
                     DrawHexByte(v);
@@ -526,7 +526,7 @@ UBYTE ChainScreenInput(void)
                     break;
                 case 1:
                     SetVramCursor(ChainColX[1], y + 2);
-                    v = ChainReadTranspose(wChain, y) - 1;
+                    v = ReadChainTranspose(wChain, y) - 1;
                     SetChainTranspose(wChain, y, v);
                     DrawHexByte(v);
                     wChainCellVal = v;
@@ -572,7 +572,7 @@ UBYTE ChainScreenInput(void)
                     break;
                 case 1:
                     SetVramCursor(ChainColX[1], y + 2);
-                    v = ChainReadTranspose(wChain, y);
+                    v = ReadChainTranspose(wChain, y);
                     v = v - (wSongCol == 3 ? 4 : 12);
                     SetChainTranspose(wChain, y, v);
                     DrawHexByte(v);
@@ -652,7 +652,7 @@ UBYTE ChainScreenInput(void)
             wColPhrase[wSongCol] = v;
             WriteClipboardCell(0, (char)wChainRow, v);
         }
-        wChainCellVal = ChainReadTranspose(wChain, (char)wChainRow);
+        wChainCellVal = ReadChainTranspose(wChain, (char)wChainRow);
         WriteClipboardCell(1, (char)wChainRow, wChainCellVal);
         if (!wChainCol)
             FarCallArg3P(0x1F, FAR_FN(WriteChainPhrase), wChain, (char)wChainRow, 0xFF);
@@ -673,16 +673,16 @@ UBYTE ChainScreenInput(void)
             if (wAPressEnabled || wSelectionLeft != wChainCol || wSelectionTop != wChainRow)
                 CutCopyChainSelection(1);
             else
-                ChainOpenPhrase();
+                OpenChainPhrase();
             return 0;
         }
         EraseChainCursor();
-        ChainPasteCells();
+        PasteChainCells();
         DrawChainScreen();
         return 1;
     }
     if (wButtons == 0x70 && wCursorMode == 4) {
-        ChainOpenPhrase();
+        OpenChainPhrase();
         return 1;
     }
     if (wButtons == 0xC0) {
@@ -706,7 +706,7 @@ UBYTE ChainScreenInput(void)
     if (wButtons == 0x41) {
         if (wButtonsSame)
             return 0;
-        if (!ChainLoadCursorPhrase()) {
+        if (!LoadChainCursorPhrase()) {
             FarCall(1, FAR_FN(ShowTapAddPhrase));
             return 0;
         }
@@ -724,7 +724,7 @@ UBYTE ChainScreenInput(void)
     if (wButtons == 0x44) {
         if (wButtonsSame)
             return 0;
-        ChainLoadCursorPhrase();
+        LoadChainCursorPhrase();
         FarCall(5, MapMoveUp);
         FarCall(7, FAR_FN(RedrawScreen));
         return 1;
@@ -807,7 +807,7 @@ void CutCopyChainSelection(UBYTE cut)
                     FarCallArg3P(0x1F, FAR_FN(WriteChainPhrase), wChain, y, 0xFF);
                 break;
             case 1:
-                WriteClipboardCell(1, y, ChainReadTranspose(wChain, y));
+                WriteClipboardCell(1, y, ReadChainTranspose(wChain, y));
                 if (cut)
                     SetChainTranspose(wChain, y, 0);
                 break;
@@ -821,7 +821,7 @@ void CutCopyChainSelection(UBYTE cut)
     DrawChainScreen();
 }
 
-void ChainPasteCells(void)
+void PasteChainCells(void)
 {
     UBYTE x, y;
 
@@ -837,7 +837,7 @@ void ChainPasteCells(void)
             }
         }
         wChainRow++;
-        wChainRow = (char)wChainRow & 0x0F;     /* read into c, like ChainOpenPhrase's (char)wChainRow */
+        wChainRow = (char)wChainRow & 0x0F;     /* read into c, like OpenChainPhrase's (char)wChainRow */
     }
     if (wSelectionBottom - wSelectionTop > 1)
         ShowMessage("PASTE");

@@ -5,8 +5,8 @@
 
 ; Bank $05 -- Table screen. tables[wTable][16], 4 columns in SRAM:
 ; envelope $B690 (bank0), transpose $B480, cmd1 $B680, cmd2 $BA80 (bank1).
-4360 TableWriteEnv              ; write table_envelopes[wTable][step] = v (SRAM bank 0 $B690); asserts step < $10, wTable < $20
-4491 TableWriteTranspose            ; write table_transposes[wTable][step] = v (SRAM bank 1 $B480); asserts step < $10, wTable < $20
+4360 WriteTableEnv              ; write table_envelopes[wTable][step] = v (SRAM bank 0 $B690); asserts step < $10, wTable < $20
+4491 WriteTableTranspose            ; write table_transposes[wTable][step] = v (SRAM bank 1 $B480); asserts step < $10, wTable < $20
 4668 ReadTableStep       ; read the 4 columns (env/transpose/cmd1/cmd2) for table[wTable][step]
 4762 DrawTableScreen     ; screen idx 5: draws the table (env/transpose/cmd cols)
 4967 TableScreenUpdate  ; per-frame visual update (screen idx 5)
@@ -17,18 +17,18 @@
 420C MapStartTransition         ; store move direction (1=up 2=right 3=down 4=left) -> wMapMoveDir, reset rSCX/rSCY
 421A MapCancelSelection         ; if select mode (wCursorMode==4) restore pre-selection state before leaving the screen
 42A4 DrawCmdLetter              ; draw an FX command letter cell (FxMnemonics char via DrawStringIndexed; >$13 asserted)
-42E7 TableReadCmd               ; read the command column (wTableCellAPtr) at step; 0 unless a command (<= $13)
-43B7 TableWriteCmd              ; write the command column (wTableCellAPtr) at step; asserts cmd <= $13
-442A TableWriteVal              ; write the value column (wTableCellBPtr) at step
-44E8 TableReadEnv          ; read table_envelopes[table][row<$10] from SRAM (bounds-checked)
-453B TableReadVal               ; read the value column (wTableCellBPtr) at step
-459E TableReadTranspose        ; read table_transposes[table][row<$10] from SRAM (bounds-checked)
+42E7 ReadTableCmd               ; read the command column (wTableCellAPtr) at step; 0 unless a command (<= $13)
+43B7 WriteTableCmd              ; write the command column (wTableCellAPtr) at step; asserts cmd <= $13
+442A WriteTableVal              ; write the value column (wTableCellBPtr) at step
+44E8 ReadTableEnv          ; read table_envelopes[table][row<$10] from SRAM (bounds-checked)
+453B ReadTableVal               ; read the value column (wTableCellBPtr) at step
+459E ReadTableTranspose        ; read table_transposes[table][row<$10] from SRAM (bounds-checked)
 45F1 EraseTableCursor           ; restore the cursor cells to their column palette (TableColPal) at row wTableRow+2, unless selecting
 472B DrawTableEnv               ; draw a table envelope cell (lo-nibble $F -> hi-nibble + release glyph)
 4930 TableInputFlag             ; return e=flag derived from input code (arg sp+4: 4 or $0a) and column wTableCol
 4AA8 DrawTableCursor            ; refresh the table cursor cell (select mode -> DrawTableSelection; palette by CGB)
 61CA CutCopyTableSelection      ; arg? "CUT" (copy+clear) : "COPY": table selection -> clipboard (clipType 5)
-64A3 TablePasteCells            ; table-screen paste: clipboard cells into rows from wTableRow (a phrase selection's CMD pair too; swaps the two CMD/value pairs; "PASTE" for more than one row)
+64A3 PasteTableCells            ; table-screen paste: clipboard cells into rows from wTableRow (a phrase selection's CMD pair too; swaps the two CMD/value pairs; "PASTE" for more than one row)
 676A DrawTableSelection         ; table selection (wClipboardType==5) redraw vs the cursor: cells around the rectangle in their column palettes, the inside highlighted (ColorField)
 ; --- functions called from bank 0 (this bank paged in) ---
 4B5D TableScreenInput           ; the table screen's input: A writes envelopes/transposes/commands (a free table on an A command's value), A+directions step cells by 1/16 over the row or selection, B+directions change table, A+B cuts, select+A pastes, start plays, select+DOWN opens a G command's groove, select+B selects
@@ -74,14 +74,14 @@
 403F .done                ; common exit of MapUpdateTopRow
 420A .done                ; common exit of MapEnterScreen
 4231 .done                ; common exit of MapCancelSelection
-4319 .loop                ; loop head in TableReadCmd
-4384 .loop                ; loop head in TableWriteEnv
-43F5 .loop                ; loop head in TableWriteCmd
-445C .loop                ; loop head in TableWriteVal
-44B5 .loop                ; loop head in TableWriteTranspose
-450C .loop                ; loop head in TableReadEnv
-456D .loop                ; loop head in TableReadVal
-45C2 .loop                ; loop head in TableReadTranspose
+4319 .loop                ; loop head in ReadTableCmd
+4384 .loop                ; loop head in WriteTableEnv
+43F5 .loop                ; loop head in WriteTableCmd
+445C .loop                ; loop head in WriteTableVal
+44B5 .loop                ; loop head in WriteTableTranspose
+450C .loop                ; loop head in ReadTableEnv
+456D .loop                ; loop head in ReadTableVal
+45C2 .loop                ; loop head in ReadTableTranspose
 4636 .loop                ; loop head in EraseTableCursor
 4664 .done                ; common exit of EraseTableCursor
 4678 .loop                ; loop head in ReadTableStep
@@ -106,9 +106,9 @@
 6265 .loop                ; loop head in CutCopyTableSelection
 6291 .loop2               ; loop head in CutCopyTableSelection
 6496 .done                ; common exit of CutCopyTableSelection
-652E .loop                ; loop head in TablePasteCells
-6550 .loop2               ; loop head in TablePasteCells
-6760 .done                ; common exit of TablePasteCells
+652E .loop                ; loop head in PasteTableCells
+6550 .loop2               ; loop head in PasteTableCells
+6760 .done                ; common exit of PasteTableCells
 681B .loop                ; loop head in DrawTableSelection
 687B .loop2               ; loop head in DrawTableSelection
 692C .loop3               ; loop head in DrawTableSelection
@@ -417,8 +417,8 @@
 6281 .cont_3
 6282 .cont_4
 62AE .setTableCol
-62E4 .tableReadEnv
-631A .tableReadTranspose
+62E4 .readTableEnv
+631A .readTableTranspose
 6465 .cont_5
 646F .setSelectionLeft
 64C8 .cont

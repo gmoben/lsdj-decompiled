@@ -15,7 +15,7 @@
  *     on `if (sfr)`, so LSDj's source must have declared it plainly).
  *   - The working song in SRAM is addressed with numeric constants, not
  *     linker symbols: SDCC swaps a *literal* left operand of `+` to the
- *     right, an extern's address it does not (InstrNextUsed tells them
+ *     right, an extern's address it does not (NextUsedInstr tells them
  *     apart), so the SramXxx names below are literal-pointer macros.
  *   - Banked calls go through FarCall/FarCallArg (bank 0, hand-written asm).
  *     Most call sites pass the function itself (`ld bc,#fn`); others pass
@@ -251,19 +251,19 @@ void DrawInstrCursor(void);
 void EraseInstrCursor(void);
 UBYTE FindFreeSynth(void);
 UBYTE SynthWavesModified(UBYTE synth);
-void InstrTableModePrev(void);
+void PrevInstrTableMode(void);
 UBYTE GetWaveLoopPos(void);
 UBYTE GetInstrType3(void);
 void WriteKitNumber(UBYTE field, UBYTE kit);
 void InstrEnvChanged(void);
-void KitEnsureExists(void);
+void EnsureKitExists(void);
 void CloneSynth(void);
-void InstrTableOn(void);
+void SetInstrTableOn(void);
 UBYTE IsInstrTableOn(void);
 UBYTE GetWavePlayMode(void);
 UBYTE WavePlayIsManual(void);
 void SetInstrPitchByte(UBYTE v);
-void InstrPrevUsed(void);
+void PrevUsedInstr(void);
 UBYTE GetWaveLen(void);
 UBYTE GetWaveSpeed(void);
 UBYTE GetVibShape(void);

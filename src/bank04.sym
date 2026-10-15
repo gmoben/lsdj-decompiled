@@ -7,7 +7,7 @@
 
 ; Bank $04 -- Phrase screen. phrase[wPhrase][16] in 4 SRAM columns: notes $A000
 ; (bank0), instr $B000 (bank3), fx $A000 (bank2), fx_val $AFF0 (bank2).
-4968 PhraseReadNote             ; read phrase_notes[wPhrase][row] (SRAM bank 0 $A000); asserts row < $10, wPhrase != $FF
+4968 ReadPhraseNote             ; read phrase_notes[wPhrase][row] (SRAM bank 0 $A000); asserts row < $10, wPhrase != $FF
 4C14 LoadPhraseRow        ; load the 4 phrase columns for phrase[wPhrase] into row buffers
 4CE5 DrawPhraseScreen     ; screen idx 1: the phrase grid (note or kit samples, instrument, command, value per step), its CGB row attributes, cursor and channel status
 4000 DrawNoteNameFar            ; FarCall bank 6 DrawNoteName(wSongCol, x): the phrase screen's note column
@@ -19,33 +19,33 @@
 405D PhraseModeTile             ; return tile $78 or $6c depending on mode wSongCol
 4071 ReadCursorInstr            ; ReadPhraseInstr(wPhrase, wPhraseRow)
 4087 FindCursorInstr            ; the instrument in effect at the cursor: the nearest step at or above wPhraseRow with one (<= $40), else $FF
-40B2 PhraseResolveCursorNote    ; remember v as wPhraseColLast[wSongCol]; in column 3 (not selecting) also write it to field 4 of a type-3 instrument in effect
+40B2 ResolvePhraseCursorNote    ; remember v as wPhraseColLast[wSongCol]; in column 3 (not selecting) also write it to field 4 of a type-3 instrument in effect
 4106 SetColInstr           ; cache the last-used instrument per channel column (wColInstr+wSongCol; WAV specials)
 418F WritePhraseNote            ; write phrase_notes[wPhrase][row] = v (SRAM bank 0 $A000); asserts row < $10, wPhrase != $FF
 41F0 WritePhraseInstr      ; write phrase_instruments[phrase][row] = instr (SRAM bank 3 $B000); asserts instr <= $40 or $FF
-4257 PhraseDrawCursorGlyph      ; pick glyph data ($429e/$42a3 by wPhraseDrawMode) + col wPhraseCol, then SetVramCursor
-42A8 PhraseInstrEntered         ; after instrument entry: WritePhraseInstr, update wColInstr, redraw
-43CD PhraseEditUp               ; A+UP edit on the cursor cell (note: +octave; hex fields: +$10)
-457C PhraseEditDown             ; A+DOWN edit on the cursor cell (-octave / -$10)
-470B PhraseEditRight            ; A+RIGHT edit on the cursor cell (+semitone / +1)
-4811 PhraseEditLeft             ; A+LEFT edit on the cursor cell (-semitone / -1)
+4257 DrawPhraseCursorGlyph      ; pick glyph data ($429e/$42a3 by wPhraseDrawMode) + col wPhraseCol, then SetVramCursor
+42A8 CommitPhraseInstr         ; after instrument entry: WritePhraseInstr, update wColInstr, redraw
+43CD EditPhraseCellUp               ; A+UP edit on the cursor cell (note: +octave; hex fields: +$10)
+457C EditPhraseCellDown             ; A+DOWN edit on the cursor cell (-octave / -$10)
+470B EditPhraseCellRight            ; A+RIGHT edit on the cursor cell (+semitone / +1)
+4811 EditPhraseCellLeft             ; A+LEFT edit on the cursor cell (-semitone / -1)
 4918 ReadPhraseInstr            ; read phrase_instruments[phrase][row] (SRAM bank 3 $B000); asserts phrase != $FF, row < $10
 49C5 WritePhraseFx              ; write phrase_fx[phrase][row] = cmd (SRAM bank 2 $A000); asserts cmd <= $13
 4A30 WritePhraseFxVal           ; write phrase_fx_val[phrase][row] = v (SRAM bank 2 $AFF0); asserts phrase != $FF, row < $10
-4A8F PhraseReadFxVal            ; read phrase_fx_val[phrase][row] (SRAM bank 2 $AFF0); asserts phrase != $FF, row < $10
-4AEA PhraseReadFx               ; read phrase_fx[phrase][row] (SRAM bank 2 $A000); 0 unless a command (<= $13)
-4B5B PhraseEditPlace            ; plain-A: place/repeat a value into the empty cursor cell
+4A8F ReadPhraseFxVal            ; read phrase_fx_val[phrase][row] (SRAM bank 2 $AFF0); asserts phrase != $FF, row < $10
+4AEA ReadPhraseFx               ; read phrase_fx[phrase][row] (SRAM bank 2 $A000); 0 unless a command (<= $13)
+4B5B PlacePhraseCell            ; plain-A: place/repeat a value into the empty cursor cell
 4C06 DrawEmptyNote              ; draw "---" empty note cell
 4C99 DrawPhraseSelectionFar    ; FarCall bank1f DrawPhraseSelection
-4CAA PhraseCheckColFD           ; return wPhraseRowFlags[arg] > $FD (a $FE/$FF sentinel)
+4CAA PhraseRowIsSentinel        ; whether wPhraseRowFlags[arg] > $FD (a $FE/$FF sentinel)
 4CC4 DrawNoteCell               ; draw wSampleNoteString (note name) or "OFF"
 510A CursorInstrIsKit           ; 1 if the instrument in effect at the cursor (FindCursorInstr) is a kit
-5136 PhraseCheckEditContext     ; predicate over mode wSongCol / col wPhraseCol / wSelectionLeft / CursorInstrIsKit
+5136 CheckPhraseEditContext     ; predicate over mode wSongCol / col wPhraseCol / wSelectionLeft / CursorInstrIsKit
 51AE PastePhraseSelection       ; paste the clipboard (wClipboardType) into the phrase: for rows wSelectionTop..wSelBottom and columns wSelectionRight-1 down to wSelectionLeft, each cell by column (kit notes merged nibble-wise, instrument, command, value); a 3-wide table-command selection (wClipboardType 5) shifts its command pair by -1/+1; PASTE message for multi-row pastes
 5491 CloneInstr            ; copy instrument src to dst: its 16 bytes, then its name (CopyInstrName / WriteInstrName)
 55EB CloneTableAtCursor         ; clone the table referenced by the cmd value under the cursor (FindFreeTable+CopyTableData)
 567D PhraseCursorOnEditCell     ; return 1 if cursor is on the active cmd cell (wPhraseRow==wSelectionTop and wPhraseCol==wSelectionLeft)
-56BA PhraseCloneTableCmd        ; command action handler incl. cloning a table ("CLONED TABLE" message)
+56BA CloneAtPhraseCursor        ; double-A clone on the phrase screen: the instrument on the instrument column, an A command's table on the command column ("CLONED TABLE"); 1 if cloned
 572C PrelistenCursorRow         ; play the note/instr under the cursor while editing (wPrelisten gate)
 58D9 PhraseCellFlagA       ; phrase-cell predicate OR-ed in PrelistenEditedCell: note<$40 & instrument type==2 (kit) test
 597D PhraseCellFlagB       ; phrase-cell predicate OR-ed in PrelistenEditedCell (inc-row variant)
@@ -58,7 +58,7 @@
 7D57 TxtSelect04       ; "SELECT" (pairs with TxtCancelSelect04)
 
 ; --- phrase-screen render/edit tables ---
-50D8 PhraseRowAttrs0    ; [13] CGB BG attributes of a kit row (PhraseCheckColFD false); DrawPhraseScreen's const data
+50D8 PhraseRowAttrs0    ; [13] CGB BG attributes of a kit row (PhraseRowIsSentinel false); DrawPhraseScreen's const data
 50E5 PhraseRowAttrs1    ; [13] CGB BG attributes of a non-kit row on a kit phrase
 50F2 PhraseRowAttrs2    ; [13] CGB BG attributes of a row on a phrase without kits
 50FF TxtPhraseBlank3    ; "   " (DrawPhraseScreen: the note column's padding on kit phrases)
@@ -73,45 +73,45 @@
 ; --- structural local names (loop heads / common exits) ---
 408C .loop                ; loop head in FindCursorInstr
 40B0 .done                ; common exit of FindCursorInstr
-4104 .done                ; common exit of PhraseResolveCursorNote
+4104 .done                ; common exit of ResolvePhraseCursorNote
 418D .done                ; common exit of SetColInstr
 41C5 .loop                ; loop head in WritePhraseNote
 4224 .loop                ; loop head in WritePhraseInstr
-4377 .loop                ; loop head in PhraseInstrEntered
-440A .loop                ; loop head in PhraseEditUp
-4508 .loop2               ; loop head in PhraseEditUp
-4525 .loop3               ; loop head in PhraseEditUp
-4578 .done                ; common exit of PhraseEditUp
-45B9 .loop                ; loop head in PhraseEditDown
-4696 .loop2               ; loop head in PhraseEditDown
-46B8 .loop3               ; loop head in PhraseEditDown
-4707 .done                ; common exit of PhraseEditDown
-4745 .loop                ; loop head in PhraseEditRight
-480D .done                ; common exit of PhraseEditRight
-484B .loop                ; loop head in PhraseEditLeft
-4914 .done                ; common exit of PhraseEditLeft
+4377 .loop                ; loop head in CommitPhraseInstr
+440A .loop                ; loop head in EditPhraseCellUp
+4508 .loop2               ; loop head in EditPhraseCellUp
+4525 .loop3               ; loop head in EditPhraseCellUp
+4578 .done                ; common exit of EditPhraseCellUp
+45B9 .loop                ; loop head in EditPhraseCellDown
+4696 .loop2               ; loop head in EditPhraseCellDown
+46B8 .loop3               ; loop head in EditPhraseCellDown
+4707 .done                ; common exit of EditPhraseCellDown
+4745 .loop                ; loop head in EditPhraseCellRight
+480D .done                ; common exit of EditPhraseCellRight
+484B .loop                ; loop head in EditPhraseCellLeft
+4914 .done                ; common exit of EditPhraseCellLeft
 493A .loop                ; loop head in ReadPhraseInstr
-499E .loop                ; loop head in PhraseReadNote
+499E .loop                ; loop head in ReadPhraseNote
 4A05 .loop                ; loop head in WritePhraseFx
 4A64 .loop                ; loop head in WritePhraseFxVal
-4AC3 .loop                ; loop head in PhraseReadFxVal
-4B1E .loop                ; loop head in PhraseReadFx
-4B93 .loop                ; loop head in PhraseEditPlace
-4C02 .done                ; common exit of PhraseEditPlace
+4AC3 .loop                ; loop head in ReadPhraseFxVal
+4B1E .loop                ; loop head in ReadPhraseFx
+4B93 .loop                ; loop head in PlacePhraseCell
+4C02 .done                ; common exit of PlacePhraseCell
 4C24 .loop                ; loop head in LoadPhraseRow
 4D34 .loop                ; loop head in DrawPhraseScreen
 4D5C .loop2               ; loop head in DrawPhraseScreen
 4D93 .loop3               ; loop head in DrawPhraseScreen
 4DFC .loop4               ; loop head in DrawPhraseScreen
 4E84 .loop5               ; loop head in DrawPhraseScreen
-51AC .done                ; common exit of PhraseCheckEditContext
+51AC .done                ; common exit of CheckPhraseEditContext
 521F .nextRow             ; PastePhraseSelection: for each row y of the selection
 5233 .nextCol             ; PastePhraseSelection: for each column x, right to left
 5487 .done                ; common exit of PastePhraseSelection
 5494 .loop                ; loop head in CloneInstr
 55CD .done                ; common exit of CloneInstrAtCursor
 5679 .done                ; common exit of CloneTableAtCursor
-571D .done                ; common exit of PhraseCloneTableCmd
+571D .done                ; common exit of CloneAtPhraseCursor
 57BE .done                ; common exit of PrelistenCursorRow
 57F2 .loop                ; loop head in DrawInstrName
 5979 .done                ; common exit of PhraseCellFlagA
@@ -320,7 +320,7 @@
 44D8 .loadSongCol
 44F2 .checkCursorMode_2
 4538 .cont_6
-4543 .phraseResolveCursorNote
+4543 .resolvePhraseCursorNote
 456E .drawNoteNameFar
 45BE .step
 45F1 .loadSongCol
@@ -335,20 +335,20 @@
 467E .checkCursorMode
 46B3 .add16
 46C5 .cont_9
-46D0 .phraseResolveCursorNote
+46D0 .resolvePhraseCursorNote
 46FD .drawNoteNameFar
 474A .step
 4784 .loadSongCol
 47BD .phraseModeTile_2
 47D4 .cont
-47D8 .phraseResolveCursorNote
+47D8 .resolvePhraseCursorNote
 4803 .drawNoteNameFar
 4850 .step
 488C .loadSongCol
 48A6 .checkArg
 48C3 .cont
 48C6 .phraseModeTile_2
-48DF .phraseResolveCursorNote
+48DF .resolvePhraseCursorNote
 490A .drawNoteNameFar
 493F .index
 49A3 .step
@@ -358,7 +358,7 @@
 4B23 .step
 4B56 .cont
 4B98 .step
-4BD1 .phraseResolveCursorNote
+4BD1 .resolvePhraseCursorNote
 4BE0 .loadSongCol
 4C2C .step
 4CD4 .cont

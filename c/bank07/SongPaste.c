@@ -6,7 +6,7 @@
  *
  * Its own unit: wSongRow is declared volatile here (the row-shifting loop
  * recomputes `wSongRow + h` instead of reusing the test's value, which a
- * plain global would share), and SongWriteSramBytes is prototyped with
+ * plain global would share), and WriteSongSramBytes is prototyped with
  * UWORD source/destination (the ROM casts both pointers).
  */
 
@@ -18,7 +18,7 @@ extern UBYTE wSongScroll;                   /* $C41C */
 extern UBYTE wSelectionTop;                       /* $C40E */
 extern UBYTE wSelectionRight;                     /* $C40F */
 extern UBYTE wSelectionBottom;                    /* $C410 */
-void SongWriteSramBytes(UWORD src, UWORD dst, UBYTE n);   /* asm $07:$7422; this unit casts both pointers */
+void WriteSongSramBytes(UWORD src, UWORD dst, UBYTE n);   /* asm $07:$7422; this unit casts both pointers */
 void AdjustBookmarksOnInsert(UBYTE from, UBYTE to);
 void WriteSongCell(UBYTE col, UBYTE row, UBYTE chain);
 
@@ -48,7 +48,7 @@ void PasteSongSelection(void)
             if ((UWORD)p >= (UWORD)0xB590)
                 DebugTrap();
             n = (UWORD)0xC0 - (wSongRow + h);
-            SongWriteSramBytes((UWORD)src, (UWORD)p, n);
+            WriteSongSramBytes((UWORD)src, (UWORD)p, n);
         }
     }
     for (n = 0; n < h; n++) {

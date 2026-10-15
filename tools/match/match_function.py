@@ -452,7 +452,7 @@ RUNTIME_ALIASES = {
     "hFxValS": "hFxVal",    # hFxVal as a signed byte: widened with one cast (FxCmd_F_Wav's step)
     "wWavLevelS": "wWavLevel",  # wWavLevel as a signed byte: saved to a word with one cast (FxCmd_F_Wav)
     "wTopBarLen": "wTopBarDrawScratch",  # the top-bar scratch word as a length
-    "SortBytePairC": "SortBytePair",  # SortBytePair prototyped with `char *` (SongEditSelection casts its `&UBYTE` locals)
+    "SortBytePairC": "SortBytePair",  # SortBytePair prototyped with `char *` (EditSongSelection casts its `&UBYTE` locals)
     "FarCallArg0": "FarCallArg",  # FarCallArg called with (bank, fn) only -- hFxVal set by hand (ProcessLinkQueue)
     "ReadSongBytesW": "ReadSongBytes",  # ReadSongBytes with a word source address (FileUpgradeV11 pushes its UWORD cursors)
     "ReadInstrByteS": "ReadInstrByte",  # ReadInstrByte returning `char`: the cast gives the call result its own slot (FileUpgradeV11)

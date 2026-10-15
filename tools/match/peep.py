@@ -778,7 +778,7 @@ def _reseat_hl(lines: list[str], i: int, off: int, glob: str | None = None) -> N
 # and a jump on the inverted carry (DrawCrashScreen's `i < 10`: `ld
 # hl,#0x7FF6`); with the constant first, the add compares with K + 1 and
 # keeps the jump (NameEditorInput's `> -1`: `#0x8000`). Against 0 it tested
-# bit 7 as stock SDCC does (SynthRenderWaveA's `(WORD)samp < 0`), where
+# bit 7 as stock SDCC does (RenderSynthWaveA's `(WORD)samp < 0`), where
 # GBDK's library build adds here too (abs's `num < 0`: `ld hl,#0x8000`).
 
 _SCMP_STACK_RIGHT = ["<hl>", r"ld\s+a,\(hl\)", r"xor\s+a,#0x80", r"ld\s+e,a",
@@ -1333,7 +1333,7 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
                 and "(hl)" in eq:
             # `ld c,(hl)` while `a` still holds (hl): LSDj's compiler used `ld c,a`
             # (3 sites after `ld a,(hl); cp; jp`, none rereading; `ld l,a` for a
-            # table index likewise, SynthWriteWaveCol)
+            # table index likewise, WriteSynthWaveCol)
             raw = raw.replace("(hl)", "a", 1)
             if ops[0] in ("l", "h"):
                 forget_hl()

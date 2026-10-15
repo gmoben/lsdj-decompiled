@@ -348,9 +348,14 @@ in `docs/functionality.md`.
   `Pu1`, `Pu2`, `Wav`, `Noi` (`TriggerPu1`, `wChanFreqPu2`). Exempt: `Txt`
   labels mirror their text, `SCREAMING_SNAKE` constants mirror the song
   format's documentation (`SONG_INSTRUMENTS`).
-- **Name patterns.** A prefix names a domain (`Snd` the sound driver,
-  `File`, `Sync`, `Fx`, `Kbd`), never the source file or bank a routine
-  sits in. A screen's cursor highlight pair is `Draw<Screen>Cursor` /
+- **Name patterns.** Routines are verb-first (`OpenChainPhrase`,
+  `ReadTableEnv`, `MoveHelpCursorDown`); predicates read subject-first
+  (`KitExists`, `WaveFrameModified`) and a getter may be a noun phrase
+  (`SpeechCursorY`). A prefix names a domain (`Snd` the sound driver,
+  `File`, `Sync`, `Fx`, `Kbd`) and comes before the verb
+  (`SndReadTableEnv`), never the source file or bank a routine sits in; an
+  identical copy of a routine or table in another bank takes that bank as a
+  suffix (`SynthLockByteAddrB1D`, `DefaultWaveFrameB1F`). A screen's cursor highlight pair is `Draw<Screen>Cursor` /
   `Erase<Screen>Cursor`; a screen's handlers are `Draw<Screen>Screen` /
   `<Screen>ScreenInput` / `<Screen>ScreenUpdate`; a banked-call wrapper is
   `<Name>Far`. `Get`/`Read` return a value; a routine that only points

@@ -38,7 +38,7 @@ extern UBYTE wTempoShadow;                  /* $C947 */
 void DrawTileHexCell(UBYTE v);                /* c/bank06/DrawTileHexCell.c */
 void DrawNoteName(UBYTE col, UBYTE v);
 void DrawStatusNote(UBYTE chan, UBYTE note);
-void ChainUpdateScope(void);
+void UpdateScope(void);
 
 void DrawStatusNote(UBYTE chan, UBYTE note)
 {
@@ -110,7 +110,7 @@ void UpdateStatusPanel(void)
         wTempoShadow = wTempo;
         DrawTempoField();
     }
-    ChainUpdateScope();
+    UpdateScope();
 }
 
 void DrawSyncStatusText(char *s)

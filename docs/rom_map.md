@@ -154,7 +154,7 @@ named `wSynthFilterParam` (`$C9EE`) selects **CLIP / FOLD / WRAP** (0/1/2),
 rather than resonance; the actual filter dispatch follows composition.
 
 The full parameter redraw is `DrawSynthNumber` at `$1D:$65C2`; its two
-hidden-field `--` strings are at `$68A5`/`$68A8`. `SynthOverwriteWaves`
+hidden-field `--` strings are at `$68A5`/`$68A8`. `OverwriteSynthWaves`
 at `$6D6F` opens the overwrite confirmation and sets `$CB61`/`$CB62` flags;
 it does not itself write wave data. The dialog's text uses bank 0's
 `AsciiCharMap` (`$086F`, with `wStringSrc` biased by -`$20`) and

@@ -38,7 +38,7 @@ extern char TxtManyTimes[];                 /* $07:$71AA */
 extern char TxtFail[];                      /* $07:$71B5 */
 extern char TxtOk[];                        /* $07:$71BB */
 void KbdDrainQueue(void);
-UBYTE SongHexDigit(UBYTE v);
+UBYTE HexDigitChar(UBYTE v);
 void CopyInstrName(UBYTE instr);            /* bank 1 */
 void ClearMessageBar(void);                 /* bank 1 */
 void UiClearBgMap(void);                    /* bank 1 */
@@ -49,7 +49,7 @@ extern UBYTE wAPressEnabled;                /* $C409 */
 extern UBYTE wButtons;                      /* $C407 */
 extern UBYTE KbdNoteMap[];             /* $07:$662A */
 extern UBYTE KbdFnMap[];               /* $07:$66AA */
-UBYTE PhraseCheckColFD(UBYTE row);          /* bank 4 */
+UBYTE PhraseRowIsSentinel(UBYTE row);          /* bank 4 */
 
 extern volatile sfr UBYTE hSoundChan;         /* $FF8B */
 extern volatile sfr UBYTE hFxVal;         /* $FF8F */
@@ -133,7 +133,7 @@ void DrawKbdInstrState(void)
     DrawHexByte(wKbdInstr);
 }
 
-UBYTE SongHexDigit(UBYTE d)
+UBYTE HexDigitChar(UBYTE d)
 {
     return "0123456789ABCDEF"[d];
 }
@@ -149,8 +149,8 @@ void DrawKbdInstrName(void)
             wSampleNoteString[i] = wNameEditBuf[i] ? wNameEditBuf[i] : ' ';
     } else {
         wSampleNoteString[0] = 'I';
-        wSampleNoteString[1] = SongHexDigit(wKbdInstr >> 4);
-        wSampleNoteString[2] = SongHexDigit(wKbdInstr & 0x0F);
+        wSampleNoteString[1] = HexDigitChar(wKbdInstr >> 4);
+        wSampleNoteString[2] = HexDigitChar(wKbdInstr & 0x0F);
         wSampleNoteString[3] = ' ';
         wSampleNoteString[4] = ' ';
     }
@@ -459,7 +459,7 @@ UBYTE ProcessKbdNote(UBYTE sc)
             armed = wKbdArmed;
         } else if (wCurScreen == 1) {
             isPhrase = 1;
-            armed = wSongCol == 3 || !FarCallArgByte(4, (UWORD)PhraseCheckColFD, wPhraseRow);
+            armed = wSongCol == 3 || !FarCallArgByte(4, (UWORD)PhraseRowIsSentinel, wPhraseRow);
         } else {
             return 0;
         }
@@ -489,7 +489,7 @@ UBYTE ProcessKbdNote(UBYTE sc)
         }
     } else if (wCurScreen == 1) {
         sc &= 0x7F;
-        armed = wSongCol == 3 || !FarCallArgByte(4, (UWORD)PhraseCheckColFD, wPhraseRow);
+        armed = wSongCol == 3 || !FarCallArgByte(4, (UWORD)PhraseRowIsSentinel, wPhraseRow);
         if (armed) {
             note = KbdFnMap[sc];
         } else {

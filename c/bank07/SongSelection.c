@@ -27,7 +27,7 @@ const UBYTE SongSelectionAttr[32] = {             /* $07:$5DB8: CGB attribute 3 
     3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 };
 
-void SongEditSelection(void)
+void EditSongSelection(void)
 {
     UBYTE i;
     UBYTE x0;

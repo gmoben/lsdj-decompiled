@@ -18,8 +18,8 @@ extern UBYTE wWaveSelectionEnd;                   /* $C93C */
 void DrawWaveCol(UBYTE i);
 void WriteWaveSample(UBYTE n, UBYTE v);
 UBYTE ReadWaveSample(UBYTE i);
-void WaveInitSprites(void);
-void WaveSetSpriteCols(UBYTE s, UBYTE x);
+void InitWaveSprites(void);
+void SetWaveSpriteCols(UBYTE s, UBYTE x);
 void GetWaveEditRange(UBYTE *a, UBYTE *b);
 void DrawWaveRange(void);
 void LockCurSynth(void);
@@ -130,7 +130,7 @@ void WriteWaveSample(UBYTE pos, UBYTE v)
     WriteSongByte(3, (UWORD)p, v);
 }
 
-void WaveSetSpriteCols(UBYTE y1, UBYTE y2)
+void SetWaveSpriteCols(UBYTE y1, UBYTE y2)
 {
     UBYTE i;
 
@@ -148,7 +148,7 @@ void SetWaveCursorSprite(void)
     s = (wWaveSelectionStart << 2) + 0x18;
     if (wCursorMode != 4)
         s = x;
-    WaveSetSpriteCols(s, x);
+    SetWaveSpriteCols(s, x);
 }
 
 void GetWaveEditRange(UBYTE *a, UBYTE *b)
@@ -164,7 +164,7 @@ void GetWaveEditRange(UBYTE *a, UBYTE *b)
     (*b)++;
 }
 
-void WaveInitSprites(void)
+void InitWaveSprites(void)
 {
     UBYTE y, i;
 
@@ -261,7 +261,7 @@ void DrawWaveCols(void)
 
 void DrawWaveScreen(void)
 {
-    WaveInitSprites();
+    InitWaveSprites();
     hBgDigitPal = 4;
     hBgPal = 1;
     FarCall(1, FAR_FN(DrawTopBar));

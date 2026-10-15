@@ -45,8 +45,8 @@ coverage = importlib.import_module("coverage")   # tools/coverage.py: read_sym, 
 KNOWN_ASM = {
     "01:CrashSaveStack", "01:UiDrawScreenCgb",
     "01:UiDrawScreenDmg", "01:UiLoadObjPal",
-    "06:ChainDrawScopePoint", "06:ChainShiftSamples",
-    "07:DrawHexOrDashes", "07:SongScanSram", "07:SongWriteSramBytes",
+    "06:DrawScopePoint", "06:ShiftScopeSamples",
+    "07:DrawHexOrDashes", "07:ScanSongSram", "07:WriteSongSramBytes",
     "1b:MixerKernel",
     "1c:EmitDefaultInstr", "1c:EmitDefaultWave", "1c:FileClassifyToken",
     "1c:FilePutDecompressByte", "1c:ReadWorkingSongByte", "1c:WriteCompressedByte",
@@ -61,8 +61,8 @@ KNOWN_ASM = {
     "00:SwitchToDoubleSpeed", "00:VibOffsetJumps",
     "02:SndFxTableJump", "02:SndRandom15", "02:TriggerNote", "02:SetupChanSound",
     "02:SndClearChanFxSlots", "02:AdvanceChanCursors", "02:SndCountdownStep",
-    "02:SndFillFF", "02:FxCmd_M", "02:SndApplyTableTranspose", "02:ReadTableEnv",
-    "02:SndDeactivateChan", "02:ReadTableTranspose", "02:SndDecodeNibbles",
+    "02:SndFillFF", "02:FxCmd_M", "02:SndApplyTableTranspose", "02:SndReadTableEnv",
+    "02:SndDeactivateChan", "02:SndReadTableTranspose", "02:SndDecodeNibbles",
     # an `hl`-argument call wrapped in the C convention: RequestTileSlot pops
     # its frame before setting the return value, which SDCC never does
     "00:LoadTilesDispatch", "00:RequestTileSlot",

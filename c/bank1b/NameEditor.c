@@ -214,7 +214,7 @@ void CommitNameEdit(void)
     FarCall(3, FAR_FN(RedrawScreen));
 }
 
-void NameEditBackspace(UBYTE x, UBYTE n)
+void BackspaceNameEdit(UBYTE x, UBYTE n)
 {
     UBYTE c;
 
@@ -263,7 +263,7 @@ UBYTE NameEditorInput(void)
         if (wNameEditRow == 3)
             switch (wNameEditCol) {
             case 8:
-                NameEditBackspace(x, last);
+                BackspaceNameEdit(x, last);
                 return 1;
             case 9:
                 CommitNameEdit();
@@ -288,7 +288,7 @@ UBYTE NameEditorInput(void)
         }
         return 1;
     case 0x40:                                  /* select */
-        NameEditBackspace(x, last);
+        BackspaceNameEdit(x, last);
         return 1;
     case 0x80:                                  /* start */
         CommitNameEdit();

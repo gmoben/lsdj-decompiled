@@ -29,27 +29,27 @@
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 40AE EraseGrooveCursor          ; restore the groove cursor step's palette (alternating per two rows)
 425B DrawGrooveRow              ; draw one groove row (step<16; ticks via ReadGrooveStep, state wGrooveCacheValid/wGrooveStepCache)
-435D GrooveBuildCache       ; once (wGrooveCacheValid guard): build the 16-step groove display cache wGrooveStepCache (via ReadGrooveStep)
+435D BuildGrooveCache       ; once (wGrooveCacheValid guard): build the 16-step groove display cache wGrooveStepCache (via ReadGrooveStep)
 4394 DrawGrooveCursor           ; highlight the groove cursor step (palette 3 on CGB, 2 on DMG)
-43CF GrooveRowPalettes          ; pick a groove row's draw palettes: select colours inside the sorted wSelectionTop..wGrooveRow range (select mode) or on the cursor row, 4/1 stripe on rows with bit 1, else shadow
-4B6C GrooveCutCopy              ; cut/copy the groove selection (arg 1 = cut: rows cleared to 0, row 0 to 6)
+43CF SetGrooveRowPals          ; pick a groove row's draw palettes: select colours inside the sorted wSelectionTop..wGrooveRow range (select mode) or on the cursor row, 4/1 stripe on rows with bit 1, else shadow
+4B6C CutCopyGrooveSelection              ; cut/copy the groove selection (arg 1 = cut: rows cleared to 0, row 0 to 6)
 4C63 PasteGrooveSelection       ; write the clipboard steps into the groove from the cursor (clipType 2), advancing wGrooveRow and wrapping at 16; PASTE message
-4CDE GrooveDrawSelection        ; clipType 2: highlight the rows between the anchor wSelectionTop and the cursor (palette 3 on CGB, 2 on DMG)
-4D81 SynthRenderWaveA           ; render synth waveform segment using wave tables $4EF0/$50F0 (wSynthSegLen1/wSynthSignalType)
-5190 SynthRenderWaveB           ; render synth waveform segment (variant of SynthRenderWaveA)
-5323 SynthComposeWave           ; main synth wave composition (wSynthRenderIdx, buffer wSynthWaveBuf); large
-5695 SynthRenderWaveType        ; dispatch waveform shape by type wSynthWaveShape (jump table $56bd); buffer wSynthCurveAmp
-58DA SynthWrapIndex32           ; return (arg+1) & $1f (wave sample index wrap)
+4CDE DrawGrooveSelection        ; clipType 2: highlight the rows between the anchor wSelectionTop and the cursor (palette 3 on CGB, 2 on DMG)
+4D81 RenderSynthWaveA           ; render synth waveform segment using wave tables $4EF0/$50F0 (wSynthSegLen1/wSynthSignalType)
+5190 RenderSynthWaveB           ; render synth waveform segment (variant of RenderSynthWaveA)
+5323 ComposeSynthWave           ; main synth wave composition (wSynthRenderIdx, buffer wSynthWaveBuf); large
+5695 RenderSynthWaveType        ; dispatch waveform shape by type wSynthWaveShape (jump table $56bd); buffer wSynthCurveAmp
+58DA WrapSynthIndex32           ; return (arg+1) & $1f (wave sample index wrap)
 58E6 SynthFilterLowHigh         ; synth filter LOWP/HIGHP (any type but 2/3): scatter each of the 32 samples over two accumulator slots at a cutoff-driven 8.8 position, then normalise each slot by its weight (type 0 fills missing weight with 8)
 5BBD SynthFilterBandPass        ; synth filter BANDP: halve the wave an octave per cutoff doubling (pair averages), then the LOWP/HIGHP scatter-and-normalise core with the position masked to the shortened wave
 5E53 SynthFilterPass            ; filter/transform 32 wave samples using wSynthFilterCutoff
-5F00 SynthApplyFilter           ; dispatch filter by wSynthFilterType (2->SynthFilterBandPass, 3->SynthFilterPass, else 58E6); gated wSynthFilterCutoff
-5F29 SynthWriteWaveCol          ; write an edited wave column (<$20) from the edit state (wWaveEditX) into song data
-5F90 SynthLoadSignalWave        ; load the custom-wave SIGNAL (W.FX: wave $F0 + synth, 16 packed bytes at SRAM $AF00 + 16 * synth) into wSynthShapeBuf as 32 signed words
-60A7 SynthCalcParamAddr         ; pick SRAM base $bfc4/$bfc5 by bit3 of arg -> synth param pointer
-6115 SynthReadParam             ; read synth param via SynthCalcParamAddr + ReadSongByte (bank1)
-6144 SynthClearFlag             ; clear synth x's bit in the flag pair at $BFC4/$BFC5 (SynthCalcParamAddr)
-6193 SynthFillWaveRange         ; fill/interpolate a wave value range (16-step; <-SynthLoadWaveTable)
+5F00 ApplySynthFilter           ; dispatch filter by wSynthFilterType (2->SynthFilterBandPass, 3->SynthFilterPass, else 58E6); gated wSynthFilterCutoff
+5F29 WriteSynthWaveCol          ; write an edited wave column (<$20) from the edit state (wWaveEditX) into song data
+5F90 LoadSynthSignalWave        ; load the custom-wave SIGNAL (W.FX: wave $F0 + synth, 16 packed bytes at SRAM $AF00 + 16 * synth) into wSynthShapeBuf as 32 signed words
+60A7 SynthLockByteAddrB1D       ; bank $1D's copy of SynthLockByteAddr: the SRAM byte holding synth x's lock bit ($BFC5 for 0-7, $BFC4 for 8-F)
+6115 IsSynthLocked              ; nonzero if synth x is locked (its bit in the SynthLockByteAddrB1D byte; LockCurSynth sets it when a wave is edited by hand)
+6144 ClearSynthFlag             ; clear synth x's bit in the flag pair at $BFC4/$BFC5 (SynthLockByteAddrB1D)
+6193 FillSynthWaveRange         ; fill/interpolate a wave value range (16-step; <-SynthLoadWaveTable)
 62A8 DrawSynthField             ; draw the synth PHASE field: switch (jp-table SynthDispatchJumps) -> " PINCH"/"  WARP"/"RESYNC"/"RESYN2"
 636E DrawSynthFilterField       ; draw the FILTER type field (" LOWP"...; "-----" empty; jp-table $63a6)
 6414 DrawSynthWaveField         ; draw the waveform type row (glyph strings "iiii"/"mmmm"; jp-table $6437)
@@ -63,32 +63,32 @@
 6791 .rowB                ; (was DrawSynthHexRowB) draw a START/END hex pair row (section B)
 6819 .rowC                ; (was DrawSynthHexRowC) draw a START/END hex pair row (section C)
 6865 .rowD                ; (was DrawSynthHexRowD) draw a START/END hex pair row (section D), then DrawSynthCursor re-render
-68F9 SynthLoadParams            ; load the edited synth's parameters from SRAM ($BEB2 + wSynthScreen*16) into the render state: wave type, wave table, filter
+68F9 LoadSynthParams            ; load the edited synth's parameters from SRAM ($BEB2 + wSynthScreen*16) into the render state: wave type, wave table, filter
 6935 .loadWaveType        ; (was SynthLoadWaveType) read 2 synth params from SRAM -> wSynthSignalType, wSynthWaveShape (wave type)
-6967 .loadWaveTable       ; (was SynthLoadWaveTable) read packed param from SRAM, build wave table wSynthCurveAmp (via SynthFillWaveRange)
+6967 .loadWaveTable       ; (was SynthLoadWaveTable) read packed param from SRAM, build wave table wSynthCurveAmp (via FillSynthWaveRange)
 6997 .loadFilterParams    ; (was SynthLoadFilterParams) read 2 synth params from SRAM -> wSynthFilterParam, wSynthFilterType (filter)
 6B33 BuildOverwritePrompt       ; draw the confirmation border at columns 3..14, rows 4..10; restore wStringSrc/palettes
 6D0F DrawOverwriteChoice        ; highlight the OVERWRITE? prompt choice (wOverwriteEnd) on row 9
-6D6F SynthOverwriteWaves        ; open the OVERWRITE HAND-DRAWN WAVES? confirmation; set active/choice flags wOverwriteStart/wOverwriteEnd
+6D6F OverwriteSynthWaves        ; open the OVERWRITE HAND-DRAWN WAVES? confirmation; set active/choice flags wOverwriteStart/wOverwriteEnd
 6E00 RedrawScreenFar            ; FarCall home RedrawScreen ($24dd)
 6E11 OverwritePromptInput       ; synth OVERWRITE? prompt input: LEFT/RIGHT move the choice, A accepts (clearing the synth flag on the left choice), B cancels
 6E6E WriteSynthParam            ; synth_params[wSynthScreen*16+n] = value (song $3EB2); 24 uses
-6EB6 SynthParamAddClamp         ; synth param field += inc, clamped to max; draws it and writes it back
-6F3F SynthParamSubClamp         ; synth param field -= dec, clamped at 0; draws it and writes it back
-6FC4 SynthParamIncTo            ; increment the edited synth's param field unless it equals max; draw it (hex) and store it
-702B SynthParamDecTo0           ; decrement the edited synth's param field unless 0; draw it (hex) and store it
-708E SynthFieldIncHi            ; current synth field: +$10 on the hi nibble (clamp $f0), WriteSynthParam
-70BC SynthFieldIncLo            ; current synth field: +1 on the lo nibble (clamp $0f)
-70E4 SynthFieldDecHi            ; current synth field: -$10 on the hi nibble
-7111 SynthFieldDecLo            ; current synth field: -1 on the lo nibble
+6EB6 AddSynthParamClamped         ; synth param field += inc, clamped to max; draws it and writes it back
+6F3F SubSynthParamClamped         ; synth param field -= dec, clamped at 0; draws it and writes it back
+6FC4 IncSynthParamTo            ; increment the edited synth's param field unless it equals max; draw it (hex) and store it
+702B DecSynthParamTo0           ; decrement the edited synth's param field unless 0; draw it (hex) and store it
+708E IncSynthFieldHi            ; current synth field: +$10 on the hi nibble (clamp $f0), WriteSynthParam
+70BC IncSynthFieldLo            ; current synth field: +1 on the lo nibble (clamp $0f)
+70E4 DecSynthFieldHi            ; current synth field: -$10 on the hi nibble
+7111 DecSynthFieldLo            ; current synth field: -1 on the lo nibble
 ; --- functions called from bank 0 (this bank paged in) ---
 7138 SynthScreenInput           ; synth screen input (wButtons): overwrite prompt, help, cursor moves, field steps, synth select, copy/paste; 1 = handled
-4D58 GrooveResetState           ; reset groove screen state (wGrooveCacheValid=0 + 16-slot loop)
+4D58 ResetGrooveState           ; reset groove screen state (wGrooveCacheValid=0 + 16-slot loop)
 4451 GrooveScreenInput          ; groove screen (2) input: step edits, tick moves between pairs, delete, groove select, cut/copy/paste, map exit; 1 = handled
 4B65 TxtSelect1D       ; "SELECT" (pairs with TxtCancelSelect1D)
 7D98 TxtPastedSynth    ; "PASTED SYNTH"
 
-; --- softsynth shape banks (SynthRenderWaveB and $4db1 reader) ---
+; --- softsynth shape banks (RenderSynthWaveB and $4db1 reader) ---
 4EF0 SynthShapeTableA   ; signed seed samples for synth wave rendering (selected when the shape flag is 0)
 50F0 SynthShapeTableB   ; second shape bank (SynthShapeTableA+$200)
 405A ReadGrooveStep     ; e = groove data[wGroove*16 + step] (song $1090); asserts step & wGroove<$20
@@ -114,44 +114,44 @@
 4259 .done                ; common exit of GrooveScreenUpdate
 4262 .loop                ; loop head in DrawGrooveRow
 4356 .done                ; common exit of DrawGrooveRow
-436A .loop                ; loop head in GrooveBuildCache
-4392 .done                ; common exit of GrooveBuildCache
-444D .done                ; common exit of GrooveRowPalettes
+436A .loop                ; loop head in BuildGrooveCache
+4392 .done                ; common exit of BuildGrooveCache
+444D .done                ; common exit of SetGrooveRowPals
 462B .loop                ; loop head in GrooveScreenInput
 46DE .loop2               ; loop head in GrooveScreenInput
 4799 .loop3               ; loop head in GrooveScreenInput
 495E .loop4               ; loop head in GrooveScreenInput
 4AE6 .loop5               ; loop head in GrooveScreenInput
 4B53 .done                ; common exit of GrooveScreenInput
-4BE6 .loop                ; loop head in GrooveCutCopy
-4C56 .done                ; common exit of GrooveCutCopy
+4BE6 .loop                ; loop head in CutCopyGrooveSelection
+4C56 .done                ; common exit of CutCopyGrooveSelection
 4C92 .loop                ; loop head in PasteGrooveSelection
 4CD4 .done                ; common exit of PasteGrooveSelection
-4D14 .loop                ; loop head in GrooveDrawSelection
-4D54 .done                ; common exit of GrooveDrawSelection
-4D60 .loop                ; loop head in GrooveResetState
-4D7F .done                ; common exit of GrooveResetState
-4DDD .loop                ; loop head in SynthRenderWaveA
-4E34 .loop2               ; loop head in SynthRenderWaveA
-4E6D .loop3               ; loop head in SynthRenderWaveA
-4EA1 .loop4               ; loop head in SynthRenderWaveA
-4EEC .done                ; common exit of SynthRenderWaveA
-520B .loop                ; loop head in SynthRenderWaveB
-5267 .loop2               ; loop head in SynthRenderWaveB
-52A0 .loop3               ; loop head in SynthRenderWaveB
-52D4 .loop4               ; loop head in SynthRenderWaveB
-531F .done                ; common exit of SynthRenderWaveB
-536A .loop                ; loop head in SynthComposeWave
-5384 .loop2               ; loop head in SynthComposeWave
-5408 .loop3               ; loop head in SynthComposeWave
-543E .loop4               ; loop head in SynthComposeWave
-5527 .loop5               ; loop head in SynthComposeWave
-55D4 .loop6               ; loop head in SynthComposeWave
-561F .loop7               ; loop head in SynthComposeWave
-5676 .loop8               ; loop head in SynthComposeWave
-5691 .done                ; common exit of SynthComposeWave
-583C .loop                ; loop head in SynthRenderWaveType
-58D6 .done                ; common exit of SynthRenderWaveType
+4D14 .loop                ; loop head in DrawGrooveSelection
+4D54 .done                ; common exit of DrawGrooveSelection
+4D60 .loop                ; loop head in ResetGrooveState
+4D7F .done                ; common exit of ResetGrooveState
+4DDD .loop                ; loop head in RenderSynthWaveA
+4E34 .loop2               ; loop head in RenderSynthWaveA
+4E6D .loop3               ; loop head in RenderSynthWaveA
+4EA1 .loop4               ; loop head in RenderSynthWaveA
+4EEC .done                ; common exit of RenderSynthWaveA
+520B .loop                ; loop head in RenderSynthWaveB
+5267 .loop2               ; loop head in RenderSynthWaveB
+52A0 .loop3               ; loop head in RenderSynthWaveB
+52D4 .loop4               ; loop head in RenderSynthWaveB
+531F .done                ; common exit of RenderSynthWaveB
+536A .loop                ; loop head in ComposeSynthWave
+5384 .loop2               ; loop head in ComposeSynthWave
+5408 .loop3               ; loop head in ComposeSynthWave
+543E .loop4               ; loop head in ComposeSynthWave
+5527 .loop5               ; loop head in ComposeSynthWave
+55D4 .loop6               ; loop head in ComposeSynthWave
+561F .loop7               ; loop head in ComposeSynthWave
+5676 .loop8               ; loop head in ComposeSynthWave
+5691 .done                ; common exit of ComposeSynthWave
+583C .loop                ; loop head in RenderSynthWaveType
+58D6 .done                ; common exit of RenderSynthWaveType
 592C .scatterLoop         ; SynthFilterLowHigh: for each of the 32 source samples, scatter it over two accumulator slots
 5AF7 .normaliseLoop       ; SynthFilterLowHigh: for each slot, output = sum / weight
 5B5A .shiftLeft           ; SynthFilterLowHigh: (0x100 - weight) <<= 3, the fill of a slot that has no weight
@@ -163,19 +163,19 @@
 5E4F .done                ; common exit of SynthFilterBandPass
 5E68 .loop                ; loop head in SynthFilterPass
 5E7D .loop2               ; loop head in SynthFilterPass
-5F28 .done                ; common exit of SynthApplyFilter
-5F30 .loop                ; loop head in SynthWriteWaveCol
-5F8C .done                ; common exit of SynthWriteWaveCol
-5FA2 .shiftLoop           ; loop head in SynthLoadSignalWave: p <<= 4 done one bit per pass in p's slot
-5FBC .byteLoop            ; loop head in SynthLoadSignalWave: one packed SRAM byte (two samples) per pass
-6031 .done                ; common exit of SynthLoadSignalWave
-6138 .loop                ; loop head in SynthReadParam
-6171 .loop                ; loop head in SynthClearFlag
-61B2 .loop                ; loop head in SynthFillWaveRange
-61E5 .loop2               ; loop head in SynthFillWaveRange
-622B .loop3               ; loop head in SynthFillWaveRange
-6264 .loop4               ; loop head in SynthFillWaveRange
-62A4 .done                ; common exit of SynthFillWaveRange
+5F28 .done                ; common exit of ApplySynthFilter
+5F30 .loop                ; loop head in WriteSynthWaveCol
+5F8C .done                ; common exit of WriteSynthWaveCol
+5FA2 .shiftLoop           ; loop head in LoadSynthSignalWave: p <<= 4 done one bit per pass in p's slot
+5FBC .byteLoop            ; loop head in LoadSynthSignalWave: one packed SRAM byte (two samples) per pass
+6031 .done                ; common exit of LoadSynthSignalWave
+6138 .loop                ; loop head in IsSynthLocked
+6171 .loop                ; loop head in ClearSynthFlag
+61B2 .loop                ; loop head in FillSynthWaveRange
+61E5 .loop2               ; loop head in FillSynthWaveRange
+622B .loop3               ; loop head in FillSynthWaveRange
+6264 .loop4               ; loop head in FillSynthWaveRange
+62A4 .done                ; common exit of FillSynthWaveRange
 62C7 .pinch               ; case 0 (was DrawPhasePinch)
 62D3 .warp                ; case 1 (was DrawPhaseWarp)
 62DF .resync              ; case 2 (was DrawPhaseResync)
@@ -190,17 +190,17 @@
 6573 .done                ; common exit of DrawSynthCursor
 65B2 .done                ; common exit of DrawSynthDistField
 65CF .loop                ; loop head in DrawSynthNumber
-6911 .loop                ; loop head in SynthLoadParams
+6911 .loop                ; loop head in LoadSynthParams
 6B3A .loop                ; loop head in BuildOverwritePrompt
 6B82 .loop2               ; loop head in BuildOverwritePrompt
 6E6D .done                ; common exit of OverwritePromptInput
 6E7B .loop                ; loop head in WriteSynthParam
-6EC3 .loop                ; loop head in SynthParamAddClamp
-6F4C .loop                ; loop head in SynthParamSubClamp
-6FD1 .loop                ; loop head in SynthParamIncTo
-7027 .done                ; common exit of SynthParamIncTo
-7038 .loop                ; loop head in SynthParamDecTo0
-708A .done                ; common exit of SynthParamDecTo0
+6EC3 .loop                ; loop head in AddSynthParamClamped
+6F4C .loop                ; loop head in SubSynthParamClamped
+6FD1 .loop                ; loop head in IncSynthParamTo
+7027 .done                ; common exit of IncSynthParamTo
+7038 .loop                ; loop head in DecSynthParamTo0
+708A .done                ; common exit of DecSynthParamTo0
 7C95 .loop                ; loop head in SynthScreenInput
 7CAA .loop2               ; loop head in SynthScreenInput
 7D31 .loop3               ; loop head in SynthScreenInput
@@ -294,8 +294,8 @@
 5F25 .clearSynthWaveBufs
 5F75 .loadWaveEditX
 6042 .ok
-6099 .synthRenderWaveType
-609C .synthComposeWave
+6099 .renderSynthWaveType
+609C .composeSynthWave
 60DF .ok
 6625 .drawSynthFilterField
 6680 .setVramCursor
@@ -326,22 +326,22 @@
 7444 .checkButtonsSameb
 7473 .checkButtonsSamec
 750F .checkButtonsSamed
-7543 .synthFieldIncHi
-7552 .synthFieldIncLo
+7543 .incSynthFieldHi
+7552 .incSynthFieldLo
 75DE .synthDataAddr
 7650 .checkButtonsSamee
 76AA .drawSynthWaveFieldb
 76B0 .checkButtonsSamef
 76DC .checkButtonsSameg
 7771 .checkButtonsSameh
-77A4 .synthFieldDecHi
-77B3 .synthFieldDecLo
+77A4 .decSynthFieldHi
+77B3 .decSynthFieldLo
 781F .synthDataAddrb
-788F .synthFieldIncHib
-78A1 .synthFieldIncLob
+788F .incSynthFieldHib
+78A1 .incSynthFieldLob
 79C2 .synthDataAddrc
-7A32 .synthFieldDecHib
-7A44 .synthFieldDecLob
+7A32 .decSynthFieldHib
+7A44 .decSynthFieldLob
 7B4B .synthDataAddrd
 7B53 .setMessageStrPtr
 7B6D .setMessageStrPtrb
@@ -466,9 +466,9 @@
 580E .loadBank1EBlock_2
 5838 .cont
 5862 .cont_2
-5864 .synthRenderWaveA
+5864 .renderSynthWaveA
 5877 .cont_3
-5879 .synthRenderWaveB
+5879 .renderSynthWaveB
 5884 .checkGrooveRow_3
 5899 .cont_4
 58A4 .cont_5

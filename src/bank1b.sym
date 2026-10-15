@@ -25,23 +25,23 @@
 401B DrawHelpMenu               ; draw the HELP menu: HelpMenuPtrs[i] at column 0, row i, up to the NULL
 49F8 DrawHelpCursor             ; the help menu's cursor: colour menu line HelpEntryLines[wHelpRow] across its text, palette 2 (highlight) or, with erase, 0
 4A4D RedrawHelpCursor           ; draw the help menu's cursor unless an entry is open (DrawHelpScreen's last step)
-4A79 HelpCursorDown             ; move the help menu's cursor down (to row 9 at most): erase it, wHelpRow++, draw it
-4AA6 HelpCursorUp               ; move the help menu's cursor up (to row 0 at most): erase it, wHelpRow--, draw it
+4A79 MoveHelpCursorDown             ; move the help menu's cursor down (to row 9 at most): erase it, wHelpRow++, draw it
+4AA6 MoveHelpCursorUp               ; move the help menu's cursor up (to row 0 at most): erase it, wHelpRow--, draw it
 4AC5 GotoProjScreen          ; wCurScreen=9 + RedrawScreen (FarCall home $24dd)
-4ADB HelpReset              ; close the open entry: wHelpOpenEntry = 0, ClearBgTilemap, DrawHelpScreen
+4ADB CloseHelpEntry             ; close the open help entry: wHelpOpenEntry = 0, ClearBgTilemap, DrawHelpScreen
 4AE7 DrawHelpPage               ; draw help page s from $9800: '\n' starts the next row, a '<'..'>' span is highlighted (ColorField), other bytes are glyphs
-4B6D HelpOpenEntry       ; open the help entry at wHelpRow: unhighlight its menu line, clear the BG map, set wHelpOpenEntry, draw its page (DrawHelpPage)
+4B6D OpenHelpEntry       ; open the help entry at wHelpRow: unhighlight its menu line, clear the BG map, set wHelpOpenEntry, draw its page (DrawHelpPage)
 4C30 DrawNameEditCursor         ; highlight the name editor's keyboard key under the cursor ((5, 8) + wNameEditCol/Row; palette 3 CGB / 2 DMG)
 4C96 EraseNameEditCursor        ; un-highlight the name editor's keyboard key under the cursor (palette 0)
 4CBA DrawProjTextField          ; draw a project-screen text field (highlight-aware) at computed coords
-5303 NameEditBackspace          ; name-editor backspace (select, or the keyboard's backspace key): clear the letter at the last slot, else step the letter highlight back and clear the letter there
+5303 BackspaceNameEdit          ; name-editor backspace (select, or the keyboard's backspace key): clear the letter at the last slot, else step the letter highlight back and clear the letter there
 569C DrawFontColorFields        ; draw the FONT (wFont) and COLOR SET (wColorSet) project rows
 5782 SaveSyncMode               ; wSyncMode -> song property $bfbd
 5796 DrawSyncMode2Field         ; draw + persist wSyncMode2 (song property $bfbf)
 57C1 ProjSyncStateFlag          ; predicate combining wSyncMode (1/3) and wSyncRun
 582C SaveTempoProps             ; wTempo -> $bfb4, wTempoMode -> $bfcc song properties
-5853 ProjDrawTempo              ; draw the tempo at the VRAM cursor: DrawTempo(GetTempoTimerVal())
-5861 ProjRedrawTempo            ; wait while wRedrawPending < 6, then ProjDrawTempo at $9846
+5853 DrawProjTempo              ; draw the tempo at the VRAM cursor: DrawTempo(GetTempoTimerVal())
+5861 RedrawProjTempo            ; wait while wRedrawPending < 6, then DrawProjTempo at $9846
 5876 DrawKeyRepeatField         ; draw the KEY DELAY/REPEAT values (wKeyDelay/wKeyRepeat)
 5896 ProjSyncModeIs567          ; return 1 if wSyncMode in {5,6,7}
 5952 .drawSubSetting            ; (was mislabeled as a function DrawSyncModeField: its `push bc` is the DrawString argument, its `pop bc; ret` DrawSyncField's epilogue)
@@ -51,8 +51,8 @@
 5AE3 DrawDecimalField           ; draw a small decimal value ("%d" via printf)
 5B09 ProjSyncModeIs015          ; return 1 if wSyncMode in {0,1,5}
 5B23 DrawPrelistenField         ; PRELISTEN field: "ON "/"OFF"/"N/A" by wPrelisten + sync mode
-5B62 ProjRedrawPrelisten        ; PRELISTEN field at $992A in the shadow palette (DrawPrelistenField)
-5D7C ProjScreenRefresh       ; drain buttons, clear tilemap, DrawProjScreen + map row
+5B62 RedrawProjPrelisten        ; PRELISTEN field at $992A in the shadow palette (DrawPrelistenField)
+5D7C RefreshProjScreen       ; drain buttons, clear tilemap, DrawProjScreen + map row
 6988 .applySettings     ; ProjScreenInput: the reset path after RESET MEMORY! (delay, LoadProjSettings(0), redraw)
 6A8C TapTempoStep               ; TAP tempo: on each tap record the frames since the last one (wWorkClockSubFrame) into wTapTempoBuf (8-deep, oldest dropped), reset on a -frame gap; from 3 taps on, tempo = ffe / (8 * mean interval), capped at 
 70B8 GetInstrEnvBytes           ; read the instrument's envelope input bytes (x2 ReadCurInstrByte)
@@ -139,8 +139,8 @@
 4022 .loop                ; loop head in DrawHelpMenu
 4054 .done                ; common exit of DrawHelpMenu
 4A61 .done                ; common exit of RedrawHelpCursor
-4AA4 .done                ; common exit of HelpCursorDown
-4AC4 .done                ; common exit of HelpCursorUp
+4AA4 .done                ; common exit of MoveHelpCursorDown
+4AC4 .done                ; common exit of MoveHelpCursorUp
 4AF9 .loop                ; loop head in DrawHelpPage
 4B69 .done                ; common exit of DrawHelpPage
 4CD7 .loop                ; loop head in DrawProjTextField
@@ -157,8 +157,8 @@
 5B22 .done                ; common exit of ProjSyncModeIs015
 5B54 .done                ; common exit of DrawPrelistenField
 5C01 .done                ; common exit of DrawSyncSubSetting
-5D7D .loop                ; loop head in ProjScreenRefresh
-5D86 .loop2               ; loop head in ProjScreenRefresh
+5D7D .loop                ; loop head in RefreshProjScreen
+5D86 .loop2               ; loop head in RefreshProjScreen
 6A5A .doneApply                ; common exit of ProjScreenInput
 6AF8 .loop                ; loop head in TapTempoStep
 6B2A .loop2               ; loop head in TapTempoStep
@@ -202,7 +202,7 @@
 
 
 ; --- first-action / assert local names ---
-4C29 .helpReset
+4C29 .closeHelpEntry
 4EB4 .setNameEditPos
 4EDB .checkNameEditPos
 4EE7 .checkCurScreen

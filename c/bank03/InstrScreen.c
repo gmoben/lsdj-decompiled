@@ -89,12 +89,12 @@ UBYTE IsInstrTableOn(void)
     return r;
 }
 
-void InstrTableOn(void)
+void SetInstrTableOn(void)
 {
     WriteCurInstrByte(6, ReadCurInstrByte(6) | 0x20);
 }
 
-UBYTE InstrCheckFieldOption(UBYTE type)
+UBYTE CheckInstrFieldOption(UBYTE type)
 {
     return wInstrField == InstrFieldCounts[type] - 1;
 }
@@ -118,12 +118,12 @@ void SetInstrPitchByte(UBYTE v)
     FarCallArg(1, FAR_FN(DrawOnOffName), v);
 }
 
-void InstrTransposeOn(void)
+void SetInstrTransposeOn(void)
 {
     SetInstrPitchByte(ReadCurInstrByte(5) | 0x20);
 }
 
-void InstrTransposeOff(void)
+void SetInstrTransposeOff(void)
 {
     SetInstrPitchByte(ReadCurInstrByte(5) & 0xDF);
 }
@@ -154,7 +154,7 @@ UBYTE FindFreeSynth(void)
     return 0xFF;
 }
 
-void InstrTableNew(void)
+void AllocInstrTable(void)
 {
     UBYTE t, v;
 
@@ -169,7 +169,7 @@ void InstrTableNew(void)
     FarCall(0x1F, FAR_FN(DrawInstrTableField));
 }
 
-void InstrSynthNew(void)
+void AllocInstrSynth(void)
 {
     UBYTE v;
 
@@ -212,7 +212,7 @@ void CloneSynth(void)
     ShowMessage("CLONED SYNTH");
 }
 
-void InstrScreenFrame(void)
+void DrawInstrScreenFrame(void)
 {
     hBgDigitPal = 4;
     hBgPal = 1;
@@ -223,7 +223,7 @@ void InstrScreenFrame(void)
 }
 
 /* Step back to the previous allocated instrument (stopping at 0). */
-void InstrPrevUsed(void)
+void PrevUsedInstr(void)
 {
     wMessageStrPtr = 0;
     if (wInstr) {
@@ -238,18 +238,18 @@ void InstrPrevUsed(void)
 }
 
 /* Page back 16 instruments, then to the previous allocated one. */
-void InstrPrevPage(void)
+void PrevInstrPage(void)
 {
     if (wInstr) {
         wInstr -= 0x10;
         if (wInstr > 0x40)
             wInstr = 0;
         wInstr++;
-        InstrPrevUsed();
+        PrevUsedInstr();
     }
 }
 
-void InstrNextUsed(void)
+void NextUsedInstr(void)
 {
     wMessageStrPtr = 0;
     while (wInstr != 0x40) {
@@ -276,7 +276,7 @@ void EraseInstrCursor(void)
     ColorField(x, y, r - x, 1);
 }
 
-void InstrCmdRateInc(void)
+void IncInstrCmdRate(void)
 {
     UBYTE v;
 
@@ -288,7 +288,7 @@ void InstrCmdRateInc(void)
     }
 }
 
-void InstrCmdRateDec(void)
+void DecInstrCmdRate(void)
 {
     UBYTE v;
 
@@ -305,7 +305,7 @@ UBYTE GetInstrByte5Flag8(void)
     return ReadCurInstrByte(5) & 0x08;
 }
 
-void InstrTableModePrev(void)
+void PrevInstrTableMode(void)
 {
     if (wButtonsSame)
         return;
@@ -322,14 +322,14 @@ void InstrTableModePrev(void)
     FarCall(0x1F, FAR_FN(DrawInstrTableField));
 }
 
-void InstrTableModeNext(void)
+void NextInstrTableMode(void)
 {
     if (wButtonsSame)
         return;
     if (IsInstrTableOn())
         WriteCurInstrByte(5, ReadCurInstrByte(5) | 0x08);
     else
-        InstrTableOn();
+        SetInstrTableOn();
     hBgDigitPal = wHighlightDigitPal;
     hBgPal = wHighlightPal;
     FarCall(0x1F, FAR_FN(DrawInstrTableMode));
@@ -339,7 +339,7 @@ void InstrTableModeNext(void)
     FarCall(0x1F, FAR_FN(DrawInstrTableField));
 }
 
-void InstrTableNext(void)
+void NextInstrTable(void)
 {
     UBYTE v, t;
 
@@ -354,7 +354,7 @@ void InstrTableNext(void)
     }
 }
 
-void InstrTablePrev(void)
+void PrevInstrTable(void)
 {
     UBYTE v;
 
@@ -362,8 +362,8 @@ void InstrTablePrev(void)
     if (v & 0x20) {
         if ((v & 0x1F) == 0) {
             if (!wButtonsSame) {
-                InstrTableModePrev();
-                InstrTableModePrev();
+                PrevInstrTableMode();
+                PrevInstrTableMode();
                 EraseInstrCursor();
                 wInstrField--;
                 DrawInstrCursor();
@@ -376,7 +376,7 @@ void InstrTablePrev(void)
     }
 }
 
-void InstrTableAdd16(void)
+void AddInstrTable16(void)
 {
     UBYTE v;
 
@@ -390,7 +390,7 @@ void InstrTableAdd16(void)
     }
 }
 
-void InstrTableSub16(void)
+void SubInstrTable16(void)
 {
     UBYTE v;
 
@@ -540,7 +540,7 @@ UBYTE GetInstrType3(void)
     return ReadCurInstrByte(0) - 2;
 }
 
-void InstrPitchModeUp(void)
+void NextInstrPitchMode(void)
 {
     UBYTE v;
 
@@ -557,7 +557,7 @@ void InstrPitchModeUp(void)
     FarCallArg(1, FAR_FN(DrawSpeedModeName), v);
 }
 
-void InstrPitchModeDown(void)
+void PrevInstrPitchMode(void)
 {
     UBYTE v;
 
@@ -649,7 +649,7 @@ void DrawInstrScreen(void)
     wInstrFieldCount = InstrFieldCounts[type];
     if (wInstrField >= wInstrFieldCount)
         wInstrField = wInstrFieldCount - 1;
-    InstrScreenFrame();
+    DrawInstrScreenFrame();
     hBgDigitPal = wShadedDigitPal;
     hBgPal = wShadedPal;
     SetVramCursor(InstrFieldX[type][0], InstrFieldY[type][0]);
@@ -707,7 +707,7 @@ void WriteKitNumber(UBYTE field, UBYTE kit)
     WriteCurInstrByte(field, t | kit);
 }
 
-UBYTE KitNext(void)
+UBYTE NextKit(void)
 {
     UBYTE field, kit, orig;
 
@@ -723,7 +723,7 @@ UBYTE KitNext(void)
     return kit;
 }
 
-UBYTE KitPrev(void)
+UBYTE PrevKit(void)
 {
     UBYTE field, kit, orig;
 
@@ -739,7 +739,7 @@ UBYTE KitPrev(void)
     return kit;
 }
 
-void KitEnsureExists(void)
+void EnsureKitExists(void)
 {
     UBYTE i, field;
 
@@ -763,11 +763,11 @@ void SetInstrType(UBYTE type)
     WriteCurInstrByte(0, t);
     FarCall(1, FAR_FN(UiDrawTextHw));
     if (t == 2)
-        KitEnsureExists();
+        EnsureKitExists();
     DrawInstrScreen();
 }
 
-void InstrFieldIncLo(UBYTE field)
+void IncInstrFieldLo(UBYTE field)
 {
     UBYTE v, t;
 
@@ -782,7 +782,7 @@ void InstrFieldIncLo(UBYTE field)
     InstrEnvChanged();
 }
 
-void InstrFieldDecLo(UBYTE field)
+void DecInstrFieldLo(UBYTE field)
 {
     UBYTE v;
 
@@ -796,7 +796,7 @@ void InstrFieldDecLo(UBYTE field)
     InstrEnvChanged();
 }
 
-void InstrFieldIncHi(UBYTE field)
+void IncInstrFieldHi(UBYTE field)
 {
     UBYTE v, t;
 
@@ -811,7 +811,7 @@ void InstrFieldIncHi(UBYTE field)
     InstrEnvChanged();
 }
 
-void InstrFieldDecHi(UBYTE field)
+void DecInstrFieldHi(UBYTE field)
 {
     UBYTE v;
 
@@ -825,7 +825,7 @@ void InstrFieldDecHi(UBYTE field)
     InstrEnvChanged();
 }
 
-void InstrLenInc(void)
+void IncInstrLen(void)
 {
     UBYTE v;
 
@@ -845,7 +845,7 @@ void InstrLenInc(void)
         DrawString(TxtUnlim);
 }
 
-void InstrLenDec(void)
+void DecInstrLen(void)
 {
     UBYTE v, t;
 
@@ -868,7 +868,7 @@ void InstrLenDec(void)
         DrawString(TxtUnlim);
 }
 
-void InstrLenBigInc(void)
+void IncInstrLenBig(void)
 {
     UBYTE v, t;
 
@@ -890,7 +890,7 @@ void InstrLenBigInc(void)
         DrawString(TxtUnlim);
 }
 
-void InstrLenBigDec(void)
+void DecInstrLenBig(void)
 {
     UBYTE v, t;
 
@@ -1181,13 +1181,13 @@ UBYTE InstrScreenInput(void)
         case 0:
             switch (wInstrField) {
             case 2:
-                InstrFieldIncLo(1);
+                IncInstrFieldLo(1);
                 break;
             case 3:
-                InstrFieldIncLo(9);
+                IncInstrFieldLo(9);
                 break;
             case 4:
-                InstrFieldIncLo(0x0A);
+                IncInstrFieldLo(0x0A);
                 break;
             case 5:
                 v = ReadCurInstrByte(7);
@@ -1209,7 +1209,7 @@ UBYTE InstrScreenInput(void)
                 DrawFieldVal(0x0C, v);
                 break;
             case 7:
-                InstrLenInc();
+                IncInstrLen();
                 break;
             case 8:
                 v = ReadCurInstrByte(4);
@@ -1223,10 +1223,10 @@ UBYTE InstrScreenInput(void)
                     VibShapeNext();
                 break;
             case 0x0A:
-                InstrTransposeOff();
+                SetInstrTransposeOff();
                 break;
             case 0x0D:
-                InstrCmdRateInc();
+                IncInstrCmdRate();
                 break;
             case 0x0B:
                 v = ReadCurInstrByte(2);
@@ -1240,10 +1240,10 @@ UBYTE InstrScreenInput(void)
                 WriteCurInstrByte(0x0B, v);
                 break;
             case 0x0E:
-                InstrTableModeNext();
+                NextInstrTableMode();
                 break;
             case 0x0F:
-                InstrTableNext();
+                NextInstrTable();
             }
             break;
         case 1:
@@ -1340,10 +1340,10 @@ UBYTE InstrScreenInput(void)
                 }
                 break;
             case 5:
-                InstrTransposeOff();
+                SetInstrTransposeOff();
                 break;
             case 7:
-                InstrCmdRateInc();
+                IncInstrCmdRate();
                 break;
             case 6:
                 v = ReadCurInstrByte(0x0C) + 1;
@@ -1353,17 +1353,17 @@ UBYTE InstrScreenInput(void)
                 }
                 break;
             case 0x0D:
-                InstrTableModeNext();
+                NextInstrTableMode();
                 break;
             case 0x0E:
-                InstrTableNext();
+                NextInstrTable();
             }
             break;
         case 2:
             switch (wInstrField) {
             case 2:
             case 3:
-                DrawKitNameField(KitPrev());
+                DrawKitNameField(PrevKit());
                 break;
             case 4:
                 v = ReadCurInstrByte(1) & 0x60;
@@ -1464,22 +1464,22 @@ UBYTE InstrScreenInput(void)
                 VibShapeNext();
                 break;
             case 0x10:
-                InstrTableModeNext();
+                NextInstrTableMode();
                 break;
             case 0x11:
-                InstrTableNext();
+                NextInstrTable();
             }
             break;
         case 3:
             switch (wInstrField) {
             case 2:
-                InstrFieldIncLo(1);
+                IncInstrFieldLo(1);
                 break;
             case 3:
-                InstrFieldIncLo(9);
+                IncInstrFieldLo(9);
                 break;
             case 4:
-                InstrFieldIncLo(0x0A);
+                IncInstrFieldLo(0x0A);
                 break;
             case 5:
                 v = ReadCurInstrByte(7);
@@ -1491,7 +1491,7 @@ UBYTE InstrScreenInput(void)
                 DrawFieldVal(0x0C, v);
                 break;
             case 6:
-                InstrLenInc();
+                IncInstrLen();
                 break;
             case 8:
                 if (!wButtonsSame)
@@ -1502,16 +1502,16 @@ UBYTE InstrScreenInput(void)
                 DrawString("SAFE");
                 break;
             case 9:
-                InstrTransposeOff();
+                SetInstrTransposeOff();
                 break;
             case 0x0A:
-                InstrCmdRateInc();
+                IncInstrCmdRate();
                 break;
             case 0x0B:
-                InstrTableModeNext();
+                NextInstrTableMode();
                 break;
             case 0x0C:
-                InstrTableNext();
+                NextInstrTable();
             }
         }
         return 1;
@@ -1526,13 +1526,13 @@ UBYTE InstrScreenInput(void)
         case 0:
             switch (wInstrField) {
             case 2:
-                InstrFieldDecLo(1);
+                DecInstrFieldLo(1);
                 break;
             case 3:
-                InstrFieldDecLo(9);
+                DecInstrFieldLo(9);
                 break;
             case 4:
-                InstrFieldDecLo(0x0A);
+                DecInstrFieldLo(0x0A);
                 break;
             case 5:
                 v = ReadCurInstrByte(7);
@@ -1554,7 +1554,7 @@ UBYTE InstrScreenInput(void)
                 DrawFieldVal(0x0C, v);
                 break;
             case 7:
-                InstrLenDec();
+                DecInstrLen();
                 break;
             case 8:
                 v = ReadCurInstrByte(4);
@@ -1568,10 +1568,10 @@ UBYTE InstrScreenInput(void)
                     VibShapePrev();
                 break;
             case 0x0A:
-                InstrTransposeOn();
+                SetInstrTransposeOn();
                 break;
             case 0x0D:
-                InstrCmdRateDec();
+                DecInstrCmdRate();
                 break;
             case 0x0B:
                 v = ReadCurInstrByte(2);
@@ -1585,10 +1585,10 @@ UBYTE InstrScreenInput(void)
                 WriteCurInstrByte(0x0B, v);
                 break;
             case 0x0E:
-                InstrTableModePrev();
+                PrevInstrTableMode();
                 break;
             case 0x0F:
-                InstrTablePrev();
+                PrevInstrTable();
             }
             break;
         case 1:
@@ -1686,10 +1686,10 @@ UBYTE InstrScreenInput(void)
                 }
                 break;
             case 5:
-                InstrTransposeOn();
+                SetInstrTransposeOn();
                 break;
             case 7:
-                InstrCmdRateDec();
+                DecInstrCmdRate();
                 break;
             case 6:
                 v = ReadCurInstrByte(0x0C) - 1;
@@ -1699,17 +1699,17 @@ UBYTE InstrScreenInput(void)
                 }
                 break;
             case 0x0D:
-                InstrTableModePrev();
+                PrevInstrTableMode();
                 break;
             case 0x0E:
-                InstrTablePrev();
+                PrevInstrTable();
             }
             break;
         case 2:
             switch (wInstrField) {
             case 2:
             case 3:
-                DrawKitNameField(KitNext());
+                DrawKitNameField(NextKit());
                 break;
             case 4:
                 v = ReadCurInstrByte(1) & 0x60;
@@ -1813,22 +1813,22 @@ UBYTE InstrScreenInput(void)
                 VibShapePrev();
                 break;
             case 0x10:
-                InstrTableModePrev();
+                PrevInstrTableMode();
                 break;
             case 0x11:
-                InstrTablePrev();
+                PrevInstrTable();
             }
             break;
         case 3:
             switch (wInstrField) {
             case 2:
-                InstrFieldDecLo(1);
+                DecInstrFieldLo(1);
                 break;
             case 3:
-                InstrFieldDecLo(9);
+                DecInstrFieldLo(9);
                 break;
             case 4:
-                InstrFieldDecLo(0x0A);
+                DecInstrFieldLo(0x0A);
                 break;
             case 5:
                 v = ReadCurInstrByte(7);
@@ -1840,7 +1840,7 @@ UBYTE InstrScreenInput(void)
                 DrawFieldVal(0x0C, v);
                 break;
             case 6:
-                InstrLenDec();
+                DecInstrLen();
                 break;
             case 8:
                 if (!wButtonsSame)
@@ -1851,16 +1851,16 @@ UBYTE InstrScreenInput(void)
                 DrawString("FREE");
                 break;
             case 9:
-                InstrTransposeOn();
+                SetInstrTransposeOn();
                 break;
             case 0x0A:
-                InstrCmdRateDec();
+                DecInstrCmdRate();
                 break;
             case 0x0B:
-                InstrTableModePrev();
+                PrevInstrTableMode();
                 break;
             case 0x0C:
-                InstrTablePrev();
+                PrevInstrTable();
             }
         }
         return 1;
@@ -1870,13 +1870,13 @@ UBYTE InstrScreenInput(void)
         case 0:
             switch (wInstrField) {
             case 2:
-                InstrFieldIncHi(1);
+                IncInstrFieldHi(1);
                 break;
             case 3:
-                InstrFieldIncHi(9);
+                IncInstrFieldHi(9);
                 break;
             case 4:
-                InstrFieldIncHi(0x0A);
+                IncInstrFieldHi(0x0A);
                 break;
             case 5:
                 v = ReadCurInstrByte(7);
@@ -1893,7 +1893,7 @@ UBYTE InstrScreenInput(void)
                 DrawFieldVal(0x0C, 3);
                 break;
             case 7:
-                InstrLenBigInc();
+                IncInstrLenBig();
                 break;
             case 8:
                 v = ReadCurInstrByte(4);
@@ -1903,7 +1903,7 @@ UBYTE InstrScreenInput(void)
                 DrawHexByte(v);
                 break;
             case 9:
-                InstrPitchModeDown();
+                PrevInstrPitchMode();
                 break;
             case 0x0B:
                 v = ReadCurInstrByte(2);
@@ -1917,12 +1917,12 @@ UBYTE InstrScreenInput(void)
                 DrawHexByte(v);
                 break;
             case 0x0E:
-                InstrTableModeNext();
+                NextInstrTableMode();
                 wVramCursor -= 7;
-                InstrTableModeNext();
+                NextInstrTableMode();
                 break;
             case 0x0F:
-                InstrTableAdd16();
+                AddInstrTable16();
             }
             break;
         case 1:
@@ -1936,7 +1936,7 @@ UBYTE InstrScreenInput(void)
                 DrawFieldVal(0x0C, 3);
                 break;
             case 4:
-                InstrPitchModeDown();
+                PrevInstrPitchMode();
                 break;
             case 0x0A:
                 v = GetWaveSpeed();
@@ -1981,12 +1981,12 @@ UBYTE InstrScreenInput(void)
                 DrawWaveFinetune();
                 break;
             case 0x0D:
-                InstrTableModeNext();
+                NextInstrTableMode();
                 wVramCursor -= 7;
-                InstrTableModeNext();
+                NextInstrTableMode();
                 break;
             case 0x0E:
-                InstrTableAdd16();
+                AddInstrTable16();
             }
             break;
         case 2:
@@ -1996,7 +1996,7 @@ UBYTE InstrScreenInput(void)
                 UBYTE kit;
 
                 for (v = 0x10; v; --v)
-                    kit = KitPrev();
+                    kit = PrevKit();
                 DrawKitNameField(kit);
                 break;
             }
@@ -2050,42 +2050,42 @@ UBYTE InstrScreenInput(void)
                 }
                 break;
             case 6:
-                InstrPitchModeDown();
+                PrevInstrPitchMode();
                 break;
             case 0x10:
-                InstrTableModeNext();
+                NextInstrTableMode();
                 wVramCursor -= 7;
-                InstrTableModeNext();
+                NextInstrTableMode();
                 break;
             case 0x11:
-                InstrTableAdd16();
+                AddInstrTable16();
             }
             break;
         case 3:
             switch (wInstrField) {
             case 2:
-                InstrFieldIncHi(1);
+                IncInstrFieldHi(1);
                 break;
             case 3:
-                InstrFieldIncHi(9);
+                IncInstrFieldHi(9);
                 break;
             case 4:
-                InstrFieldIncHi(0x0A);
+                IncInstrFieldHi(0x0A);
                 break;
             case 5:
                 WriteCurInstrByte(7, 3);
                 DrawFieldVal(0x0C, 3);
                 break;
             case 6:
-                InstrLenBigInc();
+                IncInstrLenBig();
                 break;
             case 0x0B:
-                InstrTableModeNext();
+                NextInstrTableMode();
                 wVramCursor -= 7;
-                InstrTableModeNext();
+                NextInstrTableMode();
                 break;
             case 0x0C:
-                InstrTableAdd16();
+                AddInstrTable16();
             }
         }
         return 1;
@@ -2095,13 +2095,13 @@ UBYTE InstrScreenInput(void)
         case 0:
             switch (wInstrField) {
             case 2:
-                InstrFieldDecHi(1);
+                DecInstrFieldHi(1);
                 break;
             case 3:
-                InstrFieldDecHi(9);
+                DecInstrFieldHi(9);
                 break;
             case 4:
-                InstrFieldDecHi(0x0A);
+                DecInstrFieldHi(0x0A);
                 break;
             case 5:
                 v = ReadCurInstrByte(7);
@@ -2117,7 +2117,7 @@ UBYTE InstrScreenInput(void)
                 DrawFieldVal(0x0C, 0);
                 break;
             case 7:
-                InstrLenBigDec();
+                DecInstrLenBig();
                 break;
             case 8:
                 v = ReadCurInstrByte(4);
@@ -2127,7 +2127,7 @@ UBYTE InstrScreenInput(void)
                 DrawHexByte(v);
                 break;
             case 9:
-                InstrPitchModeUp();
+                NextInstrPitchMode();
                 break;
             case 0x0B:
                 v = ReadCurInstrByte(2);
@@ -2141,12 +2141,12 @@ UBYTE InstrScreenInput(void)
                 WriteCurInstrByte(0x0B, v);
                 break;
             case 0x0E:
-                InstrTableModePrev();
+                PrevInstrTableMode();
                 wVramCursor -= 7;
-                InstrTableModePrev();
+                PrevInstrTableMode();
                 break;
             case 0x0F:
-                InstrTableSub16();
+                SubInstrTable16();
             }
             break;
         case 1:
@@ -2160,7 +2160,7 @@ UBYTE InstrScreenInput(void)
                 DrawFieldVal(0x0C, 0);
                 break;
             case 4:
-                InstrPitchModeUp();
+                NextInstrPitchMode();
                 break;
             case 0x0B:
                 SetInstrByte10(0);
@@ -2199,12 +2199,12 @@ UBYTE InstrScreenInput(void)
                 DrawWaveFinetune();
                 break;
             case 0x0D:
-                InstrTableModePrev();
+                PrevInstrTableMode();
                 wVramCursor -= 7;
-                InstrTableModePrev();
+                PrevInstrTableMode();
                 break;
             case 0x0E:
-                InstrTableSub16();
+                SubInstrTable16();
             }
             break;
         case 2:
@@ -2214,7 +2214,7 @@ UBYTE InstrScreenInput(void)
                 UBYTE kit;
 
                 for (v = 0x10; v; --v)
-                    kit = KitNext();
+                    kit = NextKit();
                 DrawKitNameField(kit);
                 break;
             }
@@ -2271,42 +2271,42 @@ UBYTE InstrScreenInput(void)
                 }
                 break;
             case 6:
-                InstrPitchModeUp();
+                NextInstrPitchMode();
                 break;
             case 0x10:
-                InstrTableModePrev();
+                PrevInstrTableMode();
                 wVramCursor -= 7;
-                InstrTableModePrev();
+                PrevInstrTableMode();
                 break;
             case 0x11:
-                InstrTableSub16();
+                SubInstrTable16();
             }
             break;
         case 3:
             switch (wInstrField) {
             case 2:
-                InstrFieldDecHi(1);
+                DecInstrFieldHi(1);
                 break;
             case 3:
-                InstrFieldDecHi(9);
+                DecInstrFieldHi(9);
                 break;
             case 4:
-                InstrFieldDecHi(0x0A);
+                DecInstrFieldHi(0x0A);
                 break;
             case 5:
                 WriteCurInstrByte(7, 0);
                 DrawFieldVal(0x0C, 0);
                 break;
             case 6:
-                InstrLenBigDec();
+                DecInstrLenBig();
                 break;
             case 0x0B:
-                InstrTableModePrev();
+                PrevInstrTableMode();
                 wVramCursor -= 7;
-                InstrTableModePrev();
+                PrevInstrTableMode();
                 break;
             case 0x0C:
-                InstrTableSub16();
+                SubInstrTable16();
             }
         }
         return 1;
@@ -2316,16 +2316,16 @@ UBYTE InstrScreenInput(void)
                 wNameEditIsInstr = 1;
                 FarCall(0x1B, FAR_FN(OpenNameEditor));
             } else if (wDrawStep++ == 1) {
-                if (InstrCheckFieldOption(type)) {
+                if (CheckInstrFieldOption(type)) {
                     SetVramCursor(InstrFieldX[type][wInstrField], InstrFieldY[type][wInstrField]);
-                    InstrTableNew();
+                    AllocInstrTable();
                 } else if (type == 1 && wInstrField == 9 && !WavePlayIsManual()) {
-                    InstrSynthNew();
+                    AllocInstrSynth();
                     return 1;
                 }
                 FarCallArg(5, ShowInstrFieldHelp, type);
-            } else if (wDrawStep == 1 && InstrCheckFieldOption(type) && !IsInstrTableOn()) {
-                InstrTableOn();
+            } else if (wDrawStep == 1 && CheckInstrFieldOption(type) && !IsInstrTableOn()) {
+                SetInstrTableOn();
                 SetVramCursor(InstrFieldX[type][wInstrField - 1], InstrFieldY[type][wInstrField - 1]);
                 hBgDigitPal = wShadedDigitPal;
                 hBgPal = wShadedPal;
@@ -2338,19 +2338,19 @@ UBYTE InstrScreenInput(void)
         }
         return 1;
     case 0x21:
-        InstrNextUsed();
+        NextUsedInstr();
         return 1;
     case 0x22:
-        InstrPrevUsed();
+        PrevUsedInstr();
         return 1;
     case 0x24:
         wInstr += 0x0F;
         if (wInstr > 0x40)
             wInstr = 0x40;
-        InstrNextUsed();
+        NextUsedInstr();
         return 1;
     case 0x28:
-        InstrPrevPage();
+        PrevInstrPage();
         return 1;
     case 0x44:
         if (wButtonsSame)

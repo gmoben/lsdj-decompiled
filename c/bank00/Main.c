@@ -64,8 +64,8 @@ void InitRemapTable(void);                  /* bank $1F */
 void TogglePlayback(void);                  /* bank 2 */
 void SyncApplyMode(void);
 void WritePhraseFx(UBYTE phrase, UBYTE row, UBYTE fx);  /* bank 4 */
-void TableWriteCmd(UBYTE row, UBYTE fx);    /* bank 5 */
-void GrooveResetState(void);                /* bank $1D */
+void WriteTableCmd(UBYTE row, UBYTE fx);    /* bank 5 */
+void ResetGrooveState(void);                /* bank $1D */
 UBYTE HandleButtonEvent(void);
 extern UBYTE wKbdActionChan;                  /* $CB9A */
 extern UBYTE wLinkQueueCount;               /* $CB7D */
@@ -202,13 +202,13 @@ UBYTE ProcessInput(void)
                         SWITCH_ROM(5);
                         wTableCellAPtr = 0xB680;
                         wTableCellBPtr = 0xB880;
-                        TableWriteCmd(i, v);
+                        WriteTableCmd(i, v);
                         break;
                     case 2:
                         SWITCH_ROM(5);
                         wTableCellAPtr = 0xBA80;
                         wTableCellBPtr = 0xBC80;
-                        TableWriteCmd(i, v);
+                        WriteTableCmd(i, v);
                         break;
                     }
                     wColLastCmd[wSongCol] = v;
@@ -219,7 +219,7 @@ UBYTE ProcessInput(void)
         }
         if (wGrooveCacheValid) {
             SWITCH_ROM(0x1D);
-            GrooveResetState();
+            ResetGrooveState();
         }
     }
     if (buttons) {

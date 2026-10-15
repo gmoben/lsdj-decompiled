@@ -22,10 +22,10 @@ void MapMoveLeft(void);                     /* bank 5 */
 void MapMoveRight(void);                    /* bank 5 */
 void MapMoveUp(void);                       /* bank 5 */
 void MapMoveDown(void);                     /* bank 5 */
-void InstrPrevPage(void);             /* bank 3 */
+void PrevInstrPage(void);             /* bank 3 */
 void ToggleSongPlayback(void);                 /* bank 2 */
 void TogglePlayback(void);                    /* bank 2 */
-void InstrScreenFrame(void);                /* $03:$45A7 */
+void DrawInstrScreenFrame(void);                /* $03:$45A7 */
 
 void DrawWordRow(UBYTE n)
 {
@@ -75,7 +75,7 @@ void DrawSpeechInstrScreen(void)
     FarCall(1, FAR_FN(UiDrawTextHw));
     FarCall(0x1F, FAR_FN(DrawAllChanStatus));
     wCurScreen = 6;
-    FarCall(3, FAR_FN(InstrScreenFrame));
+    FarCall(3, FAR_FN(DrawInstrScreenFrame));
     hBgDigitPal = 4;
     hBgPal = 1;
     wVramCursor = 0x9840;
@@ -246,10 +246,10 @@ UBYTE SpeechInstrInput(void)
         }
         return 1;
     case 0x22:
-        FarCall(3, InstrPrevUsed);
+        FarCall(3, PrevUsedInstr);
         return 1;
     case 0x28:
-        FarCall(3, InstrPrevPage);
+        FarCall(3, PrevInstrPage);
         return 1;
     case 0xC0:
         if (!wButtonsSame)

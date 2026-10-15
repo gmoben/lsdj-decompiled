@@ -19,11 +19,11 @@ extern UBYTE wClipboardType;                /* $C411 */
 extern UBYTE wSelectionRight;                     /* $C40F */
 extern UBYTE wSelectionBottom;                    /* $C410 */
 void SendLinkClipboard(void);                   /* $1C:$71CD */
-void PhraseReadNote(void);                  /* $04:$4968, (row) */
+void ReadPhraseNote(void);                  /* $04:$4968, (row) */
 void WritePhraseNote(void);                 /* $04:$418F, (row, v) */
-void PhraseReadFx(void);                    /* $04:$4AEA, (phrase, row) */
+void ReadPhraseFx(void);                    /* $04:$4AEA, (phrase, row) */
 void WritePhraseFx(void);                   /* $04:$49C5, (phrase, row, cmd) */
-void PhraseReadFxVal(void);                 /* $04:$4A8F, (phrase, row) */
+void ReadPhraseFxVal(void);                 /* $04:$4A8F, (phrase, row) */
 void WritePhraseFxVal(void);                /* $04:$4A30, (phrase, row, v) */
 UBYTE ReadPhraseInstr(UBYTE phrase, UBYTE row);  /* $04:$4918 */
 extern UBYTE wDrawTextScratch;              /* $C9CD: ColorField's width, stored before the call */
@@ -153,7 +153,7 @@ void CutCopyPhraseSelection(UBYTE cut)
             switch (x) {
             case 0:
                 if (wPhraseRowFlags[y] != 0xFF) {
-                    t = FarCallArg2P(4, FAR_FN(PhraseReadNote), y);
+                    t = FarCallArg2P(4, FAR_FN(ReadPhraseNote), y);
                     WriteClipboardCell(0, y, t >> 4);
                     if (cut)
                         FarCallArg3P(4, FAR_FN(WritePhraseNote), y, t & 0x0F);
@@ -167,11 +167,11 @@ void CutCopyPhraseSelection(UBYTE cut)
             case 1:
                 if (wPhraseRowFlags[y] == 0xFF) {
                     WriteClipboardCell(0, y, 0);
-                    WriteClipboardCell(1, y, FarCallArg2P(4, FAR_FN(PhraseReadNote), y));
+                    WriteClipboardCell(1, y, FarCallArg2P(4, FAR_FN(ReadPhraseNote), y));
                     if (cut)
                         FarCallArg3P(4, FAR_FN(WritePhraseNote), y, 0);
                 } else {
-                    t = FarCallArg2P(4, FAR_FN(PhraseReadNote), y);
+                    t = FarCallArg2P(4, FAR_FN(ReadPhraseNote), y);
                     WriteClipboardCell(1, y, t & 0x0F);
                     if (cut)
                         FarCallArg3P(4, FAR_FN(WritePhraseNote), y, t & 0xF0);
@@ -184,12 +184,12 @@ void CutCopyPhraseSelection(UBYTE cut)
                     FarCallArg3P(4, FAR_FN(WritePhraseInstr), wPhrase, y, 0xFF);
                 break;
             case 3:
-                WriteClipboardCell(3, y, FarCallArg2P(4, FAR_FN(PhraseReadFx), wPhrase, y));
+                WriteClipboardCell(3, y, FarCallArg2P(4, FAR_FN(ReadPhraseFx), wPhrase, y));
                 if (cut)
                     FarCallArg3P(4, FAR_FN(WritePhraseFx), wPhrase, y, 0);
                 break;
             case 4:
-                WriteClipboardCell(4, y, FarCallArg2P(4, FAR_FN(PhraseReadFxVal), wPhrase, y));
+                WriteClipboardCell(4, y, FarCallArg2P(4, FAR_FN(ReadPhraseFxVal), wPhrase, y));
                 if (cut)
                     FarCallArg3P(4, FAR_FN(WritePhraseFxVal), wPhrase, y, 0);
                 break;

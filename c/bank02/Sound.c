@@ -161,8 +161,8 @@ UBYTE EnvReleaseSpeed(void);
 UBYTE EnvReleaseTarget(void);
 void SndClampNoteRange(UBYTE n);            /* asm */
 void SndFxParsePitchVal(UBYTE *env);        /* asm */
-void ReadTableEnv(void);               /* asm */
-void ReadTableTranspose(void);              /* asm */
+void SndReadTableEnv(void);               /* asm */
+void SndReadTableTranspose(void);              /* asm */
 void TriggerNote(void);                     /* asm */
 void SndSetKitParams(void);                 /* asm */
 UBYTE SndStepPitchVibNoi(void);             /* bank 0, asm */
@@ -323,8 +323,8 @@ void SndRetrigNote(void)
             wChanTableRow1[hSoundChan] = 0xFF;
             wChanGrooveRow[hSoundChan + 4] = 0xFF;
             wChanNoteCountdown[hSoundChan + 4] = 0;
-            ReadTableEnv();
-            ReadTableTranspose();
+            SndReadTableEnv();
+            SndReadTableTranspose();
             wChanTableFresh[hSoundChan] = 1;
         }
     }

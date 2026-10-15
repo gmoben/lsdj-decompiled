@@ -27,7 +27,7 @@
 405D ReadWordCell               ; read the speech word cell under the cursor: SRAM bank 0 $B890 + word*32 + col + row*2
 41A2 DrawWordScreen      ; screen idx 12: draws speech words; edits words ($B890) + word_names ($BDD0)
 5A62 ChainScreenUpdate  ; per-frame visual update (screen idx 3)
-5511 ChainLoadCursorPhrase      ; read the phrase at (wChain, wChainRow) via FarCallArg2; $ff -> empty path
+5511 LoadChainCursorPhrase      ; read the phrase at (wChain, wChainRow) via FarCallArg2; $ff -> empty path
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 4000 AllophoneKit               ; the speech kit holding allophone v: v / 15 + $19, then + 5 past $1A (its sample is v % 15 + 1)
@@ -35,15 +35,15 @@
 40B3 WriteWordCell              ; write to the speech-word data under the word cursor (wWordRow/Col, $b890 region)
 410E EraseWordCursor            ; restore the word screen's cursor cell to its column palette
 414F DrawWordCursor             ; highlight the word screen's cursor cell (WordColX/WordColWidth[wWordCol], row wWordRow)
-4306 WordCursorDown             ; word screen: move the cursor one row down (EraseWordCursor, wWordRow++, DrawWordCursor) unless on row 15
+4306 MoveWordCursorDown             ; word screen: move the cursor one row down (EraseWordCursor, wWordRow++, DrawWordCursor) unless on row 15
 48AB TilemapAddr                ; the BG tilemap address of cell x,y: $9800 | (y*32 + x)
 4901 SynthLockByteAddr          ; the SRAM byte holding synth x's lock bit ("synths locked?" $BFC4-$BFC5): $BFC5 for 0-7, $BFC4 for 8-F
 493F LockCurSynth           ; set the current synth's (wSynth >> 4) bit in its lock byte; WriteWaveSample calls it before editing a wave
 4992 ReadWaveSample             ; sample (i+1)&31 of the edited synth wave frame (SRAM bank 3 $A000 + wSynth*16), inverted: $0F ^ nibble
-4AB0 WaveSetSpriteCols       ; set the x of wave sprites 3..10 and 11..18
-4B16 SetWaveCursorSprite        ; place the wave cursor and selection-anchor sprites from wWaveCursor/wWaveSelectionStart (WaveSetSpriteCols)
+4AB0 SetWaveSpriteCols       ; set the x of wave sprites 3..10 and 11..18
+4B16 SetWaveCursorSprite        ; place the wave cursor and selection-anchor sprites from wWaveCursor/wWaveSelectionStart (SetWaveSpriteCols)
 4B40 GetWaveEditRange           ; the wave screen's edit range into *start/*end (end exclusive): the cursor sample, or the selection from wWaveSelectionStart (wCursorMode 4)
-4BA7 WaveInitSprites            ; init the 16 wave-sample sprites (3..18): y, tile 5, attr ; x via WaveSetSpriteCols
+4BA7 InitWaveSprites            ; init the 16 wave-sample sprites (3..18): y, tile 5, attr ; x via SetWaveSpriteCols
 4C55 DrawWaveCol             ; wave graph column col: samples 2col/2col+1 as dots (one tile or a half-tile pair, CGB/DMG tiles), wWaveColEmpty rows blank, their hex values below
 4EAC DrawWaveCursorCol       ; redraw the wave column under the cursor (DrawWaveCol(wWaveCursor >> 1))
 4EBD DrawWaveRange              ; redraw the wave columns of the edit range
@@ -57,16 +57,16 @@
 54FA GetCursorChain             ; read the chain number under the song cursor (ReadSeqByte(wSongCol, wSongRow))
 5563 ChainScreenEnter           ; enter the chain screen for the cursor chain (LIVE-mode aware, clears message)
 5655 SetChainTranspose          ; write chain_transposes[chain<$80][step<$10] = v (SRAM bank 1 $A880)
-56AA ChainReadTranspose        ; read chain_transposes[chain<$80] from SRAM (bounds-checked)
+56AA ReadChainTranspose        ; read chain_transposes[chain<$80] from SRAM (bounds-checked)
 56F0 ClonePhraseAtCursor        ; chain screen deep-clone: new phrase + copy rows, "CLONED PHRASE"
 5804 .copyNotes           ; (was CopyPhraseNotes) copy 16 phrase-note bytes src->dst phrase (clone helper)
 5836 .copyFx              ; (was CopyPhraseFx) copy 16 phrase-fx bytes src->dst phrase
 5868 .copyInstrs          ; (was CopyPhraseInstrs) copy 16 phrase-instrument bytes src->dst phrase
 58A7 EraseChainCursor           ; restore the chain cursor cell's palette (the transpose column 1 on CGB, else 0)
 5ABE DrawChainCursor            ; highlight the chain cursor cell (palette 3 on CGB, 2 on DMG) at ChainColX[wChainCol], row wChainRow
-5B00 ChainOpenPhrase            ; open the phrase under the chain cursor (RestoreSelectionState, load phrase)
+5B00 OpenChainPhrase            ; open the phrase under the chain cursor (RestoreSelectionState, load phrase)
 6D55 CutCopyChainSelection      ; arg!=0 -> "CUT " (copy+clear) else "COPY": chain selection -> clipboard (clipType 3; phrases via SndGetChainPhrase, transposes)
-6F0D ChainPasteCells            ; SELECT+A paste on the chain screen: clipboard cells into rows wSelectionTop..wSelBottom (column 0 phrases via WriteChainPhrase, column 1 transposes), "PASTE" message when more than one row
+6F0D PasteChainCells            ; SELECT+A paste on the chain screen: clipboard cells into rows wSelectionTop..wSelBottom (column 0 phrases via WriteChainPhrase, column 1 transposes), "PASTE" message when more than one row
 7006 DrawChainSelection         ; chain selection (wClipboardType==3) redraw vs the cursor: cells around the rectangle in their column palettes, the inside highlighted (ColorField)
 71ED DrawStatusNote             ; draw channel ch's playing note in the status panel at (17, ch + 6): a kit's sample name on the wave channel, wNoiNote on the noise channel, else DrawNoteName (PU2 shifted by wNoteTranspose)
 73C0 DrawSyncStatusText         ; draw string s in the status panel's sync slot ($99B0, palette 4/1)
@@ -81,9 +81,9 @@
 75B4 TxtHexCellPrefix2          ; "G#"
 75B7 TxtHexCellPrefix3          ; "C "
 75BA DrawNoteName               ; draw note v for channel col: '---' for 0; the noise channel's values (hex below $3C, the kit notes C 5..C 8); else a NoteNames entry (the wave channel an octave down); '???' past the table
-784C ChainShiftSamples          ; sla each of N bytes from de (scope/visualization helper)
-786F ChainDrawScopePoint        ; plot oscilloscope point (ChainShiftSamples + $cba. buffer)
-78B8 ChainUpdateScope           ; update scope from wScopeDirty/wScopeRefresh/wScopeBitmap
+784C ShiftScopeSamples          ; sla each of N bytes from de (scope/visualization helper)
+786F DrawScopePoint        ; plot oscilloscope point (ShiftScopeSamples + $cba. buffer)
+78B8 UpdateScope           ; update scope from wScopeDirty/wScopeRefresh/wScopeBitmap
 ; --- functions called from bank 0 (this bank paged in) ---
 74AD DrawSyncStatus             ; draw the sync/lead status by wSyncMode (1/3/6/7 cases)
 72C4 UpdateStatusPanel          ; per-frame status update for most screens: pending sample-name cells (wChanDispNote) at x=17, the tempo field when wTempo changed, the scope
@@ -110,17 +110,17 @@
 40C0 .loop                ; loop head in WriteWordCell
 41EC .loop                ; loop head in DrawWordScreen
 423A .loop2               ; loop head in DrawWordScreen
-431C .done                ; common exit of WordCursorDown
+431C .done                ; common exit of MoveWordCursorDown
 48A7 .done                ; common exit of WordScreenInput
 48BA .loop                ; loop head in TilemapAddr
 4974 .shiftLoop           ; loop head in LockCurSynth: 1 << (s & 7), one bit per pass
 49B2 .loop                ; loop head in ReadWaveSample
 4A22 .loop                ; loop head in WriteWaveSample
-4AB7 .loop                ; loop head in WaveSetSpriteCols
-4AE8 .loop2               ; loop head in WaveSetSpriteCols
-4B12 .done                ; common exit of WaveSetSpriteCols
-4BB1 .loop                ; loop head in WaveInitSprites
-4C04 .loop2               ; loop head in WaveInitSprites
+4AB7 .loop                ; loop head in SetWaveSpriteCols
+4AE8 .loop2               ; loop head in SetWaveSpriteCols
+4B12 .done                ; common exit of SetWaveSpriteCols
+4BB1 .loop                ; loop head in InitWaveSprites
+4C04 .loop2               ; loop head in InitWaveSprites
 4DF8 .loop                ; loop head in DrawWaveCol
 4EE2 .loop                ; loop head in DrawWaveRange
 4EFE .done                ; common exit of DrawWaveRange
@@ -132,18 +132,18 @@
 5381 .done                ; common exit of WaveScreenInput
 53D3 .loop                ; loop head in CopyWaveSelection
 5495 .loop                ; loop head in PasteWaveSelection
-551B .loop                ; loop head in ChainLoadCursorPhrase
-555F .done                ; common exit of ChainLoadCursorPhrase
+551B .loop                ; loop head in LoadChainCursorPhrase
+555F .done                ; common exit of LoadChainCursorPhrase
 55D4 .loop                ; loop head in ChainScreenEnter
 5622 .done                ; common exit of ChainScreenEnter
-56C1 .loop                ; loop head in ChainReadTranspose
+56C1 .loop                ; loop head in ReadChainTranspose
 5701 .loop                ; loop head in ClonePhraseAtCursor
 571A .loop2               ; loop head in ClonePhraseAtCursor
 5895 .done                ; common exit of ClonePhraseAtCursor.copyInstrs
 5995 .loop                ; loop head in DrawChainScreen
 59DB .loop2               ; loop head in DrawChainScreen
 5ABC .done                ; common exit of ChainScreenUpdate
-5BCC .done                ; common exit of ChainOpenPhrase
+5BCC .done                ; common exit of OpenChainPhrase
 5F76 .incCols    ; loop head in ChainScreenInput
 5F84 .incRows ; loop head in ChainScreenInput
 6168 .bigCols    ; loop head in ChainScreenInput
@@ -158,9 +158,9 @@
 6DA2 .loop                ; loop head in CutCopyChainSelection
 6DD0 .loop2               ; loop head in CutCopyChainSelection
 6EFF .done                ; common exit of CutCopyChainSelection
-6F17 .loop                ; loop head in ChainPasteCells
-6F29 .loop2               ; loop head in ChainPasteCells
-6FFC .done                ; common exit of ChainPasteCells
+6F17 .loop                ; loop head in PasteChainCells
+6F29 .loop2               ; loop head in PasteChainCells
+6FFC .done                ; common exit of PasteChainCells
 7092 .loop                ; loop head in DrawChainSelection
 70D7 .loop2               ; loop head in DrawChainSelection
 7174 .loop3               ; loop head in DrawChainSelection
@@ -337,7 +337,7 @@
 7061 .loadSelectionTop
 7124 .checkGameboyType
 73AA .loadTempo
-73B5 .chainUpdateScope
+73B5 .updateScope
 7421 .checkSyncRun
 7435 .syncStatusFlag
 747F .checkPlayMode

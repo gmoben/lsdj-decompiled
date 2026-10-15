@@ -21,8 +21,8 @@ void DrawHelpCursor(UBYTE erase);
 void RedrawHelpCursor(void);
 UWORD StrLength(char *s);                /* bank 0 */
 void DrawHelpPage(char *s);
-void HelpCursorDown(void);
-void HelpOpenEntry(void);
+void MoveHelpCursorDown(void);
+void OpenHelpEntry(void);
 
 void DrawHelpMenu(void)
 {
@@ -58,7 +58,7 @@ void DrawHelpScreen(void)
     RedrawHelpCursor();
 }
 
-void HelpCursorDown(void)
+void MoveHelpCursorDown(void)
 {
     if ((UWORD)wHelpRow == 9)
         return;
@@ -67,7 +67,7 @@ void HelpCursorDown(void)
     DrawHelpCursor(0);
 }
 
-void HelpCursorUp(void)
+void MoveHelpCursorUp(void)
 {
     if (wHelpRow) {
         DrawHelpCursor(1);
@@ -82,7 +82,7 @@ void GotoProjScreen(void)
     FarCall(4, FAR_FN(RedrawScreen));
 }
 
-void HelpReset(void)
+void CloseHelpEntry(void)
 {
     wHelpOpenEntry = 0;
     ClearBgTilemap();
@@ -118,7 +118,7 @@ void DrawHelpPage(char *s)
     }
 }
 
-void HelpOpenEntry(void)
+void OpenHelpEntry(void)
 {
     DrawHelpCursor(1);
     ClearBgTilemap();
@@ -134,22 +134,22 @@ UBYTE HelpScreenInput(void)
     switch (wButtons) {
     case 8:
         if (closed)
-            HelpCursorDown();
+            MoveHelpCursorDown();
         break;
     case 4:
         if (closed)
-            HelpCursorUp();
+            MoveHelpCursorUp();
         break;
     case 0x10:
         if (wAPressEnabled && closed)
-            HelpOpenEntry();
+            OpenHelpEntry();
         break;
     case 0x20:
         if (wAPressEnabled) {
             if (closed)
                 GotoProjScreen();
             else
-                HelpReset();
+                CloseHelpEntry();
         }
         break;
     }
