@@ -47,11 +47,11 @@ UBYTE ClaimInstrumentSlot(UBYTE instrument)
         return 0;
     WriteSongByte(1, p, 1);
     switch (wSongColumn) {
-    case 2:
+    case CHANNEL_WAV:
         source = DefaultInstrumentKit;
         n = 14;
         break;
-    case 3:
+    case CHANNEL_NOI:
         source = DefaultInstrumentWave;
         n = 11;
         break;

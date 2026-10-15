@@ -139,7 +139,7 @@ void CutCopyPhraseSelection(UBYTE cut)
         wSelectionLeft = 3;
     if (wSelectionRight == 3)
         wSelectionRight = 4;
-    if (wSelectionRight == 1 && wSongColumn == 2) {
+    if (wSelectionRight == 1 && wSongColumn == CHANNEL_WAV) {
         cutInstrument = 0;
         wSelectionRight = 2;
     }
@@ -158,7 +158,7 @@ void CutCopyPhraseSelection(UBYTE cut)
                     if (cut)
                         FarCallArgument3P(4, FAR_FN(WritePhraseNote), row, t & 0x0F);
                 }
-                if (wSelectionRight == 1 && wSongColumn == 2) {
+                if (wSelectionRight == 1 && wSongColumn == CHANNEL_WAV) {
                     WriteClipboardCell(1, row, 0xFF);
                     cutInstrument = 0;
                     goto instrument;

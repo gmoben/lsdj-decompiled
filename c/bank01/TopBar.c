@@ -139,24 +139,24 @@ void ShowCommandHelp(UBYTE command)
     saved = wVramCursor;
     if (!command)
         return;
-    if (command > 0x13)
+    if (command > COMMAND_Z)
         DebugTrap();
     switch (command) {
-    case 2:
+    case COMMAND_B:
         s = wCurrentScreen == SCREEN_PHRASE ? TxtHelpBNote : TxtHelpBHop;
         break;
-    case 8:
+    case COMMAND_H:
         s = wCurrentScreen == SCREEN_PHRASE ? TxtHelpHPhrase : TxtHelpHTable;
         break;
-    case 6:
-        s = wSongColumn == 2 ? TxtHelpFOffset : TxtHelpFTune;
+    case COMMAND_F:
+        s = wSongColumn == CHANNEL_WAV ? TxtHelpFOffset : TxtHelpFTune;
         break;
-    case 0x0F:
+    case COMMAND_S:
         switch (wSongColumn) {
-        case 2:
+        case CHANNEL_WAV:
             s = TxtHelpSKit;
             break;
-        case 3:
+        case CHANNEL_NOI:
             s = TxtHelpSNoise;
             break;
         default:
@@ -164,8 +164,8 @@ void ShowCommandHelp(UBYTE command)
             break;
         }
         break;
-    case 0x12:
-        s = wSongColumn == 2 ? TxtHelpW : TxtHelpWShort;
+    case COMMAND_W:
+        s = wSongColumn == CHANNEL_WAV ? TxtHelpW : TxtHelpWShort;
         break;
     default:
         s = CommandHelpPointers[command];

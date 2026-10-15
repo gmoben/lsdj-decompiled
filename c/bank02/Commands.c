@@ -172,7 +172,7 @@ void Command_K(void)
 
 void Command_P(void)
 {
-    if (hSoundChannel == 3) {
+    if (hSoundChannel == CHANNEL_NOI) {
         wChannelVibratoShape[3] = hCommandValue;
         wNoiPSlideStart = 1;
     } else
@@ -206,30 +206,30 @@ void SoundRetrigNote(void)
     UBYTE rate;
 
     hSoundChannel = wCommandChannel & 3;
-    if (!wSpeechWord || hSoundChannel != 2) {
+    if (!wSpeechWord || hSoundChannel != CHANNEL_WAV) {
         switch (hSoundChannel) {
-        case 0:
+        case CHANNEL_PU1:
             if (wChannelSlideNoteSource[0]) {
                 wChannelPitchCurrent[0] = 0x8000;
                 wChannelCommandStep[0] = 1;
             }
             SoundCommandParsePitchValue(&wEnvelopeNode1Pu1);
             break;
-        case 1:
+        case CHANNEL_PU2:
             if (wChannelSlideNoteSource[1]) {
                 wChannelPitchCurrent[1] = 0x8000;
                 wChannelCommandStep[1] = 1;
             }
             SoundCommandParsePitchValue(&wEnvelopeNode1Pu2);
             break;
-        case 2:
+        case CHANNEL_WAV:
             if (wChannelSlideNoteSource[2]) {
                 wChannelPitchCurrent[2] = 0x8000;
                 wChannelCommandStep[2] = 1;
             }
             SoundWavLevelStep(wChannelEnvelopeVolumeOffset[wCommandChannel]);
             break;
-        case 3:
+        case CHANNEL_NOI:
             SoundCommandParsePitchValue(&wEnvelopeNode1Noi);
             break;
         }
@@ -244,10 +244,10 @@ void SoundRetrigNote(void)
             wChannelTableFresh[hSoundChannel] = 1;
         }
     }
-    if (hSoundChannel == 3)
+    if (hSoundChannel == CHANNEL_NOI)
         wChannelSweep[hSoundChannel] = wNoiseNoteLatch;
     SoundTriggerNote();
-    if (hSoundChannel == 2) {
+    if (hSoundChannel == CHANNEL_WAV) {
         wKitVoicesActive = wSoundUpdateFlags;
         SoundSetKitParameters();
     }
@@ -264,7 +264,7 @@ void SoundRetrigNote(void)
 
 void Command_P_Step(void)
 {
-    if (wSoundUpdateFlags && hSoundChannel == 2)
+    if (wSoundUpdateFlags && hSoundChannel == CHANNEL_WAV)
         wChannelFrequency[hSoundChannel] += (WORD)hCommandValueS * 3;
     else {
         wChannelPitchCurrent[hSoundChannel] += (WORD)hCommandValueS << 3;
@@ -566,19 +566,19 @@ UBYTE Command_E_NoteOn(void)
 
     v = wChannelCommandValue[hSoundChannel];
     switch (hSoundChannel) {
-    case 0:
+    case CHANNEL_PU1:
         wEnvelopeStagePu1 = 0;
         wEnvelopeSpeedPu1 = 0;
         break;
-    case 1:
+    case CHANNEL_PU2:
         wEnvelopeStagePu2 = 0;
         wEnvelopeSpeedPu2 = 0;
         break;
-    case 2:
+    case CHANNEL_WAV:
         v <<= 4;
         wWavLevel = ~(v << 1) + 1;
         return 0;
-    case 3:
+    case CHANNEL_NOI:
         wEnvelopeStageNoi = 0;
         wEnvelopeSpeedNoi = 0;
         break;

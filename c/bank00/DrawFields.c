@@ -84,13 +84,13 @@ void DrawChannelHeader(void)
     hBgPalette = wShadedPalette;
     wVramCursor = (UBYTE *)BG_MAP(17, 0);
     switch (wSongColumn) {
-    case 0:
+    case CHANNEL_PU1:
         s = "PU1";
         break;
-    case 1:
+    case CHANNEL_PU2:
         s = "PU2";
         break;
-    case 2:
+    case CHANNEL_WAV:
         s = "WAV";
         break;
     }
@@ -123,7 +123,7 @@ void DrawFieldValue(UBYTE kind, UBYTE v)
         DrawString("--");
         break;
     case 0x12:
-        if (wSongColumn == 2)
+        if (wSongColumn == CHANNEL_WAV)
             DrawHexByte(v);
         else
             DrawPulseDuty(v);

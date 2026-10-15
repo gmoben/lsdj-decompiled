@@ -459,7 +459,8 @@ UBYTE ProcessKeyboardNote(UBYTE scancode)
             armed = wKeyboardArmed;
         } else if (wCurrentScreen == SCREEN_PHRASE) {
             isPhrase = 1;
-            armed = wSongColumn == 3 || !FarCallArgumentByte(4, (UWORD)PhraseRowIsSentinel, wPhraseRow);
+            armed = wSongColumn == CHANNEL_NOI
+                    || !FarCallArgumentByte(4, (UWORD)PhraseRowIsSentinel, wPhraseRow);
         } else {
             return 0;
         }
@@ -489,7 +490,8 @@ UBYTE ProcessKeyboardNote(UBYTE scancode)
         }
     } else if (wCurrentScreen == SCREEN_PHRASE) {
         scancode &= 0x7F;
-        armed = wSongColumn == 3 || !FarCallArgumentByte(4, (UWORD)PhraseRowIsSentinel, wPhraseRow);
+        armed = wSongColumn == CHANNEL_NOI
+                || !FarCallArgumentByte(4, (UWORD)PhraseRowIsSentinel, wPhraseRow);
         if (armed) {
             note = KeyboardFunctionMap[scancode];
         } else {

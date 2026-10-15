@@ -161,7 +161,7 @@ void SoundReadChannelStep(void)
         wChannelInstrument[hSoundChannel] = wKeyboardInstrument;
     } else
         SoundLoadChannelInstrument();
-    if (hSoundChannel == 2 && wSoundUpdateFlags)
+    if (hSoundChannel == CHANNEL_WAV && wSoundUpdateFlags)
         *wPointerNoteSource &= wKitNoteNibbleMask;
     else
         SoundTransposeNote();

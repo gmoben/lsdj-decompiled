@@ -57,6 +57,34 @@ typedef int WORD;
 #define SCREEN_FILE          13
 #define SCREEN_HELP          14
 
+/* the channels: a song column, hSoundChannel */
+#define CHANNEL_PU1          0
+#define CHANNEL_PU2          1
+#define CHANNEL_WAV          2
+#define CHANNEL_NOI          3
+
+/* the commands, in CommandMnemonics' order */
+#define COMMAND_NONE         0
+#define COMMAND_A            1
+#define COMMAND_B            2
+#define COMMAND_C            3
+#define COMMAND_D            4
+#define COMMAND_E            5
+#define COMMAND_F            6
+#define COMMAND_G            7
+#define COMMAND_H            8
+#define COMMAND_K            9
+#define COMMAND_L            10
+#define COMMAND_M            11
+#define COMMAND_O            12
+#define COMMAND_P            13
+#define COMMAND_R            14
+#define COMMAND_S            15
+#define COMMAND_T            16
+#define COMMAND_V            17
+#define COMMAND_W            18
+#define COMMAND_Z            19
+
 /* an instrument's type, its byte 0 (InstrumentTypeNames) */
 #define INSTRUMENT_PULSE     0
 #define INSTRUMENT_WAVE      1

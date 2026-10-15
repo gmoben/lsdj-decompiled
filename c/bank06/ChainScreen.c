@@ -483,7 +483,7 @@ UBYTE ChainScreenInput(void)
                 case 1:
                     SetVramCursor(ChainColumnX[1], row + 2);
                     v = ReadChainTranspose(wChain, row);
-                    v = v + (wSongColumn == 3 ? 4 : 12);
+                    v = v + (wSongColumn == CHANNEL_NOI ? 4 : 12);
                     SetChainTranspose(wChain, row, v);
                     DrawHexByte(v);
                     wChainCellValue = v;
@@ -573,7 +573,7 @@ UBYTE ChainScreenInput(void)
                 case 1:
                     SetVramCursor(ChainColumnX[1], row + 2);
                     v = ReadChainTranspose(wChain, row);
-                    v = v - (wSongColumn == 3 ? 4 : 12);
+                    v = v - (wSongColumn == CHANNEL_NOI ? 4 : 12);
                     SetChainTranspose(wChain, row, v);
                     DrawHexByte(v);
                     wChainCellValue = v;

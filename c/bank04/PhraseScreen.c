@@ -102,7 +102,7 @@ void DrawPhraseCommandLetter(UBYTE command)
 {
     UBYTE c, ok;
 
-    ok = command <= 0x13;
+    ok = command <= COMMAND_Z;
     if (ok)
         c = CommandMnemonics[command];
     else
@@ -112,7 +112,7 @@ void DrawPhraseCommandLetter(UBYTE command)
 
 UBYTE PhraseModeTile(void)
 {
-    return wSongColumn == 3 ? 0x78 : 0x6C;
+    return wSongColumn == CHANNEL_NOI ? 0x78 : 0x6C;
 }
 
 UBYTE ReadCursorInstrument(void)
@@ -140,7 +140,7 @@ void ResolvePhraseCursorNote(UBYTE v)
     UBYTE instrument;
 
     wPhraseColumnLast[wSongColumn] = v;
-    if (wSongColumn == 3 && wCursorMode != 4) {
+    if (wSongColumn == CHANNEL_NOI && wCursorMode != 4) {
         instrument = FindCursorInstrument();
         if (instrument < 0x40 && ReadInstrumentByte(instrument, 0) == INSTRUMENT_NOISE)
             WriteInstrumentByte(instrument, 4, v);
@@ -153,7 +153,7 @@ void SetColumnInstrument(UBYTE instrument)
         DebugTrap();
     if (instrument <= 0x40) {
         wColumnInstrument[wSongColumn] = instrument;
-        if (wSongColumn == 2) {
+        if (wSongColumn == CHANNEL_WAV) {
             wInstrumentIsKit = instrument != 0x40;
             if (wInstrumentIsKit)
                 wInstrumentIsKit = ReadInstrumentByte(instrument, 0) == INSTRUMENT_KIT;
@@ -214,7 +214,7 @@ UBYTE CommitPhraseInstrument(void)
             wDrawStep++;
         }
         WritePhraseInstrument(wPhrase, (char)wPhraseRow, wColumnInstrument[wSongColumn]);
-        if (wSongColumn == 3) {
+        if (wSongColumn == CHANNEL_NOI) {
             n = wColumnInstrument[3];
             if (n < 0x40) {
                 n = ReadInstrumentByte(n, 4);
@@ -259,7 +259,7 @@ void EditPhraseCellUp(UBYTE row)
         DebugTrap();
     p += (UWORD)wPhrase << 4;
     v = ReadSongByte(0, p);
-    if (wSongColumn == 3) {
+    if (wSongColumn == CHANNEL_NOI) {
         switch (v) {
         case 0x3A:
         case 0x3B:
@@ -292,7 +292,7 @@ void EditPhraseCellUp(UBYTE row)
         full = CommitPhraseInstrument();
     } else {
         v += step;
-        if (wCursorMode == 4 || wSongColumn == 3) {
+        if (wCursorMode == 4 || wSongColumn == CHANNEL_NOI) {
             while (PhraseModeTile() < v || !v)
                 v -= PhraseModeTile();
         } else {
@@ -332,7 +332,7 @@ void EditPhraseCellDown(UBYTE row)
         v = wPhraseColumnLast[wSongColumn];
         full = CommitPhraseInstrument();
     } else {
-        kitcol = wSongColumn == 3;
+        kitcol = wSongColumn == CHANNEL_NOI;
         if (kitcol) {
             if (v > 0x3C)
                 t = v + 0xC4;
@@ -400,7 +400,7 @@ void EditPhraseCellRight(UBYTE row)
         row = wPhraseColumnLast[wSongColumn];
         full = CommitPhraseInstrument();
     } else {
-        if (v == PhraseModeTile() && wCursorMode != 4 && wSongColumn != 3)
+        if (v == PhraseModeTile() && wCursorMode != 4 && wSongColumn != CHANNEL_NOI)
             return;
         row = v + 1;
     }
@@ -434,7 +434,7 @@ void EditPhraseCellLeft(UBYTE row)
         v = wPhraseColumnLast[wSongColumn];
         full = CommitPhraseInstrument();
     } else {
-        if (v == 1 && wCursorMode != 4 && wSongColumn != 3)
+        if (v == 1 && wCursorMode != 4 && wSongColumn != CHANNEL_NOI)
             return;
         v--;
     }
@@ -482,7 +482,7 @@ void WritePhraseCommand(UBYTE phrase, UBYTE row, UBYTE command)
         DebugTrap();
     if (row >= 0x10)
         DebugTrap();
-    if (command > 0x13)
+    if (command > COMMAND_Z)
         DebugTrap();
     p += (UWORD)phrase << 4;
     WriteSongByte(2, (UBYTE *)p, command);
@@ -739,7 +739,7 @@ UBYTE CursorInstrumentIsKit(void)
 
 UBYTE CheckPhraseEditContext(UBYTE x)
 {
-    if (wSongColumn != 2)
+    if (wSongColumn != CHANNEL_WAV)
         return 0;
     if (wPhraseColumn > 1)
         return 0;
@@ -808,7 +808,7 @@ void PastePhraseSelection(void)
                 break;
             case 1:
                 v = ReadClipboardCell(context ^ 1, row);
-                if (!(wSongColumn == 3)) {
+                if (!(wSongColumn == CHANNEL_NOI)) {
                     if (v == 0xFF)
                         break;
                 }
@@ -966,7 +966,7 @@ UBYTE DrawInstrumentName(UBYTE row, UBYTE instrument)
     hBgDigitPalette = wHighlightDigitPalette;
     hBgPalette = wHighlightPalette;
     DrawHexByte(instrument);
-    if (wSongColumn == 3 && instrument < 0x40
+    if (wSongColumn == CHANNEL_NOI && instrument < 0x40
             && ReadInstrumentByte(instrument, 0) == INSTRUMENT_NOISE) {
         n = ReadInstrumentByte(instrument, 4);
         *(UBYTE *)0xC90A = n;               /* wPhraseInstrumentCache, stored through the literal */
@@ -1083,7 +1083,7 @@ UBYTE PrelistenEditedCell(void)
 {
     UBYTE i;
 
-    if (wSongColumn != 2)
+    if (wSongColumn != CHANNEL_WAV)
         return 0;
     i = ReadCursorInstrument();
     if (i > 0x40)
@@ -1138,7 +1138,7 @@ UBYTE PhraseScreenInput(void)
         placed = 1;
         if (keyNote) {
             wPhraseColumn = 1;
-            if (wSongColumn == 3) {
+            if (wSongColumn == CHANNEL_NOI) {
                 mask = wPhraseInstrumentCache[0];
                 if (keyNote & 0xF0)
                     mask &= 0x0F;
@@ -1408,7 +1408,7 @@ UBYTE PhraseScreenInput(void)
                         v = 2;
                     break;
                 case 0x12:
-                    if (wSongColumn == 2 || v != 3)
+                    if (wSongColumn == CHANNEL_WAV || v != 3)
                         ++v;
                     break;
                 case 1:
@@ -1524,7 +1524,7 @@ UBYTE PhraseScreenInput(void)
                         v = 0x1F;
                     break;
                 case 0x12:
-                    if (wSongColumn == 2)
+                    if (wSongColumn == CHANNEL_WAV)
                         v += 0x10;
                     else if (v != 3)
                         ++v;
@@ -1533,7 +1533,7 @@ UBYTE PhraseScreenInput(void)
                     v = 3;
                     break;
                 case 0x0F:
-                    v += wSongColumn == 3 ? 4 : 0x10;
+                    v += wSongColumn == CHANNEL_NOI ? 4 : 0x10;
                     break;
                 case 1:
                     if (v >= 0x10) {
@@ -1651,7 +1651,7 @@ UBYTE PhraseScreenInput(void)
                         --v;
                     break;
                 case 0x12:
-                    if (v || wSongColumn == 2)
+                    if (v || wSongColumn == CHANNEL_WAV)
                         --v;
                     break;
                 case 0x0C:
@@ -1777,13 +1777,13 @@ UBYTE PhraseScreenInput(void)
                     v = 0;
                     break;
                 case 0x12:
-                    if (wSongColumn == 2)
+                    if (wSongColumn == CHANNEL_WAV)
                         v -= 0x10;
                     else if (v)
                         --v;
                     break;
                 case 0x0F:
-                    v -= wSongColumn == 3 ? 4 : 0x10;
+                    v -= wSongColumn == CHANNEL_NOI ? 4 : 0x10;
                     break;
                 case 1:
                     if (v < 0x10 || v > 0x20) {

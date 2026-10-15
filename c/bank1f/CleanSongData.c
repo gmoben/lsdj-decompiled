@@ -438,7 +438,7 @@ void RemapCommandTableRefs(UBYTE from, UBYTE to)
     rRAMG = 0x0A;
     rRAMB = 1;
     while (command != (UWORD)0xB880) {
-        if (*(UBYTE *)command == 1 && from == *(UBYTE *)value)
+        if (*(UBYTE *)command == COMMAND_A && from == *(UBYTE *)value)
             *(UBYTE *)value = to;
         command++;
         value++;
@@ -446,7 +446,7 @@ void RemapCommandTableRefs(UBYTE from, UBYTE to)
     command = (UWORD)0xBA80;
     value = (UWORD)0xBC80;
     while (command != (UWORD)0xBC80) {
-        if (*(UBYTE *)command == 1 && from == *(UBYTE *)value)
+        if (*(UBYTE *)command == COMMAND_A && from == *(UBYTE *)value)
             *(UBYTE *)value = to;
         command++;
         value++;
@@ -455,7 +455,7 @@ void RemapCommandTableRefs(UBYTE from, UBYTE to)
     command = (UWORD)0xA000;
     value = (UWORD)0xAFF0;
     while (command != (UWORD)0xAFF0) {
-        if (*(UBYTE *)command == 1 && from == *(UBYTE *)value)
+        if (*(UBYTE *)command == COMMAND_A && from == *(UBYTE *)value)
             *(UBYTE *)value = to;
         command++;
         value++;

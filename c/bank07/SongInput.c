@@ -145,7 +145,7 @@ UBYTE SongScreenInput(void)
         return 1;
     }
     if (wButtons == J_RIGHT) {
-        if (wSongColumn == 3 || wBHeld)
+        if (wSongColumn == CHANNEL_NOI || wBHeld)
             return 0;
         if (wCursorMode != 4)
             EraseSongCursor();

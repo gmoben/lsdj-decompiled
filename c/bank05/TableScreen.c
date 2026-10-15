@@ -192,7 +192,7 @@ void DrawCommandLetter(UBYTE command)
 {
     UBYTE c, ok;
 
-    ok = command <= 0x13;
+    ok = command <= COMMAND_Z;
     if (ok)
         c = CommandMnemonics[command];
     else
@@ -239,7 +239,7 @@ void WriteTableCommand(UBYTE step, UBYTE command)
         DebugTrap();
     if (wTable >= 0x20)
         DebugTrap();
-    if (command > 0x13)
+    if (command > COMMAND_Z)
         DebugTrap();
     p += (UWORD)wTable << 4;
     WriteSongByte(1, p + step, command);
@@ -694,7 +694,7 @@ UBYTE TableScreenInput(void)
                         v = 2;
                     break;
                 case 0x12:
-                    if (v != 3 || wSongColumn == 2)
+                    if (v != 3 || wSongColumn == CHANNEL_WAV)
                         v++;
                     break;
                 default:
@@ -784,7 +784,7 @@ UBYTE TableScreenInput(void)
                         v = 1;
                     break;
                 case 0x12:
-                    if (v || wSongColumn == 2)
+                    if (v || wSongColumn == CHANNEL_WAV)
                         v--;
                     break;
                 default:
@@ -832,7 +832,7 @@ UBYTE TableScreenInput(void)
                 break;
             case 1:
                 v = ReadTableTranspose(row);
-                v += wSongColumn == 3 ? 4 : 12;
+                v += wSongColumn == CHANNEL_NOI ? 4 : 12;
                 DrawHexByte(v);
                 WriteTableTranspose(row, v);
                 wTableTransposeCache = v;
@@ -876,13 +876,13 @@ UBYTE TableScreenInput(void)
                     v = 3;
                     break;
                 case 0x12:
-                    if (wSongColumn == 2)
+                    if (wSongColumn == CHANNEL_WAV)
                         v += 0x10;
                     else if (v != 3)
                         v++;
                     break;
                 case 0x0F:
-                    v += wSongColumn == 3 ? 4 : 0x10;
+                    v += wSongColumn == CHANNEL_NOI ? 4 : 0x10;
                     break;
                 default:
                     v += 0x10;
@@ -929,7 +929,7 @@ UBYTE TableScreenInput(void)
                 break;
             case 1:
                 v = ReadTableTranspose(row);
-                v -= wSongColumn == 3 ? 4 : 12;
+                v -= wSongColumn == CHANNEL_NOI ? 4 : 12;
                 DrawHexByte(v);
                 WriteTableTranspose(row, v);
                 wTableTransposeCache = v;
@@ -968,13 +968,13 @@ UBYTE TableScreenInput(void)
                     v = 0;
                     break;
                 case 0x12:
-                    if (wSongColumn == 2)
+                    if (wSongColumn == CHANNEL_WAV)
                         v -= 0x10;
                     else if (v)
                         v--;
                     break;
                 case 0x0F:
-                    v -= wSongColumn == 3 ? 4 : 0x10;
+                    v -= wSongColumn == CHANNEL_NOI ? 4 : 0x10;
                     break;
                 default:
                     v -= 0x10;
