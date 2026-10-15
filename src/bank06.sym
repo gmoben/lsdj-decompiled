@@ -29,7 +29,7 @@
 5A62 ChainScreenUpdate          ; per-frame visual update (screen idx 3)
 5511 LoadChainCursorPhrase      ; read the phrase at (wChain, wChainRow) via FarCallArgument2; $ff -> empty path
 
-; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
+; --- context-based names (named for the role their callees show) ---
 4000 AllophoneKit               ; the speech kit holding allophone v: v / 15 + $19, then + 5 past $1A (its sample is v % 15 + 1)
 4026 DrawAllophoneName          ; draw allophone v's name: ReadKitSampleName(AllophoneKit(v), v % 15 + 1)
 40B3 WriteWordCell              ; write to the speech-word data under the word cursor (wWordRow/Col, $b890 region)

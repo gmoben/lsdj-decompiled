@@ -27,6 +27,7 @@ gfx = importlib.import_module("gfx")
 kits = importlib.import_module("kits")
 gen_main = importlib.import_module("gen_main")
 symfile = importlib.import_module("symfile")
+regflow = importlib.import_module("regflow")
 
 
 class PatternTests(unittest.TestCase):
@@ -565,6 +566,63 @@ class SymLayoutTests(unittest.TestCase):
 
     def test_the_curated_files_are_aligned(self):
         self.assertEqual([p.name for p in symfile.unaligned()], [], "run tools/symfile.py")
+
+
+class RegflowTests(unittest.TestCase):
+    """Register contracts over a made-up bank 0: routines by address."""
+
+    def contracts(self, routines: dict[int, bytes]):
+        rom = bytearray([0xFF]) * 0x4000
+        for addr, code in routines.items():
+            rom[addr:addr + len(code)] = code
+        prog = regflow.Program.__new__(regflow.Program)
+        prog.rom, prog.ops, prog.comments = bytes(rom), {}, {}
+        prog.names = {(0, a): f"R{a:04X}" for a in routines}
+        prog.entries = set(prog.names)
+        addrs = sorted(routines)
+        prog.ends = {(0, a): (addrs + [0x4000])[i + 1] for i, a in enumerate(addrs)}
+        prog.by_name = {n: k for k, n in prog.names.items()}
+        an = regflow.Analysis(prog)
+        an.run()
+        return {a: an.contracts[(0, a)] for a in routines}
+
+    def test_a_register_pushed_and_popped_back_is_preserved(self):
+        c = self.contracts({0x100: bytes([0xC5, 0x06, 0x01, 0xC1, 0xC9])})[0x100]   # push bc; ld b,1; pop bc; ret
+        self.assertEqual((c.inputs, c.may), (set(), set()))
+
+    def test_inputs_through_a_move_and_a_call(self):
+        c = self.contracts({0x100: bytes([0x78, 0xCD, 0x00, 0x02, 0xC9]),          # ld a,b; call $200; ret
+                            0x200: bytes([0x77, 0xC9])})                           # ld [hl],a; ret
+        self.assertEqual(c[0x100].inputs, {"b", "h", "l"})
+        self.assertEqual(c[0x200].inputs, {"a", "h", "l"})
+        self.assertEqual(c[0x100].may, {"a"})
+
+    def test_out_is_what_a_caller_reads(self):
+        c = self.contracts({0x100: bytes([0xCD, 0x00, 0x02, 0x7B, 0xC9]),          # call $200; ld a,e; ret
+                            0x200: bytes([0x1E, 0x05, 0x16, 0x00, 0xC9])})         # ld e,5; ld d,0; ret
+        self.assertEqual(regflow.describe(c[0x200]), "in: -; out: e; clobbers: d")
+
+    def test_a_byte_argument_pushes_a_not_the_flags(self):
+        # ld a,1; push af; inc sp; call $200; inc sp; ret -- the flags byte is dropped
+        c = self.contracts({0x100: bytes([0x3E, 0x01, 0xF5, 0x33, 0xCD, 0x00, 0x02, 0x33, 0xC9]),
+                            0x200: bytes([0xC9])})
+        self.assertEqual(c[0x100].inputs, set())
+        self.assertNotIn("partial", regflow.describe(c[0x100]))
+
+    def test_a_jump_table_reaches_every_entry(self):
+        # ld hl,$300; jp hl -- a constant; $300: jp $400; $400: ld b,c; ret
+        c = self.contracts({0x100: bytes([0x21, 0x00, 0x03, 0xE9]), 0x300: bytes([0xC3, 0x00, 0x04]),
+                            0x400: bytes([0x41, 0xC9])})
+        self.assertEqual((c[0x100].inputs, c[0x100].may), ({"c"}, {"b", "h", "l"}))
+
+    def test_reading_the_callers_frame_is_a_stack_input(self):
+        c = self.contracts({0x100: bytes([0xF8, 0x02, 0x7E, 0xC9])})[0x100]          # ld hl,sp+2; ld a,[hl]; ret
+        self.assertTrue(c.stack_args)
+        self.assertTrue(regflow.describe(c).startswith("in: stack;"))
+
+    def test_an_unknown_jp_hl_is_partial(self):
+        c = self.contracts({0x100: bytes([0x7E, 0x6F, 0xE9])})[0x100]                # ld a,[hl]; ld l,a; jp hl
+        self.assertIn("jp hl", c.partial)
 
 
 if __name__ == "__main__":

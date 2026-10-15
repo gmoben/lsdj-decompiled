@@ -114,7 +114,7 @@
 17E1 AnyChannelFlagSet          ; e = nonzero if any of the 4 per-channel bytes $C423-$C426 is set (chain-screen per-channel state; caller resets the wIdleFrames idle counter on activity)
 17FB ClearBgTilemap             ; fill the visible 20x18 BG tilemap ($9800) with tile 0, rSTAT-gated
 ; --- dynamic VRAM tile loader: queue of tile-graphics load requests ($CBE6 table, $CBE4 slot counter) ---
-32E3 LoadTilesToVram            ; LCD off: register a tile-graphics source (de) in a free wTileRequestTable slot, alloc VRAM tile slots (wTileSlotAllocation), load via CopyTileData, restore LCD
+32E3 LoadTilesToVram            ; LCD off: register the tile-graphics source in hl in a free wTileRequestTable slot (-> hl = the slot's entry, $0000 when all six are taken), allocate its VRAM tile slots (wTileSlotAllocation), load via CopyTileData, restore the LCD
 3370 SetTileLoadRequest         ; store a 3-byte tile-load request from [hl]: wTileLoadSlot slot/flags, wTileLoadSource source pointer
 332B CopyTileData               ; copy a queued tile's 16-byte graphics to VRAM tile data ($9000 + wTileLoadSlot*16), rSTAT-gated (falls into the $32AD copy loop)
 33D5 ReinitDisplay              ; ensure LCD on with standard rLCDC config (cycle off via display_off if needed; BG on, $9800 map, $8800 tiles) + ResetTileLoader

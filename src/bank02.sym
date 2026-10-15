@@ -66,7 +66,7 @@
 7DB1 VibratoRateTableB          ; [16] UWORD vibrato rate (type B); selected by wChannelVibratoType
 7EAC KitPitchTable              ; [120] per-pitch kit sample step deltas (SoundSetKitParameters)
 
-; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
+; --- context-based names (named for the role their callees show) ---
 4000 SoundCommandParsePitchValue ; parse an FX value (mask $80/$0f) -> SoundInitializeEnvelope
 4033 SoundKitStepLoopWindow1    ; kit S cmd, voice 1: the high digit shifts the loop window (+/- digit*16, each edge clamped to the sample), the low digit moves its end (kept $10 past the start), then the read pointer is rewound into the window; Command_S runs SoundKitStepLoopWindow2 next
 40E6 SoundClampKit1LoopEnd      ; clamp wKit1LoopEnd down to wKit1SampleEnd: a = 0 if it was past it, else 1
@@ -88,7 +88,7 @@
 4B8A SoundReadChainTranspose    ; read chain_transposes[wChannelChain[ch]] from SRAM bank1 ($A880, di/ei guarded) -> per-channel shadow wChannelChainTranspose[ch]
 4BC5 SoundTransposeNote         ; add chain transpose (wChannelChainTranspose, song/chain mode) + global transpose to the note; skip if wChannelTranspose set
 4C26 AdvanceCurrentChannelCursors ; set de=hSoundChannel*2, c=a (amount), then fall into SoundAdvanceChannelCursors (advance current channel's cursors by a)
-4C42 SoundAnyChannelActive      ; scan the 8 wChannelActive flags ($C0E0..7); return nz (flag in a) if any channel is active, z if none
+4C42 SoundAnyChannelActive      ; -> e = 0 when none of the 8 wChannelActive flags ($C0E0..7) is set, else nonzero (8 minus the first set one's index); also nz/z, with a the flag
 4C4E SoundStartChannel          ; handle wChannelRestart (re)start request: read seq (SoundStartChannelFromRow), set retrigger wPlayRestartPending, clear request
 4C68 SoundLoadChannelInstrument ; read the channel's instrument number from SRAM bank3 via its wChannelInstrumentPointer[ch] cursor -> wChannelInstrument shadow (wChannelActiveInstrument/$c210[ch]); then SoundLoadInstrument
 4C9C SoundReadChainRow          ; read the current chain row (cp $ff = end-of-chain)
@@ -296,7 +296,7 @@
 4DE8 .soundReadChainPhrase
 5059 .loadChannelCommandRate
 506E .soundTableStepDispatch
-524B .soundSoundAdvanceTableRow
+524B .advanceTableRow
 5372 .soundRunTableStep
 53C0 .soundRunTableStepb
 5409 .soundRunTableStepc

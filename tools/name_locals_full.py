@@ -203,7 +203,7 @@ def analyze(asm, sym):
         if m:
             curated.add(int(m.group(1), 16))
             curnames[int(m.group(1), 16)] = m.group(2)
-    L = open(asm).read().splitlines()
+    L = [l for l in open(asm).read().splitlines() if not l.startswith(';')]  # not the routines' comments
     back = block_backrefs(L)
     conds = incoming_conditions(L)
     # pre-pass: map every local addr -> enclosing fn, and seed used-sets with

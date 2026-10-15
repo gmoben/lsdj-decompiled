@@ -31,8 +31,8 @@ Current state:
   byte-for-byte with the original GBDK 2.95-3 / SDCC 2.2.1 plus peephole
   rules recovered from the ROM, LSDj's "modified GBDK", and the ROM build takes those functions' bytes
   from the compiled C (`make match`; see
-  [`docs/toolchain.md`](docs/toolchain.md)). 226 functions — the sound
-  tick and sequencer core — are hand-written asm and stay that way
+  [`docs/toolchain.md`](docs/toolchain.md)). The 225 hand-written asm functions
+  — the sound tick and sequencer core — stay that way
 
 ## Why
 
@@ -209,6 +209,7 @@ lsdj-decompiled/
 │   ├── audit_export.py   # diff a pasted debugger export against our symbols
 │   ├── name_locals_full.py  # semantic naming of function-local labels
 │   ├── show_func.py      # dump one function's disassembly by name or bank:addr
+│   ├── regflow.py        # each routine's register contract (in/out/clobbers), from the code
 │   ├── rom_strings.py    # list the NUL-terminated strings at an address
 │   ├── shift_test.py     # a bank's contents moved, run next to the build in PyBoy
 │   ├── behaviour_test.py # any build run next to the original ROM (make behaviour)

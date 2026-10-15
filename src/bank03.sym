@@ -20,7 +20,7 @@
 4769 LowerInstrumentCommandRate ; A+LEFT on CMD/RATE: byte 8 one down (to 0), redrawn
 4924 AddInstrumentTable16       ; table on, fresh press: set table-number bit 4 (+16)
 
-; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
+; --- context-based names (named for the role their callees show) ---
 40F8 GetWavePlayMode            ; the wave PLAY mode: byte 9 (MANUAL, ONCE, LOOP, PINGPONG, RESYNC = PlayModeNames)
 414F CheckInstrumentFieldOption ; return 1 if option-table[c] (ROM InstrumentFieldCounts) minus 1 == current field wInstrumentField, else 0
 427B SetInstrumentTransposeOn   ; set instrument byte 5 bit 5 (transpose) via SetInstrumentPitchByte

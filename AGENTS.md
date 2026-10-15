@@ -83,8 +83,8 @@ Track 2 was **gated behind a toolchain-recovery spike**: reproduce real LSDj
 functions byte-for-byte before betting on C. **Status:** 678 functions match
 (`c/`, `make match`), every C function in the ROM, using stock GBDK 2.95-3 /
 SDCC 2.2.1 plus 86 peephole rules recovered from the ROM
-(`tools/match/lsdj.peep`); the 226 hand-written asm functions (sound tick,
-sequencer core, ~15 KB) and the GBDK/SDCC library routines stay asm. See
+(`tools/match/lsdj.peep`); the 225 hand-written asm functions (sound tick,
+sequencer core, 15.4 KB) and the GBDK/SDCC library routines stay asm. See
 [`docs/toolchain.md`](docs/toolchain.md).
 
 ## Repository Structure
@@ -95,7 +95,7 @@ sequencer core, ~15 KB) and the GBDK/SDCC library routines stay asm. See
 | `rgbdscheck.asm` | Fails the build on an unsupported RGBDS version (requires ≥ 1.0; developed on 1.0.1, also verified on 1.0.3) |
 | `lsdj9_4_0.sha1` | Expected base-ROM checksum |
 | `src/main.asm` | **Generated** (git-ignored) by `tools/gen_main.py`: INCLUDE carved banks, the kits as labeled sections (samples from `data/kits/`) |
-| `src/bankNN.asm` | **Generated** (git-ignored) disassembly of the 13 program banks (`00`-`07`, `1b`-`1f`) |
+| `src/bankNN.asm` | **Generated** (git-ignored) disassembly of the 13 program banks (`00`-`07`, `1b`-`1f`): each label under its `.sym` comment, a hand-written routine's register contract and a matched function's prototype |
 | `src/ramsections.asm` | **Generated** by `tools/gen_ram_sections.py`: named WRAM/HRAM/SRAM sections for the linker map |
 | `src/bankNN.sym` | **Tracked, hand-curated** per-bank symbol maps: `ADDR Name ; comment` for routines, data, and function-local labels |
 | `include/hardware.inc` | Standard GB hardware defs (gbdev, CC0) — do not edit |
@@ -129,6 +129,7 @@ sequencer core, ~15 KB) and the GBDK/SDCC library routines stay asm. See
 | `tools/name_locals_full.py`, `name_locals.py`, `name_firstaction.py`, `name_targets.py` | Semantic naming of function-local labels (generated into the `.sym`); `name_targets.py` names the targets an operand points at (jump tables after their variable, strings after their text) so no `.L_xxxx` reaches the source |
 | `tools/rename.py`, `tools/fold_sym.py` | Symbol maintenance: rename a global everywhere (`.sym`, constants, C, docs, tools, and the local labels that spell it; refuses collisions), or fold a mislabelled "function" (a loop head, case body or shared tail) into a local label of the function it belongs to; a brace form in the docs (`SoundWriteFrequency{Pu1,Pu2,Wav}`) is not a whole word, so `test_tools.py` checks every expansion is a current name |
 | `tools/symfile.py` | The curated symbol files' layout: a `.sym` comment's `;` at column 32, `ram.inc`'s `EQU` at 38 and `;` at 49 (a longer name takes one space). The tools that write them (`rename.py`, `respell.py`, `fold_sym.py`, `name_locals.py`) align them after; run it after a hand edit; `--check`, and `test_tools.py`, fail on a file out of line |
+| `tools/regflow.py` | Register contracts: what each routine takes in registers (`in`, `stack` for its caller's frame), what some caller reads back (`out`) and what else it changes (`clobbers`), derived from the code: a value-tracking pass (pushes and pops, moves, constants, banked calls, jump tables, page-aligned fragments) and a fixed point over the call graph. The carve prints them above every hand-written routine (cached in `build/regflow.json`); `tools/regflow.py NAME... --why` shows where each input is used and why a contract is `partial`, `--asm` lists them all |
 | `tools/show_func.py`, `rom_strings.py`, `annotate_ram.py`, `statevar.py`, `bankmap.py` | Inspection helpers: dump a function by name or address (`--bare`; a matched one is disassembled from the ROM), list the strings at an address, annotate a RAM dump, … |
 | `tools/emu/` | SameBoy-based live-verification harness (see `tools/emu/README.md`) |
 | `tools/shift_test.py` | Shift test for a movable build: pad a bank (`--bank 1f`, `--all`, `--at`, `--by`), run it next to the reference in PyBoy on the same input, report the first divergence, the `rst $38` site and call chain; `--bisect`. Needs `python3 -m venv .venv && .venv/bin/pip install pyboy`; run with `.venv/bin/python` |
@@ -424,8 +425,13 @@ in `docs/functionality.md`.
   rather than raw `$FFxx` literals.
 - **Numbers.** Hex as `$XXXX` (lower-case digits or upper — be consistent within
   a file); prefer hardware-meaningful constants over magic numbers.
-- **Comments.** Explain *why*, document register in/out and clobbers for each
-  routine. Keep a banner comment per carved region.
+- **Comments.** Explain *why*. A routine's comment lives in its `.sym` line,
+  and the carve prints it above the label, then for a hand-written routine its
+  register contract (`; in: a, hl; out: hl; clobbers: -`, derived by
+  `tools/regflow.py`, `partial` where the code can't be followed) and for
+  matched C its prototype. So the comment says what the registers *mean*
+  (`a = the channel`, `-> e = the byte`), and the contract which ones. Keep a
+  banner comment per carved region.
 - **Indentation.** Tabs for instruction columns, matching RGBDS/pret style.
 - Do **not** edit `include/hardware.inc` (vendored, CC0). Add project constants
   to `constants/` instead.
@@ -444,10 +450,10 @@ When writing *matching C*, the source forms matter as much as the logic —
 (`rROMB0 = n`), `if (!x)` rather than `== 0`, `&buf[0]` for address loads,
 `(unsigned int)x << 4` for a 16-bit shift, one statement per update of a
 local; see [`docs/matching_c.md`](docs/matching_c.md) → *Writing C that matches*.
-Check `tools/match/code_kind.py` first: 226 functions (15.5 KB: the
-interrupt handlers, sound tick, bank `$02`'s sequencer core) are hand-written
-asm and ~30 are GBDK/SDCC library routines; neither is a C target. Its
-summary also gives the share of C bytes matched so far.
+Check `tools/match/code_kind.py` first: the 225 hand-written asm functions
+(15.4 KB: the interrupt handlers, sound tick, bank `$02`'s sequencer core)
+and the 31 GBDK/SDCC library routines are not C targets. Its summary also
+gives the share of C bytes matched.
 
 Name helpers after their GBDK/SDCC equivalents where identifiable. The GBDK 2.95
 source is fetched locally to `toolchain/gbdk-2.95` (gitignored); its `.s` sources
@@ -557,8 +563,8 @@ Always, before committing:
       `ShowOutOfMemory`/`ShowTapAddChain`, `DispatchScreenDraw` (`switch`),
       `ReadInstrumentByte` (16-bit math, asserts) and `DrawTileHexCell` (the
       register-reload exception): six functions, three banks
-- [x] Map what is C at all: `tools/match/code_kind.py` — 226 functions are
-      hand-written asm (sound tick, envelope/pitch, tile loader, sequencer core)
+- [x] Map what is C at all: `tools/match/code_kind.py` — 225 hand-written asm
+      functions (sound tick, envelope/pitch, tile loader, sequencer core)
 - [x] Match a large editor function (a screen input handler) to grow the rule set
       (every screen's input handler is matched C now)
 - [x] Matched C feeds the RGBDS build: `make match` writes each function's

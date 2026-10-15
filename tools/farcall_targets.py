@@ -37,7 +37,7 @@ CALL_FAR = re.compile(r'^\tcall (FarCall|FarCallByte|FarCallArgument)\b')
 def bank_label_addrs(path):
     """Return set of addresses that carry a global label in this bank file."""
     labeled = set()
-    lines = open(path).read().splitlines()
+    lines = [l for l in open(path).read().splitlines() if not l.startswith(';')]  # not the routines' comments
     pending = False
     for ln in lines:
         if LABEL.match(ln):
@@ -53,7 +53,7 @@ def bank_label_addrs(path):
 
 def scan(path):
     """Yield (site_addr, bank, target_addr) for each resolvable FarCall site."""
-    lines = open(path).read().splitlines()
+    lines = [l for l in open(path).read().splitlines() if not l.startswith(';')]  # not the routines' comments
     for i, ln in enumerate(lines):
         if not CALL_FAR.search(ln):
             continue

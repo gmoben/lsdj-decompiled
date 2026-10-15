@@ -23,7 +23,7 @@
 ; --- file screen ---
 589A FileActionNames            ; action names "LOAD"/"SAVE"/"ERASE" (5-byte stride, indexed by action type)
 
-; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
+; --- context-based names (named for the role their callees show) ---
 4000 FileWriteCompressedSram    ; low-level compressed-output writer to SRAM (bank wCompressBank, ptr wCompressSource; di-guarded)
 415A FindFreeBlock              ; claim the first free block of the allocation table ($a141 on, to $a180 on the 64K-only format [wFilesystemCheckResult], else $a200): mark it wCompressByte, return its bank + SRAM address; e=0 when full
 42D6 FileSlotHalfBase           ; return $40 or $c0 depending on wFilesystemCheckResult (which save half)
@@ -574,8 +574,8 @@
 7485 .incrementBlockDestinationPage
 74AF .incrementDecompressPosition
 74C9 .fileDecompressNextBank_2
-5092 FileFieldX                 ; x of the three file screen fields (0, 5, 10)
-5095 FileFieldWidth             ; their widths (4, 4, 5)
+5092 FileFieldX                 ; [3] x of the three file screen fields (0, 5, 10)
+5095 FileFieldWidth             ; [3] their widths (4, 4, 5)
 
 ; --- full local naming (block signature) ---
 7156 .cont

@@ -71,7 +71,7 @@ def show(bank, addr, bare=False, lines=80, skip=0, rom=None):
         if label and not label.startswith('.') and ln.startswith(label + ':'):
             start = i
             break
-        if re.search(rf'; \${addr:04x}:', ln):
+        if not ln.startswith(';') and re.search(rf'; \${addr:04x}:', ln):
             start = i
             while start > 0 and re.match(r'^[A-Za-z_.][\w.]*:', text[start - 1]):
                 start -= 1
@@ -79,11 +79,16 @@ def show(bank, addr, bare=False, lines=80, skip=0, rom=None):
     if start is None:
         print(f'-- bank{bank:02x}:${addr:04X}: not found')
         return
-    body = [text[start]]
+    doc = start
+    while doc > 0 and text[doc - 1].startswith(';'):    # its comment and contract
+        doc -= 1
+    body = text[doc:start + 1]
     for ln in text[start + 1:]:
         if GLOBAL.match(ln):
             break
         body.append(ln)
+    while body and body[-1].startswith(';'):            # the next routine's
+        body.pop()
     if any(INCBIN.match(ln) for ln in body):
         rom = rom or (ROOT / 'lsdj9_4_0.gb').read_bytes()
         # jump targets inside the function get their (local) label names

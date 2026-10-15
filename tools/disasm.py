@@ -30,6 +30,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import textwrap
 from pathlib import Path
 
 import gfx
@@ -1092,6 +1093,47 @@ def parse_symbols(path: Path) -> dict[int, str]:
     return syms
 
 
+def parse_symbol_comments(path: Path) -> dict[int, str]:
+    """The `.sym` comment of each address (`ADDR Name ; comment`)."""
+    out: dict[int, str] = {}
+    for line in path.read_text().splitlines():
+        m = re.match(r"^([0-9A-Fa-f]{4}) \S+\s*;\s*(.*\S)", line)
+        if m and "@deploy-only" not in line:
+            out[int(m.group(1), 16)] = m.group(2)
+    return out
+
+
+DOC_WIDTH = 100
+
+
+def doc_lines(text: str) -> list[str]:
+    """A comment above a label, wrapped: `; ...` lines."""
+    return ["; " + line for line in textwrap.wrap(text, DOC_WIDTH - 2, break_on_hyphens=False)]
+
+
+def label_docs(rows: list[Row], labels: dict[int, str], comments: dict[int, str],
+               contracts: dict[str, str], prototypes: dict[str, str]) -> dict[int, list[str]]:
+    """The comment lines above each label: its `.sym` comment; then for a
+    routine of matching C its prototype, for a hand-written one its register
+    contract (tools/regflow.py) -- a routine being a global label on code,
+    not a jump table (`<Name>Jumps`)."""
+    first = {}
+    for row in rows:
+        first.setdefault(row[0], row)
+    out: dict[int, list[str]] = {}
+    for addr, name in labels.items():
+        lines = doc_lines(comments[addr]) if addr in comments else []
+        row = first.get(addr)
+        if not name.startswith(".") and row is not None:
+            if name in prototypes:
+                lines += doc_lines(prototypes[name])
+            elif name in contracts and _decoded(row) and not name.endswith("Jumps"):
+                lines += doc_lines(contracts[name])
+        if lines:
+            out[addr] = lines
+    return out
+
+
 def build_labels(rows: list[Row], lo: int, hi: int,
                  symbols: dict[int, str] | None = None,
                  prefix: str = "L",
@@ -1159,15 +1201,37 @@ def build_labels(rows: list[Row], lo: int, hi: int,
     return labels
 
 
+BYTE_LIST = re.compile(r"db \$[0-9A-Fa-f]{2}(?:, \$[0-9A-Fa-f]{2})*")
+
+
+def merge_c_bytes(rows: list[Row], labels: dict[int, str]) -> list[Row]:
+    """Matching C's const data comes from its translation a byte a row: the
+    bytes of a run with no label inside, 16 a row."""
+    out: list[Row] = []
+    for row in rows:
+        addr, raw, text, ref = row
+        if ref == C_ROW and out and addr not in labels and BYTE_LIST.fullmatch(text) and len(raw) == 1:
+            pa, praw, ptext, pref = out[-1]
+            if pref == C_ROW and BYTE_LIST.fullmatch(ptext) and pa + len(praw) == addr and len(praw) < 16:
+                out[-1] = (pa, praw + raw, f"{ptext}, {text[3:]}", C_ROW)
+                continue
+        out.append(row)
+    return out
+
+
 def render(rows: list[Row], comments: bool,
            labels: dict[int, str] | None = None,
            pointers: dict[int, tuple[str, str | int, str]] | None = None,
-           sections: dict[int, str] | None = None) -> str:
+           sections: dict[int, str] | None = None,
+           docs: dict[int, list[str]] | None = None) -> str:
     """`pointers` maps a row to its ROM-address operand: (the operand as
     printed, a fixed name or an address of this bank to print as its label,
     "" / "LOW" / "HIGH" for a byte of it). `sections` are SECTION lines to
-    open before the row (and the label) at an address."""
+    open before the row (and the label) at an address; `docs` the comment
+    lines above a label (label_docs)."""
+    docs = docs or {}
     labels = labels or {}
+    rows = merge_c_bytes(rows, labels)
     pointers = pointers or {}
     sections = dict(sections or {})
     # Enclosing global label (name) per address, for scope-qualifying local refs.
@@ -1183,6 +1247,9 @@ def render(rows: list[Row], comments: bool,
         if addr in sections:
             lines.append(sections.pop(addr))
         if addr in labels and addr not in printed:
+            if docs and not labels[addr].startswith(".") and lines and lines[-1]:
+                lines.append("")                 # a routine (or a table) starts
+            lines.extend(docs.get(addr, ()))
             lines.append(f"{labels[addr]}:")
             printed.add(addr)
         if ref in (C_TEXT, NOTE):            # matching C's label / directive, a note
@@ -1319,6 +1386,9 @@ def main() -> None:
                     help="comma-separated ADDR:NAME sections pinned at ADDR inside the bank "
                          "(a page-addressed table must not move)")
     ap.add_argument("--comments", action="store_true", help="annotate addr/bytes")
+    ap.add_argument("--docs", type=Path,
+                    help="JSON {contracts: {name: text}, prototypes: {name: text}}: printed "
+                         "with each label's .sym comment above it (tools/regflow.py)")
     ap.add_argument("--no-labels", action="store_true",
                     help="do not generate labels for branch/call targets")
     ap.add_argument("-o", "--output", type=Path, help="output .asm (default: stdout)")
@@ -1474,7 +1544,14 @@ def main() -> None:
         a = int(a_s, 0)
         pinned[a] = (f'SECTION "{name}", ROM0[${a:04X}]' if args.bank == 0
                      else f'SECTION "{name}", ROMX[${a:04X}], BANK[${args.bank:03X}]')
-    body = render(rows, comments=args.comments, labels=labels, pointers=pointers, sections=pinned)
+    docs = None
+    if args.docs and args.symbols:
+        extra = json.loads(args.docs.read_text())
+        own = {a: n for a, n in labels.items() if a in symbols and symbols[a] == n}
+        docs = label_docs(rows, own, parse_symbol_comments(args.symbols),
+                          extra.get("contracts", {}), extra.get("prototypes", {}))
+    body = render(rows, comments=args.comments, labels=labels, pointers=pointers, sections=pinned,
+                  docs=docs)
     section = args.section
     if section is None:
         if args.bank == 0:

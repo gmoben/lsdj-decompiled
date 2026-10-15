@@ -13,7 +13,7 @@
 4000 DrawNoteNameFar            ; FarCall bank 6 DrawNoteName(wSongColumn, x): the phrase screen's note column
 5533 CloneInstrumentAtCursor    ; clone the instrument under the cursor: alloc+CloneInstrument; fail -> "CANNOT CLONE"
 
-; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
+; --- context-based names (named for the role their callees show) ---
 401B DrawPhraseCursorFar        ; FarCall bank1f DrawPhraseCursor
 402C DrawPhraseCommandLetter    ; draw FX command letter cmd (CommandMnemonics), "?" past $13
 405D PhraseModeTile             ; return tile $78 or $6c depending on mode wSongColumn

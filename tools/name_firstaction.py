@@ -80,7 +80,7 @@ def analyze(asm, sym):
         if m:
             curated.add(int(m.group(1), 16))
             curnames[int(m.group(1), 16)] = m.group(2)
-    L = open(asm).read().splitlines()
+    L = [l for l in open(asm).read().splitlines() if not l.startswith(';')]  # not the routines' comments
     cur = None
     per_fn = {}          # fn -> {addr: name}
     used = {}            # fn -> set(final names)

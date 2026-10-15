@@ -26,7 +26,7 @@
 63F6 TxtLowp                    ; " LOWP"
 65B3 TxtClip                    ; "CLIP"
 
-; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
+; --- context-based names (named for the role their callees show) ---
 40AE EraseGrooveCursor          ; restore the groove cursor step's palette (alternating per two rows)
 425B DrawGrooveRow              ; draw one groove row (step<16; ticks via ReadGrooveStep, state wGrooveCacheValid/wGrooveStepCache)
 435D BuildGrooveCache           ; once (wGrooveCacheValid guard): build the 16-step groove display cache wGrooveStepCache (via ReadGrooveStep)

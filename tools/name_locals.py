@@ -27,7 +27,7 @@ EPILOGUE = re.compile(r'\t(?:add sp, |pop |ret)')
 
 
 def analyze(asm_path, sym_path):
-    lines = open(asm_path).read().splitlines()
+    lines = [l for l in open(asm_path).read().splitlines() if not l.startswith(';')]  # not the routines' comments
     # existing dot-names in the sym (already curated)
     curated = set()
     for ln in open(sym_path):
@@ -118,7 +118,7 @@ def dispatch_names(asm_path, sym_path):
     """Name locals that are `jp/jr z` targets of `cp a, $XX` right after
     loading a known enum variable (wButtons -> button combo, wCurrentScreen ->
     screen name). Honest: the branch IS the handler for that exact value."""
-    lines = open(asm_path).read().splitlines()
+    lines = [l for l in open(asm_path).read().splitlines() if not l.startswith(';')]  # not the routines' comments
     curated = set()
     for ln in open(sym_path):
         m = re.match(r'([0-9A-Fa-f]{4})\s+\.', ln)

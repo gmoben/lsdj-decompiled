@@ -27,7 +27,7 @@ BANKW = re.compile(r'\tld \[\$2000\], a|\tld \[hl\], \$([0-9a-f]{2})\s+; \$[0-9a
 
 def load_bank(path):
     """Return (lines, addr2line, labeled_addrs, data_lines set of addresses)."""
-    lines = open(path).read().splitlines()
+    lines = [l for l in open(path).read().splitlines() if not l.startswith(';')]  # not the routines' comments
     addr2line = {}
     labeled = set()
     data_addr = set()
@@ -76,7 +76,7 @@ def audit_runs():
                 m = re.match(r'([0-9A-Fa-f]{4})\s+\S+', ln)
                 if m:
                     syms.add(int(m.group(1), 16))
-        lines = open(p).read().splitlines()
+        lines = [l for l in open(p).read().splitlines() if not l.startswith(';')]  # not the routines' comments
         prev_db = False
         out = []
         for ln in lines:

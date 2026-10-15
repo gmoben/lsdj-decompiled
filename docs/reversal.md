@@ -9,23 +9,26 @@ all code disassembled with meaningful labels, all data structured.
 | Measure | Now |
 |---------|-----|
 | Byte-for-byte reproduction | ✓ `make compare`, including from a fresh clone + ROM |
-| Reachable code (`tools/coverage.py`) | 77% of the 13 code/data banks (164,955 / 212,992 bytes; named data is not seeded, see below); the unreached rest classifies as fill/text/graphics, **0** code-like bytes |
+| Reachable code (`tools/coverage.py`) | 76% of the 13 code/data banks (163,626 / 212,992 bytes; named data is not seeded, see below); the unreached rest classifies as fill/text/graphics, **0** code-like bytes |
 | Functions | every entry has a behavioral name; no global auto-labels |
-| Symbols (`make sym` output) | 8,723: 1,833 ROM globals, 6,045 function-local labels, 808 WRAM/HRAM, 37 SRAM |
+| Symbols (`make sym` output) | 8,914: 1,837 ROM globals, 6,196 function-local labels, 836 WRAM/HRAM, 44 SRAM |
 | Referenced data (`tools/data_refs.py`) | every operand-referenced ROM data address labeled |
-| C vs hand-written asm (`tools/match/code_kind.py`) | ~142.5 KB of C, 64% of it matched (575 functions; 134 C or ambiguous labels to go); 200 hand-written asm functions (~15 KB: bank 0's interrupt/sound-tick/tile-loader code, bank `$02`'s sequencer core) and 31 GBDK/SDCC library routines |
+| C vs hand-written asm (`tools/match/code_kind.py`) | 141.7 KB of C, all of it matched; 225 hand-written asm functions (15.4 KB: bank 0's interrupt/sound-tick/tile-loader code, bank `$02`'s sequencer core) and 31 GBDK/SDCC library routines |
 | Matching C ([`toolchain.md`](toolchain.md)) | 678 functions in 13 banks are C in `c/`; the ROM build assembles them from the compiler's output translated to RGBDS source (`build/c/*/*.lines`; a ROM slice without the compiler) |
+| Comments | the carved asm prints every label's `.sym` comment above it, with each hand-written routine's register contract (`tools/regflow.py`) and each matched function's prototype |
 
-Known gaps — asm fidelity/readability, none affect the bytes:
+Open — readability, none affect the bytes:
 
-- **Raw RAM operands.** One byte is still accessed by a raw memory operand
-  (`$CB64`, 3 sites in bank `$1C` near `$7167`); ~40 addresses appear only as
-  16-bit immediates — mostly buffer bases handed to helpers (`ld de, $c457`
-  ×21, `$C90D`, `$CA34`, …), some probably signed constants (`ld hl, $fffe`).
-  ~13 named variables still carry `TBD` notes on their exact role.
-- **Stale names.** `SoundAdvanceTableRow` actually steps table
-  pointers; generated local labels still echo pre-July RAM names (e.g.
-  `.loadOscActive_2` in `TimerHandler`, from the old "oscilloscope" reading).
+- **Partial contracts.** The register contract of code entered by a jump
+  with registers already pushed (the interrupt handlers' shared epilogues
+  `TimerHandlerReturn` and `SerialHandlerTail`, `VBlankHandler`,
+  `ReadJoypad`, GBDK's `set_xy_tt`, the labels inside C functions) says
+  `partial: pops what the code before it pushed`; `CallHL` calls whatever is
+  in hl. A routine's `out` is what its callers read, so one no code calls
+  (`ModS8`, `DivS16`, the vectors) lists what it changes instead.
+- **Prose.** A routine's `.sym` comment says what it does; for the asm, the
+  contract says which registers carry what, and the comment says what they
+  mean only where someone wrote it.
 - **Unread table.** The 108-entry 16-bit ramp at `$00:$09B9` is
   `UnusedRampTable`: no code reads it.
 

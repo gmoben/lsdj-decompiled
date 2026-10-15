@@ -35,7 +35,7 @@
 57BF ScreenPaletteChain         ; [18][20] ground tiles, CHAIN screen (DrawScreenPaletteMap)
 7498 TxtBlankString2            ; blank (zero) display string (ref $6D98)
 
-; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
+; --- context-based names (named for the role their callees show) ---
 4000 TestSramLow                ; cartridge RAM test, SRAM banks 0-3: write/read-back pattern (part of DrawCartTest)
 445A TestSramHigh               ; cartridge RAM test, SRAM banks 4-15 (jp TestSramHigh.done on mismatch)
 493B CopyInstrumentName         ; copy instrument arg's 5-char name -> wNameEditBuffer (speech $40 -> "SPCH")

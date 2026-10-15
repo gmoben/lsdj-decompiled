@@ -38,7 +38,7 @@
 5461 IsChainUsedFar             ; FarCall bank01 IsChainUsed
 7097 RedrawScreenFar1F          ; FarCall home RedrawScreen ($24dd) with bank 4 arg
 
-; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
+; --- context-based names (named for the role their callees show) ---
 409C DrawInstrumentTableField   ; draw the instrument's table field: table number (hex) if on, '--' if off
 40CA DrawKitLoopMode            ; draw one kit's LOOP setting: OFF unless loopBit of byte 5 is set, else ATK if bit 7 of byte atkByte, else ON
 411F DrawKitLoopField           ; the kit LOOP field: kit 1's mode (byte 5 bit 6, byte 2 bit 7), a "/", kit 2's (byte 5 bit 5, byte 9 bit 7)

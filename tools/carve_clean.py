@@ -29,6 +29,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 cov = import_module("coverage")
 disasm = import_module("disasm")
 gfx = import_module("gfx")
+regflow = import_module("regflow")
 
 BANK = 0x4000
 ROOT = Path(__file__).resolve().parents[1]
@@ -378,8 +379,42 @@ def c_ranges(bank: int) -> tuple[list[str], list[tuple[int, int, str, int]]]:
     return sorted(lines), sorted(incbins)
 
 
+DEFINITION = re.compile(r"^((?:static\s+)?[A-Za-z_][\w \t*]*?\b([A-Za-z_]\w*)\s*\([^;{}]*\)"
+                        r"(?:\s+(?:nonbanked|banked|critical))?)\s*$")
+
+
+def c_prototypes() -> dict[str, str]:
+    """{function: "c/bankNN/Module.c: its definition's first line"} for every
+    function matching C owns, printed above its label."""
+    manifest = ROOT / "c" / "matched.json"
+    if not manifest.is_file():
+        return {}
+    matched = json.loads(manifest.read_text())
+    out: dict[str, str] = {}
+    for src in sorted({m["src"] for m in matched.values()}):
+        lines = (ROOT / src).read_text().splitlines()
+        for i, line in enumerate(lines[:-1]):
+            m = DEFINITION.match(line)
+            if m and lines[i + 1].strip() == "{" and m.group(2) in matched:
+                out[m.group(2)] = f"{src}: {' '.join(m.group(1).split())}"
+    return out
+
+
+def write_docs(rom: bytes) -> Path:
+    """build/docs.json for disasm.py --docs: every routine's register
+    contract (tools/regflow.py, cached in build/regflow.json) and the
+    prototype of each one matching C owns."""
+    path = ROOT / "build" / "docs.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    contracts = regflow.load(rom, ROOT / "build" / "regflow.json")
+    path.write_text(json.dumps({"contracts": contracts, "prototypes": c_prototypes()},
+                               indent=0, sort_keys=True))
+    return path
+
+
 def main() -> None:
     rom = ROM.read_bytes()
+    docs = write_docs(rom)
     ent = cov.collect_entries(rom)
     seeds = [(b, a) for b, addrs in ent.items() for a in addrs]
     code, _ = cov.global_trace(rom, seeds)
@@ -394,7 +429,7 @@ def main() -> None:
         data_arg = ",".join(f"0x{s:X}:0x{e:X}" for s, e in runs)
         cmd = ["python3", "tools/disasm.py", "--rom", str(ROM),
                "--bank", f"0x{b:02x}", "--symbols", f"src/bank{b:02x}.sym",
-               "--comments", "-o", f"src/bank{b:02x}.asm"]
+               "--comments", "--docs", str(docs.relative_to(ROOT)), "-o", f"src/bank{b:02x}.asm"]
         if b != 0:
             cmd += ["--globals", "src/bank00.sym"]
         if notes:

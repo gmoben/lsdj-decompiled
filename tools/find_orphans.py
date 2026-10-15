@@ -36,7 +36,7 @@ def looks_like_code(body):
 
 def analyze(path, peek):
     orphans = []
-    lines = open(path).read().splitlines()
+    lines = [l for l in open(path).read().splitlines() if not l.startswith(';')]  # not the routines' comments
     prev_term = False          # previous emitted instruction was a terminator
     labeled_since_term = False # saw a label since the last terminator
     for i, ln in enumerate(lines):

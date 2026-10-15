@@ -11,7 +11,7 @@
 4762 DrawTableScreen            ; screen idx 5: draws the table (env/transpose/cmd cols)
 4967 TableScreenUpdate          ; per-frame visual update (screen idx 5)
 
-; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
+; --- context-based names (named for the role their callees show) ---
 4000 UpdateMapTopRow            ; recompute wMapProjectColumn/wMapSynthColumn from wMapColumn when on the map middle row
 4167 GotoMapCursorScreen        ; SEL+B screen map: set wCurrentScreen from wMapRow/wMapColumn (row0=PROJECT/WAVE/SYNTH, row1=SONG CHAIN PHRASE INSTR TABLE, row2=GROOVE)
 420C StartMapTransition         ; store move direction (1=up 2=right 3=down 4=left) -> wMapMoveDirection, reset rSCX/rSCY

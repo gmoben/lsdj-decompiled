@@ -12,7 +12,7 @@ code byte for byte, which is what the matching C decompilation rests on (see
 | Can we run it today? | **Yes, natively.** SDCC 2.2.1 + `sdcpp`/`as-gbz80`/`link-gbz80` build from the GBDK 2.95-2 sources (`tools/toolchain/build_sdcc221.sh`, ~15 s) and emit **byte-identical** asm, objects, listings and images to GBDK 2.95-3's Win32 binaries — which still run under Wine (`fetch_gbdk295.sh`), but crash on large units (below) |
 | Is it the right toolchain? | **Yes, for the code generator**: LSDj's instruction selection, register allocation and frame idioms are SDCC 2.2.1's line for line, and GBDK 2.95 library code in the ROM is byte-identical to its sources (`display_off` ← `crt0.s`, `strcpy` ← `asm_string.s`, `set_bkg_palette` ← `cgb.s`, `set_bkg_tiles` ← `set_bk_t.s` + `set_xy_t.s`, the SDCC `mul` runtime). Stock output does **not** match on its own: LSDj's build also ran peephole rules that stock 2.95-3 lacks |
 | Matched real LSDj functions? | **Yes — 678**, in 13 banks (the list: [`c/matched.json`](../c/matched.json)): a message renderer, a 15-case `switch`, a sparse `switch`, the SRAM accessors, and the instrument screen's field accessors and draw helpers. `make match` re-verifies them all (cached: only changed sources reach the compiler), and **their bytes in the ROM build come from the compiled C** (below) |
-| Is all of LSDj C? | **No.** 226 functions (15.5 KB, 10% of the code with the GBDK library) are hand-written assembly — the interrupt handlers, sound tick, envelope/pitch and tile-loader code in bank 0, and the sequencer core in bank `$02` (`tools/match/code_kind.py`). Those stay asm; the C is ~141.7 KB, all of it matched (678 functions, six of them through an `lsdj-alloc` directive) |
+| Is all of LSDj C? | **No.** 225 hand-written asm functions (15.4 KB, 10% of the code with the GBDK library) — the interrupt handlers, sound tick, envelope/pitch and tile-loader code in bank 0, and the sequencer core in bank `$02` (`tools/match/code_kind.py`). Those stay asm; the C is ~141.7 KB, all of it matched (678 functions, six of them through an `lsdj-alloc` directive) |
 | Is the matching C done? | **Yes.** Every C function matches (678, 141,700 bytes, 86 peephole rules, six of the functions through an `lsdj-alloc` directive); the C feeds the ROM build with `make compare` as the gate, and the hand-written asm is mapped and excluded |
 
 The C tree itself -- every module, what it holds and the C constructs it
@@ -767,9 +767,9 @@ untouched (`make match` verifies all 678).
       Project and Song screens matched.
 - [x] Grow the C tree bank by bank (editor code first; the asm functions
       stay asm): every C function in the ROM is matched (678, 141,700 bytes),
-      six of them through an `lsdj-alloc` directive (above). The 226 asm
-      functions (the interrupt handlers, the sound driver's core, the tile
-      loader, the mixer kernel) stay asm.
+      six of them through an `lsdj-alloc` directive (above). The 225
+      hand-written asm functions (the interrupt handlers, the sound driver's
+      core, the tile loader, the mixer kernel) stay asm.
 
 ### Toward a moddable fork
 

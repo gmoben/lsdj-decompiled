@@ -41,7 +41,7 @@ def load_symbols() -> set[tuple[int, int]]:
 
 def bank_asm_lines(bank: int) -> list[str]:
     p = SRC / f"bank{bank:02x}.asm"
-    return p.read_text().splitlines() if p.is_file() else []
+    return [l for l in p.read_text().splitlines() if not l.startswith(";")] if p.is_file() else []
 
 
 def index_by_addr(lines: list[str]) -> dict[int, int]:
@@ -73,6 +73,8 @@ def collect() -> dict[tuple[int, int], int]:
         last_a: int | None = None
         hl_is_2000 = False
         for line in p.read_text().splitlines():
+            if line.startswith(";"):
+                continue
             t = line.split(";", 1)[0]
             if (m := A_IMM.search(t)):
                 last_a = int(m.group(1), 16)
@@ -101,7 +103,7 @@ def collect() -> dict[tuple[int, int], int]:
         # also carry the ": bytes" annotation, so the colon alone isn't enough).
         code[bank] = {int(m.group(1), 16)
                       for line in p.read_text().splitlines()
-                      if (m := CODE_RE.search(line)) and not line.lstrip().startswith(("db", "ds", "RGB"))}
+                      if not line.startswith(";") and (m := CODE_RE.search(line)) and not line.lstrip().startswith(("db", "ds", "RGB"))}
     return {(b, a): v for (b, a), v in targets.items()
             if (b, a) not in syms and a in code.get(b, set())}
 
