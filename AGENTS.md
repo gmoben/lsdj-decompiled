@@ -648,9 +648,9 @@ Always, before committing:
       that reaches it)
 - [x] Name `$CB64` (wCompressRunByte), the ~40 immediate-only RAM addresses
       (the matched C's literal pointers, now rendered by name), the WRAM code at
-      `$D480` (wKitMixerCode) and the ramp at `$00:$09B9` (UnusedRampTable: no
-      code reads it); resolve the `TBD` RAM roles (the synth parameters, the
-      file-bank flag, the per-instrument table rows)
+      `$D480` (wKitMixerCode) and the ramp at `$00:$09B9` (DrumPeriodTable,
+      the DRUM pitch mode's periods); resolve the `TBD` RAM roles (the synth
+      parameters, the file-bank flag, the per-instrument table rows)
 
 **Phase 6 — Matching C decompilation (Track 2, if green-lit by Phase 1)**
 - [x] Per-function match workflow (`match_function.py --target`, `make match`)

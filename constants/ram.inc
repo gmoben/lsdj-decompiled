@@ -209,7 +209,7 @@ DEF wChannelVibratoShape              EQU $C35F  ; [4] vibrato waveform select: 
 ; (ch0) / SoundSetupWav (ch2, writes base+2). The same byte yields wChannelVibratoShape/Phase/
 ; Type (bits 4/0/1-2). Named by their verified engine effect (the bit each consumer gates):
 DEF wChannelTableStep                 EQU $C33F  ; [4] byte5 bit3 = instrument TABLE-STEP param; gates the table-setup branch in SoundSetupPu1
-DEF wChannelSlideNoteSource           EQU $C330  ; [4] byte5 bit6: Command_L slide reads the alt note source ($C0EC vs wChannelOutNote) when set
+DEF wChannelDrumPitch                 EQU $C330  ; [4] nonzero when the channel's instrument has PITCH = DRUM (byte 5 bit 6): SoundNoteToPeriod takes the period from DrumPeriodTable, and Command_L slides from wChannelDrumNote
 DEF wChannelTranspose                 EQU $C333  ; [4] byte5 bit5 = instrument TRANSPOSE param (bit set = transpose OFF). When set,
                                                  ; SoundTransposeNote skips adding wChannelChainTranspose to the note. Verified in our code.
 DEF wChannelPitchStep                 EQU $C35C  ; [4] instrument byte 5 bit 7, PITCH on STEP: SoundApplyPitchBend jumps to Command_P_Step (P changes the pitch at once instead of bending)
@@ -296,8 +296,8 @@ DEF wChannelPitchCurrent              EQU $C337  ; [4] 16-bit current pitch valu
 DEF wChannelFinetune                  EQU $C696  ; per-pulse-channel finetune (PU1 $C696, PU2 $C697); SoundWriteFrequencyPu1 subtracts it as a
                                                  ; fine (low-byte) pitch adjustment in the period calc. From instrument finetune param (byte $B)
 DEF wChannelPeriodTablePointer        EQU $C356  ; [4] 16-bit per-channel pointer to the note-period table for pitch interpolation
-                                                 ; (SoundInterpolatePeriod). SoundNoteToPeriod sets it to wNotePeriods ($CF28), or an alt table when
-                                                 ; wChannelSlideNoteSource is set. Pitched channels only (ch0-2; noise excluded)
+                                                 ; (SoundInterpolatePeriod). SoundNoteToPeriod sets it to wNotePeriods ($CF28), or DrumPeriodTable when
+                                                 ; wChannelDrumPitch is set. Pitched channels only (ch0-2; noise excluded)
 DEF wChannelEnvelope                  EQU $C2D8  ; [4] envelope value -> rAUDxENV (ch2/WAV = wave level rAUD3LEVEL)
 ; Per-channel software-envelope working struct, 7 bytes/channel (channel N at base + N*7:
 ; PU1 $CBBC, PU2 $CBC3, WAV $CBCA; set up by SoundSetupPu1/PU2/...). The three
@@ -493,10 +493,10 @@ DEF wChannelActiveNoi                 EQU $C0E3  ; wChannelActive[3] = Noi chann
 DEF wChannelRestartPu2                EQU $C0E5  ; wChannelRestart[1] = Pu2 channel
 DEF wChannelRestartWav                EQU $C0E6  ; wChannelRestart[2] = Wav channel
 DEF wChannelRestartNoi                EQU $C0E7  ; wChannelRestart[3] = Noi channel
-DEF wChannelOutNotePu1High            EQU $C0E9  ; wChannelOutNote[0] hi byte (Pu1)
-DEF wChannelOutNotePu2                EQU $C0EA  ; wChannelOutNote[1]  (Pu2)
-DEF wChannelOutNotePu2High            EQU $C0EB  ; wChannelOutNote[1] hi byte (Pu2)
-DEF wChannelOutNoteWav                EQU $C0EC  ; wChannelOutNote[2]  (Wav)
+DEF wChannelOutNotePu2                EQU $C0E9  ; wChannelOutNote[1] = Pu2 channel
+DEF wChannelOutNoteWav                EQU $C0EA  ; wChannelOutNote[2] = Wav channel
+DEF wChannelOutNoteNoi                EQU $C0EB  ; wChannelOutNote[3] = Noi channel
+DEF wChannelDrumNote                  EQU $C0EC  ; [4] beside wChannelOutNote: the channel's note under DRUM pitch as SoundNoteToPeriod left it (wNoteOctave); Command_L slides from it when wChannelDrumPitch is set
 DEF wChannelFrequencyPu1High          EQU $C0F5  ; channel frequency shadow, PU1 hi (|$80 -> rAUD1HIGH on retrigger)
 DEF wChannelFrequencyPu2              EQU $C0F6  ; channel frequency shadow, PU2 lo
 DEF wChannelFrequencyPu2High          EQU $C0F7  ; channel frequency shadow, PU2 hi
@@ -634,8 +634,8 @@ DEF wChannelVibratoTypeNoi            EQU $C32B  ; wChannelVibratoType[3] = Noi 
 DEF wChannelVibratoPhasePu2           EQU $C32D  ; wChannelVibratoPhase[1] = Pu2 channel
 DEF wChannelVibratoPhaseWav           EQU $C32E  ; wChannelVibratoPhase[2] = Wav channel
 DEF wChannelVibratoPhaseNoi           EQU $C32F  ; wChannelVibratoPhase[3] = Noi channel
-DEF wChannelSlideNoteSourcePu2        EQU $C331  ; wChannelSlideNoteSource[1] = Pu2 channel
-DEF wChannelSlideNoteSourceWav        EQU $C332  ; wChannelSlideNoteSource[2] = Wav channel
+DEF wChannelDrumPitchPu2              EQU $C331  ; wChannelDrumPitch[1] = Pu2 channel
+DEF wChannelDrumPitchWav              EQU $C332  ; wChannelDrumPitch[2] = Wav channel
 DEF wChannelTransposePu2              EQU $C334  ; wChannelTranspose[1] = Pu2 channel
 DEF wChannelTransposeWav              EQU $C335  ; wChannelTranspose[2] = Wav channel
 DEF wChannelTransposeNoi              EQU $C336  ; wChannelTranspose[3] = Noi channel

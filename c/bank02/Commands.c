@@ -29,7 +29,7 @@ extern UBYTE wChannelChord[];                  /* $C218, [4] */
 extern UBYTE wChannelNoteCountdown[];          /* $C160, [8]: the phrase's 4, the table's 4 */
 extern UBYTE wChannelGrooveRow[];              /* $C158, [8] */
 extern UBYTE wChannelTableRow1[];              /* $C208, [8] */
-extern UBYTE wChannelSlideNoteSource[];           /* $C330, [4] */
+extern UBYTE wChannelDrumPitch[];           /* $C330, [4] */
 extern UWORD wChannelPitchCurrent[];               /* $C337, [4] */
 extern UBYTE wChannelCommandStep[];                /* $C34E, [4] */
 extern UBYTE wChannelTableActive[];            /* $C2E8, [4] */
@@ -209,21 +209,21 @@ void SoundRetrigNote(void)
     if (!wSpeechWord || hSoundChannel != CHANNEL_WAV) {
         switch (hSoundChannel) {
         case CHANNEL_PU1:
-            if (wChannelSlideNoteSource[0]) {
+            if (wChannelDrumPitch[0]) {
                 wChannelPitchCurrent[0] = 0x8000;
                 wChannelCommandStep[0] = 1;
             }
             SoundCommandParsePitchValue(&wEnvelopeNode1Pu1);
             break;
         case CHANNEL_PU2:
-            if (wChannelSlideNoteSource[1]) {
+            if (wChannelDrumPitch[1]) {
                 wChannelPitchCurrent[1] = 0x8000;
                 wChannelCommandStep[1] = 1;
             }
             SoundCommandParsePitchValue(&wEnvelopeNode1Pu2);
             break;
         case CHANNEL_WAV:
-            if (wChannelSlideNoteSource[2]) {
+            if (wChannelDrumPitch[2]) {
                 wChannelPitchCurrent[2] = 0x8000;
                 wChannelCommandStep[2] = 1;
             }

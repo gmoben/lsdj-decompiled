@@ -608,6 +608,24 @@ def _stored_halves(rows: list[Row], i: int) -> tuple[int, int, int] | None:
     return hi << 8 | lo, k_lo, k_hi
 
 
+def _pointer_stored(rows: list[Row], i: int) -> tuple[int, int, int] | None:
+    """A pointer stored a byte at a time through a: `ld a, LO / ld [hl+], a /
+    (ld c, a) / ld a, HI / ld [hl], a` (SoundNoteToPeriod aiming a channel at
+    a period table): (the value, the rows of its low and high immediates), or
+    None. Only an address if the caller finds it named."""
+    if i + 4 >= len(rows) or not all(_decoded(r) for r in rows[i:i + 5]):
+        return None
+    t = [r[2] for r in rows[i:i + 5]]
+    lo = re.fullmatch(r"ld a, \$([0-9a-f]{2})", t[0])
+    if not lo or t[1] != "ld [hl+], a":
+        return None
+    k = i + 2 if re.fullmatch(r"ld [b-e], a", t[2]) else i + 1
+    hi = re.fullmatch(r"ld a, \$([0-9a-f]{2})", rows[k + 1][2])
+    if not hi or rows[k + 2][2] != "ld [hl], a":
+        return None
+    return int(hi.group(1), 16) << 8 | int(lo.group(1), 16), i, k + 1
+
+
 def _next_farcall_bank(rows: list[Row], i: int, far: set[int]) -> int | None:
     """The bank of the next banked call within 40 rows (`ld a, BANK / push af /
     inc sp / call FarCall*`)."""
@@ -668,7 +686,10 @@ def rom_pointers(rows: list[Row], bank: int | None, symbols: dict[int, str],
       for a word index), when the address is a ROM row -- returned for both
       rows as (bank, address, "LOW") and (bank, address, "HIGH");
       from another bank a small number matching a home name is as likely a
-      constant (`ld de, $0200` for `$200 - x`), so it stays one.
+      constant (`ld de, $0200` for `$200 - x`), so it stays one;
+    - a pointer stored a byte at a time through a (`ld a, LO / ld [hl+], a /
+      ld a, HI / ld [hl], a`) when it is a global's address, bank 0's or this
+      bank's own (SoundNoteToPeriod aiming a channel at DrumPeriodTable).
     Values that are neither (`ld bc, $0100`, kit-bank offsets) stay numbers."""
     far = {a for a, n in home.items() if n in FARCALL_NAMES}
     home_globals = {a for a, n in home.items() if not n.startswith(".")}
@@ -751,6 +772,15 @@ def rom_pointers(rows: list[Row], bank: int | None, symbols: dict[int, str],
                 out[rows[k_lo][0]] = (tb, v, "LOW")
                 out[rows[k_hi][0]] = (tb, v, "HIGH")
             continue
+        stored = _pointer_stored(rows, i)
+        if stored is not None:
+            v, k_lo, k_hi = stored
+            tb = 0 if v < 0x4000 else bank
+            name = (home if tb == 0 else symbols).get(v, ".") if 0x0100 <= v < 0x8000 and tb is not None else "."
+            if not name.startswith("."):
+                out[rows[k_lo][0]] = (tb, v, "LOW")
+                out[rows[k_hi][0]] = (tb, v, "HIGH")
+                continue
         half = _byte_halves(rows, i) or _offset_halves(rows, i)
         if half is not None:
             v, k_hi = half

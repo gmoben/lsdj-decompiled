@@ -120,7 +120,13 @@ Tables are carved as data by `tools/carve_clean.py` (the coverage trace
 leaves them unreached; a `.sym` tag gives a table its shape). The bytes at
 `$09B9`-`$0A90` (between `WriteInstrumentByte` and `ReadInstrumentByte`) are a
 108-entry 16-bit ramp (`$0000`, `$0013`, `$0026`, … `$07FC`):
-`UnusedRampTable`, since no code reads it.
+`DrumPeriodTable`. A channel whose instrument's PITCH is DRUM
+(`wChannelDrumPitch`, instrument byte 5 bit 6) reads its periods there
+rather than from `wNotePeriods`: linear in the period, so a pitch command
+falls off as the manual says ("like FAST with logarithmic fall-off, useful
+for P kicks"). `SoundNoteToPeriod` stores the table's address a byte at a
+time (`ld a, LOW(DrumPeriodTable) / ld [hl+], a`), which hid it from the
+carve until the shift test's tour played a DRUM instrument.
 
 ## Where to go next
 

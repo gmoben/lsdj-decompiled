@@ -34,8 +34,6 @@ Open — readability, none affect the bytes:
   frequency's high byte. Whether speech ever takes that path is untested.
   The register contracts found it: it is the one place a C caller reads b
   or c after an asm routine that changes it.
-- **Unread table.** The 108-entry 16-bit ramp at `$00:$09B9` is
-  `UnusedRampTable`: no code reads it.
 
 ## What counts
 

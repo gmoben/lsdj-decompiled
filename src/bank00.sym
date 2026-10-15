@@ -123,7 +123,7 @@
 39F2 set_xy_btt                 ; GBDK .set_xy_btt (set_xy_t.s): background tiles from bc at (x, y) = (d, e), (w, h) = (h, l); map base from rLCDC bit 3 ($9800/$9C00), then set_xy_tt
 ; --- defensive checks ---
 0953 WriteInstrumentByte        ; write value (sp+8, <4) to instruments[instr][field]: bank1 $B080 + instr*$10 + field
-09B9 UnusedRampTable            ; [108] UWORD n * 2048 / 107 ($0000, $0013, ... $07FC), linked between WriteInstrumentByte and ReadInstrumentByte; no code reads it
+09B9 DrumPeriodTable            ; [108] UWORD n * 2048 / 107 ($0000, $0013, ... $07FC): the periods of a channel whose instrument's PITCH is DRUM (wChannelDrumPitch), linear in the period; SoundNoteToPeriod aims wChannelPeriodTablePointer here, a byte at a time, in place of wNotePeriods
 0A91 ReadInstrumentByte         ; read instruments[instr][field]: SRAM bank1 $B080 + instr*$10 + field (asserts instr<$40, field<$10)
 0AE2 ReadCurrentInstrumentByte  ; ReadInstrumentByte([wInstrument] current instrument, field)
 0AF6 ReadSequenceByte           ; read song sequence song[step][channel]: bank0 $B290 + step*4 + channel (step<$C0, channel<4)

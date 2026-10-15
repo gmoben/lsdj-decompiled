@@ -430,6 +430,15 @@ class BytePointerTests(unittest.TestCase):
                          "ld [hl], a")
         self.assertEqual(disasm.rom_pointers(rows, 0x07, {}, self.HOME)[0], {})
 
+    def test_pointer_stored_through_a(self):
+        # SoundNoteToPeriod: wChannelPeriodTablePointer = DrumPeriodTable, a byte at a time
+        rows = self.rows("ld a, $b9", "ld [hl+], a", "ld c, a", "ld a, $09", "ld [hl], a", "ld b, a")
+        ptrs, _ = disasm.rom_pointers(rows, 0x02, {}, {0x09B9: "DrumPeriodTable"})
+        self.assertEqual(ptrs, {0x6000: (0, 0x09B9, "LOW"), 0x6006: (0, 0x09B9, "HIGH")})
+        # the same store of a RAM address (wNotePeriods) is no ROM name: it stays numbers
+        rows = self.rows("ld a, $28", "ld [hl+], a", "ld c, a", "ld a, $cf", "ld [hl], a", "ld b, a")
+        self.assertEqual(disasm.rom_pointers(rows, 0x02, {}, {0x09B9: "DrumPeriodTable"})[0], {})
+
     def test_pointer_table_rows(self):
         rows = [(0x4058, b"", "dw $4098", None), (0x405A, b"", "dw $0000", None)]
         ptrs, notes = disasm.rom_pointers(rows, 0x1B, {}, self.HOME, table_bank={0x4058: 0x1B, 0x405A: 0x1B})
