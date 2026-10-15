@@ -20,6 +20,7 @@ code_kind = importlib.import_module("code_kind")
 match_function = importlib.import_module("match_function")
 to_rgbds = importlib.import_module("to_rgbds")
 split_c = importlib.import_module("split_c")
+rename = importlib.import_module("rename")
 disasm = importlib.import_module("disasm")
 
 
@@ -323,6 +324,27 @@ class SplitCTests(unittest.TestCase):
         self.assertTrue(h.startswith("/*\n * The status panel -- LSDj 9.4.0, ROM bank $06.\n *\n * Updated"))
         self.assertLessEqual(max(map(len, h.splitlines())), 80)
 
+
+class RelabelTests(unittest.TestCase):
+    # made-up names: a real one would follow the next rename into this file
+    SYM = "\n".join(["4000 DrawFooCell", "4002 .drawFooCellFar", "4004 .loadFooDigitPal", "4006 .checkIsFOOb",
+                     "4008 .fooRowPalettes", "400A FooRowPalettes", "400C .loadFooDigitPal"])
+
+    def relabel(self, text, pairs):
+        cores = {rename.label_core(n) for n in ("DrawFooCell", "FooRowPalettes", "wFooDigitPal", "wIsFOO", "wFooRow")}
+        return rename.relabel_text(text, pairs, cores | {rename.label_core(n) for _, n in pairs})
+
+    def test_labels_follow_their_global(self):
+        text, n = self.relabel(self.SYM, [("DrawFooCell", "DrawBarName"), ("wFooDigitPal", "wBarDigitPal"),
+                                          ("wIsFOO", "wIsFoo"), ("wFooRow", "wFooPos")])
+        self.assertEqual(n, 4)
+        self.assertEqual(text.split("\n")[1:5], ["4002 .drawBarNameFar", "4004 .loadBarDigitPal",
+                                                 "4006 .checkIsFoob", "4008 .fooRowPalettes"])
+        self.assertTrue(text.endswith("400C .loadBarDigitPal"))   # another scope, the same rename
+
+    def test_a_collision_in_a_scope_stops_the_rename(self):
+        with self.assertRaises(SystemExit):
+            self.relabel("4000 Foo\n4002 .loadQuuxCursor\n4004 .loadQuuxMarker", [("wQuuxMarker", "wQuuxCursor")])
 
 if __name__ == "__main__":
     unittest.main()
