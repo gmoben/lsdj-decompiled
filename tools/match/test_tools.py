@@ -21,6 +21,7 @@ match_function = importlib.import_module("match_function")
 to_rgbds = importlib.import_module("to_rgbds")
 split_c = importlib.import_module("split_c")
 rename = importlib.import_module("rename")
+name_locals_full = importlib.import_module("name_locals_full")
 disasm = importlib.import_module("disasm")
 
 
@@ -338,6 +339,15 @@ class FunctionStartTests(unittest.TestCase):
                          "  0 ___AVeryLongFunctionNameHere_s   0E26 R",
                          "  0 ___ShortName_start               0BB9 R"])
         self.assertEqual(match_function.function_starts(lst), [0x0BB9, 0x0E26])
+
+
+class BranchConditionTests(unittest.TestCase):
+    def test_a_glue_block_named_after_the_test_that_reaches_it(self):
+        bc = name_locals_full.branch_condition
+        self.assertEqual(bc(["\tcp a, $80"], "nz"), ".not80")
+        self.assertEqual(bc(["\tbit 7, a"], "z"), ".bit7Clear")
+        self.assertEqual(bc(["\tld a, [wKitLevel]", "\tor a, a"], "z"), ".kitLevelZero")
+        self.assertIsNone(bc(["\tcp a, [hl]"], "z"))               # no constant: no honest name
 
 
 class RelabelTests(unittest.TestCase):

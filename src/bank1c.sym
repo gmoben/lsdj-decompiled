@@ -267,10 +267,6 @@
 435E .ok
 464F .clearDecompressPosition
 46B7 .loadBlockDestinationPage
-470D .readCompressedByte
-471E .readCompressedByteb
-4839 .loadFileListState
-4AAE .loadFileCursorRestrict
 4D63 .ok
 4DAC .checkCompressByte
 4DBD .okb
@@ -281,48 +277,23 @@
 4FD2 .setDecompressPosition
 52F0 .ok
 5575 .ok
-55A6 .loadFileCursorRestrict
-55D5 .checkFileCursorRestrict
-55E3 .checkFileCursorRestrictb
 5658 .loadShadedDigitPalette
 5721 .loadVramCursor
-5788 .drawStringTile20
 57E2 .loadShadedDigitPalette
 5846 .checkGameboyType
 585D .setVramCursor
-58F9 .setFileCursorRestrict
-58FD .checkFileCursorRestrict
-5938 .setFileCursorRestrict
-593C .checkFileCursorRestrict
 5A68 .setVramCursor
 5B5E .checkAPressEnabled
-5B6B .checkIsSelectingFile
-5BA2 .loadFileCursorRestrict
 5C17 .drawFileScreen
-5C1D .checkProjectStringBuffer
-5C43 .drawBlocksUsed
 5CC8 .setNameEditIsInstrument
-5CE5 .loadFileCursorRestrictb
 5D82 .checkGameboyType
-5D8D .setProjectStringBuffer
-5D98 .loadFileRedrawCount
-5DAA .loadFileRedrawCountb
-5DE9 .checkFileCursorRestrict
 5DF5 .ok
 5E27 .checkAPressEnabledb
-5E34 .checkIsSelectingFileb
-5E3C .setIsSelectingFile
-5E4C .setProjectStringBufferb
-5E65 .checkProjectStringBufferb
 5E95 .setCurrentScreen
-5EFB .checkProjectStringBufferc
-5F82 .checkProjectStringBufferd
 5FF2 .fileMatchName
-5FF5 .checkFileCursorRestrictb
 6001 .okb
 601A .checkGameboyTypeb
 6064 .fileCopyNameToBuffer
-6067 .checkFileCursorRestrictc
 6073 .okc
 608C .checkGameboyTypec
 6FDF .setVramCursor
@@ -361,13 +332,7 @@
 
 
 ; --- full local naming (block signature) ---
-4071 .readSongByte
-408A .readSongByte_2
-40A3 .readSongByte_3
-40BC .readSongByte_4
-40D5 .readSongByte_5
 40EE .cont
-4101 .readSongByte
 4156 .cont
 417C .sram128k            ; no 64K-only marker: the table runs to $a200 (192 blocks)
 4189 .endSet              ; end of table chosen; check wCompressByte < $20
@@ -386,11 +351,9 @@
 4419 .cont_2
 447A .loadCompressDestination
 44A1 .checkArgument
-44F2 .writeCompressedByte
 4530 .checkArgument_2
 4556 .loadCompressDestination_2
 4576 .loadCompressDestination_3
-461C .writeCompressedByte_2
 4632 .loadCompressDestination_4
 4691 .loadSyncSendAccumulator
 46A7 .setCompressBank
@@ -398,11 +361,8 @@
 4701 .filePutDecompressByte
 472F .return01
 4734 .checkDecompressPosition
-476C .writeDecompressByte
 4774 .cont
-47ED .writeSongByte
 47FF .cont
-4827 .writeSongByte_2
 48BA .add16
 48C3 .cont
 48CA .cont_2
@@ -410,11 +370,9 @@
 491A .blockRead           ; CountFileBlocks: not at the end: read the entry
 4929 .pointerIncrementDone          ; CountFileBlocks: p++ done (the high byte carried or not)
 49A2 .cont
-49B1 .readSongByte
 49CD .cont_2
 4A38 .cont
 4A3F .cont_2
-4A9E .setFileCursorRestrict
 4AE3 .cont
 4B16 .index
 4B4E .cont_2
@@ -424,20 +382,14 @@
 4C02 .checkArgument
 4C44 .cont
 4C7B .cont_2
-4C7E .writeSongByte
 4CAD .cont_3
 4CE7 .cont_4
-4D19 .readSongByte
 4D4A .cont_5
 4D51 .cont_6
 4DA0 .decrementCompressByte
-4E4C .writeSongByte
 4E62 .setCompressByte
 4E94 .freeFileBlocks
-4EA1 .drawVerifyPanel
-4EBC .readSongByte
 4F71 .cont
-4F88 .writeSongByte_2
 4FF1 .cont
 4FF4 .setDecompressPosition_2
 500A .cont_2
@@ -452,7 +404,6 @@
 5071 .cont_8
 5214 .cont
 526D .farCall
-5297 .writeSongByte
 5337 .farCall_2
 539A .cont
 539B .checkArgument
@@ -461,32 +412,21 @@
 53E6 .cont_3
 53EA .cont_4
 5426 .cont_5
-5427 .drawStringIndexed
 543A .checkArgument_2
 5445 .cont_6
-5446 .drawStringIndexed_2
-5459 .drawStringIndexed_3
 5465 .cont_7
 5478 .cont_8
-5479 .drawStringIndexed_4
 548C .checkArgument_3
 5497 .cont_9
-5498 .drawStringIndexed_5
-54AB .drawStringIndexed_6
 54B7 .cont_10
 54C3 .cont_11
-54C4 .drawStringIndexed_7
 54D7 .checkArgument_4
 54E2 .cont_12
-54E3 .drawStringIndexed_8
-54F6 .drawStringIndexed_9
 5507 .cont_13
 5511 .cont_14
 5517 .setStringSource_2
 5682 .cont
-5684 .drawStringIndexed
 56DA .stringLength
-5700 .drawStringTile20_2
 570B .drawByte
 5718 .drawString
 5734 .useFileScroll
@@ -497,13 +437,11 @@
 5853 .cont_2
 5855 .fileDrawField
 588D .cont_3
-5A03 .setFileRedrawCount
 5A4D .divU16
 5ACE .cont
 5B01 .cont
 5B2C .branch
 5B4D .farCall
-5B59 .setIsSelectingFile_2
 5BE1 .cont
 5BE4 .fileDrawFieldChecked
 5C09 .farCall_2
@@ -545,7 +483,6 @@
 62F0 .bits2
 62F7 .bits4
 62FB .clearBits21
-634F .readSongByte
 643F .cont
 6458 .cont_2
 645F .cont_3
@@ -598,7 +535,6 @@
 6B93 .cont_3
 6B9A .cont_4
 6B9D .cont_5
-6BC0 .readSongByte
 6CD5 .loadSongReadBuffer
 6D0E .cont
 6D0F .cont_2
@@ -617,18 +553,13 @@
 6EC2 .cont
 6ECC .cont_2
 6ED6 .cont_3
-6ED7 .readSongByte
 6EEE .cont_4
-6F0A .readSongByte_2
 6F21 .cont_5
-6F3D .readSongByte_3
 6F54 .cont_6
 6F6C .cont_7
 6F85 .index
 6FB8 .add16
 70E2 .step
-70E6 .writeSongByte
-7156 .cont
 717F .loadBlockDestinationPage
 7197 .step
 71C1 .cont
@@ -643,6 +574,9 @@
 7485 .incrementBlockDestinationPage
 74AF .incrementDecompressPosition
 74C9 .fileDecompressNextBank_2
-753C .cont
 5092 FileFieldX         ; x of the three file screen fields (0, 5, 10)
 5095 FileFieldWidth     ; their widths (4, 4, 5)
+
+; --- full local naming (block signature) ---
+7156 .cont
+753C .cont

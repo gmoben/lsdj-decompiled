@@ -12,6 +12,8 @@ first meaningful, code-derived name:
   loop head           .loop      (target of a backward branch in-function)
   epilogue            .done      (block starts the ret/add sp/pop tail)
   assert-ok           .ok        (block right after `call DebugTrap`)
+  branch condition    .not80 / .zero / .bit7Set / .levelZero (the test every
+                      conditional branch into the block makes, when they agree)
   fallthrough join    .cont      (nothing nameable -- pure stack/branch glue)
 
 Per-function scope, collision-proof (letter suffixes), seeded against locals
@@ -58,7 +60,51 @@ def block_backrefs(lines):
     return back
 
 
-def propose(body, addr, backrefs, prev_assert):
+COND = {'z': 0, 'nz': 1, 'c': 2, 'nc': 3}
+
+
+def branch_condition(prev, cc):
+    """The name a conditional branch's test gives its target, from the
+    instructions before it (`prev`, nearest last), or None."""
+    k = COND[cc]
+    t = prev[-1] if prev else ''
+    m = re.match(r'\tcp a, \$([0-9a-f]{2})\b', t)
+    if m:
+        v = m.group(1).upper()
+        return ['.is', '.not', '.below', '.atLeast'][k] + v
+    m = re.match(r'\tbit ([0-7]), [a-l]\b', t)
+    if m and k < 2:
+        return f'.bit{m.group(1)}' + ['Clear', 'Set'][k]
+    m = re.match(r'\tand a, \$([0-9a-f]{2})\b', t)
+    if m and k < 2:
+        return f'.mask{m.group(1).upper()}' + ['Clear', 'Set'][k]
+    if re.match(r'\t(?:or|and) a, a\b', t) and k < 2:
+        src = prev[-2] if len(prev) > 1 else ''
+        g = re.match(r'\tld a, \[((?:w|h)[A-Z]\w*)\]', src)
+        return ('.' + lc(cleanvar(g.group(1))) if g else '') + (['Zero', 'Nonzero'][k] if g else ['.zero', '.nonzero'][k])
+    return None
+
+
+def incoming_conditions(lines):
+    """target address -> the names its conditional branches' tests give it
+    (None for a branch without a nameable test, 'jump' for an unconditional one)."""
+    out, prev = {}, []
+    for l in lines:
+        if GLOBAL.match(l):
+            prev = []
+            continue
+        b = re.match(r'\t(?:jr|jp) (?:(n?[zc]), )?\.L_([0-9A-F]{4})\b', l)
+        if b:
+            t = int(b.group(2), 16)
+            out.setdefault(t, []).append(branch_condition(prev, b.group(1)) if b.group(1) else 'jump')
+        if l.startswith('\t'):
+            prev = (prev + [l.split(';')[0].rstrip()])[-3:]
+        elif l.strip():
+            prev = []
+    return out
+
+
+def propose(body, addr, backrefs, prev_assert, conditions=None):
     if prev_assert:
         return '.ok'
     if addr in backrefs:
@@ -144,6 +190,9 @@ def propose(body, addr, backrefs, prev_assert):
         return '.step'
     if body and re.match(r'\tcp a, \$', body[0]):
         return '.branch'
+    names = [c for c in (conditions or {}).get(addr, []) if c != 'jump']
+    if names and None not in names and len(set(names)) == 1:
+        return names[0]
     return '.cont'
 
 
@@ -156,6 +205,7 @@ def analyze(asm, sym):
             curnames[int(m.group(1), 16)] = m.group(2)
     L = open(asm).read().splitlines()
     back = block_backrefs(L)
+    conds = incoming_conditions(L)
     # pre-pass: map every local addr -> enclosing fn, and seed used-sets with
     # ALL prior-pass dot-names per function (order-independent)
     per_fn, used = {}, {}
@@ -195,7 +245,7 @@ def analyze(asm, sym):
             j += 1
             if len(body) >= 10:
                 break
-        nm = propose(body, a, back, prev.startswith('call DebugTrap'))
+        nm = propose(body, a, back, prev.startswith('call DebugTrap'), conds)
         final, kk = nm, 1
         while final in used[cur]:
             kk += 1

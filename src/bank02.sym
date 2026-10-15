@@ -122,7 +122,7 @@
 55CB SoundReadChainEnd            ; chain end-marker check (cp $ff)
 55EF SoundTableCommand1Hop            ; table command column 1's H: H0y hops to row y (SoundTableHop), Hxy counts x hops first (SoundDecodeNibbles)
 5604 SoundTableCommand2Hop            ; table command column 2's H: as SoundTableCommand1Hop for the right column (bit 7 to SoundTableHop)
-561B SoundReadGrooveOrSpeed       ; NB misnomer (no groove/speed access): if wChannelTableFresh[ch], clear it (NOI: also wNoiTableNotePrevious); else when wChannelTableStep[ch]==0 step the 5 table read ptrs (wTableNotePointer, wTableCommand1Pointer, wTableCommand2Pointer, wTableCommand1ValuePointer, wTableCommand2ValuePointer) to the next row
+561B SoundAdvanceTableRow       ; advance the channel's table one row when it runs per tick (wChannelTableStep 0): its five read pointers (note, two commands, two values) step on; skipped the tick a table starts (wChannelTableFresh, cleared here; NOI also clears wNoiTableNotePrevious)
 5657 SoundStepTablePointers           ; advance the channel's table step counter; on 16-step wrap rebuild SRAM read-pointers ($c1xx) for the table transpose ($B480) and command ($BA80) columns of wChannelTable[ch]
 56E1 SoundReadGrooveValue           ; table step 0 -> jp SoundAdvanceGroove unless the groove byte is $20; step 8 -> mark it $ff. (The trailing .initEnvPu1/.initEnvNoi stubs, zeroing wEnvelopeStagePu1/Noi = ex-$cbbf, are separate entries.)
 572B SoundInitializeEnvelope            ; init 3-node envelope for hSoundChannel channel (WAV: none); stage=0, node1 -> vol+speed
@@ -295,10 +295,9 @@
 4D68 .soundQueueSyncByte
 4D6B .soundSplitPhraseNibbles
 4DE8 .soundReadChainPhrase
-4F7E .setChannelNoteStep
 5059 .loadChannelCommandRate
 506E .soundTableStepDispatch
-524B .soundSoundReadGrooveOrSpeed
+524B .soundSoundAdvanceTableRow
 5372 .soundRunTableStep
 53C0 .soundRunTableStepb
 5409 .soundRunTableStepc
@@ -327,7 +326,6 @@
 6E1F .soundStartChannels
 6F73 .ok
 6F7E .okb
-7016 .setChannelFinetuneNoi
 71A5 .noHopCount
 7297 .songQueueSync
 729A .songNextPhrase
@@ -342,7 +340,6 @@
 762C .soundSplitPhraseNibbles
 77E9 .soundAdvanceGrooveCursor
 780F .soundStepAllChannels
-782C .checkWavMode
 7840 .soundUpdateAllChannels
 785B .soundTick
 78DE .checkSyncMode
@@ -367,40 +364,30 @@
 
 
 ; --- full local naming (block signature) ---
-4027 .cont
-402C .cont_2
-4062 .cont
 4064 .shiftBack
 4082 .rewindReadPointer
 409E .readCommandValue
 40BA .endBack
 40C7 .rewindReadPointer_2
 40FB .clamp
-4109 .cont
 4121 .clamp
-412F .cont
 4142 .reopen
 4150 .storeHigh
-4184 .cont
 4186 .shiftBack
 41A4 .rewindReadPointer
 41C0 .readCommandValue
 41DC .endBack
 41E9 .rewindReadPointer_2
 421D .clamp
-422B .cont
 4243 .clamp
-4251 .cont
 4264 .reopen
 4272 .storeHigh
-4280 .cont
 4282 .step
 429C .storeCommandValue
 42AA .storeIdleFrames
 42C3 .loadNoteOctave
 42C6 .storeIdleFrames_2
 42CD .readSoundChannel
-42FC .cont
 42FD .step
 42FE .storeIdleFrames_3
 4318 .setChannelPitchCurrent
@@ -418,8 +405,6 @@
 4704 .readCommandValue
 4715 .readCommandValue_2
 4744 .loadCommandChannel
-4787 .loadOscillatorBankB
-479C .cont
 47E5 .readCommandValue
 47F8 .readCommandValue_2
 4808 .storeCommandWaveParameter
@@ -427,12 +412,7 @@
 4828 .usePu1Sweep
 48C5 .soundReadGroove
 48CA .loadPointerNoteCountdown
-4910 .cont
 4925 .setChannelActive
-4937 .cont_2
-493D .cont_3
-493E .cont_4
-4981 .storeOscillatorBankB
 4A30 .checkSyncMode
 4A43 .readSoundChannel
 4A6C .soundSetVibratoParameters_2
@@ -445,39 +425,26 @@
 4B20 .setChannelPitchCurrent
 4B45 .loadCommand
 4B5B .decrementChannelNoteCountdown
-4B64 .checkOscillatorBankB
-4B75 .checkOscillatorBankB_2
 4BE9 .loadChannelChainTranspose
 4BF1 .readSoundChannel
-4BFD .cont
 4BFE .readSoundChannel_2
-4C11 .cont_2
 4C1D .loadPointerNote
-4CB6 .cont
-4CEC .loadChannelNextPhrase
-4D51 .cont
-4D52 .cont_2
 4D54 .loadRetrigger
 4D5F .readSoundChannel
 4D88 .loadChannelActive
 4DD2 .setChannelChain
-4E53 .cont
 4E65 .return00
 4F63 .setChannelTableStep
 4F6F .setChannelTableStep_2
-4F7D .setChannelNoteStep_2
 4F84 .readSoundChannel
 4FA2 .loadChannelVibratoShape
 4FB1 .loadChannelVibratoShapePu1High
-4FE3 .setChannelNextPhrase
-4FF9 .setChannelNextPhrase_2
 500F .soundReadSramByteVia
 502B .decrementChannelFrequency
 5036 .step
 5186 .storeSoundDataStride
 5195 .loadPointerNote
 51EF .loadPointerNote_2
-5210 .cont
 5214 .readSoundChannel
 5224 .soundSetupLfo
 5229 .loadPointerTableStep
@@ -487,9 +454,7 @@
 52A3 .useSoundDataStride
 52CD .soundBank0Call7362_2
 52DE .readSoundChannel_3
-52EF .loadChannelCommandValueWavHigh
 52F9 .useSoundDataStride_2
-5325 .loadChannelCommandWavHigh
 533D .loadPointerNoteCountdown
 5394 .loadChannelActive
 53DC .loadChannelActive_2
@@ -508,9 +473,7 @@
 56F8 .branch
 56FF .initializeEnvelopePu1
 5798 .loadCommandWaveParameter
-57AB .storeWavMode
 57C7 .loadCommandWaveParameter_2
-57D9 .checkWavMode
 57F7 .loadCommandWaveParameter_3
 580F .step
 5814 .loadCommandWaveParameter_4
@@ -518,50 +481,30 @@
 5875 .index
 599C .testBit5
 59A2 .storeChannelTable
-59CB .storeCommandNoiseNote
 59F0 .storeChannelTablePlayed
-5A02 .storeCommandNoiseNote_2
-5A0A .loadSoundParameters
 5A81 .testBit5
 5A87 .storeChannelTable
-5AB0 .storeCommandNoiseNote
 5AD5 .storeChannelTablePlayed
-5AE7 .storeCommandNoiseNote_2
-5AEF .loadSoundParameters
 5B90 .testBit5
 5B96 .storeChannelTable
-5BBF .storeCommandNoiseNote
 5BE4 .storeChannelTablePlayed
-5BF6 .storeCommandNoiseNote_2
-5BFE .loadSoundParameters
 5C2C .storeWavLevel
 5C6D .storeRetrigger
 5C92 .useSoundParameters
 5CB7 .storeChannelFinetune
-5CC5 .loadOscillatorLoopB
 5CDF .storeChannelFinetune_2
 5CEB .loadChannelNote
-5D2A .storeOscillatorLoopB
-5D2E .loadSoundParameters_2
-5D96 .storeOscillatorLoopB_2
-5D9B .storeOscillatorLoopB_3
-5DAC .cont
 5DFA .testBit5
 5E00 .storeChannelTable
-5E29 .storeCommandNoiseNote
 5E4E .storeChannelTablePlayed
-5E60 .storeCommandNoiseNote_2
-5E68 .loadSoundParameters
 5EBD .readSoundChannel
 5F5A .setrAUD4POLY
 5F74 .storeChannelRetrigRate_2
-5FF0 .cont
 5FF1 .soundWritePanning
 6001 .setrAUDVOL
 60E2 .loadRetrigger
 6109 .setrAUD3ENA
 611D .storeRetrigger
-613C .cont
 613F .storeRetrigger_2
 6149 .loadChannelNote
 6156 .selectOscillatorBank
@@ -569,7 +512,6 @@
 6180 .loadChannelNote_2
 6197 .loadWavLevel_2
 61C9 .return11
-61D7 .cont
 61DA .return10
 61DE .return01
 61E0 .readSoundChannel
@@ -621,18 +563,13 @@
 6F00 .index_2
 6F30 .index_3
 6F8C .index
-6FE2 .setWavMode
-6FEC .loadWavMode
-701B .incrementWavMode
 7023 .setCommandWaveParameter2
-702E .decrementWavMode
 7084 .modulationU8
 70BD .soundSetChannelState5FBE
 70C6 .incrementRetrigger
 70CE .loadRetrigger
 70F5 .decrementRetrigger
 7144 .oncePerTick
-7153 .testHopCount
 718A .countHop
 719E .hopWithinPhrase
 71C2 .jumpToRow
@@ -652,13 +589,10 @@
 7592 .readSoundChannel_2
 75F8 .loadPointerPhraseRow
 7618 .readSoundChannel
-76ED .setOscillatorActive
 7721 .readSoundChannel_2
 7749 .soundBank0Call5074
-7760 .checkOscillatorActive
 777D .readSoundChannel_3
 77D4 .readSoundChannel_4
-785E .setOscillatorActive
 78A0 .return00
 78A5 .readSoundChannel
 78C0 .cont
@@ -692,9 +626,7 @@
 7D36 .stopEnvelopePu2
 7D43 .cont
 7D67 .readSoundChannel
-7DE4 .cont
 7DEE .readSoundChannel
-7E0C .cont_2
 7E0F .readCommandValue
 7E1A .loadChannelVibratoType
 7E3C .readSoundChannel_2
@@ -704,3 +636,65 @@
 
 ; --- pointer targets (tools/name_targets.py) ---
 6715 .soundChannelCases
+
+; --- full local naming (block signature) ---
+4787 .loadNoiseNoteLatch
+4981 .storeNoiseNoteLatch
+4B64 .checkKit1BankPending
+4B75 .checkKit2BankPending
+4CEC .loadChannelRowQueue
+4F7D .step
+4F7E .setChannelChordPhase
+4FE3 .setTableNotePointer
+4FF9 .setTableNotePointer_2
+52EF .loadTableCommand2Value
+5325 .loadTableCommand2
+57AB .storeWavFrameDeltaLoop
+57D9 .checkWavPlayMode
+59CB .storeChannelTableFresh
+5A02 .storeChannelTableActive
+5A0A .loadCurrentInstrumentB7
+5AB0 .storeChannelTableFresh
+5AE7 .storeChannelTableActive
+5AEF .loadCurrentInstrumentB7
+5BBF .storeChannelTableFresh
+5BF6 .storeChannelTableActive
+5BFE .loadCurrentInstrumentB7
+5CC5 .loadKitPitch
+5D2A .storeKit1LengthDisabled
+5D2E .loadCurrentInstrumentB5
+5D96 .storeKit2LengthDisabled
+5D9B .storeKit2OffsetLow
+5E29 .storeChannelTableFresh
+5E60 .storeChannelTableActive
+5E68 .loadCurrentInstrumentB7
+
+; --- full local naming (block signature) ---
+4027 .below80
+402C .cont
+4062 .setKit1LoopStart
+4109 .cont
+412F .cont
+4184 .setKit2LoopStart
+422B .cont
+4251 .cont
+4280 .cont
+42FC .storeCommandSlideTargetNote
+479C .cont
+4910 .cont
+4937 .nonzero
+493D .cont_2
+493E .isFF
+4BFD .readSoundChannel_3
+4C11 .bit7Set
+4CB6 .cont
+4D51 .liveModeNonzero
+4D52 .loadPlayRestartPending
+4E53 .notFF
+5210 .readSoundChannel_4
+5DAC .mask0FClear
+5FF0 .soundWritePanning_2
+613C .storeSpeechPointer
+61D7 .ret10
+7DE4 .readSoundChannel_5
+7E0C .readCommandValue_2

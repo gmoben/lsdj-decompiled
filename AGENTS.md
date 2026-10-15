@@ -593,8 +593,11 @@ Always, before committing:
       (coverage 79% → an honest 77%, still 0 code-like bytes)
 - [x] Render bank 0's 22 inline-trampoline call targets by name (disasm.py
       tracks the `$2000` bank write through each function)
-- [ ] Re-verify/rename the five draw-named per-screen input handlers and
-      `SoundReadGrooveOrSpeed`; regenerate local labels that echo pre-July RAM names
+- [x] Re-verify/rename the five draw-named per-screen input handlers (none
+      reads the buttons now) and `SoundReadGrooveOrSpeed` (it advances a table:
+      SoundAdvanceTableRow); regenerate local labels that echo retired RAM names
+      (tools/name_locals_full.py, which also names a glue block after the test
+      that reaches it)
 - [x] Name `$CB64` (wCompressRunByte), the ~40 immediate-only RAM addresses
       (the matched C's literal pointers, now rendered by name), the WRAM code at
       `$D480` (wKitMixerCode) and the ramp at `$00:$09B9` (UnusedRampTable: no

@@ -232,15 +232,10 @@
 6840 .testBDown
 686C .songRowDown
 68AF .testAB
-69B1 .testSelectionA
 69C8 .selectAClipboard
-6A31 .testSelectionAB
-6A49 .testSelectionStart
 6A72 .testStart
 6B09 .testSelectionRight
 6B5B .testSelectionLeft
-6B91 .testSelectionUp
-6BCA .testSelectionDown
 6C00 .testB
 6C2B .testSelectionB
 6D3A .none
@@ -249,9 +244,7 @@
 
 
 ; --- first-action / assert local names ---
-421F .drawTempoField
 42C4 .loadShadedDigitPalette
-42F4 .drawWordCursor
 4312 .eraseWordCursor
 4402 .cut                 ; WordScreenInput: SELECT+B: cut the word into the clipboard
 441E .cutClipboardOk           ; WordScreenInput: clipboard type already a word, or not in a selection
@@ -293,7 +286,6 @@
 574D .okb
 58B9 .ok
 5956 .ok
-59B1 .drawStringTile20
 59D1 .setVramCursor
 5A11 .okb
 5A20 .loadChainRow
@@ -341,8 +333,6 @@
 7421 .checkSyncRun
 7435 .syncStatusFlag
 747F .checkPlayMode
-74C9 .drawSyncStatusLsdj
-74CF .drawSyncStatusMidi
 74D5 .checkPlayMode
 74F3 .checkPlayModeb
 
@@ -353,12 +343,10 @@
 40C5 .index
 415F .cont
 4161 .loadWordColumn
-4219 .drawTempoField_2
 423F .index
 4250 .checkArgument
 4279 .drawSample          ; (was DrawSampleNameFull) the word screen's sample-name column
 42BB .drawString
-42DB .readSongByte
 43C8 .upDone              ; WordScreenInput: the row already 0
 45A2 .restoreColumn          ; WordScreenInput: nothing entered: put the column back
 45E8 .enterFail           ; WordScreenInput: A changed nothing: return 0
@@ -391,15 +379,12 @@
 4A01 .cont
 4A27 .shiftStep
 4A83 .cont
-4A9D .writeSongByte
 4ACC .cont
 4AF8 .cont_2
 4B33 .chainScanCommand
 4B87 .loadWordColumn
 4B91 .cont
-4BC6 .setOamByte
 4C00 .cont
-4C14 .setOamByte_2
 4CEB .cont
 4CED .checkGameboyType_2
 4D00 .cont_2
@@ -411,7 +396,6 @@
 4D33 .cont_6
 4D35 .cont_7
 4D38 .cont_8
-4D3C .writeVramByteSafe
 4D4E .testBit0_2
 4D64 .cont_9
 4D66 .checkGameboyType_4
@@ -458,7 +442,6 @@
 5709 .step
 5722 .checkCurrentScreen
 57BB .checkArgument
-57CE .readSongByte
 57E8 .cont
 581C .writeNote
 584E .writeCommand
@@ -466,20 +449,17 @@
 58B6 .loadChainColumn
 58C6 .cont
 58CA .setChainRow
-58F1 .drawTextField
 590D .index
 59BC .setVramCursor_2
 5A02 .loadChainRow_2
 5A0E .checkGameboyType
 5A1E .setChainRow
 5A71 .loadSongColumn
-5AB3 .clearSpriteY
 5ACE .setChainRow
 5B3A .loadSongColumn
 5BBE .farCall
 5BED .aStore
 5C04 .notSelectionMode
-5C05 .storeSelectionMode
 5CF5 .readPhrase
 5D1E .notEmptyCell
 5D1F .storeEmpty
@@ -495,16 +475,8 @@
 5EDA .downDone
 5F0E .incrementOne
 5F14 .incrementSorted
-5FA0 .incrementNotPhraseColumn
-5FA1 .incrementPhraseColumnTest
-5FB4 .incrementNotTransposeColumn
-5FB5 .incrementTransposeColumnTest
 5FBF .incrementPhrase
-5FF5 .incrementNotLast
-5FF6 .incrementLastTest
 6061 .incrementTranspose
-60B8 .incrementNextRow
-60C2 .incrementNextColumn
 60CC .incrementDone
 6100 .bigOne
 6106 .bigSorted
@@ -528,14 +500,8 @@
 6316 .bigDone
 634A .decrementOne
 6350 .decrementSorted
-63DC .decrementNotPhraseColumn
-63DD .decrementPhraseColumnTest
-63F0 .decrementNotTransposeColumn
-63F1 .decrementTransposeColumnTest
 63FB .decrementPhrase
 6494 .decrementTranspose
-64EC .decrementNextRow
-64F6 .decrementNextColumn
 6500 .decrementDone
 6534 .bigDecrementOne
 653A .bigDecrementSorted
@@ -614,7 +580,6 @@
 71B2 .cont_11
 71E3 .cont_12
 7221 .cont
-723D .loadOscillatorBankB
 7250 .cont_2
 7260 .cont_3
 7270 .drawString
@@ -628,14 +593,7 @@
 738B .cont_3
 7397 .cont_4
 739D .checkWordColumn
-73F5 .cont
-73F6 .cont_2
-7404 .cont_3
-7408 .cont_4
-744A .drawSyncStatusText
-7493 .drawSyncStatusText
 74E5 .cont
-74EA .drawSyncStatusText
 7503 .cont_2
 7574 .cont
 75D0 .checkArgument
@@ -648,7 +606,6 @@
 7661 .drawString_6
 766D .add16
 76C3 .cont_2
-76CC .drawStringIndexed
 76D7 .drawString_7
 7890 .setKeyboardInstrument
 782C TxtNoNote                  ; "---" DrawNoteName's empty cell (string literals after NoteNames)
@@ -659,3 +616,9 @@
 7840 TxtKitNoteC8               ; "C 8" kit sample $77
 7844 TxtKitNoteBad              ; "???" kit sample >= $78
 7848 TxtNoteBad                 ; "???" note > $6C
+
+; --- full local naming (block signature) ---
+73F5 .notFF
+73F6 .cont
+7404 .cont_2
+7408 .cont_3

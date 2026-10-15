@@ -139,7 +139,6 @@
 41E6 .setCurrentScreene
 41EE .checkInstrument
 41FE .setCurrentScreenf
-4205 .setCurrentScreeng
 4243 .ok
 427A .ok
 4297 .ok
@@ -185,15 +184,8 @@
 4EB3 .upCursor
 4ECD .downCursor
 4ED5 .incrementRows
-4F58 .incrementCommand1Pointers
-4F6B .incrementCommand2Pointers
-5064 .incrementCommandTarget
-50C0 .incrementCommandDraw
 5207 .decrementRows
-528A .decrementCommand1Pointers
-529D .decrementCommand2Pointers
 5367 .decrementCommand
-53EE .decrementCommandDraw
 5521 .bigRows
 55A4 .bigCommand1Pointers
 55B7 .bigCommand2Pointers
@@ -268,12 +260,9 @@
 
 ; --- full local naming (block signature) ---
 40B2 .cont
-40B4 .drawStringIndexed
 40D3 .cont_2
-40D5 .drawStringIndexed_2
 41FC .setCurrentScreen_2
 42C9 .cont
-42CB .drawStringIndexed
 431E .step
 435B .cont
 4389 .index
@@ -285,7 +274,6 @@
 45C7 .index
 4609 .loadTableColumn
 467D .index
-4756 .drawHexByte
 47F9 .add16
 48FC .cont
 48FE .cont_2
@@ -293,11 +281,9 @@
 4956 .cont
 4957 .cont_2
 4963 .cont_3
-498D .clearSpriteY
 49AB .loadSongColumn_2
 4A12 .loadSongColumn_3
 4A55 .loadSongColumn_4
-4A7A .setSpriteY
 4AC7 .cont
 4AC9 .loadTableColumn
 4B86 .aStore
@@ -313,45 +299,24 @@
 4F18 .incrementSorted
 4F7B .incrementCell
 4FCD .incrementEnvelope
-4FFD .incrementEnvelopeKept
 5007 .incrementTranspose
 5036 .incrementCommand
 5072 .incrementCommand1
-5074 .incrementCommandTargetSet
 50F1 .incrementCommandHelp
 5114 .incrementCommandValue
 5143 .incrementValue
 5177 .incrementTableCommand
-5186 .incrementHopCommand
-5195 .incrementPanCommand
-51A4 .incrementPanRight
-51AB .incrementWaveCommand
-51BC .incrementWaveStep
-51C2 .incrementValueStep
-51C5 .incrementValueWrite
-51F8 .incrementNextRow
 5202 .incrementDone
 523C .decrementOne
 524A .decrementSorted
 52AD .decrementCell
 52FF .decrementEnvelope
-5314 .decrementEnvelopeDraw
-532E .decrementEnvelopeKept
 5338 .decrementTranspose
 5375 .decrementCommand1
-5377 .decrementCommandTargetSet
-53A8 .decrementCommandRead
 541F .decrementCommandHelp
 5442 .decrementCommandValue
 5471 .decrementValue
 54A1 .decrementTableCommand
-54B0 .decrementPanCommand
-54BF .decrementPanLeft
-54C6 .decrementWaveCommand
-54D6 .decrementWaveStep
-54DC .decrementValueStep
-54DF .decrementValueWrite
-5512 .decrementNextRow
 551C .decrementDone
 5556 .bigOne
 5564 .bigSorted
@@ -545,10 +510,6 @@
 
 ; --- pointer targets (tools/name_targets.py) ---
 4CEB .columnCases
-4F4C .incrementPointerCases
-4FBB .incrementColumnCases
-527E .decrementPointerCases
-52ED .decrementColumnCases
 5598 .bigPointerCases
 5607 .bigColumnCases
 58F2 .bigDecrementPointerCases

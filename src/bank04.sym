@@ -201,13 +201,9 @@
 4B7D .ok
 4B89 .okb
 4CF4 .ok
-4F65 .drawStringTile20
-4FBD .drawStringTile20b
 4FC0 .checkGameboyType
-502A .drawStringTile20c
 5088 .checkPhraseColumn
 50A6 .checkCursorMode
-50B5 .drawPhraseCursorFar
 5158 .clearSelectionLeft
 5167 .phraseCurrentNoteIsKit
 5175 .loadPhraseColumn
@@ -249,18 +245,12 @@
 6167 .downStep
 6190 .downWrap
 61F1 .downCursor
-6308 .incrementKitHighDone
-63E4 .incrementNoteDone
-648A .incrementCommandTest
 65D3 .incrementWave
 675A .bigKitHighDone
 683D .bigNoteDone
 68E3 .bigCommandTest
 6A23 .bigWave
 6A4A .bigSweep
-6C32 .decrementKitHighDone
-6D47 .decrementNoteDone
-6DE0 .decrementCommandTest
 7102 .bigDecrementKitHighDone
 7225 .bigDecrementNoteDone
 72BD .bigDecrementCommandTest
@@ -288,7 +278,6 @@
 
 ; --- full local naming (block signature) ---
 4051 .cont
-4053 .drawStringIndexed
 406C .cont
 406E .cont_2
 40AA .step
@@ -321,7 +310,6 @@
 44F2 .checkCursorMode_2
 4538 .cont_6
 4543 .resolvePhraseCursorNote
-456E .drawNoteNameFar
 45BE .step
 45F1 .loadSongColumn
 4618 .cont
@@ -336,20 +324,17 @@
 46B3 .add16
 46C5 .cont_9
 46D0 .resolvePhraseCursorNote
-46FD .drawNoteNameFar
 474A .step
 4784 .loadSongColumn
 47BD .phraseModeTile_2
 47D4 .cont
 47D8 .resolvePhraseCursorNote
-4803 .drawNoteNameFar
 4850 .step
 488C .loadSongColumn
 48A6 .checkArgument
 48C3 .cont
 48C6 .phraseModeTile_2
 48DF .resolvePhraseCursorNote
-490A .drawNoteNameFar
 493F .index
 49A3 .step
 4A0A .step
@@ -377,7 +362,6 @@
 4E8C .step_3
 4EE5 .cont_7
 4F00 .cont_8
-4F55 .readKitSampleName
 4F6B .checkDefaultNotes
 4F7C .cont_9
 4FA6 .index_2
@@ -386,7 +370,6 @@
 4FEC .cont_12
 4FEF .setrVBK
 500C .checkArgument_3
-5020 .drawHexByte
 5082 .checkPhraseColumn_2
 50B8 .farCall
 5128 .cont
@@ -421,16 +404,10 @@
 5459 .restoreSelection    ; PastePhraseSelection: restore wSelectionLeft/wSelectionRight after a shifted pair
 54BB .cont
 557F .farCallByte
-5597 .copyInstrumentBytes
 5627 .cont
 562F .farCallByte
 5643 .cont_2
-568C .cont
 568D .checkPhraseColumn
-56A3 .cont_2
-56A4 .cont_3
-56B2 .cont_4
-56B6 .cont_5
 56CC .return00
 5716 .return01
 571B .cont
@@ -438,12 +415,10 @@
 57B0 .farCall
 5816 .cont
 5821 .farCall
-58FF .readInstrumentByte
 591C .cont
 591D .cont_2
 5923 .cont_3
 5929 .cont_4
-592F .readInstrumentByte_2
 5946 .cont_5
 5947 .cont_6
 5957 .cont_7
@@ -460,11 +435,9 @@
 5A04 .noNext
 5A08 .drawName
 5A46 .return00
-5A4B .readInstrumentByte
 5A68 .cont
 5A69 .cont_2
 5A73 .cont_3
-5A79 .readInstrumentByte_2
 5A90 .cont_4
 5A91 .cont_5
 5AA1 .cont_6
@@ -479,7 +452,6 @@
 5B42 .noNext
 5B46 .drawName
 5B7F .return00
-5B8A .readInstrumentByte
 5BA1 .cont
 5BA2 .cont_2
 5BE8 .aTested
@@ -518,29 +490,15 @@
 6152 .downMove
 61E4 .downDraw
 61F4 .downDone
-6235 .incrementCursorRow
 6243 .incrementRows
-6297 .incrementKitHigh
-62B8 .incrementKitHighWrite
 630E .incrementNote
-6371 .incrementNoteEdit
-637E .incrementKitLow
-639F .incrementKitLowWrite
 63EA .incrementInstrument
-6447 .incrementCommandStep
-6482 .incrementCommandClamp
-64DF .incrementCommandDraw
 6509 .incrementCommandHelp
 652C .incrementCommandValue
 6561 .incrementValue
 65AE .incrementGroove
 65BD .incrementOutput
-65CC .incrementOutputRight
-65E4 .incrementWaveStep
 65EA .incrementTable
-65F7 .incrementValueStep
-65FA .incrementValueWrite
-6631 .incrementNextRow
 663B .incrementRedraw
 6645 .incrementDone
 6686 .bigCursorRow
@@ -570,34 +528,16 @@
 6AAC .bigNextRow
 6AB6 .bigRedraw
 6AC0 .bigDone
-6B01 .decrementCursorRow
 6B0F .decrementRows
-6B63 .decrementKitHigh
-6B88 .decrementKitHighFloor
-6B8C .decrementKitHighWrite
-6C1E .decrementKitHighFound
 6C38 .decrementNote
-6C98 .decrementNoteEdit
-6CA5 .decrementKitLow
-6CC8 .decrementKitLowFloor
-6CCC .decrementKitLowRead
-6D20 .decrementKitLowFound
 6D4D .decrementInstrument
-6DA6 .decrementCommandStep
 6E51 .decrementCommandHelp
 6E74 .decrementCommandValue
 6EA9 .decrementValue
 6EF6 .decrementGroove
 6F01 .decrementWave
-6F11 .decrementWaveStep
 6F17 .decrementOutput
-6F24 .decrementOutputLeft
-6F26 .decrementOutputSet
 6F2C .decrementTable
-6F3A .decrementTableOff
-6F41 .decrementValueStep
-6F44 .decrementValueWrite
-6F7B .decrementNextRow
 6F85 .decrementRedraw
 6F8F .decrementDone
 6FD0 .bigDecrementCursorRow
@@ -665,9 +605,14 @@
 ; --- pointer targets (tools/name_targets.py) ---
 52AB .jumpTable           ; PastePhraseSelection: switch (x)
 5D1E .aColumnTable
-6288 .incrementColumnTable
 66D9 .bigColumnTable
-6B54 .decrementColumnTable
 7023 .bigDecrementColumnTable
 7621 .cutColumnTable
 7955 .pasteColumnTable
+
+; --- full local naming (block signature) ---
+568C .loadPhraseColumn
+56A3 .cont
+56A4 .cont_2
+56B2 .cont_3
+56B6 .cont_4

@@ -23,7 +23,7 @@ Known gaps — asm fidelity/readability, none affect the bytes:
   16-bit immediates — mostly buffer bases handed to helpers (`ld de, $c457`
   ×21, `$C90D`, `$CA34`, …), some probably signed constants (`ld hl, $fffe`).
   ~13 named variables still carry `TBD` notes on their exact role.
-- **Stale names.** `SoundReadGrooveOrSpeed` actually steps table
+- **Stale names.** `SoundAdvanceTableRow` actually steps table
   pointers; generated local labels still echo pre-July RAM names (e.g.
   `.loadOscActive_2` in `TimerHandler`, from the old "oscilloscope" reading).
 - **Unread table.** The 108-entry 16-bit ramp at `$00:$09B9` is

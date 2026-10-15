@@ -56,14 +56,9 @@
 403C .cont
 403E .checkCurrentScreen
 42B0 .setStringSource
-7A09 .writeVramByteSafe
 7A18 .cont
-7A27 .writeVramByteSafe_2
 7AD9 .cont
 7AE1 .cont_2
-7AE6 .loadTilesDispatch
 7AF5 .cont_3
 7B1B .cont_4
 7B33 .cont_5
-7B48 .loadTilesDispatch_2
-7B77 .loadTilesDispatch_3

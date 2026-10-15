@@ -275,7 +275,6 @@
 4FC8 .drawSongScreen
 51F7 .setBHeld
 52E1 .redrawSongRow
-534D .loadSongCursorChain
 5355 .checkClipboardType
 5363 .songReadCellValue
 53AF .checkLiveModec
@@ -347,16 +346,9 @@
 704A .sendSyncHandshake
 7069 .songDequeueByte
 707B .songDequeueByteb
-71EF .drawHexOrDashes
 
 
 ; --- full local naming (block signature) ---
-405C .cont
-4060 .cont_2
-406C .cont_3
-4070 .cont_4
-407C .cont_5
-4080 .cont_6
 410B .index
 4176 .index
 4212 .cont
@@ -374,23 +366,16 @@
 43F6 .step
 448C .cont
 448E .cont_2
-4503 .drawHexByte
 469B .setPlayMarkerTimer
-46F1 .clearSpriteY
 46FE .index
-471C .clearSpriteY_2
 4730 .index_2
-4755 .clearSpriteY_3
-4762 .setSpriteTile3
 476C .useSongScroll
 47A0 .cont
-47BA .clearSpriteY
 4830 .cont
 4838 .loadSongRow_2
 4865 .cont_2
 4866 .loadHighlightDigitPalette_2
 4877 .testBit7
-488B .drawHexByte
 4895 .loadShadedDigitPalette
 48B0 .cont_3
 48B8 .checkGameboyType_2
@@ -506,12 +491,10 @@
 630A .cont
 6361 .checkArgument
 636D .cont
-63A2 .writeBookmarkByte
 6406 .next
 6431 .addBookmark
 64A1 .cont
 64BA .sortBookmarks
-652A .writeBookmarkByte
 6536 .cont
 65A4 .loadKeyboardHeldNote
 65C1 .cont
@@ -605,12 +588,23 @@
 7093 .cont
 715A .drawString
 71E8 .storeBgDigitPalette
-7268 .cont
 726F .setrVBK
-72B3 .cont
 72BA .setrVBK
-734E .cont
 7355 .step
-73E8 .cont
 73EF .step
-7407 .cont
+
+; --- full local naming (block signature) ---
+71EF .drawHexOrDashes
+
+; --- full local naming (block signature) ---
+405C .cont
+4060 .cont_2
+406C .cont_3
+4070 .cont_4
+407C .cont_5
+4080 .cont_6
+7268 .setrVBK_2
+72B3 .setrVBK_2
+734E .cont
+73E8 .cont
+7407 .notB5

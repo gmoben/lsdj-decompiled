@@ -364,11 +364,9 @@
 767F .ok
 76BB .okb
 773F .okc
-777F .drawStringTile20
 
 
 ; --- full local naming (block signature) ---
-4050 .readCurrentInstrumentByte
 4078 .cont
 407D .toDrawString
 4085 .drawString          ; shared DrawString tail of DrawInstrumentTableMode (was mislabelled GetInstrTable1F)
@@ -378,7 +376,6 @@
 4108 .loopOff
 4182 .cont
 4186 .cont_2
-4210 .drawHexByte
 421B .drawByte
 42B0 .drawString
 43EB .drawString
@@ -399,7 +396,6 @@
 4782 .cont_2
 4789 .cont_3
 4790 .cont_4
-4794 .drawStringIndexed
 488D .cont_5
 488F .mulU8
 48EC .index
@@ -449,7 +445,6 @@
 4FB4 .cont_2
 4FBB .cont_3
 4FD6 .index
-503D .readSongByte
 506B .cont
 5072 .cont_2
 5079 .cont_3
@@ -588,14 +583,11 @@
 610A .cont_4
 6140 .cont_5
 6146 .cont_6
-615B .cont
-615F .cont_2
 6172 .step
 61D3 .step
 627C .step
 6280 .checkArgument
 62B3 .cont
-64D6 .clearSpriteY
 6547 .add16
 655F .add16_2
 6574 .return00
@@ -630,8 +622,6 @@
 6B9C .normalColor         ; HighlightPhraseCell: palette chosen; width through wDrawTextScratch
 6BDE .alternateDmg              ; HighlightPhraseCell: palette 2 (DMG)
 6BE2 .alternateColor            ; HighlightPhraseCell: palette chosen; width through wDrawTextScratch
-6C6F .readSongByte
-6C83 .drawStringIndexed
 6C91 .drawString
 6CCA .loadPhraseRow_2
 6CE2 .cont
@@ -662,24 +652,18 @@
 6F8E .cont_2
 6F96 .drawString
 6FDA .cont_3
-7090 .drawChannelStatus
 70ED .speechCursorY_2
 7195 .cont
 719D .checkArgument
 7232 .speechCursorY_2
 72AA .loadSpeechRow
-72D4 .readSongByte
-72FE .readSongByte_2
 7455 .step
 74A1 .cont
 74B9 .cont_2
-74C0 .readSongByte_3
 74F9 .cont_3
 7500 .cont_4
 7506 .mulU16
 7554 .checkButtons_2
-759A .writeSongByte
-75BC .writeSongByte_2
 75E8 .cont_5
 75EA .cont_6
 762A .showMessage
@@ -700,3 +684,7 @@
 411B .stringOff
 5D15 .stringOk               ; DeduplicateChains: "OK"
 5DC6 .stringOk               ; DeduplicateTables: "OK"
+
+; --- full local naming (block signature) ---
+615B .cont
+615F .cont_2

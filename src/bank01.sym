@@ -292,16 +292,12 @@
 4F65 .ok
 4FA7 .ok
 5031 .checkPlayMode
-5075 .checkFrameCounter
 528A .loadInstrument
 52BA .setSelectionLeft
 5512 .checkCursorMode
 551E .checkSelectHeld
-5552 .writeInstrumentByte
 5588 .loadInstrument
-559E .drawScreenPaletteMap
 6CF2 .setMessageStringPointer
-6ED1 .drawStringTile20
 6F67 .checkCurrentScreen
 7549 .checkGameboyType
 756E .loadHighlightDigitPalette
@@ -357,16 +353,9 @@
 4772 .synthParameterDefault   ; bytes 5/9 = $10, 6/10 = $ff
 47B8 .waveFrames          ; bank 3: 'rb' at $bff0, then the default wave frame into every frame
 4801 .finish              ; $bfff = $16, ei, disable SRAM
-482B .readSongByte
 4844 .cont
-4876 .readSongByte
-48A3 .readSongByte_2
 48D0 .cont
 4962 .mulU16
-498A .readSongByte
-49B3 .readSongByte_2
-49DC .readSongByte_3
-4A05 .readSongByte_4
 4A82 .cont
 4AA3 .cont_2
 4AC4 .cont_3
@@ -392,15 +381,8 @@
 4E94 .step
 4F90 .step
 4FE1 .step
-4FFD .incrementClockFrame60
 500A .cont
 500D .tick                 ; (was UpdateWorkClock) once a second: advance the PLAY clock, redraw it on the project screen
-501D .setClockFrame60
-5087 .loadFrameCounter
-50E9 .writeSongByte
-50F9 .readSongByte
-5167 .writeSongByte_2
-517A .writeSongByte_3
 51A1 .testBit4
 51B5 .testBit6
 51D9 .drawString
@@ -412,7 +394,6 @@
 534A .step
 535B .step_2
 5492 .cont
-5495 .readCurrentInstrumentByte
 54C7 .showMessage
 5532 .cont
 555B .cont_2
@@ -423,7 +404,6 @@
 5672 .cont_5
 5678 .cont_6
 56A2 .cont_7
-6D19 .copyScreenMapDmg
 6D4D .setrVBK
 6D7C .checkCurrentScreen_2
 6E08 .setMessageStringPointer
@@ -443,8 +423,6 @@
 7738 .cont_5
 7740 .cont_6
 7756 .showMessage
-7870 .cont
-7874 .cont_2
 7889 .checkMessageStringPointer
 7A92 .stackDump
 7B14 .nextWord
@@ -452,7 +430,6 @@
 7CEB .farCall
 7D73 .setKeyDelay
 7E12 .branch
-7E1A .cont
 7E1C .setrVBK
 7E37 .readStat
 6F7E TxtTitle                   ; "LITTLE SOUND DJ " running on into TxtVersion: main's startup message
@@ -461,3 +438,8 @@
 
 ; --- pointer targets (tools/name_targets.py) ---
 781E .stringEmpty
+
+; --- full local naming (block signature) ---
+7870 .cont
+7874 .cont_2
+7E1A .setrVBK_2
