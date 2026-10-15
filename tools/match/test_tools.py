@@ -243,7 +243,7 @@ class BytePointerTests(unittest.TestCase):
                       ["ld b, $65", "ld c, $6f", "ld hl, $0003", "ld [hl], b", "inc hl", "ld [hl], c"]):
             rows = self.rows(*setup, "push hl", "ld a, $02", "push af", "inc sp", "call $0c8f")
             ptrs, _ = disasm.rom_pointers(rows, 0x06, {}, {0x0C8F: "FarCallArg2"},
-                                          lambda b: {0x6F65: "SndGetChainPhrase"} if b == 0x02 else {})
+                                          lambda b: {0x6F65: "SoundGetChainPhrase"} if b == 0x02 else {})
             lo = next(a for a, r in zip(range(0x6000, 0x7000, 2), rows) if r[2] in ("ld [hl], $65", "ld b, $65"))
             hi = next(a for a, r in zip(range(0x6000, 0x7000, 2), rows) if r[2] in ("ld [hl], $6f", "ld c, $6f"))
             self.assertEqual(ptrs, {lo: (0x02, 0x6F65, "LOW"), hi: (0x02, 0x6F65, "HIGH")}, setup)
@@ -323,6 +323,16 @@ class SplitCTests(unittest.TestCase):
                            "playing note (a kit's sample name or a note name) and the sync status.", "06")
         self.assertTrue(h.startswith("/*\n * The status panel -- LSDj 9.4.0, ROM bank $06.\n *\n * Updated"))
         self.assertLessEqual(max(map(len, h.splitlines())), 80)
+
+
+class FunctionStartTests(unittest.TestCase):
+    def test_a_start_label_the_symbol_table_truncated(self):
+        # as-gbz80 keeps 32 characters of a symbol: the table loses `_start`
+        lst = "\n".join(["   0BB9                    3976 ___ShortName_start:",
+                         "   0E26                    4678 ___AVeryLongFunctionNameHere_start:",
+                         "  0 ___AVeryLongFunctionNameHere_s   0E26 R",
+                         "  0 ___ShortName_start               0BB9 R"])
+        self.assertEqual(match_function.function_starts(lst), [0x0BB9, 0x0E26])
 
 
 class RelabelTests(unittest.TestCase):

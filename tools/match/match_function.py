@@ -597,13 +597,22 @@ def link_function(work: Path, env: dict[str, str], asm: str, lst: str,
         trailing_data(lst, end, mem, addr - start)
 
 
+def function_starts(lst: str) -> list[int]:
+    """Every function's area-relative start, from the listing. The listing's
+    source lines carry the whole `___<name>_start:` label; its symbol table
+    keeps only NCPS (32) characters of it, which loses the `_start` of a name
+    over 23 characters, so both are read."""
+    body = re.finditer(r"^\s*([0-9A-Fa-f]{4})\s+\d+\s+___\w+?_start:", lst, re.M)
+    table = re.finditer(r"___\w+?_start +([0-9A-Fa-f]{4})\b", lst)
+    return sorted({int(m.group(1), 16) for m in (*body, *table)})
+
+
 def trailing_data(lst: str, end: int, mem: dict[int, int], base: int) -> bytes:
     """The bytes the unit places right after a function: the constant segment
     SDCC flushes there (its string literals and const data), up to the next
     function in the unit or the first gap. The ROM must have them too --
     the code bytes alone only check their addresses, not their contents."""
-    starts = [int(m.group(1), 16) for m in re.finditer(r"___\w+?_start +([0-9A-Fa-f]{4})\b", lst)]
-    stop = min((a for a in starts if a >= end), default=None)
+    stop = min((a for a in function_starts(lst) if a >= end), default=None)
     out = bytearray()
     a = end
     while (stop is None or a < stop) and (base + a) in mem:
