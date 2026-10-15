@@ -14,7 +14,7 @@ extern volatile sfr UBYTE OBP0_REG;         /* $FF48 */
 extern volatile sfr UBYTE NR50_REG;         /* $FF24 */
 extern volatile sfr UBYTE NR51_REG;         /* $FF25 */
 extern volatile sfr UBYTE NR52_REG;         /* $FF26 */
-extern volatile sfr UBYTE hSoundCh;         /* $FF8B */
+extern volatile sfr UBYTE hSoundChan;         /* $FF8B */
 extern UBYTE wColorSet;
 extern UBYTE wSelectionTop;                       /* $C40E */
 extern UBYTE wSelectionRight;                     /* $C40F */
@@ -108,7 +108,7 @@ extern UBYTE ScreenPalInstrNoise[];         /* $01:$6467 */
 extern UBYTE ScreenPalInstrPulse[];         /* $01:$602F */
 extern UBYTE ScreenPalInstrWave[];          /* $01:$6197 */
 extern UBYTE ScreenPalPhrase[];             /* $01:$5A8F */
-extern UBYTE ScreenPalProject[];            /* $01:$5D5F */
+extern UBYTE ScreenPalProj[];            /* $01:$5D5F */
 extern UBYTE ScreenPalSong[];               /* $01:$5EC7 */
 extern UBYTE ScreenPalSpeech[];             /* $01:$65CF */
 extern UBYTE ScreenPalSynth[];              /* $01:$689F */
@@ -539,7 +539,7 @@ UBYTE *GetScreenPal(void)
     case 8:
         return ScreenPalWave;
     case 9:
-        return ScreenPalProject;
+        return ScreenPalProj;
     case 10:
         return ScreenPalSynth;
     case 11:
@@ -822,7 +822,7 @@ void LoadProjSettings(UBYTE keep)
     hBgDigitPal = 4;
     hBgPal = 1;
     ApplyColorSet();
-    hSoundCh = 0;
+    hSoundChan = 0;
     _asm di _endasm;
     rRAMG = 0x0A;
     rRAMB = 1;

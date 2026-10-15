@@ -51,12 +51,12 @@ UBYTE SynthScreenInput(void);
 UBYTE WordScreenInput(void);
 UBYTE FileScreenInput(void);
 UBYTE HelpScreenInput(void);
-extern volatile sfr UBYTE hSoundCh;         /* $FF8B */
+extern volatile sfr UBYTE hSoundChan;         /* $FF8B */
 extern UBYTE wChanOutput[];                 /* $C0A0, [4] */
 extern UBYTE wChanOutputOverride[];         /* $C0A4, [4] */
 extern UBYTE wChanOutputSoloSaved[];        /* $C0A8, [4] */
 extern UBYTE wMuteSoloLatch;                /* $C56A */
-extern UBYTE wKbdActionCh;                  /* $CB9A */
+extern UBYTE wKbdActionChan;                  /* $CB9A */
 extern UBYTE wAPressEnabled;                /* $C409 */
 void SndWritePanning(UBYTE v);              /* bank 2 */
 void DrawAllChanStatus(void);               /* $271A: the B combos, ahead of the screen's own input (none on the name
@@ -91,12 +91,12 @@ UBYTE HandleInputCombos(void)
             }
         }
         if (changed) {
-            hSoundCh = !(wKbdActionCh == 0xFF) ? wKbdActionCh : wSongCol;
-            if (!(wChanOutput[hSoundCh] & 0x80)) {
-                saved = wChanOutput[hSoundCh];
+            hSoundChan = !(wKbdActionChan == 0xFF) ? wKbdActionChan : wSongCol;
+            if (!(wChanOutput[hSoundChan] & 0x80)) {
+                saved = wChanOutput[hSoundChan];
                 SWITCH_ROM(2);
-                SndWritePanning(wChanOutputOverride[hSoundCh]);
-                wChanOutput[hSoundCh] = saved | 0x80;
+                SndWritePanning(wChanOutputOverride[hSoundChan]);
+                wChanOutput[hSoundChan] = saved | 0x80;
                 SWITCH_ROM(0x1F);
                 DrawAllChanStatus();
                 wMuteSoloLatch = 1;
@@ -106,18 +106,18 @@ UBYTE HandleInputCombos(void)
     }
     if (wBHeld && wButtons == 0xA0) {
         SWITCH_ROM(2);
-        for (hSoundCh = 0; hSoundCh < 4; hSoundCh++) {
-            if (wSongCol == hSoundCh)
+        for (hSoundChan = 0; hSoundChan < 4; hSoundChan++) {
+            if (wSongCol == hSoundChan)
                 continue;
-            saved = wChanOutput[hSoundCh];
-            if (wChanOutputOverride[hSoundCh]) {
-                wChanOutputSoloSaved[hSoundCh] = wChanOutputOverride[hSoundCh];
-                wChanOutputOverride[hSoundCh] = 0;
+            saved = wChanOutput[hSoundChan];
+            if (wChanOutputOverride[hSoundChan]) {
+                wChanOutputSoloSaved[hSoundChan] = wChanOutputOverride[hSoundChan];
+                wChanOutputOverride[hSoundChan] = 0;
             }
             SndWritePanning(0);
-            wChanOutput[hSoundCh] = saved | 0x80;
+            wChanOutput[hSoundChan] = saved | 0x80;
         }
-        hSoundCh = wSongCol;
+        hSoundChan = wSongCol;
         wChanOutput[wSongCol] &= 3;
         SndWritePanning(wChanOutput[wSongCol]);
         SWITCH_ROM(0x1F);
@@ -129,24 +129,24 @@ UBYTE HandleInputCombos(void)
         return 0;
     if (wButtons == 0x20 && wMuteSoloLatch) {
         if (wMuteSoloLatch == 1 || wAPressEnabled) {
-            ch = !(wKbdActionCh == 0xFF) ? wKbdActionCh : wSongCol;
+            ch = !(wKbdActionChan == 0xFF) ? wKbdActionChan : wSongCol;
             wChanOutput[ch] &= 3;
             wChanOutputOverride[ch] = 0;
             wChanOutputSoloSaved[ch] = 0;
-            hSoundCh = ch;
+            hSoundChan = ch;
             SWITCH_ROM(2);
-            SndWritePanning(wChanOutput[hSoundCh]);
+            SndWritePanning(wChanOutput[hSoundChan]);
         } else {
-            for (hSoundCh = 0; hSoundCh < 4; hSoundCh++) {
-                if (wSongCol == hSoundCh)
+            for (hSoundChan = 0; hSoundChan < 4; hSoundChan++) {
+                if (wSongCol == hSoundChan)
                     continue;
-                v = wChanOutputSoloSaved[hSoundCh];
+                v = wChanOutputSoloSaved[hSoundChan];
                 if (v)
-                    wChanOutputOverride[hSoundCh] = v;
+                    wChanOutputOverride[hSoundChan] = v;
                 else
-                    wChanOutput[hSoundCh] &= 3;
+                    wChanOutput[hSoundChan] &= 3;
                 SWITCH_ROM(2);
-                SndWritePanning(wChanOutput[hSoundCh]);
+                SndWritePanning(wChanOutput[hSoundChan]);
             }
         }
         SWITCH_ROM(0x1F);

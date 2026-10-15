@@ -135,7 +135,7 @@ class LabelTests(unittest.TestCase):
     def test_jump_table_and_literal_names(self):
         t = self.translator({0x4000: "F"}, {"00109": 0x4008, "__str_3": 0x4020},
                             {"__str_3": "SAVE SONG?"})
-        rows = [(0x4000, "I", "ldh a, [hSoundCh+0]"), (0x4002, "I", "ld e, a"),
+        rows = [(0x4000, "I", "ldh a, [hSoundChan+0]"), (0x4002, "I", "ld e, a"),
                 (0x4003, "I", "ld d, $00"), (0x4005, "I", "ld hl, \x0000109\x00"),
                 (0x4008, "L", "\x0000109\x00:"), (0x4008, "I", "jp $4100"),
                 (0x400B, "I", "jp $4110"), (0x4010, "I", "ld hl, \x00__str_3\x00"),

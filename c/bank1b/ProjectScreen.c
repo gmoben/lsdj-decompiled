@@ -9,8 +9,8 @@
 
 extern UBYTE wHelpOpenEntry;                /* $C933, the open HELP entry (0 = none) */
 extern UBYTE wHelpRow;                /* $C934 */
-extern UBYTE wKbdCol;                 /* $C42D */
-extern UBYTE wKbdRow;                 /* $C42E */
+extern UBYTE wNameEditCol;                 /* $C42D */
+extern UBYTE wNameEditRow;                 /* $C42E */
 extern UBYTE wKeyDelay;                     /* $C52B */
 extern UBYTE wKeyRepeat;                    /* $C52C */
 extern UBYTE wRedrawPending;                /* $C56C */
@@ -30,8 +30,8 @@ extern UBYTE wProjDrawScratch2;             /* $C9A8 */
 extern UBYTE wProjDrawScratch3;             /* $C9A9 */
 
 void DrawHelpMenu(void);
-void ProjDrawHelpEntry(UBYTE selected);
-void ProjRedrawHelpSelection(void);
+void DrawHelpEntry(UBYTE selected);
+void RedrawHelpSelection(void);
 void ProjDrawTempo(void);
 UBYTE ProjSyncModeIs015(void);
 void DrawPrelistenField(void);
@@ -39,8 +39,8 @@ UBYTE GetNextButtons(void);                 /* bank 0 */
 UWORD StrLength(char *s);                /* bank 0 */
 UBYTE ProjCursorFieldWidth(void);
 void DrawNameEditArrows(char *s);
-void ProjHelpSelectNext(void);
-void ProjHelpOpenSelected(void);
+void HelpSelectNext(void);
+void HelpOpenSelected(void);
 
 extern UBYTE KitMixTable[];               /* $1B:$6C38, the 1152-byte nibble-sum LUT */
 void MixerKernel(void);                     /* $1B:$4000, the 27-byte asm mixer step (code, hence a function); DrawHelpMenu follows it */
@@ -81,7 +81,7 @@ void MapMoveRight(void);                    /* bank 5 */
 void MapMoveDown(void);                     /* bank 5 */
 void TogglePlayback(void);                    /* bank 2 */
 
-extern UBYTE wKbdLetterPos;                 /* $C42C */
+extern UBYTE wNameEditPos;                 /* $C42C */
 extern char wNameEditBuf[];                 /* $C431, [5] + NUL (char: NameEditorInput) */
 extern UBYTE wNameEditWrapLatch;            /* $C9A2 */
 
@@ -122,7 +122,7 @@ void DrawHelpMenu(void)
     }
 }
 
-void ProjDrawHelpEntry(UBYTE selected)
+void DrawHelpEntry(UBYTE selected)
 {
     UBYTE e;
     UBYTE len;
@@ -132,35 +132,35 @@ void ProjDrawHelpEntry(UBYTE selected)
     ColorField(0, e, len, selected ? 0 : 2);
 }
 
-void ProjRedrawHelpSelection(void)
+void RedrawHelpSelection(void)
 {
     if (wHelpOpenEntry != 0)
         return;
-    ProjDrawHelpEntry(0);
+    DrawHelpEntry(0);
 }
 
 void DrawHelpScreen(void)
 {
     FarCall(1, FAR_FN(UiDrawTextHw));
     DrawHelpMenu();
-    ProjRedrawHelpSelection();
+    RedrawHelpSelection();
 }
 
-void ProjHelpSelectNext(void)
+void HelpSelectNext(void)
 {
     if ((UWORD)wHelpRow == 9)
         return;
-    ProjDrawHelpEntry(1);
+    DrawHelpEntry(1);
     wHelpRow++;
-    ProjDrawHelpEntry(0);
+    DrawHelpEntry(0);
 }
 
-void ProjHelpSelectPrev(void)
+void HelpSelectPrev(void)
 {
     if (wHelpRow) {
-        ProjDrawHelpEntry(1);
+        DrawHelpEntry(1);
         wHelpRow--;
-        ProjDrawHelpEntry(0);
+        DrawHelpEntry(0);
     }
 }
 
@@ -170,7 +170,7 @@ void GotoProjScreen(void)
     FarCall(4, FAR_FN(RedrawScreen));
 }
 
-void ProjHelpReset(void)
+void HelpReset(void)
 {
     wHelpOpenEntry = 0;
     ClearBgTilemap();
@@ -206,9 +206,9 @@ void DrawNameEditArrows(char *s)
     }
 }
 
-void ProjHelpOpenSelected(void)
+void HelpOpenSelected(void)
 {
-    ProjDrawHelpEntry(1);
+    DrawHelpEntry(1);
     ClearBgTilemap();
     wHelpOpenEntry = HelpSelectLines[wHelpRow];
     DrawNameEditArrows(*HelpPageRefs[wHelpRow]);
@@ -222,40 +222,40 @@ UBYTE HelpScreenInput(void)
     switch (wButtons) {
     case 8:
         if (closed)
-            ProjHelpSelectNext();
+            HelpSelectNext();
         break;
     case 4:
         if (closed)
-            ProjHelpSelectPrev();
+            HelpSelectPrev();
         break;
     case 0x10:
         if (wAPressEnabled && closed)
-            ProjHelpOpenSelected();
+            HelpOpenSelected();
         break;
     case 0x20:
         if (wAPressEnabled) {
             if (closed)
                 GotoProjScreen();
             else
-                ProjHelpReset();
+                HelpReset();
         }
         break;
     }
     return 1;
 }
 
-void DrawKbdCursor(void)
+void DrawNameEditCursor(void)
 {
     UBYTE x, y;
 
-    x = wKbdCol + 5;
-    y = wKbdRow + 8;
+    x = wNameEditCol + 5;
+    y = wNameEditRow + 8;
     ColorField(x, y, 1, hGameboyType ? 3 : 2);
 }
 
-void EraseKbdCursor(void)
+void EraseNameEditCursor(void)
 {
-    ColorField(wKbdCol + 5, wKbdRow + 8, 1, 0);
+    ColorField(wNameEditCol + 5, wNameEditRow + 8, 1, 0);
 }
 
 /* A w x h frame at (x, y): corner/edge tiles through the identity map,
@@ -318,11 +318,11 @@ void OpenNameEditor(void)
     wNameReturnScreen = wCurScreen;
     if (wNameEditIsInstr)
         FarCallArg(1, FAR_FN(CopyInstrName), wInstr);
-    wKbdLetterPos = 0;
-    while (wNameEditBuf[wKbdLetterPos]) {
-        if (wKbdLetterPos == (wNameEditIsInstr ? 4 : 2))
+    wNameEditPos = 0;
+    while (wNameEditBuf[wNameEditPos]) {
+        if (wNameEditPos == (wNameEditIsInstr ? 4 : 2))
             break;
-        wKbdLetterPos++;
+        wNameEditPos++;
     }
     if (wCurScreen == 0x0D) {
         DrawProjTextField(4, 4, 0x0C, 9);
@@ -338,11 +338,11 @@ void OpenNameEditor(void)
     if (wCurScreen == 0x0D) {
         wVramCursor = 0x98C5;
         DrawString(wNameEditBuf);
-        wKbdLetterPos = StrLength(wNameEditBuf);
-        if (wKbdLetterPos == 8)
-            wKbdLetterPos--;
-        wKbdCol = 9;
-        wKbdRow = 3;
+        wNameEditPos = StrLength(wNameEditBuf);
+        if (wNameEditPos == 8)
+            wNameEditPos--;
+        wNameEditCol = 9;
+        wNameEditRow = 3;
     } else {
         wVramCursor = 0x98CA;
         for (i = 0; i < (wNameEditIsInstr ? 5 : 3); i++) {
@@ -366,12 +366,12 @@ void OpenNameEditor(void)
     DrawString(AlnumChars[3]);
     if (wCurScreen == 0x0D) {
         ColorField(5, 6, 0x0A, hGameboyType ? 3 : 2);
-        ColorField(wKbdLetterPos + 5, 6, 1, hGameboyType ? 4 : 1);
+        ColorField(wNameEditPos + 5, 6, 1, hGameboyType ? 4 : 1);
     } else {
         ColorField(0x0A, 6, wNameEditIsInstr ? 5 : 3, hGameboyType ? 3 : 2);
-        ColorField(wKbdLetterPos + 0x0A, 6, 1, hGameboyType ? 4 : 1);
+        ColorField(wNameEditPos + 0x0A, 6, 1, hGameboyType ? 4 : 1);
     }
-    ColorField(wKbdCol + 5, wKbdRow + 8, 1, hGameboyType ? 3 : 2);
+    ColorField(wNameEditCol + 5, wNameEditRow + 8, 1, hGameboyType ? 3 : 2);
     wCurScreen = 7;
 }
 
@@ -429,18 +429,18 @@ void NameEditBackspace(UBYTE x, UBYTE n)
 {
     UBYTE c;
 
-    if (wKbdLetterPos == n && (c = wNameEditBuf[n])) {
+    if (wNameEditPos == n && (c = wNameEditBuf[n])) {
         wNameEditBuf[n] = 0;
-    } else if (wKbdLetterPos) {
-        ColorField(x + wKbdLetterPos, 6, 1, hGameboyType ? 3 : 2);
-        wKbdLetterPos--;
-        wNameEditBuf[wKbdLetterPos] = 0;
-        ColorField(x + wKbdLetterPos, 6, 1, hGameboyType ? 4 : 1);
+    } else if (wNameEditPos) {
+        ColorField(x + wNameEditPos, 6, 1, hGameboyType ? 3 : 2);
+        wNameEditPos--;
+        wNameEditBuf[wNameEditPos] = 0;
+        ColorField(x + wNameEditPos, 6, 1, hGameboyType ? 4 : 1);
     }
-    GetTilemapAddr(x + wKbdLetterPos, 6);
+    GetTilemapAddr(x + wNameEditPos, 6);
     hBgDigitPal = wShadowDigitPal;
     hBgPal = wShadowPal;
-    DrawStringIndexed(wNameEditBuf[wKbdLetterPos] ? wNameEditBuf[wKbdLetterPos] : ' ');
+    DrawStringIndexed(wNameEditBuf[wNameEditPos] ? wNameEditBuf[wNameEditPos] : ' ');
 }
 
 /*
@@ -471,8 +471,8 @@ UBYTE NameEditorInput(void)
     case 0x10:                                  /* A */
         if (!wAPressEnabled)
             return 0;
-        if (wKbdRow == 3)
-            switch (wKbdCol) {
+        if (wNameEditRow == 3)
+            switch (wNameEditCol) {
             case 8:
                 NameEditBackspace(x, last);
                 return 1;
@@ -480,22 +480,22 @@ UBYTE NameEditorInput(void)
                 CommitNameEdit();
                 return 1;
             }
-        ch = AlnumChars[wKbdRow][wKbdCol];
+        ch = AlnumChars[wNameEditRow][wNameEditCol];
         /* the buffer must be in RAM; a char pointer compares signed */
         if ((int)(wNameEditBuf + 1) > -1)
             DebugTrap();
-        wNameEditBuf[wKbdLetterPos] = ch;
-        wNameEditBuf[wKbdLetterPos + 1] = 0;
-        GetTilemapAddr(x + wKbdLetterPos, 6);
+        wNameEditBuf[wNameEditPos] = ch;
+        wNameEditBuf[wNameEditPos + 1] = 0;
+        GetTilemapAddr(x + wNameEditPos, 6);
         hBgDigitPal = wShadowDigitPal;
         hBgPal = wShadowPal;
         DrawStringIndexed(ch);
-        if (wKbdLetterPos != last) {
+        if (wNameEditPos != last) {
             /* move the letter highlight on (storing the + 1 kept for the
                terminator, not an inc (hl)) */
-            ColorField(x + wKbdLetterPos, 6, 1, hGameboyType ? 3 : 2);
-            wKbdLetterPos = wKbdLetterPos + 1;
-            ColorField(x + wKbdLetterPos, 6, 1, hGameboyType ? 4 : 1);
+            ColorField(x + wNameEditPos, 6, 1, hGameboyType ? 3 : 2);
+            wNameEditPos = wNameEditPos + 1;
+            ColorField(x + wNameEditPos, 6, 1, hGameboyType ? 4 : 1);
         }
         return 1;
     case 0x40:                                  /* select */
@@ -505,44 +505,44 @@ UBYTE NameEditorInput(void)
         CommitNameEdit();
         return 1;
     case 0x08:                                  /* down */
-        EraseKbdCursor();
-        if (wKbdRow != 3 && !wNameEditWrapLatch)
-            wKbdRow++;
+        EraseNameEditCursor();
+        if (wNameEditRow != 3 && !wNameEditWrapLatch)
+            wNameEditRow++;
         else if (!wButtonsSame) {
-            wKbdRow = 0;
+            wNameEditRow = 0;
             wNameEditWrapLatch = 1;
         }
-        DrawKbdCursor();
+        DrawNameEditCursor();
         return 1;
     case 0x01:                                  /* right */
-        EraseKbdCursor();
-        if (wKbdCol != 9 && !wNameEditWrapLatch)
-            wKbdCol++;
+        EraseNameEditCursor();
+        if (wNameEditCol != 9 && !wNameEditWrapLatch)
+            wNameEditCol++;
         else if (!wButtonsSame) {
-            wKbdCol = 0;
+            wNameEditCol = 0;
             wNameEditWrapLatch = 1;
         }
-        DrawKbdCursor();
+        DrawNameEditCursor();
         return 1;
     case 0x04:                                  /* up */
-        EraseKbdCursor();
-        if (wKbdRow && !wNameEditWrapLatch)
-            wKbdRow--;
+        EraseNameEditCursor();
+        if (wNameEditRow && !wNameEditWrapLatch)
+            wNameEditRow--;
         else if (!wButtonsSame) {
-            wKbdRow = 3;
+            wNameEditRow = 3;
             wNameEditWrapLatch = 1;
         }
-        DrawKbdCursor();
+        DrawNameEditCursor();
         return 1;
     case 0x02:                                  /* left */
-        EraseKbdCursor();
-        if (wKbdCol && !wNameEditWrapLatch)
-            wKbdCol--;
+        EraseNameEditCursor();
+        if (wNameEditCol && !wNameEditWrapLatch)
+            wNameEditCol--;
         else if (!wButtonsSame) {
-            wKbdCol = 9;
+            wNameEditCol = 9;
             wNameEditWrapLatch = 1;
         }
-        DrawKbdCursor();
+        DrawNameEditCursor();
         return 1;
     case 0x20:                                  /* B: leave unchanged */
         wCurScreen = wNameReturnScreen;

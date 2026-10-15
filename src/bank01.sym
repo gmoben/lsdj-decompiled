@@ -150,7 +150,7 @@
 5927 ScreenPalTable             ; CGB palette block: TABLE screen
 5A8F ScreenPalPhrase            ; CGB palette block: PHRASE screen
 5BF7 ScreenPalGroove            ; CGB palette block: GROOVE screen
-5D5F ScreenPalProject           ; CGB palette block: PROJECT screen
+5D5F ScreenPalProj           ; CGB palette block: PROJECT screen
 5EC7 ScreenPalSong              ; CGB palette block: SONG screen
 602F ScreenPalInstrPulse        ; CGB palette block: INSTR screen, PULSE type
 6197 ScreenPalInstrWave         ; CGB palette block: INSTR screen, WAVE type

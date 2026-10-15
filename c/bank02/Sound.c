@@ -5,7 +5,7 @@
 #define SOUND_BANK                          /* lsdj.h: our own far-call targets */
 #include "lsdj.h"
 
-extern volatile sfr UBYTE hSoundCh;         /* $FF8B */
+extern volatile sfr UBYTE hSoundChan;         /* $FF8B */
 extern volatile sfr UBYTE hFxVal;         /* $FF8F */
 extern volatile sfr UBYTE IE_REG;           /* $FFFF */
 extern volatile sfr UBYTE DIV_REG;          /* $FF04 */
@@ -203,14 +203,14 @@ void FxCmd_R(void)
     vol = hFxVal & 0xF0;
     if (vol == 0x80) {
         n = hFxVal & 0x0F;
-        n = MulU8(n, wChanCmdRate[hSoundCh] + 1);
-        k = hSoundCh;
+        n = MulU8(n, wChanCmdRate[hSoundChan] + 1);
+        k = hSoundChan;
         wChanRetrigTimer[k] = ++n;
         wChanRetrigRate[k] = n & 0x0F;
     } else {
         n = (hFxVal - 1) & 0x0F;
         if (n != 0x0F)
-            n = MulU8(n, wChanCmdRate[hSoundCh] + 1);
+            n = MulU8(n, wChanCmdRate[hSoundChan] + 1);
         wFxSlotRetrigRate[wFxChan] = n;
         wChanFxSlots[wFxChan] |= 2;
         wChanEnvVolOffset[wFxChan] = vol;
@@ -229,11 +229,11 @@ void SndKillNote(void)
     UBYTE ch;
 
     SndResetChanFx();
-    wChanFxSlots[hSoundCh] = 0;
-    wChanFxSlots[hSoundCh + 4] = 0;
-    wChanFxSlots[hSoundCh + 8] = 0;
-    wChanPitchRate[hSoundCh] = 0;
-    ch = hSoundCh;
+    wChanFxSlots[hSoundChan] = 0;
+    wChanFxSlots[hSoundChan + 4] = 0;
+    wChanFxSlots[hSoundChan + 8] = 0;
+    wChanPitchRate[hSoundChan] = 0;
+    ch = hSoundChan;
     wChanTable[ch] = 0xFF;
     wChanDispNote[ch] = 0;
     wChanChord[ch] = 0;
@@ -256,7 +256,7 @@ void FxCmd_K(void)
 
 void FxCmd_P(void)
 {
-    if (hSoundCh == 3) {
+    if (hSoundChan == 3) {
         wChanVibShape[3] = hFxVal;
         wNoiPSlideStart = 1;
     } else
@@ -289,9 +289,9 @@ void SndRetrigNote(void)
 {
     UBYTE rate;
 
-    hSoundCh = wFxChan & 3;
-    if (!wSpeechWord || hSoundCh != 2) {
-        switch (hSoundCh) {
+    hSoundChan = wFxChan & 3;
+    if (!wSpeechWord || hSoundChan != 2) {
+        switch (hSoundChan) {
         case 0:
             if (wChanSlideNoteSrc[0]) {
                 wChanPitchCur[0] = 0x8000;
@@ -317,21 +317,21 @@ void SndRetrigNote(void)
             SndFxParsePitchVal(&wEnvNode1Noi);
             break;
         }
-        if (wFxChan < 4 && wChanTableActive[hSoundCh]) {
-            wChanTable[hSoundCh] = wChanTableLatch[hSoundCh];
-            wChanTableRow1[hSoundCh + 4] = 0xFF;
-            wChanTableRow1[hSoundCh] = 0xFF;
-            wChanGrooveRow[hSoundCh + 4] = 0xFF;
-            wChanNoteCountdown[hSoundCh + 4] = 0;
+        if (wFxChan < 4 && wChanTableActive[hSoundChan]) {
+            wChanTable[hSoundChan] = wChanTableLatch[hSoundChan];
+            wChanTableRow1[hSoundChan + 4] = 0xFF;
+            wChanTableRow1[hSoundChan] = 0xFF;
+            wChanGrooveRow[hSoundChan + 4] = 0xFF;
+            wChanNoteCountdown[hSoundChan + 4] = 0;
             ReadTableEnv();
             ReadTableTranspose();
-            wChanTableFresh[hSoundCh] = 1;
+            wChanTableFresh[hSoundChan] = 1;
         }
     }
-    if (hSoundCh == 3)
-        wChanSweep[hSoundCh] = wNoiseNoteLatch;
+    if (hSoundChan == 3)
+        wChanSweep[hSoundChan] = wNoiseNoteLatch;
     TriggerNote();
-    if (hSoundCh == 2) {
+    if (hSoundChan == 2) {
         wKitVoicesActive = wSndUpdateFlags;
         SndSetKitParams();
     }
@@ -348,11 +348,11 @@ void SndRetrigNote(void)
 
 void FxCmd_P_Step(void)
 {
-    if (wSndUpdateFlags && hSoundCh == 2)
-        wChanFreq[hSoundCh] += (WORD)hFxValS * 3;
+    if (wSndUpdateFlags && hSoundChan == 2)
+        wChanFreq[hSoundChan] += (WORD)hFxValS * 3;
     else {
-        wChanPitchCur[hSoundCh] += (WORD)hFxValS << 3;
-        wChanCmdStep[hSoundCh] = 1;
+        wChanPitchCur[hSoundChan] += (WORD)hFxValS << 3;
+        wChanCmdStep[hSoundChan] = 1;
     }
 }
 
@@ -492,7 +492,7 @@ UBYTE EnvReleaseSpeed(void)
 
 void SndRunFxSlot(void)
 {
-    hSoundCh = wFxChan & 3;
+    hSoundChan = wFxChan & 3;
     SndKillNote();
 }
 
@@ -613,9 +613,9 @@ void SndLiveQueueStart(UBYTE ch)
     }
     wChanStopQueued[ch] = 0;
     if (wPlayRestartPending) {
-        hSoundCh = ch;
+        hSoundChan = ch;
         SndStartChanFromRow();
-        k = hSoundCh;
+        k = hSoundChan;
         wChanStopQueued[k] = 0;
         wChanNextSongRow[k] = 0xFF;
     }
@@ -653,8 +653,8 @@ void SndStartChans(void)
 {
     wPlayMode = 0;
     SndSetPlayRange();
-    for (hSoundCh = wPlayChanFirst; hSoundCh < wPlayChanLast + 1; hSoundCh++) {
-        wChanNextSongRow[hSoundCh] = wSongRow;
+    for (hSoundChan = wPlayChanFirst; hSoundChan < wPlayChanLast + 1; hSoundChan++) {
+        wChanNextSongRow[hSoundChan] = wSongRow;
         SndStartChanFromRow();
     }
     if (SndAnyChanActive()) {
@@ -815,25 +815,25 @@ void StartSongPlayback(void)
     UBYTE row, n, stop, end, k;
 
     resume = wChainRow && (wSavedScreen && wSavedScreen != 4) && (wSyncMode == 0 || wSyncMode == 5);
-    for (hSoundCh = 0; hSoundCh < 4; hSoundCh++) {
-        chain = &wChanChain[hSoundCh];
-        active = &wChanActive[hSoundCh];
-        phrase = &wChanPhrase[hSoundCh];
+    for (hSoundChan = 0; hSoundChan < 4; hSoundChan++) {
+        chain = &wChanChain[hSoundChan];
+        active = &wChanActive[hSoundChan];
+        phrase = &wChanPhrase[hSoundChan];
         *active = 1;
-        wChanSongRow[hSoundCh] = wSongRow;
-        *chain = ReadSeqByte(hSoundCh, wSongRow);
+        wChanSongRow[hSoundChan] = wSongRow;
+        *chain = ReadSeqByte(hSoundChan, wSongRow);
         if (*chain & 0x80) {
             row = wSongRow;
-            while ((ReadSeqByte(hSoundCh, row) & 0x80) && row)
+            while ((ReadSeqByte(hSoundChan, row) & 0x80) && row)
                 row--;
-            wChanSongRow[hSoundCh] = row;
-            *chain = ReadSeqByte(hSoundCh, row);
+            wChanSongRow[hSoundChan] = row;
+            *chain = ReadSeqByte(hSoundChan, row);
             if (*chain & 0x80) {
                 *active = 0;
                 continue;
             }
         }
-        wChanChainRow[hSoundCh] = 0xFF;
+        wChanChainRow[hSoundChan] = 0xFF;
         *phrase = SndGetChainPhrase(*chain, 0);
         if (*phrase == 0xFF) {
             *active = 0;
@@ -844,7 +844,7 @@ void StartSongPlayback(void)
             while (!(stop = wChainRow < n) && !(end = SndGetChainPhrase(*chain, n) == 0xFF))
                 n++;
             k = wChainRow % n;
-            wChanChainRow[hSoundCh] = k - 1;
+            wChanChainRow[hSoundChan] = k - 1;
             *phrase = SndGetChainPhrase(*chain, k);
         }
     }
@@ -873,7 +873,7 @@ void StartScreenPlayback(void)
         wChanActive[wSongCol] = 1;
         wPlayStartChan = wSongCol;
         wPlayStartRow = wSongRow;
-        hSoundCh = wSongCol;
+        hSoundChan = wSongCol;
         if (wChain & 0x80)
             DebugTrap();
         wChanChain[wSongCol] = wChain;
@@ -885,7 +885,7 @@ void StartScreenPlayback(void)
         wChanActive[wSongCol] = 1;
         wPlayStartChan = wSongCol;
         wPlayStartRow = wSongRow;
-        hSoundCh = wSongCol;
+        hSoundChan = wSongCol;
         wChanPhrase[wSongCol] = wPhrase;
         break;
     }
@@ -907,8 +907,8 @@ void TogglePlayback(void)
     }
     NR52_REG = 0;
     wPlayMode = 0;
-    for (hSoundCh = 0; hSoundCh < 4; hSoundCh++)
-        if (wChanActive[hSoundCh])
+    for (hSoundChan = 0; hSoundChan < 4; hSoundChan++)
+        if (wChanActive[hSoundChan])
             SndResetChanFx();
     MemSet(wChanActive, 0, 8);
     MemSet(wChanFxSlots, 0, 12);
@@ -922,38 +922,38 @@ void TogglePlayback(void)
     wSongRow = row;
 }
 
-/* $6BBA: start channel hSoundCh at its next song row (wChanNextSongRow, $FF
+/* $6BBA: start channel hSoundChan at its next song row (wChanNextSongRow, $FF
    none): phrase and table cursors reset, the row walked back past empty
    ($80+) chains to the last real one, then that chain's first phrase -- or
    the channel stops when the song has none */
 
 void SndStartChanFromRow(void)
 {
-    if (wChanNextSongRow[hSoundCh] == 0xFF)
+    if (wChanNextSongRow[hSoundChan] == 0xFF)
         return;
-    wChanNoteCountdown[hSoundCh] = 0;
-    wChanGrooveRow[hSoundCh] = 0xFF;
-    wChanTableRow1[hSoundCh] = 0xFF;
-    wChanTable[hSoundCh] = 0xFF;
-    wChanPhraseRow[hSoundCh] = 0xFF;
-    wChanHopCount[hSoundCh] = 0;
-    wChanNoteCountdown[hSoundCh + 4] = 0;
-    wChanGroove[hSoundCh + 4] = 0;
-    wChanGrooveRow[hSoundCh + 4] = 0xFF;
-    wChanTableRow1[hSoundCh + 4] = 0xFF;
-    wChanSongRow[hSoundCh] = wChanNextSongRow[hSoundCh];
-    wChanChain[hSoundCh] = ReadSeqByte(hSoundCh, wChanNextSongRow[hSoundCh]);
-    while ((wChanChain[hSoundCh] & 0x80) && wChanSongRow[hSoundCh]) {
-        wChanSongRow[hSoundCh]--;
-        wChanChain[hSoundCh] = ReadSeqByte(hSoundCh, wChanSongRow[hSoundCh]);
+    wChanNoteCountdown[hSoundChan] = 0;
+    wChanGrooveRow[hSoundChan] = 0xFF;
+    wChanTableRow1[hSoundChan] = 0xFF;
+    wChanTable[hSoundChan] = 0xFF;
+    wChanPhraseRow[hSoundChan] = 0xFF;
+    wChanHopCount[hSoundChan] = 0;
+    wChanNoteCountdown[hSoundChan + 4] = 0;
+    wChanGroove[hSoundChan + 4] = 0;
+    wChanGrooveRow[hSoundChan + 4] = 0xFF;
+    wChanTableRow1[hSoundChan + 4] = 0xFF;
+    wChanSongRow[hSoundChan] = wChanNextSongRow[hSoundChan];
+    wChanChain[hSoundChan] = ReadSeqByte(hSoundChan, wChanNextSongRow[hSoundChan]);
+    while ((wChanChain[hSoundChan] & 0x80) && wChanSongRow[hSoundChan]) {
+        wChanSongRow[hSoundChan]--;
+        wChanChain[hSoundChan] = ReadSeqByte(hSoundChan, wChanSongRow[hSoundChan]);
     }
-    if (wChanChain[hSoundCh] & 0x80) {
-        wChanActive[hSoundCh] = 0;
+    if (wChanChain[hSoundChan] & 0x80) {
+        wChanActive[hSoundChan] = 0;
         return;
     }
-    wChanActive[hSoundCh] = 1;
-    wChanChainRow[hSoundCh] = 0xFF;
-    wChanPhrase[hSoundCh] = SndGetChainPhrase(wChanChain[hSoundCh], 0);
+    wChanActive[hSoundChan] = 1;
+    wChanChainRow[hSoundChan] = 0xFF;
+    wChanPhrase[hSoundChan] = SndGetChainPhrase(wChanChain[hSoundChan], 0);
 }
 
 /* $6EA7: live mode: a channel queued to start whose chain has ended starts
@@ -1026,7 +1026,7 @@ void SndSpeechStep(void)
 
     rRAMB = 0;
     if (!wSpeechFrameTicks) {
-        hSoundCh = 2;
+        hSoundChan = 2;
         _asm di _endasm;
         rRAMG = 0x0A;
         if (*wSpeechPtr) {
@@ -1071,7 +1071,7 @@ void SndSpeechStep(void)
 UBYTE SndLiveChainEnd(void)
 {
     SndReadChainRow();
-    if (wChanStopQueued[hSoundCh]) {
+    if (wChanStopQueued[hSoundChan]) {
         SndDeactivateChan();
         SndResetChanFx();
         if (!SndAnyChanActive()) {
@@ -1081,7 +1081,7 @@ UBYTE SndLiveChainEnd(void)
         }
         return 0;
     }
-    if (wChanNextSongRow[hSoundCh] != 0xFF) {
+    if (wChanNextSongRow[hSoundChan] != 0xFF) {
         SndEnterSongRow();
         return 0;
     }
@@ -1104,21 +1104,21 @@ UBYTE SndZRepeat(UBYTE slot, UBYTE last)
 
 UBYTE SndZPhrase(void)
 {
-    return SndZRepeat(hSoundCh, hSoundCh);
+    return SndZRepeat(hSoundChan, hSoundChan);
 }
 
 /* $744D: Z in a table's CMD1 column: that table's last CMD1 */
 
 UBYTE SndZTableCmd1(void)
 {
-    return SndZRepeat(4, wChanTable[hSoundCh] + 4);
+    return SndZRepeat(4, wChanTable[hSoundChan] + 4);
 }
 
 /* $746F: Z in a table's CMD2 column */
 
 UBYTE SndZTableCmd2(void)
 {
-    return SndZRepeat(5, wChanTable[hSoundCh] + 0x24);
+    return SndZRepeat(5, wChanTable[hSoundChan] + 0x24);
 }
 
 /* $7CFB: E at a note-on: on PU1, PU2 and NOI stop the fade and take the
@@ -1129,8 +1129,8 @@ UBYTE FxCmd_E_NoteOn(void)
 {
     UBYTE v;
 
-    v = wChanCmdVal[hSoundCh];
-    switch (hSoundCh) {
+    v = wChanCmdVal[hSoundChan];
+    switch (hSoundChan) {
     case 0:
         wEnvStagePu1 = 0;
         wEnvSpeedPu1 = 0;
@@ -1148,6 +1148,6 @@ UBYTE FxCmd_E_NoteOn(void)
         wEnvSpeedNoi = 0;
         break;
     }
-    wChanEnv[hSoundCh] = v >> 4;
+    wChanEnv[hSoundChan] = v >> 4;
     return 5;
 }

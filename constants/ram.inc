@@ -58,14 +58,14 @@ DEF wInstrField      EQU $C427  ; Instrument editor: current parameter/field ind
 DEF wInstrCol  EQU $C428  ; Instrument editor cursor column (pairs with wInstrField as the row)
 DEF wSpeechRow EQU $C429  ; Speech (word) instrument editor cursor row (DrawWordScreen)
 ; Name editor (OpenNameEditor, NameEditorInput): on-screen keyboard for an instrument name, a speech word or a song file name:
-DEF wKbdLetterPos    EQU $C42C  ; keyboard: index of the letter being edited in the name
-DEF wKbdCol    EQU $C42D  ; keyboard cursor column
-DEF wKbdRow    EQU $C42E  ; keyboard cursor row
+DEF wNameEditPos    EQU $C42C  ; keyboard: index of the letter being edited in the name
+DEF wNameEditCol    EQU $C42D  ; keyboard cursor column
+DEF wNameEditRow    EQU $C42E  ; keyboard cursor row
 DEF wSampleNoteString EQU $C43A  ; [7] shared text buffer for a sample/kit note name (Phrase/Chain/Song note draws)
 DEF wTableCol        EQU $C92F  ; Table editor: current column/cursor state (bit7 = special)
 DEF wTableRow        EQU $C930  ; Table editor: current row cursor (0-15); pairs with wTableCol
 DEF wDefaultNotes     EQU $C904  ; table/array of default note values (InstrScreenInput / InstrParamByte10 / InstrParamTableSet2; reset in ResetWorkState)
-DEF wHelpRow   EQU $C934  ; HELP/word screen cursor row (ProjHelpSelectPrev/Next/OpenSelected)
+DEF wHelpRow   EQU $C934  ; HELP/word screen cursor row (HelpSelectPrev/Next/OpenSelected)
 DEF wWordRow     EQU $C937  ; Word/speech editor: cursor row within the current word (inc/dec by nav); ReadWordCell indexes word data at +wWordRow*2
 DEF wWordCol     EQU $C938  ; Word/speech editor: cursor column (0/1) within the row; ReadWordCell byte offset within the 2-byte unit
 DEF wPlayMarkerTimer EQU $C950  ; Song screen: free-running blink counter incremented each SongUpdatePlayMarker; bit 3 (and $08) is the play-marker on/off phase
@@ -155,7 +155,7 @@ DEF wWavPlayMode     EQU $C500  ; wav synth play mode (1 = stop at list end, 4 =
 DEF wSndDataPtr      EQU $C8E9  ; 16-bit working pointer the sound command/table reader (SndReadCmdStream) walks;
                                 ; pointed at &wChanTableRow1[ch] (stride $04) or instrument-mode data (stride $40)
 DEF wSndDataStride   EQU $C8FB  ; advance stride for wSndDataPtr ($04 = per-channel arrays, $40 = instrument mode)
-DEF wFxChan       EQU $C527  ; channel (0-3) the command/FX/table engine is processing (set from hSoundCh); some
+DEF wFxChan       EQU $C527  ; channel (0-3) the command/FX/table engine is processing (set from hSoundChan); some
                                 ; FX OR in bit2/bit3 as mode flags (tested via `and $fc` before using it as an index)
 DEF wChanCmdRate     EQU $C8C6  ; [4] command/table step rate = instrument COMMAND_RATE (byte 8); reload value for the countdown
 DEF wChanCmdCountdown EQU $C8CA ; [4] ticks until the next command/table step; SndRunTableStep decrements it, and on 0
@@ -168,8 +168,8 @@ DEF wFxCmd       EQU $C8C4  ; current FX command index (0-$12) being processed f
 ; 16-bit *data* pointers into the SRAM song ($A000-$BFFF) -- NOT code pointers.
 ; (So the audio engine, like the screens, uses static dispatch + RAM data ptrs;
 ; LSDj has no RAM-indirect code dispatch. See docs/reversal.md.)
-; Engine = bank $02; the current channel index (0-3) lives in HRAM (hSoundCh).
-; hSoundCh maps to the GB hardware channels: 0=PU1 (rAUD1), 1=PU2 (rAUD2),
+; Engine = bank $02; the current channel index (0-3) lives in HRAM (hSoundChan).
+; hSoundChan maps to the GB hardware channels: 0=PU1 (rAUD1), 1=PU2 (rAUD2),
 ; 2=WAV/KIT (rAUD3, plays WAVE+KIT instruments), 3=NOI (rAUD4). The per-channel
 ; computed frequency (wChanFreq) is written to rAUDxLOW/HIGH each frame.
 DEF wChanFreq        EQU $C0F4  ; channel frequency shadow, PU1 lo (rAUD1LOW)
@@ -346,7 +346,7 @@ DEF wOamBuf       EQU $DD00  ; [160] OAM shadow: 40 sprites x 4 bytes, DMA-copie
 
 ; --- HRAM -------------------------------------------------------------------
 DEF hOamRefresh      EQU $FF80  ; OAM-refresh flag
-DEF hSoundCh         EQU $FF8B  ; sound engine current channel index (0-3); indexes wChan* arrays
+DEF hSoundChan         EQU $FF8B  ; sound engine current channel index (0-3); indexes wChan* arrays
 DEF hBgPal       EQU $FF8C  ; CGB BG-map attribute palette for draws
 DEF hBgDigitPal  EQU $FF8D  ; CGB BG-map palette for digits
 DEF hCurBank     EQU $FF8E  ; shadow of the selected ROM bank ($2000)
@@ -884,11 +884,11 @@ DEF wKbdQueueTail    EQU $CB7C  ; PS/2 ring-buffer write index into wLinkQueueBu
 DEF wKbdPulseChans  EQU $CB7F  ; keyboard: the pulse channel(s) a pulse instrument plays on, 0 PU1 / 1 PU2 / 2 both (F8 cycles them; KbdLink.c)
 DEF wKbdNoteQueued   EQU $CB92  ; queued PS/2 note/entry nibble-merge (0 = none; gates kbd trigger)
 DEF wKbdArmed        EQU $CB94  ; keyboard note-active / instrument-armed flag
-DEF wKbdInstrument2  EQU $CB95  ; keyboard voice-2 instrument number
+DEF wKbdInstr2  EQU $CB95  ; keyboard voice-2 instrument number
 DEF wKbdChanState    EQU $CB96  ; [4] per-sound-channel keyboard-active state
 DEF wKbdChanStatePu2 EQU $CB97  ; keyboard-active state, PU2
 DEF wKbdChanStateNoi EQU $CB99  ; keyboard-active state, NOI
-DEF wKbdActionCh     EQU $CB9A  ; pending keyboard action target channel ($ff = none)
+DEF wKbdActionChan     EQU $CB9A  ; pending keyboard action target channel ($ff = none)
 DEF wKbdChanTrigger  EQU $CB9B  ; [4] per-channel pending kbd note trigger (instr | $80)
 DEF wKbdChanTriggerPu2 EQU $CB9C  ; pending kbd note trigger, PU2
 DEF wKbdChanTriggerWav EQU $CB9D  ; pending kbd note trigger, WAV

@@ -6,7 +6,7 @@
 #define SOUND_BANK                          /* lsdj.h: our own far-call targets */
 #include "lsdj.h"
 
-extern volatile sfr UBYTE hSoundCh;         /* $FF8B */
+extern volatile sfr UBYTE hSoundChan;         /* $FF8B */
 extern UBYTE *wPtrNoteSrc;                  /* $C8ED: the channel's note cursor */
 extern UBYTE *wPtrNoteCountdown;            /* $C8E3: the channel's ticks left in the step */
 extern UBYTE *wPtrPhraseRow;                /* $C8E1 */
@@ -72,7 +72,7 @@ UBYTE SndPhraseHop(void)
     UBYTE *p;
 
     mode = wPlayMode;
-    v = wChanCmdVal[hSoundCh];
+    v = wChanCmdVal[hSoundChan];
     if (v == 0xFF) {
         SndInitPlayState();
         return 2;
@@ -80,13 +80,13 @@ UBYTE SndPhraseHop(void)
     if (wTableHopDone++)
         return 0;
     if (0xF0 & v) {                 /* literal first: the AND stays in c */
-        p = &wChanHopCount[hSoundCh];
+        p = &wChanHopCount[hSoundChan];
         if (!*p)
             *p = v >> 4;
         else if (!(*p = *p - 1))
             return 0;
         mode = 1;
-    } else if (wPlayMode == 1 && wSongCol == hSoundCh)
+    } else if (wPlayMode == 1 && wSongCol == hSoundChan)
         *wPtrPhrase = wPhrase;
     *wPtrPhraseRow = v & 0x0F;
     SndSplitPhraseNibbles();
@@ -96,12 +96,12 @@ UBYTE SndPhraseHop(void)
     switch (mode) {
     case 4:
         (*wPtrChainRow)++;
-        if (wChanLiveQueued[hSoundCh] || ReadChainPhrase() == 0xFF || *wPtrChainRow == 0x10) {
-            wChanLiveQueued[hSoundCh] = 0;
+        if (wChanLiveQueued[hSoundChan] || ReadChainPhrase() == 0xFF || *wPtrChainRow == 0x10) {
+            wChanLiveQueued[hSoundChan] = 0;
             *wPtrChainRow = 0;
             if (SndLiveChainEnd()) {
-                wChanSongRow[hSoundCh]++;
-                wChanChain[hSoundCh] = ReadSongChain();
+                wChanSongRow[hSoundChan]++;
+                wChanChain[hSoundChan] = ReadSongChain();
                 AdvanceSongRow();
             }
             SndQueueSyncByte();
@@ -109,7 +109,7 @@ UBYTE SndPhraseHop(void)
         SndLiveStartQueued();
         *wPtrPhrase = ReadChainPhrase();
         if (*wPtrPhrase == 0xFF) {
-            wChanActive[hSoundCh] = 0;
+            wChanActive[hSoundChan] = 0;
             SndResetChanFx();
         }
         SndSplitPhraseNibbles();
@@ -142,32 +142,32 @@ void SndReadChanStep(void)
     UBYTE t;
 
     rRAMB = 0;
-    if (wKbdNoteQueued && wKbdChanState[hSoundCh]) {
+    if (wKbdNoteQueued && wKbdChanState[hSoundChan]) {
         *wPtrNoteSrc = wKbdNoteQueued;
         wKbdNoteInjected = 1;
     } else
         SndReadCursorByte();
     SndAdvanceGroove();
-    if (wChanDelayTicks[hSoundCh]) {
-        if (*wPtrNoteCountdown > wChanDelayTicks[hSoundCh])
-            t = wChanDelayTicks[hSoundCh];
+    if (wChanDelayTicks[hSoundChan]) {
+        if (*wPtrNoteCountdown > wChanDelayTicks[hSoundChan])
+            t = wChanDelayTicks[hSoundChan];
         else
             t = *wPtrNoteCountdown - 1;
-        wChanDelayTicks[hSoundCh] -= t;
+        wChanDelayTicks[hSoundChan] -= t;
         *wPtrNoteCountdown -= t;
     }
-    if (wKbdNoteQueued && wKbdChanState[hSoundCh]) {
+    if (wKbdNoteQueued && wKbdChanState[hSoundChan]) {
         SndLoadInstr(wKbdInstr);
-        wChanInstr[hSoundCh] = wKbdInstr;
+        wChanInstr[hSoundChan] = wKbdInstr;
     } else
         SndLoadChanInstr();
-    if (hSoundCh == 2 && wSndUpdateFlags)
+    if (hSoundChan == 2 && wSndUpdateFlags)
         *wPtrNoteSrc &= wKitNoteNibbleMask;
     else
         SndTransposeNote();
 }
 
-/* $75C6: one tick of channel hSoundCh's sequencer: when its step's ticks
+/* $75C6: one tick of channel hSoundChan's sequencer: when its step's ticks
    are up and its chain goes on, move to the next phrase row (the next
    chain row after the phrase's last), then read the row's command and the
    step: B may mute the note, D delays it, G sets the groove, H hops */
@@ -188,13 +188,13 @@ void SndUpdateChan(void)
             SndAdvanceChainRow();
             SndLiveStartQueued();
         } else {
-            if (wSongCol == hSoundCh)
+            if (wSongCol == hSoundChan)
                 *wPtrPhrase = wPhrase;
             SndSplitPhraseNibbles();
-            if (wLiveStartCol == hSoundCh) {
-                wChanInstrPtr[hSoundCh] += wPhraseRow;
-                wPhraseCmdPtr[hSoundCh] += wPhraseRow;
-                wPhraseCmdValPtr[hSoundCh] += wPhraseRow;
+            if (wLiveStartCol == hSoundChan) {
+                wChanInstrPtr[hSoundChan] += wPhraseRow;
+                wPhraseCmdPtr[hSoundChan] += wPhraseRow;
+                wPhraseCmdValPtr[hSoundChan] += wPhraseRow;
             }
         }
     }
@@ -209,28 +209,28 @@ void SndUpdateChan(void)
                 return;
             break;
         case 2:
-            v = wChanCmdVal[hSoundCh];
+            v = wChanCmdVal[hSoundChan];
             if ((v >> 4) <= SndRandom15())
                 wKitNoteNibbleMask = 0x0F;
             if ((v & 0x0F) <= SndRandom15())
                 wKitNoteNibbleMask &= 0xF0;
             if (!wKitNoteNibbleMask) {
                 SndAdvanceGroove();
-                wChanNoteTrigger[hSoundCh] = 0;
+                wChanNoteTrigger[hSoundChan] = 0;
                 return;
             }
             break;
         case 4:
-            d = wChanCmdVal[hSoundCh];
+            d = wChanCmdVal[hSoundChan];
             if (d) {
-                wChanDelayTicks[hSoundCh] += d;
-                wChanGrooveTicks[hSoundCh] = d;
-                wChanNoteTrigger[hSoundCh] = 0;
+                wChanDelayTicks[hSoundChan] += d;
+                wChanGrooveTicks[hSoundChan] = d;
+                wChanNoteTrigger[hSoundChan] = 0;
                 return;
             }
             break;
         case 7:
-            SndMaskLow5(wChanCmdVal[hSoundCh]);
+            SndMaskLow5(wChanCmdVal[hSoundChan]);
         case 0:
             break;
         }

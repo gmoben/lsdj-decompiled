@@ -67,7 +67,7 @@ void WritePhraseFx(UBYTE phrase, UBYTE row, UBYTE fx);  /* bank 4 */
 void TableWriteCmd(UBYTE row, UBYTE fx);    /* bank 5 */
 void GrooveResetState(void);                /* bank $1D */
 UBYTE HandleButtonEvent(void);
-extern UBYTE wKbdActionCh;                  /* $CB9A */
+extern UBYTE wKbdActionChan;                  /* $CB9A */
 extern UBYTE wLinkQueueCount;               /* $CB7D */
 extern UBYTE wKbdHeldNote;                  /* $CB7E */
 extern UBYTE wSelectHoldFrames;                /* $C676 */
@@ -122,7 +122,7 @@ UBYTE ProcessInput(void)
     UBYTE i;
     UBYTE ok;
 
-    wKbdActionCh = 0xFF;
+    wKbdActionChan = 0xFF;
     if (wLinkQueueCount) {
         SWITCH_ROM(7);
         do

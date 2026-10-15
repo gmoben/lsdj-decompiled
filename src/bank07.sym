@@ -555,8 +555,8 @@
 6C0B .retFF_4
 6C10 .checkKbdInstr_3
 6C3E .retFF_5
-6C43 .readSoundCh
-6C83 .readSoundCh_2
+6C43 .readSoundChan
+6C83 .readSoundChan_2
 6C8C .retFF_6
 6C92 .retFF_7
 6CB8 .retFF_8

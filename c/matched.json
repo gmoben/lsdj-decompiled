@@ -587,6 +587,12 @@
   "len": 227,
   "src": "c/bank1d/SynthScreen.c"
  },
+ "DrawHelpEntry": {
+  "bank": "1B",
+  "addr": "49F8",
+  "len": 85,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
  "DrawHelpMenu": {
   "bank": "1B",
   "addr": "401B",
@@ -646,12 +652,6 @@
   "addr": "7097",
   "len": 218,
   "src": "c/bank07/KbdLink.c"
- },
- "DrawKbdCursor": {
-  "bank": "1B",
-  "addr": "4C30",
-  "len": 58,
-  "src": "c/bank1b/ProjectScreen.c"
  },
  "DrawKbdInstrName": {
   "bank": "07",
@@ -729,6 +729,12 @@
   "bank": "1B",
   "addr": "4AE7",
   "len": 134,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
+ "DrawNameEditCursor": {
+  "bank": "1B",
+  "addr": "4C30",
+  "len": 58,
   "src": "c/bank1b/ProjectScreen.c"
  },
  "DrawNoiseInstr": {
@@ -1121,7 +1127,7 @@
   "len": 200,
   "src": "c/bank03/InstrScreen.c"
  },
- "EraseKbdCursor": {
+ "EraseNameEditCursor": {
   "bank": "1B",
   "addr": "4C96",
   "len": 36,
@@ -1907,10 +1913,34 @@
   "len": 33,
   "src": "c/bank1f/PhraseScreen.c"
  },
+ "HelpOpenSelected": {
+  "bank": "1B",
+  "addr": "4B6D",
+  "len": 66,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
+ "HelpReset": {
+  "bank": "1B",
+  "addr": "4ADB",
+  "len": 12,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
  "HelpScreenInput": {
   "bank": "1B",
   "addr": "4BC3",
   "len": 109,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
+ "HelpSelectNext": {
+  "bank": "1B",
+  "addr": "4A79",
+  "len": 45,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
+ "HelpSelectPrev": {
+  "bank": "1B",
+  "addr": "4AA6",
+  "len": 31,
   "src": "c/bank1b/ProjectScreen.c"
  },
  "HighlightPhraseCell": {
@@ -2657,46 +2687,10 @@
   "len": 125,
   "src": "c/bank00/Sync.c"
  },
- "ProjDrawHelpEntry": {
-  "bank": "1B",
-  "addr": "49F8",
-  "len": 85,
-  "src": "c/bank1b/ProjectScreen.c"
- },
  "ProjDrawTempo": {
   "bank": "1B",
   "addr": "5853",
   "len": 14,
-  "src": "c/bank1b/ProjectScreen.c"
- },
- "ProjHelpOpenSelected": {
-  "bank": "1B",
-  "addr": "4B6D",
-  "len": 66,
-  "src": "c/bank1b/ProjectScreen.c"
- },
- "ProjHelpReset": {
-  "bank": "1B",
-  "addr": "4ADB",
-  "len": 12,
-  "src": "c/bank1b/ProjectScreen.c"
- },
- "ProjHelpSelectNext": {
-  "bank": "1B",
-  "addr": "4A79",
-  "len": 45,
-  "src": "c/bank1b/ProjectScreen.c"
- },
- "ProjHelpSelectPrev": {
-  "bank": "1B",
-  "addr": "4AA6",
-  "len": 31,
-  "src": "c/bank1b/ProjectScreen.c"
- },
- "ProjRedrawHelpSelection": {
-  "bank": "1B",
-  "addr": "4A4D",
-  "len": 21,
   "src": "c/bank1b/ProjectScreen.c"
  },
  "ProjRedrawPrelisten": {
@@ -2830,6 +2824,12 @@
   "addr": "7310",
   "len": 242,
   "src": "c/bank1c/FileScreen.c"
+ },
+ "RedrawHelpSelection": {
+  "bank": "1B",
+  "addr": "4A4D",
+  "len": 21,
+  "src": "c/bank1b/ProjectScreen.c"
  },
  "RedrawScreenFar": {
   "bank": "1D",

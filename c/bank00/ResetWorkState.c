@@ -65,8 +65,8 @@ extern UBYTE wSongScroll;                   /* $C41C */
 extern UBYTE wInstrCol;               /* $C428 */
 extern UBYTE wSynth;                        /* $C42A */
 extern UBYTE wWaveCursor;                   /* $C42B */
-extern UBYTE wKbdCol;                 /* $C42D */
-extern UBYTE wKbdRow;                 /* $C42E */
+extern UBYTE wNameEditCol;                 /* $C42D */
+extern UBYTE wNameEditRow;                 /* $C42E */
 extern UBYTE wSynthScreen;                  /* $C441 */
 extern UBYTE wSynthCursor;                  /* $C442 */
 extern UBYTE wUnusedC443;                   /* $C443 */
@@ -183,8 +183,8 @@ void ResetWorkState(void)
     wSpeechRow = 0;
     wSynth = 0;
     wWaveCursor = 0;
-    wKbdCol = 9;
-    wKbdRow = 3;
+    wNameEditCol = 9;
+    wNameEditRow = 3;
     wSynthScreen = 0;
     wSynthCursor = 0;
     wUnusedC443 = 0;

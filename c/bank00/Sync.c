@@ -10,7 +10,7 @@
  * (ReadSeqByte's twins without the asserts). SyncStartTransport's guard is
  * an early `return` (`if (!lsdj && wSyncMode != 3) return;`), which is what
  * leaves the ROM's `jp z,body; jp end`. SyncTickLSDJ needs track_hram
- * (hSoundCh reused across its loop test); SendByteStep is the re-entrancy
+ * (hSoundChan reused across its loop test); SendByteStep is the re-entrancy
  * guarded step loop the serial interrupt and the analog clock drive.
  * CheckRomChecksum (the cartridge test's ROM pass) sits between them: its
  * low-byte test is SDCC's `cp a,a` miscompile, so it always passes.
@@ -23,7 +23,7 @@ extern volatile sfr UBYTE SC_REG;           /* $FF02 */
 extern volatile sfr UBYTE DIV_REG;          /* $FF04 */
 extern volatile sfr UBYTE NR50_REG;         /* $FF24 */
 extern volatile sfr UBYTE NR52_REG;         /* $FF26 */
-extern volatile sfr UBYTE hSoundCh;         /* $FF8B, the sound engine's channel */
+extern volatile sfr UBYTE hSoundChan;         /* $FF8B, the sound engine's channel */
 extern volatile sfr UBYTE IE_REG;           /* $FFFF */
 extern UBYTE wChanActive[];                 /* $C0E0, [4] */
 extern UBYTE wChanPhrase[];                 /* $C168, [4] */
@@ -123,16 +123,16 @@ void SyncTickLSDJ(void)
 
     if (wLiveMode) {
         saved = wVramCursor;
-        for (hSoundCh = 0; hSoundCh < 4; hSoundCh++) {
-            wChanNextSongRow[hSoundCh] = 0xFF;
-            wChanStopQueued[hSoundCh] = 0;
-            wChanActive[hSoundCh] = 0;
+        for (hSoundChan = 0; hSoundChan < 4; hSoundChan++) {
+            wChanNextSongRow[hSoundChan] = 0xFF;
+            wChanStopQueued[hSoundChan] = 0;
+            wChanActive[hSoundChan] = 0;
             _asm di _endasm;
             SWITCH_ROM(2);
             SndResetChanFx();
             _asm ei _endasm;
             if (wCurScreen == 4) {
-                GetTilemapAddr(hSoundCh * 3 + 2, (wChanSongRow[hSoundCh] & 0x0F) + 2);
+                GetTilemapAddr(hSoundChan * 3 + 2, (wChanSongRow[hSoundChan] & 0x0F) + 2);
                 DrawStringTile20();
             }
         }
@@ -332,7 +332,7 @@ void SendByteStep(void)
         return;
     }
     saved = hCurBank;
-    ch = hSoundCh;
+    ch = hSoundChan;
     do {
         _asm ei _endasm;
         if (wSyncRxPos <= 0xBF) {
@@ -368,7 +368,7 @@ void SendByteStep(void)
         _asm di _endasm;
     } while (--wSendByteNest);
     _asm ei _endasm;
-    hSoundCh = ch;
+    hSoundChan = ch;
 }
 
 void ProcessSyncByte(void)

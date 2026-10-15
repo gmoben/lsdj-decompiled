@@ -401,7 +401,7 @@ class HlRegisterTests(unittest.TestCase):
     def test_a_literal_store_through_hl_keeps_a_only_when_equal(self):
         # ResetWorkState: `a` held 1, six `g = 0` stores, then `cell[0] = 1`
         # reloads the 1; TogglePlayback: `a` held 0, `wSongPlaying = 0`, then
-        # `hSoundCh = 0` stores `a` unreloaded
+        # `hSoundChan = 0` stores `a` unreloaded
         reload = ["\tld\ta,#0x01", "\tld\t(de),a", "\tld\thl,#_g", "\tld\t(hl),#0x00",
                   "\tld\tde,#_cell", "\tld\ta,#0x01", "\tld\t(de),a"]
         self.assertEqual(peep.track_a(reload, set())[0], reload)
@@ -429,7 +429,7 @@ class HramReuseTests(unittest.TestCase):
         self.assertEqual(out, self.READ_C + self.INDEX_C + self.INDEX_C)
 
     def test_pair_goes_when_a_dies_a_few_lines_on(self):
-        # SndStartChanFromRow: the 16-bit index of wChanPhrase[hSoundCh]
+        # SndStartChanFromRow: the 16-bit index of wChanPhrase[hSoundChan]
         word = ["\tld\tde,#_wChanPhrase", "\tld\tl,c", "\tld\th,#0x00", "\tadd\thl,de", "\tld\ta,l"]
         out = self.run_pass(self.READ_C + self.INDEX_C + self.READ_C + word)
         self.assertEqual(out, self.READ_C + self.INDEX_C + word)

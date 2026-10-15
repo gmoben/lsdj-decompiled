@@ -1400,7 +1400,7 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
             # a literal stored through hl (`g = n`) leaves `a` standing for n
             # and nothing else: ResetWorkState's `wWordClipCell0[0] = 1`
             # reloads `ld a,#1` after six `g = 0` stores, TogglePlayback's
-            # `wSongPlaying = 0; hSoundCh = 0` keeps the 0 in `a` (the ROM's
+            # `wSongPlaying = 0; hSoundChan = 0` keeps the 0 in `a` (the ROM's
             # two sites; the tracker apparently took the stored literal for
             # `a`'s value, kept here only when it already was)
             if ops[1] not in eq:
@@ -1510,14 +1510,14 @@ def track_hram(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int
     optimisation applied to every port). LSDj's compiler skipped loading the
     byte into a register that already held it: `ldh a,(X); ld r,a` goes when
     r holds X, within a block or across a jump (HandleInputCombos' two
-    `hSoundCh` indexes in one block, SyncTickLSDJ's loop body,
+    `hSoundChan` indexes in one block, SyncTickLSDJ's loop body,
     SndUpdateChan's D across `if (d)`). It never copied the byte over from
     another register: a reload into b while c holds it stays (the `+=` target
     in SndUpdateChan and HandleInputCombos). `a` itself serves a reread
     in straight-line code (FxCmd_F_Wav's `step = hFxValS`: stock genCast
     reads the byte again for the sign's `rla`; no compiled code in the ROM
     rereads a byte `a` holds before a jump) and across an ordering test
-    (SyncTickLSDJ's `hSoundCh < 4`: `cp #4; jp nc`); after an equality test
+    (SyncTickLSDJ's `hSoundChan < 4`: `cp #4; jp nc`); after an equality test
     the byte is reread (`cp; jp nz; ldh a,(X)`: SndUpdateChan,
     SndRetrigNote). An HRAM store, a
     call or a jump target ends the reuse; a store through a pointer loaded

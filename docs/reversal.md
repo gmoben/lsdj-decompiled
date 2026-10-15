@@ -176,7 +176,7 @@ the new chain number into `wChanChain[ch]` (`$4DD2`), then channel setup:
 - **`SetupChanSound` (`$5934`)** — selects the instrument's SRAM bank, copies
   its parameters into the staging buffer **`wCurInstr` (`$C0D0`**, first named
   `wSoundParams`), then
-  dispatches by `hSoundCh` to `SetupSoundPu1/PU2/Wave/Noise`, each of which
+  dispatches by `hSoundChan` to `SetupSoundPu1/PU2/Wave/Noise`, each of which
   distributes the staged bytes into the `rAUDx` register shadows (`wChanEnv`
   `$C2D8`, `wChanLenDuty` `$C2DC`, `wChanFreqHi` `$C2E0`, `wChanSweep` `$C2E4`)
   and triggers the voice. The note→GB-period value arrives **pre-staged** in
@@ -236,7 +236,7 @@ one thing in the game, diff WRAM, and read the on-screen result.
   `wInstrField` rows (NAME/TYPE/ENV/WAVE/OUTPUT/LENGTH/SWEEP/PITCH/TRANSP/PU2 TSP/
   FINETUNE/CMD-RATE/TABLE). `Read` the PNG directly.
 - Engine-code reading still settles sound names: `wFxChan $C527` (channel the
-  command/FX/table engine is processing, set from `hSoundCh`; some FX OR in
+  command/FX/table engine is processing, set from `hSoundChan`; some FX OR in
   bit2/3 flags) and `wWavLevel $C8F3` (WAV ch-2 output level -> `rAUD3LEVEL`).
 
 **What the *remaining* unnamed WRAM is — checked against the actual compiler.**

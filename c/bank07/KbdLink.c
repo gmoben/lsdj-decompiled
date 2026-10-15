@@ -51,13 +51,13 @@ extern UBYTE KbdNoteMap[];             /* $07:$662A */
 extern UBYTE KbdFnMap[];               /* $07:$66AA */
 UBYTE PhraseCheckColFD(UBYTE row);          /* bank 4 */
 
-extern volatile sfr UBYTE hSoundCh;         /* $FF8B */
+extern volatile sfr UBYTE hSoundChan;         /* $FF8B */
 extern volatile sfr UBYTE hFxVal;         /* $FF8F */
 extern UBYTE wKbdCmdAccum;                  /* $CBA1 */
 extern UBYTE wKbdCmdModifier;               /* $CB9F */
 extern UBYTE wKbdSustain;                   /* $CBA0 */
-extern UBYTE wKbdInstrument2;               /* $CB95 */
-extern UBYTE wKbdActionCh;                  /* $CB9A */
+extern UBYTE wKbdInstr2;               /* $CB95 */
+extern UBYTE wKbdActionChan;                  /* $CB9A */
 extern UBYTE wKbdChanTrigger[];             /* $CB9B, [4] */
 extern UBYTE wChanOutput[];                /* $C0A0, [4] */
 extern UBYTE wSelectHeld;                   /* $C40A */
@@ -319,31 +319,31 @@ UBYTE ProcessLinkQueue(void)
         }
         return 0xFF;
     case 0x60:
-        if (wKbdInstrument2) {
+        if (wKbdInstr2) {
             wVramCursor = (UBYTE *)0x9991;
             hBgDigitPal = 4;
             hBgPal = 1;
             DrawStringIndexed('A');
-            wKbdInstrument2--;
-            DrawHexByte(wKbdInstrument2);
+            wKbdInstr2--;
+            DrawHexByte(wKbdInstr2);
         }
         return 0xFF;
     case 0x68:
-        if (wKbdInstrument2 != 0x40) {
+        if (wKbdInstr2 != 0x40) {
             wVramCursor = (UBYTE *)0x9991;
             hBgDigitPal = 4;
             hBgPal = 1;
             DrawStringIndexed('A');
-            wKbdInstrument2++;
-            DrawHexByte(wKbdInstrument2);
+            wKbdInstr2++;
+            DrawHexByte(wKbdInstr2);
         }
         return 0xFF;
     case 0x4A:
         _asm di _endasm;
-        for (hSoundCh = 0; hSoundCh < 4; hSoundCh++) {
-            if (wKbdChanState[hSoundCh]) {
-                wKbdChanTrigger[hSoundCh] = wKbdInstrument2 | 0x80;
-                hFxVal = wKbdInstrument2;
+        for (hSoundChan = 0; hSoundChan < 4; hSoundChan++) {
+            if (wKbdChanState[hSoundChan]) {
+                wKbdChanTrigger[hSoundChan] = wKbdInstr2 | 0x80;
+                hFxVal = wKbdInstr2;
                 FarCallArg0(2, FAR_FN(FxCmd_A));
             }
         }
@@ -402,7 +402,7 @@ msg:
         if (!(mod & 2))
             goto note;
     case 0x40:
-        wKbdActionCh = 0;
+        wKbdActionChan = 0;
         if (wChanOutput[0] & 0x80)
             return 0x20;
         wBHeld = 1;
@@ -411,7 +411,7 @@ msg:
         if (!(mod & 2))
             goto note;
     case 0x48:
-        wKbdActionCh = 1;
+        wKbdActionChan = 1;
         if (wChanOutput[1] & 0x80)
             return 0x20;
         wBHeld = 1;
@@ -420,7 +420,7 @@ msg:
         if (!(mod & 2))
             goto note;
     case 0x0F:
-        wKbdActionCh = 2;
+        wKbdActionChan = 2;
         if (wChanOutput[2] & 0x80)
             return 0x20;
         wBHeld = 1;
@@ -429,7 +429,7 @@ msg:
         if (!(mod & 2))
             goto note;
     case 0x70:
-        wKbdActionCh = 3;
+        wKbdActionChan = 3;
         if (wChanOutput[3] & 0x80)
             return 0x20;
         wBHeld = 1;

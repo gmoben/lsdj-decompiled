@@ -156,7 +156,7 @@
 1BA7 SndWriteFreqPu1     ; ch0: wChanOutNote+transpose[$C174]+finetune+vib+pitch -> SndInterpPeriod -> wChanFreq + rAUD1LOW/HIGH/LEN
 1BF6 SndWriteFreqPu2     ; ch1: like PU1 -> wChanFreq+2 + rAUD2LOW/HIGH/LEN
 1C3D SndWriteFreqWav     ; ch2: like PU1 -> wChanFreq+4 + rAUD3LOW/HIGH (rAUD3LEN=0)
-1C7C SndUpdatePitchModFlagCur ; dispatch by hSoundCh -> SndUpdatePitchModFlag{PU1 (ch0),PU2 (ch1),Wav (>=2)}
+1C7C SndUpdatePitchModFlagCur ; dispatch by hSoundChan -> SndUpdatePitchModFlag{PU1 (ch0),PU2 (ch1),Wav (>=2)}
 1C84 SndUpdatePitchModFlagWav ; ch2: $C3FB = (wChanPitchRate+4|+5 | wChanVibSpeed+5)!=0, skipped if wChanVibShape+2 set
 1C96 SndUpdatePitchModFlagPu2 ; ch1: $C3FA = (wChanPitchRate+2|+3 | wChanVibSpeed+3)!=0, skipped if wChanVibShape+1 set
 1CA8 SndUpdatePitchModFlagPu1 ; ch0: $C3F9 = (wChanPitchRate+0|+1 | wChanVibSpeed+1)!=0, skipped if wChanVibShape set
