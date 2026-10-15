@@ -7,7 +7,7 @@
  *
  * The screen edits the current instrument (wInstrument), a 16-byte record
  * of the working song read and written through ReadCurrentInstrumentByte /
- * WriteCurrentInstrumentByte (bank 0, c/bank00/InstrByte.c); constants/song.inc
+ * WriteCurrentInstrumentByte (bank 0, c/bank00/InstrumentByte.c); constants/song.inc
  * has the per-type field layout (byte 5 = pitch flags, bit 5 transpose;
  * byte 6 = table on (bit 5) + table number (bits 4-0)).
  */

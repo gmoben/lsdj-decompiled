@@ -64,7 +64,7 @@ C_SRCS := $(wildcard c/bank*/*.c) $(wildcard c/include/*.h)
 C_TOOLS := tools/match/verify_all.py tools/match/match_function.py tools/match/peep.py tools/match/lsdj.peep \
            tools/match/to_rgbds.py tools/disasm.py
 # (Only the native build: the Win32 sdcc.exe crashes under Wine on units
-# the size of c/bank03/InstrScreen.c.)
+# the size of c/bank03/InstrumentScreen.c.)
 HAVE_C_TOOLCHAIN := $(shell test -x toolchain/sdcc-2.2.1-native/bin/sdcc && echo 1)
 ifeq ($(HAVE_C_TOOLCHAIN),1)
 C_STAMP := $(BUILD)/c/.stamp

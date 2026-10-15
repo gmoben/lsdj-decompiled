@@ -6,7 +6,7 @@
  *
  * MATCHING C (period GBDK 2.95-3 / SDCC 2.2.1 + tools/match/lsdj.peep). Verify:
  *
- *     tools/match/match_function.py --c c/bank00/InstrByte.c --target ReadInstrumentByte
+ *     tools/match/match_function.py --c c/bank00/InstrumentByte.c --target ReadInstrumentByte
  *     (or WriteInstrumentByte / ReadCurrentInstrumentByte; `make match` runs all three)
  *
  * instruments[instr][field] of the working song: the 16-byte instrument

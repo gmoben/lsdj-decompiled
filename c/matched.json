@@ -9,7 +9,7 @@
   "bank": "03",
   "addr": "4924",
   "len": 56,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "AddSynthParameterClamped": {
   "bank": "1D",
@@ -33,13 +33,13 @@
   "bank": "03",
   "addr": "43C0",
   "len": 90,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "AllocInstrumentTable": {
   "bank": "03",
   "addr": "436D",
   "len": 83,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "AllocNextFreeInstrument": {
   "bank": "1F",
@@ -159,7 +159,7 @@
   "bank": "03",
   "addr": "414F",
   "len": 33,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "CheckJkMarker": {
   "bank": "01",
@@ -309,13 +309,13 @@
   "bank": "03",
   "addr": "441A",
   "len": 384,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "CloneSynthOrTable": {
   "bank": "03",
   "addr": "53DE",
   "len": 65,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "CloneTableAtCursor": {
   "bank": "04",
@@ -435,7 +435,7 @@
   "bank": "1B",
   "addr": "726E",
   "len": 630,
-  "src": "c/bank1b/EnvGraph.c"
+  "src": "c/bank1b/EnvelopeGraph.c"
  },
  "CopyFileName": {
   "bank": "1C",
@@ -477,7 +477,7 @@
   "bank": "1E",
   "addr": "7A4B",
   "len": 85,
-  "src": "c/bank1e/Gfx.c"
+  "src": "c/bank1e/Graphics.c"
  },
  "CopyWaveSelection": {
   "bank": "06",
@@ -609,7 +609,7 @@
   "bank": "1F",
   "addr": "7072",
   "len": 37,
-  "src": "c/bank1f/DrawChanStatus.c"
+  "src": "c/bank1f/DrawChannelStatus.c"
  },
  "DrawAllophoneName": {
   "bank": "06",
@@ -627,7 +627,7 @@
   "bank": "07",
   "addr": "7097",
   "len": 218,
-  "src": "c/bank07/KbdLink.c"
+  "src": "c/bank07/KeyboardLink.c"
  },
  "DrawCartTest": {
   "bank": "01",
@@ -669,7 +669,7 @@
   "bank": "1F",
   "addr": "6F14",
   "len": 324,
-  "src": "c/bank1f/DrawChanStatus.c"
+  "src": "c/bank1f/DrawChannelStatus.c"
  },
  "DrawCommandLetter": {
   "bank": "05",
@@ -687,7 +687,7 @@
   "bank": "1B",
   "addr": "5AE3",
   "len": 35,
-  "src": "c/bank1b/ProjScreen.c"
+  "src": "c/bank1b/ProjectScreen.c"
  },
  "DrawEmptyNote": {
   "bank": "04",
@@ -699,7 +699,7 @@
   "bank": "1F",
   "addr": "418A",
   "len": 172,
-  "src": "c/bank1f/InstrFields.c"
+  "src": "c/bank1f/InstrumentFields.c"
  },
  "DrawFieldValue": {
   "bank": "00",
@@ -789,7 +789,7 @@
   "bank": "03",
   "addr": "4170",
   "len": 231,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "DrawInstrumentName": {
   "bank": "04",
@@ -801,85 +801,85 @@
   "bank": "03",
   "addr": "4DE7",
   "len": 477,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "DrawInstrumentScreenFrame": {
   "bank": "03",
   "addr": "45A7",
   "len": 44,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "DrawInstrumentTableField": {
   "bank": "1F",
   "addr": "409C",
   "len": 43,
-  "src": "c/bank1f/InstrFields.c"
+  "src": "c/bank1f/InstrumentFields.c"
  },
  "DrawInstrumentTableMode": {
   "bank": "1F",
   "addr": "4000",
   "len": 141,
-  "src": "c/bank1f/InstrFields.c"
+  "src": "c/bank1f/InstrumentFields.c"
  },
  "DrawKeyRepeatField": {
   "bank": "1B",
   "addr": "5876",
   "len": 32,
-  "src": "c/bank1b/ProjScreen.c"
+  "src": "c/bank1b/ProjectScreen.c"
  },
  "DrawKeyboardInstrumentName": {
   "bank": "07",
   "addr": "674D",
   "len": 197,
-  "src": "c/bank07/KbdLink.c"
+  "src": "c/bank07/KeyboardLink.c"
  },
  "DrawKeyboardInstrumentState": {
   "bank": "07",
   "addr": "6543",
   "len": 231,
-  "src": "c/bank07/KbdLink.c"
+  "src": "c/bank07/KeyboardLink.c"
  },
  "DrawKeyboardOctave": {
   "bank": "07",
   "addr": "6812",
   "len": 119,
-  "src": "c/bank07/KbdLink.c"
+  "src": "c/bank07/KeyboardLink.c"
  },
  "DrawKitDistortionName": {
   "bank": "03",
   "addr": "4A44",
   "len": 112,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "DrawKitInstrument": {
   "bank": "1F",
   "addr": "44DD",
   "len": 609,
-  "src": "c/bank1f/InstrFields.c"
+  "src": "c/bank1f/InstrumentFields.c"
  },
  "DrawKitLoopField": {
   "bank": "1F",
   "addr": "411F",
   "len": 56,
-  "src": "c/bank1f/InstrFields.c"
+  "src": "c/bank1f/InstrumentFields.c"
  },
  "DrawKitLoopMode": {
   "bank": "1F",
   "addr": "40CA",
   "len": 73,
-  "src": "c/bank1f/InstrFields.c"
+  "src": "c/bank1f/InstrumentFields.c"
  },
  "DrawKitNameCell": {
   "bank": "1F",
   "addr": "44B7",
   "len": 38,
-  "src": "c/bank1f/InstrFields.c"
+  "src": "c/bank1f/InstrumentFields.c"
  },
  "DrawKitNameField": {
   "bank": "03",
   "addr": "4FDC",
   "len": 38,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "DrawMapTopRow": {
   "bank": "05",
@@ -903,7 +903,7 @@
   "bank": "1F",
   "addr": "4399",
   "len": 266,
-  "src": "c/bank1f/InstrFields.c"
+  "src": "c/bank1f/InstrumentFields.c"
  },
  "DrawNoteCell": {
   "bank": "04",
@@ -981,25 +981,25 @@
   "bank": "1B",
   "addr": "5B23",
   "len": 51,
-  "src": "c/bank1b/ProjScreen.c"
+  "src": "c/bank1b/ProjectScreen.c"
  },
  "DrawProjectCursor": {
   "bank": "1B",
   "addr": "5A90",
   "len": 83,
-  "src": "c/bank1b/ProjScreen.c"
+  "src": "c/bank1b/ProjectScreen.c"
  },
  "DrawProjectScreen": {
   "bank": "1B",
   "addr": "5C17",
   "len": 312,
-  "src": "c/bank1b/ProjScreen.c"
+  "src": "c/bank1b/ProjectScreen.c"
  },
  "DrawProjectTempo": {
   "bank": "1B",
   "addr": "5853",
   "len": 14,
-  "src": "c/bank1b/ProjScreen.c"
+  "src": "c/bank1b/ProjectScreen.c"
  },
  "DrawProjectTextField": {
   "bank": "1B",
@@ -1017,13 +1017,13 @@
   "bank": "1F",
   "addr": "423D",
   "len": 338,
-  "src": "c/bank1f/InstrFields.c"
+  "src": "c/bank1f/InstrumentFields.c"
  },
  "DrawScreenColumnLabels": {
   "bank": "1E",
   "addr": "4000",
   "len": 712,
-  "src": "c/bank1e/Gfx.c"
+  "src": "c/bank1e/Graphics.c"
  },
  "DrawScreenPaletteMap": {
   "bank": "01",
@@ -1059,13 +1059,13 @@
   "bank": "1F",
   "addr": "70DF",
   "len": 41,
-  "src": "c/bank1f/SpeechInstrScreen.c"
+  "src": "c/bank1f/SpeechInstrumentScreen.c"
  },
  "DrawSpeechInstrumentScreen": {
   "bank": "1F",
   "addr": "7108",
   "len": 311,
-  "src": "c/bank1f/SpeechInstrScreen.c"
+  "src": "c/bank1f/SpeechInstrumentScreen.c"
  },
  "DrawSpeedGlyph": {
   "bank": "01",
@@ -1095,7 +1095,7 @@
   "bank": "1B",
   "addr": "5796",
   "len": 43,
-  "src": "c/bank1b/ProjScreen.c"
+  "src": "c/bank1b/ProjectScreen.c"
  },
  "DrawSyncStatus": {
   "bank": "06",
@@ -1125,7 +1125,7 @@
   "bank": "1B",
   "addr": "5B7A",
   "len": 137,
-  "src": "c/bank1b/ProjScreen.c"
+  "src": "c/bank1b/ProjectScreen.c"
  },
  "DrawSynthCursor": {
   "bank": "1D",
@@ -1245,19 +1245,19 @@
   "bank": "03",
   "addr": "4CD9",
   "len": 60,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "DrawWaveInstrument": {
   "bank": "1F",
   "addr": "474E",
   "len": 375,
-  "src": "c/bank1f/InstrFields.c"
+  "src": "c/bank1f/InstrumentFields.c"
  },
  "DrawWaveLength": {
   "bank": "03",
   "addr": "498B",
   "len": 44,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "DrawWaveLine": {
   "bank": "06",
@@ -1269,7 +1269,7 @@
   "bank": "03",
   "addr": "49FD",
   "len": 71,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "DrawWaveRange": {
   "bank": "06",
@@ -1287,13 +1287,13 @@
   "bank": "03",
   "addr": "49B7",
   "len": 45,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "DrawWaveSynthField": {
   "bank": "03",
   "addr": "4D15",
   "len": 182,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "DrawWordCursor": {
   "bank": "06",
@@ -1305,7 +1305,7 @@
   "bank": "1F",
   "addr": "6C34",
   "len": 106,
-  "src": "c/bank1f/SpeechInstrScreen.c"
+  "src": "c/bank1f/SpeechInstrumentScreen.c"
  },
  "DrawWordScreen": {
   "bank": "06",
@@ -1347,7 +1347,7 @@
   "bank": "03",
   "addr": "50DF",
   "len": 73,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "EraseChainCursor": {
   "bank": "06",
@@ -1377,7 +1377,7 @@
   "bank": "03",
   "addr": "4679",
   "len": 200,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "EraseNameEditCursor": {
   "bank": "1B",
@@ -1395,7 +1395,7 @@
   "bank": "1B",
   "addr": "5A42",
   "len": 78,
-  "src": "c/bank1b/ProjScreen.c"
+  "src": "c/bank1b/ProjectScreen.c"
  },
  "EraseSongCursor": {
   "bank": "07",
@@ -1407,7 +1407,7 @@
   "bank": "1F",
   "addr": "70B6",
   "len": 41,
-  "src": "c/bank1f/SpeechInstrScreen.c"
+  "src": "c/bank1f/SpeechInstrumentScreen.c"
  },
  "EraseSynthCursor": {
   "bank": "1D",
@@ -1833,7 +1833,7 @@
   "bank": "1E",
   "addr": "79FA",
   "len": 62,
-  "src": "c/bank1e/Gfx.c"
+  "src": "c/bank1e/Graphics.c"
  },
  "FindCursorInstrument": {
   "bank": "04",
@@ -1869,7 +1869,7 @@
   "bank": "03",
   "addr": "42FF",
   "len": 60,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "FindFreeTable": {
   "bank": "1F",
@@ -1959,19 +1959,19 @@
   "bank": "03",
   "addr": "4790",
   "len": 18,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "GetInstrumentEnvelopeBytes": {
   "bank": "1B",
   "addr": "70B8",
   "len": 328,
-  "src": "c/bank1b/EnvGraph.c"
+  "src": "c/bank1b/EnvelopeGraph.c"
  },
  "GetInstrumentType3": {
   "bank": "03",
   "addr": "4BE9",
   "len": 16,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "GetScreenPalette": {
   "bank": "01",
@@ -1989,7 +1989,7 @@
   "bank": "03",
   "addr": "4B4C",
   "len": 18,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "GetWaveEditRange": {
   "bank": "06",
@@ -2001,25 +2001,25 @@
   "bank": "03",
   "addr": "4AF4",
   "len": 22,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "GetWaveLoopPosition": {
   "bank": "03",
   "addr": "49E7",
   "len": 22,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "GetWavePlayMode": {
   "bank": "03",
   "addr": "40F8",
   "len": 13,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "GetWaveSpeed": {
   "bank": "03",
   "addr": "4ACF",
   "len": 17,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "GotoMapCursorScreen": {
   "bank": "05",
@@ -2085,7 +2085,7 @@
   "bank": "07",
   "addr": "672A",
   "len": 18,
-  "src": "c/bank07/KbdLink.c"
+  "src": "c/bank07/KeyboardLink.c"
  },
  "HighlightPhraseCell": {
   "bank": "1F",
@@ -2127,25 +2127,25 @@
   "bank": "03",
   "addr": "4DD7",
   "len": 16,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "InstrumentEnvelopeHasSecond": {
   "bank": "1F",
   "addr": "4157",
   "len": 18,
-  "src": "c/bank1f/InstrFields.c"
+  "src": "c/bank1f/InstrumentFields.c"
  },
  "InstrumentEnvelopeHasThird": {
   "bank": "1F",
   "addr": "4169",
   "len": 33,
-  "src": "c/bank1f/InstrFields.c"
+  "src": "c/bank1f/InstrumentFields.c"
  },
  "InstrumentScreenInput": {
   "bank": "03",
   "addr": "541F",
   "len": 9820,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "IsBookmarked": {
   "bank": "07",
@@ -2175,7 +2175,7 @@
   "bank": "03",
   "addr": "4118",
   "len": 27,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "IsPhraseUsed": {
   "bank": "01",
@@ -2223,13 +2223,13 @@
   "bank": "07",
   "addr": "7033",
   "len": 27,
-  "src": "c/bank07/KbdLink.c"
+  "src": "c/bank07/KeyboardLink.c"
  },
  "KeyboardPollScancode": {
   "bank": "07",
   "addr": "704E",
   "len": 73,
-  "src": "c/bank07/KbdLink.c"
+  "src": "c/bank07/KeyboardLink.c"
  },
  "KitExists": {
   "bank": "00",
@@ -2241,7 +2241,7 @@
   "bank": "07",
   "addr": "7012",
   "len": 33,
-  "src": "c/bank07/KbdLink.c"
+  "src": "c/bank07/KeyboardLink.c"
  },
  "LoadChainCursorPhrase": {
   "bank": "06",
@@ -2271,7 +2271,7 @@
   "bank": "1E",
   "addr": "7AA0",
   "len": 267,
-  "src": "c/bank1e/Gfx.c"
+  "src": "c/bank1e/Graphics.c"
  },
  "LoadHardwareTables": {
   "bank": "01",
@@ -2325,31 +2325,31 @@
   "bank": "03",
   "addr": "4769",
   "len": 39,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "LowerInstrumentFieldHigh": {
   "bank": "03",
   "addr": "5231",
   "len": 58,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "LowerInstrumentFieldLow": {
   "bank": "03",
   "addr": "51BC",
   "len": 56,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "LowerInstrumentLength": {
   "bank": "03",
   "addr": "52BF",
   "len": 89,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "LowerInstrumentLengthBig": {
   "bank": "03",
   "addr": "537A",
   "len": 96,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "LowerSynthFieldHigh": {
   "bank": "1D",
@@ -2493,37 +2493,37 @@
   "bank": "03",
   "addr": "4BF9",
   "len": 107,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "NextInstrumentTable": {
   "bank": "03",
   "addr": "489D",
   "len": 57,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "NextInstrumentTableMode": {
   "bank": "03",
   "addr": "482E",
   "len": 111,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "NextKit": {
   "bank": "03",
   "addr": "503A",
   "len": 82,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "NextUsedInstrument": {
   "bank": "03",
   "addr": "4638",
   "len": 65,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "NextVibratoShape": {
   "bank": "03",
   "addr": "4BAC",
   "len": 31,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "OpenChainPhrase": {
   "bank": "06",
@@ -2667,7 +2667,7 @@
   "bank": "1B",
   "addr": "7200",
   "len": 110,
-  "src": "c/bank1b/EnvGraph.c"
+  "src": "c/bank1b/EnvelopeGraph.c"
  },
  "PositionWavSprites": {
   "bank": "00",
@@ -2691,43 +2691,43 @@
   "bank": "03",
   "addr": "461B",
   "len": 29,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "PreviousInstrumentPitchMode": {
   "bank": "03",
   "addr": "4C64",
   "len": 117,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "PreviousInstrumentTable": {
   "bank": "03",
   "addr": "48D6",
   "len": 78,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "PreviousInstrumentTableMode": {
   "bank": "03",
   "addr": "47A2",
   "len": 140,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "PreviousKit": {
   "bank": "03",
   "addr": "508C",
   "len": 83,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "PreviousUsedInstrument": {
   "bank": "03",
   "addr": "45D3",
   "len": 72,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "PreviousVibratoShape": {
   "bank": "03",
   "addr": "4BCB",
   "len": 30,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "ProcessInput": {
   "bank": "00",
@@ -2739,13 +2739,13 @@
   "bank": "07",
   "addr": "6E50",
   "len": 450,
-  "src": "c/bank07/KbdLink.c"
+  "src": "c/bank07/KeyboardLink.c"
  },
  "ProcessLinkQueue": {
   "bank": "07",
   "addr": "68A2",
   "len": 1418,
-  "src": "c/bank07/KbdLink.c"
+  "src": "c/bank07/KeyboardLink.c"
  },
  "ProcessSyncByte": {
   "bank": "00",
@@ -2757,49 +2757,49 @@
   "bank": "1B",
   "addr": "5DBF",
   "len": 3229,
-  "src": "c/bank1b/ProjScreen.c"
+  "src": "c/bank1b/ProjectScreen.c"
  },
  "ProjectSyncModeIs015": {
   "bank": "1B",
   "addr": "5B09",
   "len": 26,
-  "src": "c/bank1b/ProjScreen.c"
+  "src": "c/bank1b/ProjectScreen.c"
  },
  "ProjectSyncModeIs567": {
   "bank": "1B",
   "addr": "5896",
   "len": 27,
-  "src": "c/bank1b/ProjScreen.c"
+  "src": "c/bank1b/ProjectScreen.c"
  },
  "RaiseInstrumentCommandRate": {
   "bank": "03",
   "addr": "4741",
   "len": 40,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "RaiseInstrumentFieldHigh": {
   "bank": "03",
   "addr": "51F4",
   "len": 61,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "RaiseInstrumentFieldLow": {
   "bank": "03",
   "addr": "5181",
   "len": 59,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "RaiseInstrumentLength": {
   "bank": "03",
   "addr": "526B",
   "len": 80,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "RaiseInstrumentLengthBig": {
   "bank": "03",
   "addr": "531C",
   "len": 90,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "RaiseSynthFieldHigh": {
   "bank": "1D",
@@ -2841,7 +2841,7 @@
   "bank": "00",
   "addr": "0AE2",
   "len": 20,
-  "src": "c/bank00/InstrByte.c"
+  "src": "c/bank00/InstrumentByte.c"
  },
  "ReadCursorInstrument": {
   "bank": "04",
@@ -2859,7 +2859,7 @@
   "bank": "00",
   "addr": "0A91",
   "len": 81,
-  "src": "c/bank00/InstrByte.c"
+  "src": "c/bank00/InstrumentByte.c"
  },
  "ReadKitName": {
   "bank": "00",
@@ -2895,7 +2895,7 @@
   "bank": "00",
   "addr": "0AF6",
   "len": 94,
-  "src": "c/bank00/ReadSeqByte.c"
+  "src": "c/bank00/ReadSequenceByte.c"
  },
  "ReadSequenceByteRaw": {
   "bank": "00",
@@ -2949,7 +2949,7 @@
   "bank": "1E",
   "addr": "7A38",
   "len": 19,
-  "src": "c/bank1e/Gfx.c"
+  "src": "c/bank1e/Graphics.c"
  },
  "ReadWaveSample": {
   "bank": "06",
@@ -2985,13 +2985,13 @@
   "bank": "1B",
   "addr": "5B62",
   "len": 24,
-  "src": "c/bank1b/ProjScreen.c"
+  "src": "c/bank1b/ProjectScreen.c"
  },
  "RedrawProjectTempo": {
   "bank": "1B",
   "addr": "5861",
   "len": 21,
-  "src": "c/bank1b/ProjScreen.c"
+  "src": "c/bank1b/ProjectScreen.c"
  },
  "RedrawScreenFar": {
   "bank": "1D",
@@ -3003,7 +3003,7 @@
   "bank": "1F",
   "addr": "7097",
   "len": 17,
-  "src": "c/bank1f/SpeechInstrScreen.c"
+  "src": "c/bank1f/SpeechInstrumentScreen.c"
  },
  "RedrawSongRow": {
   "bank": "07",
@@ -3015,7 +3015,7 @@
   "bank": "1B",
   "addr": "5D7C",
   "len": 67,
-  "src": "c/bank1b/ProjScreen.c"
+  "src": "c/bank1b/ProjectScreen.c"
  },
  "RemapChainRefs": {
   "bank": "1F",
@@ -3153,13 +3153,13 @@
   "bank": "1B",
   "addr": "5782",
   "len": 20,
-  "src": "c/bank1b/ProjScreen.c"
+  "src": "c/bank1b/ProjectScreen.c"
  },
  "SaveTempoProperties": {
   "bank": "1B",
   "addr": "582C",
   "len": 39,
-  "src": "c/bank1b/ProjScreen.c"
+  "src": "c/bank1b/ProjectScreen.c"
  },
  "ScrollSongDown": {
   "bank": "07",
@@ -3213,49 +3213,49 @@
   "bank": "03",
   "addr": "4B0A",
   "len": 31,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "SetInstrumentByte11": {
   "bank": "03",
   "addr": "4AE0",
   "len": 20,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "SetInstrumentByte2": {
   "bank": "03",
   "addr": "4B29",
   "len": 35,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "SetInstrumentPitchByte": {
   "bank": "03",
   "addr": "4257",
   "len": 36,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "SetInstrumentTableOn": {
   "bank": "03",
   "addr": "4133",
   "len": 28,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "SetInstrumentTransposeOff": {
   "bank": "03",
   "addr": "4293",
   "len": 24,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "SetInstrumentTransposeOn": {
   "bank": "03",
   "addr": "427B",
   "len": 24,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "SetInstrumentType": {
   "bank": "03",
   "addr": "5128",
   "len": 89,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "SetOamByte": {
   "bank": "00",
@@ -3303,13 +3303,13 @@
   "bank": "07",
   "addr": "5DD8",
   "len": 113,
-  "src": "c/bank07/KbdLink.c"
+  "src": "c/bank07/KeyboardLink.c"
  },
  "SetVibratoShape": {
   "bank": "03",
   "addr": "4B5E",
   "len": 78,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "SetWaveCursorSprite": {
   "bank": "06",
@@ -3483,7 +3483,7 @@
   "bank": "02",
   "addr": "711F",
   "len": 579,
-  "src": "c/bank02/SoundChan.c"
+  "src": "c/bank02/SoundChannel.c"
  },
  "SoundRandomUpTo": {
   "bank": "02",
@@ -3495,7 +3495,7 @@
   "bank": "02",
   "addr": "748E",
   "len": 312,
-  "src": "c/bank02/SoundChan.c"
+  "src": "c/bank02/SoundChannel.c"
  },
  "SoundRetrigNote": {
   "bank": "02",
@@ -3585,7 +3585,7 @@
   "bank": "02",
   "addr": "75C6",
   "len": 554,
-  "src": "c/bank02/SoundChan.c"
+  "src": "c/bank02/SoundChannel.c"
  },
  "SoundWavLevelStep": {
   "bank": "02",
@@ -3621,13 +3621,13 @@
   "bank": "1F",
   "addr": "70A8",
   "len": 14,
-  "src": "c/bank1f/SpeechInstrScreen.c"
+  "src": "c/bank1f/SpeechInstrumentScreen.c"
  },
  "SpeechInstrumentInput": {
   "bank": "1F",
   "addr": "724D",
   "len": 1448,
-  "src": "c/bank1f/SpeechInstrScreen.c"
+  "src": "c/bank1f/SpeechInstrumentScreen.c"
  },
  "StartMapTransition": {
   "bank": "05",
@@ -3645,7 +3645,7 @@
   "bank": "03",
   "addr": "495C",
   "len": 47,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "SubSynthParameterClamped": {
   "bank": "1D",
@@ -3777,7 +3777,7 @@
   "bank": "03",
   "addr": "42AB",
   "len": 84,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "TableInputFlag": {
   "bank": "05",
@@ -3801,7 +3801,7 @@
   "bank": "1B",
   "addr": "6A8C",
   "len": 238,
-  "src": "c/bank1b/ProjScreen.c"
+  "src": "c/bank1b/ProjectScreen.c"
  },
  "TestSramHigh": {
   "bank": "01",
@@ -3837,13 +3837,13 @@
   "bank": "1B",
   "addr": "74E4",
   "len": 107,
-  "src": "c/bank1b/EnvGraph.c"
+  "src": "c/bank1b/EnvelopeGraph.c"
  },
  "UpdateInstrumentEnvelope": {
   "bank": "1B",
   "addr": "754F",
   "len": 33,
-  "src": "c/bank1b/EnvGraph.c"
+  "src": "c/bank1b/EnvelopeGraph.c"
  },
  "UpdateMapTopRow": {
   "bank": "05",
@@ -3891,7 +3891,7 @@
   "bank": "03",
   "addr": "4105",
   "len": 19,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "WaveScreenInput": {
   "bank": "06",
@@ -3933,7 +3933,7 @@
   "bank": "03",
   "addr": "4000",
   "len": 21,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "WriteGrooveByte": {
   "bank": "1D",
@@ -3945,7 +3945,7 @@
   "bank": "00",
   "addr": "0953",
   "len": 102,
-  "src": "c/bank00/InstrByte.c"
+  "src": "c/bank00/InstrumentByte.c"
  },
  "WriteInstrumentName": {
   "bank": "01",
@@ -3957,7 +3957,7 @@
   "bank": "03",
   "addr": "5002",
   "len": 56,
-  "src": "c/bank03/InstrScreen.c"
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "WritePhraseCommand": {
   "bank": "04",
