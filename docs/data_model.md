@@ -153,5 +153,5 @@ pylsdj/liblsdj for the bitfields.)
   disassembly (e.g. `ReadSongByte`, the bank `$02` walkers above, the per-screen
   editors), and the working-song structures themselves are exported as debugger
   symbols by `tools/gen_sym.py` (37 `Sram*` names: `SramPhraseNotes`,
-  `SramGrooves`, `SramSequence`, `SramInstrs`, …) so SRAM accesses resolve
+  `SramGrooves`, `SramSequence`, `SramInstruments`, …) so SRAM accesses resolve
   by name in Emulicious/BGB/SameBoy.

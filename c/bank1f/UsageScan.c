@@ -13,7 +13,7 @@
 UBYTE IsPhraseUsed(UBYTE phrase);
 UBYTE CountUsedPhrases(void);
 UBYTE CountUsedChains(void);
-void RebuildPhraseAllocMap(void);
+void RebuildPhraseAllocationMap(void);
 UBYTE IsChainUsed(UBYTE chain);
 UBYTE IsTableUsed(UBYTE t);
 void MarkTableUsed(UBYTE t);
@@ -48,8 +48,8 @@ void MarkPhraseTablesUsed(UBYTE phrase)
     UBYTE *v;
     UBYTE row;
 
-    c = SramPhraseFx + ((unsigned int)phrase << 4);
-    v = SramPhraseFxVal + ((unsigned int)phrase << 4);
+    c = SramPhraseCommands + ((unsigned int)phrase << 4);
+    v = SramPhraseCommandValues + ((unsigned int)phrase << 4);
     for (row = 0; row < 16; row++) {
         if (ReadSongByte(2, c) == 1)
             MarkTableUsed(ReadSongByte(2, v));
@@ -182,7 +182,7 @@ UBYTE CountUsedChains(void)
     return n;
 }
 
-void RebuildPhraseAllocMap(void)
+void RebuildPhraseAllocationMap(void)
 {
     UBYTE phrase;
     UWORD o;
@@ -190,7 +190,7 @@ void RebuildPhraseAllocMap(void)
     rRAMB = 1;
     _asm di _endasm;
     rRAMG = 0x0A;
-    FillMemory(SramPhraseAlloc, 0, 0x20);
+    FillMemory(SramPhraseAllocation, 0, 0x20);
     rRAMG = 0;
     _asm ei _endasm;
     MarkPhrasesOfUsedChains();

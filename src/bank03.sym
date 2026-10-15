@@ -26,11 +26,11 @@
 427B SetInstrumentTransposeOn           ; set instrument byte 5 bit 5 (transpose) via SetInstrumentPitchByte
 42AB SynthWavesModified         ; 1 if synth n's 256-byte wave page (SRAM bank 3) differs from DefaultWaveFrameB3 repeated
 42FF FindFreeSynth              ; first synth (0-15) whose waves are still default; else 'OUT OF SYNTHS!' message and $FF
-436D AllocInstrumentTable              ; give the instrument the first free table (FarCallByte bank $1F FindFreeTable), switched on; SDCC bug clears byte 6's other bits
-43C0 AllocInstrumentSynth              ; A twice on a wave instrument's SYNTH field (PLAY not MANUAL): give it a free synth (FindFreeSynth), drawn and stored in byte 3 bits 7-4
+436D AllocateInstrumentTable              ; give the instrument the first free table (FarCallByte bank $1F FindFreeTable), switched on; SDCC bug clears byte 6's other bits
+43C0 AllocateInstrumentSynth              ; A twice on a wave instrument's SYNTH field (PLAY not MANUAL): give it a free synth (FindFreeSynth), drawn and stored in byte 3 bits 7-4
 441A CloneSynth                 ; clone the current instrument's synth into a free synth slot (params + 256 wave bytes), then point the instrument at it
 45A7 DrawInstrumentScreenFrame           ; shared instrument-screen frame draw (map row, tempo field, marker sprites)
-45D3 PreviousUsedInstrument        ; step wInstrument back to the previous allocated instrument (SramInstrAlloc), then redraw
+45D3 PreviousUsedInstrument        ; step wInstrument back to the previous allocated instrument (SramInstrumentAllocation), then redraw
 461B PreviousInstrumentPage        ; wInstrument -= 16 (clamped to 0), then PreviousUsedInstrument
 4638 NextUsedInstrument        ; step wInstrument on to the next allocated instrument (stops at $40, speech), then redraw
 47A2 PreviousInstrumentTableMode         ; table mode down: clear byte 5 bit 3 (table step) if set, else table off; redraw
@@ -92,8 +92,8 @@
 42FB .done                ; common exit of SynthWavesModified
 4302 .loop                ; loop head in FindFreeSynth
 4339 .done                ; common exit of FindFreeSynth
-43BE .done                ; common exit of AllocInstrumentTable
-4416 .done                ; common exit of AllocInstrumentSynth
+43BE .done                ; common exit of AllocateInstrumentTable
+4416 .done                ; common exit of AllocateInstrumentSynth
 4466 .loop                ; loop head in CloneSynth
 4596 .done                ; common exit of CloneSynth
 45E4 .loop                ; loop head in PreviousUsedInstrument

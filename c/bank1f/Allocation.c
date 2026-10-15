@@ -64,7 +64,7 @@ UBYTE ClaimInstrumentSlot(UBYTE instrument)
     return 1;
 }
 
-UBYTE AllocNextFreeInstrument(void)
+UBYTE AllocateNextFreeInstrument(void)
 {
     UBYTE instrument;
 
@@ -123,7 +123,7 @@ UBYTE IsSongChainUsed(void)
         start = 0;
     chain = start;
     do {
-        p = SramChainAlloc + (chain >> 3);
+        p = SramChainAllocation + (chain >> 3);
         if (!(ReadSongByte(1, (UWORD)p) & (1 << (chain & 7)))) {
             FarCallArgument(1, FAR_FN(MarkChainUsed), chain);
             if (chain >= 0x80)
@@ -140,5 +140,5 @@ UBYTE IsSongChainUsed(void)
 
 UBYTE IsInstrumentAllocated(UBYTE instrument)
 {
-    return ReadSongByte(1, SramInstrAlloc + (UWORD)instrument);
+    return ReadSongByte(1, SramInstrumentAllocation + (UWORD)instrument);
 }

@@ -84,7 +84,7 @@ void ResetSynthParameters(UBYTE s)
 {
     UBYTE *d;
 
-    d = SramSynthParams + ((UWORD)s << 4);
+    d = SramSynthParameters + ((UWORD)s << 4);
     rRAMB = 1;
     _asm di _endasm;
     rRAMG = 0x0A;

@@ -18,7 +18,7 @@ Current state:
   generated `.sym` shows no auto-labels
 - RAM: ~800 semantic addresses in `constants/ram.inc` (arrays carry `[N]` size
   tags and interior accesses render as `base + N`), plus the banked SRAM
-  working-song structures (`SramPhraseNotes`, `SramInstrs`, …). What's
+  working-song structures (`SramPhraseNotes`, `SramInstruments`, …). What's
   left: one byte (`$CB64`) still accessed unnamed, ~40 addresses that appear
   only as raw 16-bit immediates (mostly buffer bases passed to helpers), and
   ~13 named variables whose exact role is marked `TBD`

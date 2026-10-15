@@ -91,7 +91,7 @@ def sram_sections() -> list[str]:
     for i, (off, name) in enumerate(tops):
         end = tops[i + 1][0] if i + 1 < len(tops) else 0x8000
         bank_end = ((off >> 13) + 1) << 13
-        end = min(end, bank_end)  # SramInstrNames straddles the bank0/1 seam
+        end = min(end, bank_end)  # SramInstrumentNames straddles the bank0/1 seam
         bank, cpu = off >> 13, 0xA000 + (off & 0x1FFF)
         out.append(f'SECTION "{name}", SRAM[${cpu:04X}], BANK[{bank}]')
         out.append(f"\tds {end - off}")

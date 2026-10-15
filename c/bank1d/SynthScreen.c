@@ -96,7 +96,7 @@ UBYTE ReadSynthParameter(UBYTE field)
 {
     UWORD p;
 
-    p = (UWORD)SramSynthParams + ((UWORD)wSynthScreen << 4);
+    p = (UWORD)SramSynthParameters + ((UWORD)wSynthScreen << 4);
     p += (UWORD)field;
     return ReadSongByte(1, p);
 }
@@ -194,7 +194,7 @@ void DrawSynthNumber(void)
     UWORD p;
     UBYTE v;
 
-    p = (UWORD)SramSynthParams + ((UWORD)wSynthScreen << 4);
+    p = (UWORD)SramSynthParameters + ((UWORD)wSynthScreen << 4);
     hBgDigitPalette = 4;
     hBgPalette = 1;
     wVramCursor = (UBYTE *)0x98E8;
@@ -390,7 +390,7 @@ void WriteSynthParameter(UBYTE field, UBYTE v)
 {
     UWORD p;
 
-    p = (UWORD)SramSynthParams + ((UWORD)wSynthScreen << 4);
+    p = (UWORD)SramSynthParameters + ((UWORD)wSynthScreen << 4);
     p += (UWORD)field;
     WriteSongByte(1, p, v);
 }
@@ -400,7 +400,7 @@ void AddSynthParameterClamped(UBYTE field, UBYTE maximum, UBYTE increment)
     UWORD p;
     UWORD v;
 
-    p = (UWORD)SramSynthParams + ((UWORD)wSynthScreen << 4);
+    p = (UWORD)SramSynthParameters + ((UWORD)wSynthScreen << 4);
     p += (UWORD)field;
     v = ReadSongByte(1, p);
     v += (UWORD)increment;
@@ -415,7 +415,7 @@ void SubSynthParameterClamped(UBYTE field, UBYTE decrement)
     UWORD p;
     UWORD v;
 
-    p = (UWORD)SramSynthParams + ((UWORD)wSynthScreen << 4);
+    p = (UWORD)SramSynthParameters + ((UWORD)wSynthScreen << 4);
     p += (UWORD)field;
     v = ReadSongByte(1, p);
     v -= decrement;
@@ -430,7 +430,7 @@ void RaiseSynthParameterTo(UBYTE field, UBYTE maximum)
     UWORD p;
     UBYTE v;
 
-    p = (UWORD)SramSynthParams + ((UWORD)wSynthScreen << 4);
+    p = (UWORD)SramSynthParameters + ((UWORD)wSynthScreen << 4);
     p += (UWORD)field;
     v = ReadSongByte(1, p);
     if (v != maximum) {
@@ -445,7 +445,7 @@ void LowerSynthParameterTo0(UBYTE field)
     UWORD p;
     UBYTE v;
 
-    p = (UWORD)SramSynthParams + ((UWORD)wSynthScreen << 4);
+    p = (UWORD)SramSynthParameters + ((UWORD)wSynthScreen << 4);
     p += (UWORD)field;
     v = ReadSongByte(1, p);
     if (v) {

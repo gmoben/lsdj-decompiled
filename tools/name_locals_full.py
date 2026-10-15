@@ -7,7 +7,7 @@ first meaningful, code-derived name:
   named var touched   .setScreen / .loadRow / .checkCol / .clearFlag / .incStep
   leading/first call  .drawHexByte / .readSongByte
   hardware reg write  .setrAUD1ENV
-  return-value set    .ret00 / .ret01 / .retFF        (numeric = reserved-word safe)
+  return-value set    .return00 / .return01 / .returnFF  (numeric = reserved-word safe)
   tail jump to global .toWriteChannelFreq
   loop head           .loop      (target of a backward branch in-function)
   epilogue            .done      (block starts the ret/add sp/pop tail)
@@ -169,7 +169,7 @@ def propose(body, addr, backrefs, prev_assert, conditions=None):
         if g:
             nxt = body[k + 1] if k + 1 < len(body) else '\tret'
             if re.match(r'\t(?:jp|jr|ret|pop|add sp)', nxt) or len(body) == k + 1:
-                return f'.ret{g.group(1).upper()}'
+                return f'.return{g.group(1).upper()}'
         # meaningful call
         g = re.search(r'\tcall ([A-Z]\w+)', l)
         if g and g.group(1) != 'DebugTrap':

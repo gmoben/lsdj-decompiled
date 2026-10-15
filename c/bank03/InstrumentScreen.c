@@ -154,7 +154,7 @@ UBYTE FindFreeSynth(void)
     return 0xFF;
 }
 
-void AllocInstrumentTable(void)
+void AllocateInstrumentTable(void)
 {
     UBYTE t, v;
 
@@ -169,7 +169,7 @@ void AllocInstrumentTable(void)
     FarCall(0x1F, FAR_FN(DrawInstrumentTableField));
 }
 
-void AllocInstrumentSynth(void)
+void AllocateInstrumentSynth(void)
 {
     UBYTE v;
 
@@ -194,7 +194,7 @@ void CloneSynth(void)
     if (destination == 0xFF)
         return;
     for (offset = 0; offset < 0x10; offset++) {
-        v = ReadSongByte(1, SramSynthParams + (UWORD)(source << 4) + (UWORD)offset);
+        v = ReadSongByte(1, SramSynthParameters + (UWORD)(source << 4) + (UWORD)offset);
         WriteSongByte(1, (UWORD)(destination << 4) + (UWORD)0xBEB2 + (UWORD)offset, v);
     }
     offset = 0;
@@ -229,7 +229,7 @@ void PreviousUsedInstrument(void)
     if (wInstrument) {
         while (wInstrument) {
             wInstrument--;
-            if (ReadSongByte(1, SramInstrAlloc + (UWORD)wInstrument))
+            if (ReadSongByte(1, SramInstrumentAllocation + (UWORD)wInstrument))
                 break;
         }
         FarCall(1, FAR_FN(DrawScreenPaletteMap));
@@ -254,7 +254,7 @@ void NextUsedInstrument(void)
     wMessageStringPointer = 0;
     while (wInstrument != 0x40) {
         wInstrument++;
-        if (ReadSongByte(1, SramInstrAlloc + (UWORD)wInstrument))
+        if (ReadSongByte(1, SramInstrumentAllocation + (UWORD)wInstrument))
             break;
     }
     FarCall(1, FAR_FN(DrawScreenPaletteMap));
@@ -2318,9 +2318,9 @@ UBYTE InstrumentScreenInput(void)
             } else if (wDrawStep++ == 1) {
                 if (CheckInstrumentFieldOption(type)) {
                     SetVramCursor(InstrumentFieldX[type][wInstrumentField], InstrumentFieldY[type][wInstrumentField]);
-                    AllocInstrumentTable();
+                    AllocateInstrumentTable();
                 } else if (type == 1 && wInstrumentField == 9 && !WavePlayIsManual()) {
-                    AllocInstrumentSynth();
+                    AllocateInstrumentSynth();
                     return 1;
                 }
                 FarCallArgument(5, ShowInstrumentFieldHelp, type);

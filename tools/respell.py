@@ -88,6 +88,7 @@ def global_names() -> tuple[set[str], set[str]]:
     defined |= set(re.findall(r"^\s*DEF\s+([A-Za-z_]\w*)", (ROOT / "constants" / "ram.inc").read_text(), re.M))
     mf = importlib.import_module("match_function")
     aliases = {k for k in mf.RUNTIME_ALIASES if not k.startswith("_") and not k.islower()}
+    aliases |= {n for _, n in importlib.import_module("gen_sym").SRAM_MAP}   # the working song's SRAM map
     return defined, aliases - defined
 
 
@@ -132,10 +133,17 @@ def respell_labels(words: dict[str, str], dry: bool) -> int:
                 scopes.setdefault(scope, []).append((idx, name))
         for scope, labels in scopes.items():
             renamed = [(idx, lab, respell(lab, words, known)) for idx, lab in labels]
-            names = [n for _, _, n in renamed]
-            dups = sorted({n for n in names if names.count(n) > 1})
-            if dups and any(o != n for _, o, n in renamed):
-                sys.exit(f"error: {p.name} {scope}: local label(s) {', '.join('.' + d for d in dups)} would collide")
+            taken = {lab for _, lab, new in renamed if new == lab}
+            fixed = []
+            for idx, lab, new in renamed:          # a collision gets the labeller's _2, _3
+                if new != lab:
+                    base, k = new, 1
+                    while new in taken:
+                        k += 1
+                        new = f"{base}_{k}"
+                    taken.add(new)
+                fixed.append((idx, lab, new))
+            renamed = fixed
             for idx, old, new in renamed:
                 if new != old:
                     lines[idx] = re.sub(rf"^([0-9A-F]{{4}} \.){old}(?!\w)", rf"\g<1>{new}", lines[idx])

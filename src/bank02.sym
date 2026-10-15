@@ -695,6 +695,6 @@
 5DAC .mask0FClear
 5FF0 .soundWritePanning_2
 613C .storeSpeechPointer
-61D7 .ret10
+61D7 .return10_2
 7DE4 .readSoundChannel_5
 7E0C .readCommandValue_2

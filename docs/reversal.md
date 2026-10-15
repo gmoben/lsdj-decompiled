@@ -337,7 +337,7 @@ throughout. Clusters named:
 - New RAM vars from the same work: `wChannelPitchModulationActive` (`$C3F9`), `wOamDirty`
   (`$CBD1`, which also corrected a wrong "NOI envelope" comment), `wTempoMode`
   (`$C52A`), `wTileLoadNow` (`$CBDB`), the tile-loader state (`wTileLoadSlot`/`Src`/
-  `wTileSlotAlloc`/`wTileRequestTable`, `$CBE1-6`), the power-save idle (`wIdleHalt`/
+  `wTileSlotAllocation`/`wTileRequestTable`, `$CBE1-6`), the power-save idle (`wIdleHalt`/
   `wIdleFrames`, `$C68B-C`), and the word-editor cursor (`wWordRow`/`Col`,
   `$C937-8`).
 
@@ -545,7 +545,7 @@ strings** (`TxtHelpA..Z` + the B/F/H/S/W screen variants) behind
 `CommandHelpPointers`, the bank 1E **font tile blocks** (`TilesFont0A`…`TilesFont2C`,
 selected by `wFont` `$C52E`) and **synth waveform
 tables**, and the phrase/chain/instr **allocation bitmap** functions
-(`AllocNextFreePhrase`/`FreeChain`/`AllocNextFreeInstrument`/`FindFreeTable`…).
+(`AllocateNextFreePhrase`/`FreeChain`/`AllocateNextFreeInstrument`/`FindFreeTable`…).
 Several functions were *hidden by misalignment* — strings/tables carved as code
 swallowed the next function's first bytes (`ShowTapAddPhrase`, `SramHasFileBanks`,
 `CanEnterSongColumn`) — fixed by adding the data ranges to `carve_clean.py` MANUAL.
@@ -562,7 +562,7 @@ body (build stays byte-identical): the sound-engine advance/read chain
 edit dispatchers (`SongScreenInput`/`PhraseScreenInput`/`ChainScreenInput` with
 their A+direction quartets mapped via the wButtons byte values), the file
 subsystem (`DecompressBlock`, `FindFreeBlock`, `EraseFile`…), the CLEAN/de-dupe
-pipeline (`FindDuplicatePhrase/Chain/Table`, `Remap*Refs`, `RebuildPhraseAllocMap`),
+pipeline (`FindDuplicatePhrase/Chain/Table`, `Remap*Refs`, `RebuildPhraseAllocationMap`),
 the synth/groove screens, and the instrument byte accessors named from the
 liblsdj-documented format (`Get/SetInstrumentType/Env/Len/Flags5/Table`…). The last
 `_LABEL_` Emulicious showed (`_LABEL_9F52_` = bank 02:$5F52) was a function

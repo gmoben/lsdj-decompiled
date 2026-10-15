@@ -572,7 +572,7 @@ void LoadSynthParameters(void)
 
     s = wSynthScreen;
     o = s << 4;
-    p = (UWORD)SramSynthParams + o;
+    p = (UWORD)SramSynthParameters + o;
     wSynthSignalType = ReadSongByte(1, p++);
     wSynthFilterType = ReadSongByte(1, p++);
     v = ReadSongByte(1, p++);

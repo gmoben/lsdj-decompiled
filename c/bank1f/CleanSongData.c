@@ -32,7 +32,7 @@ UBYTE FreeUnusedInstruments(void);
 UBYTE CountUsedPhrases(void);
 UBYTE CountUsedChains(void);
 void RemapSequenceChains(void);
-void RebuildPhraseAllocMap(void);
+void RebuildPhraseAllocationMap(void);
 UBYTE FindDuplicateTable(UBYTE a, UBYTE b);
 void RemapCommandTableRefs(UBYTE from, UBYTE to);
 UBYTE IsChainUsed(UBYTE chain);
@@ -81,7 +81,7 @@ UBYTE FreeUnusedInstruments(void)
     UBYTE column;
     UWORD address;
 
-    p = (UWORD)SramInstrAlloc;
+    p = (UWORD)SramInstrumentAllocation;
     n = 0;
     _asm di _endasm;
     for (instrument = 0; instrument < 0x40; instrument++) {
@@ -94,11 +94,11 @@ UBYTE FreeUnusedInstruments(void)
         for (row = 0; row < 0x10; row++) {
             instrument = FarCallArgument2P(4, FAR_FN(ReadPhraseInstrument), phrase, row);
             if (instrument < 0x40)
-                WriteSongByte(1, (UWORD)SramInstrAlloc + instrument, 1);
+                WriteSongByte(1, (UWORD)SramInstrumentAllocation + instrument, 1);
         }
     }
     _asm ei _endasm;
-    p = (UWORD)SramInstrAlloc;
+    p = (UWORD)SramInstrumentAllocation;
     for (instrument = 0; instrument < 0x40; instrument++) {
         _asm di _endasm;
         if (!ReadSongByte(1, p)) {
@@ -543,7 +543,7 @@ UBYTE AnyPhraseUsesCommandF(void)
     UBYTE *p;
     UBYTE phrase, row;
 
-    p = SramPhraseFx;
+    p = SramPhraseCommands;
     for (phrase = 0; phrase != 0xFF; phrase++) {
         row = 0;
         while (1) {
@@ -608,7 +608,7 @@ void CleanSongData(void)
     printf("%d", chains - CountUsedChains());
     wVramCursor = 0x9904;
     printf("PHRASES...");
-    RebuildPhraseAllocMap();
+    RebuildPhraseAllocationMap();
     printf("%d", phrases - CountUsedPhrases());
     wVramCursor = 0x9944;
     printf("OK!");

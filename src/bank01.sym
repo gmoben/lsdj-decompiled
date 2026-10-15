@@ -14,7 +14,7 @@
 4848 CheckSongInitializedMarker   ; ReadSongByte $be78/$be79 ('rb' memory-init marker)
 50A0 UpdateWorkClock            ; apply one work-time minute: song WORKED h:mm ($BFB2/$BFB3) and the total d:hh:mm ($BFB6-$BFB8) in SRAM bank 1
 48D4 WriteSongInitializedMarker   ; WriteSongByte $be78 (set the 'rb' init marker)
-4D67 MarkChainUsed              ; set chain (arg)'s bit in the chain allocation map (SramChainAlloc + chain/8, bit chain&7); asserts chain < $80
+4D67 MarkChainUsed              ; set chain (arg)'s bit in the chain allocation map (SramChainAllocation + chain/8, bit chain&7); asserts chain < $80
 4EA3 .writeSongByte       ; (was WriteSongByteWrap) thin WriteSongByte wrapper
 45D1 FormatSramSong             ; format the SRAM song: zero the banks, default grooves/sequence/word names/instr names/synth params/wave frames
 
@@ -65,7 +65,7 @@
 
 ; --- song-data allocation, clipboard, message bar (FarCall targets) ---
 4E43 FreeChain          ; clear chain-alloc bit (song $3EA2 bitmap) and write back
-4EB3 AllocNextFreePhrase ; scan phrase-alloc bitmap ($3E82) from current phrase, mark first free; full -> ShowOutOfMemory, ret $ff
+4EB3 AllocateNextFreePhrase ; scan phrase-alloc bitmap ($3E82) from current phrase, mark first free; full -> ShowOutOfMemory, ret $ff
 5253 CopyInstrument     ; copy the instrument ("COPIED INSTR"): wClipboardType=6, 16 instr bytes -> screen scratch
 546E CloneInstrumentTable    ; on instr TABLE field: alloc table copy (bank1f), "CLONED TABLE", write #|$20
 5503 PasteInstrument    ; if select-held + clipboardType==6: paste 16 bytes back into instrument
@@ -165,7 +165,7 @@
 4247 NoteFrequencyD58High              ; hi byte of NoteFrequencyDeltaTable entry 58 (interior split)
 5099 TxtPctDColon               ; "%d:"
 509D TxtPctD01                  ; "%d"
-4F44 AllocNextFreePhraseMiddle ; @deploy-only: operand byte of the jp at $4F42 (walker artifact)
+4F44 AllocateNextFreePhraseMiddle ; @deploy-only: operand byte of the jp at $4F42 (walker artifact)
 6F8E TxtVersion                 ; "V9.4.0  (c) 2000 JOHAN KOTLINSKI" (chars drawn individually by DrawCrashScreen)
 6F91 TxtVerMinor                ; '4' minor version digit (string continues)
 6FAE TxtTooBusy                 ; "TOO BUSY!" (CPU overload message)
@@ -199,9 +199,9 @@
 4DB5 .loop                ; loop head in MarkChainUsed
 4E21 .loop                ; loop head in FreePhrase
 4E91 .loop                ; loop head in FreeChain
-4ED7 .loop                ; loop head in AllocNextFreePhrase
-4F07 .loop2               ; loop head in AllocNextFreePhrase
-4F55 .done                ; common exit of AllocNextFreePhrase
+4ED7 .loop                ; loop head in AllocateNextFreePhrase
+4F07 .loop2               ; loop head in AllocateNextFreePhrase
+4F55 .done                ; common exit of AllocateNextFreePhrase
 4F8D .loop                ; loop head in IsChainUsed
 4FDE .loop                ; loop head in IsPhraseUsed
 5097 .done                ; common exit of UpdatePlayClock

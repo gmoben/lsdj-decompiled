@@ -77,7 +77,7 @@ void delay(UWORD d);
 
 void SaveSyncMode(void)
 {
-    WriteSongByte(1, SramPropSyncMode, wSyncMode);
+    WriteSongByte(1, SramPropertySyncMode, wSyncMode);
 }
 
 void DrawSyncMode2Field(void)
@@ -85,13 +85,13 @@ void DrawSyncMode2Field(void)
     hBgDigitPalette = wHighlightDigitPalette;
     hBgPalette = wHighlightPalette;
     DrawHexByte(wSyncMode2);
-    WriteSongByte(1, SramPropSyncMode2, wSyncMode2);
+    WriteSongByte(1, SramPropertySyncMode2, wSyncMode2);
 }
 
 void SaveTempoProperties(void)
 {
-    WriteSongByte(1, SramPropTempo, wTempo);
-    WriteSongByte(1, SramPropTempoMode, wTempoMode);
+    WriteSongByte(1, SramPropertyTempo, wTempo);
+    WriteSongByte(1, SramPropertyTempoMode, wTempoMode);
 }
 
 void DrawProjectTempo(void)

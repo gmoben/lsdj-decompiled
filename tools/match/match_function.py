@@ -411,7 +411,7 @@ def load_symbols() -> dict[str, tuple[int | None, int]]:
         for m in re.finditer(r"^\s*DEF\s+(\w+)\s+EQU\s+\$([0-9A-Fa-f]{4})\b",
                              inc.read_text(errors="replace"), re.M | re.I):
             syms[m.group(1)] = (None, int(m.group(2), 16))
-    # The working-song SRAM structures (SramInstrs = bank 1 $B080, ...),
+    # The working-song SRAM structures (SramInstruments = bank 1 $B080, ...),
     # from tools/gen_sym.py's map; these are CPU addresses in the $A000 window.
     try:
         sys.path.insert(0, str(REPO_ROOT / "tools"))

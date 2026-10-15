@@ -51,7 +51,7 @@
 4CCD FreeUnusedInstruments           ; CLEAN INSTR DATA pass: re-mark the instruments phrases use, reset the rest (name, $B080 block, column refs); e = how many allocated ones were freed
 4F04 MarkTableUsed              ; set wUsedTableMap[t] (t < $20)
 4F1C IsTableUsed                ; -> wUsedTableMap[t], the table's mark
-4F2E IsInstrumentAllocated           ; instrument n's SramInstrAlloc flag
+4F2E IsInstrumentAllocated           ; instrument n's SramInstrumentAllocation flag
 4F49 MarkPhraseTablesUsed       ; mark the tables phrase (arg)'s A commands (command 1) name: MarkTableUsed(value)
 4FC5 MarkTableTablesUsed        ; mark the tables table t's two command columns name with A (MarkTableUsed)
 50A8 MarkTablesOfUsedPhrases    ; mark the tables each used phrase's A commands name (MarkPhraseTablesUsed)
@@ -76,7 +76,7 @@
 5D18 DeduplicateTables                ; fold duplicate tables: for each used table i (hex counter at $98AE) every later used table FindDuplicateTable finds equal is remapped to i (RemapCommandTableRefs); then draws OK
 5DC9 CountUsedPhrases           ; count the phrases in use (IsPhraseUsedFar)
 5DF3 CountUsedChains            ; count the chains in use (IsChainUsedFar)
-5E1D RebuildPhraseAllocMap      ; clear the phrase-alloc bitmap ($3E82, 32B) + rescan via used chains
+5E1D RebuildPhraseAllocationMap      ; clear the phrase-alloc bitmap ($3E82, 32B) + rescan via used chains
 5F20 WaveFrameModified          ; 1 if synth w's wave frame (SRAM bank 3 $A000 + w*16) differs from DefaultWaveFrameB1F
 5F85 SynthFramesModified        ; 1 if any of synth s's 16 wave frames differs from the default (WaveFrameModified)
 5FC2 CountModifiedSynths        ; count the synths with a modified wave frame
@@ -101,7 +101,7 @@
 780A TxtPastedWord     ; "PASTED WORD"
 
 ; --- allocation / clean / phrase-screen helpers (FarCall targets) ---
-4A65 AllocNextFreeInstrument         ; scan instr-alloc table (song $2040) for a free slot, place into phrase (bank04 $41f0); full -> OOM msg, e=$40
+4A65 AllocateNextFreeInstrument         ; scan instr-alloc table (song $2040) for a free slot, place into phrase (bank04 $41f0); full -> OOM msg, e=$40
 4BD9 FindFreeTable              ; first unused table 0-$1f; none -> ShowMessage(TxtOutOfTables), e=$ff
 4C20 IsSongChainUsed            ; test chain-alloc bit for the chain under the song cursor col (wColumnChain+wSongColumn; $80+ -> 0)
 62DD CleanSongData              ; project CLEAN: de-dupe chains+phrases, DE-DUPE/FREEING progress panel
@@ -152,8 +152,8 @@
 43B7 .done                ; common exit of DrawNoiseInstrument
 48E7 .loop                ; loop head in WriteChainPhrase
 4A2B .loop                ; loop head in InitializeRemapTable
-4A6C .loop                ; loop head in AllocNextFreeInstrument
-4ACA .done                ; common exit of AllocNextFreeInstrument
+4A6C .loop                ; loop head in AllocateNextFreeInstrument
+4ACA .done                ; common exit of AllocateNextFreeInstrument
 4B19 .loop                ; loop head in IsSongBlockEmpty
 4B43 .done                ; common exit of IsSongBlockEmpty
 4B4C .loop                ; loop head in IsTableFree
@@ -235,9 +235,9 @@
 5D55 .nextLater           ; DeduplicateTables: inner loop, later table j
 5DD2 .loop                ; loop head in CountUsedPhrases
 5DFC .loop                ; loop head in CountUsedChains
-5E49 .loop                ; loop head in RebuildPhraseAllocMap
-5E6A .loop2               ; loop head in RebuildPhraseAllocMap
-5F1C .done                ; common exit of RebuildPhraseAllocMap
+5E49 .loop                ; loop head in RebuildPhraseAllocationMap
+5E6A .loop2               ; loop head in RebuildPhraseAllocationMap
+5F1C .done                ; common exit of RebuildPhraseAllocationMap
 5F2C .loop                ; loop head in WaveFrameModified
 5F42 .loop2               ; loop head in WaveFrameModified
 5F81 .done                ; common exit of WaveFrameModified

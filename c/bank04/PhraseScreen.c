@@ -12,7 +12,7 @@ extern UBYTE wPhraseColumnLast[];              /* $C907, [4] */
 extern UBYTE wPhraseDrawMode;               /* $C90C */
 extern UBYTE wColumnInstrument[];              /* $C468, [4] last instrument per channel */
 extern UBYTE wInstrumentIsKit;                   /* $C90B */
-UBYTE AllocNextFreeInstrument(void);             /* bank $1F */
+UBYTE AllocateNextFreeInstrument(void);             /* bank $1F */
 void CopyTableData(UBYTE from, UBYTE to);   /* bank 1 */
 extern UBYTE wPhraseRowFlags[];             /* $C90D, [16] */
 extern UBYTE wPhraseRowFlagsB[];            /* $C91D, [16] */
@@ -185,7 +185,7 @@ void WritePhraseInstrument(UBYTE phrase, UBYTE row, UBYTE instrument)
         DebugTrap();
     if (instrument > 0x40 && instrument != 0xFF)
         DebugTrap();
-    p = SramPhraseInstrs + ((UWORD)phrase << 4);
+    p = SramPhraseInstruments + ((UWORD)phrase << 4);
     WriteSongByte(3, p + row, instrument);
 }
 
@@ -210,7 +210,7 @@ UBYTE CommitPhraseInstrument(void)
     result = 0;
     if (instrument > 0x40) {
         if (wColumnInstrument[wSongColumn] == 0xFF) {
-            SetColumnInstrument(FarCallByte(0x1F, FAR_FN(AllocNextFreeInstrument)));
+            SetColumnInstrument(FarCallByte(0x1F, FAR_FN(AllocateNextFreeInstrument)));
             wDrawStep++;
         }
         WritePhraseInstrument(wPhrase, (char)wPhraseRow, wColumnInstrument[wSongColumn]);
@@ -456,7 +456,7 @@ UBYTE ReadPhraseInstrument(UBYTE phrase, UBYTE row)
         DebugTrap();
     if (row >= 0x10)
         DebugTrap();
-    p = SramPhraseInstrs + ((UWORD)phrase << 4);
+    p = SramPhraseInstruments + ((UWORD)phrase << 4);
     return ReadSongByte(3, p + (unsigned int)row);
 }
 
@@ -477,7 +477,7 @@ void WritePhraseCommand(UBYTE phrase, UBYTE row, UBYTE command)
 {
     UWORD p;
 
-    p = (UWORD)(SramPhraseFx + (unsigned int)row);
+    p = (UWORD)(SramPhraseCommands + (unsigned int)row);
     if (phrase == 0xFF)
         DebugTrap();
     if (row >= 0x10)
@@ -492,7 +492,7 @@ void WritePhraseCommandValue(UBYTE phrase, UBYTE row, UBYTE v)
 {
     UWORD p;
 
-    p = (UWORD)(SramPhraseFxVal + (unsigned int)row);
+    p = (UWORD)(SramPhraseCommandValues + (unsigned int)row);
     if (phrase == 0xFF)
         DebugTrap();
     if (row >= 0x10)
@@ -505,7 +505,7 @@ UBYTE ReadPhraseCommandValue(UBYTE phrase, UBYTE row)
 {
     UWORD p;
 
-    p = (UWORD)(SramPhraseFxVal + (unsigned int)row);
+    p = (UWORD)(SramPhraseCommandValues + (unsigned int)row);
     if (phrase == 0xFF)
         DebugTrap();
     if (row >= 0x10)
@@ -519,7 +519,7 @@ UBYTE ReadPhraseCommand(UBYTE phrase, UBYTE row)
     UWORD p;
     UBYTE v, ok;
 
-    p = (UWORD)(SramPhraseFx + (unsigned int)row);
+    p = (UWORD)(SramPhraseCommands + (unsigned int)row);
     if (phrase == 0xFF)
         DebugTrap();
     if (row >= 0x10)
@@ -866,7 +866,7 @@ void CloneInstrumentAtCursor(void)
         FarCall(1, DrawMessageBar);
         return;
     }
-    n = FarCallByte(0x1F, FAR_FN(AllocNextFreeInstrument));
+    n = FarCallByte(0x1F, FAR_FN(AllocateNextFreeInstrument));
     if (n == 0xFF)
         return;
     CloneInstrument(instrument, n);
@@ -1184,7 +1184,7 @@ UBYTE PhraseScreenInput(void)
             redraw = 1;
         case 2:
             if (wPhraseColumn == 2 && wDrawStep++ == 1) {
-                SetColumnInstrument(FarCallByte(0x1F, FAR_FN(AllocNextFreeInstrument)));
+                SetColumnInstrument(FarCallByte(0x1F, FAR_FN(AllocateNextFreeInstrument)));
                 redraw = 1;
             } else if (placed)
                 redraw |= CommitPhraseInstrument();

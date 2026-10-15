@@ -54,7 +54,7 @@ extern UBYTE wColumnChain[];                   /* $C44F, [4] */
 extern UBYTE wColumnPhrase[];                  /* $C453, [4] */
 UBYTE IsSongChainUsed(void);                /* bank $1F */
 void WriteChainPhrase(void);                /* bank $1F */
-void AllocNextFreePhrase(void);             /* bank 1 */
+void AllocateNextFreePhrase(void);             /* bank 1 */
 void ShowOutOfMemory(void);                 /* bank 1 */
 void ClonePhraseAtCursor(UBYTE source, UBYTE destination);    /* bank 6 */
 UBYTE ReadChainTranspose(UBYTE chain, UBYTE step);     /* bank 6 */
@@ -136,7 +136,7 @@ UBYTE CloneSongChain(UBYTE chain)
                     FarCallArgument3P(0x1F, FAR_FN(WriteChainPhrase), v, row, f);
                 } else {
                     wColumnPhrase[wSongColumn] = phrase;
-                    n = FarCallByte(1, FAR_FN(AllocNextFreePhrase));
+                    n = FarCallByte(1, FAR_FN(AllocateNextFreePhrase));
                     if (n == 0xFF) {
                         FarCall(1, FAR_FN(ShowOutOfMemory));
                         return 0xFF;

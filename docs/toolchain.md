@@ -31,7 +31,7 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 | [`c/bank00/Sprites.c`](../c/bank00/Sprites.c) | 10 functions: the sprite helpers | literal-pointer stores, a register pair plus a constant added in place, `v == *p` |
 | [`c/bank00/Sync.c`](../c/bank00/Sync.c) | 18 functions: sync settings, transport and clock, the overload message, unchecked sequence/chain reads, the cartridge test's ROM checksum | literal bank switches around cross-bank calls, a message string in another bank, an early `return` under `&&`, nested `else if` with early returns; CheckRomChecksum: `(UBYTE *)0x2000` as a hoisted cast temp (SDCC folds no literal-to-pointer cast), `return (sum & 0xFF) == low && (sum >> 8) == high;` in value context (genAndOp evaluates both), the `& 0xFF` narrowed to a byte in c and then the `cp a,a` miscompile, and a `volatile UBYTE high` so the final test widens `high` again instead of reusing the subtraction's cast (CSE) |
 | [`c/bank01/DrawMessageBar.c`](../c/bank01/DrawMessageBar.c) | `DrawMessageBar` (198 B) | globals, `sfr` HRAM stores, two loops, calls |
-| [`c/bank01/SongAlloc.c`](../c/bank01/SongAlloc.c) | 14 functions: song allocation bitmaps, 16-byte row copies | a bit test on the chain bitmap (`1 << (chain & 7)`, whose shift count dies to `ld b,#1`) |
+| [`c/bank01/SongAllocation.c`](../c/bank01/SongAllocation.c) | 14 functions: song allocation bitmaps, 16-byte row copies | a bit test on the chain bitmap (`1 << (chain & 7)`, whose shift count dies to `ld b,#1`) |
 | [`c/bank01/CartridgeTest.c`](../c/bank01/CartridgeTest.c) | 5 functions: the boot CARTRIDGE TEST screen (the ROM checksum and the SRAM self-test), the working song's SRAM format, the 'jk' marker check | a `UBYTE * volatile` loop pointer (kept on the stack, its `+ 1` through a register pair), `char` booleans stored and then tested, a stack-vs-stack `==` whose operand order avoids SDCC's `cp a` miscompile; FormatSramSong (a plain `UBYTE *p` for the same reason: its copies and the word loop's `*p` read spill themselves, `memcpy((void *)p, ...)` copies it into bc for the push, a volatile byte for the third saved property) |
 | [`c/bank01/InstrumentNames.c`](../c/bank01/InstrumentNames.c) | 2 functions: an instrument's five-letter name copied to the name editor and written back | byte loops over the name buffer |
 | [`c/bank01/Display.c`](../c/bank01/Display.c) | 7 functions: the CGB/DMG tables, the colour set and the screens' palette maps, the OAM and BG map clears, a screen's setup | `v = f(); v++` reusing the call register, a 12-case `switch` chain; ClearOamBuffer (a plain `UWORD p` compared as a long and cast for every use -- the cast copies spill themselves since p is their operand; `WriteVramByteSafeP` takes the pointer; the WAV sprites through a shadow-OAM struct pointer, `ld de,#addr; ld (de),a` stores) |
@@ -642,7 +642,7 @@ comment began with a quoted string had been carved as data, since a leading
   as it is; a pointer is converted first, which costs a copy through a
   register pair when it sits on the stack (`IsBookmarked`'s reversed `b`/`c`
   copy). So address variables are mostly `UWORD`s: `UWORD p =
-  (UWORD)(SramPhraseFx + (unsigned int)row);` (the cast keeps the sum in
+  (UWORD)(SramPhraseCommands + (unsigned int)row);` (the cast keeps the sum in
   `bc`, where assigning to a pointer packs it straight into `p`'s slot),
   `p += (UWORD)phrase << 4; ReadSongByte(2, p)`. A comparison of such a
   `UWORD` with a constant above `0x7FFF` is 32-bit (the constant is a
@@ -1350,7 +1350,7 @@ untouched (`make match` verifies all 678).
    points at a register-allocation difference no rule can express: stock
    SDCC keeps the result of an `&` in `a` for the `|` that follows and then
    clobbers it (wrong code), LSDj's compiler keeps it in `c`. Not a fixed
-   bug: `AllocInstrumentTable` (`$03:$436D`) ships exactly that miscompilation
+   bug: `AllocateInstrumentTable` (`$03:$436D`) ships exactly that miscompilation
    (`and a,$d0; ld a,c; or a,a`), so it is a source-shape question. The reload-after-ALU and
    dead-store families are probably one codegen mechanism (tracking what `a`
    holds) that we model textually; the overlapping-pointer exception rests on

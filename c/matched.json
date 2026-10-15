@@ -29,29 +29,29 @@
   "len": 121,
   "src": "c/bank07/SongScreen.c"
  },
- "AllocInstrumentSynth": {
+ "AllocateInstrumentSynth": {
   "bank": "03",
   "addr": "43C0",
   "len": 90,
   "src": "c/bank03/InstrumentScreen.c"
  },
- "AllocInstrumentTable": {
+ "AllocateInstrumentTable": {
   "bank": "03",
   "addr": "436D",
   "len": 83,
   "src": "c/bank03/InstrumentScreen.c"
  },
- "AllocNextFreeInstrument": {
+ "AllocateNextFreeInstrument": {
   "bank": "1F",
   "addr": "4A65",
   "len": 105,
   "src": "c/bank1f/Allocation.c"
  },
- "AllocNextFreePhrase": {
+ "AllocateNextFreePhrase": {
   "bank": "01",
   "addr": "4EB3",
   "len": 166,
-  "src": "c/bank01/SongAlloc.c"
+  "src": "c/bank01/SongAllocation.c"
  },
  "AllophoneKit": {
   "bank": "06",
@@ -177,7 +177,7 @@
   "bank": "01",
   "addr": "4848",
   "len": 140,
-  "src": "c/bank01/SongAlloc.c"
+  "src": "c/bank01/SongAllocation.c"
  },
  "ClaimInstrumentSlot": {
   "bank": "1F",
@@ -285,7 +285,7 @@
   "bank": "01",
   "addr": "546E",
   "len": 136,
-  "src": "c/bank01/SongAlloc.c"
+  "src": "c/bank01/SongAllocation.c"
  },
  "ClonePhraseAtCursor": {
   "bank": "06",
@@ -441,7 +441,7 @@
   "bank": "01",
   "addr": "5253",
   "len": 139,
-  "src": "c/bank01/SongAlloc.c"
+  "src": "c/bank01/SongAllocation.c"
  },
  "CopyInstrumentName": {
   "bank": "01",
@@ -453,7 +453,7 @@
   "bank": "01",
   "addr": "52EB",
   "len": 65,
-  "src": "c/bank01/SongAlloc.c"
+  "src": "c/bank01/SongAllocation.c"
  },
  "CopySongColumn": {
   "bank": "07",
@@ -465,7 +465,7 @@
   "bank": "01",
   "addr": "5331",
   "len": 317,
-  "src": "c/bank01/SongAlloc.c"
+  "src": "c/bank01/SongAllocation.c"
  },
  "CopyVramTile": {
   "bank": "1E",
@@ -1893,7 +1893,7 @@
   "bank": "01",
   "addr": "4E43",
   "len": 112,
-  "src": "c/bank01/SongAlloc.c"
+  "src": "c/bank01/SongAllocation.c"
  },
  "FreeFileBlocks": {
   "bank": "1C",
@@ -1905,7 +1905,7 @@
   "bank": "01",
   "addr": "4DD3",
   "len": 112,
-  "src": "c/bank01/SongAlloc.c"
+  "src": "c/bank01/SongAllocation.c"
  },
  "FreeUnusedInstruments": {
   "bank": "1F",
@@ -2139,7 +2139,7 @@
   "bank": "01",
   "addr": "4F59",
   "len": 64,
-  "src": "c/bank01/SongAlloc.c"
+  "src": "c/bank01/SongAllocation.c"
  },
  "IsChainUsedFar": {
   "bank": "1F",
@@ -2163,7 +2163,7 @@
   "bank": "01",
   "addr": "4F99",
   "len": 83,
-  "src": "c/bank01/SongAlloc.c"
+  "src": "c/bank01/SongAllocation.c"
  },
  "IsPhraseUsedFar": {
   "bank": "1F",
@@ -2361,7 +2361,7 @@
   "bank": "01",
   "addr": "4D67",
   "len": 108,
-  "src": "c/bank01/SongAlloc.c"
+  "src": "c/bank01/SongAllocation.c"
  },
  "MarkInstrumentTableUsed": {
   "bank": "1F",
@@ -2379,7 +2379,7 @@
   "bank": "01",
   "addr": "4CFB",
   "len": 108,
-  "src": "c/bank01/SongAlloc.c"
+  "src": "c/bank01/SongAllocation.c"
  },
  "MarkPhrasesOfUsedChains": {
   "bank": "1F",
@@ -2565,7 +2565,7 @@
   "bank": "01",
   "addr": "5503",
   "len": 185,
-  "src": "c/bank01/SongAlloc.c"
+  "src": "c/bank01/SongAllocation.c"
  },
  "PastePhraseSelection": {
   "bank": "04",
@@ -2951,7 +2951,7 @@
   "len": 86,
   "src": "c/bank06/WordScreen.c"
  },
- "RebuildPhraseAllocMap": {
+ "RebuildPhraseAllocationMap": {
   "bank": "1F",
   "addr": "5E1D",
   "len": 259,
@@ -3993,7 +3993,7 @@
   "bank": "01",
   "addr": "48D4",
   "len": 103,
-  "src": "c/bank01/SongAlloc.c"
+  "src": "c/bank01/SongAllocation.c"
  },
  "WriteSynthParameter": {
   "bank": "1D",

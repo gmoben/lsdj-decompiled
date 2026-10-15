@@ -180,7 +180,7 @@ DEF wSongTransposeDisplay EQU $C446 ; displayed form of the song transpose (Proj
 DEF wNoteTranspose        EQU $C4D3  ; PU2 instrument transpose (from instrument PU2_TRANSPOSE param), added before the period lookup
 DEF wNotePeriods          EQU $CF28  ; runtime 16-bit GB note-period table (computed for tuning); SoundNoteToPeriod indexes it
 DEF wKitMixTable          EQU $D000  ; [$480] KitMixTable's WRAM copy (InitializeKitMixer): MixerKernel's nibble-sum LUT; its last 128 bytes are wMasterVolumeTable
-DEF wCurrentInstrument    EQU $C0D0  ; current instrument record byte 0 = type (0 pulse, 1 wav, 2 kit, 3 noise); 16B staged from SramInstrs $B080+instr*16
+DEF wCurrentInstrument    EQU $C0D0  ; current instrument record byte 0 = type (0 pulse, 1 wav, 2 kit, 3 noise); 16B staged from SramInstruments $B080+instr*16
                                 ; ($3080 = SRAM bank1 $B080 + instr*16); SoundSetupChannel then
                                 ; distributes its bytes to the rAUDx register shadows
 ; Per-channel sound state arrays (all [4] = PU1/PU2/WAV/NOI), derived from live
@@ -335,7 +335,7 @@ DEF wSyncState           EQU $CBDE  ; serial state machine (0 idle/1 handshake/2
 ; --- dynamic VRAM tile loader (LoadTilesToVram / CopyTileData / ResetTileLoader) ---
 DEF wTileLoadSlot     EQU $CBE1  ; current tile-load request: destination VRAM tile slot (CopyTileData writes $9000 + slot*16)
 DEF wTileLoadSource   EQU $CBE2  ; [1] 16-bit [16-bit] current tile-load request: source pointer to the 16-byte tile graphics
-DEF wTileSlotAlloc    EQU $CBE4  ; running VRAM tile-slot allocator: stored as each request's id, advanced by its tile count
+DEF wTileSlotAllocation    EQU $CBE4  ; running VRAM tile-slot allocator: stored as each request's id, advanced by its tile count
 DEF wTileRequestTable EQU $CBE6  ; entry-0 source ptr of the tile-load request table (scan anchor: LoadTilesToVram walks 6 entries, stride 3)
 
 ; --- Boot identity ----------------------------------------------------------
@@ -430,7 +430,7 @@ DEF wColumnInstrument     EQU $C468  ; last-used instrument per channel column (
 
 ; --- session-evidenced RAM (readers named in parentheses) ---
 DEF wColumnChain      EQU $C44F  ; chain under cursor per song column, 4 bytes (CloneSongChain / IsSongChainUsed)
-DEF wColumnPhrase     EQU $C453  ; phrase per song column, 4 bytes (AllocNextFreePhrase scan start)
+DEF wColumnPhrase     EQU $C453  ; phrase per song column, 4 bytes (AllocateNextFreePhrase scan start)
 DEF wUsedTableMap     EQU $C47D  ; [32] 32-slot used-tables map (FreeUnusedTables); overlaps wSongReadBuffer + 16
 DEF wRowBufferColumn2 EQU $C48D  ; [16] shared row buffer, third column (phrase: commands; table: command 1; song: 3rd channel)
 DEF wRowBufferColumn3 EQU $C49D  ; [16] shared row buffer, fourth column (phrase: command values; table: value 1)

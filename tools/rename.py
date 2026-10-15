@@ -133,6 +133,13 @@ def c_names() -> set[str]:
     return out
 
 
+def sram_map() -> list[tuple[int, str]]:
+    """tools/gen_sym.py's working-song SRAM names (no .sym/ram.inc entry)."""
+    sys.path.insert(0, str(ROOT / "tools"))
+    import gen_sym                                        # noqa: PLC0415
+    return list(gen_sym.SRAM_MAP)
+
+
 def c_functions() -> set[str]:
     manifest = ROOT / "c" / "matched.json"
     return set(json.loads(manifest.read_text())) if manifest.is_file() else set()
@@ -170,7 +177,7 @@ def apply(pairs: list[tuple[str, str, str | None]], c_only: frozenset[str] = fro
     for old, new, _ in pairs:
         if old not in c_only and not re.search(rf"\b{re.escape(old)}\b", syms):
             sys.exit(f"error: {old} is not a symbol")
-        if old in c_only and old not in cnames:
+        if old in c_only and old not in cnames and not any(old == n for _, n in sram_map()):
             sys.exit(f"error: {old} is not a C name")
         # defined names only (`ADDR NAME` / `DEF NAME`); comments may mention NEW
         if (new in defined and new not in olds) or (new in c_only and new not in olds):

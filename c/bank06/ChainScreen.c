@@ -25,7 +25,7 @@ extern char TxtDashes2[];                   /* $06:$5A5E " --" */
 extern UBYTE wColumnPhrase[];                  /* $C453, [4] */
 void DrawChainPosition(void);
 void LoadChainRow(void);
-void AllocNextFreePhrase(void);             /* bank 1 */
+void AllocateNextFreePhrase(void);             /* bank 1 */
 void WriteChainPhrase(void);                /* bank $1F */
 void ShowOutOfMemory(void);                 /* bank 1 */
 void ClonePhraseAtCursor(UBYTE source, UBYTE destination);
@@ -253,7 +253,7 @@ void OpenChainPhrase(void)
     if (phrase == 0xFF)
         return;
     wColumnPhrase[wSongColumn] = phrase;
-    n = FarCallByte(1, FAR_FN(AllocNextFreePhrase));
+    n = FarCallByte(1, FAR_FN(AllocateNextFreePhrase));
     if (n != 0xFF) {
         ClonePhraseAtCursor(phrase, n);
         FarCallArgument3(0x1F, (UWORD)WriteChainPhrase, wChain, (char)wChainRow, n);
@@ -325,7 +325,7 @@ UBYTE ChainScreenInput(void)
         switch (wChainColumn) {
         case 0:
             if (wDrawStep++ && wChainCellEmpty) {
-                v = FarCallByte(1, FAR_FN(AllocNextFreePhrase));
+                v = FarCallByte(1, FAR_FN(AllocateNextFreePhrase));
                 wDrawStep = 0;
             } else {
                 v = FarCallArgument2P(2, FAR_FN(SoundGetChainPhrase), wChain, wChainRow);
@@ -333,7 +333,7 @@ UBYTE ChainScreenInput(void)
                 if (wChainCellEmpty) {
                     v = wColumnPhrase[wSongColumn];
                     if (v == 0xFF) {
-                        v = FarCallByte(1, FAR_FN(AllocNextFreePhrase));
+                        v = FarCallByte(1, FAR_FN(AllocateNextFreePhrase));
                         wChainCellEmpty = 0;
                     } else
                         FarCallArgument(1, FAR_FN(MarkPhraseUsed), v);
