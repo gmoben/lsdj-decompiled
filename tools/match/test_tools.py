@@ -19,6 +19,7 @@ rom_grep = importlib.import_module("rom_grep")
 code_kind = importlib.import_module("code_kind")
 match_function = importlib.import_module("match_function")
 to_rgbds = importlib.import_module("to_rgbds")
+split_c = importlib.import_module("split_c")
 disasm = importlib.import_module("disasm")
 
 
@@ -141,8 +142,8 @@ class LabelTests(unittest.TestCase):
                 (0x400B, "I", "jp $4110"), (0x4010, "I", "ld hl, \x00__str_3\x00"),
                 (0x4020, "L", "\x00__str_3\x00:")]
         out = [text for _a, _k, text in t.resolve_labels(rows)]
-        self.assertIn("ld hl, .soundChCases", out)
-        self.assertIn(".soundChCases:", out)
+        self.assertIn("ld hl, .soundChanCases", out)
+        self.assertIn(".soundChanCases:", out)
         self.assertIn("ld hl, .strSaveSong", out)
         self.assertIn(".strSaveSong:", out)
 
@@ -304,6 +305,23 @@ class TranslatedPointerTests(unittest.TestCase):
         rows = [(1, "I", "ld hl, $747D"), (4, "I", "push hl"), (5, "I", "ld a, $05"),
                 (7, "I", "push af"), (8, "I", "inc sp"), (9, "I", "call FarCall")]
         self.assertEqual(self.translator().rom_operands(rows)[0][2], "ld hl, RestoreSelectionState")
+
+
+class SplitCTests(unittest.TestCase):
+    def test_declared_names(self):
+        d = split_c.declared
+        self.assertEqual(d("extern char AlnumChars[][11];   /* $1B:$4C6A, the name keyboard */"), {"AlnumChars"})
+        self.assertEqual(d("extern UBYTE wColPhrase[];      /* $C453, [4] */"), {"wColPhrase"})
+        self.assertEqual(d("extern UBYTE wSyncRun, wSyncHandshake;"), {"wSyncRun", "wSyncHandshake"})
+        self.assertEqual(d("void ReadKitSampleName(UBYTE kit, UBYTE sample);   /* bank 0 */"), {"ReadKitSampleName"})
+        self.assertEqual(d("extern void (*wFieldHandler)(UBYTE v);"), {"wFieldHandler"})
+        self.assertEqual(d("#define TxtHelpPan ((char *)0x6E0C)"), {"TxtHelpPan"})
+
+    def test_header_wraps_the_description(self):
+        h = split_c.header("The status panel", "Updated every frame on most screens: each channel's "
+                           "playing note (a kit's sample name or a note name) and the sync status.", "06")
+        self.assertTrue(h.startswith("/*\n * The status panel -- LSDj 9.4.0, ROM bank $06.\n *\n * Updated"))
+        self.assertLessEqual(max(map(len, h.splitlines())), 80)
 
 
 if __name__ == "__main__":

@@ -1,5 +1,8 @@
 /*
- * The phrase screen's bank-$1F half: its update handler, the channel moves, cut/copy, and the cursor and selection highlights -- LSDj 9.4.0, ROM bank $1F.
+ * The phrase screen's bank-$1F half -- LSDj 9.4.0, ROM bank $1F.
+ *
+ * Its update handler, the channel moves, cut/copy, and the cursor and
+ * selection highlights.
  *
  * MATCHING C (period GBDK 2.95-3 / SDCC 2.2.1 + tools/match/lsdj.peep);
  * `make match` verifies every function here against the ROM.

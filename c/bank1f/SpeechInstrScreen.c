@@ -1,5 +1,7 @@
 /*
- * The speech instrument screen: the word list, its cursor and its input -- LSDj 9.4.0, ROM bank $1F.
+ * The speech instrument screen -- LSDj 9.4.0, ROM bank $1F.
+ *
+ * The word list, its cursor and its input.
  *
  * MATCHING C (period GBDK 2.95-3 / SDCC 2.2.1 + tools/match/lsdj.peep);
  * `make match` verifies every function here against the ROM.

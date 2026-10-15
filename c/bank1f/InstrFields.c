@@ -1,5 +1,8 @@
 /*
- * The instrument screen's bank-$1F half: each instrument type's fields (pulse, wave, kit, noise), the envelope and table fields -- LSDj 9.4.0, ROM bank $1F.
+ * The instrument screen's bank-$1F half -- LSDj 9.4.0, ROM bank $1F.
+ *
+ * Each instrument type's fields (pulse, wave, kit, noise), the envelope and
+ * table fields.
  *
  * MATCHING C (period GBDK 2.95-3 / SDCC 2.2.1 + tools/match/lsdj.peep);
  * `make match` verifies every function here against the ROM.

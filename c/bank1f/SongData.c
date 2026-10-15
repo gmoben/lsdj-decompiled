@@ -1,5 +1,9 @@
 /*
- * Song data housekeeping: instrument/table/phrase allocation, the usage scans and counters, the de-duplication and remapping behind the PROJECT screen's CLEAN SONG DATA / CLEAN INSTR DATA -- LSDj 9.4.0, ROM bank $1F.
+ * Song data housekeeping -- LSDj 9.4.0, ROM bank $1F.
+ *
+ * Instrument/table/phrase allocation, the usage scans and counters, the
+ * de-duplication and remapping behind the PROJECT screen's CLEAN SONG DATA
+ * / CLEAN INSTR DATA.
  *
  * MATCHING C (period GBDK 2.95-3 / SDCC 2.2.1 + tools/match/lsdj.peep);
  * `make match` verifies every function here against the ROM.
