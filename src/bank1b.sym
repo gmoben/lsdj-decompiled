@@ -31,7 +31,7 @@
 4ADB ProjHelpReset              ; $c933=0, refresh ($17fb), DrawHelpScreen
 4AE7 DrawNameEditArrows         ; draw the name editor '<' '>' arrows at the letter position
 4B6D ProjHelpOpenSelected       ; activate selected help entry $c934: set $c933, load its string via DrawNameEditArrows
-4C30 DrawKbdCursor              ; highlight the name keyboard key under the cursor ((5, 8) + wKbdCursorCol/Row; palette 3 CGB / 2 DMG) via ColorField
+4C30 DrawKbdCursor              ; highlight the name keyboard key under the cursor ((5, 8) + wKbdCol/Row; palette 3 CGB / 2 DMG) via ColorField
 4C96 EraseKbdCursor             ; un-highlight the name keyboard key under the cursor (palette 0) via ColorField
 4CBA DrawProjTextField          ; draw a project-screen text field (highlight-aware) at computed coords
 5303 NameEditBackspace          ; name-editor backspace (select, or the keyboard's backspace key): clear the letter at the last slot, else step the letter highlight back and clear the letter there
@@ -207,14 +207,14 @@
 4EDB .checkKbdLetterPos
 4EE7 .checkCurScreen
 4F40 .loadSelectDigitPal
-4F7D .setKbdCursorCol
+4F7D .setKbdCol
 4F8A .setVramCursor
 5064 .loadKbdLetterPos
 5081 .checkGameboyType
 5090 .checkNameEditIsInstr
 50C1 .loadKbdLetterPosb
 50DB .checkGameboyTypeb
-50EA .loadKbdCursorRow
+50EA .loadKbdRow
 519A .outOfMemory
 51D1 .saved
 51FC .saveFailed
@@ -382,7 +382,7 @@
 509D .cont_6
 509F .cont_7
 50BF .loadKbdLetterPos_3
-50E8 .setKbdCursorRow
+50E8 .setKbdRow
 51F0 .savedDmgDelay
 51F3 .savedDelay
 5246 .storeWordName

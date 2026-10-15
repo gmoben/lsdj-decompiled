@@ -350,7 +350,9 @@ in `docs/functionality.md`.
   sits in. A screen's cursor highlight pair is `Draw<Screen>Cursor` /
   `Erase<Screen>Cursor`; a screen's handlers are `Draw<Screen>Screen` /
   `<Screen>ScreenInput` / `<Screen>ScreenUpdate`; a banked-call wrapper is
-  `<Name>Far`. The *word* screen (screen 12) edits a word's allophones; the
+  `<Name>Far`. A grid screen's cursor is `w<Screen>Row`/`w<Screen>Col`
+  (`wPhraseRow`, `wWordCol`), a one-index cursor `w<Screen>Cursor`
+  (`wSynthCursor`). The *word* screen (screen 12) edits a word's allophones; the
   *speech* instrument screen lists the words (`SpeechInstrInput`).
 - **Constants.** `SCREAMING_SNAKE_CASE` via `EQU`/`DEF` in `constants/`
   (`rRAMG`, `SOUND_CHANNEL_COUNT`). Use `hardware.inc` names for MMIO registers

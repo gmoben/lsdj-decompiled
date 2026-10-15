@@ -92,9 +92,9 @@
 6CA2 UnhighlightPhraseCell      ; colour phrase cell (col,row) in its normal palette (the PhraseCell* layout tables; HighlightPhraseCell's inverse)
 6EFE ErasePhraseCursor          ; restore the phrase cursor cell's palette: UnhighlightPhraseCell(wPhraseCol, wPhraseRow)
 6F14 DrawChanStatus            ; draw channel status cell at (16, ch+6) from wChanOutput[ch]
-70A8 SpeechCursorY              ; screen row of the speech instrument's word-list cursor: wSpeechCursorRow + 4
+70A8 SpeechCursorY              ; screen row of the speech instrument's word-list cursor: wSpeechRow + 4
 70B6 EraseSpeechCursor          ; restore the word-list row's palette (alternating by row parity)
-70DF DrawSpeechCursor           ; highlight the speech instrument's word-list row under wSpeechCursorRow
+70DF DrawSpeechCursor           ; highlight the speech instrument's word-list row under wSpeechRow
 ; --- functions called from bank 0 (this bank paged in) ---
 4A26 InitRemapTable             ; fill $c9b8..+16 with identity 0..15 (remap table for clone/dedupe)
 7801 TxtCutWord        ; "CUT WORD"
@@ -667,7 +667,7 @@
 7195 .cont
 719D .checkArg
 7232 .speechCursorY_2
-72AA .loadSpeechCursorRow
+72AA .loadSpeechRow
 72D4 .readSongByte
 72FE .readSongByte_2
 7455 .step

@@ -62,11 +62,11 @@ extern UBYTE wChainCol;                     /* $C419 */
 extern UBYTE wChainRow;                     /* $C41A */
 extern UBYTE wTable;                        /* $C41B */
 extern UBYTE wSongScroll;                   /* $C41C */
-extern UBYTE wInstrCursorCol;               /* $C428 */
+extern UBYTE wInstrCol;               /* $C428 */
 extern UBYTE wSynth;                        /* $C42A */
 extern UBYTE wWaveCursor;                   /* $C42B */
-extern UBYTE wKbdCursorCol;                 /* $C42D */
-extern UBYTE wKbdCursorRow;                 /* $C42E */
+extern UBYTE wKbdCol;                 /* $C42D */
+extern UBYTE wKbdRow;                 /* $C42E */
 extern UBYTE wSynthScreen;                  /* $C441 */
 extern UBYTE wSynthCursor;                  /* $C442 */
 extern UBYTE wUnusedC443;                   /* $C443 */
@@ -85,9 +85,9 @@ extern UBYTE wTableRow;                     /* $C930 */
 extern UBYTE wTableEnvCache;                /* $C931 */
 extern UBYTE wTableTransposeCache;              /* $C932 */
 extern UBYTE wHelpOpenEntry;                /* $C933 */
-extern UBYTE wHelpCursorRow;                /* $C934 */
-extern UBYTE wWordEditRow;                  /* $C937 */
-extern UBYTE wWordEditCol;                  /* $C938 */
+extern UBYTE wHelpRow;                /* $C934 */
+extern UBYTE wWordRow;                  /* $C937 */
+extern UBYTE wWordCol;                  /* $C938 */
 extern UBYTE wChainCellVal;               /* $C945 */
 extern UBYTE wSramFsFlag;                   /* $C9A3 */
 extern UBYTE wGrooveRow;                    /* $C9D4 */
@@ -179,12 +179,12 @@ void ResetWorkState(void)
     wChanDispNote[2] = 0;
     wChanDispNote[3] = 0;
     wInstrField = 0;
-    wInstrCursorCol = 0;
-    wSpeechCursorRow = 0;
+    wInstrCol = 0;
+    wSpeechRow = 0;
     wSynth = 0;
     wWaveCursor = 0;
-    wKbdCursorCol = 9;
-    wKbdCursorRow = 3;
+    wKbdCol = 9;
+    wKbdRow = 3;
     wSynthScreen = 0;
     wSynthCursor = 0;
     wUnusedC443 = 0;
@@ -233,11 +233,11 @@ void ResetWorkState(void)
     wTableEnvCache = 0;
     wTableTransposeCache = 0;
     wHelpOpenEntry = 0;
-    wHelpCursorRow = 0;
+    wHelpRow = 0;
     wWordClipCell0[0] = 1;
     wWordClipCell0[1] = 0;
-    wWordEditRow = 0;
-    wWordEditCol = 0;
+    wWordRow = 0;
+    wWordCol = 0;
     wChainCellVal = 0;
     wSramFsFlag = 0;
     wInstrRemapTable[0] = 0xFF;

@@ -479,7 +479,7 @@
 58EC .checkSelectionLeft
 5915 .cont_2
 5924 .cont_3
-5945 .setWordEditCol
+5945 .setWordCol
 5A04 .step
 5A73 .cont
 5AEA .cont_2
@@ -497,7 +497,7 @@
 5C53 .cont_4
 5C54 .cont_5
 5C62 .loadSongScroll_2
-5CF8 .setWordEditCol
+5CF8 .setWordCol
 5D83 .cont_6
 5DAE .cont_7
 5E0B .cont

@@ -395,7 +395,7 @@ class LSDj:
         return self.INAME.get(idx, "?")
 
     def instr_field(self, row: int, col: int = 0) -> tuple[int | None, int | None]:
-        """INSTR: move the field cursor to (col,row) = (wInstrCursorCol,wInstrField)."""
+        """INSTR: move the field cursor to (col,row) = (wInstrCol,wInstrField)."""
         self.goto("INSTR")
         return self.moveto(col, row)
 

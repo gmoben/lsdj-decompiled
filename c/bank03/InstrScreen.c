@@ -26,7 +26,7 @@ extern UBYTE wAHeld;                        /* $C40C */
 extern UBYTE wNameEditIsInstr;              /* $C430 */
 extern UBYTE wSynth;                        /* $C42A */
 extern UBYTE wSynthScreen;                  /* $C441 */
-extern UBYTE wInstrCursorCol;               /* $C428 */
+extern UBYTE wInstrCol;               /* $C428 */
 extern UBYTE wTable;                        /* $C41B */
 extern UBYTE wSelectHeld;                   /* $C40A */
 extern UBYTE wBHeld;                        /* $C40B */
@@ -995,7 +995,7 @@ UBYTE InstrScreenInput(void)
             if (wInstrField == 0x10)
                 wInstrField--;
             else
-                switch (wInstrField + wInstrCursorCol - 1) {
+                switch (wInstrField + wInstrCol - 1) {
                 case 4:
                 case 8:
                 case 0x0A:
@@ -1061,7 +1061,7 @@ UBYTE InstrScreenInput(void)
                     break;
                 case 4:
                 case 8:
-                    if (wInstrCursorCol)
+                    if (wInstrCol)
                         wInstrField++;
                 }
                 break;
@@ -1104,7 +1104,7 @@ UBYTE InstrScreenInput(void)
             case (int)0x0D:
             case 0x11:
                 wInstrField--;
-                wInstrCursorCol = 0;
+                wInstrCol = 0;
             }
             break;
         case 3:
@@ -1151,7 +1151,7 @@ UBYTE InstrScreenInput(void)
             case 0x0C:
             case 0x10:
                 wInstrField++;
-                wInstrCursorCol = 1;
+                wInstrCol = 1;
             }
             break;
         case 3:
@@ -1428,20 +1428,20 @@ UBYTE InstrScreenInput(void)
                 break;
             case 8:
             case 9:
-                v = ReadCurInstrByte(wInstrCursorCol ? 0x0D : 0x0C);
+                v = ReadCurInstrByte(wInstrCol ? 0x0D : 0x0C);
                 if (v < 0xFF)
                     ++v;
                 DrawHexByte(v);
-                WriteCurInstrByte(wInstrCursorCol ? 0x0D : 0x0C, v);
+                WriteCurInstrByte(wInstrCol ? 0x0D : 0x0C, v);
                 break;
             case 0x0A:
             case 0x0B:
-                v = ReadCurInstrByte(wInstrCursorCol ? 0x0B : 3);
+                v = ReadCurInstrByte(wInstrCol ? 0x0B : 3);
                 if (v < 0xFF)
                     ++v;
                 DrawStringTile20();
                 DrawHexByte(v);
-                WriteCurInstrByte(wInstrCursorCol ? 0x0B : 3, v);
+                WriteCurInstrByte(wInstrCol ? 0x0B : 3, v);
                 break;
             case 0x0E:
                 v = ReadCurInstrByte(2) & 0xBF;
@@ -1774,15 +1774,15 @@ UBYTE InstrScreenInput(void)
                 break;
             case 8:
             case 9:
-                v = ReadCurInstrByte(wInstrCursorCol ? 0x0D : 0x0C);
+                v = ReadCurInstrByte(wInstrCol ? 0x0D : 0x0C);
                 if (v)
                     --v;
                 DrawHexByte(v);
-                WriteCurInstrByte(wInstrCursorCol ? 0x0D : 0x0C, v);
+                WriteCurInstrByte(wInstrCol ? 0x0D : 0x0C, v);
                 break;
             case 0x0A:
             case 0x0B:
-                v = ReadCurInstrByte(wInstrCursorCol ? 0x0B : 3);
+                v = ReadCurInstrByte(wInstrCol ? 0x0B : 3);
                 if (v)
                     --v;
                 if (v) {
@@ -1790,7 +1790,7 @@ UBYTE InstrScreenInput(void)
                     DrawHexByte(v);
                 } else
                     DrawString("ALL");
-                WriteCurInstrByte(wInstrCursorCol ? 0x0B : 3, v);
+                WriteCurInstrByte(wInstrCol ? 0x0B : 3, v);
                 break;
             case 0x0E:
                 v = ReadCurInstrByte(2) | 0x40;
@@ -2015,24 +2015,24 @@ UBYTE InstrScreenInput(void)
                 break;
             case 8:
             case (int)9:
-                v = ReadCurInstrByte(wInstrCursorCol ? 0x0D : 0x0C);
+                v = ReadCurInstrByte(wInstrCol ? 0x0D : 0x0C);
                 if ((v & 0xF0) != 0xF0)
                     v += 0x10;
                 else
                     v = 0xFF;
                 DrawHexByte(v);
-                WriteCurInstrByte(wInstrCursorCol ? 0x0D : 0x0C, v);
+                WriteCurInstrByte(wInstrCol ? 0x0D : 0x0C, v);
                 break;
             case 0x0A:
             case (int)0x0B:
-                v = ReadCurInstrByte(wInstrCursorCol ? 0x0B : 3);
+                v = ReadCurInstrByte(wInstrCol ? 0x0B : 3);
                 if ((v & 0xF0) != 0xF0)
                     v += 0x10;
                 else
                     v = 0xFF;
                 DrawStringTile20();
                 DrawHexByte(v);
-                WriteCurInstrByte(wInstrCursorCol ? 0x0B : 3, v);
+                WriteCurInstrByte(wInstrCol ? 0x0B : 3, v);
                 break;
             case 0x0F:
                 v = ReadCurInstrByte(0x0A);
@@ -2233,17 +2233,17 @@ UBYTE InstrScreenInput(void)
                 break;
             case 8:
             case (int)9:
-                v = ReadCurInstrByte(wInstrCursorCol ? 0x0D : 0x0C);
+                v = ReadCurInstrByte(wInstrCol ? 0x0D : 0x0C);
                 if (v & 0xF0)
                     v -= 0x10;
                 else
                     v = 0;
                 DrawHexByte(v);
-                WriteCurInstrByte(wInstrCursorCol ? 0x0D : 0x0C, v);
+                WriteCurInstrByte(wInstrCol ? 0x0D : 0x0C, v);
                 break;
             case 0x0A:
             case (int)0x0B:
-                v = ReadCurInstrByte(wInstrCursorCol ? 0x0B : 3);
+                v = ReadCurInstrByte(wInstrCol ? 0x0B : 3);
                 if (v & 0xF0)
                     v -= 0x10;
                 else
@@ -2253,7 +2253,7 @@ UBYTE InstrScreenInput(void)
                     DrawHexByte(v);
                 } else
                     DrawString("ALL");
-                WriteCurInstrByte(wInstrCursorCol ? 0x0B : 3, v);
+                WriteCurInstrByte(wInstrCol ? 0x0B : 3, v);
                 break;
             case 0x0F:
                 v = ReadCurInstrByte(0x0A);

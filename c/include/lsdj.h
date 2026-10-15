@@ -67,7 +67,7 @@ extern UBYTE wPhraseRow;                    /* $C416 */
 extern UBYTE wSongCol;                      /* $C41D: song cursor column (channel) */
 extern UBYTE wSongRow;                      /* $C41E: song cursor row */
 extern UBYTE wInstrField;                   /* $C427: instrument screen cursor row */
-extern UBYTE wSpeechCursorRow;              /* $C429 */
+extern UBYTE wSpeechRow;              /* $C429 */
 extern char wSampleNoteString[];            /* $C43A: [7] shared name buffer */
 extern UBYTE wSongReadBuf[];                /* $C46D, [64] the song window (16 rows x 4 channels) */
 extern UBYTE wUsedTableMap[];               /* $C47D, [32] tables referenced by instruments; also a scratch buffer */

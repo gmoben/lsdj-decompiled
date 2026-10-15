@@ -1987,9 +1987,9 @@ UBYTE PhraseScreenInput(void)
             SetColInstr(instr);
             wInstr = instr;
             if (wInstr == 0x40) {
-                wSpeechCursorRow = PhraseReadNote((char)wPhraseRow) - 1;
-                if (wSpeechCursorRow >= 0x0E)
-                    wSpeechCursorRow = 0;
+                wSpeechRow = PhraseReadNote((char)wPhraseRow) - 1;
+                if (wSpeechRow >= 0x0E)
+                    wSpeechRow = 0;
             }
         } else
             instr = wInstr;

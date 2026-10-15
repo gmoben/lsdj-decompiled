@@ -1722,12 +1722,12 @@ void RedrawScreenFar1F(void)
 
 UBYTE SpeechCursorY(void)
 {
-    return (UWORD)wSpeechCursorRow + 4;
+    return (UWORD)wSpeechRow + 4;
 }
 
 void EraseSpeechCursor(void)
 {
-    ColorField(0, SpeechCursorY(), 3, !(wSpeechCursorRow & 1));
+    ColorField(0, SpeechCursorY(), 3, !(wSpeechRow & 1));
 }
 
 void DrawSpeechCursor(void)
@@ -1796,7 +1796,7 @@ UBYTE SpeechInstrInput(void)
     case 0x10:
         if (!wAPressEnabled)
             return 0;
-        p = (UWORD)0xBDD0 + wSpeechCursorRow * 3;
+        p = (UWORD)0xBDD0 + wSpeechRow * 3;
         wNameEditBuf[0] = ReadSongByte(0, p++);
         wNameEditBuf[1] = ReadSongByte(0, p++);
         wNameEditBuf[2] = ReadSongByte(0, p);
@@ -1806,17 +1806,17 @@ UBYTE SpeechInstrInput(void)
         FarCall(0x1B, FAR_FN(OpenNameEditor));
         return 1;
     case 0x04:
-        if (!wSpeechCursorRow)
+        if (!wSpeechRow)
             return 0;
         EraseSpeechCursor();
-        wSpeechCursorRow--;
+        wSpeechRow--;
         DrawSpeechCursor();
         return 1;
     case 0x08:
-        if (wSpeechCursorRow == 0x0D)
+        if (wSpeechRow == 0x0D)
             return 0;
         EraseSpeechCursor();
-        wSpeechCursorRow++;
+        wSpeechRow++;
         DrawSpeechCursor();
         return 1;
     case 0x48:
@@ -1853,7 +1853,7 @@ UBYTE SpeechInstrInput(void)
             ShowMessage("CUT WORD");
         wClipboardType = 0x0B;
         wCursorMode = 2;
-        p = ((UWORD)wSpeechCursorRow << 5) + (UWORD)0xB890;
+        p = ((UWORD)wSpeechRow << 5) + (UWORD)0xB890;
         for (i = 0; i < 0x10; i++) {
             WriteClipboardCell(0, i, ReadSongByte(0, p));
             if (wButtons == 0x30)
@@ -1864,7 +1864,7 @@ UBYTE SpeechInstrInput(void)
                 WriteSongByte(0, p, 0);
             p++;
         }
-        p = (UWORD)wSpeechCursorRow * 3 + (UWORD)0xBDD0;
+        p = (UWORD)wSpeechRow * 3 + (UWORD)0xBDD0;
         for (i = 0; i < 3; i++) {
             WriteClipboardCell(2, i, ReadSongByte(0, p));
             p++;
@@ -1878,8 +1878,8 @@ UBYTE SpeechInstrInput(void)
             DrawStringIndexed('W');
             WriteSongByte(0, p++, '-');
             DrawStringIndexed('-');
-            i = wSpeechCursorRow;
-            i += wSpeechCursorRow < 10 ? '0' : '7';
+            i = wSpeechRow;
+            i += wSpeechRow < 10 ? '0' : '7';
             WriteSongByte(0, p, i);
             DrawStringIndexed((char)i);
         }
@@ -1890,7 +1890,7 @@ UBYTE SpeechInstrInput(void)
         if (wClipboardType != 0x0B)
             return 0;
         ShowMessage("PASTED WORD");
-        p = ((UWORD)wSpeechCursorRow << 5) + (UWORD)0xB890;
+        p = ((UWORD)wSpeechRow << 5) + (UWORD)0xB890;
         for (i = 0; i < 0x10; i++) {
             if (p >= (UWORD)0xBDD0)
                 DebugTrap();
@@ -1899,7 +1899,7 @@ UBYTE SpeechInstrInput(void)
                 DebugTrap();
             WriteSongByte(0, p++, ReadClipboardCell(1, i));
         }
-        p = (UWORD)wSpeechCursorRow * 3 + (UWORD)0xBDD0;
+        p = (UWORD)wSpeechRow * 3 + (UWORD)0xBDD0;
         hBgDigitPal = wSelectDigitPal;
         hBgPal = wSelectPal;
         GetTilemapAddr(0, SpeechCursorY());

@@ -22,8 +22,8 @@ extern UBYTE *wWordClipPtr;                 /* $C939 */
 extern UBYTE wWordClipPtrB;                 /* $C939 as a byte (aliased by match_function.py) */
 extern UBYTE wClipboardBuf[];               /* $C57A */
 UBYTE ModU8(UBYTE a, UBYTE b);
-extern UBYTE wWordEditRow;                  /* $C937 */
-extern UBYTE wWordEditCol;                  /* $C938 */
+extern UBYTE wWordRow;                  /* $C937 */
+extern UBYTE wWordCol;                  /* $C938 */
 extern UBYTE wLiveMode;                     /* $C528 */
 extern UBYTE wWaveSelectionStart;                 /* $C93B */
 extern UBYTE wWaveSelectionEnd;                   /* $C93C */
@@ -135,9 +135,9 @@ UBYTE ReadWordCell(void)
 {
     UWORD p;
 
-    p = (UWORD)SramWords + ((UWORD)wSpeechCursorRow << 5);
-    p += (unsigned int)wWordEditCol;
-    p += (unsigned int)(wWordEditRow << 1);
+    p = (UWORD)SramWords + ((UWORD)wSpeechRow << 5);
+    p += (unsigned int)wWordCol;
+    p += (unsigned int)(wWordRow << 1);
     return ReadSongByte(0, p);
 }
 
@@ -145,20 +145,20 @@ void WriteWordCell(UBYTE v)
 {
     UWORD p;
 
-    p = (UWORD)SramWords + ((UWORD)wSpeechCursorRow << 5);
-    p += (unsigned int)wWordEditCol;
-    p += (unsigned int)(wWordEditRow << 1);
+    p = (UWORD)SramWords + ((UWORD)wSpeechRow << 5);
+    p += (unsigned int)wWordCol;
+    p += (unsigned int)(wWordRow << 1);
     WriteSongByte(0, p, v);
 }
 
 void EraseWordCursor(void)
 {
-    ColorField(WordColX[wWordEditCol], wWordEditRow + 2, WordColWidth[wWordEditCol], wWordEditCol);
+    ColorField(WordColX[wWordCol], wWordRow + 2, WordColWidth[wWordCol], wWordCol);
 }
 
 void DrawWordCursor(void)
 {
-    ColorField(WordColX[wWordEditCol], wWordEditRow + 2, WordColWidth[wWordEditCol], hGameboyType ? 3 : 2);
+    ColorField(WordColX[wWordCol], wWordRow + 2, WordColWidth[wWordCol], hGameboyType ? 3 : 2);
 }
 
 void DrawWordScreen(void)
@@ -173,7 +173,7 @@ void DrawWordScreen(void)
     hBgDigitPal = 4;
     hBgPal = 1;
     DrawString("WORD ");
-    p = (UWORD)0xBDD0 + (UWORD)(wSpeechCursorRow * 3);
+    p = (UWORD)0xBDD0 + (UWORD)(wSpeechRow * 3);
     i = 0;
     while (i < 3) {
         v = ReadSongByte(0, p);
@@ -185,7 +185,7 @@ void DrawWordScreen(void)
     }
     DrawTempoField();
     FarCall(0x1F, FAR_FN(DrawAllChanStatus));
-    p = (UWORD)0xB890 + ((UWORD)wSpeechCursorRow << 5);
+    p = (UWORD)0xB890 + ((UWORD)wSpeechRow << 5);
     i = 0;
     while (i < 16) {
         GetTilemapAddr(2, i + 2);
@@ -211,17 +211,17 @@ void DrawWordScreen(void)
 
 void WordCursorDown(void)
 {
-    if (wWordEditRow == 0x0F)
+    if (wWordRow == 0x0F)
         return;
     EraseWordCursor();
-    wWordEditRow++;
+    wWordRow++;
     DrawWordCursor();
 }
 
 /* The word (speech) editor's input: cursor moves, the allophone/length
  * cut (0x30) and paste (0x50) through the 4-byte word clipboard, A
  * (0x10) to re-enter the clipboard's cells, +/- edits, page moves, the map
- * moves, play. The `.bRight` check is a 16-bit compare of wSpeechCursorRow.
+ * moves, play. The `.bRight` check is a 16-bit compare of wSpeechRow.
  *
  * lsdj-alloc(WordScreenInput): BUSYC=1-93
  * -- register c held from the first instruction through the cut's second
@@ -236,13 +236,13 @@ UBYTE WordScreenInput(void)
 
     hBgDigitPal = wSelectDigitPal;
     hBgPal = wSelectPal;
-    y = wWordEditRow + 2;
-    GetTilemapAddr(wWordEditCol * 4 + 2, y);
+    y = wWordRow + 2;
+    GetTilemapAddr(wWordCol * 4 + 2, y);
     switch (wButtons) {
     case 0x04:
-        if (wWordEditRow) {
+        if (wWordRow) {
             EraseWordCursor();
-            wWordEditRow--;
+            wWordRow--;
             DrawWordCursor();
         }
         return 1;
@@ -251,12 +251,12 @@ UBYTE WordScreenInput(void)
         return 1;
     case 0x02:
         EraseWordCursor();
-        wWordEditCol = 0;
+        wWordCol = 0;
         DrawWordCursor();
         return 1;
     case 0x01:
         EraseWordCursor();
-        wWordEditCol = 1;
+        wWordCol = 1;
         DrawWordCursor();
         return 1;
     case 0x30:
@@ -264,15 +264,15 @@ UBYTE WordScreenInput(void)
             return 0;
         {
         UBYTE t;
-        v = wWordEditCol;
+        v = wWordCol;
         if (wClipboardType != 0x0C && wCursorMode == 4)
             DebugTrap();
         wClipboardType = 0x0C;
         wCursorMode = 2;
-        wWordEditCol = 0;
+        wWordCol = 0;
         wWordClipCell0[0] = ReadWordCell();
         wClipboardBuf[0] = ReadWordCell();
-        wWordEditCol = 1;
+        wWordCol = 1;
         wWordClipPtr = wWordClipCell0 + 1;
         t = ReadWordCell();
         *wWordClipPtr = t;
@@ -280,32 +280,32 @@ UBYTE WordScreenInput(void)
         t = ReadWordCell();
         *wWordClipPtr = t;
         WriteWordCell(0);
-        wWordEditCol = 0;
+        wWordCol = 0;
         WriteWordCell(0);
-        wWordEditCol = v;
+        wWordCol = v;
         DrawWordScreen();
         return 1;
         }
     case 0x50:
         if (wClipboardType != 0x0C)
             return 0;
-        v = wWordEditCol;
-        wWordEditCol = 0;
+        v = wWordCol;
+        wWordCol = 0;
         WriteWordCell(wClipboardBuf[0]);
-        wWordEditCol = 1;
+        wWordCol = 1;
         WriteWordCell(wClipboardBuf[1]);
-        wWordEditCol = v;
+        wWordCol = v;
         DrawWordScreen();
         WordCursorDown();
         return 1;
     case 0x10:
         if (!wAPressEnabled)
             return 0;
-        col = wWordEditCol;
-        if (!wWordEditCol) {
+        col = wWordCol;
+        if (!wWordCol) {
             if (!ReadWordCell() && wWordClipCell0[0]) {
                 WriteWordCell(wWordClipCell0[0]);
-                wWordEditCol = 1;
+                wWordCol = 1;
                 WriteWordCell(wWordClipCell1[0]);
                 GetTilemapAddr(2, y);
                 hBgDigitPal = 4;
@@ -319,11 +319,11 @@ UBYTE WordScreenInput(void)
                 hBgDigitPal = wShadowDigitPal;
                 hBgPal = wShadowPal;
                 DrawHexByte(wWordClipCell1[0]);
-                wWordEditCol = col;
+                wWordCol = col;
                 DrawWordCursor();
                 return 1;
             }
-            wWordEditCol = col;
+            wWordCol = col;
         } else if (!ReadWordCell()) {
             WriteWordCell(wWordClipCell1[0]);
             GetTilemapAddr(6, y);
@@ -335,7 +335,7 @@ UBYTE WordScreenInput(void)
         return 0;
     case 0x11:
         v = ReadWordCell();
-        if (wWordEditCol) {
+        if (wWordCol) {
             if (v < 0xFF)
                 v++;
             DrawHexByte(v);
@@ -350,7 +350,7 @@ UBYTE WordScreenInput(void)
         return 1;
     case 0x12:
         v = ReadWordCell();
-        if (wWordEditCol) {
+        if (wWordCol) {
             if (v)
                 v--;
             DrawHexByte(v);
@@ -366,7 +366,7 @@ UBYTE WordScreenInput(void)
         return 1;
     case 0x14:
         v = ReadWordCell() + 0x10;
-        if (wWordEditCol) {
+        if (wWordCol) {
             if (v < 0x10)
                 return 0;
             DrawHexByte(v);
@@ -380,7 +380,7 @@ UBYTE WordScreenInput(void)
         return 1;
     case 0x18:
         v = ReadWordCell() - 0x10;
-        if (wWordEditCol) {
+        if (wWordCol) {
             if (v >= 0xF0)
                 return 0;
             DrawHexByte(v);
@@ -393,27 +393,27 @@ UBYTE WordScreenInput(void)
         WriteWordCell(v);
         return 1;
     case 0x22:
-        if (wSpeechCursorRow) {
-            wSpeechCursorRow--;
+        if (wSpeechRow) {
+            wSpeechRow--;
             DrawWordScreen();
         }
         return 1;
     case 0x21:
-        if ((UWORD)wSpeechCursorRow < 13) {
-            wSpeechCursorRow++;
+        if ((UWORD)wSpeechRow < 13) {
+            wSpeechRow++;
             DrawWordScreen();
         }
         return 1;
     case 0x28:
-        wSpeechCursorRow -= 12;
-        if (wSpeechCursorRow > 0x80)
-            wSpeechCursorRow = 0;
+        wSpeechRow -= 12;
+        if (wSpeechRow > 0x80)
+            wSpeechRow = 0;
         DrawWordScreen();
         return 1;
     case 0x24:
-        wSpeechCursorRow += 12;
-        if (wSpeechCursorRow >= 14)
-            wSpeechCursorRow = 13;
+        wSpeechRow += 12;
+        if (wSpeechRow >= 14)
+            wSpeechRow = 13;
         DrawWordScreen();
         return 1;
     case 0x42:

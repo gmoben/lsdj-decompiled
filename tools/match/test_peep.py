@@ -176,8 +176,8 @@ class Compare16Tests(unittest.TestCase):
                 self.assertEqual(execute(source, value), execute(result, value))
 
     def test_promoted_global_byte_in_a_pair_reloads_hl_for_the_next_use(self):
-        # WordScreenInput: `(UWORD)wSpeechCursorRow < 13` promotes the byte
-        # into bc and leaves hl at it for the `wSpeechCursorRow++` that follows
+        # WordScreenInput: `(UWORD)wSpeechRow < 13` promotes the byte
+        # into bc and leaves hl at it for the `wSpeechRow++` that follows
         source = ["\tld\thl,#_wSpeechCursorRow", "\tld\tc,(hl)", "\tld\tb,#0x00",
                   "\txor\ta,a", "\tld\ta,c", "\tsbc\ta,#0x0D", "\tld\ta,b",
                   "\tsbc\ta,#0x00", "\tjp\tnc,001skip$", "\tinc\t(hl)"]

@@ -55,19 +55,19 @@ DEF wSongCol         EQU $C41D  ; SONG cursor column = channel (0=PU1 1=PU2 2=WA
                                 ; arrays (e.g. [$C453+col]). RIGHT/LEFT move it. Also reused as scratch by some draws
 DEF wSongRow         EQU $C41E  ; SONG cursor row (0-255); DOWN/UP move it (drives wSongScroll)
 DEF wInstrField      EQU $C427  ; Instrument editor: current parameter/field index (reset to 0 on screen draw) = cursor row
-DEF wInstrCursorCol  EQU $C428  ; Instrument editor cursor column (pairs with wInstrField as the row)
-DEF wSpeechCursorRow EQU $C429  ; Speech (word) instrument editor cursor row (DrawWordScreen)
+DEF wInstrCol  EQU $C428  ; Instrument editor cursor column (pairs with wInstrField as the row)
+DEF wSpeechRow EQU $C429  ; Speech (word) instrument editor cursor row (DrawWordScreen)
 ; Name editor (OpenNameEditor, NameEditorInput): on-screen keyboard for an instrument name, a speech word or a song file name:
 DEF wKbdLetterPos    EQU $C42C  ; keyboard: index of the letter being edited in the name
-DEF wKbdCursorCol    EQU $C42D  ; keyboard cursor column
-DEF wKbdCursorRow    EQU $C42E  ; keyboard cursor row
+DEF wKbdCol    EQU $C42D  ; keyboard cursor column
+DEF wKbdRow    EQU $C42E  ; keyboard cursor row
 DEF wSampleNoteString EQU $C43A  ; [7] shared text buffer for a sample/kit note name (Phrase/Chain/Song note draws)
 DEF wTableCol        EQU $C92F  ; Table editor: current column/cursor state (bit7 = special)
 DEF wTableRow        EQU $C930  ; Table editor: current row cursor (0-15); pairs with wTableCol
 DEF wDefaultNotes     EQU $C904  ; table/array of default note values (InstrScreenInput / InstrParamByte10 / InstrParamTableSet2; reset in ResetWorkState)
-DEF wHelpCursorRow   EQU $C934  ; HELP/word screen cursor row (ProjHelpSelectPrev/Next/OpenSelected)
-DEF wWordEditRow     EQU $C937  ; Word/speech editor: cursor row within the current word (inc/dec by nav); ReadWordCell indexes word data at +wWordEditRow*2
-DEF wWordEditCol     EQU $C938  ; Word/speech editor: cursor column (0/1) within the row; ReadWordCell byte offset within the 2-byte unit
+DEF wHelpRow   EQU $C934  ; HELP/word screen cursor row (ProjHelpSelectPrev/Next/OpenSelected)
+DEF wWordRow     EQU $C937  ; Word/speech editor: cursor row within the current word (inc/dec by nav); ReadWordCell indexes word data at +wWordRow*2
+DEF wWordCol     EQU $C938  ; Word/speech editor: cursor column (0/1) within the row; ReadWordCell byte offset within the 2-byte unit
 DEF wPlayMarkerTimer EQU $C950  ; Song screen: free-running blink counter incremented each SongUpdatePlayMarker; bit 3 (and $08) is the play-marker on/off phase
 ; Table editor column bases (addresses held as 16-bit integers): the selected
 ; command column ($B680 CMD1 or $BA80 CMD2, SRAM bank 1) and its value column

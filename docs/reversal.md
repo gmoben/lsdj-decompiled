@@ -338,7 +338,7 @@ throughout. Clusters named:
   (`$CBD1`, which also corrected a wrong "NOI envelope" comment), `wTempoMode`
   (`$C52A`), `wTileLoadNow` (`$CBDB`), the tile-loader state (`wTileLoadSlot`/`Src`/
   `wTileSlotAlloc`/`wTileReqTable`, `$CBE1-6`), the power-save idle (`wIdleHalt`/
-  `wIdleFrames`, `$C68B-C`), and the word-editor cursor (`wWordEditRow`/`Col`,
+  `wIdleFrames`, `$C68B-C`), and the word-editor cursor (`wWordRow`/`Col`,
   `$C937-8`).
 
 **Function labeling is 100%; RAM-var naming was then pushed to its verified limit.**
@@ -346,7 +346,7 @@ A var-naming pass added ~12 more (all byte-identical): `wDrawStep` (`$C405`,
 multi-frame redraw step — *not* a buffer), `wTransposeDirty`, `wChanRetrigTimer`/
 `Rate`, `wPlayMarkerTimer`, `wAnalogOutTimer`, `wSyncInPulses`/`wSyncInGate`,
 `wSyncRxPos`, `wChanVibAccum`, `wFxNoiseNote` (now `wNoiNote`), `wChanNoteStep`
-(now `wChanChordPhase`), `wWordEditRow`/`Col`,
+(now `wChanChordPhase`), `wWordRow`/`Col`,
 `wIdleHalt`/`wIdleFrames`, the tile-loader state, and the FX-slot/table step
 countdowns (`wFxSlotCmdTimer`/`wFxSlotEnvTimer`, computed-addressed so doc-only).
 

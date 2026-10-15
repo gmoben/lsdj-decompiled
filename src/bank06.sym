@@ -32,10 +32,10 @@
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 4000 AllophoneKit               ; the speech kit holding allophone v: v / 15 + $19, then + 5 past $1A (its sample is v % 15 + 1)
 4026 DrawAllophoneName          ; draw allophone v's name: ReadKitSampleName(AllophoneKit(v), v % 15 + 1)
-40B3 WriteWordCell              ; write to the speech-word data under the word cursor (wWordEditRow/Col, $b890 region)
+40B3 WriteWordCell              ; write to the speech-word data under the word cursor (wWordRow/Col, $b890 region)
 410E EraseWordCursor            ; restore the word screen's cursor cell to its column palette
-414F DrawWordCursor             ; highlight the word screen's cursor cell (WordColX/WordColWidth[wWordEditCol], row wWordEditRow)
-4306 WordCursorDown             ; word screen: move the cursor one row down (EraseWordCursor, wWordEditRow++, DrawWordCursor) unless on row 15
+414F DrawWordCursor             ; highlight the word screen's cursor cell (WordColX/WordColWidth[wWordCol], row wWordRow)
+4306 WordCursorDown             ; word screen: move the cursor one row down (EraseWordCursor, wWordRow++, DrawWordCursor) unless on row 15
 48AB TilemapAddr                ; the BG tilemap address of cell x,y: $9800 | (y*32 + x)
 4901 SynthLockByteAddr          ; the SRAM byte holding synth x's lock bit ("synths locked?" $BFC4-$BFC5): $BFC5 for 0-7, $BFC4 for 8-F
 493F LockCurSynth           ; set the current synth's (wSynth >> 4) bit in its lock byte; WriteWaveSample calls it before editing a wave
@@ -89,7 +89,7 @@
 72C4 UpdateStatusPanel          ; per-frame status update for most screens: pending sample-name cells (wChanDispNote) at x=17, the tempo field when wTempo changed, the scope
 5BD0 ChainScreenInput           ; the chain screen's input: A writes a phrase/transpose, the directions move, A+directions step phrases (1/16) or transposes (1/octave) over the cell or selection, B+directions change channel or song row, A+B cuts, select+A pastes, start plays, select+B selects
 507F WaveScreenInput            ; wave-screen input dispatch (wButtons)
-431D WordScreenInput            ; word screen (12) input handler, from DispatchScreenInput: cursor over wWordEditRow/Col, dispatch on wButtons
+431D WordScreenInput            ; word screen (12) input handler, from DispatchScreenInput: cursor over wWordRow/Col, dispatch on wButtons
 5391 TxtSelect         ; "SELECT" (pairs with TxtCancelSelect)
 6D4E TxtSelect2        ; "SELECT" (second instance; pairs with TxtCancelSelect2)
 4024 WordColWidth               ; widths of the word editor columns ($03, $02)
@@ -352,7 +352,7 @@
 406F .index
 40C5 .index
 415F .cont
-4161 .loadWordEditCol
+4161 .loadWordCol
 4219 .drawTempoField_2
 423F .index
 4250 .checkArg
@@ -395,7 +395,7 @@
 4ACC .cont
 4AF8 .cont_2
 4B33 .chainScanCmd
-4B87 .loadWordEditCol
+4B87 .loadWordCol
 4B91 .cont
 4BC6 .setOAMByte
 4C00 .cont
@@ -442,10 +442,10 @@
 527B .farCall_3
 52A8 .farCall_4
 52F0 .farCall_5
-5311 .setWordEditCol
+5311 .setWordCol
 537F .cont
 53DE .cont
-5416 .loadWordEditCol
+5416 .loadWordCol
 549F .getScreenScratchCell2
 54C3 .cont
 54C7 .loadWaveCursor
@@ -627,7 +627,7 @@
 734E .index_2
 738B .cont_3
 7397 .cont_4
-739D .checkWordEditCol
+739D .checkWordCol
 73F5 .cont
 73F6 .cont_2
 7404 .cont_3

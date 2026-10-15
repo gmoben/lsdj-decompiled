@@ -534,7 +534,7 @@ def _hl_global_offset(lines: list[str], at: int) -> tuple[str, int] | None:
     """The global and offset hl holds just before line `at`, found the way
     `_hl_stack_offset` finds a stack offset, back to the last `ld hl,#G` or
     `ld hl,#G + N` (a byte promoted into a pair: WordScreenInput's
-    `(UWORD)wSpeechCursorRow < 13` loads `ld c,(hl); ld b,#0x00` and leaves
+    `(UWORD)wSpeechRow < 13` loads `ld c,(hl); ld b,#0x00` and leaves
     hl at the byte it goes on to increment)."""
     off = 0
     k = at - 1
@@ -703,7 +703,7 @@ def gb_cmp16(lines: list[str], zero: bool = False) -> tuple[list[str], int]:
                     # a stack byte the code goes on to use (DrawSpeechInstrScreen's
                     # `row < 4 + 14` then `GetTilemapAddr(0, row)`) or at the
                     # global byte it was promoted from (WordScreenInput's
-                    # `(UWORD)wSpeechCursorRow < 13` then `wSpeechCursorRow++`)
+                    # `(UWORD)wSpeechRow < 13` then `wSpeechRow++`)
                     known = _hl_stack_offset(lines, idx[0])
                     if known is None:
                         found = _hl_global_offset(lines, idx[0])
