@@ -64,6 +64,7 @@ REGS = {"a", "b", "c", "d", "e", "h", "l", "af", "bc", "de", "hl", "sp",
 KEYWORDS = {"LOW", "HIGH"}
 
 Row = tuple[int, str, str]        # (ROM address, kind, text); kind I/L/V
+EXTRA_NAMES: set[str] = set()     # a fork's new functions: labels the build defines
 
 
 # --- the unit ----------------------------------------------------------------
@@ -206,9 +207,11 @@ class Translator:
 
     def __init__(self, asm: str, lst: str, func: str, func_addr: int, size: int,
                  labels: dict[int, str], syms: dict[str, tuple[int | None, int]],
-                 source: str = ""):
+                 source: str = "", fork: bool = False):
         self.func, self.labels, self.syms = func, labels, syms
         self.named = source_addresses(source, labels)
+        if fork:      # a fork's code: no .sym label but its own lands inside it
+            self.labels = {func_addr: func}
         self.equates = module_equates(asm)
         start_line, self.lines = split_functions(asm)[func]
         self.addrs = listing_addrs(lst)
@@ -218,7 +221,7 @@ class Translator:
         self.targets: dict[str, int] = {}     # placeholder key -> the label's ROM address
         self.texts: dict[str, str] = {}       # a literal's key -> its text (for its name)
         self.guards: dict[str, str] = {}      # name -> value, for `IF !DEF`
-        self.globals = sorted((a, n) for a, n in labels.items() if not n.startswith("."))
+        self.globals = sorted((a, n) for a, n in self.labels.items() if not n.startswith("."))
         key = None
         for n, raw in self.lines:
             s = _strip_comment(raw).strip()
@@ -248,7 +251,7 @@ class Translator:
         plain = name[1:] if name.startswith("_") else name
         plain = mf.RUNTIME_ALIASES.get(plain) or mf.RUNTIME_ALIASES.get(name) or plain
         names, hw = rgbds_names()
-        if plain in names:
+        if plain in names or plain in EXTRA_NAMES:
             return plain
         if plain in self.equates:
             self.guards[plain] = self.equates[plain]
@@ -525,10 +528,22 @@ class Translator:
 
 
 def annotate(asm: str, lst: str, func: str, bank: int, func_addr: int, size: int,
-             syms: dict[str, tuple[int | None, int]], source: str = "") -> dict[str, object]:
-    """The rows verify_all.py saves as build/c/bankNN/Name.lines."""
-    t = Translator(asm, lst, func, func_addr, size, bank_labels(bank), syms, source)
-    return {"lo": func_addr, "hi": func_addr + size, "rows": t.rows()}
+             syms: dict[str, tuple[int | None, int]], source: str = "",
+             fork: str = "", replaces: int | None = None) -> dict[str, object]:
+    """The rows verify_all.py saves as build/c/bankNN/Name.lines: `size`
+    bytes of code and data from func_addr. A fork's code (`fork`: "changed",
+    replacing the ROM range [func_addr, replaces); "new", put before the
+    bank's free space) is translated with only its own label, the .sym's
+    inside the range being gone."""
+    t = Translator(asm, lst, func, func_addr, size, bank_labels(bank), syms, source, fork=bool(fork))
+    rows = t.rows()
+    if fork == "new":
+        return {"append": True, "rows": [(func_addr, "L", f"{func}:")] + rows}
+    doc: dict[str, object] = {"lo": func_addr, "hi": func_addr + size if replaces is None else replaces,
+                              "rows": rows}
+    if fork:
+        doc["fork"] = True
+    return doc
 
 
 def render(rows: list[Row], labels: dict[int, str], lo: int, hi: int) -> list[str]:

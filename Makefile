@@ -31,13 +31,26 @@ ROM_SHA1 := 58ba2e44c726c61d8c91423ec82152319dddc2ca
 # The generators (carve/main.asm) read the same path via this env var.
 export LSDJ_BASEROM := $(BASEROM)
 
+# FORK=1: a fork's build (docs/forking.md). C that no longer matches the ROM
+# is the fork's code, fork/bankNN/*.asm replaces or adds asm, and `make check`
+# is `make behaviour` instead of `make compare`. A fork sets it in fork.mk.
+-include fork.mk
+FORK ?=
+ifneq ($(FORK),)
+export LSDJ_FORK := 1
+FORK_FLAG := --fork
+# its ROM is not the original: rgbfix rewrites the checksum the source carries
+RGBFIXFLAGS += -Wno-overwrite
+endif
+FORK_ASM := $(wildcard fork/bank*/*.asm)
+
 BUILD  := build
 TARGET := $(BUILD)/lsdj9_4_0.gb
 OBJ    := $(BUILD)/main.o
 SYM    := $(BUILD)/lsdj9_4_0.sym
 MAP    := $(BUILD)/lsdj9_4_0.map
 
-.PHONY: all compare behaviour verify-rom sym carve gfx kits listing audit match clean tidy baseline
+.PHONY: all compare behaviour check verify-rom sym carve gfx kits listing audit match clean tidy baseline
 .SECONDARY:
 
 all: $(TARGET)
@@ -104,17 +117,17 @@ C_STAMP := $(BUILD)/c/.stamp
 .NOTINTERMEDIATE: $(C_STAMP)
 $(C_STAMP): $(C_SRCS) $(C_TOOLS) $(CARVED_ASM) | $(BASEROM)
 	@mkdir -p $(@D)
-	tools/match/verify_all.py --write $(BUILD)/c
+	tools/match/verify_all.py --write $(BUILD)/c $(FORK_FLAG)
 	@touch $@
 endif
 
 match: | $(BASEROM)
-	tools/match/verify_all.py --write $(BUILD)/c
+	tools/match/verify_all.py --write $(BUILD)/c $(FORK_FLAG)
 	@mkdir -p $(BUILD)/c && touch $(BUILD)/c/.stamp
 
 # Auto-carve on a fresh clone: main.asm is the linker entry point; if it is
 # missing, generate the whole tree first.
-src/main.asm: $(CARVED_ASM) constants/ram.inc tools/carve_clean.py tools/disasm.py tools/gfx.py tools/gen_main.py tools/kits.py tools/regflow.py c/matched.json $(C_SRCS) $(C_STAMP) | $(BASEROM)
+src/main.asm: $(CARVED_ASM) constants/ram.inc tools/carve_clean.py tools/disasm.py tools/gfx.py tools/gen_main.py tools/kits.py tools/regflow.py c/matched.json $(C_SRCS) $(C_STAMP) $(FORK_ASM) | $(BASEROM)
 	tools/carve_clean.py
 
 # --- Assemble + link + fix -------------------------------------------------
@@ -185,6 +198,14 @@ compare: $(TARGET) | $(BASEROM)
 # .venv/bin/pip install pyboy).
 behaviour: $(TARGET) | $(BASEROM)
 	.venv/bin/python tools/behaviour_test.py --both --original $(BASEROM)
+
+# The gate the pre-commit hook runs: the ROM byte for byte, or for a fork
+# (FORK=1) the original's behaviour.
+ifeq ($(FORK),)
+check: compare
+else
+check: behaviour
+endif
 
 # Confirm a supplied base ROM is the exact expected revision.
 verify-rom: | $(BASEROM)

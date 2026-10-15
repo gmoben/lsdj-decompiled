@@ -25,7 +25,16 @@ the ROM when it is absent), and `make compare` verifies it.
 Given explicit files (which may live outside c/, e.g. work in progress) it
 checks just those, reports where each mismatch starts, and writes nothing.
 
-Usage: tools/match/verify_all.py [--write DIR] [FILE.c ...]
+--fork is a fork's build (`make FORK=1`): C that no longer matches is not a
+failure but the fork's code. A function the ROM has (c/matched.json, the
+range it owned: `addr` to `end`) that compiles to other bytes is CHANGED,
+translated to replace that range; one the ROM lacks (no src/*.sym address)
+is NEW, translated to go before its bank's free space (c/bankNN/ names the
+bank). Both are translated with only their own label: nothing of the
+original's lands inside them. The manifest is build/c/fork.json (each
+function's bank, range and status); c/matched.json stays the original's.
+
+Usage: tools/match/verify_all.py [--write DIR] [--fork] [FILE.c ...]
 """
 
 from __future__ import annotations
@@ -45,6 +54,7 @@ to_rgbds = importlib.import_module("to_rgbds")
 
 DEFN = re.compile(r"^(?:[A-Za-z_][\w \t*]*?\b)?([A-Za-z_]\w*)\s*\([^;{}]*\)\s*(?:nonbanked|banked|critical)?\s*$")
 MANIFEST = mf.REPO_ROOT / "c" / "matched.json"
+FORK_MANIFEST = mf.REPO_ROOT / "build" / "c" / "fork.json"
 CACHE = mf.REPO_ROOT / "build" / "match-cache"
 HARNESS = [mf.REPO_ROOT / "tools" / "match" / n for n in ("match_function.py", "peep.py")]
 
@@ -132,6 +142,8 @@ def main() -> None:
     if argv and argv[0] == "--write":
         write_dir = Path(argv[1])
         argv = argv[2:]
+    fork = "--fork" in argv
+    argv = [a for a in argv if a != "--fork"]
     # (editor lock and autosave files -- Emacs' `.#Name.c` -- are not sources)
     files = [Path(a).resolve() for a in argv] or sorted(
         p for p in (mf.REPO_ROOT / "c").glob("bank*/*.c") if not p.name.startswith((".", "#")))
@@ -142,6 +154,18 @@ def main() -> None:
         sys.exit(f"error: ROM not found: {rom_path}")
     rom = rom_path.read_bytes()
     syms = mf.load_symbols()
+    baseline = json.loads(MANIFEST.read_text()) if MANIFEST.is_file() else {}
+    new_funcs: dict[str, int] = {}                   # a fork's new functions: their bank
+    if fork:
+        for c_path in files:
+            m = re.search(r"bank([0-9a-fA-F]{2})", c_path.parent.name)
+            for func in functions_in(c_path.read_text()):
+                if func not in syms and m:
+                    new_funcs[func] = int(m.group(1), 16)
+        for func, bank in new_funcs.items():          # linked anywhere: the translation is labels
+            syms[func] = (bank, 0x4000 if bank else 0x0150)
+        to_rgbds.EXTRA_NAMES.update(new_funcs)
+    forked: dict[str, dict[str, str | int | None]] = {}
 
     failed = 0
     matched: dict[str, dict[str, str | int]] = {}
@@ -177,10 +201,13 @@ def main() -> None:
                     continue
                 off = mf.rom_offset(bank, addr)
                 target = rom[off:off + len(code)]
-                ok = target == code
+                ok = target == code and func not in new_funcs
                 where = ""
-                if not ok:
-                    first = next(i for i in range(len(code)) if code[i] != target[i])
+                if not ok and func in new_funcs:
+                    where = "  new: before the bank's free space"
+                elif not ok:
+                    first = next((i for i in range(len(code)) if i >= len(target) or code[i] != target[i]),
+                                 len(code))
                     ndiff = sum(a != b for a, b in zip(code, target))
                     where = f"  first diff +${first:02X} (${addr + first:04X}), {ndiff} B differ"
                 else:
@@ -190,12 +217,40 @@ def main() -> None:
                         ok = False
                         k = next(i for i in range(len(tail)) if i >= len(rom_tail) or tail[i] != rom_tail[i])
                         where = f"  literals/const data after the code differ at ${addr + len(code) + k:04X}"
-                print(f"  {name:24s} ${bank:02X}:${addr:04X}  {len(code):4d} B  "
-                      f"{'MATCH' if ok else 'MISMATCH'}{where}   ({rel})")
+                status = "MATCH" if ok else ("NEW" if func in new_funcs else
+                                             "CHANGED" if fork else "MISMATCH")
+                print(f"  {name:24s} ${bank:02X}:${addr:04X}  {len(code):4d} B  {status}{where}   ({rel})")
+                if fork and not ok:
+                    old = baseline.get(name)
+                    if status == "CHANGED" and (old is None or "end" not in old):
+                        print(f"  {name:24s} not in c/matched.json with its range: can't replace it")
+                        failed += 1
+                        continue
+                    lines = write_dir / f"bank{bank:02x}" / f"{name}.lines" if write_dir else None
+                    try:
+                        doc = to_rgbds.annotate(asm, lst, name, bank, addr, len(code) + len(tail), syms,
+                                                c_path.read_text(), fork=status.lower(),
+                                                replaces=int(old["end"], 16) if status == "CHANGED" else None)
+                    except (ValueError, KeyError) as e:
+                        print(f"  {name:24s} no RGBDS translation ({e})")
+                        failed += 1
+                        continue
+                    if lines is not None:
+                        lines.parent.mkdir(parents=True, exist_ok=True)
+                        text = json.dumps(doc, indent=0)
+                        if not lines.is_file() or lines.read_text() != text:
+                            lines.write_text(text)
+                    forked[name] = {"bank": f"{bank:02X}", "status": status.lower(), "src": rel,
+                                    "lo": None if status == "NEW" else f"{addr:04X}",
+                                    "hi": None if status == "NEW" else old["end"]}
+                    continue
                 failed += not ok
                 if ok:
                     matched[name] = {"bank": f"{bank:02X}", "addr": f"{addr:04X}",
-                                     "len": len(code), "src": rel}
+                                     "len": len(code), "end": f"{addr + len(code) + len(tail):04X}",
+                                     "src": rel}
+                    forked[name] = {"bank": f"{bank:02X}", "status": "match", "src": rel,
+                                    "lo": f"{addr:04X}", "hi": f"{addr + len(code) + len(tail):04X}"}
                     if write_dir is not None and not argv:
                         out = write_dir / f"bank{bank:02x}" / f"{name}.bin"
                         out.parent.mkdir(parents=True, exist_ok=True)
@@ -213,7 +268,16 @@ def main() -> None:
                         else:
                             if not lines.is_file() or lines.read_text() != text:
                                 lines.write_text(text)
-    if write_dir is not None and not failed and not argv:
+    if write_dir is not None and not failed and not argv and fork:
+        # A fork's build: the original's manifest stays; this one is the fork's
+        FORK_MANIFEST.parent.mkdir(parents=True, exist_ok=True)
+        text = json.dumps(dict(sorted(forked.items())), indent=1) + "\n"
+        if not FORK_MANIFEST.is_file() or FORK_MANIFEST.read_text() != text:
+            FORK_MANIFEST.write_text(text)
+        changed = sum(v["status"] != "match" for v in forked.values())
+        print(f"wrote {len(forked)} function(s) to {write_dir}/ and "
+              f"{FORK_MANIFEST.relative_to(mf.REPO_ROOT)}: {changed} changed or new")
+    elif write_dir is not None and not failed and not argv:
         # Full run: the manifest is the complete list of C-owned ROM ranges.
         text = json.dumps(dict(sorted(matched.items())), indent=1) + "\n"
         if not MANIFEST.is_file() or MANIFEST.read_text() != text:
@@ -222,6 +286,10 @@ def main() -> None:
               f"{MANIFEST.relative_to(mf.REPO_ROOT)} ({run.wine_runs} compile/link run(s); rest cached)")
     if failed:
         sys.exit(f"==> {failed} function(s) do not match; run match_function.py --target on one for the diff.")
+    if fork:
+        n = {k: sum(v["status"] == k for v in forked.values()) for k in ("match", "changed", "new")}
+        print(f"==> a fork's build: {n['match']} function(s) as in the ROM, {n['changed']} changed, {n['new']} new.")
+        return
     print(f"==> all {len(matched)} function(s) byte-identical to the ROM.")
 
 

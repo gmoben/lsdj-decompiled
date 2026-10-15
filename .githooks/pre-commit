@@ -5,7 +5,7 @@
 # 1. Refuse to commit ROM/save files (defense in depth on top of
 #    .gitignore).
 # 2. Verify the disassembly still reassembles to the original ROM byte-for-byte
-#    (`make compare`) when a base ROM is available.
+#    (`make check`: `make compare`, or a fork's `make behaviour`) when a base ROM is available.
 set -o errexit
 set -o pipefail
 
@@ -32,12 +32,13 @@ if [[ -n "$blocked" ]]; then
 fi
 
 # --- 2. Verify the build still matches the original ROM ---------------------
+# (`make check`: `make compare`, or for a fork, FORK=1, `make behaviour`)
 ROM="${BASEROM:-lsdj9_4_0.gb}"
 if [[ -f "$ROM" ]]; then
-    echo "==> make compare"
-    make compare
+    echo "==> make check"
+    make check
 else
-    echo "==> base ROM not present; skipping 'make compare'." >&2
+    echo "==> base ROM not present; skipping 'make check'." >&2
     echo "    Supply the base ROM to enable byte-for-byte verification." >&2
 fi
 

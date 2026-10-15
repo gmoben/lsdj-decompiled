@@ -223,6 +223,27 @@ class FillTests(unittest.TestCase):
         self.assertEqual(rows[1][3], disasm.NOTE)
 
 
+class ForkTests(unittest.TestCase):
+    """A fork's build (verify_all.py --fork): changed code replaces its ROM
+    range, its own label kept and the original's labels inside it gone; new
+    code goes before the bank's free space."""
+
+    def test_changed_code_keeps_only_its_own_label(self):
+        data = bytes([0x00, 0x00, 0x00, 0xC9])                  # nop, nop, nop | Next: ret
+        changed = (0, 3, [(0x4000, "I", "ld a, $01"), (0x4002, "I", "ret")], True)
+        rows = disasm.disassemble(data, 0, len(data), 0x4000, [], set(), [], [changed])
+        text = disasm.render(rows, False, {0x4000: "Func", 0x4002: ".inner", 0x4003: "Next"})
+        self.assertEqual(text.split("\n"), ["Func:", "\tld a, $01", "\tret", "Next:", "\tret"])
+
+    def test_new_code_goes_before_the_free_space(self):
+        data = bytes([0xC9]) + b"\xff" * 0x3FFF
+        new = (disasm.APPEND, disasm.APPEND, [(0, "L", "NewFunc:"), (0, "I", "ret")], True)
+        rows = disasm.disassemble(data, 0, len(data), 0x4000, [(1, len(data))], set(), [], [new])
+        self.assertEqual([t for _a, _b, t, _r in rows],
+                         ["ret", "", "NewFunc:", "\tret", "",
+                          "; Free space: 16,383 bytes to the end of the bank.", "ds $8000 - @, $ff"])
+
+
 class TileBlockTests(unittest.TestCase):
     """A tile block: header, the character map the loader skips, 2bpp tiles
     (tools/gfx.py), rendered as bytes and an INCBIN of gfx/<name>.png."""

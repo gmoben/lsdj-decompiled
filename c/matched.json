@@ -3,4068 +3,4746 @@
   "bank": "07",
   "addr": "637C",
   "len": 57,
+  "end": "63B5",
   "src": "c/bank07/SongScreen.c"
  },
  "AddInstrumentTable16": {
   "bank": "03",
   "addr": "4924",
   "len": 56,
+  "end": "495C",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "AddSynthParameterClamped": {
   "bank": "1D",
   "addr": "6EB6",
   "len": 137,
+  "end": "6F3F",
   "src": "c/bank1d/SynthScreen.c"
  },
  "AdjustBookmarksOnDelete": {
   "bank": "07",
   "addr": "644F",
   "len": 123,
+  "end": "64CA",
   "src": "c/bank07/SongScreen.c"
  },
  "AdjustBookmarksOnInsert": {
   "bank": "07",
   "addr": "64CA",
   "len": 121,
+  "end": "6543",
   "src": "c/bank07/SongScreen.c"
  },
  "AllocateInstrumentSynth": {
   "bank": "03",
   "addr": "43C0",
   "len": 90,
+  "end": "441A",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "AllocateInstrumentTable": {
   "bank": "03",
   "addr": "436D",
   "len": 83,
+  "end": "43C0",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "AllocateNextFreeInstrument": {
   "bank": "1F",
   "addr": "4A65",
   "len": 105,
+  "end": "4B00",
   "src": "c/bank1f/Allocation.c"
  },
  "AllocateNextFreePhrase": {
   "bank": "01",
   "addr": "4EB3",
   "len": 166,
+  "end": "4F59",
   "src": "c/bank01/SongAllocation.c"
  },
  "AllophoneKit": {
   "bank": "06",
   "addr": "4000",
   "len": 34,
+  "end": "4022",
   "src": "c/bank06/WordScreen.c"
  },
  "AnyPhraseUsesCommandF": {
   "bank": "1F",
   "addr": "5FEC",
   "len": 136,
+  "end": "6074",
   "src": "c/bank1f/CleanSongData.c"
  },
  "AnyTableUsesCommandF": {
   "bank": "1F",
   "addr": "6074",
   "len": 216,
+  "end": "614C",
   "src": "c/bank1f/CleanSongData.c"
  },
  "ApplyColorSet": {
   "bank": "01",
   "addr": "4C61",
   "len": 144,
+  "end": "4CF1",
   "src": "c/bank01/Display.c"
  },
  "ApplySynthPhase": {
   "bank": "1D",
   "addr": "5F00",
   "len": 41,
+  "end": "5F29",
   "src": "c/bank1d/SynthRender.c"
  },
  "BackspaceNameEdit": {
   "bank": "1B",
   "addr": "5303",
   "len": 229,
+  "end": "53E8",
   "src": "c/bank1b/NameEditor.c"
  },
  "BeginSongSelection": {
   "bank": "07",
   "addr": "4AB8",
   "len": 69,
+  "end": "4AFD",
   "src": "c/bank07/SongScreen.c"
  },
  "BuildGrooveCache": {
   "bank": "1D",
   "addr": "435D",
   "len": 55,
+  "end": "4394",
   "src": "c/bank1d/GrooveScreen.c"
  },
  "BuildOverwritePrompt": {
   "bank": "1D",
   "addr": "6B33",
   "len": 476,
+  "end": "6D0F",
   "src": "c/bank1d/SynthScreen.c"
  },
  "CancelSelectionMode": {
   "bank": "05",
   "addr": "421A",
   "len": 25,
+  "end": "4233",
   "src": "c/bank05/TableScreen.c"
  },
  "ChainScreenEnter": {
   "bank": "06",
   "addr": "5563",
   "len": 195,
+  "end": "5626",
   "src": "c/bank06/ChainScreen.c"
  },
  "ChainScreenInput": {
   "bank": "06",
   "addr": "5BD0",
   "len": 4464,
+  "end": "6D55",
   "src": "c/bank06/ChainScreen.c"
  },
  "ChainScreenUpdate": {
   "bank": "06",
   "addr": "5A62",
   "len": 92,
+  "end": "5ABE",
   "src": "c/bank06/ChainScreen.c"
  },
  "ChangeWaveRange": {
   "bank": "06",
   "addr": "4FFB",
   "len": 83,
+  "end": "504E",
   "src": "c/bank06/WaveScreen.c"
  },
  "CheckFileMagicAll": {
   "bank": "1C",
   "addr": "40F2",
   "len": 104,
+  "end": "415A",
   "src": "c/bank1c/FileSystem.c"
  },
  "CheckInstrumentFieldOption": {
   "bank": "03",
   "addr": "414F",
   "len": 33,
+  "end": "4170",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "CheckJkMarker": {
   "bank": "01",
   "addr": "4811",
   "len": 55,
+  "end": "4848",
   "src": "c/bank01/CartridgeTest.c"
  },
  "CheckPhraseEditContext": {
   "bank": "04",
   "addr": "5136",
   "len": 120,
+  "end": "51AE",
   "src": "c/bank04/PhraseScreen.c"
  },
  "CheckRomChecksum": {
   "bank": "00",
   "addr": "1FD5",
   "len": 222,
+  "end": "20B3",
   "src": "c/bank00/Sync.c"
  },
  "CheckSongInitializedMarker": {
   "bank": "01",
   "addr": "4848",
   "len": 140,
+  "end": "48D4",
   "src": "c/bank01/SongAllocation.c"
  },
  "ClaimInstrumentSlot": {
   "bank": "1F",
   "addr": "492A",
   "len": 216,
+  "end": "4A02",
   "src": "c/bank1f/Allocation.c"
  },
  "CleanInstrumentData": {
   "bank": "1F",
   "addr": "63B1",
   "len": 156,
+  "end": "648F",
   "src": "c/bank1f/CleanSongData.c"
  },
  "CleanSongData": {
   "bank": "1F",
   "addr": "62DD",
   "len": 160,
+  "end": "63B1",
   "src": "c/bank1f/CleanSongData.c"
  },
  "ClearBgMapAndAttributes": {
   "bank": "01",
   "addr": "6D23",
   "len": 48,
+  "end": "6D53",
   "src": "c/bank01/Display.c"
  },
  "ClearBookmarks": {
   "bank": "07",
   "addr": "643D",
   "len": 18,
+  "end": "644F",
   "src": "c/bank07/SongScreen.c"
  },
  "ClearMarkerSprites": {
   "bank": "00",
   "addr": "30EC",
   "len": 104,
+  "end": "3154",
   "src": "c/bank00/Sprites.c"
  },
  "ClearMessageBar": {
   "bank": "01",
   "addr": "781F",
   "len": 65,
+  "end": "7860",
   "src": "c/bank01/TopBar.c"
  },
  "ClearOamBuffer": {
   "bank": "01",
   "addr": "4B5E",
   "len": 259,
+  "end": "4C61",
   "src": "c/bank01/Display.c"
  },
  "ClearSpriteY": {
   "bank": "00",
   "addr": "319E",
   "len": 23,
+  "end": "31B5",
   "src": "c/bank00/Sprites.c"
  },
  "ClearSprites012": {
   "bank": "00",
   "addr": "30DD",
   "len": 15,
+  "end": "30EC",
   "src": "c/bank00/Sprites.c"
  },
  "ClearSynthFlag": {
   "bank": "1D",
   "addr": "6144",
   "len": 79,
+  "end": "6193",
   "src": "c/bank1d/SynthScreen.c"
  },
  "ClearTable": {
   "bank": "1F",
   "addr": "51B9",
   "len": 178,
+  "end": "526B",
   "src": "c/bank1f/CleanSongData.c"
  },
  "ClearTableRow": {
   "bank": "1F",
   "addr": "5183",
   "len": 54,
+  "end": "51B9",
   "src": "c/bank1f/CleanSongData.c"
  },
  "ClearUnusedTables": {
   "bank": "1F",
   "addr": "526B",
   "len": 72,
+  "end": "52B3",
   "src": "c/bank1f/CleanSongData.c"
  },
  "CloneAtPhraseCursor": {
   "bank": "04",
   "addr": "56BA",
   "len": 101,
+  "end": "572C",
   "src": "c/bank04/PhraseScreen.c"
  },
  "CloneInstrument": {
   "bank": "04",
   "addr": "5491",
   "len": 82,
+  "end": "54E3",
   "src": "c/bank04/PhraseScreen.c"
  },
  "CloneInstrumentAtCursor": {
   "bank": "04",
   "addr": "5533",
   "len": 158,
+  "end": "55EB",
   "src": "c/bank04/PhraseScreen.c"
  },
  "CloneInstrumentTable": {
   "bank": "01",
   "addr": "546E",
   "len": 136,
+  "end": "5503",
   "src": "c/bank01/SongAllocation.c"
  },
  "ClonePhraseAtCursor": {
   "bank": "06",
   "addr": "56F0",
   "len": 425,
+  "end": "5899",
   "src": "c/bank06/ChainScreen.c"
  },
  "CloneSongChain": {
   "bank": "07",
   "addr": "4139",
   "len": 570,
+  "end": "4395",
   "src": "c/bank07/SongScreen.c"
  },
  "CloneSynth": {
   "bank": "03",
   "addr": "441A",
   "len": 384,
+  "end": "45A7",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "CloneSynthOrTable": {
   "bank": "03",
   "addr": "53DE",
   "len": 65,
+  "end": "541F",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "CloneTableAtCursor": {
   "bank": "04",
   "addr": "55EB",
   "len": 146,
+  "end": "567D",
   "src": "c/bank04/PhraseScreen.c"
  },
  "CloseHelpEntry": {
   "bank": "1B",
   "addr": "4ADB",
   "len": 12,
+  "end": "4AE7",
   "src": "c/bank1b/HelpScreen.c"
  },
  "ColorField": {
   "bank": "00",
   "addr": "1298",
   "len": 110,
+  "end": "1306",
   "src": "c/bank00/DrawFields.c"
  },
  "Command_E_Noi": {
   "bank": "02",
   "addr": "6A5E",
   "len": 54,
+  "end": "6A94",
   "src": "c/bank02/Commands.c"
  },
  "Command_E_NoteOn": {
   "bank": "02",
   "addr": "7CFB",
   "len": 134,
+  "end": "7D81",
   "src": "c/bank02/Commands.c"
  },
  "Command_E_Pu1": {
   "bank": "02",
   "addr": "69F2",
   "len": 54,
+  "end": "6A28",
   "src": "c/bank02/Commands.c"
  },
  "Command_E_Pu2": {
   "bank": "02",
   "addr": "6A28",
   "len": 54,
+  "end": "6A5E",
   "src": "c/bank02/Commands.c"
  },
  "Command_F_Wav": {
   "bank": "02",
   "addr": "632B",
   "len": 334,
+  "end": "6479",
   "src": "c/bank02/Commands.c"
  },
  "Command_K": {
   "bank": "02",
   "addr": "65F3",
   "len": 83,
+  "end": "6646",
   "src": "c/bank02/Commands.c"
  },
  "Command_O": {
   "bank": "02",
   "addr": "665F",
   "len": 10,
+  "end": "6669",
   "src": "c/bank02/Commands.c"
  },
  "Command_P": {
   "bank": "02",
   "addr": "6646",
   "len": 25,
+  "end": "665F",
   "src": "c/bank02/Commands.c"
  },
  "Command_P_Step": {
   "bank": "02",
   "addr": "6270",
   "len": 187,
+  "end": "632B",
   "src": "c/bank02/Commands.c"
  },
  "Command_R": {
   "bank": "02",
   "addr": "649D",
   "len": 218,
+  "end": "6577",
   "src": "c/bank02/Commands.c"
  },
  "Command_T": {
   "bank": "02",
   "addr": "6669",
   "len": 28,
+  "end": "6685",
   "src": "c/bank02/Commands.c"
  },
  "CommitNameEdit": {
   "bank": "1B",
   "addr": "5126",
   "len": 434,
+  "end": "5303",
   "src": "c/bank1b/NameEditor.c"
  },
  "CommitPhraseInstrument": {
   "bank": "04",
   "addr": "42A8",
   "len": 293,
+  "end": "43CD",
   "src": "c/bank04/PhraseScreen.c"
  },
  "ComposeSynthWave": {
   "bank": "1D",
   "addr": "5323",
   "len": 882,
+  "end": "5695",
   "src": "c/bank1d/SynthRender.c"
  },
  "CompressIsDefaultWave": {
   "bank": "1C",
   "addr": "43C1",
   "len": 94,
+  "end": "441F",
   "src": "c/bank1c/Compression.c"
  },
  "CompressSong": {
   "bank": "1C",
   "addr": "441F",
   "len": 708,
+  "end": "46E3",
   "src": "c/bank1c/Compression.c"
  },
  "ComputeEnvelope": {
   "bank": "1B",
   "addr": "726E",
   "len": 630,
+  "end": "74E4",
   "src": "c/bank1b/EnvelopeGraph.c"
  },
  "CopyFileName": {
   "bank": "1C",
   "addr": "4352",
   "len": 103,
+  "end": "43C1",
   "src": "c/bank1c/FileSystem.c"
  },
  "CopyInstrument": {
   "bank": "01",
   "addr": "5253",
   "len": 139,
+  "end": "52EB",
   "src": "c/bank01/SongAllocation.c"
  },
  "CopyInstrumentName": {
   "bank": "01",
   "addr": "493B",
   "len": 265,
+  "end": "4A49",
   "src": "c/bank01/InstrumentNames.c"
  },
  "CopySong16": {
   "bank": "01",
   "addr": "52EB",
   "len": 65,
+  "end": "532C",
   "src": "c/bank01/SongAllocation.c"
  },
  "CopySongColumn": {
   "bank": "07",
   "addr": "4000",
   "len": 63,
+  "end": "403F",
   "src": "c/bank07/SongScreen.c"
  },
  "CopyTableData": {
   "bank": "01",
   "addr": "5331",
   "len": 317,
+  "end": "546E",
   "src": "c/bank01/SongAllocation.c"
  },
  "CopyVramTile": {
   "bank": "1E",
   "addr": "7A4B",
   "len": 85,
+  "end": "7AA0",
   "src": "c/bank1e/Graphics.c"
  },
  "CopyWaveSelection": {
   "bank": "06",
   "addr": "5398",
   "len": 207,
+  "end": "5467",
   "src": "c/bank06/WaveScreen.c"
  },
  "CountFileBlocks": {
   "bank": "1C",
   "addr": "48D4",
   "len": 149,
+  "end": "4969",
   "src": "c/bank1c/FileSystem.c"
  },
  "CountModifiedSynths": {
   "bank": "1F",
   "addr": "5FC2",
   "len": 42,
+  "end": "5FEC",
   "src": "c/bank1f/SynthReset.c"
  },
  "CountUsedChains": {
   "bank": "1F",
   "addr": "5DF3",
   "len": 42,
+  "end": "5E1D",
   "src": "c/bank1f/UsageScan.c"
  },
  "CountUsedPhrases": {
   "bank": "1F",
   "addr": "5DC9",
   "len": 42,
+  "end": "5DF3",
   "src": "c/bank1f/UsageScan.c"
  },
  "CountUsedTables": {
   "bank": "1F",
   "addr": "50CC",
   "len": 42,
+  "end": "50F6",
   "src": "c/bank1f/UsageScan.c"
  },
  "CrashHandler": {
   "bank": "01",
   "addr": "794B",
   "len": 10,
+  "end": "7955",
   "src": "c/bank01/CrashScreen.c"
  },
  "CursorInstrumentIsKit": {
   "bank": "04",
   "addr": "510A",
   "len": 44,
+  "end": "5136",
   "src": "c/bank04/PhraseScreen.c"
  },
  "CursorRowIsKit": {
   "bank": "04",
   "addr": "5B5E",
   "len": 72,
+  "end": "5BA6",
   "src": "c/bank04/PhraseScreen.c"
  },
  "CutCopyChainSelection": {
   "bank": "06",
   "addr": "6D55",
   "len": 430,
+  "end": "6F0D",
   "src": "c/bank06/ChainScreen.c"
  },
  "CutCopyGrooveSelection": {
   "bank": "1D",
   "addr": "4B6C",
   "len": 238,
+  "end": "4C63",
   "src": "c/bank1d/GrooveScreen.c"
  },
  "CutCopyPhraseSelection": {
   "bank": "1F",
   "addr": "6698",
   "len": 1178,
+  "end": "6B3B",
   "src": "c/bank1f/PhraseScreen.c"
  },
  "CutCopySongSelection": {
   "bank": "07",
   "addr": "5736",
   "len": 545,
+  "end": "5970",
   "src": "c/bank07/SongCutCopy.c"
  },
  "CutCopyTableSelection": {
   "bank": "05",
   "addr": "61CA",
   "len": 720,
+  "end": "64A3",
   "src": "c/bank05/TableScreen.c"
  },
  "DecompressBlock": {
   "bank": "1C",
   "addr": "46E3",
   "len": 149,
+  "end": "4778",
   "src": "c/bank1c/Compression.c"
  },
  "DeduplicateChains": {
   "bank": "1F",
   "addr": "5C78",
   "len": 157,
+  "end": "5D18",
   "src": "c/bank1f/CleanSongData.c"
  },
  "DeduplicatePhrases": {
   "bank": "1F",
   "addr": "5BDE",
   "len": 154,
+  "end": "5C78",
   "src": "c/bank1f/CleanSongData.c"
  },
  "DeduplicateTables": {
   "bank": "1F",
   "addr": "5D18",
   "len": 174,
+  "end": "5DC9",
   "src": "c/bank1f/CleanSongData.c"
  },
  "DispatchScreenDraw": {
   "bank": "00",
   "addr": "254F",
   "len": 252,
+  "end": "264B",
   "src": "c/bank00/ScreenDispatch.c"
  },
  "DispatchScreenInput": {
   "bank": "00",
   "addr": "2A71",
   "len": 284,
+  "end": "2B8D",
   "src": "c/bank00/ScreenDispatch.c"
  },
  "DispatchScreenUpdate": {
   "bank": "00",
   "addr": "264B",
   "len": 207,
+  "end": "271A",
   "src": "c/bank00/ScreenDispatch.c"
  },
  "DispatchSyncClock": {
   "bank": "00",
   "addr": "1E93",
   "len": 53,
+  "end": "1EC8",
   "src": "c/bank00/Sync.c"
  },
  "DrawAllChannelStatus": {
   "bank": "1F",
   "addr": "7072",
   "len": 37,
+  "end": "7097",
   "src": "c/bank1f/DrawChannelStatus.c"
  },
  "DrawAllophoneName": {
   "bank": "06",
   "addr": "4026",
   "len": 55,
+  "end": "405D",
   "src": "c/bank06/WordScreen.c"
  },
  "DrawBlocksUsed": {
   "bank": "1C",
   "addr": "59E6",
   "len": 238,
+  "end": "5B0C",
   "src": "c/bank1c/FileScreen.c"
  },
  "DrawCalibrationScreen": {
   "bank": "07",
   "addr": "7097",
   "len": 218,
+  "end": "7171",
   "src": "c/bank07/KeyboardLink.c"
  },
  "DrawCartTest": {
   "bank": "01",
   "addr": "4487",
   "len": 208,
+  "end": "45D1",
   "src": "c/bank01/CartridgeTest.c"
  },
  "DrawChainCursor": {
   "bank": "06",
   "addr": "5ABE",
   "len": 66,
+  "end": "5B00",
   "src": "c/bank06/ChainScreen.c"
  },
  "DrawChainPosition": {
   "bank": "06",
   "addr": "5626",
   "len": 44,
+  "end": "5655",
   "src": "c/bank06/ChainScreen.c"
  },
  "DrawChainScreen": {
   "bank": "06",
   "addr": "5947",
   "len": 279,
+  "end": "5A5E",
   "src": "c/bank06/ChainScreen.c"
  },
  "DrawChainSelection": {
   "bank": "06",
   "addr": "7006",
   "len": 487,
+  "end": "71ED",
   "src": "c/bank06/ChainScreen.c"
  },
  "DrawChannelHeader": {
   "bank": "00",
   "addr": "2CC6",
   "len": 76,
+  "end": "2D22",
   "src": "c/bank00/DrawFields.c"
  },
  "DrawChannelStatus": {
   "bank": "1F",
   "addr": "6F14",
   "len": 324,
+  "end": "7072",
   "src": "c/bank1f/DrawChannelStatus.c"
  },
  "DrawCommandLetter": {
   "bank": "05",
   "addr": "42A4",
   "len": 49,
+  "end": "42D5",
   "src": "c/bank05/TableScreen.c"
  },
  "DrawCrashScreen": {
   "bank": "01",
   "addr": "7955",
   "len": 549,
+  "end": "7BDE",
   "src": "c/bank01/CrashScreen.c"
  },
  "DrawDecimalField": {
   "bank": "1B",
   "addr": "5AE3",
   "len": 35,
+  "end": "5B09",
   "src": "c/bank1b/ProjectScreen.c"
  },
  "DrawEmptyNote": {
   "bank": "04",
   "addr": "4C06",
   "len": 10,
+  "end": "4C14",
   "src": "c/bank04/PhraseScreen.c"
  },
  "DrawEnvelopeFields": {
   "bank": "1F",
   "addr": "418A",
   "len": 172,
+  "end": "423D",
   "src": "c/bank1f/InstrumentFields.c"
  },
  "DrawFieldValue": {
   "bank": "00",
   "addr": "2D7E",
   "len": 166,
+  "end": "2E33",
   "src": "c/bank00/DrawFields.c"
  },
  "DrawFileList": {
   "bank": "1C",
   "addr": "55F1",
   "len": 443,
+  "end": "57BB",
   "src": "c/bank1c/FileScreen.c"
  },
  "DrawFileScreen": {
   "bank": "1C",
   "addr": "57BB",
   "len": 223,
+  "end": "58C1",
   "src": "c/bank1c/FileScreen.c"
  },
  "DrawFileTextField": {
   "bank": "1C",
   "addr": "5361",
   "len": 464,
+  "end": "5531",
   "src": "c/bank1c/FileScreen.c"
  },
  "DrawFontColorFields": {
   "bank": "1B",
   "addr": "569C",
   "len": 107,
+  "end": "575C",
   "src": "c/bank1b/DrawFontColorFields.c"
  },
  "DrawGrooveCursor": {
   "bank": "1D",
   "addr": "4394",
   "len": 59,
+  "end": "43CF",
   "src": "c/bank1d/GrooveScreen.c"
  },
  "DrawGrooveRow": {
   "bank": "1D",
   "addr": "425B",
   "len": 255,
+  "end": "435D",
   "src": "c/bank1d/GrooveScreen.c"
  },
  "DrawGrooveScreen": {
   "bank": "1D",
   "addr": "41DA",
   "len": 59,
+  "end": "4215",
   "src": "c/bank1d/GrooveScreen.c"
  },
  "DrawGrooveSelection": {
   "bank": "1D",
   "addr": "4CDE",
   "len": 122,
+  "end": "4D58",
   "src": "c/bank1d/GrooveScreen.c"
  },
  "DrawGrooveSteps": {
   "bank": "1D",
   "addr": "40EA",
   "len": 227,
+  "end": "41DA",
   "src": "c/bank1d/GrooveScreen.c"
  },
  "DrawHelpCursor": {
   "bank": "1B",
   "addr": "49F8",
   "len": 85,
+  "end": "4A4D",
   "src": "c/bank1b/HelpScreen.c"
  },
  "DrawHelpMenu": {
   "bank": "1B",
   "addr": "401B",
   "len": 61,
+  "end": "4058",
   "src": "c/bank1b/HelpScreen.c"
  },
  "DrawHelpPage": {
   "bank": "1B",
   "addr": "4AE7",
   "len": 134,
+  "end": "4B6D",
   "src": "c/bank1b/HelpScreen.c"
  },
  "DrawHelpScreen": {
   "bank": "1B",
   "addr": "4A62",
   "len": 23,
+  "end": "4A79",
   "src": "c/bank1b/HelpScreen.c"
  },
  "DrawInstrumentCursor": {
   "bank": "03",
   "addr": "4170",
   "len": 231,
+  "end": "4257",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "DrawInstrumentScreen": {
   "bank": "03",
   "addr": "4DE7",
   "len": 477,
+  "end": "4FC4",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "DrawInstrumentScreenFrame": {
   "bank": "03",
   "addr": "45A7",
   "len": 44,
+  "end": "45D3",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "DrawInstrumentTableField": {
   "bank": "1F",
   "addr": "409C",
   "len": 43,
+  "end": "40CA",
   "src": "c/bank1f/InstrumentFields.c"
  },
  "DrawInstrumentTableMode": {
   "bank": "1F",
   "addr": "4000",
   "len": 141,
+  "end": "409C",
   "src": "c/bank1f/InstrumentFields.c"
  },
  "DrawKeyRepeatField": {
   "bank": "1B",
   "addr": "5876",
   "len": 32,
+  "end": "5896",
   "src": "c/bank1b/ProjectScreen.c"
  },
  "DrawKeyboardInstrumentName": {
   "bank": "07",
   "addr": "674D",
   "len": 197,
+  "end": "6812",
   "src": "c/bank07/KeyboardLink.c"
  },
  "DrawKeyboardInstrumentState": {
   "bank": "07",
   "addr": "6543",
   "len": 231,
+  "end": "662A",
   "src": "c/bank07/KeyboardLink.c"
  },
  "DrawKeyboardOctave": {
   "bank": "07",
   "addr": "6812",
   "len": 119,
+  "end": "68A2",
   "src": "c/bank07/KeyboardLink.c"
  },
  "DrawKitDistortionName": {
   "bank": "03",
   "addr": "4A44",
   "len": 112,
+  "end": "4ACF",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "DrawKitInstrument": {
   "bank": "1F",
   "addr": "44DD",
   "len": 609,
+  "end": "474E",
   "src": "c/bank1f/InstrumentFields.c"
  },
  "DrawKitLoopField": {
   "bank": "1F",
   "addr": "411F",
   "len": 56,
+  "end": "4157",
   "src": "c/bank1f/InstrumentFields.c"
  },
  "DrawKitLoopMode": {
   "bank": "1F",
   "addr": "40CA",
   "len": 73,
+  "end": "411F",
   "src": "c/bank1f/InstrumentFields.c"
  },
  "DrawKitNameCell": {
   "bank": "1F",
   "addr": "44B7",
   "len": 38,
+  "end": "44DD",
   "src": "c/bank1f/InstrumentFields.c"
  },
  "DrawKitNameField": {
   "bank": "03",
   "addr": "4FDC",
   "len": 38,
+  "end": "5002",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "DrawMapTopRow": {
   "bank": "05",
   "addr": "4040",
   "len": 288,
+  "end": "4167",
   "src": "c/bank05/TableScreen.c"
  },
  "DrawMessageBar": {
   "bank": "01",
   "addr": "74F7",
   "len": 198,
+  "end": "75BD",
   "src": "c/bank01/DrawMessageBar.c"
  },
  "DrawNameEditCursor": {
   "bank": "1B",
   "addr": "4C30",
   "len": 58,
+  "end": "4C6A",
   "src": "c/bank1b/NameEditor.c"
  },
  "DrawNoiseInstrument": {
   "bank": "1F",
   "addr": "4399",
   "len": 266,
+  "end": "44B7",
   "src": "c/bank1f/InstrumentFields.c"
  },
  "DrawNoteCell": {
   "bank": "04",
   "addr": "4CC4",
   "len": 29,
+  "end": "4CE5",
   "src": "c/bank04/PhraseScreen.c"
  },
  "DrawNoteName": {
   "bank": "06",
   "addr": "75BA",
   "len": 298,
+  "end": "76E4",
   "src": "c/bank06/StatusPanel.c"
  },
  "DrawNoteNameFar": {
   "bank": "04",
   "addr": "4000",
   "len": 27,
+  "end": "401B",
   "src": "c/bank04/PhraseScreen.c"
  },
  "DrawOnOffName": {
   "bank": "01",
   "addr": "522D",
   "len": 30,
+  "end": "5253",
   "src": "c/bank01/FieldNames.c"
  },
  "DrawOverwriteChoice": {
   "bank": "1D",
   "addr": "6D0F",
   "len": 96,
+  "end": "6D6F",
   "src": "c/bank1d/SynthScreen.c"
  },
  "DrawPhraseCommandLetter": {
   "bank": "04",
   "addr": "402C",
   "len": 49,
+  "end": "405D",
   "src": "c/bank04/PhraseScreen.c"
  },
  "DrawPhraseCursor": {
   "bank": "1F",
   "addr": "6C1E",
   "len": 22,
+  "end": "6C34",
   "src": "c/bank1f/PhraseScreen.c"
  },
  "DrawPhraseCursorFar": {
   "bank": "04",
   "addr": "401B",
   "len": 17,
+  "end": "402C",
   "src": "c/bank04/PhraseScreen.c"
  },
  "DrawPhraseCursorGlyph": {
   "bank": "04",
   "addr": "4257",
   "len": 71,
+  "end": "429E",
   "src": "c/bank04/PhraseScreen.c"
  },
  "DrawPhraseScreen": {
   "bank": "04",
   "addr": "4CE5",
   "len": 1011,
+  "end": "510A",
   "src": "c/bank04/PhraseScreen.c"
  },
  "DrawPhraseSelection": {
   "bank": "1F",
   "addr": "6D58",
   "len": 422,
+  "end": "6EFE",
   "src": "c/bank1f/PhraseScreen.c"
  },
  "DrawPhraseSelectionFar": {
   "bank": "04",
   "addr": "4C99",
   "len": 17,
+  "end": "4CAA",
   "src": "c/bank04/PhraseScreen.c"
  },
  "DrawPrelistenField": {
   "bank": "1B",
   "addr": "5B23",
   "len": 51,
+  "end": "5B62",
   "src": "c/bank1b/ProjectScreen.c"
  },
  "DrawProjectCursor": {
   "bank": "1B",
   "addr": "5A90",
   "len": 83,
+  "end": "5AE3",
   "src": "c/bank1b/ProjectScreen.c"
  },
  "DrawProjectScreen": {
   "bank": "1B",
   "addr": "5C17",
   "len": 312,
+  "end": "5D7C",
   "src": "c/bank1b/ProjectScreen.c"
  },
  "DrawProjectTempo": {
   "bank": "1B",
   "addr": "5853",
   "len": 14,
+  "end": "5861",
   "src": "c/bank1b/ProjectScreen.c"
  },
  "DrawProjectTextField": {
   "bank": "1B",
   "addr": "4CBA",
   "len": 464,
+  "end": "4E8A",
   "src": "c/bank1b/NameEditor.c"
  },
  "DrawPulseDuty": {
   "bank": "00",
   "addr": "2D22",
   "len": 80,
+  "end": "2D7E",
   "src": "c/bank00/DrawFields.c"
  },
  "DrawPulseInstrument": {
   "bank": "1F",
   "addr": "423D",
   "len": 338,
+  "end": "4399",
   "src": "c/bank1f/InstrumentFields.c"
  },
  "DrawScreenColumnLabels": {
   "bank": "1E",
   "addr": "4000",
   "len": 712,
+  "end": "42C8",
   "src": "c/bank1e/Graphics.c"
  },
  "DrawScreenPaletteMap": {
   "bank": "01",
   "addr": "6CD7",
   "len": 76,
+  "end": "6D23",
   "src": "c/bank01/Display.c"
  },
  "DrawSongCursor": {
   "bank": "07",
   "addr": "4395",
   "len": 79,
+  "end": "43E4",
   "src": "c/bank07/SongScreen.c"
  },
  "DrawSongCursorRow": {
   "bank": "07",
   "addr": "492D",
   "len": 33,
+  "end": "494E",
   "src": "c/bank07/SongScreen.c"
  },
  "DrawSongRowNumber": {
   "bank": "07",
   "addr": "4463",
   "len": 187,
+  "end": "451E",
   "src": "c/bank07/SongScreen.c"
  },
  "DrawSongScreen": {
   "bank": "07",
   "addr": "4574",
   "len": 227,
+  "end": "4657",
   "src": "c/bank07/SongScreen.c"
  },
  "DrawSpeechCursor": {
   "bank": "1F",
   "addr": "70DF",
   "len": 41,
+  "end": "7108",
   "src": "c/bank1f/SpeechInstrumentScreen.c"
  },
  "DrawSpeechInstrumentScreen": {
   "bank": "1F",
   "addr": "7108",
   "len": 311,
+  "end": "724D",
   "src": "c/bank1f/SpeechInstrumentScreen.c"
  },
  "DrawSpeedGlyph": {
   "bank": "01",
   "addr": "5208",
   "len": 37,
+  "end": "522D",
   "src": "c/bank01/FieldNames.c"
  },
  "DrawSpeedModeName": {
   "bank": "01",
   "addr": "518C",
   "len": 98,
+  "end": "5208",
   "src": "c/bank01/FieldNames.c"
  },
  "DrawStatusNote": {
   "bank": "06",
   "addr": "71ED",
   "len": 215,
+  "end": "72C4",
   "src": "c/bank06/StatusPanel.c"
  },
  "DrawSyncField": {
   "bank": "1B",
   "addr": "58B1",
   "len": 262,
+  "end": "59B7",
   "src": "c/bank1b/DrawSyncField.c"
  },
  "DrawSyncMode2Field": {
   "bank": "1B",
   "addr": "5796",
   "len": 43,
+  "end": "57C1",
   "src": "c/bank1b/ProjectScreen.c"
  },
  "DrawSyncStatus": {
   "bank": "06",
   "addr": "74AD",
   "len": 99,
+  "end": "7524",
   "src": "c/bank06/StatusPanel.c"
  },
  "DrawSyncStatusLsdj": {
   "bank": "06",
   "addr": "740C",
   "len": 73,
+  "end": "7469",
   "src": "c/bank06/StatusPanel.c"
  },
  "DrawSyncStatusMidi": {
   "bank": "06",
   "addr": "7469",
   "len": 53,
+  "end": "74AD",
   "src": "c/bank06/StatusPanel.c"
  },
  "DrawSyncStatusText": {
   "bank": "06",
   "addr": "73C0",
   "len": 28,
+  "end": "73DC",
   "src": "c/bank06/StatusPanel.c"
  },
  "DrawSyncSubSetting": {
   "bank": "1B",
   "addr": "5B7A",
   "len": 137,
+  "end": "5C17",
   "src": "c/bank1b/ProjectScreen.c"
  },
  "DrawSynthCursor": {
   "bank": "1D",
   "addr": "6503",
   "len": 116,
+  "end": "6577",
   "src": "c/bank1d/SynthScreen.c"
  },
  "DrawSynthDistortionField": {
   "bank": "1D",
   "addr": "6577",
   "len": 60,
+  "end": "65C2",
   "src": "c/bank1d/SynthScreen.c"
  },
  "DrawSynthFilterField": {
   "bank": "1D",
   "addr": "636E",
   "len": 130,
+  "end": "6414",
   "src": "c/bank1d/SynthScreen.c"
  },
  "DrawSynthNumber": {
   "bank": "1D",
   "addr": "65C2",
   "len": 739,
+  "end": "68AB",
   "src": "c/bank1d/SynthScreen.c"
  },
  "DrawSynthPhaseField": {
   "bank": "1D",
   "addr": "62A8",
   "len": 77,
+  "end": "6311",
   "src": "c/bank1d/SynthScreen.c"
  },
  "DrawSynthScreen": {
   "bank": "1D",
   "addr": "68AB",
   "len": 78,
+  "end": "68F9",
   "src": "c/bank1d/SynthScreen.c"
  },
  "DrawSynthSignalField": {
   "bank": "1D",
   "addr": "6414",
   "len": 117,
+  "end": "649F",
   "src": "c/bank1d/SynthScreen.c"
  },
  "DrawTableCursor": {
   "bank": "05",
   "addr": "4AA8",
   "len": 181,
+  "end": "4B5D",
   "src": "c/bank05/TableScreen.c"
  },
  "DrawTableEnvelope": {
   "bank": "05",
   "addr": "472B",
   "len": 55,
+  "end": "4762",
   "src": "c/bank05/TableScreen.c"
  },
  "DrawTableScreen": {
   "bank": "05",
   "addr": "4762",
   "len": 462,
+  "end": "4930",
   "src": "c/bank05/TableScreen.c"
  },
  "DrawTableSelection": {
   "bank": "05",
   "addr": "676A",
   "len": 595,
+  "end": "69BD",
   "src": "c/bank05/TableScreen.c"
  },
  "DrawTempo": {
   "bank": "00",
   "addr": "2C3C",
   "len": 89,
+  "end": "2CA4",
   "src": "c/bank00/DrawFields.c"
  },
  "DrawTempoField": {
   "bank": "00",
   "addr": "2CA4",
   "len": 34,
+  "end": "2CC6",
   "src": "c/bank00/DrawFields.c"
  },
  "DrawTileHexCell": {
   "bank": "06",
   "addr": "7524",
   "len": 130,
+  "end": "75A6",
   "src": "c/bank06/DrawTileHexCell.c"
  },
  "DrawTopBar": {
   "bank": "01",
   "addr": "6D53",
   "len": 555,
+  "end": "6F7E",
   "src": "c/bank01/TopBar.c"
  },
  "DrawVerifyPanel": {
   "bank": "1C",
   "addr": "4778",
   "len": 43,
+  "end": "47B1",
   "src": "c/bank1c/FileScreen.c"
  },
  "DrawWaveColumn": {
   "bank": "06",
   "addr": "4C55",
   "len": 599,
+  "end": "4EAC",
   "src": "c/bank06/WaveScreen.c"
  },
  "DrawWaveColumns": {
   "bank": "06",
   "addr": "4F02",
   "len": 22,
+  "end": "4F18",
   "src": "c/bank06/WaveScreen.c"
  },
  "DrawWaveCursorColumn": {
   "bank": "06",
   "addr": "4EAC",
   "len": 17,
+  "end": "4EBD",
   "src": "c/bank06/WaveScreen.c"
  },
  "DrawWaveFinetune": {
   "bank": "03",
   "addr": "4CD9",
   "len": 60,
+  "end": "4D15",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "DrawWaveInstrument": {
   "bank": "1F",
   "addr": "474E",
   "len": 375,
+  "end": "48C5",
   "src": "c/bank1f/InstrumentFields.c"
  },
  "DrawWaveLength": {
   "bank": "03",
   "addr": "498B",
   "len": 44,
+  "end": "49B7",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "DrawWaveLine": {
   "bank": "06",
   "addr": "504E",
   "len": 49,
+  "end": "507F",
   "src": "c/bank06/WaveScreen.c"
  },
  "DrawWaveLoopPosition": {
   "bank": "03",
   "addr": "49FD",
   "len": 71,
+  "end": "4A44",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "DrawWaveRange": {
   "bank": "06",
   "addr": "4EBD",
   "len": 69,
+  "end": "4F02",
   "src": "c/bank06/WaveScreen.c"
  },
  "DrawWaveScreen": {
   "bank": "06",
   "addr": "4F18",
   "len": 42,
+  "end": "4F42",
   "src": "c/bank06/WaveScreen.c"
  },
  "DrawWaveSpeed": {
   "bank": "03",
   "addr": "49B7",
   "len": 45,
+  "end": "49E7",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "DrawWaveSynthField": {
   "bank": "03",
   "addr": "4D15",
   "len": 182,
+  "end": "4DD7",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "DrawWordCursor": {
   "bank": "06",
   "addr": "414F",
   "len": 83,
+  "end": "41A2",
   "src": "c/bank06/WordScreen.c"
  },
  "DrawWordRow": {
   "bank": "1F",
   "addr": "6C34",
   "len": 106,
+  "end": "6CA2",
   "src": "c/bank1f/SpeechInstrumentScreen.c"
  },
  "DrawWordScreen": {
   "bank": "06",
   "addr": "41A2",
   "len": 345,
+  "end": "4306",
   "src": "c/bank06/WordScreen.c"
  },
  "EditPhraseCellDown": {
   "bank": "04",
   "addr": "457C",
   "len": 399,
+  "end": "470B",
   "src": "c/bank04/PhraseScreen.c"
  },
  "EditPhraseCellLeft": {
   "bank": "04",
   "addr": "4811",
   "len": 263,
+  "end": "4918",
   "src": "c/bank04/PhraseScreen.c"
  },
  "EditPhraseCellRight": {
   "bank": "04",
   "addr": "470B",
   "len": 262,
+  "end": "4811",
   "src": "c/bank04/PhraseScreen.c"
  },
  "EditPhraseCellUp": {
   "bank": "04",
   "addr": "43CD",
   "len": 431,
+  "end": "457C",
   "src": "c/bank04/PhraseScreen.c"
  },
  "EditSongSelection": {
   "bank": "07",
   "addr": "5B1D",
   "len": 667,
+  "end": "5DD8",
   "src": "c/bank07/SongSelection.c"
  },
  "EnsureKitExists": {
   "bank": "03",
   "addr": "50DF",
   "len": 73,
+  "end": "5128",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "EnterChannelPhrase": {
   "bank": "1F",
   "addr": "64FF",
   "len": 343,
+  "end": "6656",
   "src": "c/bank1f/PhraseScreen.c"
  },
  "EnterPhraseLeft": {
   "bank": "1F",
   "addr": "6677",
   "len": 33,
+  "end": "6698",
   "src": "c/bank1f/PhraseScreen.c"
  },
  "EnterPhraseRight": {
   "bank": "1F",
   "addr": "6656",
   "len": 33,
+  "end": "6677",
   "src": "c/bank1f/PhraseScreen.c"
  },
  "EraseChainCursor": {
   "bank": "06",
   "addr": "58A7",
   "len": 84,
+  "end": "58FB",
   "src": "c/bank06/ChainScreen.c"
  },
  "EraseFile": {
   "bank": "1C",
   "addr": "4D58",
   "len": 121,
+  "end": "4DD1",
   "src": "c/bank1c/FileScreen.c"
  },
  "EraseFileName": {
   "bank": "1C",
   "addr": "4C1A",
   "len": 318,
+  "end": "4D58",
   "src": "c/bank1c/FileSystem.c"
  },
  "EraseGrooveCursor": {
   "bank": "1D",
   "addr": "40AE",
   "len": 60,
+  "end": "40EA",
   "src": "c/bank1d/GrooveScreen.c"
  },
  "EraseInstrumentCursor": {
   "bank": "03",
   "addr": "4679",
   "len": 200,
+  "end": "4741",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "EraseNameEditCursor": {
   "bank": "1B",
   "addr": "4C96",
   "len": 36,
+  "end": "4CBA",
   "src": "c/bank1b/NameEditor.c"
  },
  "ErasePhraseCursor": {
   "bank": "1F",
   "addr": "6EFE",
   "len": 22,
+  "end": "6F14",
   "src": "c/bank1f/PhraseScreen.c"
  },
  "EraseProjectCursor": {
   "bank": "1B",
   "addr": "5A42",
   "len": 78,
+  "end": "5A90",
   "src": "c/bank1b/ProjectScreen.c"
  },
  "EraseSongCursor": {
   "bank": "07",
   "addr": "4084",
   "len": 76,
+  "end": "40D0",
   "src": "c/bank07/SongScreen.c"
  },
  "EraseSpeechCursor": {
   "bank": "1F",
   "addr": "70B6",
   "len": 41,
+  "end": "70DF",
   "src": "c/bank1f/SpeechInstrumentScreen.c"
  },
  "EraseSynthCursor": {
   "bank": "1D",
   "addr": "649F",
   "len": 100,
+  "end": "6503",
   "src": "c/bank1d/SynthScreen.c"
  },
  "EraseTableCursor": {
   "bank": "05",
   "addr": "45F1",
   "len": 119,
+  "end": "4668",
   "src": "c/bank05/TableScreen.c"
  },
  "EraseWordCursor": {
   "bank": "06",
   "addr": "410E",
   "len": 65,
+  "end": "414F",
   "src": "c/bank06/WordScreen.c"
  },
  "FarCallArgument2": {
   "bank": "00",
   "addr": "0C8F",
   "len": 54,
+  "end": "0CC5",
   "src": "c/bank00/FarCall.c"
  },
  "FarCallArgument2V": {
   "bank": "00",
   "addr": "0C5A",
   "len": 53,
+  "end": "0C8F",
   "src": "c/bank00/FarCall.c"
  },
  "FarCallArgument3": {
   "bank": "00",
   "addr": "0CC5",
   "len": 57,
+  "end": "0CFE",
   "src": "c/bank00/FarCall.c"
  },
  "FarCallArgumentByte": {
   "bank": "00",
   "addr": "0C29",
   "len": 49,
+  "end": "0C5A",
   "src": "c/bank00/FarCall.c"
  },
  "FarCallByte": {
   "bank": "00",
   "addr": "0BFE",
   "len": 43,
+  "end": "0C29",
   "src": "c/bank00/FarCall.c"
  },
  "FileCalculateCompressedSize": {
   "bank": "1C",
   "addr": "595F",
   "len": 135,
+  "end": "59E6",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileClearChannelState": {
   "bank": "1C",
   "addr": "5077",
   "len": 27,
+  "end": "5092",
   "src": "c/bank1c/FileScreen.c"
  },
  "FileCursorBelowWindow": {
   "bank": "1C",
   "addr": "594A",
   "len": 21,
+  "end": "595F",
   "src": "c/bank1c/FileScreen.c"
  },
  "FileDrawField": {
   "bank": "1C",
   "addr": "5531",
   "len": 50,
+  "end": "5563",
   "src": "c/bank1c/FileScreen.c"
  },
  "FileDrawFieldChecked": {
   "bank": "1C",
   "addr": "5563",
   "len": 52,
+  "end": "5597",
   "src": "c/bank1c/FileScreen.c"
  },
  "FileFindSlotEnd": {
   "bank": "1C",
   "addr": "4862",
   "len": 114,
+  "end": "48D4",
   "src": "c/bank1c/FileSystem.c"
  },
  "FileForEachInstrumentType": {
   "bank": "1C",
   "addr": "60F5",
   "len": 63,
+  "end": "6134",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileListSlots": {
   "bank": "1C",
   "addr": "4969",
   "len": 107,
+  "end": "49D4",
   "src": "c/bank1c/FileSystem.c"
  },
  "FileLoadSlotInfo": {
   "bank": "1C",
   "addr": "4FA5",
   "len": 210,
+  "end": "5077",
   "src": "c/bank1c/FileSystem.c"
  },
  "FileReadInstrumentByte": {
   "bank": "1C",
   "addr": "60CC",
   "len": 20,
+  "end": "60E0",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileScanSlotNames": {
   "bank": "1C",
   "addr": "42E9",
   "len": 76,
+  "end": "4335",
   "src": "c/bank1c/FileSystem.c"
  },
  "FileScreenInput": {
   "bank": "1C",
   "addr": "5B0C",
   "len": 1437,
+  "end": "60CC",
   "src": "c/bank1c/FileScreen.c"
  },
  "FileSendSyncByte": {
   "bank": "1C",
   "addr": "719C",
   "len": 49,
+  "end": "71CD",
   "src": "c/bank1c/LinkClipboard.c"
  },
  "FileSlotHalfBase": {
   "bank": "1C",
   "addr": "42D6",
   "len": 19,
+  "end": "42E9",
   "src": "c/bank1c/FileSystem.c"
  },
  "FileStopSound": {
   "bank": "1C",
   "addr": "5098",
   "len": 27,
+  "end": "50B3",
   "src": "c/bank1c/FileScreen.c"
  },
  "FileUpgradeClampNibble": {
   "bank": "1C",
   "addr": "6A57",
   "len": 27,
+  "end": "6A72",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeClearRange": {
   "bank": "1C",
   "addr": "65B9",
   "len": 229,
+  "end": "669E",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeReadByte": {
   "bank": "1C",
   "addr": "6585",
   "len": 52,
+  "end": "65B9",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeRemapBits": {
   "bank": "1C",
   "addr": "68C5",
   "len": 44,
+  "end": "68F1",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeRetrigRate": {
   "bank": "1C",
   "addr": "6973",
   "len": 52,
+  "end": "69A7",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeSong": {
   "bank": "1C",
   "addr": "6FC7",
   "len": 306,
+  "end": "7109",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV0": {
   "bank": "1C",
   "addr": "61D6",
   "len": 16,
+  "end": "61E6",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV0Kit": {
   "bank": "1C",
   "addr": "6134",
   "len": 162,
+  "end": "61D6",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV1": {
   "bank": "1C",
   "addr": "621D",
   "len": 16,
+  "end": "622D",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV10": {
   "bank": "1C",
   "addr": "656B",
   "len": 26,
+  "end": "6585",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV10Pulse": {
   "bank": "1C",
   "addr": "6540",
   "len": 43,
+  "end": "656B",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV11": {
   "bank": "1C",
   "addr": "669E",
   "len": 551,
+  "end": "68C5",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV12": {
   "bank": "1C",
   "addr": "6959",
   "len": 26,
+  "end": "6973",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV12Pulse": {
   "bank": "1C",
   "addr": "68F9",
   "len": 96,
+  "end": "6959",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV13": {
   "bank": "1C",
   "addr": "69A7",
   "len": 176,
+  "end": "6A57",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV14": {
   "bank": "1C",
   "addr": "6AD2",
   "len": 26,
+  "end": "6AEC",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV14Pulse": {
   "bank": "1C",
   "addr": "6A72",
   "len": 96,
+  "end": "6AD2",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV15": {
   "bank": "1C",
   "addr": "6B08",
   "len": 16,
+  "end": "6B18",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV15Wave": {
   "bank": "1C",
   "addr": "6AEC",
   "len": 28,
+  "end": "6B08",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV16": {
   "bank": "1C",
   "addr": "6B18",
   "len": 143,
+  "end": "6BA7",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV17": {
   "bank": "1C",
   "addr": "6BA7",
   "len": 130,
+  "end": "6C29",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV17b": {
   "bank": "1C",
   "addr": "6C46",
   "len": 16,
+  "end": "6C56",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV17bPulse": {
   "bank": "1C",
   "addr": "6C29",
   "len": 29,
+  "end": "6C46",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV18": {
   "bank": "1C",
   "addr": "6C56",
   "len": 486,
+  "end": "6E3C",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV19": {
   "bank": "1C",
   "addr": "6EAC",
   "len": 199,
+  "end": "6F73",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV1Kit": {
   "bank": "1C",
   "addr": "61E6",
   "len": 55,
+  "end": "621D",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV2": {
   "bank": "1C",
   "addr": "622D",
   "len": 94,
+  "end": "628B",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV21": {
   "bank": "1C",
   "addr": "6F73",
   "len": 84,
+  "end": "6FC7",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV3": {
   "bank": "1C",
   "addr": "630F",
   "len": 39,
+  "end": "6336",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV3Kit": {
   "bank": "1C",
   "addr": "62D3",
   "len": 60,
+  "end": "630F",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV3Pulse": {
   "bank": "1C",
   "addr": "628B",
   "len": 72,
+  "end": "62D3",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV4": {
   "bank": "1C",
   "addr": "6336",
   "len": 95,
+  "end": "6395",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV5": {
   "bank": "1C",
   "addr": "63C6",
   "len": 16,
+  "end": "63D6",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV5Wave": {
   "bank": "1C",
   "addr": "6395",
   "len": 49,
+  "end": "63C6",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV6": {
   "bank": "1C",
   "addr": "640B",
   "len": 16,
+  "end": "641B",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV6Wave": {
   "bank": "1C",
   "addr": "63D6",
   "len": 53,
+  "end": "640B",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV7": {
   "bank": "1C",
   "addr": "641B",
   "len": 204,
+  "end": "64E7",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV8": {
   "bank": "1C",
   "addr": "6503",
   "len": 16,
+  "end": "6513",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV8Wave": {
   "bank": "1C",
   "addr": "64E7",
   "len": 28,
+  "end": "6503",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV9": {
   "bank": "1C",
   "addr": "6530",
   "len": 16,
+  "end": "6540",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileUpgradeV9Wave": {
   "bank": "1C",
   "addr": "6513",
   "len": 29,
+  "end": "6530",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FileValidateName": {
   "bank": "1C",
   "addr": "5597",
   "len": 90,
+  "end": "55F1",
   "src": "c/bank1c/FileSystem.c"
  },
  "FileWriteCompressedSram": {
   "bank": "1C",
   "addr": "4000",
   "len": 71,
+  "end": "4047",
   "src": "c/bank1c/Compression.c"
  },
  "FileWriteInstrumentByte": {
   "bank": "1C",
   "addr": "60E0",
   "len": 21,
+  "end": "60F5",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "FillSynthWaveRange": {
   "bank": "1D",
   "addr": "6193",
   "len": 277,
+  "end": "62A8",
   "src": "c/bank1d/SynthRender.c"
  },
  "FillVramRegions": {
   "bank": "1E",
   "addr": "79FA",
   "len": 62,
+  "end": "7A38",
   "src": "c/bank1e/Graphics.c"
  },
  "FindCursorInstrument": {
   "bank": "04",
   "addr": "4087",
   "len": 43,
+  "end": "40B2",
   "src": "c/bank04/PhraseScreen.c"
  },
  "FindDuplicateChain": {
   "bank": "1F",
   "addr": "5644",
   "len": 248,
+  "end": "573C",
   "src": "c/bank1f/CleanSongData.c"
  },
  "FindDuplicatePhrase": {
   "bank": "1F",
   "addr": "549C",
   "len": 424,
+  "end": "5644",
   "src": "c/bank1f/CleanSongData.c"
  },
  "FindDuplicateTable": {
   "bank": "1F",
   "addr": "573C",
   "len": 602,
+  "end": "5996",
   "src": "c/bank1f/CleanSongData.c"
  },
  "FindFreeBlock": {
   "bank": "1C",
   "addr": "415A",
   "len": 380,
+  "end": "42D6",
   "src": "c/bank1c/FileSystem.c"
  },
  "FindFreeSynth": {
   "bank": "03",
   "addr": "42FF",
   "len": 60,
+  "end": "436D",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "FindFreeTable": {
   "bank": "1F",
   "addr": "4BD9",
   "len": 56,
+  "end": "4C20",
   "src": "c/bank1f/Allocation.c"
  },
  "FindNextSongRow": {
   "bank": "07",
   "addr": "4998",
   "len": 79,
+  "end": "49E7",
   "src": "c/bank07/SongScreen.c"
  },
  "FindPreviousSongRow": {
   "bank": "07",
   "addr": "4A25",
   "len": 84,
+  "end": "4A79",
   "src": "c/bank07/SongScreen.c"
  },
  "FlipWaveRange": {
   "bank": "06",
   "addr": "4FA9",
   "len": 82,
+  "end": "4FFB",
   "src": "c/bank06/WaveScreen.c"
  },
  "FormatFileSpace": {
   "bank": "1C",
   "addr": "47B1",
   "len": 177,
+  "end": "4862",
   "src": "c/bank1c/FileSystem.c"
  },
  "FormatSramSong": {
   "bank": "01",
   "addr": "45D1",
   "len": 576,
+  "end": "4811",
   "src": "c/bank01/CartridgeTest.c"
  },
  "FreeChain": {
   "bank": "01",
   "addr": "4E43",
   "len": 112,
+  "end": "4EB3",
   "src": "c/bank01/SongAllocation.c"
  },
  "FreeFileBlocks": {
   "bank": "1C",
   "addr": "49D4",
   "len": 114,
+  "end": "4A46",
   "src": "c/bank1c/FileSystem.c"
  },
  "FreePhrase": {
   "bank": "01",
   "addr": "4DD3",
   "len": 112,
+  "end": "4E43",
   "src": "c/bank01/SongAllocation.c"
  },
  "FreeUnusedInstruments": {
   "bank": "1F",
   "addr": "4CCD",
   "len": 567,
+  "end": "4F04",
   "src": "c/bank1f/CleanSongData.c"
  },
  "FreeUnusedSynths": {
   "bank": "1F",
   "addr": "62BD",
   "len": 32,
+  "end": "62DD",
   "src": "c/bank1f/CleanSongData.c"
  },
  "FreeUnusedTables": {
   "bank": "1F",
   "addr": "52B3",
   "len": 39,
+  "end": "52DA",
   "src": "c/bank1f/CleanSongData.c"
  },
  "GetCursorChain": {
   "bank": "06",
   "addr": "54FA",
   "len": 21,
+  "end": "550F",
   "src": "c/bank06/ChainScreen.c"
  },
  "GetFileBlockCount": {
   "bank": "1C",
   "addr": "4335",
   "len": 29,
+  "end": "4352",
   "src": "c/bank1c/FileSystem.c"
  },
  "GetInstrumentByte5Flag8": {
   "bank": "03",
   "addr": "4790",
   "len": 18,
+  "end": "47A2",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "GetInstrumentEnvelopeBytes": {
   "bank": "1B",
   "addr": "70B8",
   "len": 328,
+  "end": "7200",
   "src": "c/bank1b/EnvelopeGraph.c"
  },
  "GetInstrumentType3": {
   "bank": "03",
   "addr": "4BE9",
   "len": 16,
+  "end": "4BF9",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "GetScreenPalette": {
   "bank": "01",
   "addr": "55C9",
   "len": 222,
+  "end": "56A7",
   "src": "c/bank01/Display.c"
  },
  "GetTempoTimerValue": {
   "bank": "00",
   "addr": "2BC4",
   "len": 120,
+  "end": "2C3C",
   "src": "c/bank00/DrawFields.c"
  },
  "GetVibratoShape": {
   "bank": "03",
   "addr": "4B4C",
   "len": 18,
+  "end": "4B5E",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "GetWaveEditRange": {
   "bank": "06",
   "addr": "4B40",
   "len": 103,
+  "end": "4BA7",
   "src": "c/bank06/WaveScreen.c"
  },
  "GetWaveLength": {
   "bank": "03",
   "addr": "4AF4",
   "len": 22,
+  "end": "4B0A",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "GetWaveLoopPosition": {
   "bank": "03",
   "addr": "49E7",
   "len": 22,
+  "end": "49FD",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "GetWavePlayMode": {
   "bank": "03",
   "addr": "40F8",
   "len": 13,
+  "end": "4105",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "GetWaveSpeed": {
   "bank": "03",
   "addr": "4ACF",
   "len": 17,
+  "end": "4AE0",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "GotoMapCursorScreen": {
   "bank": "05",
   "addr": "4167",
   "len": 165,
+  "end": "420C",
   "src": "c/bank05/TableScreen.c"
  },
  "GotoProjectScreen": {
   "bank": "1B",
   "addr": "4AC5",
   "len": 22,
+  "end": "4ADB",
   "src": "c/bank1b/HelpScreen.c"
  },
  "GrooveScreenInput": {
   "bank": "1D",
   "addr": "4451",
   "len": 1798,
+  "end": "4B6C",
   "src": "c/bank1d/GrooveScreen.c"
  },
  "GrooveScreenUpdate": {
   "bank": "1D",
   "addr": "4215",
   "len": 70,
+  "end": "425B",
   "src": "c/bank1d/GrooveScreen.c"
  },
  "HandleButtonEvent": {
   "bank": "00",
   "addr": "2B8D",
   "len": 55,
+  "end": "2BC4",
   "src": "c/bank00/ScreenDispatch.c"
  },
  "HandleInputCombos": {
   "bank": "00",
   "addr": "271A",
   "len": 855,
+  "end": "2A71",
   "src": "c/bank00/ScreenDispatch.c"
  },
  "HandleTooBusy": {
   "bank": "00",
   "addr": "20DB",
   "len": 43,
+  "end": "2106",
   "src": "c/bank00/Sync.c"
  },
  "HelpScreenInput": {
   "bank": "1B",
   "addr": "4BC3",
   "len": 109,
+  "end": "4C30",
   "src": "c/bank1b/HelpScreen.c"
  },
  "HexDigitCharacter": {
   "bank": "07",
   "addr": "672A",
   "len": 18,
+  "end": "674D",
   "src": "c/bank07/KeyboardLink.c"
  },
  "HighlightPhraseCell": {
   "bank": "1F",
   "addr": "6B3B",
   "len": 227,
+  "end": "6C1E",
   "src": "c/bank1f/PhraseScreen.c"
  },
  "InitializeAndLoadSong": {
   "bank": "00",
   "addr": "0DDB",
   "len": 251,
+  "end": "0ED6",
   "src": "c/bank00/Main.c"
  },
  "InitializeKitMixer": {
   "bank": "1B",
   "addr": "6B7A",
   "len": 190,
+  "end": "6C38",
   "src": "c/bank1b/KitMixer.c"
  },
  "InitializeRemapTable": {
   "bank": "1F",
   "addr": "4A26",
   "len": 63,
+  "end": "4A65",
   "src": "c/bank1f/CleanSongData.c"
  },
  "InitializeScreen": {
   "bank": "01",
   "addr": "4CF1",
   "len": 10,
+  "end": "4CFB",
   "src": "c/bank01/Display.c"
  },
  "InitializeWaveSprites": {
   "bank": "06",
   "addr": "4BA7",
   "len": 174,
+  "end": "4C55",
   "src": "c/bank06/WaveScreen.c"
  },
  "InstrumentEnvelopeChanged": {
   "bank": "03",
   "addr": "4DD7",
   "len": 16,
+  "end": "4DE7",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "InstrumentEnvelopeHasSecond": {
   "bank": "1F",
   "addr": "4157",
   "len": 18,
+  "end": "4169",
   "src": "c/bank1f/InstrumentFields.c"
  },
  "InstrumentEnvelopeHasThird": {
   "bank": "1F",
   "addr": "4169",
   "len": 33,
+  "end": "418A",
   "src": "c/bank1f/InstrumentFields.c"
  },
  "InstrumentScreenInput": {
   "bank": "03",
   "addr": "541F",
   "len": 9820,
+  "end": "7AB5",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "IsBookmarked": {
   "bank": "07",
   "addr": "6320",
   "len": 92,
+  "end": "637C",
   "src": "c/bank07/SongScreen.c"
  },
  "IsChainUsed": {
   "bank": "01",
   "addr": "4F59",
   "len": 64,
+  "end": "4F99",
   "src": "c/bank01/SongAllocation.c"
  },
  "IsChainUsedFar": {
   "bank": "1F",
   "addr": "5461",
   "len": 23,
+  "end": "5478",
   "src": "c/bank1f/UsageScan.c"
  },
  "IsInstrumentAllocated": {
   "bank": "1F",
   "addr": "4F2E",
   "len": 27,
+  "end": "4F49",
   "src": "c/bank1f/Allocation.c"
  },
  "IsInstrumentTableOn": {
   "bank": "03",
   "addr": "4118",
   "len": 27,
+  "end": "4133",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "IsPhraseUsed": {
   "bank": "01",
   "addr": "4F99",
   "len": 83,
+  "end": "4FEC",
   "src": "c/bank01/SongAllocation.c"
  },
  "IsPhraseUsedFar": {
   "bank": "1F",
   "addr": "5091",
   "len": 23,
+  "end": "50A8",
   "src": "c/bank1f/UsageScan.c"
  },
  "IsSongBlockEmpty": {
   "bank": "1F",
   "addr": "4B00",
   "len": 69,
+  "end": "4B45",
   "src": "c/bank1f/Allocation.c"
  },
  "IsSongChainUsed": {
   "bank": "1F",
   "addr": "4C20",
   "len": 173,
+  "end": "4CCD",
   "src": "c/bank1f/Allocation.c"
  },
  "IsSynthLocked": {
   "bank": "1D",
   "addr": "6115",
   "len": 47,
+  "end": "6144",
   "src": "c/bank1d/SynthScreen.c"
  },
  "IsTableFree": {
   "bank": "1F",
   "addr": "4B45",
   "len": 148,
+  "end": "4BD9",
   "src": "c/bank1f/Allocation.c"
  },
  "IsTableUsed": {
   "bank": "1F",
   "addr": "4F1C",
   "len": 18,
+  "end": "4F2E",
   "src": "c/bank1f/UsageScan.c"
  },
  "KeyboardDrainQueue": {
   "bank": "07",
   "addr": "7033",
   "len": 27,
+  "end": "704E",
   "src": "c/bank07/KeyboardLink.c"
  },
  "KeyboardPollScancode": {
   "bank": "07",
   "addr": "704E",
   "len": 73,
+  "end": "7097",
   "src": "c/bank07/KeyboardLink.c"
  },
  "KitExists": {
   "bank": "00",
   "addr": "0CFE",
   "len": 78,
+  "end": "0D4C",
   "src": "c/bank00/Helpers.c"
  },
  "LinkDequeueByte": {
   "bank": "07",
   "addr": "7012",
   "len": 33,
+  "end": "7033",
   "src": "c/bank07/KeyboardLink.c"
  },
  "LoadChainCursorPhrase": {
   "bank": "06",
   "addr": "5511",
   "len": 82,
+  "end": "5563",
   "src": "c/bank06/ChainScreen.c"
  },
  "LoadChainRow": {
   "bank": "06",
   "addr": "58FB",
   "len": 76,
+  "end": "5947",
   "src": "c/bank06/ChainScreen.c"
  },
  "LoadFile": {
   "bank": "1C",
   "addr": "50B3",
   "len": 667,
+  "end": "5361",
   "src": "c/bank1c/FileScreen.c"
  },
  "LoadFileListState": {
   "bank": "1C",
   "addr": "4A46",
   "len": 459,
+  "end": "4C1A",
   "src": "c/bank1c/FileScreen.c"
  },
  "LoadFontTiles": {
   "bank": "1E",
   "addr": "7AA0",
   "len": 267,
+  "end": "7BAB",
   "src": "c/bank1e/Graphics.c"
  },
  "LoadHardwareTables": {
   "bank": "01",
   "addr": "4B15",
   "len": 73,
+  "end": "4B5E",
   "src": "c/bank01/Display.c"
  },
  "LoadPhraseRow": {
   "bank": "04",
   "addr": "4C14",
   "len": 133,
+  "end": "4C99",
   "src": "c/bank04/PhraseScreen.c"
  },
  "LoadProjectSettings": {
   "bank": "01",
   "addr": "7C86",
   "len": 355,
+  "end": "7DE9",
   "src": "c/bank01/EditorState.c"
  },
  "LoadSongCursorChain": {
   "bank": "07",
   "addr": "4AFD",
   "len": 62,
+  "end": "4B3B",
   "src": "c/bank07/SongScreen.c"
  },
  "LoadSynthParameters": {
   "bank": "1D",
   "addr": "68F9",
   "len": 570,
+  "end": "6B33",
   "src": "c/bank1d/SynthRender.c"
  },
  "LoadSynthShape": {
   "bank": "00",
   "addr": "0B54",
   "len": 170,
+  "end": "0BFE",
   "src": "c/bank00/Helpers.c"
  },
  "LoadSynthSignalWave": {
   "bank": "1D",
   "addr": "5F90",
   "len": 165,
+  "end": "6035",
   "src": "c/bank1d/SynthRender.c"
  },
  "LockCurrentSynth": {
   "bank": "06",
   "addr": "493F",
   "len": 83,
+  "end": "4992",
   "src": "c/bank06/WaveScreen.c"
  },
  "LowerInstrumentCommandRate": {
   "bank": "03",
   "addr": "4769",
   "len": 39,
+  "end": "4790",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "LowerInstrumentFieldHigh": {
   "bank": "03",
   "addr": "5231",
   "len": 58,
+  "end": "526B",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "LowerInstrumentFieldLow": {
   "bank": "03",
   "addr": "51BC",
   "len": 56,
+  "end": "51F4",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "LowerInstrumentLength": {
   "bank": "03",
   "addr": "52BF",
   "len": 89,
+  "end": "531C",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "LowerInstrumentLengthBig": {
   "bank": "03",
   "addr": "537A",
   "len": 96,
+  "end": "53DE",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "LowerSynthFieldHigh": {
   "bank": "1D",
   "addr": "70E4",
   "len": 45,
+  "end": "7111",
   "src": "c/bank1d/SynthScreen.c"
  },
  "LowerSynthFieldLow": {
   "bank": "1D",
   "addr": "7111",
   "len": 39,
+  "end": "7138",
   "src": "c/bank1d/SynthScreen.c"
  },
  "LowerSynthParameterTo0": {
   "bank": "1D",
   "addr": "702B",
   "len": 99,
+  "end": "708E",
   "src": "c/bank1d/SynthScreen.c"
  },
  "MarkChainPhrasesUsed": {
   "bank": "1F",
   "addr": "5413",
   "len": 78,
+  "end": "5461",
   "src": "c/bank1f/UsageScan.c"
  },
  "MarkChainUsed": {
   "bank": "01",
   "addr": "4D67",
   "len": 108,
+  "end": "4DD3",
   "src": "c/bank01/SongAllocation.c"
  },
  "MarkInstrumentTableUsed": {
   "bank": "1F",
   "addr": "513D",
   "len": 34,
+  "end": "515F",
   "src": "c/bank1f/UsageScan.c"
  },
  "MarkPhraseTablesUsed": {
   "bank": "1F",
   "addr": "4F49",
   "len": 124,
+  "end": "4FC5",
   "src": "c/bank1f/UsageScan.c"
  },
  "MarkPhraseUsed": {
   "bank": "01",
   "addr": "4CFB",
   "len": 108,
+  "end": "4D67",
   "src": "c/bank01/SongAllocation.c"
  },
  "MarkPhrasesOfUsedChains": {
   "bank": "1F",
   "addr": "5478",
   "len": 36,
+  "end": "549C",
   "src": "c/bank1f/UsageScan.c"
  },
  "MarkTableTablesUsed": {
   "bank": "1F",
   "addr": "4FC5",
   "len": 204,
+  "end": "5091",
   "src": "c/bank1f/UsageScan.c"
  },
  "MarkTableUsed": {
   "bank": "1F",
   "addr": "4F04",
   "len": 24,
+  "end": "4F1C",
   "src": "c/bank1f/UsageScan.c"
  },
  "MarkTablesOfUsedInstruments": {
   "bank": "1F",
   "addr": "515F",
   "len": 36,
+  "end": "5183",
   "src": "c/bank1f/UsageScan.c"
  },
  "MarkTablesOfUsedPhrases": {
   "bank": "1F",
   "addr": "50A8",
   "len": 36,
+  "end": "50CC",
   "src": "c/bank1f/UsageScan.c"
  },
  "MarkTablesOfUsedTables": {
   "bank": "1F",
   "addr": "50F6",
   "len": 71,
+  "end": "513D",
   "src": "c/bank1f/UsageScan.c"
  },
  "MigrateTempoProperties": {
   "bank": "1C",
   "addr": "4DD1",
   "len": 63,
+  "end": "4E10",
   "src": "c/bank1c/FileUpgrade.c"
  },
  "MoveHelpCursorDown": {
   "bank": "1B",
   "addr": "4A79",
   "len": 45,
+  "end": "4AA6",
   "src": "c/bank1b/HelpScreen.c"
  },
  "MoveHelpCursorUp": {
   "bank": "1B",
   "addr": "4AA6",
   "len": 31,
+  "end": "4AC5",
   "src": "c/bank1b/HelpScreen.c"
  },
  "MoveMapCursorDown": {
   "bank": "05",
   "addr": "4287",
   "len": 29,
+  "end": "42A4",
   "src": "c/bank05/TableScreen.c"
  },
  "MoveMapCursorLeft": {
   "bank": "05",
   "addr": "4233",
   "len": 32,
+  "end": "4253",
   "src": "c/bank05/TableScreen.c"
  },
  "MoveMapCursorRight": {
   "bank": "05",
   "addr": "4253",
   "len": 23,
+  "end": "426A",
   "src": "c/bank05/TableScreen.c"
  },
  "MoveMapCursorUp": {
   "bank": "05",
   "addr": "426A",
   "len": 29,
+  "end": "4287",
   "src": "c/bank05/TableScreen.c"
  },
  "MoveWordCursorDown": {
   "bank": "06",
   "addr": "4306",
   "len": 23,
+  "end": "431D",
   "src": "c/bank06/WordScreen.c"
  },
  "NameEditorInput": {
   "bank": "1B",
   "addr": "53E8",
   "len": 692,
+  "end": "569C",
   "src": "c/bank1b/NameEditor.c"
  },
  "NextInstrumentPitchMode": {
   "bank": "03",
   "addr": "4BF9",
   "len": 107,
+  "end": "4C64",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "NextInstrumentTable": {
   "bank": "03",
   "addr": "489D",
   "len": 57,
+  "end": "48D6",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "NextInstrumentTableMode": {
   "bank": "03",
   "addr": "482E",
   "len": 111,
+  "end": "489D",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "NextKit": {
   "bank": "03",
   "addr": "503A",
   "len": 82,
+  "end": "508C",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "NextPhraseInstrument": {
   "bank": "04",
   "addr": "597D",
   "len": 163,
+  "end": "5A20",
   "src": "c/bank04/PhraseScreen.c"
  },
  "NextPhraseInstrument16": {
   "bank": "04",
   "addr": "5AC7",
   "len": 151,
+  "end": "5B5E",
   "src": "c/bank04/PhraseScreen.c"
  },
  "NextUsedInstrument": {
   "bank": "03",
   "addr": "4638",
   "len": 65,
+  "end": "4679",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "NextVibratoShape": {
   "bank": "03",
   "addr": "4BAC",
   "len": 31,
+  "end": "4BCB",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "OpenChainPhrase": {
   "bank": "06",
   "addr": "5B00",
   "len": 208,
+  "end": "5BD0",
   "src": "c/bank06/ChainScreen.c"
  },
  "OpenHelpEntry": {
   "bank": "1B",
   "addr": "4B6D",
   "len": 66,
+  "end": "4BAF",
   "src": "c/bank1b/HelpScreen.c"
  },
  "OpenNameEditor": {
   "bank": "1B",
   "addr": "4E8A",
   "len": 653,
+  "end": "5126",
   "src": "c/bank1b/NameEditor.c"
  },
  "OverwritePromptInput": {
   "bank": "1D",
   "addr": "6E11",
   "len": 93,
+  "end": "6E6E",
   "src": "c/bank1d/SynthScreen.c"
  },
  "OverwriteSynthWaves": {
   "bank": "1D",
   "addr": "6D6F",
   "len": 110,
+  "end": "6E00",
   "src": "c/bank1d/SynthScreen.c"
  },
  "PageSongCursorDown": {
   "bank": "07",
   "addr": "49E7",
   "len": 62,
+  "end": "4A25",
   "src": "c/bank07/SongScreen.c"
  },
  "PageSongCursorUp": {
   "bank": "07",
   "addr": "4A79",
   "len": 63,
+  "end": "4AB8",
   "src": "c/bank07/SongScreen.c"
  },
  "PasteChainCells": {
   "bank": "06",
   "addr": "6F0D",
   "len": 243,
+  "end": "7006",
   "src": "c/bank06/ChainScreen.c"
  },
  "PasteGrooveSelection": {
   "bank": "1D",
   "addr": "4C63",
   "len": 117,
+  "end": "4CDE",
   "src": "c/bank1d/GrooveScreen.c"
  },
  "PasteInstrument": {
   "bank": "01",
   "addr": "5503",
   "len": 185,
+  "end": "55C9",
   "src": "c/bank01/SongAllocation.c"
  },
  "PastePhraseSelection": {
   "bank": "04",
   "addr": "51AE",
   "len": 733,
+  "end": "5491",
   "src": "c/bank04/PhraseScreen.c"
  },
  "PasteSongSelection": {
   "bank": "07",
   "addr": "5970",
   "len": 415,
+  "end": "5B1D",
   "src": "c/bank07/SongPaste.c"
  },
  "PasteTableCells": {
   "bank": "05",
   "addr": "64A3",
   "len": 705,
+  "end": "676A",
   "src": "c/bank05/TableScreen.c"
  },
  "PasteWaveSelection": {
   "bank": "06",
   "addr": "546C",
   "len": 136,
+  "end": "54FA",
   "src": "c/bank06/WaveScreen.c"
  },
  "PhraseModeTile": {
   "bank": "04",
   "addr": "405D",
   "len": 20,
+  "end": "4071",
   "src": "c/bank04/PhraseScreen.c"
  },
  "PhraseRowIsSentinel": {
   "bank": "04",
   "addr": "4CAA",
   "len": 26,
+  "end": "4CC4",
   "src": "c/bank04/PhraseScreen.c"
  },
  "PhraseScreenInput": {
   "bank": "04",
   "addr": "5BA6",
   "len": 8611,
+  "end": "7D5E",
   "src": "c/bank04/PhraseScreen.c"
  },
  "PhraseScreenUpdate": {
   "bank": "1F",
   "addr": "648F",
   "len": 82,
+  "end": "64E1",
   "src": "c/bank1f/PhraseScreen.c"
  },
  "PinchOrWarpSynthWave": {
   "bank": "1D",
   "addr": "58E6",
   "len": 727,
+  "end": "5BBD",
   "src": "c/bank1d/SynthRender.c"
  },
  "PlacePhraseCell": {
   "bank": "04",
   "addr": "4B5B",
   "len": 171,
+  "end": "4C06",
   "src": "c/bank04/PhraseScreen.c"
  },
  "PlotEnvelopeCurve": {
   "bank": "1B",
   "addr": "7200",
   "len": 110,
+  "end": "726E",
   "src": "c/bank1b/EnvelopeGraph.c"
  },
  "PositionWavSprites": {
   "bank": "00",
   "addr": "3176",
   "len": 40,
+  "end": "319E",
   "src": "c/bank00/Sprites.c"
  },
  "PrelistenAvailable": {
   "bank": "1B",
   "addr": "5B09",
   "len": 26,
+  "end": "5B23",
   "src": "c/bank1b/ProjectScreen.c"
  },
  "PrelistenCursorRow": {
   "bank": "04",
   "addr": "572C",
   "len": 148,
+  "end": "57C0",
   "src": "c/bank04/PhraseScreen.c"
  },
  "PreviousInstrumentPage": {
   "bank": "03",
   "addr": "461B",
   "len": 29,
+  "end": "4638",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "PreviousInstrumentPitchMode": {
   "bank": "03",
   "addr": "4C64",
   "len": 117,
+  "end": "4CD9",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "PreviousInstrumentTable": {
   "bank": "03",
   "addr": "48D6",
   "len": 78,
+  "end": "4924",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "PreviousInstrumentTableMode": {
   "bank": "03",
   "addr": "47A2",
   "len": 140,
+  "end": "482E",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "PreviousKit": {
   "bank": "03",
   "addr": "508C",
   "len": 83,
+  "end": "50DF",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "PreviousPhraseInstrument": {
   "bank": "04",
   "addr": "58D9",
   "len": 164,
+  "end": "597D",
   "src": "c/bank04/PhraseScreen.c"
  },
  "PreviousPhraseInstrument16": {
   "bank": "04",
   "addr": "5A20",
   "len": 167,
+  "end": "5AC7",
   "src": "c/bank04/PhraseScreen.c"
  },
  "PreviousUsedInstrument": {
   "bank": "03",
   "addr": "45D3",
   "len": 72,
+  "end": "461B",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "PreviousVibratoShape": {
   "bank": "03",
   "addr": "4BCB",
   "len": 30,
+  "end": "4BE9",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "ProcessInput": {
   "bank": "00",
   "addr": "0ED6",
   "len": 962,
+  "end": "1298",
   "src": "c/bank00/Main.c"
  },
  "ProcessKeyboardNote": {
   "bank": "07",
   "addr": "6E50",
   "len": 450,
+  "end": "7012",
   "src": "c/bank07/KeyboardLink.c"
  },
  "ProcessLinkQueue": {
   "bank": "07",
   "addr": "68A2",
   "len": 1418,
+  "end": "6E50",
   "src": "c/bank07/KeyboardLink.c"
  },
  "ProcessSyncByte": {
   "bank": "00",
   "addr": "234D",
   "len": 125,
+  "end": "23CA",
   "src": "c/bank00/Sync.c"
  },
  "ProjectScreenInput": {
   "bank": "1B",
   "addr": "5DBF",
   "len": 3229,
+  "end": "6A8C",
   "src": "c/bank1b/ProjectScreen.c"
  },
  "RaiseInstrumentCommandRate": {
   "bank": "03",
   "addr": "4741",
   "len": 40,
+  "end": "4769",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "RaiseInstrumentFieldHigh": {
   "bank": "03",
   "addr": "51F4",
   "len": 61,
+  "end": "5231",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "RaiseInstrumentFieldLow": {
   "bank": "03",
   "addr": "5181",
   "len": 59,
+  "end": "51BC",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "RaiseInstrumentLength": {
   "bank": "03",
   "addr": "526B",
   "len": 80,
+  "end": "52BF",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "RaiseInstrumentLengthBig": {
   "bank": "03",
   "addr": "531C",
   "len": 90,
+  "end": "537A",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "RaiseSynthFieldHigh": {
   "bank": "1D",
   "addr": "708E",
   "len": 46,
+  "end": "70BC",
   "src": "c/bank1d/SynthScreen.c"
  },
  "RaiseSynthFieldLow": {
   "bank": "1D",
   "addr": "70BC",
   "len": 40,
+  "end": "70E4",
   "src": "c/bank1d/SynthScreen.c"
  },
  "RaiseSynthParameterTo": {
   "bank": "1D",
   "addr": "6FC4",
   "len": 103,
+  "end": "702B",
   "src": "c/bank1d/SynthScreen.c"
  },
  "ReadChainByte": {
   "bank": "00",
   "addr": "2141",
   "len": 59,
+  "end": "217C",
   "src": "c/bank00/Sync.c"
  },
  "ReadChainTranspose": {
   "bank": "06",
   "addr": "56AA",
   "len": 70,
+  "end": "56F0",
   "src": "c/bank06/ChainScreen.c"
  },
  "ReadClipboardCell": {
   "bank": "00",
   "addr": "07DA",
   "len": 74,
+  "end": "0824",
   "src": "c/bank00/Helpers.c"
  },
  "ReadCurrentInstrumentByte": {
   "bank": "00",
   "addr": "0AE2",
   "len": 20,
+  "end": "0AF6",
   "src": "c/bank00/InstrumentByte.c"
  },
  "ReadCursorInstrument": {
   "bank": "04",
   "addr": "4071",
   "len": 22,
+  "end": "4087",
   "src": "c/bank04/PhraseScreen.c"
  },
  "ReadGrooveStep": {
   "bank": "1D",
   "addr": "405A",
   "len": 84,
+  "end": "40AE",
   "src": "c/bank1d/GrooveScreen.c"
  },
  "ReadInstrumentByte": {
   "bank": "00",
   "addr": "0A91",
   "len": 81,
+  "end": "0AE2",
   "src": "c/bank00/InstrumentByte.c"
  },
  "ReadKitName": {
   "bank": "00",
   "addr": "0D4C",
   "len": 63,
+  "end": "0D8B",
   "src": "c/bank00/Helpers.c"
  },
  "ReadPhraseCommand": {
   "bank": "04",
   "addr": "4AEA",
   "len": 113,
+  "end": "4B5B",
   "src": "c/bank04/PhraseScreen.c"
  },
  "ReadPhraseCommandValue": {
   "bank": "04",
   "addr": "4A8F",
   "len": 91,
+  "end": "4AEA",
   "src": "c/bank04/PhraseScreen.c"
  },
  "ReadPhraseInstrument": {
   "bank": "04",
   "addr": "4918",
   "len": 80,
+  "end": "4968",
   "src": "c/bank04/PhraseScreen.c"
  },
  "ReadPhraseNote": {
   "bank": "04",
   "addr": "4968",
   "len": 93,
+  "end": "49C5",
   "src": "c/bank04/PhraseScreen.c"
  },
  "ReadSequenceByte": {
   "bank": "00",
   "addr": "0AF6",
   "len": 94,
+  "end": "0B54",
   "src": "c/bank00/ReadSequenceByte.c"
  },
  "ReadSequenceByteRaw": {
   "bank": "00",
   "addr": "2106",
   "len": 59,
+  "end": "2141",
   "src": "c/bank00/Sync.c"
  },
  "ReadSongRow": {
   "bank": "07",
   "addr": "43E4",
   "len": 127,
+  "end": "4463",
   "src": "c/bank07/SongScreen.c"
  },
  "ReadSynthParameter": {
   "bank": "1D",
   "addr": "6311",
   "len": 67,
+  "end": "6354",
   "src": "c/bank1d/SynthScreen.c"
  },
  "ReadTableCommand": {
   "bank": "05",
   "addr": "42E7",
   "len": 121,
+  "end": "4360",
   "src": "c/bank05/TableScreen.c"
  },
  "ReadTableEnvelope": {
   "bank": "05",
   "addr": "44E8",
   "len": 83,
+  "end": "453B",
   "src": "c/bank05/TableScreen.c"
  },
  "ReadTableStep": {
   "bank": "05",
   "addr": "4668",
   "len": 195,
+  "end": "472B",
   "src": "c/bank05/TableScreen.c"
  },
  "ReadTableTranspose": {
   "bank": "05",
   "addr": "459E",
   "len": 83,
+  "end": "45F1",
   "src": "c/bank05/TableScreen.c"
  },
  "ReadTableValue": {
   "bank": "05",
   "addr": "453B",
   "len": 99,
+  "end": "459E",
   "src": "c/bank05/TableScreen.c"
  },
  "ReadVramByte": {
   "bank": "1E",
   "addr": "7A38",
   "len": 19,
+  "end": "7A4B",
   "src": "c/bank1e/Graphics.c"
  },
  "ReadWaveSample": {
   "bank": "06",
   "addr": "4992",
   "len": 120,
+  "end": "4A0A",
   "src": "c/bank06/WaveScreen.c"
  },
  "ReadWordCell": {
   "bank": "06",
   "addr": "405D",
   "len": 86,
+  "end": "40B3",
   "src": "c/bank06/WordScreen.c"
  },
  "RebuildPhraseAllocationMap": {
   "bank": "1F",
   "addr": "5E1D",
   "len": 259,
+  "end": "5F20",
   "src": "c/bank1f/UsageScan.c"
  },
  "ReceiveLinkClipboard": {
   "bank": "1C",
   "addr": "7310",
   "len": 242,
+  "end": "7402",
   "src": "c/bank1c/LinkClipboard.c"
  },
  "RedrawHelpCursor": {
   "bank": "1B",
   "addr": "4A4D",
   "len": 21,
+  "end": "4A62",
   "src": "c/bank1b/HelpScreen.c"
  },
  "RedrawProjectPrelisten": {
   "bank": "1B",
   "addr": "5B62",
   "len": 24,
+  "end": "5B7A",
   "src": "c/bank1b/ProjectScreen.c"
  },
  "RedrawProjectTempo": {
   "bank": "1B",
   "addr": "5861",
   "len": 21,
+  "end": "5876",
   "src": "c/bank1b/ProjectScreen.c"
  },
  "RedrawScreenFar": {
   "bank": "1D",
   "addr": "6E00",
   "len": 17,
+  "end": "6E11",
   "src": "c/bank1d/SynthScreen.c"
  },
  "RedrawScreenFar1F": {
   "bank": "1F",
   "addr": "7097",
   "len": 17,
+  "end": "70A8",
   "src": "c/bank1f/SpeechInstrumentScreen.c"
  },
  "RedrawSongRow": {
   "bank": "07",
   "addr": "451E",
   "len": 34,
+  "end": "4540",
   "src": "c/bank07/SongScreen.c"
  },
  "RefreshProjectScreen": {
   "bank": "1B",
   "addr": "5D7C",
   "len": 67,
+  "end": "5DBF",
   "src": "c/bank1b/ProjectScreen.c"
  },
  "RemapChainRefs": {
   "bank": "1F",
   "addr": "5A12",
   "len": 124,
+  "end": "5A8E",
   "src": "c/bank1f/CleanSongData.c"
  },
  "RemapCommandTableRefs": {
   "bank": "1F",
   "addr": "5A8E",
   "len": 336,
+  "end": "5BDE",
   "src": "c/bank1f/CleanSongData.c"
  },
  "RemapPhraseRefs": {
   "bank": "1F",
   "addr": "5996",
   "len": 124,
+  "end": "5A12",
   "src": "c/bank1f/CleanSongData.c"
  },
  "RemapSequenceChains": {
   "bank": "1F",
   "addr": "52DA",
   "len": 313,
+  "end": "5413",
   "src": "c/bank1f/CleanSongData.c"
  },
  "RemoveBookmark": {
   "bank": "07",
   "addr": "63B5",
   "len": 94,
+  "end": "6413",
   "src": "c/bank07/SongScreen.c"
  },
  "RenderSynthWave": {
   "bank": "1D",
   "addr": "6035",
   "len": 114,
+  "end": "60A7",
   "src": "c/bank1d/SynthRender.c"
  },
  "RenderSynthWaveA": {
   "bank": "1D",
   "addr": "4D81",
   "len": 367,
+  "end": "4EF0",
   "src": "c/bank1d/SynthRender.c"
  },
  "RenderSynthWaveB": {
   "bank": "1D",
   "addr": "5190",
   "len": 403,
+  "end": "5323",
   "src": "c/bank1d/SynthRender.c"
  },
  "RenderSynthWaveType": {
   "bank": "1D",
   "addr": "5695",
   "len": 581,
+  "end": "58DA",
   "src": "c/bank1d/SynthRender.c"
  },
  "ResetEditorState": {
   "bank": "01",
   "addr": "7BDE",
   "len": 168,
+  "end": "7C86",
   "src": "c/bank01/EditorState.c"
  },
  "ResetGrooveState": {
   "bank": "1D",
   "addr": "4D58",
   "len": 41,
+  "end": "4D81",
   "src": "c/bank1d/GrooveScreen.c"
  },
  "ResetScreenSprites": {
   "bank": "00",
   "addr": "24A8",
   "len": 53,
+  "end": "24DD",
   "src": "c/bank00/ScreenDispatch.c"
  },
  "ResetSynthParameters": {
   "bank": "1F",
   "addr": "61C4",
   "len": 59,
+  "end": "61FF",
   "src": "c/bank1f/SynthReset.c"
  },
  "ResetSynthWaves": {
   "bank": "1F",
   "addr": "619E",
   "len": 38,
+  "end": "61C4",
   "src": "c/bank1f/SynthReset.c"
  },
  "ResetUnusedSynths": {
   "bank": "1F",
   "addr": "620F",
   "len": 174,
+  "end": "62BD",
   "src": "c/bank1f/SynthReset.c"
  },
  "ResetWaveFrame": {
   "bank": "1F",
   "addr": "6163",
   "len": 59,
+  "end": "619E",
   "src": "c/bank1f/SynthReset.c"
  },
  "ResetWorkState": {
   "bank": "00",
   "addr": "3A33",
   "len": 855,
+  "end": "3D8A",
   "src": "c/bank00/ResetWorkState.c"
  },
  "ResolvePhraseCursorNote": {
   "bank": "04",
   "addr": "40B2",
   "len": 84,
+  "end": "4106",
   "src": "c/bank04/PhraseScreen.c"
  },
  "RestoreSelectionState": {
   "bank": "05",
   "addr": "747D",
   "len": 49,
+  "end": "74AE",
   "src": "c/bank05/TableScreen.c"
  },
  "Resync2SynthWave": {
   "bank": "1D",
   "addr": "5E53",
   "len": 173,
+  "end": "5F00",
   "src": "c/bank1d/SynthRender.c"
  },
  "ResyncSynthWave": {
   "bank": "1D",
   "addr": "5BBD",
   "len": 662,
+  "end": "5E53",
   "src": "c/bank1d/SynthRender.c"
  },
  "ReverseWaveRange": {
   "bank": "06",
   "addr": "4F42",
   "len": 103,
+  "end": "4FA9",
   "src": "c/bank06/WaveScreen.c"
  },
  "SaveFile": {
   "bank": "1C",
   "addr": "4E10",
   "len": 405,
+  "end": "4FA5",
   "src": "c/bank1c/FileScreen.c"
  },
  "SaveSelectionState": {
   "bank": "05",
   "addr": "743F",
   "len": 62,
+  "end": "747D",
   "src": "c/bank05/TableScreen.c"
  },
  "SaveSyncMode": {
   "bank": "1B",
   "addr": "5782",
   "len": 20,
+  "end": "5796",
   "src": "c/bank1b/ProjectScreen.c"
  },
  "SaveTempoProperties": {
   "bank": "1B",
   "addr": "582C",
   "len": 39,
+  "end": "5853",
   "src": "c/bank1b/ProjectScreen.c"
  },
  "ScrollSongDown": {
   "bank": "07",
   "addr": "4973",
   "len": 37,
+  "end": "4998",
   "src": "c/bank07/SongScreen.c"
  },
  "ScrollSongToCursor": {
   "bank": "07",
   "addr": "4540",
   "len": 52,
+  "end": "4574",
   "src": "c/bank07/SongScreen.c"
  },
  "ScrollSongUp": {
   "bank": "07",
   "addr": "494E",
   "len": 37,
+  "end": "4973",
   "src": "c/bank07/SongScreen.c"
  },
  "SeekNextWritableSlot": {
   "bank": "1C",
   "addr": "58C1",
   "len": 74,
+  "end": "590B",
   "src": "c/bank1c/FileScreen.c"
  },
  "SeekPreviousWritableSlot": {
   "bank": "1C",
   "addr": "590B",
   "len": 63,
+  "end": "594A",
   "src": "c/bank1c/FileScreen.c"
  },
  "SendByteStep": {
   "bank": "00",
   "addr": "227C",
   "len": 209,
+  "end": "234D",
   "src": "c/bank00/Sync.c"
  },
  "SendLinkClipboard": {
   "bank": "1C",
   "addr": "71CD",
   "len": 289,
+  "end": "72EE",
   "src": "c/bank1c/LinkClipboard.c"
  },
  "SetChainTranspose": {
   "bank": "06",
   "addr": "5655",
   "len": 85,
+  "end": "56AA",
   "src": "c/bank06/ChainScreen.c"
  },
  "SetColumnInstrument": {
   "bank": "04",
   "addr": "4106",
   "len": 137,
+  "end": "418F",
   "src": "c/bank04/PhraseScreen.c"
  },
  "SetGrooveRowPalettes": {
   "bank": "1D",
   "addr": "43CF",
   "len": 130,
+  "end": "4451",
   "src": "c/bank1d/GrooveScreen.c"
  },
  "SetInstrumentPitchByte": {
   "bank": "03",
   "addr": "4257",
   "len": 36,
+  "end": "427B",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "SetInstrumentTableOn": {
   "bank": "03",
   "addr": "4133",
   "len": 28,
+  "end": "414F",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "SetInstrumentTransposeOff": {
   "bank": "03",
   "addr": "4293",
   "len": 24,
+  "end": "42AB",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "SetInstrumentTransposeOn": {
   "bank": "03",
   "addr": "427B",
   "len": 24,
+  "end": "4293",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "SetInstrumentType": {
   "bank": "03",
   "addr": "5128",
   "len": 89,
+  "end": "5181",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "SetOamByte": {
   "bank": "00",
   "addr": "3154",
   "len": 34,
+  "end": "3176",
   "src": "c/bank00/Sprites.c"
  },
  "SetPhraseInstrument": {
   "bank": "04",
   "addr": "57D4",
   "len": 261,
+  "end": "58D9",
   "src": "c/bank04/PhraseScreen.c"
  },
  "SetSongRowPalettes": {
   "bank": "07",
   "addr": "47CF",
   "len": 347,
+  "end": "492D",
   "src": "c/bank07/SongScreen.c"
  },
  "SetSpriteAttribute": {
   "bank": "00",
   "addr": "324A",
   "len": 23,
+  "end": "3261",
   "src": "c/bank00/Sprites.c"
  },
  "SetSpriteTile3": {
   "bank": "00",
   "addr": "321C",
   "len": 23,
+  "end": "3233",
   "src": "c/bank00/Sprites.c"
  },
  "SetSpriteTile4": {
   "bank": "00",
   "addr": "3233",
   "len": 23,
+  "end": "324A",
   "src": "c/bank00/Sprites.c"
  },
  "SetSpriteX": {
   "bank": "00",
   "addr": "31B5",
   "len": 46,
+  "end": "31E3",
   "src": "c/bank00/Sprites.c"
  },
  "SetSpriteY": {
   "bank": "00",
   "addr": "31E3",
   "len": 57,
+  "end": "321C",
   "src": "c/bank00/Sprites.c"
  },
  "SetSyncSendRate": {
   "bank": "07",
   "addr": "5DD8",
   "len": 113,
+  "end": "5E49",
   "src": "c/bank07/KeyboardLink.c"
  },
  "SetVibratoShape": {
   "bank": "03",
   "addr": "4B5E",
   "len": 78,
+  "end": "4BAC",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "SetWaveCursorSprite": {
   "bank": "06",
   "addr": "4B16",
   "len": 42,
+  "end": "4B40",
   "src": "c/bank06/WaveScreen.c"
  },
  "SetWaveLength": {
   "bank": "03",
   "addr": "4B0A",
   "len": 31,
+  "end": "4B29",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "SetWaveLoopPosition": {
   "bank": "03",
   "addr": "4B29",
   "len": 35,
+  "end": "4B4C",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "SetWaveSpeed": {
   "bank": "03",
   "addr": "4AE0",
   "len": 20,
+  "end": "4AF4",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "SetWaveSpriteColumns": {
   "bank": "06",
   "addr": "4AB0",
   "len": 102,
+  "end": "4B16",
   "src": "c/bank06/WaveScreen.c"
  },
  "ShowCommandHelp": {
   "bank": "01",
   "addr": "764C",
   "len": 290,
+  "end": "776E",
   "src": "c/bank01/TopBar.c"
  },
  "ShowInstrumentFieldHelp": {
   "bank": "05",
   "addr": "69BD",
   "len": 872,
+  "end": "6D25",
   "src": "c/bank05/FieldHelp.c"
  },
  "ShowMax16Marks": {
   "bank": "01",
   "addr": "7635",
   "len": 10,
+  "end": "764C",
   "src": "c/bank01/ShowMessages.c"
  },
  "ShowMessage": {
   "bank": "00",
   "addr": "0DBC",
   "len": 31,
+  "end": "0DDB",
   "src": "c/bank00/Helpers.c"
  },
  "ShowOutOfMemory": {
   "bank": "01",
   "addr": "75BD",
   "len": 10,
+  "end": "75C7",
   "src": "c/bank01/ShowMessages.c"
  },
  "ShowSynthFieldHelp": {
   "bank": "05",
   "addr": "7208",
   "len": 155,
+  "end": "743F",
   "src": "c/bank05/TableScreen.c"
  },
  "ShowTapAddChain": {
   "bank": "01",
   "addr": "75F8",
   "len": 10,
+  "end": "7602",
   "src": "c/bank01/ShowMessages.c"
  },
  "ShowTapAddPhrase": {
   "bank": "01",
   "addr": "7616",
   "len": 10,
+  "end": "7635",
   "src": "c/bank01/ShowMessages.c"
  },
  "SongScreenInput": {
   "bank": "07",
   "addr": "4B3B",
   "len": 3011,
+  "end": "5736",
   "src": "c/bank07/SongInput.c"
  },
  "SongScreenUpdate": {
   "bank": "07",
   "addr": "47AA",
   "len": 37,
+  "end": "47CF",
   "src": "c/bank07/SongScreen.c"
  },
  "SortBookmarks": {
   "bank": "07",
   "addr": "627C",
   "len": 164,
+  "end": "6320",
   "src": "c/bank07/SongScreen.c"
  },
  "SortBytePair": {
   "bank": "00",
   "addr": "0D8B",
   "len": 49,
+  "end": "0DBC",
   "src": "c/bank00/Helpers.c"
  },
  "SoundAdvanceStatePointers": {
   "bank": "02",
   "addr": "507F",
   "len": 29,
+  "end": "509C",
   "src": "c/bank02/Sound.c"
  },
  "SoundEnableLcdInterrupts": {
   "bank": "02",
   "addr": "70FB",
   "len": 19,
+  "end": "710E",
   "src": "c/bank02/Playback.c"
  },
  "SoundEnvelopeReleaseSpeed": {
   "bank": "02",
   "addr": "69C3",
   "len": 20,
+  "end": "69DF",
   "src": "c/bank02/Commands.c"
  },
  "SoundEnvelopeReleaseTarget": {
   "bank": "02",
   "addr": "69DF",
   "len": 19,
+  "end": "69F2",
   "src": "c/bank02/Commands.c"
  },
  "SoundGetChainPhrase": {
   "bank": "02",
   "addr": "6F65",
   "len": 81,
+  "end": "6FB6",
   "src": "c/bank02/Sound.c"
  },
  "SoundInitializePlayState": {
   "bank": "02",
   "addr": "710E",
   "len": 17,
+  "end": "711F",
   "src": "c/bank02/Playback.c"
  },
  "SoundKillNote": {
   "bank": "02",
   "addr": "6577",
   "len": 124,
+  "end": "65F3",
   "src": "c/bank02/Commands.c"
  },
  "SoundLiveChainEnd": {
   "bank": "02",
   "addr": "786F",
   "len": 85,
+  "end": "78C4",
   "src": "c/bank02/Playback.c"
  },
  "SoundLiveQueueRange": {
   "bank": "02",
   "addr": "6B9B",
   "len": 31,
+  "end": "6BBA",
   "src": "c/bank02/Playback.c"
  },
  "SoundLiveQueueStart": {
   "bank": "02",
   "addr": "6A94",
   "len": 197,
+  "end": "6B59",
   "src": "c/bank02/Playback.c"
  },
  "SoundLiveStartQueued": {
   "bank": "02",
   "addr": "6EA7",
   "len": 190,
+  "end": "6F65",
   "src": "c/bank02/Playback.c"
  },
  "SoundLiveStopRange": {
   "bank": "02",
   "addr": "6E24",
   "len": 131,
+  "end": "6EA7",
   "src": "c/bank02/Playback.c"
  },
  "SoundNoiChordStep": {
   "bank": "02",
   "addr": "6904",
   "len": 191,
+  "end": "69C3",
   "src": "c/bank02/Commands.c"
  },
  "SoundNoiPitchStep": {
   "bank": "02",
   "addr": "68A0",
   "len": 100,
+  "end": "6904",
   "src": "c/bank02/Commands.c"
  },
  "SoundPhraseHop": {
   "bank": "02",
   "addr": "711F",
   "len": 579,
+  "end": "7362",
   "src": "c/bank02/SoundChannel.c"
  },
  "SoundRandomUpTo": {
   "bank": "02",
   "addr": "6479",
   "len": 36,
+  "end": "649D",
   "src": "c/bank02/Commands.c"
  },
  "SoundReadChannelStep": {
   "bank": "02",
   "addr": "748E",
   "len": 312,
+  "end": "75C6",
   "src": "c/bank02/SoundChannel.c"
  },
  "SoundRetrigNote": {
   "bank": "02",
   "addr": "66E7",
   "len": 441,
+  "end": "68A0",
   "src": "c/bank02/Commands.c"
  },
  "SoundRunCommandSlot": {
   "bank": "02",
   "addr": "6685",
   "len": 15,
+  "end": "6694",
   "src": "c/bank02/Commands.c"
  },
  "SoundSetPlayRange": {
   "bank": "02",
   "addr": "6B59",
   "len": 66,
+  "end": "6B9B",
   "src": "c/bank02/Playback.c"
  },
  "SoundSpeechStep": {
   "bank": "02",
   "addr": "7034",
   "len": 199,
+  "end": "70FB",
   "src": "c/bank02/Sound.c"
  },
  "SoundStartChannelFromRow": {
   "bank": "02",
   "addr": "6BBA",
   "len": 477,
+  "end": "6D97",
   "src": "c/bank02/Playback.c"
  },
  "SoundStartChannels": {
   "bank": "02",
   "addr": "6D97",
   "len": 120,
+  "end": "6E0F",
   "src": "c/bank02/Playback.c"
  },
  "SoundStartRange": {
   "bank": "02",
   "addr": "6E0F",
   "len": 21,
+  "end": "6E24",
   "src": "c/bank02/Playback.c"
  },
  "SoundStartScreenPlayback": {
   "bank": "02",
   "addr": "7B31",
   "len": 283,
+  "end": "7C4C",
   "src": "c/bank02/Playback.c"
  },
  "SoundStartSongPlayback": {
   "bank": "02",
   "addr": "792B",
   "len": 518,
+  "end": "7B31",
   "src": "c/bank02/Playback.c"
  },
  "SoundStepWavFrames": {
   "bank": "02",
   "addr": "6FB6",
   "len": 126,
+  "end": "7034",
   "src": "c/bank02/Sound.c"
  },
  "SoundTableMaybeHop": {
   "bank": "02",
   "addr": "7362",
   "len": 78,
+  "end": "73B0",
   "src": "c/bank02/Commands.c"
  },
  "SoundTick": {
   "bank": "02",
   "addr": "77F0",
   "len": 127,
+  "end": "786F",
   "src": "c/bank02/Sound.c"
  },
  "SoundTogglePlayback": {
   "bank": "02",
   "addr": "7C4C",
   "len": 175,
+  "end": "7CFB",
   "src": "c/bank02/Playback.c"
  },
  "SoundToggleSongPlayback": {
   "bank": "02",
   "addr": "78C4",
   "len": 103,
+  "end": "792B",
   "src": "c/bank02/Playback.c"
  },
  "SoundUpdateChannel": {
   "bank": "02",
   "addr": "75C6",
   "len": 554,
+  "end": "77F0",
   "src": "c/bank02/SoundChannel.c"
  },
  "SoundWavLevelStep": {
   "bank": "02",
   "addr": "6694",
   "len": 83,
+  "end": "66E7",
   "src": "c/bank02/Commands.c"
  },
  "SoundZPhrase": {
   "bank": "02",
   "addr": "743E",
   "len": 15,
+  "end": "744D",
   "src": "c/bank02/Commands.c"
  },
  "SoundZRepeat": {
   "bank": "02",
   "addr": "73B0",
   "len": 142,
+  "end": "743E",
   "src": "c/bank02/Commands.c"
  },
  "SoundZTableCommand1": {
   "bank": "02",
   "addr": "744D",
   "len": 34,
+  "end": "746F",
   "src": "c/bank02/Commands.c"
  },
  "SoundZTableCommand2": {
   "bank": "02",
   "addr": "746F",
   "len": 31,
+  "end": "748E",
   "src": "c/bank02/Commands.c"
  },
  "SpeechCursorY": {
   "bank": "1F",
   "addr": "70A8",
   "len": 14,
+  "end": "70B6",
   "src": "c/bank1f/SpeechInstrumentScreen.c"
  },
  "SpeechInstrumentInput": {
   "bank": "1F",
   "addr": "724D",
   "len": 1448,
+  "end": "7816",
   "src": "c/bank1f/SpeechInstrumentScreen.c"
  },
  "SramHasFileBanks": {
   "bank": "1C",
   "addr": "4057",
   "len": 155,
+  "end": "40F2",
   "src": "c/bank1c/FileSystem.c"
  },
  "StartMapTransition": {
   "bank": "05",
   "addr": "420C",
   "len": 14,
+  "end": "421A",
   "src": "c/bank05/TableScreen.c"
  },
  "StringLength": {
   "bank": "00",
   "addr": "36DD",
   "len": 55,
+  "end": "3714",
   "src": "c/bank00/GbdkLib.c"
  },
  "SubInstrumentTable16": {
   "bank": "03",
   "addr": "495C",
   "len": 47,
+  "end": "498B",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "SubSynthParameterClamped": {
   "bank": "1D",
   "addr": "6F3F",
   "len": 133,
+  "end": "6FC4",
   "src": "c/bank1d/SynthScreen.c"
  },
  "SyncApplyMode": {
   "bank": "00",
   "addr": "1F06",
   "len": 148,
+  "end": "1F9A",
   "src": "c/bank00/Sync.c"
  },
  "SyncLoadSetting": {
   "bank": "00",
   "addr": "1CFF",
   "len": 42,
+  "end": "1D29",
   "src": "c/bank00/Sync.c"
  },
  "SyncModeHasParameter": {
   "bank": "1B",
   "addr": "5896",
   "len": 27,
+  "end": "58B1",
   "src": "c/bank1b/ProjectScreen.c"
  },
  "SyncReceiveAnalogClock": {
   "bank": "00",
   "addr": "23CA",
   "len": 222,
+  "end": "24A8",
   "src": "c/bank00/Sync.c"
  },
  "SyncSeekSongPosition": {
   "bank": "00",
   "addr": "217C",
   "len": 256,
+  "end": "227C",
   "src": "c/bank00/Sync.c"
  },
  "SyncSendAnalogClock": {
   "bank": "00",
   "addr": "1F9A",
   "len": 59,
+  "end": "1FD5",
   "src": "c/bank00/Sync.c"
  },
  "SyncSetReceiveMode": {
   "bank": "00",
   "addr": "1EE3",
   "len": 35,
+  "end": "1F06",
   "src": "c/bank00/Sync.c"
  },
  "SyncSetSendMode": {
   "bank": "00",
   "addr": "1EC8",
   "len": 27,
+  "end": "1EE3",
   "src": "c/bank00/Sync.c"
  },
  "SyncStartTransport": {
   "bank": "00",
   "addr": "1D29",
   "len": 67,
+  "end": "1D6C",
   "src": "c/bank00/Sync.c"
  },
  "SyncStopTransport": {
   "bank": "00",
   "addr": "1D6C",
   "len": 49,
+  "end": "1D9D",
   "src": "c/bank00/Sync.c"
  },
  "SyncTickLsdj": {
   "bank": "00",
   "addr": "1D9D",
   "len": 211,
+  "end": "1E75",
   "src": "c/bank00/Sync.c"
  },
  "SyncTickMidi": {
   "bank": "00",
   "addr": "1E75",
   "len": 30,
+  "end": "1E93",
   "src": "c/bank00/Sync.c"
  },
  "SyncTransferByte": {
   "bank": "1C",
   "addr": "72EE",
   "len": 34,
+  "end": "7310",
   "src": "c/bank1c/LinkClipboard.c"
  },
  "SynthFramesModified": {
   "bank": "1F",
   "addr": "5F85",
   "len": 61,
+  "end": "5FC2",
   "src": "c/bank1f/SynthReset.c"
  },
  "SynthLockByteAddress": {
   "bank": "06",
   "addr": "4901",
   "len": 62,
+  "end": "493F",
   "src": "c/bank06/WaveScreen.c"
  },
  "SynthLockByteAddressB1D": {
   "bank": "1D",
   "addr": "60A7",
   "len": 62,
+  "end": "60E5",
   "src": "c/bank1d/SynthScreen.c"
  },
  "SynthScreenInput": {
   "bank": "1D",
   "addr": "7138",
   "len": 3155,
+  "end": "7DA5",
   "src": "c/bank1d/SynthScreen.c"
  },
  "SynthSignalIsFrame": {
   "bank": "1D",
   "addr": "6354",
   "len": 26,
+  "end": "636E",
   "src": "c/bank1d/SynthScreen.c"
  },
  "SynthWavesModified": {
   "bank": "03",
   "addr": "42AB",
   "len": 84,
+  "end": "42FF",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "TableScreenInput": {
   "bank": "05",
   "addr": "4B5D",
   "len": 5720,
+  "end": "61CA",
   "src": "c/bank05/TableScreen.c"
  },
  "TableScreenUpdate": {
   "bank": "05",
   "addr": "4967",
   "len": 321,
+  "end": "4AA8",
   "src": "c/bank05/TableScreen.c"
  },
  "TableSkipsCommand": {
   "bank": "05",
   "addr": "4930",
   "len": 55,
+  "end": "4967",
   "src": "c/bank05/TableScreen.c"
  },
  "TapTempoStep": {
   "bank": "1B",
   "addr": "6A8C",
   "len": 238,
+  "end": "6B7A",
   "src": "c/bank1b/ProjectScreen.c"
  },
  "TestSramHigh": {
   "bank": "01",
   "addr": "445A",
   "len": 45,
+  "end": "4487",
   "src": "c/bank01/CartridgeTest.c"
  },
  "TestSramLow": {
   "bank": "01",
   "addr": "4000",
   "len": 234,
+  "end": "40EA",
   "src": "c/bank01/CartridgeTest.c"
  },
  "TilemapAddress": {
   "bank": "06",
   "addr": "48AB",
   "len": 86,
+  "end": "4901",
   "src": "c/bank06/WaveScreen.c"
  },
  "ToggleBookmark": {
   "bank": "07",
   "addr": "6413",
   "len": 42,
+  "end": "643D",
   "src": "c/bank07/SongScreen.c"
  },
  "UnhighlightPhraseCell": {
   "bank": "1F",
   "addr": "6CA2",
   "len": 182,
+  "end": "6D58",
   "src": "c/bank1f/PhraseScreen.c"
  },
  "UpdateEnvelopeSprites": {
   "bank": "1B",
   "addr": "74E4",
   "len": 107,
+  "end": "754F",
   "src": "c/bank1b/EnvelopeGraph.c"
  },
  "UpdateInstrumentEnvelope": {
   "bank": "1B",
   "addr": "754F",
   "len": 33,
+  "end": "7570",
   "src": "c/bank1b/EnvelopeGraph.c"
  },
  "UpdateMapTopRow": {
   "bank": "05",
   "addr": "4000",
   "len": 64,
+  "end": "4040",
   "src": "c/bank05/TableScreen.c"
  },
  "UpdateMessage": {
   "bank": "01",
   "addr": "7878",
   "len": 205,
+  "end": "794B",
   "src": "c/bank01/TopBar.c"
  },
  "UpdatePlayClock": {
   "bank": "01",
   "addr": "4FEC",
   "len": 173,
+  "end": "50A0",
   "src": "c/bank01/Clocks.c"
  },
  "UpdateSongPlayMarker": {
   "bank": "07",
   "addr": "4657",
   "len": 339,
+  "end": "47AA",
   "src": "c/bank07/SongScreen.c"
  },
  "UpdateStatusPanel": {
   "bank": "06",
   "addr": "72C4",
   "len": 248,
+  "end": "73C0",
   "src": "c/bank06/StatusPanel.c"
  },
  "UpdateWorkClock": {
   "bank": "01",
   "addr": "50A0",
   "len": 236,
+  "end": "518C",
   "src": "c/bank01/Clocks.c"
  },
  "WaveFrameModified": {
   "bank": "1F",
   "addr": "5F20",
   "len": 101,
+  "end": "5F85",
   "src": "c/bank1f/SynthReset.c"
  },
  "WavePlayIsManual": {
   "bank": "03",
   "addr": "4105",
   "len": 19,
+  "end": "4118",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "WaveScreenInput": {
   "bank": "06",
   "addr": "507F",
   "len": 772,
+  "end": "5398",
   "src": "c/bank06/WaveScreen.c"
  },
  "WordScreenInput": {
   "bank": "06",
   "addr": "431D",
   "len": 1422,
+  "end": "48AB",
   "src": "c/bank06/WordScreen.c"
  },
  "WrapSynthIndex32": {
   "bank": "1D",
   "addr": "58DA",
   "len": 12,
+  "end": "58E6",
   "src": "c/bank1d/SynthRender.c"
  },
  "WriteBookmarkByte": {
   "bank": "07",
   "addr": "6249",
   "len": 51,
+  "end": "627C",
   "src": "c/bank07/SongScreen.c"
  },
  "WriteChainPhrase": {
   "bank": "1F",
   "addr": "48C5",
   "len": 85,
+  "end": "491A",
   "src": "c/bank1f/Allocation.c"
  },
  "WriteClipboardCell": {
   "bank": "00",
   "addr": "0908",
   "len": 75,
+  "end": "0953",
   "src": "c/bank00/Helpers.c"
  },
  "WriteCurrentInstrumentByte": {
   "bank": "03",
   "addr": "4000",
   "len": 21,
+  "end": "4015",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "WriteGrooveByte": {
   "bank": "1D",
   "addr": "4000",
   "len": 88,
+  "end": "4058",
   "src": "c/bank1d/GrooveScreen.c"
  },
  "WriteInstrumentByte": {
   "bank": "00",
   "addr": "0953",
   "len": 102,
+  "end": "09B9",
   "src": "c/bank00/InstrumentByte.c"
  },
  "WriteInstrumentName": {
   "bank": "01",
   "addr": "4A49",
   "len": 204,
+  "end": "4B15",
   "src": "c/bank01/InstrumentNames.c"
  },
  "WriteKitNumber": {
   "bank": "03",
   "addr": "5002",
   "len": 56,
+  "end": "503A",
   "src": "c/bank03/InstrumentScreen.c"
  },
  "WritePhraseCommand": {
   "bank": "04",
   "addr": "49C5",
   "len": 107,
+  "end": "4A30",
   "src": "c/bank04/PhraseScreen.c"
  },
  "WritePhraseCommandValue": {
   "bank": "04",
   "addr": "4A30",
   "len": 95,
+  "end": "4A8F",
   "src": "c/bank04/PhraseScreen.c"
  },
  "WritePhraseInstrument": {
   "bank": "04",
   "addr": "41F0",
   "len": 103,
+  "end": "4257",
   "src": "c/bank04/PhraseScreen.c"
  },
  "WritePhraseNote": {
   "bank": "04",
   "addr": "418F",
   "len": 97,
+  "end": "41F0",
   "src": "c/bank04/PhraseScreen.c"
  },
  "WriteSongCell": {
   "bank": "07",
   "addr": "40D0",
   "len": 105,
+  "end": "4139",
   "src": "c/bank07/SongScreen.c"
  },
  "WriteSongInitializedMarker": {
   "bank": "01",
   "addr": "48D4",
   "len": 103,
+  "end": "493B",
   "src": "c/bank01/SongAllocation.c"
  },
  "WriteSynthParameter": {
   "bank": "1D",
   "addr": "6E6E",
   "len": 72,
+  "end": "6EB6",
   "src": "c/bank1d/SynthScreen.c"
  },
  "WriteSynthWaveColumn": {
   "bank": "1D",
   "addr": "5F29",
   "len": 103,
+  "end": "5F90",
   "src": "c/bank1d/SynthRender.c"
  },
  "WriteTableCommand": {
   "bank": "05",
   "addr": "43B7",
   "len": 115,
+  "end": "442A",
   "src": "c/bank05/TableScreen.c"
  },
  "WriteTableEnvelope": {
   "bank": "05",
   "addr": "4360",
   "len": 87,
+  "end": "43B7",
   "src": "c/bank05/TableScreen.c"
  },
  "WriteTableTranspose": {
   "bank": "05",
   "addr": "4491",
   "len": 87,
+  "end": "44E8",
   "src": "c/bank05/TableScreen.c"
  },
  "WriteTableValue": {
   "bank": "05",
   "addr": "442A",
   "len": 103,
+  "end": "4491",
   "src": "c/bank05/TableScreen.c"
  },
  "WriteWaveSample": {
   "bank": "06",
   "addr": "4A0A",
   "len": 166,
+  "end": "4AB0",
   "src": "c/bank06/WaveScreen.c"
  },
  "WriteWordCell": {
   "bank": "06",
   "addr": "40B3",
   "len": 91,
+  "end": "410E",
   "src": "c/bank06/WordScreen.c"
  },
  "abs": {
   "bank": "00",
   "addr": "343F",
   "len": 40,
+  "end": "3467",
   "src": "c/bank00/GbdkLib.c"
  },
  "main": {
   "bank": "00",
   "addr": "1306",
   "len": 370,
+  "end": "1478",
   "src": "c/bank00/Main.c"
  },
  "printf": {
   "bank": "00",
   "addr": "35C2",
   "len": 283,
+  "end": "36DD",
   "src": "c/bank00/GbdkLib.c"
  },
  "printn": {
   "bank": "00",
   "addr": "352A",
   "len": 135,
+  "end": "35C2",
   "src": "c/bank00/GbdkLib.c"
  }
 }

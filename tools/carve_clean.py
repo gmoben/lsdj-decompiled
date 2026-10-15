@@ -362,6 +362,8 @@ def c_ranges(bank: int) -> tuple[list[str], list[tuple[int, int, str, int]]]:
     build is identical either way, and a C file that stops matching breaks
     `make compare`."""
     manifest = ROOT / "c" / "matched.json"
+    if FORK:
+        return fork_ranges(bank)
     if not manifest.is_file():
         return [], []
     rom_name = os.environ.get("LSDJ_BASEROM", "lsdj9_4_0.gb")
@@ -377,6 +379,49 @@ def c_ranges(bank: int) -> tuple[list[str], list[tuple[int, int, str, int]]]:
         else:
             incbins.append((lo, lo + n, rom_name, lo))
     return sorted(lines), sorted(incbins)
+
+
+FORK = bool(os.environ.get("LSDJ_FORK"))      # a fork's build: `make FORK=1`
+
+
+def fork_ranges(bank: int) -> tuple[list[str], list[tuple[int, int, str, int]]]:
+    """A fork's build: every C function's translation (build/c/fork.json,
+    verify_all.py --fork: as in the ROM, changed, or new), and the fork's
+    asm (fork/bankNN/Name.asm: the code or data at the .sym's Name, up to the
+    next global label, replaced by the file's lines; under a name the .sym
+    lacks, new code put before the bank's free space)."""
+    manifest = ROOT / "build" / "c" / "fork.json"
+    if not manifest.is_file():
+        sys.exit("a fork's build needs build/c/fork.json: make FORK=1 match")
+    lines = []
+    for name, m in json.loads(manifest.read_text()).items():
+        if int(m["bank"], 16) != bank:
+            continue
+        src = ROOT / "build" / "c" / f"bank{bank:02x}" / f"{name}.lines"
+        if not src.is_file():
+            sys.exit(f"{name}: no {src.relative_to(ROOT)} (a fork's build needs the compiler)")
+        lines.append(src.relative_to(ROOT).as_posix())
+    overrides = sorted((ROOT / "fork" / f"bank{bank:02x}").glob("*.asm"))
+    if overrides:
+        syms = disasm.parse_symbols(ROOT / "src" / f"bank{bank:02x}.sym")
+        globals_ = sorted(a for a, n in syms.items() if not n.startswith("."))
+        out_dir = ROOT / "build" / "fork" / f"bank{bank:02x}"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        for path in overrides:
+            name = path.stem
+            rows = [[0, "V", line] for line in path.read_text().splitlines()]
+            addr = next((a for a, n in syms.items() if n == name), None)
+            if addr is None:
+                doc = {"append": True, "rows": [[0, "L", f"{name}:"]] + rows}
+            else:
+                end = next((a for a in globals_ if a > addr), 0x4000 if bank == 0 else 0x8000)
+                doc = {"lo": addr, "hi": end, "rows": [[addr, k, t] for _a, k, t in rows], "fork": True}
+            dst = out_dir / f"{name}.lines"
+            text = json.dumps(doc, indent=0)
+            if not dst.is_file() or dst.read_text() != text:
+                dst.write_text(text)
+            lines.append(dst.relative_to(ROOT).as_posix())
+    return sorted(lines), []
 
 
 DEFINITION = re.compile(r"^((?:static\s+)?[A-Za-z_][\w \t*]*?\b([A-Za-z_]\w*)\s*\([^;{}]*\)"

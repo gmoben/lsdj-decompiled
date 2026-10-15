@@ -476,7 +476,8 @@ IncBin = tuple[int, int, str, int]   # (lo, hi) file offsets, source path, offse
 # I an instruction or data row, L a label of the translation's own, V a
 # verbatim directive. Rows from it carry these `ref` markers:
 C_ROW, C_TEXT = -1, -2
-CLines = tuple[int, int, list[tuple[int, str, str]]]
+CLines = tuple[int, int, list[tuple[int, str, str]], bool]   # (lo, hi, rows, a fork's)
+APPEND = -1                     # a fork's new code: lo and hi of rows put before the bank's free space
 # A comment line of the carve's own (the free space at the end of a bank, a
 # data block's format), printed verbatim before the row at its address.
 NOTE = -3
@@ -856,6 +857,10 @@ def disassemble(data: bytes, start: int, end: int, org: int,
 
     `clines` are ranges matching C owns, rendered from their RGBDS
     translation: its rows replace the decode (their labels print as usual).
+    A fork's (the fourth item set) are code that no longer matches the ROM
+    -- changed C, an asm override -- so the range's own label prints and no
+    other .sym label inside it, and no ROM bytes: the code is not the ROM's.
+    One with lo = hi = APPEND is new code, put before the bank's free space.
 
     `ptr_tables` are (lo, hi, bank) pointer tables: one `dw $xxxx` row per
     word, which rom_pointers() turns into labels.
@@ -875,6 +880,8 @@ def disassemble(data: bytes, start: int, end: int, org: int,
     anchors = anchors or set()
     incbins = incbins or []
     clines = clines or []
+    appends = [c for c in clines if c[0] == APPEND]
+    clines = [c for c in clines if c[0] != APPEND]
     ptr_tables = ptr_tables or []
     tiles = tiles or []
     tables = tables or []
@@ -883,7 +890,7 @@ def disassemble(data: bytes, start: int, end: int, org: int,
     def next_data_edge(o: int) -> int:
         edges = [hi if lo <= o < hi else lo for lo, hi in data_ranges if o < hi]
         edges += [hi if lo <= o < hi else lo for lo, hi, _p, _f in incbins if o < hi]
-        edges += [hi if lo <= o < hi else lo for lo, hi, _r in clines if o < hi]
+        edges += [hi if lo <= o < hi else lo for lo, hi, _r, _f in clines if o < hi]
         edges += [hi if lo <= o < hi else lo for lo, hi, _b in ptr_tables if o < hi]
         edges += [hi if lo <= o < hi else lo for lo, hi, _n in tiles if o < hi]
         edges += [hi if lo <= o < hi else lo for lo, hi, _w, _k in tables if o < hi]
@@ -903,8 +910,15 @@ def disassemble(data: bytes, start: int, end: int, org: int,
     while o < end:
         addr = org + (o - start)
         cl = next((c for c in clines if c[0] == o), None)
+        if cl is not None and cl[3]:              # a fork's: its own label, its rows
+            lo, hi, crows, _f = cl
+            used.add(lo)
+            out.extend((addr, b"", f"\t{text}" if kind == "I" else text, C_TEXT)
+                       for _a, kind, text in crows)
+            o = hi
+            continue
         if cl is not None:
-            lo, hi, crows = cl
+            lo, hi, crows, _f = cl
             used.add(lo)
             istarts = sorted({a for a, kind, _t in crows if kind == "I"})
             ends = {a: b for a, b in zip(istarts, istarts[1:] + [org + (hi - start)])}
@@ -1017,7 +1031,13 @@ def disassemble(data: bytes, start: int, end: int, org: int,
         if text.startswith("ds ") and ref is None and a + len(raw) == bank_end:
             out[-1:] = [(a, b"", f"; Free space: {len(raw):,} bytes to the end of the bank.", NOTE),
                         (a, raw, f"ds ${bank_end:04x} - @, $ff", None)]
-    missed = [f"${org + (lo - start):04x}" for lo, _hi, _r in clines
+    if appends:                  # a fork's new code, before the free space
+        k = next((i for i in range(len(out) - 1, -1, -1)
+                  if out[i][3] is NOTE and out[i][2].startswith("; Free space")), len(out))
+        new = [(APPEND, b"", f"\t{text}" if kind == "I" else text, C_TEXT)
+               for _lo, _hi, crows, _f in appends for _a, kind, text in crows]
+        out[k:k] = [(APPEND, b"", "", C_TEXT)] + new + [(APPEND, b"", "", C_TEXT)]
+    missed = [f"${org + (lo - start):04x}" for lo, _hi, _r, _f in clines
               if lo not in used and start <= lo < end]
     if missed:   # the decode ran across their start: would silently drop the C
         raise ValueError(f"matching C ranges not rendered: {', '.join(missed)}")
@@ -1500,9 +1520,13 @@ def main() -> None:
     clines: list[CLines] = []
     for part in filter(None, (p.strip() for p in args.clines.split(","))):
         doc = json.loads(Path(part).read_text())
+        rows = [(int(a), k, t) for a, k, t in doc["rows"]]
+        if doc.get("append"):
+            clines.append((APPEND, APPEND, rows, True))
+            continue
         lo_f = start + (int(doc["lo"]) - org)
         hi_f = start + (int(doc["hi"]) - org)
-        clines.append((lo_f, hi_f, [(int(a), k, t) for a, k, t in doc["rows"]]))
+        clines.append((lo_f, hi_f, rows, bool(doc.get("fork"))))
     ptr_tables: list[tuple[int, int, int]] = []
     for part in filter(None, (p.strip() for p in args.ptr_tables.split(","))):
         lo_s, hi_s, b_s = part.split(":")

@@ -113,6 +113,7 @@ sequencer core, 15.4 KB) and the GBDK/SDCC library routines stay asm. See
 | `docs/data_model.md` | Song format: chains/phrases/instruments/tables/synths/… |
 | `docs/save_format.md` | `.sav` filesystem, compression, sample-kit & lsdsng formats |
 | `docs/reversal.md` | Current status + known gaps, the coverage metric, and the methodology log |
+| `docs/forking.md` | A fork's build (`FORK = 1` in `fork.mk`): C that no longer matches becomes the fork's code (changed functions replace their ROM range, new ones go before their bank's free space), `fork/bankNN/Name.asm` replaces or adds asm, and `make check` is `make behaviour` |
 | `docs/toolchain.md` | Track 2: period GBDK 2.95 / SDCC 2.2.1, the match harness, allocator directives, next steps |
 | `docs/matching_c.md` | The C tree: every module and what it holds, what is C and what is asm, writing C that matches |
 | `tools/disasm.py` | SM83→RGBDS disassembler (`--selftest`, labels, symbols, hw regs) |
@@ -160,6 +161,7 @@ make listing    # build/listing.asm: the whole ROM as one annotated file
 make audit      # diff a pasted Emulicious export (emulicious.out) against our symbols
 make match      # compile every c/bankNN/*.c with the period compiler, assert it matches, write build/c/ + c/matched.json (needs wine)
 make behaviour  # run the build next to the original ROM in PyBoy: the gate once a build no longer matches (needs .venv with pyboy)
+make check      # the pre-commit hook's gate: make compare, or make behaviour in a fork's build (FORK=1, docs/forking.md)
 make clean      # remove build/ (and the deployed root .sym); `make tidy` removes only link outputs
 make baseline   # historical: the original INCBIN bootstrap — clobbers src/main.asm
 ```

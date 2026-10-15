@@ -148,7 +148,10 @@ from the compiler's output, gated by `make compare`. The build is movable, the b
 adds features: every ROM address in code is a label, and `tools/shift_test.py` runs a build with a
 bank's contents shifted next to the original in an emulator. A build that no longer
 matches has `make behaviour` for its gate: it runs next to the original ROM, and the
-screen, the sound and the song data must stay the same.
+screen, the sound and the song data must stay the same. A fork builds the tree in fork
+mode (`make FORK=1`, [`docs/forking.md`](docs/forking.md)): changed C replaces the
+function it was, new C goes into its bank's free space, and asm overrides replace or add
+code and data.
 See [`docs/toolchain.md`](docs/toolchain.md), and try it:
 
 ```bash
@@ -194,6 +197,7 @@ lsdj-decompiled/
 │   ├── save_format.md    # .sav filesystem, compression, kits, lsdsng
 │   ├── reversal.md       # methodology + the road to full symbol coverage
 │   ├── matching_c.md     # the matching C: every module, what is C and what is asm, writing C that matches
+│   ├── forking.md        # a fork's build: changed and new C, asm overrides, make check
 │   └── toolchain.md      # Track 2: period GBDK 2.95 / SDCC 2.2.1, the match harness
 ├── tools/
 │   ├── disasm.py         # byte-exact SM83->RGBDS disassembler (self-tested)
@@ -248,6 +252,7 @@ Common commands:
 make            # build build/lsdj9_4_0.gb
 make compare    # build, then assert it equals the original ROM
 make behaviour  # run the build next to the original ROM in PyBoy (once it no longer matches)
+make check      # the pre-commit gate: make compare, or a fork's make behaviour (FORK=1)
 make carve      # force-regenerate the disassembly from your ROM + src/*.sym
 make verify-rom # check your supplied ROM is the right revision
 make sym        # emit the BANK:ADDR symbol file for emulator debugging
