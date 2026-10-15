@@ -245,7 +245,7 @@ void PreviousInstrumentPage(void)
 {
     if (wInstrument) {
         wInstrument -= 0x10;
-        if (wInstrument > 0x40)
+        if (wInstrument > INSTRUMENT_SPEECH)
             wInstrument = 0;
         wInstrument++;
         PreviousUsedInstrument();
@@ -255,7 +255,7 @@ void PreviousInstrumentPage(void)
 void NextUsedInstrument(void)
 {
     wMessageStringPointer = 0;
-    while (wInstrument != 0x40) {
+    while (wInstrument != INSTRUMENT_SPEECH) {
         wInstrument++;
         if (ReadSongByte(1, SramInstrumentAllocation + (UWORD)wInstrument))
             break;
@@ -642,9 +642,9 @@ void DrawInstrumentScreen(void)
     UBYTE type;
     UWORD function;
 
-    if (wInstrument > 0x40)
+    if (wInstrument > INSTRUMENT_SPEECH)
         DebugTrap();
-    if (wInstrument == 0x40) {
+    if (wInstrument == INSTRUMENT_SPEECH) {
         FarCall(0x1F, FAR_FN(DrawSpeechInstrumentScreen));
         return;
     }
@@ -951,7 +951,7 @@ UBYTE InstrumentScreenInput(void)
 {
     UBYTE v, type;
 
-    if (wInstrument == 0x40)
+    if (wInstrument == INSTRUMENT_SPEECH)
         return FarCallByte(0x1F, FAR_FN(SpeechInstrumentInput));
     hBgDigitPalette = wHighlightDigitPalette;
     hBgPalette = wHighlightPalette;
@@ -2355,7 +2355,7 @@ UBYTE InstrumentScreenInput(void)
         return 1;
     case (J_B | J_UP):
         wInstrument += 0x0F;
-        if (wInstrument > 0x40)
+        if (wInstrument > INSTRUMENT_SPEECH)
             wInstrument = 0x40;
         NextUsedInstrument();
         return 1;

@@ -123,7 +123,7 @@ UBYTE *GetScreenPalette(void)
     case SCREEN_TABLE:
         return ScreenPaletteTable;
     case SCREEN_INSTRUMENT:
-        if (wInstrument < 0x40) {
+        if (wInstrument < INSTRUMENTS) {
             switch (ReadCurrentInstrumentByte(INSTRUMENT_BYTE_TYPE)) {
             case 0:
                 return ScreenPaletteInstrumentPulse;

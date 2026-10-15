@@ -104,7 +104,7 @@ void ResetUnusedSynths(void)
         used[synth - 1] = 0;
         synth--;
     } while (synth);
-    for (instrument = 0; instrument < 0x40; instrument++)
+    for (instrument = 0; instrument < INSTRUMENTS; instrument++)
         if ((ReadInstrumentByte(instrument, INSTRUMENT_BYTE_TYPE) & 3) == 1)
             used[ReadInstrumentByte(instrument, WAVE_BYTE_WAVE) >> 4] = 1;
     for (synth = 0; synth < 0x10; synth++)

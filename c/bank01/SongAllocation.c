@@ -217,7 +217,7 @@ void PasteInstrument(void)
 {
     UBYTE cell;
 
-    if (wInstrument == 0x40)
+    if (wInstrument == INSTRUMENT_SPEECH)
         return;
     if (wCursorMode != CURSOR_COPIED)
         return;

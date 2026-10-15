@@ -84,7 +84,7 @@ UBYTE FreeUnusedInstruments(void)
     p = (UWORD)SramInstrumentAllocation;
     n = 0;
     _asm di _endasm;
-    for (instrument = 0; instrument < 0x40; instrument++) {
+    for (instrument = 0; instrument < INSTRUMENTS; instrument++) {
         if (ReadSongByte(1, p))
             n++;
         WriteSongByte(1, p, 0);
@@ -93,13 +93,13 @@ UBYTE FreeUnusedInstruments(void)
     for (phrase = 0; phrase < 0xFF; phrase++) {
         for (row = 0; row < 0x10; row++) {
             instrument = FarCallArgument2P(4, FAR_FN(ReadPhraseInstrument), phrase, row);
-            if (instrument < 0x40)
+            if (instrument < INSTRUMENTS)
                 WriteSongByte(1, (UWORD)SramInstrumentAllocation + instrument, 1);
         }
     }
     _asm ei _endasm;
     p = (UWORD)SramInstrumentAllocation;
-    for (instrument = 0; instrument < 0x40; instrument++) {
+    for (instrument = 0; instrument < INSTRUMENTS; instrument++) {
         _asm di _endasm;
         if (!ReadSongByte(1, p)) {
             wNameEditBuffer[0] = 0;
@@ -465,7 +465,7 @@ void RemapCommandTableRefs(UBYTE from, UBYTE to)
     instrument = 0;
     nt = to | 0x20;
     nf = from | 0x20;
-    while (instrument != 0x40) {
+    while (instrument != INSTRUMENT_SPEECH) {
         if (ReadInstrumentByte(instrument, INSTRUMENT_BYTE_TABLE) == nf)
             WriteInstrumentByte(instrument, INSTRUMENT_BYTE_TABLE, nt);
         instrument++;

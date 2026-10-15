@@ -366,7 +366,7 @@ void FileUpgradeV11(void)
     instrument = 0;
     p = 0xA000;
     address = 0xB000;
-    while (instrument != 0x40) {
+    while (instrument != INSTRUMENT_SPEECH) {
         types[instrument] = ReadInstrumentByte(instrument, 0);
         instrument++;
     }
@@ -377,9 +377,9 @@ void FileUpgradeV11(void)
         ReadSongBytesW(3, address, wUsedTableMap);
         for (; j != 0x10; j = j + 1) {
             instrument = wUsedTableMap[j];
-            if (instrument == 0x40) {
+            if (instrument == INSTRUMENT_SPEECH) {
                 v = 0;
-            } else if (instrument < 0x40) {
+            } else if (instrument < INSTRUMENTS) {
                 if (types[instrument] == 3)
                     v = ReadInstrumentByteS(instrument, 4);
                 else
@@ -567,7 +567,7 @@ void FileUpgradeV18(void)
     instrument = 0;
     p = 0xA000;
     address = 0xB000;
-    while (instrument != 0x40) {
+    while (instrument != INSTRUMENT_SPEECH) {
         types[instrument] = ReadInstrumentByte(instrument, 0);
         instrument++;
     }
@@ -578,9 +578,9 @@ void FileUpgradeV18(void)
         ReadSongBytesW(3, address, wUsedTableMap);
         for (; j != 0x10; j = j + 1) {
             instrument = wUsedTableMap[j];
-            if (instrument == 0x40) {
+            if (instrument == INSTRUMENT_SPEECH) {
                 v = 0;
-            } else if (instrument < 0x40) {
+            } else if (instrument < INSTRUMENTS) {
                 v = types[instrument] == 3;
             }
             if (v) {

@@ -92,7 +92,7 @@ void DrawMapTopRow(void)
     wVramCursor = (UBYTE *)BG_MAP(15, 16);
     DrawStringIndexed(wLiveMode ? 'L' : 'S');
     DrawString("CPI");
-    DrawStringIndexed(wInstrument == 0x40 ? 'W' : 'T');
+    DrawStringIndexed(wInstrument == INSTRUMENT_SPEECH ? 'W' : 'T');
     ColorField(15, 16, 5, 1);
     ColorField(x, wMapRow + 15, 1, 2);
     ColorField(x, (wMapRow + 1) % 3 + 15, 1, 1);
@@ -125,7 +125,7 @@ void GotoMapCursorScreen(void)
             wCurrentScreen = SCREEN_INSTRUMENT;
             break;
         case 4:
-            wCurrentScreen = wInstrument == 0x40 ? 12 : 5;
+            wCurrentScreen = wInstrument == INSTRUMENT_SPEECH ? 12 : 5;
             break;
         }
         break;

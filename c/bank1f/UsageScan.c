@@ -130,7 +130,7 @@ void MarkTablesOfUsedInstruments(void)
 {
     UBYTE instrument;
 
-    for (instrument = 0; instrument < 0x40; instrument++)
+    for (instrument = 0; instrument < INSTRUMENTS; instrument++)
         if (IsInstrumentAllocated(instrument))
             MarkInstrumentTableUsed(instrument);
 }

@@ -32,7 +32,7 @@ void WriteInstrumentByte(UBYTE instrument, UBYTE field, UBYTE value)
 {
     UBYTE *p;
 
-    if (instrument >= 0x40)
+    if (instrument >= INSTRUMENTS)
         DebugTrap();
     if (field >= 0x10)
         DebugTrap();
@@ -46,7 +46,7 @@ UBYTE ReadInstrumentByte(UBYTE instrument, UBYTE field)
 {
     UBYTE *p;
 
-    if (instrument >= 0x40)
+    if (instrument >= INSTRUMENTS)
         DebugTrap();
     if (field >= 0x10)
         DebugTrap();

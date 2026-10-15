@@ -92,6 +92,10 @@ typedef int WORD;
 #define INSTRUMENT_KIT       2
 #define INSTRUMENT_NOISE     3
 
+/* 64 instruments, then the speech instrument, locked to $40 */
+#define INSTRUMENTS          0x40
+#define INSTRUMENT_SPEECH    0x40
+
 /* an instrument's 16 bytes (the manual's Appendix C): the bytes every type
  * shares, the ones some types share, then each type's own */
 #define INSTRUMENT_BYTE_TYPE           0

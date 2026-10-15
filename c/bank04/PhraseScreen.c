@@ -142,7 +142,7 @@ void ResolvePhraseCursorNote(UBYTE v)
     wPhraseColumnLast[wSongColumn] = v;
     if (wSongColumn == CHANNEL_NOI && wCursorMode != CURSOR_SELECTING) {
         instrument = FindCursorInstrument();
-        if (instrument < 0x40
+        if (instrument < INSTRUMENTS
                 && ReadInstrumentByte(instrument, INSTRUMENT_BYTE_TYPE) == INSTRUMENT_NOISE)
             WriteInstrumentByte(instrument, NOISE_BYTE_LAST_NOTE, v);
     }
@@ -152,10 +152,10 @@ void SetColumnInstrument(UBYTE instrument)
 {
     if (wSongColumn >= 4)
         DebugTrap();
-    if (instrument <= 0x40) {
+    if (instrument <= INSTRUMENT_SPEECH) {
         wColumnInstrument[wSongColumn] = instrument;
         if (wSongColumn == CHANNEL_WAV) {
-            wInstrumentIsKit = instrument != 0x40;
+            wInstrumentIsKit = instrument != INSTRUMENT_SPEECH;
             if (wInstrumentIsKit)
                 wInstrumentIsKit
                     = ReadInstrumentByte(instrument, INSTRUMENT_BYTE_TYPE) == INSTRUMENT_KIT;
@@ -185,7 +185,7 @@ void WritePhraseInstrument(UBYTE phrase, UBYTE row, UBYTE instrument)
         DebugTrap();
     if (row >= 0x10)
         DebugTrap();
-    if (instrument > 0x40 && instrument != 0xFF)
+    if (instrument > INSTRUMENT_SPEECH && instrument != 0xFF)
         DebugTrap();
     p = SramPhraseInstruments + ((UWORD)phrase << 4);
     WriteSongByte(3, p + row, instrument);
@@ -210,7 +210,7 @@ UBYTE CommitPhraseInstrument(void)
 
     instrument = ReadCursorInstrument();
     result = 0;
-    if (instrument > 0x40) {
+    if (instrument > INSTRUMENT_SPEECH) {
         if (wColumnInstrument[wSongColumn] == 0xFF) {
             SetColumnInstrument(FarCallByte(0x1F, FAR_FN(AllocateNextFreeInstrument)));
             wDrawStep++;
@@ -687,7 +687,7 @@ void DrawPhraseScreen(void)
         } else {
             if (wPhraseDrawMode)
                 DrawString("   ");
-            if (instrument == 0x40) {
+            if (instrument == INSTRUMENT_SPEECH) {
                 t = wSongReadBuffer[row];
                 FarCallArgument(0x1F, FAR_FN(DrawWordRow), t);
             } else {
@@ -861,7 +861,7 @@ void CloneInstrumentAtCursor(void)
     UBYTE instrument, bad, n;
 
     instrument = ReadCursorInstrument();
-    bad = !(instrument < 0x40);
+    bad = !(instrument < INSTRUMENTS);
     FarCall(5, FAR_FN(RestoreSelectionState));
     if (bad) {
         strcpy(wStringBuffer, "CANNOT CLONE");
@@ -968,7 +968,7 @@ UBYTE DrawInstrumentName(UBYTE row, UBYTE instrument)
     hBgDigitPalette = wHighlightDigitPalette;
     hBgPalette = wHighlightPalette;
     DrawHexByte(instrument);
-    if (wSongColumn == CHANNEL_NOI && instrument < 0x40
+    if (wSongColumn == CHANNEL_NOI && instrument < INSTRUMENTS
             && ReadInstrumentByte(instrument, INSTRUMENT_BYTE_TYPE) == INSTRUMENT_NOISE) {
         n = ReadInstrumentByte(instrument, NOISE_BYTE_LAST_NOTE);
         *(UBYTE *)0xC90A = n;               /* wPhraseInstrumentCache, stored through the literal */
@@ -1987,10 +1987,10 @@ UBYTE PhraseScreenInput(void)
         if (wButtonsSame)
             return 0;
         instrument = FindCursorInstrument();
-        if (instrument <= 0x40) {
+        if (instrument <= INSTRUMENT_SPEECH) {
             SetColumnInstrument(instrument);
             wInstrument = instrument;
-            if (wInstrument == 0x40) {
+            if (wInstrument == INSTRUMENT_SPEECH) {
                 wSpeechRow = ReadPhraseNote((char)wPhraseRow) - 1;
                 if (wSpeechRow >= 0x0E)
                     wSpeechRow = 0;

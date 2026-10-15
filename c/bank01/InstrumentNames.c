@@ -16,9 +16,9 @@ void CopyInstrumentName(UBYTE instrument)
 {
     UBYTE *p;
 
-    if (instrument > 0x40)
+    if (instrument > INSTRUMENT_SPEECH)
         DebugTrap();
-    if (instrument == 0x40) {
+    if (instrument == INSTRUMENT_SPEECH) {
         strcpy(wNameEditBuffer, "SPCH");
         return;
     }
@@ -35,7 +35,7 @@ void WriteInstrumentName(UBYTE instrument)
 {
     UBYTE *p;
 
-    if (instrument >= 0x40)
+    if (instrument >= INSTRUMENTS)
         DebugTrap();
     p = SramInstrumentNames + (UWORD)instrument * 5;
     WriteSongByte(0, p++, wNameEditBuffer[0]);

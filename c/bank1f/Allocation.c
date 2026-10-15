@@ -40,7 +40,7 @@ UBYTE ClaimInstrumentSlot(UBYTE instrument)
     UWORD field;
     UWORD p;
 
-    if (instrument >= 0x40)
+    if (instrument >= INSTRUMENTS)
         DebugTrap();
     p = (UWORD)SRAM_INSTRUMENT_ALLOCATION + instrument;
     if (ReadSongByte(1, p))
@@ -68,7 +68,7 @@ UBYTE AllocateNextFreeInstrument(void)
 {
     UBYTE instrument;
 
-    for (instrument = 0; instrument < 0x40; instrument++) {
+    for (instrument = 0; instrument < INSTRUMENTS; instrument++) {
         if (ClaimInstrumentSlot(instrument)) {
             FarCallArgument3(4, (UWORD)WritePhraseInstrument, wPhrase, wPhraseRow, instrument);
             return instrument;
