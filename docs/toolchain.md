@@ -739,13 +739,16 @@ untouched (`make match` verifies all 678).
 3. **Flags.** The default `lcc` compile is `sdcc -mgbz80 --c1mode` after a
    separate `sdcpp` pass (`-DGB=1 -DGAMEBOY=1 -DINT_16_BITS …`); nothing so far
    needed more.
-4. **Whole translation units.** Per-function matching links one function at
-   its address. Reproducing LSDj's original object/link layout (function
-   order within a bank, string literals and `const` tables after their
-   functions, as `DrawTileHexCell`'s table shows) is only needed to build
-   banks from C wholesale.
-5. **Building whole banks from C.** Solved per function (below); building a
-   bank from C wholesale would additionally need LSDj's link order.
+4. **LSDj's source files.** Each module compiles as one unit and each of
+   its functions is linked at its own ROM address, so the build has LSDj's
+   layout without LSDj's link: the function order within a bank, and the
+   string literals and `const` tables SDCC emits after a function
+   (`DrawTileHexCell`'s table) at their addresses. The original files are
+   not recovered and nothing needs them: the modules are named for what they
+   hold, and 18 of the 65 are one contiguous run of ROM; the rest interleave
+   with asm, data and other modules. Only building a bank from C wholesale
+   with GBDK's linker would need the original cut, and the asm and the data
+   in its assembler's syntax besides.
 
 ## Next steps
 
@@ -822,23 +825,41 @@ The checklist:
       the reference (it finds its way round the screen map by search over
       save states: play the song; every screen with cursor moves, an edit and
       a play; the four instrument types; the file screen's load, play and
-      save through the name editor) then seeded random input. It compares
-      the screen and the sound registers every frame, and SRAM at the end. A
-      shifted build is not cycle-identical — a pointer into moved data
-      crosses a page at another step (`inc [hl] / jr nz / inc hl / inc [hl]`)
-      — so a difference counts once it lasts 30 frames. Each run is a child
+      save through the name editor) then seeded random input. Every frame it
+      compares the screen and the sound: the sound registers a program can
+      read back (volumes, envelopes, duty, sweep, the noise channel, panning,
+      the on/off bits), the wave RAM, and whenever the frame's audio differs
+      the period each of PU1, PU2 and WAV plays. Those 11 bits are write-only
+      (they read back `$FF`/`$BF`), so they come from PyBoy's save state: the
+      APU's fields come early in it, a sentinel written to each register
+      finds them (a PyBoy that moves them fails there), and the save stops
+      once it has them. SRAM is compared at the end. A shifted build is not
+      cycle-identical — a pointer into moved data crosses a page at another
+      step (`inc [hl] / jr nz / inc hl / inc [hl]`) — so a difference counts
+      once it lasts 30 frames, and values written a few cycles apart sound
+      the same without sampling the same: the periods decide, not the
+      samples. Each run is a child
       process under a watchdog (PyBoy never returns from a CPU stopped for
       good). On a divergence it reports where an `$FF` (`rst $38`: crash,
       assert, `DebugTrap`) ran and the call chain; `--bisect` narrows down
       the stale target. Bank 0 shifts at `$0391`, past the page-aligned
       tables at `$0200`-`$0390` that SoundCalculateVibratoOffset reaches with
-      `ld d, $02` / `ld h, $03`, which a fork keeps in place.
+      `ld d, $02` / `ld h, $03`, sections pinned at `$0200` and `$0300`.
       Passing: every bank alone (16 bytes) and all at once (1, 3, 5, 7, 9, 11,
-      16, 32 bytes), CGB and DMG, seeds 1-15. Odd sizes matter: a stale
+      16, 32 bytes), CGB and DMG, seeds 1-15 (the DMG 1-5). Odd sizes matter: a stale
       target can land on harmless code at one size and on a `ret` at
       another. It proves what the input reaches, no more.
-- [ ] Behaviour tests on tools/emu for builds that no longer match the ROM:
-      what a fork runs instead of `make compare`.
+- [x] Behaviour tests for builds that no longer match the ROM, what a fork
+      runs instead of `make compare`: `make behaviour`
+      (`tools/behaviour_test.py`) runs the build next to LSDj 9.4.0 itself in
+      the same lockstep, tour and seeded input, as a CGB and as a DMG
+      (`--seeds 1-5`, `--build` for any ROM). Checked on builds changed on
+      purpose: a string the project screen shows (`TxtSyncLsdj`: the screen,
+      frame 3431), the low bit of every note period (`NoteFrequencyTable`:
+      the period PU1/WAV plays, frame 183, as the song starts), an `rst $38`
+      at `DrawSyncField`'s entry (found, with the call chain). A string the
+      input never shows (`TxtSyncOff`: the song syncs to LSDJ) passes, as it
+      should.
 
 A function that won't match doesn't block this: it stays asm, which is just
 as editable once the carve is symbolic, or gets functionally equivalent C

@@ -76,16 +76,15 @@ it and diffing the bytes against the asm/ROM target. No asm baseline ⇒ no way 
 verify C. Track 2 cannot start for a region before Track 1 covers it.
 
 **The hard prerequisite: toolchain recovery.** Matching C requires the *exact*
-original compiler — a period-correct, modified **GBDK 2.95 + its SDCC build**, and
-a matching bank/link layout. SDCC matching is less-trodden than the MIPS/ARM/PPC
-decomp scene, and "modified GBDK" was an unknown, so Track 2 is **gated behind a
-toolchain-recovery spike**: reproduce real LSDj functions byte-for-byte before
-betting on C. **Status:** 678 functions match (`c/`, `make match`) — including
-a 15-case `switch`, 16-bit SRAM addressing and most of the instrument screen's
-helpers — using stock GBDK 2.95-3 / SDCC 2.2.1 plus peephole rules recovered
-from the ROM (`tools/match/lsdj.peep`). Go: the rule set still grows with new
-idioms, and the 226 hand-written asm functions (sound tick, sequencer core,
-~15 KB) and the GBDK/SDCC library routines stay asm. See
+original compiler — a period-correct, modified **GBDK 2.95 + its SDCC build** —
+and each function linked where the ROM has it. SDCC matching is less-trodden
+than the MIPS/ARM/PPC decomp scene, and "modified GBDK" was an unknown, so
+Track 2 was **gated behind a toolchain-recovery spike**: reproduce real LSDj
+functions byte-for-byte before betting on C. **Status:** 678 functions match
+(`c/`, `make match`), every C function in the ROM, using stock GBDK 2.95-3 /
+SDCC 2.2.1 plus 86 peephole rules recovered from the ROM
+(`tools/match/lsdj.peep`); the 226 hand-written asm functions (sound tick,
+sequencer core, ~15 KB) and the GBDK/SDCC library routines stay asm. See
 [`docs/toolchain.md`](docs/toolchain.md).
 
 ## Repository Structure
@@ -132,6 +131,7 @@ idioms, and the 226 hand-written asm functions (sound tick, sequencer core,
 | `tools/show_func.py`, `rom_strings.py`, `annotate_ram.py`, `statevar.py`, `bankmap.py` | Inspection helpers: dump a function by name or address (`--bare`; a matched one is disassembled from the ROM), list the strings at an address, annotate a RAM dump, … |
 | `tools/emu/` | SameBoy-based live-verification harness (see `tools/emu/README.md`) |
 | `tools/shift_test.py` | Shift test for a movable build: pad a bank (`--bank 1f`, `--all`, `--at`, `--by`), run it next to the reference in PyBoy on the same input, report the first divergence, the `rst $38` site and call chain; `--bisect`. Needs `python3 -m venv .venv && .venv/bin/pip install pyboy`; run with `.venv/bin/python` |
+| `tools/behaviour_test.py` | Behaviour test for a build that no longer matches (`make behaviour`): runs it next to the original ROM in PyBoy over the shift test's tour and seeded input (`--build`, `--seeds 1-5`, `--dmg`, `--both`), comparing the screen, the sound (the readable registers, the wave RAM, and the periods PU1/PU2/WAV play) and SRAM; reports the first lasting difference and any `rst $38` |
 | `tools/toolchain/` | The period GBDK 2.95-3 / SDCC 2.2.1: fetch and run under Wine, or build natively (`build_sdcc221.sh`; `--debug` adds the instrumented copy `trace_alloc.py` uses) |
 | `tools/match/` | Track 2: `match_function.py --target` (compile C, link at the ROM address, diff; `--diff` aligns both disassemblies), `verify_all.py` (`make match`; cached batch check, also of files outside `c/`), `peep.py` (our peephole matcher), `code_kind.py` (which functions are matched, C, hand-written asm or library; share of C bytes matched), `shapes.py` (unmatched C functions by size, kind and parked state, or by shape), `rom_grep.py` (count a byte pattern across the code banks by owner: the evidence for a rule), `trace_alloc.py` (the allocator's view of one function: live ranges, homes, extended ranges, hoisting), `to_rgbds.py` (matched C as RGBDS source; `--check` assembles all of it byte-identically: the relocatable build's first step), `merge_c.py` (move matching functions into a module), `split_c.py` (split a module into modules named for what they hold: each takes its functions in ROM order and only the declarations they use), `update_counts.py` (refresh the function/rule counts in the docs and the parked table from `c/parked.txt`) |
 | `tools/match/lsdj.peep` | Peephole rules recovered from LSDj's code — the "modified GBDK" part (`docs/toolchain.md`) |
@@ -155,6 +155,7 @@ make sym        # enrich build/lsdj9_4_0.sym (code+RAM+SRAM) and deploy it (+ a 
 make listing    # build/listing.asm: the whole ROM as one annotated file
 make audit      # diff a pasted Emulicious export (emulicious.out) against our symbols
 make match      # compile every c/bankNN/*.c with the period compiler, assert it matches, write build/c/ + c/matched.json (needs wine)
+make behaviour  # run the build next to the original ROM in PyBoy: the gate once a build no longer matches (needs .venv with pyboy)
 make clean      # remove build/ (and the deployed root .sym); `make tidy` removes only link outputs
 make baseline   # historical: the original INCBIN bootstrap — clobbers src/main.asm
 ```
@@ -166,6 +167,7 @@ Quality gates — all must pass before committing:
 | Reproduction | `make compare` | byte-for-byte identical (exit 0) |
 | Assembles cleanly | `make` | no errors/warnings |
 | No ROM/saves staged | `.githooks/pre-commit` | zero blocked files |
+| Behaviour, for a build that no longer matches (a fork) | `make behaviour` | the same as LSDj 9.4.0 on every run |
 
 Enable the hook once per clone:
 
@@ -641,8 +643,12 @@ Always, before committing:
 
 **Phase 6 — Matching C decompilation (Track 2, if green-lit by Phase 1)**
 - [x] Per-function match workflow (`match_function.py --target`, `make match`)
-- [ ] Reproduce the original bank/link layout under the recovered toolchain
-      (only needed to build banks from C wholesale)
+- [x] The original bank/link layout, decided not needed: the RGBDS build puts
+      each function at its ROM address, between the asm and the data, which
+      is that layout; GBDK's own linker would only matter to build a bank from
+      C wholesale. The modules are named for what they hold, not cut as
+      LSDj's files were (18 of 65 are one contiguous run of ROM; the rest
+      interleave with asm, data and each other)
 - [x] Replace asm functions with matching C, keeping `make compare` green —
       the mechanism is in place (678 functions); now it is a grind: bank by
       bank, editor code first, asm functions stay asm
@@ -661,8 +667,13 @@ Always, before committing:
       bytes run the same as the original over a tour + 6,000 random frames
 - [x] Wider shift coverage: DMG, odd sizes, all banks at once, more seeds,
       the file screen's load/save (a tour recorded on the reference)
-- [ ] Bank 0's page-aligned tables (`$0200`-`$0390`) in fixed sections
-- [ ] Behaviour tests for builds that no longer match: a fork's gate
+- [x] Bank 0's page-aligned tables (`$0200`-`$0390`) in fixed sections:
+      VibratoShapes at `$0200`, VibratoOffsetJumps at `$0300`, the code after
+      them at `$0391` (carve_clean's `PINNED_SECTIONS`); code grown into them
+      fails to link
+- [x] Behaviour tests for builds that no longer match, a fork's gate:
+      `make behaviour` (`tools/behaviour_test.py`) runs the build next to the
+      original ROM, screen, sound (the periods too) and SRAM compared
 - [x] Padding as `ds`: each carved bank's free space pads to the end of the
       bank, and the 30 empty kit slots (`$22`-`$3F`) are `ds $4000, $ff`
 - [x] The fonts and UI tiles as PNGs the carve extracts from your ROM

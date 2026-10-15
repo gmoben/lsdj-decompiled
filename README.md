@@ -146,7 +146,9 @@ match, the recovered compiler model is an accumulator-tracking pass plus 86
 peephole rules with ROM-wide evidence, and matched C feeds the ROM build as RGBDS source translated
 from the compiler's output, gated by `make compare`. The build is movable, the base for a fork that
 adds features: every ROM address in code is a label, and `tools/shift_test.py` runs a build with a
-bank's contents shifted next to the original in an emulator.
+bank's contents shifted next to the original in an emulator. A build that no longer
+matches has `make behaviour` for its gate: it runs next to the original ROM, and the
+screen, the sound and the song data must stay the same.
 See [`docs/toolchain.md`](docs/toolchain.md), and try it:
 
 ```bash
@@ -207,6 +209,8 @@ lsdj-decompiled/
 │   ├── name_locals_full.py  # semantic naming of function-local labels
 │   ├── show_func.py      # dump one function's disassembly by name or bank:addr
 │   ├── rom_strings.py    # list the NUL-terminated strings at an address
+│   ├── shift_test.py     # a bank's contents moved, run next to the build in PyBoy
+│   ├── behaviour_test.py # any build run next to the original ROM (make behaviour)
 │   ├── callgraph.py, farcall_targets.py, find_orphans.py, label_gaps.py,
 │   │   data_refs.py      # audits that drove symbol coverage to 100%
 │   ├── bankmap.py, annotate_ram.py, statevar.py, name_locals.py,
@@ -239,6 +243,7 @@ Common commands:
 ```bash
 make            # build build/lsdj9_4_0.gb
 make compare    # build, then assert it equals the original ROM
+make behaviour  # run the build next to the original ROM in PyBoy (once it no longer matches)
 make carve      # force-regenerate the disassembly from your ROM + src/*.sym
 make verify-rom # check your supplied ROM is the right revision
 make sym        # emit the BANK:ADDR symbol file for emulator debugging

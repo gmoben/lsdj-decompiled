@@ -37,7 +37,7 @@ OBJ    := $(BUILD)/main.o
 SYM    := $(BUILD)/lsdj9_4_0.sym
 MAP    := $(BUILD)/lsdj9_4_0.map
 
-.PHONY: all compare verify-rom sym carve gfx kits listing audit match clean tidy baseline
+.PHONY: all compare behaviour verify-rom sym carve gfx kits listing audit match clean tidy baseline
 .SECONDARY:
 
 all: $(TARGET)
@@ -177,6 +177,14 @@ compare: $(TARGET) | $(BASEROM)
 	cmp $(BASEROM) $(TARGET)
 	@printf '%s  %s\n' "$(ROM_SHA1)" "$(TARGET)" | sha1sum -c -
 	@echo "==> compare OK: build matches the original ROM byte-for-byte."
+
+# A build that no longer matches -- equivalent C, an edit that should not
+# change behaviour, a fork -- runs next to the original ROM instead: a tour of
+# every screen and seeded random input, the screen, sound and SRAM compared
+# (tools/behaviour_test.py; needs PyBoy: python3 -m venv .venv &&
+# .venv/bin/pip install pyboy).
+behaviour: $(TARGET) | $(BASEROM)
+	.venv/bin/python tools/behaviour_test.py --both --original $(BASEROM)
 
 # Confirm a supplied base ROM is the exact expected revision.
 verify-rom: | $(BASEROM)

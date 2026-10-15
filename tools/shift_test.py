@@ -6,7 +6,7 @@ That only works if every reference to a ROM address is a label. This builds
 a variant of the ROM with padding inserted in a bank -- taken back from the
 bank's trailing $FF fill, so the bank keeps its size and nothing else moves --
 and runs it next to the unshifted build in PyBoy, on the same SRAM and the
-same input, comparing the screen and the sound registers every frame. A
+same input, comparing the screen and the sound every frame. A
 reference the carve still holds as a number (a pointer table in data, an
 address loaded a byte at a time, a table that relies on page alignment)
 points at the wrong bytes in the shifted build, and the two drift apart.
@@ -256,10 +256,101 @@ def monkey(seed: int, frames: int) -> list[tuple[int, list[str]]]:
 
 def open_rom(rom: Path, sav: bytes, dmg: bool):
     from pyboy import PyBoy
-    pb = PyBoy(str(rom), window="null", sound_emulated=False, cgb=not dmg,
+    # the APU emulated: without it PyBoy reads every sound register as 0
+    pb = PyBoy(str(rom), window="null", sound_emulated=True, cgb=not dmg,
                ram_file=io.BytesIO(sav), log_level="ERROR")
     pb.set_emulation_speed(0)
     return pb
+
+
+# --- what the sound channels play ---------------------------------------------
+
+class _Enough(Exception):
+    pass
+
+
+class _Head:
+    """A file for PyBoy.save_state that keeps the first `n` bytes and then
+    stops the save. The APU's state comes early in a save state (after the
+    CPU and the LCD, before RAM), and saving only reads the emulator, so
+    stopping part-way costs nothing but the bytes not written."""
+
+    def __init__(self, n: int):
+        self.n, self.data = n, bytearray()
+
+    def write(self, b: bytes) -> int:
+        self.data += b
+        if len(self.data) >= self.n:
+            raise _Enough
+        return len(b)
+
+    def flush(self) -> None:
+        pass
+
+
+def _state_head(pb, n: int) -> bytes:
+    head = _Head(n)
+    try:
+        pb.save_state(head)
+    except _Enough:
+        pass
+    return bytes(head.data)
+
+
+CHANNEL_PERIODS = (("PU1", 0xFF13, 0xFF14), ("PU2", 0xFF18, 0xFF19), ("WAV", 0xFF1D, 0xFF1E))
+
+
+class Periods:
+    """The period each of PU1, PU2 and WAV plays: the 11 bits a program
+    writes to NRx3/NRx4, which are write-only (they read back $FF/$BF, so
+    comparing the sound registers can't see a pitch). PyBoy's save state
+    holds them; where, is found by writing two sentinels to each register
+    with nothing run in between and seeing which byte takes both values --
+    a PyBoy whose state moved on fails here instead of passing blind."""
+
+    def __init__(self, rom: Path, dmg: bool):
+        pb = open_rom(rom, bytes(0x20000), dmg)
+        try:
+            for _ in range(2):
+                pb.tick()
+            pb.memory[0xFF26] = 0x80               # APU on: writes count only then
+            whole = lambda: _state_head(pb, 1 << 30)
+            self.offsets: list[int] = []
+            for name, low, high in CHANNEL_PERIODS:
+                for reg, first, second in ((low, 0x5A, 0xA5), (high, 0x05, 0x02)):
+                    s0 = whole(); pb.memory[reg] = first
+                    s1 = whole(); pb.memory[reg] = second
+                    s2 = whole()
+                    hits = [i for i in range(min(len(s0), len(s1), len(s2)))
+                            if s1[i] == first and s2[i] == second and s0[i] != first]
+                    if len(hits) != 1:
+                        raise RuntimeError(f"can't find {name}'s period in PyBoy's save state "
+                                           f"(${reg:04X}: {len(hits)} candidates)")
+                    self.offsets += hits
+        finally:
+            pb.stop(save=False)
+        self.n = max(self.offsets) + 1
+
+    def __call__(self, pb) -> list[int]:
+        head = _state_head(pb, self.n)
+        o = self.offsets
+        return [head[o[k]] | (head[o[k + 1]] & 7) << 8 for k in range(0, len(o), 2)]
+
+
+def sound_difference(a, b, periods: Periods) -> str | None:
+    """What differs in what the two play, or None: the sound registers a
+    program can read back (volumes, envelopes, duty, sweep, the noise
+    channel, panning, the on/off bits) and the wave RAM every frame; the
+    periods only when the frame's audio differs, since the same values
+    written a few cycles apart sound the same but don't sample the same."""
+    if a.memory[0xFF10:0xFF40] != b.memory[0xFF10:0xFF40]:
+        return "sound registers"
+    import numpy as np
+    if np.array_equal(a.sound.ndarray, b.sound.ndarray):
+        return None
+    pa, pb_ = periods(a), periods(b)
+    off = [name for (name, _, _), x, y in zip(CHANNEL_PERIODS, pa, pb_) if x != y]
+    return f"the period {'/'.join(off)} plays" if off else None
 
 
 def sram(pb) -> bytes:
@@ -271,13 +362,14 @@ def sram(pb) -> bytes:
 def lockstep(rom_a: Path, rom_b: Path, sav: bytes, steps, dmg: bool = False,
              progress=None, grace: int = 30) -> tuple[int, str] | None:
     """Run both ROMs on the same input, comparing the screen and the sound
-    registers every frame. A shifted build is not cycle-identical -- a
+    (sound_difference) every frame. A shifted build is not cycle-identical -- a
     pointer into moved data crosses a page at another step (`inc [hl] /
     jr nz / inc hl / inc [hl]`), a few cycles -- so a redraw can slip a frame;
     a difference counts once it lasts `grace` frames. At the end, SRAM (the
     song data the input edited) must be identical. The first frame of a
     lasting difference and what differs, or None."""
     import numpy as np
+    periods = Periods(rom_a, dmg)
     a, b = open_rom(rom_a, sav, dmg), open_rom(rom_b, sav, dmg)
     held: set[str] = set()
     frame = 0
@@ -294,10 +386,8 @@ def lockstep(rom_a: Path, rom_b: Path, sav: bytes, steps, dmg: bool = False,
                 frame += 1
                 if progress is not None:
                     progress.value = frame
-                what = None
-                if a.memory[0xFF10:0xFF40] != b.memory[0xFF10:0xFF40]:
-                    what = "sound registers"
-                elif not np.array_equal(a.screen.ndarray, b.screen.ndarray):
+                what = sound_difference(a, b, periods)
+                if what is None and not np.array_equal(a.screen.ndarray, b.screen.ndarray):
                     what = "screen"
                 if what is None:
                     since = None
@@ -321,16 +411,20 @@ def lockstep(rom_a: Path, rom_b: Path, sav: bytes, steps, dmg: bool = False,
 
 
 def symbol_at(rom: Path, bank: int, addr: int) -> str:
-    """`Name+off` for an address, from the build's rgblink .sym."""
+    """`Name+off` for an address, from the rgblink .sym beside the ROM, or
+    the bare address when it has none."""
     best = None
-    for line in rom.with_suffix(".sym").read_text().splitlines():
+    sym = rom.with_suffix(".sym")
+    lines = sym.read_text().splitlines() if sym.is_file() else []
+    for line in lines:
         m = re.match(r"^([0-9a-f]{2}):([0-9a-f]{4}) (\S+)", line, re.I)
         if not m or re.search(r"\.L\d{5}$", m.group(3)):
             continue
         b, a = int(m.group(1), 16), int(m.group(2), 16)
         if (b == (0 if addr < 0x4000 else bank)) and a <= addr and (best is None or a >= best[0]):
             best = (a, m.group(3))
-    return f"{best[1]}+${addr - best[0]:X}" if best else f"${addr:04x}"
+    where = f"${0 if addr < 0x4000 else bank:02X}:${addr:04X}"
+    return f"{best[1]}+${addr - best[0]:X}" if best else where
 
 
 def crash_site(rom: Path, sav: bytes, steps, dmg: bool, until: int, progress=None) -> str | None:
