@@ -82,7 +82,7 @@ void DrawGrooveSteps(void)
 
     if (wGroove >= 0x20)
         DebugTrap();
-    ReadSongBytes(0, (UBYTE *)(((UWORD)wGroove << 4) + (UWORD)0xB090), wSongReadBuffer);
+    ReadSongBytes(0, (UBYTE *)(((UWORD)wGroove << 4) + (UWORD)SRAM_GROOVES), wSongReadBuffer);
     hBgDigitPalette = 4;
     hBgPalette = 1;
     for (step = 0; step < 0x10; step++) {

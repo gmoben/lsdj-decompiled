@@ -77,7 +77,7 @@ void ReceiveLinkClipboard(void);                /* bank $1C */
 void SyncLoadSetting(void)
 {
     wSyncMode = *SramPropertySyncMode;
-    wSyncMode2 = *SramPropertySyncMode2;
+    wSyncMode2 = *SramPropertySyncParameter;
     if (wSyncMode > 7)
         wSyncMode = 0;
     if (!wSyncMode2)

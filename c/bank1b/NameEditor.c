@@ -205,7 +205,7 @@ void CommitNameEdit(void)
     } else if (wNameEditIsInstrument) {
         FarCallArgument(1, FAR_FN(WriteInstrumentName), wInstrument);
     } else {
-        p = (UBYTE *)0xBDD0 + wSpeechRow * 3;
+        p = SramWordNames + wSpeechRow * 3;
         WriteSongByte(0, p++, wNameEditBuffer[0]);
         WriteSongByte(0, p++, wNameEditBuffer[1]);
         WriteSongByte(0, p, wNameEditBuffer[2]);

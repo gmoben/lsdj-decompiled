@@ -129,16 +129,16 @@ void FormatSramSong(void)
     rRAMB = 0;
     ClearSramWindow();
     FarCall(7, FAR_FN(ClearBookmarks));
-    *(UBYTE *)0xBE78 = 'r';
-    *(UBYTE *)0xBE79 = 'b';
-    for (p = (UBYTE *)0xB090; p != (UBYTE *)0xB290; ) {
+    *SramInitializedMarker1 = 'r';
+    *(SramInitializedMarker1 + 1) = 'b';
+    for (p = SramGrooves; p != (UBYTE *)0xB290; ) {
         *p = 6;
         p++;
         *p = 6;
         p += 0x0F;
     }
-    FillMemory((UBYTE *)0xB290, 0xFF, 0x400);
-    p = (UBYTE *)0xBDD0;
+    FillMemory(SramSequence, 0xFF, 0x400);
+    p = SramWordNames;
     i = 0;
     do {
         *p = 'W';
@@ -151,12 +151,12 @@ void FormatSramSong(void)
         i++;
     } while (p != (UBYTE *)0xBDFA);
     rRAMB = 1;
-    s0 = *(UBYTE *)0xBFB6;
-    s1 = *(UBYTE *)0xBFB7;
-    s2 = *(UBYTE *)0xBFB8;
+    s0 = *SramPropertyTotalTime;
+    s1 = *(SramPropertyTotalTime + 1);
+    s2 = *(SramPropertyTotalTime + 2);
     ClearSramWindow();
-    FillMemory((UBYTE *)0xBFC6, 0xFF, 4);
-    *(UBYTE *)0xBFB6 = s0;
+    FillMemory(SramPropertyColumnInstruments, 0xFF, 4);
+    *SramPropertyTotalTime = s0;
     *(UBYTE *)0xBFB7 = s1;
     *(UBYTE *)0xBFB8 = s2;
     *(UBYTE *)0xBFC3 = 1;
@@ -170,25 +170,25 @@ void FormatSramSong(void)
     _endasm;
     rRAMG = 0x0A;
     rRAMB = 1;
-    *(UBYTE *)0xBE80 = 'r';
-    *(UBYTE *)0xBE81 = 'b';
-    *(UBYTE *)0xBFB4 = 0x80;
-    *(UBYTE *)0xBFBA = 7;
-    *(UBYTE *)0xBFBB = 2;
+    *SramInitializedMarker2 = 'r';
+    *(SramInitializedMarker2 + 1) = 'b';
+    *SramPropertyTempo = 0x80;
+    *SramPropertyKeyDelay = 7;
+    *SramPropertyKeyRepeat = 2;
     wColorSet = 0;
-    FillMemory((UBYTE *)0xA080, 0xFF, 0x800);
-    for (p = (UBYTE *)0xBEB2; p != (UBYTE *)0xBFB2; p += 0x10) {
+    FillMemory(SramChainPhrases, 0xFF, 0x800);
+    for (p = SramSynthParameters; p != (UBYTE *)0xBFB2; p += 0x10) {
         p[5] = 0x10;
         p[9] = 0x10;
         p[6] = 0xFF;
         p[10] = 0xFF;
     }
     rRAMB = 3;
-    *(UBYTE *)0xBFF0 = 'r';
-    *(UBYTE *)0xBFF1 = 'b';
-    for (p = (UBYTE *)0xA000; p < (UBYTE *)0xB000; p += 0x10)
+    *SramInitializedMarker3 = 'r';
+    *(SramInitializedMarker3 + 1) = 'b';
+    for (p = SramWaveFrames; p < (UBYTE *)0xB000; p += 0x10)
         memcpy((void *)p, DefaultWaveFrameB1, 0x10);
-    *(UBYTE *)0xBFFF = 0x16;
+    *(SramInitializedMarker3 + 15) = 0x16;
     _asm
         ei
     _endasm;

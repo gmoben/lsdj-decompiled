@@ -326,12 +326,12 @@ void ReadTableStep(void)
 
     t = wTable & 0x1F;
     t <<= 4;
-    p0 = (UBYTE *)0xB690 + t;
-    p1 = (UBYTE *)0xB480 + t;
-    p2 = (UBYTE *)0xB680 + t;
-    p3 = (UBYTE *)0xBA80 + t;
-    p4 = (UBYTE *)0xB880 + t;
-    t += (UWORD)0xBC80;
+    p0 = SramTableEnvelopes + t;
+    p1 = SramTableTransposes + t;
+    p2 = SramTableCommands1 + t;
+    p3 = SramTableCommands2 + t;
+    p4 = SramTableCommandValues1 + t;
+    t += (UWORD)SRAM_TABLE_COMMAND_VALUES2;
     ReadSongBytes(0, p0, wSongReadBuffer);
     ReadSongBytes(1, p1, (UBYTE *)ROW_BUFFER_COLUMN(1));
     ReadSongBytes(1, p2, (UBYTE *)ROW_BUFFER_COLUMN(2));
@@ -463,13 +463,13 @@ void DrawTableCursor(void)
     switch (wTableColumn) {
     case 2:
     case 3:
-        wTableCellAPointer = 0xB680;
-        wTableCellBPointer = 0xB880;
+        wTableCellAPointer = SRAM_TABLE_COMMANDS1;
+        wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES1;
         break;
     case 4:
     case 5:
-        wTableCellAPointer = 0xBA80;
-        wTableCellBPointer = 0xBC80;
+        wTableCellAPointer = SRAM_TABLE_COMMANDS2;
+        wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES2;
         break;
     }
 }
@@ -534,11 +534,11 @@ UBYTE TableScreenInput(void)
             break;
         SetVramCursor(TableColumnX[wTableColumn], wTableRow + 2);
         if (wTableColumn > 3) {
-            wTableCellAPointer = 0xBA80;
-            wTableCellBPointer = 0xBC80;
+            wTableCellAPointer = SRAM_TABLE_COMMANDS2;
+            wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES2;
         } else {
-            wTableCellAPointer = 0xB680;
-            wTableCellBPointer = 0xB880;
+            wTableCellAPointer = SRAM_TABLE_COMMANDS1;
+            wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES1;
         }
         switch (wTableColumn) {
         case 0:
@@ -625,13 +625,13 @@ UBYTE TableScreenInput(void)
             switch (wTableColumn) {
             case 2:
             case 3:
-                wTableCellAPointer = 0xB680;
-                wTableCellBPointer = 0xB880;
+                wTableCellAPointer = SRAM_TABLE_COMMANDS1;
+                wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES1;
                 break;
             case 4:
             case 5:
-                wTableCellAPointer = 0xBA80;
-                wTableCellBPointer = 0xBC80;
+                wTableCellAPointer = SRAM_TABLE_COMMANDS2;
+                wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES2;
                 break;
             }
             SetVramCursor(TableColumnX[wTableColumn], row + 2);
@@ -722,13 +722,13 @@ UBYTE TableScreenInput(void)
             switch (wTableColumn) {
             case 2:
             case 3:
-                wTableCellAPointer = 0xB680;
-                wTableCellBPointer = 0xB880;
+                wTableCellAPointer = SRAM_TABLE_COMMANDS1;
+                wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES1;
                 break;
             case 4:
             case 5:
-                wTableCellAPointer = 0xBA80;
-                wTableCellBPointer = 0xBC80;
+                wTableCellAPointer = SRAM_TABLE_COMMANDS2;
+                wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES2;
                 break;
             }
             SetVramCursor(TableColumnX[wTableColumn], row + 2);
@@ -812,13 +812,13 @@ UBYTE TableScreenInput(void)
             switch (wTableColumn) {
             case 2:
             case 3:
-                wTableCellAPointer = 0xB680;
-                wTableCellBPointer = 0xB880;
+                wTableCellAPointer = SRAM_TABLE_COMMANDS1;
+                wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES1;
                 break;
             case 4:
             case 5:
-                wTableCellAPointer = 0xBA80;
-                wTableCellBPointer = 0xBC80;
+                wTableCellAPointer = SRAM_TABLE_COMMANDS2;
+                wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES2;
                 break;
             }
             SetVramCursor(TableColumnX[wTableColumn], row + 2);
@@ -909,13 +909,13 @@ UBYTE TableScreenInput(void)
             switch (wTableColumn) {
             case 2:
             case 3:
-                wTableCellAPointer = 0xB680;
-                wTableCellBPointer = 0xB880;
+                wTableCellAPointer = SRAM_TABLE_COMMANDS1;
+                wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES1;
                 break;
             case 4:
             case 5:
-                wTableCellAPointer = 0xBA80;
-                wTableCellBPointer = 0xBC80;
+                wTableCellAPointer = SRAM_TABLE_COMMANDS2;
+                wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES2;
                 break;
             }
             SetVramCursor(TableColumnX[wTableColumn], row + 2);
@@ -1043,8 +1043,8 @@ UBYTE TableScreenInput(void)
         case 3:
             wSelectionLeft = 2;
             wSelectionRight = 4;
-            wTableCellAPointer = 0xB680;
-            wTableCellBPointer = 0xB880;
+            wTableCellAPointer = SRAM_TABLE_COMMANDS1;
+            wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES1;
             v = ReadTableCommand((char)wTableRow);
             if (v)
                 wColumnLastCommand[wSongColumn] = v;
@@ -1057,8 +1057,8 @@ UBYTE TableScreenInput(void)
         case 5:
             wSelectionLeft = 4;
             wSelectionRight = 6;
-            wTableCellAPointer = 0xBA80;
-            wTableCellBPointer = 0xBC80;
+            wTableCellAPointer = SRAM_TABLE_COMMANDS2;
+            wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES2;
             v = ReadTableCommand((char)wTableRow);
             if (v)
                 wColumnLastCommand[wSongColumn] = v;
@@ -1108,18 +1108,18 @@ UBYTE TableScreenInput(void)
         if (wButtonsSame)
             break;
         if (wTableColumn == 2 || wTableColumn == 3) {
-            a = (UWORD)0xB680 + ((UWORD)wTable << 4);
+            a = (UWORD)SRAM_TABLE_COMMANDS1 + ((UWORD)wTable << 4);
             a += (UWORD)wTableRow;
             if (ReadSongByte(1, a) == 7) {
-                b = (UWORD)0xB880 + ((UWORD)wTable << 4);
+                b = (UWORD)SRAM_TABLE_COMMAND_VALUES1 + ((UWORD)wTable << 4);
                 b += (UWORD)wTableRow;
                 wGroove = ReadSongByte(1, b) & 0x1F;
             }
         } else if (wTableColumn > 3) {
-            b = (UWORD)0xBA80 + ((UWORD)wTable << 4);
+            b = (UWORD)SRAM_TABLE_COMMANDS2 + ((UWORD)wTable << 4);
             b += (UWORD)wTableRow;
             if (ReadSongByte(1, b) == 7) {
-                b = (UWORD)0xBC80 + ((UWORD)wTable << 4);
+                b = (UWORD)SRAM_TABLE_COMMAND_VALUES2 + ((UWORD)wTable << 4);
                 b += (UWORD)wTableRow;
                 wGroove = ReadSongByte(1, b) & 0x1F;
             }
@@ -1221,29 +1221,29 @@ void CutCopyTableSelection(UBYTE cut)
                     WriteTableTranspose(row, 0);
                 break;
             case 2:
-                wTableCellAPointer = 0xB680;
-                wTableCellBPointer = 0xB880;
+                wTableCellAPointer = SRAM_TABLE_COMMANDS1;
+                wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES1;
                 WriteClipboardCell(2, row, ReadTableCommand(row));
                 if (cut)
                     WriteTableCommand(row, 0);
                 break;
             case 3:
-                wTableCellAPointer = 0xB680;
-                wTableCellBPointer = 0xB880;
+                wTableCellAPointer = SRAM_TABLE_COMMANDS1;
+                wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES1;
                 WriteClipboardCell(3, row, ReadTableValue(row));
                 if (cut)
                     WriteTableValue(row, 0);
                 break;
             case 4:
-                wTableCellAPointer = 0xBA80;
-                wTableCellBPointer = 0xBC80;
+                wTableCellAPointer = SRAM_TABLE_COMMANDS2;
+                wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES2;
                 WriteClipboardCell(4, row, ReadTableCommand(row));
                 if (cut)
                     WriteTableCommand(row, 0);
                 break;
             case 5:
-                wTableCellAPointer = 0xBA80;
-                wTableCellBPointer = 0xBC80;
+                wTableCellAPointer = SRAM_TABLE_COMMANDS2;
+                wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES2;
                 WriteClipboardCell(5, row, ReadTableValue(row));
                 if (cut)
                     WriteTableValue(row, 0);
@@ -1295,43 +1295,43 @@ void PasteTableCells(void)
             case 2:
                 v = ReadClipboardCell(fromPhrase + 2, row);
                 if (swap) {
-                    wTableCellAPointer = 0xBA80;
-                    wTableCellBPointer = 0xBC80;
+                    wTableCellAPointer = SRAM_TABLE_COMMANDS2;
+                    wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES2;
                     if (v == 0x0A)
                         v = 0;
                 } else {
-                    wTableCellAPointer = 0xB680;
-                    wTableCellBPointer = 0xB880;
+                    wTableCellAPointer = SRAM_TABLE_COMMANDS1;
+                    wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES1;
                 }
                 WriteTableCommand(wTableRow, v);
                 break;
             case 3:
                 if (swap) {
-                    wTableCellAPointer = 0xBA80;
-                    wTableCellBPointer = 0xBC80;
+                    wTableCellAPointer = SRAM_TABLE_COMMANDS2;
+                    wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES2;
                 } else {
-                    wTableCellAPointer = 0xB680;
-                    wTableCellBPointer = 0xB880;
+                    wTableCellAPointer = SRAM_TABLE_COMMANDS1;
+                    wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES1;
                 }
                 WriteTableValue(wTableRow, ReadClipboardCell(fromPhrase + 3, row));
                 break;
             case 4:
                 if (swap) {
-                    wTableCellAPointer = 0xB680;
-                    wTableCellBPointer = 0xB880;
+                    wTableCellAPointer = SRAM_TABLE_COMMANDS1;
+                    wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES1;
                 } else {
-                    wTableCellAPointer = 0xBA80;
-                    wTableCellBPointer = 0xBC80;
+                    wTableCellAPointer = SRAM_TABLE_COMMANDS2;
+                    wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES2;
                 }
                 WriteTableCommand(wTableRow, ReadClipboardCell(4, row));
                 break;
             case 5:
                 if (swap) {
-                    wTableCellAPointer = 0xB680;
-                    wTableCellBPointer = 0xB880;
+                    wTableCellAPointer = SRAM_TABLE_COMMANDS1;
+                    wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES1;
                 } else {
-                    wTableCellAPointer = 0xBA80;
-                    wTableCellBPointer = 0xBC80;
+                    wTableCellAPointer = SRAM_TABLE_COMMANDS2;
+                    wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES2;
                 }
                 WriteTableValue(wTableRow, ReadClipboardCell(5, row));
                 break;

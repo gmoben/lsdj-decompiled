@@ -182,44 +182,102 @@ extern UBYTE wSyncMode;                     /* $CB66 */
 extern UBYTE wSyncMode2;                    /* $CB67 */
 
 /* --- the working song in SRAM (docs/data_model.md; tools/gen_sym.py) ------- */
+/* A region's address is a number, SRAM_X, and its bytes a pointer, SramX: a
+ * literal pointer, which SDCC swaps to the right of `+` as LSDj's code did.
+ * SRAM is four banks at $A000: the same address is a different region in
+ * each, so a name says which bank it is in. */
 
-#define SramPhraseNotes        ((UBYTE *)0xA000)   /* SRAM bank 0, song +$0000 */
-#define SramBookmarks          ((UBYTE *)0xAFF0)   /* SRAM bank 0, song +$0FF0 */
-#define SramGrooves            ((UBYTE *)0xB090)   /* SRAM bank 0, song +$1090 */
-#define SramSequence           ((UBYTE *)0xB290)   /* SRAM bank 0, song +$1290 */
-#define SramTableEnvelopes     ((UBYTE *)0xB690)   /* SRAM bank 0, song +$1690 */
-#define SramWords              ((UBYTE *)0xB890)   /* SRAM bank 0, song +$1890 */
-#define SramWordNames          ((UBYTE *)0xBDD0)   /* SRAM bank 0, song +$1DD0 */
-#define SramInitializedMarker1          ((UBYTE *)0xBE78)   /* SRAM bank 0, song +$1E78 */
-#define SramInstrumentNames         ((UBYTE *)0xBE7A)   /* SRAM bank 0, song +$1E7A */
-#define SramTableAllocation         ((UBYTE *)0xA020)   /* SRAM bank 1, song +$2020 */
-#define SramInstrumentAllocation         ((UBYTE *)0xA040)   /* SRAM bank 1, song +$2040 */
-#define SramChainPhrases       ((UBYTE *)0xA080)   /* SRAM bank 1, song +$2080 */
-#define SramChainTransposes    ((UBYTE *)0xA880)   /* SRAM bank 1, song +$2880 */
-#define SramInstruments        ((UBYTE *)0xB080)   /* SRAM bank 1, song +$3080 */
-#define SramTableTransposes    ((UBYTE *)0xB480)   /* SRAM bank 1, song +$3480 */
-#define SramTableCommands1          ((UBYTE *)0xB680)   /* SRAM bank 1, song +$3680 */
-#define SramTableCommands2          ((UBYTE *)0xBA80)   /* SRAM bank 1, song +$3A80 */
-#define SramInitializedMarker2          ((UBYTE *)0xBE80)   /* SRAM bank 1, song +$3E80 */
-#define SramPhraseAllocation        ((UBYTE *)0xBE82)   /* SRAM bank 1, song +$3E82 */
-#define SramChainAllocation         ((UBYTE *)0xBEA2)   /* SRAM bank 1, song +$3EA2 */
-#define SramSynthParameters        ((UBYTE *)0xBEB2)   /* SRAM bank 1, song +$3EB2 */
-#define SramProperties         ((UBYTE *)0xBFB2)   /* SRAM bank 1, song +$3FB2 */
-#define SramPropertyTempo          ((UBYTE *)0xBFB4)   /* SRAM bank 1, song +$3FB4 */
-#define SramPropertyKeyDelay       ((UBYTE *)0xBFBA)   /* SRAM bank 1, song +$3FBA */
-#define SramPropertyKeyRepeat      ((UBYTE *)0xBFBB)   /* SRAM bank 1, song +$3FBB */
-#define SramPropertyPrelisten      ((UBYTE *)0xBFBC)   /* SRAM bank 1, song +$3FBC */
-#define SramPropertySyncMode       ((UBYTE *)0xBFBD)   /* SRAM bank 1, song +$3FBD */
-#define SramPropertyColorSet       ((UBYTE *)0xBFBE)   /* SRAM bank 1, song +$3FBE */
-#define SramPropertySyncMode2      ((UBYTE *)0xBFBF)   /* SRAM bank 1, song +$3FBF */
-#define SramPropertyCloneMode      ((UBYTE *)0xBFC0)   /* SRAM bank 1, song +$3FC0 */
-#define SramPropertyActiveFile     ((UBYTE *)0xBFC1)   /* SRAM bank 1, song +$3FC1 */
-#define SramPropertyTempoMode      ((UBYTE *)0xBFCC)   /* SRAM bank 1, song +$3FCC */
-#define SramPhraseCommands           ((UBYTE *)0xA000)   /* SRAM bank 2, song +$4000 */
-#define SramPhraseCommandValues        ((UBYTE *)0xAFF0)   /* SRAM bank 2, song +$4FF0 */
-#define SramWaveFrames         ((UBYTE *)0xA000)   /* SRAM bank 3, song +$6000 */
-#define SramPhraseInstruments  ((UBYTE *)0xB000)   /* SRAM bank 3, song +$7000 */
-#define SramInitializedMarker3          ((UBYTE *)0xBFF0)   /* SRAM bank 3, song +$7FF0 */
+#define SRAM_PHRASE_NOTES                  0xA000   /* bank 0, song +$0000 */
+#define SRAM_BOOKMARKS                     0xAFF0   /* bank 0, song +$0FF0 */
+#define SRAM_GROOVES                       0xB090   /* bank 0, song +$1090 */
+#define SRAM_SEQUENCE                      0xB290   /* bank 0, song +$1290 */
+#define SRAM_TABLE_ENVELOPES               0xB690   /* bank 0, song +$1690 */
+#define SRAM_WORDS                         0xB890   /* bank 0, song +$1890 */
+#define SRAM_WORD_NAMES                    0xBDD0   /* bank 0, song +$1DD0 */
+#define SRAM_INITIALIZED_MARKER1           0xBE78   /* bank 0, song +$1E78 */
+#define SRAM_INSTRUMENT_NAMES              0xBE7A   /* bank 0, song +$1E7A */
+#define SRAM_TABLE_ALLOCATION              0xA020   /* bank 1, song +$2020 */
+#define SRAM_INSTRUMENT_ALLOCATION         0xA040   /* bank 1, song +$2040 */
+#define SRAM_CHAIN_PHRASES                 0xA080   /* bank 1, song +$2080 */
+#define SRAM_CHAIN_TRANSPOSES              0xA880   /* bank 1, song +$2880 */
+#define SRAM_INSTRUMENTS                   0xB080   /* bank 1, song +$3080 */
+#define SRAM_TABLE_TRANSPOSES              0xB480   /* bank 1, song +$3480 */
+#define SRAM_TABLE_COMMANDS1               0xB680   /* bank 1, song +$3680 */
+#define SRAM_TABLE_COMMAND_VALUES1         0xB880   /* bank 1, song +$3880 */
+#define SRAM_TABLE_COMMANDS2               0xBA80   /* bank 1, song +$3A80 */
+#define SRAM_TABLE_COMMAND_VALUES2         0xBC80   /* bank 1, song +$3C80 */
+#define SRAM_INITIALIZED_MARKER2           0xBE80   /* bank 1, song +$3E80 */
+#define SRAM_PHRASE_ALLOCATION             0xBE82   /* bank 1, song +$3E82 */
+#define SRAM_CHAIN_ALLOCATION              0xBEA2   /* bank 1, song +$3EA2 */
+#define SRAM_SYNTH_PARAMETERS              0xBEB2   /* bank 1, song +$3EB2 */
+#define SRAM_PROPERTIES                    0xBFB2   /* bank 1, song +$3FB2 */
+#define SRAM_PROPERTY_TEMPO                0xBFB4   /* bank 1, song +$3FB4 */
+#define SRAM_PROPERTY_TRANSPOSE            0xBFB5   /* bank 1, song +$3FB5 */
+#define SRAM_PROPERTY_TOTAL_TIME           0xBFB6   /* bank 1, song +$3FB6 */
+#define SRAM_PROPERTY_KEY_DELAY            0xBFBA   /* bank 1, song +$3FBA */
+#define SRAM_PROPERTY_KEY_REPEAT           0xBFBB   /* bank 1, song +$3FBB */
+#define SRAM_PROPERTY_FONT                 0xBFBC   /* bank 1, song +$3FBC */
+#define SRAM_PROPERTY_SYNC_MODE            0xBFBD   /* bank 1, song +$3FBD */
+#define SRAM_PROPERTY_COLOR_SET            0xBFBE   /* bank 1, song +$3FBE */
+#define SRAM_PROPERTY_SYNC_PARAMETER       0xBFBF   /* bank 1, song +$3FBF */
+#define SRAM_PROPERTY_CLONE_MODE           0xBFC0   /* bank 1, song +$3FC0 */
+#define SRAM_PROPERTY_FILE_CHANGED         0xBFC1   /* bank 1, song +$3FC1 */
+#define SRAM_PROPERTY_POWER_SAVE           0xBFC2   /* bank 1, song +$3FC2 */
+#define SRAM_PROPERTY_PRELISTEN            0xBFC3   /* bank 1, song +$3FC3 */
+#define SRAM_PROPERTY_COLUMN_INSTRUMENTS   0xBFC6   /* bank 1, song +$3FC6 */
+#define SRAM_PROPERTY_TEMPO_MODE           0xBFCC   /* bank 1, song +$3FCC */
+#define SRAM_PHRASE_COMMANDS               0xA000   /* bank 2, song +$4000 */
+#define SRAM_PHRASE_COMMAND_VALUES         0xAFF0   /* bank 2, song +$4FF0 */
+#define SRAM_WAVE_FRAMES                   0xA000   /* bank 3, song +$6000 */
+#define SRAM_PHRASE_INSTRUMENTS            0xB000   /* bank 3, song +$7000 */
+#define SRAM_INITIALIZED_MARKER3           0xBFF0   /* bank 3, song +$7FF0 */
+#define SRAM_PROPERTY_WORK_TIME            SRAM_PROPERTIES   /* hours, minutes */
+
+#define SramPhraseNotes                ((UBYTE *)SRAM_PHRASE_NOTES)
+#define SramBookmarks                  ((UBYTE *)SRAM_BOOKMARKS)
+#define SramGrooves                    ((UBYTE *)SRAM_GROOVES)
+#define SramSequence                   ((UBYTE *)SRAM_SEQUENCE)
+#define SramTableEnvelopes             ((UBYTE *)SRAM_TABLE_ENVELOPES)
+#define SramWords                      ((UBYTE *)SRAM_WORDS)
+#define SramWordNames                  ((UBYTE *)SRAM_WORD_NAMES)
+#define SramInitializedMarker1         ((UBYTE *)SRAM_INITIALIZED_MARKER1)
+#define SramInstrumentNames            ((UBYTE *)SRAM_INSTRUMENT_NAMES)
+#define SramTableAllocation            ((UBYTE *)SRAM_TABLE_ALLOCATION)
+#define SramInstrumentAllocation       ((UBYTE *)SRAM_INSTRUMENT_ALLOCATION)
+#define SramChainPhrases               ((UBYTE *)SRAM_CHAIN_PHRASES)
+#define SramChainTransposes            ((UBYTE *)SRAM_CHAIN_TRANSPOSES)
+#define SramInstruments                ((UBYTE *)SRAM_INSTRUMENTS)
+#define SramTableTransposes            ((UBYTE *)SRAM_TABLE_TRANSPOSES)
+#define SramTableCommands1             ((UBYTE *)SRAM_TABLE_COMMANDS1)
+#define SramTableCommandValues1        ((UBYTE *)SRAM_TABLE_COMMAND_VALUES1)
+#define SramTableCommands2             ((UBYTE *)SRAM_TABLE_COMMANDS2)
+#define SramTableCommandValues2        ((UBYTE *)SRAM_TABLE_COMMAND_VALUES2)
+#define SramInitializedMarker2         ((UBYTE *)SRAM_INITIALIZED_MARKER2)
+#define SramPhraseAllocation           ((UBYTE *)SRAM_PHRASE_ALLOCATION)
+#define SramChainAllocation            ((UBYTE *)SRAM_CHAIN_ALLOCATION)
+#define SramSynthParameters            ((UBYTE *)SRAM_SYNTH_PARAMETERS)
+#define SramProperties                 ((UBYTE *)SRAM_PROPERTIES)
+#define SramPropertyTempo              ((UBYTE *)SRAM_PROPERTY_TEMPO)
+#define SramPropertyTranspose          ((UBYTE *)SRAM_PROPERTY_TRANSPOSE)
+#define SramPropertyTotalTime          ((UBYTE *)SRAM_PROPERTY_TOTAL_TIME)
+#define SramPropertyKeyDelay           ((UBYTE *)SRAM_PROPERTY_KEY_DELAY)
+#define SramPropertyKeyRepeat          ((UBYTE *)SRAM_PROPERTY_KEY_REPEAT)
+#define SramPropertyFont               ((UBYTE *)SRAM_PROPERTY_FONT)
+#define SramPropertySyncMode           ((UBYTE *)SRAM_PROPERTY_SYNC_MODE)
+#define SramPropertyColorSet           ((UBYTE *)SRAM_PROPERTY_COLOR_SET)
+#define SramPropertySyncParameter      ((UBYTE *)SRAM_PROPERTY_SYNC_PARAMETER)
+#define SramPropertyCloneMode          ((UBYTE *)SRAM_PROPERTY_CLONE_MODE)
+#define SramPropertyFileChanged        ((UBYTE *)SRAM_PROPERTY_FILE_CHANGED)
+#define SramPropertyPowerSave          ((UBYTE *)SRAM_PROPERTY_POWER_SAVE)
+#define SramPropertyPrelisten          ((UBYTE *)SRAM_PROPERTY_PRELISTEN)
+#define SramPropertyColumnInstruments  ((UBYTE *)SRAM_PROPERTY_COLUMN_INSTRUMENTS)
+#define SramPropertyTempoMode          ((UBYTE *)SRAM_PROPERTY_TEMPO_MODE)
+#define SramPhraseCommands             ((UBYTE *)SRAM_PHRASE_COMMANDS)
+#define SramPhraseCommandValues        ((UBYTE *)SRAM_PHRASE_COMMAND_VALUES)
+#define SramWaveFrames                 ((UBYTE *)SRAM_WAVE_FRAMES)
+#define SramPhraseInstruments          ((UBYTE *)SRAM_PHRASE_INSTRUMENTS)
+#define SramInitializedMarker3         ((UBYTE *)SRAM_INITIALIZED_MARKER3)
+#define SramPropertyWorkTime           ((UBYTE *)SRAM_PROPERTY_WORK_TIME)
 
 /* --- bank 2: the sound engine ----------------------------------------------- */
 

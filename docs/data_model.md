@@ -49,19 +49,45 @@ Sequence (song)            256 steps x 4 channels (PU1, PU2, WAV, NOI)
 | `$2880` | `$0800` | `chain_transposes` [128][16] | **Chains**: transpose per step |
 | `$3080` | `$0400` | `instruments` [64][16] | **Instrument** params (16 B each) |
 | `$3480` | `$0200` | `table_transposes` [32][16] | **Tables** (transpose column) |
-| `$3680` | `$0400` | `table_cmd1` (fx[32][16]+val) | **Tables** (command column 1) |
-| `$3A80` | `$0400` | `table_cmd2` (fx[32][16]+val) | **Tables** (command column 2) |
+| `$3680` | `$0400` | `table_cmd1` (fx[32][16], then val[32][16] at `$3880`) | **Tables** (command column 1) |
+| `$3A80` | `$0400` | `table_cmd2` (fx[32][16], then val[32][16] at `$3C80`) | **Tables** (command column 2) |
 | `$3E80` | `$0002` | `mem_init_flag_2` (`'rb'`) | init marker |
 | `$3E82` | `$0020` | `phrase_alloc_table` [256b] | which **Phrases** are in use |
 | `$3EA2` | `$0010` | `chain_alloc_table` [128b] | which **Chains** are in use |
 | `$3EB2` | `$0100` | `softsynth_params` [16][16] | **Synths** (16 B each) |
-| `$3FB2` | ~`$4E` | clock, tempo, tune, sync, font, colorset, … | **Song properties** |
+| `$3FB2` | ~`$4E` | work time, tempo, transpose, sync, font, colour set, … (below) | **Song properties** |
 | `$4000` | `$0FF0` | `phrase_fx` [255][16] | **Phrase** command column |
 | `$4FF0` | `$0FF0` | `phrase_fx_val` [255][16] | **Phrase** command values |
 | `$5FE0` | `$0020` | reserved (32) | |
 | `$6000` | `$1000` | `wave_frames` [16][16][32] | **Synth** wavetables (nibbles) |
 | `$7000` | `$0FF0` | `phrase_instruments` [255][16] | **Phrase** instrument column |
 | `$7FF0` | `$0010` | `mem_init_flag_3` (`'rb'`), version | format version (`$7FFF`) |
+
+### Song properties (bank 1, `$BFB2`)
+
+The manual's Appendix C, checked against the code (`tools/gen_sym.py`'s
+`SRAM_MAP`, `c/include/lsdj.h`'s `SRAM_X`/`SramX`):
+
+| Song offset | Name | Holds |
+|-------------|------|-------|
+| `$3FB2` | `SramPropertyWorkTime` (`SramProperties`, the block) | work time: hours, minutes |
+| `$3FB4` | `SramPropertyTempo` | tempo |
+| `$3FB5` | `SramPropertyTranspose` | the transpose (`wSongTranspose`; the manual's "tune setting") |
+| `$3FB6` | `SramPropertyTotalTime` | total time: days, hours, minutes, and a fourth byte kept with them across a load |
+| `$3FBA` | `SramPropertyKeyDelay` | key delay |
+| `$3FBB` | `SramPropertyKeyRepeat` | key repeat |
+| `$3FBC` | `SramPropertyFont` | font (`wFont`) |
+| `$3FBD` | `SramPropertySyncMode` | sync mode |
+| `$3FBE` | `SramPropertyColorSet` | colour set |
+| `$3FBF` | `SramPropertySyncParameter` | sync parameter (e.g. analog in ticks/step) |
+| `$3FC0` | `SramPropertyCloneMode` | clone mode (0 deep, 1 slim) |
+| `$3FC1` | `SramPropertyFileChanged` | the top bar's `!` once the song is edited |
+| `$3FC2` | `SramPropertyPowerSave` | power save |
+| `$3FC3` | `SramPropertyPrelisten` | prelisten |
+| `$3FC4` | -- | two bytes (the manual: "synths locked?") |
+| `$3FC6` | `SramPropertyColumnInstruments` | the last instrument per channel (`wColumnInstrument`) |
+| `$3FCA` | -- | a copy of the work time (`MigrateTempoProperties` writes it, `FileCalculateCompressedSize` subtracts it) |
+| `$3FCC` | `SramPropertyTempoMode` | tempo mode (`wTempoMode`) |
 
 ## Structures
 

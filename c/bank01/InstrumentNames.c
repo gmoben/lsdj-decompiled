@@ -22,7 +22,7 @@ void CopyInstrumentName(UBYTE instrument)
         strcpy(wNameEditBuffer, "SPCH");
         return;
     }
-    p = (UBYTE *)0xBE7A + (UWORD)instrument * 5;
+    p = SramInstrumentNames + (UWORD)instrument * 5;
     wNameEditBuffer[0] = ReadSongByte(0, p++);
     wNameEditBuffer[1] = ReadSongByte(0, p++);
     wNameEditBuffer[2] = ReadSongByte(0, p++);
@@ -37,7 +37,7 @@ void WriteInstrumentName(UBYTE instrument)
 
     if (instrument >= 0x40)
         DebugTrap();
-    p = (UBYTE *)0xBE7A + (UWORD)instrument * 5;
+    p = SramInstrumentNames + (UWORD)instrument * 5;
     WriteSongByte(0, p++, wNameEditBuffer[0]);
     WriteSongByte(0, p++, wNameEditBuffer[1]);
     WriteSongByte(0, p++, wNameEditBuffer[2]);

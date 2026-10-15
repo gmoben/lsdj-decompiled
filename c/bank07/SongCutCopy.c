@@ -73,7 +73,7 @@ void CutCopySongSelection(UBYTE isCut)
         }
         if (isCut) {
             rowsLeft = wSelectionBottom - wSelectionTop;
-            p = (UBYTE *)0xB290 + ((UWORD)wSelectionTop << 2);
+            p = SramSequence + ((UWORD)wSelectionTop << 2);
             column = wSongColumn;
             p += column;
             q = p + ((UWORD)rowsLeft << 2);

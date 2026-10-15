@@ -972,7 +972,7 @@ UBYTE SynthScreenInput(void)
         ShowMessage("COPIED SYNTH");
         wCursorMode = 2;
         wClipboardType = SCREEN_SYNTH;
-        p = ((UWORD)wSynthScreen << 4) + (UWORD)0xBEB2;
+        p = ((UWORD)wSynthScreen << 4) + (UWORD)SRAM_SYNTH_PARAMETERS;
         for (v = 0; v < 0x10; v++) {
             WriteClipboardCell(0, v, ReadSongByte(1, p));
             p++;
@@ -987,7 +987,7 @@ UBYTE SynthScreenInput(void)
         if (wCursorMode == 1 || wClipboardType != SCREEN_SYNTH)
             return 0;
         ShowMessage("PASTED SYNTH");
-        q = ((UWORD)wSynthScreen << 4) + (UWORD)0xBEB2;
+        q = ((UWORD)wSynthScreen << 4) + (UWORD)SRAM_SYNTH_PARAMETERS;
         for (v = 0; v < 0x10; v++) {
             WriteSongByte(1, q, ReadClipboardCell(0, v));
             q++;

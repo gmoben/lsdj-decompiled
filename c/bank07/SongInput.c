@@ -317,7 +317,7 @@ UBYTE SongScreenInput(void)
         wClipboardType = SCREEN_SONG;
         WriteClipboardCell(wSongColumn, 0, cell);
         if (cell & 0x80) {
-            p = (UBYTE *)0xB290 + ((UWORD)wSongRow << 2);
+            p = SramSequence + ((UWORD)wSongRow << 2);
             p += wSongColumn;
             CopySongColumn((UWORD)(p + 4), (UWORD)p);
             WriteSongCell(wSongColumn, 0xBF, 0xFF);

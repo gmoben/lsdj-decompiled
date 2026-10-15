@@ -84,8 +84,8 @@ UBYTE CompressSong(void)
     wCompressDestination = 0;
     wDecompressPosition = 0;
     wWorkSongPage = 0xFF;
-    current = ReadSongByte(0, 0xA000);
-    next = ReadSongByte(0, 0xA001);
+    current = ReadSongByte(0, SRAM_PHRASE_NOTES);
+    next = ReadSongByte(0, SRAM_PHRASE_NOTES + 1);
     do {
         if (current == 0xC0) {
             WriteCompressedByte(0xC0);

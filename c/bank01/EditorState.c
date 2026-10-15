@@ -81,16 +81,16 @@ void LoadProjectSettings(UBYTE keep)
     _asm di _endasm;
     rRAMG = 0x0A;
     rRAMB = 1;
-    wFont = *(UBYTE *)0xBFBC;
+    wFont = *SramPropertyFont;
     if (wFont > 2) {
         wFont = 0;
-        *(UBYTE *)0xBFBC = 0;
+        *SramPropertyFont = 0;
     }
     SyncLoadSetting();
     rRAMG = 0x0A;
     rRAMB = 1;
-    wCloneMode = *(UBYTE *)0xBFC0;
-    wColorSet = *(UBYTE *)0xBFBE;
+    wCloneMode = *SramPropertyCloneMode;
+    wColorSet = *SramPropertyColorSet;
     if (!hGameboyType && wColorSet > 3)
         wColorSet = 0;
     rRAMG = 0;
@@ -102,17 +102,17 @@ void LoadProjectSettings(UBYTE keep)
     _asm di _endasm;
     rRAMG = 0x0A;
     rRAMB = 1;
-    wTempo = *(UBYTE *)0xBFB4;
-    wTempoMode = *(UBYTE *)0xBFCC;
-    wSongTranspose = *(UBYTE *)0xBFB5;
-    memcpy(wColumnInstrument, (UBYTE *)0xBFC6, 4);
+    wTempo = *SramPropertyTempo;
+    wTempoMode = *SramPropertyTempoMode;
+    wSongTranspose = *SramPropertyTranspose;
+    memcpy(wColumnInstrument, SramPropertyColumnInstruments, 4);
     column = 4;
     do {
         if (wColumnInstrument[column - 1] > 0x40 && wColumnInstrument[column - 1] != 0xFF)
             wColumnInstrument[column - 1] = 0;
     } while (--column);
-    wKeyDelay = *(UBYTE *)0xBFBA & 0x0F;
-    wKeyRepeat = *(UBYTE *)0xBFBB & 0x0F;
+    wKeyDelay = *SramPropertyKeyDelay & 0x0F;
+    wKeyRepeat = *SramPropertyKeyRepeat & 0x0F;
     rRAMG = 0;
     FarCall(7, FAR_FN(SetSyncSendRate));
     wKeyDelayTimer = wKeyDelay;

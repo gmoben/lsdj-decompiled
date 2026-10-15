@@ -176,7 +176,7 @@ UBYTE ProcessInput(void)
         if (wTransposeDirty) {
             wTransposeDirty = 0;
             wSongTranspose = wSongTransposeDisplay;
-            WriteSongByte(1, 0xBFB5, wSongTranspose);
+            WriteSongByte(1, SRAM_PROPERTY_TRANSPOSE, wSongTranspose);
         }
         if (wLiveStartColumn != 0xFF) {
             wLiveStartColumn = 0xFF;
@@ -200,14 +200,14 @@ UBYTE ProcessInput(void)
                         break;
                     case 1:
                         SWITCH_ROM(5);
-                        wTableCellAPointer = 0xB680;
-                        wTableCellBPointer = 0xB880;
+                        wTableCellAPointer = SRAM_TABLE_COMMANDS1;
+                        wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES1;
                         WriteTableCommand(row, v);
                         break;
                     case 2:
                         SWITCH_ROM(5);
-                        wTableCellAPointer = 0xBA80;
-                        wTableCellBPointer = 0xBC80;
+                        wTableCellAPointer = SRAM_TABLE_COMMANDS2;
+                        wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES2;
                         WriteTableCommand(row, v);
                         break;
                     }
@@ -226,7 +226,7 @@ UBYTE ProcessInput(void)
         ok = 1;
         if (*wTopBarMarkPointer != 0x21 && (buttons & J_A)
                 && (buttons & (J_SELECT | J_B | J_UP | J_DOWN | J_LEFT | J_RIGHT)))
-            WriteSongByte(1, 0xBFC1, *wTopBarMarkPointer = 0x21);
+            WriteSongByte(1, SRAM_PROPERTY_FILE_CHANGED, *wTopBarMarkPointer = 0x21);
         wButtonsSame = wButtons == buttons;
         if (!wButtonsSame) {
             wKeyDelayTimer = wKeyDelay;
@@ -282,9 +282,9 @@ void InitializeAndLoadSong(void)
         hBgDigitPalette = 4;
         hBgPalette = 1;
         DrawCartTest();
-        WriteSongByte(1, 0xBFB6, 0);
-        WriteSongByte(1, 0xBFB8, 0);
-        WriteSongByte(1, 0xBFB7, 0);
+        WriteSongByte(1, SRAM_PROPERTY_TOTAL_TIME, 0);
+        WriteSongByte(1, SRAM_PROPERTY_TOTAL_TIME + 2, 0);
+        WriteSongByte(1, SRAM_PROPERTY_TOTAL_TIME + 1, 0);
         FormatSramSong();
     }
     WriteSongInitializedMarker();
@@ -326,7 +326,7 @@ void main(void)
     ShowMessage(TxtTitle);
     SWITCH_ROM(0x1C);
     wFilesystemCheckResult = CheckFileMagicAll();
-    wPrelisten = ReadSongByte(1, 0xBFC3);
+    wPrelisten = ReadSongByte(1, SRAM_PROPERTY_PRELISTEN);
     while (1) {
         if (!wRedrawPending) {
             if (wSynthRenderActive) {

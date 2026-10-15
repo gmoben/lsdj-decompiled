@@ -384,8 +384,10 @@ in `docs/functionality.md`.
   from `lsdj.h`
   (`wCurrentScreen = SCREEN_SONG`, `wButtons == (J_B | J_A)`,
   `J_SELECT_TAP`), a background-map cell `BG_MAP(x, y)`, the OAM shadow
-  `OamShadow[n].field`, fixed addresses (`DECOMPRESS_BUFFER`, `KIT_NAME`); a
-  literal's spelling decides its type in SDCC 2.2.1 (hex
+  `OamShadow[n].field`, fixed addresses (`DECOMPRESS_BUFFER`, `KIT_NAME`), a
+  song region in SRAM `SRAM_TABLE_COMMANDS1` (a number) or
+  `SramTableCommands1` (its bytes) where the bank is evident; a literal's
+  spelling decides its type in SDCC 2.2.1 (hex
   unsigned, decimal signed), so a new name is checked by `make match` like
   any other change (`docs/matching_c.md` → *Named constants*).
 - **Name patterns.** Routines are verb-first (`OpenChainPhrase`,

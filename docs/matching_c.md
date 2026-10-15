@@ -249,8 +249,14 @@ comment began with a quoted string had been carved as data, since a leading
   way), and the fixed addresses the code uses as numbers have names that are
   those numbers: `SRAM_START`/`SRAM_END`, `ROW_BUFFER_COLUMN(k)`,
   `DECOMPRESS_BUFFER`, a kit's `KIT_SAMPLE_BOUNDARIES`, `KIT_NAME`,
-  `KIT_SAMPLES`. SRAM addresses stay numbers where no bank is evident: the
-  same address is a different region in each SRAM bank.
+  `KIT_SAMPLES`. A song region in SRAM is `SRAM_X` as a number and `SramX`
+  as its bytes (`((UBYTE *)SRAM_X)`, the literal pointer the code had), an
+  address inside one `SRAM_X + n`; a site is named only where its bank is
+  evident -- the bank argument of `ReadSongByte`/`WriteSongByte`, the
+  function's `rRAMB = n`, or an address that starts a region in one bank
+  alone -- because the same address is a different region in each bank.
+  Bounds in comparisons stay numbers (an end of one region is the start of
+  the next), and so do `FileUpgrade.c`'s, which are older formats'.
 - **Sign extension follows the destination type**: `genCast` extends by
   the type cast *to*, so a `char` stored into an `int` element is
   `rla; sbc a,a` and into a `UWORD` is `ld b,#0` (`wSynthShapeBuffer` is

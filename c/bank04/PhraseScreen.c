@@ -158,7 +158,7 @@ void SetColumnInstrument(UBYTE instrument)
             if (wInstrumentIsKit)
                 wInstrumentIsKit = ReadInstrumentByte(instrument, 0) == INSTRUMENT_KIT;
         }
-        WriteSongByte(1, (UWORD)wSongColumn + (UWORD)0xBFC6, instrument);
+        WriteSongByte(1, (UWORD)wSongColumn + (UWORD)SRAM_PROPERTY_COLUMN_INSTRUMENTS, instrument);
     }
 }
 
@@ -568,9 +568,9 @@ void LoadPhraseRow(void)
     off <<= 4;
     p = (UWORD)0xA000 + off;
     ReadSongBytes(0, p, wSongReadBuffer);
-    ReadSongBytes(3, (UWORD)0xB000 + off, (UBYTE *)ROW_BUFFER_COLUMN(1));
+    ReadSongBytes(3, (UWORD)SRAM_PHRASE_INSTRUMENTS + off, (UBYTE *)ROW_BUFFER_COLUMN(1));
     ReadSongBytes(2, p, (UBYTE *)ROW_BUFFER_COLUMN(2));
-    ReadSongBytes(2, (UWORD)0xAFF0 + off, (UBYTE *)ROW_BUFFER_COLUMN(3));
+    ReadSongBytes(2, (UWORD)SRAM_PHRASE_COMMAND_VALUES + off, (UBYTE *)ROW_BUFFER_COLUMN(3));
 }
 
 void DrawPhraseSelectionFar(void)
@@ -627,7 +627,7 @@ void DrawPhraseScreen(void)
     wPhraseDrawMode = 0;
     for (row = 0; row < 0x10; row++) {
         t = wUsedTableMap[row];
-        if (t < 0x40 && ReadSongByte(1, ((UWORD)t << 4) + (UWORD)0xB080) == 2) {
+        if (t < 0x40 && ReadSongByte(1, ((UWORD)t << 4) + (UWORD)SRAM_INSTRUMENTS) == 2) {
             wPhraseDrawMode = 1;
             break;
         }
@@ -644,7 +644,7 @@ void DrawPhraseScreen(void)
             wPhraseRowFlags[row] = current;
             break;
         default:
-            if (ReadSongByte(1, ((UWORD)instrument << 4) + (UWORD)0xB080) == 2) {
+            if (ReadSongByte(1, ((UWORD)instrument << 4) + (UWORD)SRAM_INSTRUMENTS) == 2) {
                 current = instrument;
                 wPhraseRowFlags[row] = instrument;
             } else {

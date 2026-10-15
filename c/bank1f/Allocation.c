@@ -42,7 +42,7 @@ UBYTE ClaimInstrumentSlot(UBYTE instrument)
 
     if (instrument >= 0x40)
         DebugTrap();
-    p = (UWORD)0xA040 + instrument;
+    p = (UWORD)SRAM_INSTRUMENT_ALLOCATION + instrument;
     if (ReadSongByte(1, p))
         return 0;
     WriteSongByte(1, p, 1);
@@ -92,13 +92,13 @@ UBYTE IsSongBlockEmpty(UBYTE bank, UBYTE *address)
 UBYTE IsTableFree(UWORD t)
 {
     t <<= 4;
-    if (!IsSongBlockEmpty(1, (UBYTE *)0xB480 + t))
+    if (!IsSongBlockEmpty(1, SramTableTransposes + t))
         return 0;
-    if (!IsSongBlockEmpty(1, (UBYTE *)0xB680 + t))
+    if (!IsSongBlockEmpty(1, SramTableCommands1 + t))
         return 0;
-    if (!IsSongBlockEmpty(1, (UBYTE *)0xBA80 + t))
+    if (!IsSongBlockEmpty(1, SramTableCommands2 + t))
         return 0;
-    return IsSongBlockEmpty(0, (UBYTE *)0xB690 + t);
+    return IsSongBlockEmpty(0, SramTableEnvelopes + t);
 }
 
 UBYTE FindFreeTable(void)

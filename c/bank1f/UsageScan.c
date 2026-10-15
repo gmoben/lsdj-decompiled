@@ -65,10 +65,10 @@ void MarkTableTablesUsed(UBYTE t)
     UBYTE step;
 
     o = (UWORD)t << 4;
-    p1 = (UBYTE *)0xB680 + o;
-    p2 = (UBYTE *)0xB880 + o;
-    p3 = (UBYTE *)0xBA80 + o;
-    p4 = (UBYTE *)0xBC80 + o;
+    p1 = SramTableCommands1 + o;
+    p2 = SramTableCommandValues1 + o;
+    p3 = SramTableCommands2 + o;
+    p4 = SramTableCommandValues2 + o;
     for (step = 0; step < 0x10; step++) {
         if (ReadSongByte(1, (UWORD)p1) == 1)
             MarkTableUsed(ReadSongByte(1, (UWORD)p2));
@@ -199,7 +199,7 @@ void RebuildPhraseAllocationMap(void)
             continue;
         o = phrase;
         o <<= 4;
-        o |= 0xA000;
+        o |= SRAM_PHRASE_NOTES;
         _asm di _endasm;
         rRAMG = 0x0A;
         rRAMB = 0;

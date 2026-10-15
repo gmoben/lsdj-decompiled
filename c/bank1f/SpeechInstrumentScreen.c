@@ -80,7 +80,7 @@ void DrawSpeechInstrumentScreen(void)
     hBgPalette = 1;
     wVramCursor = BG_MAP(0, 2);
     DrawString("TYPE   SPEECH");
-    p = (UBYTE *)0xBDD0;
+    p = SramWordNames;
     row = 4;
     while (row < 4 + 14) {
         SetVramCursor(0, row);
@@ -127,7 +127,7 @@ UBYTE SpeechInstrumentInput(void)
     case J_A:
         if (!wAPressEnabled)
             return 0;
-        p = (UWORD)0xBDD0 + wSpeechRow * 3;
+        p = (UWORD)SRAM_WORD_NAMES + wSpeechRow * 3;
         wNameEditBuffer[0] = ReadSongByte(0, p++);
         wNameEditBuffer[1] = ReadSongByte(0, p++);
         wNameEditBuffer[2] = ReadSongByte(0, p);
@@ -184,7 +184,7 @@ UBYTE SpeechInstrumentInput(void)
             ShowMessage("CUT WORD");
         wClipboardType = SCREEN_SPEECH;
         wCursorMode = 2;
-        p = ((UWORD)wSpeechRow << 5) + (UWORD)0xB890;
+        p = ((UWORD)wSpeechRow << 5) + (UWORD)SRAM_WORDS;
         for (cell = 0; cell < 0x10; cell++) {
             WriteClipboardCell(0, cell, ReadSongByte(0, p));
             if (wButtons == (J_B | J_A))
@@ -195,7 +195,7 @@ UBYTE SpeechInstrumentInput(void)
                 WriteSongByte(0, p, 0);
             p++;
         }
-        p = (UWORD)wSpeechRow * 3 + (UWORD)0xBDD0;
+        p = (UWORD)wSpeechRow * 3 + (UWORD)SRAM_WORD_NAMES;
         for (cell = 0; cell < 3; cell++) {
             WriteClipboardCell(2, cell, ReadSongByte(0, p));
             p++;
@@ -221,7 +221,7 @@ UBYTE SpeechInstrumentInput(void)
         if (wClipboardType != SCREEN_SPEECH)
             return 0;
         ShowMessage("PASTED WORD");
-        p = ((UWORD)wSpeechRow << 5) + (UWORD)0xB890;
+        p = ((UWORD)wSpeechRow << 5) + (UWORD)SRAM_WORDS;
         for (cell = 0; cell < 0x10; cell++) {
             if (p >= (UWORD)0xBDD0)
                 DebugTrap();
@@ -230,7 +230,7 @@ UBYTE SpeechInstrumentInput(void)
                 DebugTrap();
             WriteSongByte(0, p++, ReadClipboardCell(1, cell));
         }
-        p = (UWORD)wSpeechRow * 3 + (UWORD)0xBDD0;
+        p = (UWORD)wSpeechRow * 3 + (UWORD)SRAM_WORD_NAMES;
         hBgDigitPalette = wHighlightDigitPalette;
         hBgPalette = wHighlightPalette;
         SetVramCursor(0, SpeechCursorY());

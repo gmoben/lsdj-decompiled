@@ -155,12 +155,12 @@ void ClearTable(UBYTE t)
     o = (UWORD)t << 4;
     if (t >= 0x20)
         DebugTrap();
-    p1 = (UBYTE *)0xB680 + o;
-    p2 = (UBYTE *)0xB880 + o;
-    p3 = (UBYTE *)0xBA80 + o;
-    p4 = (UBYTE *)0xBC80 + o;
-    p5 = (UBYTE *)0xB480 + o;
-    o += (UWORD)0xB690;
+    p1 = SramTableCommands1 + o;
+    p2 = SramTableCommandValues1 + o;
+    p3 = SramTableCommands2 + o;
+    p4 = SramTableCommandValues2 + o;
+    p5 = SramTableTransposes + o;
+    o += (UWORD)SRAM_TABLE_ENVELOPES;
     ClearTableRow(1, p1);
     ClearTableRow(1, p2);
     ClearTableRow(1, p3);
@@ -257,30 +257,30 @@ UBYTE FindDuplicatePhrase(UBYTE a, UBYTE b)
     rRAMG = 0x0A;
     offsetA <<= 4;
     offsetB <<= 4;
-    t = offsetA + (UWORD)0xA000;                 /* bank 0: phrase notes */
+    t = offsetA + (UWORD)SRAM_PHRASE_NOTES;
     p = (UBYTE *)t;
-    q = (UBYTE *)(offsetB + (UWORD)0xA000);
+    q = (UBYTE *)(offsetB + (UWORD)SRAM_PHRASE_NOTES);
     rRAMB = 0;
     for (row = 0; row < 0x10; row++) {
         if (*p++ != *q++)
             return 0;
     }
     rRAMB = 3;
-    p = (UBYTE *)(offsetA + (UWORD)0xB000);                      /* bank 3: phrase instruments */
-    q = (UBYTE *)(offsetB + (UWORD)0xB000);
+    p = (UBYTE *)(offsetA + (UWORD)SRAM_PHRASE_INSTRUMENTS);
+    q = (UBYTE *)(offsetB + (UWORD)SRAM_PHRASE_INSTRUMENTS);
     for (row = 0; row < 0x10; row++) {
         if (*p++ != *q++)
             return 0;
     }
     rRAMB = 2;
-    p = (UBYTE *)(offsetA | (UWORD)0xA000);      /* bank 2: phrase commands */
-    q = (UBYTE *)(offsetB | (UWORD)0xA000);
+    p = (UBYTE *)(offsetA | (UWORD)SRAM_PHRASE_COMMANDS);
+    q = (UBYTE *)(offsetB | (UWORD)SRAM_PHRASE_COMMANDS);
     for (row = 0; row < 0x10; row++) {
         if (*p++ != *q++)
             return 0;
     }
-    p = (UBYTE *)(offsetA + (UWORD)0xAFF0);                      /* bank 2: command values */
-    q = (UBYTE *)(offsetB + (UWORD)0xAFF0);
+    p = (UBYTE *)(offsetA + (UWORD)SRAM_PHRASE_COMMAND_VALUES);
+    q = (UBYTE *)(offsetB + (UWORD)SRAM_PHRASE_COMMAND_VALUES);
     for (row = 0; row < 0x10; row++) {
         if (*p++ != *q++)
             return 0;
@@ -303,16 +303,16 @@ UBYTE FindDuplicateChain(UBYTE a, UBYTE b)
     rRAMG = 0x0A;
     offsetA <<= 4;
     offsetB <<= 4;
-    t = offsetA + (UWORD)0xA080;                 /* bank 1: chain phrases */
+    t = offsetA + (UWORD)SRAM_CHAIN_PHRASES;
     p = (UBYTE *)t;
-    q = (UBYTE *)(offsetB + (UWORD)0xA080);
+    q = (UBYTE *)(offsetB + (UWORD)SRAM_CHAIN_PHRASES);
     rRAMB = 1;
     for (row = 0; row < 0x10; row++) {
         if (*p++ != *q++)
             return 0;
     }
-    p = (UBYTE *)(offsetA + (UWORD)0xA880);                      /* bank 1: chain transposes */
-    q = (UBYTE *)(offsetB + (UWORD)0xA880);
+    p = (UBYTE *)(offsetA + (UWORD)SRAM_CHAIN_TRANSPOSES);
+    q = (UBYTE *)(offsetB + (UWORD)SRAM_CHAIN_TRANSPOSES);
     for (row = 0; row < 0x10; row++) {
         if (*p++ != *q++)
             return 0;
@@ -336,40 +336,40 @@ UBYTE FindDuplicateTable(UBYTE a, UBYTE b)
     _endasm;
     rRAMG = 0x0A;
     rRAMB = 1;
-    t = offsetA + (UWORD)0xB680;                 /* bank 1: table fx 1 */
+    t = offsetA + (UWORD)SRAM_TABLE_COMMANDS1;
     p = (UBYTE *)t;
-    q = (UBYTE *)(offsetB + (UWORD)0xB680);
+    q = (UBYTE *)(offsetB + (UWORD)SRAM_TABLE_COMMANDS1);
     for (step = 0; step < 0x10; step++) {
         if (*p++ != *q++)
             return 0;
     }
-    p = (UBYTE *)(offsetA + (UWORD)0xB880);                      /* bank 1: table fx 1 values */
-    q = (UBYTE *)(offsetB + (UWORD)0xB880);
+    p = (UBYTE *)(offsetA + (UWORD)SRAM_TABLE_COMMAND_VALUES1);
+    q = (UBYTE *)(offsetB + (UWORD)SRAM_TABLE_COMMAND_VALUES1);
     for (step = 0; step < 0x10; step++) {
         if (*p++ != *q++)
             return 0;
     }
-    p = (UBYTE *)(offsetA + (UWORD)0xBA80);                      /* bank 1: table fx 2 */
-    q = (UBYTE *)(offsetB + (UWORD)0xBA80);
+    p = (UBYTE *)(offsetA + (UWORD)SRAM_TABLE_COMMANDS2);
+    q = (UBYTE *)(offsetB + (UWORD)SRAM_TABLE_COMMANDS2);
     for (step = 0; step < 0x10; step++) {
         if (*p++ != *q++)
             return 0;
     }
-    p = (UBYTE *)(offsetA + (UWORD)0xBC80);                      /* bank 1: table fx 2 values */
-    q = (UBYTE *)(offsetB + (UWORD)0xBC80);
+    p = (UBYTE *)(offsetA + (UWORD)SRAM_TABLE_COMMAND_VALUES2);
+    q = (UBYTE *)(offsetB + (UWORD)SRAM_TABLE_COMMAND_VALUES2);
     for (step = 0; step < 0x10; step++) {
         if (*p++ != *q++)
             return 0;
     }
-    p = (UBYTE *)(offsetA + (UWORD)0xB690);                      /* bank 0: table envelopes */
-    q = (UBYTE *)(offsetB + (UWORD)0xB690);
+    p = (UBYTE *)(offsetA + (UWORD)SRAM_TABLE_ENVELOPES);
+    q = (UBYTE *)(offsetB + (UWORD)SRAM_TABLE_ENVELOPES);
     rRAMB = 0;
     for (step = 0; step < 0x10; step++) {
         if (*p++ != *q++)
             return 0;
     }
-    p = (UBYTE *)(offsetA + (UWORD)0xB480);                      /* bank 1: table transposes */
-    q = (UBYTE *)(offsetB + (UWORD)0xB480);
+    p = (UBYTE *)(offsetA + (UWORD)SRAM_TABLE_TRANSPOSES);
+    q = (UBYTE *)(offsetB + (UWORD)SRAM_TABLE_TRANSPOSES);
     rRAMB = 1;
     for (step = 0; step < 0x10; step++) {
         if (*p++ != *q++)
@@ -432,8 +432,8 @@ void RemapCommandTableRefs(UBYTE from, UBYTE to)
     volatile UBYTE nt;
     UBYTE nf;
 
-    command = (UWORD)0xB680;
-    value = (UWORD)0xB880;
+    command = (UWORD)SRAM_TABLE_COMMANDS1;
+    value = (UWORD)SRAM_TABLE_COMMAND_VALUES1;
     _asm di _endasm;
     rRAMG = 0x0A;
     rRAMB = 1;
@@ -443,8 +443,8 @@ void RemapCommandTableRefs(UBYTE from, UBYTE to)
         command++;
         value++;
     }
-    command = (UWORD)0xBA80;
-    value = (UWORD)0xBC80;
+    command = (UWORD)SRAM_TABLE_COMMANDS2;
+    value = (UWORD)SRAM_TABLE_COMMAND_VALUES2;
     while (command != (UWORD)0xBC80) {
         if (*(UBYTE *)command == COMMAND_A && from == *(UBYTE *)value)
             *(UBYTE *)value = to;
@@ -452,8 +452,8 @@ void RemapCommandTableRefs(UBYTE from, UBYTE to)
         value++;
     }
     rRAMB = 2;
-    command = (UWORD)0xA000;
-    value = (UWORD)0xAFF0;
+    command = (UWORD)SRAM_PHRASE_COMMANDS;
+    value = (UWORD)SRAM_PHRASE_COMMAND_VALUES;
     while (command != (UWORD)0xAFF0) {
         if (*(UBYTE *)command == COMMAND_A && from == *(UBYTE *)value)
             *(UBYTE *)value = to;
@@ -563,8 +563,8 @@ UBYTE AnyTableUsesCommandF(void)
     UBYTE *p, *q;
     UBYTE table, step, ok;
 
-    p = (UBYTE *)0xB680;
-    q = (UBYTE *)0xBA80;
+    p = SramTableCommands1;
+    q = SramTableCommands2;
     for (table = 0; table < 0x20; table++) {
         for (step = 0; step < 0x10; step = step + 1) {
             if (ReadSongByte(1, (UWORD)p) == 6)

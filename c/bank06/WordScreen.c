@@ -97,7 +97,7 @@ void DrawWordScreen(void)
     hBgDigitPalette = 4;
     hBgPalette = 1;
     DrawString("WORD ");
-    p = (UWORD)0xBDD0 + (UWORD)(wSpeechRow * 3);
+    p = (UWORD)SRAM_WORD_NAMES + (UWORD)(wSpeechRow * 3);
     row = 0;
     while (row < 3) {
         v = ReadSongByte(0, p);
@@ -109,7 +109,7 @@ void DrawWordScreen(void)
     }
     DrawTempoField();
     FarCall(0x1F, FAR_FN(DrawAllChannelStatus));
-    p = (UWORD)0xB890 + ((UWORD)wSpeechRow << 5);
+    p = (UWORD)SRAM_WORDS + ((UWORD)wSpeechRow << 5);
     row = 0;
     while (row < 16) {
         SetVramCursor(2, row + 2);

@@ -49,31 +49,31 @@ void UpdateWorkClock(void)
 {
     UBYTE v;
 
-    v = ReadSongByte(1, (UBYTE *)0xBFB3);
+    v = ReadSongByte(1, SramPropertyWorkTime + 1);
     v++;
     if (v == 60) {
-        WriteSongByte(1, (UBYTE *)0xBFB3, 0);
-        v = ReadSongByte(1, (UBYTE *)0xBFB2);
+        WriteSongByte(1, SramPropertyWorkTime + 1, 0);
+        v = ReadSongByte(1, SramPropertyWorkTime);
         v++;
-        WriteSongByte(1, (UBYTE *)0xBFB2, v);
+        WriteSongByte(1, SramPropertyWorkTime, v);
     } else {
-        WriteSongByte(1, (UBYTE *)0xBFB3, v);
+        WriteSongByte(1, SramPropertyWorkTime + 1, v);
     }
-    v = ReadSongByte(1, (UBYTE *)0xBFB8);
+    v = ReadSongByte(1, SramPropertyTotalTime + 2);
     v++;
     if (v == 60) {
-        WriteSongByte(1, (UBYTE *)0xBFB8, 0);
-        v = ReadSongByte(1, (UBYTE *)0xBFB7);
+        WriteSongByte(1, SramPropertyTotalTime + 2, 0);
+        v = ReadSongByte(1, SramPropertyTotalTime + 1);
         v++;
         if (v == 24) {
-            WriteSongByte(1, (UBYTE *)0xBFB7, 0);
-            v = ReadSongByte(1, (UBYTE *)0xBFB6);
+            WriteSongByte(1, SramPropertyTotalTime + 1, 0);
+            v = ReadSongByte(1, SramPropertyTotalTime);
             v++;
-            WriteSongByte(1, (UBYTE *)0xBFB6, v);
+            WriteSongByte(1, SramPropertyTotalTime, v);
         } else {
-            WriteSongByte(1, (UBYTE *)0xBFB7, v);
+            WriteSongByte(1, SramPropertyTotalTime + 1, v);
         }
     } else {
-        WriteSongByte(1, (UBYTE *)0xBFB8, v);
+        WriteSongByte(1, SramPropertyTotalTime + 2, v);
     }
 }

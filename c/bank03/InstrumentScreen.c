@@ -195,7 +195,8 @@ void CloneSynth(void)
         return;
     for (offset = 0; offset < 0x10; offset++) {
         v = ReadSongByte(1, SramSynthParameters + (UWORD)(source << 4) + (UWORD)offset);
-        WriteSongByte(1, (UWORD)(destination << 4) + (UWORD)0xBEB2 + (UWORD)offset, v);
+        WriteSongByte(1, (UWORD)(destination << 4) + (UWORD)SRAM_SYNTH_PARAMETERS + (UWORD)offset,
+                              v);
     }
     offset = 0;
     sourceAddress = source;
@@ -954,7 +955,7 @@ UBYTE InstrumentScreenInput(void)
     if (wButtons != J_A)
         wDrawStep = 0;
     if (wButtons & J_A)
-        WriteSongByte(1, (UWORD)wInstrument + (UWORD)0xA040, 1);
+        WriteSongByte(1, (UWORD)wInstrument + (UWORD)SRAM_INSTRUMENT_ALLOCATION, 1);
     switch (wButtons) {
     case J_UP:
         if (!wInstrumentField)

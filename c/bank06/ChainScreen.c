@@ -145,11 +145,11 @@ void ClonePhraseAtCursor(UBYTE source, UBYTE destination)
     if (destination == 0xFF)
         DebugTrap();
     s1 = (UBYTE *)0xA000 + sourceOffset;
-    s2 = (UBYTE *)0xB000 + sourceOffset;
+    s2 = SramPhraseInstruments + sourceOffset;
     s3 = (UBYTE *)0xA000 + sourceOffset;
     s4 = (UBYTE *)0xAFF0 + sourceOffset;
     d1 = (UBYTE *)0xA000 + destinationOffset;
-    d2 = (UBYTE *)0xB000 + destinationOffset;
+    d2 = SramPhraseInstruments + destinationOffset;
     d3 = (UBYTE *)0xA000 + destinationOffset;
     d4 = (UBYTE *)0xAFF0 + destinationOffset;
     for (row = 0; row < 16; row++) {

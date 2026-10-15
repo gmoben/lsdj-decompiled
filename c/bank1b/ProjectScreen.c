@@ -85,7 +85,7 @@ void DrawSyncMode2Field(void)
     hBgDigitPalette = wHighlightDigitPalette;
     hBgPalette = wHighlightPalette;
     DrawHexByte(wSyncMode2);
-    WriteSongByte(1, SramPropertySyncMode2, wSyncMode2);
+    WriteSongByte(1, SramPropertySyncParameter, wSyncMode2);
 }
 
 void SaveTempoProperties(void)
@@ -187,8 +187,8 @@ void DrawSyncSubSetting(void)
         DrawStringTile20();
         DrawStringTile20();
     } else {
-        printf("WORKED %d:", (UWORD)ReadSongByte(1, 0xBFB2));
-        DrawDecimalField(ReadSongByte(1, 0xBFB3));
+        printf("WORKED %d:", (UWORD)ReadSongByte(1, SRAM_PROPERTY_WORK_TIME));
+        DrawDecimalField(ReadSongByte(1, SRAM_PROPERTY_WORK_TIME + 1));
     }
 }
 
@@ -226,8 +226,9 @@ void DrawProjectScreen(void)
     DrawSyncField();
     DrawSyncSubSetting();
     wVramCursor = BG_MAP(6, 17);
-    printf2("%d:%d:", ReadSongByte(1, 0xBFB6), ReadSongByte(1, 0xBFB7));
-    DrawDecimalField(ReadSongByte(1, 0xBFB8));
+    printf2("%d:%d:", ReadSongByte(1, SRAM_PROPERTY_TOTAL_TIME),
+                ReadSongByte(1, SRAM_PROPERTY_TOTAL_TIME + 1));
+    DrawDecimalField(ReadSongByte(1, SRAM_PROPERTY_TOTAL_TIME + 2));
     DrawProjectCursor();
     wTapTempoCount = 0xFF;
 }
@@ -345,7 +346,7 @@ UBYTE ProjectScreenInput(void)
         case 4:
             if (!wCloneMode) {
                 wCloneMode = 1;
-                WriteSongByte(1, 0xBFC0, 1);
+                WriteSongByte(1, SRAM_PROPERTY_CLONE_MODE, 1);
                 DrawString("SLIM");
             }
             return 1;
@@ -357,7 +358,7 @@ UBYTE ProjectScreenInput(void)
             if (hGameboyType && wColorSet == 6)
                 return 0;
             wColorSet++;
-            WriteSongByte(1, 0xBFBE, wColorSet);
+            WriteSongByte(1, SRAM_PROPERTY_COLOR_SET, wColorSet);
             DrawFontColorFields();
             FarCall(1, FAR_FN(ApplyColorSet));
             if (!hGameboyType && wColorSet == 2)
@@ -370,12 +371,12 @@ UBYTE ProjectScreenInput(void)
             wKeyDelayTimer = 1;
             wKeyRepeat++;
             DrawKeyRepeatField();
-            WriteSongByte(1, 0xBFBB, wKeyRepeat);
+            WriteSongByte(1, SRAM_PROPERTY_KEY_REPEAT, wKeyRepeat);
             return 1;
         case 7:
             wPrelisten = 1;
             DrawPrelistenField();
-            WriteSongByte(1, 0xBFC3, wPrelisten);
+            WriteSongByte(1, SRAM_PROPERTY_PRELISTEN, wPrelisten);
             return 1;
         }
         break;
@@ -385,7 +386,7 @@ UBYTE ProjectScreenInput(void)
             if (!wColorSet || wButtonsSame)
                 return 0;
             wColorSet--;
-            WriteSongByte(1, 0xBFBE, wColorSet);
+            WriteSongByte(1, SRAM_PROPERTY_COLOR_SET, wColorSet);
             FarCall(1, FAR_FN(ApplyColorSet));
             DrawFontColorFields();
             if (!hGameboyType && wColorSet == 1)
@@ -439,7 +440,7 @@ UBYTE ProjectScreenInput(void)
         case 4:
             if (wCloneMode) {
                 wCloneMode = 0;
-                WriteSongByte(1, 0xBFC0, 0);
+                WriteSongByte(1, SRAM_PROPERTY_CLONE_MODE, 0);
                 DrawString("DEEP");
             }
             return 1;
@@ -450,12 +451,12 @@ UBYTE ProjectScreenInput(void)
             wKeyDelayTimer = 1;
             wKeyRepeat--;
             DrawKeyRepeatField();
-            WriteSongByte(1, 0xBFBB, wKeyRepeat);
+            WriteSongByte(1, SRAM_PROPERTY_KEY_REPEAT, wKeyRepeat);
             return 1;
         case 7:
             wPrelisten = 0;
             DrawPrelistenField();
-            WriteSongByte(1, 0xBFC3, wPrelisten);
+            WriteSongByte(1, SRAM_PROPERTY_PRELISTEN, wPrelisten);
             return 1;
         }
         break;
@@ -466,7 +467,7 @@ UBYTE ProjectScreenInput(void)
                 return 0;
             if (wFont != 2) {
                 wFont++;
-                WriteSongByte(1, 0xBFBC, wFont);
+                WriteSongByte(1, SRAM_PROPERTY_FONT, wFont);
                 DrawProjectScreen();
                 FarCall(0x1E, FAR_FN(LoadFontTiles));
             }
@@ -499,7 +500,7 @@ UBYTE ProjectScreenInput(void)
             wKeyDelayTimer = 1;
             wKeyDelay++;
             DrawKeyRepeatField();
-            WriteSongByte(1, 0xBFBA, wKeyDelay);
+            WriteSongByte(1, SRAM_PROPERTY_KEY_DELAY, wKeyDelay);
             return 1;
         }
         break;
@@ -531,7 +532,7 @@ UBYTE ProjectScreenInput(void)
                 return 0;
             if (wFont) {
                 wFont--;
-                WriteSongByte(1, 0xBFBC, wFont);
+                WriteSongByte(1, SRAM_PROPERTY_FONT, wFont);
                 DrawProjectScreen();
                 FarCall(0x1E, FAR_FN(LoadFontTiles));
             }
@@ -543,7 +544,7 @@ UBYTE ProjectScreenInput(void)
             wKeyDelayTimer = 1;
             wKeyDelay--;
             DrawKeyRepeatField();
-            WriteSongByte(1, 0xBFBA, wKeyDelay);
+            WriteSongByte(1, SRAM_PROPERTY_KEY_DELAY, wKeyDelay);
             return 1;
         }
         break;
@@ -591,9 +592,9 @@ UBYTE ProjectScreenInput(void)
         ColorField(5, 9, 3, 0);
         ColorField(12, 9, 2, 0);
         FarCall(0x1C, FAR_FN(FormatFileSpace));
-        WriteSongByte(1, 0xBFB6, 0);
-        WriteSongByte(1, 0xBFB8, 0);
-        WriteSongByte(1, 0xBFB7, 0);
+        WriteSongByte(1, SRAM_PROPERTY_TOTAL_TIME, 0);
+        WriteSongByte(1, SRAM_PROPERTY_TOTAL_TIME + 2, 0);
+        WriteSongByte(1, SRAM_PROPERTY_TOTAL_TIME + 1, 0);
         goto reset;
     case J_A:
         if (!wAPressEnabled)
@@ -668,9 +669,9 @@ UBYTE ProjectScreenInput(void)
             reset:
                 FarCall(0x1C, FAR_FN(FileStopSound));
                 if (wSramHasFileBanks) {
-                    WriteSongByte(1, 0xBFB6, 0);
-                    WriteSongByte(1, 0xBFB8, 0);
-                    WriteSongByte(1, 0xBFB7, 0);
+                    WriteSongByte(1, SRAM_PROPERTY_TOTAL_TIME, 0);
+                    WriteSongByte(1, SRAM_PROPERTY_TOTAL_TIME + 2, 0);
+                    WriteSongByte(1, SRAM_PROPERTY_TOTAL_TIME + 1, 0);
                     FarCall(0x1C, FAR_FN(FormatFileSpace));
                 }
                 FarCall(1, FAR_FN(FormatSramSong));

@@ -86,7 +86,7 @@ void LoadFileListState(void)
     char modifier;
     UBYTE position;
 
-    modifier = ReadSongByte(1, 0xBFC1);
+    modifier = ReadSongByte(1, SRAM_PROPERTY_FILE_CHANGED);
     wFileCursor = ReadSongByte(4, 0xA140);
     CountFileBlocks();
     if (wFileCursor == 0xFF) {
@@ -184,7 +184,7 @@ UBYTE SaveFile(UBYTE f)
     p = (UWORD)0xA000 + (wCompressByte << 3);
     for (i = 0; i < 8; i++)
         WriteSongByte(4, p++, wNameEditBuffer[i]);
-    WriteSongByte(1, 0xBFC1, 0x20);
+    WriteSongByte(1, SRAM_PROPERTY_FILE_CHANGED, 0x20);
     LoadFileListState();
     MigrateTempoProperties();
     return 1;
@@ -211,10 +211,10 @@ void LoadFile(void)
 {
     UBYTE keyRepeat, keyDelay, syncIn, syncOut, n;
 
-    keyRepeat = ReadSongByte(1, 0xBFBB);
-    keyDelay = ReadSongByte(1, 0xBFBA);
-    syncIn = ReadSongByte(1, 0xBFBD);
-    syncOut = ReadSongByte(1, 0xBFBF);
+    keyRepeat = ReadSongByte(1, SRAM_PROPERTY_KEY_REPEAT);
+    keyDelay = ReadSongByte(1, SRAM_PROPERTY_KEY_DELAY);
+    syncIn = ReadSongByte(1, SRAM_PROPERTY_SYNC_MODE);
+    syncOut = ReadSongByte(1, SRAM_PROPERTY_SYNC_PARAMETER);
     FileStopSound();
     n = GetFileBlockCount(wFileCursor);
     wFileFirstCharacter = n;
@@ -225,10 +225,10 @@ void LoadFile(void)
         hBgPalette = 1;
         DrawString("LOADING...1/");
         DrawByte(wFileFirstCharacter);
-        wFileSramProperties[0] = ReadSongByte(1, 0xBFB6);
-        wFileSramProperties[1] = ReadSongByte(1, 0xBFB7);
-        wFileSramProperties[2] = ReadSongByte(1, 0xBFB8);
-        wFileSramProperties[3] = ReadSongByte(1, 0xBFB9);
+        wFileSramProperties[0] = ReadSongByte(1, SRAM_PROPERTY_TOTAL_TIME);
+        wFileSramProperties[1] = ReadSongByte(1, SRAM_PROPERTY_TOTAL_TIME + 1);
+        wFileSramProperties[2] = ReadSongByte(1, SRAM_PROPERTY_TOTAL_TIME + 2);
+        wFileSramProperties[3] = ReadSongByte(1, SRAM_PROPERTY_TOTAL_TIME + 3);
         if (!FileLoadSlotInfo(wFileCursor, 0)) {
             wVramCursor = BG_MAP(12, 7);
             DrawString("FAIL!");
@@ -242,22 +242,22 @@ void LoadFile(void)
             FarCall(1, FAR_FN(RedrawScreen));
             return;
         }
-        WriteSongByte(1, 0xBFB6, wFileSramProperties[0]);
-        WriteSongByte(1, 0xBFB7, wFileSramProperties[1]);
-        WriteSongByte(1, 0xBFB8, wFileSramProperties[2]);
-        WriteSongByte(1, 0xBFB9, wFileSramProperties[3]);
+        WriteSongByte(1, SRAM_PROPERTY_TOTAL_TIME, wFileSramProperties[0]);
+        WriteSongByte(1, SRAM_PROPERTY_TOTAL_TIME + 1, wFileSramProperties[1]);
+        WriteSongByte(1, SRAM_PROPERTY_TOTAL_TIME + 2, wFileSramProperties[2]);
+        WriteSongByte(1, SRAM_PROPERTY_TOTAL_TIME + 3, wFileSramProperties[3]);
     } else {
         FarCall(1, FAR_FN(FormatSramSong));
         WriteSongByte(4, (UWORD)0xA100 + wFileCursor, 0);
     }
-    WriteSongByte(1, 0xBFBA, keyDelay);
-    WriteSongByte(1, 0xBFBB, keyRepeat);
-    WriteSongByte(1, 0xBFBD, syncIn);
-    WriteSongByte(1, 0xBFBF, syncOut);
+    WriteSongByte(1, SRAM_PROPERTY_KEY_DELAY, keyDelay);
+    WriteSongByte(1, SRAM_PROPERTY_KEY_REPEAT, keyRepeat);
+    WriteSongByte(1, SRAM_PROPERTY_SYNC_MODE, syncIn);
+    WriteSongByte(1, SRAM_PROPERTY_SYNC_PARAMETER, syncOut);
     if (wFileCursor >= 0x20 && wFileCursor != 0xFF)
         DebugTrap();
     WriteSongByte(4, 0xA140, wFileCursor);
-    WriteSongByte(1, 0xBFC1, 0x20);
+    WriteSongByte(1, SRAM_PROPERTY_FILE_CHANGED, 0x20);
     LoadFileListState();
     MigrateTempoProperties();
     FarCallArgument(1, FAR_FN(LoadProjectSettings), 1);
