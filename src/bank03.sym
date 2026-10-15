@@ -23,7 +23,7 @@
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 40F8 GetWavePlayMode            ; the wave PLAY mode: byte 9 (MANUAL, ONCE, LOOP, PINGPONG, RESYNC = PlayModeNames)
-414F InstrCheckFieldOption      ; return 1 if option-table[c] (ROM $40F4) minus 1 == current field $c427, else 0
+414F InstrCheckFieldOption      ; return 1 if option-table[c] (ROM $40F4) minus 1 == current field wInstrField, else 0
 427B InstrTransposeOn           ; set instrument byte 5 bit 5 (transpose) via SetInstrPitchByte
 42AB SynthWavesModified         ; 1 if synth n's 256-byte wave page (SRAM bank 3) differs from DefaultWaveFrameB3 repeated
 42FF FindFreeSynth              ; first synth (0-15) whose waves are still default; else 'OUT OF SYNTHS!' message and $FF

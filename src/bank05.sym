@@ -25,7 +25,7 @@
 459E TableReadTranspose        ; read table_transposes[table][row<$10] from SRAM (bounds-checked)
 45F1 EraseTableCursor           ; restore the cursor cells to their column palette (TableColPal) at row wTableRow+2, unless selecting
 472B DrawTableEnv               ; draw a table envelope cell (lo-nibble $F -> hi-nibble + release glyph)
-4930 TableInputFlag             ; return e=flag derived from input code (arg sp+4: 4 or $0a) and column $c92f
+4930 TableInputFlag             ; return e=flag derived from input code (arg sp+4: 4 or $0a) and column wTableCol
 4AA8 DrawTableCursor            ; refresh the table cursor cell (select mode -> DrawTableSelection; palette by CGB)
 61CA CutCopyTableSelection      ; arg? "CUT" (copy+clear) : "COPY": table selection -> clipboard (clipType 5)
 64A3 TablePasteCells            ; table-screen paste: clipboard cells into rows from wTableRow (a phrase selection's CMD pair too; swaps the two CMD/value pairs; "PASTE" for more than one row)
@@ -41,8 +41,8 @@
 426A MapMoveUp          ; dec wMapRow, MapEnterScreen, MapStartTransition(1)
 4287 MapMoveDown        ; inc wMapRow (max 2), MapEnterScreen, MapStartTransition(3)
 7208 ShowSynthFieldHelp         ; show the selected synth field's help line (ShowMessage; a jump table on wSynthCursor)
-743F SaveSelectionState ; wCursorMode/wClipboardType/wSelectionLeft/Top/Right/... -> $cbd2 save area
-747D RestoreSelectionState ; $cbd2 save area -> wCursorMode/wClipboardType/wSel*
+743F SaveSelectionState ; wCursorMode/wClipboardType/wSelectionLeft/Top/Right/... -> wSavedCursorMode save area
+747D RestoreSelectionState ; wSavedCursorMode save area -> wCursorMode/wClipboardType/wSel*
 69BD ShowInstrFieldHelp ; instrument-screen help line: the string for wInstrField under instrument type arg (TYPE row: TxtHelpInstrType) -> ShowMessage
 6F38 TxtHelpInstrType   ; "USE PULSE IN PU1/PU2; WAVE/KIT IN WAV; NOISE IN NOI"
 6D25 TxtHelpEnvStage1           ; "ENVELOPE STAGE 1: ..." (ShowInstrFieldHelp reaches these ten shared strings by constant address)

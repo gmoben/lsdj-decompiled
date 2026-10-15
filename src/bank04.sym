@@ -16,14 +16,14 @@
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 401B DrawPhraseCursorFar        ; FarCall bank1f DrawPhraseCursor
 402C DrawPhraseCmdLetter        ; draw FX command letter cmd (FxMnemonics), "?" past $13
-405D PhraseModeTile             ; return tile $78 or $6c depending on mode $c41d
+405D PhraseModeTile             ; return tile $78 or $6c depending on mode wSongCol
 4071 ReadCursorInstr            ; ReadPhraseInstr(wPhrase, wPhraseRow)
 4087 FindCursorInstr            ; the instrument in effect at the cursor: the nearest step at or above wPhraseRow with one (<= $40), else $FF
 40B2 PhraseResolveCursorNote    ; remember v as wPhraseColLast[wSongCol]; in column 3 (not selecting) also write it to field 4 of a type-3 instrument in effect
 4106 SetColInstr           ; cache the last-used instrument per channel column (wColInstr+wSongCol; WAV specials)
 418F WritePhraseNote            ; write phrase_notes[wPhrase][row] = v (SRAM bank 0 $A000); asserts row < $10, wPhrase != $FF
 41F0 WritePhraseInstr      ; write phrase_instruments[phrase][row] = instr (SRAM bank 3 $B000); asserts instr <= $40 or $FF
-4257 PhraseDrawCursorGlyph      ; pick glyph data ($429e/$42a3 by $c90c) + col $c415, then SetVramCursor
+4257 PhraseDrawCursorGlyph      ; pick glyph data ($429e/$42a3 by wPhraseDrawMode) + col wPhraseCol, then SetVramCursor
 42A8 PhraseInstrEntered         ; after instrument entry: WritePhraseInstr, update wColInstr, redraw
 43CD PhraseEditUp               ; A+UP edit on the cursor cell (note: +octave; hex fields: +$10)
 457C PhraseEditDown             ; A+DOWN edit on the cursor cell (-octave / -$10)
@@ -40,11 +40,11 @@
 4CAA PhraseCheckColFD           ; return wPhraseRowFlags[arg] > $FD (a $FE/$FF sentinel)
 4CC4 DrawNoteCell               ; draw wSampleNoteString (note name) or "OFF"
 510A CursorInstrIsKit           ; 1 if the instrument in effect at the cursor (FindCursorInstr) is a kit
-5136 PhraseCheckEditContext     ; predicate over mode $c41d / col $c415 / wSelectionLeft / CursorInstrIsKit
+5136 PhraseCheckEditContext     ; predicate over mode wSongCol / col wPhraseCol / wSelectionLeft / CursorInstrIsKit
 51AE PastePhraseSelection       ; paste the clipboard (wClipboardType) into the phrase: for rows wSelectionTop..wSelBottom and columns wSelectionRight-1 down to wSelectionLeft, each cell by column (kit notes merged nibble-wise, instrument, command, value); a 3-wide table-command selection (wClipboardType 5) shifts its command pair by -1/+1; PASTE message for multi-row pastes
 5491 CloneInstr            ; copy instrument src to dst: its 16 bytes, then its name (CopyInstrName / WriteInstrName)
 55EB CloneTableAtCursor         ; clone the table referenced by the cmd value under the cursor (FindFreeTable+CopyTableData)
-567D PhraseCursorOnEditCell     ; return 1 if cursor is on the active cmd cell ($c416==wSelectionTop and $c415==wSelectionLeft)
+567D PhraseCursorOnEditCell     ; return 1 if cursor is on the active cmd cell (wPhraseRow==wSelectionTop and wPhraseCol==wSelectionLeft)
 56BA PhraseCloneTableCmd        ; command action handler incl. cloning a table ("CLONED TABLE" message)
 572C PrelistenCursorRow         ; play the note/instr under the cursor while editing (wPrelisten gate)
 58D9 PhraseCellFlagA       ; phrase-cell predicate OR-ed in PrelistenEditedCell: note<$40 & instrument type==2 (kit) test

@@ -1,5 +1,5 @@
 ; Bank $1D -- Groove / Synth screens + softsynth renderer
-6035 RenderSynthWave    ; render a softsynth wave frame; called from main.mainLoop idle time (counter $C9F0, 0-15)
+6035 RenderSynthWave    ; render a softsynth wave frame; called from main.mainLoop idle time (counter wSynthRenderIdx, 0-15)
 
 ; --- synth data tables + strings ---
 4EF0 SineTable          ; signed sine waveform (synth source): 0..$3f..0..-$3f..
@@ -28,23 +28,23 @@
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 40AE EraseGrooveCursor          ; restore the groove cursor step's palette (alternating per two rows)
-425B DrawGrooveRow              ; draw one groove row (step<16; ticks via ReadGrooveStep, state $c9d5/$c9d6)
-435D GrooveBuildCache       ; once ($c9d5 guard): build the 16-step groove display cache $c9d6 (via $405a)
+425B DrawGrooveRow              ; draw one groove row (step<16; ticks via ReadGrooveStep, state wGrooveCacheValid/wGrooveStepCache)
+435D GrooveBuildCache       ; once (wGrooveCacheValid guard): build the 16-step groove display cache wGrooveStepCache (via $405a)
 4394 DrawGrooveCursor           ; highlight the groove cursor step (palette 3 on CGB, 2 on DMG)
 43CF GrooveRowPalettes          ; pick a groove row's draw palettes: select colours inside the sorted wSelectionTop..wGrooveRow range (select mode) or on the cursor row, 4/1 stripe on rows with bit 1, else shadow
 4B6C GrooveCutCopy              ; cut/copy the groove selection (arg 1 = cut: rows cleared to 0, row 0 to 6)
 4C63 PasteGrooveSelection       ; write the clipboard steps into the groove from the cursor (clipType 2), advancing wGrooveRow and wrapping at 16; PASTE message
 4CDE GrooveDrawSelection        ; clipType 2: highlight the rows between the anchor wSelectionTop and the cursor (palette 3 on CGB, 2 on DMG)
-4D81 SynthRenderWaveA           ; render synth waveform segment using wave tables $4EF0/$50F0 ($c9e8/$c9ed)
+4D81 SynthRenderWaveA           ; render synth waveform segment using wave tables $4EF0/$50F0 (wSynthSegLen1/wSynthSignalType)
 5190 SynthRenderWaveB           ; render synth waveform segment (variant of SynthRenderWaveA)
-5323 SynthComposeWave           ; main synth wave composition (wSynthRenderIdx, buffer $ca34); large
-5695 SynthRenderWaveType        ; dispatch waveform shape by type $c9e9 (jump table $56bd); buffer $ca94
+5323 SynthComposeWave           ; main synth wave composition (wSynthRenderIdx, buffer wSynthWaveBuf); large
+5695 SynthRenderWaveType        ; dispatch waveform shape by type wSynthWaveShape (jump table $56bd); buffer wSynthCurveAmp
 58DA SynthWrapIndex32           ; return (arg+1) & $1f (wave sample index wrap)
 58E6 SynthFilterLowHigh         ; synth filter LOWP/HIGHP (any type but 2/3): scatter each of the 32 samples over two accumulator slots at a cutoff-driven 8.8 position, then normalise each slot by its weight (type 0 fills missing weight with 8)
 5BBD SynthFilterBandPass        ; synth filter BANDP: halve the wave an octave per cutoff doubling (pair averages), then the LOWP/HIGHP scatter-and-normalise core with the position masked to the shortened wave
-5E53 SynthFilterPass            ; filter/transform 32 wave samples using $c9ec
-5F00 SynthApplyFilter           ; dispatch filter by $c9eb (2->SynthFilterBandPass, 3->SynthFilterPass, else 58E6); gated $c9ec
-5F29 SynthWriteWaveCol          ; write an edited wave column (<$20) from the edit state ($cb60) into song data
+5E53 SynthFilterPass            ; filter/transform 32 wave samples using wSynthFilterCutoff
+5F00 SynthApplyFilter           ; dispatch filter by wSynthFilterType (2->SynthFilterBandPass, 3->SynthFilterPass, else 58E6); gated wSynthFilterCutoff
+5F29 SynthWriteWaveCol          ; write an edited wave column (<$20) from the edit state (wWaveEditX) into song data
 5F90 SynthLoadSignalWave        ; load the custom-wave SIGNAL (W.FX: wave $F0 + synth, 16 packed bytes at SRAM $AF00 + 16 * synth) into wSynthShapeBuf as 32 signed words
 60A7 SynthCalcParamAddr         ; pick SRAM base $bfc4/$bfc5 by bit3 of arg -> synth param pointer
 6115 SynthReadParam             ; read synth param via SynthCalcParamAddr + ReadSongByte (bank1)
@@ -64,12 +64,12 @@
 6819 .rowC                ; (was DrawSynthHexRowC) draw a START/END hex pair row (section C)
 6865 .rowD                ; (was DrawSynthHexRowD) draw a START/END hex pair row (section D), then DrawSynthCursor re-render
 68F9 SynthLoadParams            ; load the edited synth's parameters from SRAM ($BEB2 + wSynthScreen*16) into the render state: wave type, wave table, filter
-6935 .loadWaveType        ; (was SynthLoadWaveType) read 2 synth params from SRAM -> $c9ed, $c9e9 (wave type)
-6967 .loadWaveTable       ; (was SynthLoadWaveTable) read packed param from SRAM, build wave table $ca94 (via SynthFillWaveRange)
-6997 .loadFilterParams    ; (was SynthLoadFilterParams) read 2 synth params from SRAM -> $c9ee, $c9eb (filter)
+6935 .loadWaveType        ; (was SynthLoadWaveType) read 2 synth params from SRAM -> wSynthSignalType, wSynthWaveShape (wave type)
+6967 .loadWaveTable       ; (was SynthLoadWaveTable) read packed param from SRAM, build wave table wSynthCurveAmp (via SynthFillWaveRange)
+6997 .loadFilterParams    ; (was SynthLoadFilterParams) read 2 synth params from SRAM -> wSynthFilterParam, wSynthFilterType (filter)
 6B33 BuildOverwritePrompt       ; draw the confirmation border at columns 3..14, rows 4..10; restore wStringSrc/palettes
 6D0F DrawOverwriteChoice        ; highlight the OVERWRITE? prompt choice (wOverwriteEnd) on row 9
-6D6F SynthOverwriteWaves        ; open the OVERWRITE HAND-DRAWN WAVES? confirmation; set active/choice flags $cb61/$cb62
+6D6F SynthOverwriteWaves        ; open the OVERWRITE HAND-DRAWN WAVES? confirmation; set active/choice flags wOverwriteStart/wOverwriteEnd
 6E00 RedrawScreenFar            ; FarCall home RedrawScreen ($24dd)
 6E11 OverwritePromptInput       ; synth OVERWRITE? prompt input: LEFT/RIGHT move the choice, A accepts (clearing the synth flag on the left choice), B cancels
 6E6E WriteSynthParam            ; synth_params[wSynthScreen*16+n] = value (song $3EB2); 24 uses
@@ -83,7 +83,7 @@
 7111 SynthFieldDecLo            ; current synth field: -1 on the lo nibble
 ; --- functions called from bank 0 (this bank paged in) ---
 7138 SynthScreenInput           ; synth screen input (wButtons): overwrite prompt, help, cursor moves, field steps, synth select, copy/paste; 1 = handled
-4D58 GrooveResetState           ; reset groove screen state ($c9d5=0 + 16-slot loop)
+4D58 GrooveResetState           ; reset groove screen state (wGrooveCacheValid=0 + 16-slot loop)
 4451 GrooveScreenInput          ; groove screen (2) input: step edits, tick moves between pairs, delete, groove select, cut/copy/paste, map exit; 1 = handled
 4B65 TxtSelect1D       ; "SELECT" (pairs with TxtCancelSelect1D)
 7D98 TxtPastedSynth    ; "PASTED SYNTH"

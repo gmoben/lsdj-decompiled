@@ -38,7 +38,7 @@
 569C DrawFontColorFields        ; draw the FONT (wFont) and COLOR SET (wColorSet) project rows
 5782 SaveSyncMode               ; wSyncMode -> song property $bfbd
 5796 DrawSyncMode2Field         ; draw + persist wSyncMode2 (song property $bfbf)
-57C1 ProjSyncStateFlag          ; predicate combining wSyncMode (1/3) and $cb6b
+57C1 ProjSyncStateFlag          ; predicate combining wSyncMode (1/3) and wSyncRun
 582C SaveTempoProps             ; wTempo -> $bfb4, wTempoMode -> $bfcc song properties
 5853 ProjDrawTempo              ; draw the tempo at the VRAM cursor: DrawTempo(GetTempoTimerVal())
 5861 ProjRedrawTempo            ; wait while wRedrawPending < 6, then ProjDrawTempo at $9846
@@ -316,7 +316,7 @@
 69A0 .checkGameboyTypeApply
 6A19 .checkButtonsSameApply
 6B72 .setTempo
-722A .colOk               ; column < $40: store y at $DA00 + wEnvPlotX
+722A .colOk               ; column < $40: store y at wDecompressBuf + wEnvPlotX
 7568 .computeEnv
 
 

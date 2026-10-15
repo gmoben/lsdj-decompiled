@@ -40,8 +40,8 @@
 445A TestSramHi                 ; cartridge RAM test, SRAM banks 4-15 (jp TestSramHi.done on mismatch)
 493B CopyInstrName              ; copy instrument arg's 5-char name -> wNameEditBuf (speech $40 -> "SPCH")
 4A49 WriteInstrName             ; wNameEditBuf -> instrument name storage ($be7a + instr*5)
-4B15 LoadHwTables               ; load the CGB/DMG-specific tables: palettes -> $cd28, the 216-byte note-period table -> wNotePeriods
-4B5E ClearOamBuf             ; clear the OAM shadow ($dd00, $a0 bytes) and sprite tiles $8000-$802f/$8050-$805f, place the WAV sprites, wait for the OAM DMA, enable sprites
+4B15 LoadHwTables               ; load the CGB/DMG-specific tables: palettes -> wNotePeriodLo, the 216-byte note-period table -> wNotePeriods
+4B5E ClearOamBuf             ; clear the OAM shadow (wOamBuf, $a0 bytes) and sprite tiles $8000-$802f/$8050-$805f, place the WAV sprites, wait for the OAM DMA, enable sprites
 4C61 ApplyColorSet              ; load the wColorSet CGB BG+OBJ palettes (hw $11 check, set_bkg_palette)
 4CFB MarkPhraseUsed             ; set the phrase-alloc bit (song $3E82 bitmap) for phrase arg
 5208 DrawSpeedGlyph             ; draw the 2-tile speed icon (SpeedGlyphTiles[value&7])
@@ -53,7 +53,7 @@
 6D23 UiClearBgMap               ; clear BG tilemap from $9800 (VBK-aware: bank1 attrs on CGB)
 6D53 DrawTopBar                 ; top status bar: active message (wMessageStrPtr) or screen title + hex number
 7955 DrawCrashScreen            ; the crash screen: "DONT PANIC!", the bank, the stack pointer and 10 stack words, play mode, screen, hardware, sync, AST, the version; then hangs
-7BDE ResetEditorState           ; clear selection rect, clipboard type, cursor mode (+$c412)
+7BDE ResetEditorState           ; clear selection rect, clipboard type, cursor mode (+wQuickMarking)
 7DE9 ClearSramWindow           ; zero the whole $A000-$BFFF SRAM window (8 bytes/iter until h==$c0); used during init/format
 7DFB UiDrawScreenCgb            ; copy 18x20 chars (arg ptr) -> $9800 with per-char CGB palette attribute (VBK1)
 7E4E UiDrawScreenDmg            ; copy 18x20 chars (arg ptr) -> $9800 (DMG, no palette attrs)

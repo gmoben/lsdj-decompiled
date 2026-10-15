@@ -96,14 +96,14 @@
 70B6 EraseSpeechCursor          ; restore the word-list row's palette (alternating by row parity)
 70DF DrawSpeechCursor           ; highlight the speech instrument's word-list row under wSpeechRow
 ; --- functions called from bank 0 (this bank paged in) ---
-4A26 InitRemapTable             ; fill $c9b8..+16 with identity 0..15 (remap table for clone/dedupe)
+4A26 InitRemapTable             ; fill wInstrRemapTable..+16 with identity 0..15 (remap table for clone/dedupe)
 7801 TxtCutWord        ; "CUT WORD"
 780A TxtPastedWord     ; "PASTED WORD"
 
 ; --- allocation / clean / phrase-screen helpers (FarCall targets) ---
 4A65 AllocNextFreeInstr         ; scan instr-alloc table (song $2040) for a free slot, place into phrase (bank04 $41f0); full -> OOM msg, e=$40
 4BD9 FindFreeTable              ; first unused table 0-$1f; none -> ShowMessage(TxtOutOfTables), e=$ff
-4C20 IsSongChainUsed            ; test chain-alloc bit for the chain under the song cursor col ($c44f+wSongCol; $80+ -> 0)
+4C20 IsSongChainUsed            ; test chain-alloc bit for the chain under the song cursor col (wColChain+wSongCol; $80+ -> 0)
 62DD CleanSongData              ; project CLEAN: de-dupe chains+phrases, DE-DUPE/FREEING progress panel
 63B1 CleanInstrData             ; project CLEAN: de-dupe instruments/tables, DE-DUPE/FREEING progress panel
 64FF CanEnterSongCol            ; e=1 if song column (arg<4) can take the cursor (channel active/enterable)
