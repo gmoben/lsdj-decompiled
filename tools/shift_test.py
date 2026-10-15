@@ -264,6 +264,33 @@ def tour_project(d: Driver) -> None:
     d.tap("b", wait=40)                                 # back to the project screen
 
 
+def phrase_command(d: Driver) -> int:
+    """The command on the phrase cursor's row (SRAM bank 2: SONG_PHRASE_FX),
+    counting A as 0, -1 for none: what the recording ROM holds, so the tour
+    presses exactly what reaches a letter (never past Z, where a fork's
+    commands follow)."""
+    phrase, row = d.pb.memory[0xC414], d.pb.memory[0xC416]          # wPhrase, wPhraseRow
+    return d.pb.memory[2, 0xA000 + phrase * 16 + row] - 1
+
+
+def table_command(d: Driver, column: int) -> int:
+    """The command in the table cursor's row, CMD1 or CMD2 (SRAM bank 1:
+    SONG_TABLE_CMD1/2), counting A as 0, -1 for none."""
+    table, row = d.pb.memory[0xC41B], d.pb.memory[0xC930]           # wTable, wTableRow
+    return d.pb.memory[1, (0xB680 if column == 2 else 0xBA80) + table * 16 + row] - 1
+
+
+def step_command(d: Driver, current: int, target: int, skip: set[int]) -> None:
+    """A+RIGHT or A+LEFT from letter `current` to `target`, the steppers
+    passing over `skip` (TableSkipsCommand)."""
+    if current < 0:
+        return
+    lo, hi = sorted((current, target))
+    n = sum(1 for k in range(lo + 1, hi + 1) if k not in skip)
+    if n:
+        d.edit_n("right" if target > current else "left", n)
+
+
 def song_cursor(d: Driver, column: int, row: int = 0) -> bool:
     """The song screen, its cursor on (column, row)."""
     if not d.goto(SCREEN["song"]):
@@ -304,20 +331,15 @@ def tour_phrases(d: Driver) -> None:
         d.tap("right", n=2, wait=6)                     # the command column
         d.held_taps("select", "b", "b")                 # the column selected,
         d.chord("select", "a")                          # cut: no commands
-        # letters A..T, D..Z, C..Z: one T (tempo) only, PU1's, since the
-        # tempo a song stops on is the last T run, and a build a tick ahead
-        # would stop on another channel's
+        # letters A..T, D..Z, C..Z, never past Z (a fork's commands follow
+        # it); M and T, global, on PU1 only: what a song stops on is the last
+        # one run, and a build a tick ahead would stop on another channel's
         first = {0: 0, 2: 3, 3: 2}[column]
-        letter = 0
+        letters = [k for k in range(first, COMMAND_Z + 1) if not (column and k in GLOBAL_COMMANDS)]
+        letters += [COMMAND_Z] * 16
         for row in range(16):
-            target = first + row + (1 if column and first + row >= COMMAND_T else 0)
             d.tap("a", wait=8)                          # A: the column's last command again
-            if row == 0:
-                d.edit_n("left", 20)                    # letter A,
-                d.edit_n("right", target)               # then letter `first`
-            else:
-                d.edit_n("right", target - letter)      # then the next letter
-            letter = target
+            step_command(d, phrase_command(d), letters[row], set())
             d.tap("right", wait=6)                      # its value
             d.edit_n("up", row % 4 + 1)
             d.edit_n("right", row % 3)
@@ -438,7 +460,18 @@ def tour_screens(d: Driver) -> None:
     if d.goto(SCREEN["table"]):
         d.tap("up", n=16, wait=4)
         d.tap("left", n=6, wait=4)
-        sweep(d, 6, columns=6, keys=("right", "up"))
+        for row in range(6):                            # VOL, TSP, CMD1, VAL1, CMD2, VAL2
+            for column in range(6):
+                if column in (2, 4):                    # a command: A, then the letter
+                    commands, skip = TABLE_COMMANDS[column // 4], TABLE_SKIPS[column // 4]
+                    d.tap("a", wait=8)
+                    step_command(d, table_command(d, column), commands[row], skip)
+                else:
+                    d.edit("right"); d.edit("up")
+                if column < 5:
+                    d.tap("right", wait=6)
+            d.tap("left", n=5, wait=6)
+            d.tap("down", wait=6)
         d.chord("select", "b"); d.tap("down", n=2, wait=6); d.tap("b", wait=20)
         d.tap("down", n=3, wait=6); d.chord("select", "a")
         d.held_taps("select", "b", "b")                 # select a column, cut it
@@ -648,6 +681,14 @@ def monkey(seed: int, frames: int) -> list[tuple[int, list[str]]]:
 
 SEED = 0x1234                       # the random numbers' seed every run gets
 COMMAND_T = 15                      # the tempo command's letter, counting A as 0
+COMMAND_Z = 18                      # the last of LSDj's
+GLOBAL_COMMANDS = {10, 15}          # M (master volume) and T (tempo): every channel's
+# a table's commands, row by row (counting A as 0): none that sets something
+# global (M, T) or a channel's groove (G), nor draws a random number (B, Z),
+# so a song stopped a tick apart stops the same
+TABLE_COMMANDS = ((4, 12, 16, 11, 17, 2),            # CMD1: E P V O W C
+                  (16, 13, 4, 14, 8, 5))             # CMD2: V R E S K F
+TABLE_SKIPS = ({3}, {3, 9})                          # D, and L in CMD2: TableSkipsCommand
 
 
 def routine_address(rom: Path, name: str) -> tuple[int, int]:
@@ -793,11 +834,11 @@ WAV_UPLOAD_BITS = {0x0A: 0xFF, 0x15: 0x44, 0x16: 0x04}
 def sound_difference(a, b, periods: Periods) -> str | None:
     """What differs in what the two play, or None: the sound registers a
     program can read back (volumes, envelopes, duty, sweep, the noise
-    channel, panning, the on/off bits) every frame, and the wave RAM while
-    the wave channel is off; the periods, and the wave RAM it plays, only
-    when the frame's audio differs, since the same values written a few
-    cycles apart sound the same but don't sample the same (and the wave
-    RAM reads back the byte playing, whose position is that timing).
+    channel, panning, the on/off bits) every frame; the periods, and the
+    wave RAM the wave channel plays, when the frame's audio differs, since
+    the same values written a few cycles apart sound the same but don't
+    sample the same (and the wave RAM reads back the byte playing, whose
+    position is that timing).
 
     While the wave channel's pitch modulates (wChannelPitchModulationActiveWav:
     a vibrato, a slide), LSDj times it by DIV, the CPU's cycles: each step
@@ -806,7 +847,10 @@ def sound_difference(a, b, periods: Periods) -> str | None:
     (SoundLoadWaveRam turns the channel off and on again). Code that runs a
     few cycles longer anywhere moves those moments, and the pitch with
     them. Then the wave channel's period, its wave RAM and those bits are
-    not compared; the other channels, the screen and the song data are."""
+    not compared; the other channels, the screen and the song data are.
+    A channel that is off (NR52) plays nothing: its period and wave RAM are
+    what a stop left (LSDj loads the wave again before it plays), not
+    compared; with the APU off, none are."""
     ra, rb = bytearray(a.memory[0xFF10:0xFF30]), bytearray(b.memory[0xFF10:0xFF30])
     wav_timed = bool(a.memory[W_WAV_PITCH_MODULATING] or b.memory[W_WAV_PITCH_MODULATING])
     if wav_timed:
@@ -815,18 +859,17 @@ def sound_difference(a, b, periods: Periods) -> str | None:
             rb[reg] &= ~bits
     if ra != rb:
         return "sound registers"
-    wave_off = not a.memory[0xFF26] & 0x04
-    if wave_off and not wav_timed and a.memory[0xFF30:0xFF40] != b.memory[0xFF30:0xFF40]:
-        return "the wave RAM"
     import numpy as np
-    if np.array_equal(a.sound.ndarray, b.sound.ndarray):
-        return None
+    on = a.memory[0xFF26]                     # NR52, the same in both (above)
+    if not on & 0x80 or np.array_equal(a.sound.ndarray, b.sound.ndarray):
+        return None                           # the APU off: nothing plays
     (pa, wa), (pb_, wb) = periods.read(a), periods.read(b)
-    off = [name for (name, _, _), x, y in zip(CHANNEL_PERIODS, pa, pb_)
-           if x != y and not (wav_timed and name == "WAV")]
+    off = [name for (name, _, _), x, y, bit in zip(CHANNEL_PERIODS, pa, pb_, (1, 2, 4))
+           if x != y and on & bit and not (wav_timed and name == "WAV")]
     if off:
         return f"the period {'/'.join(off)} plays"
-    return "the wave RAM the wave channel plays" if wa != wb and not wav_timed else None
+    return ("the wave RAM the wave channel plays"
+            if wa != wb and on & 0x04 and not wav_timed else None)
 
 
 def sram(pb) -> bytes:
@@ -973,6 +1016,7 @@ def guarded(fn, *args, stall: float = 10.0):
 
 
 def save_frames(a, b, frame: int) -> None:
+    BUILD.mkdir(parents=True, exist_ok=True)
     for pb, tag in ((a, "ref"), (b, "shift")):
         img = pb.screen.ndarray[:, :, :3]
         h, w = img.shape[:2]

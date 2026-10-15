@@ -830,7 +830,13 @@ The checklist:
       tempo by A+arrows and by tapping A, each sync mode and its parameter,
       clone, look, the key delay and repeat, prelisten) and the help
       screen's entries; a phrase on PU1, WAV and NOI with a command on every
-      step, A to Z between them, played; every field of each instrument
+      step, A to Z between them, played (each letter reached by reading the
+      row's command on the original ROM as the tour is recorded, so it never
+      steps past Z, where a fork's commands follow; M and T on PU1 only,
+      since the volume and tempo a song stops on are the last ones run, and
+      a build a tick ahead would stop on another channel's); a table's
+      commands, none that sets something global or a groove or draws a
+      random number, for the same reason; every field of each instrument
       type, an edit each way and a double A, played on the wave channel;
       the name editor; the song screen's chains (new, clone, cut, paste),
       marks, paging, a block and a column copied, mute, solo, pan and live
@@ -839,14 +845,16 @@ The checklist:
       a synth whose wave was drawn by hand and its overwrite prompt; speech
       and the word screen; the song under the LSDJ, MIDI and AN.OUT sync
       modes; the file screen's erase; CLEAN SONG DATA and CLEAN INSTR DATA.
-      That is 44,600 frames and 84% of the routines (802 of 952 as a CGB,
+      That is 45,300 frames and 84% of the routines (799 of 952 as a CGB,
       `tools/tour_coverage.py`, which lists the rest: the link cable, the
       keyboard, the crash and cartridge-test screens, old songs' upgrades).
       Every frame it compares the screen and the sound: the sound registers
       a program can read back (volumes, envelopes, duty, sweep, the noise
-      channel, panning, the on/off bits), the wave RAM while the wave
-      channel is off, and whenever the frame's audio differs the period each
-      of PU1, PU2 and WAV plays and the wave RAM it plays. The periods' 11
+      channel, panning, the on/off bits), and whenever the frame's audio
+      differs the period each of PU1, PU2 and WAV plays and the wave RAM it
+      plays, for the channels that are on (a channel off plays nothing: its
+      period and wave RAM are what a stop left, and LSDj loads the wave again
+      before it plays). The periods' 11
       bits are write-only (they read back `$FF`/`$BF`), and the wave RAM
       reads back the byte playing while the channel plays (on a CGB; `$FF`
       on a DMG), at a position a few cycles' timing moves, so both come
@@ -874,7 +882,7 @@ The checklist:
       tables at `$0200`-`$0390` that SoundCalculateVibratoOffset reaches with
       `ld d, $02` / `ld h, $03`, sections pinned at `$0200` and `$0300`.
       Passing, with the long tour: every bank alone (16 bytes) as a CGB and
-      as a DMG, and all at once (1, 3, 16, 32 bytes; 16 as a DMG; 7 bytes
+      as a DMG, and all at once (1, 16, 32 bytes; 16 as a DMG; 7 bytes
       with seed 2, 16 with seed 3 as a DMG); with the first, shorter tour
       also all at once at 5, 9 and 11 bytes and seeds 1-15. Odd sizes
       matter: a stale target can land on harmless code at one size and on a
