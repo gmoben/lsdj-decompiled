@@ -33,6 +33,8 @@ is NEW, translated to go before its bank's free space (c/bankNN/ names the
 bank). Both are translated with only their own label: nothing of the
 original's lands inside them. The manifest is build/c/fork.json (each
 function's bank, range and status); c/matched.json stays the original's.
+A file that says @sdcc4 is new code for a modern SDCC (tools/match/sdcc4.py):
+compiled with that, all of it NEW.
 
 Usage: tools/match/verify_all.py [--write DIR] [--fork] [FILE.c ...]
 """
@@ -51,6 +53,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 mf = importlib.import_module("match_function")
 to_rgbds = importlib.import_module("to_rgbds")
+sdcc4 = importlib.import_module("sdcc4")
 
 DEFN = re.compile(r"^(?:[A-Za-z_][\w \t*]*?\b)?([A-Za-z_]\w*)\s*\([^;{}]*\)\s*(?:nonbanked|banked|critical)?\s*$")
 MANIFEST = mf.REPO_ROOT / "c" / "matched.json"
@@ -156,6 +159,7 @@ def main() -> None:
     syms = mf.load_symbols()
     baseline = json.loads(MANIFEST.read_text()) if MANIFEST.is_file() else {}
     new_funcs: dict[str, int] = {}                   # a fork's new functions: their bank
+    modern = [c for c in files if fork and sdcc4.is_sdcc4(c.read_text())]
     if fork:
         for c_path in files:
             m = re.search(r"bank([0-9a-fA-F]{2})", c_path.parent.name)
@@ -165,9 +169,31 @@ def main() -> None:
         for func, bank in new_funcs.items():          # linked anywhere: the translation is labels
             syms[func] = (bank, 0x4000 if bank else 0x0150)
         to_rgbds.EXTRA_NAMES.update(new_funcs)
+    files = [c for c in files if c not in modern]
     forked: dict[str, dict[str, str | int | None]] = {}
-
     failed = 0
+    for c_path in modern:                         # a fork's new C for SDCC 4
+        rel = c_path.relative_to(mf.REPO_ROOT).as_posix()
+        bank = int(re.search(r"bank([0-9a-fA-F]{2})", c_path.parent.name).group(1), 16)
+        try:
+            funcs, doc = sdcc4.translate(c_path, set(new_funcs))
+        except (SystemExit, ValueError) as e:
+            print(f"{rel}: {e}")
+            failed += 1
+            continue
+        lines = write_dir / f"bank{bank:02x}" / f"{c_path.stem}.sdcc4.lines" if write_dir else None
+        if lines is not None:
+            lines.parent.mkdir(parents=True, exist_ok=True)
+            text = json.dumps(doc, indent=0)
+            if not lines.is_file() or lines.read_text() != text:
+                lines.write_text(text)
+        n = sum(1 for _a, kind, _t in doc["rows"] if kind == "I")
+        for func in funcs:
+            print(f"  {func:24s} ${bank:02X}         NEW  SDCC 4, before the bank's free space   ({rel})")
+            forked[func] = {"bank": f"{bank:02X}", "status": "new", "src": rel, "lo": None, "hi": None,
+                            "lines": f"bank{bank:02x}/{c_path.stem}.sdcc4.lines"}
+        print(f"  ({rel}: {n} instruction and data rows)")
+
     matched: dict[str, dict[str, str | int]] = {}
     with ExitStack() as stack:
         run = Runner(stack, mf.DEFAULT_PEEP)

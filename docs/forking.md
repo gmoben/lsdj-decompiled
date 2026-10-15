@@ -44,7 +44,25 @@ the shift test proves (`tools/shift_test.py`).
 A function defined in `c/bankNN/*.c` that no `src/bankNN.sym` names is new:
 it goes at the end of bank `$NN`'s code, before its free space. Call it from
 other C by name, declared as usual; from another bank, with a banked call
-(`FarCall(bank, FAR_FN(Name))`) as LSDj does. The banks' free space (bytes):
+(`FarCall(bank, FAR_FN(Name))`) as LSDj does.
+
+Write it for a modern SDCC: a file that says `@sdcc4` (in a comment) is
+compiled with SDCC 4.6 (`tools/toolchain/fetch_sdcc4.sh` puts it in
+`toolchain/`) and translated by `tools/match/sdcc4.py`, every function in
+it new. It includes `c/include/fork.h`, not `lsdj.h`, and can't have
+variables of its own (RAM goes in `constants/ram.inc`) or need SDCC 4's
+runtime library. The period compiler is what LSDj's own C needs, but on new
+code its gbz80 port drops an operand now and then (`NR51_REG & x`, `(a & b)
+| (c & d)`: the result of one side overwritten before the other is used);
+SDCC 4 compiles the same C right, and smaller.
+
+SDCC 4 uses LSDj's calling convention (`--sdcccall 0`: arguments on the
+stack, a byte returned in e, a word in de) except that it doesn't keep bc
+for its caller, and LSDj's compiled C keeps values in bc across calls. So
+LSDj code reaches new code through a function that saves bc: the period
+compiler's `FarCall(bank, FAR_FN(Name))` does (it pushes bc to pass the
+address and pops it after), which is also how code in bank `$02` reaches a
+bank with room. The banks' free space (bytes):
 
 | `$00` | `$01` | `$02` | `$03` | `$04` | `$05` | `$06` | `$07` | `$1B` | `$1C` | `$1D` | `$1E` | `$1F` |
 |------|------|------|------|------|------|------|------|------|------|------|------|------|

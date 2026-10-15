@@ -228,9 +228,10 @@ lsdj-decompiled/
 │                         #   ROM address, diff, --score), verify_all (make match),
 │                         #   code_kind (C/asm/library map, progress), shapes (candidates),
 │                         #   rom_grep (rule evidence), trace_alloc (allocator trace),
-│                         #   to_rgbds (matched C as RGBDS source)
+│                         #   to_rgbds (matched C as RGBDS source), sdcc4 (a fork's
+│                         #   new C, compiled with SDCC 4.6)
 │                         #   + lsdj.peep (recovered rules)
-├── .githooks/pre-commit  # ROM-leak guard + `make compare`
+├── .githooks/pre-commit  # ROM-leak guard + `make check`
 └── .github/workflows/    # CI: the tools' checks, which need no ROM
 ```
 

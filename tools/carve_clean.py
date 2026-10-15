@@ -397,10 +397,11 @@ def fork_ranges(bank: int) -> tuple[list[str], list[tuple[int, int, str, int]]]:
     for name, m in json.loads(manifest.read_text()).items():
         if int(m["bank"], 16) != bank:
             continue
-        src = ROOT / "build" / "c" / f"bank{bank:02x}" / f"{name}.lines"
+        src = ROOT / "build" / "c" / (m.get("lines") or f"bank{bank:02x}/{name}.lines")
         if not src.is_file():
             sys.exit(f"{name}: no {src.relative_to(ROOT)} (a fork's build needs the compiler)")
-        lines.append(src.relative_to(ROOT).as_posix())
+        if src.relative_to(ROOT).as_posix() not in lines:      # (an SDCC 4 file's, once for all)
+            lines.append(src.relative_to(ROOT).as_posix())
     overrides = sorted((ROOT / "fork" / f"bank{bank:02x}").glob("*.asm"))
     if overrides:
         syms = disasm.parse_symbols(ROOT / "src" / f"bank{bank:02x}.sym")

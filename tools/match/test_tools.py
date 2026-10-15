@@ -28,6 +28,7 @@ kits = importlib.import_module("kits")
 gen_main = importlib.import_module("gen_main")
 symfile = importlib.import_module("symfile")
 regflow = importlib.import_module("regflow")
+sdcc4 = importlib.import_module("sdcc4")
 
 
 class PatternTests(unittest.TestCase):
@@ -242,6 +243,49 @@ class ForkTests(unittest.TestCase):
         self.assertEqual([t for _a, _b, t, _r in rows],
                          ["ret", "", "NewFunc:", "\tret", "",
                           "; Free space: 16,383 bytes to the end of the bank.", "ds $8000 - @, $ff"])
+
+
+class SdccFourTests(unittest.TestCase):
+    """A fork's new C (sdcc4.py): SDCC 4's asxxxx output as RGBDS rows, the
+    file's static data under names of its own, and nothing the build lacks."""
+
+    ASM = """\
+\t.module t
+\t.optsdcc -msm83 sdcccall(0)
+\t.globl _Tick
+\t.area _CODE
+_Tick::
+\tldhl\tsp,\t#2
+\tld\ta, (hl+)
+\tld\tc, a
+\tld\ta, #<(_wX)
+\tadd\ta, c
+\tld\t(#_rNR51), a
+\tjr\tnz, 00102$
+\tld\thl, #_Table + 0
+\tjp\t(hl)
+00102$:
+\tadd\tsp, #-3
+\tret
+_Table:
+\t.db #0x11\t; 17
+\t.db #0x22
+"""
+
+    def test_rows(self):
+        rows = sdcc4.Translation(self.ASM, "t", {"wX", "rNR51"}).rows()
+        self.assertEqual([text for _a, _k, text in rows],
+                         ["Tick:", "ld hl, sp+2", "ld a, [hl+]", "ld c, a", "ld a, LOW(wX)", "add a, c",
+                          "ld [rNR51], a", "jr nz, .L00102", "ld hl, t_Table", "jp hl", ".L00102:",
+                          "add sp, -3", "ret", "t_Table:", "db $11", "db $22"])
+
+    def test_refuses_the_runtime_variables_and_unknown_names(self):
+        for body in ("\tcall\t__mulint\n",                       # SDCC 4's runtime library
+                     "\tld\ta, (#_wNowhere)\n",                   # a name the build doesn't define
+                     "\t.area _DATA\n_counter:\n\t.ds 1\n"):     # a variable of its own
+            asm = "\t.globl _F\n\t.area _CODE\n_F::\n" + body
+            with self.assertRaises(ValueError, msg=body):
+                sdcc4.Translation(asm, "t", set()).rows()
 
 
 class TileBlockTests(unittest.TestCase):
