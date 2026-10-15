@@ -1381,38 +1381,38 @@ void ShowSynthFieldHelp(void)
 
     s = 0;
     switch (wSynthCursor) {
-    case 0:
+    case SYNTH_FIELD_SIGNAL:
         s = "SIGNAL WAVE. W.FX USES A WAVE IN RANGE F0-FF AS INPUT";
         break;
-    case 1:
+    case SYNTH_FIELD_FILTER:
         s = "LOW-PASS, HIGH-PASS, BAND-PASS OR ALL-PASS";
         break;
-    case 2:
+    case SYNTH_FIELD_DISTORTION:
         s = "DISTORTION. CLIP TRUNCATES TO LIMIT, FOLD MIRRORS AROUND LIMIT, WRAP WRAPS AROUND VERTICALLY";
         break;
-    case 3:
-    case 9:
-    case 15:
+    case SYNTH_FIELD_PHASE_TYPE:
+    case SYNTH_FIELD_PHASE_START:
+    case SYNTH_FIELD_PHASE_END:
         s = "COMPRESS WAVE HORIZONTALLY";
         break;
-    case 4:
-    case 10:
+    case SYNTH_FIELD_VOLUME_START:
+    case SYNTH_FIELD_VOLUME_END:
         s = "SIGNAL VOLUME";
         break;
-    case 5:
-    case 11:
+    case SYNTH_FIELD_CUTOFF_START:
+    case SYNTH_FIELD_CUTOFF_END:
         s = "FILTER CUTOFF FREQUENCY";
         break;
-    case 6:
-    case 12:
+    case SYNTH_FIELD_Q_START:
+    case SYNTH_FIELD_Q_END:
         s = "RESONANCE CONTROL. BOOSTS SIGNAL AROUND CUTOFF FREQUENCY";
         break;
-    case 7:
-    case 13:
+    case SYNTH_FIELD_VSHIFT_START:
+    case SYNTH_FIELD_VSHIFT_END:
         s = "VERTICAL SHIFT";
         break;
-    case 8:
-    case 14:
+    case SYNTH_FIELD_LIMIT_START:
+    case SYNTH_FIELD_LIMIT_END:
         s = "LIMIT SIGNAL VERTICALLY USING DIST MODE. 0-F LOWERS VOLUME, 10-FF WRAPS LOUD SIGNALS";
         break;
     default:

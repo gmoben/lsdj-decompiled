@@ -186,7 +186,7 @@ void ResetWorkState(void)
     wNameEditColumn = 9;
     wNameEditRow = 3;
     wSynthScreen = 0;
-    wSynthCursor = 0;
+    wSynthCursor = SYNTH_FIELD_SIGNAL;
     wUnusedC443 = 0;
     wColumnLastCommand[0] = 1;
     wColumnLastCommand[1] = 1;

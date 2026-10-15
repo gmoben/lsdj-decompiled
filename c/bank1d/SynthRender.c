@@ -75,13 +75,13 @@ void RenderSynthWaveA(UBYTE amplitude)
     UWORD sample;
 
     volume = wSynthCutoff >> 4;
-    if (wSynthSignalType == 2)
+    if (wSynthSignalType == SYNTH_SIGNAL_TRIANGLE)
         table = &SynthShapeTableB[0];
     else
         table = &SynthShapeTableA[0];
     if (wSynthSignalType) {
         volume &= 0x0E;
-        if (wSynthSignalType == 2) {
+        if (wSynthSignalType == SYNTH_SIGNAL_TRIANGLE) {
             volume >>= 1;
             if (volume > 4)
                 volume = 4;
@@ -122,7 +122,7 @@ void RenderSynthWaveB(UBYTE amplitude)
     BYTE *table;
     UWORD sample;
 
-    if (wSynthSignalType == 2)
+    if (wSynthSignalType == SYNTH_SIGNAL_TRIANGLE)
         table = &SynthShapeTableB[0];
     else
         table = &SynthShapeTableA[0];
@@ -132,7 +132,7 @@ void RenderSynthWaveB(UBYTE amplitude)
             return;
         volume--;
         volume <<= 1;
-        if (wSynthSignalType == 2) {
+        if (wSynthSignalType == SYNTH_SIGNAL_TRIANGLE) {
             volume >>= 1;
             if (volume > 4)
                 volume = 4;
@@ -250,18 +250,18 @@ void RenderSynthWaveType(void)
 
     amplitude = wSynthCurveResonance[wSynthRenderIndex];
     switch (wSynthFilterType) {
-    case 0:
+    case SYNTH_FILTER_LOWPASS:
         switch (wSynthSignalType) {
         default:
             p = wSynthCutoff & 0xF0;
             p = (UWORD)(SynthSeedTableA + (p << 1));
             break;
-        case 1:
+        case SYNTH_SIGNAL_SAW:
             p = wSynthCutoff & 0xE0;
             p >>= 1;
             p = (UWORD)(SynthSeedTableB + (p << 1));
             break;
-        case 2:
+        case SYNTH_SIGNAL_TRIANGLE:
             p = wSynthCutoff & 0xE0;
             p >>= 1;
             p = (UWORD)(SynthSeedTableE + (p << 1));
@@ -272,18 +272,18 @@ void RenderSynthWaveType(void)
         if (amplitude)
             RenderSynthWaveB(amplitude);
         break;
-    case 1:
+    case SYNTH_FILTER_HIGHPASS:
         switch (wSynthSignalType) {
-        case 0:
+        case SYNTH_SIGNAL_SQUARE:
             p = wSynthCutoff & 0xF0;
             p = (UWORD)(SynthSeedTableC + (p << 1));
             break;
-        case 1:
+        case SYNTH_SIGNAL_SAW:
             p = wSynthCutoff & 0xE0;
             p >>= 1;
             p = (UWORD)(SynthSeedTableD + (p << 1));
             break;
-        case 2:
+        case SYNTH_SIGNAL_TRIANGLE:
             p = wSynthCutoff & 0xE0;
             p >>= 1;
             p = (UWORD)(SynthSeedTableF + (p << 1));
@@ -294,7 +294,7 @@ void RenderSynthWaveType(void)
         if (amplitude)
             RenderSynthWaveA(amplitude);
         break;
-    case 2:
+    case SYNTH_FILTER_BANDPASS:
         position = 0x20;
         do {
             *(UWORD *)(wSynthShapeBuffer + ((position - 1) << 1)) = 0;
@@ -302,15 +302,15 @@ void RenderSynthWaveType(void)
         RenderSynthWaveA(amplitude ? amplitude : 1);
         RenderSynthWaveB(amplitude ? amplitude : 1);
         break;
-    case 3:
+    case SYNTH_FILTER_ALLPASS:
         switch (wSynthSignalType) {
-        case 0:
+        case SYNTH_SIGNAL_SQUARE:
             p = (UWORD)(SynthSeedTableA + 0xF0);
             break;
-        case 1:
+        case SYNTH_SIGNAL_SAW:
             p = (UWORD)(SynthSeedTableB + 0x70);
             break;
-        case 2:
+        case SYNTH_SIGNAL_TRIANGLE:
             p = (UWORD)(SynthSeedTableE + 0x70);
             break;
         }
@@ -370,7 +370,7 @@ void PinchOrWarpSynthWave(void)
         wSynthPhasePointerW = *(UWORD *)(wSynthBufferA + wSynthPhaseIndex);
         *(UWORD *)(wSynthBufferA + wSynthPhaseIndex) = wSynthPhasePointerW + sample * fraction;
         *(UWORD *)(wSynthBufferB + wSynthPhaseIndex) += fraction;
-        if (wSynthPhaseType == 0 || output < 0x0F)
+        if (wSynthPhaseType == SYNTH_PHASE_PINCH || output < 0x0F)
             accumulator += step;
         else
             accumulator += 0x200 - step;
@@ -378,7 +378,7 @@ void PinchOrWarpSynthWave(void)
     for (output = 0; output < 0x20; output++) {
         ua = *(UWORD *)(wSynthBufferA + (output << 1));
         ub = *(UWORD *)(wSynthBufferB + (output << 1));
-        if (wSynthPhaseType == 0) {
+        if (wSynthPhaseType == SYNTH_PHASE_PINCH) {
             if ((ub - 0x100) & 0x8000) {
                 ua += (0x100 - ub) << 3;
                 ub = 0x100;
@@ -475,10 +475,10 @@ void ApplySynthPhase(void)
 {
     if (wSynthPhase) {
         switch (wSynthPhaseType) {
-        case 2:
+        case SYNTH_PHASE_RESYNC:
             ResyncSynthWave();
             break;
-        case 3:
+        case SYNTH_PHASE_RESYNC2:
             Resync2SynthWave();
             break;
         default:
@@ -534,7 +534,7 @@ void RenderSynthWave(void)
     wSynthCutoff = wSynthCurveCutoff[wSynthRenderIndex];
     wSynthVerticalShift = wSynthCurveVerticalShift[wSynthRenderIndex];
     wSynthPhase = wSynthCurvePhase[wSynthRenderIndex];
-    if (wSynthSignalType == 3)
+    if (wSynthSignalType == SYNTH_SIGNAL_WAVE_FRAMES)
         LoadSynthSignalWave();
     else
         RenderSynthWaveType();

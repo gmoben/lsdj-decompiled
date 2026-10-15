@@ -242,7 +242,10 @@ comment began with a quoted string had been carved as data, since a leading
   against `ShowInstrumentFieldHelp` and `InstrumentFieldX`), an instrument's
   bytes (`INSTRUMENT_BYTE_TABLE`, `KIT_BYTE_OFFSET1`: the manual's Appendix C,
   which every field handler's reads and writes agree with), the sync modes
-  (`SYNC_ANALOG_IN`; 2 and 4 are no mode), the PROJECT screen's fields
+  (`SYNC_ANALOG_IN`; 2 and 4 are no mode), the synth screen's fields, a
+  synth's parameter bytes and their values (`SYNTH_FIELD_Q_END`,
+  `SYNTH_BYTE_PHASE_TYPE`, `SYNTH_PHASE_RESYNC2`: checked against
+  `ShowSynthFieldHelp` and the field draws), the PROJECT screen's fields
   (`PROJECT_FIELD_CLEAN_SONG_DATA`), the phrase and table columns
   (`PHRASE_COLUMN_LEFT_NOTE`, a kit's first kit; `TABLE_COLUMN_VALUE2`), the cursor modes
   (`CURSOR_COPIED`: the clipboard holds something to paste), the channels (`CHANNEL_NOI`

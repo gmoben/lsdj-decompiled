@@ -191,6 +191,62 @@ typedef int WORD;
 #define NOISE_FIELD_TABLE_ADVANCE      11
 #define NOISE_FIELD_TABLE              12
 
+/* the synth screen: its fields (wSynthCursor), a synth's 16 parameter bytes
+ * (Q holds the start and end in its nibbles), and the values of the
+ * signal, filter, distortion and phase type */
+#define SYNTH_FIELD_SIGNAL           0
+#define SYNTH_FIELD_FILTER           1
+#define SYNTH_FIELD_DISTORTION       2
+#define SYNTH_FIELD_PHASE_TYPE       3
+#define SYNTH_FIELD_VOLUME_START     4
+#define SYNTH_FIELD_CUTOFF_START     5
+#define SYNTH_FIELD_Q_START          6
+#define SYNTH_FIELD_VSHIFT_START     7
+#define SYNTH_FIELD_LIMIT_START      8
+#define SYNTH_FIELD_PHASE_START      9
+#define SYNTH_FIELD_VOLUME_END       10
+#define SYNTH_FIELD_CUTOFF_END       11
+#define SYNTH_FIELD_Q_END            12
+#define SYNTH_FIELD_VSHIFT_END       13
+#define SYNTH_FIELD_LIMIT_END        14
+#define SYNTH_FIELD_PHASE_END        15
+
+#define SYNTH_BYTE_SIGNAL            0
+#define SYNTH_BYTE_FILTER            1
+#define SYNTH_BYTE_Q                 2
+#define SYNTH_BYTE_DISTORTION        3
+#define SYNTH_BYTE_PHASE_TYPE        4
+#define SYNTH_BYTE_VOLUME_START      5
+#define SYNTH_BYTE_CUTOFF_START      6
+#define SYNTH_BYTE_PHASE_START       7
+#define SYNTH_BYTE_VSHIFT_START      8
+#define SYNTH_BYTE_VOLUME_END        9
+#define SYNTH_BYTE_CUTOFF_END        10
+#define SYNTH_BYTE_PHASE_END         11
+#define SYNTH_BYTE_VSHIFT_END        12
+#define SYNTH_BYTE_LIMIT_START       13
+#define SYNTH_BYTE_LIMIT_END         14
+
+#define SYNTH_SIGNAL_SQUARE          0
+#define SYNTH_SIGNAL_SAW             1
+#define SYNTH_SIGNAL_TRIANGLE        2
+#define SYNTH_SIGNAL_WAVE_FRAMES     3
+
+#define SYNTH_FILTER_LOWPASS         0
+#define SYNTH_FILTER_HIGHPASS        1
+#define SYNTH_FILTER_BANDPASS        2
+#define SYNTH_FILTER_ALLPASS         3
+#define SYNTH_FILTER_NOTCH           4
+
+#define SYNTH_DISTORTION_CLIP        0
+#define SYNTH_DISTORTION_FOLD        1
+#define SYNTH_DISTORTION_WRAP        2
+
+#define SYNTH_PHASE_PINCH            0
+#define SYNTH_PHASE_WARP             1
+#define SYNTH_PHASE_RESYNC           2
+#define SYNTH_PHASE_RESYNC2          3
+
 /* wProjectCursor: the PROJECT screen's fields, top to bottom (ProjectFieldX
  * has their places) */
 #define PROJECT_FIELD_TEMPO                  0

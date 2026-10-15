@@ -77,16 +77,16 @@ void ClearSynthFlag(UBYTE x)
 void DrawSynthPhaseField(UBYTE v)
 {
     switch (v) {
-    case 0:
+    case SYNTH_PHASE_PINCH:
         DrawString(" PINCH");
         break;
-    case 1:
+    case SYNTH_PHASE_WARP:
         DrawString("  WARP");
         break;
-    case 2:
+    case SYNTH_PHASE_RESYNC:
         DrawString("RESYNC");
         break;
-    case 3:
+    case SYNTH_PHASE_RESYNC2:
         DrawString("RESYN2");
         break;
     }
@@ -103,7 +103,7 @@ UBYTE ReadSynthParameter(UBYTE field)
 
 UBYTE SynthSignalIsFrame(void)
 {
-    return ReadSynthParameter(0) == 3;
+    return ReadSynthParameter(SYNTH_BYTE_SIGNAL) == 3;
 }
 
 void DrawSynthFilterField(void)
@@ -112,20 +112,20 @@ void DrawSynthFilterField(void)
     if (SynthSignalIsFrame()) {
         DrawString("-----");
     } else {
-        switch (ReadSynthParameter(1)) {
-        case 0:
+        switch (ReadSynthParameter(SYNTH_BYTE_FILTER)) {
+        case SYNTH_FILTER_LOWPASS:
             DrawString(" LOWP");
             break;
-        case 1:
+        case SYNTH_FILTER_HIGHPASS:
             DrawString("HIGHP");
             break;
-        case 2:
+        case SYNTH_FILTER_BANDPASS:
             DrawString("BANDP");
             break;
-        case 3:
+        case SYNTH_FILTER_ALLPASS:
             DrawString(" ALLP");
             break;
-        case 4:
+        case SYNTH_FILTER_NOTCH:
             DrawString("NOTCH");
             break;
         }
@@ -135,17 +135,17 @@ void DrawSynthFilterField(void)
 void DrawSynthSignalField(void)
 {
     wVramCursor = (UBYTE *)BG_MAP(9, 2);
-    switch (ReadSynthParameter(0)) {
-    case 0:
+    switch (ReadSynthParameter(SYNTH_BYTE_SIGNAL)) {
+    case SYNTH_SIGNAL_SQUARE:
         DrawString("iiii");
         break;
-    case 1:
+    case SYNTH_SIGNAL_SAW:
         DrawString("mmmm");
         break;
-    case 2:
+    case SYNTH_SIGNAL_TRIANGLE:
         DrawString("kkkk");
         break;
-    case 3:
+    case SYNTH_SIGNAL_WAVE_FRAMES:
         DrawString("W.F");
         DrawByte(wSynthScreen);
         break;
@@ -174,13 +174,13 @@ void DrawSynthCursor(void)
 void DrawSynthDistortionField(UBYTE v)
 {
     switch (v) {
-    case 0:
+    case SYNTH_DISTORTION_CLIP:
         DrawString("CLIP");
         break;
-    case 1:
+    case SYNTH_DISTORTION_FOLD:
         DrawString("FOLD");
         break;
-    case 2:
+    case SYNTH_DISTORTION_WRAP:
         DrawString("WRAP");
         break;
     }
@@ -459,11 +459,11 @@ UBYTE RaiseSynthFieldHigh(void)
 {
     UBYTE v, t;
 
-    v = ReadSynthParameter(2);
+    v = ReadSynthParameter(SYNTH_BYTE_Q);
     t = v & 0xF0;
     if (t != 0xF0) {
         v += 0x10;
-        WriteSynthParameter(2, v);
+        WriteSynthParameter(SYNTH_BYTE_Q, v);
     }
     return v >> 4;
 }
@@ -472,11 +472,11 @@ UBYTE RaiseSynthFieldLow(void)
 {
     UBYTE v, t;
 
-    v = ReadSynthParameter(2);
+    v = ReadSynthParameter(SYNTH_BYTE_Q);
     t = v & 0x0F;
     if (t != 0x0F) {
         v++;
-        WriteSynthParameter(2, v);
+        WriteSynthParameter(SYNTH_BYTE_Q, v);
     }
     return v & 0x0F;
 }
@@ -485,10 +485,10 @@ UBYTE LowerSynthFieldHigh(void)
 {
     UBYTE v;
 
-    v = ReadSynthParameter(2);
+    v = ReadSynthParameter(SYNTH_BYTE_Q);
     if (v & 0xF0) {
         v -= 0x10;
-        WriteSynthParameter(2, v);
+        WriteSynthParameter(SYNTH_BYTE_Q, v);
     }
     return v >> 4;
 }
@@ -497,10 +497,10 @@ UBYTE LowerSynthFieldLow(void)
 {
     UBYTE v;
 
-    v = ReadSynthParameter(2);
+    v = ReadSynthParameter(SYNTH_BYTE_Q);
     if (v & 0x0F) {
         v--;
-        WriteSynthParameter(2, v);
+        WriteSynthParameter(SYNTH_BYTE_Q, v);
     }
     return v & 0x0F;
 }
@@ -544,14 +544,14 @@ UBYTE SynthScreenInput(void)
             break;
         EraseSynthCursor();
         switch (wSynthCursor) {
-        case 0x0A:
-            wSynthCursor = 3;
+        case SYNTH_FIELD_VOLUME_END:
+            wSynthCursor = SYNTH_FIELD_PHASE_TYPE;
             break;
-        case 0x07:
-        case 0x0D:
+        case SYNTH_FIELD_VSHIFT_START:
+        case SYNTH_FIELD_VSHIFT_END:
             if (SynthSignalIsFrame())
                 wSynthCursor--;
-        case 0x02:
+        case SYNTH_FIELD_DISTORTION:
             if (SynthSignalIsFrame())
                 wSynthCursor--;
         default:
@@ -562,20 +562,20 @@ UBYTE SynthScreenInput(void)
     case J_DOWN:
         EraseSynthCursor();
         switch (wSynthCursor) {
-        case 0x03:
+        case SYNTH_FIELD_PHASE_TYPE:
             wSynthCursor = wSynthNavigationSide ? 4 : 10;
             break;
-        case 0x04:
-        case 0x0A:
+        case SYNTH_FIELD_VOLUME_START:
+        case SYNTH_FIELD_VOLUME_END:
             if (SynthSignalIsFrame())
                 wSynthCursor++;
-        case 0x00:
+        case SYNTH_FIELD_SIGNAL:
             if (SynthSignalIsFrame())
                 wSynthCursor++;
         default:
             wSynthCursor++;
-        case 0x09:
-        case 0x0F:
+        case SYNTH_FIELD_PHASE_START:
+        case SYNTH_FIELD_PHASE_END:
             break;
         }
         DrawSynthCursor();
@@ -584,12 +584,12 @@ UBYTE SynthScreenInput(void)
         wSynthNavigationSide = 1;
         EraseSynthCursor();
         switch (wSynthCursor) {
-        case 0x0A:
-        case 0x0B:
-        case 0x0C:
-        case 0x0D:
-        case 0x0E:
-        case 0x0F:
+        case SYNTH_FIELD_VOLUME_END:
+        case SYNTH_FIELD_CUTOFF_END:
+        case SYNTH_FIELD_Q_END:
+        case SYNTH_FIELD_VSHIFT_END:
+        case SYNTH_FIELD_LIMIT_END:
+        case SYNTH_FIELD_PHASE_END:
             wSynthCursor -= 6;
         }
         DrawSynthCursor();
@@ -598,12 +598,12 @@ UBYTE SynthScreenInput(void)
         wSynthNavigationSide = 0;
         EraseSynthCursor();
         switch (wSynthCursor) {
-        case 0x04:
-        case 0x05:
-        case 0x06:
-        case 0x07:
-        case 0x08:
-        case 0x09:
+        case SYNTH_FIELD_VOLUME_START:
+        case SYNTH_FIELD_CUTOFF_START:
+        case SYNTH_FIELD_Q_START:
+        case SYNTH_FIELD_VSHIFT_START:
+        case SYNTH_FIELD_LIMIT_START:
+        case SYNTH_FIELD_PHASE_START:
             wSynthCursor += 6;
         }
         DrawSynthCursor();
@@ -611,18 +611,18 @@ UBYTE SynthScreenInput(void)
     case (J_A | J_RIGHT):
         SetVramCursor(SynthFieldX[wSynthCursor], SynthFieldLayout[wSynthCursor]);
         switch (wSynthCursor) {
-        case 0:
+        case SYNTH_FIELD_SIGNAL:
             if (wButtonsSame)
                 break;
-            switch (ReadSynthParameter(0)) {
-            case 0:
-                WriteSynthParameter(0, 1);
+            switch (ReadSynthParameter(SYNTH_BYTE_SIGNAL)) {
+            case SYNTH_SIGNAL_SQUARE:
+                WriteSynthParameter(SYNTH_BYTE_SIGNAL, SYNTH_SIGNAL_SAW);
                 break;
-            case 1:
-                WriteSynthParameter(0, 2);
+            case SYNTH_SIGNAL_SAW:
+                WriteSynthParameter(SYNTH_BYTE_SIGNAL, SYNTH_SIGNAL_TRIANGLE);
                 break;
             default:
-                WriteSynthParameter(0, 3);
+                WriteSynthParameter(SYNTH_BYTE_SIGNAL, SYNTH_SIGNAL_WAVE_FRAMES);
                 DrawSynthScreen();
                 hBgDigitPalette = wHighlightDigitPalette;
                 hBgPalette = wHighlightPalette;
@@ -630,81 +630,81 @@ UBYTE SynthScreenInput(void)
             }
             DrawSynthSignalField();
             break;
-        case 1:
+        case SYNTH_FIELD_FILTER:
             if (wButtonsSame)
                 break;
-            v = ReadSynthParameter(1);
+            v = ReadSynthParameter(SYNTH_BYTE_FILTER);
             if (v == 3)
                 break;
             v++;
-            WriteSynthParameter(1, v);
+            WriteSynthParameter(SYNTH_BYTE_FILTER, v);
             DrawSynthFilterField();
             break;
-        case 2:
+        case SYNTH_FIELD_DISTORTION:
             if (wButtonsSame)
                 break;
-            v = ReadSynthParameter(3);
+            v = ReadSynthParameter(SYNTH_BYTE_DISTORTION);
             if (v >= 2)
                 break;
             v++;
-            WriteSynthParameter(3, v);
+            WriteSynthParameter(SYNTH_BYTE_DISTORTION, v);
             DrawSynthDistortionField(v);
             break;
-        case 8:
-            v = ReadSynthParameter(0x0D) + 0x0F;
+        case SYNTH_FIELD_LIMIT_START:
+            v = ReadSynthParameter(SYNTH_BYTE_LIMIT_START) + 0x0F;
             if (v == 0xFF)
                 break;
             v++;
             DrawHexByte(v);
-            WriteSynthParameter(0x0D, v - 0x0F);
+            WriteSynthParameter(SYNTH_BYTE_LIMIT_START, v - 0x0F);
             break;
-        case 14:
-            v = ReadSynthParameter(0x0E) + 0x0F;
+        case SYNTH_FIELD_LIMIT_END:
+            v = ReadSynthParameter(SYNTH_BYTE_LIMIT_END) + 0x0F;
             if (v == 0xFF)
                 break;
             v++;
             DrawHexByte(v);
-            WriteSynthParameter(0x0E, v - 0x0F);
+            WriteSynthParameter(SYNTH_BYTE_LIMIT_END, v - 0x0F);
             break;
-        case 3:
+        case SYNTH_FIELD_PHASE_TYPE:
             if (wButtonsSame)
                 break;
-            v = ReadSynthParameter(4);
+            v = ReadSynthParameter(SYNTH_BYTE_PHASE_TYPE);
             if (v >= 3)
                 break;
             v++;
             DrawSynthPhaseField(v);
-            WriteSynthParameter(4, v);
+            WriteSynthParameter(SYNTH_BYTE_PHASE_TYPE, v);
             break;
-        case 6:
+        case SYNTH_FIELD_Q_START:
             DrawByte(RaiseSynthFieldHigh());
             break;
-        case 12:
+        case SYNTH_FIELD_Q_END:
             DrawByte(RaiseSynthFieldLow());
             break;
-        case 4:
-            RaiseSynthParameterTo(5, 0xFF);
+        case SYNTH_FIELD_VOLUME_START:
+            RaiseSynthParameterTo(SYNTH_BYTE_VOLUME_START, 0xFF);
             break;
-        case 10:
-            RaiseSynthParameterTo(9, 0xFF);
+        case SYNTH_FIELD_VOLUME_END:
+            RaiseSynthParameterTo(SYNTH_BYTE_VOLUME_END, 0xFF);
             break;
-        case 5:
-            RaiseSynthParameterTo(6, 0xFF);
+        case SYNTH_FIELD_CUTOFF_START:
+            RaiseSynthParameterTo(SYNTH_BYTE_CUTOFF_START, 0xFF);
             break;
-        case 11:
-            RaiseSynthParameterTo(0x0A, 0xFF);
+        case SYNTH_FIELD_CUTOFF_END:
+            RaiseSynthParameterTo(SYNTH_BYTE_CUTOFF_END, 0xFF);
             break;
-        case 7:
-            RaiseSynthParameterTo(8, 0xFF);
+        case SYNTH_FIELD_VSHIFT_START:
+            RaiseSynthParameterTo(SYNTH_BYTE_VSHIFT_START, 0xFF);
             break;
-        case 13:
-            RaiseSynthParameterTo(0x0C, 0xFF);
+        case SYNTH_FIELD_VSHIFT_END:
+            RaiseSynthParameterTo(SYNTH_BYTE_VSHIFT_END, 0xFF);
             break;
-        case 9:
-            RaiseSynthParameterTo(7, 0x1F);
+        case SYNTH_FIELD_PHASE_START:
+            RaiseSynthParameterTo(SYNTH_BYTE_PHASE_START, 0x1F);
             break;
-        case 15:
-            RaiseSynthParameterTo(0x0B, 0x1F);
+        case SYNTH_FIELD_PHASE_END:
+            RaiseSynthParameterTo(SYNTH_BYTE_PHASE_END, 0x1F);
             break;
         }
         LoadSynthParameters();
@@ -712,18 +712,18 @@ UBYTE SynthScreenInput(void)
     case (J_A | J_LEFT):
         SetVramCursor(SynthFieldX[wSynthCursor], SynthFieldLayout[wSynthCursor]);
         switch (wSynthCursor) {
-        case 0:
+        case SYNTH_FIELD_SIGNAL:
             if (wButtonsSame)
                 break;
-            switch (ReadSynthParameter(0)) {
+            switch (ReadSynthParameter(SYNTH_BYTE_SIGNAL)) {
             default:
-                WriteSynthParameter(0, 0);
+                WriteSynthParameter(SYNTH_BYTE_SIGNAL, SYNTH_SIGNAL_SQUARE);
                 break;
-            case 2:
-                WriteSynthParameter(0, 1);
+            case SYNTH_SIGNAL_TRIANGLE:
+                WriteSynthParameter(SYNTH_BYTE_SIGNAL, SYNTH_SIGNAL_SAW);
                 break;
-            case 3:
-                WriteSynthParameter(0, 2);
+            case SYNTH_SIGNAL_WAVE_FRAMES:
+                WriteSynthParameter(SYNTH_BYTE_SIGNAL, SYNTH_SIGNAL_TRIANGLE);
                 DrawSynthScreen();
                 hBgDigitPalette = wHighlightDigitPalette;
                 hBgPalette = wHighlightPalette;
@@ -731,81 +731,81 @@ UBYTE SynthScreenInput(void)
             }
             DrawSynthSignalField();
             break;
-        case 1:
+        case SYNTH_FIELD_FILTER:
             if (wButtonsSame)
                 break;
-            v = ReadSynthParameter(1);
+            v = ReadSynthParameter(SYNTH_BYTE_FILTER);
             if (!v)
                 break;
             v--;
-            WriteSynthParameter(1, v);
+            WriteSynthParameter(SYNTH_BYTE_FILTER, v);
             DrawSynthFilterField();
             break;
-        case 2:
+        case SYNTH_FIELD_DISTORTION:
             if (wButtonsSame)
                 break;
-            v = ReadSynthParameter(3);
+            v = ReadSynthParameter(SYNTH_BYTE_DISTORTION);
             if (!v)
                 break;
             v--;
-            WriteSynthParameter(3, v);
+            WriteSynthParameter(SYNTH_BYTE_DISTORTION, v);
             DrawSynthDistortionField(v);
             break;
-        case 8:
-            v = ReadSynthParameter(0x0D) + 0x0F;
+        case SYNTH_FIELD_LIMIT_START:
+            v = ReadSynthParameter(SYNTH_BYTE_LIMIT_START) + 0x0F;
             if (!v)
                 break;
             v--;
             DrawHexByte(v);
-            WriteSynthParameter(0x0D, v - 0x0F);
+            WriteSynthParameter(SYNTH_BYTE_LIMIT_START, v - 0x0F);
             break;
-        case 14:
-            v = ReadSynthParameter(0x0E) + 0x0F;
+        case SYNTH_FIELD_LIMIT_END:
+            v = ReadSynthParameter(SYNTH_BYTE_LIMIT_END) + 0x0F;
             if (!v)
                 break;
             v--;
             DrawHexByte(v);
-            WriteSynthParameter(0x0E, v - 0x0F);
+            WriteSynthParameter(SYNTH_BYTE_LIMIT_END, v - 0x0F);
             break;
-        case 3:
+        case SYNTH_FIELD_PHASE_TYPE:
             if (wButtonsSame)
                 break;
-            v = ReadSynthParameter(4);
+            v = ReadSynthParameter(SYNTH_BYTE_PHASE_TYPE);
             if (!v)
                 break;
             v--;
             DrawSynthPhaseField(v);
-            WriteSynthParameter(4, v);
+            WriteSynthParameter(SYNTH_BYTE_PHASE_TYPE, v);
             break;
-        case 6:
+        case SYNTH_FIELD_Q_START:
             DrawByte(LowerSynthFieldHigh());
             break;
-        case 12:
+        case SYNTH_FIELD_Q_END:
             DrawByte(LowerSynthFieldLow());
             break;
-        case 4:
-            LowerSynthParameterTo0(5);
+        case SYNTH_FIELD_VOLUME_START:
+            LowerSynthParameterTo0(SYNTH_BYTE_VOLUME_START);
             break;
-        case 10:
-            LowerSynthParameterTo0(9);
+        case SYNTH_FIELD_VOLUME_END:
+            LowerSynthParameterTo0(SYNTH_BYTE_VOLUME_END);
             break;
-        case 5:
-            LowerSynthParameterTo0(6);
+        case SYNTH_FIELD_CUTOFF_START:
+            LowerSynthParameterTo0(SYNTH_BYTE_CUTOFF_START);
             break;
-        case 11:
-            LowerSynthParameterTo0(0x0A);
+        case SYNTH_FIELD_CUTOFF_END:
+            LowerSynthParameterTo0(SYNTH_BYTE_CUTOFF_END);
             break;
-        case 7:
-            LowerSynthParameterTo0(8);
+        case SYNTH_FIELD_VSHIFT_START:
+            LowerSynthParameterTo0(SYNTH_BYTE_VSHIFT_START);
             break;
-        case 13:
-            LowerSynthParameterTo0(0x0C);
+        case SYNTH_FIELD_VSHIFT_END:
+            LowerSynthParameterTo0(SYNTH_BYTE_VSHIFT_END);
             break;
-        case 9:
-            LowerSynthParameterTo0(7);
+        case SYNTH_FIELD_PHASE_START:
+            LowerSynthParameterTo0(SYNTH_BYTE_PHASE_START);
             break;
-        case 15:
-            LowerSynthParameterTo0(0x0B);
+        case SYNTH_FIELD_PHASE_END:
+            LowerSynthParameterTo0(SYNTH_BYTE_PHASE_END);
             break;
         }
         LoadSynthParameters();
@@ -813,52 +813,52 @@ UBYTE SynthScreenInput(void)
     case (J_A | J_UP):
         SetVramCursor(SynthFieldX[wSynthCursor], SynthFieldLayout[wSynthCursor]);
         switch (wSynthCursor) {
-        case 6:
+        case SYNTH_FIELD_Q_START:
             RaiseSynthFieldHigh();
             DrawByte(RaiseSynthFieldHigh());
             break;
-        case 12:
+        case SYNTH_FIELD_Q_END:
             RaiseSynthFieldLow();
             DrawByte(RaiseSynthFieldLow());
             break;
-        case 9:
+        case SYNTH_FIELD_PHASE_START:
             AddSynthParameterClamped(7, 0x1F, 8);
             break;
-        case 15:
+        case SYNTH_FIELD_PHASE_END:
             AddSynthParameterClamped(0x0B, 0x1F, 8);
             break;
-        case 4:
+        case SYNTH_FIELD_VOLUME_START:
             AddSynthParameterClamped(5, 0xFF, 0x10);
             break;
-        case 10:
+        case SYNTH_FIELD_VOLUME_END:
             AddSynthParameterClamped(9, 0xFF, 0x10);
             break;
-        case 8:
-            v = ReadSynthParameter(0x0D) + 0x0F;
+        case SYNTH_FIELD_LIMIT_START:
+            v = ReadSynthParameter(SYNTH_BYTE_LIMIT_START) + 0x0F;
             v += 0x10;
             if (!(v & 0xF0))
                 v = 0xFF;
             DrawHexByte(v);
-            WriteSynthParameter(0x0D, v - 0x0F);
+            WriteSynthParameter(SYNTH_BYTE_LIMIT_START, v - 0x0F);
             break;
-        case 14:
-            v = ReadSynthParameter(0x0E) + 0x0F;
+        case SYNTH_FIELD_LIMIT_END:
+            v = ReadSynthParameter(SYNTH_BYTE_LIMIT_END) + 0x0F;
             v += 0x10;
             if (!(v & 0xF0))
                 v = 0xFF;
             DrawHexByte(v);
-            WriteSynthParameter(0x0E, v - 0x0F);
+            WriteSynthParameter(SYNTH_BYTE_LIMIT_END, v - 0x0F);
             break;
-        case 5:
+        case SYNTH_FIELD_CUTOFF_START:
             AddSynthParameterClamped(6, 0xFF, 0x10);
             break;
-        case 11:
+        case SYNTH_FIELD_CUTOFF_END:
             AddSynthParameterClamped(0x0A, 0xFF, 0x10);
             break;
-        case 7:
+        case SYNTH_FIELD_VSHIFT_START:
             AddSynthParameterClamped(8, 0xFF, 0x10);
             break;
-        case 13:
+        case SYNTH_FIELD_VSHIFT_END:
             AddSynthParameterClamped(0x0C, 0xFF, 0x10);
             break;
         }
@@ -867,52 +867,52 @@ UBYTE SynthScreenInput(void)
     case (J_A | J_DOWN):
         SetVramCursor(SynthFieldX[wSynthCursor], SynthFieldLayout[wSynthCursor]);
         switch (wSynthCursor) {
-        case 6:
+        case SYNTH_FIELD_Q_START:
             LowerSynthFieldHigh();
             DrawByte(LowerSynthFieldHigh());
             break;
-        case 12:
+        case SYNTH_FIELD_Q_END:
             LowerSynthFieldLow();
             DrawByte(LowerSynthFieldLow());
             break;
-        case 9:
+        case SYNTH_FIELD_PHASE_START:
             SubSynthParameterClamped(7, 8);
             break;
-        case 15:
+        case SYNTH_FIELD_PHASE_END:
             SubSynthParameterClamped(0x0B, 8);
             break;
-        case 4:
+        case SYNTH_FIELD_VOLUME_START:
             SubSynthParameterClamped(5, 0x10);
             break;
-        case 10:
+        case SYNTH_FIELD_VOLUME_END:
             SubSynthParameterClamped(9, 0x10);
             break;
-        case 8:
-            v = ReadSynthParameter(0x0D) + 0x0F;
+        case SYNTH_FIELD_LIMIT_START:
+            v = ReadSynthParameter(SYNTH_BYTE_LIMIT_START) + 0x0F;
             v -= 0x10;
             if ((v & 0xF0) == 0xF0)
                 v = 0;
             DrawHexByte(v);
-            WriteSynthParameter(0x0D, v - 0x0F);
+            WriteSynthParameter(SYNTH_BYTE_LIMIT_START, v - 0x0F);
             break;
-        case 14:
-            v = ReadSynthParameter(0x0E) + 0x0F;
+        case SYNTH_FIELD_LIMIT_END:
+            v = ReadSynthParameter(SYNTH_BYTE_LIMIT_END) + 0x0F;
             v -= 0x10;
             if ((v & 0xF0) == 0xF0)
                 v = 0;
             DrawHexByte(v);
-            WriteSynthParameter(0x0E, v - 0x0F);
+            WriteSynthParameter(SYNTH_BYTE_LIMIT_END, v - 0x0F);
             break;
-        case 5:
+        case SYNTH_FIELD_CUTOFF_START:
             SubSynthParameterClamped(6, 0x10);
             break;
-        case 11:
+        case SYNTH_FIELD_CUTOFF_END:
             SubSynthParameterClamped(0x0A, 0x10);
             break;
-        case 7:
+        case SYNTH_FIELD_VSHIFT_START:
             SubSynthParameterClamped(8, 0x10);
             break;
-        case 13:
+        case SYNTH_FIELD_VSHIFT_END:
             SubSynthParameterClamped(0x0C, 0x10);
             break;
         }
@@ -959,7 +959,7 @@ UBYTE SynthScreenInput(void)
     case (J_SELECT | J_RIGHT):
         if (wButtonsSame)
             return 0;
-        if (wSynthCursor == 0 && SynthSignalIsFrame()) {
+        if (wSynthCursor == SYNTH_FIELD_SIGNAL && SynthSignalIsFrame()) {
             wSynth = wSynthScreen + 0xF0;
         } else {
             wSynth &= 0x0F;
