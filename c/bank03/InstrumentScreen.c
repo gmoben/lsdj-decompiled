@@ -104,7 +104,7 @@ void DrawInstrumentCursor(void)
     UBYTE type;
 
     type = ReadCurrentInstrumentByte(0) & 3;
-    if (type == 1 && WavePlayIsManual() && wInstrumentField == 9) {
+    if (type == INSTRUMENT_WAVE && WavePlayIsManual() && wInstrumentField == 9) {
         ColorField(0x0B, 0x0C, 2, hGameboyType ? 3 : 2);
         return;
     }
@@ -266,7 +266,7 @@ void EraseInstrumentCursor(void)
     UBYTE type, x, y, r;
 
     type = ReadCurrentInstrumentByte(0) & 3;
-    if (type == 1 && WavePlayIsManual() && wInstrumentField == 9) {
+    if (type == INSTRUMENT_WAVE && WavePlayIsManual() && wInstrumentField == 9) {
         ColorField(0x0B, 0x0C, 2, 1);
         return;
     }
@@ -506,7 +506,8 @@ void SetVibratoShape(char v)
     t &= 0xF8;
     v |= t;
     WriteCurrentInstrumentByteC(5, v);
-    FarCallArgumentWC(1, ReadCurrentInstrumentByte(0) == 3 ? (UWORD)DrawSpeedGlyph : (UWORD)DrawSpeedModeName, v);
+    FarCallArgumentWC(1, ReadCurrentInstrumentByte(0) == INSTRUMENT_NOISE
+                             ? (UWORD)DrawSpeedGlyph : (UWORD)DrawSpeedModeName, v);
 }
 
 void NextVibratoShape(void)
@@ -643,8 +644,8 @@ void DrawInstrumentScreen(void)
     FarCallArgumentW(0x1F, 0x492A, wInstrument);
     type = ReadCurrentInstrumentByte(0);
     if (type >= 4) {
-        WriteCurrentInstrumentByte(0, 0);
-        type = 0;
+        WriteCurrentInstrumentByte(0, INSTRUMENT_PULSE);
+        type = INSTRUMENT_PULSE;
     }
     wInstrumentFieldCount = InstrumentFieldCounts[type];
     if (wInstrumentField >= wInstrumentFieldCount)
@@ -663,16 +664,16 @@ void DrawInstrumentScreen(void)
     SetVramCursor(InstrumentFieldX[type][1], InstrumentFieldY[type][1]);
     DrawString(InstrumentTypeNames + type * 6);
     switch (type) {
-    case 0:
+    case INSTRUMENT_PULSE:
         function = (UWORD)DrawPulseInstrument;
         break;
-    case 1:
+    case INSTRUMENT_WAVE:
         function = (UWORD)DrawWaveInstrument;
         break;
-    case 3:
+    case INSTRUMENT_NOISE:
         function = (UWORD)DrawNoiseInstrument;
         break;
-    case 2:
+    case INSTRUMENT_KIT:
         function = (UWORD)DrawKitInstrument;
         break;
     }
@@ -961,7 +962,7 @@ UBYTE InstrumentScreenInput(void)
         EraseInstrumentCursor();
         wInstrumentField--;
         switch (type) {
-        case 0:
+        case INSTRUMENT_PULSE:
             switch (wInstrumentField) {
             case 2:
             case 3:
@@ -974,7 +975,7 @@ UBYTE InstrumentScreenInput(void)
                 wInstrumentField--;
             }
             break;
-        case 1:
+        case INSTRUMENT_WAVE:
             switch (wInstrumentField) {
             case 2:
                 wInstrumentField--;
@@ -991,7 +992,7 @@ UBYTE InstrumentScreenInput(void)
                 }
             }
             break;
-        case 2:
+        case INSTRUMENT_KIT:
             if (wInstrumentField == 0x10)
                 wInstrumentField--;
             else
@@ -1003,7 +1004,7 @@ UBYTE InstrumentScreenInput(void)
                     wInstrumentField--;
                 }
             break;
-        case 3:
+        case INSTRUMENT_NOISE:
             switch (wInstrumentField) {
             case 2:
             case 3:
@@ -1021,7 +1022,7 @@ UBYTE InstrumentScreenInput(void)
     case J_DOWN:
         EraseInstrumentCursor();
         if (InstrumentFieldCounts[type] - wInstrumentField - 1) {
-            if (type == 1)
+            if (type == INSTRUMENT_WAVE)
                 switch (wInstrumentField) {
                 case 1:
                 case 2:
@@ -1038,7 +1039,7 @@ UBYTE InstrumentScreenInput(void)
                 }
             wInstrumentField++;
             switch (type) {
-            case 0:
+            case INSTRUMENT_PULSE:
                 switch (wInstrumentField) {
                 case 3:
                 case 4:
@@ -1048,7 +1049,7 @@ UBYTE InstrumentScreenInput(void)
                     wInstrumentField++;
                 }
                 break;
-            case 2:
+            case INSTRUMENT_KIT:
                 switch (wInstrumentField) {
                 case 5:
                 case (int)9:
@@ -1065,7 +1066,7 @@ UBYTE InstrumentScreenInput(void)
                         wInstrumentField++;
                 }
                 break;
-            case 3:
+            case INSTRUMENT_NOISE:
                 switch (wInstrumentField) {
                 case 3:
                 case 4:
@@ -1081,7 +1082,7 @@ UBYTE InstrumentScreenInput(void)
     case J_LEFT:
         EraseInstrumentCursor();
         switch (type) {
-        case 0:
+        case INSTRUMENT_PULSE:
             switch (wInstrumentField) {
             case 3:
             case 4:
@@ -1089,14 +1090,14 @@ UBYTE InstrumentScreenInput(void)
                 wInstrumentField--;
             }
             break;
-        case 1:
+        case INSTRUMENT_WAVE:
             switch (wInstrumentField) {
             case 3:
             case 0x0E:
                 wInstrumentField--;
             }
             break;
-        case 2:
+        case INSTRUMENT_KIT:
             switch (wInstrumentField) {
             case 5:
             case (int)9:
@@ -1107,7 +1108,7 @@ UBYTE InstrumentScreenInput(void)
                 wInstrumentColumn = 0;
             }
             break;
-        case 3:
+        case INSTRUMENT_NOISE:
             switch (wInstrumentField) {
             case 3:
             case 4:
@@ -1120,7 +1121,7 @@ UBYTE InstrumentScreenInput(void)
     case J_RIGHT:
         EraseInstrumentCursor();
         switch (type) {
-        case 0:
+        case INSTRUMENT_PULSE:
             switch (wInstrumentField) {
             case 2:
                 if (FarCallByteU(0x1F, InstrumentEnvelopeHasSecond))
@@ -1134,7 +1135,7 @@ UBYTE InstrumentScreenInput(void)
                 wInstrumentField++;
             }
             break;
-        case 1:
+        case INSTRUMENT_WAVE:
             switch (wInstrumentField) {
             case 2:
                 wInstrumentField++;
@@ -1143,7 +1144,7 @@ UBYTE InstrumentScreenInput(void)
                 wInstrumentField++;
             }
             break;
-        case 2:
+        case INSTRUMENT_KIT:
             switch (wInstrumentField) {
             case 4:
             case 8:
@@ -1154,7 +1155,7 @@ UBYTE InstrumentScreenInput(void)
                 wInstrumentColumn = 1;
             }
             break;
-        case 3:
+        case INSTRUMENT_NOISE:
             switch (wInstrumentField) {
             case 2:
                 if (FarCallByteU(0x1F, InstrumentEnvelopeHasSecond))
@@ -1178,7 +1179,7 @@ UBYTE InstrumentScreenInput(void)
             return 1;
         }
         switch (type) {
-        case 0:
+        case INSTRUMENT_PULSE:
             switch (wInstrumentField) {
             case 2:
                 RaiseInstrumentFieldLow(1);
@@ -1246,7 +1247,7 @@ UBYTE InstrumentScreenInput(void)
                 NextInstrumentTable();
             }
             break;
-        case 1:
+        case INSTRUMENT_WAVE:
             switch (wInstrumentField) {
             case 2:
                 v = ReadCurrentInstrumentByte(1) & 0x60;
@@ -1359,7 +1360,7 @@ UBYTE InstrumentScreenInput(void)
                 NextInstrumentTable();
             }
             break;
-        case 2:
+        case INSTRUMENT_KIT:
             switch (wInstrumentField) {
             case 2:
             case 3:
@@ -1470,7 +1471,7 @@ UBYTE InstrumentScreenInput(void)
                 NextInstrumentTable();
             }
             break;
-        case 3:
+        case INSTRUMENT_NOISE:
             switch (wInstrumentField) {
             case 2:
                 RaiseInstrumentFieldLow(1);
@@ -1523,7 +1524,7 @@ UBYTE InstrumentScreenInput(void)
         }
         SetVramCursor(InstrumentFieldX[type][wInstrumentField], InstrumentFieldY[type][wInstrumentField]);
         switch (type) {
-        case 0:
+        case INSTRUMENT_PULSE:
             switch (wInstrumentField) {
             case 2:
                 LowerInstrumentFieldLow(1);
@@ -1591,7 +1592,7 @@ UBYTE InstrumentScreenInput(void)
                 PreviousInstrumentTable();
             }
             break;
-        case 1:
+        case INSTRUMENT_WAVE:
             switch (wInstrumentField) {
             case 2:
                 v = ReadCurrentInstrumentByte(1) & 0x60;
@@ -1705,7 +1706,7 @@ UBYTE InstrumentScreenInput(void)
                 PreviousInstrumentTable();
             }
             break;
-        case 2:
+        case INSTRUMENT_KIT:
             switch (wInstrumentField) {
             case 2:
             case 3:
@@ -1819,7 +1820,7 @@ UBYTE InstrumentScreenInput(void)
                 PreviousInstrumentTable();
             }
             break;
-        case 3:
+        case INSTRUMENT_NOISE:
             switch (wInstrumentField) {
             case 2:
                 LowerInstrumentFieldLow(1);
@@ -1867,7 +1868,7 @@ UBYTE InstrumentScreenInput(void)
     case (J_A | J_UP):
         SetVramCursor(InstrumentFieldX[type][wInstrumentField], InstrumentFieldY[type][wInstrumentField]);
         switch (type) {
-        case 0:
+        case INSTRUMENT_PULSE:
             switch (wInstrumentField) {
             case 2:
                 RaiseInstrumentFieldHigh(1);
@@ -1925,7 +1926,7 @@ UBYTE InstrumentScreenInput(void)
                 AddInstrumentTable16();
             }
             break;
-        case 1:
+        case INSTRUMENT_WAVE:
             switch (wInstrumentField) {
             case 2:
                 DrawStringIndexed(0x33);
@@ -1989,7 +1990,7 @@ UBYTE InstrumentScreenInput(void)
                 AddInstrumentTable16();
             }
             break;
-        case 2:
+        case INSTRUMENT_KIT:
             switch (wInstrumentField) {
             case 2:
             case 3: {
@@ -2061,7 +2062,7 @@ UBYTE InstrumentScreenInput(void)
                 AddInstrumentTable16();
             }
             break;
-        case 3:
+        case INSTRUMENT_NOISE:
             switch (wInstrumentField) {
             case 2:
                 RaiseInstrumentFieldHigh(1);
@@ -2092,7 +2093,7 @@ UBYTE InstrumentScreenInput(void)
     case (J_A | J_DOWN):
         SetVramCursor(InstrumentFieldX[type][wInstrumentField], InstrumentFieldY[type][wInstrumentField]);
         switch (type) {
-        case 0:
+        case INSTRUMENT_PULSE:
             switch (wInstrumentField) {
             case 2:
                 LowerInstrumentFieldHigh(1);
@@ -2149,7 +2150,7 @@ UBYTE InstrumentScreenInput(void)
                 SubInstrumentTable16();
             }
             break;
-        case 1:
+        case INSTRUMENT_WAVE:
             switch (wInstrumentField) {
             case 2:
                 DrawStringIndexed(0x30);
@@ -2207,7 +2208,7 @@ UBYTE InstrumentScreenInput(void)
                 SubInstrumentTable16();
             }
             break;
-        case 2:
+        case INSTRUMENT_KIT:
             switch (wInstrumentField) {
             case 2:
             case 3: {
@@ -2282,7 +2283,7 @@ UBYTE InstrumentScreenInput(void)
                 SubInstrumentTable16();
             }
             break;
-        case 3:
+        case INSTRUMENT_NOISE:
             switch (wInstrumentField) {
             case 2:
                 LowerInstrumentFieldHigh(1);
@@ -2319,7 +2320,7 @@ UBYTE InstrumentScreenInput(void)
                 if (CheckInstrumentFieldOption(type)) {
                     SetVramCursor(InstrumentFieldX[type][wInstrumentField], InstrumentFieldY[type][wInstrumentField]);
                     AllocateInstrumentTable();
-                } else if (type == 1 && wInstrumentField == 9 && !WavePlayIsManual()) {
+                } else if (type == INSTRUMENT_WAVE && wInstrumentField == 9 && !WavePlayIsManual()) {
                     AllocateInstrumentSynth();
                     return 1;
                 }
@@ -2355,7 +2356,7 @@ UBYTE InstrumentScreenInput(void)
     case (J_SELECT | J_UP):
         if (wButtonsSame)
             break;
-        if (type == 1) {
+        if (type == INSTRUMENT_WAVE) {
             wSynth = ReadCurrentInstrumentByte(3);
             wSynthScreen = wSynth >> 4;
         }

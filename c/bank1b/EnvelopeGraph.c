@@ -166,7 +166,7 @@ void UpdateInstrumentEnvelope(void)
     UBYTE type;
 
     type = ReadCurrentInstrumentByte(0);
-    if (type == 1 || type == 2)
+    if (type == INSTRUMENT_WAVE || type == INSTRUMENT_KIT)
         return;
     ComputeEnvelope();
     UpdateEnvelopeSprites();

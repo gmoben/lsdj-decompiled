@@ -60,7 +60,7 @@ void ShowInstrumentFieldHelp(UBYTE type)
         s = TxtHelpInstrType;
     } else {
         switch (type) {
-        case 0:
+        case INSTRUMENT_PULSE:
             switch (wInstrumentField) {
             case 2: s = TxtHelpEnvStage1; break;
             case 3: s = TxtHelpEnvStage2; break;
@@ -77,7 +77,7 @@ void ShowInstrumentFieldHelp(UBYTE type)
             case 14: s = TxtHelpTableMode; break;
             }
             break;
-        case 1:
+        case INSTRUMENT_WAVE:
             switch (wInstrumentField) {
             case 2: s = TxtHelpVolume; break;
             case 3: s = TxtHelpPan; break;
@@ -98,7 +98,7 @@ void ShowInstrumentFieldHelp(UBYTE type)
             case 13: s = TxtHelpTableMode; break;
             }
             break;
-        case 2:
+        case INSTRUMENT_KIT:
             switch (wInstrumentField) {
             case 2: s = TxtHelpKitLeft; break;
             case 3: s = TxtHelpKitRight; break;
@@ -117,7 +117,7 @@ void ShowInstrumentFieldHelp(UBYTE type)
             case 16: s = TxtHelpTableMode; break;
             }
             break;
-        case 3:
+        case INSTRUMENT_NOISE:
             switch (wInstrumentField) {
             case 2: s = TxtHelpEnvStage1; break;
             case 3: s = TxtHelpEnvStage2; break;

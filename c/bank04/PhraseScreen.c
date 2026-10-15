@@ -142,7 +142,7 @@ void ResolvePhraseCursorNote(UBYTE v)
     wPhraseColumnLast[wSongColumn] = v;
     if (wSongColumn == 3 && wCursorMode != 4) {
         instrument = FindCursorInstrument();
-        if (instrument < 0x40 && ReadInstrumentByte(instrument, 0) == 3)
+        if (instrument < 0x40 && ReadInstrumentByte(instrument, 0) == INSTRUMENT_NOISE)
             WriteInstrumentByte(instrument, 4, v);
     }
 }
@@ -156,7 +156,7 @@ void SetColumnInstrument(UBYTE instrument)
         if (wSongColumn == 2) {
             wInstrumentIsKit = instrument != 0x40;
             if (wInstrumentIsKit)
-                wInstrumentIsKit = ReadInstrumentByte(instrument, 0) == 2;
+                wInstrumentIsKit = ReadInstrumentByte(instrument, 0) == INSTRUMENT_KIT;
         }
         WriteSongByte(1, (UWORD)wSongColumn + (UWORD)0xBFC6, instrument);
     }
@@ -731,7 +731,7 @@ UBYTE CursorInstrumentIsKit(void)
 
     v = FindCursorInstrument();
     if (v < 0x40)
-        r = ReadInstrumentByte(v, 0) == 2;
+        r = ReadInstrumentByte(v, 0) == INSTRUMENT_KIT;
     else
         r = 0;
     return r;
@@ -966,7 +966,8 @@ UBYTE DrawInstrumentName(UBYTE row, UBYTE instrument)
     hBgDigitPalette = wHighlightDigitPalette;
     hBgPalette = wHighlightPalette;
     DrawHexByte(instrument);
-    if (wSongColumn == 3 && instrument < 0x40 && ReadInstrumentByte(instrument, 0) == 3) {
+    if (wSongColumn == 3 && instrument < 0x40
+            && ReadInstrumentByte(instrument, 0) == INSTRUMENT_NOISE) {
         n = ReadInstrumentByte(instrument, 4);
         *(UBYTE *)0xC90A = n;               /* wPhraseInstrumentCache, stored through the literal */
         WritePhraseNote(row, n);
@@ -988,7 +989,7 @@ UBYTE PhraseCellFlagA(UBYTE row)
     if (i == 0xFF)
         return 0;
     if (i < 0x40) {
-        kit = ReadInstrumentByte(i, 0) == 2;
+        kit = ReadInstrumentByte(i, 0) == INSTRUMENT_KIT;
     } else {
         i = 0x40;
         r = 1;
@@ -1017,7 +1018,7 @@ UBYTE PhraseCellFlagB(UBYTE row)
     if (i == 0xFF)
         return 0;
     if (i < 0x40) {
-        kit = ReadInstrumentByte(i, 0) == 2;
+        kit = ReadInstrumentByte(i, 0) == INSTRUMENT_KIT;
         i++;
     } else
         i = 0x40;
@@ -1042,7 +1043,7 @@ UBYTE PhraseCellFlagC(UBYTE row)
     if (i == 0xFF || i < 0x10)
         return 0;
     if (i < 0x40) {
-        kit = ReadInstrumentByte(i, 0) == 2;
+        kit = ReadInstrumentByte(i, 0) == INSTRUMENT_KIT;
         i -= 0x10;
     } else {
         i = 0x30;
@@ -1065,7 +1066,7 @@ UBYTE PhraseCellFlagD(UBYTE row)
     i = ReadPhraseInstrument(wPhrase, row);
     if (i > 0x30)
         return 0;
-    kit = ReadInstrumentByte(i, 0) == 2;
+    kit = ReadInstrumentByte(i, 0) == INSTRUMENT_KIT;
     i += 0x10;
     if (i < 0x40) {
         k2 = ReadInstrumentByte(i, 0);
@@ -1089,7 +1090,7 @@ UBYTE PrelistenEditedCell(void)
         return wInstrumentIsKit;
     if (i == 0x40)
         return 0;
-    return ReadInstrumentByte(i, 0) == 2;
+    return ReadInstrumentByte(i, 0) == INSTRUMENT_KIT;
 }
 
 /* $5BA6: the phrase screen's input, an if chain on wButtons: A places the

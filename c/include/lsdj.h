@@ -57,6 +57,12 @@ typedef int WORD;
 #define SCREEN_FILE          13
 #define SCREEN_HELP          14
 
+/* an instrument's type, its byte 0 (InstrumentTypeNames) */
+#define INSTRUMENT_PULSE     0
+#define INSTRUMENT_WAVE      1
+#define INSTRUMENT_KIT       2
+#define INSTRUMENT_NOISE     3
+
 /* wButtons: the joypad bits, GBDK's names; buttons held together are their
  * `|`, which SDCC folds to the one constant */
 #define J_RIGHT   0x01

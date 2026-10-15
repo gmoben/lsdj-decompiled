@@ -379,7 +379,8 @@ in `docs/functionality.md`.
   things. Renaming a local is byte-neutral; splitting one into two is not
   (a second local can move the stack frame), so a shared variable gets one
   name that fits both uses.
-- **C constants.** Screen numbers and joypad bits are names from `lsdj.h`
+- **C constants.** Screen numbers, instrument types (`INSTRUMENT_KIT`) and
+  joypad bits are names from `lsdj.h`
   (`wCurrentScreen = SCREEN_SONG`, `wButtons == (J_B | J_A)`,
   `J_SELECT_TAP`), a background-map cell `BG_MAP(x, y)`, the OAM shadow
   `OamShadow[n].field`, fixed addresses (`DECOMPRESS_BUFFER`, `KIT_NAME`); a
