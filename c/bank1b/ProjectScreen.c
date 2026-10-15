@@ -36,7 +36,7 @@ void ProjDrawTempo(void);
 UBYTE ProjSyncModeIs015(void);
 void DrawPrelistenField(void);
 UBYTE GetNextButtons(void);                 /* bank 0 */
-UWORD StringLength(char *s);                /* bank 0 */
+UWORD StrLength(char *s);                /* bank 0 */
 UBYTE ProjCursorFieldWidth(void);
 void DrawNameEditArrows(char *s);
 void ProjHelpSelectNext(void);
@@ -97,7 +97,7 @@ extern UBYTE wDecompressBuf[];                  /* $DA00 */
 void PlotEnvCurve(UBYTE x, UBYTE y);
 void OrBitsIntoDaBuf(void);              /* $00:$3261 */
 void UploadTilesToVram(void);               /* $00:$3298 */
-int Abs16(int v);                           /* $00:$343F */
+int abs(int v);                           /* $00:$343F */
 
 extern UBYTE wNameReturnScreen;             /* $C42F */
 extern UBYTE wFileListActive;               /* $C998 */
@@ -128,7 +128,7 @@ void ProjDrawHelpEntry(UBYTE selected)
     UBYTE len;
 
     e = HelpSelectLines[wHelpCursorRow];
-    len = StringLength(HelpMenuPtrs[e]);
+    len = StrLength(HelpMenuPtrs[e]);
     ColorField(0, e, len, selected ? 0 : 2);
 }
 
@@ -338,7 +338,7 @@ void OpenNameEditor(void)
     if (wCurScreen == 0x0D) {
         wVramCursor = 0x98C5;
         DrawString(wNameEditBuf);
-        wKbdLetterPos = StringLength(wNameEditBuf);
+        wKbdLetterPos = StrLength(wNameEditBuf);
         if (wKbdLetterPos == 8)
             wKbdLetterPos--;
         wKbdCursorCol = 9;
@@ -622,7 +622,7 @@ void DrawDecimalField(UBYTE v)
 {
     if (v < 10)
         DrawStringIndexed('0');
-    DrawFormat("%d", v);
+    printf("%d", v);
 }
 
 UBYTE ProjSyncModeIs015(void)
@@ -654,7 +654,7 @@ void DrawSyncSubSetting(void)
     hBgDigitPal = 4;
     hBgPal = 1;
     if (wPlayMode) {
-        DrawFormat("PLAY %d:", (UWORD)wPlayMinutes);
+        printf("PLAY %d:", (UWORD)wPlayMinutes);
         DrawDecimalField(wPlaySeconds);
         wProjDrawScratch = 0x0C;
         if (wPlayMinutes > 9)
@@ -664,7 +664,7 @@ void DrawSyncSubSetting(void)
         DrawStringTile20();
         DrawStringTile20();
     } else {
-        DrawFormat("WORKED %d:", (UWORD)ReadSongByte(1, 0xBFB2));
+        printf("WORKED %d:", (UWORD)ReadSongByte(1, 0xBFB2));
         DrawDecimalField(ReadSongByte(1, 0xBFB3));
     }
 }
@@ -703,7 +703,7 @@ void DrawProjScreen(void)
     DrawSyncField();
     DrawSyncSubSetting();
     wVramCursor = 0x9A26;
-    DrawFormat2("%d:%d:", ReadSongByte(1, 0xBFB6), ReadSongByte(1, 0xBFB7));
+    printf2("%d:%d:", ReadSongByte(1, 0xBFB6), ReadSongByte(1, 0xBFB7));
     DrawDecimalField(ReadSongByte(1, 0xBFB8));
     DrawProjCursor();
     wTapTempoCount = 0xFF;
@@ -1272,7 +1272,7 @@ UWORD GetInstrEnvBytes(void)
         v2 = ReadCurInstrByte(9);
         vol2 = v2 >> 4;
         len2 = ExpoCurve16[v2 & 0x0F];
-        total = Abs16(vol2 - vol);
+        total = abs(vol2 - vol);
         if (total == 0)
             total = 1;
         total = total * len;
@@ -1281,8 +1281,8 @@ UWORD GetInstrEnvBytes(void)
             vol3 = v3 >> 4;
             len3 = ExpoCurve16[v3 & 0x0F];
             d = vol3 - vol2;
-            if (Abs16(d))
-                d = Abs16(d);
+            if (abs(d))
+                d = abs(d);
             else
                 d = 1;
             total += d * len2;

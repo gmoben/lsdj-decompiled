@@ -1,10 +1,4 @@
 {
- "Abs16": {
-  "bank": "00",
-  "addr": "343F",
-  "len": 40,
-  "src": "c/bank00/GbdkLib.c"
- },
  "AddBookmark": {
   "bank": "07",
   "addr": "637C",
@@ -569,12 +563,6 @@
   "len": 107,
   "src": "c/bank1b/DrawFontColorFields.c"
  },
- "DrawFormat": {
-  "bank": "00",
-  "addr": "35C2",
-  "len": 283,
-  "src": "c/bank00/GbdkLib.c"
- },
  "DrawGrooveCursor": {
   "bank": "1D",
   "addr": "4394",
@@ -754,12 +742,6 @@
   "addr": "4CC4",
   "len": 29,
   "src": "c/bank04/PhraseScreen.c"
- },
- "DrawNumber": {
-  "bank": "00",
-  "addr": "352A",
-  "len": 135,
-  "src": "c/bank00/GbdkLib.c"
  },
  "DrawOnOffName": {
   "bank": "01",
@@ -3479,7 +3461,7 @@
   "len": 518,
   "src": "c/bank02/Sound.c"
  },
- "StringLength": {
+ "StrLength": {
   "bank": "00",
   "addr": "36DD",
   "len": 55,
@@ -4061,10 +4043,28 @@
   "len": 91,
   "src": "c/bank06/Screens.c"
  },
+ "abs": {
+  "bank": "00",
+  "addr": "343F",
+  "len": 40,
+  "src": "c/bank00/GbdkLib.c"
+ },
  "main": {
   "bank": "00",
   "addr": "1306",
   "len": 370,
   "src": "c/bank00/Main.c"
+ },
+ "printf": {
+  "bank": "00",
+  "addr": "35C2",
+  "len": 283,
+  "src": "c/bank00/GbdkLib.c"
+ },
+ "printn": {
+  "bank": "00",
+  "addr": "352A",
+  "len": 135,
+  "src": "c/bank00/GbdkLib.c"
  }
 }

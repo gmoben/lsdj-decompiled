@@ -1405,15 +1405,15 @@ void CleanSongData(void)
     wVramCursor = 0x98C4;
     DrawString("FREEING:");
     wVramCursor = 0x98E4;
-    DrawFormat("CHAINS....");
+    printf("CHAINS....");
     RemapSeqChains();
-    DrawFormat("%d", chains - CountUsedChains());
+    printf("%d", chains - CountUsedChains());
     wVramCursor = 0x9904;
-    DrawFormat("PHRASES...");
+    printf("PHRASES...");
     RebuildPhraseAllocMap();
-    DrawFormat("%d", phrases - CountUsedPhrases());
+    printf("%d", phrases - CountUsedPhrases());
     wVramCursor = 0x9944;
-    DrawFormat("OK!");
+    printf("OK!");
 }
 
 void CleanInstrData(void)
@@ -1424,16 +1424,16 @@ void CleanInstrData(void)
     wVramCursor = 0x98C4;
     DrawString("FREEING:");
     wVramCursor = 0x98E4;
-    DrawFormat("INSTRS....");
-    DrawFormat("%d", FreeUnusedInstrs());
+    printf("INSTRS....");
+    printf("%d", FreeUnusedInstrs());
     wVramCursor = 0x9904;
-    DrawFormat("TABLES....");
-    DrawFormat("%d", FreeUnusedTables());
+    printf("TABLES....");
+    printf("%d", FreeUnusedTables());
     wVramCursor = 0x9924;
-    DrawFormat("SYNTHS....");
-    DrawFormat("%d", FreeUnusedSynths());
+    printf("SYNTHS....");
+    printf("%d", FreeUnusedSynths());
     wVramCursor = 0x9964;
-    DrawFormat("OK!");
+    printf("OK!");
 }
 
 void PhraseScreenUpdate(void)

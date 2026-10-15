@@ -112,7 +112,7 @@ extern UBYTE wPtrGrooveRow, wPtrPhrase, wPtrNoteSrc;                       /* ..
 
 void SndWritePanning(UBYTE v);              /* bank 0 */
 void SetInterruptEnable(UBYTE ie);          /* bank 0 */
-UBYTE Random16(void);                       /* bank 0 (this file reads the low byte) */
+UBYTE randw(void);                       /* bank 0 (this file reads the low byte) */
 UBYTE MulU8(UBYTE a, UBYTE b);              /* bank 0 */
 void SetSyncSendRate(void);                 /* bank 7 */
 void SndSetPlayRange(void);
@@ -136,7 +136,7 @@ void SndStartChanFromRow(void);
 void SndSetChanEnable(void);
 void SndResetFxState(void);
 void SyncStartTransport(void);              /* bank 0 */
-void SeedRandom16(UWORD seed);              /* bank 0 */
+void initrand(UWORD seed);              /* bank 0 */
 void SndStepAllChans(void);
 void SndRunChanFxSlots(void);
 void SndSetupWaveChan(void);
@@ -187,7 +187,7 @@ UBYTE SndRandomUpTo(UBYTE n)
 {
     if (!n)
         return 0;
-    return Random16() % (n + 1);
+    return randw() % (n + 1);
 }
 
 /* $649D: R, retrig (R8x: resync). The first digit changes the volume on each
@@ -742,7 +742,7 @@ UBYTE SndTableMaybeHop(UBYTE right)
     UBYTE v;
 
     v = right ? wTableCmd2Val : wTableCmd1Val;
-    if ((v & 0xF0) > Random16()) {
+    if ((v & 0xF0) > randw()) {
         v &= 0x0F;
         if (right)
             v |= 0x80;
@@ -758,7 +758,7 @@ void SndTick(void)
 {
     if (wPlayRestartPending) {
         wSyncTxByte = wSongRow;
-        SeedRandom16(DIV_REG);
+        initrand(DIV_REG);
     } else {
         SndStepAllChans();
         SndRunChanFxSlots();

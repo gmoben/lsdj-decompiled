@@ -18,7 +18,7 @@ extern UBYTE wChanOutput[];                /* $C0A0, [4] */
 extern UBYTE wChanOutputOverride[];                /* $C0A4, [4] */
 extern UBYTE wChanMuteShown[];              /* $C9CE, [4] */
 extern UBYTE *wChanMuteShownPtr;            /* $C9D2 */
-int StringLength(const char *s);
+int StrLength(const char *s);
 
 const UBYTE ChanStatusAttrSel[4] = {3, 3, 3, 3};
 const UBYTE ChanStatusAttrNorm[4] = {0, 1, 1, 1};
@@ -50,7 +50,7 @@ void DrawChanStatus(UBYTE ch)
         DrawString(s);
         if (hGameboyType) {
             VBK_REG = 1;
-            set_bkg_tiles(0x10, y, StringLength(s), 1, ChanStatusAttrSel);
+            set_bkg_tiles(0x10, y, StrLength(s), 1, ChanStatusAttrSel);
             VBK_REG = 0;
         }
     } else {

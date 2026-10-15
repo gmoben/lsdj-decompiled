@@ -48,7 +48,7 @@
 5A07 ProjCursorFieldWidth       ; the cursor field's width in tiles: ProjFieldWidth[wProjCursor], 2 more on field 11 while the file browser is up
 5A42 EraseProjCursor            ; restore the palette of the project screen field under wProjCursor (1 for fields 0-7)
 5A90 DrawProjCursor             ; highlight the project screen field under wProjCursor (ProjFieldX/Y, ProjCursorFieldWidth)
-5AE3 DrawDecimalField           ; draw a small decimal value ("%d" via DrawFormat)
+5AE3 DrawDecimalField           ; draw a small decimal value ("%d" via printf)
 5B09 ProjSyncModeIs015          ; return 1 if wSyncMode in {0,1,5}
 5B23 DrawPrelistenField         ; PRELISTEN field: "ON "/"OFF"/"N/A" by wPrelisten + sync mode
 5B62 ProjRedrawPrelisten        ; PRELISTEN field at $992A in the shadow palette (DrawPrelistenField)

@@ -105,7 +105,7 @@
 4FC0 SndApplyTableCmd           ; (cp $02) SndReadSramByteVia then jp SndClampNoteRange
 503C SndReadSramByteVia         ; read [hl-pointer] from SRAM ($0a enable, di/reti) -> e
 504A SndRunTableStep            ; run a table step (SndDecodeCmdNibbles, SndNoiChordStep)
-5074 SndRandom15                ; Random16() % 15: B (MayBe) in a phrase plays when this is below the probability digit
+5074 SndRandom15                ; randw() % 15: B (MayBe) in a phrase plays when this is below the probability digit
 507F SndAdvanceStatePtrs        ; advance the 7 working sound-state pointers (low bytes $c8df/e1/e3/e5/e7/eb/ed) to the next channel's slot in the $C1xx tables (counterpart of InitSoundStatePtrs)
 509C SndReadPhraseCmd           ; fetch phrase FX cmd+val for the current row (SRAM bank 2 phrase_fx); H/W special-cased
 50E1 SndReadTableCmd1           ; fetch table CMD1-column cmd+val via $c118/$c130 stream ptrs
@@ -137,7 +137,7 @@
 61F7 SndClearVoiceHram          ; clear $ffa0-$ffa3 (per-voice HRAM shadow regs)
 6270 FxCmd_P_Step           ; P with PITCH on STEP: the pitch changes at once (a kit's rate by 3 a step, else wChanPitchCur by 8)
 632B FxCmd_F_Wav                ; F on the wave channel: a synth's wave frame steps; a kit's two sample positions move (x16, doubled beyond +-16)
-6479 SndRandomUpTo              ; random 0..n (Random16() % (n + 1); 0 for 0): the range Z adds to each digit
+6479 SndRandomUpTo              ; random 0..n (randw() % (n + 1); 0 for 0): the range Z adds to each digit
 6577 SndKillNote                ; kill this channel's note (K, now or when its slot's timer runs out): FX and FX slots, pitch slide, chord, vibrato off, table $FF
 6685 SndRunFxSlot               ; set hSoundCh = $c527 & 3, run SndKillNote
 6694 SndWavLevelStep            ; step the WAV output level (NR32 bits 5-6) by the signed high digit of the argument: negative towards off, positive towards 100%

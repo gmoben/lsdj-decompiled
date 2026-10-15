@@ -88,7 +88,7 @@ LIBRARY = {
     # libc/gb/delay.s, pad.s, cgb.s, set_bk_t.s, set_xy_t.s, rand.s
     "00:delay", "00:DelayTicks", "00:DelayLoop", "00:joypad",
     "00:set_bkg_palette", "00:set_bkg_tiles", "00:set_xy_btt", "00:set_xy_wtt",
-    "00:set_xy_tt", "00:Random16", "00:SeedRandom16",
+    "00:set_xy_tt", "00:randw", "00:initrand",
 }
 
 LABEL = re.compile(r"^([A-Za-z_]\w*)::?")

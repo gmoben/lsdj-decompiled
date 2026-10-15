@@ -71,7 +71,7 @@ void FlushBlockToSram(void);                /* $1C:$743C */
 void FileDecompressByte(void);              /* $1C:$749E */
 void VerifyBlockAgainstSram(void);         /* $1C:$746E */
 void DrawFileList(void);                    /* $1C:$55F1 */
-int StringLength(const char *s);            /* bank00/GbdkLib.c, nonbanked */
+int StrLength(const char *s);            /* bank00/GbdkLib.c, nonbanked */
 UBYTE FindFreeBlock(UBYTE *bank, UWORD *src);   /* $1C:$415A */
 UBYTE CompressSong(void);                   /* $1C:$441F */
 UBYTE DrawVerifyPanel(UBYTE f);             /* $1C:$4778 */
@@ -808,7 +808,7 @@ void DrawFileList(void)
             DrawByte(ver);
             if ((ver & 0xF0) == 0)
                 DrawStringTile20();
-            n = 9 - StringLength(wFileNameBuf);
+            n = 9 - StrLength(wFileNameBuf);
             while (n--)
                 DrawStringTile20();
             if ((blocks & 0xF0) == 0)
@@ -847,7 +847,7 @@ void DrawFileScreen(void)
     UBYTE i;
 
     FarCall(1, FAR_FN(DrawTopBar));
-    for (i = StringLength(wTopBarStr); i != 12; i++)
+    for (i = StrLength(wTopBarStr); i != 12; i++)
         DrawStringTile20();
     hBgDigitPal = wShadowDigitPal;
     hBgPal = wShadowPal;
@@ -865,7 +865,7 @@ void DrawFileScreen(void)
     wVramCursor = 0x9A20;
     hBgDigitPal = 4;
     hBgPal = 1;
-    DrawFormat("BLOCKS USED: %x/", (UWORD)FileListSlots());
+    printf("BLOCKS USED: %x/", (UWORD)FileListSlots());
     DrawString(wFsCheckResult ? "3F" : "BF");
 }
 
@@ -924,9 +924,9 @@ UBYTE DrawBlocksUsed(void)
     wFilePromptNo = 1;
     wVramCursor = 0x98C2;
     if (n < 0x78)
-        DrawFormat("LOSE %u MINUTES", n);
+        printf("LOSE %u MINUTES", n);
     else
-        DrawFormat("LOSE %u HOURS", n / 60);
+        printf("LOSE %u HOURS", n / 60);
     wVramCursor = 0x98E2;
     DrawString("OF UNSAVED WORK?");
     wVramCursor = 0x9926;

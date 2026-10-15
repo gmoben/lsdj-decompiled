@@ -197,7 +197,7 @@ class Compare16Tests(unittest.TestCase):
 
 class SignedCompare16Tests(unittest.TestCase):
     """SDCC 2.2.1's signed word compares with a constant, rewritten to the add
-    form on the sign-flipped operand (Abs16, DrawNumber, DrawCrashScreen,
+    form on the sign-flipped operand (abs, printn, DrawCrashScreen,
     FxCmd_P_Step)."""
 
     VALUES = (-0x8000, -0x7FFF, -17, -16, -15, -2, -1, 0, 1, 9, 10, 11, 15, 16, 17, 0x7FFE, 0x7FFF)
@@ -274,7 +274,7 @@ class SignedCompare16Tests(unittest.TestCase):
         self.assertEqual(gb_cmp16(source, zero=True), (source, 0))
 
     def test_negation_after_the_compare_reloads_hl(self):
-        # Abs16: `xor a,a; ld hl,sp+4; ld a,$00; sbc a,[hl]` -- genUminus
+        # abs: `xor a,a; ld hl,sp+4; ld a,$00; sbc a,[hl]` -- genUminus
         # fetches its operand before loading the zero
         source = ["; genCmpLt", "\tlda\thl,7(sp)", "\tld\ta,(hl)", "\tbit\t7,a",
                   "\tjp\tz,001done$", "\txor\ta,a", "\tdec\thl", "\tld\ta,#0x00",

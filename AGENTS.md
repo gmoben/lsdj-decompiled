@@ -339,7 +339,7 @@ in `docs/functionality.md`.
   (instrument), `Proj` (project), `Env` (envelope), `Vib` (vibrato), `Cmd`
   (command), `Fx` (effect), `Col` (column), `Cur` (*current*, never
   cursor), `Cursor`, `Ptr`, `Buf`, `Val`, `Len`, `Pos`, `Pal` (palette),
-  `Idx`, `Kbd`, `Selection` (the clipboard selection; `Select` is the
+  `Idx`, `Kbd` (keyboard), `Selection` (the clipboard selection; `Select` is the
   SELECT button), `Message`, `Number`, `Count`, `Transpose` (never `Trans`;
   `Transport` is sync), `Compress`/`Decompress`. The four channels are
   `Pu1`, `Pu2`, `Wav`, `Noi` (`TriggerPu1`, `wChanFreqPu2`). Exempt: `Txt`
@@ -390,8 +390,14 @@ far: `set_bkg_palette` (`cgb.s`), `strcpy` (`asm_string.s`), `display_off`
 (`crt0.s`), `set_bkg_tiles` (`set_bk_t.s`) with its internal
 `set_xy_btt`/`set_xy_wtt`/`set_xy_tt` (`set_xy_t.s`, GBDK's `.set_xy_*` minus
 the dot), and the SDCC `mul` runtime. **Convention:** label GBDK/SDCC library
-functions with their canonical lowercase name (`set_bkg_palette`, `strcpy`);
-reserve PascalCase for LSDj's own routines. Note LSDj rolls its own for most code,
+functions with their canonical lowercase name (`set_bkg_palette`, `strcpy`,
+`printf`, `abs`, `randw`, `initrand`); reserve PascalCase for LSDj's own
+routines. Exceptions: rgbasm reserves `STRCMP` and `STRLEN` in any case, so
+those two are `StrCompare` and `StrLength`; the SDCC runtime the compiler
+calls (`__divschar` ...) and GBDK's dot-prefixed internals (`.div8`,
+`.delay`, which would collide with `delay`) are named for their operation
+(`DivS8`, `DivModS8`, `DelayTicks`), the canonical name in the `.sym`
+comment; the matcher aliases SDCC's names onto them (`RUNTIME_ALIASES`). Note LSDj rolls its own for most code,
 so the library footprint is small.
 
 ## Tooling for Agents

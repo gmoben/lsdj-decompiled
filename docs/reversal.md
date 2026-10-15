@@ -308,13 +308,13 @@ throughout. Clusters named:
   mode") volume engine (`FadeEnvStep`/`UpdateEnv*`), `LoadWaveRam`, `SndModWavFreq`.
 - **SDCC/GBDK runtime**: the whole 8/16-bit signed+unsigned `Div`/`Mod` family +
   `DivStep`, `memcpy`, `StrCompare` (rgbasm reserves `strcmp`!), `joypad`,
-  `delay`/`DelayLoop`, `Abs16`, `CallHL`.
+  `delay`/`DelayLoop`, `abs`, `CallHL`.
 - **Sync**: `DispatchSyncClock`, `SyncTick{LSDJ,Midi}`, `Sync{Start,Stop}Transport`,
   `SyncSet{Send,Recv}Mode`, `SyncApplyMode`, `Sync{Send,Receive}AnalogClock`
   (AN.OUT/AN.IN) — see sync.md.
 - **Input**: `HandleButtonEvent` → `HandleInputCombos` + `DispatchScreenInput`
   (the per-event chain from the main loop).
-- **Video/UI/OAM**: `DrawFormat` (printf, 23 callers) + `DrawNumber`, `DrawTempo`
+- **Video/UI/OAM**: `printf` (printf, 23 callers) + `printn`, `DrawTempo`
   (+ `GetTempoTimerVal`, var `wTempoMode`), `DrawPulseDuty`, `ShowMessage`
   (47 callers), `SetOAMByte`, the marker-sprite `SetSprite*`/`ClearMarkerSprites`,
   `RedrawScreen`, `ResetScreenSprites`, `CopyToBgTilemap` (since identified as

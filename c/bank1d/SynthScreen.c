@@ -216,7 +216,7 @@ void DrawGrooveRow(void)
                 hBgPal = wShadowPal;
             }
             q = a * 100 / (a + b);
-            DrawFormat("%d", (UWORD)q);
+            printf("%d", (UWORD)q);
             DrawStringIndexed('%');
             if (q < 10)
                 DrawStringTile20();

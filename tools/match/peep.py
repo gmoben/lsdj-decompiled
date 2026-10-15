@@ -730,7 +730,7 @@ def _reseat_hl(lines: list[str], i: int, off: int, glob: str | None = None) -> N
     ld a,(hl+)`); the add clobbered hl, so LSDj's compiler reloaded it
     (DrawBlocksUsed's `ld hl,sp+0`). A negation reloads it after its carry
     clear, before the zero it subtracts from (genUminus fetches the operand
-    first: Abs16's `xor a,a; ld hl,sp+4; ld a,$00; sbc a,[hl]`), a shift
+    first: abs's `xor a,a; ld hl,sp+4; ld a,$00; sbc a,[hl]`), a shift
     after its carry clear (`or a,a; ld hl,sp+2; rl [hl]`)."""
     def code_after(j: int) -> int:
         j += 1
@@ -1170,7 +1170,7 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
         mn, ops = _ops(t)
         # a 16-bit call result copied into bc (`ld c,d; ld b,e`): the ROM's
         # one reread of a byte just stored from a register (`ld (hl),b; ld
-        # a,(hl)`, OpenNameEditor's StringLength result) stores such a half;
+        # a,(hl)`, OpenNameEditor's StrLength result) stores such a half;
         # the 46 sites that reuse the register stored a byte value
         for r in _written(mn, ops):
             pair_half.discard(r)

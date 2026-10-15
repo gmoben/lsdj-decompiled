@@ -12,7 +12,7 @@
  * 2.95-2 passes an emitter.
  */
 
-#define GBDKLIB_C           /* DrawFormat takes `...` here */
+#define GBDKLIB_C           /* printf takes `...` here */
 #include "lsdj.h"
 
 /* gbdk-lib/include/asm/gbz80/stdarg.h */
@@ -22,7 +22,7 @@ typedef char * va_list;
 #define va_end(list)
 
 /* libc/abs.c */
-int Abs16(int num) nonbanked
+int abs(int num) nonbanked
 {
   if(num < 0)
     return -num;
@@ -32,19 +32,19 @@ int Abs16(int num) nonbanked
 
 /* libc/printf.c's _printn: u in `base`, a minus first when issigned and u
    is negative as an int, the leading digits by recursion */
-void DrawNumber(unsigned u, unsigned base, char issigned) nonbanked
+void printn(unsigned u, unsigned base, char issigned) nonbanked
 {
     if (issigned && ((int)u < 0)) {
 	DrawStringIndexed('-');
 	u = (unsigned)-((int)u);
     }
     if (u >= base)
-	DrawNumber(u/base, base, 0);
+	printn(u/base, base, 0);
     DrawStringIndexed("0123456789ABCDEF"[u%base]);
 }
 
 /* libc/printf.c's _printf: %c, %u, %d, %x and %s */
-void DrawFormat(char *format, ...) nonbanked
+void printf(char *format, ...) nonbanked
 {
     va_list va;
     va_start(va, format);
@@ -60,19 +60,19 @@ void DrawFormat(char *format, ...) nonbanked
 	    case 'u':
 		{
 		    unsigned u = va_arg(va, unsigned);
-		    DrawNumber(u, 10, 0);
+		    printn(u, 10, 0);
 		    break;
 		}
 	    case 'd':
 		{
 		    unsigned u = va_arg(va, unsigned);
-		    DrawNumber(u, 10, 1);
+		    printn(u, 10, 1);
 		    break;
 		}
 	    case 'x':
 		{
 		    unsigned u = va_arg(va, unsigned);
-		    DrawNumber(u, 16, 0);
+		    printn(u, 16, 0);
 		    break;
 		}
 	    case 's':
@@ -91,7 +91,7 @@ void DrawFormat(char *format, ...) nonbanked
 }
 
 /* libc/strlen.c: Return length of string */
-int StringLength(const char *s) nonbanked
+int StrLength(const char *s) nonbanked
 {
     int i;
 

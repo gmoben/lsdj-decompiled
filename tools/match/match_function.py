@@ -443,7 +443,7 @@ RUNTIME_ALIASES = {
     "__divsint": "DivS16", "__modsint": "ModS16",
     "__divuint": "DivU16", "__moduint": "ModU16",
     "strcmp": "StrCompare",     # bank 0's SDCC strcmp (named StrCompare: `strcmp` is an rgbasm keyword)
-    "DrawFormat2": "DrawFormat",  # the varargs DrawFormat called with two values
+    "printf2": "printf",  # the varargs printf called with two values
     "FarCallArg3P": "FarCallArg3",  # FarCallArg3 called with a function pointer (two cast temps)
     "FarCallArg2P": "FarCallArg2",  # FarCallArg2 called with a function pointer (two cast temps: FreeUnusedInstrs)
     "FarCallByteU": "FarCallByte",  # FarCallByte with a callee declared returning UBYTE (pushed from bc; a mismatched prototype folds it into `ld hl,#f`)

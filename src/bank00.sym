@@ -16,11 +16,11 @@
 0908 WriteClipboardCell         ; wClipboardBuf[col*42 + row] = v (asserts col < 6, row < 42)
 07DA ReadClipboardCell          ; return wClipboardBuf[col*42 + row] (asserts col < 6, row < 42)
 0D8B SortBytePair               ; order the bytes at two pointers: swap them so *a <= *b
-33F9 Random16            ; 16-bit LCG: seed = seed*17 + $5C93 (wRngSeedHi/Lo); returns de
-3826 SeedRandom16        ; seed the Random16 LCG from a 16-bit stack arg
+33F9 randw                      ; GBDK libc/gb/rand.s _rand/_randw: 16-bit LCG seed = seed*17 + $5C93 (wRngSeedHi/Lo); returns de
+3826 initrand                   ; GBDK libc/gb/rand.s _initrand: seed the generator from a 16-bit stack arg
 0B54 LoadSynthShape             ; page in bank $1E and sign-extend the 32 signed seed bytes at the pointer arg into wSynthShapeBuf
 338B RequestTileSlot     ; wrap SetTileLoadReq for a tile-slot arg
-36DD StringLength              ; return the length of the NUL-terminated string at a pointer arg (16-bit)
+36DD StrLength                     ; GBDK libc/strlen.c strlen (rgbasm reserves STRLEN): the length of the NUL-terminated string at a pointer arg
 3261 OrBitsIntoDaBuf  ; OR flag bits into the $DA00/$DA4F allocation buffer
 3055 ReloadEnvCounterPu1 ; wEnvCounterPu1 = ExpoCurve16[wEnvSpeedPu1] (de = speed ptr, counter = de+1)
 309C ReloadEnvCounterPu2 ; wEnvCounterPu2 = ExpoCurve16[wEnvSpeedPu2]
@@ -70,7 +70,7 @@
 271A HandleInputCombos  ; the B combos before the screen's input: B+SELECT mute, B+LEFT/RIGHT pan (song screen), B+START solo, B released restores; 1 when one took the buttons
 2A71 DispatchScreenInput ; jump table by wCurScreen (0-$0E, table $2A86) -> the current screen's input handler in its bank
 2BC4 GetTempoTimerVal ; -> de = tempo timer value: wTempoMode 1/2/3 -> fixed CGB/DMG presets, else derived from wTempo (BPM)
-2C3C DrawTempo          ; draw the tempo at the VRAM cursor: special label for wTempoMode 1/2/3, else the BPM number (DrawFormat "%d", wTempo)
+2C3C DrawTempo          ; draw the tempo at the VRAM cursor: special label for wTempoMode 1/2/3, else the BPM number (printf "%d", wTempo)
 2D22 DrawPulseDuty      ; draw the pulse WAVE/duty field (top 2 bits of the instr byte) as one of 4 two-tile waveform glyphs
 183A VBlankHandler      ; reloads rTIMA from tempo ($C578), can raise timer IRQ
 34BD SerialHandler      ; Game Boy sync RX: rSB -> $CBDD, mode in $CBDE
@@ -107,9 +107,9 @@
 2F6A DrawStringIndexed  ; draw from the string source at a byte offset
 2E33 DrawHexByte        ; draw byte A as two hex digits at the cursor
 2E6D DrawByte           ; draw a byte (stack arg) at the cursor
-352A DrawNumber         ; GBDK's printn: draw a word in a base at the console cursor, a minus first when signed and negative; the leading digits by recursion
-35B1 DigitChars                 ; "0123456789ABCDEF" (DrawNumber's digit table, indexed by the digit value)
-35C2 DrawFormat         ; GBDK's printf at the console cursor: %c, %u, %d, %x (via DrawNumber), %s
+352A printn                     ; GBDK libc/printf.c's _printn: a word in a base at the console cursor, a minus first when signed
+35B1 DigitChars                 ; "0123456789ABCDEF" (printn's digit table, indexed by the digit value)
+35C2 printf                     ; GBDK libc/printf.c printf at the console cursor: %c, %u, %d, %x (via printn), %s
 1298 ColorField                 ; color a field of w tiles at (x, y) with palette pal: CGB attributes through wAttrRowBuf, a DrawTileRun on DMG
 17E1 AnyChanFlagSet     ; e = nonzero if any of the 4 per-channel bytes $C423-$C426 is set (chain-screen per-channel state; caller resets the $C68C idle counter on activity)
 17FB ClearBgTilemap     ; fill the visible 20x18 BG tilemap ($9800) with tile 0, rSTAT-gated
@@ -194,11 +194,11 @@
 3424 SwitchToDoubleSpeed ; CGB KEY1 speed switch to double-speed (no-op if rSPD bit7 already set): disable IRQs, rJOYP=$30, rSPD=1, stop, restore rIE
 20B3 ChecksumRomBank    ; 16-bit sum of all bytes in the current ROM bank ($4000-$7FFF) -> de
 20C4 TestSram           ; write/read-back test of SRAM bank $A000-$BFFF (writes 0); e = end offset on success / high byte on failure
-343F Abs16              ; GBDK's abs: the absolute value of a signed word
+343F abs                        ; GBDK libc/abs.c: the absolute value of a signed word
 33B9 GetTilemapAddr    ; (col,row 16-bit arg) -> BG map address $9800 + row*$20 + col
 3831 strcpy            ; GBDK/SDCC strcpy(dest=sp+2, src=sp+4): copy until NUL (byte-exact match)
 3843 memcpy            ; SDCC memcpy(dest=sp+4, src=sp+6, n=sp+8): copy n bytes (16-bit count)
-3863 StrCompare        ; SDCC strcmp(s1=sp+2, s2=sp+4): byte compare NUL-terminated -> de = 0 (equal) / +1 / -1 (named StrCompare; 'strcmp' is an rgbasm keyword)
+3863 StrCompare                     ; SDCC strcmp (rgbasm reserves STRCMP): s1=sp+2, s2=sp+4, byte compare -> de = 0 (equal) / +1 / -1
 391B joypad            ; GBDK joypad(): read P1 d-pad (P14) + buttons (P15) matrix -> combined active-high byte in e
 3983 delay             ; GBDK delay(d): 16-bit count from stack -> DelayTicks
 3949 DelayTicks        ; busy-wait de units (DelayLoop) plus a fixed tail loop (delay impl)
@@ -420,13 +420,13 @@
 32C6 .loop3               ; loop head in UploadTilesToVram
 32EC .loop                ; loop head in LoadTilesToVram
 33A9 .loop                ; loop head in ResetDisplayState
-3465 .done                ; common exit of Abs16
+3465 .done                ; common exit of abs
 349F .loop                ; loop head in display_off
 34A5 .loop2               ; loop head in display_off
 34B8 .loop                ; loop head in OAMDMARoutine
-35D5 .loop                ; loop head in DrawFormat
-36D9 .done                ; common exit of DrawFormat
-36E7 .loop                ; loop head in StringLength
+35D5 .loop                ; loop head in printf
+36D9 .done                ; common exit of printf
+36E7 .loop                ; loop head in StrLength
 37B6 .done                ; common exit of DivModS16
 383B .loop                ; loop head in strcpy
 3857 .loop                ; loop head in memcpy

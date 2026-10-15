@@ -920,8 +920,8 @@ DEF wEnvPlotX        EQU $CBD8  ; last plotted env-graph column 0-$3F (PlotEnvCu
 DEF wTileReqSlot0    EQU $CBE5  ; tile-load request table: 6 entries x [slot, ptrLo, ptrHi] at $CBE5-$CBF6 (this = entry-0 slot)
 DEF wUnusedCBF7      EQU $CBF7  ; zeroed by ResetTileLoader, never read
 DEF wUnusedCBF8      EQU $CBF8  ; zeroed by ResetTileLoader, never read
-DEF wRngSeedHi       EQU $CBF9  ; RNG seed hi byte (Random16: seed = seed*17 + $5C93)
-DEF wRngSeedLo       EQU $CBFA  ; RNG seed lo byte (SeedRandom16 sets)
+DEF wRngSeedHi       EQU $CBF9  ; RNG seed hi byte (randw: seed = seed*17 + $5C93)
+DEF wRngSeedLo       EQU $CBFA  ; RNG seed lo byte (initrand sets)
 DEF wUnusedCBFB      EQU $CBFB  ; set to $03 at display reinit, never read
 DEF wUnusedCBFC      EQU $CBFC  ; set to $00 at display reinit, never read
 DEF wSpriteWavX      EQU $DD01  ; WAV display sprite 0 X (=$90, ClearOamBuf)

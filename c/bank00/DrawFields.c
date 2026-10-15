@@ -61,7 +61,7 @@ void DrawTempo(UWORD tempo)
         DrawString("6X ");
         break;
     default:
-        DrawFormat("%d", tempo);
+        printf("%d", tempo);
         if (tempo < 100)
             DrawStringTile20();
     }
