@@ -69,7 +69,7 @@
 2B8D HandleButtonEvent  ; process one button event: latch A/B/Select held flags (wAHeld/wBHeld/wSelectHeld) from wButtons, then HandleInputCombos + DispatchScreenInput, OR their results
 271A HandleInputCombos  ; the B combos before the screen's input: B+SELECT mute, B+LEFT/RIGHT pan (song screen), B+START solo, B released restores; 1 when one took the buttons
 2A71 DispatchScreenInput ; jump table by wCurrentScreen (0-$0E, table $2A86) -> the current screen's input handler in its bank
-2BC4 GetTempoTimerValue ; -> de = tempo timer value: wTempoMode 1/2/3 -> fixed CGB/DMG presets, else derived from wTempo (BPM)
+2BC4 GetTempoTimerValue ; -> de = tempo timer value: wTempoMode 1/2/3 -> fixed presets (2.4% more on a Super Game Boy, wIsSgb), else derived from wTempo (BPM)
 2C3C DrawTempo          ; draw the tempo at the VRAM cursor: special label for wTempoMode 1/2/3, else the BPM number (printf "%d", wTempo)
 2D22 DrawPulseDuty      ; draw the pulse WAVE/duty field (top 2 bits of the instr byte) as one of 4 two-tile waveform glyphs
 183A VBlankHandler      ; reloads rTIMA from tempo (wTimerReload), can raise timer IRQ
@@ -453,7 +453,7 @@
 1258 .noAPress
 1269 .noButtons
 12B4 .ok
-1324 .setIsCgb
+1324 .setIsSgb
 13A5 .decrementRedrawPending
 13CC .setIdleFrames
 13D1 .dispatchScreenUpdate
@@ -498,9 +498,9 @@
 283C .solo
 28E1 .soloSelf
 2945 .release
-2BDB .checkIsCgb
-2BF1 .checkIsCgbb
-2C07 .checkIsCgbc
+2BDB .checkIsSgb
+2BF1 .checkIsSgbb
+2C07 .checkIsSgbc
 2C1D .checkTempo
 2DA7 .checkSongColumn
 30A1 .advanceEnvelopeNoi
@@ -576,7 +576,7 @@
 12EA .cont
 1306 main               ; the C entry point (Start jumps here): detect the hardware, InitializeAndLoadSong, redraw, file-system check; then main.mainLoop is its endless loop
 1318 .readAUDENA
-1323 .setIsCgb_2
+1323 .setIsSgb_2
 132B .cont_2
 132F .setrAUDENA
 13E2 .decrementWorkTimeTicks
@@ -693,9 +693,9 @@
 2B79 .cont_15
 2B89 .cont_16
 2BE9 .cont
-2BEC .checkIsCgb_2
+2BEC .checkIsSgb_2
 2BFF .cont_2
-2C02 .checkIsCgb_3
+2C02 .checkIsSgb_3
 2C15 .cont_3
 2C18 .checkTempo_2
 2C32 .loadTempo

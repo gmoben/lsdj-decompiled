@@ -20,8 +20,8 @@ extern UBYTE wLinkQueueHead;                /* $CB80, read index */
 extern UBYTE wLinkQueueBuffer[];               /* $CB81, [16] ring */
 extern UBYTE wKeyboardTranspose;                 /* $CB91 */
 extern UWORD wSyncSendRate;                 /* $C954 */
-extern UWORD TempoTimerTableDmg[];          /* $07:$5E49, [256] */
-extern UWORD TempoTimerTableCgb[];          /* $07:$6049, [256] */
+extern UWORD TempoTimerTable[];          /* $07:$5E49, [256] */
+extern UWORD TempoTimerTableSgb[];          /* $07:$6049, [256] */
 
 void delay(UWORD d);                        /* GBDK */
 void SendSyncHandshake(void);               /* bank 0 */
@@ -76,7 +76,7 @@ void SetSyncSendRate(void)
         r = 0x800;
         r *= 4 - wTempoMode;
     } else {
-        r = (UWORD)(wIsCgb ? TempoTimerTableCgb : TempoTimerTableDmg);
+        r = (UWORD)(wIsSgb ? TempoTimerTableSgb : TempoTimerTable);
         r += (UWORD)(wTempo - 40) << 1;
         r = *(UWORD *)r;
     }

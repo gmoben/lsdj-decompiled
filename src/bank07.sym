@@ -73,9 +73,9 @@
 ; --- bookmarks / tempo / PS/2 keyboard ---
 6249 WriteBookmarkByte          ; bounds-checked ($aff0-$afff) WriteSongByte into the bookmarks row
 643D ClearBookmarks             ; FillMemory($aff0, $ff, 16)
-5DD8 SetSyncSendRate            ; wSyncSendRate (interrupts off) from the tempo: $800 x (4 - wTempoMode) for the sync speeds, else TempoTimerTableDmg/Cgb[wTempo - 40]
-5E49 TempoTimerTableDmg         ; [256] UWORD tempo timer value per BPM byte (DMG)
-6049 TempoTimerTableCgb         ; [256] UWORD tempo timer value per BPM byte (CGB double speed)
+5DD8 SetSyncSendRate            ; wSyncSendRate (interrupts off) from the tempo: $800 x (4 - wTempoMode) for the sync speeds, else TempoTimerTable[wTempo - 40] (TempoTimerTableSgb on a Super Game Boy)
+5E49 TempoTimerTable            ; [256] UWORD tempo timer value per BPM byte
+6049 TempoTimerTableSgb         ; [256] UWORD TempoTimerTable for the Super Game Boy: counts 2.4% longer for its fast clock
 662A KeyboardNoteMap            ; [128] note per PS/2 scancode & $7F (0 = none), + wKeyboardTranspose octave offset
 66AA KeyboardFunctionMap              ; [128] function code per PS/2 scancode & $7F (channel mutes/cursor keys)
 7097 DrawCalibrationScreen    ; PS/2 "KEYBOARD CALIBRATION" screen (tap down-arrow prompt)
@@ -315,7 +315,7 @@
 5D28 .okc
 5D33 .okd
 5D45 .oke
-5DFB .checkIsCgb
+5DFB .checkIsSgb
 6258 .ok
 6267 .okb
 640C .sort
@@ -415,13 +415,13 @@
 4E92 .return01_5
 4F4F .fillMemory
 4FD5 .return01_6
-4FEF .setIsCgb
+4FEF .setIsSgb
 500F .loadSongRow_2
-504C .setIsCgb_2
+504C .setIsSgb_2
 5070 .loadSongRow_3
-50AA .setIsCgb_3
+50AA .setIsSgb_3
 50EF .return01_7
-5109 .setIsCgb_4
+5109 .setIsSgb_4
 512F .cont_3
 5139 .cont_4
 5144 .cont_5

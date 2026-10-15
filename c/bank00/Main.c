@@ -310,7 +310,7 @@ void main(void)
 {
     switch (wBootHardwareId) {
     case 0x01:
-        wIsCgb = NR52_REG == 0xF0;
+        wIsSgb = NR52_REG == 0xF0;
         break;
     case 0x11:
         hGameboyTypeIo = 1;

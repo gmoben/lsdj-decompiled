@@ -40,7 +40,7 @@
 445A TestSramHigh                 ; cartridge RAM test, SRAM banks 4-15 (jp TestSramHigh.done on mismatch)
 493B CopyInstrumentName              ; copy instrument arg's 5-char name -> wNameEditBuffer (speech $40 -> "SPCH")
 4A49 WriteInstrumentName             ; wNameEditBuffer -> instrument name storage ($be7a + instr*5)
-4B15 LoadHardwareTables               ; load the CGB/DMG-specific tables: palettes -> wNotePeriodLow, the 216-byte note-period table -> wNotePeriods
+4B15 LoadHardwareTables               ; load the clock-dependent tables: PitchCurve -> wNotePeriodLow, NoteFrequencyTable -> wNotePeriods, the Super Game Boy's versions on an SGB (wIsSgb)
 4B5E ClearOamBuffer             ; clear the OAM shadow (wOamBuffer, $a0 bytes) and sprite tiles $8000-$802f/$8050-$805f, place the WAV sprites, wait for the OAM DMA, enable sprites
 4C61 ApplyColorSet              ; load the wColorSet CGB BG+OBJ palettes (hw $11 check, set_bkg_palette)
 4CFB MarkPhraseUsed             ; set the phrase-alloc bit (song $3E82 bitmap) for phrase arg
@@ -144,9 +144,9 @@
 7BDA TxtAst                     ; "AST"
 794B CrashHandler               ; crash entry: di, SRAM locked (rRAMG = 0), SaveCrashStack
 40FA NoteFrequencyTable              ; [108] UWORD GB frequency period per semitone 0-107 (LoadHardwareTables copies it)
-41D2 NoteFrequencyTableCgb      ; [108] UWORD the CGB's NoteFrequencyTable (LoadHardwareTables picks by wIsCgb)
+41D2 NoteFrequencyTableSgb      ; [108] UWORD NoteFrequencyTable for the Super Game Boy, 41 cents flat to undo its 2.4% fast clock (LoadHardwareTables picks it by wIsSgb)
 42AA PitchCurve                 ; [216] rising pitch-response curve (LoadHardwareTables copies it)
-4382 PitchCurveCgb              ; [216] PitchCurve's CGB counterpart (LoadHardwareTables picks by wIsCgb)
+4382 PitchCurveSgb              ; [216] PitchCurve for the Super Game Boy (LoadHardwareTables picks it by wIsSgb)
 5927 ScreenPaletteTable             ; [18][20] ground tiles, TABLE screen (DrawScreenPaletteMap)
 5A8F ScreenPalettePhrase            ; [18][20] ground tiles, PHRASE screen (DrawScreenPaletteMap)
 5BF7 ScreenPaletteGroove            ; [18][20] ground tiles, GROOVE screen (DrawScreenPaletteMap)
@@ -162,7 +162,7 @@
 6A07 ScreenPaletteWord              ; [18][20] ground tiles, WORD screen (DrawScreenPaletteMap)
 6B6F ScreenPaletteFile              ; [18][20] ground tiles, FILE screen (DrawScreenPaletteMap)
 4144 NoteFrequency37                 ; [71] UWORD NoteFrequencyTable from entry 37 on (period $0714; a label inside it, kept for the debugger)
-4247 NoteFrequencyCgb58High     ; [1] the high byte of NoteFrequencyTableCgb entry 58 (a label inside it, kept for the debugger)
+4247 NoteFrequencySgb58High     ; [1] the high byte of NoteFrequencyTableSgb entry 58 (a label inside it, kept for the debugger)
 5099 TxtPctDColon               ; "%d:"
 509D TxtPctD01                  ; "%d"
 4F44 AllocateNextFreePhraseMiddle ; @deploy-only: operand byte of the jp at $4F42 (walker artifact)
@@ -361,7 +361,7 @@
 4AC4 .cont_3
 4AE5 .cont_4
 4B26 .cont
-4B2B .checkIsCgb
+4B2B .checkIsSgb
 4B49 .cont_2
 4B4E .cont_3
 4BAA .clearByte           ; write 0 to the tile byte at p

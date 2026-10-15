@@ -10,7 +10,7 @@ DEF RAM_INC         EQU 1
 
 ; --- Screen / UI state ------------------------------------------------------
 DEF wCurrentScreen  EQU $C401  ; 0-14; indexes the screen draw/update dispatch
-DEF wIsCgb          EQU $C402  ; set at boot when running on a Game Boy Color
+DEF wIsSgb          EQU $C402  ; set at boot on a Super Game Boy: boot A = $01 (DMG or SGB) and NR52 = $F0, the SGB boot ROM playing no chime; its CPU runs 2.4% fast on the SNES clock, so the note and tempo tables have SGB versions
 DEF wDrawStep       EQU $C405  ; multi-frame screen-redraw step: each screen's per-frame draw reads it, draws that step's part (cp 0/1/...), then increments; reset to 0 restarts a full redraw. Shared by all editor screens.
 DEF wCursorMode     EQU $C413  ; editor cursor mode: 1 nothing copied, 2 the clipboard holds a cut or copy (paste takes it), 4 marking a selection (CURSOR_* in lsdj.h)
 DEF wClipboardType  EQU $C411  ; SCREEN_* data-type held in the cut/copy clipboard (0 = empty). Set by
@@ -339,7 +339,7 @@ DEF wTileSlotAllocation    EQU $CBE4  ; running VRAM tile-slot allocator: stored
 DEF wTileRequestTable EQU $CBE6  ; entry-0 source ptr of the tile-load request table (scan anchor: LoadTilesToVram walks 6 entries, stride 3)
 
 ; --- Boot identity ----------------------------------------------------------
-DEF wBootHardwareId EQU $CBD9  ; boot A register (DMG/CGB id), saved at init
+DEF wBootHardwareId EQU $CBD9  ; boot A register, saved at init: $01 DMG or SGB, $FF MGB or SGB2, $11 CGB or AGB (main: $11 sets hGameboyTypeIo, $01 tests for an SGB)
 DEF wBootAgbId      EQU $CBDA  ; boot B register (AGB id)
 
 ; --- Buffers ----------------------------------------------------------------

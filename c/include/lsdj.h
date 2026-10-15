@@ -380,7 +380,7 @@ extern volatile UBYTE rRAMB;                /* $4000, MBC5 SRAM bank */
 /* --- WRAM ----------------------------------------------------------------- */
 
 extern UBYTE wCurrentScreen;                /* $C401 */
-extern UBYTE wIsCgb;                        /* $C402 */
+extern UBYTE wIsSgb;                        /* $C402 */
 extern UBYTE wButtonsSame;                  /* $C408: 1 if the buttons are unchanged since last frame */
 extern UBYTE wSelectionLeft;                      /* $C40D */
 extern UBYTE wCursorMode;                   /* $C413 */
