@@ -165,7 +165,7 @@ void ResetWorkState(void)
     wAPressEnabled = 1;
     wCursorMode = CURSOR_NORMAL;
     wPhrase = 0;
-    wPhraseColumn = 0;
+    wPhraseColumn = PHRASE_COLUMN_LEFT_NOTE;
     wGroove = 0;
     wChain = 0;
     wChainColumn = 0;
@@ -228,7 +228,7 @@ void ResetWorkState(void)
     wPhraseColumnLast[1] = 1;
     wPhraseColumnLast[2] = 1;
     wPhraseColumnLast[3] = 1;
-    wTableColumn = 0;
+    wTableColumn = TABLE_COLUMN_VOLUME;
     wTableRow = 0;
     wTableEnvelopeCache = 0;
     wTableTransposeCache = 0;

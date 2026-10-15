@@ -135,11 +135,11 @@ void CutCopyPhraseSelection(UBYTE cut)
     wSelectionBottom = wPhraseRow;
     SortBytePair(&wSelectionLeft, &wSelectionRight);
     SortBytePair(&wSelectionTop, &wSelectionBottom);
-    if (wSelectionLeft == 4)
+    if (wSelectionLeft == PHRASE_COLUMN_VALUE)
         wSelectionLeft = 3;
-    if (wSelectionRight == 3)
+    if (wSelectionRight == PHRASE_COLUMN_COMMAND)
         wSelectionRight = 4;
-    if (wSelectionRight == 1 && wSongColumn == CHANNEL_WAV) {
+    if (wSelectionRight == PHRASE_COLUMN_NOTE && wSongColumn == CHANNEL_WAV) {
         cutInstrument = 0;
         wSelectionRight = 2;
     }
@@ -158,7 +158,7 @@ void CutCopyPhraseSelection(UBYTE cut)
                     if (cut)
                         FarCallArgument3P(4, FAR_FN(WritePhraseNote), row, t & 0x0F);
                 }
-                if (wSelectionRight == 1 && wSongColumn == CHANNEL_WAV) {
+                if (wSelectionRight == PHRASE_COLUMN_NOTE && wSongColumn == CHANNEL_WAV) {
                     WriteClipboardCell(1, row, 0xFF);
                     cutInstrument = 0;
                     goto instrument;
@@ -196,7 +196,7 @@ void CutCopyPhraseSelection(UBYTE cut)
             }
         }
     }
-    if (wSelectionRight == 1)
+    if (wSelectionRight == PHRASE_COLUMN_NOTE)
         wSelectionRight = 3;
     FarCall(0x1C, FAR_FN(SendLinkClipboard));
     wPhraseColumn = wSelectionLeft;

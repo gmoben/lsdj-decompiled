@@ -411,7 +411,7 @@ UBYTE TableInputFlag(UBYTE x)
     case 4:
         return 1;
     case 10:
-        return wTableColumn != 2;
+        return wTableColumn != TABLE_COLUMN_COMMAND1;
     }
     return 0;
 }
@@ -461,13 +461,13 @@ void DrawTableCursor(void)
     else
         ColorField(TableColumnX[wTableColumn], wTableRow + 2, TableColumnWidth[wTableColumn], hGameboyType ? 3 : 2);
     switch (wTableColumn) {
-    case 2:
-    case 3:
+    case TABLE_COLUMN_COMMAND1:
+    case TABLE_COLUMN_VALUE1:
         wTableCellAPointer = SRAM_TABLE_COMMANDS1;
         wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES1;
         break;
-    case 4:
-    case 5:
+    case TABLE_COLUMN_COMMAND2:
+    case TABLE_COLUMN_VALUE2:
         wTableCellAPointer = SRAM_TABLE_COMMANDS2;
         wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES2;
         break;
@@ -533,7 +533,7 @@ UBYTE TableScreenInput(void)
         if (!wAPressEnabled || wCursorMode == CURSOR_SELECTING)
             break;
         SetVramCursor(TableColumnX[wTableColumn], wTableRow + 2);
-        if (wTableColumn > 3) {
+        if (wTableColumn > TABLE_COLUMN_VALUE1) {
             wTableCellAPointer = SRAM_TABLE_COMMANDS2;
             wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES2;
         } else {
@@ -541,21 +541,21 @@ UBYTE TableScreenInput(void)
             wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES1;
         }
         switch (wTableColumn) {
-        case 0:
+        case TABLE_COLUMN_VOLUME:
             if (!ReadTableEnvelope((char)wTableRow)) {
                 DrawTableEnvelope(wTableEnvelopeCache);
                 WriteTableEnvelope((char)wTableRow, wTableEnvelopeCache);
             }
             break;
-        case 1:
+        case TABLE_COLUMN_TRANSPOSE:
             if (!ReadTableTranspose((char)wTableRow)) {
                 DrawHexByte(wTableTransposeCache);
                 WriteTableTranspose((char)wTableRow, wTableTransposeCache);
             }
             break;
-        case 2:
-        case 4:
-            wPendingCommandTarget = (wTableColumn == 4 ? 1 : 0) + 1;
+        case TABLE_COLUMN_COMMAND1:
+        case TABLE_COLUMN_COMMAND2:
+            wPendingCommandTarget = (wTableColumn == TABLE_COLUMN_COMMAND2 ? 1 : 0) + 1;
             v = ReadTableCommand((char)wTableRow);
             if (!v) {
                 v = wColumnLastCommand[wSongColumn];
@@ -563,7 +563,7 @@ UBYTE TableScreenInput(void)
                     DebugTrap();
             } else if (wDrawStep++)
                 FarCallArgument(1, FAR_FN(ShowCommandHelp), v);
-            if (v == 0x0A && wTableColumn == 4)
+            if (v == 0x0A && wTableColumn == TABLE_COLUMN_COMMAND2)
                 v = 1;
             wPendingCommands[wTableRow] = v;
             DrawCommandLetter(v);
@@ -571,8 +571,8 @@ UBYTE TableScreenInput(void)
             hBgPalette = 1;
             DrawFieldValue(v, ReadTableValue((char)wTableRow));
             break;
-        case 3:
-        case 5:
+        case TABLE_COLUMN_VALUE1:
+        case TABLE_COLUMN_VALUE2:
             if (wDrawStep++ == 1) {
                 v = ReadTableCommand((char)wTableRow);
                 if (v == 1) {
@@ -588,7 +588,7 @@ UBYTE TableScreenInput(void)
         return 1;
     case J_RIGHT:
         EraseTableCursor();
-        if (++wTableColumn == 6)
+        if (++wTableColumn == TABLE_COLUMNS)
             wTableColumn--;
         DrawTableCursor();
         return 1;
@@ -623,20 +623,20 @@ UBYTE TableScreenInput(void)
         rowEnd++;
         for (; row < rowEnd; row++) {
             switch (wTableColumn) {
-            case 2:
-            case 3:
+            case TABLE_COLUMN_COMMAND1:
+            case TABLE_COLUMN_VALUE1:
                 wTableCellAPointer = SRAM_TABLE_COMMANDS1;
                 wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES1;
                 break;
-            case 4:
-            case 5:
+            case TABLE_COLUMN_COMMAND2:
+            case TABLE_COLUMN_VALUE2:
                 wTableCellAPointer = SRAM_TABLE_COMMANDS2;
                 wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES2;
                 break;
             }
             SetVramCursor(TableColumnX[wTableColumn], row + 2);
             switch (wTableColumn) {
-            case 0:
+            case TABLE_COLUMN_VOLUME:
                 v = ReadTableEnvelope(row);
                 if ((v & 0x0F) != 0x0F) {
                     v++;
@@ -645,19 +645,19 @@ UBYTE TableScreenInput(void)
                 }
                 wTableEnvelopeCache = v;
                 break;
-            case 1:
+            case TABLE_COLUMN_TRANSPOSE:
                 v = ReadTableTranspose(row);
                 v++;
                 DrawHexByte(v);
                 WriteTableTranspose(row, v);
                 wTableTransposeCache = v;
                 break;
-            case 2:
-            case 4:
+            case TABLE_COLUMN_COMMAND1:
+            case TABLE_COLUMN_COMMAND2:
                 if (!wPendingCommands[row])
                     if (!(wPendingCommands[row] = ReadTableCommand(row)))
                         break;
-                wPendingCommandTarget = (wTableColumn == 4 ? 1 : 0) + 1;
+                wPendingCommandTarget = (wTableColumn == TABLE_COLUMN_COMMAND2 ? 1 : 0) + 1;
                 if (wPendingCommands[row] < 0x13)
                     do
                         wPendingCommands[row]++;
@@ -671,8 +671,8 @@ UBYTE TableScreenInput(void)
                 hBgPalette = 1;
                 DrawFieldValue(wPendingCommands[row], ReadTableValue(row));
                 break;
-            case 3:
-            case 5:
+            case TABLE_COLUMN_VALUE1:
+            case TABLE_COLUMN_VALUE2:
                 v = ReadTableValue(row);
                 switch (ReadTableCommand(row)) {
                 case 0:
@@ -720,20 +720,20 @@ UBYTE TableScreenInput(void)
         rowEnd++;
         for (; row < rowEnd; row++) {
             switch (wTableColumn) {
-            case 2:
-            case 3:
+            case TABLE_COLUMN_COMMAND1:
+            case TABLE_COLUMN_VALUE1:
                 wTableCellAPointer = SRAM_TABLE_COMMANDS1;
                 wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES1;
                 break;
-            case 4:
-            case 5:
+            case TABLE_COLUMN_COMMAND2:
+            case TABLE_COLUMN_VALUE2:
                 wTableCellAPointer = SRAM_TABLE_COMMANDS2;
                 wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES2;
                 break;
             }
             SetVramCursor(TableColumnX[wTableColumn], row + 2);
             switch (wTableColumn) {
-            case 0:
+            case TABLE_COLUMN_VOLUME:
                 v = ReadTableEnvelope(row);
                 if (v & 0x0F) {
                     v--;
@@ -742,16 +742,16 @@ UBYTE TableScreenInput(void)
                 }
                 wTableEnvelopeCache = v;
                 break;
-            case 1:
+            case TABLE_COLUMN_TRANSPOSE:
                 v = ReadTableTranspose(row);
                 v--;
                 DrawHexByte(v);
                 WriteTableTranspose(row, v);
                 wTableTransposeCache = v;
                 break;
-            case 2:
-            case 4:
-                wPendingCommandTarget = (wTableColumn == 4 ? 1 : 0) + 1;
+            case TABLE_COLUMN_COMMAND1:
+            case TABLE_COLUMN_COMMAND2:
+                wPendingCommandTarget = (wTableColumn == TABLE_COLUMN_COMMAND2 ? 1 : 0) + 1;
                 if (!wPendingCommands[row])
                     wPendingCommands[row] = ReadTableCommand(row);
                 if (wPendingCommands[row] > 1)
@@ -767,8 +767,8 @@ UBYTE TableScreenInput(void)
                 hBgPalette = 1;
                 DrawFieldValue(wPendingCommands[row], ReadTableValue(row));
                 break;
-            case 3:
-            case 5:
+            case TABLE_COLUMN_VALUE1:
+            case TABLE_COLUMN_VALUE2:
                 v = ReadTableValue(row);
                 switch (ReadTableCommand(row)) {
                 case 1:
@@ -810,39 +810,39 @@ UBYTE TableScreenInput(void)
         rowEnd++;
         for (; row < rowEnd; row++) {
             switch (wTableColumn) {
-            case 2:
-            case 3:
+            case TABLE_COLUMN_COMMAND1:
+            case TABLE_COLUMN_VALUE1:
                 wTableCellAPointer = SRAM_TABLE_COMMANDS1;
                 wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES1;
                 break;
-            case 4:
-            case 5:
+            case TABLE_COLUMN_COMMAND2:
+            case TABLE_COLUMN_VALUE2:
                 wTableCellAPointer = SRAM_TABLE_COMMANDS2;
                 wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES2;
                 break;
             }
             SetVramCursor(TableColumnX[wTableColumn], row + 2);
             switch (wTableColumn) {
-            case 0:
+            case TABLE_COLUMN_VOLUME:
                 v = ReadTableEnvelope(row);
                 v += 0x10;
                 DrawTableEnvelope(v);
                 WriteTableEnvelope(row, v);
                 wTableEnvelopeCache = v;
                 break;
-            case 1:
+            case TABLE_COLUMN_TRANSPOSE:
                 v = ReadTableTranspose(row);
                 v += wSongColumn == CHANNEL_NOI ? 4 : 12;
                 DrawHexByte(v);
                 WriteTableTranspose(row, v);
                 wTableTransposeCache = v;
                 break;
-            case 2:
-            case 4:
+            case TABLE_COLUMN_COMMAND1:
+            case TABLE_COLUMN_COMMAND2:
                 if (!wPendingCommands[row])
                     if (!(wPendingCommands[row] = ReadTableCommand(row)))
                         break;
-                wPendingCommandTarget = (wTableColumn == 4 ? 1 : 0) + 1;
+                wPendingCommandTarget = (wTableColumn == TABLE_COLUMN_COMMAND2 ? 1 : 0) + 1;
                 if (wPendingCommands[row] < 0x13)
                     do
                         wPendingCommands[row]++;
@@ -856,8 +856,8 @@ UBYTE TableScreenInput(void)
                 hBgPalette = 1;
                 DrawFieldValue(wPendingCommands[row], ReadTableValue(row));
                 break;
-            case 3:
-            case 5:
+            case TABLE_COLUMN_VALUE1:
+            case TABLE_COLUMN_VALUE2:
                 v = ReadTableValue(row);
                 switch (ReadTableCommand(row)) {
                 case 0:
@@ -907,36 +907,36 @@ UBYTE TableScreenInput(void)
         rowEnd++;
         for (; row < rowEnd; row++) {
             switch (wTableColumn) {
-            case 2:
-            case 3:
+            case TABLE_COLUMN_COMMAND1:
+            case TABLE_COLUMN_VALUE1:
                 wTableCellAPointer = SRAM_TABLE_COMMANDS1;
                 wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES1;
                 break;
-            case 4:
-            case 5:
+            case TABLE_COLUMN_COMMAND2:
+            case TABLE_COLUMN_VALUE2:
                 wTableCellAPointer = SRAM_TABLE_COMMANDS2;
                 wTableCellBPointer = SRAM_TABLE_COMMAND_VALUES2;
                 break;
             }
             SetVramCursor(TableColumnX[wTableColumn], row + 2);
             switch (wTableColumn) {
-            case 0:
+            case TABLE_COLUMN_VOLUME:
                 v = ReadTableEnvelope(row);
                 v -= 0x10;
                 DrawTableEnvelope(v);
                 WriteTableEnvelope(row, v);
                 wTableEnvelopeCache = v;
                 break;
-            case 1:
+            case TABLE_COLUMN_TRANSPOSE:
                 v = ReadTableTranspose(row);
                 v -= wSongColumn == CHANNEL_NOI ? 4 : 12;
                 DrawHexByte(v);
                 WriteTableTranspose(row, v);
                 wTableTransposeCache = v;
                 break;
-            case 2:
-            case 4:
-                wPendingCommandTarget = (wTableColumn == 4 ? 1 : 0) + 1;
+            case TABLE_COLUMN_COMMAND1:
+            case TABLE_COLUMN_COMMAND2:
+                wPendingCommandTarget = (wTableColumn == TABLE_COLUMN_COMMAND2 ? 1 : 0) + 1;
                 if (!wPendingCommands[row])
                     wPendingCommands[row] = ReadTableCommand(row);
                 if (wPendingCommands[row] > 1)
@@ -952,8 +952,8 @@ UBYTE TableScreenInput(void)
                 hBgPalette = 1;
                 DrawFieldValue(wPendingCommands[row], ReadTableValue(row));
                 break;
-            case 3:
-            case 5:
+            case TABLE_COLUMN_VALUE1:
+            case TABLE_COLUMN_VALUE2:
                 v = ReadTableValue(row);
                 switch (ReadTableCommand(row)) {
                 case 0:
@@ -1025,22 +1025,22 @@ UBYTE TableScreenInput(void)
         wSelectionBottom = wSelectionTop + 1;
         wClipboardType = SCREEN_TABLE;
         switch (wTableColumn) {
-        case 0:
+        case TABLE_COLUMN_VOLUME:
             wSelectionLeft = 0;
             wSelectionRight = 1;
             wTableEnvelopeCache = ReadTableEnvelope((char)wTableRow);
             WriteClipboardCell(0, (char)wTableRow, wTableEnvelopeCache);
             WriteTableEnvelope((char)wTableRow, 0);
             break;
-        case 1:
+        case TABLE_COLUMN_TRANSPOSE:
             wSelectionLeft = 1;
             wSelectionRight = 2;
             wTableTransposeCache = ReadTableTranspose((char)wTableRow);
             WriteClipboardCell(1, (char)wTableRow, wTableTransposeCache);
             WriteTableTranspose((char)wTableRow, 0);
             break;
-        case 2:
-        case 3:
+        case TABLE_COLUMN_COMMAND1:
+        case TABLE_COLUMN_VALUE1:
             wSelectionLeft = 2;
             wSelectionRight = 4;
             wTableCellAPointer = SRAM_TABLE_COMMANDS1;
@@ -1053,8 +1053,8 @@ UBYTE TableScreenInput(void)
             WriteTableCommand((char)wTableRow, 0);
             WriteTableValue((char)wTableRow, 0);
             break;
-        case 4:
-        case 5:
+        case TABLE_COLUMN_COMMAND2:
+        case TABLE_COLUMN_VALUE2:
             wSelectionLeft = 4;
             wSelectionRight = 6;
             wTableCellAPointer = SRAM_TABLE_COMMANDS2;
@@ -1107,7 +1107,7 @@ UBYTE TableScreenInput(void)
 
         if (wButtonsSame)
             break;
-        if (wTableColumn == 2 || wTableColumn == 3) {
+        if (wTableColumn == TABLE_COLUMN_COMMAND1 || wTableColumn == TABLE_COLUMN_VALUE1) {
             a = (UWORD)SRAM_TABLE_COMMANDS1 + ((UWORD)wTable << 4);
             a += (UWORD)wTableRow;
             if (ReadSongByte(1, a) == 7) {
@@ -1115,7 +1115,7 @@ UBYTE TableScreenInput(void)
                 b += (UWORD)wTableRow;
                 wGroove = ReadSongByte(1, b) & 0x1F;
             }
-        } else if (wTableColumn > 3) {
+        } else if (wTableColumn > TABLE_COLUMN_VALUE1) {
             b = (UWORD)SRAM_TABLE_COMMANDS2 + ((UWORD)wTable << 4);
             b += (UWORD)wTableRow;
             if (ReadSongByte(1, b) == 7) {
@@ -1160,7 +1160,7 @@ UBYTE TableScreenInput(void)
             SortBytePair(&left, &right);
             if (left || right != 5) {
                 wSelectionLeft = 0;
-                wTableColumn = 5;
+                wTableColumn = TABLE_COLUMN_VALUE2;
                 wSelectHeld = 0;
                 DrawTableSelection();
                 return 1;
@@ -1192,13 +1192,13 @@ void CutCopyTableSelection(UBYTE cut)
     wSelectionBottom = wTableRow;
     SortBytePair(&wSelectionLeft, &wSelectionRight);
     SortBytePair(&wSelectionTop, &wSelectionBottom);
-    if (wSelectionLeft == 3)
+    if (wSelectionLeft == TABLE_COLUMN_VALUE1)
         wSelectionLeft--;
-    if (wSelectionLeft == 5)
+    if (wSelectionLeft == TABLE_COLUMN_VALUE2)
         wSelectionLeft--;
-    if (wSelectionRight == 2)
+    if (wSelectionRight == TABLE_COLUMN_COMMAND1)
         wSelectionRight++;
-    if (wSelectionRight == 4)
+    if (wSelectionRight == TABLE_COLUMN_COMMAND2)
         wSelectionRight++;
     wSelectionRight++;
     wSelectionBottom++;
@@ -1269,7 +1269,7 @@ void PasteTableCells(void)
     UBYTE v;
 
     if (wClipboardType == SCREEN_PHRASE) {
-        if (wSelectionLeft != 3 || wSelectionRight != 5)
+        if (wSelectionLeft != TABLE_COLUMN_VALUE1 || wSelectionRight != TABLE_COLUMN_VALUE2)
             return;
         fromPhrase = 1;
         wSelectionLeft = 2;
@@ -1277,9 +1277,11 @@ void PasteTableCells(void)
     }
     if (wSelectionBottom - wSelectionTop > 1)
         ShowMessage("PASTE");
-    if (wSelectionLeft == 2 && (wTableColumn == 4 || wTableColumn == 5))
+    if (wSelectionLeft == TABLE_COLUMN_COMMAND1
+            && (wTableColumn == TABLE_COLUMN_COMMAND2 || wTableColumn == TABLE_COLUMN_VALUE2))
         swap = 1;
-    if (wSelectionLeft == 4 && (wTableColumn == 2 || wTableColumn == 3))
+    if (wSelectionLeft == TABLE_COLUMN_COMMAND2
+            && (wTableColumn == TABLE_COLUMN_COMMAND1 || wTableColumn == TABLE_COLUMN_VALUE1))
         swap++;
     for (row = wSelectionTop; row < wSelectionBottom; row++) {
         for (column = wSelectionLeft; column < wSelectionRight; column = column + 1) {

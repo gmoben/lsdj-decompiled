@@ -62,6 +62,7 @@ typedef int WORD;
 #define CHANNEL_PU2          1
 #define CHANNEL_WAV          2
 #define CHANNEL_NOI          3
+#define CHANNELS             4
 
 /* the commands, in CommandMnemonics' order */
 #define COMMAND_NONE         0
@@ -190,6 +191,24 @@ typedef int WORD;
 #define SYNC_KEYBOARD        5
 #define SYNC_ANALOG_IN       6
 #define SYNC_ANALOG_OUT      7
+
+/* wPhraseColumn: a kit instrument's left note column (its first kit; hidden
+ * for the other types), the note (a kit's right note column), the
+ * instrument, the command and its value */
+#define PHRASE_COLUMN_LEFT_NOTE    0
+#define PHRASE_COLUMN_NOTE         1
+#define PHRASE_COLUMN_INSTRUMENT   2
+#define PHRASE_COLUMN_COMMAND      3
+#define PHRASE_COLUMN_VALUE        4
+
+/* wTableColumn: VOL TSP CMD VAL CMD VAL */
+#define TABLE_COLUMN_VOLUME        0
+#define TABLE_COLUMN_TRANSPOSE     1
+#define TABLE_COLUMN_COMMAND1      2
+#define TABLE_COLUMN_VALUE1        3
+#define TABLE_COLUMN_COMMAND2      4
+#define TABLE_COLUMN_VALUE2        5
+#define TABLE_COLUMNS              6
 
 /* wCursorMode: nothing copied, the clipboard holding a cut or copy (paste
  * takes it), or a selection being marked */

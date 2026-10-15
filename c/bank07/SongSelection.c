@@ -38,7 +38,7 @@ void EditSongSelection(void)
 
     if (wClipboardType != SCREEN_SONG)
         return;
-    if (wSelectionLeft >= 4)
+    if (wSelectionLeft >= CHANNELS)
         DebugTrap();
     if (wSongColumn >= 4)
         DebugTrap();

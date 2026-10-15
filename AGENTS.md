@@ -381,7 +381,7 @@ in `docs/functionality.md`.
   name that fits both uses.
 - **C constants.** Screen numbers, instrument types (`INSTRUMENT_KIT`), their
   screen fields (`PULSE_FIELD_SWEEP`) and bytes (`WAVE_BYTE_PLAY`), sync modes
-  (`SYNC_MIDI`), cursor modes
+  (`SYNC_MIDI`), phrase and table columns (`TABLE_COLUMN_COMMAND1`), cursor modes
   (`CURSOR_SELECTING`),
   channels (`CHANNEL_WAV`), commands (`COMMAND_S`) and joypad bits are names
   from `lsdj.h`

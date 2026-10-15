@@ -88,7 +88,7 @@ void CutCopySongSelection(UBYTE isCut)
         }
         wSongColumn++;
     }
-    if (isCut && !wSelectionLeft && wSelectionRight == 4)
+    if (isCut && !wSelectionLeft && wSelectionRight == CHANNELS)
         AdjustBookmarksOnDelete(wSelectionTop, wSelectionBottom);
     message = isCut ? "CUT CHAINS" : "COPIED CHAINS";   /* both literals follow the function ($5957, $5962) */
     ShowMessage(message);

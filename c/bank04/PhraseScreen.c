@@ -228,7 +228,7 @@ UBYTE CommitPhraseInstrument(void)
         result = 1;
     } else {
         SetColumnInstrument(instrument);
-        if (wPhraseColumn == 2) {
+        if (wPhraseColumn == PHRASE_COLUMN_INSTRUMENT) {
             FarCallArgument(1, FAR_FN(CopyInstrumentName), instrument);
             for (letter = 0; letter < 5; letter++) {
                 p = &wSampleNoteString[letter];
@@ -743,14 +743,14 @@ UBYTE CheckPhraseEditContext(UBYTE x)
 {
     if (wSongColumn != CHANNEL_WAV)
         return 0;
-    if (wPhraseColumn > 1)
+    if (wPhraseColumn > PHRASE_COLUMN_NOTE)
         return 0;
-    if (wSelectionLeft > 1)
+    if (wSelectionLeft > PHRASE_COLUMN_NOTE)
         return 0;
     if (!CursorInstrumentIsKit())
         return 0;
-    if (wPhraseColumn == 0)
-        return wSelectionLeft == 1;
+    if (wPhraseColumn == PHRASE_COLUMN_LEFT_NOTE)
+        return wSelectionLeft == PHRASE_COLUMN_NOTE;
     return ReadClipboardCell(1, x) == 0xFF;
 }
 
@@ -773,10 +773,10 @@ void PastePhraseSelection(void)
             return;
         case 2:
             switch (wSelectionLeft) {
-            case 2:
+            case PHRASE_COLUMN_INSTRUMENT:
                 shift = -1;
                 break;
-            case 4:
+            case PHRASE_COLUMN_VALUE:
                 shift = 1;
                 break;
             default:
@@ -902,13 +902,13 @@ UBYTE CloneAtPhraseCursor(void)
 
     if (wAPressEnabled || PhraseCursorOnEditCell())
         return 0;
-    if (wPhraseColumn == 2) {
+    if (wPhraseColumn == PHRASE_COLUMN_INSTRUMENT) {
         CloneInstrumentAtCursor();
         return 1;
     }
-    if (wPhraseColumn == 4) {
+    if (wPhraseColumn == PHRASE_COLUMN_VALUE) {
         row = wPhraseRow;
-        if (ReadPhraseCommand(wPhrase, row) == 1) {
+        if (ReadPhraseCommand(wPhrase, row) == COMMAND_A) {
             if (CloneTableAtCursor())
                 ShowMessage("CLONED TABLE");
             return 1;
@@ -1139,7 +1139,7 @@ UBYTE PhraseScreenInput(void)
         keyNote = wKeyboardHeldNote;
         placed = 1;
         if (keyNote) {
-            wPhraseColumn = 1;
+            wPhraseColumn = PHRASE_COLUMN_NOTE;
             if (wSongColumn == CHANNEL_NOI) {
                 mask = wPhraseInstrumentCache[0];
                 if (keyNote & 0xF0)
@@ -1149,7 +1149,7 @@ UBYTE PhraseScreenInput(void)
                 keyNote |= mask;
             } else if (!PhraseRowIsSentinel(wPhraseRow) && (keyNote & 0xF0)) {
                 keyNote >>= 4;
-                wPhraseColumn = 0;
+                wPhraseColumn = PHRASE_COLUMN_LEFT_NOTE;
             }
             WritePhraseNote((char)wPhraseRow, 0);
             wPhraseColumnLast[wSongColumn] = keyNote;
@@ -1160,13 +1160,13 @@ UBYTE PhraseScreenInput(void)
         hBgDigitPalette = wHighlightDigitPalette;
         hBgPalette = wHighlightPalette;
         switch (wPhraseColumn) {
-        case 0:
-        case 1:
+        case PHRASE_COLUMN_LEFT_NOTE:
+        case PHRASE_COLUMN_NOTE:
             if (!PrelistenEditedCell())
                 placed = PlacePhraseCell(wPhrase, wPhraseRow);
             else {
                 v = ReadPhraseNote((char)wPhraseRow);
-                if (wPhraseColumn == 0) {
+                if (wPhraseColumn == PHRASE_COLUMN_LEFT_NOTE) {
                     if (!(v & 0xF0)) {
                         v += wPhraseColumnLast[wSongColumn] << 4;
                         if (!(v & 0xF0))
@@ -1185,8 +1185,8 @@ UBYTE PhraseScreenInput(void)
             hBgDigitPalette = 4;
             hBgPalette = 1;
             redraw = 1;
-        case 2:
-            if (wPhraseColumn == 2 && wDrawStep++ == 1) {
+        case PHRASE_COLUMN_INSTRUMENT:
+            if (wPhraseColumn == PHRASE_COLUMN_INSTRUMENT && wDrawStep++ == 1) {
                 SetColumnInstrument(FarCallByte(0x1F, FAR_FN(AllocateNextFreeInstrument)));
                 redraw = 1;
             } else if (placed)
@@ -1196,7 +1196,7 @@ UBYTE PhraseScreenInput(void)
             PrelistenCursorRow();
             ++redraw;
             break;
-        case 3:
+        case PHRASE_COLUMN_COMMAND:
             v = ReadPhraseCommand(wPhrase, (char)wPhraseRow);
             if (!v) {
                 v = wColumnLastCommand[wSongColumn];
@@ -1210,8 +1210,8 @@ UBYTE PhraseScreenInput(void)
             hBgPalette = 1;
             DrawFieldValue(v, ReadPhraseCommandValue(wPhrase, (char)wPhraseRow));
             break;
-        case 4:
-            if (wDrawStep++ == 1 && ReadPhraseCommand(wPhrase, (char)wPhraseRow) == 1) {
+        case PHRASE_COLUMN_VALUE:
+            if (wDrawStep++ == 1 && ReadPhraseCommand(wPhrase, (char)wPhraseRow) == COMMAND_A) {
                 v = FarCallByte(0x1F, FAR_FN(FindFreeTable));
                 if (v != 0xFF) {
                     WritePhraseCommandValue(wPhrase, (char)wPhraseRow, v);
@@ -1228,7 +1228,7 @@ UBYTE PhraseScreenInput(void)
     if (wButtons == J_RIGHT) {
         if (wCursorMode != CURSOR_SELECTING)
             FarCall(0x1F, FAR_FN(ErasePhraseCursor));
-        if (wPhraseColumn == 4)
+        if (wPhraseColumn == PHRASE_COLUMN_VALUE)
             wPhraseColumn--;
         wPhraseColumn++;
         if (wCursorMode == CURSOR_SELECTING)
@@ -1239,9 +1239,9 @@ UBYTE PhraseScreenInput(void)
     }
     if (wButtons == J_LEFT) {
         switch (wPhraseColumn) {
-        case 0:
+        case PHRASE_COLUMN_LEFT_NOTE:
             return 1;
-        case 1:
+        case PHRASE_COLUMN_NOTE:
             if (PhraseRowIsSentinel((char)wPhraseRow) && (wCursorMode != CURSOR_SELECTING || !wPhraseDrawMode))
                 return 1;
         }
@@ -1325,7 +1325,7 @@ UBYTE PhraseScreenInput(void)
             hBgDigitPalette = wHighlightDigitPalette;
             hBgPalette = wHighlightPalette;
             switch (wPhraseColumn) {
-            case 0:
+            case PHRASE_COLUMN_LEFT_NOTE:
                 v = ReadPhraseNote(row);
                 field = v & 0xF0;
                 if (field) {
@@ -1341,7 +1341,7 @@ UBYTE PhraseScreenInput(void)
                 }
                 PrelistenCursorRow();
                 break;
-            case 1:
+            case PHRASE_COLUMN_NOTE:
                 if (PhraseRowIsSentinel(row)) {
                     v = ReadPhraseInstrument(wPhrase, row);
                     if (v == 0x40) {
@@ -1367,11 +1367,11 @@ UBYTE PhraseScreenInput(void)
                 }
                 PrelistenCursorRow();
                 break;
-            case 2:
+            case PHRASE_COLUMN_INSTRUMENT:
                 redraw |= PhraseCellFlagB(row);
                 redraw |= wCursorMode == CURSOR_SELECTING;
                 break;
-            case 3:
+            case PHRASE_COLUMN_COMMAND:
                 do {
                     if (!wPendingCommands[row]) {
                         if (!(wPendingCommands[row] = ReadPhraseCommand(wPhrase, row)))
@@ -1392,7 +1392,7 @@ UBYTE PhraseScreenInput(void)
                     DrawFieldValue(wPendingCommands[row], ReadPhraseCommandValue(wPhrase, row));
                 }
                 break;
-            case 4:
+            case PHRASE_COLUMN_VALUE:
                 v = ReadPhraseCommandValue(wPhrase, row);
                 field = ReadPhraseCommand(wPhrase, row);
                 switch (field) {
@@ -1446,7 +1446,7 @@ UBYTE PhraseScreenInput(void)
             hBgDigitPalette = wHighlightDigitPalette;
             hBgPalette = wHighlightPalette;
             switch (wPhraseColumn) {
-            case 0:
+            case PHRASE_COLUMN_LEFT_NOTE:
                 v = ReadPhraseNote(row);
                 field = v & 0xF0;
                 if (field) {
@@ -1462,7 +1462,7 @@ UBYTE PhraseScreenInput(void)
                 }
                 PrelistenCursorRow();
                 break;
-            case 1:
+            case PHRASE_COLUMN_NOTE:
                 if (PhraseRowIsSentinel(row)) {
                     v = ReadPhraseInstrument(wPhrase, row);
                     if (v == 0x40) {
@@ -1489,11 +1489,11 @@ UBYTE PhraseScreenInput(void)
                 }
                 PrelistenCursorRow();
                 break;
-            case 2:
+            case PHRASE_COLUMN_INSTRUMENT:
                 redraw |= PhraseCellFlagD(row);
                 redraw |= wCursorMode == CURSOR_SELECTING;
                 break;
-            case 3:
+            case PHRASE_COLUMN_COMMAND:
                 do {
                     if (!wPendingCommands[row]) {
                         if (!(wPendingCommands[row] = ReadPhraseCommand(wPhrase, row)))
@@ -1514,7 +1514,7 @@ UBYTE PhraseScreenInput(void)
                     DrawFieldValue(wPendingCommands[row], ReadPhraseCommandValue(wPhrase, row));
                 }
                 break;
-            case 4:
+            case PHRASE_COLUMN_VALUE:
                 v = ReadPhraseCommandValue(wPhrase, row);
                 field = ReadPhraseCommand(wPhrase, row);
                 switch (field) {
@@ -1570,7 +1570,7 @@ UBYTE PhraseScreenInput(void)
             hBgDigitPalette = wHighlightDigitPalette;
             hBgPalette = wHighlightPalette;
             switch (wPhraseColumn) {
-            case 0:
+            case PHRASE_COLUMN_LEFT_NOTE:
                 v = ReadPhraseNote(row);
                 field = v & 0xF0;
                 if (field) {
@@ -1591,7 +1591,7 @@ UBYTE PhraseScreenInput(void)
                 }
                 PrelistenCursorRow();
                 break;
-            case 1:
+            case PHRASE_COLUMN_NOTE:
                 if (PhraseRowIsSentinel(row)) {
                     v = ReadPhraseInstrument(wPhrase, row);
                     if (v == 0x40) {
@@ -1622,11 +1622,11 @@ UBYTE PhraseScreenInput(void)
                 }
                 PrelistenCursorRow();
                 break;
-            case 2:
+            case PHRASE_COLUMN_INSTRUMENT:
                 redraw |= PhraseCellFlagA(row);
                 redraw |= wCursorMode == CURSOR_SELECTING;
                 break;
-            case 3:
+            case PHRASE_COLUMN_COMMAND:
                 do {
                     if (!wPendingCommands[row]) {
                         wPendingCommands[row] = ReadPhraseCommand(wPhrase, row);
@@ -1642,7 +1642,7 @@ UBYTE PhraseScreenInput(void)
                 hBgPalette = 1;
                 DrawFieldValue(wPendingCommands[row], ReadPhraseCommandValue(wPhrase, row));
                 break;
-            case 4:
+            case PHRASE_COLUMN_VALUE:
                 v = ReadPhraseCommandValue(wPhrase, row);
                 field = ReadPhraseCommand(wPhrase, row);
                 switch (field) {
@@ -1692,7 +1692,7 @@ UBYTE PhraseScreenInput(void)
             hBgDigitPalette = wHighlightDigitPalette;
             hBgPalette = wHighlightPalette;
             switch (wPhraseColumn) {
-            case 0:
+            case PHRASE_COLUMN_LEFT_NOTE:
                 v = ReadPhraseNote(row);
                 field = v & 0xF0;
                 if (field) {
@@ -1713,7 +1713,7 @@ UBYTE PhraseScreenInput(void)
                 }
                 PrelistenCursorRow();
                 break;
-            case 1:
+            case PHRASE_COLUMN_NOTE:
                 if (PhraseRowIsSentinel(row)) {
                     v = ReadPhraseInstrument(wPhrase, row);
                     if (v == 0x40) {
@@ -1744,11 +1744,11 @@ UBYTE PhraseScreenInput(void)
                 }
                 PrelistenCursorRow();
                 break;
-            case 2:
+            case PHRASE_COLUMN_INSTRUMENT:
                 redraw |= PhraseCellFlagC(row);
                 redraw |= wCursorMode == CURSOR_SELECTING;
                 break;
-            case 3:
+            case PHRASE_COLUMN_COMMAND:
                 do {
                     if (!wPendingCommands[row]) {
                         wPendingCommands[row] = ReadPhraseCommand(wPhrase, row);
@@ -1764,7 +1764,7 @@ UBYTE PhraseScreenInput(void)
                 hBgPalette = 1;
                 DrawFieldValue(wPendingCommands[row], ReadPhraseCommandValue(wPhrase, row));
                 break;
-            case 4:
+            case PHRASE_COLUMN_VALUE:
                 v = ReadPhraseCommandValue(wPhrase, row);
                 field = ReadPhraseCommand(wPhrase, row);
                 switch (field) {
@@ -1855,7 +1855,7 @@ UBYTE PhraseScreenInput(void)
         wSelectionBottom = wSelectionTop + 1;
         wClipboardType = SCREEN_PHRASE;
         switch (wPhraseColumn) {
-        case 0:
+        case PHRASE_COLUMN_LEFT_NOTE:
             wSelectionLeft = 0;
             wSelectionRight = 3;
             v = ReadPhraseNote((char)wPhraseRow);
@@ -1868,7 +1868,7 @@ UBYTE PhraseScreenInput(void)
             v = ReadCursorInstrument();
             SetColumnInstrument(v);
             break;
-        case 1:
+        case PHRASE_COLUMN_NOTE:
             SetColumnInstrument(ReadCursorInstrument());
             wSelectionLeft = 1;
             wSelectionRight = 3;
@@ -1887,15 +1887,15 @@ UBYTE PhraseScreenInput(void)
                 WritePhraseNote((char)wPhraseRow, v & 0xF0);
             }
             break;
-        case 2:
+        case PHRASE_COLUMN_INSTRUMENT:
             wSelectionLeft = 2;
             wSelectionRight = 3;
             WriteClipboardCell(2, (char)wPhraseRow, ReadCursorInstrument());
             WritePhraseInstrument(wPhrase, (char)wPhraseRow, 0xFF);
             SetColumnInstrument(ReadClipboardCell(2, (char)wPhraseRow));
             break;
-        case 3:
-        case 4:
+        case PHRASE_COLUMN_COMMAND:
+        case PHRASE_COLUMN_VALUE:
             wSelectionLeft = 3;
             wSelectionRight = 5;
             v = ReadPhraseCommand(wPhrase, (char)wPhraseRow);
@@ -1923,18 +1923,18 @@ UBYTE PhraseScreenInput(void)
         }
         if (wClipboardType == SCREEN_PHRASE)
             switch (wPhraseColumn) {
-            case 0:
-            case 1:
-                if (wSelectionLeft > 1)
+            case PHRASE_COLUMN_LEFT_NOTE:
+            case PHRASE_COLUMN_NOTE:
+                if (wSelectionLeft > PHRASE_COLUMN_NOTE)
                     return 0;
                 break;
-            case 2:
-                if (wSelectionLeft != 2)
+            case PHRASE_COLUMN_INSTRUMENT:
+                if (wSelectionLeft != PHRASE_COLUMN_INSTRUMENT)
                     return 0;
                 break;
-            case 3:
-            case 4:
-                if (wSelectionLeft < 3)
+            case PHRASE_COLUMN_COMMAND:
+            case PHRASE_COLUMN_VALUE:
+                if (wSelectionLeft < PHRASE_COLUMN_COMMAND)
                     return 0;
             }
         FarCall(0x1F, FAR_FN(ErasePhraseCursor));
@@ -1969,7 +1969,8 @@ UBYTE PhraseScreenInput(void)
     if (wButtons == (J_SELECT | J_DOWN)) {
         if (wButtonsSame)
             return 0;
-        if (wPhraseColumn > 2 && ReadPhraseCommand(wPhrase, (char)wPhraseRow) == 7)
+        if (wPhraseColumn > PHRASE_COLUMN_INSTRUMENT
+                && ReadPhraseCommand(wPhrase, (char)wPhraseRow) == COMMAND_G)
             wGroove = ReadPhraseCommandValue(wPhrase, (char)wPhraseRow);
         FarCall(5, MoveMapCursorDown);
         FarCall(7, FAR_FN(RedrawScreen));
@@ -1996,7 +1997,8 @@ UBYTE PhraseScreenInput(void)
             }
         } else
             instrument = wInstrument;
-        if (wPhraseColumn > 2 && ReadPhraseCommand(wPhrase, (char)wPhraseRow) == 1) {
+        if (wPhraseColumn > PHRASE_COLUMN_INSTRUMENT
+                && ReadPhraseCommand(wPhrase, (char)wPhraseRow) == COMMAND_A) {
             table = ReadPhraseCommandValue(wPhrase, (char)wPhraseRow);
             if (table < 0x20) {
                 wTable = table;
@@ -2037,7 +2039,7 @@ UBYTE PhraseScreenInput(void)
             SortBytePair(&left, &right);
             if (left || right != 4) {
                 wSelectionLeft = 0;
-                wPhraseColumn = 4;
+                wPhraseColumn = PHRASE_COLUMN_VALUE;
                 wSelectHeld = 0;
                 DrawPhraseSelectionFar();
                 return 1;
