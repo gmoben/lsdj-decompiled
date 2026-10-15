@@ -3,7 +3,7 @@
 How LSDj stores up to 32 songs in the cartridge's 128 KiB battery SRAM, the
 allocation/compression scheme, the sample-kit ROM format, and `.lsdsng` export.
 (Container/compression per liblsdj/pylsdj — documented; kit layout confirmed in
-this ROM. The specific ROM routines are noted where known, else TBD.)
+this ROM, with the ROM routines that implement each part.)
 
 ## SRAM layout (128 KiB = the `.sav`)
 
@@ -143,5 +143,8 @@ reads/writes these.
 - SRAM/header/compression: liblsdj, pylsdj, and the LSDj wiki — **documented**.
 - Kit banks, names, and magic: **confirmed in this ROM**.
 - ROM routines: compressor/decompressor and the **song-format upgrader**
-  (`FileUpgradeSong $6FC7`) are located in bank `$1C` (above). Block
-  allocation-table management routines: not yet fully traced (TBD).
+  (`FileUpgradeSong $6FC7`) are located in bank `$1C` (above), and so is the
+  block allocation table's management: `FindFreeBlock` (`$415A`, claim the
+  first free block), `FreeFileBlocks` (`$49D4`, release a file's blocks),
+  `CountFileBlocks` (`$48D4`, the per-file block counts) — matched C in
+  `c/bank1c/FileSystem.c`.

@@ -11,21 +11,21 @@ Current state:
 
 - byte-for-byte reproduction, verified on every commit — and from a fresh
   clone plus your ROM in a few seconds
-- full symbol coverage: ~8,700 names — 1,833 routines/tables/strings, 6,045
-  function-local labels, 808 WRAM/HRAM variables and 37 SRAM song structures —
+- full symbol coverage: ~8,900 names — 1,837 routines/tables/strings, 6,196
+  function-local labels, 836 WRAM/HRAM variables and 44 SRAM song structures —
   across all 13 program banks and the 21 sample kits. Every function is named,
   every referenced data address is labeled, and a debugger loading the
   generated `.sym` shows no auto-labels
 - RAM: ~800 semantic addresses in `constants/ram.inc` (arrays carry `[N]` size
   tags and interior accesses render as `base + N`), plus the banked SRAM
-  working-song structures (`SramPhraseNotes`, `SramInstruments`, …). What's
-  left: one byte (`$CB64`) still accessed unnamed, ~40 addresses that appear
-  only as raw 16-bit immediates (mostly buffer bases passed to helpers), and
-  ~13 named variables whose exact role is marked `TBD`
-- code coverage: 77% of the program banks trace as reachable code and the rest
-  classifies as fill/text/graphics, with no code-like bytes unexplained. Known
-  fidelity gaps — e.g. bank 0's bank-switched call targets still printed as raw
-  addresses — are listed in [`docs/reversal.md`](docs/reversal.md) → *Current status*
+  working-song structures (`SramPhraseNotes`, `SramInstruments`, …), every
+  one accessed by name
+- code coverage: 76% of the program banks trace as reachable code and the rest
+  classifies as fill/text/graphics, with no code-like bytes unexplained
+- comments: the carved asm prints each label's `.sym` comment above it, with
+  each hand-written routine's register contract (`tools/regflow.py`) and each
+  matched function's C prototype; what is still open is in
+  [`docs/reversal.md`](docs/reversal.md) → *Current status*
 - matching C works: editor, synth, storage and shared routines in [`c/`](c)
   — including waveform mixing and CLIP/FOLD/WRAP distortion — compile
   byte-for-byte with the original GBDK 2.95-3 / SDCC 2.2.1 plus peephole
