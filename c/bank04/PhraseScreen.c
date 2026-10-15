@@ -204,7 +204,7 @@ UBYTE CommitPhraseInstrument(void)
     UBYTE instrument;
     UBYTE result;
     UBYTE *p;
-    UBYTE i, v, n;
+    UBYTE letter, v, n;
 
     instrument = ReadCursorInstrument();
     result = 0;
@@ -228,9 +228,9 @@ UBYTE CommitPhraseInstrument(void)
         SetColumnInstrument(instrument);
         if (wPhraseColumn == 2) {
             FarCallArgument(1, FAR_FN(CopyInstrumentName), instrument);
-            for (i = 0; i < 5; i++) {
-                p = &wSampleNoteString[i];
-                v = wNameEditBuffer[i];
+            for (letter = 0; letter < 5; letter++) {
+                p = &wSampleNoteString[letter];
+                v = wNameEditBuffer[letter];
                 if (!v)
                     v = ' ';
                 *p = v;
@@ -608,7 +608,7 @@ const UBYTE PhraseRowAttributes2[13] = { 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0 }
  */
 void DrawPhraseScreen(void)
 {
-    UBYTE i;
+    UBYTE row;
     UBYTE t;
     UBYTE current;
     UBYTE instrument;
@@ -625,42 +625,42 @@ void DrawPhraseScreen(void)
     DrawTempoField();
     LoadPhraseRow();
     wPhraseDrawMode = 0;
-    for (i = 0; i < 0x10; i++) {
-        t = wUsedTableMap[i];
+    for (row = 0; row < 0x10; row++) {
+        t = wUsedTableMap[row];
         if (t < 0x40 && ReadSongByte(1, ((UWORD)t << 4) + (UWORD)0xB080) == 2) {
             wPhraseDrawMode = 1;
             break;
         }
     }
     current = 0xFF;
-    for (i = 0; i < 0x10; i++) {
-        instrument = wUsedTableMap[i];
+    for (row = 0; row < 0x10; row++) {
+        instrument = wUsedTableMap[row];
         switch (instrument) {
         case 0x40:
             current = 0xFF;
-            wPhraseRowFlags[i] = 0xFE;
+            wPhraseRowFlags[row] = 0xFE;
             break;
         case 0xFF:
-            wPhraseRowFlags[i] = current;
+            wPhraseRowFlags[row] = current;
             break;
         default:
             if (ReadSongByte(1, ((UWORD)instrument << 4) + (UWORD)0xB080) == 2) {
                 current = instrument;
-                wPhraseRowFlags[i] = instrument;
+                wPhraseRowFlags[row] = instrument;
             } else {
                 current = 0xFF;
-                wPhraseRowFlags[i] = 0xFF;
+                wPhraseRowFlags[row] = 0xFF;
             }
         }
         hBgDigitPalette = 4;
         hBgPalette = 1;
-        SetVramCursor(2, i + 2);
+        SetVramCursor(2, row + 2);
         if (current != 0xFF) {
-            note = wSongReadBuffer[i];
+            note = wSongReadBuffer[row];
             address = ((UWORD)current << 4) + (UWORD)0xB082;
             t = ReadSongByte(1, address);
             t = KitIndexToBank(t & 0x3F);
-            wPhraseRowFlags[i] = t;
+            wPhraseRowFlags[row] = t;
             hBgDigitPalette = wShadedDigitPalette;
             hBgPalette = wShadedPalette;
             if (!(note & 0xF0)) {
@@ -674,7 +674,7 @@ void DrawPhraseScreen(void)
             address = ((UWORD)current << 4) + (UWORD)0xB089;
             t = ReadSongByte(1, address);
             t = KitIndexToBank((char)t & 0x3F);
-            wPhraseRowFlagsB[i] = t;
+            wPhraseRowFlagsB[row] = t;
             if (!(note & 0x0F)) {
                 DrawEmptyNote();
             } else {
@@ -686,18 +686,18 @@ void DrawPhraseScreen(void)
             if (wPhraseDrawMode)
                 DrawString("   ");
             if (instrument == 0x40) {
-                t = wSongReadBuffer[i];
+                t = wSongReadBuffer[row];
                 FarCallArgument(0x1F, FAR_FN(DrawWordRow), t);
             } else {
-                t = wSongReadBuffer[i];
+                t = wSongReadBuffer[row];
                 DrawNoteNameFar(t);
             }
             DrawStringTile20();
         }
         if (hGameboyType) {
-            p = wPhraseDrawMode ? (PhraseRowIsSentinel(i) ? PhraseRowAttributes1 : PhraseRowAttributes0) : PhraseRowAttributes2;
+            p = wPhraseDrawMode ? (PhraseRowIsSentinel(row) ? PhraseRowAttributes1 : PhraseRowAttributes0) : PhraseRowAttributes2;
             VBK_REG = 1;
-            set_bkg_tiles(2, i + 2, 13, 1, p);
+            set_bkg_tiles(2, row + 2, 13, 1, p);
             VBK_REG = 0;
         }
         if (instrument == 0xFF)
@@ -707,11 +707,11 @@ void DrawPhraseScreen(void)
         DrawStringTile20();
         hBgDigitPalette = wShadedDigitPalette;
         hBgPalette = wShadedPalette;
-        t = wRowBufferColumn2[i];
+        t = wRowBufferColumn2[row];
         DrawPhraseCommandLetter(t);
         hBgDigitPalette = 4;
         hBgPalette = 1;
-        DrawFieldValue(t, wRowBufferColumn3[i]);
+        DrawFieldValue(t, wRowBufferColumn3[row]);
         if (!wPhraseDrawMode)
             DrawString("   ");
     }
@@ -754,8 +754,8 @@ UBYTE CheckPhraseEditContext(UBYTE x)
 
 void PastePhraseSelection(void)
 {
-    char x;
-    UBYTE y;
+    char column;
+    UBYTE row;
     UBYTE savedLeft, savedRight;
     char shift;
     UBYTE v;
@@ -784,21 +784,21 @@ void PastePhraseSelection(void)
             wSelectionRight = 5;
         }
     }
-    y = wSelectionTop;
+    row = wSelectionTop;
     c4 = shift + 4;
     c3 = shift + 3;
-    for (; y < wSelectionBottom; y++) {
-        for (x = wSelectionRight - 1; !(x < (char)wSelectionLeft); x--) {
-            context = CheckPhraseEditContext(y);
+    for (; row < wSelectionBottom; row++) {
+        for (column = wSelectionRight - 1; !(column < (char)wSelectionLeft); column--) {
+            context = CheckPhraseEditContext(row);
             if (context) {
-                if (x < 2)
-                    x ^= 1;
+                if (column < 2)
+                    column ^= 1;
             }
-            switch (x) {
+            switch (column) {
             case 0:
                 wPhraseNoteIsKitA = CursorInstrumentIsKit();
                 if (wPhraseNoteIsKitA) {
-                    v = ReadClipboardCell(context, y);
+                    v = ReadClipboardCell(context, row);
                     if (v == 0xFF)
                         break;
                     v <<= 4;
@@ -807,7 +807,7 @@ void PastePhraseSelection(void)
                 }
                 break;
             case 1:
-                v = ReadClipboardCell(context ^ 1, y);
+                v = ReadClipboardCell(context ^ 1, row);
                 if (!(wSongColumn == 3)) {
                     if (v == 0xFF)
                         break;
@@ -818,18 +818,18 @@ void PastePhraseSelection(void)
                 WritePhraseNote(wPhraseRow, v);
                 break;
             case 2:
-                WritePhraseInstrument(wPhrase, wPhraseRow, ReadClipboardCell(2, y));
+                WritePhraseInstrument(wPhrase, wPhraseRow, ReadClipboardCell(2, row));
                 break;
             case 3:
-                WritePhraseCommand(wPhrase, wPhraseRow, ReadClipboardCell(c3, y));
+                WritePhraseCommand(wPhrase, wPhraseRow, ReadClipboardCell(c3, row));
                 break;
             case 4:
-                WritePhraseCommandValue(wPhrase, wPhraseRow, ReadClipboardCell(c4, y));
+                WritePhraseCommandValue(wPhrase, wPhraseRow, ReadClipboardCell(c4, row));
                 break;
             }
             if (context) {
-                if (x < 2)
-                    x ^= 1;
+                if (column < 2)
+                    column ^= 1;
             }
         }
         wPhraseRow++;
@@ -846,10 +846,10 @@ void PastePhraseSelection(void)
 
 void CloneInstrument(UBYTE source, UBYTE destination)
 {
-    UBYTE i;
+    UBYTE field;
 
-    for (i = 0; i < 0x10; i++)
-        WriteInstrumentByte(destination, i, ReadInstrumentByte(source, i));
+    for (field = 0; field < 0x10; field++)
+        WriteInstrumentByte(destination, field, ReadInstrumentByte(source, field));
     FarCallArgument(1, FAR_FN(CopyInstrumentName), source);
     FarCallArgument(1, FAR_FN(WriteInstrumentName), destination);
 }
@@ -947,13 +947,13 @@ UBYTE DrawInstrumentName(UBYTE row, UBYTE instrument)
 {
     UBYTE result;
     UBYTE *p;
-    UBYTE i, v, n;
+    UBYTE letter, v, n;
 
     result = 0;
     FarCallArgument(1, FAR_FN(CopyInstrumentName), instrument);
-    for (i = 0; i < 5; i++) {
-        p = &wSampleNoteString[i];
-        v = wNameEditBuffer[i];
+    for (letter = 0; letter < 5; letter++) {
+        p = &wSampleNoteString[letter];
+        v = wNameEditBuffer[letter];
         if (!v)
             v = ' ';
         *p = v;

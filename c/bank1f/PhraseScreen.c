@@ -101,19 +101,19 @@ UBYTE CanEnterSongColumn(UBYTE column)
 
 UBYTE HasEnterableColumnRight(void)
 {
-    UBYTE c;
+    UBYTE column;
 
-    for (c = wSongColumn + 1; c < 4; c++)
-        if (CanEnterSongColumn(c))
+    for (column = wSongColumn + 1; column < 4; column++)
+        if (CanEnterSongColumn(column))
             break;
 }
 
 UBYTE HasEnterableColumnLeft(void)
 {
-    UBYTE c;
+    UBYTE column;
 
-    for (c = wSongColumn - 1; c < 4; c--)
-        if (CanEnterSongColumn(c))
+    for (column = wSongColumn - 1; column < 4; column--)
+        if (CanEnterSongColumn(column))
             break;
 }
 
@@ -124,7 +124,7 @@ UBYTE HasEnterableColumnLeft(void)
    note accessors take only the row: FarCallArgument2/3 get one byte fewer. */
 void CutCopyPhraseSelection(UBYTE cut)
 {
-    UBYTE x, y, t;
+    UBYTE column, row, t;
     UBYTE cutInstrument = cut;
 
     if (wClipboardType != 1)
@@ -145,53 +145,53 @@ void CutCopyPhraseSelection(UBYTE cut)
     }
     wSelectionRight++;
     wSelectionBottom++;
-    for (y = wSelectionTop; y < wSelectionBottom; y++) {
-        for (x = wSelectionLeft; x < wSelectionRight; x = x + 1) {
-            wPhraseColumn = x;
-            wPhraseRow = y;
+    for (row = wSelectionTop; row < wSelectionBottom; row++) {
+        for (column = wSelectionLeft; column < wSelectionRight; column = column + 1) {
+            wPhraseColumn = column;
+            wPhraseRow = row;
             ErasePhraseCursor();
-            switch (x) {
+            switch (column) {
             case 0:
-                if (wPhraseRowFlags[y] != 0xFF) {
-                    t = FarCallArgument2P(4, FAR_FN(ReadPhraseNote), y);
-                    WriteClipboardCell(0, y, t >> 4);
+                if (wPhraseRowFlags[row] != 0xFF) {
+                    t = FarCallArgument2P(4, FAR_FN(ReadPhraseNote), row);
+                    WriteClipboardCell(0, row, t >> 4);
                     if (cut)
-                        FarCallArgument3P(4, FAR_FN(WritePhraseNote), y, t & 0x0F);
+                        FarCallArgument3P(4, FAR_FN(WritePhraseNote), row, t & 0x0F);
                 }
                 if (wSelectionRight == 1 && wSongColumn == 2) {
-                    WriteClipboardCell(1, y, 0xFF);
+                    WriteClipboardCell(1, row, 0xFF);
                     cutInstrument = 0;
                     goto instrument;
                 }
                 break;
             case 1:
-                if (wPhraseRowFlags[y] == 0xFF) {
-                    WriteClipboardCell(0, y, 0);
-                    WriteClipboardCell(1, y, FarCallArgument2P(4, FAR_FN(ReadPhraseNote), y));
+                if (wPhraseRowFlags[row] == 0xFF) {
+                    WriteClipboardCell(0, row, 0);
+                    WriteClipboardCell(1, row, FarCallArgument2P(4, FAR_FN(ReadPhraseNote), row));
                     if (cut)
-                        FarCallArgument3P(4, FAR_FN(WritePhraseNote), y, 0);
+                        FarCallArgument3P(4, FAR_FN(WritePhraseNote), row, 0);
                 } else {
-                    t = FarCallArgument2P(4, FAR_FN(ReadPhraseNote), y);
-                    WriteClipboardCell(1, y, t & 0x0F);
+                    t = FarCallArgument2P(4, FAR_FN(ReadPhraseNote), row);
+                    WriteClipboardCell(1, row, t & 0x0F);
                     if (cut)
-                        FarCallArgument3P(4, FAR_FN(WritePhraseNote), y, t & 0xF0);
+                        FarCallArgument3P(4, FAR_FN(WritePhraseNote), row, t & 0xF0);
                 }
                 break;
             case 2:
             instrument:
-                WriteClipboardCell(2, y, FarCallArgument2P(4, FAR_FN(ReadPhraseInstrument), wPhrase, y));
+                WriteClipboardCell(2, row, FarCallArgument2P(4, FAR_FN(ReadPhraseInstrument), wPhrase, row));
                 if (cutInstrument)
-                    FarCallArgument3P(4, FAR_FN(WritePhraseInstrument), wPhrase, y, 0xFF);
+                    FarCallArgument3P(4, FAR_FN(WritePhraseInstrument), wPhrase, row, 0xFF);
                 break;
             case 3:
-                WriteClipboardCell(3, y, FarCallArgument2P(4, FAR_FN(ReadPhraseCommand), wPhrase, y));
+                WriteClipboardCell(3, row, FarCallArgument2P(4, FAR_FN(ReadPhraseCommand), wPhrase, row));
                 if (cut)
-                    FarCallArgument3P(4, FAR_FN(WritePhraseCommand), wPhrase, y, 0);
+                    FarCallArgument3P(4, FAR_FN(WritePhraseCommand), wPhrase, row, 0);
                 break;
             case 4:
-                WriteClipboardCell(4, y, FarCallArgument2P(4, FAR_FN(ReadPhraseCommandValue), wPhrase, y));
+                WriteClipboardCell(4, row, FarCallArgument2P(4, FAR_FN(ReadPhraseCommandValue), wPhrase, row));
                 if (cut)
-                    FarCallArgument3P(4, FAR_FN(WritePhraseCommandValue), wPhrase, y, 0);
+                    FarCallArgument3P(4, FAR_FN(WritePhraseCommandValue), wPhrase, row, 0);
                 break;
             }
         }
@@ -258,13 +258,13 @@ void UnhighlightPhraseCell(UBYTE column, UBYTE row)
 
 void DrawPhraseSelection(void)
 {
-    UBYTE x, y, left, top, right, bottom;
-    UBYTE column;
+    UBYTE column, row, left, top, right, bottom;
+    UBYTE cursorColumn;
 
     if (wClipboardType != 1)
         return;
-    column = wPhraseColumn;               /* the ROM reads the column into c for the test only */
-    if (wSelectionLeft < column) {
+    cursorColumn = wPhraseColumn;               /* the ROM reads the column into c for the test only */
+    if (wSelectionLeft < cursorColumn) {
         left = wSelectionLeft;
         right = wPhraseColumn + 1;
     } else {
@@ -279,16 +279,16 @@ void DrawPhraseSelection(void)
         top = wPhraseRow;
     }
     /* the one-cell ring around the rectangle back to its column palettes... */
-    for (x = left ? left - 1 : 0; x < (right == 5 ? 5 : right + 1); x++) {
-        for (y = top ? top - 1 : 0; y < (bottom == 0x10 ? 0x10 : bottom + 1); y = y + 1) {
-            if (x < left || x >= right || y < top || y >= bottom)
-                UnhighlightPhraseCell(x, y);
+    for (column = left ? left - 1 : 0; column < (right == 5 ? 5 : right + 1); column++) {
+        for (row = top ? top - 1 : 0; row < (bottom == 0x10 ? 0x10 : bottom + 1); row = row + 1) {
+            if (column < left || column >= right || row < top || row >= bottom)
+                UnhighlightPhraseCell(column, row);
         }
     }
     /* ...and the rectangle itself drawn as the cursor cell */
-    for (x = left; x < right; x++)
-        for (y = top; y < bottom; y = y + 1)
-            HighlightPhraseCell(x, y);
+    for (column = left; column < right; column++)
+        for (row = top; row < bottom; row = row + 1)
+            HighlightPhraseCell(column, row);
 }
 
 void ErasePhraseCursor(void)

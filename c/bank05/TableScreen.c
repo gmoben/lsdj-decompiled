@@ -352,7 +352,7 @@ void DrawTableEnvelope(UBYTE v)
 
 void DrawTableScreen(void)
 {
-    UBYTE i;
+    UBYTE step;
     UBYTE a1;
     UBYTE w;
     UBYTE a2;
@@ -372,16 +372,16 @@ void DrawTableScreen(void)
     hBgDigitPalette = 4;
     hBgPalette = 1;
     wVramCursor = (UBYTE *)0x9842;
-    for (i = 0; i < 16; i++) {
-        DrawTableEnvelope(wSongReadBuffer[i]);
+    for (step = 0; step < 16; step++) {
+        DrawTableEnvelope(wSongReadBuffer[step]);
         wVramCursor++;
-        DrawHexByte(wUsedTableMap[i]);
+        DrawHexByte(wUsedTableMap[step]);
         wVramCursor += 0x1B;
     }
     wVramCursor = (UBYTE *)0x9847;
-    for (i = 0; i < 16; i++) {
-        a2 = wRowBufferColumn4[i];
-        a1 = wRowBufferColumn2[i];
+    for (step = 0; step < 16; step++) {
+        a2 = wRowBufferColumn4[step];
+        a1 = wRowBufferColumn2[step];
         hBgDigitPalette = wShadedDigitPalette;
         hBgPalette = wShadedPalette;
         DrawCommandLetter(a1);
@@ -390,16 +390,16 @@ void DrawTableScreen(void)
         hBgDigitPalette = 4;
         hBgPalette = 1;
         wVramCursor -= 4;
-        DrawFieldValue(a1, wRowBufferColumn3[i]);
+        DrawFieldValue(a1, wRowBufferColumn3[step]);
         wVramCursor += 2;
-        DrawFieldValue(a2, wRowBufferColumn5[i]);
+        DrawFieldValue(a2, wRowBufferColumn5[step]);
         wVramCursor += 0x19;
     }
     a1 = wTableRow + 2;
-    i = TableColumnX[wTableColumn];
+    step = TableColumnX[wTableColumn];
     w = TableColumnWidth[wTableColumn];
     palette = hGameboyType ? 3 : 2;
-    ColorField(i, a1, w, palette);
+    ColorField(step, a1, w, palette);
     FarCall(0x1F, FAR_FN(DrawAllChannelStatus));
     if (wCursorMode == 4)
         DrawTableSelection();
@@ -506,7 +506,7 @@ void SaveSelectionState(void);
 
 UBYTE TableScreenInput(void)
 {
-    UBYTE y, y1, v;
+    UBYTE row, rowEnd, v;
 
     if (wTable >= 0x20)
         DebugTrap();
@@ -613,15 +613,15 @@ UBYTE TableScreenInput(void)
         return 1;
     case 0x11:
         if (wCursorMode == 4) {
-            y = wSelectionTop;
-            y1 = (char)wTableRow;
-            SortBytePair(&y, &y1);
+            row = wSelectionTop;
+            rowEnd = (char)wTableRow;
+            SortBytePair(&row, &rowEnd);
         } else {
-            y1 = (char)wTableRow;
-            y = (char)wTableRow;
+            rowEnd = (char)wTableRow;
+            row = (char)wTableRow;
         }
-        y1++;
-        for (; y < y1; y++) {
+        rowEnd++;
+        for (; row < rowEnd; row++) {
             switch (wTableColumn) {
             case 2:
             case 3:
@@ -634,47 +634,47 @@ UBYTE TableScreenInput(void)
                 wTableCellBPointer = 0xBC80;
                 break;
             }
-            SetVramCursor(TableColumnX[wTableColumn], y + 2);
+            SetVramCursor(TableColumnX[wTableColumn], row + 2);
             switch (wTableColumn) {
             case 0:
-                v = ReadTableEnvelope(y);
+                v = ReadTableEnvelope(row);
                 if ((v & 0x0F) != 0x0F) {
                     v++;
                     DrawTableEnvelope(v);
-                    WriteTableEnvelope(y, v);
+                    WriteTableEnvelope(row, v);
                 }
                 wTableEnvelopeCache = v;
                 break;
             case 1:
-                v = ReadTableTranspose(y);
+                v = ReadTableTranspose(row);
                 v++;
                 DrawHexByte(v);
-                WriteTableTranspose(y, v);
+                WriteTableTranspose(row, v);
                 wTableTransposeCache = v;
                 break;
             case 2:
             case 4:
-                if (!wPendingCommands[y])
-                    if (!(wPendingCommands[y] = ReadTableCommand(y)))
+                if (!wPendingCommands[row])
+                    if (!(wPendingCommands[row] = ReadTableCommand(row)))
                         break;
                 wPendingCommandTarget = (wTableColumn == 4 ? 1 : 0) + 1;
-                if (wPendingCommands[y] < 0x13)
+                if (wPendingCommands[row] < 0x13)
                     do
-                        wPendingCommands[y]++;
-                    while (TableInputFlag(wPendingCommands[y]));
+                        wPendingCommands[row]++;
+                    while (TableInputFlag(wPendingCommands[row]));
                 hBgDigitPalette = wHighlightDigitPalette;
                 hBgPalette = wHighlightPalette;
-                DrawCommandLetter(wPendingCommands[y]);
+                DrawCommandLetter(wPendingCommands[row]);
                 if (wMessageStringPointer || wMessageTimer)
-                    FarCallArgument(1, FAR_FN(ShowCommandHelp), wPendingCommands[y]);
+                    FarCallArgument(1, FAR_FN(ShowCommandHelp), wPendingCommands[row]);
                 hBgDigitPalette = 4;
                 hBgPalette = 1;
-                DrawFieldValue(wPendingCommands[y], ReadTableValue(y));
+                DrawFieldValue(wPendingCommands[row], ReadTableValue(row));
                 break;
             case 3:
             case 5:
-                v = ReadTableValue(y);
-                switch (ReadTableCommand(y)) {
+                v = ReadTableValue(row);
+                switch (ReadTableCommand(row)) {
                 case 0:
                     break;
                 case 1:
@@ -700,25 +700,25 @@ UBYTE TableScreenInput(void)
                 default:
                     v++;
                 }
-                WriteTableValue(y, v);
+                WriteTableValue(row, v);
                 hBgDigitPalette = wHighlightDigitPalette;
                 hBgPalette = wHighlightPalette;
-                DrawFieldValue(ReadTableCommand(y), v);
+                DrawFieldValue(ReadTableCommand(row), v);
                 break;
             }
         }
         return 1;
     case 0x12:
         if (wCursorMode == 4) {
-            y = wSelectionTop;
-            y1 = (char)wTableRow;
-            SortBytePair(&y, &y1);
+            row = wSelectionTop;
+            rowEnd = (char)wTableRow;
+            SortBytePair(&row, &rowEnd);
         } else {
-            y1 = (char)wTableRow;
-            y = (char)wTableRow;
+            rowEnd = (char)wTableRow;
+            row = (char)wTableRow;
         }
-        y1++;
-        for (; y < y1; y++) {
+        rowEnd++;
+        for (; row < rowEnd; row++) {
             switch (wTableColumn) {
             case 2:
             case 3:
@@ -731,46 +731,46 @@ UBYTE TableScreenInput(void)
                 wTableCellBPointer = 0xBC80;
                 break;
             }
-            SetVramCursor(TableColumnX[wTableColumn], y + 2);
+            SetVramCursor(TableColumnX[wTableColumn], row + 2);
             switch (wTableColumn) {
             case 0:
-                v = ReadTableEnvelope(y);
+                v = ReadTableEnvelope(row);
                 if (v & 0x0F) {
                     v--;
                     DrawTableEnvelope(v);
-                    WriteTableEnvelope(y, v);
+                    WriteTableEnvelope(row, v);
                 }
                 wTableEnvelopeCache = v;
                 break;
             case 1:
-                v = ReadTableTranspose(y);
+                v = ReadTableTranspose(row);
                 v--;
                 DrawHexByte(v);
-                WriteTableTranspose(y, v);
+                WriteTableTranspose(row, v);
                 wTableTransposeCache = v;
                 break;
             case 2:
             case 4:
                 wPendingCommandTarget = (wTableColumn == 4 ? 1 : 0) + 1;
-                if (!wPendingCommands[y])
-                    wPendingCommands[y] = ReadTableCommand(y);
-                if (wPendingCommands[y] > 1)
+                if (!wPendingCommands[row])
+                    wPendingCommands[row] = ReadTableCommand(row);
+                if (wPendingCommands[row] > 1)
                     do
-                        wPendingCommands[y]--;
-                    while (TableInputFlag(wPendingCommands[y]));
+                        wPendingCommands[row]--;
+                    while (TableInputFlag(wPendingCommands[row]));
                 hBgDigitPalette = wHighlightDigitPalette;
                 hBgPalette = wHighlightPalette;
-                DrawCommandLetter(wPendingCommands[y]);
+                DrawCommandLetter(wPendingCommands[row]);
                 if (wMessageStringPointer || wMessageTimer)
-                    FarCallArgument(1, FAR_FN(ShowCommandHelp), wPendingCommands[y]);
+                    FarCallArgument(1, FAR_FN(ShowCommandHelp), wPendingCommands[row]);
                 hBgDigitPalette = 4;
                 hBgPalette = 1;
-                DrawFieldValue(wPendingCommands[y], ReadTableValue(y));
+                DrawFieldValue(wPendingCommands[row], ReadTableValue(row));
                 break;
             case 3:
             case 5:
-                v = ReadTableValue(y);
-                switch (ReadTableCommand(y)) {
+                v = ReadTableValue(row);
+                switch (ReadTableCommand(row)) {
                 case 1:
                 case 7:
                     v--;
@@ -790,25 +790,25 @@ UBYTE TableScreenInput(void)
                 default:
                     v--;
                 }
-                WriteTableValue(y, v);
+                WriteTableValue(row, v);
                 hBgDigitPalette = wHighlightDigitPalette;
                 hBgPalette = wHighlightPalette;
-                DrawFieldValue(ReadTableCommand(y), v);
+                DrawFieldValue(ReadTableCommand(row), v);
                 break;
             }
         }
         return 1;
     case 0x14:
         if (wCursorMode == 4) {
-            y = wSelectionTop;
-            y1 = (char)wTableRow;
-            SortBytePair(&y, &y1);
+            row = wSelectionTop;
+            rowEnd = (char)wTableRow;
+            SortBytePair(&row, &rowEnd);
         } else {
-            y1 = (char)wTableRow;
-            y = (char)wTableRow;
+            rowEnd = (char)wTableRow;
+            row = (char)wTableRow;
         }
-        y1++;
-        for (; y < y1; y++) {
+        rowEnd++;
+        for (; row < rowEnd; row++) {
             switch (wTableColumn) {
             case 2:
             case 3:
@@ -821,45 +821,45 @@ UBYTE TableScreenInput(void)
                 wTableCellBPointer = 0xBC80;
                 break;
             }
-            SetVramCursor(TableColumnX[wTableColumn], y + 2);
+            SetVramCursor(TableColumnX[wTableColumn], row + 2);
             switch (wTableColumn) {
             case 0:
-                v = ReadTableEnvelope(y);
+                v = ReadTableEnvelope(row);
                 v += 0x10;
                 DrawTableEnvelope(v);
-                WriteTableEnvelope(y, v);
+                WriteTableEnvelope(row, v);
                 wTableEnvelopeCache = v;
                 break;
             case 1:
-                v = ReadTableTranspose(y);
+                v = ReadTableTranspose(row);
                 v += wSongColumn == 3 ? 4 : 12;
                 DrawHexByte(v);
-                WriteTableTranspose(y, v);
+                WriteTableTranspose(row, v);
                 wTableTransposeCache = v;
                 break;
             case 2:
             case 4:
-                if (!wPendingCommands[y])
-                    if (!(wPendingCommands[y] = ReadTableCommand(y)))
+                if (!wPendingCommands[row])
+                    if (!(wPendingCommands[row] = ReadTableCommand(row)))
                         break;
                 wPendingCommandTarget = (wTableColumn == 4 ? 1 : 0) + 1;
-                if (wPendingCommands[y] < 0x13)
+                if (wPendingCommands[row] < 0x13)
                     do
-                        wPendingCommands[y]++;
-                    while (TableInputFlag(wPendingCommands[y]));
+                        wPendingCommands[row]++;
+                    while (TableInputFlag(wPendingCommands[row]));
                 hBgDigitPalette = wHighlightDigitPalette;
                 hBgPalette = wHighlightPalette;
-                DrawCommandLetter(wPendingCommands[y]);
+                DrawCommandLetter(wPendingCommands[row]);
                 if (wMessageStringPointer || wMessageTimer)
-                    FarCallArgument(1, FAR_FN(ShowCommandHelp), wPendingCommands[y]);
+                    FarCallArgument(1, FAR_FN(ShowCommandHelp), wPendingCommands[row]);
                 hBgDigitPalette = 4;
                 hBgPalette = 1;
-                DrawFieldValue(wPendingCommands[y], ReadTableValue(y));
+                DrawFieldValue(wPendingCommands[row], ReadTableValue(row));
                 break;
             case 3:
             case 5:
-                v = ReadTableValue(y);
-                switch (ReadTableCommand(y)) {
+                v = ReadTableValue(row);
+                switch (ReadTableCommand(row)) {
                 case 0:
                     break;
                 case 1:
@@ -887,25 +887,25 @@ UBYTE TableScreenInput(void)
                 default:
                     v += 0x10;
                 }
-                WriteTableValue(y, v);
+                WriteTableValue(row, v);
                 hBgDigitPalette = wHighlightDigitPalette;
                 hBgPalette = wHighlightPalette;
-                DrawFieldValue(ReadTableCommand(y), v);
+                DrawFieldValue(ReadTableCommand(row), v);
                 break;
             }
         }
         return 1;
     case 0x18:
         if (wCursorMode == 4) {
-            y = wSelectionTop;
-            y1 = (char)wTableRow;
-            SortBytePair(&y, &y1);
+            row = wSelectionTop;
+            rowEnd = (char)wTableRow;
+            SortBytePair(&row, &rowEnd);
         } else {
-            y1 = (char)wTableRow;
-            y = (char)wTableRow;
+            rowEnd = (char)wTableRow;
+            row = (char)wTableRow;
         }
-        y1++;
-        for (; y < y1; y++) {
+        rowEnd++;
+        for (; row < rowEnd; row++) {
             switch (wTableColumn) {
             case 2:
             case 3:
@@ -918,44 +918,44 @@ UBYTE TableScreenInput(void)
                 wTableCellBPointer = 0xBC80;
                 break;
             }
-            SetVramCursor(TableColumnX[wTableColumn], y + 2);
+            SetVramCursor(TableColumnX[wTableColumn], row + 2);
             switch (wTableColumn) {
             case 0:
-                v = ReadTableEnvelope(y);
+                v = ReadTableEnvelope(row);
                 v -= 0x10;
                 DrawTableEnvelope(v);
-                WriteTableEnvelope(y, v);
+                WriteTableEnvelope(row, v);
                 wTableEnvelopeCache = v;
                 break;
             case 1:
-                v = ReadTableTranspose(y);
+                v = ReadTableTranspose(row);
                 v -= wSongColumn == 3 ? 4 : 12;
                 DrawHexByte(v);
-                WriteTableTranspose(y, v);
+                WriteTableTranspose(row, v);
                 wTableTransposeCache = v;
                 break;
             case 2:
             case 4:
                 wPendingCommandTarget = (wTableColumn == 4 ? 1 : 0) + 1;
-                if (!wPendingCommands[y])
-                    wPendingCommands[y] = ReadTableCommand(y);
-                if (wPendingCommands[y] > 1)
+                if (!wPendingCommands[row])
+                    wPendingCommands[row] = ReadTableCommand(row);
+                if (wPendingCommands[row] > 1)
                     do
-                        wPendingCommands[y]--;
-                    while (TableInputFlag(wPendingCommands[y]));
+                        wPendingCommands[row]--;
+                    while (TableInputFlag(wPendingCommands[row]));
                 hBgDigitPalette = wHighlightDigitPalette;
                 hBgPalette = wHighlightPalette;
-                DrawCommandLetter(wPendingCommands[y]);
+                DrawCommandLetter(wPendingCommands[row]);
                 if (wMessageStringPointer || wMessageTimer)
-                    FarCallArgument(1, FAR_FN(ShowCommandHelp), wPendingCommands[y]);
+                    FarCallArgument(1, FAR_FN(ShowCommandHelp), wPendingCommands[row]);
                 hBgDigitPalette = 4;
                 hBgPalette = 1;
-                DrawFieldValue(wPendingCommands[y], ReadTableValue(y));
+                DrawFieldValue(wPendingCommands[row], ReadTableValue(row));
                 break;
             case 3:
             case 5:
-                v = ReadTableValue(y);
-                switch (ReadTableCommand(y)) {
+                v = ReadTableValue(row);
+                switch (ReadTableCommand(row)) {
                 case 0:
                     break;
                 case 1:
@@ -979,10 +979,10 @@ UBYTE TableScreenInput(void)
                 default:
                     v -= 0x10;
                 }
-                WriteTableValue(y, v);
+                WriteTableValue(row, v);
                 hBgDigitPalette = wHighlightDigitPalette;
                 hBgPalette = wHighlightPalette;
-                DrawFieldValue(ReadTableCommand(y), v);
+                DrawFieldValue(ReadTableCommand(row), v);
                 break;
             }
         }
@@ -1146,10 +1146,10 @@ UBYTE TableScreenInput(void)
         if (wCursorMode == 4 && wClipboardType == 5) {
             left = wSelectionLeft;
             right = wTableColumn;
-            y = wSelectionTop;
-            y1 = (char)wTableRow;
-            SortBytePair(&y, &y1);
-            if (y || y1 != 0x0F) {
+            row = wSelectionTop;
+            rowEnd = (char)wTableRow;
+            SortBytePair(&row, &rowEnd);
+            if (row || rowEnd != 0x0F) {
                 wSelectionTop = 0;
                 wTableRow = 0x0F;
                 wSelectHeld = 0;
@@ -1181,7 +1181,7 @@ UBYTE TableScreenInput(void)
 
 void CutCopyTableSelection(UBYTE cut)
 {
-    UBYTE x, y;
+    UBYTE column, row;
 
     if (wClipboardType != 5)
         return;
@@ -1201,51 +1201,51 @@ void CutCopyTableSelection(UBYTE cut)
         wSelectionRight++;
     wSelectionRight++;
     wSelectionBottom++;
-    for (x = wSelectionLeft; x < wSelectionRight; x++) {
-        for (y = wSelectionTop; y < wSelectionBottom; y = y + 1) {
-            if (x == 6 && y)
+    for (column = wSelectionLeft; column < wSelectionRight; column++) {
+        for (row = wSelectionTop; row < wSelectionBottom; row = row + 1) {
+            if (column == 6 && row)
                 continue;
-            wTableColumn = x;
-            wTableRow = y;
+            wTableColumn = column;
+            wTableRow = row;
             EraseTableCursor();
-            switch (x) {
+            switch (column) {
             case 0:
-                WriteClipboardCell(0, y, ReadTableEnvelope(y));
+                WriteClipboardCell(0, row, ReadTableEnvelope(row));
                 if (cut)
-                    WriteTableEnvelope(y, 0);
+                    WriteTableEnvelope(row, 0);
                 break;
             case 1:
-                WriteClipboardCell(1, y, ReadTableTranspose(y));
+                WriteClipboardCell(1, row, ReadTableTranspose(row));
                 if (cut)
-                    WriteTableTranspose(y, 0);
+                    WriteTableTranspose(row, 0);
                 break;
             case 2:
                 wTableCellAPointer = 0xB680;
                 wTableCellBPointer = 0xB880;
-                WriteClipboardCell(2, y, ReadTableCommand(y));
+                WriteClipboardCell(2, row, ReadTableCommand(row));
                 if (cut)
-                    WriteTableCommand(y, 0);
+                    WriteTableCommand(row, 0);
                 break;
             case 3:
                 wTableCellAPointer = 0xB680;
                 wTableCellBPointer = 0xB880;
-                WriteClipboardCell(3, y, ReadTableValue(y));
+                WriteClipboardCell(3, row, ReadTableValue(row));
                 if (cut)
-                    WriteTableValue(y, 0);
+                    WriteTableValue(row, 0);
                 break;
             case 4:
                 wTableCellAPointer = 0xBA80;
                 wTableCellBPointer = 0xBC80;
-                WriteClipboardCell(4, y, ReadTableCommand(y));
+                WriteClipboardCell(4, row, ReadTableCommand(row));
                 if (cut)
-                    WriteTableCommand(y, 0);
+                    WriteTableCommand(row, 0);
                 break;
             case 5:
                 wTableCellAPointer = 0xBA80;
                 wTableCellBPointer = 0xBC80;
-                WriteClipboardCell(5, y, ReadTableValue(y));
+                WriteClipboardCell(5, row, ReadTableValue(row));
                 if (cut)
-                    WriteTableValue(y, 0);
+                    WriteTableValue(row, 0);
                 break;
             }
         }
@@ -1262,7 +1262,7 @@ void CutCopyTableSelection(UBYTE cut)
    the SRAM columns (command $0A becomes 0 when it lands in the second). */
 void PasteTableCells(void)
 {
-    UBYTE x, y;
+    UBYTE column, row;
     UBYTE swap = 0;
     UBYTE fromPhrase = 0;
     UBYTE v;
@@ -1280,19 +1280,19 @@ void PasteTableCells(void)
         swap = 1;
     if (wSelectionLeft == 4 && (wTableColumn == 2 || wTableColumn == 3))
         swap++;
-    for (y = wSelectionTop; y < wSelectionBottom; y++) {
-        for (x = wSelectionLeft; x < wSelectionRight; x = x + 1) {
-            if (x == 6 && y)
+    for (row = wSelectionTop; row < wSelectionBottom; row++) {
+        for (column = wSelectionLeft; column < wSelectionRight; column = column + 1) {
+            if (column == 6 && row)
                 continue;
-            switch (x) {
+            switch (column) {
             case 0:
-                WriteTableEnvelope(wTableRow, ReadClipboardCell(0, y));
+                WriteTableEnvelope(wTableRow, ReadClipboardCell(0, row));
                 break;
             case 1:
-                WriteTableTranspose(wTableRow, ReadClipboardCell(1, y));
+                WriteTableTranspose(wTableRow, ReadClipboardCell(1, row));
                 break;
             case 2:
-                v = ReadClipboardCell(fromPhrase + 2, y);
+                v = ReadClipboardCell(fromPhrase + 2, row);
                 if (swap) {
                     wTableCellAPointer = 0xBA80;
                     wTableCellBPointer = 0xBC80;
@@ -1312,7 +1312,7 @@ void PasteTableCells(void)
                     wTableCellAPointer = 0xB680;
                     wTableCellBPointer = 0xB880;
                 }
-                WriteTableValue(wTableRow, ReadClipboardCell(fromPhrase + 3, y));
+                WriteTableValue(wTableRow, ReadClipboardCell(fromPhrase + 3, row));
                 break;
             case 4:
                 if (swap) {
@@ -1322,7 +1322,7 @@ void PasteTableCells(void)
                     wTableCellAPointer = 0xBA80;
                     wTableCellBPointer = 0xBC80;
                 }
-                WriteTableCommand(wTableRow, ReadClipboardCell(4, y));
+                WriteTableCommand(wTableRow, ReadClipboardCell(4, row));
                 break;
             case 5:
                 if (swap) {
@@ -1332,7 +1332,7 @@ void PasteTableCells(void)
                     wTableCellAPointer = 0xBA80;
                     wTableCellBPointer = 0xBC80;
                 }
-                WriteTableValue(wTableRow, ReadClipboardCell(5, y));
+                WriteTableValue(wTableRow, ReadClipboardCell(5, row));
                 break;
             }
         }
@@ -1347,7 +1347,7 @@ void PasteTableCells(void)
 
 void DrawTableSelection(void)
 {
-    UBYTE x, y, left, top, right, bottom;
+    UBYTE column, row, left, top, right, bottom;
 
     if (wClipboardType != 5)
         return;
@@ -1360,16 +1360,16 @@ void DrawTableSelection(void)
     SortBytePair(&top, &bottom);
     bottom = (char)bottom + 1;
     /* the ring around the rectangle back to the column palettes... */
-    for (x = left ? left - 1 : 0; x < (right == 6 ? 6 : right + 1); x++) {
-        for (y = top ? top - 1 : 0; y < (bottom == 0x10 ? 0x10 : bottom + 1); y = y + 1) {
-            if (x < left || x >= right || y < top || y >= bottom)
-                ColorField(TableColumnX[x], y + 2, TableColumnWidth[x], x ? 1 - (x & 1) : 0);
+    for (column = left ? left - 1 : 0; column < (right == 6 ? 6 : right + 1); column++) {
+        for (row = top ? top - 1 : 0; row < (bottom == 0x10 ? 0x10 : bottom + 1); row = row + 1) {
+            if (column < left || column >= right || row < top || row >= bottom)
+                ColorField(TableColumnX[column], row + 2, TableColumnWidth[column], column ? 1 - (column & 1) : 0);
         }
     }
     /* ...and the rectangle highlighted */
-    for (x = left; x < right; x++)
-        for (y = top; y < bottom; y = y + 1)
-            ColorField(TableColumnX[x], y + 2, TableColumnWidth[x], hGameboyType ? 3 : 2);
+    for (column = left; column < right; column++)
+        for (row = top; row < bottom; row = row + 1)
+            ColorField(TableColumnX[column], row + 2, TableColumnWidth[column], hGameboyType ? 3 : 2);
 }
 
 void ShowSynthFieldHelp(void)
