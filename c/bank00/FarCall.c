@@ -15,7 +15,7 @@ UBYTE FarCallByte(UBYTE bank, UWORD fn)
 {
     UBYTE old, r;
 
-    old = hCurrentBank;
+    old = hCurBank;
     SWITCH_ROM(bank);
     r = ((UBYTE (*)(void))fn)();
     SWITCH_ROM(old);
@@ -28,7 +28,7 @@ UBYTE FarCallArgByte(UBYTE bank, UWORD fn, UBYTE arg)
 {
     UBYTE old, r;
 
-    old = hCurrentBank;
+    old = hCurBank;
     SWITCH_ROM(bank);
     r = ((UBYTE (*)(UBYTE))fn)(arg);
     SWITCH_ROM(old);
@@ -41,7 +41,7 @@ void FarCallArg2V(UBYTE bank, UWORD fn, UBYTE a, UBYTE b)
 {
     UBYTE old;
 
-    old = hCurrentBank;
+    old = hCurBank;
     SWITCH_ROM(bank);
     ((void (*)(UBYTE, UBYTE))fn)(a, b);
     SWITCH_ROM(old);
@@ -53,7 +53,7 @@ UBYTE FarCallArg2(UBYTE bank, UWORD fn, UBYTE a, UBYTE b)
 {
     UBYTE old, r;
 
-    old = hCurrentBank;
+    old = hCurBank;
     SWITCH_ROM(bank);
     r = ((UBYTE (*)(UBYTE, UBYTE))fn)(a, b);
     SWITCH_ROM(old);
@@ -66,7 +66,7 @@ void FarCallArg3(UBYTE bank, UWORD fn, UBYTE a, UBYTE b, UBYTE c)
 {
     UBYTE old;
 
-    old = hCurrentBank;
+    old = hCurBank;
     SWITCH_ROM(bank);
     ((void (*)(UBYTE, UBYTE, UBYTE))fn)(a, b, c);
     SWITCH_ROM(old);

@@ -116,7 +116,7 @@ BUTTONS = ["a", "b", "start", "select", "up", "down", "left", "right"]
 
 SCREEN = {"phrase": 1, "groove": 2, "chain": 3, "song": 4, "table": 5, "instr": 6,
           "name": 7, "wave": 8, "project": 9, "synth": 10, "word": 12, "file": 13, "help": 14}
-W_SCREEN = 0xC401        # wCurrentScreen (constants/screens.inc)
+W_SCREEN = 0xC401        # wCurScreen (constants/screens.inc)
 
 
 class Driver:

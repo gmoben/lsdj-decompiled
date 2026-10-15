@@ -17,20 +17,20 @@
 711F ReadWorkingSongByte ; read a byte of the working song (input to compress)
 ; --- song decompressor (LOAD) ---
 7402 ReadCompressedByte  ; read next byte from the compressed stream (ptr $C97B/$C97C)
-74E0 LoadCompressedBlock        ; copy 512-byte compressed block a (SRAM bank 4 + a>>4, $A000 + (a&15)*$200) into the $DB00 buffer and point wCompSrc at it; ends with reti
+74E0 LoadCompressedBlock        ; copy 512-byte compressed block a (SRAM bank 4 + a>>4, $A000 + (a&15)*$200) into the $DB00 buffer and point wCompressSrc at it; ends with reti
 753E EmitDefaultWave     ; $F0 run: emit a default wavetable frame
-758E EmitDefaultInstrument ; $F1 run: emit a default instrument
+758E EmitDefaultInstr ; $F1 run: emit a default instrument
 ; --- file screen ---
 589A FileActionNames    ; action names "LOAD"/"SAVE"/"ERASE" (5-byte stride, indexed by action type)
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 4000 FileWriteCompressedSram    ; low-level compressed-output writer to SRAM (bank $c979, ptr $c97a; di-guarded)
-415A FindFreeBlock              ; claim the first free block of the allocation table ($a141 on, to $a180 on the 64K-only format [wFsCheckResult], else $a200): mark it wCompByte, return its bank + SRAM address; e=0 when full
+415A FindFreeBlock              ; claim the first free block of the allocation table ($a141 on, to $a180 on the 64K-only format [wFsCheckResult], else $a200): mark it wCompressByte, return its bank + SRAM address; e=0 when full
 42D6 FileSlotHalfBase           ; return $40 or $c0 depending on $c56b (which save half)
 42E9 FileScanSlotNames          ; scan file-slot names in SRAM ($A140, bank4) from index $c958
 4335 GetFileBlockCount          ; wFileBlockCounts[i] (i < $20): the blocks file i uses
 4352 CopyFileName               ; copy the 8-char filename of slot arg (<$20) into the $c987 buffer
-43C1 CompressIsDefaultWave      ; 1 when the 16 working-song bytes at wCompDst are the default wave frame (DefaultWaveFrameB1C); 0 at or past $7FF1
+43C1 CompressIsDefaultWave      ; 1 when the 16 working-song bytes at wCompressDst are the default wave frame (DefaultWaveFrameB1C); 0 at or past $7FF1
 441F CompressSong               ; compress the 32 KiB working song into SRAM blocks: $C0/$E0 escapes, RLE runs, default-wave runs, $E0 n block links, $E0 $FF end; 0 when no block is free
 46E3 DecompressBlock            ; LSDj block decompressor: RLE $c0, special $e0/$f0 (default wave) /$f1 (default instr) /$ff EOF
 4778 DrawVerifyPanel            ; save-verification panel ("VERIFY...") + slot info
@@ -45,7 +45,7 @@
 4FA5 FileLoadSlotInfo           ; load slot info for index (arg<$20 -> $c97f); calls FileScanSlotNames
 5077 FileClearChanState         ; zero the 8 wChanActive bytes ($C0E0..7) backward
 5098 FileStopSound              ; SetInterruptEnable + FileClearChanState (silence before load/save)
-50B3 LoadFile                   ; FILE load action: keep key delay/repeat + sync modes, FileLoadSlotInfo the slot (FAIL! waits a press), restore props, set active file, LoadProjectSettings + RedrawScreen
+50B3 LoadFile                   ; FILE load action: keep key delay/repeat + sync modes, FileLoadSlotInfo the slot (FAIL! waits a press), restore props, set active file, LoadProjSettings + RedrawScreen
 5361 DrawFileTextField          ; draw a file-screen text field (highlight-aware) at computed coords
 5531 FileDrawField              ; ColorField wrapper
 5563 FileDrawFieldChecked       ; bounds-check (<$10) then ColorField
@@ -92,10 +92,10 @@
 7167 FileCompressRun            ; RLE-encode a run (WriteCompressedByte x2, ReadWorkingSongByte)
 719C FileSendSyncByte           ; send a sync byte (SendSyncByte, $3983; arg<$81)
 72EE SyncTransferByte           ; link-port byte exchange step (wSyncState, joypad, SendSyncHandshake)
-741D FilePutDecompByte          ; append decompressed byte to $DA00 buffer ($c983 cursor)
-7426 FileDecompNextBank         ; decompression: advance source / switch SRAM bank ($c97c, $c982)
+741D FilePutDecompressByte          ; append decompressed byte to $DA00 buffer ($c983 cursor)
+7426 FileDecompressNextBank         ; decompression: advance source / switch SRAM bank ($c97c, $c982)
 749E FileDecompressByte         ; decode one compressed byte ($c0/$e0 RLE tokens; FileDecompressRun)
-7513 FileDecompressRun          ; decode an RLE run (ReadCompressedByte, FileDecompNextBank)
+7513 FileDecompressRun          ; decode an RLE run (ReadCompressedByte, FileDecompressNextBank)
 ; --- functions called from bank 0 (this bank paged in) ---
 7310 ReceiveLinkClipboard       ; ProcessSyncByte's $FE: receive the linked Game Boy's clipboard (type, bounds, cells into wClipboardBuf) for pasting
 5B0C FileScreenInput            ; file-screen input dispatch (wButtons; clears $c997)
@@ -134,7 +134,7 @@
 60BE TxtErasePrompt             ; "ERASE?"
 60C5 TxtYes1Cb                  ; "YES"
 60C9 TxtNo1Cb                   ; "NO"
-743C FlushBlockToSram           ; copy the 256-byte staging page (wDecompBuf) to SRAM [wBlockDstPage]<<8; wrap $c0->$a0, bank++
+743C FlushBlockToSram           ; copy the 256-byte staging page (wDecompressBuf) to SRAM [wBlockDstPage]<<8; wrap $c0->$a0, bank++
 746E VerifyBlockAgainstSram     ; compare the staging page with the SRAM block (save VERIFY step)
 4559 CompressSongMid ; @deploy-only: interior of CompressSong (walker artifact)
 4F4C SaveFileMid ; @deploy-only: interior of SaveFile (walker artifact)
@@ -260,25 +260,25 @@
 
 ; --- first-action / assert local names ---
 400D .ok
-41A1 .compByteOk          ; wCompByte in range; scan from block 1
+41A1 .compByteOk          ; wCompressByte in range; scan from block 1
 424A .bankOk              ; bank in range; range-check the SRAM address as a long
 42A1 .srcOk               ; both in range: progress counter + draw it, return 1
 4341 .ok
 435E .ok
-464F .clearDecompPos
+464F .clearDecompressPos
 46B7 .loadBlockDstPage
 470D .readCompressedByte
 471E .readCompressedByteb
 4839 .loadFileListState
 4AAE .loadFileCursorRestrict
 4D63 .ok
-4DAC .checkCompByte
+4DAC .checkCompressByte
 4DBD .okb
 4E1E .ok
-4EEC .checkCompByte
+4EEC .checkCompressByte
 4EFD .okb
 4FB8 .ok
-4FD2 .setDecompPos
+4FD2 .setDecompressPos
 52F0 .ok
 5575 .ok
 55A6 .loadFileCursorRestrict
@@ -314,7 +314,7 @@
 5E3C .setIsSelectingFile
 5E4C .setProjStrBufb
 5E65 .checkProjStrBufb
-5E95 .setCurrentScreen
+5E95 .setCurScreen
 5EFB .checkProjStrBufc
 5F82 .checkProjStrBufd
 5FF2 .fileMatchName
@@ -356,7 +356,7 @@
 72E2 .sent
 73F1 .received
 73F6 .finish
-74D3 .fileDecompNextBank
+74D3 .fileDecompressNextBank
 74D8 .decompressBlock
 
 
@@ -370,7 +370,7 @@
 4101 .readSongByte
 4156 .cont
 417C .sram128k            ; no 64K-only marker: the table runs to $a200 (192 blocks)
-4189 .endSet              ; end of table chosen; check wCompByte < $20
+4189 .endSet              ; end of table chosen; check wCompressByte < $20
 4247 .bankBad             ; the returned bank outside 4..$0F: DebugTrap
 429E .srcBad              ; the returned SRAM address outside $a000..$bfff: DebugTrap
 42C2 .blockUsed           ; the entry is taken (< $20): next block index, p++
@@ -384,21 +384,21 @@
 440E .ret00
 4413 .cont
 4419 .cont_2
-447A .loadCompDst
+447A .loadCompressDst
 44A1 .checkArg
 44F2 .writeCompressedByte
 4530 .checkArg_2
-4556 .loadCompDst_2
-4576 .loadCompDst_3
+4556 .loadCompressDst_2
+4576 .loadCompressDst_3
 461C .writeCompressedByte_2
-4632 .loadCompDst_4
+4632 .loadCompressDst_4
 4691 .loadSyncSendAccum
-46A7 .setCompBank
+46A7 .setCompressBank
 46DD .cont
-4701 .filePutDecompByte
+4701 .filePutDecompressByte
 472F .ret01
-4734 .checkDecompPos
-476C .writeDecompByte
+4734 .checkDecompressPos
+476C .writeDecompressByte
 4774 .cont
 47ED .writeSongByte
 47FF .cont
@@ -430,24 +430,24 @@
 4D19 .readSongByte
 4D4A .cont_5
 4D51 .cont_6
-4DA0 .decCompByte
+4DA0 .decCompressByte
 4E4C .writeSongByte
-4E62 .setCompByte
+4E62 .setCompressByte
 4E94 .freeFileBlocks
 4EA1 .drawVerifyPanel
 4EBC .readSongByte
 4F71 .cont
 4F88 .writeSongByte_2
 4FF1 .cont
-4FF4 .setDecompPos_2
+4FF4 .setDecompressPos_2
 500A .cont_2
-500B .checkCompByte
+500B .checkCompressByte
 5015 .cont_3
-5019 .setCompDst
+5019 .setCompressDst
 504D .cont_4
 504E .cont_5
 5057 .cont_6
-505B .checkDecompPos
+505B .checkDecompressPos
 506D .cont_7
 5071 .cont_8
 5214 .cont
@@ -485,7 +485,7 @@
 5517 .setStringSrc_2
 5682 .cont
 5684 .drawStringIndexed
-56DA .stringLength
+56DA .stringLen
 5700 .drawStringTile20_2
 570B .drawByte
 5718 .drawString
@@ -635,14 +635,14 @@
 71C3 .cont_2
 7225 .skip
 7228 .send
-72DC .nextColumn
+72DC .nextCol
 7301 .loadSyncRxByte
-73EB .nextColumn
-7417 .storeCompByte
-7432 .loadDecompPos
+73EB .nextCol
+7417 .storeCompressByte
+7432 .loadDecompressPos
 7485 .incBlockDstPage
-74AF .incDecompPos
-74C9 .fileDecompNextBank_2
+74AF .incDecompressPos
+74C9 .fileDecompressNextBank_2
 753C .cont
 5092 FileFieldX         ; x of the three file screen fields (0, 5, 10)
 5095 FileFieldWidth     ; their widths (4, 4, 5)

@@ -4,7 +4,7 @@
  * MATCHING C (period GBDK 2.95-3 / SDCC 2.2.1 + tools/match/lsdj.peep);
  * `make match` verifies every function here against the ROM.
  *
- * Its own unit for the same reason as SongCutCopy.c: SongCopyColumn takes
+ * Its own unit for the same reason as SongCutCopy.c: SongCopyCol takes
  * two UWORDs here (the ROM casts the pointer arguments; SongScreen.c defines
  * it with pointer parameters).
  */
@@ -23,21 +23,21 @@ extern UBYTE wAPressEnabled;                /* $C409 */
 extern UBYTE wDrawStep;                     /* $C405 */
 extern UBYTE wSelectHeld;                   /* $C40A */
 extern UBYTE wBHeld;                        /* $C40B */
-extern UBYTE wSelTop;                       /* $C40E */
-extern UBYTE wSelRight;                     /* $C40F */
-extern UBYTE wSelBottom;                    /* $C410 */
+extern UBYTE wSelectionTop;                       /* $C40E */
+extern UBYTE wSelectionRight;                     /* $C40F */
+extern UBYTE wSelectionBottom;                    /* $C410 */
 extern UBYTE wClipboardType;                /* $C411 */
 extern UBYTE wQuickMarking;             /* $C412 */
 extern UBYTE wSongScopeDirty;               /* $C404 */
 extern UBYTE wChain;                        /* $C418 */
 extern UBYTE wChainRow;                     /* $C41A */
 extern UBYTE wLiveMode;                     /* $C528 */
-extern UBYTE wMsgNoPause;                  /* $C530 */
+extern UBYTE wMessageNoPause;                  /* $C530 */
 extern UBYTE wMuteSoloLatch;                 /* $C56A */
 extern UBYTE wPlayStartChan;                /* $C94C */
 extern UBYTE wPlayStartRow;                 /* $C94D */
-extern UBYTE wSongSelScroll;                /* $C94A */
-extern UBYTE wSongSelRow;                   /* $C94B */
+extern UBYTE wSongSelectionScroll;                /* $C94A */
+extern UBYTE wSongSelectionRow;                   /* $C94B */
 extern UBYTE wSongAPressState;              /* $C951 */
 extern UBYTE wSongCellEmpty;                /* $C953 */
 extern UBYTE wSyncTick;                     /* $CB69 */
@@ -58,9 +58,9 @@ UBYTE SongChanActiveMask(void);
 void SongBeginSelection(void);
 void SongDrawCursorRow(void);
 void ToggleBookmark(UBYTE row);
-void DrawChannelHeader(void);
+void DrawChanHeader(void);
 void WriteSongCell(UBYTE col, UBYTE row, UBYTE chain);
-void SongCopyColumn(UWORD p, UWORD q);    /* defined with pointers in SongScreen.c */
+void SongCopyCol(UWORD p, UWORD q);    /* defined with pointers in SongScreen.c */
 UBYTE IsSongChainUsed(void);                /* bank $1F */
 void MarkChainUsed(void);                   /* bank 1 */
 void ShowTapAddChain(void);                 /* bank 1 */
@@ -94,15 +94,15 @@ UBYTE SongScreenInput(void)
     UBYTE bot;
 
     GetTilemapAddr(SongColOffsets[wSongCol], wSongRow + 2 - wSongScroll);
-    hBgDigitPalette = wSelectDigitPal;
-    hBgPalette = wSelectPal;
+    hBgDigitPal = wSelectDigitPal;
+    hBgPal = wSelectPal;
     if (wButtons != 0x10)
         wDrawStep = 0;
     if (wButtons != 0x20)
         wSongAPressState = 0;
     if (wCursorMode == 4 && wButtons == 0x43) {
-        wSongCol = wSelLeft;
-        wSongRow = wSelTop;
+        wSongCol = wSelectionLeft;
+        wSongRow = wSelectionTop;
         FarCall(5, 0x747D);
         SongScrollToCursor();
         SongRedrawRow();
@@ -150,8 +150,8 @@ UBYTE SongScreenInput(void)
         if (wCursorMode != 4)
             SongEraseCursor();
         wSongCol++;
-        if (!wMsgStrPtr && !wMsgTimer)
-            DrawChannelHeader();
+        if (!wMessageStrPtr && !wMessageTimer)
+            DrawChanHeader();
         if (wCursorMode == 4)
             SongEditSelection();
         else
@@ -163,8 +163,8 @@ UBYTE SongScreenInput(void)
         if (wCursorMode != 4)
             SongEraseCursor();
         wSongCol--;
-        if (!wMsgStrPtr && !wMsgTimer)
-            DrawChannelHeader();
+        if (!wMessageStrPtr && !wMessageTimer)
+            DrawChanHeader();
         if (wCursorMode == 4)
             SongEditSelection();
         else
@@ -173,7 +173,7 @@ UBYTE SongScreenInput(void)
     } else if (wButtons == 0x04) {
         if (!wSongRow)
             return 0;
-        if (wCursorMode == 4 && wSelTop - wSongRow == 0x29)
+        if (wCursorMode == 4 && wSelectionTop - wSongRow == 0x29)
             return 0;
         if (!wSongRow)
             return 0;
@@ -190,7 +190,7 @@ UBYTE SongScreenInput(void)
             SongEditSelection();
         return 1;
     } else if (wButtons == 0x08) {
-        if (wCursorMode == 4 && wSongRow - wSelTop == 0x29)
+        if (wCursorMode == 4 && wSongRow - wSelectionTop == 0x29)
             return 0;
         if (wSongRow == 0xBF)
             return 0;
@@ -216,10 +216,10 @@ UBYTE SongScreenInput(void)
         if (wButtonsSame)
             return 1;
         wLiveMode = !wLiveMode;
-        if (wMsgStrPtr) {
-            wMsgNoPause = 0;
-            wMsgStrPtr = 0;
-            wMsgTimer = 0;
+        if (wMessageStrPtr) {
+            wMessageNoPause = 0;
+            wMessageStrPtr = 0;
+            wMessageTimer = 0;
         }
         if (!wLiveMode) {
             ClearSpriteY(4);
@@ -310,16 +310,16 @@ UBYTE SongScreenInput(void)
         wBHeld = 0;
         cell = ReadSeqByte(wSongCol, wSongRow);
         wCursorMode = 2;
-        wSelLeft = wSongCol;
-        wSelRight = wSongCol + 1;
-        wSelTop = 0;
-        wSelBottom = 1;
+        wSelectionLeft = wSongCol;
+        wSelectionRight = wSongCol + 1;
+        wSelectionTop = 0;
+        wSelectionBottom = 1;
         wClipboardType = 4;
         WriteClipboardCell(wSongCol, 0, cell);
         if (cell & 0x80) {
             p = (UBYTE *)0xB290 + ((UWORD)wSongRow << 2);
             p += wSongCol;
-            SongCopyColumn((UWORD)(p + 4), (UWORD)p);
+            SongCopyCol((UWORD)(p + 4), (UWORD)p);
             WriteSongCell(wSongCol, 0xBF, 0xFF);
         } else {
             wColChain[wSongCol] = cell;
@@ -334,7 +334,7 @@ UBYTE SongScreenInput(void)
             return 0;
         if (wCursorMode == 4) {
             wSelectHeld = 0;
-            if (wAPressEnabled || wSelLeft != wSongCol || wSelTop != wSongRow)
+            if (wAPressEnabled || wSelectionLeft != wSongCol || wSelectionTop != wSongRow)
                 CutCopySongSelection(1);
             else
                 SongLoadCursorChain();
@@ -428,22 +428,22 @@ UBYTE SongScreenInput(void)
     } else if (wSelectHeld && wButtons == 0x60) {
         wSelectHeld = 0;
         if (wCursorMode == 4 && wClipboardType == 4) {
-            left = wSelLeft;
+            left = wSelectionLeft;
             right = wSongCol;
-            top = wSelTop;
+            top = wSelectionTop;
             bot = wSongRow;
             wQuickMarking = 1;
             SortBytePair(&left, &right);
             if (left || right != 3) {
-                wSelLeft = 0;
+                wSelectionLeft = 0;
                 wSongCol = 3;
                 SongEditSelection();
                 return 1;
             }
             SortBytePair(&top, &bot);
             if (top != wSongScroll || bot != wSongScroll + 0x0F) {
-                wSelTop = wSongScroll;
-                wSongRow = wSelTop + 0x0F;
+                wSelectionTop = wSongScroll;
+                wSongRow = wSelectionTop + 0x0F;
                 SongEditSelection();
                 return 1;
             }
@@ -452,10 +452,10 @@ UBYTE SongScreenInput(void)
         }
         FarCall(5, SaveSelectionState);
         wQuickMarking = 0;
-        wSelLeft = wSongCol;
-        wSelTop = wSongRow;
-        wSongSelRow = wSongRow;
-        wSongSelScroll = wSongScroll;
+        wSelectionLeft = wSongCol;
+        wSelectionTop = wSongRow;
+        wSongSelectionRow = wSongRow;
+        wSongSelectionScroll = wSongScroll;
         ShowMessage(wCloneMode ? "SELECT / SLIM CLONE " : "SELECT / DEEP CLONE ");
         return 1;
     }

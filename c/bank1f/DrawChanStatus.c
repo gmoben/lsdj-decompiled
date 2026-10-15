@@ -34,8 +34,8 @@ void DrawChanStatus(UBYTE ch)
     c = ch;
     if (wChanOutput[c] & 0x80) {
         s = "MUTE";
-        hBgDigitPalette = wSelectDigitPal;
-        hBgPalette = wSelectPal;
+        hBgDigitPal = wSelectDigitPal;
+        hBgPal = wSelectPal;
         switch (wChanOutputOverride[c]) {
         case 0:
             wChanMuteShown[c] = 1;
@@ -54,14 +54,14 @@ void DrawChanStatus(UBYTE ch)
             VBK_REG = 0;
         }
     } else {
-        hBgDigitPalette = 4;
-        hBgPalette = 1;
+        hBgDigitPal = 4;
+        hBgPal = 1;
         DrawStringIndexed("12WN"[c]);
         wChanMuteShownPtr = &wChanMuteShown[c];
         if (*wChanMuteShownPtr) {
             *wChanMuteShownPtr = 0;
-            hBgDigitPalette = wShadowDigitPal;
-            hBgPalette = wShadowPal;
+            hBgDigitPal = wShadowDigitPal;
+            hBgPal = wShadowPal;
             DrawString("   ");
         }
         if (hGameboyType) {

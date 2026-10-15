@@ -17,7 +17,7 @@ never depend on hub statefulness. NB: SELECT+LEFT on SONG toggles LIVE mode (a
 real side effect, not a no-op), so the pathfinder never issues `left` at col 0.
 
 Drill-down moves (SONG->CHAIN->PHRASE) are content-gated: the loaded song must
-have a chain/phrase under the cursor. Every step verifies wCurrentScreen ($C401).
+have a chain/phrase under the cursor. Every step verifies wCurScreen ($C401).
 
 Usage:
   nav.py where | here              # current screen (+ resolved grid cell for `here`)

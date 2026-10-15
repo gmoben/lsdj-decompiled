@@ -1,5 +1,5 @@
 ; Bank $03 -- Instrument screen (see docs/editors.md)
-4000 WriteCurrentInstrByte ; write value to field[arg] of the current instrument (wInstrument) via WriteInstrByte
+4000 WriteCurInstrByte ; write value to field[arg] of the current instrument (wInstr) via WriteInstrByte
 
 ; --- Instrument-screen data tables + strings ---
 4DCB WaveSourceNames  ; "WAVE"/"SYNTH" (wave-instrument source)
@@ -8,7 +8,7 @@
 433B TxtOutOfSynths             ; "OUT OF SYNTHS! CLEAN INSTR DATA IN PROJECT SCREEN"
 459A TxtClonedSynth   ; "CLONED SYNTH"
 4AB4 TxtHard                    ; " HARD"
-4DE7 DrawInstrumentScreen ; screen idx 6: draws instrument params (reads instruments[] 119x)
+4DE7 DrawInstrScreen ; screen idx 6: draws instrument params (reads instruments[] 119x)
 4FC4 InstrTypeNames     ; [4][6] type names "PULSE"/" WAVE"/"  KIT"/"NOISE" (indexed by type*6)
 4105 WavePlayIsManual           ; 1 if the wave PLAY mode is MANUAL (SPEED/LENGTH/LOOP POS then show dashes)
 4118 IsInstrTableOn             ; instrument byte 6 bit 5 (table on) as 0/1
@@ -31,48 +31,48 @@
 43C0 InstrSynthNew              ; A twice on a wave instrument's SYNTH field (PLAY not MANUAL): give it a free synth (FindFreeSynth), drawn and stored in byte 3 bits 7-4
 441A CloneSynth                 ; clone the current instrument's synth into a free synth slot (params + 256 wave bytes), then point the instrument at it
 45A7 InstrScreenFrame           ; shared instrument-screen frame draw (map row, tempo field, marker sprites)
-45D3 InstrSelectPrevUsed        ; step wInstrument back to the previous allocated instrument (SramInstrAlloc), then redraw
-461B InstrSelectPrevPage        ; wInstrument -= 16 (clamped to 0), then InstrSelectPrevUsed
-4638 InstrSelectNextUsed        ; step wInstrument on to the next allocated instrument (stops at $40, speech), then redraw
+45D3 InstrSelectPrevUsed        ; step wInstr back to the previous allocated instrument (SramInstrAlloc), then redraw
+461B InstrSelectPrevPage        ; wInstr -= 16 (clamped to 0), then InstrSelectPrevUsed
+4638 InstrSelectNextUsed        ; step wInstr on to the next allocated instrument (stops at $40, speech), then redraw
 47A2 InstrTableModePrev         ; table mode down: clear byte 5 bit 3 (table step) if set, else table off; redraw
 482E InstrTableModeNext         ; table mode up: table on, then set byte 5 bit 3 (table step); redraw
 489D InstrTableNext             ; table on: table number +1 (up to $1F), then FarCall bank $1F DrawInstrTableField
 48D6 InstrTablePrev             ; A+LEFT on the TABLE field: the previous table number; at 0 (a fresh press) the mode steps back twice and the cursor leaves the field
 495C InstrTableSub16            ; table on: clear table-number bit 4 (-16)
-498B DrawWaveLength             ; draw the wave LENGTH at $99CC ("-" when PLAY is MANUAL)
+498B DrawWaveLen             ; draw the wave LENGTH at $99CC ("-" when PLAY is MANUAL)
 49B7 DrawWaveSpeed              ; draw the wave SPEED at $99AB ("--" when PLAY is MANUAL)
 49E7 GetWaveLoopPos             ; the wave LOOP POS as stored: F ^ byte 2 bits 3-0
 49FD DrawWaveLoopPos            ; draw the wave LOOP POS at $99EC (LOOP, PINGPONG and RESYNC only; length less loop position, 0 if negative)
 4A44 DrawKitDistName            ; draw the kit DIST mode: $d0-$d3 -> " HARD"/" SOFT"/" FOLD"/" WRAP"
 4ACF GetWaveSpeed               ; the wave SPEED: byte 11 + 3
 4AE0 SetInstrByte11             ; write current instrument byte 11
-4AF4 GetWaveLength              ; the wave LENGTH as shown: F - byte 10 bits 3-0
+4AF4 GetWaveLen              ; the wave LENGTH as shown: F - byte 10 bits 3-0
 4B0A SetInstrByte10             ; write current instrument byte 10 (nibble-asserted path)
 4B29 SetInstrByte2              ; write instrument byte 2 (pulse tune / kit half-speed+keep-attack / wave synth pre-v16)
-4B4C GetVibratoShape            ; the PITCH field's vibrato shape: instrument byte 5 bits 2-0 (sine/saw/square << 1, bit 0 = up)
-4B5E SetVibratoShape            ; store the vibrato shape in byte 5 bits 2-0 and redraw the PITCH field (DrawSpeedGlyph for noise, else DrawSpeedModeName)
-4BAC VibratoShapeNext           ; A+RIGHT on PITCH: next vibrato shape (triangle, saw, square down, then up)
-4BCB VibratoShapePrev           ; A+LEFT on PITCH: previous vibrato shape
+4B4C GetVibShape            ; the PITCH field's vibrato shape: instrument byte 5 bits 2-0 (sine/saw/square << 1, bit 0 = up)
+4B5E SetVibShape            ; store the vibrato shape in byte 5 bits 2-0 and redraw the PITCH field (DrawSpeedGlyph for noise, else DrawSpeedModeName)
+4BAC VibShapeNext           ; A+RIGHT on PITCH: next vibrato shape (triangle, saw, square down, then up)
+4BCB VibShapePrev           ; A+LEFT on PITCH: previous vibrato shape
 4BE9 GetInstrType3              ; read instrument byte 0 = type (0=PULSE 1=WAVE 2=KIT 3=NOISE)
 4BF9 InstrPitchModeUp           ; pitch mode up: byte 5 bits 4/6/7 (bit 7 = top), redraw via DrawSpeedModeName
 4C64 InstrPitchModeDown         ; pitch mode down: byte 5 bits 4/6/7, redraw via DrawSpeedModeName
 4CD9 DrawWaveFinetune           ; draw the wave FINETUNE (byte 12) signed at $990A
 4D15 DrawWaveSynthField         ; draw the WAVE/SYNTH field: 'WAVE ' + byte 3 (hex), or 'SYNTH' + byte 3 >> 4
-4DD7 InstrEnvelopeChanged       ; FarCall bank1b UpdateInstrEnvelope after a field edit
+4DD7 InstrEnvChanged       ; FarCall bank1b UpdateInstrEnv after a field edit
 4FDC DrawKitNameField           ; draw kit number (hex) + 6-char kit name (ReadKitName -> wSampleNoteString)
 5002 WriteKitNumber             ; write kit# into the field's low 6 bits (top flag bits preserved via $c0 mask)
 503A KitSelectNext              ; step to the next existing kit bank (KitExists scan), WriteKitNumber
 508C KitSelectPrev              ; step to the previous existing kit (bound $3f), WriteKitNumber
 50DF KitSelectEnsure            ; ensure the kit field points at an existing kit, else fix up
 5128 SetInstrType               ; write instrument byte 0 = type (0=PULSE 1=WAVE 2=KIT 3=NOISE)
-5181 InstrFieldIncLo            ; current field byte: +1 on the lo nibble (clamp $0f), redraw + InstrEnvelopeChanged
+5181 InstrFieldIncLo            ; current field byte: +1 on the lo nibble (clamp $0f), redraw + InstrEnvChanged
 51BC InstrFieldDecLo            ; current field byte: -1 on the lo nibble (clamp 0)
 51F4 InstrFieldIncHi            ; current field byte: +$10 on the hi nibble (clamp $f0)
 5231 InstrFieldDecHi            ; current field byte: -$10 on the hi nibble
-526B InstrLengthInc             ; A+RIGHT on LENGTH (byte 3, bit 6 = limited, shown as 3F - bits 5-0): one longer, past 3F to UNLIM
-52BF InstrLengthDec             ; A+LEFT on LENGTH: one shorter, from UNLIM to 3F
-531C InstrLengthBigInc          ; A+UP on LENGTH: 16 longer, past 3F to UNLIM
-537A InstrLengthBigDec          ; A+DOWN on LENGTH: 16 shorter, from UNLIM to 30
+526B InstrLenInc             ; A+RIGHT on LENGTH (byte 3, bit 6 = limited, shown as 3F - bits 5-0): one longer, past 3F to UNLIM
+52BF InstrLenDec             ; A+LEFT on LENGTH: one shorter, from UNLIM to 3F
+531C InstrLenBigInc          ; A+UP on LENGTH: 16 longer, past 3F to UNLIM
+537A InstrLenBigDec          ; A+DOWN on LENGTH: 16 shorter, from UNLIM to 30
 53DE CloneSynthOrTable          ; clone what the instrument screen's cursor names: the softsynth on a WAVE instrument's synth field, else the instrument's table (CloneInstrTable)
 ; --- functions called from bank 0 (this bank paged in) ---
 541F InstrScreenInput           ; instrument-screen input entry (speech $40 -> WordScreenInput via FarCallByte)
@@ -110,18 +110,18 @@
 4922 .done                ; common exit of InstrTablePrev
 495A .done                ; common exit of InstrTableAdd16
 4989 .done                ; common exit of InstrTableSub16
-49B5 .done                ; common exit of DrawWaveLength
+49B5 .done                ; common exit of DrawWaveLen
 49E2 .done                ; common exit of DrawWaveSpeed
 4A42 .done                ; common exit of DrawWaveLoopPos
 4AB3 .done                ; common exit of DrawKitDistName
-4BC9 .done                ; common exit of VibratoShapeNext
-4BE7 .done                ; common exit of VibratoShapePrev
+4BC9 .done                ; common exit of VibShapeNext
+4BE7 .done                ; common exit of VibShapePrev
 4C60 .done                ; common exit of InstrPitchModeUp
 4D13 .done                ; common exit of DrawWaveFinetune
 4DC9 .done                ; common exit of DrawWaveSynthField
-4EC6 .nameLoop            ; DrawInstrumentScreen: the 5 name characters, blanks for 0
-4F9D .eraseLoop           ; DrawInstrumentScreen: CGB: erase the cursor of every field
-4FC0 .done                ; common exit of DrawInstrumentScreen
+4EC6 .nameLoop            ; DrawInstrScreen: the 5 name characters, blanks for 0
+4F9D .eraseLoop           ; DrawInstrScreen: CGB: erase the cursor of every field
+4FC0 .done                ; common exit of DrawInstrScreen
 4FF2 .done                ; common exit of DrawKitNameField
 5060 .loop                ; loop head in KitSelectNext
 5088 .done                ; common exit of KitSelectNext
@@ -134,10 +134,10 @@
 51F2 .done                ; common exit of InstrFieldDecLo
 522F .done                ; common exit of InstrFieldIncHi
 5269 .done                ; common exit of InstrFieldDecHi
-52B9 .done                ; common exit of InstrLengthInc
-5316 .done                ; common exit of InstrLengthDec
-5374 .done                ; common exit of InstrLengthBigInc
-53D8 .done                ; common exit of InstrLengthBigDec
+52B9 .done                ; common exit of InstrLenInc
+5316 .done                ; common exit of InstrLenDec
+5374 .done                ; common exit of InstrLenBigInc
+53D8 .done                ; common exit of InstrLenBigDec
 6EC8 .bigKitKitLoop        ; loop head in InstrScreenInput
 74C9 .bigDecKitKitLoop     ; loop head in InstrScreenInput
 7A77 .done                 ; common exit of InstrScreenInput
@@ -169,7 +169,7 @@
 
 ; --- first-action / assert local names ---
 41BE .checkGameboyType
-4630 .incInstrument
+4630 .incInstr
 47F0 .loadSelectDigitPal
 4812 .loadShadowDigitPal
 485C .setInstrTable
@@ -181,11 +181,11 @@
 4B16 .ok
 4CA3 .getInstrType3
 4D08 .positive
-4DF7 .instrOk             ; DrawInstrumentScreen: instrument number in range
-4E11 .notSpeech           ; DrawInstrumentScreen: a real instrument (not the speech one)
-4E68 .fieldOk             ; DrawInstrumentScreen: cursor field within the type's field count
-4FBA .cursor              ; DrawInstrumentScreen: draw the cursor, refresh the envelope
-517A .drawInstrumentScreen
+4DF7 .instrOk             ; DrawInstrScreen: instrument number in range
+4E11 .notSpeech           ; DrawInstrScreen: a real instrument (not the speech one)
+4E68 .fieldOk             ; DrawInstrScreen: cursor field within the type's field count
+4FBA .cursor              ; DrawInstrScreen: draw the cursor, refresh the envelope
+517A .drawInstrScreen
 543D .notSpeech
 5462 .latchDone
 547C .aHeldMark
@@ -208,7 +208,7 @@
 561B .upNoiseAtTableMode
 561F .upDraw
 5666 .downWaveSkip
-566D .downWaveFromLength
+566D .downWaveFromLen
 5680 .downWaveSkip2
 5688 .downWaveFromSynth
 5698 .downStep
@@ -246,7 +246,7 @@
 5922 .rightNoiseAtTableMode
 5926 .rightDraw
 59C7 .incPulse
-5AB9 .incPulseLength
+5AB9 .incPulseLen
 5AED .incPulsePitch
 5AFB .incPulseTransp
 5B01 .incPulseCmdRate
@@ -254,7 +254,7 @@
 5B5B .incPulseTable
 5B61 .incWave
 5C5F .incWavePitch
-5D53 .incWaveLength
+5D53 .incWaveLen
 5D86 .incWaveLoopPos
 5DA5 .incWaveSpeed
 5DCA .incWaveTransp
@@ -271,14 +271,14 @@
 610C .incKitTableMode
 6112 .incKitTable
 6118 .incNoise
-61BB .incNoiseLength
+61BB .incNoiseLen
 61C1 .incNoisePitch
 61E8 .incNoiseTransp
 61EE .incNoiseCmdRate
 61F4 .incNoiseTableMode
 61FA .incNoiseTable
 629B .decPulse
-638F .decPulseLength
+638F .decPulseLen
 63C2 .decPulsePitch
 63D0 .decPulseTransp
 63D6 .decPulseCmdRate
@@ -286,8 +286,8 @@
 6430 .decPulseTable
 6436 .decWave
 6534 .decWavePitch
-6608 .decWaveLength
-663F .decWaveLengthNext2
+6608 .decWaveLen
+663F .decWaveLenNext2
 6651 .decWaveLoopPos
 6672 .decWaveSpeed
 6696 .decWaveTransp
@@ -298,14 +298,14 @@
 695C .decKitLenTest2
 69DD .decKitClipAHeld
 6A03 .decNoise
-6AA6 .decNoiseLength
+6AA6 .decNoiseLen
 6AAC .decNoisePitch
 6AD3 .decNoiseTransp
 6AD9 .decNoiseCmdRate
 6ADF .decNoiseTableMode
 6AE5 .decNoiseTable
 6B66 .bigPulse
-6C37 .bigPulseLength
+6C37 .bigPulseLen
 6C73 .bigPulsePitch
 6CC8 .bigPulseTableMode
 6CDC .bigPulseTable
@@ -313,7 +313,7 @@
 6D51 .bigWavePitch
 6D57 .bigWaveSpeed
 6D7D .bigWaveSynth
-6DC1 .bigWaveLength
+6DC1 .bigWaveLen
 6E4C .bigWaveTableMode
 6E60 .bigWaveTable
 6E66 .bigKit
@@ -327,11 +327,11 @@
 7065 .bigKitTableMode
 7079 .bigKitTable
 707F .bigNoise
-70EA .bigNoiseLength
+70EA .bigNoiseLen
 70F0 .bigNoiseTableMode
 7104 .bigNoiseTable
 7185 .bigDecPulse
-7259 .bigDecPulseLength
+7259 .bigDecPulseLen
 7294 .bigDecPulsePitch
 72E9 .bigDecPulseTableMode
 72FD .bigDecPulseTable
@@ -353,7 +353,7 @@
 7677 .bigDecKitTableMode
 768B .bigDecKitTable
 7691 .bigDecNoise
-76FC .bigDecNoiseLength
+76FC .bigDecNoiseLen
 7702 .bigDecNoiseTableMode
 7716 .bigDecNoiseTable
 771E .aPress
@@ -375,7 +375,7 @@
 7A03 .songPlayback
 7A23 .playback
 7A4B .copy
-7A58 .copyInstrument
+7A58 .copyInstr
 
 
 ; --- full local naming (block signature) ---
@@ -406,8 +406,8 @@
 4666 .farCall
 46B9 .mulU8
 47D7 .readCurInstrByte
-48B9 .writeCurrentInstrByte
-4907 .writeCurrentInstrByte
+48B9 .writeCurInstrByte
+4907 .writeCurInstrByte
 4A2C .negative
 4A2E .draw
 4A39 .dash
@@ -422,21 +422,21 @@
 4BDF .store
 4C1D .testBit6
 4C37 .cont
-4C3D .writeCurrentInstrByte
+4C3D .writeCurInstrByte
 4C80 .testBit4
 4C9A .getInstrType3_2
-4CB2 .writeCurrentInstrByte
+4CB2 .writeCurInstrByte
 4D74 .drawString
 4DD1 .cont
-4E45 .typeOk              ; DrawInstrumentScreen: type < 4 (else reset to 0)
-4EDF .nameChar            ; DrawInstrumentScreen: character not 0
-4EED .nameDone            ; DrawInstrumentScreen: the type label at field 1
-4F58 .typePulse           ; DrawInstrumentScreen: type 0: DrawPulseInstr
-4F5F .typeWave            ; DrawInstrumentScreen: type 1: DrawWaveInstr
-4F66 .typeNoise           ; DrawInstrumentScreen: type 3: DrawNoiseInstr
-4F6D .typeKit             ; DrawInstrumentScreen: type 2: DrawKitInstr
-4F71 .drawType            ; DrawInstrumentScreen: far call the type's drawer, then the channel status
-4FB3 .eraseDone           ; DrawInstrumentScreen: restore the cursor field
+4E45 .typeOk              ; DrawInstrScreen: type < 4 (else reset to 0)
+4EDF .nameChar            ; DrawInstrScreen: character not 0
+4EED .nameDone            ; DrawInstrScreen: the type label at field 1
+4F58 .typePulse           ; DrawInstrScreen: type 0: DrawPulseInstr
+4F5F .typeWave            ; DrawInstrScreen: type 1: DrawWaveInstr
+4F66 .typeNoise           ; DrawInstrScreen: type 3: DrawNoiseInstr
+4F6D .typeKit             ; DrawInstrScreen: type 2: DrawKitInstr
+4F71 .drawType            ; DrawInstrScreen: far call the type's drawer, then the channel status
+4FB3 .eraseDone           ; DrawInstrScreen: restore the cursor field
 5023 .cont
 504B .cont
 504D .readCurInstrByte
@@ -447,11 +447,11 @@
 50F3 .cont
 50F5 .readCurInstrByte
 5120 .step
-5151 .writeCurrentInstrByte
-5199 .writeCurrentInstrByte
-51D1 .writeCurrentInstrByte
-520C .writeCurrentInstrByte
-5246 .writeCurrentInstrByte
+5151 .writeCurInstrByte
+5199 .writeCurInstrByte
+51D1 .writeCurInstrByte
+520C .writeCurInstrByte
+5246 .writeCurInstrByte
 5285 .write
 52B0 .unlim
 52D8 .limited
@@ -568,7 +568,7 @@
 65A1 .decWavePlay
 65BE .decWavePlayNext
 65C1 .decWavePlayWrite
-6616 .decWaveLengthNext
+6616 .decWaveLenNext
 66A2 .decWaveFinetune
 6763 .decKitVolumeNext
 676F .decKitVolumeSet
@@ -611,8 +611,8 @@
 6CA0 .bigPulseFinetune
 6D1B .bigWaveVolume
 6D34 .bigWaveOutput
-6DED .bigWaveLengthSet
-6DF1 .bigWaveLengthNext
+6DED .bigWaveLenSet
+6DF1 .bigWaveLenNext
 6E0D .bigWaveLoopPos
 6E1C .bigWaveFinetune
 6E38 .bigWaveFinetuneWrite
@@ -655,7 +655,7 @@
 72C1 .bigDecPulseFinetune
 733C .bigDecWaveVolume
 7355 .bigDecWaveOutput
-7378 .bigDecWaveLength
+7378 .bigDecWaveLen
 73B9 .bigDecWaveSpeedStep
 73BF .bigDecWaveSpeedNext
 741D .bigDecWaveFinetune
@@ -695,7 +695,7 @@
 7909 .mapUpMove
 79A2 .mapRightRedraw
 79C2 .pasteHeld
-79D0 .pasteInstrument
+79D0 .pasteInstr
 79FE .cloneDone
 7A10 .songPlaybackToggle
 7A33 .playbackHeld
@@ -703,7 +703,7 @@
 7A75 .ignored
 
 ; --- pointer targets (tools/name_targets.py) ---
-4F4C .typeJumpTable       ; DrawInstrumentScreen: switch (type): the drawer per type
+4F4C .typeJumpTable       ; DrawInstrScreen: switch (type): the drawer per type
 553C .upTypes
 5782 .leftTypes
 5833 .rightTypes

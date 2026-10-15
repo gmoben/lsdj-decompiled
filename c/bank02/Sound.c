@@ -6,13 +6,13 @@
 #include "lsdj.h"
 
 extern volatile sfr UBYTE hSoundCh;         /* $FF8B */
-extern volatile sfr UBYTE hFxValue;         /* $FF8F */
+extern volatile sfr UBYTE hFxVal;         /* $FF8F */
 extern volatile sfr UBYTE IE_REG;           /* $FFFF */
 extern volatile sfr UBYTE DIV_REG;          /* $FF04 */
 extern volatile sfr UBYTE NR52_REG;         /* $FF26 */
-extern UBYTE hFxValueMem;                   /* hFxValue read as a plain global (ld hl; or a,(hl)) */
-extern volatile sfr BYTE hFxValueS;         /* hFxValue as a signed byte (P and F's steps) */
-extern UBYTE wFxChannel;                    /* $C527: the FX slot (channel + 4 x column) */
+extern UBYTE hFxValMem;                   /* hFxVal read as a plain global (ld hl; or a,(hl)) */
+extern volatile sfr BYTE hFxValS;         /* hFxVal as a signed byte (P and F's steps) */
+extern UBYTE wFxChan;                    /* $C527: the FX slot (channel + 4 x column) */
 extern UBYTE wFxSlotCmdTimer[];             /* $C230, [12] */
 extern UBYTE wChanFxSlots[];                /* $C2F0, [12] */
 extern UBYTE wWavLevel;                     /* $C8F3 */
@@ -121,8 +121,8 @@ UBYTE SndGetChainPhrase(UBYTE chain, UBYTE row);
 UBYTE SndRandomUpTo(UBYTE n);
 void SndTableHop(UBYTE v);           /* asm */
 void ApplyPitchBend(void);                  /* asm */
-UBYTE SndAnyChannelActive(void);
-void SndStartChannels(void);
+UBYTE SndAnyChanActive(void);
+void SndStartChans(void);
 void TogglePlayback(void);
 void SndEnableLcdInts(void);
 void SndLiveStopRange(void);
@@ -133,35 +133,35 @@ void StartSongPlayback(void);
 void SndKillNote(void);
 void SndResetChanFx(void);                  /* asm */
 void SndStartChanFromRow(void);
-void SndSetChannelEnable(void);
+void SndSetChanEnable(void);
 void SndResetFxState(void);
 void SyncStartTransport(void);              /* bank 0 */
 void SeedRandom16(UWORD seed);              /* bank 0 */
-void SndStepAllChannels(void);
-void SndRunChannelFxSlots(void);
-void SndSetupWaveChannel(void);
+void SndStepAllChans(void);
+void SndRunChanFxSlots(void);
+void SndSetupWaveChan(void);
 void SndSpeechStep(void);
 void SndStepWavFrames(void);
-void SndUpdateAllChannels(void);
+void SndUpdateAllChans(void);
 void SndRetrigNote(void);
 void SelectKit2Sample(UBYTE n);             /* bank 0 */
-void TriggerWave(void);                     /* asm */
+void TriggerWav(void);                     /* asm */
 void SndClearChanFxSlots(void);             /* asm */
 void SndResetWavFlat(void);                 /* asm */
 void SndReadChainRow(void);                 /* asm */
-void SndDeactivateChannel(void);            /* asm */
+void SndDeactivateChan(void);            /* asm */
 void SndEnterSongRow(void);                 /* asm */
 void SndClearVoiceHram(void);               /* asm */
 void LoadWaveRam(void);                     /* bank 0, asm */
-void TriggerPU1(void);                      /* asm */
-void TriggerPU2(void);                      /* asm */
-void TriggerNoise(void);                    /* asm */
+void TriggerPu1(void);                      /* asm */
+void TriggerPu2(void);                      /* asm */
+void TriggerNoi(void);                    /* asm */
 void SndSetupLfo(void);                     /* asm */
 UBYTE EnvReleaseSpeed(void);
 UBYTE EnvReleaseTarget(void);
 void SndClampNoteRange(UBYTE n);            /* asm */
 void SndFxParsePitchVal(UBYTE *env);        /* asm */
-void ReadTableEnvelope(void);               /* asm */
+void ReadTableEnv(void);               /* asm */
 void ReadTableTranspose(void);              /* asm */
 void TriggerNote(void);                     /* asm */
 void SndSetKitParams(void);                 /* asm */
@@ -200,22 +200,22 @@ void FxCmd_R(void)
     UBYTE n;
     UBYTE k;
 
-    vol = hFxValue & 0xF0;
+    vol = hFxVal & 0xF0;
     if (vol == 0x80) {
-        n = hFxValue & 0x0F;
+        n = hFxVal & 0x0F;
         n = MulU8(n, wChanCmdRate[hSoundCh] + 1);
         k = hSoundCh;
         wChanRetrigTimer[k] = ++n;
         wChanRetrigRate[k] = n & 0x0F;
     } else {
-        n = (hFxValue - 1) & 0x0F;
+        n = (hFxVal - 1) & 0x0F;
         if (n != 0x0F)
             n = MulU8(n, wChanCmdRate[hSoundCh] + 1);
-        wFxSlotRetrigRate[wFxChannel] = n;
-        wChanFxSlots[wFxChannel] |= 2;
-        wChanEnvVolOffset[wFxChannel] = vol;
-        if (wFxChannel < 4)
-            wFxSlotEnvTimer[wFxChannel] = 0;
+        wFxSlotRetrigRate[wFxChan] = n;
+        wChanFxSlots[wFxChan] |= 2;
+        wChanEnvVolOffset[wFxChan] = vol;
+        if (wFxChan < 4)
+            wFxSlotEnvTimer[wFxChan] = 0;
         else
             SndRetrigNote();
     }
@@ -245,9 +245,9 @@ void SndKillNote(void)
 
 void FxCmd_K(void)
 {
-    if (hFxValueMem) {
-        wFxSlotCmdTimer[wFxChannel] = hFxValue - (wFxChannel > 3);
-        wChanFxSlots[wFxChannel] |= 1;
+    if (hFxValMem) {
+        wFxSlotCmdTimer[wFxChan] = hFxVal - (wFxChan > 3);
+        wChanFxSlots[wFxChan] |= 1;
     } else
         SndKillNote();
 }
@@ -257,7 +257,7 @@ void FxCmd_K(void)
 void FxCmd_P(void)
 {
     if (hSoundCh == 3) {
-        wChanVibShape[3] = hFxValue;
+        wChanVibShape[3] = hFxVal;
         wNoiPSlideStart = 1;
     } else
         ApplyPitchBend();
@@ -267,19 +267,19 @@ void FxCmd_P(void)
 
 void FxCmd_O(void)
 {
-    SndWritePanning(hFxValue);
+    SndWritePanning(hFxVal);
 }
 
 /* $6669: T, the tempo */
 
 void FxCmd_T(void)
 {
-    wTempo = hFxValue;
+    wTempo = hFxVal;
     wTempoMode = 0;
     FarCall(7, FAR_FN(SetSyncSendRate));
 }
 
-/* $66E7: R fires on FX slot wFxChannel and the note retriggers: a slide
+/* $66E7: R fires on FX slot wFxChan and the note retriggers: a slide
    pending on a pulse or the wave channel restarts and the envelope is parsed
    again (the wave's level steps by R's volume digit instead); a phrase slot
    restarts its channel's latched table too. Then the slot reloads its timer
@@ -289,7 +289,7 @@ void SndRetrigNote(void)
 {
     UBYTE rate;
 
-    hSoundCh = wFxChannel & 3;
+    hSoundCh = wFxChan & 3;
     if (!wSpeechWord || hSoundCh != 2) {
         switch (hSoundCh) {
         case 0:
@@ -311,19 +311,19 @@ void SndRetrigNote(void)
                 wChanPitchCur[2] = 0x8000;
                 wChanCmdStep[2] = 1;
             }
-            SndWavLevelStep(wChanEnvVolOffset[wFxChannel]);
+            SndWavLevelStep(wChanEnvVolOffset[wFxChan]);
             break;
         case 3:
             SndFxParsePitchVal(&wEnvNode1Noi);
             break;
         }
-        if (wFxChannel < 4 && wChanTableActive[hSoundCh]) {
+        if (wFxChan < 4 && wChanTableActive[hSoundCh]) {
             wChanTable[hSoundCh] = wChanTableLatch[hSoundCh];
             wChanTableRow1[hSoundCh + 4] = 0xFF;
             wChanTableRow1[hSoundCh] = 0xFF;
             wChanGrooveRow[hSoundCh + 4] = 0xFF;
             wChanNoteCountdown[hSoundCh + 4] = 0;
-            ReadTableEnvelope();
+            ReadTableEnv();
             ReadTableTranspose();
             wChanTableFresh[hSoundCh] = 1;
         }
@@ -335,11 +335,11 @@ void SndRetrigNote(void)
         wKitVoicesActive = wSndUpdateFlags;
         SndSetKitParams();
     }
-    rate = wFxSlotRetrigRate[wFxChannel];
+    rate = wFxSlotRetrigRate[wFxChan];
     if (rate == 0x0F)
-        wChanFxSlots[wFxChannel] = 0;
+        wChanFxSlots[wFxChan] = 0;
     else
-        wFxSlotEnvTimer[wFxChannel] = rate;
+        wFxSlotEnvTimer[wFxChan] = rate;
 }
 
 /* $6270: P with the instrument's PITCH on STEP (ApplyPitchBend jumps
@@ -349,9 +349,9 @@ void SndRetrigNote(void)
 void FxCmd_P_Step(void)
 {
     if (wSndUpdateFlags && hSoundCh == 2)
-        wChanFreq[hSoundCh] += (WORD)hFxValueS * 3;
+        wChanFreq[hSoundCh] += (WORD)hFxValS * 3;
     else {
-        wChanPitchCur[hSoundCh] += (WORD)hFxValueS << 3;
+        wChanPitchCur[hSoundCh] += (WORD)hFxValS << 3;
         wChanCmdStep[hSoundCh] = 1;
     }
 }
@@ -367,15 +367,15 @@ void FxCmd_F_Wav(void)
     UWORD off;
 
     if (!wSndUpdateFlags) {
-        if (hFxValueMem) {
-            wWavSynthFrame = hFxValue + wWavSynthFrame;
+        if (hFxValMem) {
+            wWavSynthFrame = hFxVal + wWavSynthFrame;
             SndClearVoiceHram();
             _asm di _endasm;
             LoadWaveRam();
             _asm ei _endasm;
         }
     } else {
-        step = hFxValueS;
+        step = hFxValS;
         off = wKit1OffsetHi;
         if (step >= 16) {
             step <<= 1;
@@ -402,7 +402,7 @@ void FxCmd_F_Wav(void)
         wKit2OffsetHi = off >> 8;
         step = wWavLevelS;
         wWavLevel = wChanEnv[2];
-        TriggerWave();
+        TriggerWav();
         wWavLevel = step;
         SndClearChanFxSlots();
     }
@@ -485,14 +485,14 @@ const UBYTE EnvReleaseSpeeds[8] = {0x00, 0x06, 0x0B, 0x11, 0x16, 0x1C, 0x22, 0x2
 
 UBYTE EnvReleaseSpeed(void)
 {
-    return EnvReleaseSpeeds[hFxValue & 7];
+    return EnvReleaseSpeeds[hFxVal & 7];
 }
 
 /* $6685: a delayed K's slot ran out: kill that channel's note */
 
 void SndRunFxSlot(void)
 {
-    hSoundCh = wFxChannel & 3;
+    hSoundCh = wFxChan & 3;
     SndKillNote();
 }
 
@@ -525,7 +525,7 @@ void SndWavLevelStep(UBYTE v)
 
 UBYTE EnvReleaseTarget(void)
 {
-    return (hFxValue & 8) ? 0x0F : 0;
+    return (hFxVal & 8) ? 0x0F : 0;
 }
 
 /* $69F2: E on PU1: restart the envelope (retriggering the note when its
@@ -536,7 +536,7 @@ void FxCmd_E_Pu1(void)
     UBYTE v;
 
     if (wChanFreqHi[0] & 0x40)
-        TriggerPU1();
+        TriggerPu1();
     wEnvStagePu1 = 0;
     SndSetupLfo();
     v = EnvReleaseSpeed();
@@ -556,7 +556,7 @@ void FxCmd_E_Pu2(void)
     UBYTE v;
 
     if (wChanFreqHi[1] & 0x40)
-        TriggerPU2();
+        TriggerPu2();
     wEnvStagePu2 = 0;
     SndSetupLfo();
     v = EnvReleaseSpeed();
@@ -576,7 +576,7 @@ void FxCmd_E_Noi(void)
     UBYTE v;
 
     if (wChanFreqHi[3] & 0x40)
-        TriggerNoise();
+        TriggerNoi();
     wEnvStageNoi = 0;
     SndSetupLfo();
     v = EnvReleaseSpeed();
@@ -600,7 +600,7 @@ void SndLiveQueueStart(UBYTE ch)
 
     p = wChanNextSongRow + ch;
     if (wSongRow == *p) {
-        if (wCurrentScreen == 3 || wCurrentScreen == 1) {
+        if (wCurScreen == 3 || wCurScreen == 1) {
             if (SndGetChainPhrase(wChain, wChainRow) == 0xFF)
                 return;
             wChanRowQueue[ch] = wChainRow;
@@ -628,11 +628,11 @@ void SndSetPlayRange(void)
 {
     wPlayChanFirst = wSongCol;
     wPlayChanLast = wSongCol;
-    if (wCurrentScreen == 4 && wCursorMode == 4) {
-        if (wSelLeft < wSongCol)
-            wPlayChanFirst = wSelLeft;
+    if (wCurScreen == 4 && wCursorMode == 4) {
+        if (wSelectionLeft < wSongCol)
+            wPlayChanFirst = wSelectionLeft;
         else
-            wPlayChanLast = wSelLeft;
+            wPlayChanLast = wSelectionLeft;
     }
 }
 
@@ -649,7 +649,7 @@ void SndLiveQueueRange(void)
 
 /* $6D97: start the channels in the play range from the song row */
 
-void SndStartChannels(void)
+void SndStartChans(void)
 {
     wPlayMode = 0;
     SndSetPlayRange();
@@ -657,10 +657,10 @@ void SndStartChannels(void)
         wChanNextSongRow[hSoundCh] = wSongRow;
         SndStartChanFromRow();
     }
-    if (SndAnyChannelActive()) {
+    if (SndAnyChanActive()) {
         MemSet(wChanStopQueued, 0, 4);
         MemSet(wChanNextSongRow, 0xFF, 4);
-        SndSetChannelEnable();
+        SndSetChanEnable();
         SndResetFxState();
         SndEnableLcdInts();
         SyncStartTransport();
@@ -672,10 +672,10 @@ void SndStartChannels(void)
 
 void SndStartRange(void)
 {
-    if (SndAnyChannelActive())
+    if (SndAnyChanActive())
         SndLiveQueueRange();
     else
-        SndStartChannels();
+        SndStartChans();
 }
 
 /* $6E24: live mode, stop the play range's channels: queued starts are
@@ -728,7 +728,7 @@ UBYTE SndGetChainPhrase(UBYTE chain, UBYTE row)
 
 void SndInitPlayState(void)
 {
-    wPlayMode = wCurrentScreen;
+    wPlayMode = wCurScreen;
     wLiveMode = 0;
     TogglePlayback();
 }
@@ -760,15 +760,15 @@ void SndTick(void)
         wSyncTxByte = wSongRow;
         SeedRandom16(DIV_REG);
     } else {
-        SndStepAllChannels();
-        SndRunChannelFxSlots();
-        SndSetupWaveChannel();
+        SndStepAllChans();
+        SndRunChanFxSlots();
+        SndSetupWaveChan();
         if (wSpeechWord && wSpeechFrameTicks != 0xFF)
             SndSpeechStep();
         if (wWavPlayMode && wChanActive[2])
             SndStepWavFrames();
     }
-    SndUpdateAllChannels();
+    SndUpdateAllChans();
     if (wPlayRestartPending) {
         wPlayRestartPending = 0;
         if (wSyncMode == 3 || wSyncMode == 6)
@@ -784,7 +784,7 @@ void SndTick(void)
 
 void ToggleSongPlayback(void)
 {
-    if (wCurrentScreen == 4)
+    if (wCurScreen == 4)
         DebugTrap();
     if (wLiveMode) {
         SndLiveStopRange();
@@ -796,10 +796,10 @@ void ToggleSongPlayback(void)
         TogglePlayback();
     if (wSavedScreen)
         DebugTrap();
-    wSavedScreen = wCurrentScreen;
-    wCurrentScreen = 4;
+    wSavedScreen = wCurScreen;
+    wCurScreen = 4;
     TogglePlayback();
-    wCurrentScreen = wSavedScreen;
+    wCurScreen = wSavedScreen;
     wSavedScreen = 0;
 }
 
@@ -856,16 +856,16 @@ void StartSongPlayback(void)
 void StartScreenPlayback(void)
 {
     if (wSyncMode == 1 && wSyncTick == 0xFF) {
-        wSyncRun = wCurrentScreen == 4;
+        wSyncRun = wCurScreen == 4;
         SyncSetSendMode();
     }
     if (wButtons & 0x80)
         wSyncStartRow = wSongRow;
     else
         wSongRow = wSyncStartRow;
-    SndSetChannelEnable();
+    SndSetChanEnable();
     SndResetFxState();
-    switch (wCurrentScreen) {
+    switch (wCurScreen) {
     case 4:
         StartSongPlayback();
         break;
@@ -889,7 +889,7 @@ void StartScreenPlayback(void)
         wChanPhrase[wSongCol] = wPhrase;
         break;
     }
-    wPlayMode = wCurrentScreen;
+    wPlayMode = wCurScreen;
     SndEnableLcdInts();
 }
 
@@ -915,7 +915,7 @@ void TogglePlayback(void)
     MemSet(wChanDispNote, 0, 4);
     MemSet(wChanNextSongRow, 0xFF, 4);
     ClearSprites012();
-    if (mode != wCurrentScreen)
+    if (mode != wCurScreen)
         StartScreenPlayback();
     else
         SyncStopTransport();
@@ -1043,7 +1043,7 @@ void SndSpeechStep(void)
             wSpeechWord = 0;
             wKit2LoopEnabled = 0;
             SelectKit2Sample(v);
-            TriggerWave();
+            TriggerWav();
             wSpeechWord = 1;
             _asm ei _endasm;
             wChanDispNote[2] = n;
@@ -1072,9 +1072,9 @@ UBYTE SndLiveChainEnd(void)
 {
     SndReadChainRow();
     if (wChanStopQueued[hSoundCh]) {
-        SndDeactivateChannel();
+        SndDeactivateChan();
         SndResetChanFx();
-        if (!SndAnyChannelActive()) {
+        if (!SndAnyChanActive()) {
             NR52_REG = 0;
             wPlayMode = 0;
             SyncStopTransport();

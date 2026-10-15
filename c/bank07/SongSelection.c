@@ -13,7 +13,7 @@
 #include "lsdj.h"
 
 extern UBYTE wSongScroll;                   /* $C41C */
-extern UBYTE wSelTop;                       /* $C40E */
+extern UBYTE wSelectionTop;                       /* $C40E */
 extern UBYTE wClipboardType;                /* $C411 */
 extern UBYTE wSongPasteCol;                 /* $C94E */
 extern UBYTE wSongPasteRow;                 /* $C94F */
@@ -22,7 +22,7 @@ void SongEraseCursor(void);
 void SortBytePairC(char *a, char *b);      /* SortBytePair as this unit declares it */
 void DrawTileRun(UBYTE x, UBYTE y, UBYTE w, UBYTE h, UBYTE tile);   /* asm */
 
-const UBYTE SongSelAttr[32] = {             /* $07:$5DB8: CGB attribute 3 for the selection */
+const UBYTE SongSelectionAttr[32] = {             /* $07:$5DB8: CGB attribute 3 for the selection */
     3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
     3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 };
@@ -38,14 +38,14 @@ void SongEditSelection(void)
 
     if (wClipboardType != 4)
         return;
-    if (wSelLeft >= 4)
+    if (wSelectionLeft >= 4)
         DebugTrap();
     if (wSongCol >= 4)
         DebugTrap();
-    x0 = wSelLeft;
+    x0 = wSelectionLeft;
     x1 = wSongCol;
     SortBytePairC((char *)&x0, (char *)&x1);
-    y0 = wSelTop;
+    y0 = wSelectionTop;
     y1 = wSongRow;
     SortBytePairC((char *)&y0, (char *)&y1);
     if (y0 < wSongScroll)
@@ -81,7 +81,7 @@ void SongEditSelection(void)
             DebugTrap();
         if (hGameboyType) {
             VBK_REG = 1;
-            set_bkg_tiles(SongColOffsets[i], y, 2, y1 - y0, SongSelAttr);
+            set_bkg_tiles(SongColOffsets[i], y, 2, y1 - y0, SongSelectionAttr);
             VBK_REG = 0;
         } else {
             DrawTileRun(SongColOffsets[i], y, 2, y1 - y0, 2);

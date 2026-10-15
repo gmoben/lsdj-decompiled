@@ -9,7 +9,7 @@ IF !DEF(RAM_INC)
 DEF RAM_INC EQU 1
 
 ; --- Screen / UI state ------------------------------------------------------
-DEF wCurrentScreen   EQU $C401  ; 0-14; indexes the screen draw/update dispatch
+DEF wCurScreen   EQU $C401  ; 0-14; indexes the screen draw/update dispatch
 DEF wIsCGB           EQU $C402  ; set at boot when running on a Game Boy Color
 DEF wDrawStep        EQU $C405  ; multi-frame screen-redraw step: each screen's per-frame draw reads it, draws that step's part (cp 0/1/...), then increments; reset to 0 restarts a full redraw. Shared by all editor screens.
 DEF wCursorMode      EQU $C413  ; editor cursor mode (read across screens; cp $04 commonly). Cross-checked
@@ -17,14 +17,14 @@ DEF wClipboardType   EQU $C411  ; SCREEN_* data-type held in the cut/copy clipbo
                                 ; CUT (A+B) / COPY on each screen to that screen's id, checked by PASTE
                                 ; (SEL+A). Verified in emulator: 0 -> $04 after cutting a SONG chain (and it
                                 ; is unchanged by navigation) -- NOT the drawn screen.
-; CGB BG-map attribute palettes copied to hBgDigitPalette/hBgPalette before a draw.
+; CGB BG-map attribute palettes copied to hBgDigitPal/hBgPal before a draw.
 ; Two contexts: dimmed/shadowed ($C566/7) and selected/highlighted ($C568/9). Verified:
-; the draw helper copies $C568->hBgDigitPalette and $C569->hBgPalette. (These four were
+; the draw helper copies $C568->hBgDigitPal and $C569->hBgPal. (These four were
 ; previously mislabeled wProjectCursor -- they are draw palette config, not a cursor.)
 DEF wShadowDigitPal  EQU $C566  ; BG digit-palette attribute, dimmed/normal context
 DEF wShadowPal       EQU $C567  ; BG tile-palette attribute, dimmed/normal context
-DEF wSelectDigitPal  EQU $C568  ; BG digit-palette attribute, selected/highlighted context (-> hBgDigitPalette)
-DEF wSelectPal       EQU $C569  ; BG tile-palette attribute, selected/highlighted context (-> hBgPalette)
+DEF wSelectDigitPal  EQU $C568  ; BG digit-palette attribute, selected/highlighted context (-> hBgDigitPal)
+DEF wSelectPal       EQU $C569  ; BG tile-palette attribute, selected/highlighted context (-> hBgPal)
 DEF wGroove          EQU $C417  ; current groove number being edited (0-31, Groove screen)
 DEF wChain           EQU $C418  ; current chain number being edited (0-127, Chain screen)
 DEF wTable           EQU $C41B  ; current table number being edited (0-31, Table screen)
@@ -34,15 +34,15 @@ DEF wWaveCursor      EQU $C42B  ; WAVE editor horizontal cursor = wave-frame pos
 
 ; Cut/copy SELECTION rectangle in grid coords ($C40D-$C410), then wClipboardType.
 ; Set to the cursor cell on CUT (A+B) / COPY; read by cut/copy/paste/clone. Verified
-; in emulator: (wSelLeft,wSelTop) = cursor (col,row), (wSelRight,wSelBottom) = far
+; in emulator: (wSelectionLeft,wSelectionTop) = cursor (col,row), (wSelectionRight,wSelectionBottom) = far
 ; corner (e.g. SONG cut at col 2 -> 2,0,3,1; PHRASE cut at col1/row7 -> 1,7,3,8).
 ; These were mislabeled wCursorX/wCursorY -- they are the selection's X1/X2 *columns*,
 ; NOT a live cursor. The live edit cursor is per-screen (col/row): SONG wSongCol/wSongRow,
 ; CHAIN wChainCol/wChainRow, PHRASE wPhraseCol/wPhraseRow, etc.
-DEF wSelLeft         EQU $C40D  ; selection rect left column (x1)
-DEF wSelTop          EQU $C40E  ; selection rect top row (y1)
-DEF wSelRight        EQU $C40F  ; selection rect right column (x2, exclusive)
-DEF wSelBottom       EQU $C410  ; selection rect bottom row (y2, exclusive)
+DEF wSelectionLeft         EQU $C40D  ; selection rect left column (x1)
+DEF wSelectionTop          EQU $C40E  ; selection rect top row (y1)
+DEF wSelectionRight        EQU $C40F  ; selection rect right column (x2, exclusive)
+DEF wSelectionBottom       EQU $C410  ; selection rect bottom row (y2, exclusive)
 DEF wPhraseCol       EQU $C415  ; Phrase editor cursor column (1=NOTE 2=INSTR 3=CMD-type 4=CMD-param; col 0 unreachable -- verified live via tools/emu/song.py)
 DEF wPhraseRow       EQU $C416  ; active phrase step/row (0-15); Phrase cursor row + playback position (bank $02)
 ; Per-screen edit cursors (col/row), verified live in the emulator by moving the cursor
@@ -104,24 +104,24 @@ DEF wFileCursor      EQU $C999  ; file-list cursor index (0-$1F)
 DEF wFilePromptActive EQU $C995  ; YES/NO prompt shown
 DEF wFileField       EQU $C992  ; file-screen field cursor (0-2)
                                  ; once per field and it decrements to 0 (entry value 1/2 also selects which fields)
-DEF wCompBank        EQU $C979  ; SRAM bank used for compressed block I/O
-DEF wCompSrcHi       EQU $C97B  ; compressed-data source ptr hi
-DEF wCompDst         EQU $C97D  ; (de)compression output pointer into the working song, 16-bit
-DEF wCompByte        EQU $C97F  ; current byte being processed in song (de)compression: loaded via ReadSongByte and
+DEF wCompressBank        EQU $C979  ; SRAM bank used for compressed block I/O
+DEF wCompressSrcHi       EQU $C97B  ; compressed-data source ptr hi
+DEF wCompressDst         EQU $C97D  ; (de)compression output pointer into the working song, 16-bit
+DEF wCompressByte        EQU $C97F  ; current byte being processed in song (de)compression: loaded via ReadSongByte and
                                 ; compared against RLE markers ($20, $ff, run counts); set to $ff as a sentinel
-DEF wDecompPos       EQU $C983  ; cursor into the $DA00 decompress scratch buffer
+DEF wDecompressPos       EQU $C983  ; cursor into the $DA00 decompress scratch buffer
 DEF wWorkSongPage    EQU $C986  ; ReadWorkingSongByte's cached SRAM page (song address high byte; $FF = none)
 
 ; --- Drawing helpers (used by DrawString/DrawHexByte/... in bank 0) ----------
 DEF wStringSrc       EQU $C564  ; source pointer for DrawString (16-bit)
 DEF wVramCursor      EQU $C573  ; [1] 16-bit VRAM tilemap dest ($98xx-$9Bxx, 16-bit LE; $C574=hi); draw helpers auto-increment it
 DEF wPhrase          EQU $C414  ; current phrase number being edited ($FF=none, Phrase screen)
-DEF wInstrument      EQU $C576  ; current instrument number (index into instruments[64][16])
-DEF wStrBuffer       EQU $C6A9  ; shared text work buffer (strcpy destination), used across banks
+DEF wInstr      EQU $C576  ; current instrument number (index into instruments[64][16])
+DEF wStrBuf       EQU $C6A9  ; shared text work buffer (strcpy destination), used across banks
 DEF wSongReadBuf     EQU $C46D  ; [64] the song screen's window: 16 visible rows x 4 channels (SongReadRow, four ReadSongBytes of 16); also ReadSongBytes' shared scratch destination
                                 ; in across banks); editors read a row/set (e.g. groove steps, cp $10) into it then render
-DEF wMsgTimer        EQU $C7A9  ; frame countdown for the transient message (set 10/50/100/150, dec'd; gates its draw)
-DEF wMsgStrPtr       EQU $C7AA  ; 16-bit pointer to a transient on-screen message string (set to wStrBuffer / the
+DEF wMessageTimer        EQU $C7A9  ; frame countdown for the transient message (set 10/50/100/150, dec'd; gates its draw)
+DEF wMessageStrPtr       EQU $C7AA  ; 16-bit pointer to a transient on-screen message string (set to wStrBuf / the
                                 ; command-help strings). While nonzero the main screen-redraw dispatcher skips a full redraw
 DEF wDebugTrapped    EQU $C7AF  ; set by DebugTrap so it fires only once
 
@@ -129,7 +129,7 @@ DEF wDebugTrapped    EQU $C7AF  ; set by DebugTrap so it fires only once
 DEF wLiveMode        EQU $C528  ; SONG-screen LIVE mode flag, 0=SONG / 1=LIVE (verified: SELECT+LEFT on SONG
                                 ; toggles it, title + nav letter switch SONG<->LIVE). Boolean toggle at bank07 $4eda;
                                 ; the playback engine branches on it. Cleared by SndInitPlayState
-DEF wTempoMode       EQU $C52A  ; tempo mode (song property $BFCC): 0 = numeric BPM (wTempo), 1/2/3 = special tempo presets with fixed CGB/DMG timer values (GetTempoTimerValue / DrawTempo)
+DEF wTempoMode       EQU $C52A  ; tempo mode (song property $BFCC): 0 = numeric BPM (wTempo), 1/2/3 = special tempo presets with fixed CGB/DMG timer values (GetTempoTimerVal / DrawTempo)
 DEF wTempo           EQU $C529  ; song tempo in BPM (verified: PROJECT TEMPO 124->134 on edit). Also set by the
                                 ; T command (FxCmd_T). wTimerReload is derived from it
 DEF wTimerReload     EQU $C578  ; timer reload derived from wTempo; copied to rTIMA each VBlank
@@ -155,13 +155,13 @@ DEF wWavPlayMode     EQU $C500  ; wav synth play mode (1 = stop at list end, 4 =
 DEF wSndDataPtr      EQU $C8E9  ; 16-bit working pointer the sound command/table reader (SndReadCmdStream) walks;
                                 ; pointed at &wChanTableRow1[ch] (stride $04) or instrument-mode data (stride $40)
 DEF wSndDataStride   EQU $C8FB  ; advance stride for wSndDataPtr ($04 = per-channel arrays, $40 = instrument mode)
-DEF wFxChannel       EQU $C527  ; channel (0-3) the command/FX/table engine is processing (set from hSoundCh); some
+DEF wFxChan       EQU $C527  ; channel (0-3) the command/FX/table engine is processing (set from hSoundCh); some
                                 ; FX OR in bit2/bit3 as mode flags (tested via `and $fc` before using it as an index)
 DEF wChanCmdRate     EQU $C8C6  ; [4] command/table step rate = instrument COMMAND_RATE (byte 8); reload value for the countdown
 DEF wChanCmdCountdown EQU $C8CA ; [4] ticks until the next command/table step; SndRunTableStep decrements it, and on 0
                                 ; reloads it from wChanCmdRate and runs the step (SndDecodeCmdNibbles / SndNoiChordStep)
-DEF wFxCommand       EQU $C8C4  ; current FX command index (0-$12) being processed for the channel; argument in
-                                ; hFxValue. Set from wChanCmd, dispatched via the jump table at $47A2 (DispatchFxCommand)
+DEF wFxCmd       EQU $C8C4  ; current FX command index (0-$12) being processed for the channel; argument in
+                                ; hFxVal. Set from wChanCmd, dispatched via the jump table at $47A2 (DispatchFxCmd)
 
 ; --- Sound-engine channel state (struct-of-arrays, 4 channels: PU1/PU2/WAV/NOI)
 ; Confirmed from a live RAM dump while playing: the driver keeps per-channel
@@ -174,13 +174,13 @@ DEF wFxCommand       EQU $C8C4  ; current FX command index (0-$12) being process
 ; computed frequency (wChanFreq) is written to rAUDxLOW/HIGH each frame.
 DEF wChanFreq        EQU $C0F4  ; channel frequency shadow, PU1 lo (rAUD1LOW)
 DEF wSongTranspose   EQU $C444  ; global/project TRANSPOSE (working copy of the SRAM song property); SndTransposeNote
-                                ; adds it to every note; displayed/edited on the PROJECT screen (ProjectScreenInput)
+                                ; adds it to every note; displayed/edited on the PROJECT screen (ProjScreenInput)
 DEF wTransposeDirty  EQU $C445  ; transpose edit/commit flag: set by the PROJECT screen after refreshing wSongTransposeDisp; when set, ProcessInput commits wSongTransposeDisp -> wSongTranspose and saves it to SRAM ($BFB5), then clears it
-DEF wSongTransposeDisp EQU $C446 ; displayed form of the song transpose (ProjectScreenInput / ProcessInput)
+DEF wSongTransposeDisp EQU $C446 ; displayed form of the song transpose (ProjScreenInput / ProcessInput)
 DEF wNoteTranspose   EQU $C4D3  ; PU2 instrument transpose (from instrument PU2_TRANSPOSE param), added before the period lookup
 DEF wNotePeriods     EQU $CF28  ; runtime 16-bit GB note-period table (computed for tuning); NoteToPeriod indexes it
-DEF wCurInstr        EQU $C0D0  ; current instrument record byte 0 = type (0 pulse, 1 wav, 2 kit, 3 noise); 16B staged from SramInstruments $B080+instr*16
-                                ; ($3080 = SRAM bank1 $B080 + instr*16); SetupChannelSound then
+DEF wCurInstr        EQU $C0D0  ; current instrument record byte 0 = type (0 pulse, 1 wav, 2 kit, 3 noise); 16B staged from SramInstrs $B080+instr*16
+                                ; ($3080 = SRAM bank1 $B080 + instr*16); SetupChanSound then
                                 ; distributes its bytes to the rAUDx register shadows
 ; Per-channel sound state arrays (all [4] = PU1/PU2/WAV/NOI), derived from live
 ; RAM dumps cross-checked with the working-song SRAM map (see docs/save_format.md).
@@ -188,10 +188,10 @@ DEF wChanOutput      EQU $C0A0  ; [4] the channel's output: bits 0-1 its panning
 DEF wChanOutputOverride EQU $C0A4  ; [4] a channel's output while B+SELECT/START/LEFT/RIGHT override it: 0 muted, 1 left, 2 right (DrawChanStatus: MUTE/L/R)
 ; Vibrato state, per channel, from the V command (VXY: X=speed, Y=depth) in FxCmd_V.
 ; For the WAV channel (ch 2) the type/phase slots are seeded from the instrument by
-; SetupSoundWave (which writes base+2 = channel 2's slot).
+; SetupSoundWav (which writes base+2 = channel 2's slot).
 DEF wChanVibAccum    EQU $C308  ; [4] 16-bit per-channel vibrato LFO phase accumulator (advanced by wChanVibSpeed each step; high byte indexes the vib waveform via SndCalcVibOffset -> wChanVibOffset)
 DEF wChanVibSpeed    EQU $C314  ; [4] 16-bit signed vibrato increment (V high nibble via table; negated by dir)
-DEF wChanVibOffset   EQU $C31C  ; [4] 16-bit current vibrato pitch displacement; SndWriteFreqPU1 adds it to the period
+DEF wChanVibOffset   EQU $C31C  ; [4] 16-bit current vibrato pitch displacement; SndWriteFreqPu1 adds it to the period
                                 ; when vibrato is active (wChanVibSpeed != 0). Verified live (residual $FFD8 on a vib channel)
 DEF wChanVibDepth    EQU $C324  ; [4] vibrato depth (V low nibble via table $7D81)
 DEF wChanVibType     EQU $C328  ; [4] vibrato type/shape (compared to 1 in FxCmd_V)
@@ -199,38 +199,38 @@ DEF wChanVibPhase    EQU $C32C  ; [4] vibrato direction/phase (gates the speed n
 DEF wChanPan         EQU $C352  ; [4] panning: instrument OUTPUT param (byte 7, L=bit0/R=bit1); NoteToPeriod passes it
                                 ; to SndWritePanning (-> rNR51). The duty bits (6-7) of the same byte feed wChanLenDuty
 DEF wChanCmdStep     EQU $C34E  ; [4] per-tick step/phase counter for the cycling commands chord (FxCmd_C) and
-                                ; wave-frame (FxCmd_F): reset by those handlers, incremented each tick by WriteChannelFreq
+                                ; wave-frame (FxCmd_F): reset by those handlers, incremented each tick by WriteChanFreq
 DEF wChanVibShape    EQU $C35F  ; [4] vibrato waveform select: FxCmd_V picks table $7DB1 (nonzero) vs $7D91 (zero).
-                                ; For the WAV channel (ch2) seeded from the instrument's vib setting by SetupSoundWave
-; Per-channel instrument feature flags, decoded from instrument byte 5 by SetupSoundPU1
-; (ch0) / SetupSoundWave (ch2, writes base+2). The same byte yields wChanVibShape/Phase/
+                                ; For the WAV channel (ch2) seeded from the instrument's vib setting by SetupSoundWav
+; Per-channel instrument feature flags, decoded from instrument byte 5 by SetupSoundPu1
+; (ch0) / SetupSoundWav (ch2, writes base+2). The same byte yields wChanVibShape/Phase/
 ; Type (bits 4/0/1-2). Named by their verified engine effect (the bit each consumer gates):
-DEF wChanTableStep    EQU $C33F ; [4] byte5 bit3 = instrument TABLE-STEP param; gates the table-setup branch in SetupSoundPU1
+DEF wChanTableStep    EQU $C33F ; [4] byte5 bit3 = instrument TABLE-STEP param; gates the table-setup branch in SetupSoundPu1
 DEF wChanSlideNoteSrc EQU $C330 ; [4] byte5 bit6: FxCmd_L slide reads the alt note source ($C0EC vs wChanOutNote) when set
 DEF wChanTranspose    EQU $C333 ; [4] byte5 bit5 = instrument TRANSPOSE param (bit set = transpose OFF). When set,
-                                ; SndTransposeNote skips adding wChanChainTrans to the note. Verified in our code.
+                                ; SndTransposeNote skips adding wChanChainTranspose to the note. Verified in our code.
 DEF wChanPitchStep    EQU $C35C ; [4] instrument byte 5 bit 7, PITCH on STEP: ApplyPitchBend jumps to FxCmd_P_Step (P changes the pitch at once instead of bending)
 DEF wChanActiveInstr EQU $C0C8  ; [4] instrument currently loaded into the sound engine per channel ($FF=none);
-                                ; set by SndLoadChannelInstr, gates note processing in ProcessChannel/NoteToPeriod.
+                                ; set by SndLoadChanInstr, gates note processing in ProcessChan/NoteToPeriod.
                                 ; Distinct from wChanInstr ($C210), the *sequenced* instrument from the phrase.
 DEF wChanNote        EQU $C0CC  ; [4] current note value per channel
 DEF wChanState       EQU $C0E0  ; start of the per-channel byte-state arrays
-DEF wChanActive      EQU $C0E0  ; [4] per-channel active flag; ProcessChannel runs only if nonzero
-DEF wChanRestart     EQU $C0E4  ; [4] per-channel (re)start request; SndLiveStartQueued sets, SndStartChannel consumes
-DEF wChanOutNote     EQU $C0E8  ; [4] effective note used for frequency: bank0 SndWriteFreqPU1 looks up the period as
+DEF wChanActive      EQU $C0E0  ; [4] per-channel active flag; ProcessChan runs only if nonzero
+DEF wChanRestart     EQU $C0E4  ; [4] per-channel (re)start request; SndLiveStartQueued sets, SndStartChan consumes
+DEF wChanOutNote     EQU $C0E8  ; [4] effective note used for frequency: bank0 SndWriteFreqPu1 looks up the period as
                                 ; wNotePeriods[wChanOutNote + $7F + offset]. Set = wChanNote each tick by
-                                ; WriteChannelFreq; read/adjusted by the pitch-slide command (FxCmd_L)
+                                ; WriteChanFreq; read/adjusted by the pitch-slide command (FxCmd_L)
 DEF wChanNoteTrigger EQU $C0F0  ; [4] per-channel "advance to next note step" flag: set nonzero when the note
-                                ; countdown expires (SndReadChanState/SndReadChainEnd), consumed by ProcessChannel
+                                ; countdown expires (SndReadChanState/SndReadChainEnd), consumed by ProcessChan
                                 ; which clears it and reads+plays the next note/command. Verified live (watchpoint).
-DEF wFxSlotCmdTimer  EQU $C230  ; [12] per-FX-slot command-step countdown (SndRunTableColumn, indexed by wFxChannel); when it hits 0, SndRunFxSlot runs the slot's command
-DEF wFxSlotEnvTimer  EQU $C23C  ; [12] per-FX-slot envelope-step countdown (SndRunTableColumn); when it hits 0, SndTableEnv runs the table envelope step
+DEF wFxSlotCmdTimer  EQU $C230  ; [12] per-FX-slot command-step countdown (SndRunTableCol, indexed by wFxChan); when it hits 0, SndRunFxSlot runs the slot's command
+DEF wFxSlotEnvTimer  EQU $C23C  ; [12] per-FX-slot envelope-step countdown (SndRunTableCol); when it hits 0, SndTableEnv runs the table envelope step
 DEF wChanFxSlots     EQU $C2F0  ; [12] per-channel active FX-command slots (3 slots x 4 channels, column-major)
 DEF wChanPitchModActive EQU $C3F9 ; [3] per-channel "pitch is modulating" flag (PU1/PU2/WAV); set by SndUpdatePitchModFlag*, gates per-frame SndStepPitchVib+SndWriteFreq at $0584
-DEF wChanChainTrans  EQU $C3FC  ; [4] per-channel chain-transpose shadow (from SndReadChainTranspose)
+DEF wChanChainTranspose  EQU $C3FC  ; [4] per-channel chain-transpose shadow (from SndReadChainTranspose)
 DEF wRng             EQU $C400  ; RNG state (verified: random value every frame, song stopped & no input);
                                 ; read-modify-written (ld hl,wRng / sub a,[hl] / ld [hl],e). Used by the probability
-                                ; commands (B "maybe play note", H "maybe hop", R retrig). NB: not wChanChainTrans+4
+                                ; commands (B "maybe play note", H "maybe hop", R retrig). NB: not wChanChainTranspose+4
 ; Sequencer position (song row -> chain -> phrase -> note step). Verified against a
 ; live RAM dump + the SRAM map (docs/save_format.md):
 DEF wChanSongRow     EQU $C200  ; [4] current song row, top of hierarchy (AdvanceSongRow walks this)
@@ -240,7 +240,7 @@ DEF wChanPhrase      EQU $C168  ; [4] current phrase = CHAIN_PHRASES[chain][chai
 DEF wChanPhraseRow   EQU $C16C  ; [4] current note step within the phrase (0-15)
 DEF wChanRowQueue    EQU $C100  ; queued chain-row value, PU1 (consumed at phrase end: moved to [$C1xx + wPtrChainRow], then cleared)
 DEF wChanNextSongRow EQU $C2FC  ; [4] next song row, prefetched
-DEF wChanStopQueued     EQU $C304  ; [4] live mode: stop the channel at its chain's end (SndLiveStopRange sets it, SndLiveChainEnd acts on it, the song screen blinks its marker); cleared by SndDeactivateChannel, SndStartChannels, SyncTickLSDJ
+DEF wChanStopQueued     EQU $C304  ; [4] live mode: stop the channel at its chain's end (SndLiveStopRange sets it, SndLiveChainEnd acts on it, the song screen blinks its marker); cleared by SndDeactivateChan, SndStartChans, SyncTickLSDJ
 DEF wPhraseCmdPtr    EQU $C110  ; SRAM read ptr: phrase FX command, PU1 (SndReadPhraseCmd; init $0140)
                                 ; same offset $A000+phrase*16+step, selected by SRAM bank
 DEF wPhraseCmdValPtr EQU $C128  ; SRAM read ptr: phrase FX value, PU1
@@ -283,27 +283,27 @@ DEF wPtrNoteSrc      EQU $C8ED  ; ptr to current channel's note-column SRAM-ptr 
 DEF wPtrTableStep    EQU $C8FC  ; -> wChanTableStep[curChan]
 ; Per-channel GB-sound register shadows, written to hardware by TriggerNote:
 ; Pitch-bend / slide state (per channel, 16-bit). The command handlers set a
-; target + rate; the freq code (bank0 SndStepPitchVibPU1) steps the current pitch toward the
+; target + rate; the freq code (bank0 SndStepPitchVibPu1) steps the current pitch toward the
 ; target each tick by the rate and clamps on arrival. Reset on note-on.
 DEF wChanPitchTarget EQU $C248  ; [4] 16-bit pitch-bend target period (0 = no bend active); set by FxCmd_L
 DEF wChanPitchRate   EQU $C2D0  ; [4] 16-bit signed per-tick pitch step toward the target (sign in hi byte
                                 ; $C2D1); set by ApplyPitchBend from the FX value; cleared on note-on
-DEF wChanPitchCur    EQU $C337  ; [4] 16-bit current pitch value (default $0080) that SndStepPitchVibPU1 slides toward
-                                ; wChanPitchTarget by wChanPitchRate each tick, clamping on arrival; reset by WriteChannelFreq
-DEF wChanFinetune    EQU $C696  ; per-pulse-channel finetune (PU1 $C696, PU2 $C697); SndWriteFreqPU1 subtracts it as a
+DEF wChanPitchCur    EQU $C337  ; [4] 16-bit current pitch value (default $0080) that SndStepPitchVibPu1 slides toward
+                                ; wChanPitchTarget by wChanPitchRate each tick, clamping on arrival; reset by WriteChanFreq
+DEF wChanFinetune    EQU $C696  ; per-pulse-channel finetune (PU1 $C696, PU2 $C697); SndWriteFreqPu1 subtracts it as a
                                 ; fine (low-byte) pitch adjustment in the period calc. From instrument finetune param (byte $B)
 DEF wChanPeriodTablePtr EQU $C356 ; [4] 16-bit per-channel pointer to the note-period table for pitch interpolation
                                 ; (SndInterpPeriod). NoteToPeriod sets it to wNotePeriods ($CF28), or an alt table when
                                 ; wChanSlideNoteSrc is set. Pitched channels only (ch0-2; noise excluded)
 DEF wChanEnv         EQU $C2D8  ; [4] envelope value -> rAUDxENV (ch2/WAV = wave level rAUD3LEVEL)
 ; Per-channel software-envelope working struct, 7 bytes/channel (channel N at base + N*7:
-; PU1 $CBBC, PU2 $CBC3, WAV $CBCA; set up by SetupSoundPU1/PU2/...). The three
+; PU1 $CBBC, PU2 $CBC3, WAV $CBCA; set up by SetupSoundPu1/PU2/...). The three
 ; stage bytes are the instrument ENV params (bytes 1/9/A); SndTableEnv takes a stage's
 ; volume (hi nibble) into wChanEnv and steps the fade (lo nibble). Verified live + static.
 ; (The +N*7 slot for noise would land on $CBD1, but that byte is wOamDirty below -- the
 ; noise channel has no software-envelope struct here.)
 DEF wOamDirty        EQU $CBD1  ; OAM shadow dirty flag: timer ($185F) calls hOamRefresh (OAM DMA) when nonzero; set by OAM-buffer writers (SetOAMByte, screen redraws)
-DEF wEnvNode1Pu1     EQU $CBBC  ; envelope node 1, PU1: vol hi-nibble / fade-speed lo-nibble (SndInitEnvelope)
+DEF wEnvNode1Pu1     EQU $CBBC  ; envelope node 1, PU1: vol hi-nibble / fade-speed lo-nibble (SndInitEnv)
 DEF wEnvNode2Pu1     EQU $CBBD  ; envelope node 2, PU1 (stage 1 target/speed)
 DEF wEnvNode3Pu1     EQU $CBBE  ; envelope node 3, PU1 (stage 2 target/speed)
 DEF wChanLenDuty     EQU $C2DC  ; [4] length/duty value -> rAUDxLEN
@@ -342,15 +342,15 @@ DEF wBootHwId        EQU $CBD9  ; boot A register (DMG/CGB id), saved at init
 DEF wBootAgbId       EQU $CBDA  ; boot B register (AGB id)
 
 ; --- Buffers ----------------------------------------------------------------
-DEF wOamBuffer       EQU $DD00  ; [160] OAM shadow: 40 sprites x 4 bytes, DMA-copied by OAMDMARoutine
+DEF wOamBuf       EQU $DD00  ; [160] OAM shadow: 40 sprites x 4 bytes, DMA-copied by OAMDMARoutine
 
 ; --- HRAM -------------------------------------------------------------------
 DEF hOamRefresh      EQU $FF80  ; OAM-refresh flag
 DEF hSoundCh         EQU $FF8B  ; sound engine current channel index (0-3); indexes wChan* arrays
-DEF hBgPalette       EQU $FF8C  ; CGB BG-map attribute palette for draws
-DEF hBgDigitPalette  EQU $FF8D  ; CGB BG-map palette for digits
-DEF hCurrentBank     EQU $FF8E  ; shadow of the selected ROM bank ($2000)
-DEF hFxValue         EQU $FF8F  ; FX command value, staged before each FxCmd_* call (the handler's arg)
+DEF hBgPal       EQU $FF8C  ; CGB BG-map attribute palette for draws
+DEF hBgDigitPal  EQU $FF8D  ; CGB BG-map palette for digits
+DEF hCurBank     EQU $FF8E  ; shadow of the selected ROM bank ($2000)
+DEF hFxVal         EQU $FF8F  ; FX command value, staged before each FxCmd_* call (the handler's arg)
 DEF hGameboyType     EQU $FF90  ; 0=DMG 1=CGB; read by draw code for palettes
 DEF hWavUploadBuf    EQU $FFA0  ; [16] staged waveform pop-streamed into WAV RAM $FF30 (TimerHandler/LoadWaveRam)
 
@@ -406,15 +406,15 @@ DEF BTN_START        EQU 7
 ; --- screen map (SEL+direction navigation, bank 5 $4000-$42B2) ---
 DEF wMapCol          EQU $C8FF  ; screen-map column 0-4 (middle row: SONG CHAIN PHRASE INSTR TABLE)
 DEF wMapRow          EQU $C900  ; screen-map row 0-2 (0=PROJECT/WAVE/SYNTH, 1=main, 2=GROOVE)
-DEF wMapProjectCol   EQU $C901  ; column where the PROJECT map entry currently sits
+DEF wMapProjCol   EQU $C901  ; column where the PROJECT map entry currently sits
 DEF wMapSynthCol     EQU $C902  ; column where the WAVE/SYNTH map entry currently sits
 DEF wMapMoveDir      EQU $C903  ; last map move direction: 1=up 2=right 3=down 4=left
 ; --- selection save area (bank 5 Save/RestoreSelectionState) ---
 DEF wSavedCursorMode EQU $CBD2  ; saved wCursorMode across screen-map navigation
 DEF wSavedClipType   EQU $CBD3  ; saved wClipboardType
-DEF wSavedSelLeft    EQU $CBD4  ; saved wSelLeft
-DEF wSavedSelTop     EQU $CBD5  ; saved wSelTop
-DEF wSavedSelRight   EQU $CBD6  ; saved wSelRight
+DEF wSavedSelectionLeft    EQU $CBD4  ; saved wSelectionLeft
+DEF wSavedSelectionTop     EQU $CBD5  ; saved wSelectionTop
+DEF wSavedSelectionRight   EQU $CBD6  ; saved wSelectionRight
 ; --- PS/2 keyboard (bank 7) ---
 DEF wKbdHeldNote     EQU $CB7E  ; note currently held on the PS/2 keyboard (0=none)
 DEF wKbdTranspose    EQU $CB91  ; keyboard octave/transpose offset added to KeyboardNoteMap notes
@@ -424,8 +424,8 @@ DEF wNameReturnScreen EQU $C42F ; screen to return to when the name editor close
 DEF wNameEditIsInstr  EQU $C430 ; nonzero = editing an instrument name
 DEF wNameEditBuf     EQU $C431  ; [5] 5-char name being edited (instr/file/word/kit-sample)
 DEF wFont            EQU $C52E  ; UI font selection 0-2 (project screen FONT; picks the TilesFontN blocks)
-DEF wKbdInstrument   EQU $CB93  ; instrument played by the PS/2 keyboard (shown with name on the song screen)
-DEF wColInstrument   EQU $C468  ; last-used instrument per channel column (4 bytes, set by SetColInstrument)
+DEF wKbdInstr   EQU $CB93  ; instrument played by the PS/2 keyboard (shown with name on the song screen)
+DEF wColInstr   EQU $C468  ; last-used instrument per channel column (4 bytes, set by SetColInstr)
 
 ; --- session-evidenced RAM (readers named in parentheses) ---
 DEF wColChain        EQU $C44F  ; chain under cursor per song column, 4 bytes (SongCloneChain / IsSongChainUsed)
@@ -441,9 +441,9 @@ DEF wPlayFrames      EQU $C6A8  ; PLAY clock frame divider (UpdatePlayClock: 60 
 DEF wCrashStack      EQU $C7B0  ; [20] the crash's stack dump: 20 bytes copied from above the stack pointer (CrashSaveStack), shown as 10 words
 DEF wCrashSP      EQU $C7C4  ; the stack pointer at the crash (CrashSaveStack), shown after STK:
 DEF wClipboardSave   EQU $C7C6  ; [252] ResetEditorState keeps wClipboardBuf here across ResetWorkState
-DEF wPlayChanFirst   EQU $C8DD  ; first channel to start playing (SndStartChannels)
+DEF wPlayChanFirst   EQU $C8DD  ; first channel to start playing (SndStartChans)
 DEF wPlayChanLast    EQU $C8DE  ; last channel to start playing
-DEF wSavedScreen     EQU $C8FE  ; wCurrentScreen, saved while ToggleSongPlayback poses as the song screen
+DEF wSavedScreen     EQU $C8FE  ; wCurScreen, saved while ToggleSongPlayback poses as the song screen
 DEF wFileBlockCounts EQU $C959  ; per-file block counts, 32 slots (CountFileBlocks)
 DEF wFileNameBuf     EQU $C987  ; 8-char filename buffer (CopyFileName)
 DEF wFileListActive  EQU $C998  ; cursor is inside the file list (not a string buffer)
@@ -455,11 +455,11 @@ DEF wOverwriteEnd    EQU $CB62  ; the prompt's choice: 0 = left (accept: SynthCl
 DEF wLinkQueueCount EQU $CB7D  ; bytes waiting in the wLinkQueueBuf ring (ProcessLinkQueue appends, LinkDequeueByte pops)
 DEF wLinkQueueHead   EQU $CB80  ; link-port ring buffer head (ProcessLinkQueue)
 DEF wLinkQueueBuf    EQU $CB81  ; link-port ring buffer (ProcessLinkQueue)
-DEF wEnvStagePu1     EQU $CBBF  ; current envelope stage 0-2, PU1 (UpdateEnvPU1 advances)
+DEF wEnvStagePu1     EQU $CBBF  ; current envelope stage 0-2, PU1 (UpdateEnvPu1 advances)
 DEF wEnvStagePu2     EQU $CBC6  ; current envelope stage 0-2, PU2
 DEF wEnvStageNoi     EQU $CBCD  ; current envelope stage 0-2, NOI (WAV has no envelope)
-DEF wSavedSelBottom  EQU $CBD7  ; saved wSelBottom (Save/RestoreSelectionState)
-DEF wDecompBuf       EQU $DA00  ; [256] 256-byte block staging buffer (FileWriteCompressedSram)
+DEF wSavedSelectionBottom  EQU $CBD7  ; saved wSelectionBottom (Save/RestoreSelectionState)
+DEF wDecompressBuf       EQU $DA00  ; [256] 256-byte block staging buffer (FileWriteCompressedSram)
 DEF wSpriteWavY      EQU $DD00  ; WAV display sprite 0 Y (ClearSprites012 / PositionWavSprites)
 DEF wBlockDstPage    EQU $C97E  ; SRAM dest page hi byte for block save ($a0-$bf; FlushBlockToSram)
 DEF wBlockDstBank    EQU $C97C  ; SRAM dest bank counter for block save (bumped on page wrap)
@@ -538,7 +538,7 @@ DEF wChanTableCountdownNoi  EQU $C167  ; wChanTableCountdown[3] = Noi channel
 DEF wChanPhraseRowPu2  EQU $C16D  ; wChanPhraseRow[1] = Pu2 channel
 DEF wChanPhraseRowWav  EQU $C16E  ; wChanPhraseRow[2] = Wav channel
 DEF wChanPhraseRowNoi  EQU $C16F  ; wChanPhraseRow[3] = Noi channel
-DEF wChanNoteOffset  EQU $C174  ; semitone offset added to the output note at freq computation, PU1 (SndWriteFreqPU1)
+DEF wChanNoteOffset  EQU $C174  ; semitone offset added to the output note at freq computation, PU1 (SndWriteFreqPu1)
 DEF wChanNoteOffsetPu2 EQU $C175  ; semitone note offset, PU2
 DEF wChanNoteOffsetWav EQU $C176  ; semitone note offset, WAV
 DEF wChanDelayTicks  EQU $C178  ; [4] accumulated D-cmd delay per channel (groove advance subtracts)
@@ -570,7 +570,7 @@ DEF wChanTableLatch  EQU $C220  ; table number latched at note-on, PU1
 DEF wChanTableLatchPu2 EQU $C221  ; table number latched at note-on, PU2
 DEF wChanTableLatchWav EQU $C222  ; table number latched at note-on, WAV
 DEF wChanTableLatchNoi EQU $C223  ; table number latched at note-on, NOI
-DEF wChanEnvVolOffset EQU $C224  ; signed volume delta (<<4) applied to the env-node triplet, PU1 (SndFxParsePitchVal -> SndInitEnvelope)
+DEF wChanEnvVolOffset EQU $C224  ; signed volume delta (<<4) applied to the env-node triplet, PU1 (SndFxParsePitchVal -> SndInitEnv)
 DEF wChanPitchTargetPu2 EQU $C24A  ; pitch slide target (16-bit), PU2
 DEF wChanPitchTargetWav EQU $C24C  ; pitch slide target (16-bit), WAV
 DEF wChanPitchSlots  EQU $C250  ; [128] per-channel 16-byte pitch-FX state block, reset to $80 center (8x FillChan16; layout TBD)
@@ -645,13 +645,13 @@ DEF wChanTableStepNoi EQU $C342  ; table step row, NOI
 DEF wChanChordOffset EQU $C343  ; current chord transpose (semitones), PU1 -- cycled by wChanChordPhase from the C-cmd nibbles
 DEF wChanChordOffsetPu2 EQU $C344  ; current chord transpose, PU2
 DEF wChanChordOffsetWav EQU $C345  ; current chord transpose, WAV
-DEF wChanTableTrans  EQU $C347  ; current table transpose, PU1 (added into wChanNoteOffset)
-DEF wChanTableTransPu2 EQU $C348  ; current table transpose, PU2
-DEF wChanTableTransWav EQU $C349  ; current table transpose, WAV
-DEF wChanTableTransNoi EQU $C34A  ; current table transpose, NOI
-DEF wChanTableTransPrev EQU $C34B  ; previous table transpose (change detect), PU1
-DEF wChanTableTransPrevPu2 EQU $C34C  ; previous table transpose, PU2
-DEF wChanTableTransPrevWav EQU $C34D  ; previous table transpose, WAV
+DEF wChanTableTranspose  EQU $C347  ; current table transpose, PU1 (added into wChanNoteOffset)
+DEF wChanTableTransposePu2 EQU $C348  ; current table transpose, PU2
+DEF wChanTableTransposeWav EQU $C349  ; current table transpose, WAV
+DEF wChanTableTransposeNoi EQU $C34A  ; current table transpose, NOI
+DEF wChanTableTransposePrev EQU $C34B  ; previous table transpose (change detect), PU1
+DEF wChanTableTransposePrevPu2 EQU $C34C  ; previous table transpose, PU2
+DEF wChanTableTransposePrevWav EQU $C34D  ; previous table transpose, WAV
 DEF wChanCmdStepPu2   EQU $C34F  ; wChanCmdStep[1] = Pu2 channel
 DEF wChanCmdStepWav   EQU $C350  ; wChanCmdStep[2] = Wav channel
 DEF wChanPanPu2      EQU $C353  ; wChanPan[1] = PU2 channel
@@ -692,7 +692,7 @@ DEF wColChainNoi     EQU $C452  ; chain under cursor, song column NOI
 DEF wColPhrasePu2    EQU $C454  ; phrase under cursor, song column PU2
 DEF wColPhraseWav    EQU $C455  ; phrase under cursor, song column WAV
 DEF wColPhraseNoi    EQU $C456  ; phrase under cursor, song column NOI
-DEF wColInstrumentNoi EQU $C46B  ; instrument cache, song column NOI
+DEF wColInstrNoi EQU $C46B  ; instrument cache, song column NOI
 DEF wUnusedC46C EQU $C46C  ; set at reset, never read
 DEF wSpeechWord      EQU $C4CE  ; word being spoken (-> wChanNoteWav at speech note-on)
 DEF wSpeechFrameTicks EQU $C4CF  ; frames left in current allophone frame; 0 -> stream next (SndSpeechStep)
@@ -717,7 +717,7 @@ DEF wKit1KeepAttack  EQU $C4E7  ; kit voice 1 LOOP=ATK: bit7 keeps attack, loop 
 DEF wKit2KeepAttack  EQU $C4E8  ; kit voice 2 LOOP=ATK flag
 DEF wKitPitch        EQU $C4E9  ; kit PITCH byte: biases CH3 replay frequency (bit7 = base select)
 DEF wKit1OffsetHi    EQU $C4EA  ; kit voice 1 OFFSET hi nibble (added to sample start, *16)
-DEF wKit1OffsetLo    EQU $C4EB  ; kit voice 1 OFFSET lo (F cmd adjusts +/-hFxValue*32)
+DEF wKit1OffsetLo    EQU $C4EB  ; kit voice 1 OFFSET lo (F cmd adjusts +/-hFxVal*32)
 DEF wKit2OffsetHi    EQU $C4EC  ; kit voice 2 OFFSET hi
 DEF wKit2OffsetLo    EQU $C4ED  ; kit voice 2 OFFSET lo
 DEF wKit1LenDisabled EQU $C4EE  ; kit voice 1: instr LEN==0, skip end clamp
@@ -735,14 +735,14 @@ DEF wKit2ReadPtr     EQU $C4FB  ; kit voice 2 sample read ptr lo
 DEF wKit2ReadPtrHi   EQU $C4FC  ; kit voice 2 sample read ptr hi
 DEF wNoiseNoteLatch  EQU $C4FD  ; noise note-1 latched at trigger; replayed via SetNoisePoly on cmd expiry
 DEF wWavSynthRepeat  EQU $C4FE  ; wav instr byte3: synth start/repeat frame (seeds current frame)
-DEF wWavSynthLength  EQU $C4FF  ; wav instr LENGTH nibble inverted (delta-list build bound)
+DEF wWavSynthLen  EQU $C4FF  ; wav instr LENGTH nibble inverted (delta-list build bound)
 DEF wWavFrameDeltas  EQU $C501  ; [32] signed wave-frame step list (from ROM table $7EAC, 0-terminated)
 DEF wWavFrameDeltaPtr EQU $C521  ; wave-frame delta list cursor lo
 DEF wWavFrameDeltaPtrHi EQU $C522  ; wave-frame delta list cursor hi
 DEF wWavFrameDeltaLoop EQU $C523  ; saved delta-list reload ptr lo (list end, mode != once)
 DEF wWavFrameDeltaLoopHi EQU $C524  ; saved delta-list reload ptr hi
 DEF wWavFrameTimer   EQU $C525  ; wave-frame step countdown (reload = wFxWaveParam2; W cmd hi nibble sets)
-DEF wMsgNoPause     EQU $C530  ; 1 while a message SELECT cannot pause (set at reset: the startup banner); cleared when a message ends, on redraw, on a live-mode switch (UiUpdateMessage)
+DEF wMessageNoPause     EQU $C530  ; 1 while a message SELECT cannot pause (set at reset: the startup banner); cleared when a message ends, on redraw, on a live-mode switch (UiUpdateMessage)
 DEF wTopBarMarkPtr   EQU $C562  ; 16-bit ptr to the unsaved-'!' char slot in the top bar
 DEF wMuteSoloLatch    EQU $C56A  ; set to 1 after B+SELECT (mute) and 2 after B+START (solo) in HandleInputCombos; B alone releases it (SongScreenInput turns 2 into 1)
 DEF wFsCheckResult   EQU $C56B  ; CheckFileMagicAll result (drives file-screen variant)
@@ -755,7 +755,7 @@ DEF wFxSlideTargetNote EQU $C68E  ; slide (L cmd) destination note, clamped to $
 DEF wFxSlideNote     EQU $C68F  ; slide base-note scratch (current note or wNoteOctave source)
 DEF wFxSlidePitch    EQU $C690  ; slide start pitch lo (-> wChanPitchCur)
 DEF wFxSlidePitchHi  EQU $C691  ; slide start pitch hi
-DEF wNoiPitchSafe     EQU $C692  ; noise instrument byte 2, PITCH: nonzero = SAFE, 0 = FREE (manual C.4; SetupSoundNoise copies it); after a pitch change SAFE goes on to ProcessChannelTable, FREE returns for notes >= $3C
+DEF wNoiPitchSafe     EQU $C692  ; noise instrument byte 2, PITCH: nonzero = SAFE, 0 = FREE (manual C.4; SetupSoundNoi copies it); after a pitch change SAFE goes on to ProcessChanTable, FREE returns for notes >= $3C
 DEF wWavSynthFrame   EQU $C694  ; current wav-synth frame index (seeded from wWavSynthRepeat; W cmd value adds)
 DEF wWavSynthEnd     EQU $C695  ; effective wav-synth frame count = min(instr LENGTH, wFxWaveParam)
 DEF wChanFinetunePu1Hi EQU $C697  ; wChanFinetune[0] hi byte (Pu1)
@@ -764,7 +764,7 @@ DEF wChanFinetuneWav EQU $C69A  ; wChanFinetune[2]  (Wav)
 DEF wChanFinetuneWavHi EQU $C69B  ; wChanFinetune[2] hi byte (Wav)
 DEF wWavUploadPending EQU $C69C  ; nonzero: the timer interrupt uploads hWavUploadBuf to wave RAM (SndModWavFreq; cleared after the upload)
 DEF wTimerTailBusy   EQU $C69F  ; timer-tail reentrancy guard (scope bitmap copy work)
-DEF wMsgPanelShown   EQU $C7AC  ; 4-line message panel shown (wMsgTimer=$64; special clear on expiry)
+DEF wMessagePanelShown   EQU $C7AC  ; 4-line message panel shown (wMessageTimer=$64; special clear on expiry)
 DEF wTopBarDrawScratch EQU $C7AD  ; 16-bit top-bar draw scratch (string ptr / remaining count)
 DEF wNoiPSlideStart    EQU $C8C5  ; set by P on the noise channel; its first tick zeroes wNoiPitchFrac and clears it
 DEF wChanCmdRatePu2   EQU $C8C7  ; wChanCmdRate[1] = Pu2 channel
@@ -795,20 +795,20 @@ DEF wPhraseRowFlagsB EQU $C91D  ; [16] kit rows: the right sample's kit bank (Dr
 DEF wPhraseNoteIsKitA EQU $C92D  ; phrase edit: current note is-kit cache
 DEF wPhraseNoteIsKitB EQU $C92E  ; phrase edit: adjacent note is-kit cache
 DEF wTableEnvCache   EQU $C931  ; table screen: cached TableReadEnv at cursor
-DEF wTableTransCache EQU $C932  ; table screen: cached TableReadTrans at cursor
+DEF wTableTransposeCache EQU $C932  ; table screen: cached TableReadTranspose at cursor
 DEF wHelpOpenEntry   EQU $C933  ; currently open HELP entry (0 = none)
 DEF wWordClipCell0   EQU $C935  ; word clipboard: allophone byte
 DEF wWordClipCell1   EQU $C936  ; word clipboard: length byte
 DEF wWordClipPtr     EQU $C939  ; 16-bit scratch ptr walking the 4-byte word clipboard (copy/paste)
-DEF wWaveSelStart    EQU $C93B  ; wave editor selection anchor (frame index; pairs with wWaveCursor)
-DEF wWaveSelEnd      EQU $C93C  ; wave editor selection other endpoint
-DEF wWaveColEmpty    EQU $C93D  ; [8] wave screen: 1 per row of the column being drawn that takes the empty tile (DrawWaveColumn)
-DEF wChainCellValue  EQU $C945  ; chain-screen phrase value under cursor (working copy -> DrawHexByte)
+DEF wWaveSelectionStart    EQU $C93B  ; wave editor selection anchor (frame index; pairs with wWaveCursor)
+DEF wWaveSelectionEnd      EQU $C93C  ; wave editor selection other endpoint
+DEF wWaveColEmpty    EQU $C93D  ; [8] wave screen: 1 per row of the column being drawn that takes the empty tile (DrawWaveCol)
+DEF wChainCellVal  EQU $C945  ; chain-screen phrase value under cursor (working copy -> DrawHexByte)
 DEF wChainCellEmpty  EQU $C946  ; chain cursor cell reads $FF flag
 DEF wTempoShadow EQU $C947  ; cached wTempo for the chain-screen tempo field (redraw-if-changed)
 DEF wChainScratchPtr EQU $C948  ; 16-bit scratch ptr: DrawTileHexCell parks HexCellPrefixPtrs[v&3] (bank06 $75A6) here before DrawString
-DEF wSongSelScroll   EQU $C94A  ; saved wSongScroll: song-screen selection anchor
-DEF wSongSelRow      EQU $C94B  ; saved wSongRow: song-screen selection anchor
+DEF wSongSelectionScroll   EQU $C94A  ; saved wSongScroll: song-screen selection anchor
+DEF wSongSelectionRow      EQU $C94B  ; saved wSongRow: song-screen selection anchor
 DEF wPlayStartChan   EQU $C94C  ; playback start channel (= wSongCol at play; seeds the engine)
 DEF wPlayStartRow    EQU $C94D  ; playback start song row (seeds wChanNextSongRow)
 DEF wSongPasteCol    EQU $C94E  ; saved wSongCol during song selection paste
@@ -817,10 +817,10 @@ DEF wSongAPressState EQU $C951  ; song-screen A-press/mark state machine (0/1/2)
 DEF wSavedSongCol    EQU $C952  ; saved wSongCol around song-screen farcalls
 DEF wSongCellEmpty   EQU $C953  ; song draw: current cell reads $FF latch
 DEF wFileBlockIdx    EQU $C958  ; SRAM block iterator for save/scan (bank1c; not sync)
-DEF wCompSrc         EQU $C97A  ; compressed-data source ptr lo (16-bit, += $100 per page)
+DEF wCompressSrc         EQU $C97A  ; compressed-data source ptr lo (16-bit, += $100 per page)
 DEF wFileFirstChar   EQU $C980  ; first name char of file being loaded (0 = empty slot)
-DEF wCompProgress    EQU $C981  ; blocks-processed counter (progress display)
-DEF wDecompOk        EQU $C982  ; decompress continue/success flag (cleared on OOB/overflow/mismatch)
+DEF wCompressProgress    EQU $C981  ; blocks-processed counter (progress display)
+DEF wDecompressOk        EQU $C982  ; decompress continue/success flag (cleared on OOB/overflow/mismatch)
 DEF wBlockSinkPtr    EQU $C984  ; 16-bit handler ptr: FlushBlockToSram or VerifyBlockAgainstSram (jp hl)
 DEF wFileNameTerm    EQU $C98F  ; NUL terminator after the 8-char filename
 DEF wFileBlockCountPtr EQU $C990  ; 16-bit scratch ptr into wFileBlockCounts
@@ -916,7 +916,7 @@ DEF wEnvNode3Noi     EQU $CBCC  ; envelope node 3, NOI
 DEF wEnvSpeedNoi     EQU $CBCE  ; active envelope fade speed, NOI
 DEF wEnvCounterNoi   EQU $CBCF  ; envelope fade countdown, NOI
 DEF wEnvTargetNoi    EQU $CBD0  ; envelope fade target volume, NOI
-DEF wEnvPlotX        EQU $CBD8  ; last plotted env-graph column 0-$3F (PlotEnvCurve -> wDecompBuf)
+DEF wEnvPlotX        EQU $CBD8  ; last plotted env-graph column 0-$3F (PlotEnvCurve -> wDecompressBuf)
 DEF wTileReqSlot0    EQU $CBE5  ; tile-load request table: 6 entries x [slot, ptrLo, ptrHi] at $CBE5-$CBF6 (this = entry-0 slot)
 DEF wUnusedCBF7      EQU $CBF7  ; zeroed by ResetTileLoader, never read
 DEF wUnusedCBF8      EQU $CBF8  ; zeroed by ResetTileLoader, never read
@@ -924,7 +924,7 @@ DEF wRngSeedHi       EQU $CBF9  ; RNG seed hi byte (Random16: seed = seed*17 + $
 DEF wRngSeedLo       EQU $CBFA  ; RNG seed lo byte (SeedRandom16 sets)
 DEF wUnusedCBFB      EQU $CBFB  ; set to $03 at display reinit, never read
 DEF wUnusedCBFC      EQU $CBFC  ; set to $00 at display reinit, never read
-DEF wSpriteWavX      EQU $DD01  ; WAV display sprite 0 X (=$90, ClearOamBuffer)
+DEF wSpriteWavX      EQU $DD01  ; WAV display sprite 0 X (=$90, ClearOamBuf)
 DEF wSpriteWav1Y     EQU $DD04  ; WAV display sprite 1 Y
 DEF wSpriteWav1X     EQU $DD05  ; WAV display sprite 1 X (=$98)
 DEF wSpriteWav1Tile  EQU $DD06  ; WAV display sprite 1 tile (=$01)
@@ -947,7 +947,7 @@ DEF wSpriteMark6Y    EQU $DD24  ; sprite pool slot 9 Y
 DEF wSpriteMark6Attr EQU $DD27  ; sprite pool slot 9 attr
 DEF wSpriteMark7Y    EQU $DD28  ; sprite pool slot 10 Y
 DEF wSpriteMark7Attr EQU $DD2B  ; sprite pool slot 10 attr
-DEF wSpriteCursor0X  EQU $DD2D  ; selection/edit-cursor column sprite 11 X (WaveSetSpriteColumns)
+DEF wSpriteCursor0X  EQU $DD2D  ; selection/edit-cursor column sprite 11 X (WaveSetSpriteCols)
 DEF wSpriteCursor1X  EQU $DD31  ; selection cursor sprite 12 X
 DEF wSpriteCursor2X  EQU $DD35  ; selection cursor sprite 13 X
 DEF wSpriteCursor3X  EQU $DD39  ; selection cursor sprite 14 X
@@ -959,10 +959,10 @@ DEF hSavedSPHi       EQU $FFB3  ; saved stack pointer hi
 DEF hSavedAudTerm    EQU $FFB4  ; saved rAUDTERM (panning) across the AUD3 off/retrigger window
 
 ; --- orphan RAM addresses from the debugger export, named from their readers ---
-DEF wNoteOctave      EQU $C693  ; octave/fine index stored by NoteToPeriod; indexes wNoteFineTable-1 (WriteChannelFreq)
+DEF wNoteOctave      EQU $C693  ; octave/fine index stored by NoteToPeriod; indexes wNoteFineTable-1 (WriteChanFreq)
 DEF wTableHopCountersWav EQU $C1C0  ; [32] table H-hop repeat counters, WAV slice
 DEF wTableHopCountersNoi EQU $C1E0  ; [32] table H-hop repeat counters, NOI slice
-DEF wSelHoldFrames   EQU $C676  ; frames SELECT has been held (ProcessInput resets on other input)
+DEF wSelectHoldFrames   EQU $C676  ; frames SELECT has been held (ProcessInput resets on other input)
 DEF wAttrRowBuf     EQU $C677  ; [20] CGB attribute row buffer: ColorField fills it with the palette and set_bkg_tiles writes it to VRAM bank 1
 DEF wFxWaveParam     EQU $C8C2  ; W command value latch (lo nibble; consumed via SndSetKitParams)
 DEF wFxWaveParam2    EQU $C8C3  ; W command companion latch
@@ -979,9 +979,9 @@ DEF wSynthBandSlot   EQU $CB3E  ; band-pass synth filter: the accumulator slot p
 DEF wSynthWaveTmp    EQU $CB40  ; [32] filter-pass scratch copy of wSynthWaveBuf (SynthFilterPass writes it, then memcpy back)
 DEF wWaveEditX       EQU $CB60  ; wave-editor pen X: (column*4) & $f0 (SynthWriteWaveCol)
 DEF wNotePeriodLo    EQU $CD28  ; RAM copy of the note->period table (NoteToPeriod indexes by note)
-DEF wNoteFineTable   EQU $CD94  ; RAM copy of the finetune/delta table (WriteChannelFreq, index wNoteOctave-1)
+DEF wNoteFineTable   EQU $CD94  ; RAM copy of the finetune/delta table (WriteChanFreq, index wNoteOctave-1)
 DEF wMasterVolTable  EQU $D400  ; master-volume transition LUT (FxCmd_M indexes by rAUDVOL & $70)
-DEF wDecompBufEnd    EQU $DA4F  ; end bound of wDecompBuf walks (OrBitsIntoDaBuffer)
+DEF wDecompressBufEnd    EQU $DA4F  ; end bound of wDecompressBuf walks (OrBitsIntoDaBuf)
 DEF wSpriteCursor5X  EQU $DD41  ; selection cursor sprite 16 X
 DEF wSpriteCursor6X  EQU $DD45  ; selection cursor sprite 17 X
 DEF wSpriteCursor7X  EQU $DD49  ; selection cursor sprite 18 X
@@ -1003,8 +1003,8 @@ DEF wChanRowQueueWav EQU $C102  ; queued chain-row value, WAV
 DEF wChanRowQueueNoi EQU $C103  ; queued chain-row value, NOI
 DEF wChanChordOffsetNoi EQU $C346  ; current chord transpose, NOI
 DEF wChanNoteOffsetNoi EQU $C177  ; semitone note offset, NOI
-DEF wColInstrumentPu2 EQU $C469  ; instrument cache, song column PU2
-DEF wColInstrumentWav EQU $C46A  ; instrument cache, song column WAV
+DEF wColInstrPu2 EQU $C469  ; instrument cache, song column PU2
+DEF wColInstrWav EQU $C46A  ; instrument cache, song column WAV
 DEF wChanEnvVolOffsetPu2 EQU $C225  ; env volume delta, PU2
 DEF wChanEnvVolOffsetWav EQU $C226  ; env volume delta, WAV
 DEF wChanEnvVolOffsetNoi EQU $C227  ; env volume delta, NOI

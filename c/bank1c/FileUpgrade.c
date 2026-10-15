@@ -298,7 +298,7 @@ UBYTE FileUpgradeReadByte(UBYTE i)
  * v11 -> v12, second half: the chain transposes were semitones; now they
  * are a note offset in the high nibble. Mark in $DA00 the chains the
  * sequence uses (FileUpgradeReadByte: row by row, channel 3), then rescale
- * each used chain's 16 transposes through bank 6's ChainReadTrans /
+ * each used chain's 16 transposes through bank 6's ChainReadTranspose /
  * SetChainTranspose by address (v / 12 << 4).
  *
  * lsdj-alloc(FileUpgradeClearRange): BUSYB=26-62

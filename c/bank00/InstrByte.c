@@ -10,7 +10,7 @@
  *     (or WriteInstrByte / ReadCurInstrByte; `make match` runs all three)
  *
  * instruments[instr][field] of the working song: the 16-byte instrument
- * records live at song offset $3080 = SRAM bank 1, $B080 (SramInstruments),
+ * records live at song offset $3080 = SRAM bank 1, $B080 (SramInstrs),
  * accessed through ReadSongByte(bank, addr) / WriteSongByte(bank, addr, val).
  * Indices are range-checked with DebugTrap (the `ld b,b` + `rst $38` assert);
  * field 0 (the instrument type) may only be written with 0..3.
@@ -38,7 +38,7 @@ void WriteInstrByte(UBYTE instr, UBYTE field, UBYTE val)
         DebugTrap();
     if (field == 0 && val >= 4)
         DebugTrap();
-    p = SramInstruments + ((unsigned int)instr << 4);
+    p = SramInstrs + ((unsigned int)instr << 4);
     WriteSongByte(1, p + (unsigned int)field, val);   /* the cast: field into bc, p into hl */
 }
 
@@ -50,11 +50,11 @@ UBYTE ReadInstrByte(UBYTE instr, UBYTE field)
         DebugTrap();
     if (field >= 0x10)
         DebugTrap();
-    p = SramInstruments + ((unsigned int)instr << 4);
+    p = SramInstrs + ((unsigned int)instr << 4);
     return ReadSongByte(1, p + field);
 }
 
 UBYTE ReadCurInstrByte(UBYTE field)
 {
-    return ReadInstrByte(wInstrument, field);
+    return ReadInstrByte(wInstr, field);
 }

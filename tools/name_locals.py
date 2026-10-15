@@ -114,7 +114,7 @@ def btn_name(v):
 
 def dispatch_names(asm_path, sym_path):
     """Name locals that are `jp/jr z` targets of `cp a, $XX` right after
-    loading a known enum variable (wButtons -> button combo, wCurrentScreen ->
+    loading a known enum variable (wButtons -> button combo, wCurScreen ->
     screen name). Honest: the branch IS the handler for that exact value."""
     lines = open(asm_path).read().splitlines()
     curated = set()
@@ -143,7 +143,7 @@ def dispatch_names(asm_path, sym_path):
             continue
         if re.search(r'ld hl, wButtons\b', ln) or re.search(r'ld a, \[wButtons\]', ln):
             var = 'btn'; cmp_val = None; hl_slot = None; continue
-        if re.search(r'ld hl, wCurrentScreen\b', ln) or re.search(r'ld a, \[wCurrentScreen\]', ln):
+        if re.search(r'ld hl, wCurScreen\b', ln) or re.search(r'ld a, \[wCurScreen\]', ln):
             var = 'screen'; cmp_val = None; hl_slot = None; continue
         m = re.search(r'\tld hl, sp\+(\d+)', ln)
         if m:
@@ -156,7 +156,7 @@ def dispatch_names(asm_path, sym_path):
             if hl_slot is not None:
                 var = slots.get(hl_slot)  # reloaded from a tracked slot (or None)
                 cmp_val = None
-            continue                      # wButtons/wCurrentScreen deref keeps var
+            continue                      # wButtons/wCurScreen deref keeps var
         m = re.search(r'\tcp a, \$([0-9a-f]{2})', ln)
         if m and var:
             cmp_val = int(m.group(1), 16); continue
@@ -188,7 +188,7 @@ def dispatch_names(asm_path, sym_path):
         key = (fn, nm)
         used[key] = used.get(key, 0) + 1
         final = nm if used[key] == 1 else f'{nm}{used[key]}'
-        out.append((a, final, f'{("wButtons" if not nm.startswith(".on") else "wCurrentScreen")} == case in {fn}'))
+        out.append((a, final, f'{("wButtons" if not nm.startswith(".on") else "wCurScreen")} == case in {fn}'))
     return out
 
 

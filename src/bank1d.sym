@@ -31,10 +31,10 @@
 425B DrawGrooveRow              ; draw one groove row (step<16; ticks via ReadGrooveStep, state $c9d5/$c9d6)
 435D GrooveBuildCache       ; once ($c9d5 guard): build the 16-step groove display cache $c9d6 (via $405a)
 4394 GrooveDrawFieldHw      ; like GrooveDrawField but palette per hGameboyType
-43CF GrooveRowPalettes          ; pick a groove row's draw palettes: select colours inside the sorted wSelTop..wGrooveRow range (select mode) or on the cursor row, 4/1 stripe on rows with bit 1, else shadow
+43CF GrooveRowPalettes          ; pick a groove row's draw palettes: select colours inside the sorted wSelectionTop..wGrooveRow range (select mode) or on the cursor row, 4/1 stripe on rows with bit 1, else shadow
 4B6C GrooveCutCopy              ; cut/copy the groove selection (arg 1 = cut: rows cleared to 0, row 0 to 6)
 4C63 PasteGrooveSelection       ; write the clipboard steps into the groove from the cursor (clipType 2), advancing wGrooveRow and wrapping at 16; PASTE message
-4CDE GrooveDrawSelection        ; clipType 2: highlight the rows between the anchor wSelTop and the cursor (palette 3 on CGB, 2 on DMG)
+4CDE GrooveDrawSelection        ; clipType 2: highlight the rows between the anchor wSelectionTop and the cursor (palette 3 on CGB, 2 on DMG)
 4D81 SynthRenderWaveA           ; render synth waveform segment using wave tables $4EF0/$50F0 ($c9e8/$c9ed)
 5190 SynthRenderWaveB           ; render synth waveform segment (variant of SynthRenderWaveA)
 5323 SynthComposeWave           ; main synth wave composition (wSynthRenderIdx, buffer $ca34); large
@@ -262,32 +262,32 @@
 45B3 .decGrooveRow
 45B7 .grooveDrawFieldHwb
 45C6 .drawGrooveRowc
-45EA .loadSelTop
+45EA .loadSelectionTop
 467C .drawGrooveRowd
-46A0 .loadSelTopb
+46A0 .loadSelectionTopb
 472D .drawGrooveRowe
-4751 .loadSelTopc
+4751 .loadSelectionTopc
 47CF .checkButtons
 485C .drawGrooveRowf
-486E .setMsgStrPtr
+486E .setMessageStrPtr
 488D .setGroove
-4892 .setMsgStrPtrb
+4892 .setMessageStrPtrb
 48B1 .setGrooveb
-48B6 .setMsgStrPtrc
-48CF .setMsgStrPtrd
+48B6 .setMessageStrPtrc
+48CF .setMessageStrPtrd
 4912 .grooveDrawField
 4998 .drawGrooveScreenb
 49CB .setSelectHeld
-4A24 .setCurrentScreen
-4A2C .setCurrentScreenb
+4A24 .setCurScreen
+4A2C .setCurScreenb
 4AE1 .setGrooveRow
-4B04 .setSelTop
+4B04 .setSelectionTop
 4BAA .setCursorMode
-4C3D .loadSelTop
-4C72 .loadSelBottom
-4C8B .loadSelTop
+4C3D .loadSelectionTop
+4C72 .loadSelectionBottom
+4C8B .loadSelectionTop
 4CD1 .drawGrooveSteps
-4D07 .loadSelTop
+4D07 .loadSelectionTop
 4D2C .ok
 5F19 .clearSynthWaveBufs2
 5F1F .synthFilterPass
@@ -343,8 +343,8 @@
 7A32 .synthFieldDecHib
 7A44 .synthFieldDecLob
 7B4B .synthDataAddrd
-7B53 .setMsgStrPtr
-7B6D .setMsgStrPtrb
+7B53 .setMessageStrPtr
+7B6D .setMessageStrPtrb
 7B86 .checkButtonsSamei
 7BA6 .checkButtonsSamej
 7BCE .checkButtonsSamek
@@ -352,7 +352,7 @@
 7C12 .checkButtonsSamem
 7C1F .loadSynthCursorc
 7C3D .loadSynth
-7CE0 .setSelLeft
+7CE0 .setSelectionLeft
 7D07 .checkCursorMode
 7D7A .synthDataAddre
 
@@ -402,13 +402,13 @@
 4B16 .grooveScreenHw
 4B24 .showMessage
 4B51 .cont_8
-4B9D .checkSelTop
-4BB2 .setSelLeft
+4B9D .checkSelectionTop
+4BB2 .setSelectionLeft
 4BD4 .cont
 4BD9 .showMessage
 4C24 .cont_2
 4C26 .writeGrooveByte
-4C33 .loadSelTop_2
+4C33 .loadSelectionTop_2
 4CCB .drawGrooveSteps_2
 4CED .loadGrooveRow
 4D29 .checkGameboyType
@@ -656,7 +656,7 @@
 7C59 .farCall_5
 7C78 .showMessage
 7C9A .index
-7CDA .setSelLeft_2
+7CDA .setSelectionLeft_2
 7D19 .ret00
 7D1E .showMessage_2
 7D36 .index_2

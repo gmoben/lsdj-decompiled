@@ -52,7 +52,7 @@ void WriteSongInitFlag(void);               /* bank 1 */
 UBYTE CheckFileMagic64(void);               /* bank $1C */
 UBYTE CheckJkMarker(void);                  /* bank 1 */
 void FormatFileSpace(void);                 /* bank $1C */
-void LoadProjectSettings(void);             /* bank 1 */
+void LoadProjSettings(void);             /* bank 1 */
 UBYTE CheckFileMagicAll(void);              /* bank $1C */
 void RenderSynthWave(void);                 /* bank $1D */
 UBYTE ProcessLinkQueue(void);               /* bank 7 */
@@ -70,7 +70,7 @@ UBYTE HandleButtonEvent(void);
 extern UBYTE wKbdActionCh;                  /* $CB9A */
 extern UBYTE wLinkQueueCount;               /* $CB7D */
 extern UBYTE wKbdHeldNote;                  /* $CB7E */
-extern UBYTE wSelHoldFrames;                /* $C676 */
+extern UBYTE wSelectHoldFrames;                /* $C676 */
 extern UBYTE wChainScopeDirty;              /* $C403 */
 extern UBYTE wSongScopeDirty;               /* $C404 */
 extern UBYTE wChain;                        /* $C418 */
@@ -141,12 +141,12 @@ UBYTE ProcessInput(void)
     }
     if (buttons) {
         if (buttons != 0x40)
-            wSelHoldFrames = 0;
+            wSelectHoldFrames = 0;
         else if (!wButtons)
-            wSelHoldFrames = 1;
-    } else if (wSelHoldFrames) {
+            wSelectHoldFrames = 1;
+    } else if (wSelectHoldFrames) {
         buttons = 0x43;
-        wSelHoldFrames = 0;
+        wSelectHoldFrames = 0;
     }
     if ((wButtons & 0x10) && !(buttons & 0x10)) {
         if (wChainScopeDirty) {
@@ -278,8 +278,8 @@ void InitAndLoadSong(void)
     if (!CheckSongInitFlag()) {
         ResetWorkState();
         FarCall(0x1E, FAR_FN(LoadFontTiles));
-        hBgDigitPalette = 4;
-        hBgPalette = 1;
+        hBgDigitPal = 4;
+        hBgPal = 1;
         DrawCartTest();
         WriteSongByte(1, 0xBFB6, 0);
         WriteSongByte(1, 0xBFB8, 0);
@@ -301,7 +301,7 @@ void InitAndLoadSong(void)
     TAC_REG = 6;
     wTimerReload = hGameboyType ? 0x6E : 0xB7;
     wTimerTickInc = hGameboyType ? 0x0C : 0x06;
-    FarCallArg(1, LoadProjectSettings, 0);
+    FarCallArg(1, LoadProjSettings, 0);
     _asm ei _endasm;
 }
 

@@ -10,7 +10,7 @@
 extern UBYTE wClipboardType;                /* $C411 */
 extern UBYTE wInstrField;                   /* $C427 */
 extern UBYTE wNameEditBuf[];                /* $C431, [5] */
-extern UBYTE wSelTop, wSelRight, wSelBottom; /* $C40E-$C410 */
+extern UBYTE wSelectionTop, wSelectionRight, wSelectionBottom; /* $C40E-$C410 */
 extern UBYTE wSelectHeld;
 extern UBYTE wColPhrase[];                  /* $C453, [4] */
 extern UBYTE InstrTableFieldRow[];          /* $01:$532C, [4] */
@@ -135,7 +135,7 @@ UBYTE IsPhraseUsed(UBYTE phrase)
 /* $5253: copy the instrument ("COPIED INSTR"): its 16 bytes and its name
    into the clipboard's first two columns, as a 3 x 16 selection */
 
-void CopyInstrument(void)
+void CopyInstr(void)
 {
     UBYTE i;
 
@@ -144,13 +144,13 @@ void CopyInstrument(void)
     wCursorMode = 2;
     for (i = 0; i < 16; i++)
         WriteClipboardCell(0, i, ReadCurInstrByte(i));
-    CopyInstrName(wInstrument);
+    CopyInstrName(wInstr);
     for (i = 0; i < 5; i++)
         WriteClipboardCell(1, i, wNameEditBuf[i]);
-    wSelLeft = 0;
-    wSelRight = 2;
-    wSelTop = 0;
-    wSelBottom = 16;
+    wSelectionLeft = 0;
+    wSelectionRight = 2;
+    wSelectionTop = 0;
+    wSelectionBottom = 16;
     FarCall(0x1C, FAR_FN(SendLinkClipboard));
 }
 
@@ -209,14 +209,14 @@ void CloneInstrTable(void)
         return;
     ShowMessage("CLONED TABLE");
     CopyTableData(v, t);
-    WriteInstrByte(wInstrument, 6, t | 0x20);
+    WriteInstrByte(wInstr, 6, t | 0x20);
 }
 
-void PasteInstrument(void)
+void PasteInstr(void)
 {
     UBYTE i;
 
-    if (wInstrument == 0x40)
+    if (wInstr == 0x40)
         return;
     if (wCursorMode != 2)
         return;
@@ -225,13 +225,13 @@ void PasteInstrument(void)
     if (wClipboardType != 6)
         return;
     for (i = 0; i < 16; i++)
-        WriteInstrByte(wInstrument, i, ReadClipboardCell(0, i));
+        WriteInstrByte(wInstr, i, ReadClipboardCell(0, i));
     for (i = 0; i < 5; i++)
         wNameEditBuf[i] = ReadClipboardCell(1, i);
-    WriteInstrName(wInstrument);
+    WriteInstrName(wInstr);
     if (hGameboyType)
         ClearBgTilemap();
     UiDrawTextHw();
-    FarCall(3, FAR_FN(DrawInstrumentScreen));
+    FarCall(3, FAR_FN(DrawInstrScreen));
     ShowMessage("PASTED INSTR");
 }

@@ -21,11 +21,11 @@ extern UBYTE wNameEditIsInstr;              /* $C430 */
 extern UBYTE wAPressEnabled;                /* $C409 */
 extern UBYTE wBHeld;                        /* $C40B */
 extern UBYTE wButtons;                      /* $C575 */
-extern UBYTE wColInstrument[];              /* $C468, [4] */
-extern UBYTE wSelTop;                       /* $C40E */
+extern UBYTE wColInstr[];              /* $C468, [4] */
+extern UBYTE wSelectionTop;                       /* $C40E */
 extern UBYTE wClipboardType;                /* $C411 */
-extern UBYTE wSelRight;                     /* $C40F */
-extern UBYTE wSelBottom;                    /* $C410 */
+extern UBYTE wSelectionRight;                     /* $C40F */
+extern UBYTE wSelectionBottom;                    /* $C410 */
 void SendLinkClipboard(void);                   /* $1C:$71CD */
 void PhraseReadNote(void);                  /* $04:$4968, (row) */
 void WritePhraseNote(void);                 /* $04:$418F, (row, v) */
@@ -105,14 +105,14 @@ UBYTE InstrHCountUsedTables(void);
 void ReadTableRowCmds(UBYTE t);
 void ClearTable(UBYTE t);
 void MarkPhraseUsed(UBYTE phrase);
-void WritePhraseInstrument(UBYTE phrase, UBYTE row, UBYTE instr);
+void WritePhraseInstr(UBYTE phrase, UBYTE row, UBYTE instr);
 
-void DrawFieldValue(UBYTE kind, UBYTE v);   /* bank 0, DrawFields.c */
+void DrawFieldVal(UBYTE kind, UBYTE v);   /* bank 0, DrawFields.c */
 extern char PlayModeNames[];                /* $00:$0839, five 9-byte names "  MANUAL".."  RESYNC" */
 void DrawPulseDuty(UBYTE duty);             /* bank 0 */
 void DrawWaveFinetune(void);                 /* $03:$4CD9 */
 void DrawWaveSynthField(void);              /* $03:$4D15 */
-void DrawWaveLength(void);                 /* $03:$498B */
+void DrawWaveLen(void);                 /* $03:$498B */
 void DrawWaveLoopPos(void);                  /* $03:$49FD */
 void DrawWaveSpeed(void);                 /* $03:$49B7 */
 
@@ -182,11 +182,11 @@ void DrawKitLoopMode(UBYTE loopBit, UBYTE atkByte)
 void DrawKitLoopField(void)
 {
     DrawKitLoopMode(0x40, 2);
-    hBgDigitPalette = 4;
-    hBgPalette = 1;
+    hBgDigitPal = 4;
+    hBgPal = 1;
     DrawStringIndexed('/');
-    hBgDigitPalette = wShadowDigitPal;
-    hBgPalette = wShadowPal;
+    hBgDigitPal = wShadowDigitPal;
+    hBgPal = wShadowPal;
     DrawKitLoopMode(0x20, 9);
 }
 
@@ -209,11 +209,11 @@ void DrawInstrEnvFields(void)
     UBYTE v;
 
     wVramCursor = 0x98A7;
-    hBgDigitPalette = 4;
-    hBgPalette = 1;
+    hBgDigitPal = 4;
+    hBgPal = 1;
     DrawString("/--/--");
-    hBgDigitPalette = wShadowDigitPal;
-    hBgPalette = wShadowPal;
+    hBgDigitPal = wShadowDigitPal;
+    hBgPal = wShadowPal;
     wVramCursor = 0x98A5;
     DrawHexByte(ReadCurInstrByte(1));
     if (InstrEnvHasSecond()) {
@@ -241,7 +241,7 @@ void DrawPulseInstr(void)
     v = ReadCurInstrByte(7);
     DrawPulseDuty(v >> 6);
     wVramCursor = 0x990B;
-    DrawFieldValue(0x0C, ReadCurInstrByte(7));
+    DrawFieldVal(0x0C, ReadCurInstrByte(7));
     wVramCursor = 0x9928;
     v = ReadCurInstrByte(3);
     if (!(v & 0x40)) {
@@ -276,7 +276,7 @@ void DrawNoiseInstr(void)
     wVramCursor = 0x98A5;
     DrawInstrEnvFields();
     wVramCursor = 0x98EB;
-    DrawFieldValue(0x0C, ReadCurInstrByte(7));
+    DrawFieldVal(0x0C, ReadCurInstrByte(7));
     wVramCursor = 0x9908;
     v = ReadCurInstrByte(3);
     if (!(v & 0x40)) {
@@ -342,12 +342,12 @@ void DrawKitInstr(void)
         v = '0';
     }
     DrawStringIndexed((char)v);             /* via a copy: ld b,(hl); ld a,b */
-    hBgDigitPalette = 4;
-    hBgPalette = 1;
+    hBgDigitPal = 4;
+    hBgPal = 1;
     DrawStringIndexed('/');
-    hBgDigitPalette = wShadowDigitPal;
-    hBgPalette = wShadowPal;
-    DrawFieldValue(0x0C, ReadCurInstrByte(7));
+    hBgDigitPal = wShadowDigitPal;
+    hBgPal = wShadowPal;
+    DrawFieldVal(0x0C, ReadCurInstrByte(7));
     wVramCursor = 0x99A6;
     DrawKitLoopField();
     wVramCursor = 0x99C9;
@@ -355,11 +355,11 @@ void DrawKitInstr(void)
         DrawString("0.5");
     else
         DrawString("  1");
-    hBgDigitPalette = 4;
-    hBgPalette = 1;
+    hBgDigitPal = 4;
+    hBgPal = 1;
     DrawStringIndexed('X');
-    hBgDigitPalette = wShadowDigitPal;
-    hBgPalette = wShadowPal;
+    hBgDigitPal = wShadowDigitPal;
+    hBgPal = wShadowPal;
     wVramCursor = 0x99E8;
     v = ReadCurInstrByte(0x0A);
     FarCallArg(3, FAR_FN(DrawKitDistName), v);
@@ -368,11 +368,11 @@ void DrawKitInstr(void)
     wVramCursor = 0x9968;
     v = ReadCurInstrByte(0x0C);
     DrawHexByte(v);
-    hBgDigitPalette = 4;
-    hBgPalette = 1;
+    hBgDigitPal = 4;
+    hBgPal = 1;
     DrawStringIndexed('/');
-    hBgDigitPalette = wShadowDigitPal;
-    hBgPalette = wShadowPal;
+    hBgDigitPal = wShadowDigitPal;
+    hBgPal = wShadowPal;
     v = ReadCurInstrByte(0x0D);
     DrawHexByte(v);
     wVramCursor = 0x9986;
@@ -382,11 +382,11 @@ void DrawKitInstr(void)
         DrawHexByte(v);
     } else
         DrawString("ALL");
-    hBgDigitPalette = 4;
-    hBgPalette = 1;
+    hBgDigitPal = 4;
+    hBgPal = 1;
     DrawStringIndexed('/');
-    hBgDigitPalette = wShadowDigitPal;
-    hBgPalette = wShadowPal;
+    hBgDigitPal = wShadowDigitPal;
+    hBgPal = wShadowPal;
     v = ReadCurInstrByte(0x0B);
     if (v) {
         DrawStringTile20();
@@ -423,12 +423,12 @@ void DrawWaveInstr(void)
         break;
     }
     DrawStringIndexed((char)v);
-    hBgDigitPalette = 4;
-    hBgPalette = 1;
+    hBgDigitPal = 4;
+    hBgPal = 1;
     DrawStringIndexed('/');
-    hBgDigitPalette = wShadowDigitPal;
-    hBgPalette = wShadowPal;
-    DrawFieldValue(0x0C, ReadCurInstrByte(7));
+    hBgDigitPal = wShadowDigitPal;
+    hBgPal = wShadowPal;
+    DrawFieldVal(0x0C, ReadCurInstrByte(7));
     wVramCursor = 0x98C7;
     v = ReadCurInstrByte(5);
     FarCallArg(1, FAR_FN(DrawSpeedModeName), v);
@@ -438,7 +438,7 @@ void DrawWaveInstr(void)
     DrawByte(ReadCurInstrByte(8));
     FarCall(3, DrawWaveFinetune);
     FarCall(3, DrawWaveSynthField);
-    FarCall(3, DrawWaveLength);
+    FarCall(3, DrawWaveLen);
     FarCall(3, DrawWaveLoopPos);
     FarCall(3, DrawWaveSpeed);
     wVramCursor = 0x9965;
@@ -515,11 +515,11 @@ UBYTE AllocNextFreeInstr(void)
 
     for (i = 0; i < 0x40; i++) {
         if (ClaimInstrSlot(i)) {
-            FarCallArg3(4, (UWORD)WritePhraseInstrument, wPhrase, wPhraseRow, i);
+            FarCallArg3(4, (UWORD)WritePhraseInstr, wPhrase, wPhraseRow, i);
             return i;
         }
     }
-    strcpy(wStrBuffer, "OUT OF MEMORY. CLEAN INSTR DATA IN PROJECT SCREEN");
+    strcpy(wStrBuf, "OUT OF MEMORY. CLEAN INSTR DATA IN PROJECT SCREEN");
     FarCall(1, DrawMessageBar);
     return 0xFF;
 }
@@ -639,8 +639,8 @@ UBYTE FreeUnusedInstrs(void)
                 /* SDCC fetches i into a over the element it just read
                    (`cp a,a`): the test is always true, so freeing any
                    instrument clears all four columns' */
-                if (wColInstrument[k - 1] == i)
-                    wColInstrument[k - 1] = 0xFF;
+                if (wColInstr[k - 1] == i)
+                    wColInstr[k - 1] = 0xFF;
             } while (--k);
         } else {
             n--;
@@ -1453,7 +1453,7 @@ UBYTE CanEnterSongCol(UBYTE col)
 
     if (col >= 4)
         DebugTrap();
-    wMsgStrPtr = 0;
+    wMessageStrPtr = 0;
     if (wLiveMode && wChanActive[col]) {
         chain = wChanChain[col];
         if (chain & 0x80)
@@ -1519,22 +1519,22 @@ void CutCopyPhraseSelection(UBYTE cut)
         return;
     ShowMessage(cutInstr ? "CUT" : "COPY");
     wCursorMode = 2;
-    wSelRight = wPhraseCol;
-    wSelBottom = wPhraseRow;
-    SortBytePair(&wSelLeft, &wSelRight);
-    SortBytePair(&wSelTop, &wSelBottom);
-    if (wSelLeft == 4)
-        wSelLeft = 3;
-    if (wSelRight == 3)
-        wSelRight = 4;
-    if (wSelRight == 1 && wSongCol == 2) {
+    wSelectionRight = wPhraseCol;
+    wSelectionBottom = wPhraseRow;
+    SortBytePair(&wSelectionLeft, &wSelectionRight);
+    SortBytePair(&wSelectionTop, &wSelectionBottom);
+    if (wSelectionLeft == 4)
+        wSelectionLeft = 3;
+    if (wSelectionRight == 3)
+        wSelectionRight = 4;
+    if (wSelectionRight == 1 && wSongCol == 2) {
         cutInstr = 0;
-        wSelRight = 2;
+        wSelectionRight = 2;
     }
-    wSelRight++;
-    wSelBottom++;
-    for (y = wSelTop; y < wSelBottom; y++) {
-        for (x = wSelLeft; x < wSelRight; x = x + 1) {
+    wSelectionRight++;
+    wSelectionBottom++;
+    for (y = wSelectionTop; y < wSelectionBottom; y++) {
+        for (x = wSelectionLeft; x < wSelectionRight; x = x + 1) {
             wPhraseCol = x;
             wPhraseRow = y;
             InstrHReadCursorCellAt();
@@ -1546,7 +1546,7 @@ void CutCopyPhraseSelection(UBYTE cut)
                     if (cut)
                         FarCallArg3P(4, FAR_FN(WritePhraseNote), y, t & 0x0F);
                 }
-                if (wSelRight == 1 && wSongCol == 2) {
+                if (wSelectionRight == 1 && wSongCol == 2) {
                     WriteClipboardCell(1, y, 0xFF);
                     cutInstr = 0;
                     goto instr;
@@ -1569,7 +1569,7 @@ void CutCopyPhraseSelection(UBYTE cut)
             instr:
                 WriteClipboardCell(2, y, FarCallArg2P(4, FAR_FN(ReadPhraseInstr), wPhrase, y));
                 if (cutInstr)
-                    FarCallArg3P(4, FAR_FN(WritePhraseInstrument), wPhrase, y, 0xFF);
+                    FarCallArg3P(4, FAR_FN(WritePhraseInstr), wPhrase, y, 0xFF);
                 break;
             case 3:
                 WriteClipboardCell(3, y, FarCallArg2P(4, FAR_FN(PhraseReadFx), wPhrase, y));
@@ -1584,11 +1584,11 @@ void CutCopyPhraseSelection(UBYTE cut)
             }
         }
     }
-    if (wSelRight == 1)
-        wSelRight = 3;
+    if (wSelectionRight == 1)
+        wSelectionRight = 3;
     FarCall(0x1C, FAR_FN(SendLinkClipboard));
-    wPhraseCol = wSelLeft;
-    wPhraseRow = wSelTop;
+    wPhraseCol = wSelectionLeft;
+    wPhraseRow = wSelectionTop;
     FarCall(4, FAR_FN(DrawPhraseScreen));
 }
 
@@ -1671,18 +1671,18 @@ void DrawPhraseSelection(void)
     if (wClipboardType != 1)
         return;
     col = wPhraseCol;               /* the ROM reads the column into c for the test only */
-    if (wSelLeft < col) {
-        left = wSelLeft;
+    if (wSelectionLeft < col) {
+        left = wSelectionLeft;
         right = wPhraseCol + 1;
     } else {
-        right = wSelLeft + 1;
+        right = wSelectionLeft + 1;
         left = wPhraseCol;
     }
-    if (wSelTop < wPhraseRow) {
-        top = wSelTop;
+    if (wSelectionTop < wPhraseRow) {
+        top = wSelectionTop;
         bottom = wPhraseRow + 1;
     } else {
-        bottom = wSelTop + 1;
+        bottom = wSelectionTop + 1;
         top = wPhraseRow;
     }
     /* the one-cell ring around the rectangle back to its column palettes... */
@@ -1740,13 +1740,13 @@ void DrawSpeechInstrScreen(void)
     UBYTE *p;
     UBYTE row, i, c;
 
-    wCurrentScreen = 0x0B;
+    wCurScreen = 0x0B;
     FarCall(1, FAR_FN(UiDrawTextHw));
     FarCall(0x1F, FAR_FN(DrawAllChanStatus));
-    wCurrentScreen = 6;
+    wCurScreen = 6;
     FarCall(3, FAR_FN(InstrScreenFrame));
-    hBgDigitPalette = 4;
-    hBgPalette = 1;
+    hBgDigitPal = 4;
+    hBgPal = 1;
     wVramCursor = 0x9840;
     DrawString("TYPE   SPEECH");
     p = (UBYTE *)0xBDD0;
@@ -1754,11 +1754,11 @@ void DrawSpeechInstrScreen(void)
     while (row < 4 + 14) {
         GetTilemapAddr(0, row);
         if (row & 1) {
-            hBgDigitPalette = wShadowDigitPal;
-            hBgPalette = wShadowPal;
+            hBgDigitPal = wShadowDigitPal;
+            hBgPal = wShadowPal;
         } else {
-            hBgDigitPalette = 4;
-            hBgPalette = 1;
+            hBgDigitPal = 4;
+            hBgPal = 1;
         }
         i = 0;
         while (i < 3) {
@@ -1871,8 +1871,8 @@ UBYTE WordScreenInput(void)
         }
         if (wButtons == 0x30) {
             GetTilemapAddr(0, InstrHGetParamPlus4());
-            hBgDigitPalette = wSelectDigitPal;
-            hBgPalette = wSelectPal;
+            hBgDigitPal = wSelectDigitPal;
+            hBgPal = wSelectPal;
             p -= 3;
             WriteSongByte(0, p++, 'W');
             DrawStringIndexed('W');
@@ -1900,8 +1900,8 @@ UBYTE WordScreenInput(void)
             WriteSongByte(0, p++, ReadClipboardCell(1, i));
         }
         p = (UWORD)wSpeechCursorRow * 3 + (UWORD)0xBDD0;
-        hBgDigitPalette = wSelectDigitPal;
-        hBgPalette = wSelectPal;
+        hBgDigitPal = wSelectDigitPal;
+        hBgPal = wSelectPal;
         GetTilemapAddr(0, InstrHGetParamPlus4());
         for (i = 0; i < 3; i++) {
             if (p >= (UWORD)0xBE78)

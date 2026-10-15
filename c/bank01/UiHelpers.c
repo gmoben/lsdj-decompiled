@@ -16,9 +16,9 @@ extern volatile sfr UBYTE NR51_REG;         /* $FF25 */
 extern volatile sfr UBYTE NR52_REG;         /* $FF26 */
 extern volatile sfr UBYTE hSoundCh;         /* $FF8B */
 extern UBYTE wColorSet;
-extern UBYTE wSelTop;                       /* $C40E */
-extern UBYTE wSelRight;                     /* $C40F */
-extern UBYTE wSelBottom;                    /* $C410 */
+extern UBYTE wSelectionTop;                       /* $C40E */
+extern UBYTE wSelectionRight;                     /* $C40F */
+extern UBYTE wSelectionBottom;                    /* $C410 */
 extern UBYTE wClipboardType;                /* $C411 */
 extern UBYTE wQuickMarking;             /* $C412 */
 extern UBYTE wLiveMode;                     /* $C528 */
@@ -32,7 +32,7 @@ extern UBYTE wPlaySeconds;                  /* $C553 */
 extern UBYTE wPlayFrames;                   /* $C6A8 */
 extern volatile UBYTE wProjDrawScratch;     /* $C9A7; volatile: the ROM re-reads it for the `++` */
 extern UBYTE wSelectHeld;                   /* $C40A */
-extern UBYTE wMsgNoPause;                  /* $C530 */
+extern UBYTE wMessageNoPause;                  /* $C530 */
 UBYTE CheckRomChecksum(void);               /* $00:$1FD5 */
 UBYTE UiTestSramLo(void);
 void SeedRandom16(UWORD seed);              /* bank 0 */
@@ -40,7 +40,7 @@ UBYTE Random16(void);                       /* bank 0, a 16-bit LCG; the SRAM te
 extern UBYTE wFileNameTmp[];
 extern UWORD ColorSetPalettes[];            /* $01:$56A7, [sets][20] */
 void set_bkg_palette(UBYTE first, UBYTE nb, UWORD *rgb);   /* GBDK */
-void UiLoadObjPalette(UBYTE first, UBYTE nb, UWORD *rgb);
+void UiLoadObjPal(UBYTE first, UBYTE nb, UWORD *rgb);
 extern UBYTE wNotePeriodLo[];               /* $CD28 */
 extern UBYTE wNotePeriods[];                /* $CF28 */
 extern UBYTE NoteFreqTable[];               /* $01:$40FA, DMG */
@@ -49,19 +49,19 @@ extern UBYTE PitchCurve[];                  /* $01:$42AA, DMG */
 extern UBYTE PitchCurveCgb[];               /* $01:$4382, CGB */
 
 void ApplyColorSet(void);
-void ClearOamBuffer(void);
+void ClearOamBuf(void);
 void UiLoadHwTables(void);
 void ClearSramWindow(void);                 /* $01:$7DE9, asm: zero the SRAM window */
 void ClearBookmarks(void);                  /* $07:$643D */
 extern UBYTE DefaultWaveFrameB1[];          /* $01:$40EA, [16] */
 void WriteVramByteSafeP(UBYTE *addr, UBYTE v);   /* WriteVramByteSafe with a pointer address (aliased) */
-extern UBYTE wOamBuffer[];                  /* $DD00, the OAM shadow: 40 sprites x {y, x, tile, prop} */
+extern UBYTE wOamBuf[];                  /* $DD00, the OAM shadow: 40 sprites x {y, x, tile, prop} */
 extern volatile UBYTE wOamDirty;            /* $CBD1 */
 
 typedef struct { UBYTE y, x, tile, prop; } OamEntry;
 #define OamShadow ((OamEntry *)0xDD00)      /* the OAM shadow as GBDK's sprite records */
 UBYTE TestSram(void);                       /* bank 0 */
-UBYTE *GetScreenPalette(void);
+UBYTE *GetScreenPal(void);
 void UiDrawScreenCgb(UWORD s);              /* asm */
 void UiDrawScreenDmg(UBYTE *s);             /* asm */
 
@@ -71,7 +71,7 @@ void SetSyncSendRate(void);                 /* bank 7 */
 void LoadFileListState(void);               /* bank $1C */
 void FileUpgradeSong(void);                 /* bank $1C */
 void DrawKbdInstrState(void);               /* bank 7 */
-extern char *CommandHelpTable[];            /* $01:$776E */
+extern char *CmdHelpTable[];            /* $01:$776E */
 extern char TxtHelpBNote[];                 /* $01:$6FDB "B: MAYBE PLAY NOTE; ..." */
 extern char TxtHelpBHop[];                  /* $01:$7016 "B: MAYBE HOP; ..." */
 extern char TxtHelpFTune[];                 /* $01:$7123 "F: FINETUNE ..." */
@@ -98,7 +98,7 @@ extern char TxtScreenSynth[];               /* $01, "SYNTH " */
 extern char TxtScreenGroove[];              /* $01, "GROOVE " */
 int StringLength(const char *s);            /* bank 0 */
 UBYTE CheckFileMagic64(void);               /* $1C:$4057 */
-void DrawChannelHeader(void);               /* bank 0 */
+void DrawChanHeader(void);               /* bank 0 */
 
 extern UBYTE ScreenPalChain[];              /* $01:$57BF */
 extern UBYTE ScreenPalFile[];               /* $01:$6B6F */
@@ -118,7 +118,7 @@ extern UBYTE ScreenPalWord[];               /* $01:$6A07 */
 extern UBYTE TxtBlankString2[];             /* $01:$7498, 20 zero attribute bytes */
 extern UBYTE wChain;                        /* $C418 */
 extern UBYTE wCloneMode;                    /* $C531 */
-extern UBYTE wColInstrument[];              /* $C468, [4] */
+extern UBYTE wColInstr[];              /* $C468, [4] */
 extern UBYTE wFont;                         /* $C52E */
 extern UBYTE wGroove;                       /* $C417 */
 extern UBYTE wKeyDelay;                     /* $C52B */
@@ -360,11 +360,11 @@ void UiLoadHwTables(void)
    display sprites and wait for the next OAM DMA before enabling sprites.
    p is a plain word that is the operand of every cast on it, so the cast
    copies spill themselves and p ends in its slot. */
-void ClearOamBuffer(void)
+void ClearOamBuf(void)
 {
     UWORD p;
 
-    MemSet(wOamBuffer, 0, 0xA0);
+    MemSet(wOamBuf, 0, 0xA0);
     wOamDirty = 1;
     for (p = 0x8000; p != 0x8030; p++)
         WriteVramByteSafeP((UBYTE *)p, 0);
@@ -389,9 +389,9 @@ void ApplyColorSet(void)
         LCDC_REG &= 0x7F;
         pal = &ColorSetPalettes[wColorSet * 20];
         set_bkg_palette(0, 5, pal);
-        UiLoadObjPalette(0, 2, pal);
+        UiLoadObjPal(0, 2, pal);
         memcpy(wFileNameTmp, (UBYTE *)(pal + 5), 8);
-        UiLoadObjPalette(2, 1, (UWORD *)wFileNameTmp);
+        UiLoadObjPal(2, 1, (UWORD *)wFileNameTmp);
         LCDC_REG |= 0x80;
     } else {
         v = (wColorSet & 1) ? 0x1B : 0xE4;
@@ -403,7 +403,7 @@ void ApplyColorSet(void)
 void UiInitScreen(void)
 {
     ApplyColorSet();
-    ClearOamBuffer();
+    ClearOamBuf();
     UiLoadHwTables();
 }
 
@@ -424,9 +424,9 @@ void UpdatePlayClock(void)
     wPlayFrames = 0;
     if ((wPlaySeconds & 3) == 0)
         wPlayFrames = 1;
-    if (wPlayMode && wCurrentScreen == 9) {
-        hBgDigitPalette = 4;
-        hBgPalette = 1;
+    if (wPlayMode && wCurScreen == 9) {
+        hBgDigitPal = 4;
+        hBgPal = 1;
         wVramCursor = 0x9A05;
         DrawFormat("%d:", (UWORD)wPlayMinutes);
         wProjDrawScratch = 0x0C;
@@ -507,9 +507,9 @@ void DrawOnOffName(UBYTE v)
     DrawString((v & 0x20) ? "OFF" : " ON");
 }
 
-UBYTE *GetScreenPalette(void)
+UBYTE *GetScreenPal(void)
 {
-    switch (wCurrentScreen) {
+    switch (wCurScreen) {
     case 1:
         return ScreenPalPhrase;
     case 2:
@@ -521,7 +521,7 @@ UBYTE *GetScreenPalette(void)
     case 5:
         return ScreenPalTable;
     case 6:
-        if (wInstrument < 0x40) {
+        if (wInstr < 0x40) {
             switch (ReadCurInstrByte(0)) {
             case 0:
                 return ScreenPalInstrPulse;
@@ -556,14 +556,14 @@ void UiDrawTextHw(void)
 {
     UBYTE *s;
 
-    s = GetScreenPalette();
+    s = GetScreenPal();
     if (!s) {
         VBK_REG = 1;
         ClearBgTilemap();
         VBK_REG = 0;
     } else {
-        wMsgStrPtr = 0;
-        wMsgTimer = 0;
+        wMessageStrPtr = 0;
+        wMessageTimer = 0;
         if (hGameboyType)
             UiDrawScreenCgb((UWORD)s);
         else
@@ -592,18 +592,18 @@ void DrawTopBar(void)
     UBYTE isFile;
 
     wVramCursorW = 0x9800;
-    hBgDigitPalette = 4;
-    hBgPalette = 1;
-    if (wMsgStrPtr)
+    hBgDigitPal = 4;
+    hBgPal = 1;
+    if (wMessageStrPtr)
         return;
-    isFile = wCurrentScreen == 13;
-    if (!isFile && wCurrentScreen != 9 && hGameboyType) {
+    isFile = wCurScreen == 13;
+    if (!isFile && wCurScreen != 9 && hGameboyType) {
         VBK_REG = 1;
         set_bkg_tiles(0, 0, 20, 1, TxtBlankString2);
         VBK_REG = 0;
     }
     wVramCursorW = 0x9800;
-    switch (wCurrentScreen) {
+    switch (wCurScreen) {
     default:
         if (!isFile)
             break;
@@ -646,7 +646,7 @@ void DrawTopBar(void)
         break;
     case 6:
         DrawString(TxtScreenInstr);
-        DrawHexByte(wInstrument);
+        DrawHexByte(wInstr);
         break;
     case 8:
         DrawString(TxtScreenWave);
@@ -663,11 +663,11 @@ void DrawTopBar(void)
     }
     while (wVramCursorW < 0x9811)
         DrawStringIndexed(' ');
-    if (wCurrentScreen != 9 && !isFile)
-        DrawChannelHeader();
+    if (wCurScreen != 9 && !isFile)
+        DrawChanHeader();
 }
 
-void LoadCommandHelp(UBYTE cmd)
+void LoadCmdHelp(UBYTE cmd)
 {
     UBYTE *saved;
     UBYTE *s;
@@ -679,10 +679,10 @@ void LoadCommandHelp(UBYTE cmd)
         DebugTrap();
     switch (cmd) {
     case 2:
-        s = wCurrentScreen == 1 ? TxtHelpBNote : TxtHelpBHop;
+        s = wCurScreen == 1 ? TxtHelpBNote : TxtHelpBHop;
         break;
     case 8:
-        s = wCurrentScreen == 1 ? TxtHelpHPhrase : TxtHelpHTable;
+        s = wCurScreen == 1 ? TxtHelpHPhrase : TxtHelpHTable;
         break;
     case 6:
         s = wSongCol == 2 ? TxtHelpFOffset : TxtHelpFTune;
@@ -704,7 +704,7 @@ void LoadCommandHelp(UBYTE cmd)
         s = wSongCol == 2 ? TxtHelpW : TxtHelpWShort;
         break;
     default:
-        s = CommandHelpTable[cmd];
+        s = CmdHelpTable[cmd];
         break;
     }
     ShowMessage(s);
@@ -715,46 +715,46 @@ void ClearMessageBar(void)
 {
     UBYTE i = 0;
 
-    wMsgStrPtr = 0;
+    wMessageStrPtr = 0;
     wVramCursor = (UBYTE *)0x998F;
-    hBgDigitPalette = 4;
-    hBgPalette = 1;
+    hBgDigitPal = 4;
+    hBgPal = 1;
     do {
         DrawStringIndexed(wSampleNoteString[i]);
     } while (i++ != 4);
-    wMsgTimer = 100;
-    wMsgPanelShown = 1;
+    wMessageTimer = 100;
+    wMessagePanelShown = 1;
 }
 
 void UiUpdateMessage(void)
 {
     UBYTE i;
 
-    if (wSelectHeld && !wMsgNoPause)
+    if (wSelectHeld && !wMessageNoPause)
         return;
-    if (wMsgStrPtr) {
-        if (!wMsgTimer) {
-            hBgDigitPalette = wSelectDigitPal;
-            hBgPalette = wSelectPal;
+    if (wMessageStrPtr) {
+        if (!wMessageTimer) {
+            hBgDigitPal = wSelectDigitPal;
+            hBgPal = wSelectPal;
             wVramCursor = (UBYTE *)0x9800;
             for (i = 0; i < 20; i++)
-                DrawStringIndexed(wMsgStrPtr[i]);
-            wMsgTimer = 10;
-            wMsgStrPtr += 20;
-            if (!*wMsgStrPtr) {
-                wMsgNoPause = 0;
-                wMsgStrPtr = 0;
-                wMsgTimer = 150;
+                DrawStringIndexed(wMessageStrPtr[i]);
+            wMessageTimer = 10;
+            wMessageStrPtr += 20;
+            if (!*wMessageStrPtr) {
+                wMessageNoPause = 0;
+                wMessageStrPtr = 0;
+                wMessageTimer = 150;
             } else {
-                wMsgStrPtr -= 19;
+                wMessageStrPtr -= 19;
             }
         }
-        wMsgTimer--;
-    } else if (wMsgTimer) {
-        if (!--wMsgTimer) {
-            if (wMsgPanelShown) {
-                hBgDigitPalette = 4;
-                hBgPalette = 1;
+        wMessageTimer--;
+    } else if (wMessageTimer) {
+        if (!--wMessageTimer) {
+            if (wMessagePanelShown) {
+                hBgDigitPal = 4;
+                hBgPal = 1;
                 wVramCursor = (UBYTE *)0x998F;
                 DrawString("     ");
             } else {
@@ -768,10 +768,10 @@ void ResetEditorState(UBYTE keep)
 {
     UBYTE top, right, bottom, ctype, ctype1, mode, left, live;
 
-    left = wSelLeft;
-    top = wSelTop;
-    right = wSelRight;
-    bottom = wSelBottom;
+    left = wSelectionLeft;
+    top = wSelectionTop;
+    right = wSelectionRight;
+    bottom = wSelectionBottom;
     ctype = wClipboardType;
     ctype1 = wQuickMarking;
     mode = wCursorMode;
@@ -783,10 +783,10 @@ void ResetEditorState(UBYTE keep)
     rRAMG = 0;
     if (keep) {
         memcpy(wClipboardBuf, wClipboardSave, 0xFC);
-        wSelLeft = left;
-        wSelRight = right;
-        wSelTop = top;
-        wSelBottom = bottom;
+        wSelectionLeft = left;
+        wSelectionRight = right;
+        wSelectionTop = top;
+        wSelectionBottom = bottom;
         wClipboardType = ctype;
         wQuickMarking = ctype1;
         wCursorMode = mode;
@@ -794,7 +794,7 @@ void ResetEditorState(UBYTE keep)
     }
 }
 
-void LoadProjectSettings(UBYTE keep)
+void LoadProjSettings(UBYTE keep)
 {
     UBYTE i;
 
@@ -819,8 +819,8 @@ void LoadProjectSettings(UBYTE keep)
         wColorSet = 0;
     rRAMG = 0;
     FarCall(0x1E, FAR_FN(LoadFontTiles));
-    hBgDigitPalette = 4;
-    hBgPalette = 1;
+    hBgDigitPal = 4;
+    hBgPal = 1;
     ApplyColorSet();
     hSoundCh = 0;
     _asm di _endasm;
@@ -829,11 +829,11 @@ void LoadProjectSettings(UBYTE keep)
     wTempo = *(UBYTE *)0xBFB4;
     wTempoMode = *(UBYTE *)0xBFCC;
     wSongTranspose = *(UBYTE *)0xBFB5;
-    memcpy(wColInstrument, (UBYTE *)0xBFC6, 4);
+    memcpy(wColInstr, (UBYTE *)0xBFC6, 4);
     i = 4;
     do {
-        if (wColInstrument[i - 1] > 0x40 && wColInstrument[i - 1] != 0xFF)
-            wColInstrument[i - 1] = 0;
+        if (wColInstr[i - 1] > 0x40 && wColInstr[i - 1] != 0xFF)
+            wColInstr[i - 1] = 0;
     } while (--i);
     wKeyDelay = *(UBYTE *)0xBFBA & 0x0F;
     wKeyRepeat = *(UBYTE *)0xBFBB & 0x0F;
@@ -879,8 +879,8 @@ void DrawCrashScreen(void)
     int i;
 
     ClearBgTilemap();
-    hBgDigitPalette = 4;
-    hBgPalette = 1;
+    hBgDigitPal = 4;
+    hBgPal = 1;
     LCDC_REG &= ~2;                 /* sprites off */
     wVramCursor = (UBYTE *)0x9800;
     DrawString("DONT PANIC!");
@@ -892,7 +892,7 @@ void DrawCrashScreen(void)
     DrawString("LITTLESOUNDDJ.COM");
     wVramCursor = (UBYTE *)0x98C1;
     DrawString("ROM:");
-    DrawHexByte(hCurrentBank);
+    DrawHexByte(hCurBank);
     wVramCursor = (UBYTE *)0x9907;
     DrawString("STK:");
     DrawHexByte(wCrashSP >> 8);
@@ -902,7 +902,7 @@ void DrawCrashScreen(void)
     DrawByte(wPlayMode);
     wVramCursor = (UBYTE *)0x9987;
     DrawString("CVW:");
-    DrawByte(wCurrentScreen);
+    DrawByte(wCurScreen);
     if (hGameboyType) {
         wVramCursor = (UBYTE *)0x99A7;
         DrawString("CGB");

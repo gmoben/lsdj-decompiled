@@ -36,7 +36,7 @@ EMU = str(HERE / "emu.py")
 NAV = str(HERE / "nav.py")
 ROOT = HERE.parent.parent
 
-# Screen ids (wCurrentScreen $C401).
+# Screen ids (wCurScreen $C401).
 SCREENS = {1: "PHRASE", 2: "GROOVE", 3: "CHAIN", 4: "SONG", 5: "TABLE",
            6: "INSTR", 8: "WAVE", 9: "PROJECT", 0x0a: "SYNTH", 0x0d: "FILE",
            0x0e: "HELP"}
@@ -211,7 +211,7 @@ class LSDj:
         return f"{LSDj.NOTE_NAMES[v % 12]}-{v // 12 + 2}"
 
     # Phrase/table command byte -> letter, from the mnemonic table at ROM $0824
-    # (index 0 = '-' = no command). Verified against FxCommandTable [19].
+    # (index 0 = '-' = no command). Verified against FxCmdTable [19].
     FX_CMDS = "-ABCDEFGHKLMOPRSTVWZ"
 
     @classmethod

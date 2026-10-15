@@ -711,7 +711,7 @@ def gb_cmp16(lines: list[str], zero: bool = False) -> tuple[list[str], int]:
                             glob, known = found
                 if fetch and fetch[0].startswith("\tld\thl,#"):
                     # a global: hl was left at its high byte the same way
-                    # (CompressSong's `wCompDst < 0x7FFF` then `wCompDst + 1`)
+                    # (CompressSong's `wCompressDst < 0x7FFF` then `wCompressDst + 1`)
                     gm = re.fullmatch(r"#(\w+)(?: \+ (\d+))?", groups[0].strip())
                     if gm:
                         glob = gm.group(1)
@@ -980,7 +980,7 @@ def switch_chain(lines: list[str], jump_targets: set[str]) -> tuple[list[str], i
 
     A case whose test CSE shares with an earlier boolean (`xor a,a; or a,c;
     jp nz,L` in the middle of the chain: SynthScreenInput's `wButtons ==
-    0x10`, also TableScreenInput and ProjectScreenInput) clobbers `a` but
+    0x10`, also TableScreenInput and ProjScreenInput) clobbers `a` but
     not `hl`, so after it only the `ld a,(hl)` comes back (3 such sites; the
     7 `ld hl,nn` reloads after that test in the ROM load another global).
 
@@ -1511,18 +1511,18 @@ def track_hram(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int
     byte into a register that already held it: `ldh a,(X); ld r,a` goes when
     r holds X, within a block or across a jump (HandleInputCombos' two
     `hSoundCh` indexes in one block, SyncTickLSDJ's loop body,
-    SndUpdateChannel's D across `if (d)`). It never copied the byte over from
+    SndUpdateChan's D across `if (d)`). It never copied the byte over from
     another register: a reload into b while c holds it stays (the `+=` target
-    in SndUpdateChannel and HandleInputCombos). `a` itself serves a reread
-    in straight-line code (FxCmd_F_Wav's `step = hFxValueS`: stock genCast
+    in SndUpdateChan and HandleInputCombos). `a` itself serves a reread
+    in straight-line code (FxCmd_F_Wav's `step = hFxValS`: stock genCast
     reads the byte again for the sign's `rla`; no compiled code in the ROM
     rereads a byte `a` holds before a jump) and across an ordering test
     (SyncTickLSDJ's `hSoundCh < 4`: `cp #4; jp nc`); after an equality test
-    the byte is reread (`cp; jp nz; ldh a,(X)`: SndUpdateChannel,
+    the byte is reread (`cp; jp nz; ldh a,(X)`: SndUpdateChan,
     SndRetrigNote). An HRAM store, a
     call or a jump target ends the reuse; a store through a pointer loaded
     from memory (`ld e,(hl); inc hl; ld d,(hl); ld (de),a`) ends it for a
-    byte read before a conditional jump (the `+=` in SndUpdateChannel's D),
+    byte read before a conditional jump (the `+=` in SndUpdateChan's D),
     not for one read in this block (StartSongPlayback's `*active = 1`); a
     store to an array element (`#arr + c` in de) ends neither."""
     out: list[str] = []
@@ -1627,7 +1627,7 @@ def track_hram(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int
             continue
         if mn == "ld" and len(ops) == 2 and ops[0] == "(de)" and de_loaded:
             # a store through a pointer of unknown target ends the reuse of
-            # a byte read before a jump (SndUpdateChannel's D), not of one
+            # a byte read before a jump (SndUpdateChan's D), not of one
             # read in this block (StartSongPlayback's `*active = 1`)
             for r in carried:
                 holds.pop(r, None)

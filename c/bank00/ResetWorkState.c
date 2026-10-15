@@ -73,22 +73,22 @@ extern UBYTE wUnusedC443;                   /* $C443 */
 extern UBYTE wPendingCmdTarget;             /* $C467 */
 extern UBYTE wUnusedC46C;                   /* $C46C */
 extern UBYTE wWavPlayMode;                  /* $C500 */
-extern UBYTE wMsgNoPause;                   /* $C530 */
+extern UBYTE wMessageNoPause;                   /* $C530 */
 extern UBYTE wLiveStartCol;                 /* $C571 */
 extern UBYTE wMapCol;                       /* $C8FF */
 extern UBYTE wMapRow;                       /* $C900 */
-extern UBYTE wMapProjectCol;                /* $C901 */
+extern UBYTE wMapProjCol;                /* $C901 */
 extern UBYTE wMapSynthCol;                  /* $C902 */
 extern UBYTE wDefaultNotes;                 /* $C904 */
 extern UBYTE wTableCol;                     /* $C92F */
 extern UBYTE wTableRow;                     /* $C930 */
 extern UBYTE wTableEnvCache;                /* $C931 */
-extern UBYTE wTableTransCache;              /* $C932 */
+extern UBYTE wTableTransposeCache;              /* $C932 */
 extern UBYTE wHelpOpenEntry;                /* $C933 */
 extern UBYTE wHelpCursorRow;                /* $C934 */
 extern UBYTE wWordEditRow;                  /* $C937 */
 extern UBYTE wWordEditCol;                  /* $C938 */
-extern UBYTE wChainCellValue;               /* $C945 */
+extern UBYTE wChainCellVal;               /* $C945 */
 extern UBYTE wSramFsFlag;                   /* $C9A3 */
 extern UBYTE wGrooveRow;                    /* $C9D4 */
 extern UBYTE wAnalogOutTimer;               /* $CB68 */
@@ -159,7 +159,7 @@ void ResetWorkState(void)
     wChanNextSongRow[1] = 0xFF;
     wChanNextSongRow[2] = 0xFF;
     wChanNextSongRow[3] = 0xFF;
-    wCurrentScreen = 4;
+    wCurScreen = 4;
     wChainScopeDirty = 0;
     wSongScopeDirty = 0;
     wAPressEnabled = 1;
@@ -203,7 +203,7 @@ void ResetWorkState(void)
     wPendingCmdTarget = 0xFF;
     wUnusedC46C = 0;
     wWavPlayMode = 0;
-    wMsgNoPause = 1;
+    wMessageNoPause = 1;
     wStringSrc = AsciiCharMap - 0x20;
     wShadowDigitPal = 0x49;
     wShadowPal = 0x46;
@@ -221,7 +221,7 @@ void ResetWorkState(void)
     wPtrTableStep = &wChanTableStep[0];
     wMapCol = 0;
     wMapRow = 1;
-    wMapProjectCol = 0;
+    wMapProjCol = 0;
     wMapSynthCol = 2;
     wDefaultNotes = 3;
     wPhraseColLast[0] = 1;
@@ -231,14 +231,14 @@ void ResetWorkState(void)
     wTableCol = 0;
     wTableRow = 0;
     wTableEnvCache = 0;
-    wTableTransCache = 0;
+    wTableTransposeCache = 0;
     wHelpOpenEntry = 0;
     wHelpCursorRow = 0;
     wWordClipCell0[0] = 1;
     wWordClipCell0[1] = 0;
     wWordEditRow = 0;
     wWordEditCol = 0;
-    wChainCellValue = 0;
+    wChainCellVal = 0;
     wSramFsFlag = 0;
     wInstrRemapTable[0] = 0xFF;
     wInstrRemapTable[1] = 0xFF;

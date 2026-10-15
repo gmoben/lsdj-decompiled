@@ -39,9 +39,9 @@ typedef int WORD;
 /* --- hardware and HRAM ---------------------------------------------------- */
 
 extern volatile sfr UBYTE VBK_REG;          /* $FF4F rVBK */
-extern volatile sfr UBYTE hBgPalette;       /* $FF8C */
-extern volatile sfr UBYTE hBgDigitPalette;  /* $FF8D */
-extern volatile sfr UBYTE hCurrentBank;     /* $FF8E */
+extern volatile sfr UBYTE hBgPal;       /* $FF8C */
+extern volatile sfr UBYTE hBgDigitPal;  /* $FF8D */
+extern volatile sfr UBYTE hCurBank;     /* $FF8E */
 extern UBYTE hGameboyType;                  /* $FF90 */
 extern volatile UBYTE rROMB0;               /* $2000, the MBC5 ROM bank register */
 /* volatile: SndSpeechStep's `rRAMG = 0x0A; x = *p; rRAMG = 0;` keeps both
@@ -53,14 +53,14 @@ extern volatile UBYTE rRAMB;                /* $4000, MBC5 SRAM bank */
  * de (`ld de,#0x2000; ld a,#n; ld (de),a`); the ROM has the named-variable form
  * (`ld hl,#0x2000; ld (hl),#n`), so LSDj wrote the register as a variable. It
  * also keeps the HRAM shadow the far-call helpers rely on. */
-#define SWITCH_ROM(n) hCurrentBank = (n); rROMB0 = (n)
+#define SWITCH_ROM(n) hCurBank = (n); rROMB0 = (n)
 
 /* --- WRAM ----------------------------------------------------------------- */
 
-extern UBYTE wCurrentScreen;                /* $C401 */
+extern UBYTE wCurScreen;                /* $C401 */
 extern UBYTE wIsCGB;                        /* $C402 */
 extern UBYTE wButtonsSame;                  /* $C408: 1 if the buttons are unchanged since last frame */
-extern UBYTE wSelLeft;                      /* $C40D */
+extern UBYTE wSelectionLeft;                      /* $C40D */
 extern UBYTE wCursorMode;                   /* $C413 */
 extern UBYTE wPhrase;                       /* $C414 */
 extern UBYTE wPhraseRow;                    /* $C416 */
@@ -82,11 +82,11 @@ extern UBYTE *wStringSrc;                   /* $C564, the character-to-tile map 
 extern UBYTE AsciiCharMap[];                /* $0:$086F, text from ' '; wStringSrc = AsciiCharMap - 0x20 */
 extern UBYTE IdentityCharMap[];             /* $0:$08C8, raw tile indices */
 extern UBYTE *wVramCursor;                  /* $C573 */
-extern UBYTE wInstrument;                   /* $C576, the instrument being edited */
-extern UBYTE wStrBuffer[];                  /* $C6A9, 20 chars + NUL */
-extern UBYTE wMsgTimer;                     /* $C7A9 */
-extern UBYTE *wMsgStrPtr;                   /* $C7AA */
-extern UBYTE wMsgPanelShown;                /* $C7AC */
+extern UBYTE wInstr;                   /* $C576, the instrument being edited */
+extern UBYTE wStrBuf[];                  /* $C6A9, 20 chars + NUL */
+extern UBYTE wMessageTimer;                     /* $C7A9 */
+extern UBYTE *wMessageStrPtr;                   /* $C7AA */
+extern UBYTE wMessagePanelShown;                /* $C7AC */
 extern UBYTE wInstrEditLatch;               /* $C906: instrument screen edit latch */
 extern char *wChainScratchPtr;              /* $C948 */
 extern UBYTE wSyncMode;                     /* $CB66 */
@@ -107,7 +107,7 @@ extern UBYTE wSyncMode2;                    /* $CB67 */
 #define SramInstrAlloc         ((UBYTE *)0xA040)   /* SRAM bank 1, song +$2040 */
 #define SramChainPhrases       ((UBYTE *)0xA080)   /* SRAM bank 1, song +$2080 */
 #define SramChainTransposes    ((UBYTE *)0xA880)   /* SRAM bank 1, song +$2880 */
-#define SramInstruments        ((UBYTE *)0xB080)   /* SRAM bank 1, song +$3080 */
+#define SramInstrs        ((UBYTE *)0xB080)   /* SRAM bank 1, song +$3080 */
 #define SramTableTransposes    ((UBYTE *)0xB480)   /* SRAM bank 1, song +$3480 */
 #define SramTableCmd1          ((UBYTE *)0xB680)   /* SRAM bank 1, song +$3680 */
 #define SramTableCmd2          ((UBYTE *)0xBA80)   /* SRAM bank 1, song +$3A80 */
@@ -129,7 +129,7 @@ extern UBYTE wSyncMode2;                    /* $CB67 */
 #define SramPhraseFx           ((UBYTE *)0xA000)   /* SRAM bank 2, song +$4000 */
 #define SramPhraseFxVal        ((UBYTE *)0xAFF0)   /* SRAM bank 2, song +$4FF0 */
 #define SramWaveFrames         ((UBYTE *)0xA000)   /* SRAM bank 3, song +$6000 */
-#define SramPhraseInstruments  ((UBYTE *)0xB000)   /* SRAM bank 3, song +$7000 */
+#define SramPhraseInstrs  ((UBYTE *)0xB000)   /* SRAM bank 3, song +$7000 */
 #define SramInitFlag3          ((UBYTE *)0xBFF0)   /* SRAM bank 3, song +$7FF0 */
 
 /* --- bank 2: the sound engine ----------------------------------------------- */
@@ -187,7 +187,7 @@ void DrawStringTile20(void);
 void DrawByte(UBYTE v);
 void DrawHexByte(UBYTE v);
 void DrawTempoField(void);
-UWORD GetTempoTimerValue(void);                 /* the tempo as shown (or a speed code) */
+UWORD GetTempoTimerVal(void);                 /* the tempo as shown (or a speed code) */
 void DrawTempo(UWORD tempo);
 #ifndef GBDKLIB_C       /* GbdkLib.c defines it with `...` */
 void DrawFormat(char *fmt, UWORD v);            /* printf-style, varargs */
@@ -216,7 +216,7 @@ void SetSpriteX(UBYTE sprite, UBYTE col);
 void SetSpriteTile3(UBYTE sprite);
 void SetSpriteTile4(UBYTE sprite);
 void SetSpriteAttr(UBYTE sprite, UBYTE attr);
-void SetOAMByte(UWORD offset, UBYTE v);         /* wOamBuffer[offset] = v if changed */
+void SetOAMByte(UWORD offset, UBYTE v);         /* wOamBuf[offset] = v if changed */
 void ClearSprites012(void);
 void PositionWavSprites(void);
 
@@ -225,9 +225,9 @@ void DrawGrooveScreen(void);        /* $1D:$41DA */
 void DrawChainScreen(void);         /* $06:$5947 */
 void DrawSongScreen(void);          /* $07:$4574 */
 void DrawTableScreen(void);         /* $05:$4762 */
-void DrawInstrumentScreen(void);    /* $03:$4DE7 */
+void DrawInstrScreen(void);    /* $03:$4DE7 */
 void DrawWaveScreen(void);          /* $06:$4F18 */
-void DrawProjectScreen(void);       /* $1B:$5C17 */
+void DrawProjScreen(void);       /* $1B:$5C17 */
 void DrawSynthScreen(void);         /* $1D:$68AB */
 void DrawWordScreen(void);          /* $06:$41A2 */
 void DrawFileScreen(void);          /* $1C:$57BB */
@@ -246,7 +246,7 @@ void CloneInstrTable(void);
 
 /* --- bank 3: instrument screen --------------------------------------------- */
 
-void WriteCurrentInstrByte(UBYTE field, UBYTE val);
+void WriteCurInstrByte(UBYTE field, UBYTE val);
 void DrawInstrCursor(void);
 void EraseInstrCursor(void);
 UBYTE FindFreeSynth(void);
@@ -255,7 +255,7 @@ void InstrTableModePrev(void);
 UBYTE GetWaveLoopPos(void);
 UBYTE GetInstrType3(void);
 void WriteKitNumber(UBYTE field, UBYTE kit);
-void InstrEnvelopeChanged(void);
+void InstrEnvChanged(void);
 void KitSelectEnsure(void);
 void CloneSynth(void);
 void InstrTableOn(void);
@@ -264,10 +264,10 @@ UBYTE GetWavePlayMode(void);
 UBYTE WavePlayIsManual(void);
 void SetInstrPitchByte(UBYTE v);
 void InstrSelectPrevUsed(void);
-UBYTE GetWaveLength(void);
+UBYTE GetWaveLen(void);
 UBYTE GetWaveSpeed(void);
-UBYTE GetVibratoShape(void);
-void SetVibratoShape(char v);               /* the shape byte is signed here: its OR reads it through a cast */
+UBYTE GetVibShape(void);
+void SetVibShape(char v);               /* the shape byte is signed here: its OR reads it through a cast */
 
 /* --- bank 5 ---------------------------------------------------------------- */
 void RestoreSelectionState(void);           /* $05:$747D (far) */
@@ -276,7 +276,7 @@ void MapDrawTopRow(void);
 
 /* --- bank $1B: project screen ---------------------------------------------- */
 
-void UpdateInstrEnvelope(void);
+void UpdateInstrEnv(void);
 void ColorField(UBYTE a, UBYTE b, UBYTE c, UBYTE d);
 UBYTE ProjSyncModeIs567(void);
 

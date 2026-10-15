@@ -411,7 +411,7 @@ def load_symbols() -> dict[str, tuple[int | None, int]]:
         for m in re.finditer(r"^\s*DEF\s+(\w+)\s+EQU\s+\$([0-9A-Fa-f]{4})\b",
                              inc.read_text(errors="replace"), re.M | re.I):
             syms[m.group(1)] = (None, int(m.group(2), 16))
-    # The working-song SRAM structures (SramInstruments = bank 1 $B080, ...),
+    # The working-song SRAM structures (SramInstrs = bank 1 $B080, ...),
     # from tools/gen_sym.py's map; these are CPU addresses in the $A000 window.
     try:
         sys.path.insert(0, str(REPO_ROOT / "tools"))
@@ -448,23 +448,23 @@ RUNTIME_ALIASES = {
     "FarCallArg2P": "FarCallArg2",  # FarCallArg2 called with a function pointer (two cast temps: FreeUnusedInstrs)
     "FarCallByteU": "FarCallByte",  # FarCallByte with a callee declared returning UBYTE (pushed from bc; a mismatched prototype folds it into `ld hl,#f`)
     "wVramCursorW": "wVramCursor",  # the VRAM cursor as a plain word (DrawTopBar's 32-bit `< 0x9811`)
-    "hFxValueMem": "hFxValue",  # hFxValue tested as a plain global (ld hl; or a,(hl): FxCmd_K) where the file reads it with ldh
-    "hFxValueS": "hFxValue",    # hFxValue as a signed byte: widened with one cast (FxCmd_F_Wav's step)
+    "hFxValMem": "hFxVal",  # hFxVal tested as a plain global (ld hl; or a,(hl): FxCmd_K) where the file reads it with ldh
+    "hFxValS": "hFxVal",    # hFxVal as a signed byte: widened with one cast (FxCmd_F_Wav's step)
     "wWavLevelS": "wWavLevel",  # wWavLevel as a signed byte: saved to a word with one cast (FxCmd_F_Wav)
     "wTopBarLen": "wTopBarDrawScratch",  # the top-bar scratch word as a length
     "SortBytePairC": "SortBytePair",  # SortBytePair prototyped with `char *` (SongEditSelection casts its `&UBYTE` locals)
-    "FarCallArg0": "FarCallArg",  # FarCallArg called with (bank, fn) only -- hFxValue set by hand (ProcessLinkQueue)
+    "FarCallArg0": "FarCallArg",  # FarCallArg called with (bank, fn) only -- hFxVal set by hand (ProcessLinkQueue)
     "ReadSongBytesW": "ReadSongBytes",  # ReadSongBytes with a word source address (FileUpgradeV11 pushes its UWORD cursors)
     "ReadInstrByteS": "ReadInstrByte",  # ReadInstrByte returning `char`: the cast gives the call result its own slot (FileUpgradeV11)
-    "FarCallArgWC": "FarCallArg",  # FarCallArg with the target as a plain UWORD and a `char` argument: a `?:` over two addresses pushed from bc without a frame (SetVibratoShape)
-    "FarCallArgW": "FarCallArg",  # FarCallArg with the target as a plain UWORD (DrawInstrumentScreen's `fn` local set by a switch)
-    "FarCallW": "FarCall",  # FarCall with the target as a plain UWORD (DrawInstrumentScreen)
+    "FarCallArgWC": "FarCallArg",  # FarCallArg with the target as a plain UWORD and a `char` argument: a `?:` over two addresses pushed from bc without a frame (SetVibShape)
+    "FarCallArgW": "FarCallArg",  # FarCallArg with the target as a plain UWORD (DrawInstrScreen's `fn` local set by a switch)
+    "FarCallW": "FarCall",  # FarCall with the target as a plain UWORD (DrawInstrScreen)
     "wSynthBandDstW": "wSynthBandDst",  # the band-pass filter's output pointer read as a word: the slot value in the scatter (SynthFilterBandPass)
     "wSynthBandSlotW": "wSynthBandSlot",  # the band-pass filter's slot pointer as a word: the BufB value, the BufA value in the normalise loop
     "wSynthBandIdx": "wSynthBandSlot",  # its low byte: the doubled index in the scatter's second half (a block-scope extern)
     "wWordClipPtrB": "wWordClipPtr",  # the word clipboard pointer's low byte: the kit sample number cached there in WordEditorInput's A press
-    "WriteCurrentInstrByteC": "WriteCurrentInstrByte",  # WriteCurrentInstrByte with a `char` value (SetVibratoShape)
-    "WriteVramByteSafeP": "WriteVramByteSafe",  # WriteVramByteSafe with a pointer address: the cast of a UWORD counter is the spilt argument copy (ClearOamBuffer)
+    "WriteCurInstrByteC": "WriteCurInstrByte",  # WriteCurInstrByte with a `char` value (SetVibShape)
+    "WriteVramByteSafeP": "WriteVramByteSafe",  # WriteVramByteSafe with a pointer address: the cast of a UWORD counter is the spilt argument copy (ClearOamBuf)
     "WriteVramByteSafeC": "WriteVramByteSafe",  # char value: the (char)global cast copy evaluated before dst++ owns c and is spilt into the global (GfxCopyVramRegion)
     "wSynthFilterPtrW": "wSynthFilterPtr",  # the low-/high-pass filter's slot pointer read as a word: the slot value in the second half of the scatter loop (SynthFilterLowHigh)
     "wSynthFilterIdx": "wSynthFilterVal",  # the filter's slot value's low byte: the doubled sample index, a block-scope extern the compiler spills the index into (SynthFilterLowHigh)

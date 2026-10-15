@@ -18,7 +18,7 @@ Current state:
   generated `.sym` shows no auto-labels
 - RAM: ~800 semantic addresses in `constants/ram.inc` (arrays carry `[N]` size
   tags and interior accesses render as `base + N`), plus the banked SRAM
-  working-song structures (`SramPhraseNotes`, `SramInstruments`, …). What's
+  working-song structures (`SramPhraseNotes`, `SramInstrs`, …). What's
   left: one byte (`$CB64`) still accessed unnamed, ~40 addresses that appear
   only as raw 16-bit immediates (mostly buffer bases passed to helpers), and
   ~13 named variables whose exact role is marked `TBD`
@@ -166,7 +166,7 @@ lsdj-decompiled/
 │   └── hardware.inc      # standard GB hardware definitions (gbdev, CC0)
 ├── constants/            # symbolic constants
 │   ├── ram.inc           # RAM variable map (~800 named wXxx/hXxx vars)
-│   ├── screens.inc       # screen indices (wCurrentScreen) -> editor
+│   ├── screens.inc       # screen indices (wCurScreen) -> editor
 │   └── song.inc          # song-data memory map (offsets, counts)
 ├── data/                 # extracted data tables (added as carved)
 ├── gfx/                  # graphics assets (added as carved)

@@ -132,14 +132,14 @@ from `chain_phrases[wChanChain*16 + wChanChainRow]` in SRAM bank 1.
 **Pitch.** Notes read from `phrase_notes` are turned into GB periods by `NoteToPeriod`
 (bank `$02` `$49B7`): `wChanFreq[ch] (16-bit, $C0F4) = wNotePeriods[note + wNoteTranspose - 1]`.
 `wNotePeriods` (`$CF28`) is a 16-bit GB-period table built in WRAM at runtime (so it
-tracks master tuning), and `WriteChannelFreq` writes `wChanFreq` to `rAUDxLOW/HIGH`
+tracks master tuning), and `WriteChanFreq` writes `wChanFreq` to `rAUDxLOW/HIGH`
 each tick. Verified against a live dump: `wChanFreq` = `$0706/$0672/$0511` for PU1/PU2/WAV,
 each value present in the `$CF28` table.
 
 **Instruments.** A phrase step's instrument number (read via `wChanInstrPtr` from
 `phrase_instruments`, `$7000`) selects a 16-byte record in `instruments` (`$3080`).
 On note-on the engine copies that record verbatim into `wCurInstr` (`$C0D0`),
-then `SetupChannelSound` distributes its bytes to the `rAUDx` register shadows
+then `SetupChanSound` distributes its bytes to the `rAUDx` register shadows
 (`$C2D8`+) per channel type. (The per-byte field layout is type-specific — see
 pylsdj/liblsdj for the bitfields.)
 
@@ -153,5 +153,5 @@ pylsdj/liblsdj for the bitfields.)
   disassembly (e.g. `ReadSongByte`, the bank `$02` walkers above, the per-screen
   editors), and the working-song structures themselves are exported as debugger
   symbols by `tools/gen_sym.py` (37 `Sram*` names: `SramPhraseNotes`,
-  `SramGrooves`, `SramSequence`, `SramInstruments`, …) so SRAM accesses resolve
+  `SramGrooves`, `SramSequence`, `SramInstrs`, …) so SRAM accesses resolve
   by name in Emulicious/BGB/SameBoy.

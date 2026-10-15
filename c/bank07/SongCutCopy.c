@@ -4,7 +4,7 @@
  * MATCHING C (period GBDK 2.95-3 / SDCC 2.2.1 + tools/match/lsdj.peep);
  * `make match` verifies every function here against the ROM.
  *
- * Its own unit: this file's prototype of SongCopyColumn takes two UWORDs
+ * Its own unit: this file's prototype of SongCopyCol takes two UWORDs
  * (the ROM casts the pointer arguments; SongScreen.c defines it with
  * pointer parameters), and the song pointers are `UBYTE * volatile` (every
  * use reloads them from the stack).
@@ -13,12 +13,12 @@
 #include "lsdj.h"
 
 extern UBYTE wSongScroll;                   /* $C41C */
-extern UBYTE wSelTop;                       /* $C40E */
-extern UBYTE wSelRight;                     /* $C40F */
-extern UBYTE wSelBottom;                    /* $C410 */
+extern UBYTE wSelectionTop;                       /* $C40E */
+extern UBYTE wSelectionRight;                     /* $C40F */
+extern UBYTE wSelectionBottom;                    /* $C410 */
 extern UBYTE wClipboardType;                /* $C411 */
-extern UBYTE wSongSelRow;                   /* $C94B */
-void SongCopyColumn(UWORD src, UWORD dst);   /* this unit's prototype (the ROM casts the pointer args) */
+extern UBYTE wSongSelectionRow;                   /* $C94B */
+void SongCopyCol(UWORD src, UWORD dst);   /* this unit's prototype (the ROM casts the pointer args) */
 void SongEraseCursor(void);
 void SongScrollToCursor(void);
 void SongRedrawRow(void);
@@ -43,23 +43,23 @@ void CutCopySongSelection(UBYTE isCut)
     if (wClipboardType != 4)
         return;
     wCursorMode = 2;
-    wSelRight = wSongCol;
-    wSelBottom = wSongRow;
-    SortBytePair(&wSelLeft, &wSelRight);
-    SortBytePair(&wSelTop, &wSelBottom);
-    if (wSelRight - wSelLeft >= 6)
+    wSelectionRight = wSongCol;
+    wSelectionBottom = wSongRow;
+    SortBytePair(&wSelectionLeft, &wSelectionRight);
+    SortBytePair(&wSelectionTop, &wSelectionBottom);
+    if (wSelectionRight - wSelectionLeft >= 6)
         DebugTrap();
-    if (wSelBottom - wSelTop >= 0x2A)
+    if (wSelectionBottom - wSelectionTop >= 0x2A)
         DebugTrap();
-    wSelRight++;
-    wSelBottom++;
-    wSongCol = wSelLeft;
-    while (wSongCol - wSelRight) {
+    wSelectionRight++;
+    wSelectionBottom++;
+    wSongCol = wSelectionLeft;
+    while (wSongCol - wSelectionRight) {
         if (wSongCol >= 6)
             DebugTrap();
-        wSongRow = wSelTop;
+        wSongRow = wSelectionTop;
         for (;;) {
-            d2 = wSongRow - wSelBottom;
+            d2 = wSongRow - wSelectionBottom;
             if (!d2)
                 break;
             y = wSongRow - wSongScroll;
@@ -67,18 +67,18 @@ void CutCopySongSelection(UBYTE isCut)
             if (vis)
                 SongEraseCursor();
             v = ReadSeqByte(wSongCol, wSongRow);
-            r = wSongRow - wSelTop;
+            r = wSongRow - wSelectionTop;
             WriteClipboardCell(wSongCol, r, v);
             wSongRow++;
         }
         if (isCut) {
-            n = wSelBottom - wSelTop;
-            p = (UBYTE *)0xB290 + ((UWORD)wSelTop << 2);
+            n = wSelectionBottom - wSelectionTop;
+            p = (UBYTE *)0xB290 + ((UWORD)wSelectionTop << 2);
             col = wSongCol;
             p += col;
             q = p + ((UWORD)n << 2);
             x = (UWORD)p;
-            SongCopyColumn((UWORD)q, x);
+            SongCopyCol((UWORD)q, x);
             while (n) {
                 t = n;
                 x = 0xC0 - t;
@@ -88,12 +88,12 @@ void CutCopySongSelection(UBYTE isCut)
         }
         wSongCol++;
     }
-    if (isCut && !wSelLeft && wSelRight == 4)
-        AdjustBookmarksOnDelete(wSelTop, wSelBottom);
+    if (isCut && !wSelectionLeft && wSelectionRight == 4)
+        AdjustBookmarksOnDelete(wSelectionTop, wSelectionBottom);
     msg = isCut ? "CUT CHAINS" : "COPIED CHAINS";   /* both literals follow the function ($5957, $5962) */
     ShowMessage(msg);
-    wSongCol = wSelLeft;
-    wSongRow = isCut ? wSelTop : wSongSelRow;
+    wSongCol = wSelectionLeft;
+    wSongRow = isCut ? wSelectionTop : wSongSelectionRow;
     SongScrollToCursor();
     SongRedrawRow();
 }

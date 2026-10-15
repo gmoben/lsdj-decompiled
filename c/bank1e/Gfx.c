@@ -29,15 +29,15 @@ extern UBYTE wVramCopyScratch;              /* $C9B4 */
 
 void ScreenPreDraw(void)
 {
-    if (wCurrentScreen == 8)
+    if (wCurScreen == 8)
         return;
-    hBgDigitPalette = 4;
-    hBgPalette = 1;
+    hBgDigitPal = 4;
+    hBgPal = 1;
     wVramCursor = (UBYTE *)0x9822;
     DrawString(TxtSpaces13);
     wStringSrc = IdentityCharMap;
-    hBgPalette = hGameboyType ? 0x48 : 0xD2;
-    switch (wCurrentScreen) {
+    hBgPal = hGameboyType ? 0x48 : 0xD2;
+    switch (wCurScreen) {
     case 1:
         if (wPhraseDrawMode) {
             wVramCursor = (UBYTE *)0x9822;
@@ -119,8 +119,8 @@ void ScreenPreDraw(void)
         break;
     }
     wStringSrc = AsciiCharMap - 0x20;
-    hBgDigitPalette = 4;
-    hBgPalette = 1;
+    hBgDigitPal = 4;
+    hBgPal = 1;
 }
 
 /* $79FA: blank the right third of the tile rows (two VRAM ranges) */

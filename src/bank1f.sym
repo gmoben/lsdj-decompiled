@@ -1,5 +1,5 @@
 ; Bank $1F -- instrument-editor helpers (called by bank $03) + Phrase screen update
-; Per-instrument-type parameter draw handlers, dispatched by DrawInstrumentScreen
+; Per-instrument-type parameter draw handlers, dispatched by DrawInstrScreen
 ; ($03:$4F45) on the instrument's type (0=PULSE 1=WAVE 2=KIT 3=NOISE).
 
 ; --- data tables + strings (db; instrument-editor + word/phrase helpers) ---
@@ -299,7 +299,7 @@
 73C9 .selRight            ; wButtons == case in WordScreenInput
 73E6 .selLeft             ; wButtons == case in WordScreenInput
 7403 .aB                  ; wButtons == case in WordScreenInput
-7425 .notSelB             ; wButtons == case in WordScreenInput
+7425 .notSelectionB       ; wButtons == case in WordScreenInput
 74A0 .notAB               ; wButtons == case in WordScreenInput
 760A .notAB2              ; wButtons == case in WordScreenInput
 760F .selA                ; wButtons == case in WordScreenInput
@@ -339,19 +339,19 @@
 658A .loadSongRow
 65A8 .loadChainRow
 6615 .instrHReadCursorCellAt
-6706 .checkSelRight
-6714 .checkSelRightb
-672F .incSelRight
-683E .checkSelRightc
-6AF4 .checkSelRightd
+6706 .checkSelectionRight
+6714 .checkSelectionRightb
+672F .incSelectionRight
+683E .checkSelectionRightc
+6AF4 .checkSelectionRightd
 6B5B .rowOk               ; HighlightPhraseCell: row < $10
 6B8D .normalRow           ; HighlightPhraseCell: row flag $fe/$ff: the normal layout tables
 6BCF .altRow              ; HighlightPhraseCell: any other row flag: the Alt layout tables
 6CD7 .loadPhraseRow
 6CE5 .ok
-6D84 .loadSelLeft
-6D94 .clearSelTop
-6DB3 .loadSelTop
+6D84 .loadSelectionLeft
+6D94 .clearSelectionTop
+6DB3 .loadSelectionTop
 702C .checkGameboyType
 70EF .instrHGetParamPlus4
 7238 .drawInstrParamField
@@ -489,7 +489,7 @@
 55CB .cmdNextP            ; p incremented, read *q in FindDupPhrase
 55D8 .cmdCompare          ; compare the bytes in FindDupPhrase
 55E2 .cmdNext             ; i++ in FindDupPhrase
-55E8 .cmdValues           ; bank 2: row pointers at $AFF0 + offset in FindDupPhrase
+55E8 .cmdVals             ; bank 2: row pointers at $AFF0 + offset in FindDupPhrase
 5621 .valNextP            ; p incremented, read *q in FindDupPhrase
 562E .valCompare          ; compare the bytes in FindDupPhrase
 5638 .valNext             ; i++ in FindDupPhrase
@@ -509,7 +509,7 @@
 57BB .fx1NextP            ; p incremented, read *q in FindDupTable
 57C8 .fx1Compare          ; compare the bytes in FindDupTable
 57D2 .fx1Next             ; i++ in FindDupTable
-57D8 .fx1Values           ; row pointers at $B880 + offset in FindDupTable
+57D8 .fx1Vals             ; row pointers at $B880 + offset in FindDupTable
 5811 .val1NextP           ; p incremented, read *q in FindDupTable
 581E .val1Compare         ; compare the bytes in FindDupTable
 5828 .val1Next            ; i++ in FindDupTable
@@ -517,7 +517,7 @@
 5867 .fx2NextP            ; p incremented, read *q in FindDupTable
 5874 .fx2Compare          ; compare the bytes in FindDupTable
 587E .fx2Next             ; i++ in FindDupTable
-5884 .fx2Values           ; row pointers at $BC80 + offset in FindDupTable
+5884 .fx2Vals             ; row pointers at $BC80 + offset in FindDupTable
 58BD .val2NextP           ; p incremented, read *q in FindDupTable
 58CA .val2Compare         ; compare the bytes in FindDupTable
 58D4 .val2Next            ; i++ in FindDupTable
@@ -621,7 +621,7 @@
 69FF .cont_14
 6A73 .cont_15
 6AE4 .cont_16
-6AEE .checkSelRight_2
+6AEE .checkSelectionRight_2
 6B02 .farCall
 6B58 .badRow              ; HighlightPhraseCell: row >= $10: DebugTrap
 6B68 .xShifted            ; HighlightPhraseCell: x += 3 applied (or not)

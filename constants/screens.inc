@@ -1,4 +1,4 @@
-; LSDj screen indices -- the value in wCurrentScreen ($C401), used by
+; LSDj screen indices -- the value in wCurScreen ($C401), used by
 ; ScreenDrawDispatch ($254F) / ScreenUpdateDispatch ($264B). See docs/editors.md.
 ;
 ; Identified by each screen's song-structure access and drawn strings; together

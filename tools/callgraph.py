@@ -57,7 +57,7 @@ def index_by_addr(lines: list[str]) -> dict[int, int]:
 A_IMM = re.compile(r"\bld a, \$([0-9a-f]{2})\b")
 HL2000 = re.compile(r"\bld hl, \$2000\b")
 HLSET = re.compile(r"\bld \[hl\], \$([0-9a-f]{2})\b")
-BANKW = re.compile(r"ldh \[hCurrentBank\], a|ld \[\$2000\], a")
+BANKW = re.compile(r"ldh \[hCurBank\], a|ld \[\$2000\], a")
 
 
 def collect() -> dict[tuple[int, int], int]:
@@ -83,7 +83,7 @@ def collect() -> dict[tuple[int, int], int]:
             if (m := HLSET.search(t)) and hl_is_2000:
                 cur = int(m.group(1), 16)    # ld hl,$2000; ld [hl],N
             elif BANKW.search(t) and last_a is not None:
-                cur = last_a                 # ld a,N; ld [$2000],a / ldh [hCurrentBank],a
+                cur = last_a                 # ld a,N; ld [$2000],a / ldh [hCurBank],a
             if not (m := CF_RE.search(t)):
                 continue
             a = int(m.group(1), 16)

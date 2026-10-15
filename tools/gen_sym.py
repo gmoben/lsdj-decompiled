@@ -60,7 +60,7 @@ SRAM_MAP: list[tuple[int, str]] = [
     (0x1DD0, "SramWordNames"),        (0x1E78, "SramInitFlag1"),
     (0x1E7A, "SramInstrNames"),       (0x2020, "SramTableAlloc"),
     (0x2040, "SramInstrAlloc"),       (0x2080, "SramChainPhrases"),
-    (0x2880, "SramChainTransposes"),  (0x3080, "SramInstruments"),
+    (0x2880, "SramChainTransposes"),  (0x3080, "SramInstrs"),
     (0x3480, "SramTableTransposes"),  (0x3680, "SramTableCmd1"),
     (0x3A80, "SramTableCmd2"),        (0x3E80, "SramInitFlag2"),
     (0x3E82, "SramPhraseAlloc"),      (0x3EA2, "SramChainAlloc"),
@@ -72,7 +72,7 @@ SRAM_MAP: list[tuple[int, str]] = [
     (0x3FBF, "SramPropSyncMode2"),    (0x3FC0, "SramPropCloneMode"),
     (0x3FC1, "SramPropActiveFile"),   (0x3FCC, "SramPropTempoMode"),
     (0x4000, "SramPhraseFx"),         (0x4FF0, "SramPhraseFxVal"),
-    (0x6000, "SramWaveFrames"),       (0x7000, "SramPhraseInstruments"),
+    (0x6000, "SramWaveFrames"),       (0x7000, "SramPhraseInstrs"),
     (0x7FF0, "SramInitFlag3"),
 ]
 

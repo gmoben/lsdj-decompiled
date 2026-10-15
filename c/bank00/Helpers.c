@@ -48,7 +48,7 @@ void LoadSynthShape(char *src)
     UBYTE saved, i;
     char v;
 
-    saved = hCurrentBank;
+    saved = hCurBank;
     SWITCH_ROM(0x1E);
     for (i = 0; i < 0x20; i++) {
         v = *src;
@@ -67,7 +67,7 @@ UBYTE KitExists(UBYTE kit)
 {
     UBYTE saved, bank, ok;
 
-    saved = hCurrentBank;
+    saved = hCurBank;
     bank = KitIndexToBank(kit);
     if (bank > 0x3F)
         return 0;
@@ -81,7 +81,7 @@ void ReadKitName(UBYTE kit)
 {
     UBYTE saved;
 
-    saved = hCurrentBank;
+    saved = hCurBank;
     SWITCH_ROM(KitIndexToBank(kit));
     memcpy(wSampleNoteString, (UBYTE *)0x4052, 6);
     wSampleNoteString[6] = 0;
@@ -102,6 +102,6 @@ void SortBytePair(UBYTE *a, UBYTE *b)
 
 void ShowMessage(char *text)
 {
-    strcpy(wStrBuffer, (UBYTE *)text);
+    strcpy(wStrBuf, (UBYTE *)text);
     FarCall(1, DrawMessageBar);
 }

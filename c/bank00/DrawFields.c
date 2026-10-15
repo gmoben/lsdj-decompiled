@@ -11,7 +11,7 @@
  * string literals come out in the order SDCC numbers them, and a block-local
  * initialiser is numbered before everything else in the function: the pan
  * default is `char *s = "LR";` inside its case, which puts "LR" ahead of
- * case 0's "--" in the ROM (DrawFieldValue).
+ * case 0's "--" in the ROM (DrawFieldVal).
  */
 
 #include "lsdj.h"
@@ -35,7 +35,7 @@ void ColorField(UBYTE x, UBYTE y, UBYTE w, UBYTE pal)
         DrawTileRun(x, y, w, 1, pal);
 }
 
-UWORD GetTempoTimerValue(void)
+UWORD GetTempoTimerVal(void)
 {
     switch (wTempoMode) {
     case 1:
@@ -70,18 +70,18 @@ void DrawTempo(UWORD tempo)
 void DrawTempoField(void)
 {
     wVramCursor = (UBYTE *)0x9891;
-    hBgDigitPalette = wShadowDigitPal;
-    hBgPalette = wShadowPal;
-    DrawTempo(GetTempoTimerValue());
+    hBgDigitPal = wShadowDigitPal;
+    hBgPal = wShadowPal;
+    DrawTempo(GetTempoTimerVal());
 }
 
-void DrawChannelHeader(void)
+void DrawChanHeader(void)
 {
     char *s;
 
     s = "NOI";
-    hBgDigitPalette = wShadowDigitPal;
-    hBgPalette = wShadowPal;
+    hBgDigitPal = wShadowDigitPal;
+    hBgPal = wShadowPal;
     wVramCursor = (UBYTE *)0x9811;
     switch (wSongCol) {
     case 0:
@@ -116,7 +116,7 @@ void DrawPulseDuty(UBYTE duty)
     DrawString(s);
 }
 
-void DrawFieldValue(UBYTE kind, UBYTE v)
+void DrawFieldVal(UBYTE kind, UBYTE v)
 {
     switch (kind) {
     case 0:

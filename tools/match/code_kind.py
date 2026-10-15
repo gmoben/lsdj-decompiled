@@ -44,12 +44,12 @@ coverage = importlib.import_module("coverage")   # tools/coverage.py: read_sym, 
 # helpers, `ldh a,(c)` kernels, unrolled sample shifts).
 KNOWN_ASM = {
     "01:CrashSaveStack", "01:UiDrawScreenCgb",
-    "01:UiDrawScreenDmg", "01:UiLoadObjPalette",
+    "01:UiDrawScreenDmg", "01:UiLoadObjPal",
     "06:ChainDrawScopePoint", "06:ChainShiftSamples",
     "07:DrawHexOrDashes", "07:SongScanSram", "07:SongWriteSramBytes",
     "1b:MixerKernel",
-    "1c:EmitDefaultInstrument", "1c:EmitDefaultWave", "1c:FileClassifyToken",
-    "1c:FilePutDecompByte", "1c:ReadWorkingSongByte", "1c:WriteCompressedByte",
+    "1c:EmitDefaultInstr", "1c:EmitDefaultWave", "1c:FileClassifyToken",
+    "1c:FilePutDecompressByte", "1c:ReadWorkingSongByte", "1c:WriteCompressedByte",
     # stack-argument readers that branch with `jr` / poll rSTAT
     "00:DrawTileRun", "00:WriteVramByteSafe",
     # leaf routines without a stack frame, checked by hand: conditional
@@ -59,10 +59,10 @@ KNOWN_ASM = {
     # tail-jumping dispatchers, the `ld b,b` debugger marker
     "00:SndInterpResume", "00:DebugTrap", "00:KitIndexToBank", "00:AnyChanFlagSet",
     "00:SwitchToDoubleSpeed", "00:VibOffsetJumps",
-    "02:SndFxTableJump", "02:SndRandom15", "02:TriggerNote", "02:SetupChannelSound",
+    "02:SndFxTableJump", "02:SndRandom15", "02:TriggerNote", "02:SetupChanSound",
     "02:SndClearChanFxSlots", "02:AdvanceChanCursors", "02:SndCountdownStep",
-    "02:SndFillFF", "02:FxCmd_M", "02:SndApplyTableTranspose", "02:ReadTableEnvelope",
-    "02:SndDeactivateChannel", "02:ReadTableTranspose", "02:SndDecodeNibbles",
+    "02:SndFillFF", "02:FxCmd_M", "02:SndApplyTableTranspose", "02:ReadTableEnv",
+    "02:SndDeactivateChan", "02:ReadTableTranspose", "02:SndDecodeNibbles",
     # an `hl`-argument call wrapped in the C convention: RequestTileSlot pops
     # its frame before setting the return value, which SDCC never does
     "00:LoadTilesDispatch", "00:RequestTileSlot",

@@ -39,12 +39,12 @@
 
 ; --- structural local names (loop heads / common exits) ---
 400D .notWave             ; wButtons == case in ScreenPreDraw
-4066 .onPhrase            ; wCurrentScreen == case in ScreenPreDraw
-413F .onChain             ; wCurrentScreen == case in ScreenPreDraw
-4176 .onTable             ; wCurrentScreen == case in ScreenPreDraw
-41D9 .onGroove            ; wCurrentScreen == case in ScreenPreDraw
-4211 .onWord              ; wCurrentScreen == case in ScreenPreDraw
-4248 .onSong              ; wCurrentScreen == case in ScreenPreDraw
+4066 .onPhrase            ; wCurScreen == case in ScreenPreDraw
+413F .onChain             ; wCurScreen == case in ScreenPreDraw
+4176 .onTable             ; wCurScreen == case in ScreenPreDraw
+41D9 .onGroove            ; wCurScreen == case in ScreenPreDraw
+4211 .onWord              ; wCurScreen == case in ScreenPreDraw
+4248 .onSong              ; wCurScreen == case in ScreenPreDraw
 
 
 
@@ -54,7 +54,7 @@
 
 ; --- full local naming (block signature) ---
 403C .cont
-403E .checkCurrentScreen
+403E .checkCurScreen
 42B0 .setStringSrc
 7A09 .writeVramByteSafe
 7A18 .cont

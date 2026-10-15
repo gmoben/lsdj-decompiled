@@ -11,7 +11,7 @@
 4C14 LoadPhraseRow        ; load the 4 phrase columns for phrase[wPhrase] into row buffers
 4CE5 DrawPhraseScreen     ; screen idx 1: the phrase grid (note or kit samples, instrument, command, value per step), its CGB row attributes, cursor and channel status
 4000 DrawChainCellFar           ; FarCall bank06 DrawChainCell(wSongCol, row) -- chain info cell on the phrase screen
-5533 CloneInstrAtCursor         ; clone the instrument under the cursor: alloc+CloneInstrument; fail -> "CANNOT CLONE"
+5533 CloneInstrAtCursor         ; clone the instrument under the cursor: alloc+CloneInstr; fail -> "CANNOT CLONE"
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 401B DrawPhraseCursorFar        ; FarCall bank1f DrawPhraseCursor
@@ -20,11 +20,11 @@
 4071 ReadCursorInstr            ; ReadPhraseInstr(wPhrase, wPhraseRow)
 4087 FindCursorInstr            ; the instrument in effect at the cursor: the nearest step at or above wPhraseRow with one (<= $40), else $FF
 40B2 PhraseResolveCursorNote    ; remember v as wPhraseColLast[wSongCol]; in column 3 (not selecting) also write it to field 4 of a type-3 instrument in effect
-4106 SetColInstrument           ; cache the last-used instrument per channel column (wColInstrument+wSongCol; WAV specials)
+4106 SetColInstr           ; cache the last-used instrument per channel column (wColInstr+wSongCol; WAV specials)
 418F WritePhraseNote            ; write phrase_notes[wPhrase][row] = v (SRAM bank 0 $A000); asserts row < $10, wPhrase != $FF
-41F0 WritePhraseInstrument      ; write phrase_instruments[phrase][row] = instr (SRAM bank 3 $B000); asserts instr <= $40 or $FF
+41F0 WritePhraseInstr      ; write phrase_instruments[phrase][row] = instr (SRAM bank 3 $B000); asserts instr <= $40 or $FF
 4257 PhraseDrawCursorGlyph      ; pick glyph data ($429e/$42a3 by $c90c) + col $c415, then GetTilemapAddr
-42A8 PhraseInstrEntered         ; after instrument entry: WritePhraseInstrument, update wColInstrument, redraw
+42A8 PhraseInstrEntered         ; after instrument entry: WritePhraseInstr, update wColInstr, redraw
 43CD PhraseEditUp               ; A+UP edit on the cursor cell (note: +octave; hex fields: +$10)
 457C PhraseEditDown             ; A+DOWN edit on the cursor cell (-octave / -$10)
 470B PhraseEditRight            ; A+RIGHT edit on the cursor cell (+semitone / +1)
@@ -40,11 +40,11 @@
 4CAA PhraseCheckColFD           ; return wPhraseRowFlags[arg] > $FD (a $FE/$FF sentinel)
 4CC4 DrawNoteCell               ; draw wSampleNoteString (note name) or "OFF"
 510A CursorInstrIsKit           ; 1 if the instrument in effect at the cursor (FindCursorInstr) is a kit
-5136 PhraseCheckEditContext     ; predicate over mode $c41d / col $c415 / wSelLeft / CursorInstrIsKit
-51AE PastePhraseSelection       ; paste the clipboard (wClipboardType) into the phrase: for rows wSelTop..wSelBottom and columns wSelRight-1 down to wSelLeft, each cell by column (kit notes merged nibble-wise, instrument, command, value); a 3-wide table-command selection (wClipboardType 5) shifts its command pair by -1/+1; PASTE message for multi-row pastes
-5491 CloneInstrument            ; copy instrument src to dst: its 16 bytes, then its name (CopyInstrName / WriteInstrName)
+5136 PhraseCheckEditContext     ; predicate over mode $c41d / col $c415 / wSelectionLeft / CursorInstrIsKit
+51AE PastePhraseSelection       ; paste the clipboard (wClipboardType) into the phrase: for rows wSelectionTop..wSelBottom and columns wSelectionRight-1 down to wSelectionLeft, each cell by column (kit notes merged nibble-wise, instrument, command, value); a 3-wide table-command selection (wClipboardType 5) shifts its command pair by -1/+1; PASTE message for multi-row pastes
+5491 CloneInstr            ; copy instrument src to dst: its 16 bytes, then its name (CopyInstrName / WriteInstrName)
 55EB CloneTableAtCursor         ; clone the table referenced by the cmd value under the cursor (FindFreeTable+CopyTableData)
-567D PhraseCursorOnEditCell     ; return 1 if cursor is on the active cmd cell ($c416==wSelTop and $c415==wSelLeft)
+567D PhraseCursorOnEditCell     ; return 1 if cursor is on the active cmd cell ($c416==wSelectionTop and $c415==wSelectionLeft)
 56BA PhraseCloneTableCmd        ; command action handler incl. cloning a table ("CLONED TABLE" message)
 572C PrelistenCursorRow         ; play the note/instr under the cursor while editing (wPrelisten gate)
 58D9 PhraseCellFlagA       ; phrase-cell predicate OR-ed in PrelistenEditedCell: note<$40 & instrument type==2 (kit) test
@@ -74,9 +74,9 @@
 408C .loop                ; loop head in FindCursorInstr
 40B0 .done                ; common exit of FindCursorInstr
 4104 .done                ; common exit of PhraseResolveCursorNote
-418D .done                ; common exit of SetColInstrument
+418D .done                ; common exit of SetColInstr
 41C5 .loop                ; loop head in WritePhraseNote
-4224 .loop                ; loop head in WritePhraseInstrument
+4224 .loop                ; loop head in WritePhraseInstr
 4377 .loop                ; loop head in PhraseInstrEntered
 440A .loop                ; loop head in PhraseEditUp
 4508 .loop2               ; loop head in PhraseEditUp
@@ -108,7 +108,7 @@
 521F .nextRow             ; PastePhraseSelection: for each row y of the selection
 5233 .nextCol             ; PastePhraseSelection: for each column x, right to left
 5487 .done                ; common exit of PastePhraseSelection
-5494 .loop                ; loop head in CloneInstrument
+5494 .loop                ; loop head in CloneInstr
 55CD .done                ; common exit of CloneInstrAtCursor
 5679 .done                ; common exit of CloneTableAtCursor
 571D .done                ; common exit of PhraseCloneTableCmd
@@ -208,12 +208,12 @@
 5088 .checkPhraseCol
 50A6 .checkCursorMode
 50B5 .drawPhraseCursorFar
-5158 .clearSelLeft
+5158 .clearSelectionLeft
 5167 .phraseCurNoteIsKit
 5175 .loadPhraseCol
 51DC .cmdPairWidth2       ; PastePhraseSelection: a 3-wide table-command selection: which column?
 51FE .selectCmdCols       ; PastePhraseSelection: paste into columns 3..4
-5208 .rowsStart           ; PastePhraseSelection: y = wSelTop, the shifted command columns
+5208 .rowsStart           ; PastePhraseSelection: y = wSelectionTop, the shifted command columns
 52BA .pasteNoteHi         ; PastePhraseSelection: column 0 of a kit note (high nibble)
 5366 .pasteNoteLo         ; PastePhraseSelection: column 1 (low nibble on a kit)
 5443 .rowDone             ; PastePhraseSelection: wPhraseRow++ wraps at $10
@@ -227,17 +227,17 @@
 5BB9 .phraseOk
 5BC6 .rowOk
 5BF2 .checkMarking
-5C94 .keyToneChannel
+5C94 .keyToneChan
 5CE1 .aNoKey
-5CF2 .aColumns
+5CF2 .aCols
 5D2D .aNote
-5E20 .aInstrument
+5E20 .aInstr
 5E67 .aInstrFromCursor
 5E73 .aInstrPrelisten
 5EB2 .aCmdHelp
-5F12 .aValue
+5F12 .aVal
 5FA2 .right
-5FC0 .rightColumn
+5FC0 .rightCol
 5FCD .rightStep
 5FDE .rightCursor
 602A .leftMove
@@ -273,16 +273,16 @@
 7630 .cutKitHigh
 76D9 .cutNote
 77C0 .cutInstr
-7813 .cutCommand
+7813 .cutCmd
 78B1 .cutRedraw
 78D8 .pasteClipboard
-7964 .pasteNoteColumn
-7973 .pasteInstrColumn
-7981 .pasteCommandColumn
+7964 .pasteNoteCol
+7973 .pasteInstrCol
+7981 .pasteCmdCol
 7B1C .instrAtCursor
 7B5B .instrKeep
 7CA0 .markAllRows
-7CE0 .markAllColumns
+7CE0 .markAllCols
 7CF7 .markCopy
 
 
@@ -305,7 +305,7 @@
 42ED .loadSongCol
 4339 .loadPhraseRow
 4348 .cont
-434F .setColInstrument
+434F .setColInstr
 439B .cont_2
 43A6 .farCall
 43C6 .cont_3
@@ -418,7 +418,7 @@
 5416 .colDone             ; PastePhraseSelection: swap columns 0/1 back
 5439 .colStep             ; PastePhraseSelection: x--
 5453 .rowStep             ; PastePhraseSelection: y++
-5459 .restoreSel          ; PastePhraseSelection: restore wSelLeft/wSelRight after a shifted pair
+5459 .restoreSelection    ; PastePhraseSelection: restore wSelectionLeft/wSelectionRight after a shifted pair
 54BB .cont
 557F .farCallByte
 5597 .copyInstrBytes
@@ -498,9 +498,9 @@
 5E03 .aRememberLow
 5E14 .aNoteDone
 5E54 .aInstrEntered
-5E7C .aCommand
+5E7C .aCmd
 5ECF .aCmdDraw
-5F6E .aValuePrelisten
+5F6E .aValPrelisten
 5F93 .aRedraw
 5F9D .aDone
 5FE1 .rightDone
@@ -531,15 +531,15 @@
 6482 .incCmdClamp
 64DF .incCmdDraw
 6509 .incCmdHelp
-652C .incCmdValue
-6561 .incValue
+652C .incCmdVal
+6561 .incVal
 65AE .incGroove
 65BD .incOutput
 65CC .incOutputRight
 65E4 .incWaveStep
 65EA .incTable
-65F7 .incValueStep
-65FA .incValueWrite
+65F7 .incValStep
+65FA .incValWrite
 6631 .incNextRow
 663B .incRedraw
 6645 .incDone
@@ -557,16 +557,16 @@
 68DB .bigCmdClamp
 693A .bigCmdDraw
 6964 .bigCmdHelp
-6987 .bigCmdValue
-69BC .bigValue
+6987 .bigCmdVal
+69BC .bigVal
 6A11 .bigGroove
 6A35 .bigPulseWave
 6A43 .bigOutput
 6A58 .bigSweepTone
 6A5A .bigSweepAdd
 6A62 .bigTable
-6A6F .bigValueStep
-6A75 .bigValueWrite
+6A6F .bigValStep
+6A75 .bigValWrite
 6AAC .bigNextRow
 6AB6 .bigRedraw
 6AC0 .bigDone
@@ -585,8 +585,8 @@
 6D4D .decInstr
 6DA6 .decCmdStep
 6E51 .decCmdHelp
-6E74 .decCmdValue
-6EA9 .decValue
+6E74 .decCmdVal
+6EA9 .decVal
 6EF6 .decGroove
 6F01 .decWave
 6F11 .decWaveStep
@@ -595,8 +595,8 @@
 6F26 .decOutputSet
 6F2C .decTable
 6F3A .decTableOff
-6F41 .decValueStep
-6F44 .decValueWrite
+6F41 .decValStep
+6F44 .decValWrite
 6F7B .decNextRow
 6F85 .decRedraw
 6F8F .decDone
@@ -617,8 +617,8 @@
 722B .bigDecInstr
 7284 .bigDecCmdStep
 732E .bigDecCmdHelp
-7351 .bigDecCmdValue
-7386 .bigDecValue
+7351 .bigDecCmdVal
+7386 .bigDecVal
 73DB .bigDecGroove
 73ED .bigDecOutput
 7406 .bigDecPulseWave
@@ -626,8 +626,8 @@
 7421 .bigDecSweepSub
 7429 .bigDecTable
 7438 .bigDecTableOff
-743F .bigDecValueStep
-7445 .bigDecValueWrite
+743F .bigDecValStep
+7445 .bigDecValWrite
 747C .bigDecNextRow
 7486 .bigDecRedraw
 7490 .bigDecDone
@@ -638,12 +638,12 @@
 773F .cutNoteClip
 777D .cutKitLow
 7796 .cutKitLowClip
-785F .cutCommandClip
+785F .cutCmdClip
 78E5 .pasteNotCells
 78E6 .pasteTypeTested
 78FB .pasteTypeOk
 7915 .pasteCutSelection
-792E .pasteCheckColumn
+792E .pasteCheckCol
 798F .pasteCells
 79D5 .songPlayback
 7A01 .startHeld
@@ -657,17 +657,17 @@
 7BE1 .mapRight
 7C1E .copySelection
 7C4B .markCheck
-7CB7 .markColumns
+7CB7 .markCols
 7D13 .markStart
 429E PhraseColX0        ; x of the phrase screen columns, draw mode 0 (2 2 6 9 10)
 42A3 PhraseColX1        ; the same with wPhraseDrawMode set (2 5 9 12 13)
 
 ; --- pointer targets (tools/name_targets.py) ---
 52AB .jumpTable           ; PastePhraseSelection: switch (x)
-5D1E .aColumnTable
-6288 .incColumnTable
-66D9 .bigColumnTable
-6B54 .decColumnTable
-7023 .bigDecColumnTable
-7621 .cutColumnTable
-7955 .pasteColumnTable
+5D1E .aColTable
+6288 .incColTable
+66D9 .bigColTable
+6B54 .decColTable
+7023 .bigDecColTable
+7621 .cutColTable
+7955 .pasteColTable

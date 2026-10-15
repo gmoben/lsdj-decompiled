@@ -16,8 +16,8 @@ void SongEraseCursor(void);
 UBYTE SongCloneChain(UBYTE chain);
 void SongDrawCursor(void);
 void SongReadRow(void);
-void SongDrawRowNum(void);
-void SongDrawColumnValues(void);
+void SongDrawRowNumber(void);
+void SongDrawColVals(void);
 void SongRedrawRow(void);
 void SongUpdatePlayMarker(void);
 void SongRowPalettes(UBYTE row);
@@ -57,11 +57,11 @@ void WriteChainPhrase(void);                /* bank $1F */
 void AllocNextFreePhrase(void);             /* bank 1 */
 void ShowOutOfMemory(void);                 /* bank 1 */
 void ClonePhraseAtCursor(UBYTE src, UBYTE dst);    /* bank 6 */
-UBYTE ChainReadTrans(UBYTE chain, UBYTE step);     /* bank 6 */
+UBYTE ChainReadTranspose(UBYTE chain, UBYTE step);     /* bank 6 */
 void SetChainTranspose(UBYTE chain, UBYTE row, UBYTE v);   /* bank 6 */
 void WriteSongCell(UBYTE col, UBYTE row, UBYTE chain);
 
-void SongCopyColumn(UBYTE *p, UBYTE *q)
+void SongCopyCol(UBYTE *p, UBYTE *q)
 {
     if (q >= (UBYTE *)0xB590)
         DebugTrap();
@@ -151,7 +151,7 @@ UBYTE SongCloneChain(UBYTE chain)
         } else {
             FarCallArg3P(0x1F, FAR_FN(WriteChainPhrase), v, i, ph);
         }
-        ph = FarCallArg2(6, FAR_FN(ChainReadTrans), chain, i);
+        ph = FarCallArg2(6, FAR_FN(ChainReadTranspose), chain, i);
         FarCallArg3P(6, FAR_FN(SetChainTranspose), v, i, ph);
         i++;
     }
@@ -182,7 +182,7 @@ void SongReadRow(void)
     ReadSongBytes(0, p + 0x30, (UBYTE *)0xC49D);
 }
 
-void SongDrawRowNum(void)
+void SongDrawRowNumber(void)
 {
     UBYTE y;
     UBYTE row, pal;
@@ -200,11 +200,11 @@ void SongDrawRowNum(void)
     y = 16;
     while (y--) {
         if ((BYTE)row & 4) {
-            hBgDigitPalette = wShadowDigitPal;
-            hBgPalette = wShadowPal;
+            hBgDigitPal = wShadowDigitPal;
+            hBgPal = wShadowPal;
         } else {
-            hBgDigitPalette = wSelectDigitPal;
-            hBgPalette = wSelectPal;
+            hBgDigitPal = wSelectDigitPal;
+            hBgPal = wSelectPal;
         }
         DrawHexByte(row);
         wVramCursor += 0x1E;
@@ -215,11 +215,11 @@ void SongDrawRowNum(void)
 void SongRedrawRow(void)
 {
     SongReadRow();
-    SongDrawRowNum();
-    hBgDigitPalette = 4;
-    hBgPalette = 1;
+    SongDrawRowNumber();
+    hBgDigitPal = 4;
+    hBgPal = 1;
     wVramCursor = (UBYTE *)0x9842;
-    SongDrawColumnValues();
+    SongDrawColVals();
     SongDrawCursor();
     wPartialRedrawDone = 1;
 }
@@ -329,27 +329,27 @@ void SongRowPalettes(UBYTE y)
     cur = wSongScroll + y - 2;
     shadow = cur & (UBYTE)4;
     if (shadow) {
-        hBgDigitPalette = wShadowDigitPal;
-        hBgPalette = wShadowPal;
+        hBgDigitPal = wShadowDigitPal;
+        hBgPal = wShadowPal;
     } else {
-        hBgDigitPalette = wSelectDigitPal;
-        hBgPalette = wSelectPal;
+        hBgDigitPal = wSelectDigitPal;
+        hBgPal = wSelectPal;
     }
     DrawHexByte(wSongRow);
     if (bm) {
-        hBgDigitPalette = wShadowDigitPal;
-        hBgPalette = wShadowPal;
+        hBgDigitPal = wShadowDigitPal;
+        hBgPal = wShadowPal;
     } else {
-        hBgDigitPalette = 4;
-        hBgPalette = 1;
+        hBgDigitPal = 4;
+        hBgPal = 1;
     }
     for (i = 0; i < 4; i++) {
         v = ReadSeqByte(i, wSongRow);
         DrawStringIndexed(' ');
         cur = i == wSongCol;
         if (cur) {
-            hBgDigitPalette = wSelectDigitPal;
-            hBgPalette = wSelectPal;
+            hBgDigitPal = wSelectDigitPal;
+            hBgPal = wSelectPal;
         }
         if (v & 0x80)
             DrawString("--");                   /* the literal lands right after the function ($492A) */
@@ -357,11 +357,11 @@ void SongRowPalettes(UBYTE y)
             DrawHexByte(v);
         if (cur) {
             if (bm) {
-                hBgDigitPalette = wShadowDigitPal;
-                hBgPalette = wShadowPal;
+                hBgDigitPal = wShadowDigitPal;
+                hBgPal = wShadowPal;
             } else {
-                hBgDigitPalette = 4;
-                hBgPalette = 1;
+                hBgDigitPal = 4;
+                hBgPal = 1;
             }
         }
     }
@@ -484,7 +484,7 @@ void SongBeginSelection(void)
 {
     wSavedSongCol = wSongCol;
     FarCall(5, SaveSelectionState);
-    wSelLeft = 0;
+    wSelectionLeft = 0;
     wSongCol = 3;
     FarCall(2, FAR_FN(SndStartRange));
     FarCall(5, RestoreSelectionState);

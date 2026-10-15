@@ -7,9 +7,9 @@
 
 #include "lsdj.h"
 
-extern UBYTE wSelTop;                       /* $C40E */
-extern UBYTE wSelBottom;                    /* $C410 */
-extern UBYTE wSelRight;                     /* $C40F */
+extern UBYTE wSelectionTop;                       /* $C40E */
+extern UBYTE wSelectionBottom;                    /* $C410 */
+extern UBYTE wSelectionRight;                     /* $C40F */
 extern UBYTE wClipboardType;                /* $C411 */
 extern UBYTE wGrooveCacheValid;             /* $C9D5 */
 extern UBYTE wGrooveStepCache[];            /* $C9D6, [16] */
@@ -152,8 +152,8 @@ void DrawGrooveSteps(void)
     if (wGroove >= 0x20)
         DebugTrap();
     ReadSongBytes(0, (UBYTE *)(((UWORD)wGroove << 4) + (UWORD)0xB090), wSongReadBuf);
-    hBgDigitPalette = 4;
-    hBgPalette = 1;
+    hBgDigitPal = 4;
+    hBgPal = 1;
     for (i = 0; i < 0x10; i++) {
         GetTilemapAddr(1, i + 2);
         v = wSongReadBuf[i];
@@ -209,11 +209,11 @@ void DrawGrooveRow(void)
         if (b) {
             GetTilemapAddr(5, i + 2);
             if (i & 2) {
-                hBgDigitPalette = 4;
-                hBgPalette = 1;
+                hBgDigitPal = 4;
+                hBgPal = 1;
             } else {
-                hBgDigitPalette = wShadowDigitPal;
-                hBgPalette = wShadowPal;
+                hBgDigitPal = wShadowDigitPal;
+                hBgPal = wShadowPal;
             }
             q = a * 100 / (a + b);
             DrawFormat("%d", (UWORD)q);
@@ -253,18 +253,18 @@ void GrooveRowPalettes(UBYTE row)
 {
     UBYTE a, b;
 
-    a = (wCursorMode == 4) ? wSelTop : wGrooveRow;
+    a = (wCursorMode == 4) ? wSelectionTop : wGrooveRow;
     b = wGrooveRow;
     SortBytePair(&a, &b);
     if (row >= a && b >= row) {
-        hBgDigitPalette = wSelectDigitPal;
-        hBgPalette = wSelectPal;
+        hBgDigitPal = wSelectDigitPal;
+        hBgPal = wSelectPal;
     } else if (row & 2) {
-        hBgDigitPalette = 4;
-        hBgPalette = 1;
+        hBgDigitPal = 4;
+        hBgPal = 1;
     } else {
-        hBgDigitPalette = wShadowDigitPal;
-        hBgPalette = wShadowPal;
+        hBgDigitPal = wShadowDigitPal;
+        hBgPal = wShadowPal;
     }
 }
 
@@ -285,12 +285,12 @@ UBYTE GrooveScreenInput(void)
     UBYTE end;
 
     v = wGrooveRow + 2;
-    hBgDigitPalette = wSelectDigitPal;
-    hBgPalette = wSelectPal;
+    hBgDigitPal = wSelectDigitPal;
+    hBgPal = wSelectPal;
     switch (wButtons) {
     case 0x43:
         if (wCursorMode == 4) {
-            wGrooveRow = wSelTop;
+            wGrooveRow = wSelectionTop;
             FarCall(5, 0x747D);
             if (hGameboyType) {
                 FarCall(1, FAR_FN(UiDrawTextHw));
@@ -332,8 +332,8 @@ UBYTE GrooveScreenInput(void)
         return 1;
     case 0x11:
         GrooveBuildCache();
-        if (wCursorMode == 4 && (!wSelLeft || !wSelRight)) {
-            top = wSelTop;
+        if (wCursorMode == 4 && (!wSelectionLeft || !wSelectionRight)) {
+            top = wSelectionTop;
             bot = wGrooveRow;
             SortBytePair(&top, &bot);
         } else {
@@ -353,8 +353,8 @@ UBYTE GrooveScreenInput(void)
         return 1;
     case 0x12:
         GrooveBuildCache();
-        if (wCursorMode == 4 && (!wSelLeft || !wSelRight)) {
-            top = wSelTop;
+        if (wCursorMode == 4 && (!wSelectionLeft || !wSelectionRight)) {
+            top = wSelectionTop;
             bot = wGrooveRow;
             SortBytePair(&top, &bot);
         } else {
@@ -376,8 +376,8 @@ UBYTE GrooveScreenInput(void)
     case 0x14:
     case 0x18:
         GrooveBuildCache();
-        if (wCursorMode == 4 && (!wSelLeft || !wSelRight)) {
-            top = wSelTop;
+        if (wCursorMode == 4 && (!wSelectionLeft || !wSelectionRight)) {
+            top = wSelectionTop;
             bot = wGrooveRow;
             SortBytePair(&top, &bot);
         } else {
@@ -415,7 +415,7 @@ UBYTE GrooveScreenInput(void)
     case 0x21:
         if (wGroove < 0x1F)
             wGroove++;
-        wMsgStrPtr = 0;
+        wMessageStrPtr = 0;
         DrawGrooveScreen();
         return 1;
     case 0x24:
@@ -423,7 +423,7 @@ UBYTE GrooveScreenInput(void)
             wGroove += 0x10;
         else
             wGroove = 0x1F;
-        wMsgStrPtr = 0;
+        wMessageStrPtr = 0;
         DrawGrooveScreen();
         return 1;
     case 0x28:
@@ -431,13 +431,13 @@ UBYTE GrooveScreenInput(void)
             wGroove -= 0x10;
         else
             wGroove = 0;
-        wMsgStrPtr = 0;
+        wMessageStrPtr = 0;
         DrawGrooveScreen();
         return 1;
     case 0x22:
         if (wGroove)
             wGroove--;
-        wMsgStrPtr = 0;
+        wMessageStrPtr = 0;
         DrawGrooveScreen();
         return 1;
     case 0x30:
@@ -450,10 +450,10 @@ UBYTE GrooveScreenInput(void)
             break;
         GrooveDrawField();
         wCursorMode = 2;
-        wSelLeft = 0;
-        wSelRight = 1;
-        wSelTop = wGrooveRow;
-        wSelBottom = wSelTop + 1;
+        wSelectionLeft = 0;
+        wSelectionRight = 1;
+        wSelectionTop = wGrooveRow;
+        wSelectionBottom = wSelectionTop + 1;
         wClipboardType = 2;
         WriteClipboardCell(0, wGrooveRow, ReadGrooveStep(wGrooveRow));
         top = wGrooveRow;
@@ -478,7 +478,7 @@ UBYTE GrooveScreenInput(void)
             break;
         }
         wSelectHeld = 0;
-        if (wSelLeft)
+        if (wSelectionLeft)
             break;
         GrooveDrawField();
         PasteGrooveSelection();
@@ -492,14 +492,14 @@ UBYTE GrooveScreenInput(void)
             return 1;
         switch ((char)wMapCol) {
         case 0:
-            wCurrentScreen = 4;
+            wCurScreen = 4;
             break;
         case 1:
-            wCurrentScreen = 3;
+            wCurScreen = 3;
             break;
         }
         FarCall(2, FAR_FN(TogglePlayback));
-        wCurrentScreen = 2;
+        wCurScreen = 2;
         return 1;
     case 0x44:
         if (wButtonsSame)
@@ -518,14 +518,14 @@ UBYTE GrooveScreenInput(void)
         if (!wSelectHeld)
             break;
         if (wCursorMode == 4 && wClipboardType == 2) {
-            top = wSelTop;
+            top = wSelectionTop;
             bot = wGrooveRow;
             SortBytePair(&top, &bot);
             if (top || bot != 0x0F) {
                 wGrooveRow = 0x0F;
                 while (wGrooveRow && !ReadGrooveStep(wGrooveRow))
                     wGrooveRow--;
-                wSelTop = 0;
+                wSelectionTop = 0;
                 wSelectHeld = 0;
                 GrooveDrawSelection();
                 return 1;
@@ -535,8 +535,8 @@ UBYTE GrooveScreenInput(void)
         }
         ShowMessage("SELECT");
         FarCall(5, SaveSelectionState);
-        wSelLeft = 0;
-        wSelTop = wGrooveRow;
+        wSelectionLeft = 0;
+        wSelectionTop = wGrooveRow;
         wSelectHeld = 0;
         return 1;
     }
@@ -548,25 +548,25 @@ void GrooveCutCopy(UBYTE cut)
     UBYTE row;
 
     row = wGrooveRow;
-    SortBytePair(&wSelTop, &row);
+    SortBytePair(&wSelectionTop, &row);
     if (ReadGrooveStep(row))
         row++;
-    if (wSelTop == row)
+    if (wSelectionTop == row)
         return;
     wCursorMode = 2;
     wClipboardType = 2;
-    wSelLeft = 0;
-    wSelRight = 1;
-    wSelBottom = row;
+    wSelectionLeft = 0;
+    wSelectionRight = 1;
+    wSelectionBottom = row;
     ShowMessage(cut ? "CUT" : "COPY");
-    for (row = wSelTop; row < wSelBottom; row++) {
+    for (row = wSelectionTop; row < wSelectionBottom; row++) {
         wGrooveRow = row;
         GrooveDrawField();
         WriteClipboardCell(0, row, ReadGrooveStep(row));
         if (cut)
             WriteGrooveByte(row, row ? 0 : 6);
     }
-    wGrooveRow = wSelTop;
+    wGrooveRow = wSelectionTop;
     FarCall(0x1C, FAR_FN(SendLinkClipboard));
     DrawGrooveSteps();
 }
@@ -577,9 +577,9 @@ void PasteGrooveSelection(void)
 
     if (wClipboardType != 2)
         return;
-    if ((UBYTE)(wSelBottom - wSelTop) > 1)
+    if ((UBYTE)(wSelectionBottom - wSelectionTop) > 1)
         ShowMessage("PASTE");
-    for (i = wSelTop; i < wSelBottom; i++) {
+    for (i = wSelectionTop; i < wSelectionBottom; i++) {
         WriteGrooveByte(wGrooveRow, ReadClipboardCell(0, i));
         if (++wGrooveRow == 0x10)
             wGrooveRow = 0;
@@ -593,11 +593,11 @@ void GrooveDrawSelection(void)
 
     if (wClipboardType != 2)
         return;
-    if (wSelTop < wGrooveRow) {
-        i = wSelTop;
+    if (wSelectionTop < wGrooveRow) {
+        i = wSelectionTop;
         end = wGrooveRow + 1;
     } else {
-        end = wSelTop + 1;
+        end = wSelectionTop + 1;
         i = wGrooveRow;
     }
     for (; i < end; i++) {
@@ -1268,14 +1268,14 @@ void DrawSynthNumber(void)
     UBYTE v;
 
     p = (UWORD)SramSynthParams + ((UWORD)wSynthScreen << 4);
-    hBgDigitPalette = 4;
-    hBgPalette = 1;
+    hBgDigitPal = 4;
+    hBgPal = 1;
     wVramCursor = (UBYTE *)0x98E8;
     DrawByte(wSynthScreen);
     wVramCursor = (UBYTE *)0x98EB;
     DrawByte(wSynthScreen);
-    hBgDigitPalette = wShadowDigitPal;
-    hBgPalette = wShadowPal;
+    hBgDigitPal = wShadowDigitPal;
+    hBgPal = wShadowPal;
     DrawSynthWaveField();
     p++;
     DrawSynthFilterField();
@@ -1385,7 +1385,7 @@ void BuildOverwritePrompt(void)
     for (x = 3; (UWORD)x < 15; x++) {
         for (y = 4; (UWORD)y < 11; y++) {
             wStringSrc = IdentityCharMap;
-            hBgPalette = hGameboyType ? 0x48 : 0xD2;
+            hBgPal = hGameboyType ? 0x48 : 0xD2;
             ColorField(x, y, 1, 0);
             GetTilemapAddr(x, y);
             if (x == 3) {
@@ -1408,8 +1408,8 @@ void BuildOverwritePrompt(void)
                 else if ((UWORD)y == 10)
                     DrawStringIndexed(6);
                 else {
-                    hBgDigitPalette = 4;
-                    hBgPalette = 1;
+                    hBgDigitPal = 4;
+                    hBgPal = 1;
                     DrawStringIndexed(2);
                 }
                 wStringSrc = AsciiCharMap - 0x20;
@@ -1417,8 +1417,8 @@ void BuildOverwritePrompt(void)
         }
     }
     wStringSrc = AsciiCharMap - 0x20;
-    hBgDigitPalette = 4;
-    hBgPalette = 1;
+    hBgDigitPal = 4;
+    hBgPal = 1;
 }
 
 void DrawOverwriteChoice(void)
@@ -1443,8 +1443,8 @@ void DrawOverwriteChoice(void)
 /* Open the confirmation dialog; OverwritePromptInput handles the choice. */
 void SynthOverwriteWaves(void)
 {
-    hBgDigitPalette = 4;
-    hBgPalette = 1;
+    hBgDigitPal = 4;
+    hBgPal = 1;
     BuildOverwritePrompt();
     wOverwriteStart = 1;
     wOverwriteEnd = 1;
@@ -1636,8 +1636,8 @@ UBYTE SynthScreenInput(void)
         OverwritePromptInput();
         return 1;
     }
-    hBgDigitPalette = wSelectDigitPal;
-    hBgPalette = wSelectPal;
+    hBgDigitPal = wSelectDigitPal;
+    hBgPal = wSelectPal;
     if (wButtons != 0x10)
         wDrawStep = 0;
     switch (wButtons) {
@@ -1730,8 +1730,8 @@ UBYTE SynthScreenInput(void)
             default:
                 WriteSynthParam(0, 3);
                 DrawSynthScreen();
-                hBgDigitPalette = wSelectDigitPal;
-                hBgPalette = wSelectPal;
+                hBgDigitPal = wSelectDigitPal;
+                hBgPal = wSelectPal;
                 DrawSynthWaveField();
             }
             DrawSynthWaveField();
@@ -1831,8 +1831,8 @@ UBYTE SynthScreenInput(void)
             case 3:
                 WriteSynthParam(0, 2);
                 DrawSynthScreen();
-                hBgDigitPalette = wSelectDigitPal;
-                hBgPalette = wSelectPal;
+                hBgDigitPal = wSelectDigitPal;
+                hBgPal = wSelectPal;
                 DrawSynthWaveField();
             }
             DrawSynthWaveField();
@@ -2026,7 +2026,7 @@ UBYTE SynthScreenInput(void)
         return 1;
     case 0x21:
     case 0x24:
-        wMsgStrPtr = 0;
+        wMessageStrPtr = 0;
         if (wSynthScreen != 0x0F) {
             wSynthScreen++;
             DrawSynthScreen();
@@ -2034,7 +2034,7 @@ UBYTE SynthScreenInput(void)
         return 1;
     case 0x22:
     case 0x28:
-        wMsgStrPtr = 0;
+        wMessageStrPtr = 0;
         if (wSynthScreen) {
             wSynthScreen--;
             DrawSynthScreen();
@@ -2083,10 +2083,10 @@ UBYTE SynthScreenInput(void)
             WriteClipboardCell(0, v, ReadSongByte(1, p));
             p++;
         }
-        wSelLeft = 0;
-        wSelRight = 1;
-        wSelTop = 0;
-        wSelBottom = 0x10;
+        wSelectionLeft = 0;
+        wSelectionRight = 1;
+        wSelectionTop = 0;
+        wSelectionBottom = 0x10;
         FarCall(0x1C, FAR_FN(SendLinkClipboard));
         return 1;
     case 0x50:

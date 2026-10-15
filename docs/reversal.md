@@ -133,7 +133,7 @@ sites and both are ROM jump-tables (`$401B`, `$679D`); there are **no** RAM-fed
 `jp hl` and **no** `push addr; ret` trampolines. The reach is a **multi-hop static**
 path: the master screen dispatch (`ScreenDrawDispatch` → jp-table `$2563` →
 `DrawDispatch_<screen>`) bank-switches into a per-screen handler (the instrument
-editor lives in bank `$03` at `DrawInstrumentScreen $4DE7`, reached via an inline
+editor lives in bank `$03` at `DrawInstrScreen $4DE7`, reached via an inline
 `ld a,N; ld [$2000],a; call` trampoline), which then `FarCall`s into bank-`$1F`
 per-instrument-type handlers. The last link was invisible only because those
 handler addresses are built with a **split** byte-load (`ld c,lo; ld b,hi`) rather
@@ -155,7 +155,7 @@ was **wrong**, and this is now confirmed dynamically, not just statically. Two
 WRAM dumps (BGB) — one idle on the instrument editor, one while a song plays —
 were checked with `tools/annotate_ram.py`:
 
-- They validated the corrected screen map (`wCurrentScreen` `$C401` = 6 →
+- They validated the corrected screen map (`wCurScreen` `$C401` = 6 →
   Instrument idle, 4 → Song playing).
 - The sound engine's per-channel state (`$C0E0–$C200`, struct-of-arrays over the
   4 channels) holds 16-bit pointers that are all **SRAM song-data** addresses
@@ -170,13 +170,13 @@ tracer doesn't fully model — there is no RAM-indirect indirection to chase.
 
 ### Sound engine: note-on path (named) and open leads
 
-The per-tick engine (`ProcessChannel`, bank `$02`) reaches note-on via a write of
+The per-tick engine (`ProcessChan`, bank `$02`) reaches note-on via a write of
 the new chain number into `wChanChain[ch]` (`$4DD2`), then channel setup:
 
-- **`SetupChannelSound` (`$5934`)** — selects the instrument's SRAM bank, copies
+- **`SetupChanSound` (`$5934`)** — selects the instrument's SRAM bank, copies
   its parameters into the staging buffer **`wCurInstr` (`$C0D0`**, first named
   `wSoundParams`), then
-  dispatches by `hSoundCh` to `SetupSoundPU1/PU2/Wave/Noise`, each of which
+  dispatches by `hSoundCh` to `SetupSoundPu1/PU2/Wave/Noise`, each of which
   distributes the staged bytes into the `rAUDx` register shadows (`wChanEnv`
   `$C2D8`, `wChanLenDuty` `$C2DC`, `wChanFreqHi` `$C2E0`, `wChanSweep` `$C2E4`)
   and triggers the voice. The note→GB-period value arrives **pre-staged** in
@@ -235,7 +235,7 @@ one thing in the game, diff WRAM, and read the on-screen result.
 - **screenshots** map a value to meaning: one INSTR shot enumerates the
   `wInstrField` rows (NAME/TYPE/ENV/WAVE/OUTPUT/LENGTH/SWEEP/PITCH/TRANSP/PU2 TSP/
   FINETUNE/CMD-RATE/TABLE). `Read` the PNG directly.
-- Engine-code reading still settles sound names: `wFxChannel $C527` (channel the
+- Engine-code reading still settles sound names: `wFxChan $C527` (channel the
   command/FX/table engine is processing, set from `hSoundCh`; some FX OR in
   bit2/3 flags) and `wWavLevel $C8F3` (WAV ch-2 output level -> `rAUD3LEVEL`).
 
@@ -270,7 +270,7 @@ SendGate`), the **work-time clock** (`wWorkTimeAccum/Ticks` -> SRAM secs/mins),
 the **kit sample streamer** (`wKitVoicesActive`, `wKit1Bank`/`wKit2Bank`,
 `wKit1LoopEnabled`/`wKit2LoopEnabled` — first misread as an "oscilloscope",
 `wOscActive/BankA-B/LoopA-B`; corrected in the July rename passes), `wWaveCursor`,
-`wWavPlayMode`, `wFileScroll`, `wCompByte`, `wSongReadBuf`. Two structural findings:
+`wWavPlayMode`, `wFileScroll`, `wCompressByte`, `wSongReadBuf`. Two structural findings:
 
 1. **Overlay:** `$c4d4-$c4f9` is shared between the pitch-mod stepper (`c8f5`-gated)
    and the kit sample streamer (`wKitVoicesActive`/`c8f6`-gated, bank00 `$03d8`) —
@@ -279,7 +279,7 @@ the **kit sample streamer** (`wKitVoicesActive`, `wKit1Bank`/`wKit2Bank`,
 2. **The remaining ~1800 raw `$cXXX` refs are NOT mostly single-purpose globals.**
    They split three ways, and only the third is cleanly nameable:
    - *Shared work buffers* whose **address is passed** to helpers (e.g. `wSongReadBuf`
-     -> `ReadSongBytes`, `wStrBuffer` -> `strcpy`; `c431/c457/c405/c555` similar).
+     -> `ReadSongBytes`, `wStrBuf` -> `strcpy`; `c431/c457/c405/c555` similar).
      General scratch, not a specific global — name generically at best.
    - *Transient draw/render scratch* — **zeroed between uses** (read `$c9e8`/`$c9ed`
      on the SYNTH screen: all `00`), i.e. SDCC static locals for one routine
@@ -315,7 +315,7 @@ throughout. Clusters named:
 - **Input**: `HandleButtonEvent` → `HandleInputCombos` + `DispatchScreenInput`
   (the per-event chain from the main loop).
 - **Video/UI/OAM**: `DrawFormat` (printf, 23 callers) + `DrawNumber`, `DrawTempo`
-  (+ `GetTempoTimerValue`, var `wTempoMode`), `DrawPulseDuty`, `ShowMessage`
+  (+ `GetTempoTimerVal`, var `wTempoMode`), `DrawPulseDuty`, `ShowMessage`
   (47 callers), `SetOAMByte`, the marker-sprite `SetSprite*`/`ClearMarkerSprites`,
   `RedrawScreen`, `ResetScreenSprites`, `CopyToBgTilemap` (since identified as
   GBDK's `set_bkg_tiles`), `ClearBgTilemap`,
@@ -331,7 +331,7 @@ throughout. Clusters named:
   a +5 gap to skip the code banks `$1B-$1F`), `KitExists`, `ReadKitName`. This
   corrected a mislabel: `$0CFE` "FarCallByteAlt" is the kit-presence check (reads
   `[$4000:01]==$6040`), not a FarCall variant.
-- **Sync / sound tail**: `SyncSeekSongPos`, `SndApplyWavVibrato`.
+- **Sync / sound tail**: `SyncSeekSongPos`, `SndApplyWavVib`.
 - **Final UI helpers** (glyphs decoded from VRAM): `DrawTileRun` (run of cursor `►`
   / blank / solid `█` tiles), `DrawStringTile20`, `AnyChanFlagSet`.
 - New RAM vars from the same work: `wChanPitchModActive` (`$C3F9`), `wOamDirty`
@@ -436,7 +436,7 @@ a symbol. The machinery:
   re-rendering never changes bytes), then `make sym` re-deploys the symbols.
 
 First application: bank `$02` `$43D8` is a 256-entry 16-bit exponential pitch
-curve read by `ApplyPitchBend` (`FxCmd_P`) as `[$43D8 + 2*hFxValue]`; it decoded
+curve read by `ApplyPitchBend` (`FxCmd_P`) as `[$43D8 + 2*hFxVal]`; it decoded
 as ~250 lines of garbage code and is now the `PitchBendTable` data block (bank
 `$02` gaps 7→4 `LABEL`, 10→8 `DATA`). The remaining carved-bank tables are worked
 the same way.
@@ -481,7 +481,7 @@ deferred tables below). Named intuitively (never `Lut<addr>`):
 - defaults copied into SRAM on init: `DefaultWaveFrame…` (ramp → `wave_frames`,
   per-bank copies in `$01`/`$03`/`$1C`/`$1F`), `DefaultSynthParams`
   (→ `synth_params $3EB2`), `DefaultInstrument`.
-- display tables: `NoteNames` (chromatic), `ChannelNames` (song),
+- display tables: `NoteNames` (chromatic), `ChanNames` (song),
   `SineTable`/`SynthDispatchJumps` (synth),
   `WaveSourceNames`/`InstrOptionNames` (instrument; the `InstrParamJumps` once
   named here is InstrScreenInput's own A+LEFT kit jump table, `.decKitFields`),
@@ -513,7 +513,7 @@ register-computed sites whose back-scan yields an impossible `≥$8000`), and li
 every target with no label — **the precise indirect worklist** (46→ and
 shrinking), each with its caller sites for context. First names off it:
 `RedrawScreen` (`$24dd`, the 18-caller full-screen repaint that dispatches
-per-screen draw by `wCurrentScreen`), `CopyToWindowTilemap` (`$39e1`; since
+per-screen draw by `wCurScreen`), `CopyToWindowTilemap` (`$39e1`; since
 identified as GBDK's `.set_xy_wtt`, now `set_xy_wtt`),
 `LoadFontTiles` (`$1E:$7aa0`), and the `ShowMessage` wrappers
 `ShowOutOfMemory`/`ShowTapAddChain` (a whole sub-class: `ld hl,Txt…; push hl;
@@ -542,7 +542,7 @@ bank 7 **song bookmarks** ($0FF0) and **PS/2 keyboard** subsystems, the
 bank 1C **file-format migration callbacks** (`FileUpgradeV<n><Type>`, e.g.
 `FileUpgradeV0Kit`, passed to `FileForEachInstrType`), the **FX-command help
 strings** (`TxtHelpA..Z` + the B/F/H/S/W screen variants) behind
-`CommandHelpTable`, the bank 1E **font tile blocks** (`TilesFont0A`…`TilesFont2C`,
+`CmdHelpTable`, the bank 1E **font tile blocks** (`TilesFont0A`…`TilesFont2C`,
 selected by `wFont` `$C52E`) and **synth waveform
 tables**, and the phrase/chain/instr **allocation bitmap** functions
 (`AllocNextFreePhrase`/`FreeChain`/`AllocNextFreeInstr`/`FindFreeTable`…).
@@ -575,14 +575,14 @@ operand-referenced ROM address (direct `ld a,[$nnnn]` accesses plus pointer
 loads that land on data) against the `.sym` files, filtering the
 constant classes (arithmetic values `<$100`, MBC control writes, uniform-fill
 and header/logo targets, FarCall immediates). It exposed one wrong pair of
-labels — `GetTempoTimerValue` returns its mode-preset "pointers" *in de as
+labels — `GetTempoTimerVal` returns its mode-preset "pointers" *in de as
 numeric timer values*, so the `$0380/$0396` "functions" were deleted — plus
 five more misdecoded table regions (kit/wav pitch tables at the bank-2 tail,
 the bank-3 instrument-field cursor layout `InstrFieldX/Y/W/Counts`, the bank-5
 map-column metrics, the bank-1D `SynthFieldLayout`, and bank-1F `$491A` —
 named `FxCmdRefTable` in this pass, later corrected back to the default wave
 frame, `DefaultWaveFrameB1F`) and the full per-screen CGB palette block set
-(`ScreenPalSong`…`ScreenPalInstrNoise`) resolved from `GetScreenPalette`'s
+(`ScreenPalSong`…`ScreenPalInstrNoise`) resolved from `GetScreenPal`'s
 dispatch. `data_refs.py` now reports **0**; every referenced ROM data address
 carries an exact functional symbol. One final Emulicious-specific class remained
 (verified by screenshot): the **vector page**. Emulicious statically segments
@@ -596,7 +596,7 @@ filler bytes as `UnusedXXXX` (positional names are the honest ones for unused
 fill; they are data with no function beyond their location). The sweep also added ~27 session-evidenced
 RAM names (`wColChain`, `wPlayChanFirst/Last`, `wLfoStatePU1/PU2/WavNoi` — later
 found to be envelope state, now `wEnvStagePu1/Pu2/Noi`,
-`wFileNameBuf`, `wDecompBuf`, …) to `ram.inc`.
+`wFileNameBuf`, `wDecompressBuf`, …) to `ram.inc`.
 
 **Dynamic driver — `tools/emu/song.py`.** A verified editing layer that also reads
 and writes the working song directly in SRAM (`sram_read`/`sram_write` +
@@ -631,7 +631,7 @@ from the kit; NOISE its own scheme).
      function. Names that kept a `_XXXX` address suffix (e.g. `InstrGetField5_4B4C`)
      were accurate behavioral names where the stem repeated and the suffix only
      disambiguated; none remain — the instrument accessors were renamed from the
-     liblsdj-documented format (`InstrGetField5_4B4C` → `GetVibratoShape`).
+     liblsdj-documented format (`InstrGetField5_4B4C` → `GetVibShape`).
   4. **Re-review pass (correctness).** After labelling, every bank's theme was
      re-verified against the actual entry/dispatch code. This caught and fixed
      several *systematic* mislabels from the earlier heuristic pass:

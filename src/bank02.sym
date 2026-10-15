@@ -1,49 +1,49 @@
 ; Bank $02 -- sound engine. Entry: the main loop pages in this bank and calls
 ; SndRunFrame ($556A) once per frame. Backbone (verified by tracing):
 ;   SndRunFrame  -- tempo gate ($cb6f frame-skip, $cb70 tick-repeat) -> run SndTick N times
-;   SndTick      -- one tick: SndStepAllChannels then SndUpdateAllChannels
-;   SndStepAllChannels  -- ProcessChannel for each active channel (order WAV,PU1,PU2,NOI):
+;   SndTick      -- one tick: SndStepAllChans then SndUpdateAllChans
+;   SndStepAllChans  -- ProcessChan for each active channel (order WAV,PU1,PU2,NOI):
 ;                          advance phrase via channel cursors, read note/instrument/command,
-;                          run the per-tick FX command (DispatchFxCommand)
-;   SndUpdateAllChannels -- SndUpdateChannel per channel: write GB sound regs / run tables
+;                          run the per-tick FX command (DispatchFxCmd)
+;   SndUpdateAllChans -- SndUpdateChan per channel: write GB sound regs / run tables
 ; Channels: hSoundCh ($FF8B) 0-3 = PU1/PU2/WAV/NOI -> rAUD1/2/3/4; KIT plays on WAV.
 ; Per-channel state is a struct-of-arrays at $C0xx-$C3xx (see constants/ram.inc wChan*);
 ; working read-cursors are 16-bit ptrs whose low bytes live at $C8xx (InitSoundStatePtrs
 ; sets them to channel 0, SndAdvanceStatePtrs steps to the next channel).
-494D ProcessChannel     ; per-channel sound tick (channel = hSoundCh); called per active channel
+494D ProcessChan     ; per-channel sound tick (channel = hSoundCh); called per active channel
 49B7 NoteToPeriod       ; wChanFreq[ch] = wNotePeriods[note+wNoteTranspose-1] (alt linear table at bank0 $09B9)
 4C2D AdvanceChanCursors ; advance the 3 phrase cursors (note/cmd, cmdval, instr) by c
-4AA3 WriteChannelFreq   ; write the current channel's frequency to rAUDxLOW/HIGH each tick (no retrigger; P/L/V pitch)
+4AA3 WriteChanFreq   ; write the current channel's frequency to rAUDxLOW/HIGH each tick (no retrigger; P/L/V pitch)
 ; --- Note trigger: write the GB sound regs to start a note on the current channel
 6007 TriggerNote        ; dispatch by hSoundCh to the per-voice trigger below
-604B TriggerPU1         ; PU1 note-on: rAUD1 sweep/env/freq + trigger
-6091 TriggerPU2         ; PU2 note-on: rAUD2 env/freq + trigger
-60D1 TriggerWave        ; WAV note-on: rAUD3 level/freq + trigger
-6014 TriggerNoise       ; NOI note-on: rAUD4 len/env/poly + trigger
+604B TriggerPu1         ; PU1 note-on: rAUD1 sweep/env/freq + trigger
+6091 TriggerPu2         ; PU2 note-on: rAUD2 env/freq + trigger
+60D1 TriggerWav        ; WAV note-on: rAUD3 level/freq + trigger
+6014 TriggerNoi       ; NOI note-on: rAUD4 len/env/poly + trigger
 5151 ReadChanCursor     ; read byte via channel hSoundCh's 16-bit cursor (array base in hl); SRAM-guarded
 485A InitSoundStatePtrs ; set $C8xx to the low-bytes of the engine's $C1xx state ptrs
 ; --- Note-on: load instrument from SRAM into wCurInstr, set up channel shadows -
-5934 SetupChannelSound  ; dispatch by hSoundCh to the per-channel setup block below
-5942 SetupSoundPU1      ; PU1: stage wCurInstr -> sweep/env/duty/freq shadows + trigger
-5A27 SetupSoundPU2      ; PU2: stage wCurInstr -> env/duty/freq shadows + trigger
-5B0C SetupSoundWave     ; WAV/KIT: stage wCurInstr -> wave level/freq shadows + trigger
-5DB2 SetupSoundNoise    ; NOI: stage wCurInstr -> env/poly shadows + trigger
+5934 SetupChanSound  ; dispatch by hSoundCh to the per-channel setup block below
+5942 SetupSoundPu1      ; PU1: stage wCurInstr -> sweep/env/duty/freq shadows + trigger
+5A27 SetupSoundPu2      ; PU2: stage wCurInstr -> env/duty/freq shadows + trigger
+5B0C SetupSoundWav     ; WAV/KIT: stage wCurInstr -> wave level/freq shadows + trigger
+5DB2 SetupSoundNoi    ; NOI: stage wCurInstr -> env/poly shadows + trigger
 4F33 FillChan8         ; write a -> 8 consecutive bytes [hl] (clears a per-channel 16-bit array)
 4F37 FillChan4         ; write a -> 4 consecutive bytes [hl] (clears a per-channel [4] array)
 ; --- Table macro playback (per-channel; runs the instrument's table) ----------
-4668 ProcessChannelTable ; advance/apply the channel's table (wChanTable/Played/Countdown); calls the column readers
-574B ReadTableEnvelope  ; read table_envelopes[wChanTable][row] (song $1690 = SRAM bank0 $B690)
+4668 ProcessChanTable ; advance/apply the channel's table (wChanTable/Played/Countdown); calls the column readers
+574B ReadTableEnv  ; read table_envelopes[wChanTable][row] (song $1690 = SRAM bank0 $B690)
 587D ReadTableTranspose ; read table_transposes[wChanTable][row] (song $3480 = SRAM bank1 $B480)
 487E ReadGroove         ; read grooves[wChanGroove][wChanGrooveRow] (song $1090 = SRAM bank0 $B090) via wPtrGroove/wPtrGrooveRow
 ; --- Sequencer: song row -> chain -> phrase resolution ------------------------
 48D2 AdvanceSongRow     ; on wChanChain[ch]==$FF, walk chain_assignments (loop-back) -> next chain
 5EAD ReadSongChain      ; e = chain_assignments[wChanSongRow[ch]][ch] ($B290 = song offset $1290)
 5E7C ReadChainPhrase    ; e = CHAIN_PHRASES[wChanChain[ch]*16 + wChanChainRow] (SRAM bank1 $A080) -> wChanPhrase
-; --- Per-tick FX command dispatch (command value in a -> FxCommandTable) -------
+; --- Per-tick FX command dispatch (command value in a -> FxCmdTable) -------
 ; Command values index the same table as the mnemonics at $0824 ("-ABCDEFGH...").
 ; B/D/G/H have null handlers here -- they act at note-trigger, not per tick.
-4790 DispatchFxCommand  ; a = command value (<19); jp FxCommandTable[a]
-47A2 FxCommandTable     ; [19] dw per-tick command handler pointers (0 = no per-tick action)
+4790 DispatchFxCmd  ; a = command value (<19); jp FxCmdTable[a]
+47A2 FxCmdTable     ; [19] dw per-tick command handler pointers (0 = no per-tick action)
 4679 FxCmd_A            ; A: table start/stop
 476C FxCmd_C            ; C: chord
 46D8 FxCmd_E            ; E: amplitude envelope
@@ -55,19 +55,19 @@
 6246 FxCmd_M            ; M: master volume
 665F FxCmd_O            ; O: output (panning)
 6646 FxCmd_P            ; P: pitch bend / shift
-45D8 ApplyPitchBend     ; FxCmd_P tonal-channel impl: set up pitch bend from hFxValue (per-chan accum $C248)
-43D8 PitchBendTable     ; [256] 16-bit exponential pitch curve; ApplyPitchBend reads [$43D8 + 2*hFxValue]
+45D8 ApplyPitchBend     ; FxCmd_P tonal-channel impl: set up pitch bend from hFxVal (per-chan accum $C248)
+43D8 PitchBendTable     ; [256] 16-bit exponential pitch curve; ApplyPitchBend reads [$43D8 + 2*hFxVal]
 6669 FxCmd_T            ; T: tempo
 649D FxCmd_R            ; R: retrig
 65F3 FxCmd_K            ; K: kill note
 7DD1 FxCmd_V            ; V: vibrato
-7D81 VibDepthTable      ; [16] vibrato depth curve, FxCmd_V reads [$7D81 + (hFxValue & $0f)]
-7D91 VibRateTableA      ; [16] 16-bit vibrato rate (type A); [$7D91 + 2*(hFxValue>>4)]
+7D81 VibDepthTable      ; [16] vibrato depth curve, FxCmd_V reads [$7D81 + (hFxVal & $0f)]
+7D91 VibRateTableA      ; [16] 16-bit vibrato rate (type A); [$7D91 + 2*(hFxVal>>4)]
 7DB1 VibRateTableB      ; [16] 16-bit vibrato rate (type B); selected by wChanVibType
 7EAC KitPitchTable              ; per-pitch kit sample step deltas (SndSetKitParams)
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
-4000 SndFxParsePitchVal         ; parse an FX value (mask $80/$0f) -> SndInitEnvelope
+4000 SndFxParsePitchVal         ; parse an FX value (mask $80/$0f) -> SndInitEnv
 4033 SndKitStepLoopWin1         ; kit S cmd, voice 1: nibble-step the loop window (start/end +/- digit*16, min $10); falls into voice-2 twin
 40E6 SndClampAcc6Hi             ; if pitch acc $c4d6:d7 >= limit $c4de:df, clamp to it & ret 0; else ret 1
 410C SndClampAcc4Hi             ; if pitch acc $c4d4:d5 >= limit $c4dc:dd, clamp to it & ret 0; else ret 1
@@ -79,25 +79,25 @@
 43CE SndFxTableJump             ; FX dispatch via computed jump (jp hl region)
 4637 SndClampNoteRange          ; clamp a note value to playable range ($3c..$78) -> $c422
 46C7 SndClearChanFxSlots        ; clear this channel's 3 FX slots ($c2f0/$c2f4/$c2f8 + ch)
-472F SndRunTableColumn          ; dispatch one table column (-> SndRunFxSlot / SndRetrigNote)
-4753 SndRunChannelFxSlots       ; iterate the 12-entry FX-slot table $c2f0, run SndRunTableColumn per active
-478D SndDispatchStoredFx        ; load command from $c8c4, fall into DispatchFxCommand
+472F SndRunTableCol          ; dispatch one table column (-> SndRunFxSlot / SndRetrigNote)
+4753 SndRunChanFxSlots       ; iterate the 12-entry FX-slot table $c2f0, run SndRunTableCol per active
+478D SndDispatchStoredFx        ; load command from $c8c4, fall into DispatchFxCmd
 483F SndAdvanceTableCursor      ; advance this channel's table read cursor ($c8e1 ptr + $c140[ch])
 48AB SndAdvanceGroove           ; step the channel's groove row (wrap 15 / skip zero-tick), reload the note tick countdown
 4B8A SndReadChainTranspose      ; read chain_transposes[wChanChain[ch]] from SRAM bank1 ($A880, di/ei guarded) -> per-channel shadow $c3fc[ch]
-4BC5 SndTransposeNote           ; add chain transpose (wChanChainTrans, song/chain mode) + global transpose to the note; skip if wChanTranspose set
+4BC5 SndTransposeNote           ; add chain transpose (wChanChainTranspose, song/chain mode) + global transpose to the note; skip if wChanTranspose set
 4C26 AdvanceCurChanCursors      ; set de=hSoundCh*2, c=a (amount), then fall into AdvanceChanCursors (advance current channel's cursors by a)
-4C42 SndAnyChannelActive        ; scan the 8 wChanActive flags ($C0E0..7); return nz (flag in a) if any channel is active, z if none
-4C4E SndStartChannel            ; handle $c0e4 (re)start request: read seq (SndStartChanFromRow), set retrigger $c4cd, clear request
-4C68 SndLoadChannelInstr        ; read the channel's instrument number from SRAM bank3 via its $c140[ch] cursor -> wChanInstr shadow ($c0c8/$c210[ch]); then SndLoadInstrument
+4C42 SndAnyChanActive        ; scan the 8 wChanActive flags ($C0E0..7); return nz (flag in a) if any channel is active, z if none
+4C4E SndStartChan            ; handle $c0e4 (re)start request: read seq (SndStartChanFromRow), set retrigger $c4cd, clear request
+4C68 SndLoadChanInstr        ; read the channel's instrument number from SRAM bank3 via its $c140[ch] cursor -> wChanInstr shadow ($c0c8/$c210[ch]); then SndLoadInstr
 4C9C SndReadChainRow            ; read the current chain row (cp $ff = end-of-chain)
 4CBF SndAdvanceChainRow         ; advance the chain row, load that row's phrase; end-of-chain handling at row 16/$ff
-4D71 SndStepAllChannels         ; run ProcessChannel (sequencer step: advance phrase, read note/cmd) for each active channel, order WAV,PU1,PU2,NOI
+4D71 SndStepAllChans         ; run ProcessChan (sequencer step: advance phrase, read note/cmd) for each active channel, order WAV,PU1,PU2,NOI
 4DA9 SndEnterSongRow            ; commit wChanNextSongRow -> wChanSongRow, load its chain ($ff -> scan up)
 4E17 SndMaskLow5                ; return a & $1f
 4E2A SndDecodeNibbles           ; split a byte into hi/lo nibbles ($f0/$10/$0f)
 4E69 SndQueueSyncByte           ; store a byte to $cbdc / wSyncTxByte (sync transmit)
-4E74 SndDeactivateChannel       ; clear wChanActive[ch] and $c0e4[ch] (stop this channel)
+4E74 SndDeactivateChan       ; clear wChanActive[ch] and $c0e4[ch] (stop this channel)
 4EA3 SndResetFxState            ; clear retrigger $c4cd, $c8f4, $c4ce, $c552
 4F2B FillChan16                 ; write a -> 16 consecutive bytes [hl] (staggered entry into the FillChan8/4 unrolled memset)
 4F2F FillChan12                 ; write a -> 12 consecutive bytes [hl] (staggered entry into the FillChan8/4 unrolled memset)
@@ -111,10 +111,10 @@
 50E1 SndReadTableCmd1           ; fetch table CMD1-column cmd+val via $c118/$c130 stream ptrs
 5119 SndReadTableCmd2           ; fetch table CMD2-column cmd+val via $c120/$c138 stream ptrs
 5165 SndReadCmdStream           ; read command-stream bytes ($c8fb; cp $ff = end)
-5345 SndSetupWaveChannel        ; ch2 (WAV/KIT): seed working ptrs ($c8ef/e3/e5/e7/fc), SndReadCmdStream
+5345 SndSetupWaveChan        ; ch2 (WAV/KIT): seed working ptrs ($c8ef/e3/e5/e7/fc), SndReadCmdStream
 5459 SndReadCursorByte          ; read a byte via $c110[ch] cursor + $c8ed (SRAM-guarded)
 5477 SndTableHop                ; hop this channel's table to row a & $0F: the transpose and left command columns, or with bit 7 the right command column (its own row); e = 0 if already there
-54D7 SndUpdateAllChannels       ; output phase of a tick: for each active channel (wChanActive $C0E0..7) set hSoundCh and call SndUpdateChannel (writes sound regs / runs tables)
+54D7 SndUpdateAllChans       ; output phase of a tick: for each active channel (wChanActive $C0E0..7) set hSoundCh and call SndUpdateChan (writes sound regs / runs tables)
 556A SndRunFrame                ; per-frame sound entry (called from main loop, bank00 $2317): tempo gate -- if $cb6f pending skip it; else run SndTick 1+$cb70 times this frame
 5583 SndApplyTableTranspose     ; jp target from SndStepTablePtrs: read table_transpose row, add to the channel note, apply (SndTableHop)
 55AE SndCountdownStep           ; count down this channel's ticks left in the step: e = 0 if idle; at 0, flag the note trigger and advance the groove
@@ -124,15 +124,15 @@
 561B SndReadGrooveOrSpeed       ; NB misnomer (no groove/speed access): if wChanTableFresh[ch], clear it (NOI: also wNoiTableNotePrev); else when wChanTableStep[ch]==0 step the 5 table read ptrs (wTableNotePtr, wTableCmd1Ptr, wTableCmd2Ptr, wTableCmd1ValPtr, wTableCmd2ValPtr) to the next row
 5657 SndStepTablePtrs           ; advance the channel's table step counter; on 16-step wrap rebuild SRAM read-pointers ($c1xx) for the table transpose ($B480) and command ($BA80) columns of wChanTable[ch]
 56E1 SndReadGrooveVal           ; table step 0 -> jp SndAdvanceGroove unless the groove byte is $20; step 8 -> mark it $ff. (The trailing .initEnvPu1/.initEnvNoi stubs, zeroing wEnvStagePu1/Noi = ex-$cbbf, are separate entries.)
-572B SndInitEnvelope            ; init 3-node envelope for hSoundCh channel (WAV: none); stage=0, node1 -> vol+speed
+572B SndInitEnv            ; init 3-node envelope for hSoundCh channel (WAV: none); stage=0, node1 -> vol+speed
 5778 SndSetKitParams            ; set kit state $c694/$c8f1/$c695
 583F SndSplitPhraseNibbles      ; wChanPhrase[ch] -> hi/lo nibbles (compute phrase index)
 58C7 SndFillFF                  ; write $ff to a run of consecutive bytes [hl]
-58EA SndLoadInstrument          ; copy the 16-byte instrument record instruments[a] (SRAM bank1 $B080+a*16) into wCurInstr ($C0D0)
+58EA SndLoadInstr          ; copy the 16-byte instrument record instruments[a] (SRAM bank1 $B080+a*16) into wCurInstr ($C0D0)
 5F5E SndResetChanFx             ; reset this channel's (hSoundCh) retrigger rate, pitch slide and vibrato, and its LFO
 5FA7 SndResetWavFx              ; the WAV channel's part of SndResetChanFx (retrigger, update flags, pitch rate, frame delta, vibrato)
 5FBE SndResetWavFlat            ; SndResetWavFx, then a flat wave ($77 x 16) in hWavUploadBuf
-5FDA SndSetChannelEnable        ; enable/disable this channel in rAUDENA (per hSoundCh; SndWritePanning)
+5FDA SndSetChanEnable        ; enable/disable this channel in rAUDENA (per hSoundCh; SndWritePanning)
 61A9 SndWritePanning            ; set this channel's panning bits in rAUDTERM
 61F7 SndClearVoiceHram          ; clear $ffa0-$ffa3 (per-voice HRAM shadow regs)
 6270 FxCmd_P_Step           ; P with PITCH on STEP: the pitch changes at once (a kit's rate by 3 a step, else wChanPitchCur by 8)
@@ -144,7 +144,7 @@
 66E7 SndRetrigNote         ; R fires: play the slot's channel's latest note again (slide, envelope, table restarted), then reload or end the slot
 68A0 SndNoiPitchStep            ; the noise channel's pitch each tick: P's slide in quarter semitones, then V's offset, as note steps
 6904 SndNoiChordStep            ; step the noise channel's chord (C): the note, the first digit's offset, the second's (skipped when 0), the note again; SndClampNoteRange gets the change
-69C3 EnvReleaseSpeed            ; E's release digit (hFxValue & 7) -> the envelope fade speed (EnvReleaseSpeeds)
+69C3 EnvReleaseSpeed            ; E's release digit (hFxVal & 7) -> the envelope fade speed (EnvReleaseSpeeds)
 69DF EnvReleaseTarget           ; E's release direction (the second digit's bit 3, 9-F fade up): the volume the envelope fades toward, $0F or 0
 69F2 FxCmd_E_Pu1                ; E on PU1 (from FxCmd_E): restart the envelope (retriggering when the length bit is set), then fade at EnvReleaseSpeed toward EnvReleaseTarget
 6A28 FxCmd_E_Pu2                ; E on PU2, as FxCmd_E_Pu1
@@ -153,8 +153,8 @@
 6B59 SndSetPlayRange            ; the channels to play (wPlayChanFirst..Last): the song cursor's column, or on the song screen in selection mode the selection's columns
 6B9B SndLiveQueueRange          ; live mode: queue a start for each channel in the play range (SndLiveQueueStart)
 6BBA SndStartChanFromRow        ; start this channel playing from wChanNextSongRow ($ff -> stop path)
-6D97 SndStartChannels           ; start channels [$c8dd..$c8de] from wSongRow (per-screen playback entry)
-6E0F SndStartRange              ; start the play range: queued behind what is playing if any channel is active (SndLiveQueueRange), else at once (SndStartChannels)
+6D97 SndStartChans           ; start channels [$c8dd..$c8de] from wSongRow (per-screen playback entry)
+6E0F SndStartRange              ; start the play range: queued behind what is playing if any channel is active (SndLiveQueueRange), else at once (SndStartChans)
 6E24 SndLiveStopRange           ; live mode, stop the play range's channels (SELECT+START): queued starts cancelled; an active channel stops at its chain's end, or its phrase's when pressed again (wChanLiveQueued)
 6EA7 SndLiveStartQueued         ; live mode: a channel queued to start (wChanLiveQueued) whose chain has ended starts now (wChanRestart)
 6F65 SndGetChainPhrase          ; bounds-checked chain_phrases[chain*16+row] lookup (chain=arg sp+6, row=arg sp+7 <$10; SRAM $A080); DebugTrap on out-of-range
@@ -169,17 +169,17 @@
 744D SndZTableCmd1              ; Z in a table's CMD1 column: SndZRepeat(4, 4 + the channel's table)
 746F SndZTableCmd2              ; Z in a table's CMD2 column: SndZRepeat(5, $24 + the channel's table)
 748E SndReadChanStep            ; read the channel's next step: its note (or the PS/2 keyboard's), the groove's ticks less any D delay owed, its instrument (or the keyboard's), then the transpose (a kit note on WAV is masked instead)
-75C6 SndUpdateChannel           ; per-channel processor (channel = hSoundCh): advance phrase cursor, resolve song/chain row, read note/cmd; called per active channel by SndUpdateAllChannels
-77F0 SndTick                    ; one engine tick: SndStepAllChannels (sequencer) then SndUpdateAllChannels (output); self-recurses on retrigger flag $c4cd / mode $cb66
+75C6 SndUpdateChan           ; per-channel processor (channel = hSoundCh): advance phrase cursor, resolve song/chain row, read note/cmd; called per active channel by SndUpdateAllChans
+77F0 SndTick                    ; one engine tick: SndStepAllChans (sequencer) then SndUpdateAllChans (output); self-recurses on retrigger flag $c4cd / mode $cb66
 786F SndLiveChainEnd            ; live mode, at a chain's end: stop the channel if wChanStopQueued (the sound too once none plays), else start its queued song row (SndEnterSongRow); e = 1 if neither
 792B StartSongPlayback          ; start the song, all four channels, at the song cursor's row: each channel's chain there, walking back past empty rows; from another screen's chain row (SELECT+START, sync OFF or KEYBD) each chain starts at that row, modulo its length
 7B31 StartScreenPlayback        ; start the current screen's playback: the song from the cursor row (StartSongPlayback), or the edited channel's chain or phrase
 7C4C TogglePlayback             ; START: stop all playback, then start the current screen's unless it was the one playing (sync stop otherwise); live mode: SndStartRange
 7CFB FxCmd_E_NoteOn             ; E at a note-on (NoteToPeriod): PU1/PU2/NOI stop the fade, the first digit sets wChanEnv (e = 5: the release runs); WAV sets wWavLevel (e = 0)
-7F24 SndSetupLfo                ; dispatch by hSoundCh -> SndSetupLfoPU1/PU2/WavNoi (vibrato/LFO setup)
+7F24 SndSetupLfo                ; dispatch by hSoundCh -> SndSetupLfoPu1/PU2/WavNoi (vibrato/LFO setup)
 7F33 SndSetupLfoWavNoi          ; LFO setup for ch2/3 (WAV/NOI): clear $cbcd, init from $c2db
-7F3E SndSetupLfoPU2             ; LFO setup for ch1 (PU2): clear $cbc6, init from $c2d9
-7F49 SndSetupLfoPU1             ; LFO setup for ch0 (PU1): $cbbf, call bank0 $2f9a
+7F3E SndSetupLfoPu2             ; LFO setup for ch1 (PU2): clear $cbc6, init from $c2d9
+7F49 SndSetupLfoPu1             ; LFO setup for ch0 (PU1): $cbbf, call bank0 $2f9a
 78C4 ToggleSongPlayback         ; SELECT+START on any screen: TogglePlayback as if on the song screen (all four channels); live mode: SndLiveStopRange
 5EDA NoiseFreqTable             ; [noise note] -> NR43 poly/divisor byte (120 entries)
 5F52 SetNoisePoly               ; a = NoiseFreqTable[a] -> rAUD4POLY (NR43); noise-channel pitch
@@ -194,11 +194,11 @@
 4279 .loop                ; loop head in SndDivMod
 4303 .loop                ; loop head in FxCmd_L
 461B .loop                ; loop head in ApplyPitchBend
-4758 .loop                ; loop head in SndRunChannelFxSlots
+4758 .loop                ; loop head in SndRunChanFxSlots
 4904 .loop                ; loop head in AdvanceSongRow
 4C0A .loop                ; loop head in SndTransposeNote
 4C15 .loop2               ; loop head in SndTransposeNote
-4C47 .loop                ; loop head in SndAnyChannelActive
+4C47 .loop                ; loop head in SndAnyChanActive
 4CA5 .loop                ; loop head in SndReadChainRow
 4D1C .loop                ; loop head in SndAdvanceChainRow
 4DBC .loop                ; loop head in SndEnterSongRow
@@ -211,10 +211,10 @@
 57E5 .loop3               ; loop head in SndSetKitParams
 5802 .loop4               ; loop head in SndSetKitParams
 581F .loop5               ; loop head in SndSetKitParams
-5B86 .loop                ; loop head in SetupSoundWave
-5FE7 .loop                ; loop head in SndSetChannelEnable
-6133 .loop                ; loop head in TriggerWave
-6196 .done                ; common exit of TriggerWave
+5B86 .loop                ; loop head in SetupSoundWav
+5FE7 .loop                ; loop head in SndSetChanEnable
+6133 .loop                ; loop head in TriggerWav
+6196 .done                ; common exit of TriggerWav
 61E6 .loop                ; loop head in SndWritePanning
 62FE .shiftLoop           ; loop head in FxCmd_P_Step: the value << 3
 6327 .done                ; common exit of FxCmd_P_Step
@@ -239,8 +239,8 @@
 6BB8 .done                ; common exit of SndLiveQueueRange
 6CB1 .loop                ; loop head in SndStartChanFromRow
 6D93 .done                ; common exit of SndStartChanFromRow
-6DA6 .loop                ; loop head in SndStartChannels
-6E0D .done                ; common exit of SndStartChannels
+6DA6 .loop                ; loop head in SndStartChans
+6E0D .done                ; common exit of SndStartChans
 6E22 .done                ; common exit of SndStartRange
 6E2E .loop                ; loop head in SndLiveStopRange
 6EA3 .done                ; common exit of SndLiveStopRange
@@ -250,8 +250,8 @@
 735E .done                ; common exit of SndPhraseHop
 73AC .done                ; common exit of SndTableMaybeHop
 75C2 .done                ; common exit of SndReadChanStep
-76F2 .loop                ; loop head in SndUpdateChannel
-77EC .done                ; common exit of SndUpdateChannel
+76F2 .loop                ; loop head in SndUpdateChan
+77EC .done                ; common exit of SndUpdateChan
 786D .done                ; common exit of SndTick
 78C2 .done                ; common exit of SndLiveChainEnd
 792A .done                ; common exit of ToggleSongPlayback
@@ -264,11 +264,11 @@
 7D7F .done                ; common exit of FxCmd_E_NoteOn
 
 ; --- structural local names (loop heads / common exits) ---
-6AC1 .onChain             ; wCurrentScreen == case in SndLiveQueueStart
+6AC1 .onChain             ; wCurScreen == case in SndLiveQueueStart
 6AEF .notPhrase           ; wButtons == case in SndLiveQueueStart
 78D0 .notSong             ; wButtons == case in ToggleSongPlayback
 7B51 .notSong             ; wButtons == case in StartScreenPlayback
-7B8F .onChain             ; wCurrentScreen == case in StartScreenPlayback
+7B8F .onChain             ; wCurScreen == case in StartScreenPlayback
 7C0D .notSong2            ; wButtons == case in StartScreenPlayback
 
 
@@ -285,7 +285,7 @@
 41E6 .sndStepAcc8
 43B3 .sndFxTableJump
 49A1 .checkChanActiveInstr
-4A70 .sndSetVibratoParams
+4A70 .sndSetVibParams
 4A7B .triggerNote
 4A9B .sndWritePanning
 4B2E .loadChanNote
@@ -321,9 +321,9 @@
 67A6 .restartTable
 6851 .trigger
 6A6C .startEnvNoi
-6B92 .loadSelLeft
-6DD1 .sndAnyChannelActive
-6E1F .sndStartChannels
+6B92 .loadSelectionLeft
+6DD1 .sndAnyChanActive
+6E1F .sndStartChans
 6F73 .ok
 6F7E .okb
 7016 .setChanFinetuneNoi
@@ -335,14 +335,14 @@
 7359 .chainTranspose
 74C3 .sndReadCursorByte
 74C6 .sndAdvanceGroove
-758F .sndLoadChannelInstr
+758F .sndLoadChanInstr
 75BF .sndTransposeNote
 760F .sndAdvanceChainRow
 762C .sndSplitPhraseNibbles
 77E9 .sndAdvanceGrooveCursor
-780F .sndStepAllChannels
+780F .sndStepAllChans
 782C .checkWavMode
-7840 .sndUpdateAllChannels
+7840 .sndUpdateAllChans
 785B .sndTick
 78DE .checkSyncMode
 78EC .setSyncTick
@@ -351,9 +351,9 @@
 790D .ok
 7B52 .setSyncRun
 7B59 .loadButtons
-7B75 .sndSetChannelEnable
+7B75 .sndSetChanEnable
 7BBE .ok
-7C3F .loadCurrentScreen
+7C3F .loadCurScreen
 7CE7 .sndCheckSyncState
 7CED .syncStopTransport
 7D5D .stopEnvNoi
@@ -371,7 +371,7 @@
 4062 .cont
 4064 .setPitchModA
 4082 .checkPitchModA
-409E .readFxValue
+409E .readFxVal
 40BA .setPitchModA_2
 40C7 .checkPitchModA_2
 40FB .loadPitchModB
@@ -384,7 +384,7 @@
 4184 .cont
 4186 .setPitchModB
 41A4 .checkPitchModB
-41C0 .readFxValue
+41C0 .readFxVal
 41DC .setPitchModB_2
 41E9 .checkPitchModB_2
 421D .loadPitchModB
@@ -395,7 +395,7 @@
 4272 .storePitchModB
 4280 .cont
 4282 .step
-429C .storeFxValue
+429C .storeFxVal
 42AA .storeIdleFrames
 42C3 .loadNoteOctave
 42C6 .storeIdleFrames_2
@@ -406,25 +406,25 @@
 4318 .setChanPitchCur
 4330 .readSoundCh_2
 434D .loadIdleFrames
-436F .loadFxValue
+436F .loadFxVal
 43A7 .testBit7
 43BC .readSoundCh_3
-45FB .readFxValue
-462B .readFxValue_2
+45FB .readFxVal
+462B .readFxVal_2
 464A .testBit7
 4651 .setNoisePoly
 468B .setChanTableRow1
-46E8 .readFxValue
-4704 .readFxValue
-4715 .readFxValue_2
-4744 .loadFxChannel
+46E8 .readFxVal
+4704 .readFxVal
+4715 .readFxVal_2
+4744 .loadFxChan
 4787 .loadOscBankB
 479C .cont
-47E5 .readFxValue
-47F8 .readFxValue_2
+47E5 .readFxVal
+47F8 .readFxVal_2
 4808 .storeFxWaveParam
-4823 .readFxValue
-4828 .usePU1Sweep
+4823 .readFxVal
+4828 .usePu1Sweep
 48C5 .readGroove
 48CA .loadPtrNoteCountdown
 4910 .cont
@@ -435,7 +435,7 @@
 4981 .storeOscBankB
 4A30 .checkSyncMode
 4A43 .readSoundCh
-4A6C .sndSetVibratoParams_2
+4A6C .sndSetVibParams_2
 4A75 .sndCmdJumpTable
 4A93 .readSoundCh_2
 4AC1 .loadSndUpdateFlags
@@ -443,11 +443,11 @@
 4AE6 .loadChanFreq
 4AF7 .readSoundCh
 4B20 .setChanPitchCur
-4B45 .loadFxCommand
+4B45 .loadFxCmd
 4B5B .decChanNoteCountdown
 4B64 .checkOscBankB
 4B75 .checkOscBankB_2
-4BE9 .loadChanChainTrans
+4BE9 .loadChanChainTranspose
 4BF1 .readSoundCh
 4BFD .cont
 4BFE .readSoundCh_2
@@ -582,13 +582,13 @@
 63BD .scaleTest
 63F5 .storeKit1
 6440 .storeKit2
-64EC .readFxValue
-6514 .loadFxChannel
-6702 .switchChannel
+64EC .readFxVal
+6514 .loadFxChan
+6702 .switchChan
 6721 .pu1
-673A .parsePu1Envelope
+673A .parsePu1Env
 6746 .pu2
-675F .parsePu2Envelope
+675F .parsePu2Env
 676B .wav
 6784 .stepWavLevel
 679D .noi
@@ -695,7 +695,7 @@
 7DE4 .cont
 7DEE .readSoundCh
 7E0C .cont_2
-7E0F .readFxValue
+7E0F .readFxVal
 7E1A .loadChanVibType
 7E3C .readSoundCh_2
 7E6A .readSoundCh_3

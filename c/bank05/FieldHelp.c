@@ -86,7 +86,7 @@ void DrawInstrFieldHelp(UBYTE type)
             case 6: s = TxtHelpDetune; break;
             case 7: s = TxtHelpCmdRate; break;
             case 9:
-                if (ReadInstrByte(wInstrument, 9) == 0)
+                if (ReadInstrByte(wInstr, 9) == 0)
                     s = TxtHelpWaveToPlay;
                 else
                     s = TxtHelpSynthToPlay;

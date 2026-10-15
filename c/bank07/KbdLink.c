@@ -28,7 +28,7 @@ void SendSyncHandshake(void);               /* bank 0 */
 
 extern UBYTE wKbdChanState[];               /* $CB96, [4] per-channel keyboard-active state */
 extern UBYTE wKbdArmed;                     /* $CB94 */
-extern UBYTE wKbdInstrument;                /* $CB93 */
+extern UBYTE wKbdInstr;                /* $CB93 */
 extern UBYTE wKbdPulseChans;               /* $CB7F */
 extern char wNameEditBuf[];                 /* $C431, [5] */
 extern char TxtKeyboardCalibration[];       /* $07:$7171 */
@@ -52,7 +52,7 @@ extern UBYTE KeyboardFnMap[];               /* $07:$66AA */
 UBYTE PhraseCheckColFD(UBYTE row);          /* bank 4 */
 
 extern volatile sfr UBYTE hSoundCh;         /* $FF8B */
-extern volatile sfr UBYTE hFxValue;         /* $FF8F */
+extern volatile sfr UBYTE hFxVal;         /* $FF8F */
 extern UBYTE wKbdCmdAccum;                  /* $CBA1 */
 extern UBYTE wKbdCmdModifier;               /* $CB9F */
 extern UBYTE wKbdSustain;                   /* $CBA0 */
@@ -66,7 +66,7 @@ void DrawKbdInstrName(void);
 void DrawKbdOctave(void);
 UBYTE ProcessKbdNote(UBYTE sc);
 void FxCmd_A(void);                         /* bank 2 */
-void FarCallArg0(UBYTE bank, void (*fn)(void));   /* FarCallArg called without its byte (hFxValue set by hand; aliased) */
+void FarCallArg0(UBYTE bank, void (*fn)(void));   /* FarCallArg called without its byte (hFxVal set by hand; aliased) */
 
 void SetSyncSendRate(void)
 {
@@ -98,8 +98,8 @@ void DrawKbdInstrState(void)
     *wav = 1;
     wKbdChanState[3] = 0;
     wKbdArmed = 0;
-    if (wKbdInstrument < 0x40) {
-        t = ReadInstrByte(wKbdInstrument, 0);
+    if (wKbdInstr < 0x40) {
+        t = ReadInstrByte(wKbdInstr, 0);
         switch (t) {
         case 0:
             *wav = 0;
@@ -127,10 +127,10 @@ void DrawKbdInstrState(void)
         }
     }
     wVramCursor = (UBYTE *)0x9991;
-    hBgDigitPalette = 4;
-    hBgPalette = 1;
+    hBgDigitPal = 4;
+    hBgPal = 1;
     DrawStringIndexed('I');
-    DrawHexByte(wKbdInstrument);
+    DrawHexByte(wKbdInstr);
 }
 
 UBYTE SongHexDigit(UBYTE d)
@@ -143,14 +143,14 @@ void DrawKbdInstrName(void)
     UBYTE i;
 
     DrawKbdInstrState();
-    FarCallArg(1, FAR_FN(CopyInstrName), wKbdInstrument);
+    FarCallArg(1, FAR_FN(CopyInstrName), wKbdInstr);
     if (wNameEditBuf[0]) {
         for (i = 0; i < 5; i++)
             wSampleNoteString[i] = wNameEditBuf[i] ? wNameEditBuf[i] : ' ';
     } else {
         wSampleNoteString[0] = 'I';
-        wSampleNoteString[1] = SongHexDigit(wKbdInstrument >> 4);
-        wSampleNoteString[2] = SongHexDigit(wKbdInstrument & 0x0F);
+        wSampleNoteString[1] = SongHexDigit(wKbdInstr >> 4);
+        wSampleNoteString[2] = SongHexDigit(wKbdInstr & 0x0F);
         wSampleNoteString[3] = ' ';
         wSampleNoteString[4] = ' ';
     }
@@ -160,8 +160,8 @@ void DrawKbdInstrName(void)
 void DrawKbdOctave(void)
 {
     wVramCursor = (UBYTE *)0x99B0;
-    hBgDigitPalette = 4;
-    hBgPalette = 1;
+    hBgDigitPal = 4;
+    hBgPal = 1;
     switch (wKbdTranspose) {
     case 0x2D:
         DrawString("O7-8");
@@ -179,8 +179,8 @@ void DrawKbdOctave(void)
         DrawString("O3-4");
         break;
     }
-    wMsgStrPtr = 0;
-    wMsgTimer = 100;
+    wMessageStrPtr = 0;
+    wMessageTimer = 100;
 }
 
 UBYTE ProcessLinkQueue(void)
@@ -217,7 +217,7 @@ UBYTE ProcessLinkQueue(void)
     wKbdCmdModifier = 0;
     if (mod & 4) {
         if (key <= 0xA0 && key >= 0x80) {
-            wKbdInstrument = key + 0x80;
+            wKbdInstr = key + 0x80;
             DrawKbdInstrName();
         } else {
         switch (key) {
@@ -243,8 +243,8 @@ UBYTE ProcessLinkQueue(void)
             return 0xFF;
         }
         wVramCursor = (UBYTE *)0x99AF;
-        hBgDigitPalette = 4;
-        hBgPalette = 1;
+        hBgDigitPal = 4;
+        hBgPal = 1;
         switch (key) {
         case 0xA1:
             wKbdChanState[0] = 1;
@@ -262,8 +262,8 @@ UBYTE ProcessLinkQueue(void)
             DrawString("PU1+2");
             break;
         }
-        wMsgStrPtr = 0;
-        wMsgTimer = 0x64;
+        wMessageStrPtr = 0;
+        wMessageTimer = 0x64;
         }
         return 0xFF;
     }
@@ -305,24 +305,24 @@ UBYTE ProcessLinkQueue(void)
         }
         return 0x08;
     case 0x10:
-        if (wKbdInstrument) {
+        if (wKbdInstr) {
             wKbdNoteQueued = 0;
-            wKbdInstrument--;
+            wKbdInstr--;
             DrawKbdInstrName();
         }
         return 0xFF;
     case 0x18:
-        if (wKbdInstrument != 0x40) {
+        if (wKbdInstr != 0x40) {
             wKbdNoteQueued = 0;
-            wKbdInstrument++;
+            wKbdInstr++;
             DrawKbdInstrName();
         }
         return 0xFF;
     case 0x60:
         if (wKbdInstrument2) {
             wVramCursor = (UBYTE *)0x9991;
-            hBgDigitPalette = 4;
-            hBgPalette = 1;
+            hBgDigitPal = 4;
+            hBgPal = 1;
             DrawStringIndexed('A');
             wKbdInstrument2--;
             DrawHexByte(wKbdInstrument2);
@@ -331,8 +331,8 @@ UBYTE ProcessLinkQueue(void)
     case 0x68:
         if (wKbdInstrument2 != 0x40) {
             wVramCursor = (UBYTE *)0x9991;
-            hBgDigitPalette = 4;
-            hBgPalette = 1;
+            hBgDigitPal = 4;
+            hBgPal = 1;
             DrawStringIndexed('A');
             wKbdInstrument2++;
             DrawHexByte(wKbdInstrument2);
@@ -343,7 +343,7 @@ UBYTE ProcessLinkQueue(void)
         for (hSoundCh = 0; hSoundCh < 4; hSoundCh++) {
             if (wKbdChanState[hSoundCh]) {
                 wKbdChanTrigger[hSoundCh] = wKbdInstrument2 | 0x80;
-                hFxValue = wKbdInstrument2;
+                hFxVal = wKbdInstrument2;
                 FarCallArg0(2, FAR_FN(FxCmd_A));
             }
         }
@@ -370,8 +370,8 @@ UBYTE ProcessLinkQueue(void)
     case 0x28:
         wKbdNoteQueued = 0;
         wVramCursor = (UBYTE *)0x99AF;
-        hBgDigitPalette = 4;
-        hBgPalette = 1;
+        hBgDigitPal = 4;
+        hBgPal = 1;
         t = wKbdChanState[0];
         if (t) {
             u = wKbdChanState[1];
@@ -395,8 +395,8 @@ UBYTE ProcessLinkQueue(void)
             DrawString("PU1+2");
         }
 msg:
-        wMsgStrPtr = 0;
-        wMsgTimer = 0x64;
+        wMessageStrPtr = 0;
+        wMessageTimer = 0x64;
         return 0xFF;
     case 0xC0:
         if (!(mod & 2))
@@ -457,7 +457,7 @@ UBYTE ProcessKbdNote(UBYTE sc)
         isPhrase = 0;
         if (wPlayMode && !wKbdHeldNote) {
             armed = wKbdArmed;
-        } else if (wCurrentScreen == 1) {
+        } else if (wCurScreen == 1) {
             isPhrase = 1;
             armed = wSongCol == 3 || !FarCallArgByte(4, (UWORD)PhraseCheckColFD, wPhraseRow);
         } else {
@@ -487,7 +487,7 @@ UBYTE ProcessKbdNote(UBYTE sc)
         } else {
             wKbdNoteQueued = note;
         }
-    } else if (wCurrentScreen == 1) {
+    } else if (wCurScreen == 1) {
         sc &= 0x7F;
         armed = wSongCol == 3 || !FarCallArgByte(4, (UWORD)PhraseCheckColFD, wPhraseRow);
         if (armed) {
@@ -553,8 +553,8 @@ void DrawKeyboardCalibScreen(void)
 
     FarCall(1, UiClearBgMap);
     ClearBgTilemap();
-    hBgDigitPalette = 4;
-    hBgPalette = 1;
+    hBgDigitPal = 4;
+    hBgPal = 1;
     wVramCursor = (UBYTE *)0x9800;
     DrawString(TxtKeyboardCalibration);
     wVramCursor = (UBYTE *)0x9840;

@@ -131,18 +131,18 @@ void SyncTickLSDJ(void)
             SWITCH_ROM(2);
             SndResetChanFx();
             _asm ei _endasm;
-            if (wCurrentScreen == 4) {
+            if (wCurScreen == 4) {
                 GetTilemapAddr(hSoundCh * 3 + 2, (wChanSongRow[hSoundCh] & 0x0F) + 2);
                 DrawStringTile20();
             }
         }
         wVramCursor = (UBYTE *)0x99B0;
-        hBgDigitPalette = 4;
-        hBgPalette = 1;
+        hBgDigitPal = 4;
+        hBgPal = 1;
         DrawString("    ");
         wVramCursor = saved;
     } else {
-        wPlayMode = wCurrentScreen;
+        wPlayMode = wCurScreen;
         _asm di _endasm;
         SWITCH_ROM(2);
         TogglePlayback();
@@ -165,7 +165,7 @@ void DispatchSyncClock(void)
 {
     UBYTE saved;
 
-    saved = hCurrentBank;
+    saved = hCurBank;
     wSyncTick = 0xFF;
     if (wPlayMode) {
         if (wSyncMode == 1)
@@ -269,7 +269,7 @@ void HandleTooBusy(void)
 {
     UBYTE saved;
 
-    saved = hCurrentBank;
+    saved = hCurBank;
     SWITCH_ROM(2);
     SndInitPlayState();
     SWITCH_ROM(1);
@@ -331,7 +331,7 @@ void SendByteStep(void)
             HandleTooBusy();
         return;
     }
-    saved = hCurrentBank;
+    saved = hCurBank;
     ch = hSoundCh;
     do {
         _asm ei _endasm;
@@ -343,7 +343,7 @@ void SendByteStep(void)
                 SWITCH_ROM(2);
                 SyncSeekSongPos();
                 SndEnableLcdInts();
-                if (wCurrentScreen == 9) {
+                if (wCurScreen == 9) {
                     SWITCH_ROM(0x1B);
                     wPlayMinutes = 0;
                     wPlaySeconds = 0;
@@ -387,7 +387,7 @@ void ProcessSyncByte(void)
                 wSyncHandshake = 0;
             }
         } else if (wSyncRxByte == 0xFE) {
-            saved = hCurrentBank;
+            saved = hCurBank;
             SWITCH_ROM(0x1C);
             ReceiveLinkClipboard();
             SWITCH_ROM(saved);

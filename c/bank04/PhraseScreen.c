@@ -10,7 +10,7 @@
 extern char wPhraseCol;                     /* $C415, a plain char */
 extern UBYTE wPhraseColLast[];              /* $C907, [4] */
 extern UBYTE wPhraseDrawMode;               /* $C90C */
-extern UBYTE wColInstrument[];              /* $C468, [4] last instrument per channel */
+extern UBYTE wColInstr[];              /* $C468, [4] last instrument per channel */
 extern UBYTE wInstrIsKit;                   /* $C90B */
 UBYTE AllocNextFreeInstr(void);             /* bank $1F */
 void CopyTableData(UBYTE from, UBYTE to);   /* bank 1 */
@@ -26,7 +26,7 @@ void DrawChainPos(void);                    /* bank 6 */
 void DrawWordRow(UBYTE n);                  /* bank $1F */
 void DrawAllChanStatus(void);               /* bank $1F */
 void ScreenPreDraw(void);                   /* bank $1E */
-void DrawFieldValue(UBYTE kind, UBYTE v);   /* bank 0 */
+void DrawFieldVal(UBYTE kind, UBYTE v);   /* bank 0 */
 UBYTE KitIndexToBank(UBYTE kit);            /* bank 0, asm */
 void ReadKitSampleName(UBYTE kit, UBYTE sample);   /* bank 0, asm */
 void DrawPhraseCursor(void);                /* bank $1F */
@@ -63,9 +63,9 @@ extern UBYTE wPendingCmdTarget;             /* $C467 */
 extern UBYTE wColLastCmd[];                 /* $C44B, [4] */
 extern UBYTE wSelectHeld;                   /* $C40A */
 extern UBYTE wBHeld;                        /* $C40B */
-extern UBYTE wSelTop;                       /* $C40E */
-extern UBYTE wSelRight;                     /* $C40F */
-extern UBYTE wSelBottom;                    /* $C410 */
+extern UBYTE wSelectionTop;                       /* $C40E */
+extern UBYTE wSelectionRight;                     /* $C40F */
+extern UBYTE wSelectionBottom;                    /* $C410 */
 extern UBYTE wClipboardType;                /* $C411 */
 extern UBYTE wPhraseNoteIsKitA;             /* $C92D: the pasted note's instrument is a kit (column 0) */
 extern UBYTE wPhraseNoteIsKitB;             /* $C92E: (column 1) */
@@ -74,7 +74,7 @@ extern UBYTE wChainRow;                     /* $C41A */
 extern UBYTE wButtons;                      /* $C575 */
 extern UBYTE FxPrelistenFlags[];            /* $04:$57C0, [20] */
 extern UBYTE PhraseStepOnes[];              /* $04:$54E3, [4][20] */
-void LoadCommandHelp(void);                 /* bank 1 */
+void LoadCmdHelp(void);                 /* bank 1 */
 UBYTE PhraseCellFlagB(UBYTE row);
 UBYTE PhraseCellFlagD(UBYTE row);
 void InstrHReadCursorCellAt(void);          /* bank $1F */
@@ -147,12 +147,12 @@ void PhraseResolveCursorNote(UBYTE v)
     }
 }
 
-void SetColInstrument(UBYTE instr)
+void SetColInstr(UBYTE instr)
 {
     if (wSongCol >= 4)
         DebugTrap();
     if (instr <= 0x40) {
-        wColInstrument[wSongCol] = instr;
+        wColInstr[wSongCol] = instr;
         if (wSongCol == 2) {
             wInstrIsKit = instr != 0x40;
             if (wInstrIsKit)
@@ -175,7 +175,7 @@ void WritePhraseNote(UBYTE row, UBYTE v)
     WriteSongByte(0, (UBYTE *)p, v);
 }
 
-void WritePhraseInstrument(UBYTE phrase, UBYTE row, UBYTE instr)
+void WritePhraseInstr(UBYTE phrase, UBYTE row, UBYTE instr)
 {
     UBYTE *p;
 
@@ -185,7 +185,7 @@ void WritePhraseInstrument(UBYTE phrase, UBYTE row, UBYTE instr)
         DebugTrap();
     if (instr > 0x40 && instr != 0xFF)
         DebugTrap();
-    p = SramPhraseInstruments + ((UWORD)phrase << 4);
+    p = SramPhraseInstrs + ((UWORD)phrase << 4);
     WriteSongByte(3, p + row, instr);
 }
 
@@ -209,13 +209,13 @@ UBYTE PhraseInstrEntered(void)
     instr = ReadCursorInstr();
     res = 0;
     if (instr > 0x40) {
-        if (wColInstrument[wSongCol] == 0xFF) {
-            SetColInstrument(FarCallByte(0x1F, FAR_FN(AllocNextFreeInstr)));
+        if (wColInstr[wSongCol] == 0xFF) {
+            SetColInstr(FarCallByte(0x1F, FAR_FN(AllocNextFreeInstr)));
             wDrawStep++;
         }
-        WritePhraseInstrument(wPhrase, (char)wPhraseRow, wColInstrument[wSongCol]);
+        WritePhraseInstr(wPhrase, (char)wPhraseRow, wColInstr[wSongCol]);
         if (wSongCol == 3) {
-            n = wColInstrument[3];
+            n = wColInstr[3];
             if (n < 0x40) {
                 n = ReadInstrByte(n, 4);
                 if (n > 0x78)
@@ -225,7 +225,7 @@ UBYTE PhraseInstrEntered(void)
         }
         res = 1;
     } else {
-        SetColInstrument(instr);
+        SetColInstr(instr);
         if (wPhraseCol == 2) {
             FarCallArg(1, FAR_FN(CopyInstrName), instr);
             for (i = 0; i < 5; i++) {
@@ -456,7 +456,7 @@ UBYTE ReadPhraseInstr(UBYTE phrase, UBYTE row)
         DebugTrap();
     if (row >= 0x10)
         DebugTrap();
-    p = SramPhraseInstruments + ((UWORD)phrase << 4);
+    p = SramPhraseInstrs + ((UWORD)phrase << 4);
     return ReadSongByte(3, p + (unsigned int)row);
 }
 
@@ -652,8 +652,8 @@ void DrawPhraseScreen(void)
                 wPhraseRowFlags[i] = 0xFF;
             }
         }
-        hBgDigitPalette = 4;
-        hBgPalette = 1;
+        hBgDigitPal = 4;
+        hBgPal = 1;
         GetTilemapAddr(2, i + 2);
         if (cur != 0xFF) {
             note = wSongReadBuf[i];
@@ -661,16 +661,16 @@ void DrawPhraseScreen(void)
             t = ReadSongByte(1, addr);
             t = KitIndexToBank(t & 0x3F);
             wPhraseRowFlags[i] = t;
-            hBgDigitPalette = wShadowDigitPal;
-            hBgPalette = wShadowPal;
+            hBgDigitPal = wShadowDigitPal;
+            hBgPal = wShadowPal;
             if (!(note & 0xF0)) {
                 DrawEmptyNote();
             } else {
                 ReadKitSampleName(t, note >> 4);
                 DrawNoteCell();
             }
-            hBgDigitPalette = 4;
-            hBgPalette = 1;
+            hBgDigitPal = 4;
+            hBgPal = 1;
             addr = ((UWORD)cur << 4) + (UWORD)0xB089;
             t = ReadSongByte(1, addr);
             t = KitIndexToBank((char)t & 0x3F);
@@ -705,13 +705,13 @@ void DrawPhraseScreen(void)
         else
             DrawHexByte(ins);
         DrawStringTile20();
-        hBgDigitPalette = wShadowDigitPal;
-        hBgPalette = wShadowPal;
+        hBgDigitPal = wShadowDigitPal;
+        hBgPal = wShadowPal;
         t = wRowBufCol2[i];
         DrawPhraseCmdLetter(t);
-        hBgDigitPalette = 4;
-        hBgPalette = 1;
-        DrawFieldValue(t, wRowBufCol3[i]);
+        hBgDigitPal = 4;
+        hBgPal = 1;
+        DrawFieldVal(t, wRowBufCol3[i]);
         if (!wPhraseDrawMode)
             DrawString("   ");
     }
@@ -743,12 +743,12 @@ UBYTE PhraseCheckEditContext(UBYTE x)
         return 0;
     if (wPhraseCol > 1)
         return 0;
-    if (wSelLeft > 1)
+    if (wSelectionLeft > 1)
         return 0;
     if (!CursorInstrIsKit())
         return 0;
     if (wPhraseCol == 0)
-        return wSelLeft == 1;
+        return wSelectionLeft == 1;
     return ReadClipboardCell(1, x) == 0xFF;
 }
 
@@ -762,15 +762,15 @@ void PastePhraseSelection(void)
     UBYTE ctx;
     UBYTE c4, c3;
 
-    savedLeft = wSelLeft;
-    savedRight = wSelRight;
+    savedLeft = wSelectionLeft;
+    savedRight = wSelectionRight;
     shift = 0;
     if (wClipboardType == 5) {
-        switch (wSelRight - wSelLeft) {
+        switch (wSelectionRight - wSelectionLeft) {
         default:
             return;
         case 2:
-            switch (wSelLeft) {
+            switch (wSelectionLeft) {
             case 2:
                 shift = -1;
                 break;
@@ -780,15 +780,15 @@ void PastePhraseSelection(void)
             default:
                 return;
             }
-            wSelLeft = 3;
-            wSelRight = 5;
+            wSelectionLeft = 3;
+            wSelectionRight = 5;
         }
     }
-    y = wSelTop;
+    y = wSelectionTop;
     c4 = shift + 4;
     c3 = shift + 3;
-    for (; y < wSelBottom; y++) {
-        for (x = wSelRight - 1; !(x < (char)wSelLeft); x--) {
+    for (; y < wSelectionBottom; y++) {
+        for (x = wSelectionRight - 1; !(x < (char)wSelectionLeft); x--) {
             ctx = PhraseCheckEditContext(y);
             if (ctx) {
                 if (x < 2)
@@ -818,7 +818,7 @@ void PastePhraseSelection(void)
                 WritePhraseNote(wPhraseRow, v);
                 break;
             case 2:
-                WritePhraseInstrument(wPhrase, wPhraseRow, ReadClipboardCell(2, y));
+                WritePhraseInstr(wPhrase, wPhraseRow, ReadClipboardCell(2, y));
                 break;
             case 3:
                 WritePhraseFx(wPhrase, wPhraseRow, ReadClipboardCell(c3, y));
@@ -837,14 +837,14 @@ void PastePhraseSelection(void)
             wPhraseRow = 0;
     }
     if (shift) {
-        wSelLeft = savedLeft;
-        wSelRight = savedRight;
+        wSelectionLeft = savedLeft;
+        wSelectionRight = savedRight;
     }
-    if (wSelBottom - wSelTop > 1)
+    if (wSelectionBottom - wSelectionTop > 1)
         ShowMessage("PASTE");
 }
 
-void CloneInstrument(UBYTE src, UBYTE dst)
+void CloneInstr(UBYTE src, UBYTE dst)
 {
     UBYTE i;
 
@@ -862,16 +862,16 @@ void CloneInstrAtCursor(void)
     bad = !(instr < 0x40);
     FarCall(5, FAR_FN(RestoreSelectionState));
     if (bad) {
-        strcpy(wStrBuffer, "CANNOT CLONE");
+        strcpy(wStrBuf, "CANNOT CLONE");
         FarCall(1, DrawMessageBar);
         return;
     }
     n = FarCallByte(0x1F, FAR_FN(AllocNextFreeInstr));
     if (n == 0xFF)
         return;
-    CloneInstrument(instr, n);
-    SetColInstrument(n);
-    WritePhraseInstrument(wPhrase, (char)wPhraseRow, n);
+    CloneInstr(instr, n);
+    SetColInstr(n);
+    WritePhraseInstr(wPhrase, (char)wPhraseRow, n);
     DrawPhraseScreen();
     ShowMessage("CLONED INSTR");
 }
@@ -961,10 +961,10 @@ UBYTE DrawInstrName(UBYTE row, UBYTE instr)
     wSampleNoteString[5] = ' ';
     FarCall(1, FAR_FN(ClearMessageBar));
     PhraseDrawCursorGlyph(row);
-    SetColInstrument(instr);
-    WritePhraseInstrument(wPhrase, row, instr);
-    hBgDigitPalette = wSelectDigitPal;
-    hBgPalette = wSelectPal;
+    SetColInstr(instr);
+    WritePhraseInstr(wPhrase, row, instr);
+    hBgDigitPal = wSelectDigitPal;
+    hBgPal = wSelectPal;
     DrawHexByte(instr);
     if (wSongCol == 3 && instr < 0x40 && ReadInstrByte(instr, 0) == 3) {
         n = ReadInstrByte(instr, 4);
@@ -1119,14 +1119,14 @@ UBYTE PhraseScreenInput(void)
         DebugTrap();
     if ((UBYTE)(char)wPhraseRow >= 0x10)
         DebugTrap();
-    hBgDigitPalette = 4;
-    hBgPalette = 1;
+    hBgDigitPal = 4;
+    hBgPal = 1;
     PhraseDrawCursorGlyph((char)wPhraseRow);
     if (wButtons != 0x10)
         wDrawStep = 0;
     if (wCursorMode == 4 && wButtons == 0x43) {
-        wPhraseCol = wSelLeft;
-        wPhraseRow = wSelTop;
+        wPhraseCol = wSelectionLeft;
+        wPhraseRow = wSelectionTop;
         FarCall(5, 0x747D);
         DrawPhraseScreen();
         ShowMessage("CANCEL SELECT");
@@ -1154,8 +1154,8 @@ UBYTE PhraseScreenInput(void)
         wPendingCmdTarget = 0;
         if (wCursorMode == 4)
             return 0;
-        hBgDigitPalette = wSelectDigitPal;
-        hBgPalette = wSelectPal;
+        hBgDigitPal = wSelectDigitPal;
+        hBgPal = wSelectPal;
         switch (wPhraseCol) {
         case 0:
         case 1:
@@ -1179,17 +1179,17 @@ UBYTE PhraseScreenInput(void)
                 } else
                     wPhraseColLast[wSongCol] = v & 0x0F;
             }
-            hBgDigitPalette = 4;
-            hBgPalette = 1;
+            hBgDigitPal = 4;
+            hBgPal = 1;
             redraw = 1;
         case 2:
             if (wPhraseCol == 2 && wDrawStep++ == 1) {
-                SetColInstrument(FarCallByte(0x1F, FAR_FN(AllocNextFreeInstr)));
+                SetColInstr(FarCallByte(0x1F, FAR_FN(AllocNextFreeInstr)));
                 redraw = 1;
             } else if (placed)
                 redraw |= PhraseInstrEntered();
             else
-                SetColInstrument(ReadCursorInstr());
+                SetColInstr(ReadCursorInstr());
             PrelistenCursorRow();
             ++redraw;
             break;
@@ -1200,12 +1200,12 @@ UBYTE PhraseScreenInput(void)
                 if (!v)
                     DebugTrap();
             } else if (wDrawStep++)
-                FarCallArg(1, FAR_FN(LoadCommandHelp), v);
+                FarCallArg(1, FAR_FN(LoadCmdHelp), v);
             wPendingCmds[wPhraseRow] = v;
             DrawPhraseCmdLetter(v);
-            hBgDigitPalette = 4;
-            hBgPalette = 1;
-            DrawFieldValue(v, PhraseReadFxVal(wPhrase, (char)wPhraseRow));
+            hBgDigitPal = 4;
+            hBgPal = 1;
+            DrawFieldVal(v, PhraseReadFxVal(wPhrase, (char)wPhraseRow));
             break;
         case 4:
             if (wDrawStep++ == 1 && PhraseReadFx(wPhrase, (char)wPhraseRow) == 1) {
@@ -1309,7 +1309,7 @@ UBYTE PhraseScreenInput(void)
     }
     if (wButtons == 0x11) {
         if (wCursorMode == 4) {
-            row = wSelTop;
+            row = wSelectionTop;
             rowEnd = (char)wPhraseRow;
             SortBytePair(&row, &rowEnd);
         } else {
@@ -1319,8 +1319,8 @@ UBYTE PhraseScreenInput(void)
         rowEnd++;
         for (; row < rowEnd; row++) {
             PhraseDrawCursorGlyph(row);
-            hBgDigitPalette = wSelectDigitPal;
-            hBgPalette = wSelectPal;
+            hBgDigitPal = wSelectDigitPal;
+            hBgPal = wSelectPal;
             switch (wPhraseCol) {
             case 0:
                 v = PhraseReadNote(row);
@@ -1382,11 +1382,11 @@ UBYTE PhraseScreenInput(void)
                 } while (!PhraseStepOnes[(UWORD)wSongCol * 20 + wPendingCmds[row]]);
                 if (wPendingCmds[row]) {
                     DrawPhraseCmdLetter(wPendingCmds[row]);
-                    if (wMsgStrPtr || wMsgTimer)
-                        FarCallArg(1, FAR_FN(LoadCommandHelp), wPendingCmds[row]);
-                    hBgDigitPalette = 4;
-                    hBgPalette = 1;
-                    DrawFieldValue(wPendingCmds[row], PhraseReadFxVal(wPhrase, row));
+                    if (wMessageStrPtr || wMessageTimer)
+                        FarCallArg(1, FAR_FN(LoadCmdHelp), wPendingCmds[row]);
+                    hBgDigitPal = 4;
+                    hBgPal = 1;
+                    DrawFieldVal(wPendingCmds[row], PhraseReadFxVal(wPhrase, row));
                 }
                 break;
             case 4:
@@ -1419,7 +1419,7 @@ UBYTE PhraseScreenInput(void)
                     ++v;
                 }
                 WritePhraseFxVal(wPhrase, row, v);
-                DrawFieldValue(field, v);
+                DrawFieldVal(field, v);
                 if (FxPrelistenFlags[field])
                     PrelistenCursorRow();
             }
@@ -1430,7 +1430,7 @@ UBYTE PhraseScreenInput(void)
     }
     if (wButtons == 0x14) {
         if (wCursorMode == 4) {
-            row = wSelTop;
+            row = wSelectionTop;
             rowEnd = (char)wPhraseRow;
             SortBytePair(&row, &rowEnd);
         } else {
@@ -1440,8 +1440,8 @@ UBYTE PhraseScreenInput(void)
         rowEnd++;
         for (; row < rowEnd; row++) {
             PhraseDrawCursorGlyph(row);
-            hBgDigitPalette = wSelectDigitPal;
-            hBgPalette = wSelectPal;
+            hBgDigitPal = wSelectDigitPal;
+            hBgPal = wSelectPal;
             switch (wPhraseCol) {
             case 0:
                 v = PhraseReadNote(row);
@@ -1504,11 +1504,11 @@ UBYTE PhraseScreenInput(void)
                 } while (!PhraseStepOnes[(UWORD)wSongCol * 20 + wPendingCmds[row]]);
                 if (wPendingCmds[row]) {
                     DrawPhraseCmdLetter(wPendingCmds[row]);
-                    if (wMsgStrPtr || wMsgTimer)
-                        FarCallArg(1, FAR_FN(LoadCommandHelp), wPendingCmds[row]);
-                    hBgDigitPalette = 4;
-                    hBgPalette = 1;
-                    DrawFieldValue(wPendingCmds[row], PhraseReadFxVal(wPhrase, row));
+                    if (wMessageStrPtr || wMessageTimer)
+                        FarCallArg(1, FAR_FN(LoadCmdHelp), wPendingCmds[row]);
+                    hBgDigitPal = 4;
+                    hBgPal = 1;
+                    DrawFieldVal(wPendingCmds[row], PhraseReadFxVal(wPhrase, row));
                 }
                 break;
             case 4:
@@ -1543,7 +1543,7 @@ UBYTE PhraseScreenInput(void)
                     v += 0x10;
                 }
                 WritePhraseFxVal(wPhrase, row, v);
-                DrawFieldValue(field, v);
+                DrawFieldVal(field, v);
                 if (FxPrelistenFlags[field])
                     PrelistenCursorRow();
             }
@@ -1554,7 +1554,7 @@ UBYTE PhraseScreenInput(void)
     }
     if (wButtons == 0x12) {
         if (wCursorMode == 4) {
-            row = wSelTop;
+            row = wSelectionTop;
             rowEnd = (char)wPhraseRow;
             SortBytePair(&row, &rowEnd);
         } else {
@@ -1564,8 +1564,8 @@ UBYTE PhraseScreenInput(void)
         rowEnd++;
         for (; row < rowEnd; row++) {
             PhraseDrawCursorGlyph(row);
-            hBgDigitPalette = wSelectDigitPal;
-            hBgPalette = wSelectPal;
+            hBgDigitPal = wSelectDigitPal;
+            hBgPal = wSelectPal;
             switch (wPhraseCol) {
             case 0:
                 v = PhraseReadNote(row);
@@ -1633,11 +1633,11 @@ UBYTE PhraseScreenInput(void)
                         wPendingCmds[row]--;
                 } while (!PhraseStepOnes[(UWORD)wSongCol * 20 + wPendingCmds[row]]);
                 DrawPhraseCmdLetter(wPendingCmds[row]);
-                if (wMsgStrPtr || wMsgTimer)
-                    FarCallArg(1, FAR_FN(LoadCommandHelp), wPendingCmds[row]);
-                hBgDigitPalette = 4;
-                hBgPalette = 1;
-                DrawFieldValue(wPendingCmds[row], PhraseReadFxVal(wPhrase, row));
+                if (wMessageStrPtr || wMessageTimer)
+                    FarCallArg(1, FAR_FN(LoadCmdHelp), wPendingCmds[row]);
+                hBgDigitPal = 4;
+                hBgPal = 1;
+                DrawFieldVal(wPendingCmds[row], PhraseReadFxVal(wPhrase, row));
                 break;
             case 4:
                 v = PhraseReadFxVal(wPhrase, row);
@@ -1665,7 +1665,7 @@ UBYTE PhraseScreenInput(void)
                     --v;
                 }
                 WritePhraseFxVal(wPhrase, row, v);
-                DrawFieldValue(field, v);
+                DrawFieldVal(field, v);
                 if (FxPrelistenFlags[field])
                     PrelistenCursorRow();
             }
@@ -1676,7 +1676,7 @@ UBYTE PhraseScreenInput(void)
     }
     if (wButtons == 0x18) {
         if (wCursorMode == 4) {
-            row = wSelTop;
+            row = wSelectionTop;
             rowEnd = (char)wPhraseRow;
             SortBytePair(&row, &rowEnd);
         } else {
@@ -1686,8 +1686,8 @@ UBYTE PhraseScreenInput(void)
         rowEnd++;
         for (; row < rowEnd; row++) {
             PhraseDrawCursorGlyph(row);
-            hBgDigitPalette = wSelectDigitPal;
-            hBgPalette = wSelectPal;
+            hBgDigitPal = wSelectDigitPal;
+            hBgPal = wSelectPal;
             switch (wPhraseCol) {
             case 0:
                 v = PhraseReadNote(row);
@@ -1755,11 +1755,11 @@ UBYTE PhraseScreenInput(void)
                         wPendingCmds[row]--;
                 } while (!PhraseStepOnes[(UWORD)wSongCol * 20 + wPendingCmds[row]]);
                 DrawPhraseCmdLetter(wPendingCmds[row]);
-                if (wMsgStrPtr || wMsgTimer)
-                    FarCallArg(1, FAR_FN(LoadCommandHelp), wPendingCmds[row]);
-                hBgDigitPalette = 4;
-                hBgPalette = 1;
-                DrawFieldValue(wPendingCmds[row], PhraseReadFxVal(wPhrase, row));
+                if (wMessageStrPtr || wMessageTimer)
+                    FarCallArg(1, FAR_FN(LoadCmdHelp), wPendingCmds[row]);
+                hBgDigitPal = 4;
+                hBgPal = 1;
+                DrawFieldVal(wPendingCmds[row], PhraseReadFxVal(wPhrase, row));
                 break;
             case 4:
                 v = PhraseReadFxVal(wPhrase, row);
@@ -1793,7 +1793,7 @@ UBYTE PhraseScreenInput(void)
                     v -= 0x10;
                 }
                 WritePhraseFxVal(wPhrase, row, v);
-                DrawFieldValue(field, v);
+                DrawFieldVal(field, v);
                 if (FxPrelistenFlags[field])
                     PrelistenCursorRow();
             }
@@ -1814,7 +1814,7 @@ UBYTE PhraseScreenInput(void)
     }
     if (wBHeld && wButtons == 0x24) {
         wBHeld = 0;
-        wMsgStrPtr = 0;
+        wMessageStrPtr = 0;
         if (wChainRow) {
             oldPhrase = wPhrase;
             wChainRow--;
@@ -1832,7 +1832,7 @@ UBYTE PhraseScreenInput(void)
     }
     if (wBHeld && wButtons == 0x28) {
         wBHeld = 0;
-        wMsgStrPtr = 0;
+        wMessageStrPtr = 0;
         if ((char)wChainRow == 0x0F)
             return 1;
         v = FarCallArg2P(2, FAR_FN(SndGetChainPhrase), wChain, wChainRow + 1);
@@ -1848,13 +1848,13 @@ UBYTE PhraseScreenInput(void)
             return 0;
         wAPressEnabled = 0;
         wCursorMode = 2;
-        wSelTop = wPhraseRow;
-        wSelBottom = wSelTop + 1;
+        wSelectionTop = wPhraseRow;
+        wSelectionBottom = wSelectionTop + 1;
         wClipboardType = 1;
         switch (wPhraseCol) {
         case 0:
-            wSelLeft = 0;
-            wSelRight = 3;
+            wSelectionLeft = 0;
+            wSelectionRight = 3;
             v = PhraseReadNote((char)wPhraseRow);
             if (v & 0xF0)
                 wPhraseColLast[wSongCol] = v >> 4;
@@ -1863,12 +1863,12 @@ UBYTE PhraseScreenInput(void)
             WriteClipboardCell(2, (char)wPhraseRow, ReadCursorInstr());
             WritePhraseNote((char)wPhraseRow, v & 0x0F);
             v = ReadCursorInstr();
-            SetColInstrument(v);
+            SetColInstr(v);
             break;
         case 1:
-            SetColInstrument(ReadCursorInstr());
-            wSelLeft = 1;
-            wSelRight = 3;
+            SetColInstr(ReadCursorInstr());
+            wSelectionLeft = 1;
+            wSelectionRight = 3;
             v = PhraseReadNote((char)wPhraseRow);
             WriteClipboardCell(2, (char)wPhraseRow, ReadCursorInstr());
             if (PhraseCheckColFD((char)wPhraseRow)) {
@@ -1876,7 +1876,7 @@ UBYTE PhraseScreenInput(void)
                     wPhraseColLast[wSongCol] = v;
                 WriteClipboardCell(1, (char)wPhraseRow, v);
                 WritePhraseNote((char)wPhraseRow, 0);
-                WritePhraseInstrument(wPhrase, (char)wPhraseRow, 0xFF);
+                WritePhraseInstr(wPhrase, (char)wPhraseRow, 0xFF);
             } else {
                 if (v & 0x0F)
                     wPhraseColLast[wSongCol] = v & 0x0F;
@@ -1885,16 +1885,16 @@ UBYTE PhraseScreenInput(void)
             }
             break;
         case 2:
-            wSelLeft = 2;
-            wSelRight = 3;
+            wSelectionLeft = 2;
+            wSelectionRight = 3;
             WriteClipboardCell(2, (char)wPhraseRow, ReadCursorInstr());
-            WritePhraseInstrument(wPhrase, (char)wPhraseRow, 0xFF);
-            SetColInstrument(ReadClipboardCell(2, (char)wPhraseRow));
+            WritePhraseInstr(wPhrase, (char)wPhraseRow, 0xFF);
+            SetColInstr(ReadClipboardCell(2, (char)wPhraseRow));
             break;
         case 3:
         case 4:
-            wSelLeft = 3;
-            wSelRight = 5;
+            wSelectionLeft = 3;
+            wSelectionRight = 5;
             v = PhraseReadFx(wPhrase, (char)wPhraseRow);
             WriteClipboardCell(3, (char)wPhraseRow, v);
             if (v)
@@ -1922,16 +1922,16 @@ UBYTE PhraseScreenInput(void)
             switch (wPhraseCol) {
             case 0:
             case 1:
-                if (wSelLeft > 1)
+                if (wSelectionLeft > 1)
                     return 0;
                 break;
             case 2:
-                if (wSelLeft != 2)
+                if (wSelectionLeft != 2)
                     return 0;
                 break;
             case 3:
             case 4:
-                if (wSelLeft < 3)
+                if (wSelectionLeft < 3)
                     return 0;
             }
         FarCall(0x1F, FAR_FN(InstrHReadCursorCellAt));
@@ -1984,24 +1984,24 @@ UBYTE PhraseScreenInput(void)
             return 0;
         instr = FindCursorInstr();
         if (instr <= 0x40) {
-            SetColInstrument(instr);
-            wInstrument = instr;
-            if (wInstrument == 0x40) {
+            SetColInstr(instr);
+            wInstr = instr;
+            if (wInstr == 0x40) {
                 wSpeechCursorRow = PhraseReadNote((char)wPhraseRow) - 1;
                 if (wSpeechCursorRow >= 0x0E)
                     wSpeechCursorRow = 0;
             }
         } else
-            instr = wInstrument;
+            instr = wInstr;
         if (wPhraseCol > 2 && PhraseReadFx(wPhrase, (char)wPhraseRow) == 1) {
             table = PhraseReadFxVal(wPhrase, (char)wPhraseRow);
             if (table < 0x20) {
                 wTable = table;
-                wInstrument = 0xFF;
+                wInstr = 0xFF;
                 FarCall(5, MapMoveRight);
                 FarCall(5, MapMoveRight);
                 FarCall(7, FAR_FN(RedrawScreen));
-                wInstrument = instr;
+                wInstr = instr;
                 return 1;
             }
         }
@@ -2019,13 +2019,13 @@ UBYTE PhraseScreenInput(void)
         if (!wSelectHeld)
             return 0;
         if (wCursorMode == 4 && wClipboardType == 1) {
-            left = wSelLeft;
+            left = wSelectionLeft;
             right = wPhraseCol;
-            row = wSelTop;
+            row = wSelectionTop;
             rowEnd = (char)wPhraseRow;
             SortBytePair(&row, &rowEnd);
             if (row || rowEnd != 0x0F) {
-                wSelTop = 0;
+                wSelectionTop = 0;
                 wPhraseRow = 0x0F;
                 wSelectHeld = 0;
                 DrawPhraseSelectionFar();
@@ -2033,7 +2033,7 @@ UBYTE PhraseScreenInput(void)
             }
             SortBytePair(&left, &right);
             if (left || right != 4) {
-                wSelLeft = 0;
+                wSelectionLeft = 0;
                 wPhraseCol = 4;
                 wSelectHeld = 0;
                 DrawPhraseSelectionFar();
@@ -2044,8 +2044,8 @@ UBYTE PhraseScreenInput(void)
             return 1;
         }
         FarCall(5, SaveSelectionState);
-        wSelLeft = wPhraseCol;
-        wSelTop = wPhraseRow;
+        wSelectionLeft = wPhraseCol;
+        wSelectionTop = wPhraseRow;
         wSelectHeld = 0;
         ShowMessage("SELECT");
         return 1;

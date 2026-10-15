@@ -4,10 +4,10 @@
  * MATCHING C (period GBDK 2.95-3 / SDCC 2.2.1 + tools/match/lsdj.peep);
  * `make match` verifies every function here against the ROM.
  *
- * The editor index (wCurrentScreen: 1 phrase, 2 groove, 3 chain, 4 song,
+ * The editor index (wCurScreen: 1 phrase, 2 groove, 3 chain, 4 song,
  * 5 table, 6 instrument, 7 name editor, 8 wave, 9 project, 10 synth,
  * 12 word, 13 file, 14 help) selects each screen's draw, per-frame update
- * and input handler: page in the screen's ROM bank (HRAM shadow hCurrentBank
+ * and input handler: page in the screen's ROM bank (HRAM shadow hCurBank
  * + the MBC5 register) and call it. SDCC compiles the dense switches to a
  * bounds check and a `jp hl` into a table of `jp`s; empty cases (0, 7, 11)
  * become their own `jp end` trampolines, in source order, which is how the
@@ -46,7 +46,7 @@ UBYTE TableScreenInput(void);
 UBYTE InstrScreenInput(void);
 UBYTE NameEditorInput(void);
 UBYTE WaveScreenInput(void);
-UBYTE ProjectScreenInput(void);
+UBYTE ProjScreenInput(void);
 UBYTE SynthScreenInput(void);
 UBYTE WordEditorInput(void);
 UBYTE FileScreenInput(void);
@@ -70,15 +70,15 @@ UBYTE HandleInputCombos(void)
     UBYTE saved;
     UBYTE changed, ch, v;
 
-    if (wCurrentScreen == 7 || wCurrentScreen == 8 || wCurrentScreen == 9
-            || wCurrentScreen == 0x0D || wCurrentScreen == 0x0E)
+    if (wCurScreen == 7 || wCurScreen == 8 || wCurScreen == 9
+            || wCurScreen == 0x0D || wCurScreen == 0x0E)
         return 0;
     if (wBHeld) {
         changed = 0;
         if (wButtons == 0x60) {
             wChanOutputOverride[wSongCol] = 0;
             changed = 1;
-        } else if (wCurrentScreen == 4) {
+        } else if (wCurScreen == 4) {
             switch (wButtons) {
             case 0x22:
                 wChanOutputOverride[wSongCol] = 1;
@@ -159,8 +159,8 @@ UBYTE HandleInputCombos(void)
 
 void ResetScreenSprites(void)
 {
-    if (wCurrentScreen != 7 && wCurrentScreen != 8 && wCurrentScreen != 9
-            && wCurrentScreen != 0x0D && wCurrentScreen != 0x0E && wChanActive[2])
+    if (wCurScreen != 7 && wCurScreen != 8 && wCurScreen != 9
+            && wCurScreen != 0x0D && wCurScreen != 0x0E && wChanActive[2])
         PositionWavSprites();
     else
         ClearSprites012();
@@ -169,7 +169,7 @@ void ResetScreenSprites(void)
 
 void ScreenDrawDispatch(void)
 {
-    switch (wCurrentScreen) {
+    switch (wCurScreen) {
     case 0:
         break;
     case 1:
@@ -188,7 +188,7 @@ void ScreenDrawDispatch(void)
         SWITCH_ROM(0x05); DrawTableScreen();
         break;
     case 6:
-        SWITCH_ROM(0x03); DrawInstrumentScreen();
+        SWITCH_ROM(0x03); DrawInstrScreen();
         break;
     case 7:
         break;
@@ -196,7 +196,7 @@ void ScreenDrawDispatch(void)
         SWITCH_ROM(0x06); DrawWaveScreen();
         break;
     case 9:
-        SWITCH_ROM(0x1B); DrawProjectScreen();
+        SWITCH_ROM(0x1B); DrawProjScreen();
         break;
     case 10:
         SWITCH_ROM(0x1D); DrawSynthScreen();
@@ -225,7 +225,7 @@ void ScreenUpdateDispatch(void)
         wFullRedrawTimer = 0x20;
     }
     wPartialRedrawDone = 0;
-    switch (wCurrentScreen) {
+    switch (wCurScreen) {
     case 1:
         SWITCH_ROM(0x1F);
         PhraseScreenUpdate();
@@ -248,7 +248,7 @@ void ScreenUpdateDispatch(void)
         break;
     }
     if (!wRedrawPending) {
-        switch (wCurrentScreen) {
+        switch (wCurScreen) {
         case 7:
         case 8:
         case 9:
@@ -265,7 +265,7 @@ void ScreenUpdateDispatch(void)
 
 UBYTE DispatchScreenInput(void)
 {
-    switch (wCurrentScreen) {
+    switch (wCurScreen) {
     case 0:
         break;
     case 1:
@@ -294,7 +294,7 @@ UBYTE DispatchScreenInput(void)
         return WaveScreenInput();
     case 9:
         SWITCH_ROM(0x1B);
-        return ProjectScreenInput();
+        return ProjScreenInput();
     case 10:
         SWITCH_ROM(0x1D);
         return SynthScreenInput();

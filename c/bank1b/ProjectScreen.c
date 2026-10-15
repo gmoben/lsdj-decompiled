@@ -31,7 +31,7 @@ extern UBYTE wProjDrawScratch3;             /* $C9A9 */
 
 void DrawHelpMenu(void);
 void ProjDrawHelpEntry(UBYTE selected);
-void ProjRedrawHelpSel(void);
+void ProjRedrawHelpSelection(void);
 void ProjDrawTempo(void);
 UBYTE ProjSyncModeIs015(void);
 void DrawPrelistenField(void);
@@ -75,7 +75,7 @@ void CleanInstrData(void);                  /* bank $1F */
 void DrawKeyboardCalibScreen(void);         /* bank 7 */
 void FileValidateName(void);                /* bank $1C */
 void LoadFileListState(void);               /* bank $1C */
-void LoadProjectSettings(void);             /* bank 1 */
+void LoadProjSettings(void);             /* bank 1 */
 void UiClearSram(void);                     /* bank 1 */
 void MapMoveRight(void);                    /* bank 5 */
 void MapMoveDown(void);                     /* bank 5 */
@@ -93,9 +93,9 @@ void DrawSyncField(void);
 void DrawFontColorFields(void);             /* $1B:$569C, its own unit */
 
 extern UBYTE ExpoCurve16[];                 /* $00:$300F, envelope speed -> frame count */
-extern UBYTE wDecompBuf[];                  /* $DA00 */
+extern UBYTE wDecompressBuf[];                  /* $DA00 */
 void PlotEnvCurve(UBYTE x, UBYTE y);
-void OrBitsIntoDaBuffer(void);              /* $00:$3261 */
+void OrBitsIntoDaBuf(void);              /* $00:$3261 */
 void UploadTilesToVram(void);               /* $00:$3298 */
 int Abs16(int v);                           /* $00:$343F */
 
@@ -103,7 +103,7 @@ extern UBYTE wNameReturnScreen;             /* $C42F */
 extern UBYTE wFileListActive;               /* $C998 */
 extern UBYTE wFileCursor;                   /* $C999 */
 extern UBYTE wNameEditIsInstr;              /* $C430 */
-extern UBYTE wInstrument;                   /* $C576 */
+extern UBYTE wInstr;                   /* $C576 */
 void FileStopSound(void);                   /* $1C:$5098 */
 UBYTE SaveFile(UBYTE f);                    /* $1C:$4E10 */
 void WriteInstrName(UBYTE instr);           /* $01:$4A49 */
@@ -132,7 +132,7 @@ void ProjDrawHelpEntry(UBYTE selected)
     ColorField(0, e, len, selected ? 0 : 2);
 }
 
-void ProjRedrawHelpSel(void)
+void ProjRedrawHelpSelection(void)
 {
     if (wHelpOpenEntry != 0)
         return;
@@ -143,7 +143,7 @@ void DrawHelpScreen(void)
 {
     FarCall(1, FAR_FN(UiDrawTextHw));
     DrawHelpMenu();
-    ProjRedrawHelpSel();
+    ProjRedrawHelpSelection();
 }
 
 void ProjHelpSelectNext(void)
@@ -164,9 +164,9 @@ void ProjHelpSelectPrev(void)
     }
 }
 
-void GotoProjectScreen(void)
+void GotoProjScreen(void)
 {
-    wCurrentScreen = 9;
+    wCurScreen = 9;
     FarCall(4, FAR_FN(RedrawScreen));
 }
 
@@ -235,7 +235,7 @@ UBYTE HelpScreenInput(void)
     case 0x20:
         if (wAPressEnabled) {
             if (closed)
-                GotoProjectScreen();
+                GotoProjScreen();
             else
                 ProjHelpReset();
         }
@@ -276,7 +276,7 @@ void DrawProjTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE h)
             ColorField(i, j, 1, 0);
             GetTilemapAddr(i, j);
             wStringSrc = IdentityCharMap;
-            hBgPalette = hGameboyType ? 0x48 : 0xD2;
+            hBgPal = hGameboyType ? 0x48 : 0xD2;
             if (i == x) {
                 if (j == y)
                     DrawStringIndexed(0);
@@ -297,8 +297,8 @@ void DrawProjTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE h)
                 else if (j == y + h - 1)
                     DrawStringIndexed(6);
                 else {
-                    hBgDigitPalette = 4;
-                    hBgPalette = 1;
+                    hBgDigitPal = 4;
+                    hBgPal = 1;
                     DrawStringIndexed(2);
                 }
                 wStringSrc = AsciiCharMap - 0x20;
@@ -306,8 +306,8 @@ void DrawProjTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE h)
         }
     }
     wStringSrc = AsciiCharMap - 0x20;
-    hBgDigitPalette = 4;
-    hBgPalette = 1;
+    hBgDigitPal = 4;
+    hBgPal = 1;
 }
 
 void OpenNameEditor(void)
@@ -315,27 +315,27 @@ void OpenNameEditor(void)
     UBYTE i, v;
 
     ClearMarkerSprites();
-    wNameReturnScreen = wCurrentScreen;
+    wNameReturnScreen = wCurScreen;
     if (wNameEditIsInstr)
-        FarCallArg(1, FAR_FN(CopyInstrName), wInstrument);
+        FarCallArg(1, FAR_FN(CopyInstrName), wInstr);
     wKbdLetterPos = 0;
     while (wNameEditBuf[wKbdLetterPos]) {
         if (wKbdLetterPos == (wNameEditIsInstr ? 4 : 2))
             break;
         wKbdLetterPos++;
     }
-    if (wCurrentScreen == 0x0D) {
+    if (wCurScreen == 0x0D) {
         DrawProjTextField(4, 4, 0x0C, 9);
         wVramCursor = 0x98A5;
-        hBgDigitPalette = 4;
-        hBgPalette = 1;
+        hBgDigitPal = 4;
+        hBgPal = 1;
         DrawString("SAVE AS:");
     } else {
         DrawProjTextField(4, 5, 0x0C, 8);
     }
-    hBgDigitPalette = wSelectDigitPal;
-    hBgPalette = wSelectPal;
-    if (wCurrentScreen == 0x0D) {
+    hBgDigitPal = wSelectDigitPal;
+    hBgPal = wSelectPal;
+    if (wCurScreen == 0x0D) {
         wVramCursor = 0x98C5;
         DrawString(wNameEditBuf);
         wKbdLetterPos = StringLength(wNameEditBuf);
@@ -349,13 +349,13 @@ void OpenNameEditor(void)
             v = wNameEditBuf[i];
             DrawStringIndexed(v ? v : ' ');
         }
-        hBgDigitPalette = 4;
-        hBgPalette = 1;
+        hBgDigitPal = 4;
+        hBgPal = 1;
         wVramCursor = 0x98C5;
         DrawString("NAME:");
     }
-    hBgDigitPalette = 4;
-    hBgPalette = 1;
+    hBgDigitPal = 4;
+    hBgPal = 1;
     wVramCursor = 0x9905;
     DrawString(AlnumChars);
     wVramCursor = 0x9925;
@@ -364,7 +364,7 @@ void OpenNameEditor(void)
     DrawString(AlnumChars[2]);
     wVramCursor = 0x9965;
     DrawString(AlnumChars[3]);
-    if (wCurrentScreen == 0x0D) {
+    if (wCurScreen == 0x0D) {
         ColorField(5, 6, 0x0A, hGameboyType ? 3 : 2);
         ColorField(wKbdLetterPos + 5, 6, 1, hGameboyType ? 4 : 1);
     } else {
@@ -372,7 +372,7 @@ void OpenNameEditor(void)
         ColorField(wKbdLetterPos + 0x0A, 6, 1, hGameboyType ? 4 : 1);
     }
     ColorField(wKbdCursorCol + 5, wKbdCursorRow + 8, 1, hGameboyType ? 3 : 2);
-    wCurrentScreen = 7;
+    wCurScreen = 7;
 }
 
 void CommitNameEdit(void)
@@ -384,8 +384,8 @@ void CommitNameEdit(void)
         wFileListActive = 0;
         DrawProjTextField(2, 6, 0x10, 4);
         wVramCursor = 0x98E3;
-        hBgDigitPalette = 4;
-        hBgPalette = 1;
+        hBgDigitPal = 4;
+        hBgPal = 1;
         DrawString("SAVING...");
         switch (FarCallArgByte(0x1C, (UWORD)SaveFile, wFileCursor)) {
         case 0:
@@ -414,14 +414,14 @@ void CommitNameEdit(void)
         }
         wRedrawPending = 0;
     } else if (wNameEditIsInstr) {
-        FarCallArg(1, FAR_FN(WriteInstrName), wInstrument);
+        FarCallArg(1, FAR_FN(WriteInstrName), wInstr);
     } else {
         p = (UBYTE *)0xBDD0 + wSpeechCursorRow * 3;
         WriteSongByte(0, p++, wNameEditBuf[0]);
         WriteSongByte(0, p++, wNameEditBuf[1]);
         WriteSongByte(0, p, wNameEditBuf[2]);
     }
-    wCurrentScreen = wNameReturnScreen;
+    wCurScreen = wNameReturnScreen;
     FarCall(3, FAR_FN(RedrawScreen));
 }
 
@@ -438,8 +438,8 @@ void NameEditBackspace(UBYTE x, UBYTE n)
         ColorField(x + wKbdLetterPos, 6, 1, hGameboyType ? 4 : 1);
     }
     GetTilemapAddr(x + wKbdLetterPos, 6);
-    hBgDigitPalette = wShadowDigitPal;
-    hBgPalette = wShadowPal;
+    hBgDigitPal = wShadowDigitPal;
+    hBgPal = wShadowPal;
     DrawStringIndexed(wNameEditBuf[wKbdLetterPos] ? wNameEditBuf[wKbdLetterPos] : ' ');
 }
 
@@ -487,8 +487,8 @@ UBYTE NameEditorInput(void)
         wNameEditBuf[wKbdLetterPos] = ch;
         wNameEditBuf[wKbdLetterPos + 1] = 0;
         GetTilemapAddr(x + wKbdLetterPos, 6);
-        hBgDigitPalette = wShadowDigitPal;
-        hBgPalette = wShadowPal;
+        hBgDigitPal = wShadowDigitPal;
+        hBgPal = wShadowPal;
         DrawStringIndexed(ch);
         if (wKbdLetterPos != last) {
             /* move the letter highlight on (storing the + 1 kept for the
@@ -545,7 +545,7 @@ UBYTE NameEditorInput(void)
         DrawKbdCursor();
         return 1;
     case 0x20:                                  /* B: leave unchanged */
-        wCurrentScreen = wNameReturnScreen;
+        wCurScreen = wNameReturnScreen;
         FarCall(3, FAR_FN(RedrawScreen));
         return 1;
     }
@@ -559,8 +559,8 @@ void SaveSyncMode(void)
 
 void DrawSyncMode2Field(void)
 {
-    hBgDigitPalette = wSelectDigitPal;
-    hBgPalette = wSelectPal;
+    hBgDigitPal = wSelectDigitPal;
+    hBgPal = wSelectPal;
     DrawHexByte(wSyncMode2);
     WriteSongByte(1, SramPropSyncMode2, wSyncMode2);
 }
@@ -573,7 +573,7 @@ void SaveTempoProps(void)
 
 void ProjDrawTempo(void)
 {
-    DrawTempo(GetTempoTimerValue());
+    DrawTempo(GetTempoTimerVal());
 }
 
 void ProjRedrawTempo(void)
@@ -643,16 +643,16 @@ void DrawPrelistenField(void)
 void ProjRedrawPrelisten(void)
 {
     wVramCursor = (UBYTE *)0x992A;
-    hBgDigitPalette = wShadowDigitPal;
-    hBgPalette = wShadowPal;
+    hBgDigitPal = wShadowDigitPal;
+    hBgPal = wShadowPal;
     DrawPrelistenField();
 }
 
 void DrawSyncSubSetting(void)
 {
     wVramCursor = 0x9A00;
-    hBgDigitPalette = 4;
-    hBgPalette = 1;
+    hBgDigitPal = 4;
+    hBgPal = 1;
     if (wPlayMode) {
         DrawFormat("PLAY %d:", (UWORD)wPlayMinutes);
         DrawDecimalField(wPlaySeconds);
@@ -669,13 +669,13 @@ void DrawSyncSubSetting(void)
     }
 }
 
-void DrawProjectScreen(void)
+void DrawProjScreen(void)
 {
     wSramFsFlag = FarCallByte(0x1C, FAR_FN(CheckFileMagic64));
     FarCall(1, FAR_FN(DrawTopBar));
     wVramCursor = 0x9846;
-    hBgDigitPalette = wShadowDigitPal;
-    hBgPalette = wShadowPal;
+    hBgDigitPal = wShadowDigitPal;
+    hBgPal = wShadowPal;
     ProjDrawTempo();
     wVramCursor = 0x986A;
     DrawHexByte(wSongTranspose);
@@ -690,16 +690,16 @@ void DrawProjectScreen(void)
     DrawKeyRepeatField();
     wVramCursor = 0x992A;
     DrawPrelistenField();
-    hBgDigitPalette = 4;
-    hBgPalette = 1;
+    hBgDigitPal = 4;
+    hBgPal = 1;
     wVramCursor = 0x99C0;
     if (wSramFsFlag)
         DrawString("LOAD/SAVE SONG");
     else
         DrawString("RESET MEMORY");
     wVramCursor = 0x9885;
-    hBgDigitPalette = wShadowDigitPal;
-    hBgPalette = wShadowPal;
+    hBgDigitPal = wShadowDigitPal;
+    hBgPal = wShadowPal;
     DrawSyncField();
     DrawSyncSubSetting();
     wVramCursor = 0x9A26;
@@ -709,7 +709,7 @@ void DrawProjectScreen(void)
     wTapTempoCount = 0xFF;
 }
 
-void ProjectScreenRefresh(void)
+void ProjScreenRefresh(void)
 {
     while (GetNextButtons())
         ;
@@ -718,7 +718,7 @@ void ProjectScreenRefresh(void)
     if (hGameboyType)
         ClearBgTilemap();
     FarCall(1, FAR_FN(UiDrawTextHw));
-    DrawProjectScreen();
+    DrawProjScreen();
     FarCall(5, MapDrawTopRow);
     wRedrawPending = 0;
 }
@@ -734,11 +734,11 @@ void ProjectScreenRefresh(void)
  * (select+A+B on YES also formats the file area). start/select+start stop
  * playback. 1 when the key was taken.
  */
-UBYTE ProjectScreenInput(void)
+UBYTE ProjScreenInput(void)
 {
     GetTilemapAddr(ProjFieldX[wProjCursor], ProjFieldY[wProjCursor]);
-    hBgDigitPalette = wSelectDigitPal;
-    hBgPalette = wSelectPal;
+    hBgDigitPal = wSelectDigitPal;
+    hBgPal = wSelectPal;
     if (wButtons != 0x10)
         wTapTempoCount = 0xFF;
     switch (wButtons) {
@@ -777,7 +777,7 @@ UBYTE ProjectScreenInput(void)
         case 0:
             if (ProjSyncStateFlag()) {
                 wTickRepeat++;
-                DrawTempo(GetTempoTimerValue() + 1);
+                DrawTempo(GetTempoTimerVal() + 1);
                 ProjRedrawTempo();
                 return 1;
             }
@@ -808,8 +808,8 @@ UBYTE ProjectScreenInput(void)
             }
             wSyncState = 0;
             SyncApplyMode();
-            hBgDigitPalette = wSelectDigitPal;
-            hBgPalette = wSelectPal;
+            hBgDigitPal = wSelectDigitPal;
+            hBgPal = wSelectPal;
             DrawSyncField();
             ProjRedrawPrelisten();
             return 1;
@@ -871,7 +871,7 @@ UBYTE ProjectScreenInput(void)
         case 0:
             if (ProjSyncStateFlag()) {
                 wFrameSkip++;
-                DrawTempo(GetTempoTimerValue() - 1);
+                DrawTempo(GetTempoTimerVal() - 1);
                 ProjRedrawTempo();
                 return 1;
             }
@@ -902,8 +902,8 @@ UBYTE ProjectScreenInput(void)
             }
             wSyncState = 0;
             SyncApplyMode();
-            hBgDigitPalette = wSelectDigitPal;
-            hBgPalette = wSelectPal;
+            hBgDigitPal = wSelectDigitPal;
+            hBgPal = wSelectPal;
             DrawSyncField();
             ProjRedrawPrelisten();
             return 1;
@@ -944,7 +944,7 @@ UBYTE ProjectScreenInput(void)
             if (wFont != 2) {
                 wFont++;
                 WriteSongByte(1, 0xBFBC, wFont);
-                DrawProjectScreen();
+                DrawProjScreen();
                 FarCall(0x1E, FAR_FN(LoadFontTiles));
             }
             return 1;
@@ -963,8 +963,8 @@ UBYTE ProjectScreenInput(void)
                 wSongTransposeDisp = wSongTranspose;
                 wTransposeDirty++;
             }
-            hBgDigitPalette = wSelectDigitPal;
-            hBgPalette = wSelectPal;
+            hBgDigitPal = wSelectDigitPal;
+            hBgPal = wSelectPal;
             wVramCursor = (UBYTE *)0x986A;
             wSongTransposeDisp += 12;
             DrawHexByte(wSongTransposeDisp);
@@ -997,8 +997,8 @@ UBYTE ProjectScreenInput(void)
                 wSongTransposeDisp = wSongTranspose;
                 wTransposeDirty++;
             }
-            hBgDigitPalette = wSelectDigitPal;
-            hBgPalette = wSelectPal;
+            hBgDigitPal = wSelectDigitPal;
+            hBgPal = wSelectPal;
             wVramCursor = (UBYTE *)0x986A;
             wSongTransposeDisp -= 12;
             DrawHexByte(wSongTransposeDisp);
@@ -1009,7 +1009,7 @@ UBYTE ProjectScreenInput(void)
             if (wFont) {
                 wFont--;
                 WriteSongByte(1, 0xBFBC, wFont);
-                DrawProjectScreen();
+                DrawProjScreen();
                 FarCall(0x1E, FAR_FN(LoadFontTiles));
             }
             return 1;
@@ -1089,17 +1089,17 @@ UBYTE ProjectScreenInput(void)
             ProjDrawSyncField();
             DrawProjTextField(3, 4, 0x0F, 8);
             FarCall(0x1F, FAR_FN(CleanSongData));
-            ProjectScreenRefresh();
+            ProjScreenRefresh();
             return 1;
         case 10:
             FarCall(0x1C, FAR_FN(FileStopSound));
             ProjDrawSyncField();
             DrawProjTextField(3, 4, 0x0F, 9);
             FarCall(0x1F, FAR_FN(CleanInstrData));
-            ProjectScreenRefresh();
+            ProjScreenRefresh();
             return 1;
         case 8:
-            wCurrentScreen = 0x0E;
+            wCurScreen = 0x0E;
             FarCall(4, FAR_FN(RedrawScreen));
             return 1;
         case 3:
@@ -1114,7 +1114,7 @@ UBYTE ProjectScreenInput(void)
             if (wSramFsFlag) {
                 if (wProjMenuActive)
                     goto closeMenu;
-                wCurrentScreen = 0x0D;
+                wCurScreen = 0x0D;
                 wFileField = 0;
                 wFileListActive = 0;
                 FarCall(0x1C, FAR_FN(FileValidateName));
@@ -1123,8 +1123,8 @@ UBYTE ProjectScreenInput(void)
                 if (wProjMenuActive)
                     goto closeMenu;
             openMenu:
-                hBgDigitPalette = 4;
-                hBgPalette = 1;
+                hBgDigitPal = 4;
+                hBgPal = 1;
                 DrawProjTextField(1, 6, 0x12, 5);
                 wProjMenuActive = 1;
                 wProjMenuItem = 1;
@@ -1157,7 +1157,7 @@ UBYTE ProjectScreenInput(void)
                 wVramCursor = (UBYTE *)0x9903;
                 DrawString("RESET MEMORY!");
                 delay(hGameboyType ? 2000 : 1000);
-                FarCallArg(1, FAR_FN(LoadProjectSettings), 0);
+                FarCallArg(1, FAR_FN(LoadProjSettings), 0);
             redraw:
                 if (hGameboyType)
                     ClearBgTilemap();
@@ -1175,7 +1175,7 @@ UBYTE ProjectScreenInput(void)
             if (hGameboyType)
                 ClearBgTilemap();
             FarCall(1, FAR_FN(UiDrawTextHw));
-            DrawProjectScreen();
+            DrawProjScreen();
             FarCall(5, MapDrawTopRow);
         }
         return 1;
@@ -1186,9 +1186,9 @@ UBYTE ProjectScreenInput(void)
         _asm
         di
         _endasm;
-        wCurrentScreen = 4;
+        wCurScreen = 4;
         FarCall(2, FAR_FN(TogglePlayback));
-        wCurrentScreen = 9;
+        wCurScreen = 9;
         if (wPlayMode)
             DrawSyncSubSetting();
         _asm
@@ -1296,7 +1296,7 @@ UWORD GetInstrEnvBytes(void)
 extern UBYTE wEnvPlotX;                     /* $CBD8, the last plotted column */
 
 /* $7200: plot envelope column x (clamped to $3F) at height y into the
-   graph buffer ($DA00, wDecompBuf), filling the columns since wEnvPlotX
+   graph buffer ($DA00, wDecompressBuf), filling the columns since wEnvPlotX
    with y and keeping the higher of the two at x. The buffer is addressed
    as a `char *`: the store's (char)y is the loop invariant the ROM holds in
    c, and the compare at x reuses that signed copy. */
@@ -1318,7 +1318,7 @@ void PlotEnvCurve(UBYTE x, UBYTE y)
 /* The instrument screen's envelope graph: the attack/decay/release
    segments of instrument bytes 1, 9 and 10 plotted over 64 columns, the
    time axis scaled by GetInstrEnvBytes' total (500 at least) */
-void ComputeEnvelope(void)
+void ComputeEnv(void)
 {
     UWORD pos;
     UWORD total;
@@ -1340,7 +1340,7 @@ void ComputeEnvelope(void)
     if (total < 500)
         total = 500;
     total >>= 3;
-    MemSet(wDecompBuf, 0, 0xC0);
+    MemSet(wDecompressBuf, 0, 0xC0);
     PlotEnvCurve(0, vol);
     if (len) {
         v2 = ReadCurInstrByte(9);
@@ -1377,7 +1377,7 @@ void ComputeEnvelope(void)
     }
     PlotEnvCurve((pos << 3) / total, vol);
     PlotEnvCurve(0x3F, vol);
-    OrBitsIntoDaBuffer();
+    OrBitsIntoDaBuf();
     UploadTilesToVram();
 }
 
@@ -1396,13 +1396,13 @@ void UpdateEnvSprites(void)
 
 /* redraw the envelope graph and its sprites unless the instrument is a
    wave (1) or kit (2) */
-void UpdateInstrEnvelope(void)
+void UpdateInstrEnv(void)
 {
     UBYTE type;
 
     type = ReadCurInstrByte(0);
     if (type == 1 || type == 2)
         return;
-    ComputeEnvelope();
+    ComputeEnv();
     UpdateEnvSprites();
 }

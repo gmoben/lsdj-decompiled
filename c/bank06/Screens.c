@@ -25,15 +25,15 @@ UBYTE ModU8(UBYTE a, UBYTE b);
 extern UBYTE wWordEditRow;                  /* $C937 */
 extern UBYTE wWordEditCol;                  /* $C938 */
 extern UBYTE wLiveMode;                     /* $C528 */
-extern UBYTE wWaveSelStart;                 /* $C93B */
-extern UBYTE wWaveSelEnd;                   /* $C93C */
+extern UBYTE wWaveSelectionStart;                 /* $C93B */
+extern UBYTE wWaveSelectionEnd;                   /* $C93C */
 extern UBYTE wSyncRun;                      /* $CB6B */
 extern UBYTE wSyncHandshake;                /* $CB6C */
 extern UBYTE WordColX[];                  /* the word editor's two columns: x */
 extern UBYTE WordColWidth[];                  /* width */
 extern UBYTE ChainColX[];                  /* the chain screen's two columns: x */
 
-void DrawWaveColumn(UBYTE i);
+void DrawWaveCol(UBYTE i);
 void ChainDrawWaveCell(void);
 void ChainDrawWaveCellHw(void);
 void DrawStringAtCursor(char *s);
@@ -43,12 +43,12 @@ UBYTE ChainSyncStatusFlag(void);
 void WriteWaveSample(UBYTE n, UBYTE v);
 UBYTE ReadWaveSample(UBYTE i);
 void WaveInitSprites(void);
-void WaveSetSpriteColumns(UBYTE s, UBYTE x);
+void WaveSetSpriteCols(UBYTE s, UBYTE x);
 void ReadKitSampleName(UBYTE kit, UBYTE sample);   /* bank 0 */
 void GetWaveEditRange(UBYTE *a, UBYTE *b);
 void DrawWaveRange(void);
-void LockCurrentSynth(void);
-void DrawWaveColumns(void);
+void LockCurSynth(void);
+void DrawWaveCols(void);
 void SetWaveCursorSprite(void);
 
 void DrawAllChanStatus(void);               /* bank $1F */
@@ -86,9 +86,9 @@ void WriteChainPhrase(void);                /* bank $1F */
 void ShowOutOfMemory(void);                 /* bank 1 */
 void ClonePhraseAtCursor(UBYTE src, UBYTE dst);
 
-extern UBYTE wSelTop;                       /* $C40E */
-extern UBYTE wSelRight;                     /* $C40F */
-extern UBYTE wSelBottom;                    /* $C410 */
+extern UBYTE wSelectionTop;                       /* $C40E */
+extern UBYTE wSelectionRight;                     /* $C40F */
+extern UBYTE wSelectionBottom;                    /* $C410 */
 extern UBYTE wClipboardType;                /* $C411 */
 extern UBYTE wButtons;                      /* $C575 */
 extern UBYTE wWaveColEmpty[];               /* $C93D, [8] */
@@ -170,8 +170,8 @@ void DrawWordScreen(void)
 
     FarCall(1, FAR_FN(DrawTopBar));
     wVramCursor = (UBYTE *)0x9800;
-    hBgDigitPalette = 4;
-    hBgPalette = 1;
+    hBgDigitPal = 4;
+    hBgPal = 1;
     DrawString("WORD ");
     p = (UWORD)0xBDD0 + (UWORD)(wSpeechCursorRow * 3);
     i = 0;
@@ -189,8 +189,8 @@ void DrawWordScreen(void)
     i = 0;
     while (i < 16) {
         GetTilemapAddr(2, i + 2);
-        hBgDigitPalette = 4;
-        hBgPalette = 1;
+        hBgDigitPal = 4;
+        hBgPal = 1;
         s = ReadSongByte(0, p++);
         if (s) {
             s--;
@@ -201,8 +201,8 @@ void DrawWordScreen(void)
         } else {
             DrawString("--- ");
         }
-        hBgDigitPalette = wShadowDigitPal;
-        hBgPalette = wShadowPal;
+        hBgDigitPal = wShadowDigitPal;
+        hBgPal = wShadowPal;
         DrawHexByte(ReadSongByte(0, p++));
         i++;
     }
@@ -234,8 +234,8 @@ UBYTE WordEditorInput(void)
     UBYTE col;
     UBYTE y;
 
-    hBgDigitPalette = wSelectDigitPal;
-    hBgPalette = wSelectPal;
+    hBgDigitPal = wSelectDigitPal;
+    hBgPal = wSelectPal;
     y = wWordEditRow + 2;
     GetTilemapAddr(wWordEditCol * 4 + 2, y);
     switch (wButtons) {
@@ -308,16 +308,16 @@ UBYTE WordEditorInput(void)
                 wWordEditCol = 1;
                 WriteWordCell(wWordClipCell1[0]);
                 GetTilemapAddr(2, y);
-                hBgDigitPalette = 4;
-                hBgPalette = 1;
+                hBgDigitPal = 4;
+                hBgPal = 1;
                 v = wWordClipCell0[0];
                 v--;
                 wWordClipPtrB = v % 15 + 1;
                 ReadKitSampleName(ChainScaleValue(v), wWordClipPtrB);
                 DrawString(wSampleNoteString);
                 DrawStringTile20();
-                hBgDigitPalette = wShadowDigitPal;
-                hBgPalette = wShadowPal;
+                hBgDigitPal = wShadowDigitPal;
+                hBgPal = wShadowPal;
                 DrawHexByte(wWordClipCell1[0]);
                 wWordEditCol = col;
                 ChainDrawWaveCellHw();
@@ -327,8 +327,8 @@ UBYTE WordEditorInput(void)
         } else if (!ReadWordCell()) {
             WriteWordCell(wWordClipCell1[0]);
             GetTilemapAddr(6, y);
-            hBgDigitPalette = wSelectDigitPal;
-            hBgPalette = wSelectPal;
+            hBgDigitPal = wSelectDigitPal;
+            hBgPal = wSelectPal;
             DrawHexByte(wWordClipCell1[0]);
             return 1;
         }
@@ -473,7 +473,7 @@ UWORD SynthLockByteAddr(UBYTE x)
    lock byte SynthLockByteAddr picks ($BFC4/$BFC5). m is a frame byte that
    only ever receives s (a volatile local nothing reads models it); r named
    so the OR reads it twice. */
-void LockCurrentSynth(void)
+void LockCurSynth(void)
 {
     UBYTE s;
     volatile UBYTE m;
@@ -515,7 +515,7 @@ void WriteWaveSample(UBYTE pos, UBYTE v)
     if (pos >= 0x20)
         DebugTrap();
     p = SramWaveFrames + ((UWORD)wSynth << 4);
-    LockCurrentSynth();
+    LockCurSynth();
     v ^= 0x0F;
     pos = (pos + 1) & 0x1F;
     p += pos >> 1;
@@ -531,7 +531,7 @@ void WriteWaveSample(UBYTE pos, UBYTE v)
     WriteSongByte(3, (UWORD)p, v);
 }
 
-void WaveSetSpriteColumns(UBYTE y1, UBYTE y2)
+void WaveSetSpriteCols(UBYTE y1, UBYTE y2)
 {
     UBYTE i;
 
@@ -546,10 +546,10 @@ void SetWaveCursorSprite(void)
     UBYTE x, s;
 
     x = (wWaveCursor << 2) + 0x18;
-    s = (wWaveSelStart << 2) + 0x18;
+    s = (wWaveSelectionStart << 2) + 0x18;
     if (wCursorMode != 4)
         s = x;
-    WaveSetSpriteColumns(s, x);
+    WaveSetSpriteCols(s, x);
 }
 
 void GetWaveEditRange(UBYTE *a, UBYTE *b)
@@ -557,10 +557,10 @@ void GetWaveEditRange(UBYTE *a, UBYTE *b)
     *a = wWaveCursor;
     *b = wWaveCursor;
     if (wCursorMode == 4) {
-        if (wWaveSelStart < wWaveCursor)
-            *a = wWaveSelStart;
+        if (wWaveSelectionStart < wWaveCursor)
+            *a = wWaveSelectionStart;
         else
-            *b = wWaveSelStart;
+            *b = wWaveSelectionStart;
     }
     (*b)++;
 }
@@ -589,7 +589,7 @@ void WaveInitSprites(void)
    tile when they share a row, the half-tile pair otherwise; CGB and DMG
    tile numbers), the empty tile on the column's other rows, and the two
    values in hex below the graph. */
-void DrawWaveColumn(UBYTE col)
+void DrawWaveCol(UBYTE col)
 {
     UBYTE s0, s1, i, j;
     UBYTE *p;
@@ -621,11 +621,11 @@ void DrawWaveColumn(UBYTE col)
         p += 0x20;
     }
     if (col & 2) {
-        hBgDigitPalette = wShadowDigitPal;
-        hBgPalette = wShadowPal;
+        hBgDigitPal = wShadowDigitPal;
+        hBgPal = wShadowPal;
     } else {
-        hBgDigitPalette = wSelectDigitPal;
-        hBgPalette = wSelectPal;
+        hBgDigitPal = wSelectDigitPal;
+        hBgPal = wSelectPal;
     }
     t = col;                        /* a char copy: the test and the x read b */
     if (t & 8)
@@ -636,9 +636,9 @@ void DrawWaveColumn(UBYTE col)
     DrawByte(ReadWaveSample(col * 2 + 1));
 }
 
-void DrawWaveCursorColumn(void)
+void DrawWaveCursorCol(void)
 {
-    DrawWaveColumn(wWaveCursor >> 1);
+    DrawWaveCol(wWaveCursor >> 1);
 }
 
 void DrawWaveRange(void)
@@ -649,24 +649,24 @@ void DrawWaveRange(void)
     t = start;
     start = t & 0xFE;
     for (; start < end; start += 2)
-        DrawWaveColumn(start >> 1);
+        DrawWaveCol(start >> 1);
 }
 
-void DrawWaveColumns(void)
+void DrawWaveCols(void)
 {
     UBYTE i;
 
     for (i = 0; i < 0x10; i++)
-        DrawWaveColumn(i);
+        DrawWaveCol(i);
 }
 
 void DrawWaveScreen(void)
 {
     WaveInitSprites();
-    hBgDigitPalette = 4;
-    hBgPalette = 1;
+    hBgDigitPal = 4;
+    hBgPal = 1;
     FarCall(1, FAR_FN(DrawTopBar));
-    DrawWaveColumns();
+    DrawWaveCols();
     FarCall(5, MapDrawTopRow);
 }
 
@@ -721,9 +721,9 @@ void DrawWaveLine(UBYTE d)
     n = (wWaveCursor + d) & 0x1F;
     v = ReadWaveSample(wWaveCursor);
     WriteWaveSample(n, v);
-    DrawWaveCursorColumn();
+    DrawWaveCursorCol();
     wWaveCursor = n;
-    DrawWaveCursorColumn();
+    DrawWaveCursorCol();
     SetWaveCursorSprite();
 }
 
@@ -732,7 +732,7 @@ UBYTE WaveScreenInput(void)
     switch (wButtons) {
     case 0x43:
         if (wCursorMode == 4) {
-            wWaveCursor = wWaveSelStart;
+            wWaveCursor = wWaveSelectionStart;
             FarCall(5, RestoreSelectionState);
             DrawWaveScreen();
             ShowMessage("CANCEL SELECT");
@@ -776,22 +776,22 @@ UBYTE WaveScreenInput(void)
         return 1;
     case 0x21:
         wSynth++;
-        wMsgStrPtr = 0;
+        wMessageStrPtr = 0;
         DrawWaveScreen();
         return 1;
     case 0x22:
         wSynth--;
-        wMsgStrPtr = 0;
+        wMessageStrPtr = 0;
         DrawWaveScreen();
         return 1;
     case 0x24:
         wSynth += 0x10;
-        wMsgStrPtr = 0;
+        wMessageStrPtr = 0;
         DrawWaveScreen();
         return 1;
     case 0x28:
         wSynth -= 0x10;
-        wMsgStrPtr = 0;
+        wMessageStrPtr = 0;
         DrawWaveScreen();
         return 1;
     case 0xC0:
@@ -826,11 +826,11 @@ UBYTE WaveScreenInput(void)
         case 1:
         case 2:
             FarCall(5, SaveSelectionState);
-            wWaveSelStart = wWaveCursor;
+            wWaveSelectionStart = wWaveCursor;
             ShowMessage("SELECT");
             break;
         case 4:
-            wWaveSelStart = 0;
+            wWaveSelectionStart = 0;
             wWaveCursor = 0x1F;
             break;
         }
@@ -866,21 +866,21 @@ void CopyWaveSelection(void)
     if (wClipboardType != 8)
         DebugTrap();
     ShowMessage(TxtCopy);
-    wWaveSelEnd = wWaveCursor;
-    wWaveCursor = wWaveSelStart;
-    SortBytePair(&wWaveSelStart, &wWaveSelEnd);
-    wWaveSelEnd++;
+    wWaveSelectionEnd = wWaveCursor;
+    wWaveCursor = wWaveSelectionStart;
+    SortBytePair(&wWaveSelectionStart, &wWaveSelectionEnd);
+    wWaveSelectionEnd++;
     for (i = 0; i < 0x20; i += 2) {
         v = ReadWaveSample(i) << 4;
         v |= ReadWaveSample(i + 1);
         WriteClipboardCell(0, i >> 1, v);
     }
-    WriteClipboardCell(0, 0x10, wWaveSelStart);
-    WriteClipboardCell(0, 0x11, wWaveSelEnd);
-    wSelLeft = 0;
-    wSelRight = 1;
-    wSelTop = 0;
-    wSelBottom = 0x12;
+    WriteClipboardCell(0, 0x10, wWaveSelectionStart);
+    WriteClipboardCell(0, 0x11, wWaveSelectionEnd);
+    wSelectionLeft = 0;
+    wSelectionRight = 1;
+    wSelectionTop = 0;
+    wSelectionBottom = 0x12;
     wCursorMode = 2;
     FarCall(0x1C, FAR_FN(SendLinkClipboard));
 }
@@ -889,10 +889,10 @@ void PasteWaveSelection(void)
 {
     UBYTE i, v;
 
-    wWaveSelStart = ReadClipboardCell(0, 0x10);
-    wWaveSelEnd = ReadClipboardCell(0, 0x11);
-    i = wWaveSelStart;
-    while (i != wWaveSelEnd) {
+    wWaveSelectionStart = ReadClipboardCell(0, 0x10);
+    wWaveSelectionEnd = ReadClipboardCell(0, 0x11);
+    i = wWaveSelectionStart;
+    while (i != wWaveSelectionEnd) {
         v = ReadClipboardCell(0, i >> 1);
         if (!(i & 1))
             v >>= 4;
@@ -904,7 +904,7 @@ void PasteWaveSelection(void)
         wWaveCursor &= 0x1F;
     }
     ShowMessage("PASTE");
-    DrawWaveColumns();
+    DrawWaveCols();
     SetWaveCursorSprite();
 }
 
@@ -939,7 +939,7 @@ UBYTE ChainScreenEnter(UBYTE col)
     row = wSongRow;
     if (col >= 4)
         DebugTrap();
-    wMsgStrPtr = 0;
+    wMessageStrPtr = 0;
     if (wLiveMode && wChanActive[col]) {
         wChain = wChanChain[col];
         wSongRow = wChanSongRow[col];
@@ -963,8 +963,8 @@ void DrawChainPos(void)
     UBYTE r;
 
     wVramCursor = (UBYTE *)0x9851;
-    hBgDigitPalette = wShadowDigitPal;
-    hBgPalette = wShadowPal;
+    hBgDigitPal = wShadowDigitPal;
+    hBgPal = wShadowPal;
     DrawString("CP");
     r = wChainRow;
     DrawByte(r);
@@ -982,7 +982,7 @@ void SetChainTranspose(UBYTE chain, UBYTE row, UBYTE v)
     WriteSongByte(1, p + row, v);
 }
 
-UBYTE ChainReadTrans(UBYTE chain, UBYTE step)
+UBYTE ChainReadTranspose(UBYTE chain, UBYTE step)
 {
     UBYTE *p;
 
@@ -1001,7 +1001,7 @@ void ClonePhraseAtCursor(UBYTE src, UBYTE dst)
 
     soff = (UWORD)src << 4;
     doff = (UWORD)dst << 4;
-    if (wCurrentScreen == 3)
+    if (wCurScreen == 3)
         ShowMessage(TxtClonedPhrase);
     if (src == 0xFF)
         DebugTrap();
@@ -1061,8 +1061,8 @@ void DrawChainScreen(void)
     DrawTempoField();
     DrawChainPos();
     LoadChainRow();
-    hBgDigitPalette = 4;
-    hBgPalette = 1;
+    hBgDigitPal = 4;
+    hBgPal = 1;
     wVramCursor = (UBYTE *)0x9841;
     for (i = 0;; i++) {
         v = wSongReadBuf[i];
@@ -1121,15 +1121,15 @@ void ChainOpenPhrase(void)
         ClonePhraseAtCursor(ph, n);
         FarCallArg3(0x1F, (UWORD)WriteChainPhrase, wChain, (char)wChainRow, n);
         GetTilemapAddr(2, wChainRow + 2);
-        hBgDigitPalette = wSelectDigitPal;
-        hBgPalette = wSelectPal;
+        hBgDigitPal = wSelectDigitPal;
+        hBgPal = wSelectPal;
         DrawHexByte(n);
     } else {
         FarCall(1, FAR_FN(ShowOutOfMemory));
     }
 }
 
-extern UBYTE wChainCellValue;               /* $C945 */
+extern UBYTE wChainCellVal;               /* $C945 */
 extern UBYTE wChainCellEmpty;               /* $C946 */
 extern UBYTE wDrawStep;                     /* $C405 */
 extern UBYTE wSongScroll;                   /* $C41C */
@@ -1165,8 +1165,8 @@ UBYTE ChainScreenInput(void)
     if (!isA)
         wDrawStep = 0;
     if (wCursorMode == 4 && wButtons == 0x43) {
-        wChainCol = wSelLeft;
-        wChainRow = wSelTop;
+        wChainCol = wSelectionLeft;
+        wChainRow = wSelectionTop;
         FarCall(5, 0x747D);
         if (hGameboyType) {
             FarCall(1, 0x6CD7);
@@ -1177,13 +1177,13 @@ UBYTE ChainScreenInput(void)
         ChainDrawCellHw();
         return 1;
     }
-    hBgDigitPalette = 4;
-    hBgPalette = 1;
+    hBgDigitPal = 4;
+    hBgPal = 1;
     if (wAPressEnabled && isA) {
         if (wCursorMode == 4)
             return 0;
-        hBgDigitPalette = wSelectDigitPal;
-        hBgPalette = wSelectPal;
+        hBgDigitPal = wSelectDigitPal;
+        hBgPal = wSelectPal;
         GetTilemapAddr(ChainColX[wChainCol], wChainRow + 2);
         switch (wChainCol) {
         case 0:
@@ -1209,9 +1209,9 @@ UBYTE ChainScreenInput(void)
             }
             return 1;
         case 1:
-            if (!ChainReadTrans(wChain, (char)wChainRow)) {
-                SetChainTranspose(wChain, (char)wChainRow, wChainCellValue);
-                DrawHexByte(wChainCellValue);
+            if (!ChainReadTranspose(wChain, (char)wChainRow)) {
+                SetChainTranspose(wChain, (char)wChainRow, wChainCellVal);
+                DrawHexByte(wChainCellVal);
                 return 1;
             }
         }
@@ -1272,8 +1272,8 @@ UBYTE ChainScreenInput(void)
         cy = wChainRow;
         y1 = cy;
         if (wCursorMode == 4) {
-            x = wSelLeft;
-            y0 = wSelTop;
+            x = wSelectionLeft;
+            y0 = wSelectionTop;
         } else {
             x = cx;
             y0 = cy;
@@ -1282,8 +1282,8 @@ UBYTE ChainScreenInput(void)
         SortBytePair(&y0, &y1);
         x1++;
         y1++;
-        hBgDigitPalette = wSelectDigitPal;
-        hBgPalette = wSelectPal;
+        hBgDigitPal = wSelectDigitPal;
+        hBgPal = wSelectPal;
         wChainScopeDirty = 1;
         for (; x < x1; x++) {
             for (y = y0; y < y1; y++) {
@@ -1299,10 +1299,10 @@ UBYTE ChainScreenInput(void)
                     break;
                 case 1:
                     GetTilemapAddr(ChainColX[1], y + 2);
-                    v = ChainReadTrans(wChain, y) + 1;
+                    v = ChainReadTranspose(wChain, y) + 1;
                     SetChainTranspose(wChain, y, v);
                     DrawHexByte(v);
-                    wChainCellValue = v;
+                    wChainCellVal = v;
                     break;
                 }
             }
@@ -1315,8 +1315,8 @@ UBYTE ChainScreenInput(void)
         cy = wChainRow;
         y1 = cy;
         if (wCursorMode == 4) {
-            x = wSelLeft;
-            y0 = wSelTop;
+            x = wSelectionLeft;
+            y0 = wSelectionTop;
         } else {
             x = cx;
             y0 = cy;
@@ -1326,8 +1326,8 @@ UBYTE ChainScreenInput(void)
         x1++;
         y1++;
         wChainScopeDirty = 1;
-        hBgDigitPalette = wSelectDigitPal;
-        hBgPalette = wSelectPal;
+        hBgDigitPal = wSelectDigitPal;
+        hBgPal = wSelectPal;
         for (; x < x1; x++) {
             for (y = y0; y < y1; y++) {
                 switch (x) {
@@ -1345,11 +1345,11 @@ UBYTE ChainScreenInput(void)
                     break;
                 case 1:
                     GetTilemapAddr(ChainColX[1], y + 2);
-                    v = ChainReadTrans(wChain, y);
+                    v = ChainReadTranspose(wChain, y);
                     v = v + (wSongCol == 3 ? 4 : 12);
                     SetChainTranspose(wChain, y, v);
                     DrawHexByte(v);
-                    wChainCellValue = v;
+                    wChainCellVal = v;
                     break;
                 }
             }
@@ -1362,8 +1362,8 @@ UBYTE ChainScreenInput(void)
         cy = wChainRow;
         y1 = cy;
         if (wCursorMode == 4) {
-            x = wSelLeft;
-            y0 = wSelTop;
+            x = wSelectionLeft;
+            y0 = wSelectionTop;
         } else {
             x = cx;
             y0 = cy;
@@ -1373,8 +1373,8 @@ UBYTE ChainScreenInput(void)
         x1++;
         y1++;
         wChainScopeDirty = 1;
-        hBgDigitPalette = wSelectDigitPal;
-        hBgPalette = wSelectPal;
+        hBgDigitPal = wSelectDigitPal;
+        hBgPal = wSelectPal;
         for (; x < x1; x++) {
             for (y = y0; y < y1; y++) {
                 switch (x) {
@@ -1389,10 +1389,10 @@ UBYTE ChainScreenInput(void)
                     break;
                 case 1:
                     GetTilemapAddr(ChainColX[1], y + 2);
-                    v = ChainReadTrans(wChain, y) - 1;
+                    v = ChainReadTranspose(wChain, y) - 1;
                     SetChainTranspose(wChain, y, v);
                     DrawHexByte(v);
-                    wChainCellValue = v;
+                    wChainCellVal = v;
                     break;
                 }
             }
@@ -1405,8 +1405,8 @@ UBYTE ChainScreenInput(void)
         cy = wChainRow;
         y1 = cy;
         if (wCursorMode == 4) {
-            x = wSelLeft;
-            y0 = wSelTop;
+            x = wSelectionLeft;
+            y0 = wSelectionTop;
         } else {
             x = cx;
             y0 = cy;
@@ -1416,8 +1416,8 @@ UBYTE ChainScreenInput(void)
         x1++;
         y1++;
         wChainScopeDirty = 1;
-        hBgDigitPalette = wSelectDigitPal;
-        hBgPalette = wSelectPal;
+        hBgDigitPal = wSelectDigitPal;
+        hBgPal = wSelectPal;
         for (; x < x1; x++) {
             for (y = y0; y < y1; y++) {
                 switch (x) {
@@ -1435,11 +1435,11 @@ UBYTE ChainScreenInput(void)
                     break;
                 case 1:
                     GetTilemapAddr(ChainColX[1], y + 2);
-                    v = ChainReadTrans(wChain, y);
+                    v = ChainReadTranspose(wChain, y);
                     v = v - (wSongCol == 3 ? 4 : 12);
                     SetChainTranspose(wChain, y, v);
                     DrawHexByte(v);
-                    wChainCellValue = v;
+                    wChainCellVal = v;
                     break;
                 }
             }
@@ -1462,7 +1462,7 @@ UBYTE ChainScreenInput(void)
     }
     if (wBHeld && wButtons == 0x24) {
         wBHeld = 0;
-        wMsgStrPtr = 0;
+        wMessageStrPtr = 0;
         if (!wSongRow) {
             if (wAPressEnabled) {
                 ChainDrawCellLo();
@@ -1484,7 +1484,7 @@ UBYTE ChainScreenInput(void)
     }
     if (wBHeld && wButtons == 0x28) {
         wBHeld = 0;
-        wMsgStrPtr = 0;
+        wMessageStrPtr = 0;
         if (wSongRow == 0xFF)
             return 0;
         wSongRow++;
@@ -1505,18 +1505,18 @@ UBYTE ChainScreenInput(void)
             return 0;
         wAPressEnabled = 0;
         wCursorMode = 2;
-        wSelLeft = wChainCol;
-        wSelRight = 2;
-        wSelTop = wChainRow;
-        wSelBottom = wSelTop + 1;
+        wSelectionLeft = wChainCol;
+        wSelectionRight = 2;
+        wSelectionTop = wChainRow;
+        wSelectionBottom = wSelectionTop + 1;
         wClipboardType = 3;
         if (!wChainCol) {
             v = FarCallArg2P(2, FAR_FN(SndGetChainPhrase), wChain, (char)wChainRow);
             wColPhrase[wSongCol] = v;
             WriteClipboardCell(0, (char)wChainRow, v);
         }
-        wChainCellValue = ChainReadTrans(wChain, (char)wChainRow);
-        WriteClipboardCell(1, (char)wChainRow, wChainCellValue);
+        wChainCellVal = ChainReadTranspose(wChain, (char)wChainRow);
+        WriteClipboardCell(1, (char)wChainRow, wChainCellVal);
         if (!wChainCol)
             FarCallArg3P(0x1F, FAR_FN(WriteChainPhrase), wChain, (char)wChainRow, 0xFF);
         else
@@ -1533,7 +1533,7 @@ UBYTE ChainScreenInput(void)
             return 0;
         if (wCursorMode == 4) {
             wSelectHeld = 0;
-            if (wAPressEnabled || wSelLeft != wChainCol || wSelTop != wChainRow)
+            if (wAPressEnabled || wSelectionLeft != wChainCol || wSelectionTop != wChainRow)
                 CutCopyChainSelection(1);
             else
                 ChainOpenPhrase();
@@ -1609,14 +1609,14 @@ UBYTE ChainScreenInput(void)
         if (!wSelectHeld)
             return 0;
         if (wCursorMode == 4 && wClipboardType == 3) {
-            left = wSelLeft;
+            left = wSelectionLeft;
             right = (char)wChainCol;
-            y0 = wSelTop;
+            y0 = wSelectionTop;
             y1 = (char)wChainRow;
             wQuickMarking = 1;
             SortBytePair(&y0, &y1);
             if (y0 || y1 != 0x0F) {
-                wSelTop = 0;
+                wSelectionTop = 0;
                 wChainRow = 0x0F;
                 wSelectHeld = 0;
                 DrawChainSelection();
@@ -1624,7 +1624,7 @@ UBYTE ChainScreenInput(void)
             }
             SortBytePair(&left, &right);
             if (left || right != 1) {
-                wSelLeft = 0;
+                wSelectionLeft = 0;
                 wChainCol = 1;
                 wSelectHeld = 0;
                 DrawChainSelection();
@@ -1636,8 +1636,8 @@ UBYTE ChainScreenInput(void)
         }
         FarCall(5, SaveSelectionState);
         wQuickMarking = 0;
-        wSelLeft = wChainCol;
-        wSelTop = wChainRow;
+        wSelectionLeft = wChainCol;
+        wSelectionTop = wChainRow;
         wSelectHeld = 0;
         ShowMessage("SELECT");
         return 1;
@@ -1652,14 +1652,14 @@ void CutCopyChainSelection(UBYTE cut)
     if (wClipboardType != 3)
         return;
     wCursorMode = 2;
-    wSelRight = wChainCol;
-    wSelBottom = wChainRow;
-    SortBytePair(&wSelLeft, &wSelRight);
-    SortBytePair(&wSelTop, &wSelBottom);
-    wSelRight++;
-    wSelBottom++;
-    for (x = wSelLeft; x < wSelRight; x++) {
-        for (y = wSelTop; y < wSelBottom; y = y + 1) {
+    wSelectionRight = wChainCol;
+    wSelectionBottom = wChainRow;
+    SortBytePair(&wSelectionLeft, &wSelectionRight);
+    SortBytePair(&wSelectionTop, &wSelectionBottom);
+    wSelectionRight++;
+    wSelectionBottom++;
+    for (x = wSelectionLeft; x < wSelectionRight; x++) {
+        for (y = wSelectionTop; y < wSelectionBottom; y = y + 1) {
             wChainCol = x;
             wChainRow = y;
             ChainDrawCellLo();
@@ -1670,7 +1670,7 @@ void CutCopyChainSelection(UBYTE cut)
                     FarCallArg3P(0x1F, FAR_FN(WriteChainPhrase), wChain, y, 0xFF);
                 break;
             case 1:
-                WriteClipboardCell(1, y, ChainReadTrans(wChain, y));
+                WriteClipboardCell(1, y, ChainReadTranspose(wChain, y));
                 if (cut)
                     SetChainTranspose(wChain, y, 0);
                 break;
@@ -1678,8 +1678,8 @@ void CutCopyChainSelection(UBYTE cut)
         }
     }
     FarCall(0x1C, FAR_FN(SendLinkClipboard));
-    wChainCol = wSelLeft;
-    wChainRow = wSelTop;
+    wChainCol = wSelectionLeft;
+    wChainRow = wSelectionTop;
     ShowMessage(cut ? "CUT " : "COPY");
     DrawChainScreen();
 }
@@ -1688,8 +1688,8 @@ void ChainPasteCells(void)
 {
     UBYTE x, y;
 
-    for (y = wSelTop; y < wSelBottom; y++) {
-        for (x = wSelLeft; x < wSelRight; x = x + 1) {
+    for (y = wSelectionTop; y < wSelectionBottom; y++) {
+        for (x = wSelectionLeft; x < wSelectionRight; x = x + 1) {
             switch (x) {
             case 0:
                 FarCallArg3P(0x1F, FAR_FN(WriteChainPhrase), wChain, wChainRow, ReadClipboardCell(0, y));
@@ -1702,7 +1702,7 @@ void ChainPasteCells(void)
         wChainRow++;
         wChainRow = (char)wChainRow & 0x0F;     /* read into c, like ChainOpenPhrase's (char)wChainRow */
     }
-    if (wSelBottom - wSelTop > 1)
+    if (wSelectionBottom - wSelectionTop > 1)
         ShowMessage("PASTE");
 }
 
@@ -1714,18 +1714,18 @@ void DrawChainSelection(void)
     if (wClipboardType != 3)
         return;
     col = wChainCol;                /* into c for the test only, as DrawPhraseSelection */
-    if (wSelLeft < col) {
-        left = wSelLeft;
+    if (wSelectionLeft < col) {
+        left = wSelectionLeft;
         right = wChainCol + 1;
     } else {
-        right = wSelLeft + 1;
+        right = wSelectionLeft + 1;
         left = wChainCol;
     }
-    if (wSelTop < wChainRow) {
-        top = wSelTop;
+    if (wSelectionTop < wChainRow) {
+        top = wSelectionTop;
         bottom = wChainRow + 1;
     } else {
-        bottom = wSelTop + 1;
+        bottom = wSelectionTop + 1;
         top = wChainRow;
     }
     /* both columns' cells around the rectangle back to their own palettes... */
@@ -1782,8 +1782,8 @@ void UpdateStatusPanel(void)
     UBYTE *p;
     UBYTE t;
 
-    hBgDigitPalette = wShadowDigitPal;
-    hBgPalette = wShadowPal;
+    hBgDigitPal = wShadowDigitPal;
+    hBgPal = wShadowPal;
     for (i = 0; i < 4; i++) {
         t = (wChanOutput[i] & 0x80) && !wChanOutputOverride[i];
         if (t)
@@ -1816,8 +1816,8 @@ void UpdateStatusPanel(void)
 
 void DrawStringAtCursor(char *s)
 {
-    hBgDigitPalette = 4;
-    hBgPalette = 1;
+    hBgDigitPal = 4;
+    hBgPal = 1;
     wVramCursor = (UBYTE *)0x99B0;
     DrawString(s);
 }

@@ -30,7 +30,7 @@ extern UBYTE wChanActive[];                 /* $C0E0, [4] */
 extern UBYTE wKbdNoteQueued;                /* $CB92 */
 extern UBYTE wKbdChanState[];               /* $CB96, [4] */
 extern UBYTE wKbdNoteInjected;              /* $C8F9 */
-extern UBYTE wKbdInstrument;                /* $CB93 */
+extern UBYTE wKbdInstr;                /* $CB93 */
 extern UBYTE wChanDelayTicks[];             /* $C178, [4] */
 extern UBYTE wChanInstr[];                  /* $C210, [4] */
 extern UBYTE wSndUpdateFlags;               /* $C8F5 */
@@ -38,8 +38,8 @@ extern UBYTE wKitNoteNibbleMask;            /* $C8FA */
 
 void SndReadCursorByte(void);               /* asm */
 void SndAdvanceGroove(void);                /* asm */
-void SndLoadInstrument(UBYTE n);            /* asm (takes it in a) */
-void SndLoadChannelInstr(void);             /* asm */
+void SndLoadInstr(UBYTE n);            /* asm (takes it in a) */
+void SndLoadChanInstr(void);             /* asm */
 void SndTransposeNote(void);                /* asm */
 UBYTE SndCountdownStep(void);               /* asm */
 UBYTE SndReadChainEnd(void);                /* asm */
@@ -157,10 +157,10 @@ void SndReadChanStep(void)
         *wPtrNoteCountdown -= t;
     }
     if (wKbdNoteQueued && wKbdChanState[hSoundCh]) {
-        SndLoadInstrument(wKbdInstrument);
-        wChanInstr[hSoundCh] = wKbdInstrument;
+        SndLoadInstr(wKbdInstr);
+        wChanInstr[hSoundCh] = wKbdInstr;
     } else
-        SndLoadChannelInstr();
+        SndLoadChanInstr();
     if (hSoundCh == 2 && wSndUpdateFlags)
         *wPtrNoteSrc &= wKitNoteNibbleMask;
     else
@@ -172,7 +172,7 @@ void SndReadChanStep(void)
    chain row after the phrase's last), then read the row's command and the
    step: B may mute the note, D delays it, G sets the groove, H hops */
 
-void SndUpdateChannel(void)
+void SndUpdateChan(void)
 {
     UBYTE v, d, r;
 

@@ -66,7 +66,7 @@ reset rSCY/rSCX/rSTAT/rWY ; clear scroll, LCD status, window
 - **Video / LCD** — `display_off` (`$349B`, GBDK 2.95 library routine,
   byte-identical to its `crt0.s`): waits for VBlank via `rLY` then clears
   `rLCDC` bit 7. `OAMDMARoutine` (`$34B2`): triggers OAM DMA from the shadow
-  buffer `wOamBuffer` (`$DD00`); copied into HRAM and called there (DMA requires
+  buffer `wOamBuf` (`$DD00`); copied into HRAM and called there (DMA requires
   HRAM execution).
 - **Input** — `ReadJoypad` (`$18BF`): standard two-pass matrix read (d-pad then
   buttons via `rJOYP`), returns a combined button bitmask.
@@ -82,7 +82,7 @@ reset rSCY/rSCX/rSTAT/rWY ; clear scroll, LCD status, window
   [`data_model.md`](data_model.md) for the song structures it indexes and
   [`save_format.md`](save_format.md) for the `.sav` filesystem.
 - **Banking / dispatch** — MBC5 ROM bank register at `$2000`, shadowed in
-  `hCurrentBank` (`$FF8E`). Cross-bank calls use either an inline trampoline
+  `hCurBank` (`$FF8E`). Cross-bank calls use either an inline trampoline
   (`ld a, N` / `ld [$2000], a` / `jp|call $4000-$7FFF`, e.g. the per-screen
   `DrawDispatch_<Screen>` stubs, or `CrashTrampoline` (`$0061`), which selects
   bank 1 and jumps to `CrashHandler` `$794B`, the "DONT PANIC!" crash screen),
@@ -105,8 +105,8 @@ The addresses first identified on this page:
 | `$C8F4` | `wSoundTick` | sound/playback tick counter (`TimerHandler`) |
 | `$CBD9` / `$CBDA` | `wBootHwId` / `wBootAgbId` | boot hardware ids (CGB/DMG, AGB) saved at init |
 | `$CBDD` / `$CBDE` | `wSyncRxByte` / `wSyncState` | last received sync byte / serial state machine |
-| `$DD00` | `wOamBuffer` | OAM shadow buffer (OAM DMA source) |
-| `$FF8E` | `hCurrentBank` | shadow of the selected ROM bank |
+| `$DD00` | `wOamBuf` | OAM shadow buffer (OAM DMA source) |
+| `$FF8E` | `hCurBank` | shadow of the selected ROM bank |
 | `$FF90` | `hGameboyType` | 0 = DMG, 1 = CGB |
 
 ## Embedded tables
