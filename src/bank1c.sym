@@ -260,7 +260,7 @@
 
 ; --- first-action / assert local names ---
 400D .ok
-41A1 .compByteOk          ; wCompressByte in range; scan from block 1
+41A1 .compressByteOk          ; wCompressByte in range; scan from block 1
 424A .bankOk              ; bank in range; range-check the SRAM address as a long
 42A1 .srcOk               ; both in range: progress counter + draw it, return 1
 4341 .ok
@@ -284,10 +284,10 @@
 55A6 .loadFileCursorRestrict
 55D5 .checkFileCursorRestrict
 55E3 .checkFileCursorRestrictb
-5658 .loadShadowDigitPal
+5658 .loadShadedDigitPal
 5721 .loadVramCursor
 5788 .drawStringTile20
-57E2 .loadShadowDigitPal
+57E2 .loadShadedDigitPal
 5846 .checkGameboyType
 585D .setVramCursor
 58F9 .setFileCursorRestrict

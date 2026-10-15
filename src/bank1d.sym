@@ -251,10 +251,10 @@
 4163 .drawStringTile20
 4179 .checkGrooveRow
 41C6 .drawGrooveRow
-42EE .loadShadowDigitPal
+42EE .loadShadedDigitPal
 43A4 .ok
 43B3 .loadGrooveRow
-4441 .loadShadowDigitPal
+4441 .loadShadedDigitPal
 4512 .drawGrooveScreen
 4567 .drawGrooveRow
 457B .drawGrooveCursor
@@ -304,7 +304,7 @@
 6806 .setVramCursor_rowB
 6E65 .setOverwriteStart
 716D .checkOverwriteStart
-717D .loadSelectDigitPal
+717D .loadHighlightDigitPal
 71A1 .checkButtons
 720D .checkAPressEnabled
 7257 .setSynthCursor

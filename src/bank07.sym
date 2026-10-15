@@ -236,11 +236,11 @@
 40FD .okc
 43AE .ok
 44C8 .setVramCursor
-44F7 .loadSelectDigitPal
+44F7 .loadHighlightDigitPal
 4558 .loadSongRow
 4568 .loadSongRowb
 469D .loadPlayMarkerTimer
-4803 .loadSelectDigitPal
+4803 .loadHighlightDigitPal
 480F .loadSongRow
 48BC .checkGameboyType
 495C .setVramCursor
@@ -388,10 +388,10 @@
 4830 .cont
 4838 .loadSongRow_2
 4865 .cont_2
-4866 .loadSelectDigitPal_2
+4866 .loadHighlightDigitPal_2
 4877 .testBit7
 488B .drawHexByte
-4895 .loadShadowDigitPal
+4895 .loadShadedDigitPal
 48B0 .cont_3
 48B8 .checkGameboyType_2
 48D0 .cont_4
@@ -452,7 +452,7 @@
 53AA .ret01_8
 53E7 .farCall_3
 53F5 .ret01_9
-5413 .checkSelectPal
+5413 .checkHighlightPal
 5421 .ret01_10
 545F .farCall_4
 546D .ret01_11

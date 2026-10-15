@@ -170,11 +170,11 @@
 ; --- first-action / assert local names ---
 41BE .checkGameboyType
 4630 .incInstr
-47F0 .loadSelectDigitPal
-4812 .loadShadowDigitPal
+47F0 .loadHighlightDigitPal
+4812 .loadShadedDigitPal
 485C .setInstrTable
-485F .loadSelectDigitPal
-4881 .loadShadowDigitPal
+485F .loadHighlightDigitPal
+4881 .loadShadedDigitPal
 49A9 .notManual
 49D5 .notManual
 4A1A .looped

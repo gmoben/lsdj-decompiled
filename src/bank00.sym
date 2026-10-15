@@ -808,7 +808,7 @@
 2C52 .drawString
 2C5E .drawString_2
 2C6A .drawString_3
-2C76 .drawFormat
+2C76 .printf
 2C99 .step
 2C9D .cont
 2CA1 .step_2

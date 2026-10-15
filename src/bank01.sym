@@ -304,7 +304,7 @@
 6ED1 .drawStringTile20
 6F67 .checkCurScreen
 7549 .checkGameboyType
-756E .loadSelectDigitPal
+756E .loadHighlightDigitPal
 766B .ok
 7696 .checkCurScreen
 76B4 .checkCurScreenb
@@ -324,7 +324,7 @@
 
 ; --- full local naming (block signature) ---
 403C .cont
-403D .random16
+403D .randw
 4066 .cont_2
 406C .seedRng
 40A0 .cont_3

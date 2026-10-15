@@ -250,7 +250,7 @@
 
 ; --- first-action / assert local names ---
 421F .drawTempoField
-42C4 .loadShadowDigitPal
+42C4 .loadShadedDigitPal
 42F4 .drawWordCursor
 4312 .eraseWordCursor
 4402 .cut                 ; WordScreenInput: SELECT+B: cut the word into the clipboard
@@ -268,7 +268,7 @@
 4D26 .checkGameboyTypeb
 4D6C .checkGameboyTypec
 4DC1 .checkGameboyTyped
-4E4C .loadSelectDigitPal
+4E4C .loadHighlightDigitPal
 4FA2 .redraw
 4FF4 .redraw
 5047 .redraw
