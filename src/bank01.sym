@@ -319,7 +319,7 @@
 7A44 .gba
 7A5D .syncMode
 7B17 .version
-7CBA .loadSyncSetting
+7CBA .syncLoadSetting
 
 
 ; --- full local naming (block signature) ---

@@ -39,7 +39,7 @@ Key mechanisms:
   (`$C6A9`) and triggers the on-screen message; bank 1's `DrawMessageBar`
   (`$74F7`) renders that buffer onto the top tilemap row. (`DrawMessageBar` is
   also the first function matched in C: `c/bank01/DrawMessageBar.c`.)
-- **Config**: `LoadSyncSetting` ($1CFF) pulls song properties (e.g. sync) from
+- **Config**: `SyncLoadSetting` ($1CFF) pulls song properties (e.g. sync) from
   SRAM into WRAM mirrors (`wSyncMode` `$CB66`, `wSyncMode2` `$CB67`).
 
 ## Screen dispatch — the editor index (bank 0)

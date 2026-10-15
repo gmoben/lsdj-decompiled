@@ -357,7 +357,7 @@ class WordTestHlTests(unittest.TestCase):
 
 class HlRegisterTests(unittest.TestCase):
     """After `ld c,(hl)` the byte at hl is c: a reread becomes `ld a,c`, even
-    across a store through de (StartScreenPlayback), but not across one
+    across a store through de (SndStartScreenPlayback), but not across one
     through hl or a change of c."""
 
     INDEX = ["\tld\thl,#_wSongCol + 0", "\tld\tc,(hl)", "\tld\ta,#<_wChanActive",
@@ -400,7 +400,7 @@ class HlRegisterTests(unittest.TestCase):
 
     def test_a_literal_store_through_hl_keeps_a_only_when_equal(self):
         # ResetWorkState: `a` held 1, six `g = 0` stores, then `cell[0] = 1`
-        # reloads the 1; TogglePlayback: `a` held 0, `wSongPlaying = 0`, then
+        # reloads the 1; SndTogglePlayback: `a` held 0, `wSongPlaying = 0`, then
         # `hSoundChan = 0` stores `a` unreloaded
         reload = ["\tld\ta,#0x01", "\tld\t(de),a", "\tld\thl,#_g", "\tld\t(hl),#0x00",
                   "\tld\tde,#_cell", "\tld\ta,#0x01", "\tld\t(de),a"]
@@ -459,7 +459,7 @@ class HramReuseTests(unittest.TestCase):
 
     def test_store_through_a_loaded_pointer_ends_a_carried_byte(self):
         # SndUpdateChan's D: c read before `if (d)`, then `+=` through a
-        # stack pointer, then a reread; StartSongPlayback's `*active = 1` after an
+        # stack pointer, then a reread; SndStartSongPlayback's `*active = 1` after an
         # in-block read keeps it
         store = ["\tlda\thl,0(sp)", "\tld\te,(hl)", "\tinc\thl", "\tld\td,(hl)", "\tld\t(de),a"]
         test = ["\txor\ta,a", "\tor\ta,b", "\tjp\tz,00105$"]

@@ -59,8 +59,8 @@ KNOWN_ASM = {
     # tail-jumping dispatchers, the `ld b,b` debugger marker
     "00:SndInterpResume", "00:DebugTrap", "00:KitIndexToBank", "00:AnyChanFlagSet",
     "00:SwitchToDoubleSpeed", "00:VibOffsetJumps",
-    "02:SndFxTableJump", "02:SndRandom15", "02:TriggerNote", "02:SetupChanSound",
-    "02:SndClearChanFxSlots", "02:AdvanceChanCursors", "02:SndCountdownStep",
+    "02:SndFxTableJump", "02:SndRandom15", "02:SndTriggerNote", "02:SndSetupChan",
+    "02:SndClearChanFxSlots", "02:SndAdvanceChanCursors", "02:SndCountdownStep",
     "02:SndFillFF", "02:FxCmd_M", "02:SndApplyTableTranspose", "02:SndReadTableEnv",
     "02:SndDeactivateChan", "02:SndReadTableTranspose", "02:SndDecodeNibbles",
     # an `hl`-argument call wrapped in the C convention: RequestTileSlot pops

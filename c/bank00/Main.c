@@ -61,7 +61,7 @@ UBYTE SndGetChainPhrase(UBYTE chain, UBYTE row);    /* bank 2 */
 void MarkPhraseUsed(UBYTE phrase);          /* bank 1 */
 void MarkChainUsed(UBYTE chain);            /* bank 1 */
 void InitRemapTable(void);                  /* bank $1F */
-void TogglePlayback(void);                  /* bank 2 */
+void SndTogglePlayback(void);                  /* bank 2 */
 void SyncApplyMode(void);
 void WritePhraseFx(UBYTE phrase, UBYTE row, UBYTE fx);  /* bank 4 */
 void WriteTableCmd(UBYTE row, UBYTE fx);    /* bank 5 */
@@ -181,7 +181,7 @@ UBYTE ProcessInput(void)
         if (wLiveStartCol != 0xFF) {
             wLiveStartCol = 0xFF;
             SWITCH_ROM(2);
-            TogglePlayback();
+            SndTogglePlayback();
             wLiveMode = wSavedLiveMode;
             SyncApplyMode();
             return 0;

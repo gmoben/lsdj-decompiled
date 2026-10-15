@@ -8,8 +8,8 @@
 2CA4 DrawTempoField     ; set VRAM cursor $9891 + BG/digit palettes, then draw the tempo (GetTempoTimerVal)
 17EC WriteVramByteSafe  ; (vramAddr, value) -> spin until rSTAT allows VRAM access, then [vramAddr]=value
 2D7E DrawFieldVal     ; draw a value formatted by its type: string / hex byte (DrawHexByte) / pulse duty (DrawPulseDuty)
-158F InitKit1Sample   ; init kit voice 1: bank + sample-table lookup -> loop window/read ptr/clamps (wKit1*)
-1676 InitKit2Sample   ; init kit voice 2 (wKit2*); speech uses allophone banks
+158F SndInitKit1Sample   ; init kit voice 1: bank + sample-table lookup -> loop window/read ptr/clamps (wKit1*)
+1676 SndInitKit2Sample   ; init kit voice 2 (wKit2*); speech uses allophone banks
 339A ResetDisplayState   ; ReinitDisplay, then clear tile-loader alloc + state (wTileReqSlot0/wUnusedCBFB/wUnusedCBFC)
 337D LoadTilesDispatch   ; route a tile-slot arg to LoadTilesToVram / SetTileLoadReq
 148B DebugNop            ; `ld b,b; ret` -- no$gmb/BGB debug marker (no-op at runtime)
@@ -32,7 +32,7 @@
 0839 PlayModeNames              ; five 9-byte table PLAY mode names "  MANUAL", "    ONCE", "    LOOP", "PINGPONG", "  RESYNC" (DrawWaveInstr: byte 9, capped at 5)
 0DDB InitAndLoadSong    ; second-stage boot (runs once before MainLoop): SwitchToDoubleSpeed, ClearBgTilemap, init subsystems, load the working song (bank1 $4CF1/$4848) or ResetWorkState if empty, set palettes + load song properties
 1377 .mainLoop            ; (was MainLoop) poll ready flags, then process a frame (-> ProcessInput)
-1CFF LoadSyncSetting    ; read song sync property ($BFBD) -> wSyncMode/wSyncMode2
+1CFF SyncLoadSetting    ; read song sync property ($BFBD) -> wSyncMode/wSyncMode2
 254F DispatchScreenDraw ; jp table ScreenDrawTable indexed by wCurScreen ($C401): per-screen draw
 2563 ScreenDrawTable    ; 15x jp: screen index -> "select bank N; call draw; ret"
 ; --- per-screen draw dispatch stubs (select bank, call the screen's draw) ---
@@ -141,7 +141,7 @@
 1482 DebugTrap          ; assert/debug trap (ld b,b BGB marker + rst $38), fires once via wDebugTrapped
 
 ; --- Sound engine: per-channel pitch slide / vibrato / frequency (TimerHandler tick) ---
-0762 LoadWaveRam        ; fast-copy the 16-byte staged waveform (hWavUploadBuf $FFA0) into WAV wave RAM ($FF30) with rAUD3 off (SP-pop trick), then re-enable + retrigger rAUD3 and restore freq
+0762 SndLoadWaveRam        ; fast-copy the 16-byte staged waveform (hWavUploadBuf $FFA0) into WAV wave RAM ($FF30) with rAUD3 off (SP-pop trick), then re-enable + retrigger rAUD3 and restore freq
 066D SndModWavFreq      ; WAV ch direct-frequency modulation: wChanFreq+4 += wChanPitchRate+4; if vibrato active apply wChanVibOffset+4 (steps WAV vib via SndApplyWavVib, then halved offset)
 1AFF SndApplyWavVib ; apply WAV-channel vibrato: if wChanVibSpeed+5, compute offset (SndCalcVibOffset) -> wChanVibOffset+4/5 and advance vib phase wChanVibAccumWav; shared by SndStepPitchVibWav + SndModWavFreq
 1815 TickWorkTimeClock   ; bump saturating counter wWorkClockSubFrame (<$80), advance wWorkTimeAccum ($C69D); wrap at $0E00 -> wWorkTimeTicks ($C577), clear wIdleHalt
@@ -162,11 +162,11 @@
 1CA8 SndUpdatePitchModFlagPu1 ; ch0: wChanPitchModActive = (wChanPitchRate+0|+1 | wChanVibSpeed+1)!=0, skipped if wChanVibShape set
 
 ; --- Sound: software envelope (DMG "zombie mode" volume via NRx2 rewrites) ---
-2FC3 FadeEnvStep      ; step volume at [hl] one unit toward target a; equal->ret; up->NRx2 ([c])=$08; down->FadeEnvStepDown
-2F9A FadeEnvStepDown  ; volume-decrease path: dec level, rewrite NRx2 ([c]) with $09/$11/$18; near level $0E wait for rDIV phase (anti-click), CGB vs DMG
-2FCC UpdateEnvPu1     ; per-tick PU1 software envelope: FadeEnvStep wChanEnv toward target [wEnvTargetPu1] via rAUD1ENV, then advance env stage
-2FE2 UpdateEnvPu2     ; per-tick PU2 software envelope: wChanEnv+1 toward [wEnvTargetPu2] via rAUD2ENV
-2FF8 UpdateEnvNoi     ; per-tick NOI software envelope: wChanEnv+3 toward [wEnvTargetNoi] via rAUD4ENV
+2FC3 SndFadeEnvStep      ; step volume at [hl] one unit toward target a; equal->ret; up->NRx2 ([c])=$08; down->SndFadeEnvStepDown
+2F9A SndFadeEnvStepDown  ; volume-decrease path: dec level, rewrite NRx2 ([c]) with $09/$11/$18; near level $0E wait for rDIV phase (anti-click), CGB vs DMG
+2FCC SndUpdateEnvPu1     ; per-tick PU1 software envelope: SndFadeEnvStep wChanEnv toward target [wEnvTargetPu1] via rAUD1ENV, then advance env stage
+2FE2 SndUpdateEnvPu2     ; per-tick PU2 software envelope: wChanEnv+1 toward [wEnvTargetPu2] via rAUD2ENV
+2FF8 SndUpdateEnvNoi     ; per-tick NOI software envelope: wChanEnv+3 toward [wEnvTargetNoi] via rAUD4ENV
 
 ; --- Link cable sync (see docs/sync.md) ---
 1E93 DispatchSyncClock   ; per sync tick: reset wSyncTick=$FF; if playing, dispatch by wSyncMode (1=LSDJ->SyncTickLsdj, 3=MIDI->SyncTickMidi); preserves ROM bank
@@ -353,10 +353,10 @@
 1304 .done                ; common exit of ColorField
 1439 .loop                ; loop head in main.mainLoop
 14AE .loop                ; loop head in DebugNop
-15B7 .loop                ; loop head in InitKit1Sample
-1673 .done                ; common exit of InitKit1Sample
-16A1 .loop                ; loop head in InitKit2Sample
-175D .done                ; common exit of InitKit2Sample
+15B7 .loop                ; loop head in SndInitKit1Sample
+1673 .done                ; common exit of SndInitKit1Sample
+16A1 .loop                ; loop head in SndInitKit2Sample
+175D .done                ; common exit of SndInitKit2Sample
 1774 .loop                ; loop head in ReadKitSampleName
 17F3 .loop                ; loop head in WriteVramByteSafe
 1800 .loop                ; loop head in ClearBgTilemap
@@ -405,9 +405,9 @@
 2F54 .loop2               ; loop head in DrawString
 2F66 .done                ; common exit of DrawString
 2F8B .loop                ; loop head in DrawStringIndexed
-2FA0 .loop                ; loop head in FadeEnvStepDown
-2FAF .loop2               ; loop head in FadeEnvStepDown
-2FB9 .loop3               ; loop head in FadeEnvStepDown
+2FA0 .loop                ; loop head in SndFadeEnvStepDown
+2FAF .loop2               ; loop head in SndFadeEnvStepDown
+2FB9 .loop3               ; loop head in SndFadeEnvStepDown
 3029 .resetEnv            ; speed 0 / stage overflow: stage = 0, envelope done
 3070 .resetEnv            ; stage = 0, envelope done (PU2)
 30AB .resetEnv            ; stage = 0, envelope done (NOI)

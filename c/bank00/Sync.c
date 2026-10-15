@@ -66,7 +66,7 @@ void SyncApplyMode(void);
 void SyncTickLsdj(void);
 void SyncSetSendMode(void);
 void SyncSetRecvMode(void);
-void TogglePlayback(void);                    /* bank 2 */
+void SndTogglePlayback(void);                    /* bank 2 */
 void SndResetChanFx(void);           /* bank 2 */
 void SndResetFxState(void);                 /* bank 2 */
 void SndEnableLcdInts(void);                /* bank 2 */
@@ -74,7 +74,7 @@ void SndRunFrame(void);                     /* bank 2 */
 void DrawSyncSubSetting(void);              /* bank $1B */
 void ReceiveLinkClipboard(void);                /* bank $1C */
 
-void LoadSyncSetting(void)
+void SyncLoadSetting(void)
 {
     wSyncMode = *SramPropSyncMode;
     wSyncMode2 = *SramPropSyncMode2;
@@ -145,7 +145,7 @@ void SyncTickLsdj(void)
         wPlayMode = wCurScreen;
         _asm di _endasm;
         SWITCH_ROM(2);
-        TogglePlayback();
+        SndTogglePlayback();
         _asm ei _endasm;
     }
 }
@@ -156,8 +156,8 @@ void SyncTickMidi(void)
         SyncTickLsdj();
     } else {
         SWITCH_ROM(2);
-        TogglePlayback();
-        TogglePlayback();
+        SndTogglePlayback();
+        SndTogglePlayback();
     }
 }
 

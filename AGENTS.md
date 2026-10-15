@@ -345,7 +345,7 @@ in `docs/functionality.md`.
   `Next`/`Prev`), `Highlight` (the cursor's colouring), `Shadow` (a RAM copy,
   `wTempoShadow`; the DMG font's dotted ground is `Shaded`), `Message`, `Number`, `Count`, `Transpose` (never `Trans`;
   `Transport` is sync), `Compress`/`Decompress`. The four channels are
-  `Pu1`, `Pu2`, `Wav`, `Noi` (`TriggerPu1`, `wChanFreqPu2`). Exempt: `Txt`
+  `Pu1`, `Pu2`, `Wav`, `Noi` (`SndTriggerPu1`, `wChanFreqPu2`). Exempt: `Txt`
   labels mirror their text, `SCREAMING_SNAKE` constants mirror the song
   format's documentation (`SONG_INSTRUMENTS`).
 - **Name patterns.** Routines are verb-first (`OpenChainPhrase`,
@@ -553,10 +553,10 @@ Always, before committing:
 - [x] Tracer follows `jp`/address jump tables (42% → 56% reachable code)
 - [x] Reverse the bank `$02` sound engine, verified against live RAM/SRAM dumps:
       sequencer cursors (`wChanSongRow`→`wChanChain`→`wChanPhrase`→note) with
-      `AdvanceSongRow`/`ReadSongChain`/`ReadChainPhrase`/`AdvanceChanCursors`;
-      pitch (`NoteToPeriod`, `wNotePeriods` `$CF28`, `wChanFreq`, `WriteChanFreq`);
-      note-on (`SetupChanSound`→per-channel + `rAUDx` shadows); FX dispatch
-      (`DispatchFxCmd`, all `FxCmd_*`, `hFxVal`, `ApplyPitchBend`)
+      `SndAdvanceSongRow`/`SndReadSongChain`/`SndReadChainPhrase`/`SndAdvanceChanCursors`;
+      pitch (`SndNoteToPeriod`, `wNotePeriods` `$CF28`, `wChanFreq`, `SndWriteChanFreq`);
+      note-on (`SndSetupChan`→per-channel + `rAUDx` shadows); FX dispatch
+      (`SndDispatchFxCmd`, all `FxCmd_*`, `hFxVal`, `SndApplyPitchBend`)
 - [x] Cross-bank entry discovery (banked-call helper) to cover `$1E`/`$1F`
       (`FarCall`/`FarCallArg`/`FarCallByte` call sites resolved)
 - [x] Name all routines: 100% of function entries (call- and jp-reached) have

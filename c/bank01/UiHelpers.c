@@ -65,7 +65,7 @@ UBYTE *GetScreenPal(void);
 void CopyScreenMapCgb(UWORD s);              /* asm */
 void CopyScreenMapDmg(UBYTE *s);             /* asm */
 
-void LoadSyncSetting(void);                 /* bank 0 */
+void SyncLoadSetting(void);                 /* bank 0 */
 void LoadFontTiles(void);              /* bank $1E */
 void SetSyncSendRate(void);                 /* bank 7 */
 void LoadFileListState(void);               /* bank $1C */
@@ -810,7 +810,7 @@ void LoadProjSettings(UBYTE keep)
         wFont = 0;
         *(UBYTE *)0xBFBC = 0;
     }
-    LoadSyncSetting();
+    SyncLoadSetting();
     rRAMG = 0x0A;
     rRAMB = 1;
     wCloneMode = *(UBYTE *)0xBFC0;

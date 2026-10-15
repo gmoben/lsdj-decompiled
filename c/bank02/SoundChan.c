@@ -53,10 +53,10 @@ UBYTE SndRandom15(void);                    /* asm */
 void SndMaskLow5(UBYTE v);                  /* asm (takes it in a) */
 void SndInitPlayState(void);
 void AdvanceCurChanCursors(UBYTE n);        /* asm (takes it in a) */
-UBYTE ReadChainPhrase(void);                /* asm */
+UBYTE SndReadChainPhrase(void);                /* asm */
 UBYTE SndLiveChainEnd(void);
-UBYTE ReadSongChain(void);                  /* asm */
-void AdvanceSongRow(void);                  /* asm */
+UBYTE SndReadSongChain(void);                  /* asm */
+void SndAdvanceSongRow(void);                  /* asm */
 void SndQueueSyncByte(void);                /* asm */
 void SndResetChanFx(void);                  /* asm */
 void SndReadChainTranspose(void);           /* asm */
@@ -96,18 +96,18 @@ UBYTE SndPhraseHop(void)
     switch (mode) {
     case 4:
         (*wPtrChainRow)++;
-        if (wChanLiveQueued[hSoundChan] || ReadChainPhrase() == 0xFF || *wPtrChainRow == 0x10) {
+        if (wChanLiveQueued[hSoundChan] || SndReadChainPhrase() == 0xFF || *wPtrChainRow == 0x10) {
             wChanLiveQueued[hSoundChan] = 0;
             *wPtrChainRow = 0;
             if (SndLiveChainEnd()) {
                 wChanSongRow[hSoundChan]++;
-                wChanChain[hSoundChan] = ReadSongChain();
-                AdvanceSongRow();
+                wChanChain[hSoundChan] = SndReadSongChain();
+                SndAdvanceSongRow();
             }
             SndQueueSyncByte();
         }
         SndLiveStartQueued();
-        *wPtrPhrase = ReadChainPhrase();
+        *wPtrPhrase = SndReadChainPhrase();
         if (*wPtrPhrase == 0xFF) {
             wChanActive[hSoundChan] = 0;
             SndResetChanFx();
@@ -120,9 +120,9 @@ UBYTE SndPhraseHop(void)
         break;
     case 3:
         (*wPtrChainRow)++;
-        if (ReadChainPhrase() == 0xFF || *wPtrChainRow == 0x10)
+        if (SndReadChainPhrase() == 0xFF || *wPtrChainRow == 0x10)
             *wPtrChainRow = 0;
-        *wPtrPhrase = ReadChainPhrase();
+        *wPtrPhrase = SndReadChainPhrase();
         SndSplitPhraseNibbles();
         *wPtrPhraseRow = wSeqNoteLatch;
         if (wSeqNoteLatch)

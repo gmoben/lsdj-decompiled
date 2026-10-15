@@ -1208,7 +1208,7 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
         if hl_reg is not None and not (mn == "ld" and len(ops) == 2 and ops[1] == "(hl)"):
             # (a load from (hl) keeps the equality whatever it writes; so does
             # a store through de/bc: 3 ROM sites copy the register after one,
-            # none rereads -- StartScreenPlayback's `wChanActive[wSongCol] = 1;
+            # none rereads -- SndStartScreenPlayback's `wChanActive[wSongCol] = 1;
             # wPlayStartChan = wSongCol` is `ld c,(hl); ...; ld (de),a; ld a,c`).
             # A conditional jump ends it for a global: FxCmd_E_Pu1/Pu2/Noi's
             # `wEnvSpeedPu1 = v; if (v) wEnvCounterPu1 = wEnvSpeedPu1;` reread
@@ -1399,7 +1399,7 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
         elif mn == "ld" and ops[:1] == ["(hl)"] and len(ops) == 2 and ops[1].startswith("#"):
             # a literal stored through hl (`g = n`) leaves `a` standing for n
             # and nothing else: ResetWorkState's `wWordClipCell0[0] = 1`
-            # reloads `ld a,#1` after six `g = 0` stores, TogglePlayback's
+            # reloads `ld a,#1` after six `g = 0` stores, SndTogglePlayback's
             # `wSongPlaying = 0; hSoundChan = 0` keeps the 0 in `a` (the ROM's
             # two sites; the tracker apparently took the stored literal for
             # `a`'s value, kept here only when it already was)
@@ -1523,7 +1523,7 @@ def track_hram(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int
     call or a jump target ends the reuse; a store through a pointer loaded
     from memory (`ld e,(hl); inc hl; ld d,(hl); ld (de),a`) ends it for a
     byte read before a conditional jump (the `+=` in SndUpdateChan's D),
-    not for one read in this block (StartSongPlayback's `*active = 1`); a
+    not for one read in this block (SndStartSongPlayback's `*active = 1`); a
     store to an array element (`#arr + c` in de) ends neither."""
     out: list[str] = []
     holds: dict[str, str] = {}    # register -> the `(X)` it holds
@@ -1628,7 +1628,7 @@ def track_hram(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int
         if mn == "ld" and len(ops) == 2 and ops[0] == "(de)" and de_loaded:
             # a store through a pointer of unknown target ends the reuse of
             # a byte read before a jump (SndUpdateChan's D), not of one
-            # read in this block (StartSongPlayback's `*active = 1`)
+            # read in this block (SndStartSongPlayback's `*active = 1`)
             for r in carried:
                 holds.pop(r, None)
             carried.clear()

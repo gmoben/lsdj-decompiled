@@ -1331,18 +1331,6 @@
   "len": 73,
   "src": "c/bank03/InstrScreen.c"
  },
- "EnvReleaseSpeed": {
-  "bank": "02",
-  "addr": "69C3",
-  "len": 20,
-  "src": "c/bank02/Sound.c"
- },
- "EnvReleaseTarget": {
-  "bank": "02",
-  "addr": "69DF",
-  "len": 19,
-  "src": "c/bank02/Sound.c"
- },
  "EraseChainCursor": {
   "bank": "06",
   "addr": "58A7",
@@ -2405,12 +2393,6 @@
   "len": 62,
   "src": "c/bank07/SongScreen.c"
  },
- "LoadSyncSetting": {
-  "bank": "00",
-  "addr": "1CFF",
-  "len": 42,
-  "src": "c/bank00/Sync.c"
- },
  "LoadSynthParams": {
   "bank": "1D",
   "addr": "68F9",
@@ -3401,6 +3383,18 @@
   "len": 19,
   "src": "c/bank02/Sound.c"
  },
+ "SndEnvReleaseSpeed": {
+  "bank": "02",
+  "addr": "69C3",
+  "len": 20,
+  "src": "c/bank02/Sound.c"
+ },
+ "SndEnvReleaseTarget": {
+  "bank": "02",
+  "addr": "69DF",
+  "len": 19,
+  "src": "c/bank02/Sound.c"
+ },
  "SndGetChainPhrase": {
   "bank": "02",
   "addr": "6F65",
@@ -3521,6 +3515,18 @@
   "len": 21,
   "src": "c/bank02/Sound.c"
  },
+ "SndStartScreenPlayback": {
+  "bank": "02",
+  "addr": "7B31",
+  "len": 283,
+  "src": "c/bank02/Sound.c"
+ },
+ "SndStartSongPlayback": {
+  "bank": "02",
+  "addr": "792B",
+  "len": 518,
+  "src": "c/bank02/Sound.c"
+ },
  "SndStepWavFrames": {
   "bank": "02",
   "addr": "6FB6",
@@ -3537,6 +3543,18 @@
   "bank": "02",
   "addr": "77F0",
   "len": 127,
+  "src": "c/bank02/Sound.c"
+ },
+ "SndTogglePlayback": {
+  "bank": "02",
+  "addr": "7C4C",
+  "len": 175,
+  "src": "c/bank02/Sound.c"
+ },
+ "SndToggleSongPlayback": {
+  "bank": "02",
+  "addr": "78C4",
+  "len": 103,
   "src": "c/bank02/Sound.c"
  },
  "SndUpdateChan": {
@@ -3617,18 +3635,6 @@
   "len": 14,
   "src": "c/bank05/TableScreen.c"
  },
- "StartScreenPlayback": {
-  "bank": "02",
-  "addr": "7B31",
-  "len": 283,
-  "src": "c/bank02/Sound.c"
- },
- "StartSongPlayback": {
-  "bank": "02",
-  "addr": "792B",
-  "len": 518,
-  "src": "c/bank02/Sound.c"
- },
  "StrLength": {
   "bank": "00",
   "addr": "36DD",
@@ -3651,6 +3657,12 @@
   "bank": "00",
   "addr": "1F06",
   "len": 148,
+  "src": "c/bank00/Sync.c"
+ },
+ "SyncLoadSetting": {
+  "bank": "00",
+  "addr": "1CFF",
+  "len": 42,
   "src": "c/bank00/Sync.c"
  },
  "SyncReceiveAnalogClock": {
@@ -3814,18 +3826,6 @@
   "addr": "6413",
   "len": 42,
   "src": "c/bank07/SongScreen.c"
- },
- "TogglePlayback": {
-  "bank": "02",
-  "addr": "7C4C",
-  "len": 175,
-  "src": "c/bank02/Sound.c"
- },
- "ToggleSongPlayback": {
-  "bank": "02",
-  "addr": "78C4",
-  "len": 103,
-  "src": "c/bank02/Sound.c"
  },
  "UnhighlightPhraseCell": {
   "bank": "1F",

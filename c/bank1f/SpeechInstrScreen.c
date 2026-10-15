@@ -23,8 +23,8 @@ void MoveMapCursorRight(void);                    /* bank 5 */
 void MoveMapCursorUp(void);                       /* bank 5 */
 void MoveMapCursorDown(void);                     /* bank 5 */
 void PrevInstrPage(void);             /* bank 3 */
-void ToggleSongPlayback(void);                 /* bank 2 */
-void TogglePlayback(void);                    /* bank 2 */
+void SndToggleSongPlayback(void);                 /* bank 2 */
+void SndTogglePlayback(void);                    /* bank 2 */
 void DrawInstrScreenFrame(void);                /* $03:$45A7 */
 
 void DrawWordRow(UBYTE n)
@@ -253,11 +253,11 @@ UBYTE SpeechInstrInput(void)
         return 1;
     case 0xC0:
         if (!wButtonsSame)
-            FarCall(2, FAR_FN(ToggleSongPlayback));
+            FarCall(2, FAR_FN(SndToggleSongPlayback));
         return 1;
     case 0x80:
         if (!wButtonsSame && !wBHeld)
-            FarCall(2, FAR_FN(TogglePlayback));
+            FarCall(2, FAR_FN(SndTogglePlayback));
         return 1;
     }
     return 0;

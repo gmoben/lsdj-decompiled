@@ -41,8 +41,8 @@ void SaveSelectionState(void);              /* $05:$743F */
 void MoveMapCursorLeft(void);                     /* $05:$4233 */
 void MoveMapCursorUp(void);                       /* $05:$426A */
 void MoveMapCursorDown(void);                     /* $05:$4287 */
-void ToggleSongPlayback(void);                 /* $02:$78C4 */
-void TogglePlayback(void);                    /* $02:$7C4C */
+void SndToggleSongPlayback(void);                 /* $02:$78C4 */
+void SndTogglePlayback(void);                    /* $02:$7C4C */
 void SendLinkClipboard(void);                   /* bank $1C */
 
 UBYTE GetCursorChain(void)
@@ -688,7 +688,7 @@ UBYTE ChainScreenInput(void)
     if (wButtons == 0xC0) {
         if (wButtonsSame)
             return 1;
-        FarCall(2, FAR_FN(ToggleSongPlayback));
+        FarCall(2, FAR_FN(SndToggleSongPlayback));
         return 1;
     }
     if (wButtons == 0x80) {
@@ -700,7 +700,7 @@ UBYTE ChainScreenInput(void)
         if (!wPlayMode && FarCallArg2P(2, FAR_FN(SndGetChainPhrase), wChain, (char)wChainRow) == 0xFF
                 && FarCallArg2P(2, FAR_FN(SndGetChainPhrase), wChain, 0) == 0xFF)
             return 0;
-        FarCall(2, FAR_FN(TogglePlayback));
+        FarCall(2, FAR_FN(SndTogglePlayback));
         return 1;
     }
     if (wButtons == 0x41) {

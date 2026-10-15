@@ -45,7 +45,7 @@ extern UBYTE wPrelisten;                    /* $C56E */
 extern UBYTE wLiveStartCol;                 /* $C571 */
 extern UBYTE wSavedLiveMode;                /* $C572 */
 extern UBYTE wLiveMode;                     /* $C528 */
-void TogglePlayback(void);                    /* bank 2 */
+void SndTogglePlayback(void);                    /* bank 2 */
 void SyncSetSendMode(void);                 /* bank 0 */
 extern UBYTE wDrawStep;                     /* $C405 */
 extern UBYTE wNameEditBuf[];                /* $C431, [5] */
@@ -85,7 +85,7 @@ void MoveMapCursorLeft(void);                     /* $05:$4233 */
 void MoveMapCursorRight(void);                    /* $05:$4253 */
 void MoveMapCursorUp(void);                       /* $05:$426A */
 void MoveMapCursorDown(void);                     /* $05:$4287 */
-void ToggleSongPlayback(void);              /* $02:$78C4 */
+void SndToggleSongPlayback(void);              /* $02:$78C4 */
 void SaveSelectionState(void);              /* $05:$743F */
 
 void DrawNoteNameFar(UBYTE x)
@@ -928,7 +928,7 @@ void PrelistenCursorRow(void)
     if (!note)
         return;
     if (wLiveStartCol != 0xFF) {
-        FarCall(2, FAR_FN(TogglePlayback));
+        FarCall(2, FAR_FN(SndTogglePlayback));
         wLiveMode = wSavedLiveMode;
     }
     if (wPlayMode)
@@ -940,7 +940,7 @@ void PrelistenCursorRow(void)
     wLiveStartCol = wSongCol;
     if (wSyncMode == 1)
         SyncSetSendMode();
-    FarCall(2, FAR_FN(TogglePlayback));
+    FarCall(2, FAR_FN(SndTogglePlayback));
 }
 
 UBYTE DrawInstrName(UBYTE row, UBYTE instr)
@@ -1944,7 +1944,7 @@ UBYTE PhraseScreenInput(void)
     if (wButtons == 0xC0) {
         if (wButtonsSame)
             return 1;
-        FarCall(2, FAR_FN(ToggleSongPlayback));
+        FarCall(2, FAR_FN(SndToggleSongPlayback));
         return 1;
     }
     if (wButtons == 0x80) {
@@ -1953,7 +1953,7 @@ UBYTE PhraseScreenInput(void)
                 wMuteSoloLatch = 1;
             return 1;
         }
-        FarCall(2, FAR_FN(TogglePlayback));
+        FarCall(2, FAR_FN(SndTogglePlayback));
         return 1;
     }
     if (wButtons == 0x42) {

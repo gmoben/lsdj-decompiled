@@ -19,7 +19,7 @@ external-clock transfer (`rSC=$80`) and receives it, taking the serial IRQ.
 The Project screen's `SYNC` field selects how LSDj clocks to the outside world.
 **All modes use the same serial link port**; what differs is the clock
 *direction* and the byte *source/format*. The value is the song `sync_setting`
-property (`$3FBD`; WRAM mirror `$CB66`, loaded by `LoadSyncSetting` `$1CFF`).
+property (`$3FBD`; WRAM mirror `$CB66`, loaded by `SyncLoadSetting` `$1CFF`).
 
 The option strings are a table in bank `$1B` at `$59B7`, 7 bytes/entry (6 chars
 + NUL): `OFF`, `LSDJ`, `MIDI`, `KEYBD`, `ANA.IN`, `AN.OUT`, then the sub-setting
@@ -129,7 +129,7 @@ writes); these tie the serial primitives above to playback transport.
 - `SyncApplyMode` (`$1F06`) — apply the current `wSyncMode` ($CB66) to the
   hardware: `di`, `wSyncRun=0`, then a `cp` chain selects per mode →
   `SyncSetSendMode`/`SyncSetRecvMode` (plus gate/handshake tweaks for
-  KEYBD/ANA.IN). Called by `LoadSyncSetting` and when the SYNC setting changes.
+  KEYBD/ANA.IN). Called by `SyncLoadSetting` and when the SYNC setting changes.
 - `SyncSetSendMode` (`$1EC8`) — leader/output config: `wSyncSendGate=1`,
   `$CB6D=0`, enable VBlank IRQ and **disable** the serial-receive IRQ.
 - `SyncSetRecvMode` (`$1EE3`) — follower/input config: `wSyncSendGate=0`,

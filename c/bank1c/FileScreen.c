@@ -80,7 +80,7 @@ UBYTE GetNextButtons(void);                 /* bank 0 */
 void FormatSramSong(void);                     /* $01:$45D1 */
 void LoadProjSettings(void);             /* $01:$7C86 */
 void CountFileBlocks(void);                 /* $1C:$48D4 */
-void ToggleSongPlayback(void);                 /* $02:$78C4 */
+void SndToggleSongPlayback(void);                 /* $02:$78C4 */
 void OpenNameEditor(void);                  /* $1B:$4E8A */
 int strcmp(const char *a, const char *b);   /* bank 0's StrCompare */
 UBYTE GetFileBlockCount(UBYTE i);
@@ -951,7 +951,7 @@ UBYTE FileScreenInput(void)
     switch (wButtons) {
     case 0x80:
         if (!wButtonsSame)
-            FarCall(2, FAR_FN(ToggleSongPlayback));
+            FarCall(2, FAR_FN(SndToggleSongPlayback));
         break;
     case 0x50:
         wFileLoadAltReturn = 1;
