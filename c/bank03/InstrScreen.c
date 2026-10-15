@@ -143,11 +143,11 @@ UBYTE SynthWavesModified(UBYTE synth)
 
 UBYTE FindFreeSynth(void)
 {
-    UBYTE i;
+    UBYTE synth;
 
-    for (i = 0; i < 16; i++) {
-        if (!SynthWavesModified(i))
-            return i;
+    for (synth = 0; synth < 16; synth++) {
+        if (!SynthWavesModified(synth))
+            return synth;
     }
     strcpy(wStringBuffer, "OUT OF SYNTHS! CLEAN INSTR DATA IN PROJECT SCREEN");
     FarCall(1, DrawMessageBar);
@@ -185,30 +185,30 @@ void AllocInstrumentSynth(void)
 
 void CloneSynth(void)
 {
-    UBYTE s, d, i;
+    UBYTE source, destination, offset;
     UWORD sourceAddress, destinationAddress;
     UBYTE v, w;
 
-    s = ReadCurrentInstrumentByte(3) >> 4;
-    d = FindFreeSynth();
-    if (d == 0xFF)
+    source = ReadCurrentInstrumentByte(3) >> 4;
+    destination = FindFreeSynth();
+    if (destination == 0xFF)
         return;
-    for (i = 0; i < 0x10; i++) {
-        v = ReadSongByte(1, SramSynthParams + (UWORD)(s << 4) + (UWORD)i);
-        WriteSongByte(1, (UWORD)(d << 4) + (UWORD)0xBEB2 + (UWORD)i, v);
+    for (offset = 0; offset < 0x10; offset++) {
+        v = ReadSongByte(1, SramSynthParams + (UWORD)(source << 4) + (UWORD)offset);
+        WriteSongByte(1, (UWORD)(destination << 4) + (UWORD)0xBEB2 + (UWORD)offset, v);
     }
-    i = 0;
-    sourceAddress = s;
+    offset = 0;
+    sourceAddress = source;
     sourceAddress <<= 8;
     sourceAddress |= 0xA000;
-    destinationAddress = d;
+    destinationAddress = destination;
     destinationAddress <<= 8;
     destinationAddress |= 0xA000;
     do {
         w = ReadSongByte(3, (UBYTE *)sourceAddress++);
         WriteSongByte(3, destinationAddress++, w);
-    } while (++i);
-    WriteCurrentInstrumentByte(3, (ReadCurrentInstrumentByte(3) & 0x0F) | (d << 4));
+    } while (++offset);
+    WriteCurrentInstrumentByte(3, (ReadCurrentInstrumentByte(3) & 0x0F) | (destination << 4));
     ShowMessage("CLONED SYNTH");
 }
 
@@ -741,10 +741,10 @@ UBYTE PreviousKit(void)
 
 void EnsureKitExists(void)
 {
-    UBYTE i, field;
+    UBYTE kit, field;
 
-    for (i = 0; i < 2; i++) {
-        field = i ? 2 : 9;
+    for (kit = 0; kit < 2; kit++) {
+        field = kit ? 2 : 9;
         if (!KitExists(ReadCurrentInstrumentByte(field) & 0x3F))
             WriteKitNumber(field, 0);
     }

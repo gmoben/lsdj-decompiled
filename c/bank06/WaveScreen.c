@@ -132,12 +132,12 @@ void WriteWaveSample(UBYTE position, UBYTE v)
 
 void SetWaveSpriteColumns(UBYTE y1, UBYTE y2)
 {
-    UBYTE i;
+    UBYTE sprite;
 
-    for (i = 3; (UWORD)i != 11; i++)
-        SetOamByte((i << 2) + 1, y1);
-    for (; (UWORD)i != 19; i++)
-        SetOamByte((i << 2) + 1, y2);
+    for (sprite = 3; (UWORD)sprite != 11; sprite++)
+        SetOamByte((sprite << 2) + 1, y1);
+    for (; (UWORD)sprite != 19; sprite++)
+        SetOamByte((sprite << 2) + 1, y2);
 }
 
 void SetWaveCursorSprite(void)
@@ -190,19 +190,19 @@ void InitializeWaveSprites(void)
    values in hex below the graph. */
 void DrawWaveColumn(UBYTE column)
 {
-    UBYTE s0, s1, i, j;
+    UBYTE s0, s1, level, j;
     UBYTE *p;
     char t;
 
     s0 = ReadWaveSample(column * 2);
     s1 = ReadWaveSample(column * 2 + 1);
-    i = s0 >> 1;
+    level = s0 >> 1;
     j = s1 >> 1;
-    p = TilemapAddress(column + 2, 13 - i);
+    p = TilemapAddress(column + 2, 13 - level);
     FillMemory(wWaveColumnEmpty, 1, 8);
-    wWaveColumnEmpty[i] = 0;
+    wWaveColumnEmpty[level] = 0;
     wWaveColumnEmpty[j] = 0;
-    if (i == j) {
+    if (level == j) {
         WriteVramByteSafe(p, (s0 & 1)
                           ? ((s1 & 1) ? (hGameboyType ? 0x54 : 0xDE) : (hGameboyType ? 0x55 : 0xDF))
                           : ((s1 & 1) ? (hGameboyType ? 0x56 : 0xE0) : (hGameboyType ? 0x57 : 0xE1)));
@@ -212,10 +212,10 @@ void DrawWaveColumn(UBYTE column)
         WriteVramByteSafe(p, (s1 & 1) ? (hGameboyType ? 0x51 : 0xDB) : (hGameboyType ? 0x52 : 0xDC));
     }
     p = TilemapAddress(column + 2, 6);
-    for (i = 7; ; i--) {
-        if (wWaveColumnEmpty[i])
+    for (level = 7; ; level--) {
+        if (wWaveColumnEmpty[level])
             WriteVramByteSafe(p, 3);
-        if (!i)
+        if (!level)
             break;
         p += 0x20;
     }
@@ -253,10 +253,10 @@ void DrawWaveRange(void)
 
 void DrawWaveColumns(void)
 {
-    UBYTE i;
+    UBYTE column;
 
-    for (i = 0; i < 0x10; i++)
-        DrawWaveColumn(i);
+    for (column = 0; column < 0x10; column++)
+        DrawWaveColumn(column);
 }
 
 void DrawWaveScreen(void)
@@ -460,7 +460,7 @@ UBYTE WaveScreenInput(void)
 void CopyWaveSelection(void)
 {
     UBYTE v;
-    UBYTE i;
+    UBYTE position;
 
     if (wClipboardType != 8)
         DebugTrap();
@@ -469,10 +469,10 @@ void CopyWaveSelection(void)
     wWaveCursor = wWaveSelectionStart;
     SortBytePair(&wWaveSelectionStart, &wWaveSelectionEnd);
     wWaveSelectionEnd++;
-    for (i = 0; i < 0x20; i += 2) {
-        v = ReadWaveSample(i) << 4;
-        v |= ReadWaveSample(i + 1);
-        WriteClipboardCell(0, i >> 1, v);
+    for (position = 0; position < 0x20; position += 2) {
+        v = ReadWaveSample(position) << 4;
+        v |= ReadWaveSample(position + 1);
+        WriteClipboardCell(0, position >> 1, v);
     }
     WriteClipboardCell(0, 0x10, wWaveSelectionStart);
     WriteClipboardCell(0, 0x11, wWaveSelectionEnd);
@@ -486,19 +486,19 @@ void CopyWaveSelection(void)
 
 void PasteWaveSelection(void)
 {
-    UBYTE i, v;
+    UBYTE position, v;
 
     wWaveSelectionStart = ReadClipboardCell(0, 0x10);
     wWaveSelectionEnd = ReadClipboardCell(0, 0x11);
-    i = wWaveSelectionStart;
-    while (i != wWaveSelectionEnd) {
-        v = ReadClipboardCell(0, i >> 1);
-        if (!(i & 1))
+    position = wWaveSelectionStart;
+    while (position != wWaveSelectionEnd) {
+        v = ReadClipboardCell(0, position >> 1);
+        if (!(position & 1))
             v >>= 4;
         else
             v &= 0x0F;
         WriteWaveSample(wWaveCursor, v);
-        i++;
+        position++;
         wWaveCursor++;
         wWaveCursor &= 0x1F;
     }

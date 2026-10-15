@@ -101,9 +101,9 @@ void WriteSongCell(UBYTE column, UBYTE row, UBYTE chain)
 UBYTE CloneSongChain(UBYTE chain)
 {
     UBYTE v;
-    UBYTE i;
+    UBYTE row;
     UBYTE phrase;
-    UBYTE j;
+    UBYTE earlierRow;
     UBYTE f;
     UBYTE n;
     UBYTE *p;
@@ -115,25 +115,25 @@ UBYTE CloneSongChain(UBYTE chain)
     v = FarCallByte(0x1F, FAR_FN(IsSongChainUsed));
     if (v == 0xFF)
         return 0xFF;
-    i = 0;
+    row = 0;
     p = wClonePhraseMap + 16;
     q = (UBYTE *)wClonePhraseMap + 16;
-    while (i < 16) {
-        phrase = FarCallArgument2(2, (UWORD)SoundGetChainPhrase, chain, i);
+    while (row < 16) {
+        phrase = FarCallArgument2(2, (UWORD)SoundGetChainPhrase, chain, row);
         if (!wCloneMode) {
-            wClonePhraseMap[i] = phrase;
+            wClonePhraseMap[row] = phrase;
             if (phrase != 0xFF) {
                 f = 0xFF;
-                j = 0;
-                while (j < i) {
-                    if (!(wClonePhraseMap[j] - phrase)) {
-                        f = p[j];
+                earlierRow = 0;
+                while (earlierRow < row) {
+                    if (!(wClonePhraseMap[earlierRow] - phrase)) {
+                        f = p[earlierRow];
                         break;
                     }
-                    j++;
+                    earlierRow++;
                 }
                 if (f != 0xFF) {
-                    FarCallArgument3P(0x1F, FAR_FN(WriteChainPhrase), v, i, f);
+                    FarCallArgument3P(0x1F, FAR_FN(WriteChainPhrase), v, row, f);
                 } else {
                     wColumnPhrase[wSongColumn] = phrase;
                     n = FarCallByte(1, FAR_FN(AllocNextFreePhrase));
@@ -142,18 +142,18 @@ UBYTE CloneSongChain(UBYTE chain)
                         return 0xFF;
                     }
                     FarCallArgument2V(6, FAR_FN(ClonePhraseAtCursor), phrase, n);
-                    FarCallArgument3P(0x1F, FAR_FN(WriteChainPhrase), v, i, n);
-                    q[i] = n;
+                    FarCallArgument3P(0x1F, FAR_FN(WriteChainPhrase), v, row, n);
+                    q[row] = n;
                 }
             } else {
-                FarCallArgument3P(0x1F, FAR_FN(WriteChainPhrase), v, i, 0xFF);
+                FarCallArgument3P(0x1F, FAR_FN(WriteChainPhrase), v, row, 0xFF);
             }
         } else {
-            FarCallArgument3P(0x1F, FAR_FN(WriteChainPhrase), v, i, phrase);
+            FarCallArgument3P(0x1F, FAR_FN(WriteChainPhrase), v, row, phrase);
         }
-        phrase = FarCallArgument2(6, FAR_FN(ReadChainTranspose), chain, i);
-        FarCallArgument3P(6, FAR_FN(SetChainTranspose), v, i, phrase);
-        i++;
+        phrase = FarCallArgument2(6, FAR_FN(ReadChainTranspose), chain, row);
+        FarCallArgument3P(6, FAR_FN(SetChainTranspose), v, row, phrase);
+        row++;
     }
     WriteSongCell(wSongColumn, wSongRow, v);
     message = wCloneMode ? "CLONED CHAIN" : "CLONED CHAIN+PHRASES";
@@ -265,56 +265,56 @@ void DrawSongScreen(void)
 
 void UpdateSongPlayMarker(void)
 {
-    UBYTE i;
+    UBYTE channel;
     UBYTE next;
     UBYTE row;
     UBYTE on;
     UBYTE y;
 
     wPlayMarkerTimer++;
-    for (i = 0; i < 4; i++) {
-        next = wChannelNextSongRow[i];
-        row = wChannelSongRow[i];
-        on = wPlayMarkerTimer & (wChannelLiveQueued[i] ? 4 : 8);
+    for (channel = 0; channel < 4; channel++) {
+        next = wChannelNextSongRow[channel];
+        row = wChannelSongRow[channel];
+        on = wPlayMarkerTimer & (wChannelLiveQueued[channel] ? 4 : 8);
         if (next != 0xFF && on) {
             y = next - wSongScroll;
-            SetSpriteY(i + 4, y);
+            SetSpriteY(channel + 4, y);
             if (hGameboyType)
-                SetSpriteAttribute(i + 4, IsBookmarked(next));
+                SetSpriteAttribute(channel + 4, IsBookmarked(next));
         } else {
-            ClearSpriteY(i + 4);
+            ClearSpriteY(channel + 4);
         }
-        if (!wChannelActive[i]) {
-            ClearSpriteY(i);
+        if (!wChannelActive[channel]) {
+            ClearSpriteY(channel);
         } else if (next == row) {
-            ClearSpriteY(i);
+            ClearSpriteY(channel);
         } else {
-            if (wChannelStopQueued[i]) {
+            if (wChannelStopQueued[channel]) {
                 if (on)
-                    SetSpriteTile4(i);
+                    SetSpriteTile4(channel);
                 else {
-                    ClearSpriteY(i);
+                    ClearSpriteY(channel);
                     continue;
                 }
             } else {
-                SetSpriteTile3(i);
+                SetSpriteTile3(channel);
             }
-            SetSpriteY(i, row - wSongScroll);
+            SetSpriteY(channel, row - wSongScroll);
             if (hGameboyType)
-                SetSpriteAttribute(i, IsBookmarked(row));
+                SetSpriteAttribute(channel, IsBookmarked(row));
         }
     }
 }
 
 void SongScreenUpdate(void)
 {
-    UBYTE i;
+    UBYTE sprite;
 
     if (wPlayMode == 4) {
         UpdateSongPlayMarker();
     } else {
-        for (i = 0; i != 8; i++)
-            ClearSpriteY(i);
+        for (sprite = 0; sprite != 8; sprite++)
+            ClearSpriteY(sprite);
     }
 }
 
@@ -323,7 +323,7 @@ void SetSongRowPalettes(UBYTE y)
     UBYTE bookmarked;
     UBYTE v;
     UBYTE shadow;
-    UBYTE i, current;
+    UBYTE channel, current;
 
     bookmarked = IsBookmarked(wSongRow);
     current = wSongScroll + y - 2;
@@ -343,10 +343,10 @@ void SetSongRowPalettes(UBYTE y)
         hBgDigitPalette = 4;
         hBgPalette = 1;
     }
-    for (i = 0; i < 4; i++) {
-        v = ReadSequenceByte(i, wSongRow);
+    for (channel = 0; channel < 4; channel++) {
+        v = ReadSequenceByte(channel, wSongRow);
         DrawStringIndexed(' ');
-        current = i == wSongColumn;
+        current = channel == wSongColumn;
         if (current) {
             hBgDigitPalette = wHighlightDigitPalette;
             hBgPalette = wHighlightPalette;
@@ -403,15 +403,15 @@ void ScrollSongDown(void)
 
 void FindNextSongRow(void)
 {
-    UBYTE i;
+    UBYTE distance;
 
-    for (i = 1; i < 0x10; i++) {
-        if (i + wSongRow == 0) {
+    for (distance = 1; distance < 0x10; distance++) {
+        if (distance + wSongRow == 0) {
             wSongRow = 0xFF;
             return;
         }
-        if (IsBookmarked(i + wSongRow)) {
-            wSongRow = i + wSongRow;
+        if (IsBookmarked(distance + wSongRow)) {
+            wSongRow = distance + wSongRow;
             return;
         }
     }
@@ -443,15 +443,15 @@ UBYTE PageSongCursorDown(void)
 
 void FindPreviousSongRow(void)
 {
-    UBYTE i;
+    UBYTE distance;
 
-    for (i = 1; i < 0x10; i++) {
-        if (wSongRow - i == 0xFF) {
+    for (distance = 1; distance < 0x10; distance++) {
+        if (wSongRow - distance == 0xFF) {
             wSongRow = 0;
             return;
         }
-        if (IsBookmarked(wSongRow - i)) {
-            wSongRow = wSongRow - i;
+        if (IsBookmarked(wSongRow - distance)) {
+            wSongRow = wSongRow - distance;
             return;
         }
     }
@@ -517,14 +517,14 @@ void WriteBookmarkByte(UWORD p, UBYTE v)
 
 void SortBookmarks(void)
 {
-    UBYTE swapped, i, a, b;
+    UBYTE swapped, slot, a, b;
     UBYTE *p;
 
     do {
-        i = 15;
+        slot = 15;
         swapped = 0;
         do {
-            p = SramBookmarks + i;
+            p = SramBookmarks + slot;
             a = ReadSongByte(0, p - 1);
             b = ReadSongByte(0, p);
             if (b < a) {
@@ -532,27 +532,27 @@ void SortBookmarks(void)
                 WriteBookmarkByte(p - 1, b);
                 WriteBookmarkByte(p, a);
             }
-        } while (--i);
+        } while (--slot);
     } while (swapped);
 }
 
 UBYTE IsBookmarked(UBYTE row)
 {
-    UBYTE i = 0;
+    UBYTE slot = 0;
     UBYTE v;
     UBYTE *p;
 
     if (row == 0xFF)
         return 0;
     do {
-        p = SramBookmarks + i;
+        p = SramBookmarks + slot;
         v = ReadSongByte(0, p);
         if (row < v)
             return 0;
         if (row == v)
             return 1;
-        i++;
-    } while (i < 0x10);
+        slot++;
+    } while (slot < 0x10);
     return 0;
 }
 
@@ -572,13 +572,13 @@ void AddBookmark(UBYTE row)
    own beside the conversion's; a UWORD p keeps i in c). */
 void RemoveBookmark(UBYTE row)
 {
-    UBYTE i;
+    UBYTE slot;
 
     if (!IsBookmarked(row))
         return;
-    for (i = 0; i < 0x10; i++)
-        if (row == ReadSongByte(0, SramBookmarks + i))
-            WriteBookmarkByte(SramBookmarks + i, 0xFF);
+    for (slot = 0; slot < 0x10; slot++)
+        if (row == ReadSongByte(0, SramBookmarks + slot))
+            WriteBookmarkByte(SramBookmarks + slot, 0xFF);
     SortBookmarks();
 }
 
@@ -597,12 +597,12 @@ void ClearBookmarks(void)
 
 void AdjustBookmarksOnDelete(UBYTE low, UBYTE high)
 {
-    UBYTE i, v;
+    UBYTE slot, v;
     UBYTE *p;
 
-    i = 15;
+    slot = 15;
     do {
-        p = SramBookmarks + i;
+        p = SramBookmarks + slot;
         v = ReadSongByte(0, p);
         if (v != 0xFF && v >= low) {
             if (v < high) {
@@ -613,18 +613,18 @@ void AdjustBookmarksOnDelete(UBYTE low, UBYTE high)
                 WriteBookmarkByte(p, v);
             }
         }
-    } while (i--);
+    } while (slot--);
     SortBookmarks();
 }
 
 void AdjustBookmarksOnInsert(UBYTE from, UBYTE to)
 {
-    UBYTE i, v;
+    UBYTE slot, v;
     UBYTE *p;
 
-    i = 15;
+    slot = 15;
     do {
-        p = SramBookmarks + i;
+        p = SramBookmarks + slot;
         v = ReadSongByte(0, p);
         if (v != 0xFF && v >= from) {
             v -= from;
@@ -634,5 +634,5 @@ void AdjustBookmarksOnInsert(UBYTE from, UBYTE to)
             else
                 WriteBookmarkByte(p, 0xFF);
         }
-    } while (i--);
+    } while (slot--);
 }

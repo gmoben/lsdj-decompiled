@@ -87,25 +87,25 @@ void FreeChain(UBYTE chain)
 
 UBYTE AllocNextFreePhrase(void)
 {
-    UBYTE i;
+    UBYTE phrase;
     UBYTE *p;
     UBYTE start;
 
     start = wColumnPhrase[wSongColumn];
     if (start == 0xFF)
         start = 0;
-    i = start;
+    phrase = start;
     do {
-        p = SramPhraseAlloc + (i >> 3);
-        if (!(ReadSongByte(1, p) & (1 << (i & 7)))) {
-            MarkPhraseUsed(i);
-            if (i == 0xFF)
+        p = SramPhraseAlloc + (phrase >> 3);
+        if (!(ReadSongByte(1, p) & (1 << (phrase & 7)))) {
+            MarkPhraseUsed(phrase);
+            if (phrase == 0xFF)
                 DebugTrap();
-            return i;
+            return phrase;
         }
-        if (++i == 0xFF)
-            i = 0;
-    } while (i != start);
+        if (++phrase == 0xFF)
+            phrase = 0;
+    } while (phrase != start);
     FarCall(1, FAR_FN(ShowOutOfMemory));
     return 0xFF;
 }
@@ -137,16 +137,16 @@ UBYTE IsPhraseUsed(UBYTE phrase)
 
 void CopyInstrument(void)
 {
-    UBYTE i;
+    UBYTE cell;
 
     ShowMessage("COPIED INSTR");
     wClipboardType = 6;
     wCursorMode = 2;
-    for (i = 0; i < 16; i++)
-        WriteClipboardCell(0, i, ReadCurrentInstrumentByte(i));
+    for (cell = 0; cell < 16; cell++)
+        WriteClipboardCell(0, cell, ReadCurrentInstrumentByte(cell));
     CopyInstrumentName(wInstrument);
-    for (i = 0; i < 5; i++)
-        WriteClipboardCell(1, i, wNameEditBuffer[i]);
+    for (cell = 0; cell < 5; cell++)
+        WriteClipboardCell(1, cell, wNameEditBuffer[cell]);
     wSelectionLeft = 0;
     wSelectionRight = 2;
     wSelectionTop = 0;
@@ -156,9 +156,9 @@ void CopyInstrument(void)
 
 void CopySong16(UBYTE bank, UWORD source, UWORD destination)
 {
-    UBYTE i, v;
+    UBYTE offset, v;
 
-    for (i = 0; i < 0x10; i++) {
+    for (offset = 0; offset < 0x10; offset++) {
         v = ReadSongByte(bank, source);
         WriteSongByte(bank, destination, v);
         source = source + 1;
@@ -214,7 +214,7 @@ void CloneInstrumentTable(void)
 
 void PasteInstrument(void)
 {
-    UBYTE i;
+    UBYTE cell;
 
     if (wInstrument == 0x40)
         return;
@@ -224,10 +224,10 @@ void PasteInstrument(void)
         return;
     if (wClipboardType != 6)
         return;
-    for (i = 0; i < 16; i++)
-        WriteInstrumentByte(wInstrument, i, ReadClipboardCell(0, i));
-    for (i = 0; i < 5; i++)
-        wNameEditBuffer[i] = ReadClipboardCell(1, i);
+    for (cell = 0; cell < 16; cell++)
+        WriteInstrumentByte(wInstrument, cell, ReadClipboardCell(0, cell));
+    for (cell = 0; cell < 5; cell++)
+        wNameEditBuffer[cell] = ReadClipboardCell(1, cell);
     WriteInstrumentName(wInstrument);
     if (hGameboyType)
         ClearBgTilemap();

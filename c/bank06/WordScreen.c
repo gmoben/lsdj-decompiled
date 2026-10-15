@@ -88,7 +88,7 @@ void DrawWordCursor(void)
 void DrawWordScreen(void)
 {
     UWORD p;
-    UBYTE i;
+    UBYTE row;
     UBYTE v;
     UBYTE s, m;
 
@@ -98,21 +98,21 @@ void DrawWordScreen(void)
     hBgPalette = 1;
     DrawString("WORD ");
     p = (UWORD)0xBDD0 + (UWORD)(wSpeechRow * 3);
-    i = 0;
-    while (i < 3) {
+    row = 0;
+    while (row < 3) {
         v = ReadSongByte(0, p);
         if (!v)
             break;
         DrawStringIndexed(v);
         p++;
-        i++;
+        row++;
     }
     DrawTempoField();
     FarCall(0x1F, FAR_FN(DrawAllChannelStatus));
     p = (UWORD)0xB890 + ((UWORD)wSpeechRow << 5);
-    i = 0;
-    while (i < 16) {
-        SetVramCursor(2, i + 2);
+    row = 0;
+    while (row < 16) {
+        SetVramCursor(2, row + 2);
         hBgDigitPalette = 4;
         hBgPalette = 1;
         s = ReadSongByte(0, p++);
@@ -128,7 +128,7 @@ void DrawWordScreen(void)
         hBgDigitPalette = wShadedDigitPalette;
         hBgPalette = wShadedPalette;
         DrawHexByte(ReadSongByte(0, p++));
-        i++;
+        row++;
     }
     DrawWordCursor();
 }

@@ -76,30 +76,30 @@ void DrawStatusNote(UBYTE channel, UBYTE note)
 
 void UpdateStatusPanel(void)
 {
-    UBYTE i;
+    UBYTE channel;
     UBYTE n;
     UBYTE *p;
     UBYTE t;
 
     hBgDigitPalette = wShadedDigitPalette;
     hBgPalette = wShadedPalette;
-    for (i = 0; i < 4; i++) {
-        t = (wChannelOutput[i] & 0x80) && !wChannelOutputOverride[i];
+    for (channel = 0; channel < 4; channel++) {
+        t = (wChannelOutput[channel] & 0x80) && !wChannelOutputOverride[channel];
         if (t)
             continue;
-        n = wChannelDisplayNote[i];
+        n = wChannelDisplayNote[channel];
         if (n) {
-            DrawStatusNote(i, n);
-            wChannelDisplayNote[i] = 0;
-            if (i == 2)
+            DrawStatusNote(channel, n);
+            wChannelDisplayNote[channel] = 0;
+            if (channel == 2)
                 PositionWavSprites();
-            wChannelDisplayNoteTimer[i] = 0x19;
+            wChannelDisplayNoteTimer[channel] = 0x19;
         } else {
-            p = &wChannelDisplayNoteTimer[i];
+            p = &wChannelDisplayNoteTimer[channel];
             n = *p;
             if (n != 0) {
                 if (n == 1) {
-                    SetVramCursor(17, i + 6);
+                    SetVramCursor(17, channel + 6);
                     DrawString("   ");
                 }
                 *p = n - 1;
