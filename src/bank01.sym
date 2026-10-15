@@ -146,7 +146,7 @@
 40FA NoteFreqTable              ; [semitone 0-107] -> GB frequency period (108 x dw, copied by LoadHwTables)
 41D2 NoteFreqDeltaTable         ; companion 108 x dw pitch table (finetune/delta variant, LoadHwTables)
 42AA PitchCurve                 ; [216] rising pitch-response curve (LoadHwTables copies it)
-4382 PitchCurveCgb              ; [216] PitchCurve's CGB counterpart (LoadHwTables picks by wIsCGB)
+4382 PitchCurveCgb              ; [216] PitchCurve's CGB counterpart (LoadHwTables picks by wIsCgb)
 5927 ScreenPalTable             ; CGB palette block: TABLE screen
 5A8F ScreenPalPhrase            ; CGB palette block: PHRASE screen
 5BF7 ScreenPalGroove            ; CGB palette block: GROOVE screen

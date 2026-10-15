@@ -6,7 +6,7 @@
  *
  * Everything writes the OAM shadow at $DD00 (wOamBuf, DMA-copied while
  * wOamDirty is set). The clears are literal-pointer stores (`ld de,#addr;
- * ld (de),a`; track_a drops the repeated `ld a,#0x00`). SetOAMByte adds the
+ * ld (de),a`; track_a drops the repeated `ld a,#0x00`). SetOamByte adds the
  * shadow's address to its cast offset, `(UBYTE *)offset + 0xDD00`, which
  * SDCC does in place in bc with the constant second, as the ROM does:
  * `wOamBuf + offset` adds the address first, and `offset + 0xDD00` on the
@@ -54,7 +54,7 @@ void ClearMarkerSprites(void)
     wOamDirty = 1;
 }
 
-void SetOAMByte(UWORD offset, UBYTE v)
+void SetOamByte(UWORD offset, UBYTE v)
 {
     UBYTE *p;
 
@@ -67,39 +67,39 @@ void SetOAMByte(UWORD offset, UBYTE v)
 
 void PositionWavSprites(void)
 {
-    SetOAMByte(0, 0x68);
-    SetOAMByte(4, 0x68);
-    SetOAMByte(8, 0x68);
+    SetOamByte(0, 0x68);
+    SetOamByte(4, 0x68);
+    SetOamByte(8, 0x68);
 }
 
 void ClearSpriteY(UBYTE sprite)
 {
-    SetOAMByte(sprite * 4 + 0x0C, 0);
+    SetOamByte(sprite * 4 + 0x0C, 0);
 }
 
 void SetSpriteX(UBYTE sprite, UBYTE col)
 {
-    SetOAMByte(sprite * 4 + 0x0D, (col << 3) + 8);
+    SetOamByte(sprite * 4 + 0x0D, (col << 3) + 8);
 }
 
 void SetSpriteY(UBYTE sprite, UBYTE row)
 {
     if (row > 0x0F)
         row = 0xFC;
-    SetOAMByte(sprite * 4 + 0x0C, (row << 3) + 0x20);
+    SetOamByte(sprite * 4 + 0x0C, (row << 3) + 0x20);
 }
 
 void SetSpriteTile3(UBYTE sprite)
 {
-    SetOAMByte(sprite * 4 + 0x0E, 3);
+    SetOamByte(sprite * 4 + 0x0E, 3);
 }
 
 void SetSpriteTile4(UBYTE sprite)
 {
-    SetOAMByte(sprite * 4 + 0x0E, 4);
+    SetOamByte(sprite * 4 + 0x0E, 4);
 }
 
 void SetSpriteAttr(UBYTE sprite, UBYTE attr)
 {
-    SetOAMByte(sprite * 4 + 0x0F, attr);
+    SetOamByte(sprite * 4 + 0x0F, attr);
 }

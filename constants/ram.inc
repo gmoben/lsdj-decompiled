@@ -10,7 +10,7 @@ DEF RAM_INC EQU 1
 
 ; --- Screen / UI state ------------------------------------------------------
 DEF wCurScreen   EQU $C401  ; 0-14; indexes the screen draw/update dispatch
-DEF wIsCGB           EQU $C402  ; set at boot when running on a Game Boy Color
+DEF wIsCgb           EQU $C402  ; set at boot when running on a Game Boy Color
 DEF wDrawStep        EQU $C405  ; multi-frame screen-redraw step: each screen's per-frame draw reads it, draws that step's part (cp 0/1/...), then increments; reset to 0 restarts a full redraw. Shared by all editor screens.
 DEF wCursorMode      EQU $C413  ; editor cursor mode (read across screens; cp $04 commonly). Cross-checked
 DEF wClipboardType   EQU $C411  ; SCREEN_* data-type held in the cut/copy clipboard (0 = empty). Set by
@@ -240,7 +240,7 @@ DEF wChanPhrase      EQU $C168  ; [4] current phrase = CHAIN_PHRASES[chain][chai
 DEF wChanPhraseRow   EQU $C16C  ; [4] current note step within the phrase (0-15)
 DEF wChanRowQueue    EQU $C100  ; queued chain-row value, PU1 (consumed at phrase end: moved to [$C1xx + wPtrChainRow], then cleared)
 DEF wChanNextSongRow EQU $C2FC  ; [4] next song row, prefetched
-DEF wChanStopQueued     EQU $C304  ; [4] live mode: stop the channel at its chain's end (SndLiveStopRange sets it, SndLiveChainEnd acts on it, the song screen blinks its marker); cleared by SndDeactivateChan, SndStartChans, SyncTickLSDJ
+DEF wChanStopQueued     EQU $C304  ; [4] live mode: stop the channel at its chain's end (SndLiveStopRange sets it, SndLiveChainEnd acts on it, the song screen blinks its marker); cleared by SndDeactivateChan, SndStartChans, SyncTickLsdj
 DEF wPhraseCmdPtr    EQU $C110  ; SRAM read ptr: phrase FX command, PU1 (SndReadPhraseCmd; init $0140)
                                 ; same offset $A000+phrase*16+step, selected by SRAM bank
 DEF wPhraseCmdValPtr EQU $C128  ; SRAM read ptr: phrase FX value, PU1
@@ -302,7 +302,7 @@ DEF wChanEnv         EQU $C2D8  ; [4] envelope value -> rAUDxENV (ch2/WAV = wave
 ; volume (hi nibble) into wChanEnv and steps the fade (lo nibble). Verified live + static.
 ; (The +N*7 slot for noise would land on $CBD1, but that byte is wOamDirty below -- the
 ; noise channel has no software-envelope struct here.)
-DEF wOamDirty        EQU $CBD1  ; OAM shadow dirty flag: timer ($185F) calls hOamRefresh (OAM DMA) when nonzero; set by OAM-buffer writers (SetOAMByte, screen redraws)
+DEF wOamDirty        EQU $CBD1  ; OAM shadow dirty flag: timer ($185F) calls hOamRefresh (OAM DMA) when nonzero; set by OAM-buffer writers (SetOamByte, screen redraws)
 DEF wEnvNode1Pu1     EQU $CBBC  ; envelope node 1, PU1: vol hi-nibble / fade-speed lo-nibble (SndInitEnv)
 DEF wEnvNode2Pu1     EQU $CBBD  ; envelope node 2, PU1 (stage 1 target/speed)
 DEF wEnvNode3Pu1     EQU $CBBE  ; envelope node 3, PU1 (stage 2 target/speed)
@@ -342,7 +342,7 @@ DEF wBootHwId        EQU $CBD9  ; boot A register (DMG/CGB id), saved at init
 DEF wBootAgbId       EQU $CBDA  ; boot B register (AGB id)
 
 ; --- Buffers ----------------------------------------------------------------
-DEF wOamBuf       EQU $DD00  ; [160] OAM shadow: 40 sprites x 4 bytes, DMA-copied by OAMDMARoutine
+DEF wOamBuf       EQU $DD00  ; [160] OAM shadow: 40 sprites x 4 bytes, DMA-copied by OamDmaRoutine
 
 ; --- HRAM -------------------------------------------------------------------
 DEF hOamRefresh      EQU $FF80  ; OAM-refresh flag

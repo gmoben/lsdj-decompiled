@@ -58,7 +58,7 @@
 70B8 GetInstrEnvBytes           ; read the instrument's envelope input bytes (x2 ReadCurInstrByte)
 7200 PlotEnvCurve               ; plot env-graph column y at x into wDecompressBuf, filling gap from wEnvPlotX (<$40)
 726E ComputeEnv            ; plot the instrument envelope graph (bytes 1/9/10 segments over 64 columns, time scaled by GetInstrEnvBytes) into wDecompressBuf, upload
-74E4 UpdateEnvSprites           ; write the envelope OAM markers (SetOAMByte x2, 8-slot bound)
+74E4 UpdateEnvSprites           ; write the envelope OAM markers (SetOamByte x2, 8-slot bound)
 ; --- functions called from bank 0 (this bank paged in) ---
 6B7A InitKitMixer               ; build the kit sample mixer in WRAM: KitMixTable -> $d000 (1152 B), then MixerKernel unrolled 16x at $d480 with inc c / inc e between copies and a ret after the last
 5DBF ProjScreenInput         ; project screen (9) input (wButtons): field edits saved to the song properties, tap tempo, clean, file screen, RESET CARTRIDGE? menu; 1 = handled

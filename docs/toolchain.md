@@ -310,13 +310,13 @@ CSE never substitutes a register for a direct-space global
 LSDj's compiler skipped loading the byte into a register that already held
 it -- `ldh a,(X); ld r,a` goes when r holds X, within a block or across a
 jump (`HandleInputCombos`' two `hSoundChan` indexes in one block,
-`SyncTickLSDJ`'s loop body, `SndUpdateChan`'s D across `if (d)`) -- but
+`SyncTickLsdj`'s loop body, `SndUpdateChan`'s D across `if (d)`) -- but
 never copied it over from another register: a reload into b while c holds
 the byte stays (the `+=` target in `SndUpdateChan` and
 `HandleInputCombos`). `a` itself serves a reread in straight-line code (the
 sign extension of a widened sfr: stock genCast reads `hFxValS` again for
 the `rla`, `FxCmd_F_Wav`; no compiled code in the ROM rereads a byte `a`
-holds before a jump) and across an ordering test (`SyncTickLSDJ`'s
+holds before a jump) and across an ordering test (`SyncTickLsdj`'s
 `hSoundChan < 4`: `cp #4; jp nc`); after an equality test the byte is reread
 (`cp; jp nz; ldh a,(X)`: `SndUpdateChan`, `FxCmd_P_Step`,
 `SndRetrigNote`). The pair goes when `a` dies a few
@@ -570,7 +570,7 @@ comment began with a quoted string had been carved as data, since a leading
   a,#0xDD; ld b,a`, 25 such adds in the ROM) because the cast leaves `offset`
   in a register pair; `wOamBuf + offset` adds the address first (`ld
   a,#0x00; add a,c`), and `offset + 0xDD00` on a stack operand goes through
-  `ld hl,#0xDD00; add hl,de` (`SetOAMByte`).
+  `ld hl,#0xDD00; add hl,de` (`SetOamByte`).
 - **`array + n` is computed at run time**, even as a call argument (`ld
   de,#_a; ld hl,#n; add hl,de`), and `&a[n]` likewise; only the bare array
   name is an immediate. An address the ROM pushes as `ld hl,#addr` is a

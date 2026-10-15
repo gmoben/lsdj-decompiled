@@ -76,7 +76,7 @@ void SetSyncSendRate(void)
         r = 0x800;
         r *= 4 - wTempoMode;
     } else {
-        r = (UWORD)(wIsCGB ? TempoTimerTableCgb : TempoTimerTableDmg);
+        r = (UWORD)(wIsCgb ? TempoTimerTableCgb : TempoTimerTableDmg);
         r += (UWORD)(wTempo - 40) << 1;
         r = *(UWORD *)r;
     }

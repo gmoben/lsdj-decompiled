@@ -1510,14 +1510,14 @@ def track_hram(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int
     optimisation applied to every port). LSDj's compiler skipped loading the
     byte into a register that already held it: `ldh a,(X); ld r,a` goes when
     r holds X, within a block or across a jump (HandleInputCombos' two
-    `hSoundChan` indexes in one block, SyncTickLSDJ's loop body,
+    `hSoundChan` indexes in one block, SyncTickLsdj's loop body,
     SndUpdateChan's D across `if (d)`). It never copied the byte over from
     another register: a reload into b while c holds it stays (the `+=` target
     in SndUpdateChan and HandleInputCombos). `a` itself serves a reread
     in straight-line code (FxCmd_F_Wav's `step = hFxValS`: stock genCast
     reads the byte again for the sign's `rla`; no compiled code in the ROM
     rereads a byte `a` holds before a jump) and across an ordering test
-    (SyncTickLSDJ's `hSoundChan < 4`: `cp #4; jp nc`); after an equality test
+    (SyncTickLsdj's `hSoundChan < 4`: `cp #4; jp nc`); after an equality test
     the byte is reread (`cp; jp nz; ldh a,(X)`: SndUpdateChan,
     SndRetrigNote). An HRAM store, a
     call or a jump target ends the reuse; a store through a pointer loaded

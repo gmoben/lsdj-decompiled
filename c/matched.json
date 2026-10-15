@@ -65,18 +65,6 @@
   "len": 343,
   "src": "c/bank1f/PhraseScreen.c"
  },
- "ChainDrawLeadStatus": {
-  "bank": "06",
-  "addr": "7469",
-  "len": 53,
-  "src": "c/bank06/Screens.c"
- },
- "ChainDrawSyncStatus": {
-  "bank": "06",
-  "addr": "740C",
-  "len": 73,
-  "src": "c/bank06/Screens.c"
- },
  "ChainLoadCursorPhrase": {
   "bank": "06",
   "addr": "5511",
@@ -869,12 +857,6 @@
   "len": 98,
   "src": "c/bank01/UiHelpers.c"
  },
- "DrawStringAtCursor": {
-  "bank": "06",
-  "addr": "73C0",
-  "len": 28,
-  "src": "c/bank06/Screens.c"
- },
  "DrawSyncField": {
   "bank": "1B",
   "addr": "58B1",
@@ -891,6 +873,24 @@
   "bank": "06",
   "addr": "74AD",
   "len": 99,
+  "src": "c/bank06/Screens.c"
+ },
+ "DrawSyncStatusLsdj": {
+  "bank": "06",
+  "addr": "740C",
+  "len": 73,
+  "src": "c/bank06/Screens.c"
+ },
+ "DrawSyncStatusMidi": {
+  "bank": "06",
+  "addr": "7469",
+  "len": 53,
+  "src": "c/bank06/Screens.c"
+ },
+ "DrawSyncStatusText": {
+  "bank": "06",
+  "addr": "73C0",
+  "len": 28,
   "src": "c/bank06/Screens.c"
  },
  "DrawSyncSubSetting": {
@@ -3029,7 +3029,7 @@
   "len": 89,
   "src": "c/bank03/InstrScreen.c"
  },
- "SetOAMByte": {
+ "SetOamByte": {
   "bank": "00",
   "addr": "3154",
   "len": 34,
@@ -3515,7 +3515,7 @@
   "len": 49,
   "src": "c/bank00/Sync.c"
  },
- "SyncTickLSDJ": {
+ "SyncTickLsdj": {
   "bank": "00",
   "addr": "1D9D",
   "len": 211,

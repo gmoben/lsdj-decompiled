@@ -65,7 +65,7 @@ reset rSCY/rSCX/rSTAT/rWY ; clear scroll, LCD status, window
     play-time counter in SRAM).
 - **Video / LCD** — `display_off` (`$349B`, GBDK 2.95 library routine,
   byte-identical to its `crt0.s`): waits for VBlank via `rLY` then clears
-  `rLCDC` bit 7. `OAMDMARoutine` (`$34B2`): triggers OAM DMA from the shadow
+  `rLCDC` bit 7. `OamDmaRoutine` (`$34B2`): triggers OAM DMA from the shadow
   buffer `wOamBuf` (`$DD00`); copied into HRAM and called there (DMA requires
   HRAM execution).
 - **Input** — `ReadJoypad` (`$18BF`): standard two-pass matrix read (d-pad then

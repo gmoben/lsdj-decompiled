@@ -9,7 +9,7 @@
  * the unchecked sequence/chain readers the song-position sync uses
  * (ReadSeqByte's twins without the asserts). SyncStartTransport's guard is
  * an early `return` (`if (!lsdj && wSyncMode != 3) return;`), which is what
- * leaves the ROM's `jp z,body; jp end`. SyncTickLSDJ needs track_hram
+ * leaves the ROM's `jp z,body; jp end`. SyncTickLsdj needs track_hram
  * (hSoundChan reused across its loop test); SendByteStep is the re-entrancy
  * guarded step loop the serial interrupt and the analog clock drive.
  * CheckRomChecksum (the cartridge test's ROM pass) sits between them: its
@@ -63,7 +63,7 @@ void SendSyncByte(void);                    /* asm */
 UWORD ChecksumRomBank(void);                /* $00:$20B3, asm */
 void SendByteStep(void);
 void SyncApplyMode(void);
-void SyncTickLSDJ(void);
+void SyncTickLsdj(void);
 void SyncSetSendMode(void);
 void SyncSetRecvMode(void);
 void TogglePlayback(void);                    /* bank 2 */
@@ -117,7 +117,7 @@ void SyncStopTransport(void)
     }
 }
 
-void SyncTickLSDJ(void)
+void SyncTickLsdj(void)
 {
     UBYTE *saved;
 
@@ -153,7 +153,7 @@ void SyncTickLSDJ(void)
 void SyncTickMidi(void)
 {
     if (wLiveMode) {
-        SyncTickLSDJ();
+        SyncTickLsdj();
     } else {
         SWITCH_ROM(2);
         TogglePlayback();
@@ -169,7 +169,7 @@ void DispatchSyncClock(void)
     wSyncTick = 0xFF;
     if (wPlayMode) {
         if (wSyncMode == 1)
-            SyncTickLSDJ();
+            SyncTickLsdj();
         else if (wSyncMode == 3)
             SyncTickMidi();
     }

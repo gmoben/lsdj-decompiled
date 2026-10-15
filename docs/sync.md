@@ -142,9 +142,9 @@ writes); these tie the serial primitives above to playback transport.
   (`wSyncRun=0`, `wSyncTick=$FF`, `wSyncHandshake=0`, `SyncSetRecvMode`);
   AN.OUT writes `$CB68=3`.
 - `DispatchSyncClock` (`$1E93`) — runs each sync tick: `wSyncTick=$FF`, and if
-  playing dispatch by mode → `SyncTickLSDJ` (1) or `SyncTickMidi` (3),
+  playing dispatch by mode → `SyncTickLsdj` (1) or `SyncTickMidi` (3),
   preserving the ROM bank.
-- `SyncTickLSDJ` (`$1D9D`) / `SyncTickMidi` (`$1E75`) — the per-tick handlers;
+- `SyncTickLsdj` (`$1D9D`) / `SyncTickMidi` (`$1E75`) — the per-tick handlers;
   in live mode they reset per-channel play state and redraw the SONG-screen row
   indicators (via bank 2 `$5F5E`), otherwise advance playback (bank 2 `$7C4C`).
 

@@ -58,7 +58,7 @@ extern volatile UBYTE rRAMB;                /* $4000, MBC5 SRAM bank */
 /* --- WRAM ----------------------------------------------------------------- */
 
 extern UBYTE wCurScreen;                /* $C401 */
-extern UBYTE wIsCGB;                        /* $C402 */
+extern UBYTE wIsCgb;                        /* $C402 */
 extern UBYTE wButtonsSame;                  /* $C408: 1 if the buttons are unchanged since last frame */
 extern UBYTE wSelectionLeft;                      /* $C40D */
 extern UBYTE wCursorMode;                   /* $C413 */
@@ -216,7 +216,7 @@ void SetSpriteX(UBYTE sprite, UBYTE col);
 void SetSpriteTile3(UBYTE sprite);
 void SetSpriteTile4(UBYTE sprite);
 void SetSpriteAttr(UBYTE sprite, UBYTE attr);
-void SetOAMByte(UWORD offset, UBYTE v);         /* wOamBuf[offset] = v if changed */
+void SetOamByte(UWORD offset, UBYTE v);         /* wOamBuf[offset] = v if changed */
 void ClearSprites012(void);
 void PositionWavSprites(void);
 

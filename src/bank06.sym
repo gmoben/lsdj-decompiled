@@ -69,11 +69,11 @@
 6F0D ChainPasteCells            ; SELECT+A paste on the chain screen: clipboard cells into rows wSelectionTop..wSelBottom (column 0 phrases via WriteChainPhrase, column 1 transposes), "PASTE" message when more than one row
 7006 DrawChainSelection         ; chain selection (wClipboardType==3) redraw vs the cursor: cells around the rectangle in their column palettes, the inside highlighted (ColorField)
 71ED DrawKitSampleNames         ; draw the playing kit sample names (wKit1Bank/wKit2Bank) at the tilemap position
-73C0 DrawStringAtCursor         ; set wVramCursor + DrawString (9-use draw helper)
-73DC ChainSyncStatusFlag        ; read $cb69, return status flag
-740C ChainDrawSyncStatus        ; draw sync status string from $cb6c/$cb6b (DrawStringAtCursor)
-7469 ChainDrawLeadStatus        ; draw LEAD/sync status via ChainSyncStatusFlag (DrawStringAtCursor)
-7508 .drawStatus          ; (was ChainDrawStatusWord) draw a status word (SYNC/LEAD) via DrawStringAtCursor
+73C0 DrawSyncStatusText         ; draw string s in the status panel's sync slot ($99B0, palette 4/1)
+73DC SyncStatusFlag        ; read $cb69, return status flag
+740C DrawSyncStatusLsdj         ; sync mode LSDJ: WAIT while handshaking, LEAD while running, else SYNC or blank (SyncStatusFlag)
+7469 DrawSyncStatusMidi         ; sync mode MIDI: SYNC (SyncStatusFlag), WAIT while playing, else blank
+7508 .drawStatus          ; (was ChainDrawStatusWord) draw a status word (SYNC/LEAD) via DrawSyncStatusText
 7524 DrawTileHexCell            ; (v): t = ((v-60)+1)>>2 - 9; prefix = HexCellPrefixPtrs[v&3]; t<0 -> prefix[0], '-', DrawByte(-t); else DrawString(prefix), DrawByte(t). Matched in C: c/bank06/DrawTileHexCell.c
 75A6 HexCellPrefixPtrs          ; [4] dw -> the 2-char prefix strings below, indexed by (v & 3) in DrawTileHexCell (also parked in wChainScratchPtr)
 75AE TxtHexCellPrefix0          ; "D "
@@ -168,8 +168,8 @@
 71E9 .done                ; common exit of DrawChainSelection
 72C0 .done                ; common exit of DrawKitSampleNames
 72D7 .loop                ; loop head in UpdateStatusPanel
-7453 .done                ; common exit of ChainDrawSyncStatus
-749C .done                ; common exit of ChainDrawLeadStatus
+7453 .done                ; common exit of DrawSyncStatusLsdj
+749C .done                ; common exit of DrawSyncStatusMidi
 750E .done                ; common exit of ChainDrawStatusWord
 75A2 .done                ; common exit of DrawTileHexCell
 76E0 .done                ; common exit of DrawChainCell
@@ -339,10 +339,10 @@
 73AA .loadTempo
 73B5 .chainUpdateScope
 7421 .checkSyncRun
-7435 .chainSyncStatusFlag
+7435 .syncStatusFlag
 747F .checkPlayMode
-74C9 .chainDrawSyncStatus
-74CF .chainDrawLeadStatus
+74C9 .drawSyncStatusLsdj
+74CF .drawSyncStatusMidi
 74D5 .checkPlayMode
 74F3 .checkPlayModeb
 
@@ -397,9 +397,9 @@
 4B33 .chainScanCmd
 4B87 .loadWordCol
 4B91 .cont
-4BC6 .setOAMByte
+4BC6 .setOamByte
 4C00 .cont
-4C14 .setOAMByte_2
+4C14 .setOamByte_2
 4CEB .cont
 4CED .checkGameboyType_2
 4D00 .cont_2
@@ -632,10 +632,10 @@
 73F6 .cont_2
 7404 .cont_3
 7408 .cont_4
-744A .drawStringAtCursor
-7493 .drawStringAtCursor
+744A .drawSyncStatusText
+7493 .drawSyncStatusText
 74E5 .cont
-74EA .drawStringAtCursor
+74EA .drawSyncStatusText
 7503 .cont_2
 7574 .cont
 75D0 .checkArg

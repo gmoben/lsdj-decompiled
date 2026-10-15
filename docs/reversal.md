@@ -316,7 +316,7 @@ throughout. Clusters named:
   (the per-event chain from the main loop).
 - **Video/UI/OAM**: `printf` (printf, 23 callers) + `printn`, `DrawTempo`
   (+ `GetTempoTimerVal`, var `wTempoMode`), `DrawPulseDuty`, `ShowMessage`
-  (47 callers), `SetOAMByte`, the marker-sprite `SetSprite*`/`ClearMarkerSprites`,
+  (47 callers), `SetOamByte`, the marker-sprite `SetSprite*`/`ClearMarkerSprites`,
   `RedrawScreen`, `ResetScreenSprites`, `CopyToBgTilemap` (since identified as
   GBDK's `set_bkg_tiles`), `ClearBgTilemap`,
   `SwitchToDoubleSpeed`.

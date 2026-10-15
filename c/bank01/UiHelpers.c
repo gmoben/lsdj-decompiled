@@ -351,8 +351,8 @@ void WriteInstrName(UBYTE instr)
 
 void LoadHwTables(void)
 {
-    memcpy(wNotePeriodLo, wIsCGB ? PitchCurveCgb : PitchCurve, 0xD8);
-    memcpy(wNotePeriods, wIsCGB ? NoteFreqDeltaTable : NoteFreqTable, 0xD8);
+    memcpy(wNotePeriodLo, wIsCgb ? PitchCurveCgb : PitchCurve, 0xD8);
+    memcpy(wNotePeriods, wIsCgb ? NoteFreqDeltaTable : NoteFreqTable, 0xD8);
 }
 
 /* $4B5E: clear the OAM shadow and the sprite tiles ($8000-$802F and

@@ -36,10 +36,10 @@ extern UBYTE ChainColX[];                  /* the chain screen's two columns: x 
 void DrawWaveCol(UBYTE i);
 void EraseWordCursor(void);
 void DrawWordCursor(void);
-void DrawStringAtCursor(char *s);
-void ChainDrawSyncStatus(void);
-void ChainDrawLeadStatus(void);
-UBYTE ChainSyncStatusFlag(void);
+void DrawSyncStatusText(char *s);
+void DrawSyncStatusLsdj(void);
+void DrawSyncStatusMidi(void);
+UBYTE SyncStatusFlag(void);
 void WriteWaveSample(UBYTE n, UBYTE v);
 UBYTE ReadWaveSample(UBYTE i);
 void WaveInitSprites(void);
@@ -536,9 +536,9 @@ void WaveSetSpriteCols(UBYTE y1, UBYTE y2)
     UBYTE i;
 
     for (i = 3; (UWORD)i != 11; i++)
-        SetOAMByte((i << 2) + 1, y1);
+        SetOamByte((i << 2) + 1, y1);
     for (; (UWORD)i != 19; i++)
-        SetOAMByte((i << 2) + 1, y2);
+        SetOamByte((i << 2) + 1, y2);
 }
 
 void SetWaveCursorSprite(void)
@@ -571,16 +571,16 @@ void WaveInitSprites(void)
 
     i = 0x0C;
     for (y = 0x40; (UWORD)y != 0x80; y += 8) {
-        SetOAMByte(i++, y);
+        SetOamByte(i++, y);
         i++;
-        SetOAMByte(i++, 5);
-        SetOAMByte(i++, 0x82);
+        SetOamByte(i++, 5);
+        SetOamByte(i++, 0x82);
     }
     for (y = 0x40; (UWORD)y != 0x80; y += 8) {
-        SetOAMByte(i++, y);
+        SetOamByte(i++, y);
         i++;
-        SetOAMByte(i++, 5);
-        SetOAMByte(i++, 0x82);
+        SetOamByte(i++, 5);
+        SetOamByte(i++, 0x82);
     }
     SetWaveCursorSprite();
 }
@@ -1814,7 +1814,7 @@ void UpdateStatusPanel(void)
     ChainUpdateScope();
 }
 
-void DrawStringAtCursor(char *s)
+void DrawSyncStatusText(char *s)
 {
     hBgDigitPal = 4;
     hBgPal = 1;
@@ -1822,42 +1822,42 @@ void DrawStringAtCursor(char *s)
     DrawString(s);
 }
 
-void ChainDrawSyncStatus(void)
+void DrawSyncStatusLsdj(void)
 {
     if (wSyncHandshake)
-        DrawStringAtCursor("WAIT");
+        DrawSyncStatusText("WAIT");
     else if (wSyncRun)
-        DrawStringAtCursor("LEAD");
-    else if (ChainSyncStatusFlag())
-        DrawStringAtCursor("SYNC");
+        DrawSyncStatusText("LEAD");
+    else if (SyncStatusFlag())
+        DrawSyncStatusText("SYNC");
     else
-        DrawStringAtCursor("    ");
+        DrawSyncStatusText("    ");
 }
 
-void ChainDrawLeadStatus(void)
+void DrawSyncStatusMidi(void)
 {
-    if (ChainSyncStatusFlag())
-        DrawStringAtCursor("SYNC");
+    if (SyncStatusFlag())
+        DrawSyncStatusText("SYNC");
     else if (wPlayMode)
-        DrawStringAtCursor("WAIT");
+        DrawSyncStatusText("WAIT");
     else
-        DrawStringAtCursor("    ");
+        DrawSyncStatusText("    ");
 }
 
 void DrawSyncStatus(void)
 {
     switch (wSyncMode) {
     case 1:
-        ChainDrawSyncStatus();
+        DrawSyncStatusLsdj();
         break;
     case 3:
-        ChainDrawLeadStatus();
+        DrawSyncStatusMidi();
         break;
     case 6:
-        DrawStringAtCursor(wPlayMode ? "SYNC" : "    ");
+        DrawSyncStatusText(wPlayMode ? "SYNC" : "    ");
         break;
     case 7:
-        DrawStringAtCursor(wPlayMode ? "LEAD" : "    ");
+        DrawSyncStatusText(wPlayMode ? "LEAD" : "    ");
         break;
     }
 }

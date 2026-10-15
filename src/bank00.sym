@@ -57,7 +57,7 @@
 26D8 .song                ; (was UpdateDispatch_Song) idx 4 -> bank $07:$47AA (SongScreenUpdate)
 0038 Rst38                      ; rst $38, LSDj's crash vector (and its asserts'): di, ld b,b (debugger break), jr CrashTrampoline
 0040 VBlankInterrupt            ; VBlank vector: push af/hl, jp VBlankHandler
-0048 STATInterrupt              ; STAT vector: reti (unused)
+0048 StatInterrupt              ; STAT vector: reti (unused)
 0050 TimerInterrupt             ; timer vector: jp TimerHandler
 0058 SerialInterrupt            ; serial vector: jp SerialHandler
 0060 JoypadInterrupt            ; joypad vector: reti (unused)
@@ -76,8 +76,8 @@
 34BD SerialHandler      ; Game Boy sync RX: rSB -> $CBDD, mode in $CBDE
 18BF ReadJoypad         ; standard d-pad/button matrix read
 349B display_off       ; GBDK display_off: wait VBL (rLY), clear rLCDC bit7 (byte-exact match)
-34B2 OAMDMARoutine      ; OAM DMA (source $DD00); copied to HRAM and called there
-3154 SetOAMByte         ; write byte (sp+6) to wOamBuf+offset(sp+4) only if changed; set wOamDirty (-> OAM DMA next frame)
+34B2 OamDmaRoutine      ; OAM DMA (source $DD00); copied to HRAM and called there
+3154 SetOamByte         ; write byte (sp+6) to wOamBuf+offset(sp+4) only if changed; set wOamDirty (-> OAM DMA next frame)
 ; marker/cursor sprite field setters (sprite group at OAM byte $0C+; offset = index*4 + field), used by every editor screen's draw code
 31E3 SetSpriteY         ; OAM Y of sprite (arg) = row*8 + $20, clamped to $FC when off-screen
 31B5 SetSpriteX         ; OAM X of sprite (arg) = col*8 + $08
@@ -169,11 +169,11 @@
 2FF8 UpdateEnvNoi     ; per-tick NOI software envelope: wChanEnv+3 toward [$CBD0] via rAUD4ENV
 
 ; --- Link cable sync (see docs/sync.md) ---
-1E93 DispatchSyncClock   ; per sync tick: reset wSyncTick=$FF; if playing, dispatch by wSyncMode (1=LSDJ->SyncTickLSDJ, 3=MIDI->SyncTickMidi); preserves ROM bank
+1E93 DispatchSyncClock   ; per sync tick: reset wSyncTick=$FF; if playing, dispatch by wSyncMode (1=LSDJ->SyncTickLsdj, 3=MIDI->SyncTickMidi); preserves ROM bank
 1D29 SyncStartTransport  ; on play-start (LSDJ/MIDI): if LSDJ idle (wSyncTick=$FF) become leader (wSyncRun=1, SyncSetSendMode) else send handshake
 1D6C SyncStopTransport   ; on play-stop: LSDJ/MIDI -> reset wSyncRun/Tick/Handshake + SyncSetRecvMode; AN.OUT (7) -> $CB68=3
-1D9D SyncTickLSDJ        ; LSDJ sync tick: in live mode reset per-channel play state + redraw SONG row indicators (bank2 $5F5E); else copy wCurScreen->wPlayMode (bank2 $7C4C)
-1E75 SyncTickMidi        ; MIDI sync tick: if live mode -> SyncTickLSDJ, else advance playback twice (bank2 $7C4C)
+1D9D SyncTickLsdj        ; LSDJ sync tick: in live mode reset per-channel play state + redraw SONG row indicators (bank2 $5F5E); else copy wCurScreen->wPlayMode (bank2 $7C4C)
+1E75 SyncTickMidi        ; MIDI sync tick: if live mode -> SyncTickLsdj, else advance playback twice (bank2 $7C4C)
 1EC8 SyncSetSendMode     ; send/leader config: wSyncSendGate=1, $CB6D=0, enable VBlank IRQ + disable serial-receive IRQ
 1EE3 SyncSetRecvMode     ; receive/follower config: wSyncSendGate=0, $CB6D=8, enable serial-receive IRQ, wSyncTick=$FF, SendSyncHandshake
 1F06 SyncApplyMode       ; (re)configure sync for wSyncMode: di, wSyncRun=0, dispatch 0/1/3/5/6/7 -> SyncSetSendMode/SyncSetRecvMode/gates/handshake
@@ -367,8 +367,8 @@
 1CFC .done                ; common exit of GetNextButtons
 1D6A .done                ; common exit of SyncStartTransport
 1D9C .done                ; common exit of SyncStopTransport
-1DB5 .loop                ; loop head in SyncTickLSDJ
-1E6C .done                ; common exit of SyncTickLSDJ
+1DB5 .loop                ; loop head in SyncTickLsdj
+1E6C .done                ; common exit of SyncTickLsdj
 1E92 .done                ; common exit of SyncTickMidi
 1FF3 .loop                ; loop head in CheckRomChecksum
 2028 .loop2               ; loop head in CheckRomChecksum
@@ -411,7 +411,7 @@
 3029 .resetEnv            ; speed 0 / stage overflow: stage = 0, envelope done
 3070 .resetEnv            ; stage = 0, envelope done (PU2)
 30AB .resetEnv            ; stage = 0, envelope done (NOI)
-3174 .done                ; common exit of SetOAMByte
+3174 .done                ; common exit of SetOamByte
 3267 .loop                ; loop head in OrBitsIntoDaBuf
 3269 .loop2               ; loop head in OrBitsIntoDaBuf
 3276 .loop3               ; loop head in OrBitsIntoDaBuf
@@ -423,7 +423,7 @@
 3465 .done                ; common exit of abs
 349F .loop                ; loop head in display_off
 34A5 .loop2               ; loop head in display_off
-34B8 .loop                ; loop head in OAMDMARoutine
+34B8 .loop                ; loop head in OamDmaRoutine
 35D5 .loop                ; loop head in printf
 36D9 .done                ; common exit of printf
 36E7 .loop                ; loop head in StrLength
@@ -446,7 +446,7 @@
 3A32 .done                ; common exit of set_xy_tt
 
 ; --- structural local names (loop heads / common exits) ---
-1E28 .notSong             ; wButtons == case in SyncTickLSDJ
+1E28 .notSong             ; wButtons == case in SyncTickLsdj
 22EE .notProj             ; wButtons == case in SendByteStep
 24D5 .onWave              ; wCurScreen == case in ResetScreenSprites
 2520 .onInstr             ; wCurScreen == case in RedrawScreen

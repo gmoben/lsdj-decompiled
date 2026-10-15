@@ -1387,10 +1387,10 @@ void UpdateEnvSprites(void)
 
     for (i = 0; i != 8; i++) {
         t = i << 2;
-        SetOAMByte(t + 0x0C, 0x40);
+        SetOamByte(t + 0x0C, 0x40);
         u = (i << 3) + 0x30;
-        SetOAMByte(t + 0x0D, u);
-        SetOAMByte(t + 0x0E, u = i + 6);
+        SetOamByte(t + 0x0D, u);
+        SetOamByte(t + 0x0E, u = i + 6);
     }
 }
 

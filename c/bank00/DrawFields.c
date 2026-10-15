@@ -39,11 +39,11 @@ UWORD GetTempoTimerVal(void)
 {
     switch (wTempoMode) {
     case 1:
-        return wIsCGB ? 0x132 : 0x12B;
+        return wIsCgb ? 0x132 : 0x12B;
     case 2:
-        return wIsCGB ? 0x1CB : 0x1C0;
+        return wIsCgb ? 0x1CB : 0x1C0;
     case 3:
-        return wIsCGB ? 0x396 : 0x380;
+        return wIsCgb ? 0x396 : 0x380;
     }
     return wTempo < 40 ? (UWORD)wTempo + 0x100 : wTempo;
 }
