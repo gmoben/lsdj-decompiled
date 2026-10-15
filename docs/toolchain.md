@@ -1459,7 +1459,7 @@ The checklist:
       add a, $e0 / … / adc a, $ff`).
 - [x] Pointer tables as `dw Label`: a `.sym` tag `[N] dw` (`[N] dw @$BB` for
       one pointing into another bank) makes the carve print the N words as
-      labels — CmdHelpTable, FxCmdTable, HexCellPrefixPtrs,
+      labels — CmdHelpPtrs, FxCmdHandlers, HexCellPrefixPtrs,
       HelpMenuPtrs, HelpPagePtrs. The interrupt and `rst $38` vectors are
       named code now (they sat inside `Unused` fill symbols as data, their
       `jp VBlankHandler` a raw number).

@@ -132,7 +132,7 @@ instruction lines vs 146 `db`). A static dispatch audit found the dispatch is
 sites and both are ROM jump-tables (`$401B`, `$679D`); there are **no** RAM-fed
 `jp hl` and **no** `push addr; ret` trampolines. The reach is a **multi-hop static**
 path: the master screen dispatch (`DispatchScreenDraw` → jp-table `$2563` →
-`DrawDispatch_<screen>`) bank-switches into a per-screen handler (the instrument
+`DispatchScreenDraw_<Screen>`) bank-switches into a per-screen handler (the instrument
 editor lives in bank `$03` at `DrawInstrScreen $4DE7`, reached via an inline
 `ld a,N; ld [$2000],a; call` trampoline), which then `FarCall`s into bank-`$1F`
 per-instrument-type handlers. The last link was invisible only because those
@@ -542,7 +542,7 @@ bank 7 **song bookmarks** ($0FF0) and **PS/2 keyboard** subsystems, the
 bank 1C **file-format migration callbacks** (`FileUpgradeV<n><Type>`, e.g.
 `FileUpgradeV0Kit`, passed to `FileForEachInstrType`), the **FX-command help
 strings** (`TxtHelpA..Z` + the B/F/H/S/W screen variants) behind
-`CmdHelpTable`, the bank 1E **font tile blocks** (`TilesFont0A`…`TilesFont2C`,
+`CmdHelpPtrs`, the bank 1E **font tile blocks** (`TilesFont0A`…`TilesFont2C`,
 selected by `wFont` `$C52E`) and **synth waveform
 tables**, and the phrase/chain/instr **allocation bitmap** functions
 (`AllocNextFreePhrase`/`FreeChain`/`AllocNextFreeInstr`/`FindFreeTable`…).

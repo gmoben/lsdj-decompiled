@@ -55,7 +55,7 @@ MANUAL: dict[int, list[tuple[int, int]]] = {
     # bank 1 (UI): two LUTs decoded as code (byte+16-bit table at $40EA; a rising
     # byte curve at $42A0), one small zero-source region, the FX-command help
     # strings + message-bar attr row + screen-name strings ($6FB8-$74F7), the
-    # ShowMessage strings between their Show* wrappers, and CmdHelpTable +
+    # ShowMessage strings between their Show* wrappers, and CmdHelpPtrs +
     # the three S-command help strings ($776E-$781F).
     0x01: [(0xEA, 0x316), (0x1099, 0x10A0), (0x11EE, 0x1208), (0x124B, 0x1253),
            (0x17BF, 0x17D0),

@@ -84,7 +84,7 @@ reset rSCY/rSCX/rSTAT/rWY ; clear scroll, LCD status, window
 - **Banking / dispatch** — MBC5 ROM bank register at `$2000`, shadowed in
   `hCurBank` (`$FF8E`). Cross-bank calls use either an inline trampoline
   (`ld a, N` / `ld [$2000], a` / `jp|call $4000-$7FFF`, e.g. the per-screen
-  `DrawDispatch_<Screen>` stubs, or `CrashTrampoline` (`$0061`), which selects
+  `DispatchScreenDraw_<Screen>` stubs, or `CrashTrampoline` (`$0061`), which selects
   bank 1 and jumps to `CrashHandler` `$794B`, the "DONT PANIC!" crash screen),
   or — the dominant form — the far-call helpers `FarCall` (`$179A`),
   `FarCallArg` (`$17BB`) and `FarCallByte` (`$0BFE`): the caller pushes an

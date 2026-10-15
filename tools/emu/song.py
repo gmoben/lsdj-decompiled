@@ -211,7 +211,7 @@ class LSDj:
         return f"{LSDj.NOTE_NAMES[v % 12]}-{v // 12 + 2}"
 
     # Phrase/table command byte -> letter, from the mnemonic table at ROM $0824
-    # (index 0 = '-' = no command). Verified against FxCmdTable [19].
+    # (index 0 = '-' = no command). Verified against FxCmdHandlers [19].
     FX_CMDS = "-ABCDEFGHKLMOPRSTVWZ"
 
     @classmethod

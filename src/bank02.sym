@@ -39,11 +39,11 @@
 48D2 SndAdvanceSongRow     ; on wChanChain[ch]==$FF, walk chain_assignments (loop-back) -> next chain
 5EAD SndReadSongChain      ; e = chain_assignments[wChanSongRow[ch]][ch] ($B290 = song offset $1290)
 5E7C SndReadChainPhrase    ; e = CHAIN_PHRASES[wChanChain[ch]*16 + wChanChainRow] (SRAM bank1 $A080) -> wChanPhrase
-; --- Per-tick FX command dispatch (command value in a -> FxCmdTable) -------
+; --- Per-tick FX command dispatch (command value in a -> FxCmdHandlers) -------
 ; Command values index the same table as the mnemonics at $0824 ("-ABCDEFGH...").
 ; B/D/G/H have null handlers here -- they act at note-trigger, not per tick.
-4790 SndDispatchFxCmd  ; a = command value (<19); jp FxCmdTable[a]
-47A2 FxCmdTable     ; [19] dw per-tick command handler pointers (0 = no per-tick action)
+4790 SndDispatchFxCmd  ; a = command value (<19); jp FxCmdHandlers[a]
+47A2 FxCmdHandlers              ; [19] dw: each command's per-tick handler (FxCmd_*; 0 = none)
 4679 FxCmd_A            ; A: table start/stop
 476C FxCmd_C            ; C: chord
 46D8 FxCmd_E            ; E: amplitude envelope

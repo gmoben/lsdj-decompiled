@@ -28,26 +28,26 @@
 3298 UploadTilesToVram  ; rSTAT-gated copy of 128 tile bytes ($DA40 -> VRAM $8060)
 2CC6 DrawChanHeader   ; draw the channel/column header at VRAM $9811, dispatched on wSongCol (0-3)
 0150 Start              ; init: di, stack=$E000, clear WRAM/HRAM, save boot regs
-0824 FxMnemonics        ; "-ABCDEFGHKLMOPRSTVWZ": phrase/table command letters indexed by command byte (0='-'=none); FxCmdTable order
+0824 FxMnemonics        ; "-ABCDEFGHKLMOPRSTVWZ": phrase/table command letters indexed by command byte (0='-'=none); FxCmdHandlers order
 0839 PlayModeNames              ; five 9-byte table PLAY mode names "  MANUAL", "    ONCE", "    LOOP", "PINGPONG", "  RESYNC" (DrawWaveInstr: byte 9, capped at 5)
 0DDB InitAndLoadSong    ; second-stage boot (runs once before MainLoop): SwitchToDoubleSpeed, ClearBgTilemap, init subsystems, load the working song (bank1 $4CF1/$4848) or ResetWorkState if empty, set palettes + load song properties
 1377 .mainLoop            ; (was MainLoop) poll ready flags, then process a frame (-> ProcessInput)
 1CFF SyncLoadSetting    ; read song sync property ($BFBD) -> wSyncMode/wSyncMode2
-254F DispatchScreenDraw ; jp table ScreenDrawTable indexed by wCurScreen ($C401): per-screen draw
-2563 ScreenDrawTable    ; 15x jp: screen index -> "select bank N; call draw; ret"
+254F DispatchScreenDraw ; jp table ScreenDrawJumps indexed by wCurScreen ($C401): per-screen draw
+2563 ScreenDrawJumps    ; 15x jp: screen index -> "select bank N; call draw; ret"
 ; --- per-screen draw dispatch stubs (select bank, call the screen's draw) ---
-2593 DrawDispatch_Phrase     ; idx 1 -> bank $04:$4CE5 (Phrase: note/instr/cmd/val grid)
-25A2 DrawDispatch_Groove     ; idx 2 -> bank $1D:$41DA (reads grooves)
-25B1 DrawDispatch_Chain      ; idx 3 -> bank $06:$5947 (chain_transp, 2 cols)
-25C0 DrawDispatch_Song       ; idx 4 -> bank $07:$4574 (Song: 4-channel sequence)
-25CF DrawDispatch_Table      ; idx 5 -> bank $05:$4762 (table_env)
-25DE DrawDispatch_Instr ; idx 6 -> bank $03:$4DE7 (Instrument: reads instruments 119x)
-25F0 DrawDispatch_Wave       ; idx 8 -> bank $06:$4F18 (wave_frames, copy/paste)
-25FF DrawDispatch_Proj    ; idx 9 -> bank $1B:$5C17 (DrawProjScreen)
-260E DrawDispatch_Synth      ; idx 10 -> bank $1D:$68AB (synth params)
-2620 DrawDispatch_Word       ; idx 12 -> bank $06:$41A2 (words / speech)
-262F DrawDispatch_File       ; idx 13 -> bank $1C:$57BB (save/load filesystem)
-263E DrawDispatch_Help       ; idx 14 -> bank $1B:$4A62 (help text)
+2593 DispatchScreenDraw_Phrase     ; idx 1 -> bank $04:$4CE5 (Phrase: note/instr/cmd/val grid)
+25A2 DispatchScreenDraw_Groove     ; idx 2 -> bank $1D:$41DA (reads grooves)
+25B1 DispatchScreenDraw_Chain      ; idx 3 -> bank $06:$5947 (chain_transp, 2 cols)
+25C0 DispatchScreenDraw_Song       ; idx 4 -> bank $07:$4574 (Song: 4-channel sequence)
+25CF DispatchScreenDraw_Table      ; idx 5 -> bank $05:$4762 (table_env)
+25DE DispatchScreenDraw_Instr ; idx 6 -> bank $03:$4DE7 (Instrument: reads instruments 119x)
+25F0 DispatchScreenDraw_Wave       ; idx 8 -> bank $06:$4F18 (wave_frames, copy/paste)
+25FF DispatchScreenDraw_Proj    ; idx 9 -> bank $1B:$5C17 (DrawProjScreen)
+260E DispatchScreenDraw_Synth      ; idx 10 -> bank $1D:$68AB (synth params)
+2620 DispatchScreenDraw_Word       ; idx 12 -> bank $06:$41A2 (words / speech)
+262F DispatchScreenDraw_File       ; idx 13 -> bank $1C:$57BB (save/load filesystem)
+263E DispatchScreenDraw_Help       ; idx 14 -> bank $1B:$4A62 (help text)
 264B DispatchScreenUpdate ; per-frame per-screen update for screens 1-5 (table $268D)
 268D .jumpTable           ; (was ScreenUpdateTable) 5x jp: screen 1-5 -> "select bank N; call update; ret"
 269C .phrase              ; (was UpdateDispatch_Phrase) idx 1 -> bank $1F:$648F (PhraseScreenUpdate)
@@ -383,7 +383,7 @@
 23C8 .done                ; common exit of ProcessSyncByte
 2495 .loop                ; loop head in SyncReceiveAnalogClock
 24A4 .done                ; common exit of SyncReceiveAnalogClock
-264A .done                ; common exit of DrawDispatch_Help
+264A .done                ; common exit of DispatchScreenDraw_Help
 2718 .done                ; common exit of DispatchScreenUpdate.song
 285A .soloLoop            ; loop head in HandleInputCombos: silence the other channels
 29E3 .unsoloLoop          ; loop head in HandleInputCombos: the other channels back
@@ -757,9 +757,9 @@
 2486 .incSyncInGate
 248A .setSyncInGate_2
 24EB .checkCurScreen
-2590 .toDrawDispatch_Help
-25ED .toDrawDispatch_Help
-261D .toDrawDispatch_Help
+2590 .toDispatchScreenDraw_Help
+25ED .toDispatchScreenDraw_Help
+261D .toDispatchScreenDraw_Help
 2665 .setSyncInGate
 266A .setRedrawPending
 27B7 .kbdSet

@@ -1,8 +1,8 @@
 ; Bank $01 -- UI string table + help text (incl. the FX command help popups)
 4485 .done                ; (was CartridgeTest) common exit
 51F4 PitchSpeedNames    ; [4][5] pitch-speed display names "STEP"/"TICK"/"DRUM"/"FAST"
-764C ShowCmdHelp                ; show command cmd's help line on double-A (ShowMessage; wVramCursor kept): B and H by screen (phrase or table), F, S and W by channel (wSongCol), the rest from CmdHelpTable
-776E CmdHelpTable   ; [20] dw -> the "X: DESCRIPTION" help line per command (index = command*2; entry 0 points at an empty string, the end of TxtHelpSSweep)
+764C ShowCmdHelp                ; show command cmd's help line on double-A (ShowMessage; wVramCursor kept): B and H by screen (phrase or table), F, S and W by channel (wSongCol), the rest from CmdHelpPtrs
+776E CmdHelpPtrs   ; [20] dw -> the "X: DESCRIPTION" help line per command (index = command*2; entry 0 points at an empty string, the end of TxtHelpSSweep)
 
 ; --- UI functions called from bank 0 (bank $01 paged in) ---
 4CF1 InitScreen        ; screen setup: ApplyColorSet + ClearOamBuf + LoadHwTables
@@ -75,7 +75,7 @@
 781F ClearMessageBar    ; zero wMessageStrPtr, fill top bar with spaces
 7C86 LoadProjSettings ; audio off; read key-repeat/sync/clone/colorset from song properties ($bfbc+), clamp, re-init palettes
 
-; --- FX command help strings (CmdHelpTable targets; shown on double-A) ---
+; --- FX command help strings (CmdHelpPtrs targets; shown on double-A) ---
 6FB8 TxtHelpA           ; "A: RUN TABLE [00-1F=PLAY, 20=STOP]"
 6FDB TxtHelpBNote       ; "B: MAYBE PLAY NOTE; ..." (phrase screen)
 7016 TxtHelpBHop        ; "B: MAYBE HOP; ..." (table screen)

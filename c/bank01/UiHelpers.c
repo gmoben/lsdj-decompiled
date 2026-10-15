@@ -71,7 +71,7 @@ void SetSyncSendRate(void);                 /* bank 7 */
 void LoadFileListState(void);               /* bank $1C */
 void FileUpgradeSong(void);                 /* bank $1C */
 void DrawKbdInstrState(void);               /* bank 7 */
-extern char *CmdHelpTable[];            /* $01:$776E */
+extern char *CmdHelpPtrs[];            /* $01:$776E */
 extern char TxtHelpBNote[];                 /* $01:$6FDB "B: MAYBE PLAY NOTE; ..." */
 extern char TxtHelpBHop[];                  /* $01:$7016 "B: MAYBE HOP; ..." */
 extern char TxtHelpFTune[];                 /* $01:$7123 "F: FINETUNE ..." */
@@ -704,7 +704,7 @@ void ShowCmdHelp(UBYTE cmd)
         s = wSongCol == 2 ? TxtHelpW : TxtHelpWShort;
         break;
     default:
-        s = CmdHelpTable[cmd];
+        s = CmdHelpPtrs[cmd];
         break;
     }
     ShowMessage(s);

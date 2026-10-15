@@ -355,7 +355,12 @@ in `docs/functionality.md`.
   `File`, `Sync`, `Fx`, `Kbd`) and comes before the verb
   (`SndReadTableEnv`), never the source file or bank a routine sits in; an
   identical copy of a routine or table in another bank takes that bank as a
-  suffix (`SynthLockByteAddrB1D`, `DefaultWaveFrameB1F`). A screen's cursor highlight pair is `Draw<Screen>Cursor` /
+  suffix (`SynthLockByteAddrB1D`, `DefaultWaveFrameB1F`). A list of `jp`s is
+  `<Name>Jumps` (`ScreenDrawJumps`), a `dw` list of routines
+  `<Name>Handlers` (`FxCmdHandlers`) and of strings or pages `<Name>Ptrs`
+  (`CmdHelpPtrs`); a lookup table is `<Name>Table` (`NoteFreqTable`); a
+  case body labelled for the disassembly is `<Routine>_<Case>`
+  (`DispatchScreenDraw_Song`); an FX command's handler is `FxCmd_<letter>`. A screen's cursor highlight pair is `Draw<Screen>Cursor` /
   `Erase<Screen>Cursor`; a screen's handlers are `Draw<Screen>Screen` /
   `<Screen>ScreenInput` / `<Screen>ScreenUpdate`; a banked-call wrapper is
   `<Name>Far`. `Get`/`Read` return a value; a routine that only points

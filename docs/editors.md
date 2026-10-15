@@ -27,7 +27,7 @@ Key mechanisms:
   window `$4000`-`$7FFF`.
 - **Banked calls**: bank 0 sets the bank then `call`s the `$4000`-`$7FFF`
   routine; results come back in `e`/`de` (SDCC convention). Inline stubs (the
-  `DrawDispatch_<Screen>` entries, `CrashTrampoline` `$0061`) and the far-call
+  `DispatchScreenDraw_<Screen>` entries, `CrashTrampoline` `$0061`) and the far-call
   helpers `FarCall`/`FarCallArg`/`FarCallByte` wrap this. (In the generated
   asm, bank 0's inline-stub call targets still print as raw `$4000`-`$7FFF`
   addresses — 79 sites; the debugger resolves them at runtime.)
@@ -46,7 +46,7 @@ Key mechanisms:
 
 The current screen is `wCurScreen` = **`$C401`** (0–14).
 `DispatchScreenDraw` (`$254F`) does `hl = $2563 + 3*screen; jp hl` into a
-15-entry `jp` table (`ScreenDrawTable`, `$2563`). Each target is a stub that
+15-entry `jp` table (`ScreenDrawJumps`, `$2563`). Each target is a stub that
 selects the screen's ROM bank (`$FF8E` + `$2000`) and `call`s its draw routine:
 
 | `$C401` | Draw routine | Screen | Evidence |
@@ -69,7 +69,7 @@ selects the screen's ROM bank (`$FF8E` + `$2000`) and `call`s its draw routine:
 All 12 of LSDj's screens are identified — a complete, coherent set. Each
 screen's draw routine is located by `bank:addr`; the indices are named in
 [`../constants/screens.inc`](../constants/screens.inc) and the bank-0 dispatch
-stubs in `src/bank00.sym` (`DrawDispatch_<Screen>`).
+stubs in `src/bank00.sym` (`DispatchScreenDraw_<Screen>`).
 
 Input has its own index: `DispatchScreenInput` (`$2A71`) jumps through a
 15-entry table at `$2A86` to each screen's input handler (resolved from the
@@ -211,6 +211,6 @@ per-kit/per-sample sections) and the 30 empty banks (`$22`-`$3F`).
 
 The whole screen system is named: the spine (`main.mainLoop`, `ProcessInput`,
 `HandleButtonEvent`, `DispatchScreenInput`, `DispatchScreenDraw` +
-`ScreenDrawTable`, `DispatchScreenUpdate` + `DispatchScreenUpdate.jumpTable`,
+`ScreenDrawJumps`, `DispatchScreenUpdate` + `DispatchScreenUpdate.jumpTable`,
 `RedrawScreen`), every draw/update/input handler, the per-field helpers, and
 the sync subsystem ([`sync.md`](sync.md)).
