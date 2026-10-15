@@ -464,7 +464,7 @@ per bank: `DefaultWaveFrameB1`/`B3`/`B1C`/`B1F` — not `Lut491A`); the 16 bytes
 copied to `synth_params $3EB2` are `DefaultSynthParameters`. Names get corrected as
 understanding improves: bank 1's `$57BF`, first named `TxtBlankString` (it
 *looked* like an all-zero display string), turned out to be the Chain screen's
-CGB palette block, `ScreenPaletteChain`. If a table's purpose can't be
+ground tile map, `ScreenPaletteChain`. If a table's purpose can't be
 pinned after a reasonable look, leave it a documented gap rather than an
 address-name (an address-name is worse than an honest gap). Cross-bank duplicates
 need unique names (one link namespace); `make compare`'s assembler catches
@@ -582,7 +582,7 @@ five more misdecoded table regions (kit/wav pitch tables at the bank-2 tail,
 the bank-3 instrument-field cursor layout `InstrumentFieldX/Y/W/Counts`, the bank-5
 map-column metrics, the bank-1D `SynthFieldLayout`, and bank-1F `$491A` —
 named `FxCmdRefTable` in this pass, later corrected back to the default wave
-frame, `DefaultWaveFrameB1F`) and the full per-screen CGB palette block set
+frame, `DefaultWaveFrameB1F`) and the full set of per-screen ground tile maps
 (`ScreenPaletteSong`…`ScreenPaletteInstrumentNoise`) resolved from `GetScreenPalette`'s
 dispatch. `data_refs.py` now reports **0**; every referenced ROM data address
 carries an exact functional symbol. One final Emulicious-specific class remained

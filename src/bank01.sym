@@ -32,7 +32,7 @@
 
 ; --- data tables (were decoded as code) ---
 40EA DefaultWaveFrameB1  ; [16] default wave frame (32-nibble ramp), memcpy'd into wave_frames by $47E5
-57BF ScreenPaletteChain             ; CGB palette block: CHAIN screen
+57BF ScreenPaletteChain             ; [18][20] ground tiles, CHAIN screen (DrawScreenPaletteMap)
 7498 TxtBlankString2   ; blank (zero) display string (ref $6D98)
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
@@ -55,7 +55,7 @@
 7955 DrawCrashScreen            ; the crash screen: "DONT PANIC!", the bank, the stack pointer and 10 stack words, play mode, screen, hardware, sync, AST, the version; then hangs
 7BDE ResetEditorState           ; clear selection rect, clipboard type, cursor mode (+wQuickMarking)
 7DE9 ClearSramWindow           ; zero the whole $A000-$BFFF SRAM window (8 bytes/iter until h==$c0); used during init/format
-7DFB CopyScreenMapCgb           ; copy the 20x18 map at arg to the BG attribute map ($9800, VBK 1)
+7DFB CopyScreenMapCgb           ; copy the 20x18 map at arg to the BG map ($9800) as CGB tiles + attributes: below $48 palette 0, $48-$8C palette 1 (the shaded block, tile - $45), $8D up palette 2 (the highlight block, tile - $8A)
 7E4E CopyScreenMapDmg           ; copy the 20x18 map at arg to the BG map ($9800; rSTAT-gated)
 7E74 SaveCrashStack             ; save the crash's stack pointer (wCrashSP) and 20 bytes from the stack (wCrashStack), then DrawCrashScreen
 7ED3 LoadObjPalette           ; upload object palette: write rOBPI/rOBPD from [bc], index/count from args
@@ -147,20 +147,20 @@
 41D2 NoteFrequencyDeltaTable         ; companion 108 x dw pitch table (finetune/delta variant, LoadHardwareTables)
 42AA PitchCurve                 ; [216] rising pitch-response curve (LoadHardwareTables copies it)
 4382 PitchCurveCgb              ; [216] PitchCurve's CGB counterpart (LoadHardwareTables picks by wIsCgb)
-5927 ScreenPaletteTable             ; CGB palette block: TABLE screen
-5A8F ScreenPalettePhrase            ; CGB palette block: PHRASE screen
-5BF7 ScreenPaletteGroove            ; CGB palette block: GROOVE screen
-5D5F ScreenPaletteProject           ; CGB palette block: PROJECT screen
-5EC7 ScreenPaletteSong              ; CGB palette block: SONG screen
-602F ScreenPaletteInstrumentPulse        ; CGB palette block: INSTR screen, PULSE type
-6197 ScreenPaletteInstrumentWave         ; CGB palette block: INSTR screen, WAVE type
-62FF ScreenPaletteInstrumentKit          ; CGB palette block: INSTR screen, KIT type
-6467 ScreenPaletteInstrumentNoise        ; CGB palette block: INSTR screen, NOISE type
-65CF ScreenPaletteSpeech            ; CGB palette block: SPEECH instrument / word list
-6737 ScreenPaletteWave              ; CGB palette block: WAVE screen
-689F ScreenPaletteSynth             ; CGB palette block: SYNTH screen
-6A07 ScreenPaletteWord              ; CGB palette block: WORD screen
-6B6F ScreenPaletteFile              ; CGB palette block: FILE screen
+5927 ScreenPaletteTable             ; [18][20] ground tiles, TABLE screen (DrawScreenPaletteMap)
+5A8F ScreenPalettePhrase            ; [18][20] ground tiles, PHRASE screen (DrawScreenPaletteMap)
+5BF7 ScreenPaletteGroove            ; [18][20] ground tiles, GROOVE screen (DrawScreenPaletteMap)
+5D5F ScreenPaletteProject           ; [18][20] ground tiles, PROJECT screen (DrawScreenPaletteMap)
+5EC7 ScreenPaletteSong              ; [18][20] ground tiles, SONG screen (DrawScreenPaletteMap)
+602F ScreenPaletteInstrumentPulse        ; [18][20] ground tiles, INSTR screen, PULSE type (DrawScreenPaletteMap)
+6197 ScreenPaletteInstrumentWave         ; [18][20] ground tiles, INSTR screen, WAVE type (DrawScreenPaletteMap)
+62FF ScreenPaletteInstrumentKit          ; [18][20] ground tiles, INSTR screen, KIT type (DrawScreenPaletteMap)
+6467 ScreenPaletteInstrumentNoise        ; [18][20] ground tiles, INSTR screen, NOISE type (DrawScreenPaletteMap)
+65CF ScreenPaletteSpeech            ; [18][20] ground tiles, SPEECH instrument / word list (DrawScreenPaletteMap)
+6737 ScreenPaletteWave              ; [18][20] ground tiles, WAVE screen (DrawScreenPaletteMap)
+689F ScreenPaletteSynth             ; [18][20] ground tiles, SYNTH screen (DrawScreenPaletteMap)
+6A07 ScreenPaletteWord              ; [18][20] ground tiles, WORD screen (DrawScreenPaletteMap)
+6B6F ScreenPaletteFile              ; [18][20] ground tiles, FILE screen (DrawScreenPaletteMap)
 4144 NoteFrequency37                 ; NoteFrequencyTable entry 37 (period $0714) -- exact symbol for Emulicious's interior split
 4247 NoteFrequencyD58High              ; hi byte of NoteFrequencyDeltaTable entry 58 (interior split)
 5099 TxtPctDColon               ; "%d:"

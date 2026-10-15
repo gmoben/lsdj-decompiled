@@ -249,6 +249,13 @@ class TileBlockTests(unittest.TestCase):
         self.assertEqual(b"".join(b for _a, b, _t, _r in rows), self.BLOCK)
 
 
+class RowTableTests(unittest.TestCase):
+    def test_rows_of_a_width_split_at_labels_inside(self):
+        data = bytes(range(60))
+        rows = disasm.disassemble(data, 0, 60, 0x5000, [(0, 60)], {45}, row_tables=[(0, 60, 20)])
+        self.assertEqual([(a - 0x5000, len(b)) for a, b, _t, _r in rows], [(0, 20), (20, 20), (40, 5), (45, 15)])
+
+
 class BytePointerTests(unittest.TestCase):
     """Addresses the code loads a byte at a time."""
     HOME = {0x179A: "FarCall"}

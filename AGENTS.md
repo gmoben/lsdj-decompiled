@@ -339,7 +339,10 @@ in `docs/functionality.md`.
   (`coverage.is_data_symbol`). Name data that way and it is never traced or
   rendered as instructions. A table of addresses is tagged `[N] dw` (N
   words; `[N] dw @$BB` when they point into bank BB): the carve prints it as
-  `dw Label` so the targets can move.
+  `dw Label` so the targets can move. A table of R rows of C bytes is tagged
+  `[R][C]`: one `db` line per row (a screen's 20x18 map, `[18][20]`). A
+  `Tiles` symbol is a tile block (`tools/gfx.py`): its tiles come from
+  `gfx/<name>.png`.
 - **Vocabulary.** Names spell their words out, one spelling per word in
   every name (routines, data, local labels, RAM, C identifiers):
   `Channel`, `Instrument`, `Project`, `Envelope`, `Vibrato`, `Command`

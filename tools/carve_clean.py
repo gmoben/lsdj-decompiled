@@ -257,6 +257,20 @@ def pointer_tables(bank: int) -> list[tuple[int, int, int]]:
     return out
 
 
+def row_tables(bank: int) -> list[tuple[int, int, int]]:
+    """Tables the bank's .sym tags `[R][C]` (R rows of C bytes, e.g. a screen's
+    20x18 map): (lo, hi) file offsets and the row width, for disasm.py --rows,
+    which prints one `db` line per row."""
+    out = []
+    base = bank * BANK - (0 if bank == 0 else 0x4000)
+    for addr, _name, comment in cov.read_sym(ROOT / "src" / f"bank{bank:02x}.sym"):
+        m = re.match(r"\[(\d+)\]\[(\d+)\]", comment)
+        if m:
+            rows, width = int(m.group(1)), int(m.group(2))
+            out.append((base + addr, base + addr + rows * width, width))
+    return out
+
+
 def tile_blocks(rom: bytes, bank: int) -> list[tuple[int, int, str]]:
     """The bank's tile blocks: `Tiles*` symbols whose header (tools/gfx.py)
     sizes them, with no other symbol inside. (lo, hi) file offsets and the
@@ -335,6 +349,9 @@ def main() -> None:
         tables = pointer_tables(b)
         if tables:
             cmd += ["--ptr-tables", ",".join(f"0x{lo:X}:0x{hi:X}:0x{tb:X}" for lo, hi, tb in tables)]
+        shaped = row_tables(b)
+        if shaped:
+            cmd += ["--rows", ",".join(f"0x{lo:X}:0x{hi:X}:{w}" for lo, hi, w in shaped)]
         blocks = tile_blocks(rom, b)
         for lo, hi, name in blocks:
             gfx.write_png(ROOT / gfx.GFX_DIR / f"{name}.png", gfx.block_tiles(rom[lo:hi]))

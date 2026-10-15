@@ -107,6 +107,16 @@ Before most screen draws, the dispatch prologue calls `DrawScreenColumnLabels`
 (`$1E:$4000`). Runtime variables are collected in
 [`../constants/ram.inc`](../constants/ram.inc).
 
+A screen's ground -- which cells are shaded, which highlighted, its fixed
+labels -- is a 20x18 tile map in bank 1, `ScreenPalette<Screen>` (one per
+screen and instrument type; `GetScreenPalette` picks it, `DrawScreenPaletteMap`
+draws it, one `db` line per screen line in the carve). Its bytes are DMG tile
+numbers, copied as they are on DMG (`CopyScreenMapDmg`); on CGB,
+`CopyScreenMapCgb` turns the variant blocks into palettes: below `$48` the
+normal font (palette 0), `$48`-`$8C` the shaded block (palette 1, tile − `$45`),
+`$8D` up the highlight block (palette 2, tile − `$8A`). See
+[`rom_map.md`](rom_map.md) → *Bank $1E: fonts and UI tiles*.
+
 **Carved banks: 13 of 64** — `$00`-`$07` and `$1B`-`$1F`, i.e. **every program
 bank**. The 21 sample kits (`$08`-`$1A`, `$20`-`$21`) are `INCBIN`s, and the 30
 kit slots with no kit in them (`$22`-`$3F`, all `$FF`) are `ds $4000, $ff`.

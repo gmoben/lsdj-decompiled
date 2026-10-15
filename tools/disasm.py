@@ -738,7 +738,8 @@ def disassemble(data: bytes, start: int, end: int, org: int,
                 incbins: list[IncBin] | None = None,
                 clines: list[CLines] | None = None,
                 ptr_tables: list[tuple[int, int, int]] | None = None,
-                tiles: list[tuple[int, int, str]] | None = None) -> list[Row]:
+                tiles: list[tuple[int, int, str]] | None = None,
+                row_tables: list[tuple[int, int, int]] | None = None) -> list[Row]:
     """Return decoded rows covering file offsets [start, end).
 
     `anchors` is a set of file offsets that are known code-instruction starts
@@ -757,12 +758,16 @@ def disassemble(data: bytes, start: int, end: int, org: int,
     word, which rom_pointers() turns into labels.
 
     `tiles` are (lo, hi, name) tile blocks whose tiles come from
-    gfx/<name>.png (_emit_tiles)."""
+    gfx/<name>.png (_emit_tiles).
+
+    `row_tables` are (lo, hi, width) tables printed one `db` line per row of
+    `width` bytes (a screen's 20x18 map: a line per screen line)."""
     anchors = anchors or set()
     incbins = incbins or []
     clines = clines or []
     ptr_tables = ptr_tables or []
     tiles = tiles or []
+    row_tables = row_tables or []
 
     def next_data_edge(o: int) -> int:
         edges = [hi if lo <= o < hi else lo for lo, hi in data_ranges if o < hi]
@@ -770,6 +775,7 @@ def disassemble(data: bytes, start: int, end: int, org: int,
         edges += [hi if lo <= o < hi else lo for lo, hi, _r in clines if o < hi]
         edges += [hi if lo <= o < hi else lo for lo, hi, _b in ptr_tables if o < hi]
         edges += [hi if lo <= o < hi else lo for lo, hi, _n in tiles if o < hi]
+        edges += [hi if lo <= o < hi else lo for lo, hi, _w in row_tables if o < hi]
         edges += [a for a in anchors if a > o]
         return min((e for e in edges if e > o), default=end)
 
@@ -802,6 +808,14 @@ def disassemble(data: bytes, start: int, end: int, org: int,
         if tb is not None and tb[1] <= end:
             out.extend(_emit_tiles(data, o, tb[1], addr, tb[2]))
             o = tb[1]
+            continue
+        rt = next((r for r in row_tables if r[0] <= o < r[1]), None)
+        if rt is not None:
+            # a row ends at the row's end, or where a label inside the table
+            # starts (next_data_edge) -- the next row starts there
+            edge = min(o + rt[2] - (o - rt[0]) % rt[2], next_data_edge(o), end)
+            out.append((addr, data[o:edge], _db(data[o:edge]), None))
+            o = edge
             continue
         pt = next((t for t in ptr_tables if t[0] <= o < t[1]), None)
         if pt is not None and o + 2 <= min(pt[1], end):
@@ -1187,6 +1201,9 @@ def main() -> None:
     ap.add_argument("--tiles", default="",
                     help="comma-separated lo:hi:NAME tile blocks whose tiles are "
                          "INCBINs of the 2bpp made from gfx/NAME.png (tools/gfx.py)")
+    ap.add_argument("--rows", default="",
+                    help="comma-separated lo:hi:WIDTH tables printed one db line "
+                         "per row of WIDTH bytes")
     ap.add_argument("--trace", action="store_true",
                     help="recursive-descent: only decode reachable code as code, "
                          "rest as data (auto-seeds vectors/entry for --bank 0)")
@@ -1228,6 +1245,10 @@ def main() -> None:
         explicit_data.append((lo, hi))
     incbins: list[IncBin] = []
     tiles: list[tuple[int, int, str]] = []
+    row_tables: list[tuple[int, int, int]] = []
+    for part in filter(None, (p.strip() for p in args.rows.split(","))):
+        lo, hi, width = (int(x, 0) for x in part.split(":"))
+        row_tables.append((lo, hi, width))
     for part in filter(None, (p.strip() for p in args.tiles.split(","))):
         lo_s, hi_s, name = part.split(":")
         tiles.append((int(lo_s, 0), int(hi_s, 0), name))
@@ -1272,7 +1293,7 @@ def main() -> None:
         lo_s, hi_s, b_s = part.split(":")
         ptr_tables.append((int(lo_s, 0), int(hi_s, 0), int(b_s, 0)))
     table_bank = {org + (o - start): tb for lo, hi, tb in ptr_tables for o in range(lo, hi, 2)}
-    rows = disassemble(data, start, end, org, data_ranges, anchors, incbins, clines, ptr_tables, tiles)
+    rows = disassemble(data, start, end, org, data_ranges, anchors, incbins, clines, ptr_tables, tiles, row_tables)
     # ROM-address operands print as labels (rom_pointers): names from the
     # .sym files beside --symbols; a target inside a data run first gets a row
     # of its own (decode again with it as an anchor)
@@ -1296,7 +1317,7 @@ def main() -> None:
                  and any(lo <= start + (t - org) < hi for lo, hi in data_ranges)}
         if split - anchors:
             anchors |= split
-            rows = disassemble(data, start, end, org, data_ranges, anchors, incbins, clines, ptr_tables, tiles)
+            rows = disassemble(data, start, end, org, data_ranges, anchors, incbins, clines, ptr_tables, tiles, row_tables)
             ptrs, notes = rom_pointers(rows, args.bank, symbols, home, bank_syms, table_bank)
         same = {t for t in map(own, ptrs.values()) if t is not None}
     labels = ({} if args.no_labels
