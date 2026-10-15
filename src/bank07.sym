@@ -13,14 +13,14 @@
 5962 TxtCopiedChains            ; "COPIED CHAINS"
 5B0F TxtPastedChains            ; "PASTED CHAINS"
 40D0 WriteSongCell              ; write song[row][col] = chain (SRAM bank 0 $B290); asserts col < 4, row <= $BF, chain < $80 or $FF
-7220 CopyVramByteSafe           ; spin until rSTAT mode<2 (VRAM free), then copy [de]->[hl], inc e/l
+7220 CopyVramByteSafe           ; spin until rSTAT mode < 2 (VRAM free), then copy [de] -> [hl]; -> e and l + 1
 4574 DrawSongScreen             ; screen idx 4: draws the song sequence (4 channels = PU1/PU2/WAV/NOI)
 47AA SongScreenUpdate           ; per-frame visual update (screen idx 4)
 4139 CloneSongChain             ; song screen chain clone (CLONED CHAIN / +PHRASES in deep mode): new chain via IsSongChainUsed, copy its 16 phrases (deep: clone each phrase once via the wClonePhraseMap map), transposes; returns the new chain or $ff
 
 ; --- context-based names (named for the role their callees show) ---
 4000 CopySongColumn             ; copy a song column from p to q (stride 4) until p reaches $B590 (ScanSongSram); asserts both >= $B290, q < $B590
-404B SongChannelActiveMask      ; OR wChannelActive[0..3] -> combined active flag
+404B SongChannelActiveMask      ; -> e = wChannelActive[0..3] ORed: nonzero if any song channel plays
 4084 EraseSongCursor            ; restore the cursor cell palette (1 if the row is bookmarked, else 0) at SongColumnOffsets[wSongColumn]
 4366 .showCloneMessage          ; show "CLONED CHAIN" / "CLONED CHAIN+PHRASES" popup
 4395 DrawSongCursor             ; highlight the cursor cell (palette 3 on CGB, 2 on DMG) at SongColumnOffsets[wSongColumn]
@@ -59,7 +59,7 @@
 7033 KeyboardDrainQueue         ; delay(10), drop every queued link byte, then SendSyncHandshake
 704E KeyboardPollScancode       ; drain the queue, then expect 20 key records (3, [7,] $27) from the keyboard: 1 if all arrive (the calibration taps)
 71BF DrawSongColumnValues       ; draw 16 song-row values into the column (wSongReadBuffer, IsBookmarked)
-720A DrawHexOrDashes            ; draw space then [bc]: bit7 ? "--" : hex byte
+720A DrawHexOrDashes            ; bc -> a byte: draw a space, then "--" if its bit 7 is set, else its hex; -> bc + 1
 722B CopyVramRowDown            ; copy tilemap row 2 -> row 3 (VBK-aware, calib screen)
 7276 CopyVramRowUp              ; copy tilemap row 17 -> row 16 (VBK-aware, calib screen)
 72C1 ScrollSongVramUp           ; shift VRAM rows up ($9a00 -> $9a20, 15 bytes, hblank-safe)

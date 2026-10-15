@@ -29,14 +29,14 @@ void FlushBlockToSram(void);                /* $1C:$743C */
 UBYTE FindFreeBlock(UBYTE *bank, UWORD *source);   /* $1C:$415A */
 UBYTE CompressSong(void);                   /* $1C:$441F */
 void LoadCompressedBlock(UBYTE v);
-UBYTE FileClassifyToken(void);              /* asm */
+UBYTE FileBlockPointerValid(void);              /* asm */
 UBYTE ReadWorkingSongByte(UWORD address);      /* asm */
 void WriteCompressedByte(UBYTE v);          /* asm, v also in a */
 void FileCompressRun(UBYTE v);              /* asm, v in a */
 
 void FileWriteCompressedSram(void)
 {
-    if (!FileClassifyToken())
+    if (!FileBlockPointerValid())
         DebugTrap();
     rRAMB = wCompressBank;
     _asm

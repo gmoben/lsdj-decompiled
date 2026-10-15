@@ -26,9 +26,12 @@ Open — readability, none affect the bytes:
   `partial: pops what the code before it pushed`; `CallHL` calls whatever is
   in hl. A routine's `out` is what its callers read, so one no code calls
   (`ModS8`, `DivS16`, the vectors) lists what it changes instead.
-- **Prose.** A routine's `.sym` comment says what it does; for the asm, the
-  contract says which registers carry what, and the comment says what they
-  mean only where someone wrote it.
+- **Untraced outputs.** A hand-written routine's comment says what its
+  registers carry in and out, except a few `out`s the contract lists and no
+  comment explains: a value some caller reads after the call whose meaning
+  nobody has traced (`SoundModulateWavFrequency`'s and
+  `SoundProcessChannelTable`'s `a`, `SoundLoadWaveRam`'s and
+  `SoundTriggerWav`'s `b`).
 - **Unread table.** The 108-entry 16-bit ramp at `$00:$09B9` is
   `UnusedRampTable`: no code reads it.
 

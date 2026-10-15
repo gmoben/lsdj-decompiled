@@ -8,10 +8,10 @@
 2CA4 DrawTempoField             ; set VRAM cursor $9891 + BG/digit palettes, then draw the tempo (GetTempoTimerValue)
 17EC WriteVramByteSafe          ; (vramAddr, value) -> spin until rSTAT allows VRAM access, then [vramAddr]=value
 2D7E DrawFieldValue             ; draw a value formatted by its type: string / hex byte (DrawHexByte) / pulse duty (DrawPulseDuty)
-158F SoundInitializeKit1Sample  ; init kit voice 1: bank + sample-table lookup -> loop window/read ptr/clamps (wKit1*)
-1676 SoundInitializeKit2Sample  ; init kit voice 2 (wKit2*); speech uses allophone banks
+158F SoundInitializeKit1Sample  ; init kit voice 1 for sample e (bit 3 picks the loop-flag byte $405C/$405D): bank + sample-table lookup -> loop window/read pointer/clamps (wKit1*); -> e = 1 when the voice plays, 0 when it is switched off
+1676 SoundInitializeKit2Sample  ; init kit voice 2 for sample a (asserts a < $10; wKit2*; speech uses the allophone banks); -> e = 1 when the voice plays, 0 when it is switched off
 339A ResetDisplayState          ; ReinitDisplay, then clear tile-loader alloc + state (wTileRequestSlot0/wUnusedCBFB/wUnusedCBFC)
-337D LoadTilesDispatch          ; route a tile-slot arg to LoadTilesToVram / SetTileLoadRequest
+337D LoadTilesDispatch          ; C's entry to LoadTilesToVram: (the tile-graphics source) on the stack -> de = its request table entry ($0000 when all six are taken)
 148B DebugNop                   ; `ld b,b; ret` -- no$gmb/BGB debug marker (no-op at runtime)
 0908 WriteClipboardCell         ; wClipboardBuffer[col*42 + row] = v (asserts col < 6, row < 42)
 07DA ReadClipboardCell          ; return wClipboardBuffer[col*42 + row] (asserts col < 6, row < 42)
@@ -27,7 +27,7 @@
 30D7 ReloadEnvelopeCounterNoi   ; wEnvelopeCounterNoi = ExponentialCurve16[wEnvelopeSpeedNoi]
 3298 UploadTilesToVram          ; rSTAT-gated copy of 128 tile bytes ($DA40 -> VRAM $8060)
 2CC6 DrawChannelHeader          ; draw the channel/column header at VRAM $9811, dispatched on wSongColumn (0-3)
-0150 Start                      ; init: di, stack=$E000, clear WRAM/HRAM, save boot regs
+0150 Start                      ; init (from Entry): a = the boot ROM's model id and b its AGB flag, kept in wBootHardwareId/wBootAgbId; di, stack at $E000, clear WRAM/HRAM, copy OamDmaRoutine to HRAM
 0824 CommandMnemonics           ; "-ABCDEFGHKLMOPRSTVWZ": phrase/table command letters indexed by command byte (0='-'=none); CommandHandlers order
 0839 PlayModeNames              ; five 9-byte table PLAY mode names "  MANUAL", "    ONCE", "    LOOP", "PINGPONG", "  RESYNC" (DrawWaveInstrument: byte 9, capped at 5)
 0DDB InitializeAndLoadSong      ; second-stage boot (runs once before MainLoop): SwitchToDoubleSpeed, ClearBgTilemap, init subsystems, load the working song (bank1 $4CF1/$4848) or ResetWorkState if empty, set palettes + load song properties
@@ -74,9 +74,9 @@
 2D22 DrawPulseDuty              ; draw the pulse WAVE/duty field (top 2 bits of the instr byte) as one of 4 two-tile waveform glyphs
 183A VBlankHandler              ; reloads rTIMA from tempo (wTimerReload), can raise timer IRQ
 34BD SerialHandler              ; Game Boy sync RX: rSB -> wSyncReceiveByte, mode in wSyncState
-18BF ReadJoypad                 ; standard d-pad/button matrix read
+18BF ReadJoypad                 ; a = rJOYP's first select (the d-pad): read the d-pad and the buttons, queue the byte in wButtonRing when it changed; the end of VBlankHandler's frame
 349B display_off                ; GBDK display_off: wait VBL (rLY), clear rLCDC bit7 (byte-exact match)
-34B2 OamDmaRoutine              ; OAM DMA (source wOamBuffer); copied to HRAM and called there
+34B2 OamDmaRoutine              ; OAM DMA (source wOamBuffer), copied to HRAM (hOamDmaRoutine) and called there by VBlankHandler with hl = wOamDirty, which it clears
 3154 SetOamByte                 ; write byte (sp+6) to wOamBuffer+offset(sp+4) only if changed; set wOamDirty (-> OAM DMA next frame)
 ; marker/cursor sprite field setters (sprite group at OAM byte $0C+; offset = index*4 + field), used by every editor screen's draw code
 31E3 SetSpriteY                 ; OAM Y of sprite (arg) = row*8 + $20, clamped to $FC when off-screen
@@ -90,8 +90,8 @@
 30EC ClearMarkerSprites         ; hide the marker sprites 3-10 (Y and attr = 0) and the cursor sprites 11-18 (X = 0); set wOamDirty
 1500 ReadSongBytes              ; bulk copy from SRAM (bank, src) into a RAM dest buffer (e.g. a chain row)
 3A33 ResetWorkState             ; reset all runtime state to defaults: per-channel sequencer ptrs (read ptr=$0140, rows=$FF, instr/table/groove=0) + editor cursors + wCurrentScreen=SONG; e.g. when a song load comes back empty
-14D1 ReadSongByte               ; (bank,addr): di, select SRAM bank + enable RAM, read [de], reti
-14EB ReadSongByteRaw            ; like ReadSongByte but no di/reti (caller already holds IRQ off)
+14D1 ReadSongByte               ; (bank, address) on the stack -> e = SRAM's byte there: asserts bank < $10, di, maps the bank and enables RAM, reads, disables RAM, reti
+14EB ReadSongByteRaw            ; (bank, address) on the stack -> e = SRAM's byte there, as ReadSongByte without di/reti (the caller holds interrupts off)
 158C WaitInterrupt              ; halt;nop;ret -- wait for the next interrupt (frame sync)
 1799 CallHL                     ; `jp hl` trampoline (gbz80 has no `call hl`); FarCall uses it to call the target in hl
 179A FarCall                    ; banked call: caller pushes (addr, bank); switch ROM bank, call addr, restore
@@ -105,7 +105,7 @@
 2F68 DrawStringTile20           ; DrawStringIndexed entry with offset $20: draw the tile at wStringSource+$20 to the VRAM cursor
 2F21 DrawString                 ; draw a NUL/len string to the VRAM tilemap cursor
 2F6A DrawStringIndexed          ; draw from the string source at a byte offset
-2E33 DrawHexByte                ; draw byte A as two hex digits at the cursor
+2E33 DrawHexByte                ; draw a as two hex digits at the cursor (wVramCursor, advanced; asserts it is in the $9800-$9BFF map)
 2E6D DrawByte                   ; draw a byte (stack arg) at the cursor
 352A printn                     ; GBDK libc/printf.c's _printn: a word in a base at the console cursor, a minus first when signed
 35B1 DigitCharacters            ; "0123456789ABCDEF" (printn's digit table, indexed by the digit value)
@@ -115,12 +115,12 @@
 17FB ClearBgTilemap             ; fill the visible 20x18 BG tilemap ($9800) with tile 0, rSTAT-gated
 ; --- dynamic VRAM tile loader: queue of tile-graphics load requests ($CBE6 table, $CBE4 slot counter) ---
 32E3 LoadTilesToVram            ; LCD off: register the tile-graphics source in hl in a free wTileRequestTable slot (-> hl = the slot's entry, $0000 when all six are taken), allocate its VRAM tile slots (wTileSlotAllocation), load via CopyTileData, restore the LCD
-3370 SetTileLoadRequest         ; store a 3-byte tile-load request from [hl]: wTileLoadSlot slot/flags, wTileLoadSource source pointer
-332B CopyTileData               ; copy a queued tile's 16-byte graphics to VRAM tile data ($9000 + wTileLoadSlot*16), rSTAT-gated (falls into the $32AD copy loop)
+3370 SetTileLoadRequest         ; hl -> a 3-byte tile-load request: wTileLoadSlot (the slot and flags), wTileLoadSource (the source pointer)
+332B CopyTileData               ; copy a queued tile's 16-byte graphics to VRAM tile data ($9000 + wTileLoadSlot*16), rSTAT-gated (falls into the $32AD copy loop); the carry it is entered with shifts into the count (`rl e`): its caller clears it
 33D5 ReinitDisplay              ; ensure LCD on with standard rLCDC config (cycle off via display_off if needed; BG on, $9800 map, $8800 tiles) + ResetTileLoader
 33EC ResetTileLoader            ; reset tile-loader state: clear wUnusedCBF7/wUnusedCBF8, set wTileLoadNow=2 (immediate-copy mode)
 39CD set_bkg_tiles              ; GBDK set_bkg_tiles(x, y, w, h, tiles) (set_bk_t.s, byte-exact): unpack the stack args -> set_xy_btt
-39F2 set_xy_btt                 ; GBDK .set_xy_btt (set_xy_t.s): BG map base from rLCDC bit3 ($9800/$9C00), then set_xy_tt
+39F2 set_xy_btt                 ; GBDK .set_xy_btt (set_xy_t.s): background tiles from bc at (x, y) = (d, e), (w, h) = (h, l); map base from rLCDC bit 3 ($9800/$9C00), then set_xy_tt
 ; --- defensive checks ---
 0953 WriteInstrumentByte        ; write value (sp+8, <4) to instruments[instr][field]: bank1 $B080 + instr*$10 + field
 09B9 UnusedRampTable            ; [108] UWORD n * 2048 / 107 ($0000, $0013, ... $07FC), linked between WriteInstrumentByte and ReadInstrumentByte; no code reads it
@@ -128,7 +128,7 @@
 0AE2 ReadCurrentInstrumentByte  ; ReadInstrumentByte([wInstrument] current instrument, field)
 0AF6 ReadSequenceByte           ; read song sequence song[step][channel]: bank0 $B290 + step*4 + channel (step<$C0, channel<4)
 2141 ReadChainByte              ; read chain[chain(sp+6)][field(sp+7)] from SRAM $A080 + chain*32 + field (via ReadSongByteRaw)
-1478 KitIndexToBank             ; map a kit index to its physical ROM bank: +8 (kits start at bank $08), +5 more if >= $1B to skip the code banks $1B-$1F
+1478 KitIndexToBank             ; a = a kit index -> e = its ROM bank: +8 (kits start at bank $08), +5 more from $1B on to skip the code banks $1B-$1F
 0D4C ReadKitName                ; copy the 6-char kit name (kit bank $4052, via KitIndexToBank) into wSampleNoteString
 ; SDCC banked-call thunk family (bc-addr style: save bank, switch, jp hl, restore),
 ; one per (arg-count, return-type). The sp-addr style lives at FarCall/FarCallArgument.
@@ -144,16 +144,16 @@
 ; --- Sound engine: per-channel pitch slide / vibrato / frequency (TimerHandler tick) ---
 0762 SoundLoadWaveRam           ; fast-copy the 16-byte staged waveform (hWavUploadBuffer $FFA0) into WAV wave RAM ($FF30) with rAUD3 off (SP-pop trick), then re-enable + retrigger rAUD3 and restore freq
 066D SoundModulateWavFrequency  ; WAV ch direct-frequency modulation: wChannelFrequency+4 += wChannelPitchRate+4; if vibrato active apply wChannelVibratoOffset+4 (steps WAV vib via SoundApplyWavVibrato, then halved offset)
-1AFF SoundApplyWavVibrato       ; apply WAV-channel vibrato: if wChannelVibratoSpeed+5, compute offset (SoundCalculateVibratoOffset) -> wChannelVibratoOffset+4/5 and advance vib phase wChannelVibratoAccumulatorWav; shared by SoundStepPitchVibratoWav + SoundModulateWavFrequency
+1AFF SoundApplyWavVibrato       ; apply WAV-channel vibrato: if wChannelVibratoSpeed+5, compute offset (SoundCalculateVibratoOffset) -> wChannelVibratoOffset+4/5 and advance vib phase wChannelVibratoAccumulatorWav (-> e = the speed's high byte; e as it was when off); shared by SoundStepPitchVibratoWav + SoundModulateWavFrequency
 1815 TickWorkTimeClock          ; bump saturating counter wWorkClockSubFrame (<$80), advance wWorkTimeAccumulator ($C69D); wrap at $0E00 -> wWorkTimeTicks ($C577), clear wIdleHalt
 20DB HandleTooBusy              ; CPU-overload handler (redraw backlog overflowed while playing): reset playback (bank2 $710E: exit live mode + sound reinit) and ShowMessage "TOO BUSY!"
-1986 SoundCalculateVibratoOffset ; eval vibrato/mod waveform: (phase>>2)+e indexes ctrl table VibratoShapes; bit7 -> negate; dispatch via VibratoOffsetJumps -> signed offset in hl
-19A1 SoundCalculateVibratoOffsetNeg ; SoundCalculateVibratoOffset bit7-set helper: complement A then dispatch via VibratoOffsetJumps
-19A6 SoundStepPitchVibratoPu1   ; ch0: accumulate wChannelPitchRate->wChannelPitchCurrent, clamp to wChannelPitchTarget (-> SoundUpdatePitchModulationFlagPu1); advance vib phase wChannelVibratoAccumulator -> wChannelVibratoOffset
-1A26 SoundStepPitchVibratoPu2   ; ch1: as PU1 for +2/+3 offsets (-> SoundUpdatePitchModulationFlagPu2); vib phase wChannelVibratoAccumulatorPu2 -> wChannelVibratoOffset+2
-1AA7 SoundStepPitchVibratoWav   ; ch2: as PU1 for +4/+5 offsets (-> SoundUpdatePitchModulationFlagWav); vib phase wChannelVibratoAccumulatorWav -> wChannelVibratoOffset+4
-1CBA SoundStepPitchVibratoNoi   ; ch3 (noise): vibrato via SoundCalculateVibratoOffset then >>5 scale; advance vib phase wChannelVibratoAccumulatorNoi (no period table)
-1B28 SoundInterpolatePeriod     ; note(d)+frac(e) -> 16-bit period(de) from table at wChannelPeriodTablePointer(bc), fractional interpolation; octave-wrap special cases ($6C/$B6/$F8/$FF)
+1986 SoundCalculateVibratoOffset ; a = the vibrato phase, e = the shape's offset in VibratoShapes, hl -> the depth: VibratoShapes[(a >> 2) + e], negated when its bit 7 is set (SoundCalculateVibratoOffsetNeg), scaled by the VibratoOffsetJumps fragment the depth byte picks -> hl = the signed offset
+19A1 SoundCalculateVibratoOffsetNeg ; SoundCalculateVibratoOffset's negative half: a = the shape value (complemented here), hl -> the depth; -> hl from the VibratoOffsetJumps fragment, which the caller negates
+19A6 SoundStepPitchVibratoPu1   ; ch0: accumulate wChannelPitchRate->wChannelPitchCurrent, clamp to wChannelPitchTarget (-> SoundUpdatePitchModulationFlagPu1); advance vib phase wChannelVibratoAccumulator -> wChannelVibratoOffset; -> e nonzero when it moved the pitch
+1A26 SoundStepPitchVibratoPu2   ; ch1: as PU1 for +2/+3 offsets (-> SoundUpdatePitchModulationFlagPu2); vib phase wChannelVibratoAccumulatorPu2 -> wChannelVibratoOffset+2; -> e nonzero when it moved the pitch
+1AA7 SoundStepPitchVibratoWav   ; ch2: as PU1 for +4/+5 offsets (-> SoundUpdatePitchModulationFlagWav); vib phase wChannelVibratoAccumulatorWav -> wChannelVibratoOffset+4; -> e nonzero when it moved the pitch
+1CBA SoundStepPitchVibratoNoi   ; ch3 (noise): vibrato via SoundCalculateVibratoOffset then >>5 scale; advance vib phase wChannelVibratoAccumulatorNoi (no period table); -> e = the offset / 32, the noise note's
+1B28 SoundInterpolatePeriod     ; d = the note and e its fraction, bc -> wChannelPeriodTablePointer, hl -> wChannelPitchCurrent's high byte (re-read on the octave wrap) -> de = the 16-bit period from the table, interpolated by the fraction; octave-wrap special cases ($6C/$B6/$F8/$FF)
 1BA7 SoundWriteFrequencyPu1     ; ch0: wChannelOutNote+transpose[wChannelNoteOffset]+finetune+vib+pitch -> SoundInterpolatePeriod -> wChannelFrequency + rAUD1LOW/HIGH/LEN
 1BF6 SoundWriteFrequencyPu2     ; ch1: like PU1 -> wChannelFrequency+2 + rAUD2LOW/HIGH/LEN
 1C3D SoundWriteFrequencyWav     ; ch2: like PU1 -> wChannelFrequency+4 + rAUD3LOW/HIGH (rAUD3LEN=0)
@@ -163,8 +163,8 @@
 1CA8 SoundUpdatePitchModulationFlagPu1 ; ch0: wChannelPitchModulationActive = (wChannelPitchRate+0|+1 | wChannelVibratoSpeed+1)!=0, skipped if wChannelVibratoShape set
 
 ; --- Sound: software envelope (DMG "zombie mode" volume via NRx2 rewrites) ---
-2FC3 SoundFadeEnvelopeStep      ; step volume at [hl] one unit toward target a; equal->ret; up->NRx2 ([c])=$08; down->SoundFadeEnvelopeStepDown
-2F9A SoundFadeEnvelopeStepDown  ; volume-decrease path: dec level, rewrite NRx2 ([c]) with $09/$11/$18; near level $0E wait for rDIV phase (anti-click), CGB vs DMG
+2FC3 SoundFadeEnvelopeStep      ; step the volume at [hl] one unit toward target a; c = the channel's NRx2 port (rAUDxENV); equal->ret; up->NRx2=$08; down->SoundFadeEnvelopeStepDown
+2F9A SoundFadeEnvelopeStepDown  ; volume down a step: hl -> the channel's volume, c = its NRx2 port (rAUDxENV): dec the level, rewrite NRx2 with $09/$11/$18; near level $0E wait for the rDIV phase (anti-click), CGB vs DMG
 2FCC SoundUpdateEnvelopePu1     ; per-tick PU1 software envelope: SoundFadeEnvelopeStep wChannelEnvelope toward target [wEnvelopeTargetPu1] via rAUD1ENV, then advance env stage
 2FE2 SoundUpdateEnvelopePu2     ; per-tick PU2 software envelope: wChannelEnvelope+1 toward [wEnvelopeTargetPu2] via rAUD2ENV
 2FF8 SoundUpdateEnvelopeNoi     ; per-tick NOI software envelope: wChannelEnvelope+3 toward [wEnvelopeTargetNoi] via rAUD4ENV
@@ -190,8 +190,8 @@
 34F0 GetTileLoadNow             ; e = wTileLoadNow ($CBDB tile-loader flag); unused (dead code; was mislabeled GetSyncPosition)
 34F5 EnableInterrupts           ; ei; ret
 34F7 DisableInterrupts          ; di; ret
-34F9 SoftReset                  ; a = boot id [wBootHardwareId]; jp Start
-34FF SetInterruptEnable         ; update rIE, ack rIF for newly-enabled interrupts
+34F9 SoftReset                  ; a = boot id [wBootHardwareId]; jp Start (b, Start's AGB flag, is the caller's)
+34FF SetInterruptEnable         ; a = the interrupts to enable: rIE = a, and rIF acknowledged for the newly enabled ones
 3424 SwitchToDoubleSpeed        ; CGB KEY1 speed switch to double-speed (no-op if rSPD bit7 already set): disable IRQs, rJOYP=$30, rSPD=1, stop, restore rIE
 20B3 ChecksumRomBank            ; 16-bit sum of all bytes in the current ROM bank ($4000-$7FFF) -> de
 20C4 TestSram                   ; write/read-back test of SRAM bank $A000-$BFFF (writes 0); e = end offset on success / high byte on failure
@@ -207,9 +207,9 @@
 3887 FillMemoryLoop             ; inner loop: fill de bytes at hl with value b
 38D8 set_bkg_palette            ; GBDK: write CGB BG palettes (first,nb,rgb_data) via rBGPI/rBGPD
 388F FillMemory                 ; memset(dest=sp+4, value=sp+6, count=sp+7) -> FillMemoryLoop
-38A2 MulU8                      ; SDCC runtime: 8-bit multiply (reads 2 byte args -> MulCharToInt)
-38AE MulU16                     ; SDCC runtime: 16-bit multiply (reads 2 word args -> MulInt)
-38BF MulCharToInt               ; zero-extend 8-bit operands (b=0,d=0) then fall into MulInt
+38A2 MulU8                      ; SDCC runtime: (x, y) bytes on the stack -> e = x * y (MulCharToInt)
+38AE MulU16                     ; SDCC runtime: (x, y) words on the stack -> de = x * y (MulInt)
+38BF MulCharToInt               ; c * e (8-bit): zero-extend (b=0, d=0), fall into MulInt -> hl (l the 8-bit product)
 38C2 MulInt                     ; core 16x16->16 shift-and-add multiply (hl = bc * de)
 
 ; --- SDCC runtime: 8/16-bit signed+unsigned division & modulo (Div does the ---
@@ -223,14 +223,14 @@
 3763 DivU16                     ; unsigned 16-bit divide -> quotient in de (DivModU16 then bc->de)
 3774 ModU16                     ; unsigned 16-bit modulo -> remainder in de (DivModU16)
 3783 DivModS8                   ; sign-extend 8-bit operands (c->bc, e->de), fall into DivModS16
-378B DivModS16                  ; signed divide core: save/apply operand signs, DivModU16, restore quotient & remainder signs
-37C1 DivModU8                   ; zero-extend 8-bit operands (b=0,d=0), fall into DivModU16
+378B DivModS16                  ; signed bc / de -> bc = the quotient, de = the remainder (with the dividend's sign); carry on division by zero: save/apply the operand signs, DivModU16, restore the signs
+37C1 DivModU8                   ; c / e (8-bit): zero-extend (b=0, d=0), fall into DivModU16 -> c = the quotient, e = the remainder
 37C4 DivModU16                  ; unsigned divide core: dividend bc / divisor de -> quotient bc, remainder de; div-by-zero -> 0 + carry; 16x DivStep
-380F DivStep                    ; one restoring-division shift/subtract bit-step (called 16x by DivModU16)
+380F DivStep                    ; one restoring-division step for DivModU16: hl = the dividend shifting out (the quotient shifting in from carry), bc = the remainder, de = the divisor: shift, subtract de from bc when it fits -> carry = the quotient bit
 
 ; --- indirect (FarCall) targets, resolved by tools/farcall_targets.py ---
 24DD RedrawScreen               ; full screen repaint: ResetScreenSprites, ClearBgTilemap (CGB), then dispatch per-screen draw handlers by wCurrentScreen (18+ FarCall sites)
-39E1 set_xy_wtt                 ; GBDK .set_xy_wtt (set_xy_t.s): window map base from rLCDC bit6 ($9800/$9C00), then set_xy_tt
+39E1 set_xy_wtt                 ; GBDK .set_xy_wtt (set_xy_t.s): window tiles from bc at (x, y) = (d, e), (w, h) = (h, l); map base from rLCDC bit 6 ($9800/$9C00), then set_xy_tt
 1FD5 CheckRomChecksum           ; sum ROM bytes vs header global checksum ($014E/$014F) -- SRAM/boot self-test path
 154B ReadSongByteDi             ; di + SRAM enable + bank select + read + reti (unreferenced variant of ReadSongByte)
 34E9 SendSyncHandshakeByte      ; alt-entry into SendSyncHandshake with hl=arg (unreferenced)
@@ -280,7 +280,7 @@
 0049 PaddingStat                ; 7 x $FF: the STAT vector's tail (after its reti)
 0053 PaddingTimer               ; 5 x $FF: the timer vector's tail
 005B PaddingSerial              ; 5 x $FF: the serial vector's tail
-1BA1 SoundInterpolateResume     ; resume point pushed by the manual call at $1B99 (SoundInterpolatePeriod)
+1BA1 SoundInterpolateResume     ; the resume point SoundInterpolatePeriod pushes for its manual call at $1B99: hl -> a table entry -> de = the period there
 2D12 TxtNoi                     ; "NOI"
 2D16 TxtPu1                     ; "PU1"
 2D1A TxtPu2                     ; "PU2"

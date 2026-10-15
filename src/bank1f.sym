@@ -82,7 +82,7 @@
 5FC2 CountModifiedSynths        ; count the synths with a modified wave frame
 5FEC AnyPhraseUsesCommandF      ; 1 if any phrase step holds command F (6)
 6074 AnyTableUsesCommandF       ; 1 if either command column of any table holds command F (6)
-614C AnyCommandFUsed            ; 1 if any phrase or table uses command F (AnyPhraseUsesCommandF / AnyTableUsesCommandF)
+614C AnyCommandFUsed            ; -> e = 1 if any phrase or table uses command F (AnyPhraseUsesCommandF / AnyTableUsesCommandF)
 6163 ResetWaveFrame             ; reset wave frame n (SRAM bank 3, $A000 + n*16) to DefaultWaveFrameB1F
 619E ResetSynthWaves            ; reset synth s's 16 wave frames to the default (ResetWaveFrame)
 61C4 ResetSynthParameters       ; reset synth n's 16 params (SRAM bank 1, $BEB2 + n*16) to DefaultSynthParameters

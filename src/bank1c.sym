@@ -13,10 +13,10 @@
 70F9 TxtUpgrading               ; "UPGRADING..."
 6E3C NoiseNoteRemapTable        ; [112] FileUpgradeV18's noise-note remap: (note - $20) as high nibble x low 3 bits -> 1..$3C, +$3C unless bit 3
 ; --- song compressor (SAVE); see docs/save_format.md ---
-715B WriteCompressedByte        ; emit one byte to the compressed output stream
-711F ReadWorkingSongByte        ; read a byte of the working song (input to compress)
+715B WriteCompressedByte        ; a = the byte: emit it to the compressed output stream
+711F ReadWorkingSongByte        ; (address) on the stack -> e = the working song's byte there (input to compress)
 ; --- song decompressor (LOAD) ---
-7402 ReadCompressedByte         ; read next byte from the compressed stream (ptr wCompressSourceHigh/wBlockDestinationBank)
+7402 ReadCompressedByte         ; -> e (and a) = the next byte from the $DB00 block buffer at wCompressSource, which it advances; off the buffer, wDecompressOk = 0 and e = 0
 74E0 LoadCompressedBlock        ; copy 512-byte compressed block a (SRAM bank 4 + a>>4, $A000 + (a&15)*$200) into the $DB00 buffer and point wCompressSource at it; ends with reti
 753E EmitDefaultWave            ; $F0 run: emit a default wavetable frame
 758E EmitDefaultInstrument      ; $F1 run: emit a default instrument
@@ -88,11 +88,11 @@
 6EAC FileUpgradeV19             ; song upgrade step v19->v20: patch song data (WriteSongByte)
 6F73 FileUpgradeV21             ; song-format upgrade step for v21->v22: patch synth params (SRAM $beb2.. stride $10, write $03)
 6FC7 FileUpgradeSong            ; song-format migration: read stored version ($bfff[3]); if < $16 show "UPGRADING..." and run FileUpgradeV<n> for n=version..$15, then stamp version $16
-7109 FileClassifyToken          ; classify a byte for compression ($04/$10/$a0/$c0 tokens)
+7109 FileBlockPointerValid      ; -> e = 1 while the block pointer wCompressBank:wCompressSource is inside the file blocks (SRAM banks 4-15, $A000-$BFFF), else 0: the assert of FileWriteCompressedSram
 7167 FileCompressRun            ; RLE-encode a run (WriteCompressedByte x2, ReadWorkingSongByte)
 719C FileSendSyncByte           ; send sync byte arg: assert no transfer is running (rSC & $81), wSyncTransmitByte = arg, SendSyncByte, then delay(6 on CGB, 3 on DMG)
 72EE SyncTransferByte           ; link-port byte exchange step (wSyncState, joypad, SendSyncHandshake)
-741D FilePutDecompressByte      ; append decompressed byte to wDecompressBuffer buffer (wDecompressPosition cursor)
+741D FilePutDecompressByte      ; a = the byte: append it to wDecompressBuffer (wDecompressPosition cursor)
 7426 FileDecompressNextBank     ; decompression: advance source / switch SRAM bank (wBlockDestinationBank, wDecompressOk)
 749E FileDecompressByte         ; decode one compressed byte ($c0/$e0 RLE tokens; FileDecompressRun)
 7513 FileDecompressRun          ; decode an RLE run (ReadCompressedByte, FileDecompressNextBank)

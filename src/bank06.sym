@@ -70,7 +70,7 @@
 7006 DrawChainSelection         ; chain selection (wClipboardType==3) redraw vs the cursor: cells around the rectangle in their column palettes, the inside highlighted (ColorField)
 71ED DrawStatusNote             ; draw channel ch's playing note in the status panel at (17, ch + 6): a kit's sample name on the wave channel, wNoiNote on the noise channel, else DrawNoteName (PU2 shifted by wNoteTranspose)
 73C0 DrawSyncStatusText         ; draw string s in the status panel's sync slot ($99B0, palette 4/1)
-73DC SyncStatusFlag             ; read wSyncTick, return status flag
+73DC SyncStatusFlag             ; -> e = 1 while wSyncTick is below $10 (counting toward the sync pulse; $FF is idle)
 740C DrawSyncStatusLsdj         ; sync mode LSDJ: WAIT while handshaking, LEAD while running, else SYNC or blank (SyncStatusFlag)
 7469 DrawSyncStatusMidi         ; sync mode MIDI: SYNC (SyncStatusFlag), WAIT while playing, else blank
 7508 .drawStatus                ; draw a status word (SYNC/LEAD) via DrawSyncStatusText
@@ -82,7 +82,7 @@
 75B7 TxtHexCellPrefix3          ; "C "
 75BA DrawNoteName               ; draw note v for channel col: '---' for 0; the noise channel's values (hex below $3C, the kit notes C 5..C 8); else a NoteNames entry (the wave channel an octave down); '???' past the table
 784C ShiftScopeSamples          ; sla each of N bytes from de (scope/visualization helper)
-786F DrawScopePoint             ; plot oscilloscope point (ShiftScopeSamples + $cba. buffer)
+786F DrawScopePoint             ; c = the PCM register to sample (rPCM12/rPCM34), de = the scope bitmap row: plot its two nibbles' samples, each after ShiftScopeSamples
 78B8 UpdateScope                ; update scope from wScopeDirty/wScopeRefresh/wScopeBitmap
 ; --- functions called from bank 0 (this bank paged in) ---
 74AD DrawSyncStatus             ; draw the sync/lead status by wSyncMode (1/3/6/7 cases)

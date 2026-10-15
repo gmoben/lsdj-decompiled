@@ -64,7 +64,7 @@ runs of `$00`/`$FF` (empty phrases/chains).
 | Routine | Addr | Role |
 |---------|------|------|
 | `DecompressBlock` | `$46E3` | the `$E0`-escape handler: `$E0` (a literal `$E0`), `$F0 n` (default-wave run), `$F1 n` (default-instrument run), `$FF` (end, returns 1), anything else the next block's index (`LoadCompressedBlock`, with the progress count on the panel) |
-| `ReadCompressedByte` | `$7402` | fetch the next stream byte via the SRAM block pointer (`$C97B`/`$C97C`) |
+| `ReadCompressedByte` | `$7402` | the next stream byte from the `$DB00` block buffer at `wCompressSource` (`$C97A`/`$C97B`), which it advances; past the buffer it clears `wDecompressOk` |
 | `LoadCompressedBlock` | `$74E0` | copy 512-byte block `a` (SRAM bank `4 + a>>4`, `$A000 + (a&15)*$200`) into the `$DB00` buffer and point `wCompressSource` at it |
 | `EmitDefaultWave` | `$753E` | `$F0` run: emit a default wavetable frame |
 | `EmitDefaultInstrument` | `$758E` | `$F1` run: emit a default instrument |

@@ -44,7 +44,7 @@
 51AE PastePhraseSelection       ; paste the clipboard (wClipboardType) into the phrase: for rows wSelectionTop..wSelBottom and columns wSelectionRight-1 down to wSelectionLeft, each cell by column (kit notes merged nibble-wise, instrument, command, value); a 3-wide table-command selection (wClipboardType 5) shifts its command pair by -1/+1; PASTE message for multi-row pastes
 5491 CloneInstrument            ; copy instrument src to dst: its 16 bytes, then its name (CopyInstrumentName / WriteInstrumentName)
 55EB CloneTableAtCursor         ; clone the table referenced by the cmd value under the cursor (FindFreeTable+CopyTableData)
-567D PhraseCursorOnEditCell     ; return 1 if cursor is on the active cmd cell (wPhraseRow==wSelectionTop and wPhraseColumn==wSelectionLeft)
+567D PhraseCursorOnEditCell     ; -> e = 1 if the cursor is on the active command cell (wPhraseRow == wSelectionTop and wPhraseColumn == wSelectionLeft)
 56BA CloneAtPhraseCursor        ; double-A clone on the phrase screen: the instrument on the instrument column, an A command's table on the command column ("CLONED TABLE"); 1 if cloned
 572C PrelistenCursorRow         ; play the note/instr under the cursor while editing (wPrelisten gate)
 58D9 PhraseCellFlagA            ; phrase-cell predicate OR-ed in PrelistenEditedCell: note<$40 & instrument type==2 (kit) test

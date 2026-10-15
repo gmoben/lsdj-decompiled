@@ -11,8 +11,8 @@
 ; working read-cursors are 16-bit ptrs whose low bytes live at $C8xx (SoundInitializeStatePointers
 ; sets them to channel 0, SoundAdvanceStatePointers steps to the next channel).
 494D SoundProcessChannel        ; per-channel sound tick (channel = hSoundChannel); called per active channel
-49B7 SoundNoteToPeriod          ; wChannelFrequency[ch] = wNotePeriods[note+wNoteTranspose-1] (alt linear table at bank0 $09B9)
-4C2D SoundAdvanceChannelCursors ; advance the 3 phrase cursors (note/cmd, cmdval, instr) by c
+49B7 SoundNoteToPeriod          ; e = the channel (hSoundChannel): wChannelFrequency[ch] = wNotePeriods[note + wNoteTranspose - 1]
+4C2D SoundAdvanceChannelCursors ; advance the 3 phrase cursors (note/cmd, cmdval, instr) by c; de = hSoundChannel * 2, their index
 4AA3 SoundWriteChannelFrequency ; write the current channel's frequency to rAUDxLOW/HIGH each tick (no retrigger; P/L/V pitch)
 ; --- Note trigger: write the GB sound regs to start a note on the current channel
 6007 SoundTriggerNote           ; dispatch by hSoundChannel to the per-voice trigger below
@@ -20,7 +20,7 @@
 6091 SoundTriggerPu2            ; PU2 note-on: rAUD2 env/freq + trigger
 60D1 SoundTriggerWav            ; WAV note-on: rAUD3 level/freq + trigger
 6014 SoundTriggerNoi            ; NOI note-on: rAUD4 len/env/poly + trigger
-5151 SoundReadChannelCursor     ; read byte via channel hSoundChannel's 16-bit cursor (array base in hl); SRAM-guarded
+5151 SoundReadChannelCursor     ; hl = an array's base: -> e = the byte under channel hSoundChannel's 16-bit cursor in it; SRAM-guarded
 485A SoundInitializeStatePointers ; set $C8xx to the low-bytes of the engine's $C1xx state ptrs
 ; --- Note-on: load instrument from SRAM into wCurrentInstrument, set up channel shadows -
 5934 SoundSetupChannel          ; dispatch by hSoundChannel to the per-channel setup block below
@@ -28,13 +28,13 @@
 5A27 SoundSetupPu2              ; PU2: stage wCurrentInstrument -> env/duty/freq shadows + trigger
 5B0C SoundSetupWav              ; WAV/KIT: stage wCurrentInstrument -> wave level/freq shadows + trigger
 5DB2 SoundSetupNoi              ; NOI: stage wCurrentInstrument -> env/poly shadows + trigger
-4F33 FillChannel8               ; write a -> 8 consecutive bytes [hl] (clears a per-channel 16-bit array)
-4F37 FillChannel4               ; write a -> 4 consecutive bytes [hl] (clears a per-channel [4] array)
+4F33 FillChannel8               ; write a to the 8 bytes from hl, -> hl past them (clears a per-channel 16-bit array)
+4F37 FillChannel4               ; write a to the 4 bytes from hl, -> hl past them (clears a per-channel [4] array)
 ; --- Table macro playback (per-channel; runs the instrument's table) ----------
 4668 SoundProcessChannelTable   ; advance/apply the channel's table (wChannelTable/Played/Countdown); calls the column readers
 574B SoundReadTableEnvelope     ; read table_envelopes[wChannelTable][row] (song $1690 = SRAM bank0 $B690)
 587D SoundReadTableTranspose    ; read table_transposes[wChannelTable][row] (song $3480 = SRAM bank1 $B480)
-487E SoundReadGroove            ; read grooves[wChannelGroove][wChannelGrooveRow] (song $1090 = SRAM bank0 $B090) via wPointerGroove/wPointerGrooveRow
+487E SoundReadGroove            ; -> e = grooves[wChannelGroove][wChannelGrooveRow] (song $1090 = SRAM bank0 $B090) via wPointerGroove/wPointerGrooveRow
 ; --- Sequencer: song row -> chain -> phrase resolution ------------------------
 48D2 SoundAdvanceSongRow        ; on wChannelChain[ch]==$FF, walk chain_assignments (loop-back) -> next chain
 5EAD SoundReadSongChain         ; e = chain_assignments[wChannelSongRow[ch]][ch] ($B290 = song offset $1290)
@@ -80,7 +80,7 @@
 43CE SoundCommandTableJump      ; FX dispatch via computed jump (jp hl region)
 4637 SoundClampNoteRange        ; clamp a note value to playable range ($3c..$78) -> wChannelDisplayNoteNoi
 46C7 SoundClearChannelCommandSlots ; clear this channel's 3 FX slots (wChannelCommandSlots/$c2f4/$c2f8 + ch)
-472F SoundRunTableColumn        ; dispatch one table column (-> SoundRunCommandSlot / SoundRetrigNote)
+472F SoundRunTableColumn        ; b picks the slots: bit 0 runs the command slot's countdown ($C230 + wCommandChannel; at 0 SoundRunCommandSlot), then the retrig slot's ($C23C +, SoundRetrigNote) only with bit 1; bit 0 clear runs the retrig slot alone
 4753 SoundRunChannelCommandSlots ; iterate the 12-entry FX-slot table wChannelCommandSlots, run SoundRunTableColumn per active
 478D SoundDispatchStoredCommand ; load command from wCommand, fall into SoundDispatchCommand
 483F SoundAdvanceTableCursor    ; advance this channel's table read cursor (wPointerPhraseRow ptr + wChannelInstrumentPointer[ch])
@@ -96,21 +96,21 @@
 4D71 SoundStepAllChannels       ; run SoundProcessChannel (sequencer step: advance phrase, read note/cmd) for each active channel, order WAV,PU1,PU2,NOI
 4DA9 SoundEnterSongRow          ; commit wChannelNextSongRow -> wChannelSongRow, load its chain ($ff -> scan up)
 4E17 SoundMaskLow5              ; return a & $1f
-4E2A SoundDecodeNibbles         ; split a byte into hi/lo nibbles ($f0/$10/$0f)
+4E2A SoundStepTableHopCount     ; Hxy with a count (the column, 0 or 1, and xy on the stack): this channel's hop counter for the column (wTableHopCounters) starts at x and counts down a hop at a time to row y (SoundTableHop, -> e its result); spent, e = 0 (no hop) and it rests at $FF for the next time
 4E69 SoundQueueSyncByte         ; store a byte to $cbdc / wSyncTransmitByte (sync transmit)
 4E74 SoundDeactivateChannel     ; clear wChannelActive[ch] and wChannelRestart[ch] (stop this channel)
 4EA3 SoundResetCommandState     ; clear retrigger wPlayRestartPending, wSoundTick, wSpeechWord, wPlayMinutes
-4F2B FillChannel16              ; write a -> 16 consecutive bytes [hl] (staggered entry into the FillChannel8/4 unrolled memset)
-4F2F FillChannel12              ; write a -> 12 consecutive bytes [hl] (staggered entry into the FillChannel8/4 unrolled memset)
+4F2B FillChannel16              ; write a to the 16 bytes from hl, -> hl past them (a staggered entry into the FillChannel8/4 unrolled memset)
+4F2F FillChannel12              ; write a to the 12 bytes from hl, -> hl past them (a staggered entry into the FillChannel8/4 unrolled memset)
 4F3C SoundDecodeCommandNibbles  ; decode a command's nibbles ($01/$02 cases)
 4FC0 SoundApplyTableCommand     ; (cp $02) SoundReadSramByteVia then jp SoundClampNoteRange
-503C SoundReadSramByteVia       ; read [hl-pointer] from SRAM ($0a enable, di/reti) -> e
+503C SoundReadSramByteVia       ; hl -> a pointer: -> e = the SRAM byte it points at ($0A enable, di/reti)
 504A SoundRunTableStep          ; run a table step (SoundDecodeCommandNibbles, SoundNoiChordStep)
-5074 SoundRandom15              ; randw() % 15: B (MayBe) in a phrase plays when this is below the probability digit
+5074 SoundRandom15              ; -> e = randw() % 15: B (MayBe) in a phrase plays when this is below the probability digit
 507F SoundAdvanceStatePointers  ; advance the 7 working sound-state pointers (low bytes wPointerChainRow/e1/e3/e5/e7/eb/ed) to the next channel's slot in the $C1xx tables (counterpart of SoundInitializeStatePointers)
-509C SoundReadPhraseCommand     ; fetch phrase FX cmd+val for the current row (SRAM bank 2 phrase_fx); H/W special-cased
-50E1 SoundReadTableCommand1     ; fetch table CMD1-column cmd+val via wTableCommand1Pointer/wTableCommand1ValuePointer stream ptrs
-5119 SoundReadTableCommand2     ; fetch table CMD2-column cmd+val via wTableCommand2Pointer/wTableCommand2ValuePointer stream ptrs
+509C SoundReadPhraseCommand     ; -> e = the current row's phrase command (0 none; SRAM bank 2 phrase_fx), kept with its value for the channel; H/W special-cased
+50E1 SoundReadTableCommand1     ; -> e = the table's CMD1-column command (0 none) via the wTableCommand1Pointer/wTableCommand1ValuePointer stream pointers, kept with its value for the channel
+5119 SoundReadTableCommand2     ; -> e = the table's CMD2-column command (0 none) via the wTableCommand2Pointer/wTableCommand2ValuePointer stream pointers, kept with its value for the channel
 5165 SoundReadCommandStream     ; read command-stream bytes (wSoundDataStride; cp $ff = end)
 5345 SoundSetupWaveChannel      ; ch2 (WAV/KIT): seed working ptrs (wPointerStepCountdown/e3/e5/e7/fc), SoundReadCommandStream
 5459 SoundReadCursorByte        ; read a byte via wPhraseCommandPointer[ch] cursor + wPointerNoteSource (SRAM-guarded)
@@ -119,22 +119,22 @@
 556A SoundRunFrame              ; per-frame sound entry (called from main loop, bank00 $2317): tempo gate -- if wFrameSkip pending skip it; else run SoundTick 1+wTickRepeat times this frame
 5583 SoundApplyTableTranspose   ; jp target from SoundStepTablePointers: read table_transpose row, add to the channel note, apply (SoundTableHop)
 55AE SoundCountdownStep         ; count down this channel's ticks left in the step: e = 0 if idle; at 0, flag the note trigger and advance the groove
-55CB SoundReadChainEnd          ; chain end-marker check (cp $ff)
-55EF SoundTableCommand1Hop      ; table command column 1's H: H0y hops to row y (SoundTableHop), Hxy counts x hops first (SoundDecodeNibbles)
-5604 SoundTableCommand2Hop      ; table command column 2's H: as SoundTableCommand1Hop for the right column (bit 7 to SoundTableHop)
+55CB SoundNoteDue               ; -> e = nonzero, with wChannelNoteTrigger[ch] set too, when the channel's note countdown ([wPointerNoteCountdown]) is 0 and it is not held for a live start (wLiveStartColumn is $FF, or wPlayRestartPending); else e = 0
+55EF SoundTableCommand1Hop      ; table command column 1's H: H0y hops to row y (SoundTableHop), Hxy counts x hops first (SoundStepTableHopCount); -> e = 0 when it did not hop
+5604 SoundTableCommand2Hop      ; table command column 2's H: as SoundTableCommand1Hop for the right column (bit 7 to SoundTableHop); -> e = 0 when it did not hop
 561B SoundAdvanceTableRow       ; advance the channel's table one row when it runs per tick (wChannelTableStep 0): its five read pointers (note, two commands, two values) step on; skipped the tick a table starts (wChannelTableFresh, cleared here; NOI also clears wNoiTableNotePrevious)
 5657 SoundStepTablePointers     ; advance the channel's table step counter; on 16-step wrap rebuild SRAM read-pointers ($c1xx) for the table transpose ($B480) and command ($BA80) columns of wChannelTable[ch]
 56E1 SoundReadGrooveValue       ; table step 0 -> jp SoundAdvanceGroove unless the groove byte is $20; step 8 -> mark it $ff. (The trailing .initEnvPu1/.initEnvNoi stubs, zeroing wEnvelopeStagePu1/Noi = ex-$cbbf, are separate entries.)
 572B SoundInitializeEnvelope    ; init 3-node envelope for hSoundChannel channel (WAV: none); stage=0, node1 -> vol+speed
 5778 SoundSetKitParameters      ; set kit state wWavSynthFrame/wWavRamDirty/wWavSynthEnd
 583F SoundSplitPhraseNibbles    ; wChannelPhrase[ch] -> hi/lo nibbles (compute phrase index)
-58C7 SoundFillFF                ; write $ff to a run of consecutive bytes [hl]
+58C7 SoundFillFF                ; write $FF to the 32 bytes from hl (-> hl past them, a = $FF)
 58EA SoundLoadInstrument        ; copy the 16-byte instrument record instruments[a] (SRAM bank1 $B080+a*16) into wCurrentInstrument ($C0D0)
 5F5E SoundResetChannelCommand   ; reset this channel's (hSoundChannel) retrigger rate, pitch slide and vibrato, and its LFO
 5FA7 SoundResetWavCommand       ; the WAV channel's part of SoundResetChannelCommand (retrigger, update flags, pitch rate, frame delta, vibrato)
 5FBE SoundResetWavFlat          ; SoundResetWavCommand, then a flat wave ($77 x 16) in hWavUploadBuffer
 5FDA SoundSetChannelEnable      ; enable/disable this channel in rAUDENA (per hSoundChannel; SoundWritePanning)
-61A9 SoundWritePanning          ; set this channel's panning bits in rAUDTERM
+61A9 SoundWritePanning          ; a & 3 = the channel's output (the O command): set this channel's panning bits in rAUDTERM (wChannelOutputOverride when its bit 7 is set)
 61F7 SoundClearVoiceHram        ; clear $ffa0-$ffa3 (per-voice HRAM shadow regs)
 6270 Command_P_Step             ; P with PITCH on STEP: the pitch changes at once (a kit's rate by 3 a step, else wChannelPitchCurrent by 8)
 632B Command_F_Wav              ; F on the wave channel: a synth's wave frame steps; a kit's two sample positions move (x16, doubled beyond +-16)
@@ -178,13 +178,13 @@
 7C4C SoundTogglePlayback        ; START: stop all playback, then start the current screen's unless it was the one playing (sync stop otherwise); live mode: SoundStartRange
 7CFB Command_E_NoteOn           ; E at a note-on (SoundNoteToPeriod): PU1/PU2/NOI stop the fade, the first digit sets wChannelEnvelope (e = 5: the release runs); WAV sets wWavLevel (e = 0)
 7F24 SoundSetupLfo              ; dispatch by hSoundChannel -> SoundSetupLfoPu1/PU2/WavNoi (vibrato/LFO setup)
-7F33 SoundSetupLfoWavNoi        ; LFO setup for ch2/3 (WAV/NOI): clear wEnvelopeStageNoi, init from wChannelEnvelopeNoi
-7F3E SoundSetupLfoPu2           ; LFO setup for ch1 (PU2): clear wEnvelopeStagePu2, init from wChannelEnvelopePu2
-7F49 SoundSetupLfoPu1           ; LFO setup for ch0 (PU1): wEnvelopeStagePu1, call bank0 SoundFadeEnvelopeStepDown
+7F33 SoundSetupLfoWavNoi        ; LFO setup for ch2/3 (WAV/NOI): e = the target volume; clear wEnvelopeStageNoi, hl = wChannelEnvelopeNoi, c = rAUD4ENV, then SoundStepEnvelopeToTarget
+7F3E SoundSetupLfoPu2           ; LFO setup for ch1 (PU2): e = the target volume; clear wEnvelopeStagePu2, hl = wChannelEnvelopePu2, c = rAUD2ENV, then SoundStepEnvelopeToTarget
+7F49 SoundSetupLfoPu1           ; LFO setup for ch0 (PU1): a = the stage (wEnvelopeStagePu1), e = the target volume; hl = wChannelEnvelope, c = rAUD1ENV, then SoundStepEnvelopeToTarget
 78C4 SoundToggleSongPlayback    ; SELECT+START on any screen: SoundTogglePlayback as if on the song screen (all four channels); live mode: SoundLiveStopRange
 5EDA NoiseFrequencyTable        ; [120] NR43 poly/divisor byte per noise note
-5F52 SoundSetNoisePolynomial    ; a = NoiseFrequencyTable[a] -> rAUD4POLY (NR43); noise-channel pitch
-7F51 SoundStepEnvelopeToTarget  ; step channel volume [hl] toward e via zombie mode ($08 nudge up / SoundFadeEnvelopeStepDown); c = rAUDxENV; shared tail of SoundSetupLfo*
+5F52 SoundSetNoisePolynomial    ; a = the noise note: rAUD4POLY (NR43) = NoiseFrequencyTable[a]; -> hl at the entry (SoundClampNoteRange keeps h)
+7F51 SoundStepEnvelopeToTarget  ; step the channel volume at hl toward e via zombie mode ($08 nudge up / SoundFadeEnvelopeStepDown); c = rAUDxENV; shared tail of SoundSetupLfo*
 7F5C .stepDown                  ; target below current: fade one step down (SoundFadeEnvelopeStepDown)
 
 ; --- structural local names (loop heads / common exits) ---
@@ -465,8 +465,8 @@
 557E .storeFrameSkip
 55E2 .setChannelNoteTrigger
 55EC .return00
-55FB .soundDecodeNibbles
-5612 .soundDecodeNibbles
+55FB .soundStepTableHopCount
+5612 .soundStepTableHopCount
 564B .readSoundChannel
 56A8 .testBit4
 56F8 .branch

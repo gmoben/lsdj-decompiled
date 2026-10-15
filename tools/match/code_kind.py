@@ -48,7 +48,7 @@ KNOWN_ASM = {
     "06:DrawScopePoint", "06:ShiftScopeSamples",
     "07:DrawHexOrDashes", "07:ScanSongSram", "07:WriteSongSramBytes",
     "1b:MixerKernel",
-    "1c:EmitDefaultInstrument", "1c:EmitDefaultWave", "1c:FileClassifyToken",
+    "1c:EmitDefaultInstrument", "1c:EmitDefaultWave", "1c:FileBlockPointerValid",
     "1c:FilePutDecompressByte", "1c:ReadWorkingSongByte", "1c:WriteCompressedByte",
     # stack-argument readers that branch with `jr` / poll rSTAT
     "00:DrawTileRun", "00:WriteVramByteSafe",
@@ -62,7 +62,7 @@ KNOWN_ASM = {
     "02:SoundCommandTableJump", "02:SoundRandom15", "02:SoundTriggerNote", "02:SoundSetupChannel",
     "02:SoundClearChannelCommandSlots", "02:SoundAdvanceChannelCursors", "02:SoundCountdownStep",
     "02:SoundFillFF", "02:Command_M", "02:SoundApplyTableTranspose", "02:SoundReadTableEnvelope",
-    "02:SoundDeactivateChannel", "02:SoundReadTableTranspose", "02:SoundDecodeNibbles",
+    "02:SoundDeactivateChannel", "02:SoundReadTableTranspose", "02:SoundStepTableHopCount",
     # an `hl`-argument call wrapped in the C convention: RequestTileSlot pops
     # its frame before setting the return value, which SDCC never does
     "00:LoadTilesDispatch", "00:RequestTileSlot",

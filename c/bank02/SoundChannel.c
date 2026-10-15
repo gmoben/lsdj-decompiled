@@ -42,7 +42,7 @@ void SoundLoadInstrument(UBYTE n);            /* asm (takes it in a) */
 void SoundLoadChannelInstrument(void);             /* asm */
 void SoundTransposeNote(void);                /* asm */
 UBYTE SoundCountdownStep(void);               /* asm */
-UBYTE SoundReadChainEnd(void);                /* asm */
+UBYTE SoundNoteDue(void);                /* asm */
 void SoundAdvanceTableCursor(void);           /* asm */
 void SoundAdvanceChainRow(void);              /* asm */
 void SoundLiveStartQueued(void);
@@ -168,7 +168,7 @@ void SoundReadChannelStep(void)
 }
 
 /* $75C6: one tick of channel hSoundChannel's sequencer: when its step's ticks
-   are up and its chain goes on, move to the next phrase row (the next
+   are up and its next note is due, move to the next phrase row (the next
    chain row after the phrase's last), then read the row's command and the
    step: B may mute the note, D delays it, G sets the groove, H hops */
 
@@ -178,7 +178,7 @@ void SoundUpdateChannel(void)
 
     if (SoundCountdownStep())
         return;
-    if (!SoundReadChainEnd())
+    if (!SoundNoteDue())
         return;
     wKitNoteNibbleMask = 0xFF;
     SoundAdvanceTableCursor();

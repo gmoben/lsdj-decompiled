@@ -8,7 +8,7 @@
 4CF1 InitializeScreen           ; screen setup: ApplyColorSet + ClearOamBuffer + LoadHardwareTables
 4487 DrawCartTest               ; boot CARTRIDGE TEST screen (ROM checksum + SRAM self-test)
 4FEC UpdatePlayClock            ; per-frame PLAY clock: wPlayFrames counts to 60 (one frame skipped every 4 s), then seconds/minutes; redraws m:ss on the project screen
-7860 IsMessageActive            ; 1 while a message is up or pending (wMessageTimer or wMessageStringPointer set)
+7860 IsMessageActive            ; -> e = 1 while a message is up or pending (wMessageTimer or wMessageStringPointer set), else 0
 7878 UpdateMessage              ; timed message + wSelectHeld handling
 4811 CheckJkMarker              ; check the 'jk' SRAM-init marker at $a13e/$a13f (unreferenced)
 4848 CheckSongInitializedMarker ; ReadSongByte $be78/$be79 ('rb' memory-init marker)

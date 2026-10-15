@@ -224,7 +224,7 @@ DEF wChannelOutNote                   EQU $C0E8  ; [4] effective note used for f
                                                  ; wNotePeriods[wChannelOutNote + $7F + offset]. Set = wChannelNote each tick by
                                                  ; SoundWriteChannelFrequency; read/adjusted by the pitch-slide command (Command_L)
 DEF wChannelNoteTrigger               EQU $C0F0  ; [4] per-channel "advance to next note step" flag: set nonzero when the note
-                                                 ; countdown expires (SndReadChanState/SoundReadChainEnd), consumed by SoundProcessChannel
+                                                 ; countdown expires (SndReadChanState/SoundNoteDue), consumed by SoundProcessChannel
                                                  ; which clears it and reads+plays the next note/command. Verified live (watchpoint).
 DEF wCommandSlotCommandTimer          EQU $C230  ; [12] per-FX-slot command-step countdown (SoundRunTableColumn, indexed by wCommandChannel); when it hits 0, SoundRunCommandSlot runs the slot's command
 DEF wCommandSlotEnvelopeTimer         EQU $C23C  ; [12] per-FX-slot envelope-step countdown (SoundRunTableColumn); when it hits 0, SndTableEnv runs the table envelope step
@@ -305,7 +305,7 @@ DEF wChannelEnvelope                  EQU $C2D8  ; [4] envelope value -> rAUDxEN
 ; volume (hi nibble) into wChannelEnvelope and steps the fade (lo nibble). Verified live + static.
 ; (The +N*7 slot for noise would land on $CBD1, but that byte is wOamDirty below -- the
 ; noise channel has no software-envelope struct here.)
-DEF wOamDirty                         EQU $CBD1  ; OAM shadow dirty flag: timer ($185F) calls hOamRefresh (OAM DMA) when nonzero; set by OAM-buffer writers (SetOamByte, screen redraws)
+DEF wOamDirty                         EQU $CBD1  ; OAM shadow dirty flag: timer ($185F) calls hOamDmaRoutine (OAM DMA) when nonzero; set by OAM-buffer writers (SetOamByte, screen redraws)
 DEF wEnvelopeNode1Pu1                 EQU $CBBC  ; envelope node 1, PU1: vol hi-nibble / fade-speed lo-nibble (SoundInitializeEnvelope)
 DEF wEnvelopeNode2Pu1                 EQU $CBBD  ; envelope node 2, PU1 (stage 1 target/speed)
 DEF wEnvelopeNode3Pu1                 EQU $CBBE  ; envelope node 3, PU1 (stage 2 target/speed)
@@ -348,7 +348,7 @@ DEF wBootAgbId                        EQU $CBDA  ; boot B register (AGB id)
 DEF wOamBuffer                        EQU $DD00  ; [160] OAM shadow: 40 sprites x 4 bytes, DMA-copied by OamDmaRoutine
 
 ; --- HRAM -------------------------------------------------------------------
-DEF hOamRefresh                       EQU $FF80  ; OAM-refresh flag
+DEF hOamDmaRoutine                    EQU $FF80  ; OamDmaRoutine's copy in HRAM (11 bytes, copied by Start); VBlankHandler calls it with hl = wOamDirty while that is set
 DEF hSoundChannel                     EQU $FF8B  ; sound engine current channel index (0-3); indexes wChan* arrays
 DEF hBgPalette                        EQU $FF8C  ; CGB BG-map attribute palette for draws
 DEF hBgDigitPalette                   EQU $FF8D  ; CGB BG-map palette for digits
