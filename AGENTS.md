@@ -595,8 +595,11 @@ Always, before committing:
       tracks the `$2000` bank write through each function)
 - [ ] Re-verify/rename the five draw-named per-screen input handlers and
       `SoundReadGrooveOrSpeed`; regenerate local labels that echo pre-July RAM names
-- [ ] Name `$CB64`, the ~40 immediate-only RAM addresses, the WRAM routine at
-      `$D480`, and the ramp table at `$00:$09B9`; resolve the ~13 `TBD` RAM roles
+- [x] Name `$CB64` (wCompressRunByte), the ~40 immediate-only RAM addresses
+      (the matched C's literal pointers, now rendered by name), the WRAM code at
+      `$D480` (wKitMixerCode) and the ramp at `$00:$09B9` (UnusedRampTable: no
+      code reads it); resolve the `TBD` RAM roles (the synth parameters, the
+      file-bank flag, the per-instrument table rows)
 
 **Phase 6 — Matching C decompilation (Track 2, if green-lit by Phase 1)**
 - [x] Per-function match workflow (`match_function.py --target`, `make match`)

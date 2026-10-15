@@ -116,7 +116,7 @@ instructions are now carved as data (`db`) by `tools/carve_clean.py` and
 resolved by the coverage trace. One correction to the original guess here: the
 bytes at `$09B9`-`$0A90` (between `WriteInstrumentByte` and `ReadInstrumentByte`) are
 **not** a jump table but a 108-entry 16-bit ramp (`$0000`, `$0013`, `$0026`, …
-`$07FC`); it is carved as data but has no label yet.
+`$07FC`): `UnusedRampTable`, since no code reads it.
 
 ## Where to go next
 

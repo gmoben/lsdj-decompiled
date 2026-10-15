@@ -44,7 +44,7 @@ void CancelSelectionMode(void);
 
 void DrawAllChannelStatus(void);               /* bank $1F */
 extern UBYTE wChannelInstrument[];                  /* $C210, [4] */
-extern UBYTE wChannelPitchSlots[];             /* $C250 */
+extern UBYTE wInstrumentTableRow1[];             /* $C250, [64]; wInstrumentTableRow2's [64] follow */
 extern UBYTE wChannelStepCountdown[];          /* $C0C4, [4] */
 extern UBYTE wChannelTable[];                  /* $C204, [4] */
 extern UBYTE wChannelTableRow1[];              /* $C208, [4] (+4: wChannelTableRow2) */
@@ -443,8 +443,8 @@ void TableScreenUpdate(void)
     }
     if (wChannelTableStep[wSongColumn] == 0xFF) {
         v = wChannelInstrument[wSongColumn];
-        r1 = wChannelPitchSlots[v];
-        r2 = wChannelPitchSlots[v + 0x40];
+        r1 = wInstrumentTableRow1[v];
+        r2 = wInstrumentTableRow1[v + 0x40];   /* wInstrumentTableRow2[v], spelt so for the ROM's add a,$40 */
     } else {
         r1 = wChannelTableRow1[wSongColumn];
         r2 = wChannelTableRow1[wSongColumn + 4];

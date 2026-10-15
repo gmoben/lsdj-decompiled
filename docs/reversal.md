@@ -26,8 +26,8 @@ Known gaps — asm fidelity/readability, none affect the bytes:
 - **Stale names.** `SoundReadGrooveOrSpeed` actually steps table
   pointers; generated local labels still echo pre-July RAM names (e.g.
   `.loadOscActive_2` in `TimerHandler`, from the old "oscilloscope" reading).
-- **Unlabeled table.** The 108-entry 16-bit ramp at `$00:$09B9` is carved as
-  data but has no name.
+- **Unread table.** The 108-entry 16-bit ramp at `$00:$09B9` is
+  `UnusedRampTable`: no code reads it.
 
 ## What counts
 

@@ -575,7 +575,8 @@ DEF wChannelTableLatchNoi             EQU $C223  ; table number latched at note-
 DEF wChannelEnvelopeVolumeOffset      EQU $C224  ; signed volume delta (<<4) applied to the env-node triplet, PU1 (SoundCommandParsePitchValue -> SoundInitializeEnvelope)
 DEF wChannelPitchTargetPu2            EQU $C24A  ; pitch slide target (16-bit), PU2
 DEF wChannelPitchTargetWav            EQU $C24C  ; pitch slide target (16-bit), WAV
-DEF wChannelPitchSlots                EQU $C250  ; [128] per-channel 16-byte pitch-FX state block, reset to $80 center (8x FillChannel16; layout TBD)
+DEF wInstrumentTableRow1                EQU $C250  ; [64] per instrument: its table's command-1 row while the table advances per STEP, kept between notes; $80 until the instrument first plays (then $FF, before row 0); wInstrumentTableRow2 follows
+DEF wInstrumentTableRow2                EQU $C290  ; [64] the same for command column 2 (the C reads it as wInstrumentTableRow1[instrument + $40])
 DEF wChannelPitchRatePu1High          EQU $C2D1  ; wChannelPitchRate[0] hi byte (Pu1)
 DEF wChannelPitchRatePu2              EQU $C2D2  ; wChannelPitchRate[1]  (Pu2)
 DEF wChannelPitchRatePu2High          EQU $C2D3  ; wChannelPitchRate[1] hi byte (Pu2)
