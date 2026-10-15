@@ -235,8 +235,20 @@
 154B ReadSongByteDi ; di + SRAM enable + bank select + read + reti (unreferenced variant of ReadSongByte)
 34E9 SendSyncHandshakeByte ; alt-entry into SendSyncHandshake with hl=arg (unreferenced)
 1E70 TxtBlank4 ; "    " 4-space blank field string
-014E HeaderChecksumHigh           ; ROM header global checksum (hi byte), read by CheckRomChecksum
-014F HeaderChecksumLow           ; ROM header global checksum (lo byte)
+0104 NintendoLogo                   ; [48] the logo the boot ROM compares (rgbfix -v fixes it)
+0134 HeaderTitle                    ; "LSDj-v9.4.0" the title, NUL-padded to $0143
+0143 HeaderCgbFlag                  ; [1] $80: CGB features, DMG compatible
+0144 HeaderNewLicensee              ; "00" the new licensee code
+0146 HeaderSgbFlag                  ; [1] $00: no SGB features
+0147 HeaderCartridgeType            ; [1] $1B: MBC5 + RAM + battery
+0148 HeaderRomSize                  ; [1] $05: 1 MiB, 64 banks
+0149 HeaderRamSize                  ; [1] $04: 128 KiB, 16 banks
+014A HeaderDestination              ; [1] $00: Japan
+014B HeaderOldLicensee              ; [1] $33: the new licensee code says
+014C HeaderVersion                  ; [1] $01: the ROM's version
+014D HeaderChecksum                 ; [1] the header checksum (rgbfix -v computes it)
+014E GlobalChecksumHigh         ; [1] the ROM's global checksum, high byte (CheckRomChecksum; rgbfix -v computes it)
+014F GlobalChecksumLow          ; [1] its low byte
 300F ExponentialCurve16                ; [16] exponential curve $00..$73: envelope speed -> frame count
 086F AsciiCharacterMap               ; [89] character-to-tile map from space onward; text draws set wStringSource to this address minus $20
 08C8 IdentityCharacterMap            ; [64] identity tile-index map (loaded into wStringSource for raw-tile draws)

@@ -53,7 +53,8 @@ FILL_ROW = re.compile(r"^\tdb ((?:\$ff, )*\$ff)\s*(?:;.*)?$")
 
 def insert_padding(text: str, at: int, n: int) -> str:
     """`ds n` before the row at address `at` (and the labels in front of it),
-    and n bytes fewer of the bank's trailing $FF fill."""
+    and n bytes fewer of the bank's trailing $FF fill (none to take when the
+    bank ends in `ds $8000 - @`, which pads to its end by itself)."""
     lines = text.splitlines()
     idx = next((i for i, l in enumerate(lines)
                 if (m := ROW.match(l)) and int(m.group(1), 16) >= at), None)
@@ -64,6 +65,8 @@ def insert_padding(text: str, at: int, n: int) -> str:
     # $FF is rst $38, LSDj's crash vector: a stale jump into the padding fails
     # instead of sliding through it into the code that moved
     lines.insert(idx, f"\tds {n}, $ff ; shift test")
+    if any(re.match(r"^\tds \$[0-9a-f]{4} - @, \$ff", l) for l in lines[-8:]):
+        return "\n".join(lines) + "\n"   # the bank's free space pads to its end: it shrinks itself
     left = n
     i = len(lines) - 1
     while left:

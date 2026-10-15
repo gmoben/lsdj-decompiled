@@ -1161,12 +1161,15 @@ def build_labels(rows: list[Row], lo: int, hi: int,
 
 def render(rows: list[Row], comments: bool,
            labels: dict[int, str] | None = None,
-           pointers: dict[int, tuple[str, str | int, str]] | None = None) -> str:
+           pointers: dict[int, tuple[str, str | int, str]] | None = None,
+           sections: dict[int, str] | None = None) -> str:
     """`pointers` maps a row to its ROM-address operand: (the operand as
     printed, a fixed name or an address of this bank to print as its label,
-    "" / "LOW" / "HIGH" for a byte of it)."""
+    "" / "LOW" / "HIGH" for a byte of it). `sections` are SECTION lines to
+    open before the row (and the label) at an address."""
     labels = labels or {}
     pointers = pointers or {}
+    sections = dict(sections or {})
     # Enclosing global label (name) per address, for scope-qualifying local refs.
     enclosing: dict[int, str] = {}
     cur_global = ""
@@ -1177,6 +1180,8 @@ def render(rows: list[Row], comments: bool,
     lines = []
     printed: set[int] = set()
     for addr, raw, text, ref in rows:
+        if addr in sections:
+            lines.append(sections.pop(addr))
         if addr in labels and addr not in printed:
             lines.append(f"{labels[addr]}:")
             printed.add(addr)
@@ -1310,6 +1315,9 @@ def main() -> None:
     ap.add_argument("--globals", type=Path,
                     help="home (bank-0) symbol map; names cross-bank calls to it")
     ap.add_argument("--section", help="SECTION header to emit")
+    ap.add_argument("--sections", default="",
+                    help="comma-separated ADDR:NAME sections pinned at ADDR inside the bank "
+                         "(a page-addressed table must not move)")
     ap.add_argument("--comments", action="store_true", help="annotate addr/bytes")
     ap.add_argument("--no-labels", action="store_true",
                     help="do not generate labels for branch/call targets")
@@ -1460,7 +1468,13 @@ def main() -> None:
               + ("" if args.pointer_notes else " (--pointer-notes lists them)"), file=sys.stderr)
         if args.pointer_notes:
             print("\n".join("  " + n for n in notes), file=sys.stderr)
-    body = render(rows, comments=args.comments, labels=labels, pointers=pointers)
+    pinned = {}
+    for part in filter(None, (p.strip() for p in args.sections.split(","))):
+        a_s, name = part.split(":", 1)
+        a = int(a_s, 0)
+        pinned[a] = (f'SECTION "{name}", ROM0[${a:04X}]' if args.bank == 0
+                     else f'SECTION "{name}", ROMX[${a:04X}], BANK[${args.bank:03X}]')
+    body = render(rows, comments=args.comments, labels=labels, pointers=pointers, sections=pinned)
     section = args.section
     if section is None:
         if args.bank == 0:

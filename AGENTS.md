@@ -646,7 +646,11 @@ Always, before committing:
 - [x] Replace asm functions with matching C, keeping `make compare` green —
       the mechanism is in place (678 functions); now it is a grind: bank by
       bank, editor code first, asm functions stay asm
-- [ ] Recover C structures/types toward a full, readable C source tree
+- [x] Recover C structures/types toward a full, readable C source tree: every
+      enumeration the C compares is a name in `lsdj.h` (screens, buttons, types,
+      fields, bytes, columns, modes, commands, channels, SRAM regions where the
+      bank is evident, the compression markers); structs where the codegen
+      allows (`OamShadow`)
 
 **Phase 7 — A movable build, for a fork that adds features (`docs/toolchain.md`)**
 - [x] Matched C assembled from its RGBDS translation (`to_rgbds.py`)

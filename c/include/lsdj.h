@@ -345,6 +345,10 @@ typedef struct { UBYTE y, x, tile, prop; } OamEntry;
 #define KIT_MIXER_CODE        0xD480   /* wKitMixerCode */
 #define DECOMPRESS_BUFFER     0xDA00   /* wDecompressBuffer */
 
+/* the cartridge header's global checksum (CheckRomChecksum) */
+#define GLOBAL_CHECKSUM_HIGH  0x014E
+#define GLOBAL_CHECKSUM_LOW   0x014F
+
 /* a kit's header, in its ROM bank at $4000 (tools/kits.py) */
 #define KIT_SAMPLE_BOUNDARIES 0x4000
 #define KIT_NAME              0x4052

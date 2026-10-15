@@ -249,8 +249,8 @@ UBYTE CheckRomChecksum(void)
     UWORD sum;
     UWORD address;
 
-    low = *(UBYTE *)0x014F;  /* HeaderChecksumLow */
-    high = *(UBYTE *)0x014E;  /* HeaderChecksumHigh */
+    low = *(UBYTE *)GLOBAL_CHECKSUM_LOW;
+    high = *(UBYTE *)GLOBAL_CHECKSUM_HIGH;
     sum = 0;
     for (address = 0; address < 0x4000; address++)
         sum += *(UBYTE *)address;

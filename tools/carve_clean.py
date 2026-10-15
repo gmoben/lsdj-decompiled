@@ -257,6 +257,15 @@ def pointer_tables(bank: int) -> list[tuple[int, int, int]]:
     return out
 
 
+# Sections pinned inside a bank: code reaches these by their page, not by a
+# label -- SoundCalculateVibratoOffset reads VibratoShapes with `ld d, $02`
+# and jumps into VibratoOffsetJumps with `ld h, $03 / jp hl` -- so a movable
+# build must not move them (an overflow into one fails to link). The section
+# after them is where bank 0's code can grow (tools/shift_test.py pads there).
+PINNED_SECTIONS = {0: [(0x0200, "VibratoShapes"), (0x0300, "VibratoOffsetJumps"),
+                       (0x0391, "ROM Bank $000 Code")]}
+
+
 TEXT_NAME = re.compile(r"^Txt|Names$|String$")
 
 
@@ -398,6 +407,8 @@ def main() -> None:
         texts = text_ranges(rom, b)
         if texts:
             cmd += ["--text", ",".join(f"0x{lo:X}:0x{hi:X}" for lo, hi in texts)]
+        if b in PINNED_SECTIONS:
+            cmd += ["--sections", ",".join(f"0x{a:X}:{n}" for a, n in PINNED_SECTIONS[b])]
         typed = typed_tables(b)
         if typed:
             cmd += ["--tables", ",".join(f"0x{lo:X}:0x{hi:X}:{n}:{k}" for lo, hi, n, k in typed)]

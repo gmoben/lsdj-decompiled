@@ -32,7 +32,11 @@ generated from your ROM + the tracked `src/bankNN.sym` maps — see `README.md`.
 | `0x14D` | `C6` | header checksum |
 | `0x14E`-`0x14F` | `55 C4` | global checksum |
 
-Execution begins at `0x150` (the `jp` target from the entry point).
+Execution begins at `0x150` (the `jp` target from the entry point). Each
+field is a symbol in `src/bank00.sym` (`NintendoLogo`, `HeaderTitle`,
+`HeaderCartridgeType`, ... `HeaderChecksum`, `GlobalChecksumHigh`/`Low`), so
+the carve prints the header field by field; `rgbfix -v` recomputes the
+logo and both checksums, a no-op while the build matches.
 
 ## Memory layout (MBC5)
 
