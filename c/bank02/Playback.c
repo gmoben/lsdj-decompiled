@@ -109,7 +109,7 @@ void SoundSetPlayRange(void)
 {
     wPlayChannelFirst = wSongColumn;
     wPlayChannelLast = wSongColumn;
-    if (wCurrentScreen == SCREEN_SONG && wCursorMode == 4) {
+    if (wCurrentScreen == SCREEN_SONG && wCursorMode == CURSOR_SELECTING) {
         if (wSelectionLeft < wSongColumn)
             wPlayChannelFirst = wSelectionLeft;
         else

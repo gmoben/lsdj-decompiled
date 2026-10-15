@@ -163,7 +163,7 @@ void ResetWorkState(void)
     wChainScopeDirty = 0;
     wSongScopeDirty = 0;
     wAPressEnabled = 1;
-    wCursorMode = 1;
+    wCursorMode = CURSOR_NORMAL;
     wPhrase = 0;
     wPhraseColumn = 0;
     wGroove = 0;

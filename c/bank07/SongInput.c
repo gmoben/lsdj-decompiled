@@ -100,7 +100,7 @@ UBYTE SongScreenInput(void)
         wDrawStep = 0;
     if (wButtons != J_B)
         wSongAPressState = 0;
-    if (wCursorMode == 4 && wButtons == J_SELECT_TAP) {
+    if (wCursorMode == CURSOR_SELECTING && wButtons == J_SELECT_TAP) {
         wSongColumn = wSelectionLeft;
         wSongRow = wSelectionTop;
         FarCall(5, 0x747D);
@@ -110,7 +110,7 @@ UBYTE SongScreenInput(void)
         return 1;
     }
     if (wAPressEnabled && wButtons == J_A) {
-        if (wCursorMode == 4)
+        if (wCursorMode == CURSOR_SELECTING)
             return 0;
         if (wDrawStep++ && wSongCellEmpty) {
             chain = FarCallByte(0x1F, FAR_FN(IsSongChainUsed));
@@ -147,12 +147,12 @@ UBYTE SongScreenInput(void)
     if (wButtons == J_RIGHT) {
         if (wSongColumn == CHANNEL_NOI || wBHeld)
             return 0;
-        if (wCursorMode != 4)
+        if (wCursorMode != CURSOR_SELECTING)
             EraseSongCursor();
         wSongColumn++;
         if (!wMessageStringPointer && !wMessageTimer)
             DrawChannelHeader();
-        if (wCursorMode == 4)
+        if (wCursorMode == CURSOR_SELECTING)
             EditSongSelection();
         else
             DrawSongCursor();
@@ -160,12 +160,12 @@ UBYTE SongScreenInput(void)
     } else if (wButtons == J_LEFT) {
         if (!wSongColumn || wBHeld)
             return 0;
-        if (wCursorMode != 4)
+        if (wCursorMode != CURSOR_SELECTING)
             EraseSongCursor();
         wSongColumn--;
         if (!wMessageStringPointer && !wMessageTimer)
             DrawChannelHeader();
-        if (wCursorMode == 4)
+        if (wCursorMode == CURSOR_SELECTING)
             EditSongSelection();
         else
             DrawSongCursor();
@@ -173,37 +173,37 @@ UBYTE SongScreenInput(void)
     } else if (wButtons == J_UP) {
         if (!wSongRow)
             return 0;
-        if (wCursorMode == 4 && wSelectionTop - wSongRow == 0x29)
+        if (wCursorMode == CURSOR_SELECTING && wSelectionTop - wSongRow == 0x29)
             return 0;
         if (!wSongRow)
             return 0;
-        if (wCursorMode != 4)
+        if (wCursorMode != CURSOR_SELECTING)
             EraseSongCursor();
         wSongRow--;
         if (wSongRow - wSongScroll == 0xFF) {
             wSongScroll--;
             ScrollSongUp();
-        } else if (wCursorMode != 4) {
+        } else if (wCursorMode != CURSOR_SELECTING) {
             DrawSongCursor();
         }
-        if (wCursorMode == 4)
+        if (wCursorMode == CURSOR_SELECTING)
             EditSongSelection();
         return 1;
     } else if (wButtons == J_DOWN) {
-        if (wCursorMode == 4 && wSongRow - wSelectionTop == 0x29)
+        if (wCursorMode == CURSOR_SELECTING && wSongRow - wSelectionTop == 0x29)
             return 0;
         if (wSongRow == 0xBF)
             return 0;
-        if (wCursorMode != 4)
+        if (wCursorMode != CURSOR_SELECTING)
             EraseSongCursor();
         wSongRow++;
         if (wSongRow - wSongScroll == 0x10) {
             wSongScroll++;
             ScrollSongDown();
-        } else if (wCursorMode != 4) {
+        } else if (wCursorMode != CURSOR_SELECTING) {
             DrawSongCursor();
         }
-        if (wCursorMode == 4)
+        if (wCursorMode == CURSOR_SELECTING)
             EditSongSelection();
         return 1;
     } else if (wButtons == (J_B | J_DOWN)) {
@@ -241,11 +241,11 @@ UBYTE SongScreenInput(void)
             wPlayMode = 4;
         }
         DrawSongScreen();
-        if (wCursorMode == 4)
+        if (wCursorMode == CURSOR_SELECTING)
             EditSongSelection();
         return 1;
     } else if (wButtons == (J_A | J_RIGHT)) {
-        if (wCursorMode == 4)
+        if (wCursorMode == CURSOR_SELECTING)
             return 0;
         wSongScopeDirty = 1;
         v = ReadSequenceByte(wSongColumn, wSongRow);
@@ -256,7 +256,7 @@ UBYTE SongScreenInput(void)
         DrawHexByte(v);
         return 1;
     } else if (wButtons == (J_A | J_UP)) {
-        if (wCursorMode == 4)
+        if (wCursorMode == CURSOR_SELECTING)
             return 0;
         wSongScopeDirty = 1;
         v = ReadSequenceByte(wSongColumn, wSongRow) + 0x10;
@@ -266,7 +266,7 @@ UBYTE SongScreenInput(void)
         DrawHexByte(v);
         return 1;
     } else if (wButtons == (J_A | J_LEFT)) {
-        if (wCursorMode == 4)
+        if (wCursorMode == CURSOR_SELECTING)
             return 0;
         wSongScopeDirty = 1;
         v = ReadSequenceByte(wSongColumn, wSongRow);
@@ -277,7 +277,7 @@ UBYTE SongScreenInput(void)
         }
         return 1;
     } else if (wButtons == (J_A | J_DOWN)) {
-        if (wCursorMode == 4)
+        if (wCursorMode == CURSOR_SELECTING)
             return 0;
         wSongScopeDirty = 1;
         v = ReadSequenceByte(wSongColumn, wSongRow);
@@ -309,7 +309,7 @@ UBYTE SongScreenInput(void)
             return 0;
         wBHeld = 0;
         cell = ReadSequenceByte(wSongColumn, wSongRow);
-        wCursorMode = 2;
+        wCursorMode = CURSOR_COPIED;
         wSelectionLeft = wSongColumn;
         wSelectionRight = wSongColumn + 1;
         wSelectionTop = 0;
@@ -328,11 +328,11 @@ UBYTE SongScreenInput(void)
         RedrawSongRow();
         return 1;
     } else if (wButtons == (J_SELECT | J_A)) {
-        if (wCursorMode == 1)
+        if (wCursorMode == CURSOR_NORMAL)
             return 0;
         if (!wSelectHeld || wButtonsSame)
             return 0;
-        if (wCursorMode == 4) {
+        if (wCursorMode == CURSOR_SELECTING) {
             wSelectHeld = 0;
             if (wAPressEnabled || wSelectionLeft != wSongColumn || wSelectionTop != wSongRow)
                 CutCopySongSelection(1);
@@ -346,7 +346,7 @@ UBYTE SongScreenInput(void)
         PasteSongSelection();
         RedrawSongRow();
         return 1;
-    } else if (wButtons == (J_SELECT | J_B | J_A) && wCursorMode == 4) {
+    } else if (wButtons == (J_SELECT | J_B | J_A) && wCursorMode == CURSOR_SELECTING) {
         LoadSongCursorChain();
         return 1;
     } else if (wButtons == (J_SELECT | J_START)) {
@@ -403,7 +403,7 @@ UBYTE SongScreenInput(void)
     } else if (wButtons == J_B) {
         if (!wAPressEnabled)
             return 0;
-        if (wCursorMode == 4) {
+        if (wCursorMode == CURSOR_SELECTING) {
             CutCopySongSelection(0);
             return 1;
         }
@@ -427,7 +427,7 @@ UBYTE SongScreenInput(void)
         return 1;
     } else if (wSelectHeld && wButtons == (J_SELECT | J_B)) {
         wSelectHeld = 0;
-        if (wCursorMode == 4 && wClipboardType == SCREEN_SONG) {
+        if (wCursorMode == CURSOR_SELECTING && wClipboardType == SCREEN_SONG) {
             left = wSelectionLeft;
             right = wSongColumn;
             top = wSelectionTop;

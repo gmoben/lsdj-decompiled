@@ -42,7 +42,7 @@ void CutCopySongSelection(UBYTE isCut)
 
     if (wClipboardType != SCREEN_SONG)
         return;
-    wCursorMode = 2;
+    wCursorMode = CURSOR_COPIED;
     wSelectionRight = wSongColumn;
     wSelectionBottom = wSongRow;
     SortBytePair(&wSelectionLeft, &wSelectionRight);

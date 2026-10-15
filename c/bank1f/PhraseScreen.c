@@ -130,7 +130,7 @@ void CutCopyPhraseSelection(UBYTE cut)
     if (wClipboardType != SCREEN_PHRASE)
         return;
     ShowMessage(cutInstrument ? "CUT" : "COPY");
-    wCursorMode = 2;
+    wCursorMode = CURSOR_COPIED;
     wSelectionRight = wPhraseColumn;
     wSelectionBottom = wPhraseRow;
     SortBytePair(&wSelectionLeft, &wSelectionRight);

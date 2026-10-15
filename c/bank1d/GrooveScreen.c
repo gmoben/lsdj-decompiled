@@ -184,7 +184,7 @@ void SetGrooveRowPalettes(UBYTE row)
 {
     UBYTE a, b;
 
-    a = (wCursorMode == 4) ? wSelectionTop : wGrooveRow;
+    a = (wCursorMode == CURSOR_SELECTING) ? wSelectionTop : wGrooveRow;
     b = wGrooveRow;
     SortBytePair(&a, &b);
     if (row >= a && b >= row) {
@@ -220,7 +220,7 @@ UBYTE GrooveScreenInput(void)
     hBgPalette = wHighlightPalette;
     switch (wButtons) {
     case J_SELECT_TAP:
-        if (wCursorMode == 4) {
+        if (wCursorMode == CURSOR_SELECTING) {
             wGrooveRow = wSelectionTop;
             FarCall(5, 0x747D);
             if (hGameboyType) {
@@ -247,7 +247,7 @@ UBYTE GrooveScreenInput(void)
         if (wGrooveRow)
             wGrooveRow--;
         DrawGrooveCursor();
-        if (wCursorMode == 4)
+        if (wCursorMode == CURSOR_SELECTING)
             DrawGrooveSelection();
         DrawGrooveRow();
         return 1;
@@ -257,13 +257,13 @@ UBYTE GrooveScreenInput(void)
         if (wGrooveRow == 16 || !ReadGrooveStep(wGrooveRow - 1))
             wGrooveRow--;
         DrawGrooveCursor();
-        if (wCursorMode == 4)
+        if (wCursorMode == CURSOR_SELECTING)
             DrawGrooveSelection();
         DrawGrooveRow();
         return 1;
     case (J_A | J_RIGHT):
         BuildGrooveCache();
-        if (wCursorMode == 4 && (!wSelectionLeft || !wSelectionRight)) {
+        if (wCursorMode == CURSOR_SELECTING && (!wSelectionLeft || !wSelectionRight)) {
             top = wSelectionTop;
             bottom = wGrooveRow;
             SortBytePair(&top, &bottom);
@@ -284,7 +284,7 @@ UBYTE GrooveScreenInput(void)
         return 1;
     case (J_A | J_LEFT):
         BuildGrooveCache();
-        if (wCursorMode == 4 && (!wSelectionLeft || !wSelectionRight)) {
+        if (wCursorMode == CURSOR_SELECTING && (!wSelectionLeft || !wSelectionRight)) {
             top = wSelectionTop;
             bottom = wGrooveRow;
             SortBytePair(&top, &bottom);
@@ -307,7 +307,7 @@ UBYTE GrooveScreenInput(void)
     case (J_A | J_UP):
     case (J_A | J_DOWN):
         BuildGrooveCache();
-        if (wCursorMode == 4 && (!wSelectionLeft || !wSelectionRight)) {
+        if (wCursorMode == CURSOR_SELECTING && (!wSelectionLeft || !wSelectionRight)) {
             top = wSelectionTop;
             bottom = wGrooveRow;
             SortBytePair(&top, &bottom);
@@ -380,7 +380,7 @@ UBYTE GrooveScreenInput(void)
         if (!wGrooveRow && !ReadGrooveStep(1))
             break;
         EraseGrooveCursor();
-        wCursorMode = 2;
+        wCursorMode = CURSOR_COPIED;
         wSelectionLeft = 0;
         wSelectionRight = 1;
         wSelectionTop = wGrooveRow;
@@ -399,11 +399,11 @@ UBYTE GrooveScreenInput(void)
         DrawGrooveScreen();
         return 1;
     case (J_SELECT | J_A):
-        if (wCursorMode == 1)
+        if (wCursorMode == CURSOR_NORMAL)
             break;
         if (!wSelectHeld)
             break;
-        if (wCursorMode == 4) {
+        if (wCursorMode == CURSOR_SELECTING) {
             wSelectHeld = 0;
             CutCopyGrooveSelection(1);
             break;
@@ -439,7 +439,7 @@ UBYTE GrooveScreenInput(void)
         FarCall(5, FAR_FN(RedrawScreen));
         return 1;
     case J_B:
-        if (wCursorMode != 4)
+        if (wCursorMode != CURSOR_SELECTING)
             break;
         if (!wAPressEnabled)
             break;
@@ -448,7 +448,7 @@ UBYTE GrooveScreenInput(void)
     case (J_SELECT | J_B):
         if (!wSelectHeld)
             break;
-        if (wCursorMode == 4 && wClipboardType == SCREEN_GROOVE) {
+        if (wCursorMode == CURSOR_SELECTING && wClipboardType == SCREEN_GROOVE) {
             top = wSelectionTop;
             bottom = wGrooveRow;
             SortBytePair(&top, &bottom);
@@ -484,7 +484,7 @@ void CutCopyGrooveSelection(UBYTE cut)
         row++;
     if (wSelectionTop == row)
         return;
-    wCursorMode = 2;
+    wCursorMode = CURSOR_COPIED;
     wClipboardType = SCREEN_GROOVE;
     wSelectionLeft = 0;
     wSelectionRight = 1;

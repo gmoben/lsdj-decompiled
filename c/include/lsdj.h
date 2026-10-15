@@ -183,6 +183,12 @@ typedef int WORD;
 #define NOISE_FIELD_TABLE_ADVANCE      11
 #define NOISE_FIELD_TABLE              12
 
+/* wCursorMode: nothing copied, the clipboard holding a cut or copy (paste
+ * takes it), or a selection being marked */
+#define CURSOR_NORMAL        1
+#define CURSOR_COPIED        2
+#define CURSOR_SELECTING     4
+
 /* wButtons: the joypad bits, GBDK's names; buttons held together are their
  * `|`, which SDCC folds to the one constant */
 #define J_RIGHT   0x01

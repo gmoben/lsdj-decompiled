@@ -144,7 +144,7 @@ void StartMapTransition(UBYTE direction)
 
 void CancelSelectionMode(void)
 {
-    if (wCursorMode == 4)
+    if (wCursorMode == CURSOR_SELECTING)
         FarCall(5, RestoreSelectionState);
 }
 
@@ -312,7 +312,7 @@ void EraseTableCursor(void)
     UBYTE y, end, x;
 
     y = wTableRow + 2;
-    if (wCursorMode == 4)
+    if (wCursorMode == CURSOR_SELECTING)
         return;
     end = TableColumnX[wTableColumn] + TableColumnWidth[wTableColumn];
     for (x = TableColumnX[wTableColumn]; x < end; x++)
@@ -401,7 +401,7 @@ void DrawTableScreen(void)
     palette = hGameboyType ? 3 : 2;
     ColorField(step, a1, w, palette);
     FarCall(0x1F, FAR_FN(DrawAllChannelStatus));
-    if (wCursorMode == 4)
+    if (wCursorMode == CURSOR_SELECTING)
         DrawTableSelection();
 }
 
@@ -456,7 +456,7 @@ void TableScreenUpdate(void)
 
 void DrawTableCursor(void)
 {
-    if (wCursorMode == 4)
+    if (wCursorMode == CURSOR_SELECTING)
         DrawTableSelection();
     else
         ColorField(TableColumnX[wTableColumn], wTableRow + 2, TableColumnWidth[wTableColumn], hGameboyType ? 3 : 2);
@@ -516,7 +516,7 @@ UBYTE TableScreenInput(void)
         wDrawStep = 0;
     switch (wButtons) {
     case J_SELECT_TAP:
-        if (wCursorMode == 4) {
+        if (wCursorMode == CURSOR_SELECTING) {
             wTableColumn = wSelectionLeft;
             wTableRow = wSelectionTop;
             FarCall(5, RestoreSelectionState);
@@ -530,7 +530,7 @@ UBYTE TableScreenInput(void)
         }
         return 1;
     case J_A:
-        if (!wAPressEnabled || wCursorMode == 4)
+        if (!wAPressEnabled || wCursorMode == CURSOR_SELECTING)
             break;
         SetVramCursor(TableColumnX[wTableColumn], wTableRow + 2);
         if (wTableColumn > 3) {
@@ -612,7 +612,7 @@ UBYTE TableScreenInput(void)
         DrawTableCursor();
         return 1;
     case (J_A | J_RIGHT):
-        if (wCursorMode == 4) {
+        if (wCursorMode == CURSOR_SELECTING) {
             row = wSelectionTop;
             rowEnd = (char)wTableRow;
             SortBytePair(&row, &rowEnd);
@@ -709,7 +709,7 @@ UBYTE TableScreenInput(void)
         }
         return 1;
     case (J_A | J_LEFT):
-        if (wCursorMode == 4) {
+        if (wCursorMode == CURSOR_SELECTING) {
             row = wSelectionTop;
             rowEnd = (char)wTableRow;
             SortBytePair(&row, &rowEnd);
@@ -799,7 +799,7 @@ UBYTE TableScreenInput(void)
         }
         return 1;
     case (J_A | J_UP):
-        if (wCursorMode == 4) {
+        if (wCursorMode == CURSOR_SELECTING) {
             row = wSelectionTop;
             rowEnd = (char)wTableRow;
             SortBytePair(&row, &rowEnd);
@@ -896,7 +896,7 @@ UBYTE TableScreenInput(void)
         }
         return 1;
     case (J_A | J_DOWN):
-        if (wCursorMode == 4) {
+        if (wCursorMode == CURSOR_SELECTING) {
             row = wSelectionTop;
             rowEnd = (char)wTableRow;
             SortBytePair(&row, &rowEnd);
@@ -1020,7 +1020,7 @@ UBYTE TableScreenInput(void)
             break;
         wAPressEnabled = 0;
         EraseTableCursor();
-        wCursorMode = 2;
+        wCursorMode = CURSOR_COPIED;
         wSelectionTop = wTableRow;
         wSelectionBottom = wSelectionTop + 1;
         wClipboardType = SCREEN_TABLE;
@@ -1071,9 +1071,9 @@ UBYTE TableScreenInput(void)
         DrawTableScreen();
         return 1;
     case (J_SELECT | J_A):
-        if (wCursorMode == 1 || !wSelectHeld)
+        if (wCursorMode == CURSOR_NORMAL || !wSelectHeld)
             break;
-        if (wCursorMode == 4) {
+        if (wCursorMode == CURSOR_SELECTING) {
             wSelectHeld = 0;
             CutCopyTableSelection(1);
             break;
@@ -1135,7 +1135,7 @@ UBYTE TableScreenInput(void)
         FarCall(5, FAR_FN(RedrawScreen));
         return 1;
     case J_B:
-        if (wCursorMode != 4 || !wAPressEnabled)
+        if (wCursorMode != CURSOR_SELECTING || !wAPressEnabled)
             break;
         CutCopyTableSelection(0);
         return 1;
@@ -1144,7 +1144,7 @@ UBYTE TableScreenInput(void)
 
         if (!wSelectHeld)
             break;
-        if (wCursorMode == 4 && wClipboardType == SCREEN_TABLE) {
+        if (wCursorMode == CURSOR_SELECTING && wClipboardType == SCREEN_TABLE) {
             left = wSelectionLeft;
             right = wTableColumn;
             row = wSelectionTop;
@@ -1187,7 +1187,7 @@ void CutCopyTableSelection(UBYTE cut)
     if (wClipboardType != SCREEN_TABLE)
         return;
     ShowMessage(cut ? "CUT" : "COPY");
-    wCursorMode = 2;
+    wCursorMode = CURSOR_COPIED;
     wSelectionRight = wTableColumn;
     wSelectionBottom = wTableRow;
     SortBytePair(&wSelectionLeft, &wSelectionRight);
@@ -1427,7 +1427,7 @@ void SaveSelectionState(void)
     wSavedSelectionTop = wSelectionTop;
     wSavedSelectionRight = wSelectionRight;
     wSavedSelectionBottom = wSelectionBottom;
-    wCursorMode = 4;
+    wCursorMode = CURSOR_SELECTING;
     wClipboardType = wCurrentScreen;
 }
 

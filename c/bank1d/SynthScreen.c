@@ -970,7 +970,7 @@ UBYTE SynthScreenInput(void)
         return 1;
     case (J_SELECT | J_B):
         ShowMessage("COPIED SYNTH");
-        wCursorMode = 2;
+        wCursorMode = CURSOR_COPIED;
         wClipboardType = SCREEN_SYNTH;
         p = ((UWORD)wSynthScreen << 4) + (UWORD)SRAM_SYNTH_PARAMETERS;
         for (v = 0; v < 0x10; v++) {
@@ -984,7 +984,7 @@ UBYTE SynthScreenInput(void)
         FarCall(0x1C, FAR_FN(SendLinkClipboard));
         return 1;
     case (J_SELECT | J_A):
-        if (wCursorMode == 1 || wClipboardType != SCREEN_SYNTH)
+        if (wCursorMode == CURSOR_NORMAL || wClipboardType != SCREEN_SYNTH)
             return 0;
         ShowMessage("PASTED SYNTH");
         q = ((UWORD)wSynthScreen << 4) + (UWORD)SRAM_SYNTH_PARAMETERS;

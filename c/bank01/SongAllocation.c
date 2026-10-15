@@ -141,7 +141,7 @@ void CopyInstrument(void)
 
     ShowMessage("COPIED INSTR");
     wClipboardType = SCREEN_INSTRUMENT;
-    wCursorMode = 2;
+    wCursorMode = CURSOR_COPIED;
     for (cell = 0; cell < 16; cell++)
         WriteClipboardCell(0, cell, ReadCurrentInstrumentByte(cell));
     CopyInstrumentName(wInstrument);
@@ -219,7 +219,7 @@ void PasteInstrument(void)
 
     if (wInstrument == 0x40)
         return;
-    if (wCursorMode != 2)
+    if (wCursorMode != CURSOR_COPIED)
         return;
     if (!wSelectHeld)
         return;

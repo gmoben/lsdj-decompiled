@@ -183,7 +183,7 @@ UBYTE SpeechInstrumentInput(void)
         else
             ShowMessage("CUT WORD");
         wClipboardType = SCREEN_SPEECH;
-        wCursorMode = 2;
+        wCursorMode = CURSOR_COPIED;
         p = ((UWORD)wSpeechRow << 5) + (UWORD)SRAM_WORDS;
         for (cell = 0; cell < 0x10; cell++) {
             WriteClipboardCell(0, cell, ReadSongByte(0, p));

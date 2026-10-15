@@ -424,7 +424,7 @@ UBYTE PageSongCursorDown(void)
 {
     UBYTE d;
 
-    if (wCursorMode == 4)
+    if (wCursorMode == CURSOR_SELECTING)
         return 0;
     EraseSongCursor();
     FindNextSongRow();
@@ -464,7 +464,7 @@ UBYTE PageSongCursorUp(void)
 {
     UBYTE d;
 
-    if (wCursorMode == 4)
+    if (wCursorMode == CURSOR_SELECTING)
         return 0;
     EraseSongCursor();
     FindPreviousSongRow();

@@ -189,10 +189,10 @@ UBYTE WordScreenInput(void)
         {
         UBYTE t;
         v = wWordColumn;
-        if (wClipboardType != SCREEN_WORD && wCursorMode == 4)
+        if (wClipboardType != SCREEN_WORD && wCursorMode == CURSOR_SELECTING)
             DebugTrap();
         wClipboardType = SCREEN_WORD;
-        wCursorMode = 2;
+        wCursorMode = CURSOR_COPIED;
         wWordColumn = 0;
         wWordClipboardCell0[0] = ReadWordCell();
         wClipboardBuffer[0] = ReadWordCell();

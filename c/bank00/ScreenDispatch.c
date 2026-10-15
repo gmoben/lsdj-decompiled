@@ -126,7 +126,7 @@ UBYTE HandleInputCombos(void)
         wMuteSoloLatch = 2;
         return 1;
     }
-    if (wCursorMode == 4)
+    if (wCursorMode == CURSOR_SELECTING)
         return 0;
     if (wButtons == J_B && wMuteSoloLatch) {
         if (wMuteSoloLatch == 1 || wAPressEnabled) {

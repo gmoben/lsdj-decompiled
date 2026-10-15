@@ -146,7 +146,7 @@ void SetWaveCursorSprite(void)
 
     x = (wWaveCursor << 2) + 0x18;
     s = (wWaveSelectionStart << 2) + 0x18;
-    if (wCursorMode != 4)
+    if (wCursorMode != CURSOR_SELECTING)
         s = x;
     SetWaveSpriteColumns(s, x);
 }
@@ -155,7 +155,7 @@ void GetWaveEditRange(UBYTE *a, UBYTE *b)
 {
     *a = wWaveCursor;
     *b = wWaveCursor;
-    if (wCursorMode == 4) {
+    if (wCursorMode == CURSOR_SELECTING) {
         if (wWaveSelectionStart < wWaveCursor)
             *a = wWaveSelectionStart;
         else
@@ -330,7 +330,7 @@ UBYTE WaveScreenInput(void)
 {
     switch (wButtons) {
     case J_SELECT_TAP:
-        if (wCursorMode == 4) {
+        if (wCursorMode == CURSOR_SELECTING) {
             wWaveCursor = wWaveSelectionStart;
             FarCall(5, RestoreSelectionState);
             DrawWaveScreen();
@@ -358,13 +358,13 @@ UBYTE WaveScreenInput(void)
         ChangeWaveRange(0xFF);
         return 1;
     case (J_A | J_LEFT):
-        if (wCursorMode == 4)
+        if (wCursorMode == CURSOR_SELECTING)
             ReverseWaveRange();
         else
             DrawWaveLine(0xFF);
         return 1;
     case (J_A | J_RIGHT):
-        if (wCursorMode == 4)
+        if (wCursorMode == CURSOR_SELECTING)
             ReverseWaveRange();
         else
             DrawWaveLine(1);
@@ -422,13 +422,13 @@ UBYTE WaveScreenInput(void)
             return 0;
         wSelectHeld = 0;
         switch (wCursorMode) {
-        case 1:
-        case 2:
+        case CURSOR_NORMAL:
+        case CURSOR_COPIED:
             FarCall(5, SaveSelectionState);
             wWaveSelectionStart = wWaveCursor;
             ShowMessage("SELECT");
             break;
-        case 4:
+        case CURSOR_SELECTING:
             wWaveSelectionStart = 0;
             wWaveCursor = 0x1F;
             break;
@@ -436,7 +436,7 @@ UBYTE WaveScreenInput(void)
         SetWaveCursorSprite();
         return 1;
     case J_B:
-        if (wCursorMode != 4)
+        if (wCursorMode != CURSOR_SELECTING)
             return 0;
         if (!wAPressEnabled)
             return 0;
@@ -444,7 +444,7 @@ UBYTE WaveScreenInput(void)
         SetWaveCursorSprite();
         return 1;
     case (J_SELECT | J_A):
-        if (wCursorMode != 2)
+        if (wCursorMode != CURSOR_COPIED)
             return 0;
         if (wClipboardType != SCREEN_WAVE)
             return 0;
@@ -480,7 +480,7 @@ void CopyWaveSelection(void)
     wSelectionRight = 1;
     wSelectionTop = 0;
     wSelectionBottom = 0x12;
-    wCursorMode = 2;
+    wCursorMode = CURSOR_COPIED;
     FarCall(0x1C, FAR_FN(SendLinkClipboard));
 }
 

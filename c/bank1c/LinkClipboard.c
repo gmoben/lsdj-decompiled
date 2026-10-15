@@ -47,7 +47,7 @@ void SendLinkClipboard(void)
 {
     UBYTE column, row, ok;
 
-    if (wCursorMode != 2)
+    if (wCursorMode != CURSOR_COPIED)
         DebugTrap();
     if (wSelectionLeft >= wSelectionRight)
         DebugTrap();
@@ -94,7 +94,7 @@ void ReceiveLinkClipboard(void)
 {
     UBYTE column, row, ok;
 
-    wCursorMode = 1;
+    wCursorMode = CURSOR_NORMAL;
     wSyncTransferActive = 1;
     SetInterruptEnable(8);
     SendSyncHandshake();
@@ -111,7 +111,7 @@ void ReceiveLinkClipboard(void)
                 row = row + 1;
             }
         }
-        wCursorMode = 2;
+        wCursorMode = CURSOR_COPIED;
     }
     SyncSetReceiveMode();
     wSyncTransferActive = 0;

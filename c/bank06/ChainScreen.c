@@ -301,7 +301,7 @@ UBYTE ChainScreenInput(void)
     isA = wButtons == J_A;
     if (!isA)
         wDrawStep = 0;
-    if (wCursorMode == 4 && wButtons == J_SELECT_TAP) {
+    if (wCursorMode == CURSOR_SELECTING && wButtons == J_SELECT_TAP) {
         wChainColumn = wSelectionLeft;
         wChainRow = wSelectionTop;
         FarCall(5, 0x747D);
@@ -317,7 +317,7 @@ UBYTE ChainScreenInput(void)
     hBgDigitPalette = 4;
     hBgPalette = 1;
     if (wAPressEnabled && isA) {
-        if (wCursorMode == 4)
+        if (wCursorMode == CURSOR_SELECTING)
             return 0;
         hBgDigitPalette = wHighlightDigitPalette;
         hBgPalette = wHighlightPalette;
@@ -356,10 +356,10 @@ UBYTE ChainScreenInput(void)
     if (wButtons == J_RIGHT) {
         if (wChainColumn == 1)
             return 0;
-        if (wCursorMode != 4)
+        if (wCursorMode != CURSOR_SELECTING)
             EraseChainCursor();
         wChainColumn++;
-        if (wCursorMode == 4)
+        if (wCursorMode == CURSOR_SELECTING)
             DrawChainSelection();
         else
             DrawChainCursor();
@@ -368,10 +368,10 @@ UBYTE ChainScreenInput(void)
     if (wButtons == J_LEFT) {
         if (!wChainColumn)
             return 0;
-        if (wCursorMode != 4)
+        if (wCursorMode != CURSOR_SELECTING)
             EraseChainCursor();
         wChainColumn--;
-        if (wCursorMode == 4)
+        if (wCursorMode == CURSOR_SELECTING)
             DrawChainSelection();
         else
             DrawChainCursor();
@@ -380,11 +380,11 @@ UBYTE ChainScreenInput(void)
     if (wButtons == J_UP) {
         if (!wChainRow)
             return 0;
-        if (wCursorMode != 4)
+        if (wCursorMode != CURSOR_SELECTING)
             EraseChainCursor();
         wChainRow--;
         DrawChainPosition();
-        if (wCursorMode == 4)
+        if (wCursorMode == CURSOR_SELECTING)
             DrawChainSelection();
         else
             DrawChainCursor();
@@ -393,11 +393,11 @@ UBYTE ChainScreenInput(void)
     if (wButtons == J_DOWN) {
         if (wChainRow == 0x0F)
             return 0;
-        if (wCursorMode != 4)
+        if (wCursorMode != CURSOR_SELECTING)
             EraseChainCursor();
         wChainRow++;
         DrawChainPosition();
-        if (wCursorMode == 4)
+        if (wCursorMode == CURSOR_SELECTING)
             DrawChainSelection();
         else
             DrawChainCursor();
@@ -408,7 +408,7 @@ UBYTE ChainScreenInput(void)
         columnEnd = cursorColumn;
         cursorRow = wChainRow;
         rowEnd = cursorRow;
-        if (wCursorMode == 4) {
+        if (wCursorMode == CURSOR_SELECTING) {
             column = wSelectionLeft;
             rowStart = wSelectionTop;
         } else {
@@ -451,7 +451,7 @@ UBYTE ChainScreenInput(void)
         columnEnd = cursorColumn;
         cursorRow = wChainRow;
         rowEnd = cursorRow;
-        if (wCursorMode == 4) {
+        if (wCursorMode == CURSOR_SELECTING) {
             column = wSelectionLeft;
             rowStart = wSelectionTop;
         } else {
@@ -498,7 +498,7 @@ UBYTE ChainScreenInput(void)
         columnEnd = cursorColumn;
         cursorRow = wChainRow;
         rowEnd = cursorRow;
-        if (wCursorMode == 4) {
+        if (wCursorMode == CURSOR_SELECTING) {
             column = wSelectionLeft;
             rowStart = wSelectionTop;
         } else {
@@ -541,7 +541,7 @@ UBYTE ChainScreenInput(void)
         columnEnd = cursorColumn;
         cursorRow = wChainRow;
         rowEnd = cursorRow;
-        if (wCursorMode == 4) {
+        if (wCursorMode == CURSOR_SELECTING) {
             column = wSelectionLeft;
             rowStart = wSelectionTop;
         } else {
@@ -641,7 +641,7 @@ UBYTE ChainScreenInput(void)
         if (!wAPressEnabled)
             return 0;
         wAPressEnabled = 0;
-        wCursorMode = 2;
+        wCursorMode = CURSOR_COPIED;
         wSelectionLeft = wChainColumn;
         wSelectionRight = 2;
         wSelectionTop = wChainRow;
@@ -662,13 +662,13 @@ UBYTE ChainScreenInput(void)
         return 1;
     }
     if (wButtons == (J_SELECT | J_A)) {
-        if (wCursorMode == 1)
+        if (wCursorMode == CURSOR_NORMAL)
             return 0;
         if (wClipboardType != SCREEN_CHAIN)
             return 0;
         if (!wSelectHeld)
             return 0;
-        if (wCursorMode == 4) {
+        if (wCursorMode == CURSOR_SELECTING) {
             wSelectHeld = 0;
             if (wAPressEnabled || wSelectionLeft != wChainColumn || wSelectionTop != wChainRow)
                 CutCopyChainSelection(1);
@@ -681,7 +681,7 @@ UBYTE ChainScreenInput(void)
         DrawChainScreen();
         return 1;
     }
-    if (wButtons == (J_SELECT | J_B | J_A) && wCursorMode == 4) {
+    if (wButtons == (J_SELECT | J_B | J_A) && wCursorMode == CURSOR_SELECTING) {
         OpenChainPhrase();
         return 1;
     }
@@ -736,7 +736,7 @@ UBYTE ChainScreenInput(void)
         FarCall(7, FAR_FN(RedrawScreen));
         return 1;
     }
-    if (wCursorMode == 4 && wButtons == J_B) {
+    if (wCursorMode == CURSOR_SELECTING && wButtons == J_B) {
         if (!wAPressEnabled)
             return 0;
         CutCopyChainSelection(0);
@@ -745,7 +745,7 @@ UBYTE ChainScreenInput(void)
     if (wButtons == (J_SELECT | J_B)) {
         if (!wSelectHeld)
             return 0;
-        if (wCursorMode == 4 && wClipboardType == SCREEN_CHAIN) {
+        if (wCursorMode == CURSOR_SELECTING && wClipboardType == SCREEN_CHAIN) {
             left = wSelectionLeft;
             right = (char)wChainColumn;
             rowStart = wSelectionTop;
@@ -788,7 +788,7 @@ void CutCopyChainSelection(UBYTE cut)
 
     if (wClipboardType != SCREEN_CHAIN)
         return;
-    wCursorMode = 2;
+    wCursorMode = CURSOR_COPIED;
     wSelectionRight = wChainColumn;
     wSelectionBottom = wChainRow;
     SortBytePair(&wSelectionLeft, &wSelectionRight);
