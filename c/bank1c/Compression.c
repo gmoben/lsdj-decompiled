@@ -87,9 +87,9 @@ UBYTE CompressSong(void)
     current = ReadSongByte(0, SRAM_PHRASE_NOTES);
     next = ReadSongByte(0, SRAM_PHRASE_NOTES + 1);
     do {
-        if (current == 0xC0) {
-            WriteCompressedByte(0xC0);
-            WriteCompressedByte(0xC0);
+        if (current == COMPRESS_RLE) {
+            WriteCompressedByte(COMPRESS_RLE);
+            WriteCompressedByte(COMPRESS_RLE);
             current = next;
             wCompressDestination++;
             if (wCompressDestination < 0x7FFF)
@@ -100,14 +100,14 @@ UBYTE CompressSong(void)
                 k = k + 1;
                 wCompressDestination += 0x10;
             } while (CompressIsDefaultWave() && k != 0xFF);
-            WriteCompressedByte(0xE0);
-            WriteCompressedByte(0xF0);
+            WriteCompressedByte(COMPRESS_COMMAND);
+            WriteCompressedByte(COMPRESS_DEFAULT_WAVE);
             WriteCompressedByte(k);
             current = ReadWorkingSongByte(wCompressDestination);
             next = ReadWorkingSongByte(wCompressDestination + 1);
-        } else if (current == 0xE0) {
-            WriteCompressedByte(0xE0);
-            WriteCompressedByte(0xE0);
+        } else if (current == COMPRESS_COMMAND) {
+            WriteCompressedByte(COMPRESS_COMMAND);
+            WriteCompressedByte(COMPRESS_COMMAND);
             current = next;
             wCompressDestination++;
             if (wCompressDestination < 0x7FFF)
@@ -129,7 +129,7 @@ UBYTE CompressSong(void)
                 next = ReadWorkingSongByte(wCompressDestination + 1);
         }
         if (wDecompressPosition > 0xFB && (wCompressSource & 0x100)) {
-            WriteCompressedByte(0xE0);
+            WriteCompressedByte(COMPRESS_COMMAND);
             if (!FindFreeBlock(&bank, &source))
                 return 0;
             WriteCompressedByte(wFileBlockIndex);
@@ -139,8 +139,8 @@ UBYTE CompressSong(void)
             wCompressSource = source;
         }
     } while (!(wCompressDestination & 0x8000));
-    WriteCompressedByte(0xE0);
-    WriteCompressedByte(0xFF);
+    WriteCompressedByte(COMPRESS_COMMAND);
+    WriteCompressedByte(COMPRESS_END);
     if (wDecompressPosition)
         FileWriteCompressedSram();
     return 1;
@@ -151,20 +151,20 @@ UBYTE DecompressBlock(void)
     UBYTE b;
 
     switch (b = ReadCompressedByte()) {
-    case 0xE0:
-        FilePutDecompressByte(0xE0);
+    case COMPRESS_COMMAND:
+        FilePutDecompressByte(COMPRESS_COMMAND);
         break;
-    case 0xF0:
+    case COMPRESS_DEFAULT_WAVE:
         b = ReadCompressedByte();
         while (b--)
             EmitDefaultWave();
         break;
-    case 0xF1:
+    case COMPRESS_DEFAULT_INSTRUMENT:
         b = ReadCompressedByte();
         while (b--)
             EmitDefaultInstrument();
         break;
-    case 0xFF:
+    case COMPRESS_END:
         return 1;
     default:
         if (wBlockSinkPointer == FlushBlockToSram) {

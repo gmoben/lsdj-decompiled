@@ -288,6 +288,15 @@ typedef int WORD;
 #define TABLE_COLUMN_VALUE2        5
 #define TABLE_COLUMNS              6
 
+/* the song compression (docs/save_format.md): $C0 starts a run (or, twice,
+ * is itself), $E0 a command -- itself again, the default wave or instrument
+ * n times, the end, or else the next block */
+#define COMPRESS_RLE                 0xC0
+#define COMPRESS_COMMAND             0xE0
+#define COMPRESS_DEFAULT_WAVE        0xF0
+#define COMPRESS_DEFAULT_INSTRUMENT  0xF1
+#define COMPRESS_END                 0xFF
+
 /* wPlayMode: stopped, or the screen playback started from */
 #define PLAY_STOPPED         0
 #define PLAY_PHRASE          SCREEN_PHRASE

@@ -78,7 +78,7 @@ RLE and literals.
 
 | Routine | Addr | Role |
 |---------|------|------|
-| `CompressSong` | `$441F` | compress the 32 KiB working song into blocks (matching C in `c/bank1c/FileScreen.c`); returns 0 when no free block is left |
+| `CompressSong` | `$441F` | compress the 32 KiB working song into blocks (matching C in `c/bank1c/Compression.c`); returns 0 when no free block is left |
 | `CompressIsDefaultWave` | `$43C1` | 1 when the 16 bytes at `wCompressDestination` are the default wave frame |
 | `FileCompressRun` | `$7167` | emit `$C0 v n` for the run of `v` at `wCompressDestination` (asm, `v` in `a`) |
 | `WriteCompressedByte` | `$715B` | emit one byte to the compressed output stream |
