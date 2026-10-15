@@ -265,7 +265,7 @@
 6E20 .onChain             ; wCurScreen == case in DrawTopBar
 6E37 .onPhrase            ; wCurScreen == case in DrawTopBar
 6E4E .onTable             ; wCurScreen == case in DrawTopBar
-6E65 .onProject2          ; wCurScreen == case in DrawTopBar
+6E65 .onProj2          ; wCurScreen == case in DrawTopBar
 6EDA .onInstr             ; wCurScreen == case in DrawTopBar
 6EF1 .onWave              ; wCurScreen == case in DrawTopBar
 6F08 .onSynth             ; wCurScreen == case in DrawTopBar
@@ -372,7 +372,7 @@
 4AC4 .cont_3
 4AE5 .cont_4
 4B26 .cont
-4B2B .checkIsCGB
+4B2B .checkIsCgb
 4B49 .cont_2
 4B4E .cont_3
 4BAA .clearByte           ; write 0 to the tile byte at p
@@ -454,7 +454,7 @@
 7E12 .branch
 7E1A .cont
 7E1C .setrVBK
-7E37 .readSTAT
+7E37 .readStat
 6F7E TxtTitle                   ; "LITTLE SOUND DJ " running on into TxtVersion: main's startup message
 56A7 ColorSetPalettes           ; [280] 7 colour sets of 20 words (ApplyColorSet indexes wColorSet*40): 5 BG palettes of 4 colours per set; objects use the first two and colours 5-8
 532C InstrTableFieldRow         ; [4] instrument-screen row of the TABLE field per type (pulse 15, wave 14, kit 17, noise 12)

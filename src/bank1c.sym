@@ -235,11 +235,11 @@
 70F7 .done                ; common exit of FileUpgradeSong
 714B .loop                ; loop head in ReadWorkingSongByte
 7177 .loop                ; loop head in FileCompressRun
-727D .column
+727D .col
 72AA .cell
 72EA .done                ; common exit of SendLinkClipboard
 72EF .loop                ; loop head in SyncTransferByte
-7389 .column
+7389 .col
 73B6 .cell
 744B .loop                ; loop head in FlushBlockToSram
 747D .loop                ; loop head in VerifyBlockAgainstSram

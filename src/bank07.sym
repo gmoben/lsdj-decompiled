@@ -316,7 +316,7 @@
 5D28 .okc
 5D33 .okd
 5D45 .oke
-5DFB .checkIsCGB
+5DFB .checkIsCgb
 6258 .ok
 6267 .okb
 640C .sort
@@ -333,7 +333,7 @@
 6B1F .setBHeld
 6B29 .setBHeldb
 6BAB .checkKbdInstr
-6BC4 .checkKbdInstrumentb
+6BC4 .checkKbdInstrb
 6CA9 .checkKbdTranspose
 6CBD .checkKbdTransposeb
 6D5B .setMessageStrPtrb
@@ -430,13 +430,13 @@
 4E92 .ret01_5
 4F4F .memSet
 4FD5 .ret01_6
-4FEF .setIsCGB
+4FEF .setIsCgb
 500F .loadSongRow_2
-504C .setIsCGB_2
+504C .setIsCgb_2
 5070 .loadSongRow_3
-50AA .setIsCGB_3
+50AA .setIsCgb_3
 50EF .ret01_7
-5109 .setIsCGB_4
+5109 .setIsCgb_4
 512F .cont_3
 5139 .cont_4
 5144 .cont_5

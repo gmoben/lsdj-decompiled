@@ -598,7 +598,7 @@
 68BC .slide
 68C7 .addFraction
 68DC .applySlide
-68E4 .vibrato
+68E4 .vib
 6944 .setChanCmdCountdown
 6954 .cont
 6979 .cont_2
@@ -703,4 +703,4 @@
 7E99 .readSoundChan_4
 
 ; --- pointer targets (tools/name_targets.py) ---
-6715 .soundChCases
+6715 .soundChanCases

@@ -224,17 +224,17 @@
 5D16 .cutCmd1
 5DAD .cutCmd2
 5E41 .cutDraw
-5E49 .selA
-5E74 .selAClip
-5E82 .selACol
+5E49 .selectA
+5E74 .selectAClip
+5E82 .selectACol
 5E92 .pasteCells
-5EA0 .selStart
+5EA0 .selectStart
 5EC0 .start
 5EE8 .mapUp
 5F0F .mapDown
 606F .mapLeft
 6097 .copySelection
-60B6 .selB
+60B6 .selectB
 6115 .widenRows
 6155 .widenCols
 616C .copyScreen
@@ -408,7 +408,7 @@
 5FB5 .grooveCmd2
 5FDA .grooveShiftTest2
 6050 .mapDownGo
-612C .selBCols
+612C .selectBCols
 617F .startSelection
 61AF .none
 61D9 .cont
@@ -544,7 +544,7 @@
 73EA TxtHelpLimit               ; "LIMIT SIGNAL VERTICALLY..."
 
 ; --- pointer targets (tools/name_targets.py) ---
-4CEB .columnCases
+4CEB .colCases
 4F4C .incPtrCases
 4FBB .incColCases
 527E .decPtrCases

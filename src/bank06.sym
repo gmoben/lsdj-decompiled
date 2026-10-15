@@ -180,7 +180,7 @@
 43D5 .left                ; wButtons == case in WordScreenInput
 43E5 .right               ; wButtons == case in WordScreenInput
 43F5 .aB                  ; wButtons == case in WordScreenInput
-449C .selA                ; wButtons == case in WordScreenInput
+449C .selectA                ; wButtons == case in WordScreenInput
 44E5 .a                   ; wButtons == case in WordScreenInput
 45ED .aRight              ; wButtons == case in WordScreenInput
 4666 .aLeft               ; wButtons == case in WordScreenInput
@@ -190,12 +190,12 @@
 479E .bRight              ; wButtons == case in WordScreenInput
 47B7 .bDown               ; wButtons == case in WordScreenInput
 47CF .bUp                 ; wButtons == case in WordScreenInput
-47E5 .selLeft             ; wButtons == case in WordScreenInput
-480D .selUp               ; wButtons == case in WordScreenInput
-4835 .selDown             ; wButtons == case in WordScreenInput
-485D .selStart            ; wButtons == case in WordScreenInput
+47E5 .selectLeft             ; wButtons == case in WordScreenInput
+480D .selectUp               ; wButtons == case in WordScreenInput
+4835 .selectDown             ; wButtons == case in WordScreenInput
+485D .selectStart            ; wButtons == case in WordScreenInput
 487D .start               ; wButtons == case in WordScreenInput
-50EB .selRightLeft        ; wButtons == case in WaveScreenInput
+50EB .selectRightLeft        ; wButtons == case in WaveScreenInput
 511A .right               ; wButtons == case in WaveScreenInput
 513C .left                ; wButtons == case in WaveScreenInput
 515D .up                  ; wButtons == case in WaveScreenInput
@@ -207,13 +207,13 @@
 51CF .bLeft               ; wButtons == case in WaveScreenInput
 51E3 .bUp                 ; wButtons == case in WaveScreenInput
 51FA .bDown               ; wButtons == case in WaveScreenInput
-5211 .selStart            ; wButtons == case in WaveScreenInput
+5211 .selectStart            ; wButtons == case in WaveScreenInput
 5231 .start               ; wButtons == case in WaveScreenInput
-5259 .selLeft             ; wButtons == case in WaveScreenInput
-529B .selDown             ; wButtons == case in WaveScreenInput
-52C8 .selB                ; wButtons == case in WaveScreenInput
+5259 .selectLeft             ; wButtons == case in WaveScreenInput
+529B .selectDown             ; wButtons == case in WaveScreenInput
+52C8 .selectB                ; wButtons == case in WaveScreenInput
 5323 .b                   ; wButtons == case in WaveScreenInput
-5349 .selA                ; wButtons == case in WaveScreenInput
+5349 .selectA                ; wButtons == case in WaveScreenInput
 5737 .notChain            ; wButtons == case in ClonePhraseAtCursor
 5BEC .aFalse
 5C68 .notCancelSelect
@@ -233,7 +233,7 @@
 686C .songRowDown
 68AF .testAB
 69B1 .testSelectionA
-69C8 .selAClip
+69C8 .selectAClip
 6A31 .testSelectionAB
 6A49 .testSelectionStart
 6A72 .testStart
@@ -299,7 +299,7 @@
 5A20 .loadChainRow
 5AD0 .loadChainRow
 5BDF .chainOk
-5BF7 .selTest
+5BF7 .selectionModeTest
 5C54 .cancelRedraw
 5C89 .writeCell
 5CCA .phraseCell
@@ -319,7 +319,7 @@
 68A7 .songDownDraw
 68C5 .cutCell
 69A9 .cutDraw
-69D6 .selAHeld
+69D6 .selectAHeld
 6A1B .openPhrase
 6A23 .pasteCells
 6A9E .startPlay
@@ -378,7 +378,7 @@
 477E .pageDownWrite       ; WordScreenInput: write the -$10 cell
 4799 .bLeftDone           ; WordScreenInput: B+LEFT: already on the first row
 47B2 .bRightDone          ; WordScreenInput: B+RIGHT: already on the last row
-486A .selStartToggle      ; WordScreenInput: SELECT+START: toggle song playback
+486A .selectStartToggle      ; WordScreenInput: SELECT+START: toggle song playback
 488D .startDone           ; WordScreenInput: START held or with B: nothing
 4892 .startToggle         ; WordScreenInput: START: toggle playback
 48A5 .noCase              ; WordScreenInput: no handled button combination: return 0
@@ -478,8 +478,8 @@
 5B3A .loadSongCol
 5BBE .farCall
 5BED .aStore
-5C04 .selFalse
-5C05 .selStore
+5C04 .notSelectionMode
+5C05 .storeSelectionMode
 5CF5 .readPhrase
 5D1E .notEmptyCell
 5D1F .storeEmpty
@@ -564,9 +564,9 @@
 680F .songTop
 693C .cutTranspose
 6993 .clearTranspose
-69E3 .selAInSelection
+69E3 .selectAInSelection
 6A0F .cutSelection
-6A1E .selADone
+6A1E .selectADone
 6A5F .toggleSong
 6A8B .startHeld
 6A99 .startDone
@@ -575,8 +575,8 @@
 6B71 .mapLeft
 6BE0 .mapDown
 6C1D .copySelection
-6C41 .selB
-6CB2 .selBCols
+6C41 .selectB
+6CB2 .selectBCols
 6D05 .startSelection
 6DBD .cont
 6DBE .cont_2

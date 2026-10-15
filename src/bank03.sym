@@ -248,7 +248,7 @@
 59C7 .incPulse
 5AB9 .incPulseLen
 5AED .incPulsePitch
-5AFB .incPulseTransp
+5AFB .incPulseTranspose
 5B01 .incPulseCmdRate
 5B55 .incPulseTableMode
 5B5B .incPulseTable
@@ -257,7 +257,7 @@
 5D53 .incWaveLen
 5D86 .incWaveLoopPos
 5DA5 .incWaveSpeed
-5DCA .incWaveTransp
+5DCA .incWaveTranspose
 5DD0 .incWaveCmdRate
 5DFF .incWaveTableMode
 5E05 .incWaveTable
@@ -273,14 +273,14 @@
 6118 .incNoise
 61BB .incNoiseLen
 61C1 .incNoisePitch
-61E8 .incNoiseTransp
+61E8 .incNoiseTranspose
 61EE .incNoiseCmdRate
 61F4 .incNoiseTableMode
 61FA .incNoiseTable
 629B .decPulse
 638F .decPulseLen
 63C2 .decPulsePitch
-63D0 .decPulseTransp
+63D0 .decPulseTranspose
 63D6 .decPulseCmdRate
 642A .decPulseTableMode
 6430 .decPulseTable
@@ -290,7 +290,7 @@
 663F .decWaveLenNext2
 6651 .decWaveLoopPos
 6672 .decWaveSpeed
-6696 .decWaveTransp
+6696 .decWaveTranspose
 669C .decWaveCmdRate
 66CB .decWaveTableMode
 66D1 .decWaveTable
@@ -300,7 +300,7 @@
 6A03 .decNoise
 6AA6 .decNoiseLen
 6AAC .decNoisePitch
-6AD3 .decNoiseTransp
+6AD3 .decNoiseTranspose
 6AD9 .decNoiseCmdRate
 6ADF .decNoiseTableMode
 6AE5 .decNoiseTable

@@ -209,7 +209,7 @@
 7DB3 .loop                ; loop head in TxtPastedSynth
 
 ; --- structural local names (loop heads / common exits) ---
-44CF .selRightLeft        ; wButtons == case in GrooveScreenInput
+44CF .selectRightLeft        ; wButtons == case in GrooveScreenInput
 4526 .a                   ; wButtons == case in GrooveScreenInput
 456F .up                  ; wButtons == case in GrooveScreenInput
 4592 .down                ; wButtons == case in GrooveScreenInput
@@ -222,12 +222,12 @@
 48A2 .bDown               ; wButtons == case in GrooveScreenInput
 48C6 .bLeft               ; wButtons == case in GrooveScreenInput
 48DF .aB                  ; wButtons == case in GrooveScreenInput
-49A0 .selA                ; wButtons == case in GrooveScreenInput
-49E3 .selStart            ; wButtons == case in GrooveScreenInput
+49A0 .selectA                ; wButtons == case in GrooveScreenInput
+49E3 .selectStart            ; wButtons == case in GrooveScreenInput
 49FE .start               ; wButtons == case in GrooveScreenInput
-4A49 .selUp               ; wButtons == case in GrooveScreenInput
+4A49 .selectUp               ; wButtons == case in GrooveScreenInput
 4A71 .b                   ; wButtons == case in GrooveScreenInput
-4A90 .selB                ; wButtons == case in GrooveScreenInput
+4A90 .selectB                ; wButtons == case in GrooveScreenInput
 6E3C .left                ; wButtons == case in OverwritePromptInput
 6E47 .right               ; wButtons == case in OverwritePromptInput
 6E52 .a                   ; wButtons == case in OverwritePromptInput

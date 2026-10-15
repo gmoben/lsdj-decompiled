@@ -497,7 +497,7 @@
 1258 .noAPress
 1269 .noButtons
 12B4 .ok
-1324 .setIsCGB
+1324 .setIsCgb
 13A5 .decRedrawPending
 13CC .setIdleFrames
 13D1 .screenUpdateDispatch
@@ -546,9 +546,9 @@
 283C .solo
 28E1 .soloSelf
 2945 .release
-2BDB .checkIsCGB
-2BF1 .checkIsCGBb
-2C07 .checkIsCGBc
+2BDB .checkIsCgb
+2BF1 .checkIsCgbb
+2C07 .checkIsCgbc
 2C1D .checkTempo
 2DA7 .checkSongCol
 30A1 .advanceEnvNoi
@@ -608,7 +608,7 @@
 0D3C .cont_2
 0D3D .cont_3
 0E5A .cont
-0E8D .readSTAT
+0E8D .readStat
 0EA9 .setTimerReload_2
 0EBC .cont_2
 0EBE .setTimerReload_3
@@ -635,7 +635,7 @@
 12EA .cont
 1306 main               ; the C entry point (Start jumps here): detect the hardware, InitAndLoadSong, redraw, file-system check; then main.mainLoop is its endless loop
 1318 .readAUDENA
-1323 .setIsCGB_2
+1323 .setIsCgb_2
 132B .cont_2
 132F .setrAUDENA
 13E2 .decWorkTimeTicks
@@ -772,8 +772,8 @@
 28D8 .soloNext
 2964 .restoreOne
 2971 .kbdSet2
-2972 .pickChannel2
-2985 .cursorChannel2
+2972 .pickChan2
+2985 .cursorChan2
 2989 .restore
 29DF .unsolo
 29F3 .unsoloOther
@@ -798,9 +798,9 @@
 2B79 .cont_15
 2B89 .cont_16
 2BE9 .cont
-2BEC .checkIsCGB_2
+2BEC .checkIsCgb_2
 2BFF .cont_2
-2C02 .checkIsCGB_3
+2C02 .checkIsCgb_3
 2C15 .cont_3
 2C18 .checkTempo_2
 2C32 .loadTempo
@@ -828,7 +828,7 @@
 2E00 .cont_4
 2E08 .drawString_2
 2E16 .drawHexByte
-2E96 .readSTAT
+2E96 .readStat
 2EBC .cont
 2EC0 .cont_2
 2EC2 .cont_3
@@ -857,7 +857,7 @@
 328A .cont
 328B .shift
 32AD .cont
-32B8 .readSTAT
+32B8 .readStat
 32DA .testBit7
 32FE .loadTileSlotAlloc
 3322 .readLCDC
@@ -912,9 +912,9 @@
 3981 .toDelayLoop
 39A5 .readLCDC
 39B5 .cont
-39B8 .readSTAT
+39B8 .readStat
 39ED .cont
 39FE .cont
 3A01 set_xy_tt          ; GBDK .set_xy_tt (set_xy_t.s): copy a w x h tile block from bc to (x d, y e) of the map at hl, rSTAT-gated
-3A0D .readSTAT
+3A0D .readStat
 0300 VibOffsetJumps             ; jp-hl dispatch table of per-shape vibrato-offset fragments (SndCalcVibOffset via $0300)

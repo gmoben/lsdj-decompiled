@@ -294,18 +294,18 @@
 729D .a                   ; wButtons == case in SpeechInstrInput
 7356 .up                  ; wButtons == case in SpeechInstrInput
 7372 .down                ; wButtons == case in SpeechInstrInput
-738F .selDown             ; wButtons == case in SpeechInstrInput
-73AC .selUp               ; wButtons == case in SpeechInstrInput
-73C9 .selRight            ; wButtons == case in SpeechInstrInput
-73E6 .selLeft             ; wButtons == case in SpeechInstrInput
+738F .selectDown             ; wButtons == case in SpeechInstrInput
+73AC .selectUp               ; wButtons == case in SpeechInstrInput
+73C9 .selectRight            ; wButtons == case in SpeechInstrInput
+73E6 .selectLeft             ; wButtons == case in SpeechInstrInput
 7403 .aB                  ; wButtons == case in SpeechInstrInput
 7425 .notSelectionB       ; wButtons == case in SpeechInstrInput
 74A0 .notAB               ; wButtons == case in SpeechInstrInput
 760A .notAB2              ; wButtons == case in SpeechInstrInput
-760F .selA                ; wButtons == case in SpeechInstrInput
+760F .selectA                ; wButtons == case in SpeechInstrInput
 778D .bLeft               ; wButtons == case in SpeechInstrInput
 779F .bDown               ; wButtons == case in SpeechInstrInput
-77B1 .selStart            ; wButtons == case in SpeechInstrInput
+77B1 .selectStart            ; wButtons == case in SpeechInstrInput
 77CC .start               ; wButtons == case in SpeechInstrInput
 
 
@@ -481,11 +481,11 @@
 551B .noteNextP           ; p incremented, read *q in FindDupPhrase
 5528 .noteCompare         ; q incremented, compare the bytes in FindDupPhrase
 5532 .noteNext            ; i++ in FindDupPhrase
-5538 .instruments         ; bank 3: row pointers at $B000 + offset in FindDupPhrase
+5538 .instrs         ; bank 3: row pointers at $B000 + offset in FindDupPhrase
 5576 .instrNextP          ; p incremented, read *q in FindDupPhrase
 5583 .instrCompare        ; compare the bytes in FindDupPhrase
 558D .instrNext           ; i++ in FindDupPhrase
-5593 .commands            ; bank 2: row pointers at $A000 | offset in FindDupPhrase
+5593 .cmds            ; bank 2: row pointers at $A000 | offset in FindDupPhrase
 55CB .cmdNextP            ; p incremented, read *q in FindDupPhrase
 55D8 .cmdCompare          ; compare the bytes in FindDupPhrase
 55E2 .cmdNext             ; i++ in FindDupPhrase
@@ -521,7 +521,7 @@
 58BD .val2NextP           ; p incremented, read *q in FindDupTable
 58CA .val2Compare         ; compare the bytes in FindDupTable
 58D4 .val2Next            ; i++ in FindDupTable
-58DA .envelopes           ; bank 0: row pointers at $B690 + offset in FindDupTable
+58DA .envs           ; bank 0: row pointers at $B690 + offset in FindDupTable
 5918 .envNextP            ; p incremented, read *q in FindDupTable
 5925 .envCompare          ; compare the bytes in FindDupTable
 592F .envNext             ; i++ in FindDupTable
