@@ -338,7 +338,7 @@ void main(void)
             continue;
         }
         wRedrawPending--;
-        if (!ProcessInput() || wPlayMode || wSyncMode == 6 || wSyncTick != 0xFF)
+        if (!ProcessInput() || wPlayMode || wSyncMode == SYNC_ANALOG_IN || wSyncTick != 0xFF)
             wIdleFrames = 0;
         DispatchScreenUpdate();
         if (AnyChannelFlagSet())

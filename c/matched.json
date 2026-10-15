@@ -2753,12 +2753,6 @@
   "len": 26,
   "src": "c/bank1b/ProjectScreen.c"
  },
- "ProjectSyncModeIs567": {
-  "bank": "1B",
-  "addr": "5896",
-  "len": 27,
-  "src": "c/bank1b/ProjectScreen.c"
- },
  "RaiseInstrumentCommandRate": {
   "bank": "03",
   "addr": "4741",
@@ -3682,6 +3676,12 @@
   "addr": "1CFF",
   "len": 42,
   "src": "c/bank00/Sync.c"
+ },
+ "SyncModeHasParameter": {
+  "bank": "1B",
+  "addr": "5896",
+  "len": 27,
+  "src": "c/bank1b/ProjectScreen.c"
  },
  "SyncReceiveAnalogClock": {
   "bank": "00",

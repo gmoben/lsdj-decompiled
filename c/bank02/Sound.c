@@ -92,7 +92,7 @@ void SoundTick(void)
     SoundUpdateAllChannels();
     if (wPlayRestartPending) {
         wPlayRestartPending = 0;
-        if (wSyncMode == 3 || wSyncMode == 6)
+        if (wSyncMode == SYNC_MIDI || wSyncMode == SYNC_ANALOG_IN)
             SoundTick();
     }
     if (wKeyboardNoteInjected) {

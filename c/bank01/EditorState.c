@@ -119,6 +119,6 @@ void LoadProjectSettings(UBYTE keep)
     wKeyRepeatTimer = wKeyRepeat;
     FarCall(0x1C, FAR_FN(LoadFileListState));
     FarCall(0x1C, FAR_FN(FileUpgradeSong));
-    if (wSyncMode == 5)
+    if (wSyncMode == SYNC_KEYBOARD)
         FarCall(7, FAR_FN(DrawKeyboardInstrumentState));
 }

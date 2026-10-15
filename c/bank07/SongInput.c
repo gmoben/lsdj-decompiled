@@ -369,7 +369,7 @@ UBYTE SongScreenInput(void)
         }
         if (wLiveMode)
             FarCall(2, FAR_FN(SoundStartRange));
-        else if (wSyncMode == 1 && !wPlayMode && wSyncTick != 0xFF)
+        else if (wSyncMode == SYNC_LSDJ && !wPlayMode && wSyncTick != 0xFF)
             BeginSongSelection();
         else
             FarCall(2, FAR_FN(SoundTogglePlayback));

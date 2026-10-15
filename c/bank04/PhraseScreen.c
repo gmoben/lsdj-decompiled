@@ -935,12 +935,12 @@ void PrelistenCursorRow(void)
     }
     if (wPlayMode)
         return;
-    if (wSyncMode != 0 && wSyncMode != 1 && wSyncMode != 5)
+    if (wSyncMode != SYNC_OFF && wSyncMode != SYNC_LSDJ && wSyncMode != SYNC_KEYBOARD)
         return;
     wSavedLiveMode = wLiveMode;
     wLiveMode = 0;
     wLiveStartColumn = wSongColumn;
-    if (wSyncMode == 1)
+    if (wSyncMode == SYNC_LSDJ)
         SyncSetSendMode();
     FarCall(2, FAR_FN(SoundTogglePlayback));
 }

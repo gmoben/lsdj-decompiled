@@ -210,7 +210,7 @@ void SoundToggleSongPlayback(void)
         SoundLiveStopRange();
         return;
     }
-    if (wSyncMode == 1 || wSyncMode == 3)
+    if (wSyncMode == SYNC_LSDJ || wSyncMode == SYNC_MIDI)
         wSyncTick = 0xFF;
     if (wPlayMode && wPlayMode != 4)
         SoundTogglePlayback();
@@ -234,7 +234,8 @@ void SoundStartSongPlayback(void)
     UBYTE *chain, *active, *phrase;
     UBYTE row, n, stop, end, k;
 
-    resume = wChainRow && (wSavedScreen && wSavedScreen != 4) && (wSyncMode == 0 || wSyncMode == 5);
+    resume = wChainRow && (wSavedScreen && wSavedScreen != SCREEN_SONG)
+            && (wSyncMode == SYNC_OFF || wSyncMode == SYNC_KEYBOARD);
     for (hSoundChannel = 0; hSoundChannel < 4; hSoundChannel++) {
         chain = &wChannelChain[hSoundChannel];
         active = &wChannelActive[hSoundChannel];
@@ -275,7 +276,7 @@ void SoundStartSongPlayback(void)
 
 void SoundStartScreenPlayback(void)
 {
-    if (wSyncMode == 1 && wSyncTick == 0xFF) {
+    if (wSyncMode == SYNC_LSDJ && wSyncTick == 0xFF) {
         wSyncRun = wCurrentScreen == SCREEN_SONG;
         SyncSetSendMode();
     }

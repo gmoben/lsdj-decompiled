@@ -239,7 +239,8 @@ comment began with a quoted string had been carved as data, since a leading
   per type (`WAVE_FIELD_PLAY`, `KIT_FIELD_CLIP`: the manual's labels, checked
   against `ShowInstrumentFieldHelp` and `InstrumentFieldX`), an instrument's
   bytes (`INSTRUMENT_BYTE_TABLE`, `KIT_BYTE_OFFSET1`: the manual's Appendix C,
-  which every field handler's reads and writes agree with), the cursor modes
+  which every field handler's reads and writes agree with), the sync modes
+  (`SYNC_ANALOG_IN`; 2 and 4 are no mode), the cursor modes
   (`CURSOR_COPIED`: the clipboard holds something to paste), the channels (`CHANNEL_NOI`
   for `wSongColumn` and `hSoundChannel`), the commands (`COMMAND_Z`, in
   `CommandMnemonics`' order; `FileUpgrade.c` keeps numbers, which there mean

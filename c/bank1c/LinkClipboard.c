@@ -57,7 +57,7 @@ void SendLinkClipboard(void)
         DebugTrap();
     if (wSelectionBottom > 0x2A)
         DebugTrap();
-    if (wPlayMode || wSyncMode != 1)
+    if (wPlayMode || wSyncMode != SYNC_LSDJ)
         return;
     wSyncTransferActive = 1;
     SetInterruptEnable(0);

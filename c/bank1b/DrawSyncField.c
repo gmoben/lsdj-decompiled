@@ -38,18 +38,18 @@ void DrawSyncField(void)
 
     wVramCursor = (UBYTE *)BG_MAP(5, 4);
     switch (wSyncMode) {
-    case 0: DrawString(TxtSyncOff); break;
-    case 1: DrawString(TxtSyncLsdj); break;
-    case 3: DrawString(TxtSyncMidi); break;
-    case 5: DrawString(TxtSyncKeybd); break;
-    case 6: DrawString(TxtSyncAnaIn); break;
-    case 7: DrawString(TxtSyncAnOut); break;
+    case SYNC_OFF: DrawString(TxtSyncOff); break;
+    case SYNC_LSDJ: DrawString(TxtSyncLsdj); break;
+    case SYNC_MIDI: DrawString(TxtSyncMidi); break;
+    case SYNC_KEYBOARD: DrawString(TxtSyncKeybd); break;
+    case SYNC_ANALOG_IN: DrawString(TxtSyncAnaIn); break;
+    case SYNC_ANALOG_OUT: DrawString(TxtSyncAnOut); break;
     }
     wVramCursor = (UBYTE *)BG_MAP(0, 5);
     hBgDigitPalette = 4;
     hBgPalette = 1;
-    if (ProjectSyncModeIs567()) {
-        if (wSyncMode == 5)
+    if (SyncModeHasParameter()) {
+        if (wSyncMode == SYNC_KEYBOARD)
             s = TxtSyncPs2;
         else
             s = TxtSyncTicksStep;

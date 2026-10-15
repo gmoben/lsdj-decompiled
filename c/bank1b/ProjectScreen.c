@@ -114,9 +114,9 @@ void DrawKeyRepeatField(void)
     DrawByte(wKeyRepeat);
 }
 
-UBYTE ProjectSyncModeIs567(void)
+UBYTE SyncModeHasParameter(void)
 {
-    if (wSyncMode == 5 || wSyncMode == 6 || wSyncMode == 7)
+    if (wSyncMode == SYNC_KEYBOARD || wSyncMode == SYNC_ANALOG_IN || wSyncMode == SYNC_ANALOG_OUT)
         return 1;
     return 0;
 }
@@ -150,7 +150,7 @@ void DrawDecimalField(UBYTE v)
 
 UBYTE ProjectSyncModeIs015(void)
 {
-    if (wSyncMode == 0 || wSyncMode == 1 || wSyncMode == 5)
+    if (wSyncMode == SYNC_OFF || wSyncMode == SYNC_LSDJ || wSyncMode == SYNC_KEYBOARD)
         return 1;
     return 0;
 }
@@ -326,7 +326,7 @@ UBYTE ProjectScreenInput(void)
                 return 1;
             if (wSyncMode < 7) {
                 wSyncMode++;
-                if (wSyncMode == 4 || wSyncMode == 2)
+                if (wSyncMode == 4 || wSyncMode == 2)   /* no mode is 2 or 4 */
                     wSyncMode++;
                 SaveSyncMode();
             }
@@ -418,9 +418,9 @@ UBYTE ProjectScreenInput(void)
         case 2:
             if (wButtonsSame)
                 return 1;
-            if (wSyncMode != 0) {
+            if (wSyncMode != SYNC_OFF) {
                 wSyncMode--;
-                if (wSyncMode == 4 || wSyncMode == 2)
+                if (wSyncMode == 4 || wSyncMode == 2)   /* no mode is 2 or 4 */
                     wSyncMode--;
                 SaveSyncMode();
             }
@@ -555,7 +555,7 @@ UBYTE ProjectScreenInput(void)
                 wProjectCursor++;
             if (wProjectCursor == 7 && !ProjectSyncModeIs015())
                 wProjectCursor++;
-            else if (wProjectCursor == 3 && !ProjectSyncModeIs567())
+            else if (wProjectCursor == 3 && !SyncModeHasParameter())
                 wProjectCursor++;
             DrawProjectCursor();
         } else {
@@ -572,7 +572,7 @@ UBYTE ProjectScreenInput(void)
                 wProjectCursor--;
             if (wProjectCursor == 7 && !ProjectSyncModeIs015())
                 wProjectCursor--;
-            else if (wProjectCursor == 3 && !ProjectSyncModeIs567())
+            else if (wProjectCursor == 3 && !SyncModeHasParameter())
                 wProjectCursor--;
             DrawProjectCursor();
         } else {
@@ -627,7 +627,7 @@ UBYTE ProjectScreenInput(void)
             FarCall(4, FAR_FN(RedrawScreen));
             return 1;
         case 3:
-            if (wSyncMode == 5) {
+            if (wSyncMode == SYNC_KEYBOARD) {
                 FarCall(0x1C, FAR_FN(FileStopSound));
                 FarCall(7, DrawCalibrationScreen);
                 DrawSyncMode2Field();

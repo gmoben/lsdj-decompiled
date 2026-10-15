@@ -380,7 +380,8 @@ in `docs/functionality.md`.
   (a second local can move the stack frame), so a shared variable gets one
   name that fits both uses.
 - **C constants.** Screen numbers, instrument types (`INSTRUMENT_KIT`), their
-  screen fields (`PULSE_FIELD_SWEEP`) and bytes (`WAVE_BYTE_PLAY`), cursor modes
+  screen fields (`PULSE_FIELD_SWEEP`) and bytes (`WAVE_BYTE_PLAY`), sync modes
+  (`SYNC_MIDI`), cursor modes
   (`CURSOR_SELECTING`),
   channels (`CHANNEL_WAV`), commands (`COMMAND_S`) and joypad bits are names
   from `lsdj.h`

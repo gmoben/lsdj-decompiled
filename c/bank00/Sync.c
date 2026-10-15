@@ -79,7 +79,7 @@ void SyncLoadSetting(void)
     wSyncMode = *SramPropertySyncMode;
     wSyncMode2 = *SramPropertySyncParameter;
     if (wSyncMode > 7)
-        wSyncMode = 0;
+        wSyncMode = SYNC_OFF;
     if (!wSyncMode2)
         wSyncMode2 = 6;
     SyncApplyMode();
@@ -89,8 +89,8 @@ void SyncStartTransport(void)
 {
     UBYTE lsdj;
 
-    lsdj = wSyncMode == 1;
-    if (!lsdj && wSyncMode != 3)
+    lsdj = wSyncMode == SYNC_LSDJ;
+    if (!lsdj && wSyncMode != SYNC_MIDI)
         return;
     if (lsdj && wSyncTick == 0xFF) {
         wSyncRun = 1;
@@ -104,14 +104,14 @@ void SyncStartTransport(void)
 void SyncStopTransport(void)
 {
     switch (wSyncMode) {
-    case 1:
-    case 3:
+    case SYNC_LSDJ:
+    case SYNC_MIDI:
         wSyncRun = 0;
         wSyncTick = 0xFF;
         wSyncHandshake = 0;
         SyncSetReceiveMode();
         break;
-    case 7:
+    case SYNC_ANALOG_OUT:
         wAnalogOutTimer = 3;
         break;
     }
@@ -168,9 +168,9 @@ void DispatchSyncClock(void)
     saved = hCurrentBank;
     wSyncTick = 0xFF;
     if (wPlayMode) {
-        if (wSyncMode == 1)
+        if (wSyncMode == SYNC_LSDJ)
             SyncTickLsdj();
-        else if (wSyncMode == 3)
+        else if (wSyncMode == SYNC_MIDI)
             SyncTickMidi();
     }
     SWITCH_ROM(saved);
@@ -197,28 +197,28 @@ void SyncApplyMode(void)
     _asm di _endasm;
     wSyncRun = 0;
     switch (wSyncMode) {
-    case 0:
-    case 7:
+    case SYNC_OFF:
+    case SYNC_ANALOG_OUT:
         SyncSetSendMode();
         wSyncTick = 0xFF;
         break;
-    case 6:
+    case SYNC_ANALOG_IN:
         wSyncSerialIeMask = 0;
         wSyncSendGate = 2;
         SetInterruptEnable(5);
         wSyncTick = 0xFF;
         break;
-    case 1:
+    case SYNC_LSDJ:
         if (wPlayMode) {
             wSyncRun = 1;
             SyncSetSendMode();
         } else
             SyncSetReceiveMode();
         break;
-    case 3:
+    case SYNC_MIDI:
         SyncSetReceiveMode();
         break;
-    case 5:
+    case SYNC_KEYBOARD:
         wSyncSerialIeMask = 8;
         wSyncSendGate = 1;
         if (wSyncState != 2) {
@@ -299,7 +299,7 @@ void SyncSeekSongPosition(void)
 
     SoundResetCommandState();
     for (channel = 0; channel < 4; channel++) {
-        row = (wSyncMode == 1) ? wSyncReceivePosition : wSyncStartRow;
+        row = (wSyncMode == SYNC_LSDJ) ? wSyncReceivePosition : wSyncStartRow;
         chain = ReadSequenceByteRaw(channel, row);
         while (row && (chain & 0x80)) {
             row--;
@@ -354,7 +354,7 @@ void SendByteStep(void)
             wSyncReceivePosition = 0xFF;
         }
         if (wPlayMode) {
-            if (wSyncMode == 7)
+            if (wSyncMode == SYNC_ANALOG_OUT)
                 SyncSendAnalogClock();
             SWITCH_ROM(2);
             SoundRunFrame();
@@ -375,7 +375,7 @@ void ProcessSyncByte(void)
 {
     UBYTE saved;
 
-    if (wSyncMode == 1 && !wSyncRun && wLiveStartColumn == 0xFF) {
+    if (wSyncMode == SYNC_LSDJ && !wSyncRun && wLiveStartColumn == 0xFF) {
         if (wSyncReceiveByte < 0xFD) {
             wSyncReceivePosition = wSyncReceiveByte;
         } else if (wPlayMode) {

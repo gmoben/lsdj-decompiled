@@ -146,16 +146,16 @@ void DrawSyncStatusMidi(void)
 void DrawSyncStatus(void)
 {
     switch (wSyncMode) {
-    case 1:
+    case SYNC_LSDJ:
         DrawSyncStatusLsdj();
         break;
-    case 3:
+    case SYNC_MIDI:
         DrawSyncStatusMidi();
         break;
-    case 6:
+    case SYNC_ANALOG_IN:
         DrawSyncStatusText(wPlayMode ? "SYNC" : "    ");
         break;
-    case 7:
+    case SYNC_ANALOG_OUT:
         DrawSyncStatusText(wPlayMode ? "LEAD" : "    ");
         break;
     }

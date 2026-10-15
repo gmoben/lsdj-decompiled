@@ -6,7 +6,7 @@
 4000 MixerKernel                ; 27-byte asm kit mixer step (ldh a,[c] .. ldh [c],a), copied to WRAM by InitializeKitMixer; ends at DrawHelpMenu
 4A62 DrawHelpScreen   ; Help screen (idx 14): renders the help/command-list text
 5C17 DrawProjectScreen ; Project screen draw: edits song-global properties at SRAM bank1 $BFB2+ (song offset $3FB2: tempo/transpose/sync/font/colorset/clone; see data_model.md)
-58B1 DrawSyncField   ; Project SYNC field ($58B1-$59B6): draw the wSyncMode name (TxtSyncOff..TxtSyncAnOut) at VRAM $9885, then at $98A0 either the sub-setting label (PS/2 DELAY / TICKS/STEP, ProjectSyncModeIs567) + wSyncMode2 in hex, or a blank; CGB attribute row via ColorField. Matched in C: c/bank1b/DrawSyncField.c
+58B1 DrawSyncField   ; Project SYNC field ($58B1-$59B6): draw the wSyncMode name (TxtSyncOff..TxtSyncAnOut) at VRAM $9885, then at $98A0 either the sub-setting label (PS/2 DELAY / TICKS/STEP, SyncModeHasParameter) + wSyncMode2 in hex, or a blank; CGB attribute row via ColorField. Matched in C: c/bank1b/DrawSyncField.c
 59B7 TxtSyncOff      ; "OFF   " sync-mode name (six consecutive 7-byte strings, each its own symbol: DrawSyncField pushes them as plain addresses)
 59BE TxtSyncLsdj     ; "LSDJ  "
 
@@ -44,7 +44,7 @@
 5853 DrawProjectTempo              ; draw the tempo at the VRAM cursor: DrawTempo(GetTempoTimerValue())
 5861 RedrawProjectTempo            ; wait while wRedrawPending < 6, then DrawProjectTempo at $9846
 5876 DrawKeyRepeatField         ; draw the KEY DELAY/REPEAT values (wKeyDelay/wKeyRepeat)
-5896 ProjectSyncModeIs567          ; return 1 if wSyncMode in {5,6,7}
+5896 SyncModeHasParameter       ; 1 if wSyncMode has a sync parameter row (KEYBD: the PS/2 delay; the analog modes: ticks per step)
 5952 .drawSubSetting            ; (was mislabeled as a function DrawSyncModeField: its `push bc` is the DrawString argument, its `pop bc; ret` DrawSyncField's epilogue)
 5A07 ProjectCursorFieldWidth       ; the cursor field's width in tiles: ProjectFieldWidth[wProjectCursor], 2 more on field 11 while the file browser is up
 5A42 EraseProjectCursor            ; restore the palette of the project screen field under wProjectCursor (1 for fields 0-7)
@@ -151,7 +151,7 @@
 520D .failWaitRelease
 5216 .failWaitPress
 5698 .done                ; common exit of NameEditorInput
-58B0 .done                ; common exit of ProjectSyncModeIs567
+58B0 .done                ; common exit of SyncModeHasParameter
 59B5 .done                ; common exit of DrawSyncField
 5B22 .done                ; common exit of ProjectSyncModeIs015
 5B54 .done                ; common exit of DrawPrelistenField

@@ -183,6 +183,14 @@ typedef int WORD;
 #define NOISE_FIELD_TABLE_ADVANCE      11
 #define NOISE_FIELD_TABLE              12
 
+/* wSyncMode (2 and 4 are no mode: the PROJECT screen steps over them) */
+#define SYNC_OFF             0
+#define SYNC_LSDJ            1
+#define SYNC_MIDI            3
+#define SYNC_KEYBOARD        5
+#define SYNC_ANALOG_IN       6
+#define SYNC_ANALOG_OUT      7
+
 /* wCursorMode: nothing copied, the clipboard holding a cut or copy (paste
  * takes it), or a selection being marked */
 #define CURSOR_NORMAL        1
@@ -523,7 +531,7 @@ void DrawMapTopRow(void);
 
 void UpdateInstrumentEnvelope(void);
 void ColorField(UBYTE a, UBYTE b, UBYTE c, UBYTE d);
-UBYTE ProjectSyncModeIs567(void);
+UBYTE SyncModeHasParameter(void);
 
 /* --- bank $1F -------------------------------------------------------------- */
 
