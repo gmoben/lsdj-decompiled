@@ -16,7 +16,7 @@
  * which needs no linker symbol).
  */
 
-#define SND_DIRECT          /* ProcessInput calls SndGetChainPhrase with bank 2 paged in */
+#define SND_DIRECT          /* ProcessInput calls SoundGetChainPhrase with bank 2 paged in */
 #include "lsdj.h"
 
 sfr hGameboyTypeIo = 0xFF90;
@@ -57,11 +57,11 @@ UBYTE CheckFileMagicAll(void);              /* bank $1C */
 void RenderSynthWave(void);                 /* bank $1D */
 UBYTE ProcessLinkQueue(void);               /* bank 7 */
 UBYTE GetNextButtons(void);
-UBYTE SndGetChainPhrase(UBYTE chain, UBYTE row);    /* bank 2 */
+UBYTE SoundGetChainPhrase(UBYTE chain, UBYTE row);    /* bank 2 */
 void MarkPhraseUsed(UBYTE phrase);          /* bank 1 */
 void MarkChainUsed(UBYTE chain);            /* bank 1 */
 void InitRemapTable(void);                  /* bank $1F */
-void SndTogglePlayback(void);                  /* bank 2 */
+void SoundTogglePlayback(void);                  /* bank 2 */
 void SyncApplyMode(void);
 void WritePhraseFx(UBYTE phrase, UBYTE row, UBYTE fx);  /* bank 4 */
 void WriteTableCmd(UBYTE row, UBYTE fx);    /* bank 5 */
@@ -152,7 +152,7 @@ UBYTE ProcessInput(void)
         if (wChainScopeDirty) {
             wChainScopeDirty = 0;
             SWITCH_ROM(2);
-            r = SndGetChainPhrase(wChain, wChainRow);
+            r = SoundGetChainPhrase(wChain, wChainRow);
             if (r != 0xFF) {
                 SWITCH_ROM(1);
                 MarkPhraseUsed(r);
@@ -181,7 +181,7 @@ UBYTE ProcessInput(void)
         if (wLiveStartCol != 0xFF) {
             wLiveStartCol = 0xFF;
             SWITCH_ROM(2);
-            SndTogglePlayback();
+            SoundTogglePlayback();
             wLiveMode = wSavedLiveMode;
             SyncApplyMode();
             return 0;

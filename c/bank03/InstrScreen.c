@@ -45,8 +45,8 @@ void MoveMapCursorLeft(void);                     /* $05:$4233 */
 void MoveMapCursorRight(void);                    /* $05:$4253 */
 void MoveMapCursorUp(void);                       /* $05:$426A */
 void MoveMapCursorDown(void);                     /* $05:$4287 */
-void SndToggleSongPlayback(void);              /* $02:$78C4 */
-void SndTogglePlayback(void);                  /* $02:$7C4C */
+void SoundToggleSongPlayback(void);              /* $02:$78C4 */
+void SoundTogglePlayback(void);                  /* $02:$7C4C */
 void WriteCurInstrByteC(UBYTE field, char val);   /* WriteCurInstrByte taking a char (aliased) */
 void FarCallArgWC(UBYTE bank, UWORD fn, char arg);     /* FarCallArg with a word target and a char argument (aliased) */
 void FarCallArgW(UBYTE bank, UWORD fn, UBYTE arg);     /* FarCallArg with a word target (aliased) */
@@ -2403,12 +2403,12 @@ UBYTE InstrScreenInput(void)
     case 0xC0:
         if (wButtonsSame)
             return 1;
-        FarCall(2, FAR_FN(SndToggleSongPlayback));
+        FarCall(2, FAR_FN(SoundToggleSongPlayback));
         return 1;
     case 0x80:
         if (wButtonsSame || wBHeld)
             return 1;
-        FarCall(2, FAR_FN(SndTogglePlayback));
+        FarCall(2, FAR_FN(SoundTogglePlayback));
         return 1;
     case 0x60:
         if (!wSelectHeld)

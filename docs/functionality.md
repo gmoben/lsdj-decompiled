@@ -39,7 +39,7 @@ reset rSCY/rSCX/rSTAT/rWY ; clear scroll, LCD status, window
 ## Subsystems
 
 - **Sound engine** — timer-driven, entry `TimerHandler` (`$0391`), exiting via
-  `TimerHandlerReturn` (`$0662`); `SndModWavFreq` (`$066D`) applies WAV-channel
+  `TimerHandlerReturn` (`$0662`); `SoundModWavFreq` (`$066D`) applies WAV-channel
   frequency modulation. Writes the audio registers (`rAUD1*`-`rAUD4*`,
   `rAUDVOL`/`rAUDTERM`/`rAUDENA`) and wave RAM (`rAUD3WAVE_*`). Reads the tick
   counter `wSoundTick` (`$C8F4`) and `hGameboyType` (`$FF90`). The same handler
@@ -52,13 +52,13 @@ reset rSCY/rSCX/rSTAT/rWY ; clear scroll, LCD status, window
     `SndStepPitchVib{PU1,PU2,Wav,Noi}` (`$19A6`/`$1A26`/`$1AA7`/`$1CBA`) advance
     the pitch slide (`wChanPitchRate`→`wChanPitchCur`, clamped to
     `wChanPitchTarget`) and the vibrato phase, the latter via the shared waveform
-    evaluator `SndCalcVibOffset` (`$1986`, ctrl table `$0200` + dispatch `$0300`).
+    evaluator `SoundCalcVibOffset` (`$1986`, ctrl table `$0200` + dispatch `$0300`).
     `SndWriteFreq{PU1,PU2,Wav}` (`$1BA7`/`$1BF6`/`$1C3D`) then fold note +
     transpose + finetune + vibrato + pitch into a 16-bit period via
-    `SndInterpPeriod` (`$1B28`, period-table lookup with fractional interpolation)
+    `SoundInterpPeriod` (`$1B28`, period-table lookup with fractional interpolation)
     and write `wChanFreq` + `rAUD{1,2,3}LOW/HIGH/LEN`.
     `SndUpdatePitchModFlag{PU1,PU2,Wav}` (`$1CA8`/`$1C96`/`$1C84`, dispatched by
-    `SndUpdatePitchModFlagCur` `$1C7C`) cache a "pitch is modulating" flag at
+    `SoundUpdatePitchModFlagCur` `$1C7C`) cache a "pitch is modulating" flag at
     `$C3F9`-`$C3FB`.
   - *Work-time clock* — `TickWorkTimeClock` (`$1815`) advances `wWorkTimeAccum`
     (`$C69D`), wrapping at `$0E00` into `wWorkTimeTicks` (drives the song's

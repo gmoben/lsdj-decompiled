@@ -62,9 +62,9 @@ MANUAL: dict[int, list[tuple[int, int]]] = {
            (0x2F8E, 0x34F7), (0x35C7, 0x35F8), (0x3602, 0x3616),
            (0x3620, 0x3635), (0x363F, 0x364C), (0x376E, 0x381F),
            (0x3B7A, 0x3BDE)],
-    # PitchBendTable ($43D8-$45D8, read by SndApplyPitchBend), the vibrato tables
+    # PitchBendTable ($43D8-$45D8, read by SoundApplyPitchBend), the vibrato tables
     # ($7D81-$7DD1: VibDepthTable[16] + VibRateTableA/B[16 x 16-bit], read by
-    # FxCmd_V), and NoiseFreqTable ($5EDA, hides SndSetNoisePoly at $5F52).
+    # FxCmd_V), and NoiseFreqTable ($5EDA, hides SoundSetNoisePoly at $5F52).
     0x02: [(0x3D8, 0x5D8), (0x1EDA, 0x1F52), (0x3D81, 0x3DD1), (0x3EAC, 0x3F24)],
     # bank 1B: SAVING... + %d + ON/OFF/N/A project strings.
     0x1B: [(0x58, 0x98), (0x10E, 0x9F8), (0xC75, 0xC96), (0x1120, 0x1126), (0x12D8, 0x12E2),

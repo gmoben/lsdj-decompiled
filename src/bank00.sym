@@ -8,8 +8,8 @@
 2CA4 DrawTempoField     ; set VRAM cursor $9891 + BG/digit palettes, then draw the tempo (GetTempoTimerVal)
 17EC WriteVramByteSafe  ; (vramAddr, value) -> spin until rSTAT allows VRAM access, then [vramAddr]=value
 2D7E DrawFieldVal     ; draw a value formatted by its type: string / hex byte (DrawHexByte) / pulse duty (DrawPulseDuty)
-158F SndInitKit1Sample   ; init kit voice 1: bank + sample-table lookup -> loop window/read ptr/clamps (wKit1*)
-1676 SndInitKit2Sample   ; init kit voice 2 (wKit2*); speech uses allophone banks
+158F SoundInitKit1Sample   ; init kit voice 1: bank + sample-table lookup -> loop window/read ptr/clamps (wKit1*)
+1676 SoundInitKit2Sample   ; init kit voice 2 (wKit2*); speech uses allophone banks
 339A ResetDisplayState   ; ReinitDisplay, then clear tile-loader alloc + state (wTileReqSlot0/wUnusedCBFB/wUnusedCBFC)
 337D LoadTilesDispatch   ; route a tile-slot arg to LoadTilesToVram / SetTileLoadReq
 148B DebugNop            ; `ld b,b; ret` -- no$gmb/BGB debug marker (no-op at runtime)
@@ -141,32 +141,32 @@
 1482 DebugTrap          ; assert/debug trap (ld b,b BGB marker + rst $38), fires once via wDebugTrapped
 
 ; --- Sound engine: per-channel pitch slide / vibrato / frequency (TimerHandler tick) ---
-0762 SndLoadWaveRam        ; fast-copy the 16-byte staged waveform (hWavUploadBuf $FFA0) into WAV wave RAM ($FF30) with rAUD3 off (SP-pop trick), then re-enable + retrigger rAUD3 and restore freq
-066D SndModWavFreq      ; WAV ch direct-frequency modulation: wChanFreq+4 += wChanPitchRate+4; if vibrato active apply wChanVibOffset+4 (steps WAV vib via SndApplyWavVib, then halved offset)
-1AFF SndApplyWavVib ; apply WAV-channel vibrato: if wChanVibSpeed+5, compute offset (SndCalcVibOffset) -> wChanVibOffset+4/5 and advance vib phase wChanVibAccumWav; shared by SndStepPitchVibWav + SndModWavFreq
+0762 SoundLoadWaveRam        ; fast-copy the 16-byte staged waveform (hWavUploadBuf $FFA0) into WAV wave RAM ($FF30) with rAUD3 off (SP-pop trick), then re-enable + retrigger rAUD3 and restore freq
+066D SoundModWavFreq      ; WAV ch direct-frequency modulation: wChanFreq+4 += wChanPitchRate+4; if vibrato active apply wChanVibOffset+4 (steps WAV vib via SoundApplyWavVib, then halved offset)
+1AFF SoundApplyWavVib ; apply WAV-channel vibrato: if wChanVibSpeed+5, compute offset (SoundCalcVibOffset) -> wChanVibOffset+4/5 and advance vib phase wChanVibAccumWav; shared by SoundStepPitchVibWav + SoundModWavFreq
 1815 TickWorkTimeClock   ; bump saturating counter wWorkClockSubFrame (<$80), advance wWorkTimeAccum ($C69D); wrap at $0E00 -> wWorkTimeTicks ($C577), clear wIdleHalt
 20DB HandleTooBusy       ; CPU-overload handler (redraw backlog overflowed while playing): reset playback (bank2 $710E: exit live mode + sound reinit) and ShowMessage "TOO BUSY!"
-1986 SndCalcVibOffset    ; eval vibrato/mod waveform: (phase>>2)+e indexes ctrl table TimesTwoTable; bit7 -> negate; dispatch via VibOffsetJumps -> signed offset in hl
-19A1 SndCalcVibOffsetNeg ; SndCalcVibOffset bit7-set helper: complement A then dispatch via VibOffsetJumps
-19A6 SndStepPitchVibPu1  ; ch0: accumulate wChanPitchRate->wChanPitchCur, clamp to wChanPitchTarget (-> SndUpdatePitchModFlagPu1); advance vib phase wChanVibAccum -> wChanVibOffset
-1A26 SndStepPitchVibPu2  ; ch1: as PU1 for +2/+3 offsets (-> SndUpdatePitchModFlagPu2); vib phase wChanVibAccumPu2 -> wChanVibOffset+2
-1AA7 SndStepPitchVibWav  ; ch2: as PU1 for +4/+5 offsets (-> SndUpdatePitchModFlagWav); vib phase wChanVibAccumWav -> wChanVibOffset+4
-1CBA SndStepPitchVibNoi  ; ch3 (noise): vibrato via SndCalcVibOffset then >>5 scale; advance vib phase wChanVibAccumNoi (no period table)
-1B28 SndInterpPeriod     ; note(d)+frac(e) -> 16-bit period(de) from table at wChanPeriodTablePtr(bc), fractional interpolation; octave-wrap special cases ($6C/$B6/$F8/$FF)
-1BA7 SndWriteFreqPu1     ; ch0: wChanOutNote+transpose[wChanNoteOffset]+finetune+vib+pitch -> SndInterpPeriod -> wChanFreq + rAUD1LOW/HIGH/LEN
-1BF6 SndWriteFreqPu2     ; ch1: like PU1 -> wChanFreq+2 + rAUD2LOW/HIGH/LEN
-1C3D SndWriteFreqWav     ; ch2: like PU1 -> wChanFreq+4 + rAUD3LOW/HIGH (rAUD3LEN=0)
-1C7C SndUpdatePitchModFlagCur ; dispatch by hSoundChan -> SndUpdatePitchModFlag{PU1 (ch0),PU2 (ch1),Wav (>=2)}
-1C84 SndUpdatePitchModFlagWav ; ch2: wChanPitchModActiveWav = (wChanPitchRate+4|+5 | wChanVibSpeed+5)!=0, skipped if wChanVibShape+2 set
-1C96 SndUpdatePitchModFlagPu2 ; ch1: wChanPitchModActivePu2 = (wChanPitchRate+2|+3 | wChanVibSpeed+3)!=0, skipped if wChanVibShape+1 set
-1CA8 SndUpdatePitchModFlagPu1 ; ch0: wChanPitchModActive = (wChanPitchRate+0|+1 | wChanVibSpeed+1)!=0, skipped if wChanVibShape set
+1986 SoundCalcVibOffset    ; eval vibrato/mod waveform: (phase>>2)+e indexes ctrl table TimesTwoTable; bit7 -> negate; dispatch via VibOffsetJumps -> signed offset in hl
+19A1 SoundCalcVibOffsetNeg ; SoundCalcVibOffset bit7-set helper: complement A then dispatch via VibOffsetJumps
+19A6 SoundStepPitchVibPu1  ; ch0: accumulate wChanPitchRate->wChanPitchCur, clamp to wChanPitchTarget (-> SoundUpdatePitchModFlagPu1); advance vib phase wChanVibAccum -> wChanVibOffset
+1A26 SoundStepPitchVibPu2  ; ch1: as PU1 for +2/+3 offsets (-> SoundUpdatePitchModFlagPu2); vib phase wChanVibAccumPu2 -> wChanVibOffset+2
+1AA7 SoundStepPitchVibWav  ; ch2: as PU1 for +4/+5 offsets (-> SoundUpdatePitchModFlagWav); vib phase wChanVibAccumWav -> wChanVibOffset+4
+1CBA SoundStepPitchVibNoi  ; ch3 (noise): vibrato via SoundCalcVibOffset then >>5 scale; advance vib phase wChanVibAccumNoi (no period table)
+1B28 SoundInterpPeriod     ; note(d)+frac(e) -> 16-bit period(de) from table at wChanPeriodTablePtr(bc), fractional interpolation; octave-wrap special cases ($6C/$B6/$F8/$FF)
+1BA7 SoundWriteFreqPu1     ; ch0: wChanOutNote+transpose[wChanNoteOffset]+finetune+vib+pitch -> SoundInterpPeriod -> wChanFreq + rAUD1LOW/HIGH/LEN
+1BF6 SoundWriteFreqPu2     ; ch1: like PU1 -> wChanFreq+2 + rAUD2LOW/HIGH/LEN
+1C3D SoundWriteFreqWav     ; ch2: like PU1 -> wChanFreq+4 + rAUD3LOW/HIGH (rAUD3LEN=0)
+1C7C SoundUpdatePitchModFlagCur ; dispatch by hSoundChan -> SndUpdatePitchModFlag{PU1 (ch0),PU2 (ch1),Wav (>=2)}
+1C84 SoundUpdatePitchModFlagWav ; ch2: wChanPitchModActiveWav = (wChanPitchRate+4|+5 | wChanVibSpeed+5)!=0, skipped if wChanVibShape+2 set
+1C96 SoundUpdatePitchModFlagPu2 ; ch1: wChanPitchModActivePu2 = (wChanPitchRate+2|+3 | wChanVibSpeed+3)!=0, skipped if wChanVibShape+1 set
+1CA8 SoundUpdatePitchModFlagPu1 ; ch0: wChanPitchModActive = (wChanPitchRate+0|+1 | wChanVibSpeed+1)!=0, skipped if wChanVibShape set
 
 ; --- Sound: software envelope (DMG "zombie mode" volume via NRx2 rewrites) ---
-2FC3 SndFadeEnvStep      ; step volume at [hl] one unit toward target a; equal->ret; up->NRx2 ([c])=$08; down->SndFadeEnvStepDown
-2F9A SndFadeEnvStepDown  ; volume-decrease path: dec level, rewrite NRx2 ([c]) with $09/$11/$18; near level $0E wait for rDIV phase (anti-click), CGB vs DMG
-2FCC SndUpdateEnvPu1     ; per-tick PU1 software envelope: SndFadeEnvStep wChanEnv toward target [wEnvTargetPu1] via rAUD1ENV, then advance env stage
-2FE2 SndUpdateEnvPu2     ; per-tick PU2 software envelope: wChanEnv+1 toward [wEnvTargetPu2] via rAUD2ENV
-2FF8 SndUpdateEnvNoi     ; per-tick NOI software envelope: wChanEnv+3 toward [wEnvTargetNoi] via rAUD4ENV
+2FC3 SoundFadeEnvStep      ; step volume at [hl] one unit toward target a; equal->ret; up->NRx2 ([c])=$08; down->SoundFadeEnvStepDown
+2F9A SoundFadeEnvStepDown  ; volume-decrease path: dec level, rewrite NRx2 ([c]) with $09/$11/$18; near level $0E wait for rDIV phase (anti-click), CGB vs DMG
+2FCC SoundUpdateEnvPu1     ; per-tick PU1 software envelope: SoundFadeEnvStep wChanEnv toward target [wEnvTargetPu1] via rAUD1ENV, then advance env stage
+2FE2 SoundUpdateEnvPu2     ; per-tick PU2 software envelope: wChanEnv+1 toward [wEnvTargetPu2] via rAUD2ENV
+2FF8 SoundUpdateEnvNoi     ; per-tick NOI software envelope: wChanEnv+3 toward [wEnvTargetNoi] via rAUD4ENV
 
 ; --- Link cable sync (see docs/sync.md) ---
 1E93 DispatchSyncClock   ; per sync tick: reset wSyncTick=$FF; if playing, dispatch by wSyncMode (1=LSDJ->SyncTickLsdj, 3=MIDI->SyncTickMidi); preserves ROM bank
@@ -324,7 +324,7 @@
 005D Unused005D          ; $ff fill, Serial vector tail
 005E Unused005E          ; $ff fill, Serial vector tail
 005F Unused005F          ; $ff fill, Serial vector tail
-1BA1 SndInterpResume            ; resume point pushed by the manual call at $1B99 (SndInterpPeriod)
+1BA1 SoundInterpResume            ; resume point pushed by the manual call at $1B99 (SoundInterpPeriod)
 2D12 TxtNoi                     ; "NOI"
 2D16 TxtPu1                     ; "PU1"
 2D1A TxtPu2                     ; "PU2"
@@ -339,8 +339,8 @@
 018F .loop3               ; loop head in Start
 03C7 .loop                ; loop head in TimerHandler
 0665 .loop                ; loop head in TimerHandlerReturn
-06FB .loop                ; loop head in SndModWavFreq
-0751 .loop2               ; loop head in SndModWavFreq
+06FB .loop                ; loop head in SoundModWavFreq
+0751 .loop2               ; loop head in SoundModWavFreq
 0987 .loop                ; loop head in WriteInstrByte
 0AB3 .loop                ; loop head in ReadInstrByte
 0B18 .loop                ; loop head in ReadSeqByte
@@ -353,17 +353,17 @@
 1304 .done                ; common exit of ColorField
 1439 .loop                ; loop head in main.mainLoop
 14AE .loop                ; loop head in DebugNop
-15B7 .loop                ; loop head in SndInitKit1Sample
-1673 .done                ; common exit of SndInitKit1Sample
-16A1 .loop                ; loop head in SndInitKit2Sample
-175D .done                ; common exit of SndInitKit2Sample
+15B7 .loop                ; loop head in SoundInitKit1Sample
+1673 .done                ; common exit of SoundInitKit1Sample
+16A1 .loop                ; loop head in SoundInitKit2Sample
+175D .done                ; common exit of SoundInitKit2Sample
 1774 .loop                ; loop head in ReadKitSampleName
 17F3 .loop                ; loop head in WriteVramByteSafe
 1800 .loop                ; loop head in ClearBgTilemap
 1802 .loop2               ; loop head in ClearBgTilemap
 188E .loop                ; loop head in VBlankHandler
-1B2D .loop                ; loop head in SndInterpPeriod
-1B43 .loop2               ; loop head in SndInterpPeriod
+1B2D .loop                ; loop head in SoundInterpPeriod
+1B43 .loop2               ; loop head in SoundInterpPeriod
 1CFC .done                ; common exit of GetNextButtons
 1D6A .done                ; common exit of SyncStartTransport
 1D9C .done                ; common exit of SyncStopTransport
@@ -405,9 +405,9 @@
 2F54 .loop2               ; loop head in DrawString
 2F66 .done                ; common exit of DrawString
 2F8B .loop                ; loop head in DrawStringIndexed
-2FA0 .loop                ; loop head in SndFadeEnvStepDown
-2FAF .loop2               ; loop head in SndFadeEnvStepDown
-2FB9 .loop3               ; loop head in SndFadeEnvStepDown
+2FA0 .loop                ; loop head in SoundFadeEnvStepDown
+2FAF .loop2               ; loop head in SoundFadeEnvStepDown
+2FB9 .loop3               ; loop head in SoundFadeEnvStepDown
 3029 .resetEnv            ; speed 0 / stage overflow: stage = 0, envelope done
 3070 .resetEnv            ; stage = 0, envelope done (PU2)
 30AB .resetEnv            ; stage = 0, envelope done (NOI)
@@ -468,7 +468,7 @@
 
 
 ; --- first-action / assert local names ---
-05AD .sndStepPitchVibWav
+05AD .soundStepPitchVibWav
 07E8 .ok
 07F3 .okb
 0916 .ok
@@ -917,4 +917,4 @@
 39FE .cont
 3A01 set_xy_tt          ; GBDK .set_xy_tt (set_xy_t.s): copy a w x h tile block from bc to (x d, y e) of the map at hl, rSTAT-gated
 3A0D .readStat
-0300 VibOffsetJumps             ; jp-hl dispatch table of per-shape vibrato-offset fragments (SndCalcVibOffset via VibOffsetJumps)
+0300 VibOffsetJumps             ; jp-hl dispatch table of per-shape vibrato-offset fragments (SoundCalcVibOffset via VibOffsetJumps)

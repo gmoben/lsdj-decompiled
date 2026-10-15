@@ -37,8 +37,8 @@ void PasteGrooveSelection(void);
 void DrawGrooveSelection(void);
 void MoveMapCursorUp(void);                       /* bank 5 */
 void SaveSelectionState(void);              /* bank 5 */
-void SndToggleSongPlayback(void);                 /* bank 2 */
-void SndTogglePlayback(void);                    /* bank 2 */
+void SoundToggleSongPlayback(void);                 /* bank 2 */
+void SoundTogglePlayback(void);                    /* bank 2 */
 
 void WriteGrooveByte(UBYTE step, UBYTE v)
 {
@@ -416,7 +416,7 @@ UBYTE GrooveScreenInput(void)
         return 1;
     case 0xC0:
         if (!wButtonsSame)
-            FarCall(2, FAR_FN(SndToggleSongPlayback));
+            FarCall(2, FAR_FN(SoundToggleSongPlayback));
         return 1;
     case 0x80:
         if (wButtonsSame || wBHeld)
@@ -429,7 +429,7 @@ UBYTE GrooveScreenInput(void)
             wCurScreen = 3;
             break;
         }
-        FarCall(2, FAR_FN(SndTogglePlayback));
+        FarCall(2, FAR_FN(SoundTogglePlayback));
         wCurScreen = 2;
         return 1;
     case 0x44:

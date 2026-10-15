@@ -57,12 +57,12 @@ KNOWN_ASM = {
     # epilogue), register arguments (`push de` as a ModU8 call), `add a,l;
     # ld l,a` / `inc l` address steps, `swap`, `stop`, unrolled `ld [hl+],a`,
     # tail-jumping dispatchers, the `ld b,b` debugger marker
-    "00:SndInterpResume", "00:DebugTrap", "00:KitIndexToBank", "00:AnyChanFlagSet",
+    "00:SoundInterpResume", "00:DebugTrap", "00:KitIndexToBank", "00:AnyChanFlagSet",
     "00:SwitchToDoubleSpeed", "00:VibOffsetJumps",
-    "02:SndFxTableJump", "02:SndRandom15", "02:SndTriggerNote", "02:SndSetupChan",
-    "02:SndClearChanFxSlots", "02:SndAdvanceChanCursors", "02:SndCountdownStep",
-    "02:SndFillFF", "02:FxCmd_M", "02:SndApplyTableTranspose", "02:SndReadTableEnv",
-    "02:SndDeactivateChan", "02:SndReadTableTranspose", "02:SndDecodeNibbles",
+    "02:SoundFxTableJump", "02:SoundRandom15", "02:SoundTriggerNote", "02:SoundSetupChan",
+    "02:SoundClearChanFxSlots", "02:SoundAdvanceChanCursors", "02:SoundCountdownStep",
+    "02:SoundFillFF", "02:FxCmd_M", "02:SoundApplyTableTranspose", "02:SoundReadTableEnv",
+    "02:SoundDeactivateChan", "02:SoundReadTableTranspose", "02:SoundDecodeNibbles",
     # an `hl`-argument call wrapped in the C convention: RequestTileSlot pops
     # its frame before setting the return value, which SDCC never does
     "00:LoadTilesDispatch", "00:RequestTileSlot",

@@ -63,7 +63,7 @@ void LoadProjSettings(void);             /* bank 1 */
 void FormatSramSong(void);                     /* bank 1 */
 void MoveMapCursorRight(void);                    /* bank 5 */
 void MoveMapCursorDown(void);                     /* bank 5 */
-void SndTogglePlayback(void);                    /* bank 2 */
+void SoundTogglePlayback(void);                    /* bank 2 */
 extern UBYTE wSramFsFlag;                   /* $C9A3 */
 extern UBYTE wSongTranspose;                /* $C444 */
 extern UBYTE wCloneMode;                    /* $C531 */
@@ -710,7 +710,7 @@ UBYTE ProjScreenInput(void)
         di
         _endasm;
         wCurScreen = 4;
-        FarCall(2, FAR_FN(SndTogglePlayback));
+        FarCall(2, FAR_FN(SoundTogglePlayback));
         wCurScreen = 9;
         if (wPlayMode)
             DrawSyncSubSetting();

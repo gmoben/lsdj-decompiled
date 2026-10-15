@@ -35,7 +35,7 @@ void RemoveBookmark(UBYTE row);
 void ShowMax16Marks(void);                  /* bank 1 */
 void ScanSongSram(UBYTE *src, UBYTE *dst);  /* asm */
 void SaveSelectionState(void);              /* bank 5 */
-void SndStartRange(void);                /* bank 2 */
+void SoundStartRange(void);                /* bank 2 */
 
 void ScrollSongToCursor(void);
 void DrawAllChanStatus(void);               /* bank $1F */
@@ -119,7 +119,7 @@ UBYTE CloneSongChain(UBYTE chain)
     p = wClonePhraseMap + 16;
     q = (UBYTE *)wClonePhraseMap + 16;
     while (i < 16) {
-        ph = FarCallArg2(2, (UWORD)SndGetChainPhrase, chain, i);
+        ph = FarCallArg2(2, (UWORD)SoundGetChainPhrase, chain, i);
         if (!wCloneMode) {
             wClonePhraseMap[i] = ph;
             if (ph != 0xFF) {
@@ -486,7 +486,7 @@ void BeginSongSelection(void)
     FarCall(5, SaveSelectionState);
     wSelectionLeft = 0;
     wSongCol = 3;
-    FarCall(2, FAR_FN(SndStartRange));
+    FarCall(2, FAR_FN(SoundStartRange));
     FarCall(5, RestoreSelectionState);
     wSongCol = wSavedSongCol;
 }

@@ -484,7 +484,7 @@ void MarkChainPhrasesUsed(UBYTE chain)
     UBYTE i, p;
 
     for (i = 0; i < 16; i++) {
-        p = FarCallArg2(2, (UWORD)SndGetChainPhrase, chain, i);
+        p = FarCallArg2(2, (UWORD)SoundGetChainPhrase, chain, i);
         if (p != 0xFF)
             FarCallArg(1, FAR_FN(MarkPhraseUsed), p);
     }

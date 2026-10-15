@@ -124,22 +124,22 @@ Verified against a live RAM dump cross-checked with this map:
 | `wPhraseCmdValPtr` | `$C128` | 16-bit SRAM cursor | `phrase_fx_val` (`$AFF0`+) |
 | `wChanInstrPtr` | `$C140` | 16-bit SRAM cursor | `phrase_instruments` (`$B000`+) |
 
-The bank `$02` walkers: `SndAdvanceSongRow` (`$48D2`) reloads `wChanChain` from
-`song` when a chain ends (with LSDj's loop-back scan); `SndReadSongChain` (`$5EAD`)
-reads `song[wChanSongRow][ch]`; `SndReadChainPhrase` (`$5E7C`) computes `wChanPhrase`
+The bank `$02` walkers: `SoundAdvanceSongRow` (`$48D2`) reloads `wChanChain` from
+`song` when a chain ends (with LSDj's loop-back scan); `SoundReadSongChain` (`$5EAD`)
+reads `song[wChanSongRow][ch]`; `SoundReadChainPhrase` (`$5E7C`) computes `wChanPhrase`
 from `chain_phrases[wChanChain*16 + wChanChainRow]` in SRAM bank 1.
 
-**Pitch.** Notes read from `phrase_notes` are turned into GB periods by `SndNoteToPeriod`
+**Pitch.** Notes read from `phrase_notes` are turned into GB periods by `SoundNoteToPeriod`
 (bank `$02` `$49B7`): `wChanFreq[ch] (16-bit, $C0F4) = wNotePeriods[note + wNoteTranspose - 1]`.
 `wNotePeriods` (`$CF28`) is a 16-bit GB-period table built in WRAM at runtime (so it
-tracks master tuning), and `SndWriteChanFreq` writes `wChanFreq` to `rAUDxLOW/HIGH`
+tracks master tuning), and `SoundWriteChanFreq` writes `wChanFreq` to `rAUDxLOW/HIGH`
 each tick. Verified against a live dump: `wChanFreq` = `$0706/$0672/$0511` for PU1/PU2/WAV,
 each value present in the `$CF28` table.
 
 **Instruments.** A phrase step's instrument number (read via `wChanInstrPtr` from
 `phrase_instruments`, `$7000`) selects a 16-byte record in `instruments` (`$3080`).
 On note-on the engine copies that record verbatim into `wCurInstr` (`$C0D0`),
-then `SndSetupChan` distributes its bytes to the `rAUDx` register shadows
+then `SoundSetupChan` distributes its bytes to the `rAUDx` register shadows
 (`$C2D8`+) per channel type. (The per-byte field layout is type-specific — see
 pylsdj/liblsdj for the bitfields.)
 

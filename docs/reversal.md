@@ -23,7 +23,7 @@ Known gaps — asm fidelity/readability, none affect the bytes:
   16-bit immediates — mostly buffer bases handed to helpers (`ld de, $c457`
   ×21, `$C90D`, `$CA34`, …), some probably signed constants (`ld hl, $fffe`).
   ~13 named variables still carry `TBD` notes on their exact role.
-- **Stale names.** `SndReadGrooveOrSpeed` actually steps table
+- **Stale names.** `SoundReadGrooveOrSpeed` actually steps table
   pointers; generated local labels still echo pre-July RAM names (e.g.
   `.loadOscActive_2` in `TimerHandler`, from the old "oscilloscope" reading).
 - **Unlabeled table.** The 108-entry 16-bit ramp at `$00:$09B9` is carved as
@@ -170,21 +170,21 @@ tracer doesn't fully model — there is no RAM-indirect indirection to chase.
 
 ### Sound engine: note-on path (named) and open leads
 
-The per-tick engine (`SndProcessChan`, bank `$02`) reaches note-on via a write of
+The per-tick engine (`SoundProcessChan`, bank `$02`) reaches note-on via a write of
 the new chain number into `wChanChain[ch]` (`$4DD2`), then channel setup:
 
-- **`SndSetupChan` (`$5934`)** — selects the instrument's SRAM bank, copies
+- **`SoundSetupChan` (`$5934`)** — selects the instrument's SRAM bank, copies
   its parameters into the staging buffer **`wCurInstr` (`$C0D0`**, first named
   `wSoundParams`), then
-  dispatches by `hSoundChan` to `SndSetupPu1/PU2/Wave/Noise`, each of which
+  dispatches by `hSoundChan` to `SoundSetupPu1/PU2/Wave/Noise`, each of which
   distributes the staged bytes into the `rAUDx` register shadows (`wChanEnv`
   `$C2D8`, `wChanLenDuty` `$C2DC`, `wChanFreqHi` `$C2E0`, `wChanSweep` `$C2E4`)
   and triggers the voice. The note→GB-period value arrives **pre-staged** in
   `wCurInstr`; it is computed upstream.
 
-**Resolved — `SndReadChainPhrase` (`$5E7C`) and a `wChanNote` correction.** This reads
+**Resolved — `SoundReadChainPhrase` (`$5E7C`) and a `wChanNote` correction.** This reads
 one byte from a working-song SRAM table (bank 1, base `$A080`) at `idx*16 + step`,
-where `step = [$C17C]` (pointer low-byte `$7C` from `SndInitStatePtrs`), and
+where `step = [$C17C]` (pointer low-byte `$7C` from `SoundInitStatePtrs`), and
 stores the result into per-channel `$C168`. Mapping SRAM bank 1 `$A080` → `.sav`
 offset `0x2080` identifies the table as **`chain_phrases`** (the authoritative
 liblsdj `song_offsets.h` and our [`data_model.md`](data_model.md) agree). So the
@@ -305,7 +305,7 @@ throughout. Clusters named:
 
 - **Sound engine**: per-channel pitch-slide/vibrato steppers, period interpolation,
   `SndWriteFreq{PU1,PU2,Wav}`, pitch-mod flags, the software-envelope ("zombie
-  mode") volume engine (`SndFadeEnvStep`/`UpdateEnv*`), `SndLoadWaveRam`, `SndModWavFreq`.
+  mode") volume engine (`SoundFadeEnvStep`/`UpdateEnv*`), `SoundLoadWaveRam`, `SoundModWavFreq`.
 - **SDCC/GBDK runtime**: the whole 8/16-bit signed+unsigned `Div`/`Mod` family +
   `DivStep`, `memcpy`, `StrCompare` (rgbasm reserves `strcmp`!), `joypad`,
   `delay`/`DelayLoop`, `abs`, `CallHL`.
@@ -331,7 +331,7 @@ throughout. Clusters named:
   a +5 gap to skip the code banks `$1B-$1F`), `KitExists`, `ReadKitName`. This
   corrected a mislabel: `$0CFE` "FarCallByteAlt" is the kit-presence check (reads
   `[$4000:01]==$6040`), not a FarCall variant.
-- **Sync / sound tail**: `SyncSeekSongPos`, `SndApplyWavVib`.
+- **Sync / sound tail**: `SyncSeekSongPos`, `SoundApplyWavVib`.
 - **Final UI helpers** (glyphs decoded from VRAM): `DrawTileRun` (run of cursor `►`
   / blank / solid `█` tiles), `DrawStringTile20`, `AnyChanFlagSet`.
 - New RAM vars from the same work: `wChanPitchModActive` (`$C3F9`), `wOamDirty`
@@ -436,7 +436,7 @@ a symbol. The machinery:
   re-rendering never changes bytes), then `make sym` re-deploys the symbols.
 
 First application: bank `$02` `$43D8` is a 256-entry 16-bit exponential pitch
-curve read by `SndApplyPitchBend` (`FxCmd_P`) as `[$43D8 + 2*hFxVal]`; it decoded
+curve read by `SoundApplyPitchBend` (`FxCmd_P`) as `[$43D8 + 2*hFxVal]`; it decoded
 as ~250 lines of garbage code and is now the `PitchBendTable` data block (bank
 `$02` gaps 7→4 `LABEL`, 10→8 `DATA`). The remaining carved-bank tables are worked
 the same way.
@@ -558,7 +558,7 @@ as `_LABEL_`.
 class, 209 labels) and vague `Func`/`Helper` name was reverse-engineered and
 renamed to a functional name, bank by bank, each verified against the function
 body (build stays byte-identical): the sound-engine advance/read chain
-(`SndAdvanceGroove`/`SndAdvanceChainRow`/`SndReadPhraseCmd`…), the per-screen
+(`SoundAdvanceGroove`/`SoundAdvanceChainRow`/`SoundReadPhraseCmd`…), the per-screen
 edit dispatchers (`SongScreenInput`/`PhraseScreenInput`/`ChainScreenInput` with
 their A+direction quartets mapped via the wButtons byte values), the file
 subsystem (`DecompressBlock`, `FindFreeBlock`, `EraseFile`…), the CLEAN/de-dupe
@@ -566,7 +566,7 @@ pipeline (`FindDupPhrase/Chain/Table`, `Remap*Refs`, `RebuildPhraseAllocMap`),
 the synth/groove screens, and the instrument byte accessors named from the
 liblsdj-documented format (`Get/SetInstrType/Env/Len/Flags5/Table`…). The last
 `_LABEL_` Emulicious showed (`_LABEL_9F52_` = bank 02:$5F52) was a function
-hidden mid-misdecoded-data: `SndSetNoisePoly` + its 120-byte `NoiseFreqTable` —
+hidden mid-misdecoded-data: `SoundSetNoisePoly` + its 120-byte `NoiseFreqTable` —
 the same class also yielded `DrawInstrName` (bank 04) and `ReadGrooveStep`
 (bank 1D), found by auditing raw `call $xxxx` sites with no label.
 

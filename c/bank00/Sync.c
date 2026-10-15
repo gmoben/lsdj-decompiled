@@ -56,7 +56,7 @@ extern UBYTE wSyncRxByte;                   /* $CBDD */
 extern UBYTE wSyncState;                    /* $CBDE */
 extern char TxtTooBusy[];                   /* $01:$6FAE, "TOO BUSY!" */
 
-void SndInitPlayState(void);                /* bank 2 */
+void SoundInitPlayState(void);                /* bank 2 */
 void SetInterruptEnable(UBYTE ie);          /* asm */
 void SendSyncHandshake(void);
 void SendSyncByte(void);                    /* asm */
@@ -66,11 +66,11 @@ void SyncApplyMode(void);
 void SyncTickLsdj(void);
 void SyncSetSendMode(void);
 void SyncSetRecvMode(void);
-void SndTogglePlayback(void);                    /* bank 2 */
-void SndResetChanFx(void);           /* bank 2 */
-void SndResetFxState(void);                 /* bank 2 */
-void SndEnableLcdInts(void);                /* bank 2 */
-void SndRunFrame(void);                     /* bank 2 */
+void SoundTogglePlayback(void);                    /* bank 2 */
+void SoundResetChanFx(void);           /* bank 2 */
+void SoundResetFxState(void);                 /* bank 2 */
+void SoundEnableLcdInts(void);                /* bank 2 */
+void SoundRunFrame(void);                     /* bank 2 */
 void DrawSyncSubSetting(void);              /* bank $1B */
 void ReceiveLinkClipboard(void);                /* bank $1C */
 
@@ -129,7 +129,7 @@ void SyncTickLsdj(void)
             wChanActive[hSoundChan] = 0;
             _asm di _endasm;
             SWITCH_ROM(2);
-            SndResetChanFx();
+            SoundResetChanFx();
             _asm ei _endasm;
             if (wCurScreen == 4) {
                 SetVramCursor(hSoundChan * 3 + 2, (wChanSongRow[hSoundChan] & 0x0F) + 2);
@@ -145,7 +145,7 @@ void SyncTickLsdj(void)
         wPlayMode = wCurScreen;
         _asm di _endasm;
         SWITCH_ROM(2);
-        SndTogglePlayback();
+        SoundTogglePlayback();
         _asm ei _endasm;
     }
 }
@@ -156,8 +156,8 @@ void SyncTickMidi(void)
         SyncTickLsdj();
     } else {
         SWITCH_ROM(2);
-        SndTogglePlayback();
-        SndTogglePlayback();
+        SoundTogglePlayback();
+        SoundTogglePlayback();
     }
 }
 
@@ -271,7 +271,7 @@ void HandleTooBusy(void)
 
     saved = hCurBank;
     SWITCH_ROM(2);
-    SndInitPlayState();
+    SoundInitPlayState();
     SWITCH_ROM(1);
     ShowMessage(TxtTooBusy);
     SWITCH_ROM(saved);
@@ -297,7 +297,7 @@ void SyncSeekSongPos(void)
 {
     UBYTE chan, row, chain;
 
-    SndResetFxState();
+    SoundResetFxState();
     for (chan = 0; chan < 4; chan++) {
         row = (wSyncMode == 1) ? wSyncRxPos : wSyncStartRow;
         chain = ReadSeqByteRaw(chan, row);
@@ -342,7 +342,7 @@ void SendByteStep(void)
             if (!wLiveMode) {
                 SWITCH_ROM(2);
                 SyncSeekSongPos();
-                SndEnableLcdInts();
+                SoundEnableLcdInts();
                 if (wCurScreen == 9) {
                     SWITCH_ROM(0x1B);
                     wPlayMinutes = 0;
@@ -357,7 +357,7 @@ void SendByteStep(void)
             if (wSyncMode == 7)
                 SyncSendAnalogClock();
             SWITCH_ROM(2);
-            SndRunFrame();
+            SoundRunFrame();
             SWITCH_ROM(saved);
         }
         if (wSyncRun) {

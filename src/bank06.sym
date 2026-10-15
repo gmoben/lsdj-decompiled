@@ -65,7 +65,7 @@
 58A7 EraseChainCursor           ; restore the chain cursor cell's palette (the transpose column 1 on CGB, else 0)
 5ABE DrawChainCursor            ; highlight the chain cursor cell (palette 3 on CGB, 2 on DMG) at ChainColX[wChainCol], row wChainRow
 5B00 OpenChainPhrase            ; open the phrase under the chain cursor (RestoreSelectionState, load phrase)
-6D55 CutCopyChainSelection      ; arg!=0 -> "CUT " (copy+clear) else "COPY": chain selection -> clipboard (clipType 3; phrases via SndGetChainPhrase, transposes)
+6D55 CutCopyChainSelection      ; arg!=0 -> "CUT " (copy+clear) else "COPY": chain selection -> clipboard (clipType 3; phrases via SoundGetChainPhrase, transposes)
 6F0D PasteChainCells            ; SELECT+A paste on the chain screen: clipboard cells into rows wSelectionTop..wSelBottom (column 0 phrases via WriteChainPhrase, column 1 transposes), "PASTE" message when more than one row
 7006 DrawChainSelection         ; chain selection (wClipboardType==3) redraw vs the cursor: cells around the rectangle in their column palettes, the inside highlighted (ColorField)
 71ED DrawStatusNote             ; draw channel ch's playing note in the status panel at (17, ch + 6): a kit's sample name on the wave channel, wNoiNote on the noise channel, else DrawNoteName (PU2 shifted by wNoteTranspose)

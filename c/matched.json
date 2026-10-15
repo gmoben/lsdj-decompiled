@@ -3371,228 +3371,6 @@
   "len": 10,
   "src": "c/bank01/ShowMessages.c"
  },
- "SndAdvanceStatePtrs": {
-  "bank": "02",
-  "addr": "507F",
-  "len": 29,
-  "src": "c/bank02/Sound.c"
- },
- "SndEnableLcdInts": {
-  "bank": "02",
-  "addr": "70FB",
-  "len": 19,
-  "src": "c/bank02/Sound.c"
- },
- "SndEnvReleaseSpeed": {
-  "bank": "02",
-  "addr": "69C3",
-  "len": 20,
-  "src": "c/bank02/Sound.c"
- },
- "SndEnvReleaseTarget": {
-  "bank": "02",
-  "addr": "69DF",
-  "len": 19,
-  "src": "c/bank02/Sound.c"
- },
- "SndGetChainPhrase": {
-  "bank": "02",
-  "addr": "6F65",
-  "len": 81,
-  "src": "c/bank02/Sound.c"
- },
- "SndInitPlayState": {
-  "bank": "02",
-  "addr": "710E",
-  "len": 17,
-  "src": "c/bank02/Sound.c"
- },
- "SndKillNote": {
-  "bank": "02",
-  "addr": "6577",
-  "len": 124,
-  "src": "c/bank02/Sound.c"
- },
- "SndLiveChainEnd": {
-  "bank": "02",
-  "addr": "786F",
-  "len": 85,
-  "src": "c/bank02/Sound.c"
- },
- "SndLiveQueueRange": {
-  "bank": "02",
-  "addr": "6B9B",
-  "len": 31,
-  "src": "c/bank02/Sound.c"
- },
- "SndLiveQueueStart": {
-  "bank": "02",
-  "addr": "6A94",
-  "len": 197,
-  "src": "c/bank02/Sound.c"
- },
- "SndLiveStartQueued": {
-  "bank": "02",
-  "addr": "6EA7",
-  "len": 190,
-  "src": "c/bank02/Sound.c"
- },
- "SndLiveStopRange": {
-  "bank": "02",
-  "addr": "6E24",
-  "len": 131,
-  "src": "c/bank02/Sound.c"
- },
- "SndNoiChordStep": {
-  "bank": "02",
-  "addr": "6904",
-  "len": 191,
-  "src": "c/bank02/Sound.c"
- },
- "SndNoiPitchStep": {
-  "bank": "02",
-  "addr": "68A0",
-  "len": 100,
-  "src": "c/bank02/Sound.c"
- },
- "SndPhraseHop": {
-  "bank": "02",
-  "addr": "711F",
-  "len": 579,
-  "src": "c/bank02/SoundChan.c"
- },
- "SndRandomUpTo": {
-  "bank": "02",
-  "addr": "6479",
-  "len": 36,
-  "src": "c/bank02/Sound.c"
- },
- "SndReadChanStep": {
-  "bank": "02",
-  "addr": "748E",
-  "len": 312,
-  "src": "c/bank02/SoundChan.c"
- },
- "SndRetrigNote": {
-  "bank": "02",
-  "addr": "66E7",
-  "len": 441,
-  "src": "c/bank02/Sound.c"
- },
- "SndRunFxSlot": {
-  "bank": "02",
-  "addr": "6685",
-  "len": 15,
-  "src": "c/bank02/Sound.c"
- },
- "SndSetPlayRange": {
-  "bank": "02",
-  "addr": "6B59",
-  "len": 66,
-  "src": "c/bank02/Sound.c"
- },
- "SndSpeechStep": {
-  "bank": "02",
-  "addr": "7034",
-  "len": 199,
-  "src": "c/bank02/Sound.c"
- },
- "SndStartChanFromRow": {
-  "bank": "02",
-  "addr": "6BBA",
-  "len": 477,
-  "src": "c/bank02/Sound.c"
- },
- "SndStartChans": {
-  "bank": "02",
-  "addr": "6D97",
-  "len": 120,
-  "src": "c/bank02/Sound.c"
- },
- "SndStartRange": {
-  "bank": "02",
-  "addr": "6E0F",
-  "len": 21,
-  "src": "c/bank02/Sound.c"
- },
- "SndStartScreenPlayback": {
-  "bank": "02",
-  "addr": "7B31",
-  "len": 283,
-  "src": "c/bank02/Sound.c"
- },
- "SndStartSongPlayback": {
-  "bank": "02",
-  "addr": "792B",
-  "len": 518,
-  "src": "c/bank02/Sound.c"
- },
- "SndStepWavFrames": {
-  "bank": "02",
-  "addr": "6FB6",
-  "len": 126,
-  "src": "c/bank02/Sound.c"
- },
- "SndTableMaybeHop": {
-  "bank": "02",
-  "addr": "7362",
-  "len": 78,
-  "src": "c/bank02/Sound.c"
- },
- "SndTick": {
-  "bank": "02",
-  "addr": "77F0",
-  "len": 127,
-  "src": "c/bank02/Sound.c"
- },
- "SndTogglePlayback": {
-  "bank": "02",
-  "addr": "7C4C",
-  "len": 175,
-  "src": "c/bank02/Sound.c"
- },
- "SndToggleSongPlayback": {
-  "bank": "02",
-  "addr": "78C4",
-  "len": 103,
-  "src": "c/bank02/Sound.c"
- },
- "SndUpdateChan": {
-  "bank": "02",
-  "addr": "75C6",
-  "len": 554,
-  "src": "c/bank02/SoundChan.c"
- },
- "SndWavLevelStep": {
-  "bank": "02",
-  "addr": "6694",
-  "len": 83,
-  "src": "c/bank02/Sound.c"
- },
- "SndZPhrase": {
-  "bank": "02",
-  "addr": "743E",
-  "len": 15,
-  "src": "c/bank02/Sound.c"
- },
- "SndZRepeat": {
-  "bank": "02",
-  "addr": "73B0",
-  "len": 142,
-  "src": "c/bank02/Sound.c"
- },
- "SndZTableCmd1": {
-  "bank": "02",
-  "addr": "744D",
-  "len": 34,
-  "src": "c/bank02/Sound.c"
- },
- "SndZTableCmd2": {
-  "bank": "02",
-  "addr": "746F",
-  "len": 31,
-  "src": "c/bank02/Sound.c"
- },
  "SongScreenInput": {
   "bank": "07",
   "addr": "4B3B",
@@ -3616,6 +3394,228 @@
   "addr": "0D8B",
   "len": 49,
   "src": "c/bank00/Helpers.c"
+ },
+ "SoundAdvanceStatePtrs": {
+  "bank": "02",
+  "addr": "507F",
+  "len": 29,
+  "src": "c/bank02/Sound.c"
+ },
+ "SoundEnableLcdInts": {
+  "bank": "02",
+  "addr": "70FB",
+  "len": 19,
+  "src": "c/bank02/Sound.c"
+ },
+ "SoundEnvReleaseSpeed": {
+  "bank": "02",
+  "addr": "69C3",
+  "len": 20,
+  "src": "c/bank02/Sound.c"
+ },
+ "SoundEnvReleaseTarget": {
+  "bank": "02",
+  "addr": "69DF",
+  "len": 19,
+  "src": "c/bank02/Sound.c"
+ },
+ "SoundGetChainPhrase": {
+  "bank": "02",
+  "addr": "6F65",
+  "len": 81,
+  "src": "c/bank02/Sound.c"
+ },
+ "SoundInitPlayState": {
+  "bank": "02",
+  "addr": "710E",
+  "len": 17,
+  "src": "c/bank02/Sound.c"
+ },
+ "SoundKillNote": {
+  "bank": "02",
+  "addr": "6577",
+  "len": 124,
+  "src": "c/bank02/Sound.c"
+ },
+ "SoundLiveChainEnd": {
+  "bank": "02",
+  "addr": "786F",
+  "len": 85,
+  "src": "c/bank02/Sound.c"
+ },
+ "SoundLiveQueueRange": {
+  "bank": "02",
+  "addr": "6B9B",
+  "len": 31,
+  "src": "c/bank02/Sound.c"
+ },
+ "SoundLiveQueueStart": {
+  "bank": "02",
+  "addr": "6A94",
+  "len": 197,
+  "src": "c/bank02/Sound.c"
+ },
+ "SoundLiveStartQueued": {
+  "bank": "02",
+  "addr": "6EA7",
+  "len": 190,
+  "src": "c/bank02/Sound.c"
+ },
+ "SoundLiveStopRange": {
+  "bank": "02",
+  "addr": "6E24",
+  "len": 131,
+  "src": "c/bank02/Sound.c"
+ },
+ "SoundNoiChordStep": {
+  "bank": "02",
+  "addr": "6904",
+  "len": 191,
+  "src": "c/bank02/Sound.c"
+ },
+ "SoundNoiPitchStep": {
+  "bank": "02",
+  "addr": "68A0",
+  "len": 100,
+  "src": "c/bank02/Sound.c"
+ },
+ "SoundPhraseHop": {
+  "bank": "02",
+  "addr": "711F",
+  "len": 579,
+  "src": "c/bank02/SoundChan.c"
+ },
+ "SoundRandomUpTo": {
+  "bank": "02",
+  "addr": "6479",
+  "len": 36,
+  "src": "c/bank02/Sound.c"
+ },
+ "SoundReadChanStep": {
+  "bank": "02",
+  "addr": "748E",
+  "len": 312,
+  "src": "c/bank02/SoundChan.c"
+ },
+ "SoundRetrigNote": {
+  "bank": "02",
+  "addr": "66E7",
+  "len": 441,
+  "src": "c/bank02/Sound.c"
+ },
+ "SoundRunFxSlot": {
+  "bank": "02",
+  "addr": "6685",
+  "len": 15,
+  "src": "c/bank02/Sound.c"
+ },
+ "SoundSetPlayRange": {
+  "bank": "02",
+  "addr": "6B59",
+  "len": 66,
+  "src": "c/bank02/Sound.c"
+ },
+ "SoundSpeechStep": {
+  "bank": "02",
+  "addr": "7034",
+  "len": 199,
+  "src": "c/bank02/Sound.c"
+ },
+ "SoundStartChanFromRow": {
+  "bank": "02",
+  "addr": "6BBA",
+  "len": 477,
+  "src": "c/bank02/Sound.c"
+ },
+ "SoundStartChans": {
+  "bank": "02",
+  "addr": "6D97",
+  "len": 120,
+  "src": "c/bank02/Sound.c"
+ },
+ "SoundStartRange": {
+  "bank": "02",
+  "addr": "6E0F",
+  "len": 21,
+  "src": "c/bank02/Sound.c"
+ },
+ "SoundStartScreenPlayback": {
+  "bank": "02",
+  "addr": "7B31",
+  "len": 283,
+  "src": "c/bank02/Sound.c"
+ },
+ "SoundStartSongPlayback": {
+  "bank": "02",
+  "addr": "792B",
+  "len": 518,
+  "src": "c/bank02/Sound.c"
+ },
+ "SoundStepWavFrames": {
+  "bank": "02",
+  "addr": "6FB6",
+  "len": 126,
+  "src": "c/bank02/Sound.c"
+ },
+ "SoundTableMaybeHop": {
+  "bank": "02",
+  "addr": "7362",
+  "len": 78,
+  "src": "c/bank02/Sound.c"
+ },
+ "SoundTick": {
+  "bank": "02",
+  "addr": "77F0",
+  "len": 127,
+  "src": "c/bank02/Sound.c"
+ },
+ "SoundTogglePlayback": {
+  "bank": "02",
+  "addr": "7C4C",
+  "len": 175,
+  "src": "c/bank02/Sound.c"
+ },
+ "SoundToggleSongPlayback": {
+  "bank": "02",
+  "addr": "78C4",
+  "len": 103,
+  "src": "c/bank02/Sound.c"
+ },
+ "SoundUpdateChan": {
+  "bank": "02",
+  "addr": "75C6",
+  "len": 554,
+  "src": "c/bank02/SoundChan.c"
+ },
+ "SoundWavLevelStep": {
+  "bank": "02",
+  "addr": "6694",
+  "len": 83,
+  "src": "c/bank02/Sound.c"
+ },
+ "SoundZPhrase": {
+  "bank": "02",
+  "addr": "743E",
+  "len": 15,
+  "src": "c/bank02/Sound.c"
+ },
+ "SoundZRepeat": {
+  "bank": "02",
+  "addr": "73B0",
+  "len": 142,
+  "src": "c/bank02/Sound.c"
+ },
+ "SoundZTableCmd1": {
+  "bank": "02",
+  "addr": "744D",
+  "len": 34,
+  "src": "c/bank02/Sound.c"
+ },
+ "SoundZTableCmd2": {
+  "bank": "02",
+  "addr": "746F",
+  "len": 31,
+  "src": "c/bank02/Sound.c"
  },
  "SpeechCursorY": {
   "bank": "1F",

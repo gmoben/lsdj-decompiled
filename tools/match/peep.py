@@ -1208,7 +1208,7 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
         if hl_reg is not None and not (mn == "ld" and len(ops) == 2 and ops[1] == "(hl)"):
             # (a load from (hl) keeps the equality whatever it writes; so does
             # a store through de/bc: 3 ROM sites copy the register after one,
-            # none rereads -- SndStartScreenPlayback's `wChanActive[wSongCol] = 1;
+            # none rereads -- SoundStartScreenPlayback's `wChanActive[wSongCol] = 1;
             # wPlayStartChan = wSongCol` is `ld c,(hl); ...; ld (de),a; ld a,c`).
             # A conditional jump ends it for a global: FxCmd_E_Pu1/Pu2/Noi's
             # `wEnvSpeedPu1 = v; if (v) wEnvCounterPu1 = wEnvSpeedPu1;` reread
@@ -1370,7 +1370,7 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
         elif mn in ("jp", "jr") and len(ops) == 2:
             # a conditional jump: `a` and `hl` survive the fall-through, but
             # after an equality test `a` no longer stands for the byte at hl:
-            # SndPhraseHop's `*wPtrPhraseRow = wSeqNoteLatch; if
+            # SoundPhraseHop's `*wPtrPhraseRow = wSeqNoteLatch; if
             # (wSeqNoteLatch) AdvanceCurChanCursors(wSeqNoteLatch);` reloads
             # it (`ld a,(hl); ld (de),a; or a,a; jp z; ld a,(hl)`, 2 sites,
             # none reusing it), like track_hram's `ldh` rereads; so does a
@@ -1399,7 +1399,7 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
         elif mn == "ld" and ops[:1] == ["(hl)"] and len(ops) == 2 and ops[1].startswith("#"):
             # a literal stored through hl (`g = n`) leaves `a` standing for n
             # and nothing else: ResetWorkState's `wWordClipCell0[0] = 1`
-            # reloads `ld a,#1` after six `g = 0` stores, SndTogglePlayback's
+            # reloads `ld a,#1` after six `g = 0` stores, SoundTogglePlayback's
             # `wSongPlaying = 0; hSoundChan = 0` keeps the 0 in `a` (the ROM's
             # two sites; the tracker apparently took the stored literal for
             # `a`'s value, kept here only when it already was)
@@ -1511,19 +1511,19 @@ def track_hram(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int
     byte into a register that already held it: `ldh a,(X); ld r,a` goes when
     r holds X, within a block or across a jump (HandleInputCombos' two
     `hSoundChan` indexes in one block, SyncTickLsdj's loop body,
-    SndUpdateChan's D across `if (d)`). It never copied the byte over from
+    SoundUpdateChan's D across `if (d)`). It never copied the byte over from
     another register: a reload into b while c holds it stays (the `+=` target
-    in SndUpdateChan and HandleInputCombos). `a` itself serves a reread
+    in SoundUpdateChan and HandleInputCombos). `a` itself serves a reread
     in straight-line code (FxCmd_F_Wav's `step = hFxValS`: stock genCast
     reads the byte again for the sign's `rla`; no compiled code in the ROM
     rereads a byte `a` holds before a jump) and across an ordering test
     (SyncTickLsdj's `hSoundChan < 4`: `cp #4; jp nc`); after an equality test
-    the byte is reread (`cp; jp nz; ldh a,(X)`: SndUpdateChan,
-    SndRetrigNote). An HRAM store, a
+    the byte is reread (`cp; jp nz; ldh a,(X)`: SoundUpdateChan,
+    SoundRetrigNote). An HRAM store, a
     call or a jump target ends the reuse; a store through a pointer loaded
     from memory (`ld e,(hl); inc hl; ld d,(hl); ld (de),a`) ends it for a
-    byte read before a conditional jump (the `+=` in SndUpdateChan's D),
-    not for one read in this block (SndStartSongPlayback's `*active = 1`); a
+    byte read before a conditional jump (the `+=` in SoundUpdateChan's D),
+    not for one read in this block (SoundStartSongPlayback's `*active = 1`); a
     store to an array element (`#arr + c` in de) ends neither."""
     out: list[str] = []
     holds: dict[str, str] = {}    # register -> the `(X)` it holds
@@ -1627,8 +1627,8 @@ def track_hram(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int
             continue
         if mn == "ld" and len(ops) == 2 and ops[0] == "(de)" and de_loaded:
             # a store through a pointer of unknown target ends the reuse of
-            # a byte read before a jump (SndUpdateChan's D), not of one
-            # read in this block (SndStartSongPlayback's `*active = 1`)
+            # a byte read before a jump (SoundUpdateChan's D), not of one
+            # read in this block (SoundStartSongPlayback's `*active = 1`)
             for r in carried:
                 holds.pop(r, None)
             carried.clear()

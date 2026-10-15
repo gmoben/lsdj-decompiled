@@ -44,7 +44,7 @@ extern volatile sfr UBYTE hBgDigitPal;  /* $FF8D */
 extern volatile sfr UBYTE hCurBank;     /* $FF8E */
 extern UBYTE hGameboyType;                  /* $FF90 */
 extern volatile UBYTE rROMB0;               /* $2000, the MBC5 ROM bank register */
-/* volatile: SndSpeechStep's `rRAMG = 0x0A; x = *p; rRAMG = 0;` keeps both
+/* volatile: SoundSpeechStep's `rRAMG = 0x0A; x = *p; rRAMG = 0;` keeps both
  * stores, which SDCC drops as dead for a plain global */
 extern volatile UBYTE rRAMG;                /* $0000, MBC5 SRAM enable ($0A on) */
 extern volatile UBYTE rRAMB;                /* $4000, MBC5 SRAM bank */
@@ -139,7 +139,7 @@ extern UBYTE wSyncMode2;                    /* $CB67 */
    calls one directly with bank 2 paged in (SND_DIRECT: Main.c's
    ProcessInput) declares it so itself. */
 #if !defined(SOUND_BANK) && !defined(SND_DIRECT)
-void SndGetChainPhrase(void);               /* $02:$6F65 (far): chain_phrases[chain][row] */
+void SoundGetChainPhrase(void);               /* $02:$6F65 (far): chain_phrases[chain][row] */
 #endif
 
 /* --- bank 0 ---------------------------------------------------------------- */

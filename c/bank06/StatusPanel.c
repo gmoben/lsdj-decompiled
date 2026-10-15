@@ -33,7 +33,7 @@ extern UBYTE wChanOutputOverride[];                /* $C0A4, [4] */
 extern UBYTE wKit1Bank;                     /* $C4F4 */
 extern UBYTE wKit2Bank;                     /* $C4F5 */
 extern UBYTE wNoteTranspose;                /* $C4D3 */
-extern UBYTE wSndUpdateFlags;               /* $C8F5 */
+extern UBYTE wSoundUpdateFlags;               /* $C8F5 */
 extern UBYTE wTempoShadow;                  /* $C947 */
 void DrawTileHexCell(UBYTE v);                /* c/bank06/DrawTileHexCell.c */
 void DrawNoteName(UBYTE col, UBYTE v);
@@ -45,7 +45,7 @@ void DrawStatusNote(UBYTE chan, UBYTE note)
     UBYTE c, n;
 
     SetVramCursor(17, chan + 6);
-    if (wSndUpdateFlags && chan == 2) {
+    if (wSoundUpdateFlags && chan == 2) {
         wSampleNoteString[0] = 0;
         if (note & 0xF0)
             ReadKitSampleName(wKit1Bank, note >> 4);

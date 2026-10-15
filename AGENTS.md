@@ -345,15 +345,15 @@ in `docs/functionality.md`.
   `Next`/`Prev`), `Highlight` (the cursor's colouring), `Shadow` (a RAM copy,
   `wTempoShadow`; the DMG font's dotted ground is `Shaded`), `Message`, `Number`, `Count`, `Transpose` (never `Trans`;
   `Transport` is sync), `Compress`/`Decompress`. The four channels are
-  `Pu1`, `Pu2`, `Wav`, `Noi` (`SndTriggerPu1`, `wChanFreqPu2`). Exempt: `Txt`
+  `Pu1`, `Pu2`, `Wav`, `Noi` (`SoundTriggerPu1`, `wChanFreqPu2`). Exempt: `Txt`
   labels mirror their text, `SCREAMING_SNAKE` constants mirror the song
   format's documentation (`SONG_INSTRUMENTS`).
 - **Name patterns.** Routines are verb-first (`OpenChainPhrase`,
   `ReadTableEnv`, `MoveHelpCursorDown`); predicates read subject-first
   (`KitExists`, `WaveFrameModified`) and a getter may be a noun phrase
-  (`SpeechCursorY`). A prefix names a domain (`Snd` the sound driver,
+  (`SpeechCursorY`). A prefix names a domain (`Sound` the sound driver,
   `File`, `Sync`, `Fx`, `Kbd`) and comes before the verb
-  (`SndReadTableEnv`), never the source file or bank a routine sits in; an
+  (`SoundReadTableEnv`), never the source file or bank a routine sits in; an
   identical copy of a routine or table in another bank takes that bank as a
   suffix (`SynthLockByteAddrB1D`, `DefaultWaveFrameB1F`). A list of `jp`s is
   `<Name>Jumps` (`ScreenDrawJumps`), a `dw` list of routines
@@ -558,10 +558,10 @@ Always, before committing:
 - [x] Tracer follows `jp`/address jump tables (42% → 56% reachable code)
 - [x] Reverse the bank `$02` sound engine, verified against live RAM/SRAM dumps:
       sequencer cursors (`wChanSongRow`→`wChanChain`→`wChanPhrase`→note) with
-      `SndAdvanceSongRow`/`SndReadSongChain`/`SndReadChainPhrase`/`SndAdvanceChanCursors`;
-      pitch (`SndNoteToPeriod`, `wNotePeriods` `$CF28`, `wChanFreq`, `SndWriteChanFreq`);
-      note-on (`SndSetupChan`→per-channel + `rAUDx` shadows); FX dispatch
-      (`SndDispatchFxCmd`, all `FxCmd_*`, `hFxVal`, `SndApplyPitchBend`)
+      `SoundAdvanceSongRow`/`SoundReadSongChain`/`SoundReadChainPhrase`/`SoundAdvanceChanCursors`;
+      pitch (`SoundNoteToPeriod`, `wNotePeriods` `$CF28`, `wChanFreq`, `SoundWriteChanFreq`);
+      note-on (`SoundSetupChan`→per-channel + `rAUDx` shadows); FX dispatch
+      (`SoundDispatchFxCmd`, all `FxCmd_*`, `hFxVal`, `SoundApplyPitchBend`)
 - [x] Cross-bank entry discovery (banked-call helper) to cover `$1E`/`$1F`
       (`FarCall`/`FarCallArg`/`FarCallByte` call sites resolved)
 - [x] Name all routines: 100% of function entries (call- and jp-reached) have
@@ -581,7 +581,7 @@ Always, before committing:
 - [x] Render bank 0's 22 inline-trampoline call targets by name (disasm.py
       tracks the `$2000` bank write through each function)
 - [ ] Re-verify/rename the five draw-named per-screen input handlers and
-      `SndReadGrooveOrSpeed`; regenerate local labels that echo pre-July RAM names
+      `SoundReadGrooveOrSpeed`; regenerate local labels that echo pre-July RAM names
 - [ ] Name `$CB64`, the ~40 immediate-only RAM addresses, the WRAM routine at
       `$D480`, and the ramp table at `$00:$09B9`; resolve the ~13 `TBD` RAM roles
 

@@ -45,7 +45,7 @@ extern UBYTE wPrelisten;                    /* $C56E */
 extern UBYTE wLiveStartCol;                 /* $C571 */
 extern UBYTE wSavedLiveMode;                /* $C572 */
 extern UBYTE wLiveMode;                     /* $C528 */
-void SndTogglePlayback(void);                    /* bank 2 */
+void SoundTogglePlayback(void);                    /* bank 2 */
 void SyncSetSendMode(void);                 /* bank 0 */
 extern UBYTE wDrawStep;                     /* $C405 */
 extern UBYTE wNameEditBuf[];                /* $C431, [5] */
@@ -85,7 +85,7 @@ void MoveMapCursorLeft(void);                     /* $05:$4233 */
 void MoveMapCursorRight(void);                    /* $05:$4253 */
 void MoveMapCursorUp(void);                       /* $05:$426A */
 void MoveMapCursorDown(void);                     /* $05:$4287 */
-void SndToggleSongPlayback(void);              /* $02:$78C4 */
+void SoundToggleSongPlayback(void);              /* $02:$78C4 */
 void SaveSelectionState(void);              /* $05:$743F */
 
 void DrawNoteNameFar(UBYTE x)
@@ -928,7 +928,7 @@ void PrelistenCursorRow(void)
     if (!note)
         return;
     if (wLiveStartCol != 0xFF) {
-        FarCall(2, FAR_FN(SndTogglePlayback));
+        FarCall(2, FAR_FN(SoundTogglePlayback));
         wLiveMode = wSavedLiveMode;
     }
     if (wPlayMode)
@@ -940,7 +940,7 @@ void PrelistenCursorRow(void)
     wLiveStartCol = wSongCol;
     if (wSyncMode == 1)
         SyncSetSendMode();
-    FarCall(2, FAR_FN(SndTogglePlayback));
+    FarCall(2, FAR_FN(SoundTogglePlayback));
 }
 
 UBYTE DrawInstrName(UBYTE row, UBYTE instr)
@@ -1263,7 +1263,7 @@ UBYTE PhraseScreenInput(void)
             if (wChainRow) {
                 wChainRow--;
                 wPhraseRow = 0x0F;
-                v = FarCallArg2P(2, FAR_FN(SndGetChainPhrase), wChain, (char)wChainRow);
+                v = FarCallArg2P(2, FAR_FN(SoundGetChainPhrase), wChain, (char)wChainRow);
                 if (v == 0xFF) {
                     wPhraseRow = 0;
                     wChainRow++;
@@ -1292,7 +1292,7 @@ UBYTE PhraseScreenInput(void)
             wPhraseRow = 0x0F;
             chainRow = wChainRow;
             if (chainRow != 0x0F) {
-                v = FarCallArg2P(2, FAR_FN(SndGetChainPhrase), wChain, chainRow + 1);
+                v = FarCallArg2P(2, FAR_FN(SoundGetChainPhrase), wChain, chainRow + 1);
                 if (v != 0xFF) {
                     wPhrase = v;
                     wChainRow = chainRow + 1;
@@ -1818,7 +1818,7 @@ UBYTE PhraseScreenInput(void)
         if (wChainRow) {
             oldPhrase = wPhrase;
             wChainRow--;
-            wPhrase = FarCallArg2P(2, FAR_FN(SndGetChainPhrase), wChain, wChainRow);
+            wPhrase = FarCallArg2P(2, FAR_FN(SoundGetChainPhrase), wChain, wChainRow);
             if (wPhrase == 0xFF) {
                 wPhrase = oldPhrase;
                 wChainRow++;
@@ -1835,7 +1835,7 @@ UBYTE PhraseScreenInput(void)
         wMessageStrPtr = 0;
         if ((char)wChainRow == 0x0F)
             return 1;
-        v = FarCallArg2P(2, FAR_FN(SndGetChainPhrase), wChain, wChainRow + 1);
+        v = FarCallArg2P(2, FAR_FN(SoundGetChainPhrase), wChain, wChainRow + 1);
         if (v != 0xFF) {
             wPhrase = v;
             wChainRow = wChainRow + 1;
@@ -1944,7 +1944,7 @@ UBYTE PhraseScreenInput(void)
     if (wButtons == 0xC0) {
         if (wButtonsSame)
             return 1;
-        FarCall(2, FAR_FN(SndToggleSongPlayback));
+        FarCall(2, FAR_FN(SoundToggleSongPlayback));
         return 1;
     }
     if (wButtons == 0x80) {
@@ -1953,7 +1953,7 @@ UBYTE PhraseScreenInput(void)
                 wMuteSoloLatch = 1;
             return 1;
         }
-        FarCall(2, FAR_FN(SndTogglePlayback));
+        FarCall(2, FAR_FN(SoundTogglePlayback));
         return 1;
     }
     if (wButtons == 0x42) {

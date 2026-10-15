@@ -58,7 +58,7 @@ extern UBYTE wChanOutputSoloSaved[];        /* $C0A8, [4] */
 extern UBYTE wMuteSoloLatch;                /* $C56A */
 extern UBYTE wKbdActionChan;                  /* $CB9A */
 extern UBYTE wAPressEnabled;                /* $C409 */
-void SndWritePanning(UBYTE v);              /* bank 2 */
+void SoundWritePanning(UBYTE v);              /* bank 2 */
 void DrawAllChanStatus(void);               /* $271A: the B combos, ahead of the screen's own input (none on the name
    editor, wave, project, file and help screens). B+SELECT mutes the cursor's
    channel (or the keyboard's), B+LEFT/RIGHT on the song screen pans it to
@@ -95,7 +95,7 @@ UBYTE HandleInputCombos(void)
             if (!(wChanOutput[hSoundChan] & 0x80)) {
                 saved = wChanOutput[hSoundChan];
                 SWITCH_ROM(2);
-                SndWritePanning(wChanOutputOverride[hSoundChan]);
+                SoundWritePanning(wChanOutputOverride[hSoundChan]);
                 wChanOutput[hSoundChan] = saved | 0x80;
                 SWITCH_ROM(0x1F);
                 DrawAllChanStatus();
@@ -114,12 +114,12 @@ UBYTE HandleInputCombos(void)
                 wChanOutputSoloSaved[hSoundChan] = wChanOutputOverride[hSoundChan];
                 wChanOutputOverride[hSoundChan] = 0;
             }
-            SndWritePanning(0);
+            SoundWritePanning(0);
             wChanOutput[hSoundChan] = saved | 0x80;
         }
         hSoundChan = wSongCol;
         wChanOutput[wSongCol] &= 3;
-        SndWritePanning(wChanOutput[wSongCol]);
+        SoundWritePanning(wChanOutput[wSongCol]);
         SWITCH_ROM(0x1F);
         DrawAllChanStatus();
         wMuteSoloLatch = 2;
@@ -135,7 +135,7 @@ UBYTE HandleInputCombos(void)
             wChanOutputSoloSaved[chan] = 0;
             hSoundChan = chan;
             SWITCH_ROM(2);
-            SndWritePanning(wChanOutput[hSoundChan]);
+            SoundWritePanning(wChanOutput[hSoundChan]);
         } else {
             for (hSoundChan = 0; hSoundChan < 4; hSoundChan++) {
                 if (wSongCol == hSoundChan)
@@ -146,7 +146,7 @@ UBYTE HandleInputCombos(void)
                 else
                     wChanOutput[hSoundChan] &= 3;
                 SWITCH_ROM(2);
-                SndWritePanning(wChanOutput[hSoundChan]);
+                SoundWritePanning(wChanOutput[hSoundChan]);
             }
         }
         SWITCH_ROM(0x1F);

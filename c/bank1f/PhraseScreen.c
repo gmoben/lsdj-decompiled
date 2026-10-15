@@ -82,7 +82,7 @@ UBYTE CanEnterSongCol(UBYTE col)
         if (chain & 0x80)
             return 0;
         row = wChainRow;
-        fn = FAR_FN(SndGetChainPhrase);
+        fn = FAR_FN(SoundGetChainPhrase);
         phrase = FarCallArg2(2, (UWORD)fn, chain, wChainRow);
         while (phrase == 0xFF && row)
             phrase = FarCallArg2(2, (UWORD)fn, chain, --row);

@@ -357,7 +357,7 @@ class WordTestHlTests(unittest.TestCase):
 
 class HlRegisterTests(unittest.TestCase):
     """After `ld c,(hl)` the byte at hl is c: a reread becomes `ld a,c`, even
-    across a store through de (SndStartScreenPlayback), but not across one
+    across a store through de (SoundStartScreenPlayback), but not across one
     through hl or a change of c."""
 
     INDEX = ["\tld\thl,#_wSongCol + 0", "\tld\tc,(hl)", "\tld\ta,#<_wChanActive",
@@ -400,7 +400,7 @@ class HlRegisterTests(unittest.TestCase):
 
     def test_a_literal_store_through_hl_keeps_a_only_when_equal(self):
         # ResetWorkState: `a` held 1, six `g = 0` stores, then `cell[0] = 1`
-        # reloads the 1; SndTogglePlayback: `a` held 0, `wSongPlaying = 0`, then
+        # reloads the 1; SoundTogglePlayback: `a` held 0, `wSongPlaying = 0`, then
         # `hSoundChan = 0` stores `a` unreloaded
         reload = ["\tld\ta,#0x01", "\tld\t(de),a", "\tld\thl,#_g", "\tld\t(hl),#0x00",
                   "\tld\tde,#_cell", "\tld\ta,#0x01", "\tld\t(de),a"]
@@ -429,7 +429,7 @@ class HramReuseTests(unittest.TestCase):
         self.assertEqual(out, self.READ_C + self.INDEX_C + self.INDEX_C)
 
     def test_pair_goes_when_a_dies_a_few_lines_on(self):
-        # SndStartChanFromRow: the 16-bit index of wChanPhrase[hSoundChan]
+        # SoundStartChanFromRow: the 16-bit index of wChanPhrase[hSoundChan]
         word = ["\tld\tde,#_wChanPhrase", "\tld\tl,c", "\tld\th,#0x00", "\tadd\thl,de", "\tld\ta,l"]
         out = self.run_pass(self.READ_C + self.INDEX_C + self.READ_C + word)
         self.assertEqual(out, self.READ_C + self.INDEX_C + word)
@@ -458,8 +458,8 @@ class HramReuseTests(unittest.TestCase):
         self.assertEqual(self.run_pass(changed), changed)
 
     def test_store_through_a_loaded_pointer_ends_a_carried_byte(self):
-        # SndUpdateChan's D: c read before `if (d)`, then `+=` through a
-        # stack pointer, then a reread; SndStartSongPlayback's `*active = 1` after an
+        # SoundUpdateChan's D: c read before `if (d)`, then `+=` through a
+        # stack pointer, then a reread; SoundStartSongPlayback's `*active = 1` after an
         # in-block read keeps it
         store = ["\tlda\thl,0(sp)", "\tld\te,(hl)", "\tinc\thl", "\tld\td,(hl)", "\tld\t(de),a"]
         test = ["\txor\ta,a", "\tor\ta,b", "\tjp\tz,00105$"]

@@ -64,9 +64,9 @@ void CopySongCol(UWORD p, UWORD q);    /* defined with pointers in SongScreen.c 
 UBYTE IsSongChainUsed(void);                /* bank $1F */
 void MarkChainUsed(void);                   /* bank 1 */
 void ShowTapAddChain(void);                 /* bank 1 */
-void SndLiveStopRange(void);                /* bank 2 */
-void SndStartRange(void);                /* bank 2 */
-void SndTogglePlayback(void);                    /* bank 2 */
+void SoundLiveStopRange(void);                /* bank 2 */
+void SoundStartRange(void);                /* bank 2 */
+void SoundTogglePlayback(void);                    /* bank 2 */
 void SaveSelectionState(void);              /* bank 5 */
 void MoveMapCursorUp(void);                       /* bank 5 */
 void MoveMapCursorDown(void);                     /* bank 5 */
@@ -354,11 +354,11 @@ UBYTE SongScreenInput(void)
             return 1;
         if (wLiveMode) {
             if (SongChanActiveMask())
-                FarCall(2, FAR_FN(SndLiveStopRange));
+                FarCall(2, FAR_FN(SoundLiveStopRange));
         } else {
             if (wPlayMode)
-                FarCall(2, FAR_FN(SndTogglePlayback));
-            FarCall(2, FAR_FN(SndTogglePlayback));
+                FarCall(2, FAR_FN(SoundTogglePlayback));
+            FarCall(2, FAR_FN(SoundTogglePlayback));
         }
         return 1;
     } else if (wButtons == 0x80) {
@@ -368,11 +368,11 @@ UBYTE SongScreenInput(void)
             return 1;
         }
         if (wLiveMode)
-            FarCall(2, FAR_FN(SndStartRange));
+            FarCall(2, FAR_FN(SoundStartRange));
         else if (wSyncMode == 1 && !wPlayMode && wSyncTick != 0xFF)
             BeginSongSelection();
         else
-            FarCall(2, FAR_FN(SndTogglePlayback));
+            FarCall(2, FAR_FN(SoundTogglePlayback));
         return 1;
     } else if (wButtons == 0x82) {
         if (!wButtonsSame)
@@ -395,7 +395,7 @@ UBYTE SongScreenInput(void)
             }
             v--;
         }
-        while (wChainRow && FarCallArg2(2, (UWORD)SndGetChainPhrase, wChain, (char)wChainRow) == 0xFF)
+        while (wChainRow && FarCallArg2(2, (UWORD)SoundGetChainPhrase, wChain, (char)wChainRow) == 0xFF)
             wChainRow--;
         FarCall(5, MoveMapCursorRight);
         FarCall(4, FAR_FN(RedrawScreen));

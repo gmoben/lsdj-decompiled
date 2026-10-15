@@ -486,8 +486,8 @@ extern UBYTE wBHeld;                        /* $C40B */
 extern UBYTE wAPressEnabled;                /* $C409 */
 extern UBYTE wButtons;                      /* $C575 */
 void ShowCmdHelp(void);                 /* bank 1 */
-void SndToggleSongPlayback(void);              /* bank 2 */
-void SndTogglePlayback(void);                  /* bank 2 */
+void SoundToggleSongPlayback(void);              /* bank 2 */
+void SoundTogglePlayback(void);                  /* bank 2 */
 void CutCopyTableSelection(UBYTE cut);
 void PasteTableCells(void);
 void SaveSelectionState(void);
@@ -1088,12 +1088,12 @@ UBYTE TableScreenInput(void)
     case 0xC0:
         if (wButtonsSame)
             return 1;
-        FarCall(2, FAR_FN(SndToggleSongPlayback));
+        FarCall(2, FAR_FN(SoundToggleSongPlayback));
         return 1;
     case 0x80:
         if (wButtonsSame || wBHeld)
             return 1;
-        FarCall(2, FAR_FN(SndTogglePlayback));
+        FarCall(2, FAR_FN(SoundTogglePlayback));
         return 1;
     case 0x44:
         if (wButtonsSame)
