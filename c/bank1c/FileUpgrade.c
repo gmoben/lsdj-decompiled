@@ -123,14 +123,14 @@ void FileUpgradeV1(void)
    nibble is neither 0 nor F gains one. */
 void FileUpgradeV2(void)
 {
-    UWORD p;
+    UWORD address;
     UBYTE v, low;
 
-    for (p = 0xB690; p != (UWORD)0xB890; p++) {
-        v = ReadSongByte(0, p);
+    for (address = 0xB690; address != (UWORD)0xB890; address++) {
+        v = ReadSongByte(0, address);
         low = v & 0x0F;
         if (low && low != 0x0F)
-            WriteSongByte(0, p, v + 1);
+            WriteSongByte(0, address, v + 1);
     }
 }
 
@@ -185,13 +185,13 @@ void FileUpgradeV3(void)
 
 void FileUpgradeV4(void)
 {
-    UWORD p;
+    UWORD address;
     UBYTE v;
 
-    for (p = 0xBEB4; p != (UWORD)0xBFB4; p += 0x10) {
-        v = ReadSongByte(1, p);
+    for (address = 0xBEB4; address != (UWORD)0xBFB4; address += 0x10) {
+        v = ReadSongByte(1, address);
         v |= v << 4;
-        WriteSongByte(1, p, v);
+        WriteSongByte(1, address, v);
     }
 }
 
@@ -226,24 +226,24 @@ void FileUpgradeV6(void)
 
 void FileUpgradeV7(void)
 {
-    UBYTE *p;
+    UBYTE *command;
     UBYTE v;
 
     _asm di _endasm;
     rRAMG = 0x0A;
     rRAMB = 1;
-    for (p = (UBYTE *)0xB680; p != (UBYTE *)0xB880; p++) {
-        v = *p;
+    for (command = (UBYTE *)0xB680; command != (UBYTE *)0xB880; command++) {
+        v = *command;
         if (v > 1)
-            *p = v + 1;
+            *command = v + 1;
     }
-    for (p = (UBYTE *)0xBA80; p != (UBYTE *)0xBC80; p++)
-        if (*p > 1)
-            (*p)++;
+    for (command = (UBYTE *)0xBA80; command != (UBYTE *)0xBC80; command++)
+        if (*command > 1)
+            (*command)++;
     rRAMB = 2;
-    for (p = (UBYTE *)0xA000; p != (UBYTE *)0xAFF0; p++)
-        if (*p > 1)
-            (*p)++;
+    for (command = (UBYTE *)0xA000; command != (UBYTE *)0xAFF0; command++)
+        if (*command > 1)
+            (*command)++;
     rRAMG = 0;
     _asm ei _endasm;
 }
@@ -350,32 +350,32 @@ void FileUpgradeClearRange(void)
 void FileUpgradeV11(void)
 {
     UBYTE types[0x40];
-    UBYTE i;
+    UBYTE instrument;
     UWORD p;
-    UWORD q;
+    UWORD address;
     UBYTE v;
     UBYTE j;
     UBYTE n;
 
-    i = 0;
+    instrument = 0;
     p = 0xA000;
-    q = 0xB000;
-    while (i != 0x40) {
-        types[i] = ReadInstrumentByte(i, 0);
-        i++;
+    address = 0xB000;
+    while (instrument != 0x40) {
+        types[instrument] = ReadInstrumentByte(instrument, 0);
+        instrument++;
     }
-    while (q != 0xBFF0) {
+    while (address != 0xBFF0) {
         v = 0;
         j = 0;
         ReadSongBytesW(0, p, wSongReadBuffer);
-        ReadSongBytesW(3, q, wUsedTableMap);
+        ReadSongBytesW(3, address, wUsedTableMap);
         for (; j != 0x10; j = j + 1) {
-            i = wUsedTableMap[j];
-            if (i == 0x40) {
+            instrument = wUsedTableMap[j];
+            if (instrument == 0x40) {
                 v = 0;
-            } else if (i < 0x40) {
-                if (types[i] == 3)
-                    v = ReadInstrumentByteS(i, 4);
+            } else if (instrument < 0x40) {
+                if (types[instrument] == 3)
+                    v = ReadInstrumentByteS(instrument, 4);
                 else
                     v = 0;
             }
@@ -399,7 +399,7 @@ void FileUpgradeV11(void)
                 }
             }
         }
-        q += 0x10;
+        address += 0x10;
         p += 0x10;
     }
 }
@@ -427,21 +427,21 @@ void FileUpgradeV12(void)
 
 void FileUpgradeV13(void)
 {
-    UBYTE *p;
+    UBYTE *command;
 
     _asm di _endasm;
     rRAMG = 0x0A;
     rRAMB = 1;
-    for (p = (UBYTE *)0xB680; p != (UBYTE *)0xB880; p++)
-        if (*p == 0x0E)
-            FileUpgradeRetrigRate(p + 0x200);
-    for (p = (UBYTE *)0xBA80; p != (UBYTE *)0xBC80; p++)
-        if (*p == 0x0E)
-            FileUpgradeRetrigRate(p + 0x200);
+    for (command = (UBYTE *)0xB680; command != (UBYTE *)0xB880; command++)
+        if (*command == 0x0E)
+            FileUpgradeRetrigRate(command + 0x200);
+    for (command = (UBYTE *)0xBA80; command != (UBYTE *)0xBC80; command++)
+        if (*command == 0x0E)
+            FileUpgradeRetrigRate(command + 0x200);
     rRAMB = 2;
-    for (p = (UBYTE *)0xA000; p != (UBYTE *)0xAFF0; p++)
-        if (*p == 0x0E)
-            FileUpgradeRetrigRate(p + 0xFF0);
+    for (command = (UBYTE *)0xA000; command != (UBYTE *)0xAFF0; command++)
+        if (*command == 0x0E)
+            FileUpgradeRetrigRate(command + 0xFF0);
     rRAMG = 0;
     _asm ei _endasm;
 }
@@ -482,25 +482,25 @@ void FileUpgradeV15(void)
 
 void FileUpgradeV16(void)
 {
-    UWORD p;
+    UWORD address;
     UBYTE v;
     UBYTE *q;
 
-    p = 0xB690;
+    address = 0xB690;
     _asm di _endasm;
     rRAMG = 0x0A;
     rRAMB = 0;
-    while (p != (UWORD)0xB890) {
-        v = p;
-        if ((v & 0x0F) != 0 && (*(UBYTE *)p & 0x0F) == 0x0F) {
-            p--;
-            q = (UBYTE *)p;
+    while (address != (UWORD)0xB890) {
+        v = address;
+        if ((v & 0x0F) != 0 && (*(UBYTE *)address & 0x0F) == 0x0F) {
+            address--;
+            q = (UBYTE *)address;
             v = *q;
             if ((v & 0x0F) < 0x0E)
                 *q = v + 1;
-            p++;
+            address++;
         }
-        p++;
+        address++;
     }
     rRAMG = 0;
     _asm ei _endasm;
@@ -508,13 +508,13 @@ void FileUpgradeV16(void)
 
 void FileUpgradeV17(void)
 {
-    UWORD p;
+    UWORD address;
     UBYTE v;
 
-    for (p = 0xBEBF; p != (UWORD)0xBFBF; p += 0x10) {
-        v = ReadSongByte(1, p);
-        WriteSongByte(1, p, -(v >> 4));
-        WriteSongByte(1, p + 1, -(v & 0x0F));
+    for (address = 0xBEBF; address != (UWORD)0xBFBF; address += 0x10) {
+        v = ReadSongByte(1, address);
+        WriteSongByte(1, address, -(v >> 4));
+        WriteSongByte(1, address + 1, -(v & 0x0F));
     }
 }
 
@@ -537,32 +537,32 @@ void FileUpgradeV17b(void)
 void FileUpgradeV18(void)
 {
     UBYTE types[0x40];
-    UBYTE i;
+    UBYTE instrument;
     UWORD p;
-    UWORD q;
+    UWORD address;
     UBYTE v;
     UBYTE j;
     UBYTE n;
     UBYTE m;
 
-    i = 0;
+    instrument = 0;
     p = 0xA000;
-    q = 0xB000;
-    while (i != 0x40) {
-        types[i] = ReadInstrumentByte(i, 0);
-        i++;
+    address = 0xB000;
+    while (instrument != 0x40) {
+        types[instrument] = ReadInstrumentByte(instrument, 0);
+        instrument++;
     }
-    while (q != 0xBFF0) {
+    while (address != 0xBFF0) {
         v = 0;
         j = 0;
         ReadSongBytesW(0, p, wSongReadBuffer);
-        ReadSongBytesW(3, q, wUsedTableMap);
+        ReadSongBytesW(3, address, wUsedTableMap);
         for (; j != 0x10; j = j + 1) {
-            i = wUsedTableMap[j];
-            if (i == 0x40) {
+            instrument = wUsedTableMap[j];
+            if (instrument == 0x40) {
                 v = 0;
-            } else if (i < 0x40) {
-                v = types[i] == 3;
+            } else if (instrument < 0x40) {
+                v = types[instrument] == 3;
             }
             if (v) {
                 n = wSongReadBuffer[j];
@@ -578,32 +578,32 @@ void FileUpgradeV18(void)
                 }
             }
         }
-        q += 0x10;
+        address += 0x10;
         p += 0x10;
     }
 }
 
 void FileUpgradeV19(void)
 {
-    UWORD p, q;
+    UWORD source, destination;
 
-    p = 0xBDD0;
-    q = 0xBDD0;
-    while (q != (UWORD)0xBDFA) {
-        WriteSongByte(0, q++, ReadSongByte(0, p++));
-        WriteSongByte(0, q++, ReadSongByte(0, p++));
-        WriteSongByte(0, q++, ReadSongByte(0, p++));
-        p++;
+    source = 0xBDD0;
+    destination = 0xBDD0;
+    while (destination != (UWORD)0xBDFA) {
+        WriteSongByte(0, destination++, ReadSongByte(0, source++));
+        WriteSongByte(0, destination++, ReadSongByte(0, source++));
+        WriteSongByte(0, destination++, ReadSongByte(0, source++));
+        source++;
     }
 }
 
 void FileUpgradeV21(void)
 {
     UBYTE v;
-    UWORD q, p;
+    UWORD q, address;
 
-    for (p = 0xBEB2; p != (UWORD)0xBFB2; p += 16) {
-        q = p + 4;
+    for (address = 0xBEB2; address != (UWORD)0xBFB2; address += 16) {
+        q = address + 4;
         v = ReadSongByte(1, q);
         if (v)
             WriteSongByte(1, q, 3);
@@ -612,15 +612,15 @@ void FileUpgradeV21(void)
 
 void FileUpgradeSong(void)
 {
-    UBYTE v;
+    UBYTE version;
 
-    v = ReadSongByte(3, 0xBFFF);
-    if (!(v < 0x16))
+    version = ReadSongByte(3, 0xBFFF);
+    if (!(version < 0x16))
         return;
     wVramCursor = 0x98E2;
     DrawString("UPGRADING...   ");
-    while (v < 0x16) {
-        switch (v) {
+    while (version < 0x16) {
+        switch (version) {
         case 0: FileUpgradeV0(); break;
         case 1: FileUpgradeV1(); break;
         case 2: FileUpgradeV2(); break;
@@ -643,7 +643,7 @@ void FileUpgradeSong(void)
         case 19: FileUpgradeV19(); break;
         case 21: FileUpgradeV21(); break;
         }
-        v++;
+        version++;
     }
     WriteSongByte(3, 0xBFFF, 0x16);
 }

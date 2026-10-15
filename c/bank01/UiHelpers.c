@@ -134,7 +134,7 @@ extern UWORD wVramCursorW;                  /* $C573, wVramCursor as a plain wor
 
 UBYTE TestSramLow(void)
 {
-    UBYTE i;
+    UBYTE bank;
     UBYTE * volatile p;                     /* volatile: the ROM keeps p on the stack */
     char done;
     UBYTE v;
@@ -142,9 +142,9 @@ UBYTE TestSramLow(void)
 
     initrand(0x1234);
     rRAMG = 0x0A;
-    for (i = 0; i < 4; i++) {
+    for (bank = 0; bank < 4; bank++) {
         p = (UBYTE *)0xA000;
-        rRAMB = i;
+        rRAMB = bank;
         for (;;) {
             done = p == (UBYTE *)0xC000;
             if (done)
@@ -155,9 +155,9 @@ UBYTE TestSramLow(void)
         }
     }
     initrand(0x1234);
-    for (i = 0; i < 4; i++) {
+    for (bank = 0; bank < 4; bank++) {
         p = (UBYTE *)0xA000;
-        rRAMB = i;
+        rRAMB = bank;
         for (;;) {
             done = p == (UBYTE *)0xC000;
             if (done)
@@ -175,11 +175,11 @@ UBYTE TestSramLow(void)
 
 UBYTE TestSramHigh(void)
 {
-    UBYTE i;
+    UBYTE bank;
 
     rRAMG = 0x0A;
-    for (i = 4; i < 0x10; i++) {
-        rRAMB = i;
+    for (bank = 4; bank < 0x10; bank++) {
+        rRAMB = bank;
         if (TestSram())
             return 0;
     }
@@ -362,14 +362,14 @@ void LoadHardwareTables(void)
    copies spill themselves and p ends in its slot. */
 void ClearOamBuffer(void)
 {
-    UWORD p;
+    UWORD address;
 
     FillMemory(wOamBuffer, 0, 0xA0);
     wOamDirty = 1;
-    for (p = 0x8000; p != 0x8030; p++)
-        WriteVramByteSafeP((UBYTE *)p, 0);
-    for (p = 0x8050; p != 0x8060; p++)
-        WriteVramByteSafeP((UBYTE *)p, ((UBYTE)p & 2) ? 0x60 : 0);
+    for (address = 0x8000; address != 0x8030; address++)
+        WriteVramByteSafeP((UBYTE *)address, 0);
+    for (address = 0x8050; address != 0x8060; address++)
+        WriteVramByteSafeP((UBYTE *)address, ((UBYTE)address & 2) ? 0x60 : 0);
     OamShadow[0].x = 0x90;
     OamShadow[1].x = 0x98;
     OamShadow[1].tile = 1;
@@ -573,14 +573,14 @@ void DrawScreenPaletteMap(void)
 
 void ClearBgMapAndAttributes(void)
 {
-    UBYTE *p = (UBYTE *)0x9800;
+    UBYTE *cell = (UBYTE *)0x9800;
 
     if (hGameboyType) {
         VBK_REG = 1;
-        while (p != (UBYTE *)0x9A40) {
+        while (cell != (UBYTE *)0x9A40) {
             while (STAT_REG & 2)
                 ;
-            *p++ = 0;
+            *cell++ = 0;
         }
         VBK_REG = 0;
     }
@@ -713,22 +713,22 @@ void ShowCommandHelp(UBYTE command)
 
 void ClearMessageBar(void)
 {
-    UBYTE i = 0;
+    UBYTE letter = 0;
 
     wMessageStringPointer = 0;
     wVramCursor = (UBYTE *)0x998F;
     hBgDigitPalette = 4;
     hBgPalette = 1;
     do {
-        DrawStringIndexed(wSampleNoteString[i]);
-    } while (i++ != 4);
+        DrawStringIndexed(wSampleNoteString[letter]);
+    } while (letter++ != 4);
     wMessageTimer = 100;
     wMessagePanelShown = 1;
 }
 
 void UpdateMessage(void)
 {
-    UBYTE i;
+    UBYTE letter;
 
     if (wSelectHeld && !wMessageNoPause)
         return;
@@ -737,8 +737,8 @@ void UpdateMessage(void)
             hBgDigitPalette = wHighlightDigitPalette;
             hBgPalette = wHighlightPalette;
             wVramCursor = (UBYTE *)0x9800;
-            for (i = 0; i < 20; i++)
-                DrawStringIndexed(wMessageStringPointer[i]);
+            for (letter = 0; letter < 20; letter++)
+                DrawStringIndexed(wMessageStringPointer[letter]);
             wMessageTimer = 10;
             wMessageStringPointer += 20;
             if (!*wMessageStringPointer) {
@@ -796,7 +796,7 @@ void ResetEditorState(UBYTE keep)
 
 void LoadProjectSettings(UBYTE keep)
 {
-    UBYTE i;
+    UBYTE column;
 
     ResetEditorState(keep);
     NR52_REG = 0;
@@ -830,11 +830,11 @@ void LoadProjectSettings(UBYTE keep)
     wTempoMode = *(UBYTE *)0xBFCC;
     wSongTranspose = *(UBYTE *)0xBFB5;
     memcpy(wColumnInstrument, (UBYTE *)0xBFC6, 4);
-    i = 4;
+    column = 4;
     do {
-        if (wColumnInstrument[i - 1] > 0x40 && wColumnInstrument[i - 1] != 0xFF)
-            wColumnInstrument[i - 1] = 0;
-    } while (--i);
+        if (wColumnInstrument[column - 1] > 0x40 && wColumnInstrument[column - 1] != 0xFF)
+            wColumnInstrument[column - 1] = 0;
+    } while (--column);
     wKeyDelay = *(UBYTE *)0xBFBA & 0x0F;
     wKeyRepeat = *(UBYTE *)0xBFBB & 0x0F;
     rRAMG = 0;

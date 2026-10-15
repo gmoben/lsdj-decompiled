@@ -227,12 +227,12 @@ void CopyFileName(UBYTE f)
 
 UBYTE CompressIsDefaultWave(void)
 {
-    UBYTE i;
+    UBYTE byte;
 
     if (wCompressDestination >= (UWORD)0x7FF1)
         return 0;
-    for (i = 0; i < 0x10; i++) {
-        if (ReadWorkingSongByte(wCompressDestination + i) != DefaultWaveFrameB1C[i])
+    for (byte = 0; byte < 0x10; byte++) {
+        if (ReadWorkingSongByte(wCompressDestination + byte) != DefaultWaveFrameB1C[byte])
             return 0;
     }
     return 1;
@@ -365,13 +365,13 @@ UBYTE DrawVerifyPanel(UBYTE f)
 
 void FormatFileSpace(void)
 {
-    UWORD p;
+    UWORD address;
 
     WriteSongByte(4, 0xBE78, 0);
-    for (p = 0xA000; p != 0xA100; p++)
-        WriteSongByte(4, p, 0);
-    for (p = 0xA140; p != 0xA200; p++)
-        WriteSongByte(4, p, 0xFF);
+    for (address = 0xA000; address != 0xA100; address++)
+        WriteSongByte(4, address, 0);
+    for (address = 0xA140; address != 0xA200; address++)
+        WriteSongByte(4, address, 0xFF);
     LoadFileListState();
     WriteSongByte(4, 0xA13E, 0x6A);
     WriteSongByte(4, 0xA13F, 0x6B);
@@ -411,14 +411,14 @@ UBYTE FileFindSlotEnd(void)
  */
 void CountFileBlocks(void)
 {
-    UWORD p;
+    UWORD address;
     UBYTE v;
     UBYTE t;
 
-    p = 0xA141;
+    address = 0xA141;
     FillMemory(wFileBlockCounts, 0, 0x20);
-    while (p != 0xA200) {
-        v = ReadSongByte(4, p++);
+    while (address != 0xA200) {
+        v = ReadSongByte(4, address++);
         if (v < 0x20) {
             wFileBlockCountPointer = &wFileBlockCounts[v];
             t = *wFileBlockCountPointer + 1;
@@ -429,13 +429,13 @@ void CountFileBlocks(void)
 
 UBYTE FileListSlots(void)
 {
-    UWORD p;
+    UWORD address;
     UBYTE n;
 
-    p = 0xA141;
+    address = 0xA141;
     n = 0;
-    while (p != 0xA200) {
-        if (ReadSongByte(4, p++) != 0xFF)
+    while (address != 0xA200) {
+        if (ReadSongByte(4, address++) != 0xFF)
             n++;
     }
     return n;
@@ -458,7 +458,7 @@ void LoadFileListState(void)
 {
     UBYTE version;
     char modifier;
-    UBYTE i;
+    UBYTE position;
 
     modifier = ReadSongByte(1, 0xBFC1);
     wFileCursor = ReadSongByte(4, 0xA140);
@@ -470,64 +470,64 @@ void LoadFileListState(void)
         wTopBarMarkPointer = wTopBarString + 7;
         return;
     }
-    i = 0;
+    position = 0;
     if (wFileCursor > 0x1F)
         wFileCursor = 0;
     CopyFileName(wFileCursor);
-    while (i < 8) {
-        if (!wFileNameBuffer[i])
+    while (position < 8) {
+        if (!wFileNameBuffer[position])
             break;
-        wTopBarString[i] = wFileNameBuffer[i];
-        i++;
+        wTopBarString[position] = wFileNameBuffer[position];
+        position++;
     }
-    wTopBarString[i++] = '.';
+    wTopBarString[position++] = '.';
     version = ReadSongByte(4, (UWORD)0xA100 + wFileCursor);
     if (version & 0xF0) {
-        wTopBarString[i] = (version >> 4) + 0x30;
+        wTopBarString[position] = (version >> 4) + 0x30;
         if ((version >> 4) > 9)
-            wTopBarString[i] += 7;
+            wTopBarString[position] += 7;
         version &= 0x0F;
         if (version > 9)
             version += 7;
-        i++;
-        wTopBarString[i] = version + 0x30;
-        i++;
-        wTopBarMarkPointer = &wTopBarString[i];
-        wTopBarString[i++] = modifier;
-        wTopBarString[i] = 0;
+        position++;
+        wTopBarString[position] = version + 0x30;
+        position++;
+        wTopBarMarkPointer = &wTopBarString[position];
+        wTopBarString[position++] = modifier;
+        wTopBarString[position] = 0;
     } else {
-        wTopBarString[i] = version + 0x30;
+        wTopBarString[position] = version + 0x30;
         if (version > 9)
-            wTopBarString[i] += 7;
-        i++;
-        wTopBarMarkPointer = &wTopBarString[i];
-        wTopBarString[i++] = modifier;
-        wTopBarString[i] = 0;
+            wTopBarString[position] += 7;
+        position++;
+        wTopBarMarkPointer = &wTopBarString[position];
+        wTopBarString[position++] = modifier;
+        wTopBarString[position] = 0;
     }
-    if (i >= 0x0D)
+    if (position >= 0x0D)
         DebugTrap();
 }
 
 void EraseFileName(UBYTE f)
 {
-    UWORD p;
+    UWORD address;
     UBYTE v;
 
-    p = (UWORD)0xA000 + (f << 3);
-    while (p != (UWORD)0xA0F8) {
-        WriteSongByte(4, p, ReadSongByte(4, p + 8));
-        p++;
+    address = (UWORD)0xA000 + (f << 3);
+    while (address != (UWORD)0xA0F8) {
+        WriteSongByte(4, address, ReadSongByte(4, address + 8));
+        address++;
     }
     WriteSongByte(4, 0xA0F8, 0);
-    p = (UWORD)0xA100 + f;
-    while (p != (UWORD)0xA11F) {
-        WriteSongByte(4, p, ReadSongByte(4, p + 1));
-        p++;
+    address = (UWORD)0xA100 + f;
+    while (address != (UWORD)0xA11F) {
+        WriteSongByte(4, address, ReadSongByte(4, address + 1));
+        address++;
     }
-    for (p = 0xA141; p != 0xA200; p++) {
-        v = ReadSongByte(4, p);
+    for (address = 0xA141; address != 0xA200; address++) {
+        v = ReadSongByte(4, address);
         if (v < 0x20 && f < v)
-            WriteSongByte(4, p, v - 1);
+            WriteSongByte(4, address, v - 1);
     }
 }
 
@@ -615,11 +615,11 @@ UBYTE FileLoadSlotInfo(UBYTE slot, UBYTE verify)
 
 void FileClearChannelState(void)
 {
-    UBYTE i = 8;
+    UBYTE channel = 8;
 
     do {
-        wChannelActive[i - 1] = 0;
-    } while (--i);
+        wChannelActive[channel - 1] = 0;
+    } while (--channel);
 }
 
 void FileStopSound(void)
@@ -701,32 +701,32 @@ void LoadFile(void)
  */
 void DrawFileTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE h)
 {
-    UBYTE i, j;
+    UBYTE column, row;
 
-    for (i = x; i < x + w; i++) {
-        for (j = y; j < y + h; j++) {
+    for (column = x; column < x + w; column++) {
+        for (row = y; row < y + h; row++) {
             wStringSource = IdentityCharacterMap;
             hBgPalette = hGameboyType ? 0x48 : 0xD2;
-            ColorField(i, j, 1, 0);
-            SetVramCursor(i, j);
-            if (i == x) {
-                if (j == y)
+            ColorField(column, row, 1, 0);
+            SetVramCursor(column, row);
+            if (column == x) {
+                if (row == y)
                     DrawStringIndexed(0);
-                else if (j == y + h - 1)
+                else if (row == y + h - 1)
                     DrawStringIndexed(3);
                 else
                     DrawStringIndexed(7);
-            } else if (i == x + w - 1) {
-                if (j == y)
+            } else if (column == x + w - 1) {
+                if (row == y)
                     DrawStringIndexed(1);
-                else if (j == y + h - 1)
+                else if (row == y + h - 1)
                     DrawStringIndexed(2);
                 else
                     DrawStringIndexed(5);
             } else {
-                if (j == y)
+                if (row == y)
                     DrawStringIndexed(4);
-                else if (j == y + h - 1)
+                else if (row == y + h - 1)
                     DrawStringIndexed(6);
                 else {
                     hBgDigitPalette = 4;
@@ -779,7 +779,7 @@ void FileValidateName(void)
 void DrawFileList(void)
 {
     UBYTE row, slot, active, end, blocks;
-    UBYTE version, c, n;
+    UBYTE version, c, padding;
     char *empty = "[EMPTY]      0";
 
     row = 0;
@@ -808,8 +808,8 @@ void DrawFileList(void)
             DrawByte(version);
             if ((version & 0xF0) == 0)
                 DrawStringTile20();
-            n = 9 - StringLength(wFileNameBuffer);
-            while (n--)
+            padding = 9 - StringLength(wFileNameBuffer);
+            while (padding--)
                 DrawStringTile20();
             if ((blocks & 0xF0) == 0)
                 DrawStringTile20();
@@ -844,10 +844,10 @@ void DrawFileList(void)
 
 void DrawFileScreen(void)
 {
-    UBYTE i;
+    UBYTE position;
 
     FarCall(1, FAR_FN(DrawTopBar));
-    for (i = StringLength(wTopBarString); i != 12; i++)
+    for (position = StringLength(wTopBarString); position != 12; position++)
         DrawStringTile20();
     hBgDigitPalette = wShadedDigitPalette;
     hBgPalette = wShadedPalette;
@@ -871,14 +871,14 @@ void DrawFileScreen(void)
 
 void FileMatchName(void)
 {
-    UBYTE i;
+    UBYTE file;
 
-    i = wFileCursor;
-    while (++i < 0x20) {
-        if (FileFindSlotEnd() + 1 < i)
+    file = wFileCursor;
+    while (++file < 0x20) {
+        if (FileFindSlotEnd() + 1 < file)
             break;
-        if (ReadSongByte(4, (UBYTE *)0xA140) == i || GetFileBlockCount(i) == 0) {
-            wFileCursor = i;
+        if (ReadSongByte(4, (UBYTE *)0xA140) == file || GetFileBlockCount(file) == 0) {
+            wFileCursor = file;
             break;
         }
     }
@@ -888,12 +888,12 @@ void FileMatchName(void)
 
 void FileCopyNameToBuffer(void)
 {
-    UBYTE i;
+    UBYTE file;
 
-    i = wFileCursor;
-    while (--i != 0xFF) {
-        if (ReadSongByte(4, (UBYTE *)0xA140) == i || GetFileBlockCount(i) == 0) {
-            wFileCursor = i;
+    file = wFileCursor;
+    while (--file != 0xFF) {
+        if (ReadSongByte(4, (UBYTE *)0xA140) == file || GetFileBlockCount(file) == 0) {
+            wFileCursor = file;
             break;
         }
     }
@@ -1177,7 +1177,7 @@ void FileSendSyncByte(UBYTE v)
    manual's "Clipboard Transfer"). */
 void SendLinkClipboard(void)
 {
-    UBYTE x, y, ok;
+    UBYTE column, row, ok;
 
     if (wCursorMode != 2)
         DebugTrap();
@@ -1199,11 +1199,11 @@ void SendLinkClipboard(void)
     FileSendSyncByte(wSelectionTop);
     FileSendSyncByte(wSelectionRight);
     FileSendSyncByte(wSelectionBottom);
-    for (x = wSelectionLeft; x < wSelectionRight; x++) {
-        y = wSelectionTop;
-        while (ok = y < wSelectionBottom) {
-            FileSendSyncByte(wClipboardBuffer[x][y]);
-            y = y + 1;
+    for (column = wSelectionLeft; column < wSelectionRight; column++) {
+        row = wSelectionTop;
+        while (ok = row < wSelectionBottom) {
+            FileSendSyncByte(wClipboardBuffer[column][row]);
+            row = row + 1;
         }
     }
     SyncSetReceiveMode();
@@ -1224,7 +1224,7 @@ void SyncTransferByte(UBYTE *out)
    hoisted by SDCC, which gives the ROM's spills). */
 void ReceiveLinkClipboard(void)
 {
-    UBYTE x, y, ok;
+    UBYTE column, row, ok;
 
     wCursorMode = 1;
     wSyncTransferActive = 1;
@@ -1236,11 +1236,11 @@ void ReceiveLinkClipboard(void)
     SyncTransferByte(&wSelectionRight);
     SyncTransferByte(&wSelectionBottom);
     if (wSelectionLeft < wSelectionRight && wSelectionTop < wSelectionBottom && wSelectionRight <= 6 && wSelectionBottom <= 0x2A) {
-        for (x = wSelectionLeft; x < wSelectionRight; x++) {
-            y = wSelectionTop;
-            while (ok = y < wSelectionBottom) {
-                SyncTransferByte(&wClipboardBuffer[x][y]);
-                y = y + 1;
+        for (column = wSelectionLeft; column < wSelectionRight; column++) {
+            row = wSelectionTop;
+            while (ok = row < wSelectionBottom) {
+                SyncTransferByte(&wClipboardBuffer[column][row]);
+                row = row + 1;
             }
         }
         wCursorMode = 2;
