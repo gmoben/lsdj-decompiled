@@ -10,7 +10,7 @@
 
 #include "lsdj.h"
 
-extern UBYTE wFileInstrumentIndex;                 /* $C9A1, the instrument being upgraded */
+extern UBYTE wFileInstrumentIndex;          /* $C9A1, the instrument being upgraded */
 extern UBYTE FileUpgradeRemapTable[];       /* $1C:$68F1, [8] */
 extern UBYTE NoiseNoteRemapTable[];         /* $1C:$6E3C, [112] */
 
@@ -32,18 +32,21 @@ void FileUpgradeV12Pulse(void);
 void FileUpgradeV14Pulse(void);
 void FileUpgradeV15Wave(void);
 void FileUpgradeV17bPulse(void);
-void FileUpgradeRetrigRate(UBYTE *p);          /* $1C:$6973 */
+void FileUpgradeRetrigRate(UBYTE *p);       /* $1C:$6973 */
 void FileUpgradeClearRange(void);           /* $1C:$65B9 */
 void FileUpgradeV2(void);
-void ReadSongBytesW(UBYTE bank, UWORD source, UBYTE *destination);  /* ReadSongBytes taking a word address (aliased by match_function.py) */
-char ReadInstrumentByteS(UBYTE instrument, UBYTE field);  /* ReadInstrumentByte returning char (aliased): the cast to UBYTE keeps the call result in its own slot */
+void ReadSongBytesW(UBYTE bank, UWORD source, UBYTE *destination); /* ReadSongBytes taking a word address (aliased by match_function.py) */
+char ReadInstrumentByteS(UBYTE instrument, UBYTE field); /* ReadInstrumentByte returning char (aliased): the cast to UBYTE keeps the call result in its own slot */
 
+/* $4DD1: copy legacy property bytes $bfb2/$bfb3 -> $bfca/$bfcb (format
+   fixup) */
 void MigrateTempoProperties(void)
 {
     WriteSongByte(1, (UBYTE *)0xBFCB, ReadSongByte(1, (UBYTE *)0xBFB3));
     WriteSongByte(1, (UBYTE *)0xBFCA, ReadSongByte(1, (UBYTE *)0xBFB2));
 }
 
+/* $595F: read 4 size bytes + MulU16 -> total compressed size */
 UWORD FileCalculateCompressedSize(void)
 {
     UWORD n;
@@ -56,16 +59,22 @@ UWORD FileCalculateCompressedSize(void)
     return n;
 }
 
+/* $60CC: byte `field` of the instrument the upgrade is visiting
+   (wFileInstrumentIndex) */
 UBYTE FileReadInstrumentByte(UBYTE field)
 {
     return ReadInstrumentByte(wFileInstrumentIndex, field);
 }
 
+/* $60E0: write `value` to byte `field` of the instrument the upgrade is
+   visiting (wFileInstrumentIndex) */
 void FileWriteInstrumentByte(UBYTE field, UBYTE value)
 {
     WriteInstrumentByte(wFileInstrumentIndex, field, value);
 }
 
+/* $60F5: call `function` for each of the 64 instruments whose type is
+   `type`, with wFileInstrumentIndex on it */
 void FileForEachInstrumentType(UBYTE type, void (*function)())
 {
     for (wFileInstrumentIndex = 0; wFileInstrumentIndex < 0x40; wFileInstrumentIndex++) {
@@ -103,11 +112,14 @@ void FileUpgradeV0Kit(void)
     FileWriteInstrumentByte(5, f);
 }
 
+/* $61D6: song upgrade step v0->v1: patch type-2 instruments (callback
+   FileUpgradeV0Kit) */
 void FileUpgradeV0(void)
 {
     FileForEachInstrumentType(2, FileUpgradeV0Kit);
 }
 
+/* $61E6: V1 kit-instrument field migration (callback) */
 void FileUpgradeV1Kit(void)
 {
     UBYTE a, b;
@@ -120,6 +132,8 @@ void FileUpgradeV1Kit(void)
     FileWriteInstrumentByte(9, b);
 }
 
+/* $621D: song upgrade step v1->v2: type-2 instruments, subtract 8 from
+   fields 2 & 9 (callback FileUpgradeV1Kit) */
 void FileUpgradeV1(void)
 {
     FileForEachInstrumentType(2, FileUpgradeV1Kit);
@@ -182,6 +196,8 @@ void FileUpgradeV3Kit(void)
     FileWriteInstrumentByte(5, v);
 }
 
+/* $630F: song upgrade step v3->v4: patch instruments
+   (FileForEachInstrumentType) */
 void FileUpgradeV3(void)
 {
     FileForEachInstrumentType(0, FileUpgradeV3Pulse);
@@ -189,6 +205,7 @@ void FileUpgradeV3(void)
     FileForEachInstrumentType(2, FileUpgradeV3Kit);
 }
 
+/* $6336: song upgrade step v4->v5: patch song data (WriteSongByte) */
 void FileUpgradeV4(void)
 {
     UWORD address;
@@ -201,6 +218,7 @@ void FileUpgradeV4(void)
     }
 }
 
+/* $6395: V5 wave-instrument field migration (callback) */
 void FileUpgradeV5Wave(void)
 {
     UBYTE v;
@@ -210,11 +228,14 @@ void FileUpgradeV5Wave(void)
     FileWriteInstrumentByte(11, v & 0x0F);
 }
 
+/* $63C6: song upgrade step v5->v6: patch instruments
+   (FileForEachInstrumentType) */
 void FileUpgradeV5(void)
 {
     FileForEachInstrumentType(1, FileUpgradeV5Wave);
 }
 
+/* $63D6: V6 wave-instrument field migration (callback) */
 void FileUpgradeV6Wave(void)
 {
     UBYTE v;
@@ -225,11 +246,15 @@ void FileUpgradeV6Wave(void)
     FileWriteInstrumentByte(11, v - 3);
 }
 
+/* $640B: song upgrade step v6->v7: patch instruments
+   (FileForEachInstrumentType) */
 void FileUpgradeV6(void)
 {
     FileForEachInstrumentType(1, FileUpgradeV6Wave);
 }
 
+/* $641B: song upgrade step v7->v8: reclassify instrument bytes
+   ($80/$b8/$bc/$f0) */
 void FileUpgradeV7(void)
 {
     UBYTE *command;
@@ -254,26 +279,33 @@ void FileUpgradeV7(void)
     _asm ei _endasm;
 }
 
+/* $64E7: V8 wave-instrument field migration (callback) */
 void FileUpgradeV8Wave(void)
 {
     FileWriteInstrumentByte(2, 0x0F ^ FileReadInstrumentByte(2));
 }
 
+/* $6503: song upgrade step v8->v9: patch instruments
+   (FileForEachInstrumentType) */
 void FileUpgradeV8(void)
 {
     FileForEachInstrumentType(1, FileUpgradeV8Wave);
 }
 
+/* $6513: V9 wave-instrument field migration (callback) */
 void FileUpgradeV9Wave(void)
 {
     FileWriteInstrumentByte(9, (FileReadInstrumentByte(9) + 1) & 3);
 }
 
+/* $6530: song upgrade step v9->v10: patch instruments
+   (FileForEachInstrumentType) */
 void FileUpgradeV9(void)
 {
     FileForEachInstrumentType(1, FileUpgradeV9Wave);
 }
 
+/* $6540: V10 pulse-instrument field migration (callback) */
 void FileUpgradeV10Pulse(void)
 {
     UBYTE v;
@@ -286,17 +318,20 @@ void FileUpgradeV10Pulse(void)
     FileWriteInstrumentByte(9, v);
 }
 
+/* $656B: song upgrade step v10->v11: patch instruments
+   (FileForEachInstrumentType) */
 void FileUpgradeV10(void)
 {
     FileForEachInstrumentType(0, FileUpgradeV10Pulse);
     FileForEachInstrumentType(3, FileUpgradeV10Pulse);
 }
 
-UBYTE FileUpgradeReadByte(UBYTE i)
+/* $6585: upgrade helper: read a working-song byte (ReadSongByte) */
+UBYTE FileUpgradeReadByte(UBYTE row)
 {
     UBYTE v;
 
-    v = ReadSongByte(0, SramSequence + 3 + ((UWORD)i << 2));   /* row i, channel 3 */
+    v = ReadSongByte(0, SramSequence + 3 + ((UWORD)row << 2));   /* the row, channel 3 */
     return (v & 0x80) ? 0xFF : v;
 }
 
@@ -305,7 +340,8 @@ UBYTE FileUpgradeReadByte(UBYTE i)
  * are a note offset in the high nibble. Mark in $DA00 the chains the
  * sequence uses (FileUpgradeReadByte: row by row, channel 3), then rescale
  * each used chain's 16 transposes through bank 6's ReadChainTranspose /
- * SetChainTranspose by address (v / 12 << 4).
+ * SetChainTranspose by address (v / 12 << 4): spelled with the names, the
+ * function compiles to a different stack frame.
  *
  * lsdj-alloc(FileUpgradeClearRange): BUSYB=26-62
  * -- register b held from the second loop's pointer cast to the end: v and
@@ -316,7 +352,7 @@ void FileUpgradeClearRange(void)
 {
     UBYTE i;
     UBYTE *p;
-    UBYTE j;
+    UBYTE step;
     char v;
     
     UBYTE t;
@@ -333,13 +369,13 @@ void FileUpgradeClearRange(void)
     do {
         p = (UBYTE *)DECOMPRESS_BUFFER + (UWORD)i;
         if (*p) {
-            j = 0;
-            while (!(j == 0x10)) {
-                v = FarCallArgument2(6, 0x56AA, i, j);
+            step = 0;
+            while (!(step == 0x10)) {
+                v = FarCallArgument2(6, 0x56AA, i, step);          /* ReadChainTranspose */
                 v = v / 12;
                 v <<= 4;
-                FarCallArgument3(6, 0x5655, i, j, v);
-                j++;
+                FarCallArgument3(6, 0x5655, i, step, v);       /* SetChainTranspose */
+                step++;
             }
         }
     } while (++i != 0x80);
@@ -360,7 +396,7 @@ void FileUpgradeV11(void)
     UWORD p;
     UWORD address;
     UBYTE v;
-    UBYTE j;
+    UBYTE step;
     UBYTE n;
 
     instrument = 0;
@@ -372,11 +408,11 @@ void FileUpgradeV11(void)
     }
     while (address != 0xBFF0) {
         v = 0;
-        j = 0;
+        step = 0;
         ReadSongBytesW(0, p, wSongReadBuffer);
         ReadSongBytesW(3, address, wUsedTableMap);
-        for (; j != 0x10; j = j + 1) {
-            instrument = wUsedTableMap[j];
+        for (; step != 0x10; step = step + 1) {
+            instrument = wUsedTableMap[step];
             if (instrument == INSTRUMENT_SPEECH) {
                 v = 0;
             } else if (instrument < INSTRUMENTS) {
@@ -386,7 +422,7 @@ void FileUpgradeV11(void)
                     v = 0;
             }
             if (v) {
-                n = wSongReadBuffer[j];
+                n = wSongReadBuffer[step];
                 if (n) {
                     n = n - 1;
                     n = n / 12;
@@ -401,7 +437,7 @@ void FileUpgradeV11(void)
                         if ((v & 0xF0) != 0xF0)
                             v = v + 0x10;
                     }
-                    WriteSongByte(0, p + j, v);
+                    WriteSongByte(0, p + step, v);
                 }
             }
         }
@@ -410,6 +446,8 @@ void FileUpgradeV11(void)
     }
 }
 
+/* $68C5: upgrade helper: recursive bit/nibble remap via ROM table
+   FileUpgradeRemapTable */
 UBYTE FileUpgradeRemapBits(UBYTE v)
 {
     UWORD r;
@@ -418,6 +456,8 @@ UBYTE FileUpgradeRemapBits(UBYTE v)
     return (v & 0xF0) | r;
 }
 
+/* $68F9: V12 pulse/noise-instrument field migration (callback; remaps bytes
+   1/9 via FileUpgradeRemapBits) */
 void FileUpgradeV12Pulse(void)
 {
     FileWriteInstrumentByte(1, FileUpgradeRemapBits(FileReadInstrumentByte(1)));
@@ -425,12 +465,16 @@ void FileUpgradeV12Pulse(void)
     FileWriteInstrumentByte(10, FileUpgradeRemapBits(FileReadInstrumentByte(10)));
 }
 
+/* $6959: song upgrade step v12->v13: patch instruments
+   (FileForEachInstrumentType) */
 void FileUpgradeV12(void)
 {
     FileForEachInstrumentType(0, FileUpgradeV12Pulse);
     FileForEachInstrumentType(3, FileUpgradeV12Pulse);
 }
 
+/* $6973: version 13: an R command value gets 1 added to its rate digit (mod
+   16), except R8x (resync) */
 void FileUpgradeRetrigRate(UBYTE *p)
 {
     UBYTE v;
@@ -444,6 +488,7 @@ void FileUpgradeRetrigRate(UBYTE *p)
     }
 }
 
+/* $69A7: song upgrade step v13->v14: patch phrase data */
 void FileUpgradeV13(void)
 {
     UBYTE *command;
@@ -465,6 +510,7 @@ void FileUpgradeV13(void)
     _asm ei _endasm;
 }
 
+/* $6A57: upgrade helper: mask low nibble, conditional decrement; return in e */
 UBYTE FileUpgradeClampNibble(UBYTE v)
 {
     UBYTE r;
@@ -476,6 +522,7 @@ UBYTE FileUpgradeClampNibble(UBYTE v)
     return r;
 }
 
+/* $6A72: V14 pulse-instrument field migration (callback) */
 void FileUpgradeV14Pulse(void)
 {
     FileWriteInstrumentByte(1, FileUpgradeClampNibble(FileReadInstrumentByte(1)));
@@ -483,22 +530,28 @@ void FileUpgradeV14Pulse(void)
     FileWriteInstrumentByte(10, FileUpgradeClampNibble(FileReadInstrumentByte(10)));
 }
 
+/* $6AD2: song upgrade step v14->v15: patch instruments
+   (FileForEachInstrumentType) */
 void FileUpgradeV14(void)
 {
     FileForEachInstrumentType(0, FileUpgradeV14Pulse);
     FileForEachInstrumentType(3, FileUpgradeV14Pulse);
 }
 
+/* $6AEC: V15 wave-instrument field migration (callback) */
 void FileUpgradeV15Wave(void)
 {
     FileWriteInstrumentByte(3, FileReadInstrumentByte(2) & 0xF0);
 }
 
+/* $6B08: song upgrade step v15->v16: patch instruments
+   (FileForEachInstrumentType) */
 void FileUpgradeV15(void)
 {
     FileForEachInstrumentType(1, FileUpgradeV15Wave);
 }
 
+/* $6B18: song upgrade step v16->v17: reclassify bytes ($90/$b8/$0f/$0e) */
 void FileUpgradeV16(void)
 {
     UWORD address;
@@ -525,6 +578,7 @@ void FileUpgradeV16(void)
     _asm ei _endasm;
 }
 
+/* $6BA7: song upgrade step v17->v18: patch song data (+ FileUpgradeV17b) */
 void FileUpgradeV17(void)
 {
     UWORD address;
@@ -537,11 +591,13 @@ void FileUpgradeV17(void)
     }
 }
 
+/* $6C29: V17b pulse-instrument field migration (callback) */
 void FileUpgradeV17bPulse(void)
 {
     FileWriteInstrumentByte(11, (FileReadInstrumentByte(7) << 1) & 0x78);
 }
 
+/* $6C46: v17 upgrade helper: patch instruments (FileForEachInstrumentType) */
 void FileUpgradeV17b(void)
 {
     FileForEachInstrumentType(0, FileUpgradeV17bPulse);
@@ -560,7 +616,7 @@ void FileUpgradeV18(void)
     UWORD p;
     UWORD address;
     UBYTE v;
-    UBYTE j;
+    UBYTE step;
     UBYTE n;
     UBYTE m;
 
@@ -573,18 +629,18 @@ void FileUpgradeV18(void)
     }
     while (address != 0xBFF0) {
         v = 0;
-        j = 0;
+        step = 0;
         ReadSongBytesW(0, p, wSongReadBuffer);
         ReadSongBytesW(3, address, wUsedTableMap);
-        for (; j != 0x10; j = j + 1) {
-            instrument = wUsedTableMap[j];
+        for (; step != 0x10; step = step + 1) {
+            instrument = wUsedTableMap[step];
             if (instrument == INSTRUMENT_SPEECH) {
                 v = 0;
             } else if (instrument < INSTRUMENTS) {
                 v = types[instrument] == 3;
             }
             if (v) {
-                n = wSongReadBuffer[j];
+                n = wSongReadBuffer[step];
                 m = 0;
                 if (n) {
                     if (!(n < 0x20)) {
@@ -593,7 +649,7 @@ void FileUpgradeV18(void)
                         if (!(n & 8))
                             m = m + 0x3C;
                     }
-                    WriteSongByte(0, p + j, m);
+                    WriteSongByte(0, p + step, m);
                 }
             }
         }
@@ -602,6 +658,7 @@ void FileUpgradeV18(void)
     }
 }
 
+/* $6EAC: song upgrade step v19->v20: patch song data (WriteSongByte) */
 void FileUpgradeV19(void)
 {
     UWORD source, destination;
@@ -616,6 +673,8 @@ void FileUpgradeV19(void)
     }
 }
 
+/* $6F73: song-format upgrade step for v21->v22: patch synth params (SRAM
+   $beb2.. stride $10, write $03) */
 void FileUpgradeV21(void)
 {
     UBYTE v;
@@ -629,6 +688,9 @@ void FileUpgradeV21(void)
     }
 }
 
+/* $6FC7: song-format migration: read stored version ($bfff[3]); if < $16
+   show "UPGRADING..." and run FileUpgradeV<n> for n=version..$15, then stamp
+   version $16 */
 void FileUpgradeSong(void)
 {
     UBYTE version;

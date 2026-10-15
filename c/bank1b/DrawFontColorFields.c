@@ -25,6 +25,7 @@ const char ColorSetNames[2][7][5] = {
     {"AMI", "CRT ", "CUTE", "BORT", "COLR", "DEAT", "GOOD"},
 };
 
+/* $569C: draw the FONT (wFont) and COLOR SET (wColorSet) project rows */
 void DrawFontColorFields(void)
 {
     DrawString(FontNames[wFont]);

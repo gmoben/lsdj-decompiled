@@ -18,6 +18,9 @@
  */
 const UBYTE SpeedGlyphTiles[] = { 0x6B, 0x6C, 0x69, 0x6A, 0x6D, 0x6E };
 
+/* $518C: draw an instrument's speed mode from its flags `v`: STEP (bit 7),
+   TICK (bit 4), DRUM (bit 6, but not for a kit) or FAST, then its icon
+   (DrawSpeedGlyph) */
 void DrawSpeedModeName(UBYTE v)
 {
     if (v & 0x80)
@@ -31,6 +34,7 @@ void DrawSpeedModeName(UBYTE v)
     DrawSpeedGlyph(v);
 }
 
+/* $5208: draw the 2-tile speed icon (SpeedGlyphTiles[value&7]) */
 void DrawSpeedGlyph(UBYTE v)
 {
     char g;
@@ -40,6 +44,7 @@ void DrawSpeedGlyph(UBYTE v)
     DrawStringIndexed(g);
 }
 
+/* $522D: draw "OFF" when bit 5 of `v` is set, else " ON" */
 void DrawOnOffName(UBYTE v)
 {
     DrawString((v & 0x20) ? "OFF" : " ON");

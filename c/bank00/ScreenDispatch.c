@@ -22,7 +22,7 @@
 
 #include "lsdj.h"
 
-extern UBYTE wChannelActive[];                 /* $C0E0, [8] */
+extern UBYTE wChannelActive[];              /* $C0E0, [8] */
 extern UBYTE wRedrawPending;                /* $C56C */
 extern UBYTE wPartialRedrawDone;            /* $C56D */
 extern UBYTE wButtons;                      /* $C575 */
@@ -36,7 +36,7 @@ void GrooveScreenUpdate(void);              /* bank $1D */
 void TableScreenUpdate(void);               /* bank 5 */
 void ChainScreenUpdate(void);               /* bank 6 */
 void SongScreenUpdate(void);                /* bank 7 */
-void UpdateStatusPanel(void);                 /* bank 6 */
+void UpdateStatusPanel(void);               /* bank 6 */
 void DrawSyncStatus(void);                  /* bank 6 */
 UBYTE PhraseScreenInput(void);              /* the input handlers, by screen */
 UBYTE GrooveScreenInput(void);
@@ -51,20 +51,23 @@ UBYTE SynthScreenInput(void);
 UBYTE WordScreenInput(void);
 UBYTE FileScreenInput(void);
 UBYTE HelpScreenInput(void);
-extern volatile sfr UBYTE hSoundChannel;         /* $FF8B */
-extern UBYTE wChannelOutput[];                 /* $C0A0, [4] */
-extern UBYTE wChannelOutputOverride[];         /* $C0A4, [4] */
-extern UBYTE wChannelOutputSoloSaved[];        /* $C0A8, [4] */
+extern volatile sfr UBYTE hSoundChannel;    /* $FF8B */
+extern UBYTE wChannelOutput[];              /* $C0A0, [4] */
+extern UBYTE wChannelOutputOverride[];      /* $C0A4, [4] */
+extern UBYTE wChannelOutputSoloSaved[];     /* $C0A8, [4] */
 extern UBYTE wMuteSoloLatch;                /* $C56A */
-extern UBYTE wKeyboardActionChannel;                  /* $CB9A */
+extern UBYTE wKeyboardActionChannel;        /* $CB9A */
 extern UBYTE wAPressEnabled;                /* $C409 */
-void SoundWritePanning(UBYTE v);              /* bank 2 */
+void SoundWritePanning(UBYTE v);            /* bank 2 */
 void DrawAllChannelStatus(void);               /* $271A: the B combos, ahead of the screen's own input (none on the name
    editor, wave, project, file and help screens). B+SELECT mutes the cursor's
    channel (or the keyboard's), B+LEFT/RIGHT on the song screen pans it to
    one side, B+START solos it; releasing B with the latch set puts the
    output back. Returns 1 when a combo took the buttons */
 
+/* $271A: the B combos before the screen's input: B+SELECT mute, B+LEFT/RIGHT
+   pan (song screen), B+START solo, B released restores; 1 when one took the
+   buttons */
 UBYTE HandleInputCombos(void)
 {
     UBYTE saved;
@@ -169,6 +172,8 @@ void ResetScreenSprites(void)
     ClearMarkerSprites();
 }
 
+/* $254F: jp table ScreenDrawJumps indexed by wCurrentScreen ($C401):
+   per-screen draw */
 void DispatchScreenDraw(void)
 {
     switch (wCurrentScreen) {
@@ -217,6 +222,7 @@ void DispatchScreenDraw(void)
     }
 }
 
+/* $264B: per-frame per-screen update for screens 1-5 (table $268D) */
 void DispatchScreenUpdate(void)
 {
     if (wRedrawPending) {
@@ -265,6 +271,8 @@ void DispatchScreenUpdate(void)
     }
 }
 
+/* $2A71: jump table by wCurrentScreen (0-$0E, table $2A86) -> the current
+   screen's input handler in its bank */
 UBYTE DispatchScreenInput(void)
 {
     switch (wCurrentScreen) {
@@ -315,6 +323,9 @@ UBYTE DispatchScreenInput(void)
     return 0;
 }
 
+/* $2B8D: process one button event: latch A/B/Select held flags
+   (wAHeld/wBHeld/wSelectHeld) from wButtons, then HandleInputCombos +
+   DispatchScreenInput, OR their results */
 UBYTE HandleButtonEvent(void)
 {
     UBYTE combo, input;

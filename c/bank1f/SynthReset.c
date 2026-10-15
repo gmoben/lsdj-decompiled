@@ -11,13 +11,15 @@
 #include "lsdj.h"
 
 extern UBYTE DefaultWaveFrameB1F[];         /* $1F:$491A, [16] */
-extern UBYTE DefaultSynthParameters[];          /* $1F:$61FF, [16] */
+extern UBYTE DefaultSynthParameters[];      /* $1F:$61FF, [16] */
 UBYTE SynthFramesModified(UBYTE chain);
 void ResetWaveFrame(UBYTE p);
 UBYTE CountModifiedSynths(void);
 void ResetUnusedSynths(void);
 UBYTE WaveFrameModified(UBYTE phrase);
 
+/* $5F20: 1 if synth w's wave frame (SRAM bank 3 $A000 + w*16) differs from
+   DefaultWaveFrameB1F */
 UBYTE WaveFrameModified(UBYTE w)
 {
     UBYTE *p;
@@ -32,6 +34,8 @@ UBYTE WaveFrameModified(UBYTE w)
     return 0;
 }
 
+/* $5F85: 1 if any of synth s's 16 wave frames differs from the default
+   (WaveFrameModified) */
 UBYTE SynthFramesModified(UBYTE chain)
 {
     UBYTE p, frame;
@@ -45,6 +49,7 @@ UBYTE SynthFramesModified(UBYTE chain)
     return 0;
 }
 
+/* $5FC2: count the synths with a modified wave frame */
 UBYTE CountModifiedSynths(void)
 {
     UBYTE n, synth;
@@ -56,6 +61,8 @@ UBYTE CountModifiedSynths(void)
     return n;
 }
 
+/* $6163: reset wave frame n (SRAM bank 3, $A000 + n*16) to
+   DefaultWaveFrameB1F */
 void ResetWaveFrame(UBYTE p)
 {
     UBYTE *d;
@@ -69,6 +76,7 @@ void ResetWaveFrame(UBYTE p)
     _asm ei _endasm;
 }
 
+/* $619E: reset synth s's 16 wave frames to the default (ResetWaveFrame) */
 void ResetSynthWaves(UBYTE chain)
 {
     UBYTE p, frame;
@@ -80,6 +88,8 @@ void ResetSynthWaves(UBYTE chain)
     }
 }
 
+/* $61C4: reset synth n's 16 params (SRAM bank 1, $BEB2 + n*16) to
+   DefaultSynthParameters */
 void ResetSynthParameters(UBYTE s)
 {
     UBYTE *d;
@@ -93,6 +103,7 @@ void ResetSynthParameters(UBYTE s)
     _asm ei _endasm;
 }
 
+/* $620F: reset the params and waves of every synth no wave instrument plays */
 void ResetUnusedSynths(void)
 {
     UBYTE synth;

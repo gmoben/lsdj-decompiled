@@ -16,87 +16,90 @@
 
 #include "lsdj.h"
 
-extern UBYTE wChannelOutput[];                 /* $C0A0, [4] */
-extern UBYTE wChannelStepCountdown[];          /* $C0C4, [4] */
-extern UBYTE wChannelNote[];                   /* $C0CC, [4] */
-extern UWORD wPhraseCommandPointer[];               /* $C110, [4] */
-extern UWORD wTableCommand1Pointer[];               /* $C118, [4] */
-extern UWORD wTableCommand2Pointer[];               /* $C120, [4] */
-extern UBYTE wChannelGroove[];                 /* $C150, [4] */
-extern UBYTE wChannelTablePlayed[];            /* $C154, [4] */
-extern UBYTE wChannelGrooveRow[];              /* $C158, [8] */
-extern UBYTE wChannelNoteCountdown[];          /* $C160, [4] */
-extern UBYTE wChannelPhrase[];                 /* $C168, [4] */
-extern UBYTE wChannelPhraseRow[];              /* $C16C, [4] */
-extern UBYTE wChannelChainRow[];               /* $C17C, [4] */
-extern UBYTE wChannelSongRow[];                /* $C200, [4] */
-extern UBYTE wChannelTable[];                  /* $C204, [4] */
-extern UBYTE wChannelTableRow1[];              /* $C208, [4] */
-extern UBYTE wChannelTableRow2[];              /* $C20C, [4] */
-extern UBYTE wChannelInstrument[];                  /* $C210, [4] */
-extern UBYTE wChannelNextSongRow[];            /* $C2FC, [4] */
-extern UBYTE wChannelTableStep[];              /* $C33F, [4] */
-extern UBYTE wChannelDisplayNote[];               /* $C41F, [4] */
-extern UBYTE wColumnLastCommand[];                 /* $C44B, [4] */
-extern UBYTE wColumnChain[];                   /* $C44F, [4] */
-extern UBYTE wColumnPhrase[];                  /* $C453, [4] */
-extern UBYTE wPhraseColumnLast[];              /* $C907, [4] */
-extern UBYTE wWordClipboardCell0[];              /* $C935, [2] */
-extern UBYTE wInstrumentRemapTable[];            /* $C9B8, [16] */
-extern UBYTE *wPointerChainRow;                 /* $C8DF */
-extern UBYTE *wPointerPhraseRow;                /* $C8E1 */
-extern UBYTE *wPointerNoteCountdown;            /* $C8E3 */
-extern UBYTE *wPointerGroove;                   /* $C8E5 */
-extern UBYTE *wPointerGrooveRow;                /* $C8E7 */
-extern UBYTE *wPointerPhrase;                   /* $C8EB */
-extern UBYTE *wPointerNoteSource;                  /* $C8ED */
-extern UBYTE *wPointerStepCountdown;            /* $C8EF */
-extern UBYTE *wPointerTableStep;                /* $C8FC */
+extern UBYTE wChannelOutput[];              /* $C0A0, [4] */
+extern UBYTE wChannelStepCountdown[];       /* $C0C4, [4] */
+extern UBYTE wChannelNote[];                /* $C0CC, [4] */
+extern UWORD wPhraseCommandPointer[];       /* $C110, [4] */
+extern UWORD wTableCommand1Pointer[];       /* $C118, [4] */
+extern UWORD wTableCommand2Pointer[];       /* $C120, [4] */
+extern UBYTE wChannelGroove[];              /* $C150, [4] */
+extern UBYTE wChannelTablePlayed[];         /* $C154, [4] */
+extern UBYTE wChannelGrooveRow[];           /* $C158, [8] */
+extern UBYTE wChannelNoteCountdown[];       /* $C160, [4] */
+extern UBYTE wChannelPhrase[];              /* $C168, [4] */
+extern UBYTE wChannelPhraseRow[];           /* $C16C, [4] */
+extern UBYTE wChannelChainRow[];            /* $C17C, [4] */
+extern UBYTE wChannelSongRow[];             /* $C200, [4] */
+extern UBYTE wChannelTable[];               /* $C204, [4] */
+extern UBYTE wChannelTableRow1[];           /* $C208, [4] */
+extern UBYTE wChannelTableRow2[];           /* $C20C, [4] */
+extern UBYTE wChannelInstrument[];          /* $C210, [4] */
+extern UBYTE wChannelNextSongRow[];         /* $C2FC, [4] */
+extern UBYTE wChannelTableStep[];           /* $C33F, [4] */
+extern UBYTE wChannelDisplayNote[];         /* $C41F, [4] */
+extern UBYTE wColumnLastCommand[];          /* $C44B, [4] */
+extern UBYTE wColumnChain[];                /* $C44F, [4] */
+extern UBYTE wColumnPhrase[];               /* $C453, [4] */
+extern UBYTE wPhraseColumnLast[];           /* $C907, [4] */
+extern UBYTE wWordClipboardCell0[];         /* $C935, [2] */
+extern UBYTE wInstrumentRemapTable[];       /* $C9B8, [16] */
+extern UBYTE *wPointerChainRow;             /* $C8DF */
+extern UBYTE *wPointerPhraseRow;            /* $C8E1 */
+extern UBYTE *wPointerNoteCountdown;        /* $C8E3 */
+extern UBYTE *wPointerGroove;               /* $C8E5 */
+extern UBYTE *wPointerGrooveRow;            /* $C8E7 */
+extern UBYTE *wPointerPhrase;               /* $C8EB */
+extern UBYTE *wPointerNoteSource;           /* $C8ED */
+extern UBYTE *wPointerStepCountdown;        /* $C8EF */
+extern UBYTE *wPointerTableStep;            /* $C8FC */
 extern UBYTE wChainScopeDirty;              /* $C403 */
 extern UBYTE wSongScopeDirty;               /* $C404 */
 extern UBYTE wAPressEnabled;                /* $C409 */
-extern UBYTE wPhraseColumn;                    /* $C415 */
+extern UBYTE wPhraseColumn;                 /* $C415 */
 extern UBYTE wGroove;                       /* $C417 */
 extern UBYTE wChain;                        /* $C418 */
-extern UBYTE wChainColumn;                     /* $C419 */
+extern UBYTE wChainColumn;                  /* $C419 */
 extern UBYTE wChainRow;                     /* $C41A */
 extern UBYTE wTable;                        /* $C41B */
 extern UBYTE wSongScroll;                   /* $C41C */
-extern UBYTE wInstrumentColumn;               /* $C428 */
+extern UBYTE wInstrumentColumn;             /* $C428 */
 extern UBYTE wSynth;                        /* $C42A */
 extern UBYTE wWaveCursor;                   /* $C42B */
-extern UBYTE wNameEditColumn;                 /* $C42D */
-extern UBYTE wNameEditRow;                 /* $C42E */
+extern UBYTE wNameEditColumn;               /* $C42D */
+extern UBYTE wNameEditRow;                  /* $C42E */
 extern UBYTE wSynthScreen;                  /* $C441 */
 extern UBYTE wSynthCursor;                  /* $C442 */
 extern UBYTE wUnusedC443;                   /* $C443 */
-extern UBYTE wPendingCommandTarget;             /* $C467 */
+extern UBYTE wPendingCommandTarget;         /* $C467 */
 extern UBYTE wUnusedC46C;                   /* $C46C */
 extern UBYTE wWavPlayMode;                  /* $C500 */
-extern UBYTE wMessageNoPause;                   /* $C530 */
-extern UBYTE wLiveStartColumn;                 /* $C571 */
-extern UBYTE wMapColumn;                       /* $C8FF */
+extern UBYTE wMessageNoPause;               /* $C530 */
+extern UBYTE wLiveStartColumn;              /* $C571 */
+extern UBYTE wMapColumn;                    /* $C8FF */
 extern UBYTE wMapRow;                       /* $C900 */
-extern UBYTE wMapProjectColumn;                /* $C901 */
-extern UBYTE wMapSynthColumn;                  /* $C902 */
+extern UBYTE wMapProjectColumn;             /* $C901 */
+extern UBYTE wMapSynthColumn;               /* $C902 */
 extern UBYTE wDefaultNotes;                 /* $C904 */
-extern UBYTE wTableColumn;                     /* $C92F */
+extern UBYTE wTableColumn;                  /* $C92F */
 extern UBYTE wTableRow;                     /* $C930 */
-extern UBYTE wTableEnvelopeCache;                /* $C931 */
-extern UBYTE wTableTransposeCache;              /* $C932 */
+extern UBYTE wTableEnvelopeCache;           /* $C931 */
+extern UBYTE wTableTransposeCache;          /* $C932 */
 extern UBYTE wHelpOpenEntry;                /* $C933 */
-extern UBYTE wHelpRow;                /* $C934 */
-extern UBYTE wWordRow;                  /* $C937 */
-extern UBYTE wWordColumn;                  /* $C938 */
+extern UBYTE wHelpRow;                      /* $C934 */
+extern UBYTE wWordRow;                      /* $C937 */
+extern UBYTE wWordColumn;                   /* $C938 */
 extern UBYTE wChainCellValue;               /* $C945 */
-extern UBYTE wSramHasFileBanks;                   /* $C9A3 */
+extern UBYTE wSramHasFileBanks;             /* $C9A3 */
 extern UBYTE wGrooveRow;                    /* $C9D4 */
 extern UBYTE wAnalogOutTimer;               /* $CB68 */
 extern UBYTE wSyncTick;                     /* $CB69 */
-extern UBYTE wSyncReceivePosition;                    /* $CB71 */
-extern UBYTE wKeyboardQueueTail;                 /* $CB7C */
-extern UBYTE wKeyboardTranspose;                 /* $CB91 */
+extern UBYTE wSyncReceivePosition;          /* $CB71 */
+extern UBYTE wKeyboardQueueTail;            /* $CB7C */
+extern UBYTE wKeyboardTranspose;            /* $CB91 */
 
+/* $3A33: reset all runtime state to defaults: per-channel sequencer ptrs
+   (read ptr=$0140, rows=$FF, instr/table/groove=0) + editor cursors +
+   wCurrentScreen=SONG; e.g. when a song load comes back empty */
 void ResetWorkState(void)
 {
     wChannelOutput[0] = 0;

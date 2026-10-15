@@ -8,9 +8,9 @@
 #include "lsdj.h"
 
 extern UBYTE wSongScroll;                   /* $C41C, the top visible song row */
-extern UBYTE wSavedSongColumn;                 /* $C952 */
+extern UBYTE wSavedSongColumn;              /* $C952 */
 extern UBYTE wPartialRedrawDone;            /* $C56D */
-extern UBYTE SongColumnOffsets[];              /* $07:$4047, x of each channel column */
+extern UBYTE SongColumnOffsets[];           /* $07:$4047, x of each channel column */
 
 void EraseSongCursor(void);
 UBYTE CloneSongChain(UBYTE chain);
@@ -33,34 +33,36 @@ UBYTE IsBookmarked(UBYTE row);
 void AddBookmark(UBYTE row);
 void RemoveBookmark(UBYTE row);
 void ShowMax16Marks(void);                  /* bank 1 */
-void ScanSongSram(UBYTE *source, UBYTE *destination);  /* asm */
+void ScanSongSram(UBYTE *source, UBYTE *destination); /* asm */
 void SaveSelectionState(void);              /* bank 5 */
-void SoundStartRange(void);                /* bank 2 */
+void SoundStartRange(void);                 /* bank 2 */
 
 void ScrollSongToCursor(void);
-void DrawAllChannelStatus(void);               /* bank $1F */
+void DrawAllChannelStatus(void);            /* bank $1F */
 
 extern UBYTE wPlayMarkerTimer;              /* $C950 */
-extern UBYTE wChannelNextSongRow[];            /* $C2FC, [4] */
-extern UBYTE wChannelSongRow[];                /* $C200, [4] */
-extern UBYTE wChannelLiveQueued[];             /* $C300, [4] live-mode row queued */
-extern UBYTE wChannelActive[];                 /* $C0E0, [4] */
-extern UBYTE wChannelStopQueued[];                /* $C304, [4] */
+extern UBYTE wChannelNextSongRow[];         /* $C2FC, [4] */
+extern UBYTE wChannelSongRow[];             /* $C200, [4] */
+extern UBYTE wChannelLiveQueued[];          /* $C300, [4] live-mode row queued */
+extern UBYTE wChannelActive[];              /* $C0E0, [4] */
+extern UBYTE wChannelStopQueued[];          /* $C304, [4] */
 UBYTE MulU8(UBYTE a, UBYTE b);
 
 extern UBYTE wCloneMode;                    /* $C531 */
 extern UBYTE wClonePhraseMap[];             /* $C532, [32] */
-extern UBYTE wColumnChain[];                   /* $C44F, [4] */
-extern UBYTE wColumnPhrase[];                  /* $C453, [4] */
+extern UBYTE wColumnChain[];                /* $C44F, [4] */
+extern UBYTE wColumnPhrase[];               /* $C453, [4] */
 UBYTE IsSongChainUsed(void);                /* bank $1F */
 void WriteChainPhrase(void);                /* bank $1F */
-void AllocateNextFreePhrase(void);             /* bank 1 */
+void AllocateNextFreePhrase(void);          /* bank 1 */
 void ShowOutOfMemory(void);                 /* bank 1 */
-void ClonePhraseAtCursor(UBYTE source, UBYTE destination);    /* bank 6 */
-UBYTE ReadChainTranspose(UBYTE chain, UBYTE step);     /* bank 6 */
-void SetChainTranspose(UBYTE chain, UBYTE row, UBYTE v);   /* bank 6 */
+void ClonePhraseAtCursor(UBYTE source, UBYTE destination); /* bank 6 */
+UBYTE ReadChainTranspose(UBYTE chain, UBYTE step); /* bank 6 */
+void SetChainTranspose(UBYTE chain, UBYTE row, UBYTE v); /* bank 6 */
 void WriteSongCell(UBYTE column, UBYTE row, UBYTE chain);
 
+/* $4000: copy a song column from p to q (stride 4) until p reaches $B590
+   (ScanSongSram); asserts both >= $B290, q < $B590 */
 void CopySongColumn(UBYTE *p, UBYTE *q)
 {
     if (q >= (UBYTE *)0xB590)
@@ -72,6 +74,8 @@ void CopySongColumn(UBYTE *p, UBYTE *q)
     ScanSongSram(p, q);
 }
 
+/* $4084: restore the cursor cell palette (1 if the row is bookmarked, else
+   0) at SongColumnOffsets[wSongColumn] */
 void EraseSongCursor(void)
 {
     UBYTE x, y, palette;
@@ -84,6 +88,8 @@ void EraseSongCursor(void)
     ColorField(x, y, 2, palette);
 }
 
+/* $40D0: write song[row][col] = chain (SRAM bank 0 $B290); asserts col < 4,
+   row <= $BF, chain < $80 or $FF */
 void WriteSongCell(UBYTE column, UBYTE row, UBYTE chain)
 {
     UBYTE *p;
@@ -98,6 +104,10 @@ void WriteSongCell(UBYTE column, UBYTE row, UBYTE chain)
     WriteSongByte(0, p + column, chain);
 }
 
+/* $4139: song screen chain clone (CLONED CHAIN / +PHRASES in deep mode): new
+   chain via IsSongChainUsed, copy its 16 phrases (deep: clone each phrase
+   once via the wClonePhraseMap map), transposes; returns the new chain or
+   $ff */
 UBYTE CloneSongChain(UBYTE chain)
 {
     UBYTE v;
@@ -161,6 +171,8 @@ UBYTE CloneSongChain(UBYTE chain)
     return v;
 }
 
+/* $4395: highlight the cursor cell (palette 3 on CGB, 2 on DMG) at
+   SongColumnOffsets[wSongColumn] */
 void DrawSongCursor(void)
 {
     UBYTE y;
@@ -171,6 +183,8 @@ void DrawSongCursor(void)
     ColorField(SongColumnOffsets[wSongColumn], y, 2, hGameboyType ? 3 : 2);
 }
 
+/* $43E4: read song row wSongScroll from SRAM ($B290, ReadSongBytes) ->
+   wSongReadBuffer (16 bytes) */
 void ReadSongRow(void)
 {
     UBYTE *p;
@@ -182,6 +196,8 @@ void ReadSongRow(void)
     ReadSongBytes(0, p + 0x30, (UBYTE *)ROW_BUFFER_COLUMN(3));
 }
 
+/* $4463: draw a song row number + bookmark marker (wSongScroll window, 18
+   rows) */
 void DrawSongRowNumber(void)
 {
     UBYTE y;
@@ -212,6 +228,8 @@ void DrawSongRowNumber(void)
     }
 }
 
+/* $451E: ReadSongRow + draw the row at VRAM $9842 (palettes,
+   DrawSongColumnValues/4395) */
 void RedrawSongRow(void)
 {
     ReadSongRow();
@@ -224,6 +242,7 @@ void RedrawSongRow(void)
     wPartialRedrawDone = 1;
 }
 
+/* $4540: clamp song top-row wSongScroll so cursor wSongRow stays visible */
 void ScrollSongToCursor(void)
 {
     UBYTE d;
@@ -237,6 +256,8 @@ void ScrollSongToCursor(void)
     }
 }
 
+/* $4574: screen idx 4: draws the song sequence (4 channels =
+   PU1/PU2/WAV/NOI) */
 void DrawSongScreen(void)
 {
     FarCall(1, FAR_FN(DrawTopBar));
@@ -263,6 +284,8 @@ void DrawSongScreen(void)
     FarCall(5, DrawMapTopRow);
 }
 
+/* $4657: per-channel play-position markers from
+   wChannelSongRow/wChannelNextSongRow (<-SongScreenUpdate) */
 void UpdateSongPlayMarker(void)
 {
     UBYTE channel;
@@ -306,6 +329,7 @@ void UpdateSongPlayMarker(void)
     }
 }
 
+/* $47AA: per-frame visual update (screen idx 4) */
 void SongScreenUpdate(void)
 {
     UBYTE sprite;
@@ -318,6 +342,7 @@ void SongScreenUpdate(void)
     }
 }
 
+/* $47CF: pick row draw palettes (cursor/bookmark-aware) */
 void SetSongRowPalettes(UBYTE y)
 {
     UBYTE bookmarked;
@@ -372,6 +397,8 @@ void SetSongRowPalettes(UBYTE y)
     }
 }
 
+/* $492D: draw cursor-row string (SetVramCursor at wSongRow-wSongScroll,
+   SetSongRowPalettes) */
 void DrawSongCursorRow(void)
 {
     UBYTE row;
@@ -381,6 +408,8 @@ void DrawSongCursorRow(void)
     SetSongRowPalettes(row);
 }
 
+/* $494E: scroll the song grid for the row above: ScrollSongVramUp (+
+   CopyVramRowUp on CGB), redraw row 2 ($9840) */
 void ScrollSongUp(void)
 {
     ScrollSongVramUp();
@@ -391,6 +420,8 @@ void ScrollSongUp(void)
     wPartialRedrawDone = 1;
 }
 
+/* $4973: scroll the song grid for the row below: ScrollSongVramDown (+
+   CopyVramRowDown on CGB), redraw row 17 ($9A20) */
 void ScrollSongDown(void)
 {
     ScrollSongVramDown();
@@ -401,6 +432,7 @@ void ScrollSongDown(void)
     wPartialRedrawDone = 1;
 }
 
+/* $4998: scan down 1..16 from cursor wSongRow, wrapping at 0 -> $ff */
 void FindNextSongRow(void)
 {
     UBYTE distance;
@@ -420,6 +452,8 @@ void FindNextSongRow(void)
         wSongRow = 0xBF;
 }
 
+/* $49E7: B+DOWN: move the song cursor (wSongRow) down a page (not while
+   wCursorMode == 4) */
 UBYTE PageSongCursorDown(void)
 {
     UBYTE d;
@@ -441,6 +475,7 @@ UBYTE PageSongCursorDown(void)
     return 1;
 }
 
+/* $4A25: scan up 1..16 from cursor wSongRow, wrapping */
 void FindPreviousSongRow(void)
 {
     UBYTE distance;
@@ -460,6 +495,7 @@ void FindPreviousSongRow(void)
         wSongRow = 0;
 }
 
+/* $4A79: B+UP: move the song cursor (wSongRow) up a page */
 UBYTE PageSongCursorUp(void)
 {
     UBYTE d;
@@ -480,6 +516,8 @@ UBYTE PageSongCursorUp(void)
     return 1;
 }
 
+/* $4AB8: SaveSelectionState, seed the wSelection* rectangle from the song
+   cursor */
 void BeginSongSelection(void)
 {
     wSavedSongColumn = wSongColumn;
@@ -491,6 +529,8 @@ void BeginSongSelection(void)
     wSongColumn = wSavedSongColumn;
 }
 
+/* $4AFD: read seq[wSongRow,wSongColumn] ($ff -> empty path), validate+cache
+   via CloneSongChain */
 void LoadSongCursorChain(void)
 {
     UBYTE c;
@@ -506,6 +546,7 @@ void LoadSongCursorChain(void)
     DrawSongCursor();
 }
 
+/* $6249: bounds-checked ($aff0-$afff) WriteSongByte into the bookmarks row */
 void WriteBookmarkByte(UWORD p, UBYTE v)
 {
     if (p < (UWORD)0xAFF0)
@@ -515,6 +556,8 @@ void WriteBookmarkByte(UWORD p, UBYTE v)
     WriteSongByte(0, p, v);
 }
 
+/* $627C: bubble-sort the 16-byte song bookmarks row ($aff0, song offset
+   $0FF0) */
 void SortBookmarks(void)
 {
     UBYTE swapped, slot, a, b;
@@ -536,6 +579,8 @@ void SortBookmarks(void)
     } while (swapped);
 }
 
+/* $6320: 1 if song row `row` is in the bookmark list (SramBookmarks, 16 rows
+   in order, $FF for none) */
 UBYTE IsBookmarked(UBYTE row)
 {
     UBYTE slot = 0;
@@ -556,6 +601,7 @@ UBYTE IsBookmarked(UBYTE row)
     return 0;
 }
 
+/* $637C: append song row to bookmarks; full -> ShowMax16Marks */
 void AddBookmark(UBYTE row)
 {
     if (ReadSongByte(0, SramBookmarks + 15) != 0xFF) {
@@ -582,6 +628,7 @@ void RemoveBookmark(UBYTE row)
     SortBookmarks();
 }
 
+/* $6413: song row in list ? RemoveBookmark : AddBookmark */
 void ToggleBookmark(UBYTE row)
 {
     if (IsBookmarked(row))
@@ -590,11 +637,14 @@ void ToggleBookmark(UBYTE row)
         AddBookmark(row);
 }
 
+/* $643D: FillMemory($aff0, $ff, 16) */
 void ClearBookmarks(void)
 {
     FillMemory(SramBookmarks, 0xFF, 0x10);
 }
 
+/* $644F: song rows [lo,hi) removed: drop bookmarks inside, shift later ones
+   up, re-sort */
 void AdjustBookmarksOnDelete(UBYTE low, UBYTE high)
 {
     UBYTE slot, v;
@@ -617,6 +667,8 @@ void AdjustBookmarksOnDelete(UBYTE low, UBYTE high)
     SortBookmarks();
 }
 
+/* $64CA: song rows shifted (src->dst): rebase bookmarks, drop wrapped,
+   re-sort */
 void AdjustBookmarksOnInsert(UBYTE from, UBYTE to)
 {
     UBYTE slot, v;

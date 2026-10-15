@@ -14,7 +14,7 @@
 4058 ReadGrooveByte             ; read grooves[wGroove][step]
 40EA DrawGrooveSteps            ; draw the current groove's 16 step values (wGroove*16)
 41DA DrawGrooveScreen           ; screen idx 2: draws the groove steps
-4215 GrooveScreenUpdate         ; screen idx 2 per-frame update (from ScreenUpdateTable)
+4215 GrooveScreenUpdate         ; screen 2's per-frame update (DispatchScreenUpdate)
 ; Synth editor: softsynth_params[wSynth][16] at SRAM bank1 $BEB2 (16 synths);
 ; params read via per-field getters ($6311/$68CC/... -> ReadSongByte on $BEB2).
 6354 SynthSignalIsFrame         ; -> 1 if synth signal type (param 0) == 3 (FRAME mode), else 0
@@ -48,7 +48,7 @@
 60A7 SynthLockByteAddressB1D    ; bank $1D's copy of SynthLockByteAddress: the SRAM byte holding synth x's lock bit ($BFC5 for 0-7, $BFC4 for 8-F)
 6115 IsSynthLocked              ; nonzero if synth x is locked (its bit in the SynthLockByteAddressB1D byte; LockCurrentSynth sets it when a wave is edited by hand)
 6144 ClearSynthFlag             ; clear synth x's bit in the flag pair at $BFC4/$BFC5 (SynthLockByteAddressB1D)
-6193 FillSynthWaveRange         ; fill/interpolate a wave value range (16-step; <-SynthLoadWaveTable)
+6193 FillSynthWaveRange         ; fill/interpolate a wave value range (16 steps; LoadSynthParameters)
 62A8 DrawSynthPhaseField        ; draw the synth PHASE field: switch (jp-table SynthDispatchJumps) -> " PINCH"/"  WARP"/"RESYNC"/"RESYN2"
 636E DrawSynthFilterField       ; draw the FILTER type field (" LOWP"...; "-----" empty; jp-table $63a6)
 6414 DrawSynthSignalField       ; draw the waveform type row (glyph strings "iiii"/"mmmm"; jp-table $6437)

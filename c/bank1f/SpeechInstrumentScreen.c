@@ -10,23 +10,25 @@
 #include "lsdj.h"
 
 void DrawAllChannelStatus(void);
-extern UBYTE wNameEditBuffer[];                /* $C431, [5] */
-extern UBYTE wNameEditIsInstrument;              /* $C430 */
+extern UBYTE wNameEditBuffer[];             /* $C431, [5] */
+extern UBYTE wNameEditIsInstrument;         /* $C430 */
 extern UBYTE wAPressEnabled;                /* $C409 */
 extern UBYTE wBHeld;                        /* $C40B */
 extern UBYTE wButtons;                      /* $C575 */
 extern UBYTE wClipboardType;                /* $C411 */
 UBYTE SpeechCursorY(void);
 void OpenNameEditor(void);                  /* bank $1B */
-void MoveMapCursorLeft(void);                     /* bank 5 */
-void MoveMapCursorRight(void);                    /* bank 5 */
-void MoveMapCursorUp(void);                       /* bank 5 */
-void MoveMapCursorDown(void);                     /* bank 5 */
-void PreviousInstrumentPage(void);             /* bank 3 */
-void SoundToggleSongPlayback(void);                 /* bank 2 */
-void SoundTogglePlayback(void);                    /* bank 2 */
-void DrawInstrumentScreenFrame(void);                /* $03:$45A7 */
+void MoveMapCursorLeft(void);               /* bank 5 */
+void MoveMapCursorRight(void);              /* bank 5 */
+void MoveMapCursorUp(void);                 /* bank 5 */
+void MoveMapCursorDown(void);               /* bank 5 */
+void PreviousInstrumentPage(void);          /* bank 3 */
+void SoundToggleSongPlayback(void);         /* bank 2 */
+void SoundTogglePlayback(void);             /* bank 2 */
+void DrawInstrumentScreenFrame(void);       /* $03:$45A7 */
 
+/* $6C34: draw word n's 3-character name (SramWordNames + 3*(n-1), blanks for
+   0) or \"---\" outside 1-14 */
 void DrawWordRow(UBYTE n)
 {
     UBYTE *p;
@@ -46,26 +48,33 @@ void DrawWordRow(UBYTE n)
         DrawString("---");
 }
 
+/* $7097: RedrawScreen with bank 4 mapped */
 void RedrawScreenFar1F(void)
 {
     FarCall(4, FAR_FN(RedrawScreen));
 }
 
+/* $70A8: screen row of the speech instrument's word-list cursor: wSpeechRow
+   + 4 */
 UBYTE SpeechCursorY(void)
 {
     return (UWORD)wSpeechRow + 4;
 }
 
+/* $70B6: restore the word-list row's palette (alternating by row parity) */
 void EraseSpeechCursor(void)
 {
     ColorField(0, SpeechCursorY(), 3, !(wSpeechRow & 1));
 }
 
+/* $70DF: highlight the speech instrument's word-list row under wSpeechRow */
 void DrawSpeechCursor(void)
 {
     ColorField(0, SpeechCursorY(), 3, hGameboyType ? 3 : 2);
 }
 
+/* $7108: instrument screen for SPEECH type: "TYPE SPEECH" + word list
+   (pseudo-screen $0b) */
 void DrawSpeechInstrumentScreen(void)
 {
     UBYTE *p;

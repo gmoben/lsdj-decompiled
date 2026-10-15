@@ -13,13 +13,15 @@
 extern UBYTE wColorSet;
 UBYTE CheckRomChecksum(void);               /* $00:$1FD5 */
 UBYTE TestSramLow(void);
-void initrand(UWORD seed);              /* bank 0 */
-UBYTE randw(void);                       /* bank 0, a 16-bit LCG; the SRAM test uses the low byte */
+void initrand(UWORD seed);                  /* bank 0 */
+UBYTE randw(void);                          /* bank 0, a 16-bit LCG; the SRAM test uses the low byte */
 void ClearSramWindow(void);                 /* $01:$7DE9, asm: zero the SRAM window */
 void ClearBookmarks(void);                  /* $07:$643D */
 extern UBYTE DefaultWaveFrameB1[];          /* $01:$40EA, [16] */
 UBYTE TestSram(void);                       /* bank 0 */
 
+/* $4000: cartridge RAM test, SRAM banks 0-3: write/read-back pattern (part
+   of DrawCartTest) */
 UBYTE TestSramLow(void)
 {
     UBYTE bank;
@@ -61,6 +63,8 @@ UBYTE TestSramLow(void)
     return 1;
 }
 
+/* $445A: cartridge RAM test, SRAM banks 4-15 (jp TestSramHigh.done on
+   mismatch) */
 UBYTE TestSramHigh(void)
 {
     UBYTE bank;
@@ -75,6 +79,7 @@ UBYTE TestSramHigh(void)
     return 1;
 }
 
+/* $4487: boot CARTRIDGE TEST screen (ROM checksum + SRAM self-test) */
 void DrawCartTest(void)
 {
     wVramCursor = (UBYTE *)BG_MAP(0, 1);
@@ -118,7 +123,7 @@ void DrawCartTest(void)
 void FormatSramSong(void)
 {
     UBYTE *p;
-    UBYTE i;
+    UBYTE index;
     volatile UBYTE s2;
     UBYTE s0, s1;
 
@@ -139,16 +144,16 @@ void FormatSramSong(void)
     }
     FillMemory(SramSequence, 0xFF, 0x400);
     p = SramWordNames;
-    i = 0;
+    index = 0;
     do {
         *p = 'W';
         p++;
         *p = '-';
         p++;
-        *p = i;
-        *p += i < 10 ? '0' : '7';
+        *p = index;
+        *p += index < 10 ? '0' : '7';
         p++;
-        i++;
+        index++;
     } while (p != (UBYTE *)0xBDFA);
     rRAMB = 1;
     s0 = *SramPropertyTotalTime;
@@ -195,6 +200,8 @@ void FormatSramSong(void)
     rRAMG = 0;
 }
 
+/* $4811: 1 if the file system's SRAM bank 4 carries the 'jk' marker at
+   $A13E: InitializeAndLoadSong formats the file space when it does not */
 UBYTE CheckJkMarker(void)
 {
     if (ReadSongByte(4, (UBYTE *)0xA13E) != 'j')

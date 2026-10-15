@@ -12,32 +12,32 @@
 #include "lsdj.h"
 
 extern UBYTE wSongScroll;                   /* $C41C */
-extern UBYTE SongColumnOffsets[];              /* $07:$4047 */
-extern UBYTE wChannelNextSongRow[];            /* $C2FC, [4] */
-extern UBYTE wChannelLiveQueued[];             /* $C300, [4] */
-extern UBYTE wChannelStopQueued[];                /* $C304, [4] */
+extern UBYTE SongColumnOffsets[];           /* $07:$4047 */
+extern UBYTE wChannelNextSongRow[];         /* $C2FC, [4] */
+extern UBYTE wChannelLiveQueued[];          /* $C300, [4] */
+extern UBYTE wChannelStopQueued[];          /* $C304, [4] */
 extern UBYTE wCloneMode;                    /* $C531 */
-extern UBYTE wColumnChain[];                   /* $C44F, [4] */
+extern UBYTE wColumnChain[];                /* $C44F, [4] */
 extern UBYTE wButtons;                      /* $C575 */
 extern UBYTE wAPressEnabled;                /* $C409 */
 extern UBYTE wDrawStep;                     /* $C405 */
 extern UBYTE wSelectHeld;                   /* $C40A */
 extern UBYTE wBHeld;                        /* $C40B */
-extern UBYTE wSelectionTop;                       /* $C40E */
-extern UBYTE wSelectionRight;                     /* $C40F */
-extern UBYTE wSelectionBottom;                    /* $C410 */
+extern UBYTE wSelectionTop;                 /* $C40E */
+extern UBYTE wSelectionRight;               /* $C40F */
+extern UBYTE wSelectionBottom;              /* $C410 */
 extern UBYTE wClipboardType;                /* $C411 */
-extern UBYTE wQuickMarking;             /* $C412 */
+extern UBYTE wQuickMarking;                 /* $C412 */
 extern UBYTE wSongScopeDirty;               /* $C404 */
 extern UBYTE wChain;                        /* $C418 */
 extern UBYTE wChainRow;                     /* $C41A */
 extern UBYTE wLiveMode;                     /* $C528 */
-extern UBYTE wMessageNoPause;                  /* $C530 */
-extern UBYTE wMuteSoloLatch;                 /* $C56A */
-extern UBYTE wPlayStartChannel;                /* $C94C */
+extern UBYTE wMessageNoPause;               /* $C530 */
+extern UBYTE wMuteSoloLatch;                /* $C56A */
+extern UBYTE wPlayStartChannel;             /* $C94C */
 extern UBYTE wPlayStartRow;                 /* $C94D */
-extern UBYTE wSongSelectionScroll;                /* $C94A */
-extern UBYTE wSongSelectionRow;                   /* $C94B */
+extern UBYTE wSongSelectionScroll;          /* $C94A */
+extern UBYTE wSongSelectionRow;             /* $C94B */
 extern UBYTE wSongAPressState;              /* $C951 */
 extern UBYTE wSongCellEmpty;                /* $C953 */
 extern UBYTE wSyncTick;                     /* $CB69 */
@@ -60,17 +60,17 @@ void DrawSongCursorRow(void);
 void ToggleBookmark(UBYTE row);
 void DrawChannelHeader(void);
 void WriteSongCell(UBYTE column, UBYTE row, UBYTE chain);
-void CopySongColumn(UWORD p, UWORD q);    /* defined with pointers in SongScreen.c */
+void CopySongColumn(UWORD p, UWORD q);      /* defined with pointers in SongScreen.c */
 UBYTE IsSongChainUsed(void);                /* bank $1F */
 void MarkChainUsed(void);                   /* bank 1 */
 void ShowTapAddChain(void);                 /* bank 1 */
-void SoundLiveStopRange(void);                /* bank 2 */
-void SoundStartRange(void);                /* bank 2 */
-void SoundTogglePlayback(void);                    /* bank 2 */
+void SoundLiveStopRange(void);              /* bank 2 */
+void SoundStartRange(void);                 /* bank 2 */
+void SoundTogglePlayback(void);             /* bank 2 */
 void SaveSelectionState(void);              /* bank 5 */
-void MoveMapCursorUp(void);                       /* bank 5 */
-void MoveMapCursorDown(void);                     /* bank 5 */
-void MoveMapCursorRight(void);                    /* bank 5 */
+void MoveMapCursorUp(void);                 /* bank 5 */
+void MoveMapCursorDown(void);               /* bank 5 */
+void MoveMapCursorRight(void);              /* bank 5 */
 
 /*
  * The song screen's input, an if/else chain on wButtons: A writes the chain
@@ -103,7 +103,7 @@ UBYTE SongScreenInput(void)
     if (wCursorMode == CURSOR_SELECTING && wButtons == J_SELECT_TAP) {
         wSongColumn = wSelectionLeft;
         wSongRow = wSelectionTop;
-        FarCall(5, 0x747D);
+        FarCall(5, RestoreSelectionState);
         ScrollSongToCursor();
         RedrawSongRow();
         ShowMessage("CANCEL SELECT");

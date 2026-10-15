@@ -12,19 +12,19 @@
 #include "lsdj.h"
 
 void WriteChainPhrase(UBYTE chain, UBYTE row, UBYTE phrase);
-extern UBYTE wInstrumentRemapTable[];            /* $C9B8, [16] */
-extern UBYTE wInstrumentRemapDirty;              /* $C9B7 */
-extern UBYTE wNameEditBuffer[];                /* $C431, [5] */
-extern UBYTE wColumnInstrument[];              /* $C468, [4] */
-UBYTE ReadPhraseInstrument(UBYTE phrase, UBYTE row);  /* $04:$4918 */
-void WriteInstrumentName(UBYTE instrument);           /* $01:$4A49 */
-extern UBYTE wColumnPhrase[];                  /* $C453, [4] */
-extern UBYTE wColumnChain[];                   /* $C44F, [4] */
-extern UBYTE wDeduplicateTableIsDuplicate;              /* $C9CC */
-extern UBYTE wDeduplicatePhraseUsed;              /* $C9C8 */
-extern UBYTE wDeduplicatePhraseIsDuplicate;             /* $C9C9 */
-extern UBYTE wDeduplicateChainUsed;               /* $C9CA */
-extern UBYTE wDeduplicateChainIsDuplicate;              /* $C9CB */
+extern UBYTE wInstrumentRemapTable[];       /* $C9B8, [16] */
+extern UBYTE wInstrumentRemapDirty;         /* $C9B7 */
+extern UBYTE wNameEditBuffer[];             /* $C431, [5] */
+extern UBYTE wColumnInstrument[];           /* $C468, [4] */
+UBYTE ReadPhraseInstrument(UBYTE phrase, UBYTE row); /* $04:$4918 */
+void WriteInstrumentName(UBYTE instrument); /* $01:$4A49 */
+extern UBYTE wColumnPhrase[];               /* $C453, [4] */
+extern UBYTE wColumnChain[];                /* $C44F, [4] */
+extern UBYTE wDeduplicateTableIsDuplicate;  /* $C9CC */
+extern UBYTE wDeduplicatePhraseUsed;        /* $C9C8 */
+extern UBYTE wDeduplicatePhraseIsDuplicate; /* $C9C9 */
+extern UBYTE wDeduplicateChainUsed;         /* $C9CA */
+extern UBYTE wDeduplicateChainIsDuplicate;  /* $C9CB */
 void FreePhrase(void);                      /* $01:$4DD3 */
 void FreeChain(void);                       /* $01:$4E43 */
 void MarkChainUsed(void);                   /* $01:$4D67 */
@@ -49,8 +49,10 @@ UBYTE MarkTablesOfUsedTables(void);
 UBYTE ClearUnusedTables(void);
 UBYTE ClaimInstrumentSlot(UBYTE instrument);
 void ClearTable(UBYTE t);
-void SetChainTranspose(UBYTE chain, UBYTE row, UBYTE v);    /* $06:$5655 */
+void SetChainTranspose(UBYTE chain, UBYTE row, UBYTE v); /* $06:$5655 */
 
+/* $4A26: fill wInstrumentRemapTable..+16 with identity 0..15 (remap table
+   for clone/dedupe) */
 void InitializeRemapTable(void)
 {
     UBYTE entry, v;
@@ -137,6 +139,7 @@ UBYTE FreeUnusedInstruments(void)
     return n;
 }
 
+/* $5183: zero 16 bytes from `p` in SRAM bank `bank`: one table's column */
 void ClearTableRow(UBYTE bank, UBYTE *p)
 {
     UBYTE step;
@@ -147,6 +150,7 @@ void ClearTableRow(UBYTE bank, UBYTE *p)
     }
 }
 
+/* $51B9: wipe table n (<$20) across all five column regions ($3480..$3C80) */
 void ClearTable(UBYTE t)
 {
     UWORD o;
@@ -169,6 +173,7 @@ void ClearTable(UBYTE t)
     ClearTableRow(0, (UBYTE *)o);
 }
 
+/* $526B: clear every unmarked table; -> how many of them were not empty */
 UBYTE ClearUnusedTables(void)
 {
     UBYTE n, table;
@@ -184,6 +189,8 @@ UBYTE ClearUnusedTables(void)
     return n;
 }
 
+/* $52B3: CLEAN INSTR: mark the tables instruments, phrases and tables use,
+   clear the rest; -> how many were freed */
 UBYTE FreeUnusedTables(void)
 {
     FillMemory(wUsedTableMap, 0, 0x20);
@@ -195,6 +202,8 @@ UBYTE FreeUnusedTables(void)
     return ClearUnusedTables();
 }
 
+/* $52DA: walk the 4 sequence columns remapping chain refs (CleanSongData
+   step) */
 void RemapSequenceChains(void)
 {
     UBYTE row, chain, column;
@@ -288,6 +297,8 @@ UBYTE FindDuplicatePhrase(UBYTE a, UBYTE b)
     return 1;
 }
 
+/* $5644: does chain b equal chain a? compares the 16 phrases and transposes;
+   1 = duplicate */
 UBYTE FindDuplicateChain(UBYTE a, UBYTE b)
 {
     UBYTE *p, *q;
@@ -320,6 +331,8 @@ UBYTE FindDuplicateChain(UBYTE a, UBYTE b)
     return 1;
 }
 
+/* $573C: does table b equal table a? compares fx 1/values, fx 2/values,
+   envelopes and transposes; 1 = duplicate */
 UBYTE FindDuplicateTable(UBYTE a, UBYTE b)
 {
     UBYTE *p, *q;
@@ -378,6 +391,8 @@ UBYTE FindDuplicateTable(UBYTE a, UBYTE b)
     return 1;
 }
 
+/* $5996: walk all chains ($2080..) replacing dup phrase refs with the
+   canonical one */
 void RemapPhraseRefs(UBYTE from, UBYTE to)
 {
     UBYTE *p;
@@ -401,6 +416,8 @@ void RemapPhraseRefs(UBYTE from, UBYTE to)
     } while (column);
 }
 
+/* $5A12: walk the song sequence ($B290-$B68F) replacing references to a
+   duplicate chain with the canonical one */
 void RemapChainRefs(UBYTE from, UBYTE to)
 {
     UBYTE *p;
@@ -424,6 +441,7 @@ void RemapChainRefs(UBYTE from, UBYTE to)
     } while (column);
 }
 
+/* $5A8E: walk phrase/table cmd values replacing dup table refs (A command) */
 void RemapCommandTableRefs(UBYTE from, UBYTE to)
 {
     volatile UWORD command;
@@ -472,6 +490,9 @@ void RemapCommandTableRefs(UBYTE from, UBYTE to)
     }
 }
 
+/* $5BDE: fold duplicate phrases: for each used phrase i (hex counter at
+   $98AE) every later used phrase FindDuplicatePhrase finds equal is remapped
+   to i (RemapPhraseRefs) */
 void DeduplicatePhrases(void)
 {
     UBYTE phrase, candidate;
@@ -495,6 +516,9 @@ void DeduplicatePhrases(void)
     DrawStringTile20();
 }
 
+/* $5C78: fold duplicate chains: for each used chain i (counter at $98AE)
+   every later used chain FindDuplicateChain finds equal is remapped to i
+   (RemapChainRefs); then OK */
 void DeduplicateChains(void)
 {
     UBYTE chain, candidate;
@@ -517,6 +541,9 @@ void DeduplicateChains(void)
     DrawString("OK");
 }
 
+/* $5D18: fold duplicate tables: for each used table i (hex counter at $98AE)
+   every later used table FindDuplicateTable finds equal is remapped to i
+   (RemapCommandTableRefs); then draws OK */
 void DeduplicateTables(void)
 {
     UBYTE table, candidate;
@@ -538,6 +565,7 @@ void DeduplicateTables(void)
     DrawString("OK");
 }
 
+/* $5FEC: 1 if any phrase step holds command F (6) */
 UBYTE AnyPhraseUsesCommandF(void)
 {
     UBYTE *p;
@@ -558,6 +586,7 @@ UBYTE AnyPhraseUsesCommandF(void)
     return 0;
 }
 
+/* $6074: 1 if either command column of any table holds command F (6) */
 UBYTE AnyTableUsesCommandF(void)
 {
     UBYTE *p, *q;
@@ -578,6 +607,8 @@ UBYTE AnyTableUsesCommandF(void)
     return 0;
 }
 
+/* $62BD: CLEAN INSTR: unless a phrase or table uses F, reset the synths no
+   wave instrument uses; -> how many were freed */
 UBYTE FreeUnusedSynths(void)
 {
     UBYTE a, b;
@@ -590,6 +621,8 @@ UBYTE FreeUnusedSynths(void)
     return a - b;
 }
 
+/* $62DD: project CLEAN: de-dupe chains+phrases, DE-DUPE/FREEING progress
+   panel */
 void CleanSongData(void)
 {
     UBYTE phrases, chains;
@@ -614,6 +647,8 @@ void CleanSongData(void)
     printf("OK!");
 }
 
+/* $63B1: project CLEAN: de-dupe instruments/tables, DE-DUPE/FREEING progress
+   panel */
 void CleanInstrumentData(void)
 {
     wVramCursor = BG_MAP(4, 5);

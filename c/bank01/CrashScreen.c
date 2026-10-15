@@ -18,6 +18,7 @@ extern volatile sfr UBYTE LCDC_REG;         /* $FF40 */
 
 void SaveCrashStack(void);                  /* asm: saves sp and 20 stack bytes, then DrawCrashScreen */
 
+/* $794B: crash entry: di, SRAM locked (rRAMG = 0), SaveCrashStack */
 void CrashHandler(void)
 {
     _asm di _endasm;
@@ -39,6 +40,9 @@ extern UBYTE wDebugTrapped;                 /* $C7AF */
 extern char TxtVersion[];                   /* $01:$6F8E, "V9.4.0  (c) ..." */
 void DebugNop(void);                        /* bank 0 */
 
+/* $7955: the crash screen: "DONT PANIC!", the bank, the stack pointer and 10
+   stack words, play mode, screen, hardware, sync, AST, the version; then
+   hangs */
 void DrawCrashScreen(void)
 {
     int entry;

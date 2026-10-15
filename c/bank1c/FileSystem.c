@@ -10,29 +10,29 @@
 
 #include "lsdj.h"
 
-extern UBYTE wFilesystemCheckResult;                /* $C56B */
-extern UBYTE wFileBlockIndex;                 /* $C958 */
+extern UBYTE wFilesystemCheckResult;        /* $C56B */
+extern UBYTE wFileBlockIndex;               /* $C958 */
 extern UBYTE wFileBlockCounts[];            /* $C959, [32] */
-extern UBYTE *wFileBlockCountPointer;           /* $C990 */
-extern UBYTE wCompressByte;                     /* $C97F */
-extern UWORD wCompressDestination;                      /* $C97D, a working-song offset */
-extern UBYTE wDecompressPosition;                    /* $C983 */
-extern char wFileNameBuffer[];                 /* $C987, [8] */
+extern UBYTE *wFileBlockCountPointer;       /* $C990 */
+extern UBYTE wCompressByte;                 /* $C97F */
+extern UWORD wCompressDestination;          /* $C97D, a working-song offset */
+extern UBYTE wDecompressPosition;           /* $C983 */
+extern char wFileNameBuffer[];              /* $C987, [8] */
 extern UBYTE wFileNameTerm[];               /* $C98F, its NUL */
-extern void (*wBlockSinkPointer)(void);         /* $C984, FlushBlockToSram or the verify sink */
-extern UBYTE wCompressProgress;                 /* $C981 */
-extern UBYTE wDecompressOk;                     /* $C982 */
-extern UBYTE wBlockDestinationBank;                 /* $C97C */
+extern void (*wBlockSinkPointer)(void);     /* $C984, FlushBlockToSram or the verify sink */
+extern UBYTE wCompressProgress;             /* $C981 */
+extern UBYTE wDecompressOk;                 /* $C982 */
+extern UBYTE wBlockDestinationBank;         /* $C97C */
 extern UBYTE wFileCursor;                   /* $C999 */
 extern UBYTE wFileScroll;                   /* $C99B */
 void LoadFileListState(void);
 void FlushBlockToSram(void);                /* $1C:$743C */
 void FileDecompressByte(void);              /* $1C:$749E */
-void VerifyBlockAgainstSram(void);         /* $1C:$746E */
-UBYTE FindFreeBlock(UBYTE *bank, UWORD *source);   /* $1C:$415A */
+void VerifyBlockAgainstSram(void);          /* $1C:$746E */
+UBYTE FindFreeBlock(UBYTE *bank, UWORD *source); /* $1C:$415A */
 UBYTE FileLoadSlotInfo(UBYTE slot, UBYTE verify);
 void CountFileBlocks(void);                 /* $1C:$48D4 */
-UBYTE GetFileBlockCount(UBYTE i);
+UBYTE GetFileBlockCount(UBYTE file);
 UBYTE FileFindSlotEnd(void);
 UBYTE FileSlotHalfBase(void);
 void LoadCompressedBlock(UBYTE v);
@@ -40,6 +40,9 @@ UBYTE SramHasFileBanks(void);
 void FreeFileBlocks(UBYTE f);
 void EraseFileName(UBYTE f);
 
+/* $4057: 1 if SRAM banks 4, 5 and 7 lack the working song's 'rb' markers:
+   they are banks of their own, not the 32 KB cartridge's mirrors of 0, 1 and
+   3, so the file system has room */
 UBYTE SramHasFileBanks(void)
 {
     if (ReadSongByte(4, 0xBE78) != 'r')
@@ -57,6 +60,8 @@ UBYTE SramHasFileBanks(void)
     return 0;
 }
 
+/* $40F2: returns 0 if the SRAM file space is initialized: 64K 'rb' set, else
+   'jk' + 128K marker set */
 UBYTE CheckFileMagicAll(void)
 {
     if (!SramHasFileBanks())
@@ -102,11 +107,15 @@ UBYTE FindFreeBlock(UBYTE *bank, UWORD *source)
     return 0;
 }
 
+/* $42D6: return $40 or $c0 depending on wFilesystemCheckResult (which save
+   half) */
 UBYTE FileSlotHalfBase(void)
 {
     return wFilesystemCheckResult ? 0x40 : 0xC0;
 }
 
+/* $42E9: scan file-slot names in SRAM ($A140, bank4) from index
+   wFileBlockIndex */
 UBYTE FileScanSlotNames(void)
 {
     wFileBlockIndex = 1;
@@ -120,13 +129,16 @@ UBYTE FileScanSlotNames(void)
     return 0;
 }
 
-UBYTE GetFileBlockCount(UBYTE i)
+/* $4335: wFileBlockCounts[i] (i < $20): the blocks file i uses */
+UBYTE GetFileBlockCount(UBYTE file)
 {
-    if (i >= 0x20)
+    if (file >= 0x20)
         DebugTrap();
-    return wFileBlockCounts[i];
+    return wFileBlockCounts[file];
 }
 
+/* $4352: copy file `f`'s 8-letter name into wFileNameBuffer, "[EMPTY]" when
+   it has no blocks */
 void CopyFileName(UBYTE f)
 {
     UBYTE *p;
@@ -151,6 +163,8 @@ void CopyFileName(UBYTE f)
     }
 }
 
+/* $47B1: zero filenames+versions (bank4 $a000-$a13f), reset the block alloc
+   table */
 void FormatFileSpace(void)
 {
     UWORD address;
@@ -165,6 +179,7 @@ void FormatFileSpace(void)
     WriteSongByte(4, 0xA13F, 0x6B);
 }
 
+/* $4862: scan file slots in SRAM ($A141) for the $ff terminator */
 UBYTE FileFindSlotEnd(void)
 {
     UWORD p;
@@ -215,6 +230,7 @@ void CountFileBlocks(void)
     }
 }
 
+/* $4969: enumerate file slots for the browser (<-DrawFileScreen) */
 UBYTE FileListSlots(void)
 {
     UWORD address;
@@ -229,6 +245,8 @@ UBYTE FileListSlots(void)
     return n;
 }
 
+/* $49D4: free every block of file `f`: its entries in the block table
+   ($A141-$A1FF) become $FF */
 void FreeFileBlocks(UBYTE f)
 {
     UWORD p;
@@ -242,6 +260,7 @@ void FreeFileBlocks(UBYTE f)
     }
 }
 
+/* $4C1A: clear the 8-char filename slot in the $a000 name table */
 void EraseFileName(UBYTE f)
 {
     UWORD address;
@@ -265,6 +284,9 @@ void EraseFileName(UBYTE f)
     }
 }
 
+/* $4FA5: decompress file `slot` into the song area, or with `verify` compare
+   it against what is there (VerifyBlockAgainstSram); 1 if it decoded cleanly
+   and ended where it should */
 UBYTE FileLoadSlotInfo(UBYTE slot, UBYTE verify)
 {
     UBYTE ok;
@@ -285,6 +307,7 @@ UBYTE FileLoadSlotInfo(UBYTE slot, UBYTE verify)
     return ok && wCompressDestination == 0xA000 && !wDecompressPosition;
 }
 
+/* $5597: validate a name (FileFindSlotEnd; char range $0a/$1f/$20 checks) */
 void FileValidateName(void)
 {
     UBYTE e, d;

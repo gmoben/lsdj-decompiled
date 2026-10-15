@@ -13,12 +13,14 @@
 void DrawFieldValue(UBYTE kind, UBYTE v);   /* bank 0, DrawFields.c */
 extern char PlayModeNames[];                /* $00:$0839, five 9-byte names "  MANUAL".."  RESYNC" */
 void DrawPulseDuty(UBYTE duty);             /* bank 0 */
-void DrawWaveFinetune(void);                 /* $03:$4CD9 */
+void DrawWaveFinetune(void);                /* $03:$4CD9 */
 void DrawWaveSynthField(void);              /* $03:$4D15 */
-void DrawWaveLength(void);                 /* $03:$498B */
-void DrawWaveLoopPosition(void);                  /* $03:$49FD */
-void DrawWaveSpeed(void);                 /* $03:$49B7 */
+void DrawWaveLength(void);                  /* $03:$498B */
+void DrawWaveLoopPosition(void);            /* $03:$49FD */
+void DrawWaveSpeed(void);                   /* $03:$49B7 */
 
+/* $4000: draw the instrument's table mode at its type's row: " OFF", or
+   STEP/TICK by byte 5 bit 3 when the table is on (byte 6 bit 5) */
 void DrawInstrumentTableMode(void)
 {
     char *s;
@@ -43,6 +45,8 @@ void DrawInstrumentTableMode(void)
     DrawString(s);
 }
 
+/* $409C: draw the instrument's table field: table number (hex) if on, '--'
+   if off */
 void DrawInstrumentTableField(void)
 {
     char v;
@@ -72,6 +76,8 @@ void DrawKitLoopMode(UBYTE loopBit, UBYTE attackByte)
         DrawString("OFF");
 }
 
+/* $411F: the kit LOOP field: kit 1's mode (byte 5 bit 6, byte 2 bit 7), a
+   "/", kit 2's (byte 5 bit 5, byte 9 bit 7) */
 void DrawKitLoopField(void)
 {
     DrawKitLoopMode(0x40, 2);
@@ -83,11 +89,15 @@ void DrawKitLoopField(void)
     DrawKitLoopMode(0x20, 9);
 }
 
+/* $4157: 1 if the envelope's first value moves on (byte 1's speed nibble
+   nonzero), so its second value is used */
 UBYTE InstrumentEnvelopeHasSecond(void)
 {
     return ReadCurrentInstrumentByte(INSTRUMENT_BYTE_ENVELOPE1) & 0x0F;
 }
 
+/* $4169: 1 if the envelope reaches its third value (bytes 1 and 9 both have
+   a nonzero speed nibble) */
 UBYTE InstrumentEnvelopeHasThird(void)
 {
     UBYTE a, b;
@@ -97,6 +107,8 @@ UBYTE InstrumentEnvelopeHasThird(void)
     return a && b;
 }
 
+/* $418A: draw the instrument envelope line: byte 1, the /--/-- template,
+   bytes 9 and 10 (hex or n-) */
 void DrawEnvelopeFields(void)
 {
     UBYTE v;
@@ -125,6 +137,7 @@ void DrawEnvelopeFields(void)
     }
 }
 
+/* $423D: draw PULSE instrument params (type 0) */
 void DrawPulseInstrument(void)
 {
     UBYTE v;
@@ -162,6 +175,7 @@ void DrawPulseInstrument(void)
     DrawInstrumentTableField();
 }
 
+/* $4399: draw NOISE instrument params (type 3) */
 void DrawNoiseInstrument(void)
 {
     UBYTE v;
@@ -193,6 +207,7 @@ void DrawNoiseInstrument(void)
     DrawInstrumentTableField();
 }
 
+/* $44B7: kit number (hex) + 6-char kit name (ReadKitName) */
 void DrawKitNameCell(UBYTE kit)
 {
     ReadKitName(kit);
@@ -201,7 +216,7 @@ void DrawKitNameCell(UBYTE kit)
     DrawString(wSampleNoteString);
 }
 
-void DrawKitDistortionName(UBYTE v);              /* bank 3 */
+void DrawKitDistortionName(UBYTE v);        /* bank 3 */
 
 /*
  * The KIT instrument's fields: both kits' names, VOLUME (byte 1 bits 6-5,
@@ -295,6 +310,7 @@ void DrawKitInstrument(void)
     DrawInstrumentTableField();
 }
 
+/* $474E: draw WAVE instrument params (type 1) */
 void DrawWaveInstrument(void)
 {
     UBYTE v;

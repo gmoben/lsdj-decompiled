@@ -10,36 +10,37 @@
 
 #include "lsdj.h"
 
-extern UBYTE wSelectionTop;                       /* $C40E */
-extern UBYTE wSelectionBottom;                    /* $C410 */
-extern UBYTE wSelectionRight;                     /* $C40F */
+extern UBYTE wSelectionTop;                 /* $C40E */
+extern UBYTE wSelectionBottom;              /* $C410 */
+extern UBYTE wSelectionRight;               /* $C40F */
 extern UBYTE wClipboardType;                /* $C411 */
 extern UBYTE wGrooveCacheValid;             /* $C9D5 */
 extern UBYTE wGrooveStepCache[];            /* $C9D6, [16] */
-extern UBYTE *wGrooveCachePointer;              /* $C9E6 */
+extern UBYTE *wGrooveCachePointer;          /* $C9E6 */
 extern UBYTE wAPressEnabled;                /* $C409 */
 extern UBYTE wButtons;                      /* $C575 */
 extern UBYTE wGroove;                       /* $C417 */
 extern char wGrooveRow;                     /* $C9D4, a plain char */
 extern UBYTE wSelectHeld;                   /* $C40A */
 extern UBYTE wBHeld;                        /* $C40B */
-extern UBYTE wMapColumn;                       /* $C8FF */
-extern UBYTE wChannelGroove[];                 /* $C150, [4] */
-extern UBYTE wChannelGrooveRow[];              /* $C158, [4] */
+extern UBYTE wMapColumn;                    /* $C8FF */
+extern UBYTE wChannelGroove[];              /* $C150, [4] */
+extern UBYTE wChannelGrooveRow[];           /* $C158, [4] */
 void WriteGrooveByte(UBYTE step, UBYTE v);
 UBYTE ReadGrooveStep(UBYTE step);
 void DrawGrooveSteps(void);
 void DrawGrooveRow(void);
-void SendLinkClipboard(void);                   /* $1C:$71CD */
+void SendLinkClipboard(void);               /* $1C:$71CD */
 void DrawAllChannelStatus(void);
 void CutCopyGrooveSelection(UBYTE cut);
 void PasteGrooveSelection(void);
 void DrawGrooveSelection(void);
-void MoveMapCursorUp(void);                       /* bank 5 */
+void MoveMapCursorUp(void);                 /* bank 5 */
 void SaveSelectionState(void);              /* bank 5 */
-void SoundToggleSongPlayback(void);                 /* bank 2 */
-void SoundTogglePlayback(void);                    /* bank 2 */
+void SoundToggleSongPlayback(void);         /* bank 2 */
+void SoundTogglePlayback(void);             /* bank 2 */
 
+/* $4000: write `v` to step `step` of the current groove (wGroove) */
 void WriteGrooveByte(UBYTE step, UBYTE v)
 {
     UBYTE *p;
@@ -52,6 +53,8 @@ void WriteGrooveByte(UBYTE step, UBYTE v)
     WriteSongByte(0, p + (unsigned int)step, v);
 }
 
+/* $405A: returns groove data[wGroove*16 + step] (song $1090); asserts step &
+   wGroove<$20 */
 UBYTE ReadGrooveStep(UBYTE step)
 {
     UBYTE *p;
@@ -64,6 +67,7 @@ UBYTE ReadGrooveStep(UBYTE step)
     return ReadSongByte(0, p + (unsigned int)step);
 }
 
+/* $40AE: restore the groove cursor step's palette (alternating per two rows) */
 void EraseGrooveCursor(void)
 {
     UBYTE r, palette;
@@ -75,6 +79,7 @@ void EraseGrooveCursor(void)
     ColorField(2, wGrooveRow + 2, 2, palette);
 }
 
+/* $40EA: draw the current groove's 16 step values (wGroove*16) */
 void DrawGrooveSteps(void)
 {
     UBYTE step;
@@ -104,6 +109,7 @@ void DrawGrooveSteps(void)
     DrawGrooveRow();
 }
 
+/* $41DA: screen idx 2: draws the groove steps */
 void DrawGrooveScreen(void)
 {
     SetSpriteX(0, 1);
@@ -114,6 +120,7 @@ void DrawGrooveScreen(void)
     FarCall(0x1F, FAR_FN(DrawAllChannelStatus));
 }
 
+/* $4215: screen 2's per-frame update (DispatchScreenUpdate) */
 void GrooveScreenUpdate(void)
 {
     if (wPlayMode && wGroove == wChannelGroove[wSongColumn])
@@ -122,6 +129,8 @@ void GrooveScreenUpdate(void)
         ClearSpriteY(0);
 }
 
+/* $425B: draw one groove row (step<16; ticks via ReadGrooveStep, state
+   wGrooveCacheValid/wGrooveStepCache) */
 void DrawGrooveRow(void)
 {
     UBYTE step;
@@ -156,6 +165,8 @@ void DrawGrooveRow(void)
     }
 }
 
+/* $435D: once (wGrooveCacheValid guard): build the 16-step groove display
+   cache wGrooveStepCache (via ReadGrooveStep) */
 void BuildGrooveCache(void)
 {
     UBYTE step, v;
@@ -170,6 +181,7 @@ void BuildGrooveCache(void)
     }
 }
 
+/* $4394: highlight the groove cursor step (palette 3 on CGB, 2 on DMG) */
 void DrawGrooveCursor(void)
 {
     UBYTE r;
@@ -180,6 +192,9 @@ void DrawGrooveCursor(void)
     ColorField(2, wGrooveRow + 2, 2, hGameboyType ? 3 : 2);
 }
 
+/* $43CF: pick a groove row's draw palettes: select colours inside the sorted
+   wSelectionTop..wGrooveRow range (select mode) or on the cursor row, 4/1
+   stripe on rows with bit 1, else shadow */
 void SetGrooveRowPalettes(UBYTE row)
 {
     UBYTE a, b;
@@ -222,7 +237,7 @@ UBYTE GrooveScreenInput(void)
     case J_SELECT_TAP:
         if (wCursorMode == CURSOR_SELECTING) {
             wGrooveRow = wSelectionTop;
-            FarCall(5, 0x747D);
+            FarCall(5, RestoreSelectionState);
             if (hGameboyType) {
                 FarCall(1, FAR_FN(DrawScreenPaletteMap));
                 FarCall(5, DrawMapTopRow);
@@ -474,6 +489,8 @@ UBYTE GrooveScreenInput(void)
     return 0;
 }
 
+/* $4B6C: copy the groove selection to the clipboard, and when `cut` clear it
+   (steps to 0, step 0 to 6) */
 void CutCopyGrooveSelection(UBYTE cut)
 {
     UBYTE row;
@@ -502,6 +519,8 @@ void CutCopyGrooveSelection(UBYTE cut)
     DrawGrooveSteps();
 }
 
+/* $4C63: write the clipboard steps into the groove from the cursor (clipType
+   2), advancing wGrooveRow and wrapping at 16; PASTE message */
 void PasteGrooveSelection(void)
 {
     UBYTE row;
@@ -518,27 +537,30 @@ void PasteGrooveSelection(void)
     DrawGrooveSteps();
 }
 
+/* $4CDE: clipType 2: highlight the rows between the anchor wSelectionTop and
+   the cursor (palette 3 on CGB, 2 on DMG) */
 void DrawGrooveSelection(void)
 {
-    UBYTE end, y, i;
+    UBYTE end, y, row;
 
     if (wClipboardType != SCREEN_GROOVE)
         return;
     if (wSelectionTop < wGrooveRow) {
-        i = wSelectionTop;
+        row = wSelectionTop;
         end = wGrooveRow + 1;
     } else {
         end = wSelectionTop + 1;
-        i = wGrooveRow;
+        row = wGrooveRow;
     }
-    for (; i < end; i++) {
-        y = i + 2;
-        if (i & 0xF0)
+    for (; row < end; row++) {
+        y = row + 2;
+        if (row & 0xF0)
             DebugTrap();
         ColorField(2, y, 2, hGameboyType ? 3 : 2);
     }
 }
 
+/* $4D58: reset groove screen state (wGrooveCacheValid=0 + 16-slot loop) */
 void ResetGrooveState(void)
 {
     UBYTE step;

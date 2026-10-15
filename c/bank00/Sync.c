@@ -23,19 +23,19 @@ extern volatile sfr UBYTE SC_REG;           /* $FF02 */
 extern volatile sfr UBYTE DIV_REG;          /* $FF04 */
 extern volatile sfr UBYTE NR50_REG;         /* $FF24 */
 extern volatile sfr UBYTE NR52_REG;         /* $FF26 */
-extern volatile sfr UBYTE hSoundChannel;         /* $FF8B, the sound engine's channel */
+extern volatile sfr UBYTE hSoundChannel;    /* $FF8B, the sound engine's channel */
 extern volatile sfr UBYTE IE_REG;           /* $FFFF */
-extern UBYTE wChannelActive[];                 /* $C0E0, [4] */
-extern UBYTE wChannelPhrase[];                 /* $C168, [4] */
-extern UBYTE wChannelChain[];                  /* $C170, [4] */
-extern UBYTE wChannelChainRow[];               /* $C17C, [4] */
-extern UBYTE wChannelSongRow[];                /* $C200, [4] */
-extern UBYTE wChannelNextSongRow[];            /* $C2FC, [4] */
-extern UBYTE wChannelStopQueued[];                /* $C304, [4] */
+extern UBYTE wChannelActive[];              /* $C0E0, [4] */
+extern UBYTE wChannelPhrase[];              /* $C168, [4] */
+extern UBYTE wChannelChain[];               /* $C170, [4] */
+extern UBYTE wChannelChainRow[];            /* $C17C, [4] */
+extern UBYTE wChannelSongRow[];             /* $C200, [4] */
+extern UBYTE wChannelNextSongRow[];         /* $C2FC, [4] */
+extern UBYTE wChannelStopQueued[];          /* $C304, [4] */
 extern UBYTE wLiveMode;                     /* $C528 */
-extern UBYTE wPlayMinutes;                 /* $C552 */
-extern UBYTE wPlaySeconds;                 /* $C553 */
-extern UBYTE wLiveStartColumn;                 /* $C571 */
+extern UBYTE wPlayMinutes;                  /* $C552 */
+extern UBYTE wPlaySeconds;                  /* $C553 */
+extern UBYTE wLiveStartColumn;              /* $C571 */
 extern UBYTE wAnalogOutTimer;               /* $CB68 */
 extern UBYTE wSyncTick;                     /* $CB69 */
 extern UBYTE wSyncSerialIeMask;             /* $CB6D */
@@ -43,21 +43,21 @@ extern UBYTE wSyncStartRow;                 /* $CB6A */
 extern UBYTE wSyncRun;                      /* $CB6B */
 extern UBYTE wSyncHandshake;                /* $CB6C */
 extern UBYTE wSyncSendGate;                 /* $CB6E */
-extern UBYTE wSyncReceivePosition;                    /* $CB71 */
+extern UBYTE wSyncReceivePosition;          /* $CB71 */
 extern UBYTE wSendByteNest;                 /* $CB72 */
-extern UWORD wAnalogInStepLength;                 /* $CB73 */
-extern UWORD wAnalogInStepAccumulator;               /* $CB75 */
+extern UWORD wAnalogInStepLength;           /* $CB73 */
+extern UWORD wAnalogInStepAccumulator;      /* $CB75 */
 extern UBYTE wSyncInPulses;                 /* $CB77 */
 extern UBYTE wSyncInGate;                   /* $CB78 */
-extern UBYTE wAnalogInPulseCount;              /* $CB79 */
-extern UBYTE wAnalogInPreviousPlayMode;            /* $CB7A */
-extern UBYTE wSyncTransmitByte;                   /* $CBDC */
-extern UBYTE wSyncReceiveByte;                   /* $CBDD */
+extern UBYTE wAnalogInPulseCount;           /* $CB79 */
+extern UBYTE wAnalogInPreviousPlayMode;     /* $CB7A */
+extern UBYTE wSyncTransmitByte;             /* $CBDC */
+extern UBYTE wSyncReceiveByte;              /* $CBDD */
 extern UBYTE wSyncState;                    /* $CBDE */
 extern char TxtTooBusy[];                   /* $01:$6FAE, "TOO BUSY!" */
 
-void SoundInitializePlayState(void);                /* bank 2 */
-void SetInterruptEnable(UBYTE interruptMask);          /* asm */
+void SoundInitializePlayState(void);        /* bank 2 */
+void SetInterruptEnable(UBYTE interruptMask); /* asm */
 void SendSyncHandshake(void);
 void SendSyncByte(void);                    /* asm */
 UWORD ChecksumRomBank(void);                /* $00:$20B3, asm */
@@ -66,14 +66,15 @@ void SyncApplyMode(void);
 void SyncTickLsdj(void);
 void SyncSetSendMode(void);
 void SyncSetReceiveMode(void);
-void SoundTogglePlayback(void);                    /* bank 2 */
-void SoundResetChannelCommand(void);           /* bank 2 */
-void SoundResetCommandState(void);                 /* bank 2 */
-void SoundEnableLcdInterrupts(void);                /* bank 2 */
-void SoundRunFrame(void);                     /* bank 2 */
+void SoundTogglePlayback(void);             /* bank 2 */
+void SoundResetChannelCommand(void);        /* bank 2 */
+void SoundResetCommandState(void);          /* bank 2 */
+void SoundEnableLcdInterrupts(void);        /* bank 2 */
+void SoundRunFrame(void);                   /* bank 2 */
 void DrawSyncSubSetting(void);              /* bank $1B */
-void ReceiveLinkClipboard(void);                /* bank $1C */
+void ReceiveLinkClipboard(void);            /* bank $1C */
 
+/* $1CFF: read song sync property ($BFBD) -> wSyncMode/wSyncMode2 */
 void SyncLoadSetting(void)
 {
     wSyncMode = *SramPropertySyncMode;
@@ -85,6 +86,8 @@ void SyncLoadSetting(void)
     SyncApplyMode();
 }
 
+/* $1D29: on play-start (LSDJ/MIDI): if LSDJ idle (wSyncTick=$FF) become
+   leader (wSyncRun=1, SyncSetSendMode) else send handshake */
 void SyncStartTransport(void)
 {
     UBYTE lsdj;
@@ -101,6 +104,8 @@ void SyncStartTransport(void)
     }
 }
 
+/* $1D6C: on play-stop: LSDJ/MIDI -> reset wSyncRun/Tick/Handshake +
+   SyncSetReceiveMode; AN.OUT (7) -> wAnalogOutTimer=3 */
 void SyncStopTransport(void)
 {
     switch (wSyncMode) {
@@ -117,6 +122,9 @@ void SyncStopTransport(void)
     }
 }
 
+/* $1D9D: LSDJ sync tick: in live mode reset per-channel play state + redraw
+   SONG row indicators (bank2 $5F5E); else copy wCurrentScreen->wPlayMode
+   (bank2 $7C4C) */
 void SyncTickLsdj(void)
 {
     UBYTE *saved;
@@ -150,6 +158,8 @@ void SyncTickLsdj(void)
     }
 }
 
+/* $1E75: MIDI sync tick: if live mode -> SyncTickLsdj, else advance playback
+   twice (bank2 $7C4C) */
 void SyncTickMidi(void)
 {
     if (wLiveMode) {
@@ -161,6 +171,8 @@ void SyncTickMidi(void)
     }
 }
 
+/* $1E93: per sync tick: reset wSyncTick=$FF; if playing, dispatch by
+   wSyncMode (1=LSDJ->SyncTickLsdj, 3=MIDI->SyncTickMidi); preserves ROM bank */
 void DispatchSyncClock(void)
 {
     UBYTE saved;
@@ -176,6 +188,8 @@ void DispatchSyncClock(void)
     SWITCH_ROM(saved);
 }
 
+/* $1EC8: send/leader config: wSyncSendGate=1, wSyncSerialIeMask=0, enable
+   VBlank IRQ + disable serial-receive IRQ */
 void SyncSetSendMode(void)
 {
     wSyncSerialIeMask = 0;
@@ -183,6 +197,8 @@ void SyncSetSendMode(void)
     SetInterruptEnable((IE_REG & 4) | 1);
 }
 
+/* $1EE3: receive/follower config: wSyncSendGate=0, wSyncSerialIeMask=8,
+   enable serial-receive IRQ, wSyncTick=$FF, SendSyncHandshake */
 void SyncSetReceiveMode(void)
 {
     wSyncSerialIeMask = 8;
@@ -192,6 +208,8 @@ void SyncSetReceiveMode(void)
     SendSyncHandshake();
 }
 
+/* $1F06: (re)configure sync for wSyncMode: di, wSyncRun=0, dispatch
+   0/1/3/5/6/7 -> SyncSetSendMode/SyncSetReceiveMode/gates/handshake */
 void SyncApplyMode(void)
 {
     _asm di _endasm;
@@ -230,6 +248,8 @@ void SyncApplyMode(void)
     _asm ei _endasm;
 }
 
+/* $1F9A: AN.OUT mode: emit clock pulse byte ($FF/$00 by wAnalogOutTimer
+   ticks/step, reloaded from wSyncMode2) via SendSyncByte */
 void SyncSendAnalogClock(void)
 {
     if ((SC_REG & 0x81) == 0x81)
@@ -241,6 +261,8 @@ void SyncSendAnalogClock(void)
     wAnalogOutTimer--;
 }
 
+/* $1FD5: sum ROM bytes vs header global checksum ($014E/$014F) -- SRAM/boot
+   self-test path */
 UBYTE CheckRomChecksum(void)
 {
     UBYTE bank;
@@ -265,6 +287,9 @@ UBYTE CheckRomChecksum(void)
     return (sum & 0xFF) == low && (sum >> 8) == high;
 }
 
+/* $20DB: CPU-overload handler (redraw backlog overflowed while playing):
+   reset playback (bank2 $710E: exit live mode + sound reinit) and
+   ShowMessage "TOO BUSY!" */
 void HandleTooBusy(void)
 {
     UBYTE saved;
@@ -277,6 +302,7 @@ void HandleTooBusy(void)
     SWITCH_ROM(saved);
 }
 
+/* $2106: ReadSequenceByte via ReadSongByteRaw (bank0 $B290) */
 UBYTE ReadSequenceByteRaw(UBYTE channel, UBYTE step)
 {
     UBYTE *p;
@@ -285,6 +311,8 @@ UBYTE ReadSequenceByteRaw(UBYTE channel, UBYTE step)
     return ReadSongByteRaw(0, p + channel);
 }
 
+/* $2141: read the phrase on `row` of chain `chain` (SramChainPhrases,
+   through ReadSongByteRaw) */
 UBYTE ReadChainByte(UBYTE chain, UBYTE row)
 {
     UBYTE *p;
@@ -293,6 +321,9 @@ UBYTE ReadChainByte(UBYTE chain, UBYTE row)
     return ReadSongByteRaw(1, p + row);
 }
 
+/* $217C: (non-live) seek the song playback position to the received sync
+   position (LSDJ wSyncReceivePosition / else wSyncStartRow): per channel,
+   scan the song sequence (ReadSequenceByteRaw) following chain links */
 void SyncSeekSongPosition(void)
 {
     UBYTE channel, row, chain;
@@ -321,6 +352,7 @@ void SyncSeekSongPosition(void)
     wPlayMode = PLAY_SONG;
 }
 
+/* $227C: one step of the multi-byte (MIDI) send loop */
 void SendByteStep(void)
 {
     UBYTE saved, channel;
@@ -371,6 +403,7 @@ void SendByteStep(void)
     hSoundChannel = channel;
 }
 
+/* $234D: consume received $CBDD: <$FD position / >=$FD transport */
 void ProcessSyncByte(void)
 {
     UBYTE saved;
@@ -398,6 +431,8 @@ void ProcessSyncByte(void)
     SendByteStep();
 }
 
+/* $23CA: AN.IN mode (wSyncSendGate>=2): process the incoming clock pulse
+   byte (rSB), counting via $CB77-79 to advance the sequencer */
 void SyncReceiveAnalogClock(void)
 {
     UBYTE serialByte, steps;

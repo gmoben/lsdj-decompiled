@@ -30,7 +30,7 @@
 0150 Start                      ; init (from Entry): a = the boot ROM's model id and b its AGB flag, kept in wBootHardwareId/wBootAgbId; di, stack at $E000, clear WRAM/HRAM, copy OamDmaRoutine to HRAM
 0824 CommandMnemonics           ; "-ABCDEFGHKLMOPRSTVWZ": phrase/table command letters indexed by command byte (0='-'=none); CommandHandlers order
 0839 PlayModeNames              ; five 9-byte table PLAY mode names "  MANUAL", "    ONCE", "    LOOP", "PINGPONG", "  RESYNC" (DrawWaveInstrument: byte 9, capped at 5)
-0DDB InitializeAndLoadSong      ; second-stage boot (runs once before MainLoop): SwitchToDoubleSpeed, ClearBgTilemap, init subsystems, load the working song (bank1 $4CF1/$4848) or ResetWorkState if empty, set palettes + load song properties
+0DDB InitializeAndLoadSong      ; second-stage boot (runs once before main's loop): SwitchToDoubleSpeed, ClearBgTilemap, init subsystems, load the working song (bank1 $4CF1/$4848) or ResetWorkState if empty, set palettes + load song properties
 1377 .mainLoop                  ; poll ready flags, then process a frame (-> ProcessInput)
 1CFF SyncLoadSetting            ; read song sync property ($BFBD) -> wSyncMode/wSyncMode2
 254F DispatchScreenDraw         ; jp table ScreenDrawJumps indexed by wCurrentScreen ($C401): per-screen draw
@@ -137,7 +137,7 @@
 0C5A FarCallArgument2V          ; call fn(a, b) in another ROM bank
 0C8F FarCallArgument2           ; call fn(a, b) in another ROM bank, returning its byte (e)
 0CC5 FarCallArgument3           ; call fn(a, b, c) in another ROM bank
-0CFE KitExists                  ; (kit index) -> e=1 if a kit is present at KitIndexToBank(index): switch to that bank, check [$4000:01]==$6040 (was mislabeled FarCallByteAlt -- it reads $4000, not a FarCall)
+0CFE KitExists                  ; (kit index) -> e = 1 if a kit is present at KitIndexToBank(index): switch to that bank and check [$4000:01] == $6040
 2106 ReadSequenceByteRaw        ; ReadSequenceByte via ReadSongByteRaw (bank0 $B290)
 1482 DebugTrap                  ; assert/debug trap (ld b,b BGB marker + rst $38), fires once via wDebugTrapped
 
@@ -157,7 +157,7 @@
 1BA7 SoundWriteFrequencyPu1     ; ch0: wChannelOutNote+transpose[wChannelNoteOffset]+finetune+vib+pitch -> SoundInterpolatePeriod -> wChannelFrequency + rAUD1LOW/HIGH/LEN
 1BF6 SoundWriteFrequencyPu2     ; ch1: like PU1 -> wChannelFrequency+2 + rAUD2LOW/HIGH/LEN
 1C3D SoundWriteFrequencyWav     ; ch2: like PU1 -> wChannelFrequency+4 + rAUD3LOW/HIGH (rAUD3LEN=0)
-1C7C SoundUpdatePitchModulationFlagCurrent ; dispatch by hSoundChannel -> SndUpdatePitchModFlag{PU1 (ch0),PU2 (ch1),Wav (>=2)}
+1C7C SoundUpdatePitchModulationFlagCurrent ; dispatch by hSoundChannel -> SoundUpdatePitchModulationFlag{Pu1,Pu2,Wav} (channel 0, 1, 2 and up)
 1C84 SoundUpdatePitchModulationFlagWav ; ch2: wChannelPitchModulationActiveWav = (wChannelPitchRate+4|+5 | wChannelVibratoSpeed+5)!=0, skipped if wChannelVibratoShape+2 set
 1C96 SoundUpdatePitchModulationFlagPu2 ; ch1: wChannelPitchModulationActivePu2 = (wChannelPitchRate+2|+3 | wChannelVibratoSpeed+3)!=0, skipped if wChannelVibratoShape+1 set
 1CA8 SoundUpdatePitchModulationFlagPu1 ; ch0: wChannelPitchModulationActive = (wChannelPitchRate+0|+1 | wChannelVibratoSpeed+1)!=0, skipped if wChannelVibratoShape set
@@ -187,7 +187,7 @@
 1F9A SyncSendAnalogClock        ; AN.OUT mode: emit clock pulse byte ($FF/$00 by wAnalogOutTimer ticks/step, reloaded from wSyncMode2) via SendSyncByte
 23CA SyncReceiveAnalogClock     ; AN.IN mode (wSyncSendGate>=2): process the incoming clock pulse byte (rSB), counting via $CB77-79 to advance the sequencer
 217C SyncSeekSongPosition       ; (non-live) seek the song playback position to the received sync position (LSDJ wSyncReceivePosition / else wSyncStartRow): per channel, scan the song sequence (ReadSequenceByteRaw) following chain links
-34F0 GetTileLoadNow             ; e = wTileLoadNow ($CBDB tile-loader flag); unused (dead code; was mislabeled GetSyncPosition)
+34F0 GetTileLoadNow             ; -> e = wTileLoadNow ($CBDB, the tile loader's flag); nothing calls it
 34F5 EnableInterrupts           ; ei; ret
 34F7 DisableInterrupts          ; di; ret
 34F9 SoftReset                  ; a = boot id [wBootHardwareId]; jp Start (b, Start's AGB flag, is the caller's)

@@ -11,43 +11,46 @@
 #define SOUND_BANK                          /* lsdj.h: our own far-call targets */
 #include "lsdj.h"
 
-extern volatile sfr UBYTE hSoundChannel;         /* $FF8B */
+extern volatile sfr UBYTE hSoundChannel;    /* $FF8B */
 extern volatile sfr UBYTE DIV_REG;          /* $FF04 */
-extern UBYTE wChannelActive[];                 /* $C0E0, [4] */
+extern UBYTE wChannelActive[];              /* $C0E0, [4] */
 extern UBYTE wPlayRestartPending;           /* $C4CD */
-extern UBYTE wSyncTransmitByte;                   /* $CBDC */
+extern UBYTE wSyncTransmitByte;             /* $CBDC */
 extern UBYTE wSpeechWord;                   /* $C4CE */
 extern UBYTE wSpeechFrameTicks;             /* $C4CF */
 extern UBYTE wWavPlayMode;                  /* $C500 */
-extern UBYTE wKeyboardNoteInjected;              /* $C8F9 */
-extern UBYTE wKeyboardNoteQueued;                /* $CB92 */
-extern UBYTE wChannelDisplayNote[];               /* $C41F, [4] */
-extern UBYTE *wSpeechPointer;                   /* $C4D0: the word's allophone stream (SRAM bank 0) */
+extern UBYTE wKeyboardNoteInjected;         /* $C8F9 */
+extern UBYTE wKeyboardNoteQueued;           /* $CB92 */
+extern UBYTE wChannelDisplayNote[];         /* $C41F, [4] */
+extern UBYTE *wSpeechPointer;               /* $C4D0: the word's allophone stream (SRAM bank 0) */
 extern UBYTE wKit2Bank;                     /* $C4F5 */
 extern UBYTE wKit2LoopEnabled;              /* $C4E5 */
-extern UBYTE wChannelNote[];                   /* $C0CC, [4] */
-extern UBYTE *wWavFrameDeltaPointer;            /* $C521 */
+extern UBYTE wChannelNote[];                /* $C0CC, [4] */
+extern UBYTE *wWavFrameDeltaPointer;        /* $C521 */
 extern UBYTE *wWavFrameDeltaLoop;           /* $C523 */
 extern UBYTE wWavFrameTimer;                /* $C525 */
 extern UBYTE wWavSynthFrame;                /* $C694 */
-extern UBYTE wWavUploadPending;              /* $C69C */
-extern UBYTE wCommandWaveParameter2;                 /* $C8C3 */
-extern UBYTE wPointerChainRow, wPointerPhraseRow, wPointerNoteCountdown, wPointerGroove;  /* $C8DF.. */
-extern UBYTE wPointerGrooveRow, wPointerPhrase, wPointerNoteSource;                       /* ..$C8ED */
+extern UBYTE wWavUploadPending;             /* $C69C */
+extern UBYTE wCommandWaveParameter2;        /* $C8C3 */
+extern UBYTE wPointerChainRow, wPointerPhraseRow, wPointerNoteCountdown, wPointerGroove; /* $C8DF.. */
+extern UBYTE wPointerGrooveRow, wPointerPhrase, wPointerNoteSource; /* ..$C8ED */
 UBYTE SoundGetChainPhrase(UBYTE chain, UBYTE row);
-void initrand(UWORD seed);              /* bank 0 */
+void initrand(UWORD seed);                  /* bank 0 */
 void SoundStepAllChannels(void);
 void SoundRunChannelCommandSlots(void);
 void SoundSetupWaveChannel(void);
 void SoundSpeechStep(void);
 void SoundStepWavFrames(void);
 void SoundUpdateAllChannels(void);
-void SoundInitializeKit2Sample(UBYTE n);             /* bank 0 */
-void SoundTriggerWav(void);                     /* asm */
-void SoundResetWavFlat(void);                 /* asm */
-void SoundClearVoiceHram(void);               /* asm */
-void SoundLoadWaveRam(void);                     /* bank 0, asm */
+void SoundInitializeKit2Sample(UBYTE n);    /* bank 0 */
+void SoundTriggerWav(void);                 /* asm */
+void SoundResetWavFlat(void);               /* asm */
+void SoundClearVoiceHram(void);             /* asm */
+void SoundLoadWaveRam(void);                /* bank 0, asm */
 
+/* $507F: advance the 7 working sound-state pointers (low bytes
+   wPointerChainRow/e1/e3/e5/e7/eb/ed) to the next channel's slot in the
+   $C1xx tables (counterpart of SoundInitializeStatePointers) */
 void SoundAdvanceStatePointers(void)
 {
     wPointerPhraseRow++;

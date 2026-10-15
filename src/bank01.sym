@@ -115,7 +115,7 @@
 74E8 TxtScreenSynth             ; "SYNTH "
 74EF TxtScreenGroove            ; "GROOVE "
 
-; --- unreferenced allocation/draw helpers (linked but dead) ---
+; --- allocation and field-name helpers, reached by banked calls ---
 4DD3 FreePhrase                 ; clear phrase's bit in the phrase allocation map (SramPhraseAllocation) and write it back: CleanSongData frees a duplicate
 4F59 IsChainUsed                ; -> e = chain's bit in the chain allocation map, nonzero when in use; chain < $80 (CleanSongData, through FarCallArgumentByte)
 4F99 IsPhraseUsed               ; -> e = phrase's bit in the phrase allocation map, nonzero when in use; phrase != $FF (IsPhraseUsedFar)

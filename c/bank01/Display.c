@@ -15,42 +15,45 @@ extern volatile sfr UBYTE LCDC_REG;         /* $FF40 */
 extern volatile sfr UBYTE BGP_REG;          /* $FF47 */
 extern volatile sfr UBYTE OBP0_REG;         /* $FF48 */
 extern UBYTE wColorSet;
-extern UBYTE wBootHardwareId;                     /* $CBD9 */
+extern UBYTE wBootHardwareId;               /* $CBD9 */
 extern UBYTE wFileNameScratch[];
 extern UWORD ColorSetPalettes[];            /* $01:$56A7, [sets][20] */
-void set_bkg_palette(UBYTE first, UBYTE nb, UWORD *rgb);   /* GBDK */
+void set_bkg_palette(UBYTE first, UBYTE nb, UWORD *rgb); /* GBDK */
 void LoadObjPalette(UBYTE first, UBYTE nb, UWORD *rgb);
-extern UBYTE wNotePeriodLow[];               /* $CD28 */
+extern UBYTE wNotePeriodLow[];              /* $CD28 */
 extern UBYTE wNotePeriods[];                /* $CF28 */
-extern UBYTE NoteFrequencyTable[];               /* $01:$40FA */
-extern UBYTE NoteFrequencyTableSgb[];          /* $01:$41D2, Super Game Boy */
+extern UBYTE NoteFrequencyTable[];          /* $01:$40FA */
+extern UBYTE NoteFrequencyTableSgb[];       /* $01:$41D2, Super Game Boy */
 extern UBYTE PitchCurve[];                  /* $01:$42AA */
 extern UBYTE PitchCurveSgb[];               /* $01:$4382, Super Game Boy */
 void ApplyColorSet(void);
 void ClearOamBuffer(void);
 void LoadHardwareTables(void);
-void WriteVramByteSafeP(UBYTE *address, UBYTE v);   /* WriteVramByteSafe with a pointer address (aliased) */
+void WriteVramByteSafeP(UBYTE *address, UBYTE v); /* WriteVramByteSafe with a pointer address (aliased) */
 extern UBYTE wOamBuffer[];                  /* $DD00, the OAM shadow: 40 sprites x {y, x, tile, prop} */
 extern volatile UBYTE wOamDirty;            /* $CBD1 */
 UBYTE *GetScreenPalette(void);
-void CopyScreenMapCgb(UWORD s);              /* asm */
-void CopyScreenMapDmg(UBYTE *s);             /* asm */
-extern UBYTE ScreenPaletteChain[];              /* $01:$57BF */
-extern UBYTE ScreenPaletteFile[];               /* $01:$6B6F */
-extern UBYTE ScreenPaletteGroove[];             /* $01:$5BF7 */
-extern UBYTE ScreenPaletteInstrumentKit[];           /* $01:$62FF */
-extern UBYTE ScreenPaletteInstrumentNoise[];         /* $01:$6467 */
-extern UBYTE ScreenPaletteInstrumentPulse[];         /* $01:$602F */
-extern UBYTE ScreenPaletteInstrumentWave[];          /* $01:$6197 */
-extern UBYTE ScreenPalettePhrase[];             /* $01:$5A8F */
-extern UBYTE ScreenPaletteProject[];            /* $01:$5D5F */
-extern UBYTE ScreenPaletteSong[];               /* $01:$5EC7 */
-extern UBYTE ScreenPaletteSpeech[];             /* $01:$65CF */
-extern UBYTE ScreenPaletteSynth[];              /* $01:$689F */
-extern UBYTE ScreenPaletteTable[];              /* $01:$5927 */
-extern UBYTE ScreenPaletteWave[];               /* $01:$6737 */
-extern UBYTE ScreenPaletteWord[];               /* $01:$6A07 */
+void CopyScreenMapCgb(UWORD s);             /* asm */
+void CopyScreenMapDmg(UBYTE *s);            /* asm */
+extern UBYTE ScreenPaletteChain[];          /* $01:$57BF */
+extern UBYTE ScreenPaletteFile[];           /* $01:$6B6F */
+extern UBYTE ScreenPaletteGroove[];         /* $01:$5BF7 */
+extern UBYTE ScreenPaletteInstrumentKit[];  /* $01:$62FF */
+extern UBYTE ScreenPaletteInstrumentNoise[]; /* $01:$6467 */
+extern UBYTE ScreenPaletteInstrumentPulse[]; /* $01:$602F */
+extern UBYTE ScreenPaletteInstrumentWave[]; /* $01:$6197 */
+extern UBYTE ScreenPalettePhrase[];         /* $01:$5A8F */
+extern UBYTE ScreenPaletteProject[];        /* $01:$5D5F */
+extern UBYTE ScreenPaletteSong[];           /* $01:$5EC7 */
+extern UBYTE ScreenPaletteSpeech[];         /* $01:$65CF */
+extern UBYTE ScreenPaletteSynth[];          /* $01:$689F */
+extern UBYTE ScreenPaletteTable[];          /* $01:$5927 */
+extern UBYTE ScreenPaletteWave[];           /* $01:$6737 */
+extern UBYTE ScreenPaletteWord[];           /* $01:$6A07 */
 
+/* $4B15: load the clock-dependent tables: PitchCurve -> wNotePeriodLow,
+   NoteFrequencyTable -> wNotePeriods, the Super Game Boy's versions on an
+   SGB (wIsSgb) */
 void LoadHardwareTables(void)
 {
     memcpy(wNotePeriodLow, wIsSgb ? PitchCurveSgb : PitchCurve, 0xD8);
@@ -82,6 +85,8 @@ void ClearOamBuffer(void)
     LCDC_REG |= 2;
 }
 
+/* $4C61: load the wColorSet CGB BG+OBJ palettes (hw $11 check,
+   set_bkg_palette) */
 void ApplyColorSet(void)
 {
     UWORD *palette;
@@ -102,6 +107,7 @@ void ApplyColorSet(void)
     }
 }
 
+/* $4CF1: screen setup: ApplyColorSet + ClearOamBuffer + LoadHardwareTables */
 void InitializeScreen(void)
 {
     ApplyColorSet();
@@ -109,6 +115,8 @@ void InitializeScreen(void)
     LoadHardwareTables();
 }
 
+/* $55C9: returns CGB BG palette block for wCurrentScreen (INSTR varies by
+   instr type) */
 UBYTE *GetScreenPalette(void)
 {
     switch (wCurrentScreen) {
@@ -154,6 +162,9 @@ UBYTE *GetScreenPalette(void)
     return 0;
 }
 
+/* $6CD7: the current screen's palette map (GetScreenPalette):
+   CopyScreenMapCgb on CGB, CopyScreenMapDmg on DMG (the message cancelled);
+   none clears the attribute map */
 void DrawScreenPaletteMap(void)
 {
     UBYTE *s;
@@ -173,6 +184,7 @@ void DrawScreenPaletteMap(void)
     }
 }
 
+/* $6D23: clear BG tilemap from $9800 (VBK-aware: bank1 attrs on CGB) */
 void ClearBgMapAndAttributes(void)
 {
     UBYTE *cell = (UBYTE *)BG_MAP(0, 0);

@@ -13,20 +13,22 @@
 #include "lsdj.h"
 
 extern UBYTE wSongScroll;                   /* $C41C */
-extern UBYTE wSelectionTop;                       /* $C40E */
+extern UBYTE wSelectionTop;                 /* $C40E */
 extern UBYTE wClipboardType;                /* $C411 */
-extern UBYTE wSongPasteColumn;                 /* $C94E */
+extern UBYTE wSongPasteColumn;              /* $C94E */
 extern UBYTE wSongPasteRow;                 /* $C94F */
-extern UBYTE SongColumnOffsets[];              /* $07:$4047 */
+extern UBYTE SongColumnOffsets[];           /* $07:$4047 */
 void EraseSongCursor(void);
-void SortBytePairC(char *a, char *b);      /* SortBytePair as this unit declares it */
-void DrawTileRun(UBYTE x, UBYTE y, UBYTE w, UBYTE h, UBYTE tile);   /* asm */
+void SortBytePairC(char *a, char *b);       /* SortBytePair as this unit declares it */
+void DrawTileRun(UBYTE x, UBYTE y, UBYTE w, UBYTE h, UBYTE tile); /* asm */
 
 const UBYTE SongSelectionAttribute[32] = {             /* $07:$5DB8: CGB attribute 3 for the selection */
     3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
     3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 };
 
+/* $5B1D: apply the current edit op across the selection rect (clipType 4; 7
+   uses in SongScreenInput) */
 void EditSongSelection(void)
 {
     UBYTE column;

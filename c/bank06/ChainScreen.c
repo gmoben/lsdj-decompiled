@@ -10,46 +10,50 @@
 
 #include "lsdj.h"
 
-extern UBYTE wChannelActive[];                 /* $C0E0, [4] */
-extern UBYTE wChannelChain[];                  /* $C170, [4] */
-extern UBYTE wChannelChainRow[];               /* $C17C, [4] */
-extern UBYTE wChannelSongRow[];                /* $C200, [4] */
+extern UBYTE wChannelActive[];              /* $C0E0, [4] */
+extern UBYTE wChannelChain[];               /* $C170, [4] */
+extern UBYTE wChannelChainRow[];            /* $C17C, [4] */
+extern UBYTE wChannelSongRow[];             /* $C200, [4] */
 extern UBYTE wChain;                        /* $C418 */
-extern UBYTE wChainColumn;                     /* $C419 */
+extern UBYTE wChainColumn;                  /* $C419 */
 extern UBYTE wChainRow;                     /* $C41A */
 extern UBYTE wLiveMode;                     /* $C528 */
-extern UBYTE ChainColumnX[];                  /* the chain screen's two columns: x */
-void DrawAllChannelStatus(void);               /* bank $1F */
+extern UBYTE ChainColumnX[];                /* the chain screen's two columns: x */
+void DrawAllChannelStatus(void);            /* bank $1F */
 extern char TxtClonedPhrase[];              /* $06:$5899 "CLONED PHRASE" */
 extern char TxtDashes2[];                   /* $06:$5A5E " --" */
-extern UBYTE wColumnPhrase[];                  /* $C453, [4] */
+extern UBYTE wColumnPhrase[];               /* $C453, [4] */
 void DrawChainPosition(void);
 void LoadChainRow(void);
-void AllocateNextFreePhrase(void);             /* bank 1 */
+void AllocateNextFreePhrase(void);          /* bank 1 */
 void WriteChainPhrase(void);                /* bank $1F */
 void ShowOutOfMemory(void);                 /* bank 1 */
 void ClonePhraseAtCursor(UBYTE source, UBYTE destination);
-extern UBYTE wSelectionTop;                       /* $C40E */
-extern UBYTE wSelectionRight;                     /* $C40F */
-extern UBYTE wSelectionBottom;                    /* $C410 */
+extern UBYTE wSelectionTop;                 /* $C40E */
+extern UBYTE wSelectionRight;               /* $C40F */
+extern UBYTE wSelectionBottom;              /* $C410 */
 extern UBYTE wClipboardType;                /* $C411 */
 extern UBYTE wButtons;                      /* $C575 */
 extern UBYTE wSelectHeld;                   /* $C40A */
 extern UBYTE wBHeld;                        /* $C40B */
 extern UBYTE wAPressEnabled;                /* $C409 */
 void SaveSelectionState(void);              /* $05:$743F */
-void MoveMapCursorLeft(void);                     /* $05:$4233 */
-void MoveMapCursorUp(void);                       /* $05:$426A */
-void MoveMapCursorDown(void);                     /* $05:$4287 */
-void SoundToggleSongPlayback(void);                 /* $02:$78C4 */
-void SoundTogglePlayback(void);                    /* $02:$7C4C */
-void SendLinkClipboard(void);                   /* bank $1C */
+void MoveMapCursorLeft(void);               /* $05:$4233 */
+void MoveMapCursorUp(void);                 /* $05:$426A */
+void MoveMapCursorDown(void);               /* $05:$4287 */
+void SoundToggleSongPlayback(void);         /* $02:$78C4 */
+void SoundTogglePlayback(void);             /* $02:$7C4C */
+void SendLinkClipboard(void);               /* bank $1C */
 
+/* $54FA: read the chain number under the song cursor
+   (ReadSequenceByte(wSongColumn, wSongRow)) */
 UBYTE GetCursorChain(void)
 {
     return ReadSequenceByte(wSongColumn, wSongRow);
 }
 
+/* $5511: read the phrase at (wChain, wChainRow) via FarCallArgument2; $ff ->
+   empty path */
 UBYTE LoadChainCursorPhrase(void)
 {
     UBYTE row, phrase;
@@ -68,6 +72,8 @@ UBYTE LoadChainCursorPhrase(void)
     }
 }
 
+/* $5563: enter the chain screen for the cursor chain (LIVE-mode aware,
+   clears message) */
 UBYTE ChainScreenEnter(UBYTE column)
 {
     UBYTE chain, row;
@@ -95,6 +101,8 @@ UBYTE ChainScreenEnter(UBYTE column)
     return 1;
 }
 
+/* $5626: draw "CP" and the chain cursor row (DrawByte) at $9851 in the
+   shadow palette */
 void DrawChainPosition(void)
 {
     UBYTE r;
@@ -107,6 +115,7 @@ void DrawChainPosition(void)
     DrawByte(r);
 }
 
+/* $5655: write chain_transposes[chain<$80][step<$10] = v (SRAM bank 1 $A880) */
 void SetChainTranspose(UBYTE chain, UBYTE row, UBYTE v)
 {
     UBYTE *p;
@@ -119,6 +128,7 @@ void SetChainTranspose(UBYTE chain, UBYTE row, UBYTE v)
     WriteSongByte(1, p + row, v);
 }
 
+/* $56AA: read chain_transposes[chain<$80] from SRAM (bounds-checked) */
 UBYTE ReadChainTranspose(UBYTE chain, UBYTE step)
 {
     UBYTE *p;
@@ -129,6 +139,7 @@ UBYTE ReadChainTranspose(UBYTE chain, UBYTE step)
     return ReadSongByte(1, p + step);
 }
 
+/* $56F0: chain screen deep-clone: new phrase + copy rows, "CLONED PHRASE" */
 void ClonePhraseAtCursor(UBYTE source, UBYTE destination)
 {
     UBYTE *s1, *d1, *s2, *d2, *s3, *d3, *s4, *d4;
@@ -164,6 +175,8 @@ void ClonePhraseAtCursor(UBYTE source, UBYTE destination)
     }
 }
 
+/* $58A7: restore the chain cursor cell's palette (the transpose column 1 on
+   CGB, else 0) */
 void EraseChainCursor(void)
 {
     UBYTE r, c;
@@ -175,6 +188,8 @@ void EraseChainCursor(void)
     ColorField(ChainColumnX[wChainColumn], wChainRow + 2, 2, c && hGameboyType);
 }
 
+/* $58FB: load chain_phrases/chain_transposes[wChain] -> wSongReadBuffer /
+   wUsedTableMap (16 each) */
 void LoadChainRow(void)
 {
     UBYTE *p, *q;
@@ -185,6 +200,7 @@ void LoadChainRow(void)
     ReadSongBytes(1, q, wUsedTableMap);
 }
 
+/* $5947: screen idx 3: draws chain phrases + transposes */
 void DrawChainScreen(void)
 {
     UBYTE y;
@@ -229,6 +245,7 @@ void DrawChainScreen(void)
     FarCall(0x1F, FAR_FN(DrawAllChannelStatus));
 }
 
+/* $5A62: per-frame visual update (screen idx 3) */
 void ChainScreenUpdate(void)
 {
     if ((wPlayMode == PLAY_SONG || wPlayMode == PLAY_CHAIN) && wChannelActive[wSongColumn]
@@ -238,18 +255,22 @@ void ChainScreenUpdate(void)
         ClearSpriteY(0);
 }
 
+/* $5ABE: highlight the chain cursor cell (palette 3 on CGB, 2 on DMG) at
+   ChainColumnX[wChainColumn], row wChainRow */
 void DrawChainCursor(void)
 {
     ColorField(ChainColumnX[wChainColumn], wChainRow + 2, 2, hGameboyType ? 3 : 2);
 }
 
+/* $5B00: open the phrase under the chain cursor (RestoreSelectionState, load
+   phrase) */
 void OpenChainPhrase(void)
 {
     UBYTE phrase;
     UBYTE n;
 
     phrase = FarCallArgument2(2, (UWORD)SoundGetChainPhrase, wChain, (char)wChainRow);
-    FarCall(5, 0x747D);                 /* RestoreSelectionState, bank 5, by address */
+    FarCall(5, RestoreSelectionState);
     if (phrase == EMPTY)
         return;
     wColumnPhrase[wSongColumn] = phrase;
@@ -273,7 +294,7 @@ extern UBYTE wSongScroll;                   /* $C41C */
 extern UBYTE wQuickMarking;                 /* $C412 */
 extern UBYTE wMuteSoloLatch;                /* $C56A */
 extern UBYTE wChainScopeDirty;              /* $C403 */
-void MoveMapCursorRight(void);                    /* $05:$4253 */
+void MoveMapCursorRight(void);              /* $05:$4253 */
 void ShowTapAddPhrase(void);                /* bank 1 */
 void MarkPhraseUsed(void);                  /* bank 1 */
 void CutCopyChainSelection(UBYTE cut);
@@ -304,10 +325,10 @@ UBYTE ChainScreenInput(void)
     if (wCursorMode == CURSOR_SELECTING && wButtons == J_SELECT_TAP) {
         wChainColumn = wSelectionLeft;
         wChainRow = wSelectionTop;
-        FarCall(5, 0x747D);
+        FarCall(5, 0x747D);                     /* RestoreSelectionState */
         if (hGameboyType) {
-            FarCall(1, 0x6CD7);
-            FarCall(5, 0x4040);
+            FarCall(1, 0x6CD7);                 /* DrawScreenPaletteMap */
+            FarCall(5, 0x4040);                 /* DrawMapTopRow */
         }
         DrawChainScreen();
         ShowMessage("CANCEL SELECT");
@@ -782,6 +803,8 @@ UBYTE ChainScreenInput(void)
     return 0;
 }
 
+/* $6D55: copy the chain selection (phrases, transposes) to the clipboard,
+   clearing it too when `cut` */
 void CutCopyChainSelection(UBYTE cut)
 {
     UBYTE column, row;
@@ -821,6 +844,9 @@ void CutCopyChainSelection(UBYTE cut)
     DrawChainScreen();
 }
 
+/* $6F0D: SELECT+A paste on the chain screen: clipboard cells into rows
+   wSelectionTop..wSelectionBottom (column 0 phrases via WriteChainPhrase,
+   column 1 transposes), "PASTE" message when more than one row */
 void PasteChainCells(void)
 {
     UBYTE column, row;
@@ -843,6 +869,9 @@ void PasteChainCells(void)
         ShowMessage("PASTE");
 }
 
+/* $7006: chain selection (wClipboardType==3) redraw vs the cursor: cells
+   around the rectangle in their column palettes, the inside highlighted
+   (ColorField) */
 void DrawChainSelection(void)
 {
     UBYTE column, row, left, top, right, bottom;

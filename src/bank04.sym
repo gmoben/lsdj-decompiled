@@ -41,17 +41,17 @@
 4CC4 DrawNoteCell               ; draw wSampleNoteString (note name) or "OFF"
 510A CursorInstrumentIsKit      ; 1 if the instrument in effect at the cursor (FindCursorInstrument) is a kit
 5136 CheckPhraseEditContext     ; predicate over mode wSongColumn / col wPhraseColumn / wSelectionLeft / CursorInstrumentIsKit
-51AE PastePhraseSelection       ; paste the clipboard (wClipboardType) into the phrase: for rows wSelectionTop..wSelBottom and columns wSelectionRight-1 down to wSelectionLeft, each cell by column (kit notes merged nibble-wise, instrument, command, value); a 3-wide table-command selection (wClipboardType 5) shifts its command pair by -1/+1; PASTE message for multi-row pastes
+51AE PastePhraseSelection       ; paste the clipboard (wClipboardType) into the phrase: for rows wSelectionTop..wSelectionBottom and columns wSelectionRight-1 down to wSelectionLeft, each cell by column (kit notes merged nibble-wise, instrument, command, value); a 3-wide table-command selection (wClipboardType 5) shifts its command pair by -1/+1; PASTE message for multi-row pastes
 5491 CloneInstrument            ; copy instrument src to dst: its 16 bytes, then its name (CopyInstrumentName / WriteInstrumentName)
 55EB CloneTableAtCursor         ; clone the table referenced by the cmd value under the cursor (FindFreeTable+CopyTableData)
 567D PhraseCursorOnEditCell     ; -> e = 1 if the cursor is on the active command cell (wPhraseRow == wSelectionTop and wPhraseColumn == wSelectionLeft)
 56BA CloneAtPhraseCursor        ; double-A clone on the phrase screen: the instrument on the instrument column, an A command's table on the command column ("CLONED TABLE"); 1 if cloned
 572C PrelistenCursorRow         ; play the note/instr under the cursor while editing (wPrelisten gate)
-58D9 PhraseCellFlagA            ; phrase-cell predicate OR-ed in PrelistenEditedCell: note<$40 & instrument type==2 (kit) test
-597D PhraseCellFlagB            ; phrase-cell predicate OR-ed in PrelistenEditedCell (inc-row variant)
-5A20 PhraseCellFlagC            ; phrase-cell predicate OR-ed in PrelistenEditedCell (note<$10 / $f0-offset variant)
-5AC7 PhraseCellFlagD            ; phrase-cell predicate OR-ed in PrelistenEditedCell ($30/$10-offset, adjacent-compare variant)
-5B5E PrelistenEditedCell        ; preview the just-edited cell (kit instruments special-cased)
+58D9 PreviousPhraseInstrument   ; A+LEFT on the phrase's instrument column: the instrument before row row's (SetPhraseInstrument); -> e = 1 when the row's notes must redraw (a kit on either side)
+597D NextPhraseInstrument       ; A+RIGHT on the phrase's instrument column: the instrument after row row's, up to the speech instrument ($40); -> e = 1 when the row's notes must redraw
+5A20 PreviousPhraseInstrument16 ; A+DOWN on the phrase's instrument column: the instrument $10 before row row's (speech goes to $30); -> e = 1 when the row's notes must redraw
+5AC7 NextPhraseInstrument16     ; A+UP on the phrase's instrument column: the instrument $10 after row row's (past $3F, speech); -> e = 1 when the row's notes must redraw
+5B5E CursorRowIsKit             ; 1 if the phrase cursor's row plays a kit: on the wave channel, its instrument a kit (an empty row: wInstrumentIsKit, the last one entered; speech: 0)
 ; --- functions called from bank 0 (this bank paged in) ---
 5BA6 PhraseScreenInput          ; phrase screen (1) input handler, from DispatchScreenInput: dispatch on wButtons
 55DE TxtClonedInstr             ; "CLONED INSTR"
@@ -66,7 +66,7 @@
 5106 TxtPhraseBlank3b           ; "   " (the value column's padding without kits)
 54E3 PhraseStepOnes             ; [80] constant $01 table read by the four phrase edit handlers (per-index step/enable)
 57C0 CommandPrelistenFlags      ; [20] 1 per FX command (CommandMnemonics order) whose value edit re-plays the note (PhraseScreenInput -> PrelistenCursorRow, which checks PRELISTEN): A C E F K M O P R S V W, the ones that change the sound; not - B D G H L T Z
-57D4 DrawInstrumentName         ; FarCall bank1 CopyInstrumentName(instr) -> wSampleNoteString, draw the 5-char name
+57D4 SetPhraseInstrument        ; set phrase row row's instrument: written to SRAM, drawn, its name in the status panel, the column's instrument remembered; a noise instrument on the noise channel also sets the row's note to its last one (-> e = 1 then)
 4C10 TxtNoteEmpty               ; "---"
 4CE1 TxtNoteOff                 ; "OFF"
 
@@ -113,12 +113,12 @@
 5679 .done                      ; common exit of CloneTableAtCursor
 571D .done                      ; common exit of CloneAtPhraseCursor
 57BE .done                      ; common exit of PrelistenCursorRow
-57F2 .loop                      ; loop head in DrawInstrumentName
-5979 .done                      ; common exit of PhraseCellFlagA
-5A1C .done                      ; common exit of PhraseCellFlagB
-5AC3 .done                      ; common exit of PhraseCellFlagC
-5B5A .done                      ; common exit of PhraseCellFlagD
-5BA4 .done                      ; common exit of PrelistenEditedCell
+57F2 .loop                      ; loop head in SetPhraseInstrument
+5979 .done                      ; common exit of PreviousPhraseInstrument
+5A1C .done                      ; common exit of NextPhraseInstrument
+5AC3 .done                      ; common exit of PreviousPhraseInstrument16
+5B5A .done                      ; common exit of NextPhraseInstrument16
+5BA4 .done                      ; common exit of CursorRowIsKit
 624A .incrementLoop             ; loop head in PhraseScreenInput
 6403 .incrementCommandLoop      ; loop head in PhraseScreenInput
 669B .bigLoop                   ; loop head in PhraseScreenInput

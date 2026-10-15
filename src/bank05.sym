@@ -25,7 +25,7 @@
 459E ReadTableTranspose         ; read table_transposes[table][row<$10] from SRAM (bounds-checked)
 45F1 EraseTableCursor           ; restore the cursor cells to their column palette (TableColumnPalette) at row wTableRow+2, unless selecting
 472B DrawTableEnvelope          ; draw a table envelope cell (lo-nibble $F -> hi-nibble + release glyph)
-4930 TableInputFlag             ; return e=flag derived from input code (arg sp+4: 4 or $0a) and column wTableColumn
+4930 TableSkipsCommand          ; whether the table screen's command steppers skip command a: D always, L outside the first command column
 4AA8 DrawTableCursor            ; refresh the table cursor cell (select mode -> DrawTableSelection; palette by CGB)
 61CA CutCopyTableSelection      ; arg? "CUT" (copy+clear) : "COPY": table selection -> clipboard (clipType 5)
 64A3 PasteTableCells            ; table-screen paste: clipboard cells into rows from wTableRow (a phrase selection's CMD pair too; swaps the two CMD/value pairs; "PASTE" for more than one row)
@@ -42,7 +42,7 @@
 4287 MoveMapCursorDown          ; inc wMapRow (max 2), GotoMapCursorScreen, StartMapTransition(3)
 7208 ShowSynthFieldHelp         ; show the selected synth field's help line (ShowMessage; a jump table on wSynthCursor)
 743F SaveSelectionState         ; wCursorMode/wClipboardType/wSelectionLeft/Top/Right/... -> wSavedCursorMode save area
-747D RestoreSelectionState      ; wSavedCursorMode save area -> wCursorMode/wClipboardType/wSel*
+747D RestoreSelectionState      ; the wSavedCursorMode save area -> wCursorMode/wClipboardType/wSelection*
 69BD ShowInstrumentFieldHelp    ; instrument-screen help line: the string for wInstrumentField under instrument type arg (TYPE row: TxtHelpInstrType) -> ShowMessage
 6F38 TxtHelpInstrType           ; "USE PULSE IN PU1/PU2; WAVE/KIT IN WAV; NOISE IN NOI"
 6D25 TxtHelpEnvStage1           ; "ENVELOPE STAGE 1: ..." (ShowInstrumentFieldHelp reaches these ten shared strings by constant address)
@@ -89,7 +89,7 @@
 47D9 .loop                      ; loop head in DrawTableScreen
 4824 .loop2                     ; loop head in DrawTableScreen
 492C .done                      ; common exit of DrawTableScreen
-4965 .done                      ; common exit of TableInputFlag
+4965 .done                      ; common exit of TableSkipsCommand
 4AA4 .done                      ; common exit of TableScreenUpdate
 4B59 .done                      ; common exit of DrawTableCursor
 4F1F .incrementLoop             ; loop head in TableScreenInput

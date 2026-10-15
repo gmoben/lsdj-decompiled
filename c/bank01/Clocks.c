@@ -12,8 +12,10 @@
 extern UBYTE wPlayMinutes;                  /* $C552 */
 extern UBYTE wPlaySeconds;                  /* $C553 */
 extern UBYTE wPlayFrames;                   /* $C6A8 */
-extern volatile UBYTE wProjectDrawScratch;     /* $C9A7; volatile: the ROM re-reads it for the `++` */
+extern volatile UBYTE wProjectDrawScratch;  /* $C9A7; volatile: the ROM re-reads it for the `++` */
 
+/* $4FEC: per-frame PLAY clock: wPlayFrames counts to 60 (one frame skipped
+   every 4 s), then seconds/minutes; redraws m:ss on the project screen */
 void UpdatePlayClock(void)
 {
     if (!wPlayMode) {
@@ -45,6 +47,8 @@ void UpdatePlayClock(void)
     }
 }
 
+/* $50A0: apply one work-time minute: song WORKED h:mm ($BFB2/$BFB3) and the
+   total d:hh:mm ($BFB6-$BFB8) in SRAM bank 1 */
 void UpdateWorkClock(void)
 {
     UBYTE v;

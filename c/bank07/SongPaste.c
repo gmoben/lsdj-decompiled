@@ -15,13 +15,16 @@
 extern volatile UBYTE wSongRow;             /* $C41E: this unit declares the cursor row volatile */
 
 extern UBYTE wSongScroll;                   /* $C41C */
-extern UBYTE wSelectionTop;                       /* $C40E */
-extern UBYTE wSelectionRight;                     /* $C40F */
-extern UBYTE wSelectionBottom;                    /* $C410 */
-void WriteSongSramBytes(UWORD source, UWORD destination, UBYTE n);   /* asm $07:$7422; this unit casts both pointers */
+extern UBYTE wSelectionTop;                 /* $C40E */
+extern UBYTE wSelectionRight;               /* $C40F */
+extern UBYTE wSelectionBottom;              /* $C410 */
+void WriteSongSramBytes(UWORD source, UWORD destination, UBYTE n); /* asm $07:$7422; this unit casts both pointers */
 void AdjustBookmarksOnInsert(UBYTE from, UBYTE to);
 void WriteSongCell(UBYTE column, UBYTE row, UBYTE chain);
 
+/* $5970: paste the clipboard rows into the song grid at the cursor: shifts
+   the columns down (WriteSongSramBytes) to make room, writes the cells,
+   PASTED CHAINS */
 void PasteSongSelection(void)
 {
     UBYTE column;

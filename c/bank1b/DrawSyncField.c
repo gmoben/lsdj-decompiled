@@ -32,6 +32,9 @@ extern char TxtSyncPs2[];                   /* $1B:$59E1 "PS/2 DELAY " */
 extern char TxtSyncTicksStep[];             /* $1B:$59ED "TICKS/STEP " */
 extern char TxtBlank13[];                   /* $1B:$59F9 */
 
+/* $58B1: the project screen's SYNC field: the mode's name (wSyncMode), and
+   on the row below the parameter's label and value (PS/2 delay, ticks a
+   step) or a blank when the mode has none */
 void DrawSyncField(void)
 {
     char *s;

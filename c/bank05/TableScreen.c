@@ -11,25 +11,25 @@ void DrawTableSelection(void);
 
 extern volatile sfr UBYTE SCX_REG;          /* $FF43 */
 extern volatile sfr UBYTE SCY_REG;          /* $FF42 */
-extern UBYTE wSelectionTop;                       /* $C40E */
-extern UBYTE wSelectionRight;                     /* $C40F */
-extern UBYTE wSelectionBottom;                    /* $C410 */
+extern UBYTE wSelectionTop;                 /* $C40E */
+extern UBYTE wSelectionRight;               /* $C40F */
+extern UBYTE wSelectionBottom;              /* $C410 */
 extern UBYTE wClipboardType;                /* $C411 */
-void SendLinkClipboard(void);                   /* bank $1C */
+void SendLinkClipboard(void);               /* bank $1C */
 extern UBYTE wTable;                        /* $C41B, the table being edited */
-extern UWORD wTableCellAPointer;                /* $C447: CMD column base, an address held as an integer */
-extern UWORD wTableCellBPointer;                /* $C449: its value column */
-extern UBYTE wMapColumn;                       /* $C8FF, the screen map cursor */
+extern UWORD wTableCellAPointer;            /* $C447: CMD column base, an address held as an integer */
+extern UWORD wTableCellBPointer;            /* $C449: its value column */
+extern UBYTE wMapColumn;                    /* $C8FF, the screen map cursor */
 extern UBYTE wMapRow;                       /* $C900 */
-extern UBYTE wMapProjectColumn;                /* $C901 */
-extern UBYTE wMapSynthColumn;                  /* $C902 */
-extern UBYTE wMapMoveDirection;                   /* $C903 */
+extern UBYTE wMapProjectColumn;             /* $C901 */
+extern UBYTE wMapSynthColumn;               /* $C902 */
+extern UBYTE wMapMoveDirection;             /* $C903 */
 extern UBYTE wSynthCursor;                  /* $C442 */
-extern char wTableColumn;                      /* $C92F, a plain char (DrawTableCursor's signed switch) */
+extern char wTableColumn;                   /* $C92F, a plain char (DrawTableCursor's signed switch) */
 extern UBYTE wTableRow;                     /* $C930 */
 extern UBYTE TableColumnX[];                /* $05:$42D5..: the six table columns' x, */
 extern UBYTE TableColumnWidth[];            /* width */
-extern UBYTE TableColumnPalette[];             /* and normal palette */
+extern UBYTE TableColumnPalette[];          /* and normal palette */
 extern UBYTE wSavedCursorMode;              /* $CBD2..$CBD7: SaveSelectionState */
 extern UBYTE wSavedClipboardType;
 extern UBYTE wSavedSelectionLeft;
@@ -42,22 +42,24 @@ void GotoMapCursorScreen(void);
 void StartMapTransition(UBYTE direction);
 void CancelSelectionMode(void);
 
-void DrawAllChannelStatus(void);               /* bank $1F */
-extern UBYTE wChannelInstrument[];                  /* $C210, [4] */
-extern UBYTE wInstrumentTableRow1[];             /* $C250, [64]; wInstrumentTableRow2's [64] follow */
-extern UBYTE wChannelStepCountdown[];          /* $C0C4, [4] */
-extern UBYTE wChannelTable[];                  /* $C204, [4] */
-extern UBYTE wChannelTableRow1[];              /* $C208, [4] (+4: wChannelTableRow2) */
-extern UBYTE wChannelTableStep[];              /* $C33F, [4] */
+void DrawAllChannelStatus(void);            /* bank $1F */
+extern UBYTE wChannelInstrument[];          /* $C210, [4] */
+extern UBYTE wInstrumentTableRow1[];        /* $C250, [64]; wInstrumentTableRow2's [64] follow */
+extern UBYTE wChannelStepCountdown[];       /* $C0C4, [4] */
+extern UBYTE wChannelTable[];               /* $C204, [4] */
+extern UBYTE wChannelTableRow1[];           /* $C208, [4] (+4: wChannelTableRow2) */
+extern UBYTE wChannelTableStep[];           /* $C33F, [4] */
 extern UBYTE wLiveMode;                     /* $C528 */
-extern UWORD wPhraseNotePointer[];              /* $C0BC, [4] */
-extern UBYTE wRowBufferColumn2[];                 /* $C48D, [16] */
-extern UBYTE wRowBufferColumn3[];                 /* $C49D, [16] */
-extern UBYTE wRowBufferColumn4[];                 /* $C4AD, [16] */
-extern UBYTE wRowBufferColumn5[];                 /* $C4BD, [16] */
+extern UWORD wPhraseNotePointer[];          /* $C0BC, [4] */
+extern UBYTE wRowBufferColumn2[];           /* $C48D, [16] */
+extern UBYTE wRowBufferColumn3[];           /* $C49D, [16] */
+extern UBYTE wRowBufferColumn4[];           /* $C4AD, [16] */
+extern UBYTE wRowBufferColumn5[];           /* $C4BD, [16] */
 
 void DrawFieldValue(UBYTE kind, UBYTE v);   /* bank 0, DrawFields.c */
 
+/* $4000: recompute wMapProjectColumn/wMapSynthColumn from wMapColumn when on
+   the map middle row */
 void UpdateMapTopRow(void)
 {
     if (wMapRow != 1)
@@ -76,6 +78,8 @@ void UpdateMapTopRow(void)
     }
 }
 
+/* $4040: draw the map top-row entries (PROJECT + WAVE/SYNTH) at
+   wMapProjectColumn/wMapSynthColumn, screen row 15 */
 void DrawMapTopRow(void)
 {
     UBYTE x;
@@ -99,6 +103,8 @@ void DrawMapTopRow(void)
     ColorField(x, (wMapRow + 2) % 3 + 15, 1, 1);
 }
 
+/* $4167: SEL+B screen map: set wCurrentScreen from wMapRow/wMapColumn
+   (row0=PROJECT/WAVE/SYNTH, row1=SONG CHAIN PHRASE INSTR TABLE, row2=GROOVE) */
 void GotoMapCursorScreen(void)
 {
     switch (wMapRow) {
@@ -135,6 +141,8 @@ void GotoMapCursorScreen(void)
     }
 }
 
+/* $420C: store move direction (1=up 2=right 3=down 4=left) ->
+   wMapMoveDirection, reset rSCX/rSCY */
 void StartMapTransition(UBYTE direction)
 {
     wMapMoveDirection = direction;
@@ -142,12 +150,16 @@ void StartMapTransition(UBYTE direction)
     SCY_REG = 0;
 }
 
+/* $421A: if select mode (wCursorMode==4), restore the pre-selection state
+   (the screen map's step before leaving a screen) */
 void CancelSelectionMode(void)
 {
     if (wCursorMode == CURSOR_SELECTING)
         FarCall(5, RestoreSelectionState);
 }
 
+/* $4233: dec wMapColumn, GotoMapCursorScreen, StartMapTransition(4),
+   DrawMapTopRow */
 void MoveMapCursorLeft(void)
 {
     CancelSelectionMode();
@@ -159,6 +171,8 @@ void MoveMapCursorLeft(void)
     UpdateMapTopRow();
 }
 
+/* $4253: inc wMapColumn, GotoMapCursorScreen, StartMapTransition(2),
+   UpdateMapTopRow */
 void MoveMapCursorRight(void)
 {
     CancelSelectionMode();
@@ -168,6 +182,7 @@ void MoveMapCursorRight(void)
     UpdateMapTopRow();
 }
 
+/* $426A: dec wMapRow, GotoMapCursorScreen, StartMapTransition(1) */
 void MoveMapCursorUp(void)
 {
     CancelSelectionMode();
@@ -178,6 +193,7 @@ void MoveMapCursorUp(void)
     StartMapTransition(1);
 }
 
+/* $4287: inc wMapRow (max 2), GotoMapCursorScreen, StartMapTransition(3) */
 void MoveMapCursorDown(void)
 {
     CancelSelectionMode();
@@ -188,6 +204,8 @@ void MoveMapCursorDown(void)
     StartMapTransition(3);
 }
 
+/* $42A4: draw an FX command letter cell (CommandMnemonics char via
+   DrawStringIndexed; >$13 asserted) */
 void DrawCommandLetter(UBYTE command)
 {
     UBYTE c, ok;
@@ -200,6 +218,8 @@ void DrawCommandLetter(UBYTE command)
     DrawStringIndexed(c);
 }
 
+/* $42E7: read the command column (wTableCellAPointer) at step; 0 unless a
+   command (<= $13) */
 UBYTE ReadTableCommand(UBYTE step)
 {
     UBYTE *p;
@@ -218,6 +238,8 @@ UBYTE ReadTableCommand(UBYTE step)
     return v;
 }
 
+/* $4360: write table_envelopes[wTable][step] = v (SRAM bank 0 $B690);
+   asserts step < $10, wTable < $20 */
 void WriteTableEnvelope(UBYTE step, UBYTE v)
 {
     UBYTE *p;
@@ -230,6 +252,8 @@ void WriteTableEnvelope(UBYTE step, UBYTE v)
     WriteSongByte(0, p + step, v);
 }
 
+/* $43B7: write the command column (wTableCellAPointer) at step; asserts cmd
+   <= $13 */
 void WriteTableCommand(UBYTE step, UBYTE command)
 {
     UBYTE *p;
@@ -245,6 +269,7 @@ void WriteTableCommand(UBYTE step, UBYTE command)
     WriteSongByte(1, p + step, command);
 }
 
+/* $442A: write the value column (wTableCellBPointer) at step */
 void WriteTableValue(UBYTE step, UBYTE v)
 {
     UBYTE *p;
@@ -258,6 +283,8 @@ void WriteTableValue(UBYTE step, UBYTE v)
     WriteSongByte(1, p + step, v);
 }
 
+/* $4491: write table_transposes[wTable][step] = v (SRAM bank 1 $B480);
+   asserts step < $10, wTable < $20 */
 void WriteTableTranspose(UBYTE step, UBYTE v)
 {
     UBYTE *p;
@@ -270,6 +297,7 @@ void WriteTableTranspose(UBYTE step, UBYTE v)
     WriteSongByte(1, p + step, v);
 }
 
+/* $44E8: read table_envelopes[table][row<$10] from SRAM (bounds-checked) */
 UBYTE ReadTableEnvelope(UBYTE step)
 {
     UBYTE *p;
@@ -282,6 +310,7 @@ UBYTE ReadTableEnvelope(UBYTE step)
     return ReadSongByte(0, p + step);
 }
 
+/* $453B: read the value column (wTableCellBPointer) at step */
 UBYTE ReadTableValue(UBYTE step)
 {
     UBYTE *p;
@@ -295,6 +324,7 @@ UBYTE ReadTableValue(UBYTE step)
     return ReadSongByte(1, p + step);
 }
 
+/* $459E: read table_transposes[table][row<$10] from SRAM (bounds-checked) */
 UBYTE ReadTableTranspose(UBYTE step)
 {
     UBYTE *p;
@@ -307,6 +337,8 @@ UBYTE ReadTableTranspose(UBYTE step)
     return ReadSongByte(1, p + step);
 }
 
+/* $45F1: restore the cursor cells to their column palette
+   (TableColumnPalette) at row wTableRow+2, unless selecting */
 void EraseTableCursor(void)
 {
     UBYTE y, end, x;
@@ -319,6 +351,8 @@ void EraseTableCursor(void)
         ColorField(x, y, 1, TableColumnPalette[wTableColumn]);
 }
 
+/* $4668: read the 4 columns (env/transpose/cmd1/cmd2) for
+   table[wTable][step] */
 void ReadTableStep(void)
 {
     UWORD t;
@@ -340,6 +374,8 @@ void ReadTableStep(void)
     ReadSongBytes(1, (UBYTE *)t, (UBYTE *)ROW_BUFFER_COLUMN(5));
 }
 
+/* $472B: draw a table envelope cell (lo-nibble $F -> hi-nibble + release
+   glyph) */
 void DrawTableEnvelope(UBYTE v)
 {
     if ((v & 0x0F) == 0x0F) {
@@ -350,6 +386,7 @@ void DrawTableEnvelope(UBYTE v)
     }
 }
 
+/* $4762: screen idx 5: draws the table (env/transpose/cmd cols) */
 void DrawTableScreen(void)
 {
     UBYTE step;
@@ -405,17 +442,20 @@ void DrawTableScreen(void)
         DrawTableSelection();
 }
 
-UBYTE TableInputFlag(UBYTE x)
+/* $4930: whether the table screen's command steppers pass over `command`: D
+   always, L outside the first command column */
+UBYTE TableSkipsCommand(UBYTE command)
 {
-    switch (x) {
-    case 4:
+    switch (command) {
+    case COMMAND_D:
         return 1;
-    case 10:
+    case COMMAND_L:
         return wTableColumn != TABLE_COLUMN_COMMAND1;
     }
     return 0;
 }
 
+/* $4967: per-frame visual update (screen idx 5) */
 void TableScreenUpdate(void)
 {
     UBYTE r0, r1, r2;
@@ -454,6 +494,8 @@ void TableScreenUpdate(void)
     SetSpriteY(2, r2);
 }
 
+/* $4AA8: refresh the table cursor cell (select mode -> DrawTableSelection;
+   palette by CGB) */
 void DrawTableCursor(void)
 {
     if (wCursorMode == CURSOR_SELECTING)
@@ -474,20 +516,20 @@ void DrawTableCursor(void)
     }
 }
 
-extern UBYTE wTableEnvelopeCache;                /* $C931 */
-extern UBYTE wTableTransposeCache;              /* $C932 */
+extern UBYTE wTableEnvelopeCache;           /* $C931 */
+extern UBYTE wTableTransposeCache;          /* $C932 */
 extern UBYTE wGroove;                       /* $C417 */
 extern UBYTE wDrawStep;                     /* $C405 */
-extern UBYTE wPendingCommands[];                /* $C457, [16] */
-extern UBYTE wPendingCommandTarget;             /* $C467 */
-extern UBYTE wColumnLastCommand[];                 /* $C44B, [4] */
+extern UBYTE wPendingCommands[];            /* $C457, [16] */
+extern UBYTE wPendingCommandTarget;         /* $C467 */
+extern UBYTE wColumnLastCommand[];          /* $C44B, [4] */
 extern UBYTE wSelectHeld;                   /* $C40A */
 extern UBYTE wBHeld;                        /* $C40B */
 extern UBYTE wAPressEnabled;                /* $C409 */
 extern UBYTE wButtons;                      /* $C575 */
 void ShowCommandHelp(void);                 /* bank 1 */
-void SoundToggleSongPlayback(void);              /* bank 2 */
-void SoundTogglePlayback(void);                  /* bank 2 */
+void SoundToggleSongPlayback(void);         /* bank 2 */
+void SoundTogglePlayback(void);             /* bank 2 */
 void CutCopyTableSelection(UBYTE cut);
 void PasteTableCells(void);
 void SaveSelectionState(void);
@@ -661,7 +703,7 @@ UBYTE TableScreenInput(void)
                 if (wPendingCommands[row] < 0x13)
                     do
                         wPendingCommands[row]++;
-                    while (TableInputFlag(wPendingCommands[row]));
+                    while (TableSkipsCommand(wPendingCommands[row]));
                 hBgDigitPalette = wHighlightDigitPalette;
                 hBgPalette = wHighlightPalette;
                 DrawCommandLetter(wPendingCommands[row]);
@@ -757,7 +799,7 @@ UBYTE TableScreenInput(void)
                 if (wPendingCommands[row] > 1)
                     do
                         wPendingCommands[row]--;
-                    while (TableInputFlag(wPendingCommands[row]));
+                    while (TableSkipsCommand(wPendingCommands[row]));
                 hBgDigitPalette = wHighlightDigitPalette;
                 hBgPalette = wHighlightPalette;
                 DrawCommandLetter(wPendingCommands[row]);
@@ -846,7 +888,7 @@ UBYTE TableScreenInput(void)
                 if (wPendingCommands[row] < 0x13)
                     do
                         wPendingCommands[row]++;
-                    while (TableInputFlag(wPendingCommands[row]));
+                    while (TableSkipsCommand(wPendingCommands[row]));
                 hBgDigitPalette = wHighlightDigitPalette;
                 hBgPalette = wHighlightPalette;
                 DrawCommandLetter(wPendingCommands[row]);
@@ -942,7 +984,7 @@ UBYTE TableScreenInput(void)
                 if (wPendingCommands[row] > 1)
                     do
                         wPendingCommands[row]--;
-                    while (TableInputFlag(wPendingCommands[row]));
+                    while (TableSkipsCommand(wPendingCommands[row]));
                 hBgDigitPalette = wHighlightDigitPalette;
                 hBgPalette = wHighlightPalette;
                 DrawCommandLetter(wPendingCommands[row]);
@@ -1180,6 +1222,8 @@ UBYTE TableScreenInput(void)
     return 0;
 }
 
+/* $61CA: copy the table selection to the clipboard, clearing it too when
+   `cut`; a value column takes its command column along */
 void CutCopyTableSelection(UBYTE cut)
 {
     UBYTE column, row;
@@ -1348,6 +1392,9 @@ void PasteTableCells(void)
     }
 }
 
+/* $676A: table selection (wClipboardType==5) redraw vs the cursor: cells
+   around the rectangle in their column palettes, the inside highlighted
+   (ColorField) */
 void DrawTableSelection(void)
 {
     UBYTE column, row, left, top, right, bottom;
@@ -1375,6 +1422,8 @@ void DrawTableSelection(void)
             ColorField(TableColumnX[column], row + 2, TableColumnWidth[column], hGameboyType ? 3 : 2);
 }
 
+/* $7208: show the selected synth field's help line (ShowMessage; a jump
+   table on wSynthCursor) */
 void ShowSynthFieldHelp(void)
 {
     char *s;
@@ -1421,6 +1470,8 @@ void ShowSynthFieldHelp(void)
     ShowMessage(s);
 }
 
+/* $743F: wCursorMode/wClipboardType/wSelectionLeft/Top/Right/... ->
+   wSavedCursorMode save area */
 void SaveSelectionState(void)
 {
     wSavedCursorMode = wCursorMode;
@@ -1433,6 +1484,8 @@ void SaveSelectionState(void)
     wClipboardType = wCurrentScreen;
 }
 
+/* $747D: the wSavedCursorMode save area ->
+   wCursorMode/wClipboardType/wSelection* */
 void RestoreSelectionState(void)
 {
     wCursorMode = wSavedCursorMode;

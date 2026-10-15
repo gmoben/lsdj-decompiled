@@ -31,17 +31,21 @@ UBYTE CountUsedTables(void);
 void MarkTableTablesUsed(UBYTE t);
 void MarkPhraseUsed(UBYTE phrase);
 
+/* $4F04: set wUsedTableMap[t] (t < $20) */
 void MarkTableUsed(UBYTE t)
 {
     if (t < 0x20)
         wUsedTableMap[t] = 1;
 }
 
+/* $4F1C: -> wUsedTableMap[t], the table's mark */
 UBYTE IsTableUsed(UBYTE t)
 {
     return wUsedTableMap[t];
 }
 
+/* $4F49: mark the tables that `phrase`'s A commands run (in the first
+   command column) used */
 void MarkPhraseTablesUsed(UBYTE phrase)
 {
     UBYTE *c;
@@ -58,6 +62,8 @@ void MarkPhraseTablesUsed(UBYTE phrase)
     }
 }
 
+/* $4FC5: mark the tables table t's two command columns name with A
+   (MarkTableUsed) */
 void MarkTableTablesUsed(UBYTE t)
 {
     UWORD o;
@@ -81,11 +87,14 @@ void MarkTableTablesUsed(UBYTE t)
     }
 }
 
+/* $5091: IsPhraseUsed(`phrase`), in bank 1 */
 UBYTE IsPhraseUsedFar(UBYTE phrase)
 {
     return FarCallArgumentByte(1, (UWORD)IsPhraseUsed, phrase);
 }
 
+/* $50A8: mark the tables each used phrase's A commands name
+   (MarkPhraseTablesUsed) */
 void MarkTablesOfUsedPhrases(void)
 {
     UBYTE phrase;
@@ -95,6 +104,7 @@ void MarkTablesOfUsedPhrases(void)
             MarkPhraseTablesUsed(phrase);
 }
 
+/* $50CC: count the marked tables in wUsedTableMap */
 UBYTE CountUsedTables(void)
 {
     UBYTE n, table;
@@ -106,6 +116,8 @@ UBYTE CountUsedTables(void)
     return n;
 }
 
+/* $50F6: mark the tables each marked table's A commands name; 1 if that
+   marked more */
 UBYTE MarkTablesOfUsedTables(void)
 {
     UBYTE before, table;
@@ -117,6 +129,7 @@ UBYTE MarkTablesOfUsedTables(void)
     return !(before == CountUsedTables());
 }
 
+/* $513D: mark instrument i's table used if its TABLE is on (byte 6 bit 5) */
 void MarkInstrumentTableUsed(UBYTE instrument)
 {
     UBYTE v;
@@ -126,6 +139,8 @@ void MarkInstrumentTableUsed(UBYTE instrument)
         MarkTableUsed(v & 0x1F);
 }
 
+/* $515F: mark the table of every allocated instrument
+   (MarkInstrumentTableUsed) */
 void MarkTablesOfUsedInstruments(void)
 {
     UBYTE instrument;
@@ -135,6 +150,7 @@ void MarkTablesOfUsedInstruments(void)
             MarkInstrumentTableUsed(instrument);
 }
 
+/* $5413: mark the phrases of chain `chain` used */
 void MarkChainPhrasesUsed(UBYTE chain)
 {
     UBYTE row, phrase;
@@ -146,11 +162,13 @@ void MarkChainPhrasesUsed(UBYTE chain)
     }
 }
 
+/* $5461: IsChainUsed(`chain`), in bank 1 */
 UBYTE IsChainUsedFar(UBYTE chain)
 {
     return FarCallArgumentByte(1, (UWORD)IsChainUsed, chain);
 }
 
+/* $5478: mark the phrases every used chain plays (MarkChainPhrasesUsed) */
 void MarkPhrasesOfUsedChains(void)
 {
     UBYTE chain;
@@ -160,6 +178,7 @@ void MarkPhrasesOfUsedChains(void)
             MarkChainPhrasesUsed(chain);
 }
 
+/* $5DC9: count the phrases in use (IsPhraseUsedFar) */
 UBYTE CountUsedPhrases(void)
 {
     UBYTE n, phrase;
@@ -171,6 +190,7 @@ UBYTE CountUsedPhrases(void)
     return n;
 }
 
+/* $5DF3: count the chains in use (IsChainUsedFar) */
 UBYTE CountUsedChains(void)
 {
     UBYTE n, chain;
@@ -182,6 +202,7 @@ UBYTE CountUsedChains(void)
     return n;
 }
 
+/* $5E1D: clear the phrase-alloc bitmap ($3E82, 32B) + rescan via used chains */
 void RebuildPhraseAllocationMap(void)
 {
     UBYTE phrase;

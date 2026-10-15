@@ -7,34 +7,34 @@
 
 #include "lsdj.h"
 
-extern char wPhraseColumn;                     /* $C415, a plain char */
-extern UBYTE wPhraseColumnLast[];              /* $C907, [4] */
+extern char wPhraseColumn;                  /* $C415, a plain char */
+extern UBYTE wPhraseColumnLast[];           /* $C907, [4] */
 extern UBYTE wPhraseDrawMode;               /* $C90C */
-extern UBYTE wColumnInstrument[];              /* $C468, [4] last instrument per channel */
-extern UBYTE wInstrumentIsKit;                   /* $C90B */
-UBYTE AllocateNextFreeInstrument(void);             /* bank $1F */
+extern UBYTE wColumnInstrument[];           /* $C468, [4] last instrument per channel */
+extern UBYTE wInstrumentIsKit;              /* $C90B */
+UBYTE AllocateNextFreeInstrument(void);     /* bank $1F */
 void CopyTableData(UBYTE from, UBYTE to);   /* bank 1 */
 extern UBYTE wPhraseRowFlags[];             /* $C90D, [16] */
 extern UBYTE wPhraseRowFlagsB[];            /* $C91D, [16] */
-extern UBYTE wRowBufferColumn2[];                 /* $C48D, [16] the phrase commands */
-extern UBYTE wRowBufferColumn3[];                 /* $C49D, [16] their values */
-extern UBYTE PhraseColumnX0[];                 /* $04:$429E */
-extern UBYTE PhraseColumnX1[];                 /* $04:$42A3 */
+extern UBYTE wRowBufferColumn2[];           /* $C48D, [16] the phrase commands */
+extern UBYTE wRowBufferColumn3[];           /* $C49D, [16] their values */
+extern UBYTE PhraseColumnX0[];              /* $04:$429E */
+extern UBYTE PhraseColumnX1[];              /* $04:$42A3 */
 
-void DrawNoteName(void);                   /* bank 6 */
-void DrawChainPosition(void);                    /* bank 6 */
+void DrawNoteName(void);                    /* bank 6 */
+void DrawChainPosition(void);               /* bank 6 */
 void DrawWordRow(UBYTE n);                  /* bank $1F */
-void DrawAllChannelStatus(void);               /* bank $1F */
-void DrawScreenColumnLabels(void);                   /* bank $1E */
+void DrawAllChannelStatus(void);            /* bank $1F */
+void DrawScreenColumnLabels(void);          /* bank $1E */
 void DrawFieldValue(UBYTE kind, UBYTE v);   /* bank 0 */
 UBYTE KitIndexToBank(UBYTE kit);            /* bank 0, asm */
-void ReadKitSampleName(UBYTE kit, UBYTE sample);   /* bank 0, asm */
+void ReadKitSampleName(UBYTE kit, UBYTE sample); /* bank 0, asm */
 void DrawPhraseCursor(void);                /* bank $1F */
-void DrawPhraseSelection(void);            /* bank $1F */
-void CopyInstrumentName(void);                   /* bank 1 */
-void WriteInstrumentName(void);                  /* bank 1 */
+void DrawPhraseSelection(void);             /* bank $1F */
+void CopyInstrumentName(void);              /* bank 1 */
+void WriteInstrumentName(void);             /* bank 1 */
 UBYTE ReadPhraseInstrument(UBYTE phrase, UBYTE row);
-UBYTE DrawInstrumentName(UBYTE row, UBYTE instrument);
+UBYTE SetPhraseInstrument(UBYTE row, UBYTE instrument);
 extern UBYTE wAPressEnabled;                /* $C409 */
 UBYTE PhraseCursorOnEditCell(void);
 void CloneInstrumentAtCursor(void);
@@ -42,62 +42,66 @@ UBYTE CloneTableAtCursor(void);
 UBYTE ReadPhraseCommand(UBYTE phrase, UBYTE row);
 UBYTE FindCursorInstrument(void);
 extern UBYTE wPrelisten;                    /* $C56E */
-extern UBYTE wLiveStartColumn;                 /* $C571 */
+extern UBYTE wLiveStartColumn;              /* $C571 */
 extern UBYTE wSavedLiveMode;                /* $C572 */
 extern UBYTE wLiveMode;                     /* $C528 */
-void SoundTogglePlayback(void);                    /* bank 2 */
+void SoundTogglePlayback(void);             /* bank 2 */
 void SyncSetSendMode(void);                 /* bank 0 */
 extern UBYTE wDrawStep;                     /* $C405 */
-extern UBYTE wNameEditBuffer[];                /* $C431, [5] */
-extern UBYTE wInstrumentRemapDirty;              /* $C9B7 */
-extern UBYTE wInstrumentRemapTable[];            /* $C9B8, [16] */
+extern UBYTE wNameEditBuffer[];             /* $C431, [5] */
+extern UBYTE wInstrumentRemapDirty;         /* $C9B7 */
+extern UBYTE wInstrumentRemapTable[];       /* $C9B8, [16] */
 void ClearMessageBar(void);                 /* bank 1 */
 UBYTE CommitPhraseInstrument(void);
-extern UBYTE wPhraseInstrumentCache[];           /* $C90A */
-extern UBYTE wKeyboardHeldNote;                  /* $CB7E */
+extern UBYTE wPhraseInstrumentCache[];      /* $C90A */
+extern UBYTE wKeyboardHeldNote;             /* $CB7E */
 extern UBYTE wTable;                        /* $C41B */
 extern UBYTE wGroove;                       /* $C417 */
 extern UBYTE wMuteSoloLatch;                /* $C56A */
-extern UBYTE wPendingCommands[];                /* $C457, [16] */
-extern UBYTE wPendingCommandTarget;             /* $C467 */
-extern UBYTE wColumnLastCommand[];                 /* $C44B, [4] */
+extern UBYTE wPendingCommands[];            /* $C457, [16] */
+extern UBYTE wPendingCommandTarget;         /* $C467 */
+extern UBYTE wColumnLastCommand[];          /* $C44B, [4] */
 extern UBYTE wSelectHeld;                   /* $C40A */
 extern UBYTE wBHeld;                        /* $C40B */
-extern UBYTE wSelectionTop;                       /* $C40E */
-extern UBYTE wSelectionRight;                     /* $C40F */
-extern UBYTE wSelectionBottom;                    /* $C410 */
+extern UBYTE wSelectionTop;                 /* $C40E */
+extern UBYTE wSelectionRight;               /* $C40F */
+extern UBYTE wSelectionBottom;              /* $C410 */
 extern UBYTE wClipboardType;                /* $C411 */
 extern UBYTE wPhraseNoteIsKitA;             /* $C92D: the pasted note's instrument is a kit (column 0) */
 extern UBYTE wPhraseNoteIsKitB;             /* $C92E: (column 1) */
 extern UBYTE wChain;                        /* $C418 */
 extern UBYTE wChainRow;                     /* $C41A */
 extern UBYTE wButtons;                      /* $C575 */
-extern UBYTE CommandPrelistenFlags[];            /* $04:$57C0, [20] */
+extern UBYTE CommandPrelistenFlags[];       /* $04:$57C0, [20] */
 extern UBYTE PhraseStepOnes[];              /* $04:$54E3, [4][20] */
 void ShowCommandHelp(void);                 /* bank 1 */
-UBYTE PhraseCellFlagB(UBYTE row);
-UBYTE PhraseCellFlagD(UBYTE row);
-void ErasePhraseCursor(void);          /* bank $1F */
-void HasEnterableColumnRight(void);            /* bank $1F */
-void HasEnterableColumnLeft(void);             /* bank $1F */
+UBYTE NextPhraseInstrument(UBYTE row);
+UBYTE NextPhraseInstrument16(UBYTE row);
+void ErasePhraseCursor(void);               /* bank $1F */
+void EnterPhraseRight(void);                /* bank $1F */
+void EnterPhraseLeft(void);                 /* bank $1F */
 void CutCopyPhraseSelection(void);          /* bank $1F */
-void MoveMapCursorLeft(void);                     /* $05:$4233 */
-void MoveMapCursorRight(void);                    /* $05:$4253 */
-void MoveMapCursorUp(void);                       /* $05:$426A */
-void MoveMapCursorDown(void);                     /* $05:$4287 */
-void SoundToggleSongPlayback(void);              /* $02:$78C4 */
+void MoveMapCursorLeft(void);               /* $05:$4233 */
+void MoveMapCursorRight(void);              /* $05:$4253 */
+void MoveMapCursorUp(void);                 /* $05:$426A */
+void MoveMapCursorDown(void);               /* $05:$4287 */
+void SoundToggleSongPlayback(void);         /* $02:$78C4 */
 void SaveSelectionState(void);              /* $05:$743F */
 
+/* $4000: DrawNoteName (bank 6) of note `x` for the song column's channel:
+   the phrase screen's note column */
 void DrawNoteNameFar(UBYTE x)
 {
     FarCallArgument2V(6, DrawNoteName, wSongColumn, x);
 }
 
+/* $401B: DrawPhraseCursor, in bank $1F */
 void DrawPhraseCursorFar(void)
 {
     FarCall(0x1F, FAR_FN(DrawPhraseCursor));
 }
 
+/* $402C: draw FX command letter cmd (CommandMnemonics), "?" past $13 */
 void DrawPhraseCommandLetter(UBYTE command)
 {
     UBYTE c, ok;
@@ -110,11 +114,13 @@ void DrawPhraseCommandLetter(UBYTE command)
     DrawStringIndexed(c);
 }
 
+/* $405D: return tile $78 or $6c depending on mode wSongColumn */
 UBYTE PhraseModeTile(void)
 {
     return wSongColumn == CHANNEL_NOI ? 0x78 : 0x6C;
 }
 
+/* $4071: ReadPhraseInstrument(wPhrase, wPhraseRow) */
 UBYTE ReadCursorInstrument(void)
 {
     UBYTE row;
@@ -123,6 +129,8 @@ UBYTE ReadCursorInstrument(void)
     return ReadPhraseInstrument(wPhrase, row);
 }
 
+/* $4087: the instrument in effect at the cursor: the nearest step at or
+   above wPhraseRow with one (<= $40), else $FF */
 UBYTE FindCursorInstrument(void)
 {
     UBYTE row, v;
@@ -135,6 +143,8 @@ UBYTE FindCursorInstrument(void)
     return 0xFF;
 }
 
+/* $40B2: remember v as wPhraseColumnLast[wSongColumn]; in column 3 (not
+   selecting) also write it to field 4 of a type-3 instrument in effect */
 void ResolvePhraseCursorNote(UBYTE v)
 {
     UBYTE instrument;
@@ -148,6 +158,8 @@ void ResolvePhraseCursorNote(UBYTE v)
     }
 }
 
+/* $4106: cache the last-used instrument per channel column
+   (wColumnInstrument+wSongColumn; WAV specials) */
 void SetColumnInstrument(UBYTE instrument)
 {
     if (wSongColumn >= 4)
@@ -164,6 +176,8 @@ void SetColumnInstrument(UBYTE instrument)
     }
 }
 
+/* $418F: write phrase_notes[wPhrase][row] = v (SRAM bank 0 $A000); asserts
+   row < $10, wPhrase != $FF */
 void WritePhraseNote(UBYTE row, UBYTE v)
 {
     UWORD p;
@@ -177,6 +191,8 @@ void WritePhraseNote(UBYTE row, UBYTE v)
     WriteSongByte(0, (UBYTE *)p, v);
 }
 
+/* $41F0: write phrase_instruments[phrase][row] = instr (SRAM bank 3 $B000);
+   asserts instr <= $40 or $FF */
 void WritePhraseInstrument(UBYTE phrase, UBYTE row, UBYTE instrument)
 {
     UBYTE *p;
@@ -191,6 +207,8 @@ void WritePhraseInstrument(UBYTE phrase, UBYTE row, UBYTE instrument)
     WriteSongByte(3, p + row, instrument);
 }
 
+/* $4257: pick glyph data ($429e/$42a3 by wPhraseDrawMode) + col
+   wPhraseColumn, then SetVramCursor */
 void DrawPhraseCursorGlyph(UBYTE row)
 {
     UBYTE y;
@@ -201,6 +219,8 @@ void DrawPhraseCursorGlyph(UBYTE row)
     SetVramCursor(tbl[wPhraseColumn], y);
 }
 
+/* $42A8: after instrument entry: WritePhraseInstrument, update
+   wColumnInstrument, redraw */
 UBYTE CommitPhraseInstrument(void)
 {
     UBYTE instrument;
@@ -245,6 +265,7 @@ UBYTE CommitPhraseInstrument(void)
     return result;
 }
 
+/* $43CD: A+UP edit on the cursor cell (note: +octave; hex fields: +$10) */
 void EditPhraseCellUp(UBYTE row)
 {
     UBYTE *p;
@@ -310,6 +331,7 @@ void EditPhraseCellUp(UBYTE row)
         DrawNoteNameFar(v);
 }
 
+/* $457C: A+DOWN edit on the cursor cell (-octave / -$10) */
 void EditPhraseCellDown(UBYTE row)
 {
     UBYTE *p;
@@ -380,6 +402,7 @@ void EditPhraseCellDown(UBYTE row)
         DrawNoteNameFar(v);
 }
 
+/* $470B: A+RIGHT edit on the cursor cell (+semitone / +1) */
 void EditPhraseCellRight(UBYTE row)
 {
     UBYTE *p;
@@ -416,6 +439,7 @@ void EditPhraseCellRight(UBYTE row)
         DrawNoteNameFar(row);
 }
 
+/* $4811: A+LEFT edit on the cursor cell (-semitone / -1) */
 void EditPhraseCellLeft(UBYTE row)
 {
     UBYTE *p;
@@ -450,6 +474,8 @@ void EditPhraseCellLeft(UBYTE row)
         DrawNoteNameFar(v);
 }
 
+/* $4918: read phrase_instruments[phrase][row] (SRAM bank 3 $B000); asserts
+   phrase != $FF, row < $10 */
 UBYTE ReadPhraseInstrument(UBYTE phrase, UBYTE row)
 {
     UBYTE *p;
@@ -462,6 +488,8 @@ UBYTE ReadPhraseInstrument(UBYTE phrase, UBYTE row)
     return ReadSongByte(3, p + (unsigned int)row);
 }
 
+/* $4968: read phrase_notes[wPhrase][row] (SRAM bank 0 $A000); asserts row <
+   $10, wPhrase != $FF */
 UBYTE ReadPhraseNote(UBYTE row)
 {
     UWORD p;
@@ -475,6 +503,8 @@ UBYTE ReadPhraseNote(UBYTE row)
     return ReadSongByte(0, (UBYTE *)p);
 }
 
+/* $49C5: write phrase_fx[phrase][row] = cmd (SRAM bank 2 $A000); asserts cmd
+   <= $13 */
 void WritePhraseCommand(UBYTE phrase, UBYTE row, UBYTE command)
 {
     UWORD p;
@@ -490,6 +520,8 @@ void WritePhraseCommand(UBYTE phrase, UBYTE row, UBYTE command)
     WriteSongByte(2, (UBYTE *)p, command);
 }
 
+/* $4A30: write phrase_fx_val[phrase][row] = v (SRAM bank 2 $AFF0); asserts
+   phrase != $FF, row < $10 */
 void WritePhraseCommandValue(UBYTE phrase, UBYTE row, UBYTE v)
 {
     UWORD p;
@@ -503,6 +535,8 @@ void WritePhraseCommandValue(UBYTE phrase, UBYTE row, UBYTE v)
     WriteSongByte(2, (UBYTE *)p, v);
 }
 
+/* $4A8F: read phrase_fx_val[phrase][row] (SRAM bank 2 $AFF0); asserts phrase
+   != $FF, row < $10 */
 UBYTE ReadPhraseCommandValue(UBYTE phrase, UBYTE row)
 {
     UWORD p;
@@ -516,6 +550,8 @@ UBYTE ReadPhraseCommandValue(UBYTE phrase, UBYTE row)
     return ReadSongByte(2, (UBYTE *)p);
 }
 
+/* $4AEA: read phrase_fx[phrase][row] (SRAM bank 2 $A000); 0 unless a command
+   (<= $13) */
 UBYTE ReadPhraseCommand(UBYTE phrase, UBYTE row)
 {
     UWORD p;
@@ -556,11 +592,13 @@ UBYTE PlacePhraseCell(UBYTE phrase, UBYTE row)
     return 1;
 }
 
+/* $4C06: draw "---" empty note cell */
 void DrawEmptyNote(void)
 {
     DrawString("---");
 }
 
+/* $4C14: load the 4 phrase columns for phrase[wPhrase] into row buffers */
 void LoadPhraseRow(void)
 {
     volatile UWORD p;
@@ -575,19 +613,22 @@ void LoadPhraseRow(void)
     ReadSongBytes(2, (UWORD)SRAM_PHRASE_COMMAND_VALUES + off, (UBYTE *)ROW_BUFFER_COLUMN(3));
 }
 
+/* $4C99: DrawPhraseSelection, in bank $1F */
 void DrawPhraseSelectionFar(void)
 {
     FarCall(0x1F, FAR_FN(DrawPhraseSelection));
 }
 
-UBYTE PhraseRowIsSentinel(UBYTE i)
+/* $4CAA: whether wPhraseRowFlags[`row`] is a sentinel ($FE or $FF) */
+UBYTE PhraseRowIsSentinel(UBYTE row)
 {
     UBYTE v;
 
-    v = wPhraseRowFlags[i];
+    v = wPhraseRowFlags[row];
     return v > 0xFD;
 }
 
+/* $4CC4: draw wSampleNoteString (note name) or "OFF" */
 void DrawNoteCell(void)
 {
     DrawString(wSampleNoteString[0] ? wSampleNoteString : "OFF");
@@ -727,6 +768,8 @@ void DrawPhraseScreen(void)
     FarCall(0x1E, FAR_FN(DrawScreenColumnLabels));
 }
 
+/* $510A: 1 if the instrument in effect at the cursor (FindCursorInstrument)
+   is a kit */
 UBYTE CursorInstrumentIsKit(void)
 {
     UBYTE v, r;
@@ -739,6 +782,8 @@ UBYTE CursorInstrumentIsKit(void)
     return r;
 }
 
+/* $5136: predicate over mode wSongColumn / col wPhraseColumn /
+   wSelectionLeft / CursorInstrumentIsKit */
 UBYTE CheckPhraseEditContext(UBYTE x)
 {
     if (wSongColumn != CHANNEL_WAV)
@@ -754,6 +799,12 @@ UBYTE CheckPhraseEditContext(UBYTE x)
     return ReadClipboardCell(1, x) == 0xFF;
 }
 
+/* $51AE: paste the clipboard (wClipboardType) into the phrase: for rows
+   wSelectionTop..wSelectionBottom and columns wSelectionRight-1 down to
+   wSelectionLeft, each cell by column (kit notes merged nibble-wise,
+   instrument, command, value); a 3-wide table-command selection
+   (wClipboardType 5) shifts its command pair by -1/+1; PASTE message for
+   multi-row pastes */
 void PastePhraseSelection(void)
 {
     char column;
@@ -846,6 +897,8 @@ void PastePhraseSelection(void)
         ShowMessage("PASTE");
 }
 
+/* $5491: copy instrument src to dst: its 16 bytes, then its name
+   (CopyInstrumentName / WriteInstrumentName) */
 void CloneInstrument(UBYTE source, UBYTE destination)
 {
     UBYTE field;
@@ -856,6 +909,8 @@ void CloneInstrument(UBYTE source, UBYTE destination)
     FarCallArgument(1, FAR_FN(WriteInstrumentName), destination);
 }
 
+/* $5533: clone the instrument under the cursor: alloc+CloneInstrument; fail
+   -> "CANNOT CLONE" */
 void CloneInstrumentAtCursor(void)
 {
     UBYTE instrument, bad, n;
@@ -878,6 +933,8 @@ void CloneInstrumentAtCursor(void)
     ShowMessage("CLONED INSTR");
 }
 
+/* $55EB: clone the table referenced by the cmd value under the cursor
+   (FindFreeTable+CopyTableData) */
 UBYTE CloneTableAtCursor(void)
 {
     UBYTE v, ok, t;
@@ -896,6 +953,9 @@ UBYTE CloneTableAtCursor(void)
     return 1;
 }
 
+/* $56BA: double-A clone on the phrase screen: the instrument on the
+   instrument column, an A command's table on the command column ("CLONED
+   TABLE"); 1 if cloned */
 UBYTE CloneAtPhraseCursor(void)
 {
     UBYTE row;
@@ -917,6 +977,8 @@ UBYTE CloneAtPhraseCursor(void)
     return 0;
 }
 
+/* $572C: play the note/instr under the cursor while editing (wPrelisten
+   gate) */
 void PrelistenCursorRow(void)
 {
     UBYTE row, note;
@@ -945,7 +1007,11 @@ void PrelistenCursorRow(void)
     FarCall(2, FAR_FN(SoundTogglePlayback));
 }
 
-UBYTE DrawInstrumentName(UBYTE row, UBYTE instrument)
+/* $57D4: set phrase row `row`'s instrument to `instrument`: written to SRAM,
+   drawn, its name in the status panel, the column's instrument remembered; a
+   noise instrument on the noise channel also sets the row's note to its last
+   note, and returns 1 */
+UBYTE SetPhraseInstrument(UBYTE row, UBYTE instrument)
 {
     UBYTE result;
     UBYTE *p;
@@ -981,118 +1047,125 @@ UBYTE DrawInstrumentName(UBYTE row, UBYTE instrument)
     return result;
 }
 
-UBYTE PhraseCellFlagA(UBYTE row)
+/* $58D9: A+LEFT on the instrument column: the instrument before row `row`'s;
+   1 when the row's notes must be redrawn (a kit before or after) */
+UBYTE PreviousPhraseInstrument(UBYTE row)
 {
-    UBYTE r, kit, i, k2;
+    UBYTE redraw, wasKit, instrument, isKit;
 
-    i = ReadPhraseInstrument(wPhrase, row);
-    r = 0;
-    kit = 0;
-    if (i == 0xFF)
+    instrument = ReadPhraseInstrument(wPhrase, row);
+    redraw = 0;
+    wasKit = 0;
+    if (instrument == EMPTY)
         return 0;
-    if (i < 0x40) {
-        kit = ReadInstrumentByte(i, INSTRUMENT_BYTE_TYPE) == INSTRUMENT_KIT;
+    if (instrument < INSTRUMENTS) {
+        wasKit = ReadInstrumentByte(instrument, INSTRUMENT_BYTE_TYPE) == INSTRUMENT_KIT;
     } else {
-        i = 0x40;
-        r = 1;
+        instrument = INSTRUMENT_SPEECH;
+        redraw = 1;
     }
-    if (i)
-        i--;
-    k2 = ReadInstrumentByte(i, INSTRUMENT_BYTE_TYPE);
-    k2 = k2 == 2;
-    r |= k2;
-    r |= !(kit == k2);
-    r |= DrawInstrumentName(row, i);
-    return r;
+    if (instrument)
+        instrument--;
+    isKit = ReadInstrumentByte(instrument, INSTRUMENT_BYTE_TYPE);
+    isKit = isKit == INSTRUMENT_KIT;
+    redraw |= isKit;
+    redraw |= !(wasKit == isKit);
+    redraw |= SetPhraseInstrument(row, instrument);
+    return redraw;
 }
 
-/* As PhraseCellFlagA for the instrument after this one. r is only ever
+/* As PreviousPhraseInstrument for the instrument after this one. r is only ever
    assigned in the branches, and the ROM keeps it in its slot for every
    access (`volatile`); as a plain local SDCC folds `r = k2` into the next
    `|=`, starts r there and spills the instrument instead. */
-UBYTE PhraseCellFlagB(UBYTE row)
+UBYTE NextPhraseInstrument(UBYTE row)
 {
-    volatile UBYTE r;
-    UBYTE kit, i, k2;
+    volatile UBYTE redraw;
+    UBYTE wasKit, instrument, isKit;
 
-    i = ReadPhraseInstrument(wPhrase, row);
-    kit = 0;
-    if (i == 0xFF)
+    instrument = ReadPhraseInstrument(wPhrase, row);
+    wasKit = 0;
+    if (instrument == EMPTY)
         return 0;
-    if (i < 0x40) {
-        kit = ReadInstrumentByte(i, INSTRUMENT_BYTE_TYPE) == INSTRUMENT_KIT;
-        i++;
+    if (instrument < INSTRUMENTS) {
+        wasKit = ReadInstrumentByte(instrument, INSTRUMENT_BYTE_TYPE) == INSTRUMENT_KIT;
+        instrument++;
     } else
-        i = 0x40;
-    if (i < 0x40) {
-        k2 = ReadInstrumentByte(i, INSTRUMENT_BYTE_TYPE);
-        k2 = k2 == 2;
-        r = k2;
-        r |= !(kit == k2);
+        instrument = INSTRUMENT_SPEECH;
+    if (instrument < INSTRUMENTS) {
+        isKit = ReadInstrumentByte(instrument, INSTRUMENT_BYTE_TYPE);
+        isKit = isKit == INSTRUMENT_KIT;
+        redraw = isKit;
+        redraw |= !(wasKit == isKit);
     } else
-        r = 1;
-    r |= DrawInstrumentName(row, i);
-    return r;
+        redraw = 1;
+    redraw |= SetPhraseInstrument(row, instrument);
+    return redraw;
 }
 
-UBYTE PhraseCellFlagC(UBYTE row)
+/* $5A20: A+DOWN on the instrument column: the instrument $10 before row
+   `row`'s (from speech, $30); 1 when the row's notes must be redrawn */
+UBYTE PreviousPhraseInstrument16(UBYTE row)
 {
-    UBYTE r, kit, i, k2;
+    UBYTE redraw, wasKit, instrument, isKit;
 
-    i = ReadPhraseInstrument(wPhrase, row);
-    r = 0;
-    kit = 0;
-    if (i == 0xFF || i < 0x10)
+    instrument = ReadPhraseInstrument(wPhrase, row);
+    redraw = 0;
+    wasKit = 0;
+    if (instrument == EMPTY || instrument < 0x10)
         return 0;
-    if (i < 0x40) {
-        kit = ReadInstrumentByte(i, INSTRUMENT_BYTE_TYPE) == INSTRUMENT_KIT;
-        i -= 0x10;
+    if (instrument < INSTRUMENTS) {
+        wasKit = ReadInstrumentByte(instrument, INSTRUMENT_BYTE_TYPE) == INSTRUMENT_KIT;
+        instrument -= 0x10;
     } else {
-        i = 0x30;
-        r = 1;
+        instrument = 0x30;
+        redraw = 1;
     }
-    k2 = ReadInstrumentByte(i, INSTRUMENT_BYTE_TYPE);
-    k2 = k2 == 2;
-    r |= k2;
-    r |= !(kit == k2);
-    r |= DrawInstrumentName(row, i);
-    return r;
+    isKit = ReadInstrumentByte(instrument, INSTRUMENT_BYTE_TYPE);
+    isKit = isKit == INSTRUMENT_KIT;
+    redraw |= isKit;
+    redraw |= !(wasKit == isKit);
+    redraw |= SetPhraseInstrument(row, instrument);
+    return redraw;
 }
 
-/* As PhraseCellFlagB for the instrument 0x10 further on. */
-UBYTE PhraseCellFlagD(UBYTE row)
+/* As NextPhraseInstrument for the instrument 0x10 further on. */
+UBYTE NextPhraseInstrument16(UBYTE row)
 {
-    volatile UBYTE r;
-    UBYTE kit, i, k2;
+    volatile UBYTE redraw;
+    UBYTE wasKit, instrument, isKit;
 
-    i = ReadPhraseInstrument(wPhrase, row);
-    if (i > 0x30)
+    instrument = ReadPhraseInstrument(wPhrase, row);
+    if (instrument > 0x30)
         return 0;
-    kit = ReadInstrumentByte(i, INSTRUMENT_BYTE_TYPE) == INSTRUMENT_KIT;
-    i += 0x10;
-    if (i < 0x40) {
-        k2 = ReadInstrumentByte(i, INSTRUMENT_BYTE_TYPE);
-        k2 = k2 == 2;
-        r = k2;
-        r |= !(kit == k2);
+    wasKit = ReadInstrumentByte(instrument, INSTRUMENT_BYTE_TYPE) == INSTRUMENT_KIT;
+    instrument += 0x10;
+    if (instrument < INSTRUMENTS) {
+        isKit = ReadInstrumentByte(instrument, INSTRUMENT_BYTE_TYPE);
+        isKit = isKit == INSTRUMENT_KIT;
+        redraw = isKit;
+        redraw |= !(wasKit == isKit);
     } else
-        r = 1;
-    r |= DrawInstrumentName(row, i);
-    return r;
+        redraw = 1;
+    redraw |= SetPhraseInstrument(row, instrument);
+    return redraw;
 }
 
-UBYTE PrelistenEditedCell(void)
+/* $5B5E: 1 if the phrase cursor's row plays a kit: on the wave channel, the
+   row's instrument a kit (an empty row: wInstrumentIsKit, the last one
+   entered; speech: 0) */
+UBYTE CursorRowIsKit(void)
 {
-    UBYTE i;
+    UBYTE instrument;
 
     if (wSongColumn != CHANNEL_WAV)
         return 0;
-    i = ReadCursorInstrument();
-    if (i > 0x40)
+    instrument = ReadCursorInstrument();
+    if (instrument > INSTRUMENT_SPEECH)
         return wInstrumentIsKit;
-    if (i == 0x40)
+    if (instrument == INSTRUMENT_SPEECH)
         return 0;
-    return ReadInstrumentByte(i, INSTRUMENT_BYTE_TYPE) == INSTRUMENT_KIT;
+    return ReadInstrumentByte(instrument, INSTRUMENT_BYTE_TYPE) == INSTRUMENT_KIT;
 }
 
 /* $5BA6: the phrase screen's input, an if chain on wButtons: A places the
@@ -1130,7 +1203,7 @@ UBYTE PhraseScreenInput(void)
     if (wCursorMode == CURSOR_SELECTING && wButtons == J_SELECT_TAP) {
         wPhraseColumn = wSelectionLeft;
         wPhraseRow = wSelectionTop;
-        FarCall(5, 0x747D);
+        FarCall(5, RestoreSelectionState);
         DrawPhraseScreen();
         ShowMessage("CANCEL SELECT");
         return 1;
@@ -1162,7 +1235,7 @@ UBYTE PhraseScreenInput(void)
         switch (wPhraseColumn) {
         case PHRASE_COLUMN_LEFT_NOTE:
         case PHRASE_COLUMN_NOTE:
-            if (!PrelistenEditedCell())
+            if (!CursorRowIsKit())
                 placed = PlacePhraseCell(wPhrase, wPhraseRow);
             else {
                 v = ReadPhraseNote((char)wPhraseRow);
@@ -1368,7 +1441,7 @@ UBYTE PhraseScreenInput(void)
                 PrelistenCursorRow();
                 break;
             case PHRASE_COLUMN_INSTRUMENT:
-                redraw |= PhraseCellFlagB(row);
+                redraw |= NextPhraseInstrument(row);
                 redraw |= wCursorMode == CURSOR_SELECTING;
                 break;
             case PHRASE_COLUMN_COMMAND:
@@ -1490,7 +1563,7 @@ UBYTE PhraseScreenInput(void)
                 PrelistenCursorRow();
                 break;
             case PHRASE_COLUMN_INSTRUMENT:
-                redraw |= PhraseCellFlagD(row);
+                redraw |= NextPhraseInstrument16(row);
                 redraw |= wCursorMode == CURSOR_SELECTING;
                 break;
             case PHRASE_COLUMN_COMMAND:
@@ -1623,7 +1696,7 @@ UBYTE PhraseScreenInput(void)
                 PrelistenCursorRow();
                 break;
             case PHRASE_COLUMN_INSTRUMENT:
-                redraw |= PhraseCellFlagA(row);
+                redraw |= PreviousPhraseInstrument(row);
                 redraw |= wCursorMode == CURSOR_SELECTING;
                 break;
             case PHRASE_COLUMN_COMMAND:
@@ -1745,7 +1818,7 @@ UBYTE PhraseScreenInput(void)
                 PrelistenCursorRow();
                 break;
             case PHRASE_COLUMN_INSTRUMENT:
-                redraw |= PhraseCellFlagC(row);
+                redraw |= PreviousPhraseInstrument16(row);
                 redraw |= wCursorMode == CURSOR_SELECTING;
                 break;
             case PHRASE_COLUMN_COMMAND:
@@ -1807,12 +1880,12 @@ UBYTE PhraseScreenInput(void)
     }
     if (wBHeld && wButtons == (J_B | J_RIGHT)) {
         wBHeld = 0;
-        FarCall(0x1F, FAR_FN(HasEnterableColumnRight));
+        FarCall(0x1F, FAR_FN(EnterPhraseRight));
         return 1;
     }
     if (wBHeld && wButtons == (J_B | J_LEFT)) {
         wBHeld = 0;
-        FarCall(0x1F, FAR_FN(HasEnterableColumnLeft));
+        FarCall(0x1F, FAR_FN(EnterPhraseLeft));
         return 1;
     }
     if (wBHeld && wButtons == (J_B | J_UP)) {

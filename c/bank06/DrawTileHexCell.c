@@ -29,6 +29,9 @@
 
 extern char *HexCellPrefixPointers[];       /* $06:$75A6, [4] -> TxtHexCellPrefix0..3 */
 
+/* $7524: draw the noise channel's note `v` (from 60): one of four names an
+   octave from HexCellPrefixPointers (D, F, G#, C by (v - 60) & 3) and the
+   octave, ((v - 60) + 1) / 4 - 9, minus-signed below 0 */
 void DrawTileHexCell(UBYTE v)
 {
     UBYTE t;

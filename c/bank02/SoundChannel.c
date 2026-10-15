@@ -6,60 +6,60 @@
 #define SOUND_BANK                          /* lsdj.h: our own far-call targets */
 #include "lsdj.h"
 
-extern volatile sfr UBYTE hSoundChannel;         /* $FF8B */
-extern UBYTE *wPointerNoteSource;                  /* $C8ED: the channel's note cursor */
-extern UBYTE *wPointerNoteCountdown;            /* $C8E3: the channel's ticks left in the step */
-extern UBYTE *wPointerPhraseRow;                /* $C8E1 */
-extern UBYTE *wPointerPhrase;                   /* $C8EB */
+extern volatile sfr UBYTE hSoundChannel;    /* $FF8B */
+extern UBYTE *wPointerNoteSource;           /* $C8ED: the channel's note cursor */
+extern UBYTE *wPointerNoteCountdown;        /* $C8E3: the channel's ticks left in the step */
+extern UBYTE *wPointerPhraseRow;            /* $C8E1 */
+extern UBYTE *wPointerPhrase;               /* $C8EB */
 extern UBYTE wPlayRestartPending;           /* $C4CD */
-extern UBYTE wLiveStartColumn;                 /* $C571 */
-extern UWORD wChannelInstrumentPointer[];               /* $C140, [4]: SRAM cursors into the phrase's columns */
-extern UWORD wPhraseCommandPointer[];               /* $C110, [4] */
-extern UWORD wPhraseCommandValuePointer[];            /* $C128, [4] */
+extern UBYTE wLiveStartColumn;              /* $C571 */
+extern UWORD wChannelInstrumentPointer[];   /* $C140, [4]: SRAM cursors into the phrase's columns */
+extern UWORD wPhraseCommandPointer[];       /* $C110, [4] */
+extern UWORD wPhraseCommandValuePointer[];  /* $C128, [4] */
 extern UBYTE wTableHopDone;                 /* $C8F8 */
-extern UBYTE wChannelCommandValue[];                 /* $C36B, [6] */
-extern UBYTE wChannelNoteTrigger[];            /* $C0F0, [4] */
-extern UBYTE wChannelGrooveTicks[];            /* $C0FC, [4] */
-extern UBYTE *wPointerChainRow;                 /* $C8DF */
-extern UBYTE wChannelHopCount[];               /* $C214, [4] */
-extern UBYTE wSequenceNoteLatch;                 /* $C8F7 */
-extern UBYTE wChannelSongRow[];                /* $C200, [4] */
-extern UBYTE wChannelChain[];                  /* $C170, [4] */
-extern UBYTE wChannelLiveQueued[];             /* $C300, [4] */
-extern UBYTE wChannelActive[];                 /* $C0E0, [4] */
-extern UBYTE wKeyboardNoteQueued;                /* $CB92 */
-extern UBYTE wKeyboardChannelState[];               /* $CB96, [4] */
-extern UBYTE wKeyboardNoteInjected;              /* $C8F9 */
-extern UBYTE wKeyboardInstrument;                /* $CB93 */
-extern UBYTE wChannelDelayTicks[];             /* $C178, [4] */
-extern UBYTE wChannelInstrument[];                  /* $C210, [4] */
-extern UBYTE wSoundUpdateFlags;               /* $C8F5 */
+extern UBYTE wChannelCommandValue[];        /* $C36B, [6] */
+extern UBYTE wChannelNoteTrigger[];         /* $C0F0, [4] */
+extern UBYTE wChannelGrooveTicks[];         /* $C0FC, [4] */
+extern UBYTE *wPointerChainRow;             /* $C8DF */
+extern UBYTE wChannelHopCount[];            /* $C214, [4] */
+extern UBYTE wSequenceNoteLatch;            /* $C8F7 */
+extern UBYTE wChannelSongRow[];             /* $C200, [4] */
+extern UBYTE wChannelChain[];               /* $C170, [4] */
+extern UBYTE wChannelLiveQueued[];          /* $C300, [4] */
+extern UBYTE wChannelActive[];              /* $C0E0, [4] */
+extern UBYTE wKeyboardNoteQueued;           /* $CB92 */
+extern UBYTE wKeyboardChannelState[];       /* $CB96, [4] */
+extern UBYTE wKeyboardNoteInjected;         /* $C8F9 */
+extern UBYTE wKeyboardInstrument;           /* $CB93 */
+extern UBYTE wChannelDelayTicks[];          /* $C178, [4] */
+extern UBYTE wChannelInstrument[];          /* $C210, [4] */
+extern UBYTE wSoundUpdateFlags;             /* $C8F5 */
 extern UBYTE wKitNoteNibbleMask;            /* $C8FA */
 
-void SoundReadCursorByte(void);               /* asm */
-void SoundAdvanceGroove(void);                /* asm */
-void SoundLoadInstrument(UBYTE n);            /* asm (takes it in a) */
-void SoundLoadChannelInstrument(void);             /* asm */
-void SoundTransposeNote(void);                /* asm */
-UBYTE SoundCountdownStep(void);               /* asm */
-UBYTE SoundNoteDue(void);                /* asm */
-void SoundAdvanceTableCursor(void);           /* asm */
-void SoundAdvanceChainRow(void);              /* asm */
+void SoundReadCursorByte(void);             /* asm */
+void SoundAdvanceGroove(void);              /* asm */
+void SoundLoadInstrument(UBYTE n);          /* asm (takes it in a) */
+void SoundLoadChannelInstrument(void);      /* asm */
+void SoundTransposeNote(void);              /* asm */
+UBYTE SoundCountdownStep(void);             /* asm */
+UBYTE SoundNoteDue(void);                   /* asm */
+void SoundAdvanceTableCursor(void);         /* asm */
+void SoundAdvanceChainRow(void);            /* asm */
 void SoundLiveStartQueued(void);
-void SoundSplitPhraseNibbles(void);           /* asm */
-UBYTE SoundReadPhraseCommand(void);               /* asm */
+void SoundSplitPhraseNibbles(void);         /* asm */
+UBYTE SoundReadPhraseCommand(void);         /* asm */
 UBYTE SoundPhraseHop(void);
-UBYTE SoundRandom15(void);                    /* asm */
-void SoundMaskLow5(UBYTE v);                  /* asm (takes it in a) */
+UBYTE SoundRandom15(void);                  /* asm */
+void SoundMaskLow5(UBYTE v);                /* asm (takes it in a) */
 void SoundInitializePlayState(void);
-void AdvanceCurrentChannelCursors(UBYTE n);        /* asm (takes it in a) */
-UBYTE SoundReadChainPhrase(void);                /* asm */
+void AdvanceCurrentChannelCursors(UBYTE n); /* asm (takes it in a) */
+UBYTE SoundReadChainPhrase(void);           /* asm */
 UBYTE SoundLiveChainEnd(void);
-UBYTE SoundReadSongChain(void);                  /* asm */
-void SoundAdvanceSongRow(void);                  /* asm */
-void SoundQueueSyncByte(void);                /* asm */
-void SoundResetChannelCommand(void);                  /* asm */
-void SoundReadChainTranspose(void);           /* asm */
+UBYTE SoundReadSongChain(void);             /* asm */
+void SoundAdvanceSongRow(void);             /* asm */
+void SoundQueueSyncByte(void);              /* asm */
+void SoundResetChannelCommand(void);        /* asm */
+void SoundReadChainTranspose(void);         /* asm */
 
 /* $711F: H in a phrase, the hop: HFF stops the song; otherwise, once a tick,
    go to the low digit's row of this phrase (after the high digit's count of

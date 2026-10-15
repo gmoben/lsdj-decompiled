@@ -15,22 +15,22 @@
 
 #include "lsdj.h"
 
-extern UBYTE wLinkQueueCount;                 /* $CB7D, bytes queued */
+extern UBYTE wLinkQueueCount;               /* $CB7D, bytes queued */
 extern UBYTE wLinkQueueHead;                /* $CB80, read index */
-extern UBYTE wLinkQueueBuffer[];               /* $CB81, [16] ring */
-extern UBYTE wKeyboardTranspose;                 /* $CB91 */
+extern UBYTE wLinkQueueBuffer[];            /* $CB81, [16] ring */
+extern UBYTE wKeyboardTranspose;            /* $CB91 */
 extern UWORD wSyncSendRate;                 /* $C954 */
-extern UWORD TempoTimerTable[];          /* $07:$5E49, [256] */
+extern UWORD TempoTimerTable[];             /* $07:$5E49, [256] */
 extern UWORD TempoTimerTableSgb[];          /* $07:$6049, [256] */
 
 void delay(UWORD d);                        /* GBDK */
 void SendSyncHandshake(void);               /* bank 0 */
 
-extern UBYTE wKeyboardChannelState[];               /* $CB96, [4] per-channel keyboard-active state */
-extern UBYTE wKeyboardArmed;                     /* $CB94 */
-extern UBYTE wKeyboardInstrument;                /* $CB93 */
-extern UBYTE wKeyboardPulseChannels;               /* $CB7F */
-extern char wNameEditBuffer[];                 /* $C431, [5] */
+extern UBYTE wKeyboardChannelState[];       /* $CB96, [4] per-channel keyboard-active state */
+extern UBYTE wKeyboardArmed;                /* $CB94 */
+extern UBYTE wKeyboardInstrument;           /* $CB93 */
+extern UBYTE wKeyboardPulseChannels;        /* $CB7F */
+extern char wNameEditBuffer[];              /* $C431, [5] */
 extern char TxtKeyboardCalibration[];       /* $07:$7171 */
 extern char TxtTapDownArrowKey[];           /* $07:$7186 */
 extern char TxtOnPs2Keyboard[];             /* $07:$7199 */
@@ -39,35 +39,38 @@ extern char TxtFail[];                      /* $07:$71B5 */
 extern char TxtOk[];                        /* $07:$71BB */
 void KeyboardDrainQueue(void);
 UBYTE HexDigitCharacter(UBYTE v);
-void CopyInstrumentName(UBYTE instrument);            /* bank 1 */
+void CopyInstrumentName(UBYTE instrument);  /* bank 1 */
 void ClearMessageBar(void);                 /* bank 1 */
-void ClearBgMapAndAttributes(void);                    /* bank 1 */
+void ClearBgMapAndAttributes(void);         /* bank 1 */
 
-extern UBYTE wKeyboardHeldNote;                  /* $CB7E */
-extern UBYTE wKeyboardNoteQueued;                /* $CB92 */
+extern UBYTE wKeyboardHeldNote;             /* $CB7E */
+extern UBYTE wKeyboardNoteQueued;           /* $CB92 */
 extern UBYTE wAPressEnabled;                /* $C409 */
 extern UBYTE wButtons;                      /* $C407 */
 extern UBYTE KeyboardNoteMap[];             /* $07:$662A */
-extern UBYTE KeyboardFunctionMap[];               /* $07:$66AA */
-UBYTE PhraseRowIsSentinel(UBYTE row);          /* bank 4 */
+extern UBYTE KeyboardFunctionMap[];         /* $07:$66AA */
+UBYTE PhraseRowIsSentinel(UBYTE row);       /* bank 4 */
 
-extern volatile sfr UBYTE hSoundChannel;         /* $FF8B */
-extern volatile sfr UBYTE hCommandValue;         /* $FF8F */
-extern UBYTE wKeyboardCommandAccumulator;                  /* $CBA1 */
-extern UBYTE wKeyboardCommandModifier;               /* $CB9F */
-extern UBYTE wKeyboardSustain;                   /* $CBA0 */
-extern UBYTE wKeyboardInstrument2;               /* $CB95 */
-extern UBYTE wKeyboardActionChannel;                  /* $CB9A */
-extern UBYTE wKeyboardChannelTrigger[];             /* $CB9B, [4] */
-extern UBYTE wChannelOutput[];                /* $C0A0, [4] */
+extern volatile sfr UBYTE hSoundChannel;    /* $FF8B */
+extern volatile sfr UBYTE hCommandValue;    /* $FF8F */
+extern UBYTE wKeyboardCommandAccumulator;   /* $CBA1 */
+extern UBYTE wKeyboardCommandModifier;      /* $CB9F */
+extern UBYTE wKeyboardSustain;              /* $CBA0 */
+extern UBYTE wKeyboardInstrument2;          /* $CB95 */
+extern UBYTE wKeyboardActionChannel;        /* $CB9A */
+extern UBYTE wKeyboardChannelTrigger[];     /* $CB9B, [4] */
+extern UBYTE wChannelOutput[];              /* $C0A0, [4] */
 extern UBYTE wSelectHeld;                   /* $C40A */
 extern UBYTE wBHeld;                        /* $C40B */
 void DrawKeyboardInstrumentName(void);
 void DrawKeyboardOctave(void);
 UBYTE ProcessKeyboardNote(UBYTE scancode);
-void Command_A(void);                         /* bank 2 */
-void FarCallArgument0(UBYTE bank, void (*function)(void));   /* FarCallArgument called without its byte (hCommandValue set by hand; aliased) */
+void Command_A(void);                       /* bank 2 */
+void FarCallArgument0(UBYTE bank, void (*function)(void)); /* FarCallArgument called without its byte (hCommandValue set by hand; aliased) */
 
+/* $5DD8: wSyncSendRate (interrupts off) from the tempo: $800 x (4 -
+   wTempoMode) for the sync speeds, else TempoTimerTable[wTempo - 40]
+   (TempoTimerTableSgb on a Super Game Boy) */
 void SetSyncSendRate(void)
 {
     UWORD r;
@@ -85,6 +88,8 @@ void SetSyncSendRate(void)
     _asm ei _endasm;
 }
 
+/* $6543: keyboard state cell (arrows by wKeyboardPulseChannels) + instrument
+   hex (wKeyboardInstrument) at row 12 */
 void DrawKeyboardInstrumentState(void)
 {
     UBYTE * volatile pu2;
@@ -133,11 +138,14 @@ void DrawKeyboardInstrumentState(void)
     DrawHexByte(wKeyboardInstrument);
 }
 
+/* $672A: the hex digit for `d` (0-15) */
 UBYTE HexDigitCharacter(UBYTE d)
 {
     return "0123456789ABCDEF"[d];
 }
 
+/* $674D: DrawKeyboardInstrumentState + instrument name via
+   CopyInstrumentName -> wSampleNoteString */
 void DrawKeyboardInstrumentName(void)
 {
     UBYTE letter;
@@ -157,6 +165,8 @@ void DrawKeyboardInstrumentName(void)
     FarCall(1, FAR_FN(ClearMessageBar));
 }
 
+/* $6812: draw the keyboard octave range ("O3-4".."O7-8") from
+   wKeyboardTranspose */
 void DrawKeyboardOctave(void)
 {
     wVramCursor = (UBYTE *)BG_MAP(16, 13);
@@ -183,6 +193,8 @@ void DrawKeyboardOctave(void)
     wMessageTimer = 100;
 }
 
+/* $68A2: drain the link-port ring buffer (wLinkQueueBuffer+, head
+   wLinkQueueHead): keyboard scancodes / sync bytes */
 UBYTE ProcessLinkQueue(void)
 {
     UBYTE modifier;
@@ -447,6 +459,8 @@ note:
     return ProcessKeyboardNote(key);
 }
 
+/* $6E50: PS/2 keyboard note -> play/preview on the channel
+   (wKeyboardHeldNote; screen/col aware) */
 UBYTE ProcessKeyboardNote(UBYTE scancode)
 {
     UBYTE note;
@@ -504,6 +518,8 @@ UBYTE ProcessKeyboardNote(UBYTE scancode)
     return wKeyboardHeldNote ? 0x10 : 0;
 }
 
+/* $7012: wait for a queued link byte and pop it from the wLinkQueueBuffer
+   ring (index wLinkQueueHead, 16 entries) */
 UBYTE LinkDequeueByte(void)
 {
     UBYTE v;
@@ -516,6 +532,7 @@ UBYTE LinkDequeueByte(void)
     return v;
 }
 
+/* $7033: delay(10), drop every queued link byte, then SendSyncHandshake */
 void KeyboardDrainQueue(void)
 {
     delay(10);
@@ -524,6 +541,8 @@ void KeyboardDrainQueue(void)
     SendSyncHandshake();
 }
 
+/* $704E: drain the queue, then expect 20 key records (3, [7,] $27) from the
+   keyboard: 1 if all arrive (the calibration taps) */
 UBYTE KeyboardPollScancode(void)
 {
     UBYTE attempt, b;
@@ -549,9 +568,10 @@ UBYTE KeyboardPollScancode(void)
     return 1;
 }
 
+/* $7097: PS/2 "KEYBOARD CALIBRATION" screen (tap down-arrow prompt) */
 void DrawCalibrationScreen(void)
 {
-    UBYTE k;
+    UBYTE scancode;
 
     FarCall(1, ClearBgMapAndAttributes);
     ClearBgTilemap();
@@ -568,8 +588,8 @@ void DrawCalibrationScreen(void)
     wVramCursor = (UBYTE *)BG_MAP(0, 5);
     wSyncMode2 = 4;
     for (;;) {
-        k = KeyboardPollScancode();
-        if (k)
+        scancode = KeyboardPollScancode();
+        if (scancode)
             break;
         DrawStringIndexed('.');
         wSyncMode2 += 4;
@@ -585,8 +605,8 @@ void DrawCalibrationScreen(void)
             break;
         wSyncMode2--;
         DrawStringIndexed('.');
-        k = KeyboardPollScancode();
-        if (!k) {
+        scancode = KeyboardPollScancode();
+        if (!scancode) {
             wSyncMode2 += 10;
             break;
         }

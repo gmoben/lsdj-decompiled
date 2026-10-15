@@ -16,7 +16,7 @@ void DrawSyncStatusText(char *s);
 void DrawSyncStatusLsdj(void);
 void DrawSyncStatusMidi(void);
 UBYTE SyncStatusFlag(void);
-void ReadKitSampleName(UBYTE kit, UBYTE sample);   /* bank 0 */
+void ReadKitSampleName(UBYTE kit, UBYTE sample); /* bank 0 */
 extern char NoteNames[];                    /* $06:$76E4, [][3] */
 extern char TxtKitNoteBad[];                /* $06:$7844 "???" */
 extern char TxtKitNoteC5[];                 /* $06:$7830 "C 5" */
@@ -26,20 +26,23 @@ extern char TxtKitNoteC8[];                 /* $06:$7840 "C 8" */
 extern char TxtKitNoteF5[];                 /* $06:$7834 "F 5" */
 extern char TxtNoNote[];                    /* $06:$782C "---" (this unit's literals follow NoteNames) */
 extern char TxtNoteBad[];                   /* $06:$7848 "???" */
-extern UBYTE wChannelDisplayNote[];               /* $C41F, [4] */
-extern UBYTE wChannelDisplayNoteTimer[];          /* $C423, [4] */
-extern UBYTE wChannelOutput[];                /* $C0A0, [4] */
-extern UBYTE wChannelOutputOverride[];                /* $C0A4, [4] */
+extern UBYTE wChannelDisplayNote[];         /* $C41F, [4] */
+extern UBYTE wChannelDisplayNoteTimer[];    /* $C423, [4] */
+extern UBYTE wChannelOutput[];              /* $C0A0, [4] */
+extern UBYTE wChannelOutputOverride[];      /* $C0A4, [4] */
 extern UBYTE wKit1Bank;                     /* $C4F4 */
 extern UBYTE wKit2Bank;                     /* $C4F5 */
 extern UBYTE wNoteTranspose;                /* $C4D3 */
-extern UBYTE wSoundUpdateFlags;               /* $C8F5 */
+extern UBYTE wSoundUpdateFlags;             /* $C8F5 */
 extern UBYTE wTempoShadow;                  /* $C947 */
-void DrawTileHexCell(UBYTE v);                /* c/bank06/DrawTileHexCell.c */
+void DrawTileHexCell(UBYTE v);              /* c/bank06/DrawTileHexCell.c */
 void DrawNoteName(UBYTE column, UBYTE v);
 void DrawStatusNote(UBYTE channel, UBYTE note);
 void UpdateScope(void);
 
+/* $71ED: draw channel ch's playing note in the status panel at (17, ch + 6):
+   a kit's sample name on the wave channel, wNoiNote on the noise channel,
+   else DrawNoteName (PU2 shifted by wNoteTranspose) */
 void DrawStatusNote(UBYTE channel, UBYTE note)
 {
     UBYTE c, n;
@@ -74,6 +77,9 @@ void DrawStatusNote(UBYTE channel, UBYTE note)
         DrawNoteName(channel, note);
 }
 
+/* $72C4: per-frame status update for most screens: pending sample-name cells
+   (wChannelDisplayNote) at x=17, the tempo field when wTempo changed, the
+   scope */
 void UpdateStatusPanel(void)
 {
     UBYTE channel;
@@ -113,6 +119,7 @@ void UpdateStatusPanel(void)
     UpdateScope();
 }
 
+/* $73C0: draw string s in the status panel's sync slot ($99B0, palette 4/1) */
 void DrawSyncStatusText(char *s)
 {
     hBgDigitPalette = 4;
@@ -121,6 +128,8 @@ void DrawSyncStatusText(char *s)
     DrawString(s);
 }
 
+/* $740C: sync mode LSDJ: WAIT while handshaking, LEAD while running, else
+   SYNC or blank (SyncStatusFlag) */
 void DrawSyncStatusLsdj(void)
 {
     if (wSyncHandshake)
@@ -133,6 +142,8 @@ void DrawSyncStatusLsdj(void)
         DrawSyncStatusText("    ");
 }
 
+/* $7469: sync mode MIDI: SYNC (SyncStatusFlag), WAIT while playing, else
+   blank */
 void DrawSyncStatusMidi(void)
 {
     if (SyncStatusFlag())
@@ -143,6 +154,7 @@ void DrawSyncStatusMidi(void)
         DrawSyncStatusText("    ");
 }
 
+/* $74AD: draw the sync/lead status by wSyncMode (1/3/6/7 cases) */
 void DrawSyncStatus(void)
 {
     switch (wSyncMode) {
@@ -161,6 +173,9 @@ void DrawSyncStatus(void)
     }
 }
 
+/* $75BA: draw note `v` for channel `column`: "---" for none; on the noise
+   channel a hex value below $3C, else a kit note (C 5..C 8); else a
+   NoteNames entry, the wave channel an octave down; "???" past the table */
 void DrawNoteName(UBYTE column, UBYTE v)
 {
     char *p;

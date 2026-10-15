@@ -573,6 +573,15 @@ class SymLayoutTests(unittest.TestCase):
                          "DEF wFoo".ljust(38) + "EQU $C401".ljust(11) + "; the foo\n"
                          + " " * 49 + "; continued\n" + "DEF FOO_INC".ljust(38) + "EQU 1\n")
 
+    def test_c_declaration_comments_in_one_column(self):
+        text = ("extern UBYTE wChain;   /* $C418 */\n"
+                "void DrawTileRun(UBYTE x, UBYTE y, UBYTE w, UBYTE h, UBYTE tile);   /* asm */\n"
+                "    x = 1;   /* a statement keeps its spacing */\n")
+        self.assertEqual(symfile.align_c(text),
+                         "extern UBYTE wChain;".ljust(44) + "/* $C418 */\n"
+                         "void DrawTileRun(UBYTE x, UBYTE y, UBYTE w, UBYTE h, UBYTE tile); /* asm */\n"
+                         "    x = 1;   /* a statement keeps its spacing */\n")
+
     def test_the_curated_files_are_aligned(self):
         self.assertEqual([p.name for p in symfile.unaligned()], [], "run tools/symfile.py")
 

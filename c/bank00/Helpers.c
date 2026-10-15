@@ -14,11 +14,12 @@
 
 #include "lsdj.h"
 
-extern UBYTE wClipboardBuffer[];               /* $C57A, [6][42] */
-extern int wSynthShapeBuffer[];                /* $C9F4, [32] */
+extern UBYTE wClipboardBuffer[];            /* $C57A, [6][42] */
+extern int wSynthShapeBuffer[];             /* $C9F4, [32] */
 
 UBYTE KitIndexToBank(UBYTE kit);            /* hand-written asm */
 
+/* $07DA: return wClipboardBuffer[col*42 + row] (asserts col < 6, row < 42) */
 UBYTE ReadClipboardCell(UBYTE column, UBYTE row)
 {
     UBYTE *p;
@@ -31,6 +32,7 @@ UBYTE ReadClipboardCell(UBYTE column, UBYTE row)
     return p[row];
 }
 
+/* $0908: wClipboardBuffer[col*42 + row] = v (asserts col < 6, row < 42) */
 void WriteClipboardCell(UBYTE column, UBYTE row, UBYTE v)
 {
     UBYTE *p;
@@ -43,6 +45,8 @@ void WriteClipboardCell(UBYTE column, UBYTE row, UBYTE v)
     p[row] = v;
 }
 
+/* $0B54: copy the 32 signed seed bytes at `source` (in bank $1E) into
+   wSynthShapeBuffer as words, sign-extended */
 void LoadSynthShape(char *source)
 {
     UBYTE saved, position;
@@ -63,6 +67,8 @@ void LoadSynthShape(char *source)
     SWITCH_ROM(saved);
 }
 
+/* $0CFE: (kit index) returns 1 if a kit is present at KitIndexToBank(index):
+   switch to that bank and check [$4000:01] == $6040 */
 UBYTE KitExists(UBYTE kit)
 {
     UBYTE saved, bank, ok;
@@ -77,6 +83,8 @@ UBYTE KitExists(UBYTE kit)
     return ok;
 }
 
+/* $0D4C: copy the 6-char kit name (kit bank $4052, via KitIndexToBank) into
+   wSampleNoteString */
 void ReadKitName(UBYTE kit)
 {
     UBYTE saved;
@@ -88,6 +96,7 @@ void ReadKitName(UBYTE kit)
     SWITCH_ROM(saved);
 }
 
+/* $0D8B: order the bytes at two pointers: swap them so *a <= *b */
 void SortBytePair(UBYTE *a, UBYTE *b)
 {
     UBYTE x, y;
@@ -100,6 +109,8 @@ void SortBytePair(UBYTE *a, UBYTE *b)
     }
 }
 
+/* $0DBC: show `text` in the message bar: copied into wStringBuffer for
+   DrawMessageBar */
 void ShowMessage(char *text)
 {
     strcpy(wStringBuffer, (UBYTE *)text);

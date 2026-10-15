@@ -10,30 +10,32 @@
 
 #include "lsdj.h"
 
-extern UBYTE wFileBlockIndex;                 /* $C958 */
-extern UBYTE wCompressBank;                     /* $C979 */
-extern UWORD wCompressSource;                      /* $C97A, an SRAM address */
-extern UWORD wCompressDestination;                      /* $C97D, a working-song offset */
-extern UBYTE wDecompressPosition;                    /* $C983 */
+extern UBYTE wFileBlockIndex;               /* $C958 */
+extern UBYTE wCompressBank;                 /* $C979 */
+extern UWORD wCompressSource;               /* $C97A, an SRAM address */
+extern UWORD wCompressDestination;          /* $C97D, a working-song offset */
+extern UBYTE wDecompressPosition;           /* $C983 */
 extern UBYTE wWorkSongPage;                 /* $C986, ReadWorkingSongByte's cached page */
-extern UBYTE wDecompressBuffer[];                  /* $DA00, [256] */
+extern UBYTE wDecompressBuffer[];           /* $DA00, [256] */
 extern UBYTE DefaultWaveFrameB1C[];         /* $1C:$4047 */
-extern void (*wBlockSinkPointer)(void);         /* $C984, FlushBlockToSram or the verify sink */
-extern UBYTE wCompressProgress;                 /* $C981 */
-extern UBYTE wFileFirstCharacter;                /* $C980 */
+extern void (*wBlockSinkPointer)(void);     /* $C984, FlushBlockToSram or the verify sink */
+extern UBYTE wCompressProgress;             /* $C981 */
+extern UBYTE wFileFirstCharacter;           /* $C980 */
 UBYTE ReadCompressedByte(void);
 void FilePutDecompressByte(UBYTE v);
 void EmitDefaultWave(void);
 void EmitDefaultInstrument(void);
 void FlushBlockToSram(void);                /* $1C:$743C */
-UBYTE FindFreeBlock(UBYTE *bank, UWORD *source);   /* $1C:$415A */
+UBYTE FindFreeBlock(UBYTE *bank, UWORD *source); /* $1C:$415A */
 UBYTE CompressSong(void);                   /* $1C:$441F */
 void LoadCompressedBlock(UBYTE v);
-UBYTE FileBlockPointerValid(void);              /* asm */
-UBYTE ReadWorkingSongByte(UWORD address);      /* asm */
+UBYTE FileBlockPointerValid(void);          /* asm */
+UBYTE ReadWorkingSongByte(UWORD address);   /* asm */
 void WriteCompressedByte(UBYTE v);          /* asm, v also in a */
 void FileCompressRun(UBYTE v);              /* asm, v in a */
 
+/* $4000: low-level compressed-output writer to SRAM (bank wCompressBank, ptr
+   wCompressSource; di-guarded) */
 void FileWriteCompressedSram(void)
 {
     if (!FileBlockPointerValid())
@@ -52,6 +54,8 @@ void FileWriteCompressedSram(void)
     wDecompressPosition = 0;
 }
 
+/* $43C1: 1 when the 16 working-song bytes at wCompressDestination are the
+   default wave frame (DefaultWaveFrameB1C); 0 at or past $7FF1 */
 UBYTE CompressIsDefaultWave(void)
 {
     UBYTE byte;
@@ -77,7 +81,7 @@ UBYTE CompressSong(void)
 {
     UBYTE current;
     UBYTE next;
-    UBYTE k;
+    UBYTE run;
     UBYTE bank;
     UWORD source;
 
@@ -95,14 +99,14 @@ UBYTE CompressSong(void)
             if (wCompressDestination < 0x7FFF)
                 next = ReadWorkingSongByte(wCompressDestination + 1);
         } else if (current == 0x71 && next == 0x32 && CompressIsDefaultWave()) {
-            k = 0;
+            run = 0;
             do {
-                k = k + 1;
+                run = run + 1;
                 wCompressDestination += 0x10;
-            } while (CompressIsDefaultWave() && k != 0xFF);
+            } while (CompressIsDefaultWave() && run != 0xFF);
             WriteCompressedByte(COMPRESS_COMMAND);
             WriteCompressedByte(COMPRESS_DEFAULT_WAVE);
-            WriteCompressedByte(k);
+            WriteCompressedByte(run);
             current = ReadWorkingSongByte(wCompressDestination);
             next = ReadWorkingSongByte(wCompressDestination + 1);
         } else if (current == COMPRESS_COMMAND) {
@@ -146,6 +150,8 @@ UBYTE CompressSong(void)
     return 1;
 }
 
+/* $46E3: LSDj block decompressor: RLE $c0, special $e0/$f0 (default wave)
+   /$f1 (default instr) /$ff EOF */
 UBYTE DecompressBlock(void)
 {
     UBYTE b;

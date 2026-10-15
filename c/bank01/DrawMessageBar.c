@@ -30,8 +30,10 @@
 
 #include "lsdj.h"
 
-extern UBYTE MessageBarAttributeRow[];               /* $01:$7484, 20 x $04 */
+extern UBYTE MessageBarAttributeRow[];      /* $01:$7484, 20 x $04 */
 
+/* $74F7: render wStringBuffer (20 ch) to tilemap row 0 + CGB attrs
+   (MessageBarAttributeRow) */
 void DrawMessageBar(void)
 {
     UBYTE position;

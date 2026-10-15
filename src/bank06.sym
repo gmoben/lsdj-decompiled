@@ -66,7 +66,7 @@
 5ABE DrawChainCursor            ; highlight the chain cursor cell (palette 3 on CGB, 2 on DMG) at ChainColumnX[wChainColumn], row wChainRow
 5B00 OpenChainPhrase            ; open the phrase under the chain cursor (RestoreSelectionState, load phrase)
 6D55 CutCopyChainSelection      ; arg!=0 -> "CUT " (copy+clear) else "COPY": chain selection -> clipboard (clipType 3; phrases via SoundGetChainPhrase, transposes)
-6F0D PasteChainCells            ; SELECT+A paste on the chain screen: clipboard cells into rows wSelectionTop..wSelBottom (column 0 phrases via WriteChainPhrase, column 1 transposes), "PASTE" message when more than one row
+6F0D PasteChainCells            ; SELECT+A paste on the chain screen: clipboard cells into rows wSelectionTop..wSelectionBottom (column 0 phrases via WriteChainPhrase, column 1 transposes), "PASTE" message when more than one row
 7006 DrawChainSelection         ; chain selection (wClipboardType==3) redraw vs the cursor: cells around the rectangle in their column palettes, the inside highlighted (ColorField)
 71ED DrawStatusNote             ; draw channel ch's playing note in the status panel at (17, ch + 6): a kit's sample name on the wave channel, wNoiNote on the noise channel, else DrawNoteName (PU2 shifted by wNoteTranspose)
 73C0 DrawSyncStatusText         ; draw string s in the status panel's sync slot ($99B0, palette 4/1)
@@ -170,7 +170,7 @@
 72D7 .loop                      ; loop head in UpdateStatusPanel
 7453 .done                      ; common exit of DrawSyncStatusLsdj
 749C .done                      ; common exit of DrawSyncStatusMidi
-750E .done                      ; common exit of ChainDrawStatusWord
+750E .done                      ; common exit of DrawSyncStatus
 75A2 .done                      ; common exit of DrawTileHexCell
 76E0 .done                      ; common exit of DrawNoteName
 

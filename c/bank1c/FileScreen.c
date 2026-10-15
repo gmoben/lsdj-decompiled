@@ -13,57 +13,57 @@ UBYTE FileListSlots(void);
 void FileValidateName(void);
 extern volatile sfr UBYTE IE_REG;           /* $FFFF */
 extern volatile sfr UBYTE NR52_REG;         /* $FF26 */
-extern UBYTE wChannelActive[];                 /* $C0E0, [8] */
-extern UBYTE wFilesystemCheckResult;                /* $C56B */
+extern UBYTE wChannelActive[];              /* $C0E0, [8] */
+extern UBYTE wFilesystemCheckResult;        /* $C56B */
 extern UBYTE wFileBlockCounts[];            /* $C959, [32] */
-extern UBYTE wCompressByte;                     /* $C97F */
-extern UBYTE wCompressBank;                     /* $C979 */
-extern UWORD wCompressSource;                      /* $C97A, an SRAM address */
-extern char wFileNameBuffer[];                 /* $C987, [8] */
-extern UBYTE *wTopBarMarkPointer;               /* $C562 */
+extern UBYTE wCompressByte;                 /* $C97F */
+extern UBYTE wCompressBank;                 /* $C979 */
+extern UWORD wCompressSource;               /* $C97A, an SRAM address */
+extern char wFileNameBuffer[];              /* $C987, [8] */
+extern UBYTE *wTopBarMarkPointer;           /* $C562 */
 extern UBYTE wFileEraseArmed;               /* $C994 */
 extern UBYTE wFilePromptActive;             /* $C995 */
 extern UBYTE wFilePromptNo;                 /* $C996 */
-extern void (*wBlockSinkPointer)(void);         /* $C984, FlushBlockToSram or the verify sink */
-extern UBYTE wCompressProgress;                 /* $C981 */
-extern UBYTE wFileFirstCharacter;                /* $C980 */
-extern char wTopBarString[];                   /* $C555 */
+extern void (*wBlockSinkPointer)(void);     /* $C984, FlushBlockToSram or the verify sink */
+extern UBYTE wCompressProgress;             /* $C981 */
+extern UBYTE wFileFirstCharacter;           /* $C980 */
+extern char wTopBarString[];                /* $C555 */
 extern UBYTE wFileListActive;               /* $C998 */
-extern UBYTE wNameEditBuffer[];                /* $C431, [5] */
-extern UBYTE wFileSramProperties[];              /* $C99D, [4] */
-extern UBYTE wFileLoadAlternateReturn;            /* $C997 */
+extern UBYTE wNameEditBuffer[];             /* $C431, [5] */
+extern UBYTE wFileSramProperties[];         /* $C99D, [4] */
+extern UBYTE wFileLoadAlternateReturn;      /* $C997 */
 extern UBYTE wRedrawPending;                /* $C56C */
-extern UBYTE wFileDrawIndex;                  /* $C993 */
+extern UBYTE wFileDrawIndex;                /* $C993 */
 extern UBYTE wButtons;                      /* $C575 */
 extern UBYTE wAPressEnabled;                /* $C409 */
 extern UBYTE wFileListAction;               /* $C99A */
-extern UBYTE wFileNameNavigationMode;              /* $C99C */
-extern UBYTE wNameEditIsInstrument;              /* $C430 */
+extern UBYTE wFileNameNavigationMode;       /* $C99C */
+extern UBYTE wNameEditIsInstrument;         /* $C430 */
 extern UBYTE wFileField;                    /* $C992 */
 extern UBYTE wFileCursor;                   /* $C999 */
 extern UBYTE wFileScroll;                   /* $C99B */
 extern UBYTE FileFieldX[];                  /* $1C:$5092 */
 extern UBYTE FileFieldWidth[];              /* $1C:$5095 */
-void SetInterruptEnable(UBYTE interruptMask);          /* bank 0 */
+void SetInterruptEnable(UBYTE interruptMask); /* bank 0 */
 void delay(UWORD d);                        /* bank 0 (GBDK) */
 void DrawFileTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE h);
 UWORD FileCalculateCompressedSize(void);
 void LoadFileListState(void);
-void VerifyBlockAgainstSram(void);         /* $1C:$746E */
+void VerifyBlockAgainstSram(void);          /* $1C:$746E */
 void DrawFileList(void);                    /* $1C:$55F1 */
 int StringLength(const char *s);            /* bank00/GbdkLib.c, nonbanked */
-UBYTE FindFreeBlock(UBYTE *bank, UWORD *source);   /* $1C:$415A */
+UBYTE FindFreeBlock(UBYTE *bank, UWORD *source); /* $1C:$415A */
 UBYTE CompressSong(void);                   /* $1C:$441F */
 UBYTE DrawVerifyPanel(UBYTE f);             /* $1C:$4778 */
 UBYTE FileLoadSlotInfo(UBYTE slot, UBYTE verify);
 UBYTE GetNextButtons(void);                 /* bank 0 */
-void FormatSramSong(void);                     /* $01:$45D1 */
+void FormatSramSong(void);                  /* $01:$45D1 */
 void LoadProjectSettings(void);             /* $01:$7C86 */
 void CountFileBlocks(void);                 /* $1C:$48D4 */
-void SoundToggleSongPlayback(void);                 /* $02:$78C4 */
+void SoundToggleSongPlayback(void);         /* $02:$78C4 */
 void OpenNameEditor(void);                  /* $1B:$4E8A */
 int strcmp(const char *a, const char *b);   /* bank 0's StringCompare */
-UBYTE GetFileBlockCount(UBYTE i);
+UBYTE GetFileBlockCount(UBYTE file);
 UBYTE FileFindSlotEnd(void);
 void FreeFileBlocks(UBYTE f);
 void EraseFileName(UBYTE f);
@@ -80,6 +80,8 @@ UBYTE DrawVerifyPanel(UBYTE f)
     return FileLoadSlotInfo(f, 1);
 }
 
+/* $4A46: read active-file marker ($bfc1) + init map, cursor restrict, block
+   counts */
 void LoadFileListState(void)
 {
     UBYTE version;
@@ -134,6 +136,8 @@ void LoadFileListState(void)
         DebugTrap();
 }
 
+/* $4D58: FILE erase action: FreeFileBlocks + EraseFileName + refresh
+   (TxtFileErased) */
 void EraseFile(UBYTE f)
 {
     if (f >= 0x20)
@@ -152,6 +156,9 @@ void EraseFile(UBYTE f)
     WriteSongByte(4, 0xA140, wCompressByte);
 }
 
+/* $4E10: FILE save action: clear the slot name, free its blocks, compress +
+   verify (DrawVerifyPanel), bump the file generation ($a100+n), copy
+   wNameEditBuffer; 0 fail, 2 verify fail, 1 ok */
 UBYTE SaveFile(UBYTE f)
 {
     UBYTE i;
@@ -190,6 +197,7 @@ UBYTE SaveFile(UBYTE f)
     return 1;
 }
 
+/* $5077: zero the 8 wChannelActive bytes ($C0E0..7) backward */
 void FileClearChannelState(void)
 {
     UBYTE channel = 8;
@@ -199,6 +207,8 @@ void FileClearChannelState(void)
     } while (--channel);
 }
 
+/* $5098: SetInterruptEnable + FileClearChannelState (silence before
+   load/save) */
 void FileStopSound(void)
 {
     SetInterruptEnable(IE_REG & 0xFB);
@@ -207,6 +217,9 @@ void FileStopSound(void)
     FileClearChannelState();
 }
 
+/* $50B3: FILE load action: keep key delay/repeat + sync modes,
+   FileLoadSlotInfo the slot (FAIL! waits a press), restore props, set active
+   file, LoadProjectSettings + RedrawScreen */
 void LoadFile(void)
 {
     UBYTE keyRepeat, keyDelay, syncIn, syncOut, n;
@@ -319,11 +332,13 @@ void DrawFileTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE h)
     hBgPalette = 1;
 }
 
+/* $5531: ColorField wrapper */
 void FileDrawField(UBYTE palette)
 {
     ColorField(FileFieldX[wFileField], 2, FileFieldWidth[wFileField], palette);
 }
 
+/* $5563: bounds-check (<$10) then ColorField */
 void FileDrawFieldChecked(UBYTE palette)
 {
     UBYTE r;
@@ -334,6 +349,8 @@ void FileDrawFieldChecked(UBYTE palette)
     ColorField(3, wFileCursor + 4 - wFileScroll, 0x0E, palette);
 }
 
+/* $55F1: draw the visible file slots (wFileScroll window, names + block
+   counts) */
 void DrawFileList(void)
 {
     UBYTE row, slot, active, end, blocks;
@@ -400,6 +417,7 @@ void DrawFileList(void)
         wFileDrawIndex--;
 }
 
+/* $57BB: screen idx 13: draws the file/save-load browser */
 void DrawFileScreen(void)
 {
     UBYTE position;
@@ -427,6 +445,8 @@ void DrawFileScreen(void)
     DrawString(wFilesystemCheckResult ? "3F" : "BF");
 }
 
+/* $58C1: move wFileCursor down to the next slot a save may use: an empty one
+   or the open file (not past the list's end) */
 void SeekNextWritableSlot(void)
 {
     UBYTE file;
@@ -444,6 +464,8 @@ void SeekNextWritableSlot(void)
         DebugTrap();
 }
 
+/* $590B: move wFileCursor up to the previous slot a save may use: an empty
+   one or the open file */
 void SeekPreviousWritableSlot(void)
 {
     UBYTE file;
@@ -459,6 +481,8 @@ void SeekPreviousWritableSlot(void)
         DebugTrap();
 }
 
+/* $594A: whether wFileCursor is below the 12-row file list window
+   (wFileCursor - wFileScroll > 11) */
 UBYTE FileCursorBelowWindow(void)
 {
     UBYTE d;
@@ -467,8 +491,10 @@ UBYTE FileCursorBelowWindow(void)
     return d > 0x0B;
 }
 
-const UBYTE FileNoAttributeTiles[] = {3, 3};    /* $1C:$5AD4: CGB attributes under the NO prompt */
+const UBYTE FileNoAttributeTiles[] = {3, 3}; /* $1C:$5AD4: CGB attributes under the NO prompt */
 
+/* $59E6: BLOCKS USED/FREE panel (FileCalculateCompressedSize, 33-block
+   bound) */
 UBYTE DrawBlocksUsed(void)
 {
     UWORD n;
@@ -501,6 +527,8 @@ UBYTE DrawBlocksUsed(void)
     return 1;
 }
 
+/* $5B0C: file-screen input dispatch (wButtons; clears
+   wFileLoadAlternateReturn) */
 UBYTE FileScreenInput(void)
 {
     UBYTE i;

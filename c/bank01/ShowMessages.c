@@ -12,24 +12,28 @@
 
 #include "lsdj.h"
 
-extern char TxtOutOfMemory[];   /* $01:$75C7 "OUT OF MEMORY. CLEAN SONG DATA IN PROJECT SCREEN" */
-extern char TxtTapAddChain[];   /* $01:$7602 "TAP A TO ADD CHAIN!" */
+extern char TxtOutOfMemory[];               /* $01:$75C7 "OUT OF MEMORY. CLEAN SONG DATA IN PROJECT SCREEN" */
+extern char TxtTapAddChain[];               /* $01:$7602 "TAP A TO ADD CHAIN!" */
 
+/* $75BD: push TxtOutOfMemory, call ShowMessage */
 void ShowOutOfMemory(void)
 {
     ShowMessage(TxtOutOfMemory);
 }
 
+/* $75F8: push TxtTapAddChain, call ShowMessage */
 void ShowTapAddChain(void)
 {
     ShowMessage(TxtTapAddChain);
 }
 
+/* $7616: push TxtTapAddPhrase, call ShowMessage */
 void ShowTapAddPhrase(void)
 {
     ShowMessage("TAP A TO ADD PHRASE!");
 }
 
+/* $7635: push TxtMax16Marks, call ShowMessage */
 void ShowMax16Marks(void)
 {
     ShowMessage("MAX 16 MARKS");

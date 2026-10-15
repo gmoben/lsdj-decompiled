@@ -12,6 +12,8 @@
 
 #include "lsdj.h"
 
+/* $0AF6: read song sequence song[step][channel]: bank0 $B290 + step*4 +
+   channel (step<$C0, channel<4) */
 UBYTE ReadSequenceByte(UBYTE channel, UBYTE step)
 {
     UBYTE *p;

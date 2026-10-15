@@ -154,7 +154,7 @@
 6B59 SoundSetPlayRange          ; the channels to play (wPlayChannelFirst..Last): the song cursor's column, or on the song screen in selection mode the selection's columns
 6B9B SoundLiveQueueRange        ; live mode: queue a start for each channel in the play range (SoundLiveQueueStart)
 6BBA SoundStartChannelFromRow   ; start this channel playing from wChannelNextSongRow ($ff -> stop path)
-6D97 SoundStartChannels         ; start channels [wPlayChannelFirst..wPlayChanLast] from wSongRow (per-screen playback entry)
+6D97 SoundStartChannels         ; start channels [wPlayChannelFirst..wPlayChannelLast] from wSongRow (per-screen playback entry)
 6E0F SoundStartRange            ; start the play range: queued behind what is playing if any channel is active (SoundLiveQueueRange), else at once (SoundStartChannels)
 6E24 SoundLiveStopRange         ; live mode, stop the play range's channels (SELECT+START): queued starts cancelled; an active channel stops at its chain's end, or its phrase's when pressed again (wChannelLiveQueued)
 6EA7 SoundLiveStartQueued       ; live mode: a channel queued to start (wChannelLiveQueued) whose chain has ended starts now (wChannelRestart)
@@ -177,7 +177,7 @@
 7B31 SoundStartScreenPlayback   ; start the current screen's playback: the song from the cursor row (SoundStartSongPlayback), or the edited channel's chain or phrase
 7C4C SoundTogglePlayback        ; START: stop all playback, then start the current screen's unless it was the one playing (sync stop otherwise); live mode: SoundStartRange
 7CFB Command_E_NoteOn           ; E at a note-on (SoundNoteToPeriod): PU1/PU2/NOI stop the fade, the first digit sets wChannelEnvelope (e = 5: the release runs); WAV sets wWavLevel (e = 0)
-7F24 SoundSetupLfo              ; dispatch by hSoundChannel -> SoundSetupLfoPu1/PU2/WavNoi (vibrato/LFO setup)
+7F24 SoundSetupLfo              ; dispatch by hSoundChannel -> SoundSetupLfo{Pu1,Pu2,WavNoi} (vibrato/LFO setup)
 7F33 SoundSetupLfoWavNoi        ; LFO setup for ch2/3 (WAV/NOI): e = the target volume; clear wEnvelopeStageNoi, hl = wChannelEnvelopeNoi, c = rAUD4ENV, then SoundStepEnvelopeToTarget
 7F3E SoundSetupLfoPu2           ; LFO setup for ch1 (PU2): e = the target volume; clear wEnvelopeStagePu2, hl = wChannelEnvelopePu2, c = rAUD2ENV, then SoundStepEnvelopeToTarget
 7F49 SoundSetupLfoPu1           ; LFO setup for ch0 (PU1): a = the stage (wEnvelopeStagePu1), e = the target volume; hl = wChannelEnvelope, c = rAUD1ENV, then SoundStepEnvelopeToTarget

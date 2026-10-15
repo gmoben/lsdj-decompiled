@@ -13,11 +13,11 @@
 
 extern UBYTE wWaveCursor;                   /* $C42B */
 extern UBYTE wSynth;                        /* $C42A */
-extern UBYTE wWaveSelectionStart;                 /* $C93B */
-extern UBYTE wWaveSelectionEnd;                   /* $C93C */
+extern UBYTE wWaveSelectionStart;           /* $C93B */
+extern UBYTE wWaveSelectionEnd;             /* $C93C */
 void DrawWaveColumn(UBYTE i);
 void WriteWaveSample(UBYTE n, UBYTE v);
-UBYTE ReadWaveSample(UBYTE i);
+UBYTE ReadWaveSample(UBYTE position);
 void InitializeWaveSprites(void);
 void SetWaveSpriteColumns(UBYTE s, UBYTE x);
 void GetWaveEditRange(UBYTE *a, UBYTE *b);
@@ -25,13 +25,13 @@ void DrawWaveRange(void);
 void LockCurrentSynth(void);
 void DrawWaveColumns(void);
 void SetWaveCursorSprite(void);
-extern UBYTE wSelectionTop;                       /* $C40E */
-extern UBYTE wSelectionRight;                     /* $C40F */
-extern UBYTE wSelectionBottom;                    /* $C410 */
+extern UBYTE wSelectionTop;                 /* $C40E */
+extern UBYTE wSelectionRight;               /* $C40F */
+extern UBYTE wSelectionBottom;              /* $C410 */
 extern UBYTE wClipboardType;                /* $C411 */
 extern UBYTE wButtons;                      /* $C575 */
-extern UBYTE wWaveColumnEmpty[];               /* $C93D, [8] */
-void WriteVramByteSafe(UBYTE *address, UBYTE v);  /* $00:$17EC */
+extern UBYTE wWaveColumnEmpty[];            /* $C93D, [8] */
+void WriteVramByteSafe(UBYTE *address, UBYTE v); /* $00:$17EC */
 extern UBYTE wSynthScreen;                  /* $C441 */
 extern UBYTE wSelectHeld;                   /* $C40A */
 extern UBYTE wBHeld;                        /* $C40B */
@@ -40,13 +40,14 @@ void ReverseWaveRange(void);
 void CopyWaveSelection(void);
 void PasteWaveSelection(void);
 void SaveSelectionState(void);              /* $05:$743F */
-void MoveMapCursorLeft(void);                     /* $05:$4233 */
-void MoveMapCursorDown(void);                     /* $05:$4287 */
-void SoundToggleSongPlayback(void);                 /* $02:$78C4 */
-void SoundTogglePlayback(void);                    /* $02:$7C4C */
-void SendLinkClipboard(void);                   /* bank $1C */
+void MoveMapCursorLeft(void);               /* $05:$4233 */
+void MoveMapCursorDown(void);               /* $05:$4287 */
+void SoundToggleSongPlayback(void);         /* $02:$78C4 */
+void SoundTogglePlayback(void);             /* $02:$7C4C */
+void SendLinkClipboard(void);               /* bank $1C */
 extern char TxtCopy[];                      /* $06:$5467 "COPY" */
 
+/* $48AB: the BG tilemap address of cell x,y: $9800 | (y*32 + x) */
 UBYTE *TilemapAddress(UBYTE x, UBYTE y)
 {
     UWORD a;
@@ -58,6 +59,8 @@ UBYTE *TilemapAddress(UBYTE x, UBYTE y)
     return (UBYTE *)a;
 }
 
+/* $4901: the SRAM byte holding synth x's lock bit ("synths locked?"
+   $BFC4-$BFC5): $BFC5 for 0-7, $BFC4 for 8-F */
 UWORD SynthLockByteAddress(UBYTE x)
 {
     UWORD p;
@@ -88,24 +91,28 @@ void LockCurrentSynth(void)
     WriteSongByte(1, p, r);
 }
 
-UBYTE ReadWaveSample(UBYTE i)
+/* $4992: sample (i+1)&31 of the edited synth wave frame (SRAM bank 3 $A000 +
+   wSynth*16), inverted: $0F ^ nibble */
+UBYTE ReadWaveSample(UBYTE position)
 {
     UBYTE *p;
     UBYTE v;
 
-    if (i >= 0x20)
+    if (position >= 0x20)
         DebugTrap();
-    i = (i + 1) & 0x1F;
+    position = (position + 1) & 0x1F;
     p = SramWaveFrames + ((UWORD)wSynth << 4);
-    p += i >> 1;
+    p += position >> 1;
     v = ReadSongByte(3, p);
-    if (i & 1)
+    if (position & 1)
         v &= 0x0F;
     else
         v >>= 4;
     return 0x0F ^ v;
 }
 
+/* $4A0A: write sample pos+1 (inverted nibble) of the edited wave frame (SRAM
+   bank 3 ) */
 void WriteWaveSample(UBYTE position, UBYTE v)
 {
     UBYTE *p;
@@ -130,6 +137,7 @@ void WriteWaveSample(UBYTE position, UBYTE v)
     WriteSongByte(3, (UWORD)p, v);
 }
 
+/* $4AB0: set the x of wave sprites 3..10 and 11..18 */
 void SetWaveSpriteColumns(UBYTE y1, UBYTE y2)
 {
     UBYTE sprite;
@@ -140,6 +148,8 @@ void SetWaveSpriteColumns(UBYTE y1, UBYTE y2)
         SetOamByte((sprite << 2) + 1, y2);
 }
 
+/* $4B16: place the wave cursor and selection-anchor sprites from
+   wWaveCursor/wWaveSelectionStart (SetWaveSpriteColumns) */
 void SetWaveCursorSprite(void)
 {
     UBYTE x, s;
@@ -151,6 +161,8 @@ void SetWaveCursorSprite(void)
     SetWaveSpriteColumns(s, x);
 }
 
+/* $4B40: the wave screen's edit range into *start/*end (end exclusive): the
+   cursor sample, or the selection from wWaveSelectionStart (wCursorMode 4) */
 void GetWaveEditRange(UBYTE *a, UBYTE *b)
 {
     *a = wWaveCursor;
@@ -164,22 +176,24 @@ void GetWaveEditRange(UBYTE *a, UBYTE *b)
     (*b)++;
 }
 
+/* $4BA7: init the 16 wave-sample sprites (3..18): y, tile 5, attr ; x via
+   SetWaveSpriteColumns */
 void InitializeWaveSprites(void)
 {
-    UBYTE y, i;
+    UBYTE y, offset;
 
-    i = 0x0C;
+    offset = 0x0C;
     for (y = 0x40; (UWORD)y != 0x80; y += 8) {
-        SetOamByte(i++, y);
-        i++;
-        SetOamByte(i++, 5);
-        SetOamByte(i++, 0x82);
+        SetOamByte(offset++, y);
+        offset++;
+        SetOamByte(offset++, 5);
+        SetOamByte(offset++, 0x82);
     }
     for (y = 0x40; (UWORD)y != 0x80; y += 8) {
-        SetOamByte(i++, y);
-        i++;
-        SetOamByte(i++, 5);
-        SetOamByte(i++, 0x82);
+        SetOamByte(offset++, y);
+        offset++;
+        SetOamByte(offset++, 5);
+        SetOamByte(offset++, 0x82);
     }
     SetWaveCursorSprite();
 }
@@ -235,11 +249,14 @@ void DrawWaveColumn(UBYTE column)
     DrawByte(ReadWaveSample(column * 2 + 1));
 }
 
+/* $4EAC: redraw the wave column under the cursor (DrawWaveColumn(wWaveCursor
+   >> 1)) */
 void DrawWaveCursorColumn(void)
 {
     DrawWaveColumn(wWaveCursor >> 1);
 }
 
+/* $4EBD: redraw the wave columns of the edit range */
 void DrawWaveRange(void)
 {
     UBYTE start, end, t;
@@ -251,6 +268,7 @@ void DrawWaveRange(void)
         DrawWaveColumn(start >> 1);
 }
 
+/* $4F02: draw all 16 wave columns */
 void DrawWaveColumns(void)
 {
     UBYTE column;
@@ -259,6 +277,8 @@ void DrawWaveColumns(void)
         DrawWaveColumn(column);
 }
 
+/* $4F18: screen idx 8: draws the waveform; edits wave_frames (bank3 $A000)
+   directly */
 void DrawWaveScreen(void)
 {
     InitializeWaveSprites();
@@ -287,6 +307,8 @@ void ReverseWaveRange(void)
     DrawWaveRange();
 }
 
+/* $4FA9: A+UP/DOWN (help: FLIP SAMPLE): each sample in the edit range
+   becomes F - v, then redraw */
 void FlipWaveRange(void)
 {
     UBYTE start, end, t;
@@ -300,6 +322,8 @@ void FlipWaveRange(void)
     DrawWaveRange();
 }
 
+/* $4FFB: UP/DOWN (help: CHANGE SAMPLE): add d (1 or -1) to each sample in
+   the edit range, then redraw */
 void ChangeWaveRange(UBYTE d)
 {
     UBYTE start, end, t;
@@ -313,6 +337,8 @@ void ChangeWaveRange(UBYTE d)
     DrawWaveRange();
 }
 
+/* $504E: A+LEFT/RIGHT on the wave screen (DRAW LINE): copy the cursor's
+   sample to the column `d` away (+1 or -1) and move there */
 void DrawWaveLine(UBYTE d)
 {
     UBYTE n, v;
@@ -326,6 +352,7 @@ void DrawWaveLine(UBYTE d)
     SetWaveCursorSprite();
 }
 
+/* $507F: wave-screen input dispatch (wButtons) */
 UBYTE WaveScreenInput(void)
 {
     switch (wButtons) {
@@ -457,6 +484,7 @@ UBYTE WaveScreenInput(void)
     return 0;
 }
 
+/* $5398: wave-screen COPY: selection -> clipboard (clipType 8), shows "COPY" */
 void CopyWaveSelection(void)
 {
     UBYTE v;
@@ -484,6 +512,7 @@ void CopyWaveSelection(void)
     FarCall(0x1C, FAR_FN(SendLinkClipboard));
 }
 
+/* $546C: wave screen: paste the clipboard samples at the cursor */
 void PasteWaveSelection(void)
 {
     UBYTE position, v;

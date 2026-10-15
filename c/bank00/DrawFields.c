@@ -17,9 +17,11 @@
 #include "lsdj.h"
 
 extern volatile sfr UBYTE VBK_REG;          /* $FF4F */
-extern UBYTE wAttributeRowBuffer[];                 /* $C677, [20] */
-void DrawTileRun(UBYTE x, UBYTE y, UBYTE w, UBYTE h, UBYTE tile);   /* asm */
+extern UBYTE wAttributeRowBuffer[];         /* $C677, [20] */
+void DrawTileRun(UBYTE x, UBYTE y, UBYTE w, UBYTE h, UBYTE tile); /* asm */
 
+/* $1298: color a field of w tiles at (x, y) with palette pal: CGB attributes
+   through wAttributeRowBuffer, a DrawTileRun on DMG */
 void ColorField(UBYTE x, UBYTE y, UBYTE w, UBYTE palette)
 {
     if (!w)
@@ -35,6 +37,8 @@ void ColorField(UBYTE x, UBYTE y, UBYTE w, UBYTE palette)
         DrawTileRun(x, y, w, 1, palette);
 }
 
+/* $2BC4: returns tempo timer value: wTempoMode 1/2/3 -> fixed presets (2.4%
+   more on a Super Game Boy, wIsSgb), else derived from wTempo (BPM) */
 UWORD GetTempoTimerValue(void)
 {
     switch (wTempoMode) {
@@ -48,6 +52,8 @@ UWORD GetTempoTimerValue(void)
     return wTempo < 40 ? (UWORD)wTempo + 0x100 : wTempo;
 }
 
+/* $2C3C: draw the tempo at the VRAM cursor: special label for wTempoMode
+   1/2/3, else the BPM number (printf "%d", wTempo) */
 void DrawTempo(UWORD tempo)
 {
     switch (wTempoMode) {
@@ -67,6 +73,8 @@ void DrawTempo(UWORD tempo)
     }
 }
 
+/* $2CA4: set VRAM cursor $9891 + BG/digit palettes, then draw the tempo
+   (GetTempoTimerValue) */
 void DrawTempoField(void)
 {
     wVramCursor = (UBYTE *)BG_MAP(17, 4);
@@ -75,6 +83,8 @@ void DrawTempoField(void)
     DrawTempo(GetTempoTimerValue());
 }
 
+/* $2CC6: draw the channel/column header at VRAM $9811, dispatched on
+   wSongColumn (0-3) */
 void DrawChannelHeader(void)
 {
     char *s;
@@ -97,6 +107,8 @@ void DrawChannelHeader(void)
     DrawString(s);
 }
 
+/* $2D22: draw the pulse WAVE/duty field (top 2 bits of the instr byte) as
+   one of 4 two-tile waveform glyphs */
 void DrawPulseDuty(UBYTE duty)
 {
     char *s;
@@ -116,6 +128,8 @@ void DrawPulseDuty(UBYTE duty)
     DrawString(s);
 }
 
+/* $2D7E: draw a value formatted by its type: string / hex byte (DrawHexByte)
+   / pulse duty (DrawPulseDuty) */
 void DrawFieldValue(UBYTE kind, UBYTE v)
 {
     switch (kind) {

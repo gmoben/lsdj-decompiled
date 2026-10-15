@@ -128,7 +128,7 @@ sequencer core, 15.4 KB) and the GBDK/SDCC library routines stay asm. See
 | `tools/label_gaps.py`, `data_refs.py`, `callgraph.py`, `farcall_targets.py`, `find_orphans.py` | Audits that drove naming/labeling to zero gaps |
 | `tools/name_locals_full.py`, `name_locals.py`, `name_firstaction.py`, `name_targets.py` | Semantic naming of function-local labels (generated into the `.sym`); `name_targets.py` names the targets an operand points at (jump tables after their variable, strings after their text) so no `.L_xxxx` reaches the source |
 | `tools/rename.py`, `tools/fold_sym.py` | Symbol maintenance: rename a global everywhere (`.sym`, constants, C, docs, tools, and the local labels that spell it; refuses collisions), or fold a mislabelled "function" (a loop head, case body or shared tail) into a local label of the function it belongs to; a brace form in the docs (`SoundWriteFrequency{Pu1,Pu2,Wav}`) is not a whole word, so `test_tools.py` checks every expansion is a current name |
-| `tools/symfile.py` | The curated symbol files' layout: a `.sym` comment's `;` at column 32, `ram.inc`'s `EQU` at 38 and `;` at 49 (a longer name takes one space). The tools that write them (`rename.py`, `respell.py`, `fold_sym.py`, `name_locals.py`) align them after; run it after a hand edit; `--check`, and `test_tools.py`, fail on a file out of line |
+| `tools/symfile.py` | The curated symbol files' layout: a `.sym` comment's `;` at column 32, `ram.inc`'s `EQU` at 38 and `;` at 49, a C module's top-level declaration comments at 44 (a longer one takes one space). The tools that write them (`rename.py`, `respell.py`, `fold_sym.py`, `name_locals.py`) align them after; run it after a hand edit; `--check`, and `test_tools.py`, fail on a file out of line or on a bank's `.sym` naming an address or a name twice |
 | `tools/regflow.py` | Register contracts: what each routine takes in registers (`in`, `stack` for its caller's frame), what some caller reads back (`out`) and what else it changes (`clobbers`), derived from the code: a value-tracking pass (pushes and pops, moves, constants, banked calls, jump tables, page-aligned fragments) and a fixed point over the call graph. The carve prints them above every hand-written routine (cached in `build/regflow.json`); `tools/regflow.py NAME... --why` shows where each input is used and why a contract is `partial`, `--asm` lists them all |
 | `tools/show_func.py`, `rom_strings.py`, `annotate_ram.py`, `statevar.py`, `bankmap.py` | Inspection helpers: dump a function by name or address (`--bare`; a matched one is disassembled from the ROM), list the strings at an address, annotate a RAM dump, … |
 | `tools/emu/` | SameBoy-based live-verification harness (see `tools/emu/README.md`) |
@@ -379,6 +379,11 @@ in `docs/functionality.md`.
   (`SoundTriggerPu1`, `wChannelFrequencyPu2`). Exempt: `Txt`
   labels mirror their text, `SCREAMING_SNAKE` constants mirror the song
   format's documentation (`SONG_INSTRUMENTS`).
+- **C functions.** Each opens with a comment, `/* $ADDR: what it does */`,
+  in C terms: its parameters in backticks, what it returns, the screen
+  keys that reach it (`A+RIGHT on the instrument column: ...`). A literal
+  ROM address the matching needs (`FarCall(5, 0x747D)`: a name compiles to
+  another stack frame) carries the name in a comment.
 - **C locals.** Locals and parameters spell their words out too (`channel`,
   `column`, `length`). A loop variable is named for what it walks
   (`channel`, `row`, `step`, `instrument`, `position` in a wave, `address`

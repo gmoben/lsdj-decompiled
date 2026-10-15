@@ -10,8 +10,10 @@
 
 #include "lsdj.h"
 
-extern UBYTE wNameEditBuffer[];                /* $C431, [5] + NUL */
+extern UBYTE wNameEditBuffer[];             /* $C431, [5] + NUL */
 
+/* $493B: copy instrument `instrument`'s 5-letter name into wNameEditBuffer,
+   "SPCH" for the speech instrument ($40) */
 void CopyInstrumentName(UBYTE instrument)
 {
     UBYTE *p;
@@ -31,6 +33,7 @@ void CopyInstrumentName(UBYTE instrument)
     wNameEditBuffer[5] = 0;
 }
 
+/* $4A49: wNameEditBuffer -> instrument name storage ($be7a + instr*5) */
 void WriteInstrumentName(UBYTE instrument)
 {
     UBYTE *p;

@@ -10,13 +10,15 @@
 
 #include "lsdj.h"
 
-extern UBYTE ExponentialCurve16[];                 /* $00:$300F, envelope speed -> frame count */
-extern UBYTE wDecompressBuffer[];                  /* $DA00 */
+extern UBYTE ExponentialCurve16[];          /* $00:$300F, envelope speed -> frame count */
+extern UBYTE wDecompressBuffer[];           /* $DA00 */
 void PlotEnvelopeCurve(UBYTE x, UBYTE y);
 void OrBitsIntoDaBuffer(void);              /* $00:$3261 */
 void UploadTilesToVram(void);               /* $00:$3298 */
-int abs(int v);                           /* $00:$343F */
+int abs(int v);                             /* $00:$343F */
 
+/* $70B8: read the instrument's envelope input bytes (x2
+   ReadCurrentInstrumentByte) */
 UWORD GetInstrumentEnvelopeBytes(void)
 {
     UWORD total;
@@ -58,7 +60,7 @@ UWORD GetInstrumentEnvelopeBytes(void)
     return total;
 }
 
-extern UBYTE wEnvelopePlotX;                     /* $CBD8, the last plotted column */
+extern UBYTE wEnvelopePlotX;                /* $CBD8, the last plotted column */
 
 /* $7200: plot envelope column x (clamped to $3F) at height y into the
    graph buffer ($DA00, wDecompressBuffer), filling the columns since wEnvelopePlotX
@@ -146,6 +148,7 @@ void ComputeEnvelope(void)
     UploadTilesToVram();
 }
 
+/* $74E4: write the envelope OAM markers (SetOamByte x2, 8-slot bound) */
 void UpdateEnvelopeSprites(void)
 {
     UBYTE sprite, t, u;

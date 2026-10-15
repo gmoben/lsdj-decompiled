@@ -11,9 +11,9 @@
 #include "lsdj.h"
 
 void LoadSynthParameters(void);
-extern UBYTE wSelectionTop;                       /* $C40E */
-extern UBYTE wSelectionBottom;                    /* $C410 */
-extern UBYTE wSelectionRight;                     /* $C40F */
+extern UBYTE wSelectionTop;                 /* $C40E */
+extern UBYTE wSelectionBottom;              /* $C410 */
+extern UBYTE wSelectionRight;               /* $C40F */
 extern UBYTE wClipboardType;                /* $C411 */
 extern UBYTE wSynth;                        /* $C42A */
 extern UBYTE wSynthCursor;                  /* $C442 */
@@ -27,23 +27,25 @@ extern UBYTE wAPressEnabled;                /* $C409 */
 extern UBYTE wButtons;                      /* $C575 */
 extern UBYTE wBHeld;                        /* $C40B */
 extern UBYTE wDrawStep;                     /* $C405 */
-extern UBYTE wSynthNavigationSide;                 /* $CB63 */
-UBYTE ReadSynthParameter(UBYTE field);          /* the current synth's param byte */
+extern UBYTE wSynthNavigationSide;          /* $CB63 */
+UBYTE ReadSynthParameter(UBYTE field);      /* the current synth's param byte */
 void WriteSynthParameter(UBYTE field, UBYTE v);
-void SendLinkClipboard(void);                   /* $1C:$71CD */
+void SendLinkClipboard(void);               /* $1C:$71CD */
 void DrawAllChannelStatus(void);
 void DrawSynthNumber(void);
 void BuildOverwritePrompt(void);
 void RedrawScreenFar(void);
 void ClearSynthFlag(UBYTE x);
-void MoveMapCursorLeft(void);                     /* bank 5 */
-void MoveMapCursorRight(void);                    /* bank 5 */
-void MoveMapCursorDown(void);                     /* bank 5 */
-void ShowSynthFieldHelp(void);               /* bank 5 */
-void SoundToggleSongPlayback(void);                 /* bank 2 */
-void SoundTogglePlayback(void);                    /* bank 2 */
+void MoveMapCursorLeft(void);               /* bank 5 */
+void MoveMapCursorRight(void);              /* bank 5 */
+void MoveMapCursorDown(void);               /* bank 5 */
+void ShowSynthFieldHelp(void);              /* bank 5 */
+void SoundToggleSongPlayback(void);         /* bank 2 */
+void SoundTogglePlayback(void);             /* bank 2 */
 UWORD SynthLockByteAddressB1D(UBYTE x);
 
+/* $60A7: bank $1D's copy of SynthLockByteAddress: the SRAM byte holding
+   synth x's lock bit ($BFC5 for 0-7, $BFC4 for 8-F) */
 UWORD SynthLockByteAddressB1D(UBYTE x)
 {
     UWORD p;
@@ -54,6 +56,9 @@ UWORD SynthLockByteAddressB1D(UBYTE x)
     return p;
 }
 
+/* $6115: nonzero if synth x is locked (its bit in the
+   SynthLockByteAddressB1D byte; LockCurrentSynth sets it when a wave is
+   edited by hand) */
 UBYTE IsSynthLocked(UBYTE x)
 {
     UBYTE v;
@@ -62,6 +67,8 @@ UBYTE IsSynthLocked(UBYTE x)
     return v & (1 << (x & 7));
 }
 
+/* $6144: clear synth x's bit in the flag pair at $BFC4/$BFC5
+   (SynthLockByteAddressB1D) */
 void ClearSynthFlag(UBYTE x)
 {
     UWORD p;
@@ -74,6 +81,8 @@ void ClearSynthFlag(UBYTE x)
     WriteSongByte(1, p, v);
 }
 
+/* $62A8: draw the synth PHASE field: switch (jp-table SynthDispatchJumps) ->
+   " PINCH"/" WARP"/"RESYNC"/"RESYN2" */
 void DrawSynthPhaseField(UBYTE v)
 {
     switch (v) {
@@ -92,6 +101,8 @@ void DrawSynthPhaseField(UBYTE v)
     }
 }
 
+/* $6311: the current synth's param byte n: synth_params[wSynthScreen*16 + n]
+   (song $3EB2) */
 UBYTE ReadSynthParameter(UBYTE field)
 {
     UWORD p;
@@ -101,11 +112,14 @@ UBYTE ReadSynthParameter(UBYTE field)
     return ReadSongByte(1, p);
 }
 
+/* $6354: -> 1 if synth signal type (param 0) == 3 (FRAME mode), else 0 */
 UBYTE SynthSignalIsFrame(void)
 {
     return ReadSynthParameter(SYNTH_BYTE_SIGNAL) == 3;
 }
 
+/* $636E: draw the FILTER type field (" LOWP"...; "-----" empty; jp-table
+   $63a6) */
 void DrawSynthFilterField(void)
 {
     wVramCursor = (UBYTE *)BG_MAP(8, 3);
@@ -132,6 +146,8 @@ void DrawSynthFilterField(void)
     }
 }
 
+/* $6414: draw the waveform type row (glyph strings "iiii"/"mmmm"; jp-table
+   $6437) */
 void DrawSynthSignalField(void)
 {
     wVramCursor = (UBYTE *)BG_MAP(9, 2);
@@ -155,6 +171,8 @@ void DrawSynthSignalField(void)
     }
 }
 
+/* $649F: restore palette 1 over the cursor field's cells
+   (SynthFieldX/Width/Layout[wSynthCursor]) */
 void EraseSynthCursor(void)
 {
     UBYTE x;
@@ -163,6 +181,7 @@ void EraseSynthCursor(void)
         ColorField(x, SynthFieldLayout[wSynthCursor], 1, 1);
 }
 
+/* $6503: highlight the cursor field's cells (palette 3 on CGB, 2 on DMG) */
 void DrawSynthCursor(void)
 {
     UBYTE x;
@@ -171,6 +190,7 @@ void DrawSynthCursor(void)
         ColorField(x, SynthFieldLayout[wSynthCursor], 1, hGameboyType ? 3 : 2);
 }
 
+/* $6577: draw the DIST field: "CLIP"/"FOLD"/"WRAP" */
 void DrawSynthDistortionField(UBYTE v)
 {
     switch (v) {
@@ -253,6 +273,7 @@ void DrawSynthNumber(void)
     DrawSynthCursor();
 }
 
+/* $68AB: screen idx 10: draws softsynth params (wave/filter/cutoff/dist/...) */
 void DrawSynthScreen(void)
 {
     wSynth &= 0x0F;
@@ -315,6 +336,7 @@ void BuildOverwritePrompt(void)
     hBgPalette = 1;
 }
 
+/* $6D0F: highlight the OVERWRITE? prompt choice (wOverwriteEnd) on row 9 */
 void DrawOverwriteChoice(void)
 {
     UBYTE x1, w2, x2, w1;
@@ -355,11 +377,14 @@ void OverwriteSynthWaves(void)
     DrawOverwriteChoice();
 }
 
+/* $6E00: RedrawScreen with bank 1 mapped */
 void RedrawScreenFar(void)
 {
     FarCall(1, FAR_FN(RedrawScreen));
 }
 
+/* $6E11: synth OVERWRITE? prompt input: LEFT/RIGHT move the choice, A
+   accepts (clearing the synth flag on the left choice), B cancels */
 void OverwritePromptInput(void)
 {
     if (wAPressEnabled) {
@@ -386,6 +411,7 @@ void OverwritePromptInput(void)
     }
 }
 
+/* $6E6E: synth_params[wSynthScreen*16+n] = value (song $3EB2); 24 uses */
 void WriteSynthParameter(UBYTE field, UBYTE v)
 {
     UWORD p;
@@ -395,6 +421,8 @@ void WriteSynthParameter(UBYTE field, UBYTE v)
     WriteSongByte(1, p, v);
 }
 
+/* $6EB6: synth param field += inc, clamped to max; draws it and writes it
+   back */
 void AddSynthParameterClamped(UBYTE field, UBYTE maximum, UBYTE increment)
 {
     UWORD p;
@@ -410,6 +438,7 @@ void AddSynthParameterClamped(UBYTE field, UBYTE maximum, UBYTE increment)
     WriteSongByte(1, p, v);
 }
 
+/* $6F3F: synth param field -= dec, clamped at 0; draws it and writes it back */
 void SubSynthParameterClamped(UBYTE field, UBYTE decrement)
 {
     UWORD p;
@@ -425,6 +454,8 @@ void SubSynthParameterClamped(UBYTE field, UBYTE decrement)
     WriteSongByte(1, p, v);
 }
 
+/* $6FC4: increment the edited synth's param field unless it equals max; draw
+   it (hex) and store it */
 void RaiseSynthParameterTo(UBYTE field, UBYTE maximum)
 {
     UWORD p;
@@ -440,6 +471,8 @@ void RaiseSynthParameterTo(UBYTE field, UBYTE maximum)
     }
 }
 
+/* $702B: decrement the edited synth's param field unless 0; draw it (hex)
+   and store it */
 void LowerSynthParameterTo0(UBYTE field)
 {
     UWORD p;
@@ -455,6 +488,8 @@ void LowerSynthParameterTo0(UBYTE field)
     }
 }
 
+/* $708E: current synth field: +$10 on the hi nibble (clamp $f0),
+   WriteSynthParameter */
 UBYTE RaiseSynthFieldHigh(void)
 {
     UBYTE v, t;
@@ -468,6 +503,7 @@ UBYTE RaiseSynthFieldHigh(void)
     return v >> 4;
 }
 
+/* $70BC: current synth field: +1 on the lo nibble (clamp $0f) */
 UBYTE RaiseSynthFieldLow(void)
 {
     UBYTE v, t;
@@ -481,6 +517,7 @@ UBYTE RaiseSynthFieldLow(void)
     return v & 0x0F;
 }
 
+/* $70E4: current synth field: -$10 on the hi nibble */
 UBYTE LowerSynthFieldHigh(void)
 {
     UBYTE v;
@@ -493,6 +530,7 @@ UBYTE LowerSynthFieldHigh(void)
     return v >> 4;
 }
 
+/* $7111: current synth field: -1 on the lo nibble */
 UBYTE LowerSynthFieldLow(void)
 {
     UBYTE v;

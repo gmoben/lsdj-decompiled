@@ -34,10 +34,10 @@
 494E ScrollSongUp               ; scroll the song grid for the row above: ScrollSongVramUp (+ CopyVramRowUp on CGB), redraw row 2 ($9840)
 4973 ScrollSongDown             ; scroll the song grid for the row below: ScrollSongVramDown (+ CopyVramRowDown on CGB), redraw row 17 ($9A20)
 4998 FindNextSongRow            ; scan down 1..16 from cursor wSongRow, wrapping at 0 -> $ff
-49E7 PageSongCursorDown         ; PgDn: advance song cursor wSongRow by a page (wCursorMode==4 guard)
+49E7 PageSongCursorDown         ; B+DOWN: move the song cursor (wSongRow) down a page (not while wCursorMode == 4)
 4A25 FindPreviousSongRow        ; scan up 1..16 from cursor wSongRow, wrapping
-4A79 PageSongCursorUp           ; PgUp: retreat song cursor wSongRow by a page
-4AB8 BeginSongSelection         ; SaveSelectionState, seed wSel* rect from the song cursor
+4A79 PageSongCursorUp           ; B+UP: move the song cursor (wSongRow) up a page
+4AB8 BeginSongSelection         ; SaveSelectionState, seed the wSelection* rectangle from the song cursor
 4AFD LoadSongCursorChain        ; read seq[wSongRow,wSongColumn] ($ff -> empty path), validate+cache via CloneSongChain
 5736 CutCopySongSelection       ; cut (isCut arg) or copy the song selection rect into the clipboard; a cut shifts each column up and clears the tail ($FF), AdjustBookmarksOnDelete, CUT/COPIED CHAINS
 5929 .endSelection              ; finish selection (ShowMessage), restore cursor from wSelectionLeft/wSongSelectionRow

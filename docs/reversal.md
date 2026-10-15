@@ -557,7 +557,7 @@ tables**, and the phrase/chain/instr **allocation bitmap** functions
 (`AllocateNextFreePhrase`/`FreeChain`/`AllocateNextFreeInstrument`/`FindFreeTable`…).
 Several functions were *hidden by misalignment* — strings/tables carved as code
 swallowed the next function's first bytes (`ShowTapAddPhrase`, `SramHasFileBanks`,
-`CanEnterSongColumn`) — fixed by adding the data ranges to `carve_clean.py` MANUAL.
+`EnterChannelPhrase`) — fixed by adding the data ranges to `carve_clean.py` MANUAL.
 The residual `_LABEL_` count (~365) is entirely the benign classes: 16-bit
 numeric constants that look like addresses (`ld de,$0400` as a copy length) and
 `Func+N` interior pointers, which Emulicious renders as `Symbol+offset`, never
@@ -576,7 +576,7 @@ the synth/groove screens, and the instrument byte accessors named from the
 liblsdj-documented format (`Get/SetInstrumentType/Env/Len/Flags5/Table`…). The last
 `_LABEL_` Emulicious showed (`_LABEL_9F52_` = bank 02:$5F52) was a function
 hidden mid-misdecoded-data: `SoundSetNoisePolynomial` + its 120-byte `NoiseFrequencyTable` —
-the same class also yielded `DrawInstrumentName` (bank 04) and `ReadGrooveStep`
+the same class also yielded `SetPhraseInstrument` (bank 04) and `ReadGrooveStep`
 (bank 1D), found by auditing raw `call $xxxx` sites with no label.
 
 **`_DATA_` to zero — `tools/data_refs.py`.** The final data pass audits every

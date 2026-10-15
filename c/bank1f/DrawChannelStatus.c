@@ -14,15 +14,16 @@
 
 #include "lsdj.h"
 
-extern UBYTE wChannelOutput[];                /* $C0A0, [4] */
-extern UBYTE wChannelOutputOverride[];                /* $C0A4, [4] */
-extern UBYTE wChannelMuteShown[];              /* $C9CE, [4] */
-extern UBYTE *wChannelMuteShownPointer;            /* $C9D2 */
+extern UBYTE wChannelOutput[];              /* $C0A0, [4] */
+extern UBYTE wChannelOutputOverride[];      /* $C0A4, [4] */
+extern UBYTE wChannelMuteShown[];           /* $C9CE, [4] */
+extern UBYTE *wChannelMuteShownPointer;     /* $C9D2 */
 int StringLength(const char *s);
 
 const UBYTE ChanStatusAttrSel[4] = {3, 3, 3, 3};
 const UBYTE ChanStatusAttrNorm[4] = {0, 1, 1, 1};
 
+/* $6F14: draw channel status cell at (16, ch+6) from wChannelOutput[ch] */
 void DrawChannelStatus(UBYTE channel)
 {
     UBYTE y;
@@ -72,6 +73,7 @@ void DrawChannelStatus(UBYTE channel)
     }
 }
 
+/* $7072: draw the 4 channel status cells (DrawChannelStatus 0-3) */
 void DrawAllChannelStatus(void)
 {
     DrawChannelStatus(0);

@@ -10,23 +10,25 @@
 #include "lsdj.h"
 
 extern volatile sfr UBYTE SC_REG;           /* $FF02 */
-extern UBYTE wSyncTransmitByte;                   /* $CBDC */
-extern UBYTE wSyncReceiveByte;                   /* $CBDD */
+extern UBYTE wSyncTransmitByte;             /* $CBDC */
+extern UBYTE wSyncReceiveByte;              /* $CBDD */
 extern UBYTE wSyncState;                    /* $CBDE */
-void SetInterruptEnable(UBYTE interruptMask);          /* bank 0 */
+void SetInterruptEnable(UBYTE interruptMask); /* bank 0 */
 UBYTE joypad(void);                         /* bank 0 */
 void SendSyncHandshake(void);               /* bank 0 */
 void SendSyncByte(void);                    /* bank 0 */
 void delay(UWORD d);                        /* bank 0 (GBDK) */
 
-extern UBYTE wSelectionTop;                       /* $C40E */
-extern UBYTE wSelectionRight;                     /* $C40F */
-extern UBYTE wSelectionBottom;                    /* $C410 */
+extern UBYTE wSelectionTop;                 /* $C40E */
+extern UBYTE wSelectionRight;               /* $C40F */
+extern UBYTE wSelectionBottom;              /* $C410 */
 extern UBYTE wClipboardType;                /* $C411 */
-extern UBYTE wClipboardBuffer[][42];           /* $C57A, 6 columns of 42 cells */
-extern UBYTE wSyncTransferActive;               /* $CB65 */
-void SyncSetReceiveMode(void);                 /* bank 0 */
+extern UBYTE wClipboardBuffer[][42];        /* $C57A, 6 columns of 42 cells */
+extern UBYTE wSyncTransferActive;           /* $CB65 */
+void SyncSetReceiveMode(void);              /* bank 0 */
 
+/* $719C: send byte `v` over the link cable (SendSyncByte), asserting no
+   transfer is under way, then wait 6 ticks (3 on DMG) */
 void FileSendSyncByte(UBYTE v)
 {
     UBYTE s;
@@ -78,6 +80,8 @@ void SendLinkClipboard(void)
     wSyncTransferActive = 0;
 }
 
+/* $72EE: link-port byte exchange step (wSyncState, joypad,
+   SendSyncHandshake) */
 void SyncTransferByte(UBYTE *out)
 {
     while (wSyncState == 2 && joypad() == 0)

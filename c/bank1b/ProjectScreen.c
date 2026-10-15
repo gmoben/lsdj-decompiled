@@ -14,16 +14,16 @@ extern UBYTE wKeyDelay;                     /* $C52B */
 extern UBYTE wKeyRepeat;                    /* $C52C */
 extern UBYTE wRedrawPending;                /* $C56C */
 extern UBYTE wPrelisten;                    /* $C56E */
-extern UBYTE ProjectFieldX[];                  /* $1B:$575C, the 12 fields' x */
-extern UBYTE ProjectFieldY[];                  /* $1B:$5768, and rows */
+extern UBYTE ProjectFieldX[];               /* $1B:$575C, the 12 fields' x */
+extern UBYTE ProjectFieldY[];               /* $1B:$5768, and rows */
 extern UBYTE wAPressEnabled;                /* $C409 */
 extern UBYTE wButtons;                      /* $C575 */
-extern UBYTE wProjectCursor;                   /* $C9A4 */
-extern UBYTE wPlaySeconds;                 /* $C553 */
-extern UBYTE wPlayMinutes;                 /* $C552 */
-extern UBYTE wProjectDrawScratch;              /* $C9A7 */
-extern UBYTE wProjectDrawScratch2;             /* $C9A8 */
-extern UBYTE wProjectDrawScratch3;             /* $C9A9 */
+extern UBYTE wProjectCursor;                /* $C9A4 */
+extern UBYTE wPlaySeconds;                  /* $C553 */
+extern UBYTE wPlayMinutes;                  /* $C552 */
+extern UBYTE wProjectDrawScratch;           /* $C9A7 */
+extern UBYTE wProjectDrawScratch2;          /* $C9A8 */
+extern UBYTE wProjectDrawScratch3;          /* $C9A9 */
 void DrawProjectTempo(void);
 UBYTE PrelistenAvailable(void);
 void DrawPrelistenField(void);
@@ -31,23 +31,23 @@ UBYTE GetNextButtons(void);                 /* bank 0 */
 UBYTE ProjectCursorFieldWidth(void);
 extern UBYTE wWorkClockSubFrame;            /* $C9AA */
 extern UBYTE wTapTempoCount;                /* $C9AB */
-extern UBYTE wTapTempoBuffer[];                /* $C9AC, [8] */
+extern UBYTE wTapTempoBuffer[];             /* $C9AC, [8] */
 extern UBYTE wSelectHeld;                   /* $C40A */
 extern UBYTE wBHeld;                        /* $C40B */
 extern UBYTE wAHeld;                        /* $C40C */
-extern UBYTE wMapColumn;                       /* $C8FF */
-extern UBYTE wProjectMenuActive;               /* $C9A5, the RESET CARTRIDGE? menu is open */
-extern UBYTE wProjectMenuItem;                 /* $C9A6, its YES/NO */
+extern UBYTE wMapColumn;                    /* $C8FF */
+extern UBYTE wProjectMenuActive;            /* $C9A5, the RESET CARTRIDGE? menu is open */
+extern UBYTE wProjectMenuItem;              /* $C9A6, its YES/NO */
 extern UBYTE wTickRepeat;                   /* $CB70 */
 extern UBYTE wFrameSkip;                    /* $CB6F */
 extern UBYTE wTransposeDirty;               /* $C445 */
-extern UBYTE wSongTransposeDisplay;            /* $C446 */
+extern UBYTE wSongTransposeDisplay;         /* $C446 */
 extern UBYTE wSyncState;                    /* $CBDE */
 extern UBYTE wColorSet;                     /* $C52F */
 extern UBYTE wKeyDelayTimer;                /* $C406 */
 extern UBYTE wFont;                         /* $C52E */
 extern UBYTE wFileField;                    /* $C992 */
-UBYTE ProjectSyncStateFlag(void);              /* $1B:$57C1 */
+UBYTE ProjectSyncStateFlag(void);           /* $1B:$57C1 */
 void SyncApplyMode(void);                   /* bank 0 */
 void TapTempoStep(void);
 void SetSyncSendRate(void);                 /* bank 7 */
@@ -55,16 +55,16 @@ void ApplyColorSet(void);                   /* bank 1 */
 void LoadFontTiles(void);                   /* bank $1E */
 void FormatFileSpace(void);                 /* bank $1C */
 void CleanSongData(void);                   /* bank $1F */
-void CleanInstrumentData(void);                  /* bank $1F */
-void DrawCalibrationScreen(void);         /* bank 7 */
+void CleanInstrumentData(void);             /* bank $1F */
+void DrawCalibrationScreen(void);           /* bank 7 */
 void FileValidateName(void);                /* bank $1C */
 void LoadFileListState(void);               /* bank $1C */
 void LoadProjectSettings(void);             /* bank 1 */
-void FormatSramSong(void);                     /* bank 1 */
-void MoveMapCursorRight(void);                    /* bank 5 */
-void MoveMapCursorDown(void);                     /* bank 5 */
-void SoundTogglePlayback(void);                    /* bank 2 */
-extern UBYTE wSramHasFileBanks;                   /* $C9A3 */
+void FormatSramSong(void);                  /* bank 1 */
+void MoveMapCursorRight(void);              /* bank 5 */
+void MoveMapCursorDown(void);               /* bank 5 */
+void SoundTogglePlayback(void);             /* bank 2 */
+extern UBYTE wSramHasFileBanks;             /* $C9A3 */
 extern UBYTE wSongTranspose;                /* $C444 */
 extern UBYTE wCloneMode;                    /* $C531 */
 UBYTE SramHasFileBanks(void);               /* $1C:$4057 */
@@ -75,11 +75,13 @@ void FileStopSound(void);                   /* $1C:$5098 */
 void DrawProjectTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE h);
 void delay(UWORD d);
 
+/* $5782: wSyncMode -> song property $bfbd */
 void SaveSyncMode(void)
 {
     WriteSongByte(1, SramPropertySyncMode, wSyncMode);
 }
 
+/* $5796: draw + persist wSyncMode2 (song property $bfbf) */
 void DrawSyncMode2Field(void)
 {
     hBgDigitPalette = wHighlightDigitPalette;
@@ -88,17 +90,20 @@ void DrawSyncMode2Field(void)
     WriteSongByte(1, SramPropertySyncParameter, wSyncMode2);
 }
 
+/* $582C: wTempo -> $bfb4, wTempoMode -> $bfcc song properties */
 void SaveTempoProperties(void)
 {
     WriteSongByte(1, SramPropertyTempo, wTempo);
     WriteSongByte(1, SramPropertyTempoMode, wTempoMode);
 }
 
+/* $5853: draw the tempo at the VRAM cursor: DrawTempo(GetTempoTimerValue()) */
 void DrawProjectTempo(void)
 {
     DrawTempo(GetTempoTimerValue());
 }
 
+/* $5861: wait while wRedrawPending < 6, then DrawProjectTempo at $9846 */
 void RedrawProjectTempo(void)
 {
     while (wRedrawPending < 6)
@@ -107,6 +112,7 @@ void RedrawProjectTempo(void)
     DrawProjectTempo();
 }
 
+/* $5876: draw the KEY DELAY/REPEAT values (wKeyDelay/wKeyRepeat) */
 void DrawKeyRepeatField(void)
 {
     DrawByte(wKeyDelay);
@@ -114,6 +120,8 @@ void DrawKeyRepeatField(void)
     DrawByte(wKeyRepeat);
 }
 
+/* $5896: 1 if wSyncMode has a sync parameter row (KEYBD: the PS/2 delay; the
+   analog modes: ticks per step) */
 UBYTE SyncModeHasParameter(void)
 {
     if (wSyncMode == SYNC_KEYBOARD || wSyncMode == SYNC_ANALOG_IN || wSyncMode == SYNC_ANALOG_OUT)
@@ -121,6 +129,8 @@ UBYTE SyncModeHasParameter(void)
     return 0;
 }
 
+/* $5A42: restore the palette of the project screen field under
+   wProjectCursor (1 for fields 0-7) */
 void EraseProjectCursor(void)
 {
     UBYTE palette, y;
@@ -131,6 +141,8 @@ void EraseProjectCursor(void)
     ColorField(ProjectFieldX[wProjectCursor], y, wProjectDrawScratch2, palette);
 }
 
+/* $5A90: highlight the project screen field under wProjectCursor
+   (ProjectFieldX/Y, ProjectCursorFieldWidth) */
 void DrawProjectCursor(void)
 {
     UBYTE palette, y;
@@ -141,6 +153,7 @@ void DrawProjectCursor(void)
     ColorField(ProjectFieldX[wProjectCursor], y, wProjectDrawScratch3, palette);
 }
 
+/* $5AE3: draw a small decimal value ("%d" via printf) */
 void DrawDecimalField(UBYTE v)
 {
     if (v < 10)
@@ -148,6 +161,8 @@ void DrawDecimalField(UBYTE v)
     printf("%d", v);
 }
 
+/* $5B09: 1 if the sync mode allows prelisten (OFF, LSDJ, KEYBD); the
+   PRELISTEN field shows N/A otherwise */
 UBYTE PrelistenAvailable(void)
 {
     if (wSyncMode == SYNC_OFF || wSyncMode == SYNC_LSDJ || wSyncMode == SYNC_KEYBOARD)
@@ -155,6 +170,7 @@ UBYTE PrelistenAvailable(void)
     return 0;
 }
 
+/* $5B23: PRELISTEN field: "ON "/"OFF"/"N/A" by wPrelisten + sync mode */
 void DrawPrelistenField(void)
 {
     if (PrelistenAvailable())
@@ -163,6 +179,7 @@ void DrawPrelistenField(void)
         DrawString("N/A");
 }
 
+/* $5B62: PRELISTEN field at $992A in the shadow palette (DrawPrelistenField) */
 void RedrawProjectPrelisten(void)
 {
     wVramCursor = (UBYTE *)BG_MAP(10, 9);
@@ -171,6 +188,7 @@ void RedrawProjectPrelisten(void)
     DrawPrelistenField();
 }
 
+/* $5B7A: draw PS/2 DELAY (KEYBD) or TICKS/STEP (analog) value beside SYNC */
 void DrawSyncSubSetting(void)
 {
     wVramCursor = BG_MAP(0, 16);
@@ -192,6 +210,9 @@ void DrawSyncSubSetting(void)
     }
 }
 
+/* $5C17: Project screen draw: edits song-global properties at SRAM bank1
+   $BFB2+ (song offset $3FB2: tempo/transpose/sync/font/colorset/clone; see
+   data_model.md) */
 void DrawProjectScreen(void)
 {
     wSramHasFileBanks = FarCallByte(0x1C, FAR_FN(SramHasFileBanks));
@@ -233,6 +254,7 @@ void DrawProjectScreen(void)
     wTapTempoCount = 0xFF;
 }
 
+/* $5D7C: drain buttons, clear tilemap, DrawProjectScreen + map row */
 void RefreshProjectScreen(void)
 {
     while (GetNextButtons())
@@ -723,6 +745,10 @@ UBYTE ProjectScreenInput(void)
     return 0;
 }
 
+/* $6A8C: TAP tempo: on each tap record the frames since the last one
+   (wWorkClockSubFrame) into wTapTempoBuffer (8-deep, oldest dropped),
+   starting over after a $80-frame gap; from 3 taps on, tempo = $6FFE / (8 *
+   the mean interval), capped at $FF */
 void TapTempoStep(void)
 {
     UWORD sum;

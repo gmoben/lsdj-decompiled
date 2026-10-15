@@ -24,31 +24,31 @@ extern volatile sfr UBYTE NR52_REG;         /* $FF26 */
 extern volatile sfr UBYTE STAT_REG;         /* $FF41 */
 extern volatile sfr UBYTE TMA_REG;          /* $FF06 */
 extern volatile sfr UBYTE TAC_REG;          /* $FF07 */
-extern UBYTE wFilesystemCheckResult;                /* $C56B */
+extern UBYTE wFilesystemCheckResult;        /* $C56B */
 extern UBYTE wRedrawPending;                /* $C56C */
 extern UBYTE wPrelisten;                    /* $C56E */
 extern UBYTE wButtons;                      /* $C575 */
 extern UBYTE wTimerReload;                  /* $C578 */
-extern UBYTE wTimerTickIncrement;                 /* $C579 */
+extern UBYTE wTimerTickIncrement;           /* $C579 */
 extern UBYTE wWorkTimeTicks;                /* $C577 */
 extern UBYTE wIdleHalt;                     /* $C68B */
 extern UBYTE wIdleFrames;                   /* $C68C */
-extern UBYTE wSynthRenderIndex;               /* $C9F0 */
+extern UBYTE wSynthRenderIndex;             /* $C9F0 */
 extern UBYTE wSynthRenderActive;            /* $C9F1 */
 extern UBYTE wSyncTick;                     /* $CB69 */
 extern UBYTE wSyncSerialIeMask;             /* $CB6D */
-extern UBYTE wBootHardwareId;                     /* $CBD9 */
+extern UBYTE wBootHardwareId;               /* $CBD9 */
 extern char TxtTitle[];                     /* $01:$6F7E */
 
 void SwitchToDoubleSpeed(void);             /* asm */
 void ResetWorkState(void);
-void InitializeKitMixer(void);                    /* bank $1B */
-void InitializeScreen(void);                    /* bank 1 */
-UBYTE CheckSongInitializedMarker(void);              /* bank 1 */
-void LoadFontTiles(void);              /* bank $1E */
+void InitializeKitMixer(void);              /* bank $1B */
+void InitializeScreen(void);                /* bank 1 */
+UBYTE CheckSongInitializedMarker(void);     /* bank 1 */
+void LoadFontTiles(void);                   /* bank $1E */
 void DrawCartTest(void);                    /* bank 1 */
-void FormatSramSong(void);                     /* bank 1 */
-void WriteSongInitializedMarker(void);               /* bank 1 */
+void FormatSramSong(void);                  /* bank 1 */
+void WriteSongInitializedMarker(void);      /* bank 1 */
 UBYTE SramHasFileBanks(void);               /* bank $1C */
 UBYTE CheckJkMarker(void);                  /* bank 1 */
 void FormatFileSpace(void);                 /* bank $1C */
@@ -57,51 +57,51 @@ UBYTE CheckFileMagicAll(void);              /* bank $1C */
 void RenderSynthWave(void);                 /* bank $1D */
 UBYTE ProcessLinkQueue(void);               /* bank 7 */
 UBYTE GetNextButtons(void);
-UBYTE SoundGetChainPhrase(UBYTE chain, UBYTE row);    /* bank 2 */
+UBYTE SoundGetChainPhrase(UBYTE chain, UBYTE row); /* bank 2 */
 void MarkPhraseUsed(UBYTE phrase);          /* bank 1 */
 void MarkChainUsed(UBYTE chain);            /* bank 1 */
-void InitializeRemapTable(void);                  /* bank $1F */
-void SoundTogglePlayback(void);                  /* bank 2 */
+void InitializeRemapTable(void);            /* bank $1F */
+void SoundTogglePlayback(void);             /* bank 2 */
 void SyncApplyMode(void);
-void WritePhraseCommand(UBYTE phrase, UBYTE row, UBYTE command);  /* bank 4 */
-void WriteTableCommand(UBYTE row, UBYTE command);    /* bank 5 */
+void WritePhraseCommand(UBYTE phrase, UBYTE row, UBYTE command); /* bank 4 */
+void WriteTableCommand(UBYTE row, UBYTE command); /* bank 5 */
 void ResetGrooveState(void);                /* bank $1D */
 UBYTE HandleButtonEvent(void);
-extern UBYTE wKeyboardActionChannel;                  /* $CB9A */
+extern UBYTE wKeyboardActionChannel;        /* $CB9A */
 extern UBYTE wLinkQueueCount;               /* $CB7D */
-extern UBYTE wKeyboardHeldNote;                  /* $CB7E */
-extern UBYTE wSelectHoldFrames;                /* $C676 */
+extern UBYTE wKeyboardHeldNote;             /* $CB7E */
+extern UBYTE wSelectHoldFrames;             /* $C676 */
 extern UBYTE wChainScopeDirty;              /* $C403 */
 extern UBYTE wSongScopeDirty;               /* $C404 */
 extern UBYTE wChain;                        /* $C418 */
 extern char wChainRow;                      /* $C41A: a char (copied through b to be pushed) */
-extern UBYTE wColumnPhrase[];                  /* $C453, [4] */
-extern UBYTE wColumnChain[];                   /* $C44F, [4] */
-extern UBYTE wColumnLastCommand[];                 /* $C44B, [4] */
-extern UBYTE wInstrumentRemapDirty;              /* $C9B7 */
+extern UBYTE wColumnPhrase[];               /* $C453, [4] */
+extern UBYTE wColumnChain[];                /* $C44F, [4] */
+extern UBYTE wColumnLastCommand[];          /* $C44B, [4] */
+extern UBYTE wInstrumentRemapDirty;         /* $C9B7 */
 extern UBYTE wTransposeDirty;               /* $C445 */
 extern UBYTE wSongTranspose;                /* $C444 */
-extern UBYTE wSongTransposeDisplay;            /* $C446 */
-extern UBYTE wLiveStartColumn;                 /* $C571 */
+extern UBYTE wSongTransposeDisplay;         /* $C446 */
+extern UBYTE wLiveStartColumn;              /* $C571 */
 extern UBYTE wSavedLiveMode;                /* $C572 */
 extern UBYTE wLiveMode;                     /* $C528 */
-extern UBYTE wPendingCommandTarget;             /* $C467 */
-extern UBYTE wPendingCommands[];                /* $C457, [16] */
-extern UWORD wTableCellAPointer, wTableCellBPointer;    /* $C447, $C449 */
+extern UBYTE wPendingCommandTarget;         /* $C467 */
+extern UBYTE wPendingCommands[];            /* $C457, [16] */
+extern UWORD wTableCellAPointer, wTableCellBPointer; /* $C447, $C449 */
 extern UBYTE wGrooveCacheValid;             /* $C9D5 */
-extern UBYTE *wTopBarMarkPointer;               /* $C562 */
+extern UBYTE *wTopBarMarkPointer;           /* $C562 */
 extern UBYTE wKeyDelay, wKeyRepeat;         /* $C52B, $C52C */
-extern UBYTE wKeyDelayTimer, wKeyRepeatTimer;   /* $C406, $C407 */
+extern UBYTE wKeyDelayTimer, wKeyRepeatTimer; /* $C406, $C407 */
 extern UBYTE wAPressEnabled;                /* $C409 */
 extern UBYTE wSelectHeld;                   /* $C40A */
 extern UBYTE wBHeld;                        /* $C40B */
 void DispatchScreenUpdate(void);
 UBYTE AnyChannelFlagSet(void);
-void UpdatePlayClock(void);                   /* bank 1 */
-void UpdateWorkClock(void);                  /* bank 1 */
-UBYTE IsMessageActive(void);                  /* bank 1 */
-void UpdateMessage(void);                 /* bank 1 */
-void SetInterruptEnable(UBYTE interruptMask);          /* asm */
+void UpdatePlayClock(void);                 /* bank 1 */
+void UpdateWorkClock(void);                 /* bank 1 */
+UBYTE IsMessageActive(void);                /* bank 1 */
+void UpdateMessage(void);                   /* bank 1 */
+void SetInterruptEnable(UBYTE interruptMask); /* asm */
 UBYTE joypad(void);                         /* GBDK */
 void WaitInterrupt(void);                   /* asm */
 
@@ -267,6 +267,10 @@ UBYTE ProcessInput(void)
     return 1;
 }
 
+/* $0DDB: second-stage boot (runs once before main's loop):
+   SwitchToDoubleSpeed, ClearBgTilemap, init subsystems, load the working
+   song (bank1 $4CF1/$4848) or ResetWorkState if empty, set palettes + load
+   song properties */
 void InitializeAndLoadSong(void)
 {
     SwitchToDoubleSpeed();
@@ -306,6 +310,9 @@ void InitializeAndLoadSong(void)
     _asm ei _endasm;
 }
 
+/* $1306: the C entry point (Start jumps here): detect the hardware,
+   InitializeAndLoadSong, redraw, file-system check; then main.mainLoop is
+   its endless loop */
 void main(void)
 {
     switch (wBootHardwareId) {

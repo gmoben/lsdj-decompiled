@@ -13,18 +13,21 @@
 #include "lsdj.h"
 
 extern UBYTE wSongScroll;                   /* $C41C */
-extern UBYTE wSelectionTop;                       /* $C40E */
-extern UBYTE wSelectionRight;                     /* $C40F */
-extern UBYTE wSelectionBottom;                    /* $C410 */
+extern UBYTE wSelectionTop;                 /* $C40E */
+extern UBYTE wSelectionRight;               /* $C40F */
+extern UBYTE wSelectionBottom;              /* $C410 */
 extern UBYTE wClipboardType;                /* $C411 */
-extern UBYTE wSongSelectionRow;                   /* $C94B */
-void CopySongColumn(UWORD source, UWORD destination);   /* this unit's prototype (the ROM casts the pointer args) */
+extern UBYTE wSongSelectionRow;             /* $C94B */
+void CopySongColumn(UWORD source, UWORD destination); /* this unit's prototype (the ROM casts the pointer args) */
 void EraseSongCursor(void);
 void ScrollSongToCursor(void);
 void RedrawSongRow(void);
 void AdjustBookmarksOnDelete(UBYTE low, UBYTE high);
 void WriteSongCell(UBYTE column, UBYTE row, UBYTE chain);
 
+/* $5736: copy the song selection to the clipboard; when `isCut`, each column
+   below closes up over it, the end filled with $FF, and the bookmarks follow
+   (AdjustBookmarksOnDelete); "CUT CHAINS" or "COPIED CHAINS" */
 void CutCopySongSelection(UBYTE isCut)
 {
     UBYTE rowsLeft;

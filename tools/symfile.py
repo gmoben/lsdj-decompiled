@@ -5,6 +5,8 @@ src/bankNN.sym lines are `ADDR Name`, with a comment's `;` at column 32
 (a longer name takes one space); constants/ram.inc lines are
 `DEF Name EQU value`, `EQU` at column 38 and a comment's `;` at column 49,
 and a comment continued on the next lines keeps its `;` in the same column.
+In the C modules (c/bankNN/*.c) a top-level declaration's comment
+(`extern UBYTE wChain;  /* $C418 */`) starts at column 44.
 Every tool that writes these files ends with align_files(), and
 tools/match/test_tools.py checks they stay aligned. A bank's file names an
 address once and a name once: of two entries the tools keep the last, so
@@ -24,10 +26,12 @@ ROOT = Path(__file__).resolve().parents[1]
 SYM_COMMENT = 32
 EQU_COLUMN = 38
 RAM_COMMENT = 49
+C_COMMENT = 44
 
 SYM_LINE = re.compile(r"^([0-9A-Fa-f]{4} \S+)[ \t]*(;.*)?$")
 DEF_LINE = re.compile(r"^(DEF \S+)[ \t]+EQU[ \t]+([^;]*?)[ \t]*(;.*)?$")
 CONTINUED = re.compile(r"^[ \t]+(;.*)$")
+C_DECLARATION = re.compile(r"^([A-Za-z_][^/\n]*?;)[ \t]*(/\*.*\*/)[ \t]*$")
 
 
 def pad(text: str, column: int) -> str:
@@ -62,9 +66,18 @@ def align_ram(text: str) -> str:
     return _lines(text, line)
 
 
+def align_c(text: str) -> str:
+    """A C module: each top-level declaration's trailing comment at C_COMMENT."""
+    def line(s: str) -> str:
+        m = C_DECLARATION.match(s)
+        return pad(m.group(1), C_COMMENT) + m.group(2) if m else s
+    return _lines(text, line)
+
+
 def files() -> list[tuple[Path, object]]:
     return ([(p, align_sym) for p in sorted((ROOT / "src").glob("bank*.sym"))]
-            + [(ROOT / "constants" / "ram.inc", align_ram)])
+            + [(ROOT / "constants" / "ram.inc", align_ram)]
+            + [(p, align_c) for p in sorted((ROOT / "c").glob("bank*/*.c"))])
 
 
 def unaligned() -> list[Path]:

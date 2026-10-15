@@ -13,26 +13,26 @@
 extern volatile sfr UBYTE NR50_REG;         /* $FF24 */
 extern volatile sfr UBYTE NR51_REG;         /* $FF25 */
 extern volatile sfr UBYTE NR52_REG;         /* $FF26 */
-extern volatile sfr UBYTE hSoundChannel;         /* $FF8B */
+extern volatile sfr UBYTE hSoundChannel;    /* $FF8B */
 extern UBYTE wColorSet;
-extern UBYTE wSelectionTop;                       /* $C40E */
-extern UBYTE wSelectionRight;                     /* $C40F */
-extern UBYTE wSelectionBottom;                    /* $C410 */
+extern UBYTE wSelectionTop;                 /* $C40E */
+extern UBYTE wSelectionRight;               /* $C40F */
+extern UBYTE wSelectionBottom;              /* $C410 */
 extern UBYTE wClipboardType;                /* $C411 */
-extern UBYTE wQuickMarking;             /* $C412 */
+extern UBYTE wQuickMarking;                 /* $C412 */
 extern UBYTE wLiveMode;                     /* $C528 */
-extern UBYTE wClipboardBuffer[];               /* $C57A, [252] */
+extern UBYTE wClipboardBuffer[];            /* $C57A, [252] */
 extern UBYTE wClipboardSave[];              /* $C7C6, [252] */
 void ResetWorkState(void);                  /* bank 0 */
 void ApplyColorSet(void);
 void SyncLoadSetting(void);                 /* bank 0 */
-void LoadFontTiles(void);              /* bank $1E */
+void LoadFontTiles(void);                   /* bank $1E */
 void SetSyncSendRate(void);                 /* bank 7 */
 void LoadFileListState(void);               /* bank $1C */
 void FileUpgradeSong(void);                 /* bank $1C */
-void DrawKeyboardInstrumentState(void);               /* bank 7 */
+void DrawKeyboardInstrumentState(void);     /* bank 7 */
 extern UBYTE wCloneMode;                    /* $C531 */
-extern UBYTE wColumnInstrument[];              /* $C468, [4] */
+extern UBYTE wColumnInstrument[];           /* $C468, [4] */
 extern UBYTE wFont;                         /* $C52E */
 extern UBYTE wKeyDelay;                     /* $C52B */
 extern UBYTE wKeyDelayTimer;                /* $C406 */
@@ -40,6 +40,7 @@ extern UBYTE wKeyRepeat;                    /* $C52C */
 extern UBYTE wKeyRepeatTimer;               /* $C407 */
 extern UBYTE wSongTranspose;                /* $C444 */
 
+/* $7BDE: clear selection rect, clipboard type, cursor mode (+wQuickMarking) */
 void ResetEditorState(UBYTE keep)
 {
     UBYTE top, right, bottom, ctype, ctype1, mode, left, live;
@@ -70,6 +71,8 @@ void ResetEditorState(UBYTE keep)
     }
 }
 
+/* $7C86: audio off; read key-repeat/sync/clone/colorset from song properties
+   ($bfbc+), clamp, re-init palettes */
 void LoadProjectSettings(UBYTE keep)
 {
     UBYTE column;

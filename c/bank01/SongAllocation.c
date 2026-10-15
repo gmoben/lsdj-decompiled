@@ -8,18 +8,19 @@
 #include "lsdj.h"
 
 extern UBYTE wClipboardType;                /* $C411 */
-extern UBYTE wInstrumentField;                   /* $C427 */
-extern UBYTE wNameEditBuffer[];                /* $C431, [5] */
+extern UBYTE wInstrumentField;              /* $C427 */
+extern UBYTE wNameEditBuffer[];             /* $C431, [5] */
 extern UBYTE wSelectionTop, wSelectionRight, wSelectionBottom; /* $C40E-$C410 */
 extern UBYTE wSelectHeld;
-extern UBYTE wColumnPhrase[];                  /* $C453, [4] */
-extern UBYTE InstrumentTableFieldRow[];          /* $01:$532C, [4] */
+extern UBYTE wColumnPhrase[];               /* $C453, [4] */
+extern UBYTE InstrumentTableFieldRow[];     /* $01:$532C, [4] */
 void CopyTableData(UBYTE from, UBYTE to);
 void ShowOutOfMemory(void);
 void WriteInstrumentName(UBYTE instrument);
-void CopyInstrumentName(UBYTE instrument);            /* UiHelpers.c */
-void SendLinkClipboard(void);                   /* $1C */
+void CopyInstrumentName(UBYTE instrument);  /* UiHelpers.c */
+void SendLinkClipboard(void);               /* $1C */
 
+/* $4848: ReadSongByte $be78/$be79 ('rb' memory-init marker) */
 UBYTE CheckSongInitializedMarker(void)
 {
     if (ReadSongByte(0, SramInitializedMarker1) == 'r' && ReadSongByte(0, SramInitializedMarker1 + 1) == 'b')
@@ -31,6 +32,7 @@ UBYTE CheckSongInitializedMarker(void)
     return 0;
 }
 
+/* $48D4: WriteSongByte $be78 (set the 'rb' init marker) */
 void WriteSongInitializedMarker(void)
 {
     WriteSongByte(0, SramInitializedMarker1, 'r');
@@ -41,6 +43,8 @@ void WriteSongInitializedMarker(void)
     WriteSongByte(3, SramInitializedMarker3 + 1, 'b');
 }
 
+/* $4CFB: set `phrase`'s bit in the phrase allocation map
+   (SramPhraseAllocation) */
 void MarkPhraseUsed(UBYTE phrase)
 {
     UBYTE *p;
@@ -52,6 +56,8 @@ void MarkPhraseUsed(UBYTE phrase)
     WriteSongByte(1, p, ReadSongByte(1, p) | (1 << phrase));
 }
 
+/* $4D67: set `chain`'s bit in the chain allocation map
+   (SramChainAllocation); asserts chain < $80 */
 void MarkChainUsed(UBYTE chain)
 {
     UBYTE *p;
@@ -63,6 +69,8 @@ void MarkChainUsed(UBYTE chain)
     WriteSongByte(1, p, ReadSongByte(1, p) | (1 << chain));
 }
 
+/* $4DD3: clear `phrase`'s bit in the phrase allocation map: CleanSongData
+   frees a duplicate */
 void FreePhrase(UBYTE phrase)
 {
     UBYTE *p;
@@ -74,6 +82,7 @@ void FreePhrase(UBYTE phrase)
     WriteSongByte(1, p, ReadSongByte(1, p) & (0xFF - (1 << phrase)));
 }
 
+/* $4E43: clear chain-alloc bit (song $3EA2 bitmap) and write back */
 void FreeChain(UBYTE chain)
 {
     UBYTE *p;
@@ -85,6 +94,8 @@ void FreeChain(UBYTE chain)
     WriteSongByte(1, p, ReadSongByte(1, p) & (0xFF - (1 << chain)));
 }
 
+/* $4EB3: scan phrase-alloc bitmap ($3E82) from current phrase, mark first
+   free; full -> ShowOutOfMemory, ret $ff */
 UBYTE AllocateNextFreePhrase(void)
 {
     UBYTE phrase;
@@ -110,6 +121,8 @@ UBYTE AllocateNextFreePhrase(void)
     return 0xFF;
 }
 
+/* $4F59: `chain`'s bit in the chain allocation map, nonzero when it is in
+   use */
 UBYTE IsChainUsed(UBYTE chain)
 {
     UBYTE v, m;
@@ -121,6 +134,8 @@ UBYTE IsChainUsed(UBYTE chain)
     return v & m;
 }
 
+/* $4F99: `phrase`'s bit in the phrase allocation map, nonzero when it is in
+   use */
 UBYTE IsPhraseUsed(UBYTE phrase)
 {
     UBYTE *p;
@@ -154,6 +169,7 @@ void CopyInstrument(void)
     FarCall(0x1C, FAR_FN(SendLinkClipboard));
 }
 
+/* $52EB: copy a 16-byte song-data row src->dst via Read/WriteSongByte */
 void CopySong16(UBYTE bank, UWORD source, UWORD destination)
 {
     UBYTE offset, v;
@@ -166,6 +182,8 @@ void CopySong16(UBYTE bank, UWORD source, UWORD destination)
     }
 }
 
+/* $5331: copy table src->dst across the table column regions (song
+   $3680/$3880/$3A80) */
 void CopyTableData(UBYTE source, UBYTE destination)
 {
     UWORD s, d;
@@ -194,6 +212,8 @@ void CopyTableData(UBYTE source, UBYTE destination)
     CopySong16(0, s6, d6);
 }
 
+/* $546E: on instr TABLE field: alloc table copy (bank1f), "CLONED TABLE",
+   write #|$20 */
 void CloneInstrumentTable(void)
 {
     UBYTE v, t;
@@ -213,6 +233,8 @@ void CloneInstrumentTable(void)
     WriteInstrumentByte(wInstrument, INSTRUMENT_BYTE_TABLE, t | 0x20);
 }
 
+/* $5503: if select-held + clipboardType==6: paste 16 bytes back into
+   instrument */
 void PasteInstrument(void)
 {
     UBYTE cell;

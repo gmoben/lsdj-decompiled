@@ -12,90 +12,90 @@
 #define SOUND_BANK                          /* lsdj.h: our own far-call targets */
 #include "lsdj.h"
 
-extern volatile sfr UBYTE hSoundChannel;         /* $FF8B */
-extern volatile sfr UBYTE hCommandValue;         /* $FF8F */
-extern UBYTE hCommandValueMemory;                   /* hCommandValue read as a plain global (ld hl; or a,(hl)) */
-extern volatile sfr BYTE hCommandValueS;         /* hCommandValue as a signed byte (P and F's steps) */
-extern UBYTE wCommandChannel;                    /* $C527: the FX slot (channel + 4 x column) */
-extern UBYTE wCommandSlotCommandTimer[];             /* $C230, [12] */
-extern UBYTE wChannelCommandSlots[];                /* $C2F0, [12] */
+extern volatile sfr UBYTE hSoundChannel;    /* $FF8B */
+extern volatile sfr UBYTE hCommandValue;    /* $FF8F */
+extern UBYTE hCommandValueMemory;           /* hCommandValue read as a plain global (ld hl; or a,(hl)) */
+extern volatile sfr BYTE hCommandValueS;    /* hCommandValue as a signed byte (P and F's steps) */
+extern UBYTE wCommandChannel;               /* $C527: the FX slot (channel + 4 x column) */
+extern UBYTE wCommandSlotCommandTimer[];    /* $C230, [12] */
+extern UBYTE wChannelCommandSlots[];        /* $C2F0, [12] */
 extern UBYTE wWavLevel;                     /* $C8F3 */
 extern BYTE wWavLevelS;                     /* wWavLevel as a signed byte */
 extern UBYTE wSpeechWord;                   /* $C4CE */
-extern UWORD wChannelPitchRate[];              /* $C2D0, [4] */
-extern UBYTE wChannelTable[];                  /* $C204, [4] */
-extern UBYTE wChannelDisplayNote[];               /* $C41F, [4] */
-extern UBYTE wChannelChord[];                  /* $C218, [4] */
-extern UBYTE wChannelNoteCountdown[];          /* $C160, [8]: the phrase's 4, the table's 4 */
-extern UBYTE wChannelGrooveRow[];              /* $C158, [8] */
-extern UBYTE wChannelTableRow1[];              /* $C208, [8] */
+extern UWORD wChannelPitchRate[];           /* $C2D0, [4] */
+extern UBYTE wChannelTable[];               /* $C204, [4] */
+extern UBYTE wChannelDisplayNote[];         /* $C41F, [4] */
+extern UBYTE wChannelChord[];               /* $C218, [4] */
+extern UBYTE wChannelNoteCountdown[];       /* $C160, [8]: the phrase's 4, the table's 4 */
+extern UBYTE wChannelGrooveRow[];           /* $C158, [8] */
+extern UBYTE wChannelTableRow1[];           /* $C208, [8] */
 extern UBYTE wChannelDrumPitch[];           /* $C330, [4] */
-extern UWORD wChannelPitchCurrent[];               /* $C337, [4] */
-extern UBYTE wChannelCommandStep[];                /* $C34E, [4] */
-extern UBYTE wChannelTableActive[];            /* $C2E8, [4] */
-extern UBYTE wChannelTableLatch[];             /* $C220, [4] */
-extern UBYTE wChannelTableFresh[];             /* $C2EC, [4] */
-extern UBYTE wChannelSweep[];                  /* $C2E4, [4]: [3] is the noise note */
+extern UWORD wChannelPitchCurrent[];        /* $C337, [4] */
+extern UBYTE wChannelCommandStep[];         /* $C34E, [4] */
+extern UBYTE wChannelTableActive[];         /* $C2E8, [4] */
+extern UBYTE wChannelTableLatch[];          /* $C220, [4] */
+extern UBYTE wChannelTableFresh[];          /* $C2EC, [4] */
+extern UBYTE wChannelSweep[];               /* $C2E4, [4]: [3] is the noise note */
 extern UBYTE wNoiseNoteLatch;               /* $C4FD */
 extern UBYTE wKitVoicesActive;              /* $C8F6 */
-extern UBYTE wSoundUpdateFlags;               /* $C8F5 */
-extern UBYTE wEnvelopeNode1Pu1, wEnvelopeNode1Pu2, wEnvelopeNode1Noi;    /* $CBBC, $CBC3, $CBCA */
-extern UBYTE wNoiPitchFraction;                 /* $C8DB */
-extern UBYTE wNoiVibratoPreviousOffset;                /* $C8DA */
-extern UBYTE wChannelVibratoSpeed[];               /* $C314, [4] words, read here by byte */
-extern UWORD wChannelFrequency[];                   /* $C0F4, [4] */
-extern UBYTE wKit1OffsetHigh, wKit1OffsetLow;  /* $C4EA, $C4EB */
-extern UBYTE wKit2OffsetHigh, wKit2OffsetLow;  /* $C4EC, $C4ED */
-extern UBYTE wTableCommand1Value;                 /* $C36F */
-extern UBYTE wTableCommand2Value;                 /* $C370 */
-extern UBYTE wChannelVibratoShape[];               /* $C35F, [4] */
-extern UBYTE wNoiPSlideStart;                 /* $C8C5 */
-extern UBYTE wChannelCommandRate[];                /* $C8C6, [4] */
-extern UBYTE wChannelRetrigTimer[];            /* $C148, [4] */
-extern UBYTE wChannelRetrigRate[];             /* $C14C, [4] */
-extern UBYTE wCommandSlotRetrigRate[];           /* $C8CE, [12] */
-extern UBYTE wChannelEnvelopeVolumeOffset[];           /* $C224, [12]: R's volume digit, by FX slot */
-extern UBYTE wCommandSlotEnvelopeTimer[];             /* $C23C, [12] */
-extern UBYTE wChannelCommand[];                    /* $C365, [6]: 4 phrase channels, the table's CMD1 and CMD2 */
-extern UBYTE wChannelCommandValue[];                 /* $C36B, [6] */
-extern UBYTE wLastCommand[];                    /* $C371, [68] */
-extern UBYTE wLastCommandValue[];                 /* $C3B5, [68] */
+extern UBYTE wSoundUpdateFlags;             /* $C8F5 */
+extern UBYTE wEnvelopeNode1Pu1, wEnvelopeNode1Pu2, wEnvelopeNode1Noi; /* $CBBC, $CBC3, $CBCA */
+extern UBYTE wNoiPitchFraction;             /* $C8DB */
+extern UBYTE wNoiVibratoPreviousOffset;     /* $C8DA */
+extern UBYTE wChannelVibratoSpeed[];        /* $C314, [4] words, read here by byte */
+extern UWORD wChannelFrequency[];           /* $C0F4, [4] */
+extern UBYTE wKit1OffsetHigh, wKit1OffsetLow; /* $C4EA, $C4EB */
+extern UBYTE wKit2OffsetHigh, wKit2OffsetLow; /* $C4EC, $C4ED */
+extern UBYTE wTableCommand1Value;           /* $C36F */
+extern UBYTE wTableCommand2Value;           /* $C370 */
+extern UBYTE wChannelVibratoShape[];        /* $C35F, [4] */
+extern UBYTE wNoiPSlideStart;               /* $C8C5 */
+extern UBYTE wChannelCommandRate[];         /* $C8C6, [4] */
+extern UBYTE wChannelRetrigTimer[];         /* $C148, [4] */
+extern UBYTE wChannelRetrigRate[];          /* $C14C, [4] */
+extern UBYTE wCommandSlotRetrigRate[];      /* $C8CE, [12] */
+extern UBYTE wChannelEnvelopeVolumeOffset[]; /* $C224, [12]: R's volume digit, by FX slot */
+extern UBYTE wCommandSlotEnvelopeTimer[];   /* $C23C, [12] */
+extern UBYTE wChannelCommand[];             /* $C365, [6]: 4 phrase channels, the table's CMD1 and CMD2 */
+extern UBYTE wChannelCommandValue[];        /* $C36B, [6] */
+extern UBYTE wLastCommand[];                /* $C371, [68] */
+extern UBYTE wLastCommandValue[];           /* $C3B5, [68] */
 extern UBYTE wWavSynthFrame;                /* $C694 */
-extern UBYTE wChannelFrequencyHigh[];                 /* $C2E0, [4] */
-extern UBYTE wChannelEnvelope[];                    /* $C2D8, [4] */
-extern UBYTE wChannelChordPhase[];             /* $C21C, [4] */
-extern UBYTE wNoiChordPreviousOffset;              /* $C8DC */
-extern UBYTE wEnvelopeStagePu1, wEnvelopeSpeedPu1, wEnvelopeCounterPu1, wEnvelopeTargetPu1;    /* $CBBF.. */
-extern UBYTE wEnvelopeStagePu2, wEnvelopeSpeedPu2, wEnvelopeCounterPu2, wEnvelopeTargetPu2;    /* $CBC6.. */
-extern UBYTE wEnvelopeStageNoi, wEnvelopeSpeedNoi, wEnvelopeCounterNoi, wEnvelopeTargetNoi;    /* $CBCD.. */
-void SoundWritePanning(UBYTE v);              /* bank 0 */
-UBYTE randw(void);                       /* bank 0 (this file reads the low byte) */
+extern UBYTE wChannelFrequencyHigh[];       /* $C2E0, [4] */
+extern UBYTE wChannelEnvelope[];            /* $C2D8, [4] */
+extern UBYTE wChannelChordPhase[];          /* $C21C, [4] */
+extern UBYTE wNoiChordPreviousOffset;       /* $C8DC */
+extern UBYTE wEnvelopeStagePu1, wEnvelopeSpeedPu1, wEnvelopeCounterPu1, wEnvelopeTargetPu1; /* $CBBF.. */
+extern UBYTE wEnvelopeStagePu2, wEnvelopeSpeedPu2, wEnvelopeCounterPu2, wEnvelopeTargetPu2; /* $CBC6.. */
+extern UBYTE wEnvelopeStageNoi, wEnvelopeSpeedNoi, wEnvelopeCounterNoi, wEnvelopeTargetNoi; /* $CBCD.. */
+void SoundWritePanning(UBYTE v);            /* bank 0 */
+UBYTE randw(void);                          /* bank 0 (this file reads the low byte) */
 UBYTE MulU8(UBYTE a, UBYTE b);              /* bank 0 */
 void SetSyncSendRate(void);                 /* bank 7 */
 UBYTE SoundRandomUpTo(UBYTE n);
-void SoundTableHop(UBYTE v);           /* asm */
-void SoundApplyPitchBend(void);                  /* asm */
+void SoundTableHop(UBYTE v);                /* asm */
+void SoundApplyPitchBend(void);             /* asm */
 void SoundKillNote(void);
-void SoundResetChannelCommand(void);                  /* asm */
+void SoundResetChannelCommand(void);        /* asm */
 void SoundRetrigNote(void);
-void SoundTriggerWav(void);                     /* asm */
-void SoundClearChannelCommandSlots(void);             /* asm */
-void SoundClearVoiceHram(void);               /* asm */
-void SoundLoadWaveRam(void);                     /* bank 0, asm */
-void SoundTriggerPu1(void);                      /* asm */
-void SoundTriggerPu2(void);                      /* asm */
-void SoundTriggerNoi(void);                    /* asm */
-void SoundSetupLfo(void);                     /* asm */
+void SoundTriggerWav(void);                 /* asm */
+void SoundClearChannelCommandSlots(void);   /* asm */
+void SoundClearVoiceHram(void);             /* asm */
+void SoundLoadWaveRam(void);                /* bank 0, asm */
+void SoundTriggerPu1(void);                 /* asm */
+void SoundTriggerPu2(void);                 /* asm */
+void SoundTriggerNoi(void);                 /* asm */
+void SoundSetupLfo(void);                   /* asm */
 UBYTE SoundEnvelopeReleaseSpeed(void);
 UBYTE SoundEnvelopeReleaseTarget(void);
-void SoundClampNoteRange(UBYTE n);            /* asm */
-void SoundCommandParsePitchValue(UBYTE *envelope);        /* asm */
-void SoundReadTableEnvelope(void);               /* asm */
-void SoundReadTableTranspose(void);              /* asm */
-void SoundTriggerNote(void);                     /* asm */
-void SoundSetKitParameters(void);                 /* asm */
-UBYTE SoundStepPitchVibratoNoi(void);             /* bank 0, asm */
-void SoundWavLevelStep(UBYTE v);              /* defined below */
+void SoundClampNoteRange(UBYTE n);          /* asm */
+void SoundCommandParsePitchValue(UBYTE *envelope); /* asm */
+void SoundReadTableEnvelope(void);          /* asm */
+void SoundReadTableTranspose(void);         /* asm */
+void SoundTriggerNote(void);                /* asm */
+void SoundSetKitParameters(void);           /* asm */
+UBYTE SoundStepPitchVibratoNoi(void);       /* bank 0, asm */
+void SoundWavLevelStep(UBYTE v);            /* defined below */
 
 /* $6479: a random number 0..n (the Z command's digits) */
 
@@ -114,15 +114,15 @@ void Command_R(void)
 {
     UBYTE volume;
     UBYTE n;
-    UBYTE k;
+    UBYTE channel;
 
     volume = hCommandValue & 0xF0;
     if (volume == 0x80) {
         n = hCommandValue & 0x0F;
         n = MulU8(n, wChannelCommandRate[hSoundChannel] + 1);
-        k = hSoundChannel;
-        wChannelRetrigTimer[k] = ++n;
-        wChannelRetrigRate[k] = n & 0x0F;
+        channel = hSoundChannel;
+        wChannelRetrigTimer[channel] = ++n;
+        wChannelRetrigRate[channel] = n & 0x0F;
     } else {
         n = (hCommandValue - 1) & 0x0F;
         if (n != 0x0F)

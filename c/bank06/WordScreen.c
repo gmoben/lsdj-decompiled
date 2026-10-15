@@ -10,29 +10,31 @@
 
 #include "lsdj.h"
 
-extern UBYTE wWordClipboardCell0[];              /* $C935 */
-extern UBYTE wWordClipboardCell1[];              /* $C936 */
-extern UBYTE *wWordClipboardPointer;                 /* $C939 */
-extern UBYTE wWordClipboardPointerB;                 /* $C939 as a byte (aliased by match_function.py) */
-extern UBYTE wClipboardBuffer[];               /* $C57A */
-extern UBYTE wWordRow;                  /* $C937 */
-extern UBYTE wWordColumn;                  /* $C938 */
-extern UBYTE WordColumnX[];                  /* the word editor's two columns: x */
-extern UBYTE WordColumnWidth[];                  /* width */
+extern UBYTE wWordClipboardCell0[];         /* $C935 */
+extern UBYTE wWordClipboardCell1[];         /* $C936 */
+extern UBYTE *wWordClipboardPointer;        /* $C939 */
+extern UBYTE wWordClipboardPointerB;        /* $C939 as a byte (aliased by match_function.py) */
+extern UBYTE wClipboardBuffer[];            /* $C57A */
+extern UBYTE wWordRow;                      /* $C937 */
+extern UBYTE wWordColumn;                   /* $C938 */
+extern UBYTE WordColumnX[];                 /* the word editor's two columns: x */
+extern UBYTE WordColumnWidth[];             /* width */
 void EraseWordCursor(void);
 void DrawWordCursor(void);
-void ReadKitSampleName(UBYTE kit, UBYTE sample);   /* bank 0 */
-void DrawAllChannelStatus(void);               /* bank $1F */
+void ReadKitSampleName(UBYTE kit, UBYTE sample); /* bank 0 */
+void DrawAllChannelStatus(void);            /* bank $1F */
 extern UBYTE wClipboardType;                /* $C411 */
 extern UBYTE wButtons;                      /* $C575 */
 extern UBYTE wBHeld;                        /* $C40B */
 extern UBYTE wAPressEnabled;                /* $C409 */
-void MoveMapCursorLeft(void);                     /* $05:$4233 */
-void MoveMapCursorUp(void);                       /* $05:$426A */
-void MoveMapCursorDown(void);                     /* $05:$4287 */
-void SoundToggleSongPlayback(void);                 /* $02:$78C4 */
-void SoundTogglePlayback(void);                    /* $02:$7C4C */
+void MoveMapCursorLeft(void);               /* $05:$4233 */
+void MoveMapCursorUp(void);                 /* $05:$426A */
+void MoveMapCursorDown(void);               /* $05:$4287 */
+void SoundToggleSongPlayback(void);         /* $02:$78C4 */
+void SoundTogglePlayback(void);             /* $02:$7C4C */
 
+/* $4000: the speech kit holding allophone v: v / 15 + $19, then + 5 past $1A
+   (its sample is v % 15 + 1) */
 UBYTE AllophoneKit(UBYTE v)
 {
     UBYTE r;
@@ -43,6 +45,8 @@ UBYTE AllophoneKit(UBYTE v)
     return r;
 }
 
+/* $4026: draw allophone v's name: ReadKitSampleName(AllophoneKit(v), v % 15
+   + 1) */
 void DrawAllophoneName(UBYTE v)
 {
     UBYTE t, m;
@@ -55,6 +59,8 @@ void DrawAllophoneName(UBYTE v)
     DrawString(wSampleNoteString);
 }
 
+/* $405D: read the speech word cell under the cursor: SRAM bank 0 $B890 +
+   word*32 + col + row*2 */
 UBYTE ReadWordCell(void)
 {
     UWORD p;
@@ -65,6 +71,8 @@ UBYTE ReadWordCell(void)
     return ReadSongByte(0, p);
 }
 
+/* $40B3: write to the speech-word data under the word cursor (wWordRow/Col,
+   $b890 region) */
 void WriteWordCell(UBYTE v)
 {
     UWORD p;
@@ -75,16 +83,21 @@ void WriteWordCell(UBYTE v)
     WriteSongByte(0, p, v);
 }
 
+/* $410E: restore the word screen's cursor cell to its column palette */
 void EraseWordCursor(void)
 {
     ColorField(WordColumnX[wWordColumn], wWordRow + 2, WordColumnWidth[wWordColumn], wWordColumn);
 }
 
+/* $414F: highlight the word screen's cursor cell
+   (WordColumnX/WordColumnWidth[wWordColumn], row wWordRow) */
 void DrawWordCursor(void)
 {
     ColorField(WordColumnX[wWordColumn], wWordRow + 2, WordColumnWidth[wWordColumn], hGameboyType ? 3 : 2);
 }
 
+/* $41A2: screen idx 12: draws speech words; edits words ($B890) + word_names
+   ($BDD0) */
 void DrawWordScreen(void)
 {
     UWORD p;
@@ -133,6 +146,8 @@ void DrawWordScreen(void)
     DrawWordCursor();
 }
 
+/* $4306: word screen: move the cursor one row down (EraseWordCursor,
+   wWordRow++, DrawWordCursor) unless on row 15 */
 void MoveWordCursorDown(void)
 {
     if (wWordRow == 0x0F)

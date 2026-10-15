@@ -11,30 +11,30 @@
 
 #include "lsdj.h"
 
-extern UBYTE wSynthPhaseType;              /* $C9EB */
-extern UBYTE wSynthPhase;            /* $C9EC */
-extern UBYTE wSynthWaveBuffer[];               /* $CA34, [32] */
-extern UBYTE wSynthBufferA[];                  /* $CAB8, [64]: phase accumulator, sample * weight per slot */
-extern UBYTE wSynthBufferB[];                  /* $CAF8, [64]: phase accumulator, weight per slot */
-extern UBYTE *wSynthPhasePointer;              /* $CB38 */
-extern UWORD wSynthPhasePointerW;              /* $CB38, the same word (aliased by match_function.py) */
-extern UWORD wSynthPhaseValue;               /* $CB3A */
-extern UBYTE wSynthWaveScratch[];               /* $CB40, [32] */
+extern UBYTE wSynthPhaseType;               /* $C9EB */
+extern UBYTE wSynthPhase;                   /* $C9EC */
+extern UBYTE wSynthWaveBuffer[];            /* $CA34, [32] */
+extern UBYTE wSynthBufferA[];               /* $CAB8, [64]: phase accumulator, sample * weight per slot */
+extern UBYTE wSynthBufferB[];               /* $CAF8, [64]: phase accumulator, weight per slot */
+extern UBYTE *wSynthPhasePointer;           /* $CB38 */
+extern UWORD wSynthPhasePointerW;           /* $CB38, the same word (aliased by match_function.py) */
+extern UWORD wSynthPhaseValue;              /* $CB3A */
+extern UBYTE wSynthWaveScratch[];           /* $CB40, [32] */
 extern UBYTE wSynthScreen;                  /* $C441, the synth being edited */
 void ResyncSynthWave(void);
 void Resync2SynthWave(void);
-extern UBYTE wSynthRenderIndex;               /* $C9F0 */
-extern UBYTE wSynthCutoff;                 /* $C9E8 */
-extern UBYTE wSynthVerticalShift;                 /* $C9EA */
-extern UBYTE wSynthVolume;                 /* $C9EF */
+extern UBYTE wSynthRenderIndex;             /* $C9F0 */
+extern UBYTE wSynthCutoff;                  /* $C9E8 */
+extern UBYTE wSynthVerticalShift;           /* $C9EA */
+extern UBYTE wSynthVolume;                  /* $C9EF */
 extern UBYTE wSynthSignalType;              /* $C9ED */
-extern UBYTE wSynthCurveVerticalShift[];             /* $CA54, [16] */
-extern UBYTE wSynthCurvePhase[];           /* $CA64, [16] */
-extern UBYTE wSynthCurveCutoff[];             /* $CA74, [16] */
-extern UBYTE wSynthCurveVolume[];             /* $CA84, [16] */
-extern UBYTE wSynthCurveResonance[];              /* $CA94, [16] */
+extern UBYTE wSynthCurveVerticalShift[];    /* $CA54, [16] */
+extern UBYTE wSynthCurvePhase[];            /* $CA64, [16] */
+extern UBYTE wSynthCurveCutoff[];           /* $CA74, [16] */
+extern UBYTE wSynthCurveVolume[];           /* $CA84, [16] */
+extern UBYTE wSynthCurveResonance[];        /* $CA94, [16] */
 extern UBYTE wSynthCurveLimit[];            /* $CAA4, [16], biased by $0F */
-extern UBYTE wSynthShapeBuffer[];              /* $C9F4, byte view of 32 signed words */
+extern UBYTE wSynthShapeBuffer[];           /* $C9F4, byte view of 32 signed words */
 extern BYTE SynthShapeTableA[];             /* $1D:$4EF0, signed correction samples */
 extern BYTE SynthShapeTableB[];             /* $1D:$50F0 */
 extern char SynthSeedTableA[];              /* $1E:$71EC, shape 0 / signal 0 */
@@ -50,14 +50,14 @@ void ComposeSynthWave(void);
 void WriteSynthWaveColumn(void);
 void RenderSynthWaveA(UBYTE amplitude);
 void RenderSynthWaveB(UBYTE amplitude);
-extern UBYTE wSynthFilterType;               /* $C9E9 */
-extern UBYTE wSynthDistortionType;             /* $C9EE, distortion: CLIP/FOLD/WRAP */
+extern UBYTE wSynthFilterType;              /* $C9E9 */
+extern UBYTE wSynthDistortionType;          /* $C9EE, distortion: CLIP/FOLD/WRAP */
 extern UBYTE wSynthRenderActive;            /* $C9F1 */
-extern UBYTE *wSynthRenderDestination;              /* $C9F2 */
-extern UWORD *wSynthResyncDestination;                /* $CB3C, RESYNC phase: output pointer / the slot value */
-extern UWORD wSynthResyncDestinationW;                /* $CB3C, the same word (aliased by match_function.py) */
-extern UBYTE *wSynthResyncSlot;               /* $CB3E, RESYNC phase: the slot pointer / the BufB value */
-extern UWORD wSynthResyncSlotW;               /* $CB3E, the same word (aliased by match_function.py) */
+extern UBYTE *wSynthRenderDestination;      /* $C9F2 */
+extern UWORD *wSynthResyncDestination;      /* $CB3C, RESYNC phase: output pointer / the slot value */
+extern UWORD wSynthResyncDestinationW;      /* $CB3C, the same word (aliased by match_function.py) */
+extern UBYTE *wSynthResyncSlot;             /* $CB3E, RESYNC phase: the slot pointer / the BufB value */
+extern UWORD wSynthResyncSlotW;             /* $CB3E, the same word (aliased by match_function.py) */
 extern UBYTE wWaveEditX;                    /* $CB60 */
 void FillSynthWaveRange(UBYTE a, UBYTE b, UBYTE *buffer);
 
@@ -321,6 +321,7 @@ void RenderSynthWaveType(void)
     }
 }
 
+/* $58DA: the next sample index after `v`, wrapping at 32 */
 UBYTE WrapSynthIndex32(UBYTE v)
 {
     return (v + 1) & 0x1F;
@@ -457,20 +458,25 @@ void ResyncSynthWave(void)
     }
 }
 
+/* $5E53: PHASE RESYN2 (3): resample the wave to repeat every 32 -
+   wSynthPhase/8 samples (scratch[i] = wave[(32i + 16) / n mod 32]) */
 void Resync2SynthWave(void)
 {
     UBYTE position;
     UBYTE n;
-    UBYTE k;
+    UBYTE source;
 
     n = 0x20 - (wSynthPhase >> 3);
     for (position = 0; position < 0x20; position++) {
-        k = (((UWORD)position << 5) + 0x10) / n % 0x20;
-        wSynthWaveScratch[WrapSynthIndex32(position)] = wSynthWaveBuffer[WrapSynthIndex32(k)];
+        source = (((UWORD)position << 5) + 0x10) / n % 0x20;
+        wSynthWaveScratch[WrapSynthIndex32(position)] = wSynthWaveBuffer[WrapSynthIndex32(source)];
     }
     memcpy(wSynthWaveBuffer, wSynthWaveScratch, 0x20);
 }
 
+/* $5F00: the PHASE stage, when wSynthPhase is nonzero: PINCH/WARP
+   (PinchOrWarpSynthWave), RESYNC (ResyncSynthWave), RESYN2
+   (Resync2SynthWave) */
 void ApplySynthPhase(void)
 {
     if (wSynthPhase) {
@@ -526,6 +532,8 @@ void LoadSynthSignalWave(void)
     }
 }
 
+/* $6035: render a softsynth wave frame; called from main.mainLoop idle time
+   (counter wSynthRenderIndex, 0-15) */
 void RenderSynthWave(void)
 {
     if (wSynthRenderIndex >= 0x10)
@@ -543,6 +551,7 @@ void RenderSynthWave(void)
     WriteSynthWaveColumn();
 }
 
+/* $6193: fill/interpolate a wave value range (16 steps; LoadSynthParameters) */
 void FillSynthWaveRange(UBYTE a, UBYTE b, UBYTE *buffer)
 {
     UBYTE step;
@@ -562,6 +571,8 @@ void FillSynthWaveRange(UBYTE a, UBYTE b, UBYTE *buffer)
     }
 }
 
+/* $68F9: load the edited synth's parameters from SRAM ($BEB2 +
+   wSynthScreen*16) into the render state: wave type, wave table, filter */
 void LoadSynthParameters(void)
 {
     volatile UWORD p;

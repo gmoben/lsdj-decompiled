@@ -11,9 +11,12 @@
 #include "lsdj.h"
 
 void DrawHelpMenu(void);
-extern UBYTE KitMixTable[];               /* $1B:$6C38, the 1152-byte nibble-sum LUT */
+extern UBYTE KitMixTable[];                 /* $1B:$6C38, the 1152-byte nibble-sum LUT */
 void MixerKernel(void);                     /* $1B:$4000, the 27-byte asm mixer step (code, hence a function); DrawHelpMenu follows it */
 
+/* $6B7A: build the kit sample mixer in WRAM: KitMixTable -> $d000 (1152 B),
+   then MixerKernel unrolled 16x at $d480 with inc c / inc e between copies
+   and a ret after the last */
 void InitializeKitMixer(void)
 {
     UBYTE *destination;

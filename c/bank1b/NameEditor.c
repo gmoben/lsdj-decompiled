@@ -10,29 +10,31 @@
 
 #include "lsdj.h"
 
-extern UBYTE wNameEditColumn;                 /* $C42D */
-extern UBYTE wNameEditRow;                 /* $C42E */
+extern UBYTE wNameEditColumn;               /* $C42D */
+extern UBYTE wNameEditRow;                  /* $C42E */
 extern UBYTE wRedrawPending;                /* $C56C */
 extern UBYTE wAPressEnabled;                /* $C409 */
 extern UBYTE wButtons;                      /* $C575 */
 UBYTE GetNextButtons(void);                 /* bank 0 */
 UWORD StringLength(char *s);                /* bank 0 */
-extern UBYTE wNameEditPosition;                 /* $C42C */
-extern char wNameEditBuffer[];                 /* $C431, [5] + NUL (char: NameEditorInput) */
+extern UBYTE wNameEditPosition;             /* $C42C */
+extern char wNameEditBuffer[];              /* $C431, [5] + NUL (char: NameEditorInput) */
 extern UBYTE wNameEditWrapLatch;            /* $C9A2 */
 extern UBYTE wNameReturnScreen;             /* $C42F */
 extern UBYTE wFileListActive;               /* $C998 */
 extern UBYTE wFileCursor;                   /* $C999 */
-extern UBYTE wNameEditIsInstrument;              /* $C430 */
+extern UBYTE wNameEditIsInstrument;         /* $C430 */
 extern UBYTE wInstrument;                   /* $C576 */
 void FileStopSound(void);                   /* $1C:$5098 */
 UBYTE SaveFile(UBYTE f);                    /* $1C:$4E10 */
-void WriteInstrumentName(UBYTE instrument);           /* $01:$4A49 */
+void WriteInstrumentName(UBYTE instrument); /* $01:$4A49 */
 void DrawProjectTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE h);
 void delay(UWORD d);
-extern char AlphanumericCharacters[][11];               /* $1B:$4C6A, the name keyboard: "0123456789", "ABCDEFGHIJ", "KLMNOPQRST", "UVWXYZx >w" */
-void CopyInstrumentName(UBYTE instrument);            /* $01:$493B */
+extern char AlphanumericCharacters[][11];   /* $1B:$4C6A, the name keyboard: "0123456789", "ABCDEFGHIJ", "KLMNOPQRST", "UVWXYZx >w" */
+void CopyInstrumentName(UBYTE instrument);  /* $01:$493B */
 
+/* $4C30: highlight the name editor's keyboard key under the cursor ((5, 8) +
+   wNameEditColumn/Row; palette 3 CGB / 2 DMG) */
 void DrawNameEditCursor(void)
 {
     UBYTE x, y;
@@ -42,6 +44,8 @@ void DrawNameEditCursor(void)
     ColorField(x, y, 1, hGameboyType ? 3 : 2);
 }
 
+/* $4C96: un-highlight the name editor's keyboard key under the cursor
+   (palette 0) */
 void EraseNameEditCursor(void)
 {
     ColorField(wNameEditColumn + 5, wNameEditRow + 8, 1, 0);
@@ -99,6 +103,8 @@ void DrawProjectTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE h)
     hBgPalette = 1;
 }
 
+/* $4E8A: save screen -> wNameReturnScreen, init letter input
+   (wNameEditPosition) for instr/file/word names */
 void OpenNameEditor(void)
 {
     UBYTE letter, v;
@@ -164,6 +170,9 @@ void OpenNameEditor(void)
     wCurrentScreen = SCREEN_NAME_EDITOR;
 }
 
+/* $5126: name-editor done (start, or the keyboard's done key): store the
+   name (instrument, speech word) or save the song under it (FILE flow:
+   "SAVING..."), back to wNameReturnScreen */
 void CommitNameEdit(void)
 {
     UBYTE *p;
@@ -214,6 +223,9 @@ void CommitNameEdit(void)
     FarCall(3, FAR_FN(RedrawScreen));
 }
 
+/* $5303: name-editor backspace (select, or the keyboard's backspace key):
+   clear the letter at the last slot, else step the letter highlight back and
+   clear the letter there */
 void BackspaceNameEdit(UBYTE x, UBYTE n)
 {
     UBYTE c;

@@ -11,43 +11,43 @@
 #define SOUND_BANK                          /* lsdj.h: our own far-call targets */
 #include "lsdj.h"
 
-extern volatile sfr UBYTE hSoundChannel;         /* $FF8B */
+extern volatile sfr UBYTE hSoundChannel;    /* $FF8B */
 extern volatile sfr UBYTE IE_REG;           /* $FFFF */
 extern volatile sfr UBYTE NR52_REG;         /* $FF26 */
-extern UBYTE wChannelCommandSlots[];                /* $C2F0, [12] */
-extern UBYTE wChannelNextSongRow[];            /* $C2FC, [4] */
-extern UBYTE wChannelStopQueued[];                /* $C304, [4] */
-extern UBYTE wChannelActive[];                 /* $C0E0, [4] */
+extern UBYTE wChannelCommandSlots[];        /* $C2F0, [12] */
+extern UBYTE wChannelNextSongRow[];         /* $C2FC, [4] */
+extern UBYTE wChannelStopQueued[];          /* $C304, [4] */
+extern UBYTE wChannelActive[];              /* $C0E0, [4] */
 extern UBYTE wPlayRestartPending;           /* $C4CD */
-extern UBYTE wChannelTable[];                  /* $C204, [4] */
-extern UBYTE wChannelDisplayNote[];               /* $C41F, [4] */
-extern UBYTE wChannelLiveQueued[];             /* $C300, [4] */
+extern UBYTE wChannelTable[];               /* $C204, [4] */
+extern UBYTE wChannelDisplayNote[];         /* $C41F, [4] */
+extern UBYTE wChannelLiveQueued[];          /* $C300, [4] */
 extern UBYTE wSyncTick;                     /* $CB69 */
 extern UBYTE wSavedScreen;                  /* $C8FE */
-extern UBYTE wChannelRowQueue[];               /* $C100, [4] */
+extern UBYTE wChannelRowQueue[];            /* $C100, [4] */
 extern UBYTE wChain;                        /* $C418 */
 extern char wChainRow;                      /* $C41A: a char here (copied through a register on use) */
 extern UBYTE wSyncRun;                      /* $CB6B */
 extern UBYTE wSyncStartRow;                 /* $CB6A */
-extern UBYTE wPlayStartChannel;                /* $C94C */
+extern UBYTE wPlayStartChannel;             /* $C94C */
 extern UBYTE wPlayStartRow;                 /* $C94D */
 extern UBYTE wButtons;                      /* $C575 */
-extern UBYTE wChannelChain[];                  /* $C170, [4] */
-extern UBYTE wChannelChainRow[];               /* $C17C, [4] */
-extern UBYTE wChannelPhrase[];                 /* $C168, [4] */
-extern UBYTE wChannelSongRow[];                /* $C200, [4] */
-extern UBYTE wChannelPhraseRow[];              /* $C16C, [4] */
-extern UBYTE wChannelNoteCountdown[];          /* $C160, [8]: the phrase's 4, the table's 4 */
-extern UBYTE wChannelGroove[];                 /* $C150, [8] */
-extern UBYTE wChannelGrooveRow[];              /* $C158, [8] */
-extern UBYTE wChannelTableRow1[];              /* $C208, [8] */
-extern UBYTE wChannelHopCount[];               /* $C214, [4] */
+extern UBYTE wChannelChain[];               /* $C170, [4] */
+extern UBYTE wChannelChainRow[];            /* $C17C, [4] */
+extern UBYTE wChannelPhrase[];              /* $C168, [4] */
+extern UBYTE wChannelSongRow[];             /* $C200, [4] */
+extern UBYTE wChannelPhraseRow[];           /* $C16C, [4] */
+extern UBYTE wChannelNoteCountdown[];       /* $C160, [8]: the phrase's 4, the table's 4 */
+extern UBYTE wChannelGroove[];              /* $C150, [8] */
+extern UBYTE wChannelGrooveRow[];           /* $C158, [8] */
+extern UBYTE wChannelTableRow1[];           /* $C208, [8] */
+extern UBYTE wChannelHopCount[];            /* $C214, [4] */
 extern UBYTE wSyncSerialIeMask;             /* $CB6D */
-extern UBYTE wPlayChannelFirst;                /* $C8DD */
-extern UBYTE wPlayChannelLast;                 /* $C8DE */
+extern UBYTE wPlayChannelFirst;             /* $C8DD */
+extern UBYTE wPlayChannelLast;              /* $C8DE */
 extern UBYTE wLiveMode;                     /* $C528 */
-extern UBYTE wChannelRestart[];                /* $C0E4, [4] */
-void SetInterruptEnable(UBYTE interruptMask);          /* bank 0 */
+extern UBYTE wChannelRestart[];             /* $C0E4, [4] */
+void SetInterruptEnable(UBYTE interruptMask); /* bank 0 */
 void SoundSetPlayRange(void);
 void SoundLiveQueueStart(UBYTE channel);
 UBYTE SoundGetChainPhrase(UBYTE chain, UBYTE row);
@@ -60,14 +60,14 @@ void SoundStartScreenPlayback(void);
 void SyncStopTransport(void);               /* bank 0 */
 void SyncSetSendMode(void);                 /* bank 0 */
 void SoundStartSongPlayback(void);
-void SoundResetChannelCommand(void);                  /* asm */
+void SoundResetChannelCommand(void);        /* asm */
 void SoundStartChannelFromRow(void);
 void SoundSetChannelEnable(void);
 void SoundResetCommandState(void);
 void SyncStartTransport(void);              /* bank 0 */
-void SoundReadChainRow(void);                 /* asm */
-void SoundDeactivateChannel(void);            /* asm */
-void SoundEnterSongRow(void);                 /* asm */
+void SoundReadChainRow(void);               /* asm */
+void SoundDeactivateChannel(void);          /* asm */
+void SoundEnterSongRow(void);               /* asm */
 
 /* $6A94: live mode, queue channel ch to start the song row's chain when its
    current one ends; pressed again on the same row (the chain or phrase
@@ -77,7 +77,7 @@ void SoundEnterSongRow(void);                 /* asm */
 void SoundLiveQueueStart(UBYTE channel)
 {
     UBYTE *p;
-    UBYTE k;
+    UBYTE soundChannel;
 
     p = wChannelNextSongRow + channel;
     if (wSongRow == *p) {
@@ -96,9 +96,9 @@ void SoundLiveQueueStart(UBYTE channel)
     if (wPlayRestartPending) {
         hSoundChannel = channel;
         SoundStartChannelFromRow();
-        k = hSoundChannel;
-        wChannelStopQueued[k] = 0;
-        wChannelNextSongRow[k] = 0xFF;
+        soundChannel = hSoundChannel;
+        wChannelStopQueued[soundChannel] = 0;
+        wChannelNextSongRow[soundChannel] = 0xFF;
     }
 }
 
@@ -232,7 +232,7 @@ void SoundStartSongPlayback(void)
 {
     UBYTE resume;
     UBYTE *chain, *active, *phrase;
-    UBYTE row, n, stop, end, k;
+    UBYTE row, n, stop, end, chainRow;
 
     resume = wChainRow && (wSavedScreen && wSavedScreen != SCREEN_SONG)
             && (wSyncMode == SYNC_OFF || wSyncMode == SYNC_KEYBOARD);
@@ -264,9 +264,9 @@ void SoundStartSongPlayback(void)
             n = 1;
             while (!(stop = wChainRow < n) && !(end = SoundGetChainPhrase(*chain, n) == 0xFF))
                 n++;
-            k = wChainRow % n;
-            wChannelChainRow[hSoundChannel] = k - 1;
-            *phrase = SoundGetChainPhrase(*chain, k);
+            chainRow = wChainRow % n;
+            wChannelChainRow[hSoundChannel] = chainRow - 1;
+            *phrase = SoundGetChainPhrase(*chain, chainRow);
         }
     }
 }

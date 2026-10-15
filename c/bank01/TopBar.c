@@ -12,8 +12,8 @@
 
 extern UBYTE wLiveMode;                     /* $C528 */
 extern UBYTE wSelectHeld;                   /* $C40A */
-extern UBYTE wMessageNoPause;                  /* $C530 */
-extern char *CommandHelpPointers[];            /* $01:$776E */
+extern UBYTE wMessageNoPause;               /* $C530 */
+extern char *CommandHelpPointers[];         /* $01:$776E */
 extern char TxtHelpBNote[];                 /* $01:$6FDB "B: MAYBE PLAY NOTE; ..." */
 extern char TxtHelpBHop[];                  /* $01:$7016 "B: MAYBE HOP; ..." */
 extern char TxtHelpFTune[];                 /* $01:$7123 "F: FINETUNE ..." */
@@ -25,7 +25,7 @@ extern char TxtHelpW[];                     /* $01:$7419 "W: WAVE [SPEED,LENGTH]
 extern char TxtHelpSKit[];                  /* $01:$7796 "S: MOVE KIT LOOP POINTS; ..." */
 extern char TxtHelpSNoise[];                /* $01:$77DF "S: ADD TO NOISE SHAPE; ..." */
 extern char TxtHelpSSweep[];                /* $01:$780D "S: SET PU1 SWEEP" */
-extern char wTopBarString[];                   /* $C555 */
+extern char wTopBarString[];                /* $C555 */
 extern char *wTopBarDrawScratch;            /* $C7AD, 16-bit scratch */
 extern char TxtScreenLive[];                /* $01, "LIVE" */
 extern char TxtScreenSong[];                /* $01, "SONG" */
@@ -47,12 +47,14 @@ extern UBYTE wGroove;                       /* $C417 */
 extern UBYTE wSynth;                        /* $C42A */
 extern UBYTE wSynthScreen;                  /* $C441 */
 extern UBYTE wTable;                        /* $C41B */
-extern UWORD wTopBarLength;                    /* $C7AD, wTopBarDrawScratch as a word (aliased by match_function.py) */
+extern UWORD wTopBarLength;                 /* $C7AD, wTopBarDrawScratch as a word (aliased by match_function.py) */
 extern UWORD wVramCursorW;                  /* $C573, wVramCursor as a plain word: its `< 0x9811` is a 32-bit compare (aliased by match_function.py) */
 
+/* $6D53: top status bar: active message (wMessageStringPointer) or screen
+   title + hex number */
 void DrawTopBar(void)
 {
-    UBYTE i;
+    UBYTE space;
     UBYTE isFile;
 
     wVramCursorW = BG_MAP(0, 0);
@@ -99,13 +101,13 @@ void DrawTopBar(void)
     file:
         DrawString(TxtScreenFile);
         DrawString(wTopBarString);
-        i = 0;
+        space = 0;
         for (;;) {
             wTopBarLength = 12 - StringLength(wTopBarString);
-            if (i == wTopBarLength)
+            if (space == wTopBarLength)
                 break;
             DrawStringTile20();
-            i++;
+            space++;
         }
         break;
     case SCREEN_INSTRUMENT:
@@ -131,6 +133,9 @@ void DrawTopBar(void)
         DrawChannelHeader();
 }
 
+/* $764C: show command cmd's help line on double-A (ShowMessage; wVramCursor
+   kept): B and H by screen (phrase or table), F, S and W by channel
+   (wSongColumn), the rest from CommandHelpPointers */
 void ShowCommandHelp(UBYTE command)
 {
     UBYTE *saved;
@@ -175,6 +180,7 @@ void ShowCommandHelp(UBYTE command)
     wVramCursor = saved;
 }
 
+/* $781F: zero wMessageStringPointer, fill top bar with spaces */
 void ClearMessageBar(void)
 {
     UBYTE letter = 0;
@@ -190,6 +196,7 @@ void ClearMessageBar(void)
     wMessagePanelShown = 1;
 }
 
+/* $7878: timed message + wSelectHeld handling */
 void UpdateMessage(void)
 {
     UBYTE letter;

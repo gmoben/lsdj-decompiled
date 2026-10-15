@@ -17,16 +17,16 @@
 
 extern UBYTE DefaultWaveFrameB3[];          /* $03:$4015, 16 bytes */
 extern char TxtUnlim[];                     /* $03:$4025 "UNLIM" */
-extern UBYTE InstrumentFieldX[][18];             /* $03:$402B, [type][field] cursor X */
-extern UBYTE InstrumentFieldY[][18];             /* $03:$406E */
-extern UBYTE InstrumentFieldW[][18];             /* $03:$40B1 */
-extern UBYTE InstrumentFieldCounts[];            /* $03:$40F4, [4] fields per instrument type */
+extern UBYTE InstrumentFieldX[][18];        /* $03:$402B, [type][field] cursor X */
+extern UBYTE InstrumentFieldY[][18];        /* $03:$406E */
+extern UBYTE InstrumentFieldW[][18];        /* $03:$40B1 */
+extern UBYTE InstrumentFieldCounts[];       /* $03:$40F4, [4] fields per instrument type */
 extern UBYTE wDefaultNotes;                 /* $C904 */
 extern UBYTE wAHeld;                        /* $C40C */
-extern UBYTE wNameEditIsInstrument;              /* $C430 */
+extern UBYTE wNameEditIsInstrument;         /* $C430 */
 extern UBYTE wSynth;                        /* $C42A */
 extern UBYTE wSynthScreen;                  /* $C441 */
-extern UBYTE wInstrumentColumn;               /* $C428 */
+extern UBYTE wInstrumentColumn;             /* $C428 */
 extern UBYTE wTable;                        /* $C41B */
 extern UBYTE wSelectHeld;                   /* $C40A */
 extern UBYTE wBHeld;                        /* $C40B */
@@ -37,47 +37,54 @@ extern char PlayModeNames[];                /* $00:$0839, [4][9] */
 void DrawPulseDuty(UBYTE duty);             /* bank 0 */
 void DrawFieldValue(UBYTE kind, UBYTE v);   /* bank 0 */
 void OpenNameEditor(void);                  /* $1B:$4E8A */
-void ShowInstrumentFieldHelp(void);              /* $05:$69BD */
+void ShowInstrumentFieldHelp(void);         /* $05:$69BD */
 void PasteInstrument(void);                 /* $01:$5503 */
 void CopyInstrument(void);                  /* $01:$5253 */
-void SpeechInstrumentInput(void);                 /* $1F:$724D */
-void MoveMapCursorLeft(void);                     /* $05:$4233 */
-void MoveMapCursorRight(void);                    /* $05:$4253 */
-void MoveMapCursorUp(void);                       /* $05:$426A */
-void MoveMapCursorDown(void);                     /* $05:$4287 */
-void SoundToggleSongPlayback(void);              /* $02:$78C4 */
-void SoundTogglePlayback(void);                  /* $02:$7C4C */
-void WriteCurrentInstrumentByteC(UBYTE field, char value);   /* WriteCurrentInstrumentByte taking a char (aliased) */
-void FarCallArgumentWC(UBYTE bank, UWORD function, char argument);     /* FarCallArgument with a word target and a char argument (aliased) */
-void FarCallArgumentW(UBYTE bank, UWORD function, UBYTE argument);     /* FarCallArgument with a word target (aliased) */
-void FarCallW(UBYTE bank, UWORD function);                  /* FarCall with a word target (aliased) */
-extern UBYTE wInstrumentFieldCount;              /* $C905 */
-extern UBYTE wNameEditBuffer[];                /* $C431 */
-extern char InstrumentTypeNames[];               /* $03:$4FC4, [4][6] */
-void DrawSpeechInstrumentScreen(void);           /* $1F:$7108 */
-void DrawAllChannelStatus(void);               /* $1F:$7072 */
-void DrawPulseInstrument(void);                  /* bank $1F */
+void SpeechInstrumentInput(void);           /* $1F:$724D */
+void MoveMapCursorLeft(void);               /* $05:$4233 */
+void MoveMapCursorRight(void);              /* $05:$4253 */
+void MoveMapCursorUp(void);                 /* $05:$426A */
+void MoveMapCursorDown(void);               /* $05:$4287 */
+void SoundToggleSongPlayback(void);         /* $02:$78C4 */
+void SoundTogglePlayback(void);             /* $02:$7C4C */
+void WriteCurrentInstrumentByteC(UBYTE field, char value); /* WriteCurrentInstrumentByte taking a char (aliased) */
+void FarCallArgumentWC(UBYTE bank, UWORD function, char argument); /* FarCallArgument with a word target and a char argument (aliased) */
+void FarCallArgumentW(UBYTE bank, UWORD function, UBYTE argument); /* FarCallArgument with a word target (aliased) */
+void FarCallW(UBYTE bank, UWORD function);  /* FarCall with a word target (aliased) */
+extern UBYTE wInstrumentFieldCount;         /* $C905 */
+extern UBYTE wNameEditBuffer[];             /* $C431 */
+extern char InstrumentTypeNames[];          /* $03:$4FC4, [4][6] */
+void DrawSpeechInstrumentScreen(void);      /* $1F:$7108 */
+void DrawAllChannelStatus(void);            /* $1F:$7072 */
+void DrawPulseInstrument(void);             /* bank $1F */
 void DrawWaveInstrument(void);
 void DrawKitInstrument(void);
 void DrawNoiseInstrument(void);
-void CopyInstrumentName(void);                   /* bank 1 */
+void CopyInstrumentName(void);              /* bank 1 */
 UBYTE MulU8(UBYTE a, UBYTE b);
 
+/* $4000: write `value` to byte `field` of the current instrument
+   (wInstrument) */
 void WriteCurrentInstrumentByte(UBYTE field, UBYTE value)
 {
     WriteInstrumentByte(wInstrument, field, value);
 }
 
+/* $40F8: the wave PLAY mode: byte 9 (MANUAL, ONCE, LOOP, PINGPONG, RESYNC =
+   PlayModeNames) */
 UBYTE GetWavePlayMode(void)
 {
     return ReadCurrentInstrumentByte(WAVE_BYTE_PLAY);
 }
 
+/* $4105: 1 if the wave PLAY mode is MANUAL (SPEED/LENGTH/LOOP POS then show
+   dashes) */
 UBYTE WavePlayIsManual(void)
 {
     return GetWavePlayMode() == 0;
 }
 
+/* $4118: instrument byte 6 bit 5 (table on) as 0/1 */
 UBYTE IsInstrumentTableOn(void)
 {
     UBYTE r;
@@ -89,17 +96,22 @@ UBYTE IsInstrumentTableOn(void)
     return r;
 }
 
+/* $4133: set instrument byte 6 bit 5 (table on) */
 void SetInstrumentTableOn(void)
 {
     WriteCurrentInstrumentByte(INSTRUMENT_BYTE_TABLE,
                                ReadCurrentInstrumentByte(INSTRUMENT_BYTE_TABLE) | 0x20);
 }
 
+/* $414F: return 1 if option-table[c] (ROM InstrumentFieldCounts) minus 1 ==
+   current field wInstrumentField, else 0 */
 UBYTE CheckInstrumentFieldOption(UBYTE type)
 {
     return wInstrumentField == InstrumentFieldCounts[type] - 1;
 }
 
+/* $4170: draw the cursor highlight on field wInstrumentField (ColorField
+   from InstrumentFieldX/Y/W[type][field], palette 3 CGB / 2) */
 void DrawInstrumentCursor(void)
 {
     UBYTE type;
@@ -113,22 +125,29 @@ void DrawInstrumentCursor(void)
                   InstrumentFieldW[type][wInstrumentField], hGameboyType ? 3 : 2);
 }
 
+/* $4257: write instrument byte 5 (pitch flags) and redraw its transpose
+   ON/OFF (bank 1 DrawOnOffName) */
 void SetInstrumentPitchByte(UBYTE v)
 {
     WriteCurrentInstrumentByte(INSTRUMENT_BYTE_FLAGS, v);
     FarCallArgument(1, FAR_FN(DrawOnOffName), v);
 }
 
+/* $427B: set instrument byte 5 bit 5 (transpose) via SetInstrumentPitchByte */
 void SetInstrumentTransposeOn(void)
 {
     SetInstrumentPitchByte(ReadCurrentInstrumentByte(INSTRUMENT_BYTE_FLAGS) | 0x20);
 }
 
+/* $4293: clear instrument byte 5 bit 5 (transpose) via
+   SetInstrumentPitchByte */
 void SetInstrumentTransposeOff(void)
 {
     SetInstrumentPitchByte(ReadCurrentInstrumentByte(INSTRUMENT_BYTE_FLAGS) & 0xDF);
 }
 
+/* $42AB: 1 if synth n's 256-byte wave page (SRAM bank 3) differs from
+   DefaultWaveFrameB3 repeated */
 UBYTE SynthWavesModified(UBYTE synth)
 {
     UBYTE *p;
@@ -142,6 +161,8 @@ UBYTE SynthWavesModified(UBYTE synth)
     return 0;
 }
 
+/* $42FF: first synth (0-15) whose waves are still default; else 'OUT OF
+   SYNTHS!' message and $FF */
 UBYTE FindFreeSynth(void)
 {
     UBYTE synth;
@@ -155,6 +176,8 @@ UBYTE FindFreeSynth(void)
     return 0xFF;
 }
 
+/* $436D: give the instrument the first free table (FarCallByte bank $1F
+   FindFreeTable), switched on; SDCC bug clears byte 6's other bits */
 void AllocateInstrumentTable(void)
 {
     UBYTE t, v;
@@ -170,6 +193,8 @@ void AllocateInstrumentTable(void)
     FarCall(0x1F, FAR_FN(DrawInstrumentTableField));
 }
 
+/* $43C0: A twice on a wave instrument's SYNTH field (PLAY not MANUAL): give
+   it a free synth (FindFreeSynth), drawn and stored in byte 3 bits 7-4 */
 void AllocateInstrumentSynth(void)
 {
     UBYTE v;
@@ -184,6 +209,8 @@ void AllocateInstrumentSynth(void)
     WriteCurrentInstrumentByte(WAVE_BYTE_WAVE, v << 4);
 }
 
+/* $441A: clone the current instrument's synth into a free synth slot (params
+   + 256 wave bytes), then point the instrument at it */
 void CloneSynth(void)
 {
     UBYTE source, destination, offset;
@@ -215,6 +242,8 @@ void CloneSynth(void)
     ShowMessage("CLONED SYNTH");
 }
 
+/* $45A7: shared instrument-screen frame draw (map row, tempo field, marker
+   sprites) */
 void DrawInstrumentScreenFrame(void)
 {
     hBgDigitPalette = 4;
@@ -252,6 +281,8 @@ void PreviousInstrumentPage(void)
     }
 }
 
+/* $4638: step wInstrument on to the next allocated instrument (stops at $40,
+   speech), then redraw */
 void NextUsedInstrument(void)
 {
     wMessageStringPointer = 0;
@@ -264,6 +295,7 @@ void NextUsedInstrument(void)
     DrawInstrumentScreen();
 }
 
+/* $4679: erase the cursor highlight on field wInstrumentField (palette 1) */
 void EraseInstrumentCursor(void)
 {
     UBYTE type, x, y, r;
@@ -279,6 +311,7 @@ void EraseInstrumentCursor(void)
     ColorField(x, y, r - x, 1);
 }
 
+/* $4741: A+RIGHT on CMD/RATE: byte 8 one up (to F), redrawn */
 void RaiseInstrumentCommandRate(void)
 {
     UBYTE v;
@@ -291,6 +324,7 @@ void RaiseInstrumentCommandRate(void)
     }
 }
 
+/* $4769: A+LEFT on CMD/RATE: byte 8 one down (to 0), redrawn */
 void LowerInstrumentCommandRate(void)
 {
     UBYTE v;
@@ -303,11 +337,14 @@ void LowerInstrumentCommandRate(void)
     }
 }
 
+/* $4790: bit 3 of the current instrument's flags byte; nothing calls it */
 UBYTE GetInstrumentByte5Flag8(void)
 {
     return ReadCurrentInstrumentByte(INSTRUMENT_BYTE_FLAGS) & 0x08;
 }
 
+/* $47A2: table mode down: clear byte 5 bit 3 (table step) if set, else table
+   off; redraw */
 void PreviousInstrumentTableMode(void)
 {
     if (wButtonsSame)
@@ -327,6 +364,7 @@ void PreviousInstrumentTableMode(void)
     FarCall(0x1F, FAR_FN(DrawInstrumentTableField));
 }
 
+/* $482E: table mode up: table on, then set byte 5 bit 3 (table step); redraw */
 void NextInstrumentTableMode(void)
 {
     if (wButtonsSame)
@@ -345,6 +383,8 @@ void NextInstrumentTableMode(void)
     FarCall(0x1F, FAR_FN(DrawInstrumentTableField));
 }
 
+/* $489D: when the current instrument's table is on, its next table (up to
+   $1F), and redraw the field */
 void NextInstrumentTable(void)
 {
     UBYTE v, t;
@@ -360,6 +400,8 @@ void NextInstrumentTable(void)
     }
 }
 
+/* $48D6: A+LEFT on the TABLE field: the previous table number; at 0 (a fresh
+   press) the mode steps back twice and the cursor leaves the field */
 void PreviousInstrumentTable(void)
 {
     UBYTE v;
@@ -382,6 +424,7 @@ void PreviousInstrumentTable(void)
     }
 }
 
+/* $4924: table on, fresh press: set table-number bit 4 (+16) */
 void AddInstrumentTable16(void)
 {
     UBYTE v;
@@ -396,6 +439,7 @@ void AddInstrumentTable16(void)
     }
 }
 
+/* $495C: table on: clear table-number bit 4 (-16) */
 void SubInstrumentTable16(void)
 {
     UBYTE v;
@@ -408,6 +452,7 @@ void SubInstrumentTable16(void)
     }
 }
 
+/* $498B: draw the wave LENGTH at $99CC ("-" when PLAY is MANUAL) */
 void DrawWaveLength(void)
 {
     wVramCursor = (UBYTE *)BG_MAP(12, 14);
@@ -417,6 +462,7 @@ void DrawWaveLength(void)
         DrawByte(GetWaveLength());
 }
 
+/* $49B7: draw the wave SPEED at $99AB ("--" when PLAY is MANUAL) */
 void DrawWaveSpeed(void)
 {
     wVramCursor = (UBYTE *)BG_MAP(11, 13);
@@ -426,11 +472,14 @@ void DrawWaveSpeed(void)
         DrawHexByte(GetWaveSpeed() + 1);
 }
 
+/* $49E7: the wave LOOP POS as stored: F ^ byte 2 bits 3-0 */
 UBYTE GetWaveLoopPosition(void)
 {
     return 0x0F ^ (ReadCurrentInstrumentByte(WAVE_BYTE_LOOP_POSITION) & 0x0F);
 }
 
+/* $49FD: draw the wave LOOP POS at $99EC (LOOP, PINGPONG and RESYNC only;
+   length less loop position, 0 if negative) */
 void DrawWaveLoopPosition(void)
 {
     UBYTE v, d;
@@ -446,6 +495,7 @@ void DrawWaveLoopPosition(void)
         DrawStringIndexed('-');
 }
 
+/* $4A44: draw the kit DIST mode: $d0-$d3 -> " HARD"/" SOFT"/" FOLD"/" WRAP" */
 void DrawKitDistortionName(UBYTE v)
 {
     switch (v) {
@@ -468,21 +518,27 @@ void DrawKitDistortionName(UBYTE v)
     }
 }
 
+/* $4ACF: the wave SPEED: byte 11 + 3 */
 UBYTE GetWaveSpeed(void)
 {
     return ReadCurrentInstrumentByte(WAVE_BYTE_SPEED) + 3;
 }
 
+/* $4AE0: set the wave instrument's SPEED: byte 11 is the speed - 3
+   (GetWaveSpeed) */
 void SetWaveSpeed(UBYTE v)
 {
     WriteCurrentInstrumentByte(WAVE_BYTE_SPEED, v - 3);
 }
 
+/* $4AF4: the wave LENGTH as shown: F - byte 10 bits 3-0 */
 UBYTE GetWaveLength(void)
 {
     return 0x0F - (ReadCurrentInstrumentByte(WAVE_BYTE_LENGTH) & 0x0F);
 }
 
+/* $4B0A: set the wave instrument's LENGTH: byte 10 holds $0F - length
+   (GetWaveLength) */
 void SetWaveLength(UBYTE v)
 {
     if (v >= 0x10)
@@ -490,12 +546,16 @@ void SetWaveLength(UBYTE v)
     WriteCurrentInstrumentByte(WAVE_BYTE_LENGTH, 0x0F - v);
 }
 
+/* $4B29: set the wave instrument's LOOP POS: byte 2's low nibble, inverted
+   (GetWaveLoopPosition) */
 void SetWaveLoopPosition(UBYTE v)
 {
     WriteCurrentInstrumentByte(WAVE_BYTE_LOOP_POSITION,
             0x0F ^ ((ReadCurrentInstrumentByte(WAVE_BYTE_LOOP_POSITION) & 0xF0) | v));
 }
 
+/* $4B4C: the PITCH field's vibrato shape: instrument byte 5 bits 2-0
+   (sine/saw/square << 1, bit 0 = up) */
 UBYTE GetVibratoShape(void)
 {
     return ReadCurrentInstrumentByte(INSTRUMENT_BYTE_FLAGS) & 0x07;
@@ -517,6 +577,8 @@ void SetVibratoShape(char v)
                              ? (UWORD)DrawSpeedGlyph : (UWORD)DrawSpeedModeName, v);
 }
 
+/* $4BAC: A+RIGHT on PITCH: next vibrato shape (triangle, saw, square down,
+   then up) */
 void NextVibratoShape(void)
 {
     UBYTE v;
@@ -530,6 +592,7 @@ void NextVibratoShape(void)
     }
 }
 
+/* $4BCB: A+LEFT on PITCH: previous vibrato shape */
 void PreviousVibratoShape(void)
 {
     UBYTE v;
@@ -543,11 +606,14 @@ void PreviousVibratoShape(void)
     }
 }
 
+/* $4BE9: read instrument byte 0 = type (0=PULSE 1=WAVE 2=KIT 3=NOISE) */
 UBYTE GetInstrumentType3(void)
 {
     return ReadCurrentInstrumentByte(INSTRUMENT_BYTE_TYPE) - 2;
 }
 
+/* $4BF9: pitch mode up: byte 5 bits 4/6/7 (bit 7 = top), redraw via
+   DrawSpeedModeName */
 void NextInstrumentPitchMode(void)
 {
     UBYTE v;
@@ -565,6 +631,7 @@ void NextInstrumentPitchMode(void)
     FarCallArgument(1, FAR_FN(DrawSpeedModeName), v);
 }
 
+/* $4C64: pitch mode down: byte 5 bits 4/6/7, redraw via DrawSpeedModeName */
 void PreviousInstrumentPitchMode(void)
 {
     UBYTE v;
@@ -583,6 +650,7 @@ void PreviousInstrumentPitchMode(void)
     FarCallArgument(1, FAR_FN(DrawSpeedModeName), v);
 }
 
+/* $4CD9: draw the wave FINETUNE (byte 12) signed at $990A */
 void DrawWaveFinetune(void)
 {
     UBYTE v;
@@ -598,6 +666,8 @@ void DrawWaveFinetune(void)
     }
 }
 
+/* $4D15: draw the WAVE/SYNTH field: 'WAVE ' + byte 3 (hex), or 'SYNTH' +
+   byte 3 >> 4 */
 void DrawWaveSynthField(void)
 {
     hBgDigitPalette = 4;
@@ -621,6 +691,7 @@ void DrawWaveSynthField(void)
     }
 }
 
+/* $4DD7: after an envelope edit: UpdateInstrumentEnvelope (bank $1B) */
 void InstrumentEnvelopeChanged(void)
 {
     FarCall(0x1B, UpdateInstrumentEnvelope);
@@ -648,7 +719,7 @@ void DrawInstrumentScreen(void)
         FarCall(0x1F, FAR_FN(DrawSpeechInstrumentScreen));
         return;
     }
-    FarCallArgumentW(0x1F, 0x492A, wInstrument);
+    FarCallArgumentW(0x1F, 0x492A, wInstrument);    /* ClaimInstrumentSlot */
     type = ReadCurrentInstrumentByte(INSTRUMENT_BYTE_TYPE);
     if (type >= 4) {
         WriteCurrentInstrumentByte(INSTRUMENT_BYTE_TYPE, INSTRUMENT_PULSE);
@@ -699,6 +770,8 @@ void DrawInstrumentScreen(void)
     InstrumentEnvelopeChanged();
 }
 
+/* $4FDC: draw kit number (hex) + 6-char kit name (ReadKitName ->
+   wSampleNoteString) */
 void DrawKitNameField(UBYTE kit)
 {
     ReadKitName(kit);
@@ -707,6 +780,8 @@ void DrawKitNameField(UBYTE kit)
     DrawString(wSampleNoteString);
 }
 
+/* $5002: write kit# into the field's low 6 bits (top flag bits preserved via
+   $c0 mask) */
 void WriteKitNumber(UBYTE byte, UBYTE kit)
 {
     WORD t;
@@ -715,6 +790,7 @@ void WriteKitNumber(UBYTE byte, UBYTE kit)
     WriteCurrentInstrumentByte(byte, t | kit);
 }
 
+/* $503A: step to the next existing kit bank (KitExists scan), WriteKitNumber */
 UBYTE NextKit(void)
 {
     UBYTE byte, kit, original;
@@ -731,6 +807,7 @@ UBYTE NextKit(void)
     return kit;
 }
 
+/* $508C: step to the previous existing kit (bound $3f), WriteKitNumber */
 UBYTE PreviousKit(void)
 {
     UBYTE byte, kit, original;
@@ -747,6 +824,8 @@ UBYTE PreviousKit(void)
     return kit;
 }
 
+/* $50DF: point either kit field of the current instrument (bytes 2 and 9)
+   that names a missing kit at kit 0 */
 void EnsureKitExists(void)
 {
     UBYTE kit, field;
@@ -758,6 +837,7 @@ void EnsureKitExists(void)
     }
 }
 
+/* $5128: write instrument byte 0 = type (0=PULSE 1=WAVE 2=KIT 3=NOISE) */
 void SetInstrumentType(UBYTE type)
 {
     UBYTE t, n;
@@ -775,6 +855,8 @@ void SetInstrumentType(UBYTE type)
     DrawInstrumentScreen();
 }
 
+/* $5181: current field byte: +1 on the lo nibble (clamp $0f), redraw +
+   InstrumentEnvelopeChanged */
 void RaiseInstrumentFieldLow(UBYTE field)
 {
     UBYTE v, t;
@@ -790,6 +872,7 @@ void RaiseInstrumentFieldLow(UBYTE field)
     InstrumentEnvelopeChanged();
 }
 
+/* $51BC: current field byte: -1 on the lo nibble (clamp 0) */
 void LowerInstrumentFieldLow(UBYTE field)
 {
     UBYTE v;
@@ -804,6 +887,7 @@ void LowerInstrumentFieldLow(UBYTE field)
     InstrumentEnvelopeChanged();
 }
 
+/* $51F4: current field byte: +$10 on the hi nibble (clamp $f0) */
 void RaiseInstrumentFieldHigh(UBYTE field)
 {
     UBYTE v, t;
@@ -819,6 +903,7 @@ void RaiseInstrumentFieldHigh(UBYTE field)
     InstrumentEnvelopeChanged();
 }
 
+/* $5231: current field byte: -$10 on the hi nibble */
 void LowerInstrumentFieldHigh(UBYTE field)
 {
     UBYTE v;
@@ -833,6 +918,8 @@ void LowerInstrumentFieldHigh(UBYTE field)
     InstrumentEnvelopeChanged();
 }
 
+/* $526B: A+RIGHT on LENGTH (byte 3, bit 6 = limited, shown as 3F - bits
+   5-0): one longer, past 3F to UNLIM */
 void RaiseInstrumentLength(void)
 {
     UBYTE v;
@@ -853,6 +940,7 @@ void RaiseInstrumentLength(void)
         DrawString(TxtUnlim);
 }
 
+/* $52BF: A+LEFT on LENGTH: one shorter, from UNLIM to 3F */
 void LowerInstrumentLength(void)
 {
     UBYTE v, t;
@@ -876,6 +964,7 @@ void LowerInstrumentLength(void)
         DrawString(TxtUnlim);
 }
 
+/* $531C: A+UP on LENGTH: 16 longer, past 3F to UNLIM */
 void RaiseInstrumentLengthBig(void)
 {
     UBYTE v, t;
@@ -898,6 +987,7 @@ void RaiseInstrumentLengthBig(void)
         DrawString(TxtUnlim);
 }
 
+/* $537A: A+DOWN on LENGTH: 16 shorter, from UNLIM to 30 */
 void LowerInstrumentLengthBig(void)
 {
     UBYTE v, t;
@@ -922,6 +1012,9 @@ void LowerInstrumentLengthBig(void)
         DrawString(TxtUnlim);
 }
 
+/* $53DE: clone what the instrument screen's cursor names: the softsynth on a
+   WAVE instrument's synth field, else the instrument's table
+   (CloneInstrumentTable) */
 void CloneSynthOrTable(void)
 {
     UBYTE type;

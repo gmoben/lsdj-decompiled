@@ -10,17 +10,18 @@
 
 #include "lsdj.h"
 
-extern UBYTE wColumnChain[];                   /* $C44F, [4] */
+extern UBYTE wColumnChain[];                /* $C44F, [4] */
 void MarkChainUsed(void);                   /* $01:$4D67 */
 void ShowOutOfMemory(void);                 /* $01:$75BD */
-extern UBYTE DefaultInstrumentPulse[];           /* $1F:$4A02, [11] */
-extern UBYTE DefaultInstrumentWave[];            /* $4A0D, [11] */
-extern UBYTE DefaultInstrumentKit[];             /* $4A18, [14] */
+extern UBYTE DefaultInstrumentPulse[];      /* $1F:$4A02, [11] */
+extern UBYTE DefaultInstrumentWave[];       /* $4A0D, [11] */
+extern UBYTE DefaultInstrumentKit[];        /* $4A18, [14] */
 UBYTE IsTableFree(UWORD t);
 UBYTE IsInstrumentAllocated(UBYTE instrument);
 UBYTE ClaimInstrumentSlot(UBYTE instrument);
 void WritePhraseInstrument(UBYTE phrase, UBYTE row, UBYTE instrument);
 
+/* $48C5: chains[chain*16+row] = phrase (song $2080 region) */
 void WriteChainPhrase(UBYTE chain, UBYTE row, UBYTE phrase)
 {
     UBYTE *p;
@@ -33,6 +34,7 @@ void WriteChainPhrase(UBYTE chain, UBYTE row, UBYTE phrase)
     WriteSongByte(1, p + row, phrase);
 }
 
+/* $492A: read+mark the instr-alloc entry (song $2040); returns prior state */
 UBYTE ClaimInstrumentSlot(UBYTE instrument)
 {
     UBYTE *source;
@@ -64,6 +66,8 @@ UBYTE ClaimInstrumentSlot(UBYTE instrument)
     return 1;
 }
 
+/* $4A65: claim the first free instrument and put it on the phrase cursor's
+   row; "OUT OF MEMORY" and $FF when there is none */
 UBYTE AllocateNextFreeInstrument(void)
 {
     UBYTE instrument;
@@ -89,6 +93,8 @@ UBYTE IsSongBlockEmpty(UBYTE bank, UBYTE *address)
     return 1;
 }
 
+/* $4B45: returns 1 if table n has no data in its env/cmd rows (used by
+   FindFreeTable) */
 UBYTE IsTableFree(UWORD t)
 {
     t <<= 4;
@@ -101,6 +107,7 @@ UBYTE IsTableFree(UWORD t)
     return IsSongBlockEmpty(0, SramTableEnvelopes + t);
 }
 
+/* $4BD9: the first unused table (0-$1F), or "OUT OF TABLES!" and $FF */
 UBYTE FindFreeTable(void)
 {
     UBYTE table;
@@ -112,6 +119,8 @@ UBYTE FindFreeTable(void)
     return 0xFF;
 }
 
+/* $4C20: test chain-alloc bit for the chain under the song cursor col
+   (wColumnChain+wSongColumn; $80+ -> 0) */
 UBYTE IsSongChainUsed(void)
 {
     UBYTE chain;
@@ -138,6 +147,7 @@ UBYTE IsSongChainUsed(void)
     return 0xFF;
 }
 
+/* $4F2E: instrument n's SramInstrumentAllocation flag */
 UBYTE IsInstrumentAllocated(UBYTE instrument)
 {
     return ReadSongByte(1, SramInstrumentAllocation + (UWORD)instrument);

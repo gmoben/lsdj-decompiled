@@ -84,7 +84,7 @@
 61C4 ResetSynthParameters       ; reset synth n's 16 params (SRAM bank 1, $BEB2 + n*16) to DefaultSynthParameters
 620F ResetUnusedSynths          ; reset the params and waves of every synth no wave instrument plays
 62BD FreeUnusedSynths           ; CLEAN INSTR: unless a phrase or table uses F, reset the synths no wave instrument uses; -> how many were freed
-6B3B HighlightPhraseCell        ; colour phrase cell (col,row) as the cursor/selection: ColorField at PhraseCellX/XAlt + 3 in the shifted draw mode, the PhraseCellWidth/WidthAlt width through wDrawTextScratch, palette 3 on CGB / 2 on DMG (row flag $fe/$ff picks the normal tables, else the Alt ones)
+6B3B HighlightPhraseCell        ; colour phrase cell (col,row) as the cursor/selection: ColorField at PhraseCellX (or PhraseCellXAlternate) + 3 in the shifted draw mode, the PhraseCellWidth (or PhraseCellWidthAlternate) width through wDrawTextScratch, palette 3 on CGB / 2 on DMG (row flag $fe/$ff picks the normal tables, else the alternate ones)
 6CA2 UnhighlightPhraseCell      ; colour phrase cell (col,row) in its normal palette (the PhraseCell* layout tables; HighlightPhraseCell's inverse)
 6EFE ErasePhraseCursor          ; restore the phrase cursor cell's palette: UnhighlightPhraseCell(wPhraseColumn, wPhraseRow)
 6F14 DrawChannelStatus          ; draw channel status cell at (16, ch+6) from wChannelOutput[ch]
@@ -102,9 +102,9 @@
 4C20 IsSongChainUsed            ; test chain-alloc bit for the chain under the song cursor col (wColumnChain+wSongColumn; $80+ -> 0)
 62DD CleanSongData              ; project CLEAN: de-dupe chains+phrases, DE-DUPE/FREEING progress panel
 63B1 CleanInstrumentData        ; project CLEAN: de-dupe instruments/tables, DE-DUPE/FREEING progress panel
-64FF CanEnterSongColumn         ; e=1 if song column (arg<4) can take the cursor (channel active/enterable)
-6656 HasEnterableColumnRight    ; e=1 if any song column right of wSongColumn is enterable (phrase-screen '>' arrow)
-6677 HasEnterableColumnLeft     ; e=1 if any song column left of wSongColumn is enterable ('<' arrow)
+64FF EnterChannelPhrase         ; e = 1 when the phrase screen moved to channel column's phrase: in live mode the one it plays, else the one on the song row's chain at the chain row (or the nearest above); 0 when it has none
+6656 EnterPhraseRight           ; B+RIGHT on the phrase screen: the phrase of the nearest channel to the right that has one (EnterChannelPhrase)
+6677 EnterPhraseLeft            ; B+LEFT on the phrase screen: the phrase of the nearest channel to the left that has one (EnterChannelPhrase)
 6C1E DrawPhraseCursor           ; draw the phrase cursor cell: HighlightPhraseCell(wPhraseColumn, wPhraseRow) via the PhraseCell* tables
 6D58 DrawPhraseSelection        ; phrase selection (wClipboardType==1) redraw vs the cursor: the one-cell ring around the rectangle via UnhighlightPhraseCell, the inside via HighlightPhraseCell
 7072 DrawAllChannelStatus       ; draw the 4 channel status cells (DrawChannelStatus 0-3)
@@ -112,7 +112,7 @@
 724D SpeechInstrumentInput      ; speech instrument screen input (from InstrumentScreenInput for instrument $40): pick, rename, move, cut/copy/paste a word
 ; --- data ---
 4ACE TxtOutOfMemInstr           ; "OUT OF MEMORY. CLEAN INSTR DATA IN PROJECT SCREEN!"
-64E1 PhraseCellX                ; [5] phrase cell x per column (the six PhraseColLayout rows; $FF = hidden)
+64E1 PhraseCellX                ; [5] the x of each phrase column's cell ($FF = hidden); PhraseCellXAlternate, PhraseCellWidthAlternate and PhraseCellWidth follow
 64E6 PhraseCellXAlternate       ; [5] x when the step's row flag is not $FE/$FF
 64EB PhraseCellWidthAlternate   ; [5] width, alt rows
 64F0 PhraseCellWidth            ; [5] width
@@ -256,12 +256,12 @@
 62B9 .done                      ; common exit of ResetUnusedSynths
 62DB .done                      ; common exit of FreeUnusedSynths
 64DF .done                      ; common exit of PhraseScreenUpdate
-65D5 .loop                      ; loop head in CanEnterSongColumn
-6652 .done                      ; common exit of CanEnterSongColumn
-665E .loop                      ; loop head in HasEnterableColumnRight
-6675 .done                      ; common exit of HasEnterableColumnRight
-667F .loop                      ; loop head in HasEnterableColumnLeft
-6696 .done                      ; common exit of HasEnterableColumnLeft
+65D5 .loop                      ; loop head in EnterChannelPhrase
+6652 .done                      ; common exit of EnterChannelPhrase
+665E .loop                      ; loop head in EnterPhraseRight
+6675 .done                      ; common exit of EnterPhraseRight
+667F .loop                      ; loop head in EnterPhraseLeft
+6696 .done                      ; common exit of EnterPhraseLeft
 673E .loop                      ; loop head in CutCopyPhraseSelection
 675E .loop2                     ; loop head in CutCopyPhraseSelection
 6B2E .done                      ; common exit of CutCopyPhraseSelection

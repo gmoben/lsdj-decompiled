@@ -10,7 +10,7 @@ extern char TxtSpaces13[];                  /* $1E:$79EC, 13 spaces */
 extern volatile sfr UBYTE STAT_REG;         /* $FF41 */
 extern UBYTE wFont;                         /* $C52E */
 extern UBYTE wColorSet;                     /* $C52F */
-extern UWORD wTileSlotPointer;                  /* $C9B5 */
+extern UWORD wTileSlotPointer;              /* $C9B5 */
 extern UBYTE TilesUiIcons[];                /* $1E:$42C8 */
 /* the fonts' tile blocks, each with its highlight and shaded variant
    ($1E:$54C0, $6356, $462A) */
@@ -21,9 +21,9 @@ void ResetDisplayState(void);               /* $00:$339A */
 UWORD LoadTilesDispatch(UBYTE *tiles);      /* $00:$337D */
 void RequestTileSlot(UWORD slot);           /* $00:$338B */
 void FillVramRegions(void);
-void CopyVramTile(UWORD source, UWORD destination);  /* $1E:$7A4B, parked: one tile, src to dst */
-void WriteVramByteSafe(UWORD address, UBYTE v);    /* $00:$17EC */
-void WriteVramByteSafeC(UWORD address, char v);   /* WriteVramByteSafe with a char value (aliased by match_function.py): the cast copy of the scratch byte is CopyVramTile's register occupant */
+void CopyVramTile(UWORD source, UWORD destination); /* $1E:$7A4B, parked: one tile, src to dst */
+void WriteVramByteSafe(UWORD address, UBYTE v); /* $00:$17EC */
+void WriteVramByteSafeC(UWORD address, char v); /* WriteVramByteSafe with a char value (aliased by match_function.py): the cast copy of the scratch byte is CopyVramTile's register occupant */
 extern UBYTE wVramCopyScratch;              /* $C9B4 */
 
 /* $4000: the top row's column labels for the screen about to be drawn

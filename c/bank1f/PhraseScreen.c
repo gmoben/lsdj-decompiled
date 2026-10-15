@@ -10,44 +10,45 @@
 
 #include "lsdj.h"
 
-extern UBYTE wLiveStartColumn;                 /* $C571 */
-extern UBYTE wChannelPhrase[];                 /* $C168, [4] */
-extern UBYTE wChannelPhraseRow[];              /* $C16C, [4] */
-extern UBYTE wPhraseColumn;                    /* $C415 */
-extern UBYTE wSelectionTop;                       /* $C40E */
+extern UBYTE wLiveStartColumn;              /* $C571 */
+extern UBYTE wChannelPhrase[];              /* $C168, [4] */
+extern UBYTE wChannelPhraseRow[];           /* $C16C, [4] */
+extern UBYTE wPhraseColumn;                 /* $C415 */
+extern UBYTE wSelectionTop;                 /* $C40E */
 extern UBYTE wClipboardType;                /* $C411 */
-extern UBYTE wSelectionRight;                     /* $C40F */
-extern UBYTE wSelectionBottom;                    /* $C410 */
-void SendLinkClipboard(void);                   /* $1C:$71CD */
+extern UBYTE wSelectionRight;               /* $C40F */
+extern UBYTE wSelectionBottom;              /* $C410 */
+void SendLinkClipboard(void);               /* $1C:$71CD */
 void ReadPhraseNote(void);                  /* $04:$4968, (row) */
 void WritePhraseNote(void);                 /* $04:$418F, (row, v) */
-void ReadPhraseCommand(void);                    /* $04:$4AEA, (phrase, row) */
-void WritePhraseCommand(void);                   /* $04:$49C5, (phrase, row, cmd) */
-void ReadPhraseCommandValue(void);                 /* $04:$4A8F, (phrase, row) */
-void WritePhraseCommandValue(void);                /* $04:$4A30, (phrase, row, v) */
-UBYTE ReadPhraseInstrument(UBYTE phrase, UBYTE row);  /* $04:$4918 */
+void ReadPhraseCommand(void);               /* $04:$4AEA, (phrase, row) */
+void WritePhraseCommand(void);              /* $04:$49C5, (phrase, row, cmd) */
+void ReadPhraseCommandValue(void);          /* $04:$4A8F, (phrase, row) */
+void WritePhraseCommandValue(void);         /* $04:$4A30, (phrase, row, v) */
+UBYTE ReadPhraseInstrument(UBYTE phrase, UBYTE row); /* $04:$4918 */
 extern UBYTE wDrawTextScratch;              /* $C9CD: ColorField's width, stored before the call */
 extern UBYTE wPhraseDrawMode;               /* $C90C */
 extern UBYTE wPhraseRowFlags[];             /* $C90D, [16] */
 extern UBYTE PhraseCellX[];                 /* $1F:$64E1, [5]: the six phrase-cell layout rows */
-extern UBYTE PhraseCellXAlternate[];              /* $64E6 */
-extern UBYTE PhraseCellWidthAlternate[];          /* $64EB */
+extern UBYTE PhraseCellXAlternate[];        /* $64E6 */
+extern UBYTE PhraseCellWidthAlternate[];    /* $64EB */
 extern UBYTE PhraseCellWidth[];             /* $64F0 */
-extern UBYTE PhraseCellPaletteAlternate[];            /* $64F5 */
-extern UBYTE PhraseCellPalette[];               /* $64FA */
+extern UBYTE PhraseCellPaletteAlternate[];  /* $64F5 */
+extern UBYTE PhraseCellPalette[];           /* $64FA */
 void UnhighlightPhraseCell(UBYTE column, UBYTE row);
-UBYTE CanEnterSongColumn(UBYTE column);
+UBYTE EnterChannelPhrase(UBYTE column);
 void ErasePhraseCursor(void);
 void WritePhraseInstrument(UBYTE phrase, UBYTE row, UBYTE instrument);
 extern UBYTE wLiveMode;                     /* $C528 */
 extern UBYTE wChain;                        /* $C418 */
 extern UBYTE wChainRow;                     /* $C41A */
-extern UBYTE wChannelActive[];                 /* $C0E0, [4] */
-extern UBYTE wChannelChain[];                  /* $C170, [4] */
-extern UBYTE wChannelChainRow[];               /* $C17C, [4] */
-extern UBYTE wChannelSongRow[];                /* $C200, [4] */
-void DrawScreenColumnLabels(void);                   /* $1E:$4000 */
+extern UBYTE wChannelActive[];              /* $C0E0, [4] */
+extern UBYTE wChannelChain[];               /* $C170, [4] */
+extern UBYTE wChannelChainRow[];            /* $C17C, [4] */
+extern UBYTE wChannelSongRow[];             /* $C200, [4] */
+void DrawScreenColumnLabels(void);          /* $1E:$4000 */
 
+/* $648F: per-frame visual update (screen idx 1 = Phrase) */
 void PhraseScreenUpdate(void)
 {
     if (wLiveStartColumn != 0xFF)
@@ -58,7 +59,10 @@ void PhraseScreenUpdate(void)
         ClearSpriteY(0);
 }
 
-UBYTE CanEnterSongColumn(UBYTE column)
+/* $64FF: move the phrase screen to channel `column`'s phrase: in live mode
+   the one it is playing, else the one on the song row's chain at the chain
+   row (or the nearest above it); 1 if it moved, 0 when the channel has none */
+UBYTE EnterChannelPhrase(UBYTE column)
 {
     UBYTE chain, row, phrase;
     void (*function)(void);
@@ -99,21 +103,25 @@ UBYTE CanEnterSongColumn(UBYTE column)
     return 1;
 }
 
-UBYTE HasEnterableColumnRight(void)
+/* $6656: B+RIGHT: the phrase of the nearest channel to the right that has
+   one (EnterChannelPhrase) */
+UBYTE EnterPhraseRight(void)
 {
     UBYTE column;
 
     for (column = wSongColumn + 1; column < 4; column++)
-        if (CanEnterSongColumn(column))
+        if (EnterChannelPhrase(column))
             break;
 }
 
-UBYTE HasEnterableColumnLeft(void)
+/* $6677: B+LEFT: the phrase of the nearest channel to the left that has one
+   (EnterChannelPhrase) */
+UBYTE EnterPhraseLeft(void)
 {
     UBYTE column;
 
     for (column = wSongColumn - 1; column < 4; column--)
-        if (CanEnterSongColumn(column))
+        if (EnterChannelPhrase(column))
             break;
 }
 
@@ -204,6 +212,11 @@ void CutCopyPhraseSelection(UBYTE cut)
     FarCall(4, FAR_FN(DrawPhraseScreen));
 }
 
+/* $6B3B: colour phrase cell (col,row) as the cursor/selection: ColorField at
+   PhraseCellX (or PhraseCellXAlternate) + 3 in the shifted draw mode, the
+   PhraseCellWidth (or PhraseCellWidthAlternate) width through
+   wDrawTextScratch, palette 3 on CGB / 2 on DMG (row flag $fe/$ff picks the
+   normal tables, else the alternate ones) */
 void HighlightPhraseCell(UBYTE column, UBYTE row)
 {
     char x;
@@ -221,6 +234,8 @@ void HighlightPhraseCell(UBYTE column, UBYTE row)
         ColorField(PhraseCellXAlternate[column], row + 2, (wDrawTextScratch = PhraseCellWidthAlternate[column], wDrawTextScratch), hGameboyType ? 3 : 2);
 }
 
+/* $6C1E: draw the phrase cursor cell: HighlightPhraseCell(wPhraseColumn,
+   wPhraseRow) via the PhraseCell* tables */
 void DrawPhraseCursor(void)
 {
     UBYTE row, column;
@@ -230,6 +245,8 @@ void DrawPhraseCursor(void)
     HighlightPhraseCell(column, row);
 }
 
+/* $6CA2: colour phrase cell (col,row) in its normal palette (the PhraseCell*
+   layout tables; HighlightPhraseCell's inverse) */
 void UnhighlightPhraseCell(UBYTE column, UBYTE row)
 {
     char x;
@@ -256,6 +273,9 @@ void UnhighlightPhraseCell(UBYTE column, UBYTE row)
     ColorField(x, y, w, palette);
 }
 
+/* $6D58: phrase selection (wClipboardType==1) redraw vs the cursor: the
+   one-cell ring around the rectangle via UnhighlightPhraseCell, the inside
+   via HighlightPhraseCell */
 void DrawPhraseSelection(void)
 {
     UBYTE column, row, left, top, right, bottom;
@@ -291,6 +311,8 @@ void DrawPhraseSelection(void)
             HighlightPhraseCell(column, row);
 }
 
+/* $6EFE: restore the phrase cursor cell's palette:
+   UnhighlightPhraseCell(wPhraseColumn, wPhraseRow) */
 void ErasePhraseCursor(void)
 {
     UBYTE row, column;

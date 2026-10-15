@@ -28,6 +28,9 @@
 
 #include "lsdj.h"
 
+/* $0953: write `value` to byte `field` of instrument `instrument` in SRAM
+   (SramInstruments, 16 bytes an instrument); asserts the instrument and
+   field are in range and a type below 4 */
 void WriteInstrumentByte(UBYTE instrument, UBYTE field, UBYTE value)
 {
     UBYTE *p;
@@ -42,6 +45,8 @@ void WriteInstrumentByte(UBYTE instrument, UBYTE field, UBYTE value)
     WriteSongByte(1, p + (unsigned int)field, value);   /* the cast: field into bc, p into hl */
 }
 
+/* $0A91: read instruments[instr][field]: SRAM bank1 $B080 + instr*$10 +
+   field (asserts instr<$40, field<$10) */
 UBYTE ReadInstrumentByte(UBYTE instrument, UBYTE field)
 {
     UBYTE *p;
@@ -54,6 +59,7 @@ UBYTE ReadInstrumentByte(UBYTE instrument, UBYTE field)
     return ReadSongByte(1, p + field);
 }
 
+/* $0AE2: ReadInstrumentByte([wInstrument] current instrument, field) */
 UBYTE ReadCurrentInstrumentByte(UBYTE field)
 {
     return ReadInstrumentByte(wInstrument, field);
