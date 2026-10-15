@@ -56,79 +56,79 @@ void ShowInstrumentFieldHelp(UBYTE type)
 {
     char *s = 0;
 
-    if (wInstrumentField == 1) {
+    if (wInstrumentField == INSTRUMENT_FIELD_TYPE) {
         s = TxtHelpInstrType;
     } else {
         switch (type) {
         case INSTRUMENT_PULSE:
             switch (wInstrumentField) {
-            case 2: s = TxtHelpEnvStage1; break;
-            case 3: s = TxtHelpEnvStage2; break;
-            case 4: s = TxtHelpEnvStage3; break;
-            case 5: s = TxtHelpPulseWidth; break;
-            case 6: s = TxtHelpPan; break;
-            case 7: s = TxtHelpLength; break;
-            case 8: s = TxtHelpPu1Sweep; break;
-            case 9: s = TxtHelpPitchMode; break;
-            case 10: s = TxtHelpTransposeOk; break;
-            case 11: s = TxtHelpTransposePu2; break;
-            case 12: s = TxtHelpPuDetune; break;
-            case 13: s = TxtHelpCmdRate; break;
-            case 14: s = TxtHelpTableMode; break;
+            case PULSE_FIELD_ENVELOPE1: s = TxtHelpEnvStage1; break;
+            case PULSE_FIELD_ENVELOPE2: s = TxtHelpEnvStage2; break;
+            case PULSE_FIELD_ENVELOPE3: s = TxtHelpEnvStage3; break;
+            case PULSE_FIELD_WAVE: s = TxtHelpPulseWidth; break;
+            case PULSE_FIELD_OUTPUT: s = TxtHelpPan; break;
+            case PULSE_FIELD_LENGTH: s = TxtHelpLength; break;
+            case PULSE_FIELD_SWEEP: s = TxtHelpPu1Sweep; break;
+            case PULSE_FIELD_PITCH: s = TxtHelpPitchMode; break;
+            case PULSE_FIELD_TRANSPOSE: s = TxtHelpTransposeOk; break;
+            case PULSE_FIELD_PU2_TRANSPOSE: s = TxtHelpTransposePu2; break;
+            case PULSE_FIELD_FINETUNE: s = TxtHelpPuDetune; break;
+            case PULSE_FIELD_COMMAND_RATE: s = TxtHelpCmdRate; break;
+            case PULSE_FIELD_TABLE_ADVANCE: s = TxtHelpTableMode; break;
             }
             break;
         case INSTRUMENT_WAVE:
             switch (wInstrumentField) {
-            case 2: s = TxtHelpVolume; break;
-            case 3: s = TxtHelpPan; break;
-            case 4: s = TxtHelpPitchMode; break;
-            case 5: s = TxtHelpTransposeOk; break;
-            case 6: s = TxtHelpDetune; break;
-            case 7: s = TxtHelpCmdRate; break;
-            case 9:
+            case WAVE_FIELD_VOLUME: s = TxtHelpVolume; break;
+            case WAVE_FIELD_OUTPUT: s = TxtHelpPan; break;
+            case WAVE_FIELD_PITCH: s = TxtHelpPitchMode; break;
+            case WAVE_FIELD_TRANSPOSE: s = TxtHelpTransposeOk; break;
+            case WAVE_FIELD_FINETUNE: s = TxtHelpDetune; break;
+            case WAVE_FIELD_COMMAND_RATE: s = TxtHelpCmdRate; break;
+            case WAVE_FIELD_WAVE:
                 if (ReadInstrumentByte(wInstrument, 9) == 0)
                     s = TxtHelpWaveToPlay;
                 else
                     s = TxtHelpSynthToPlay;
                 break;
-            case 8: s = TxtHelpWavePlayMode; break;
-            case 10: s = TxtHelpTicksPerStep; break;
-            case 11: s = TxtHelpNumSteps; break;
-            case 12: s = TxtHelpFirstLoopStep; break;
-            case 13: s = TxtHelpTableMode; break;
+            case WAVE_FIELD_PLAY: s = TxtHelpWavePlayMode; break;
+            case WAVE_FIELD_SPEED: s = TxtHelpTicksPerStep; break;
+            case WAVE_FIELD_LENGTH: s = TxtHelpNumSteps; break;
+            case WAVE_FIELD_LOOP_POSITION: s = TxtHelpFirstLoopStep; break;
+            case WAVE_FIELD_TABLE_ADVANCE: s = TxtHelpTableMode; break;
             }
             break;
         case INSTRUMENT_KIT:
             switch (wInstrumentField) {
-            case 2: s = TxtHelpKitLeft; break;
-            case 3: s = TxtHelpKitRight; break;
-            case 4: s = TxtHelpVolume; break;
-            case 5: s = TxtHelpPan; break;
-            case 6: s = TxtHelpPitchMode; break;
-            case 7: s = TxtHelpPitchShift; break;
-            case 8:
-            case 9: s = TxtHelpStartLoop; break;
-            case 10:
-            case 11: s = TxtHelpSoundLength; break;
-            case 12:
-            case 13: s = TxtHelpKitLoopMode; break;
-            case 14: s = TxtHelpSpeed; break;
-            case 15: s = TxtHelpSampleMix; break;
-            case 16: s = TxtHelpTableMode; break;
+            case KIT_FIELD_KIT1: s = TxtHelpKitLeft; break;
+            case KIT_FIELD_KIT2: s = TxtHelpKitRight; break;
+            case KIT_FIELD_VOLUME: s = TxtHelpVolume; break;
+            case KIT_FIELD_OUTPUT: s = TxtHelpPan; break;
+            case KIT_FIELD_PITCH: s = TxtHelpPitchMode; break;
+            case KIT_FIELD_FINETUNE: s = TxtHelpPitchShift; break;
+            case KIT_FIELD_OFFSET1:
+            case KIT_FIELD_OFFSET2: s = TxtHelpStartLoop; break;
+            case KIT_FIELD_LENGTH1:
+            case KIT_FIELD_LENGTH2: s = TxtHelpSoundLength; break;
+            case KIT_FIELD_LOOP1:
+            case KIT_FIELD_LOOP2: s = TxtHelpKitLoopMode; break;
+            case KIT_FIELD_SPEED: s = TxtHelpSpeed; break;
+            case KIT_FIELD_CLIP: s = TxtHelpSampleMix; break;
+            case KIT_FIELD_TABLE_ADVANCE: s = TxtHelpTableMode; break;
             }
             break;
         case INSTRUMENT_NOISE:
             switch (wInstrumentField) {
-            case 2: s = TxtHelpEnvStage1; break;
-            case 3: s = TxtHelpEnvStage2; break;
-            case 4: s = TxtHelpEnvStage3; break;
-            case 5: s = TxtHelpPan; break;
-            case 6: s = TxtHelpLength; break;
-            case 7: s = TxtHelpSafeMode; break;
-            case 8: s = TxtHelpVibShape; break;
-            case 9: s = TxtHelpTransposeOk; break;
-            case 10: s = TxtHelpCmdRate; break;
-            case 11: s = TxtHelpTableMode; break;
+            case NOISE_FIELD_ENVELOPE1: s = TxtHelpEnvStage1; break;
+            case NOISE_FIELD_ENVELOPE2: s = TxtHelpEnvStage2; break;
+            case NOISE_FIELD_ENVELOPE3: s = TxtHelpEnvStage3; break;
+            case NOISE_FIELD_OUTPUT: s = TxtHelpPan; break;
+            case NOISE_FIELD_LENGTH: s = TxtHelpLength; break;
+            case NOISE_FIELD_PITCH: s = TxtHelpSafeMode; break;
+            case NOISE_FIELD_VIBRATO_SHAPE: s = TxtHelpVibShape; break;
+            case NOISE_FIELD_TRANSPOSE: s = TxtHelpTransposeOk; break;
+            case NOISE_FIELD_COMMAND_RATE: s = TxtHelpCmdRate; break;
+            case NOISE_FIELD_TABLE_ADVANCE: s = TxtHelpTableMode; break;
             }
             break;
         }

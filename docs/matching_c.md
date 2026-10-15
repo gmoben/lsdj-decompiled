@@ -235,7 +235,9 @@ comment began with a quoted string had been carved as data, since a leading
   sits in `bc` in the second.
 - **Named constants**: `lsdj.h` names the screens (`SCREEN_SONG` for
   `wCurrentScreen` and `wClipboardType`), the instrument types
-  (`INSTRUMENT_KIT`, an instrument's byte 0), the channels (`CHANNEL_NOI`
+  (`INSTRUMENT_KIT`, an instrument's byte 0), the instrument screen's fields
+  per type (`WAVE_FIELD_PLAY`, `KIT_FIELD_CLIP`: the manual's labels, checked
+  against `ShowInstrumentFieldHelp` and `InstrumentFieldX`), the channels (`CHANNEL_NOI`
   for `wSongColumn` and `hSoundChannel`), the commands (`COMMAND_Z`, in
   `CommandMnemonics`' order; `FileUpgrade.c` keeps numbers, which there mean
   an older format's commands) and the joypad bits (`J_A`, GBDK's

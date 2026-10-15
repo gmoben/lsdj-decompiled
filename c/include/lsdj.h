@@ -91,6 +91,65 @@ typedef int WORD;
 #define INSTRUMENT_KIT       2
 #define INSTRUMENT_NOISE     3
 
+/* wInstrumentField: the instrument screen's fields, per type (InstrumentFieldX
+ * has their places; ShowInstrumentFieldHelp their help) */
+#define INSTRUMENT_FIELD_NAME          0
+#define INSTRUMENT_FIELD_TYPE          1
+#define PULSE_FIELD_ENVELOPE1          2
+#define PULSE_FIELD_ENVELOPE2          3
+#define PULSE_FIELD_ENVELOPE3          4
+#define PULSE_FIELD_WAVE               5
+#define PULSE_FIELD_OUTPUT             6
+#define PULSE_FIELD_LENGTH             7
+#define PULSE_FIELD_SWEEP              8
+#define PULSE_FIELD_PITCH              9
+#define PULSE_FIELD_TRANSPOSE          10
+#define PULSE_FIELD_PU2_TRANSPOSE      11
+#define PULSE_FIELD_FINETUNE           12
+#define PULSE_FIELD_COMMAND_RATE       13
+#define PULSE_FIELD_TABLE_ADVANCE      14
+#define PULSE_FIELD_TABLE              15
+#define WAVE_FIELD_VOLUME              2
+#define WAVE_FIELD_OUTPUT              3
+#define WAVE_FIELD_PITCH               4
+#define WAVE_FIELD_TRANSPOSE           5
+#define WAVE_FIELD_FINETUNE            6
+#define WAVE_FIELD_COMMAND_RATE        7
+#define WAVE_FIELD_PLAY                8
+#define WAVE_FIELD_WAVE                9
+#define WAVE_FIELD_SPEED               10
+#define WAVE_FIELD_LENGTH              11
+#define WAVE_FIELD_LOOP_POSITION       12
+#define WAVE_FIELD_TABLE_ADVANCE       13
+#define WAVE_FIELD_TABLE               14
+#define KIT_FIELD_KIT1                 2
+#define KIT_FIELD_KIT2                 3
+#define KIT_FIELD_VOLUME               4
+#define KIT_FIELD_OUTPUT               5
+#define KIT_FIELD_PITCH                6
+#define KIT_FIELD_FINETUNE             7
+#define KIT_FIELD_OFFSET1              8
+#define KIT_FIELD_OFFSET2              9
+#define KIT_FIELD_LENGTH1              10
+#define KIT_FIELD_LENGTH2              11
+#define KIT_FIELD_LOOP1                12
+#define KIT_FIELD_LOOP2                13
+#define KIT_FIELD_SPEED                14
+#define KIT_FIELD_CLIP                 15
+#define KIT_FIELD_TABLE_ADVANCE        16
+#define KIT_FIELD_TABLE                17
+#define NOISE_FIELD_ENVELOPE1          2
+#define NOISE_FIELD_ENVELOPE2          3
+#define NOISE_FIELD_ENVELOPE3          4
+#define NOISE_FIELD_OUTPUT             5
+#define NOISE_FIELD_LENGTH             6
+#define NOISE_FIELD_PITCH              7
+#define NOISE_FIELD_VIBRATO_SHAPE      8
+#define NOISE_FIELD_TRANSPOSE          9
+#define NOISE_FIELD_COMMAND_RATE       10
+#define NOISE_FIELD_TABLE_ADVANCE      11
+#define NOISE_FIELD_TABLE              12
+
 /* wButtons: the joypad bits, GBDK's names; buttons held together are their
  * `|`, which SDCC folds to the one constant */
 #define J_RIGHT   0x01
@@ -401,7 +460,7 @@ UBYTE SynthWavesModified(UBYTE synth);
 void PreviousInstrumentTableMode(void);
 UBYTE GetWaveLoopPosition(void);
 UBYTE GetInstrumentType3(void);
-void WriteKitNumber(UBYTE field, UBYTE kit);
+void WriteKitNumber(UBYTE byte, UBYTE kit);
 void InstrumentEnvelopeChanged(void);
 void EnsureKitExists(void);
 void CloneSynth(void);
