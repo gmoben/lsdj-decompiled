@@ -77,30 +77,30 @@ UBYTE TestSramHigh(void)
 
 void DrawCartTest(void)
 {
-    wVramCursor = (UBYTE *)0x9820;
+    wVramCursor = (UBYTE *)BG_MAP(0, 1);
     DrawString("CARTRIDGE TEST");
-    wVramCursor = (UBYTE *)0x9860;
+    wVramCursor = (UBYTE *)BG_MAP(0, 3);
     DrawString("ROM...");
     if (FarCallByte(0, FAR_FN(CheckRomChecksum))) {
         DrawString("OK!");
     } else {
         DrawString("FAIL!");
-        wVramCursor = (UBYTE *)0x9880;
+        wVramCursor = (UBYTE *)BG_MAP(0, 4);
         DrawString("TRY CLEANING PINS");
-        wVramCursor = (UBYTE *)0x98A0;
+        wVramCursor = (UBYTE *)BG_MAP(0, 5);
         DrawString("OR FLASH AGAIN.");
         for (;;)
             ;
     }
-    wVramCursor = (UBYTE *)0x9880;
+    wVramCursor = (UBYTE *)BG_MAP(0, 4);
     DrawString("SRAM...");
     if (TestSramLow() && TestSramHigh()) {
         DrawString("OK!");
     } else {
         DrawString("FAIL!");
-        wVramCursor = (UBYTE *)0x98A0;
+        wVramCursor = (UBYTE *)BG_MAP(0, 5);
         DrawString("TRY CLEANING PINS");
-        wVramCursor = (UBYTE *)0x98C0;
+        wVramCursor = (UBYTE *)BG_MAP(0, 6);
         DrawString("OR REPLACE BATTERY.");
         for (;;)
             ;

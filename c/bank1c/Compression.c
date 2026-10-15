@@ -168,7 +168,7 @@ UBYTE DecompressBlock(void)
         return 1;
     default:
         if (wBlockSinkPointer == FlushBlockToSram) {
-            wVramCursor = 0x98EC;
+            wVramCursor = BG_MAP(12, 7);
             wCompressProgress++;
             DrawByte(wCompressProgress);
             DrawStringIndexed('/');

@@ -55,7 +55,7 @@ void DrawMessageBar(void)
     hBgDigitPalette = wHighlightDigitPalette;
     hBgPalette = wHighlightPalette;
     saved = wVramCursor;
-    wVramCursor = (UBYTE *)0x9800;
+    wVramCursor = (UBYTE *)BG_MAP(0, 0);
     for (position = 0; position < 20; position++)
         DrawStringIndexed(wMessageStringPointer[position]);
     wVramCursor = saved;

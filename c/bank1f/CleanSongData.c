@@ -479,7 +479,7 @@ void DeduplicatePhrases(void)
     for (phrase = 0; phrase < 0xFF; phrase = phrase + 1) {
         if (!IsPhraseUsedFar(phrase))
             continue;
-        wVramCursor = (UBYTE *)0x98AE;
+        wVramCursor = (UBYTE *)BG_MAP(14, 5);
         DrawHexByte(phrase);
         for (candidate = phrase + 1; candidate < 0xFF; candidate = candidate + 1) {
             wDeduplicatePhraseUsed = IsPhraseUsedFar(candidate);
@@ -490,7 +490,7 @@ void DeduplicatePhrases(void)
             }
         }
     }
-    wVramCursor = (UBYTE *)0x98AE;
+    wVramCursor = (UBYTE *)BG_MAP(14, 5);
     DrawStringTile20();
     DrawStringTile20();
 }
@@ -502,7 +502,7 @@ void DeduplicateChains(void)
     for (chain = 0; chain < 0x80; chain = chain + 1) {
         if (!IsChainUsedFar(chain))
             continue;
-        wVramCursor = (UBYTE *)0x98AE;
+        wVramCursor = (UBYTE *)BG_MAP(14, 5);
         DrawHexByte(chain);
         for (candidate = chain + 1; candidate < 0x80; candidate = candidate + 1) {
             wDeduplicateChainUsed = IsChainUsedFar(candidate);
@@ -513,7 +513,7 @@ void DeduplicateChains(void)
             }
         }
     }
-    wVramCursor = (UBYTE *)0x98AE;
+    wVramCursor = (UBYTE *)BG_MAP(14, 5);
     DrawString("OK");
 }
 
@@ -524,7 +524,7 @@ void DeduplicateTables(void)
     for (table = 0; table < 0x20; table = table + 1) {
         if (IsTableFree(table))
             continue;
-        wVramCursor = (UBYTE *)0x98AE;
+        wVramCursor = (UBYTE *)BG_MAP(14, 5);
         DrawHexByte(table);
         for (candidate = table + 1; candidate < 0x20; candidate = candidate + 1) {
             if (IsTableFree(candidate))
@@ -534,7 +534,7 @@ void DeduplicateTables(void)
                 RemapCommandTableRefs(candidate, table);
         }
     }
-    wVramCursor = (UBYTE *)0x98AE;
+    wVramCursor = (UBYTE *)BG_MAP(14, 5);
     DrawString("OK");
 }
 
@@ -596,40 +596,40 @@ void CleanSongData(void)
 
     phrases = CountUsedPhrases();
     chains = CountUsedChains();
-    wVramCursor = 0x98A4;
+    wVramCursor = BG_MAP(4, 5);
     DrawString("DE-DUPE...");
     DeduplicatePhrases();
     DeduplicateChains();
-    wVramCursor = 0x98C4;
+    wVramCursor = BG_MAP(4, 6);
     DrawString("FREEING:");
-    wVramCursor = 0x98E4;
+    wVramCursor = BG_MAP(4, 7);
     printf("CHAINS....");
     RemapSequenceChains();
     printf("%d", chains - CountUsedChains());
-    wVramCursor = 0x9904;
+    wVramCursor = BG_MAP(4, 8);
     printf("PHRASES...");
     RebuildPhraseAllocationMap();
     printf("%d", phrases - CountUsedPhrases());
-    wVramCursor = 0x9944;
+    wVramCursor = BG_MAP(4, 10);
     printf("OK!");
 }
 
 void CleanInstrumentData(void)
 {
-    wVramCursor = 0x98A4;
+    wVramCursor = BG_MAP(4, 5);
     DrawString("DE-DUPE...");
     DeduplicateTables();
-    wVramCursor = 0x98C4;
+    wVramCursor = BG_MAP(4, 6);
     DrawString("FREEING:");
-    wVramCursor = 0x98E4;
+    wVramCursor = BG_MAP(4, 7);
     printf("INSTRS....");
     printf("%d", FreeUnusedInstruments());
-    wVramCursor = 0x9904;
+    wVramCursor = BG_MAP(4, 8);
     printf("TABLES....");
     printf("%d", FreeUnusedTables());
-    wVramCursor = 0x9924;
+    wVramCursor = BG_MAP(4, 9);
     printf("SYNTHS....");
     printf("%d", FreeUnusedSynths());
-    wVramCursor = 0x9964;
+    wVramCursor = BG_MAP(4, 11);
     printf("OK!");
 }

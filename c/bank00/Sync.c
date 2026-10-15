@@ -136,7 +136,7 @@ void SyncTickLsdj(void)
                 DrawStringTile20();
             }
         }
-        wVramCursor = (UBYTE *)0x99B0;
+        wVramCursor = (UBYTE *)BG_MAP(16, 13);
         hBgDigitPalette = 4;
         hBgPalette = 1;
         DrawString("    ");

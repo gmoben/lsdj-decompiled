@@ -54,7 +54,7 @@ UBYTE *TilemapAddress(UBYTE x, UBYTE y)
     a = y;
     a <<= 5;
     a += x;
-    a |= 0x9800;
+    a |= BG_MAP(0, 0);
     return (UBYTE *)a;
 }
 

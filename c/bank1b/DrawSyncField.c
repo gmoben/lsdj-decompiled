@@ -36,7 +36,7 @@ void DrawSyncField(void)
 {
     char *s;
 
-    wVramCursor = (UBYTE *)0x9885;
+    wVramCursor = (UBYTE *)BG_MAP(5, 4);
     switch (wSyncMode) {
     case 0: DrawString(TxtSyncOff); break;
     case 1: DrawString(TxtSyncLsdj); break;
@@ -45,7 +45,7 @@ void DrawSyncField(void)
     case 6: DrawString(TxtSyncAnaIn); break;
     case 7: DrawString(TxtSyncAnOut); break;
     }
-    wVramCursor = (UBYTE *)0x98A0;
+    wVramCursor = (UBYTE *)BG_MAP(0, 5);
     hBgDigitPalette = 4;
     hBgPalette = 1;
     if (ProjectSyncModeIs567()) {

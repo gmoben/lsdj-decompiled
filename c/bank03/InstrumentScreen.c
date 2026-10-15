@@ -404,7 +404,7 @@ void SubInstrumentTable16(void)
 
 void DrawWaveLength(void)
 {
-    wVramCursor = (UBYTE *)0x99CC;
+    wVramCursor = (UBYTE *)BG_MAP(12, 14);
     if (WavePlayIsManual())
         DrawStringIndexed('-');
     else
@@ -413,7 +413,7 @@ void DrawWaveLength(void)
 
 void DrawWaveSpeed(void)
 {
-    wVramCursor = (UBYTE *)0x99AB;
+    wVramCursor = (UBYTE *)BG_MAP(11, 13);
     if (WavePlayIsManual())
         DrawString("--");                   /* the literal lands right after the function ($49E4) */
     else
@@ -429,7 +429,7 @@ void DrawWaveLoopPosition(void)
 {
     UBYTE v, d;
 
-    wVramCursor = (UBYTE *)0x99EC;
+    wVramCursor = (UBYTE *)BG_MAP(12, 15);
     v = GetWavePlayMode();
     if (v == 2 || v == 3 || v == 4) {
         d = GetWaveLength() - GetWaveLoopPosition();
@@ -580,7 +580,7 @@ void DrawWaveFinetune(void)
     UBYTE v;
 
     v = ReadCurrentInstrumentByte(12);
-    wVramCursor = (UBYTE *)0x990A;
+    wVramCursor = (UBYTE *)BG_MAP(10, 8);
     if (v & 0x80) {
         DrawStringIndexed('-');
         DrawHexByte(-v);
@@ -594,17 +594,17 @@ void DrawWaveSynthField(void)
 {
     hBgDigitPalette = 4;
     hBgPalette = 1;
-    wVramCursor = (UBYTE *)0x9980;
+    wVramCursor = (UBYTE *)BG_MAP(0, 12);
     if (WavePlayIsManual()) {
         DrawString("WAVE ");
-        wVramCursor = (UBYTE *)0x998B;
+        wVramCursor = (UBYTE *)BG_MAP(11, 12);
         ColorField(0x0B, 0x0C, 1, 1);
         hBgDigitPalette = wShadedDigitPalette;
         hBgPalette = wShadedPalette;
         DrawHexByte(ReadCurrentInstrumentByte(3));
     } else {
         DrawString("SYNTH");
-        wVramCursor = (UBYTE *)0x998B;
+        wVramCursor = (UBYTE *)BG_MAP(11, 12);
         ColorField(0x0B, 0x0C, 1, 0);
         DrawStringIndexed(' ');
         hBgDigitPalette = wShadedDigitPalette;

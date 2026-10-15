@@ -126,7 +126,7 @@ void DrawKeyboardInstrumentState(void)
             break;
         }
     }
-    wVramCursor = (UBYTE *)0x9991;
+    wVramCursor = (UBYTE *)BG_MAP(17, 12);
     hBgDigitPalette = 4;
     hBgPalette = 1;
     DrawStringIndexed('I');
@@ -159,7 +159,7 @@ void DrawKeyboardInstrumentName(void)
 
 void DrawKeyboardOctave(void)
 {
-    wVramCursor = (UBYTE *)0x99B0;
+    wVramCursor = (UBYTE *)BG_MAP(16, 13);
     hBgDigitPalette = 4;
     hBgPalette = 1;
     switch (wKeyboardTranspose) {
@@ -242,7 +242,7 @@ UBYTE ProcessLinkQueue(void)
             DrawKeyboardOctave();
             return 0xFF;
         }
-        wVramCursor = (UBYTE *)0x99AF;
+        wVramCursor = (UBYTE *)BG_MAP(15, 13);
         hBgDigitPalette = 4;
         hBgPalette = 1;
         switch (key) {
@@ -320,7 +320,7 @@ UBYTE ProcessLinkQueue(void)
         return 0xFF;
     case 0x60:
         if (wKeyboardInstrument2) {
-            wVramCursor = (UBYTE *)0x9991;
+            wVramCursor = (UBYTE *)BG_MAP(17, 12);
             hBgDigitPalette = 4;
             hBgPalette = 1;
             DrawStringIndexed('A');
@@ -330,7 +330,7 @@ UBYTE ProcessLinkQueue(void)
         return 0xFF;
     case 0x68:
         if (wKeyboardInstrument2 != 0x40) {
-            wVramCursor = (UBYTE *)0x9991;
+            wVramCursor = (UBYTE *)BG_MAP(17, 12);
             hBgDigitPalette = 4;
             hBgPalette = 1;
             DrawStringIndexed('A');
@@ -369,7 +369,7 @@ UBYTE ProcessLinkQueue(void)
         return 0xFF;
     case 0x28:
         wKeyboardNoteQueued = 0;
-        wVramCursor = (UBYTE *)0x99AF;
+        wVramCursor = (UBYTE *)BG_MAP(15, 13);
         hBgDigitPalette = 4;
         hBgPalette = 1;
         t = wKeyboardChannelState[0];
@@ -555,15 +555,15 @@ void DrawCalibrationScreen(void)
     ClearBgTilemap();
     hBgDigitPalette = 4;
     hBgPalette = 1;
-    wVramCursor = (UBYTE *)0x9800;
+    wVramCursor = (UBYTE *)BG_MAP(0, 0);
     DrawString(TxtKeyboardCalibration);
-    wVramCursor = (UBYTE *)0x9840;
+    wVramCursor = (UBYTE *)BG_MAP(0, 2);
     DrawString(TxtTapDownArrowKey);
-    wVramCursor = (UBYTE *)0x9860;
+    wVramCursor = (UBYTE *)BG_MAP(0, 3);
     DrawString(TxtOnPs2Keyboard);
-    wVramCursor = (UBYTE *)0x9880;
+    wVramCursor = (UBYTE *)BG_MAP(0, 4);
     DrawString(TxtManyTimes);
-    wVramCursor = (UBYTE *)0x98A0;
+    wVramCursor = (UBYTE *)BG_MAP(0, 5);
     wSyncMode2 = 4;
     for (;;) {
         k = KeyboardPollScancode();

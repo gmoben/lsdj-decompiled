@@ -97,7 +97,7 @@ void DrawHelpPage(char *s)
 
     row = 0;
     column = 0;
-    wVramCursor = 0x9800;
+    wVramCursor = BG_MAP(0, 0);
     while (*s) {
         switch (*s) {
         case '\n':

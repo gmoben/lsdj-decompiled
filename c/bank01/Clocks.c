@@ -34,7 +34,7 @@ void UpdatePlayClock(void)
     if (wPlayMode && wCurrentScreen == SCREEN_PROJECT) {
         hBgDigitPalette = 4;
         hBgPalette = 1;
-        wVramCursor = 0x9A05;
+        wVramCursor = BG_MAP(5, 16);
         printf("%d:", (UWORD)wPlayMinutes);
         wProjectDrawScratch = 0x0C;
         if (wPlayMinutes > 9)

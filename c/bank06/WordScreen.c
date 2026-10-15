@@ -93,7 +93,7 @@ void DrawWordScreen(void)
     UBYTE s, m;
 
     FarCall(1, FAR_FN(DrawTopBar));
-    wVramCursor = (UBYTE *)0x9800;
+    wVramCursor = (UBYTE *)BG_MAP(0, 0);
     hBgDigitPalette = 4;
     hBgPalette = 1;
     DrawString("WORD ");

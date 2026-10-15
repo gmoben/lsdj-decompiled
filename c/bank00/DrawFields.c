@@ -69,7 +69,7 @@ void DrawTempo(UWORD tempo)
 
 void DrawTempoField(void)
 {
-    wVramCursor = (UBYTE *)0x9891;
+    wVramCursor = (UBYTE *)BG_MAP(17, 4);
     hBgDigitPalette = wShadedDigitPalette;
     hBgPalette = wShadedPalette;
     DrawTempo(GetTempoTimerValue());
@@ -82,7 +82,7 @@ void DrawChannelHeader(void)
     s = "NOI";
     hBgDigitPalette = wShadedDigitPalette;
     hBgPalette = wShadedPalette;
-    wVramCursor = (UBYTE *)0x9811;
+    wVramCursor = (UBYTE *)BG_MAP(17, 0);
     switch (wSongColumn) {
     case 0:
         s = "PU1";

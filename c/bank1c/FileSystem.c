@@ -90,7 +90,7 @@ UBYTE FindFreeBlock(UBYTE *bank, UWORD *source)
                 DebugTrap();
             if (*source < 0xA000 || *source >= 0xC000)
                 DebugTrap();
-            wVramCursor = 0x98EC;
+            wVramCursor = BG_MAP(12, 7);
             hBgDigitPalette = 4;
             hBgPalette = 1;
             DrawByte(++wCompressProgress);

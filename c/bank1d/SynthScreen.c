@@ -108,7 +108,7 @@ UBYTE SynthSignalIsFrame(void)
 
 void DrawSynthFilterField(void)
 {
-    wVramCursor = (UBYTE *)0x9868;
+    wVramCursor = (UBYTE *)BG_MAP(8, 3);
     if (SynthSignalIsFrame()) {
         DrawString("-----");
     } else {
@@ -134,7 +134,7 @@ void DrawSynthFilterField(void)
 
 void DrawSynthSignalField(void)
 {
-    wVramCursor = (UBYTE *)0x9849;
+    wVramCursor = (UBYTE *)BG_MAP(9, 2);
     switch (ReadSynthParameter(0)) {
     case 0:
         DrawString("iiii");
@@ -197,9 +197,9 @@ void DrawSynthNumber(void)
     p = (UWORD)SramSynthParameters + ((UWORD)wSynthScreen << 4);
     hBgDigitPalette = 4;
     hBgPalette = 1;
-    wVramCursor = (UBYTE *)0x98E8;
+    wVramCursor = (UBYTE *)BG_MAP(8, 7);
     DrawByte(wSynthScreen);
-    wVramCursor = (UBYTE *)0x98EB;
+    wVramCursor = (UBYTE *)BG_MAP(11, 7);
     DrawByte(wSynthScreen);
     hBgDigitPalette = wShadedDigitPalette;
     hBgPalette = wShadedPalette;
@@ -208,47 +208,47 @@ void DrawSynthNumber(void)
     DrawSynthFilterField();
     p++;
     v = ReadSongByte(1, (UWORD)p++);
-    wVramCursor = (UBYTE *)0x9969;
+    wVramCursor = (UBYTE *)BG_MAP(9, 11);
     if (SynthSignalIsFrame())
         DrawStringIndexed('-');
     else
         DrawByte(v >> 4);
-    wVramCursor = (UBYTE *)0x996C;
+    wVramCursor = (UBYTE *)BG_MAP(12, 11);
     if (SynthSignalIsFrame())
         DrawStringIndexed('-');
     else
         DrawByte(v & 0x0F);
-    wVramCursor = (UBYTE *)0x9889;
+    wVramCursor = (UBYTE *)BG_MAP(9, 4);
     DrawSynthDistortionField(ReadSongByte(1, (UWORD)p++));
-    wVramCursor = (UBYTE *)0x98A7;
+    wVramCursor = (UBYTE *)BG_MAP(7, 5);
     DrawSynthPhaseField(ReadSongByte(1, (UWORD)p++));
-    wVramCursor = (UBYTE *)0x9928;
+    wVramCursor = (UBYTE *)BG_MAP(8, 9);
     DrawHexByte(ReadSongByte(1, (UWORD)p++));
-    wVramCursor = (UBYTE *)0x9948;
+    wVramCursor = (UBYTE *)BG_MAP(8, 10);
     if (SynthSignalIsFrame())
         DrawString("--");
     else
         DrawHexByte(ReadSongByte(1, (UWORD)p));
     p++;
-    wVramCursor = (UBYTE *)0x99C8;
+    wVramCursor = (UBYTE *)BG_MAP(8, 14);
     DrawHexByte(ReadSongByte(1, (UWORD)p++));
-    wVramCursor = (UBYTE *)0x9988;
+    wVramCursor = (UBYTE *)BG_MAP(8, 12);
     DrawHexByte(ReadSongByte(1, (UWORD)p++));
-    wVramCursor = (UBYTE *)0x992B;
+    wVramCursor = (UBYTE *)BG_MAP(11, 9);
     DrawHexByte(ReadSongByte(1, (UWORD)p++));
-    wVramCursor = (UBYTE *)0x994B;
+    wVramCursor = (UBYTE *)BG_MAP(11, 10);
     if (SynthSignalIsFrame())
         DrawString("--");
     else
         DrawHexByte(ReadSongByte(1, (UWORD)p));
     p++;
-    wVramCursor = (UBYTE *)0x99CB;
+    wVramCursor = (UBYTE *)BG_MAP(11, 14);
     DrawHexByte(ReadSongByte(1, (UWORD)p++));
-    wVramCursor = (UBYTE *)0x998B;
+    wVramCursor = (UBYTE *)BG_MAP(11, 12);
     DrawHexByte(ReadSongByte(1, (UWORD)p++));
-    wVramCursor = (UBYTE *)0x99A8;
+    wVramCursor = (UBYTE *)BG_MAP(8, 13);
     DrawHexByte(ReadSongByte(1, (UWORD)p++) + 0x0F);
-    wVramCursor = (UBYTE *)0x99AB;
+    wVramCursor = (UBYTE *)BG_MAP(11, 13);
     DrawHexByte(ReadSongByte(1, (UWORD)p) + 0x0F);
     DrawSynthCursor();
 }
@@ -342,15 +342,15 @@ void OverwriteSynthWaves(void)
     BuildOverwritePrompt();
     wOverwriteStart = 1;
     wOverwriteEnd = 1;
-    wVramCursor = (UBYTE *)0x98A4;
+    wVramCursor = (UBYTE *)BG_MAP(4, 5);
     DrawString("OVERWRITE");
-    wVramCursor = (UBYTE *)0x98C4;
+    wVramCursor = (UBYTE *)BG_MAP(4, 6);
     DrawString("HAND-DRAWN");
-    wVramCursor = (UBYTE *)0x98E4;
+    wVramCursor = (UBYTE *)BG_MAP(4, 7);
     DrawString("WAVES?");
-    wVramCursor = (UBYTE *)0x9924;
+    wVramCursor = (UBYTE *)BG_MAP(4, 9);
     DrawString("YES");
-    wVramCursor = (UBYTE *)0x992B;
+    wVramCursor = (UBYTE *)BG_MAP(11, 9);
     DrawString("NO");
     DrawOverwriteChoice();
 }

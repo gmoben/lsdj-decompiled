@@ -25,16 +25,16 @@ void DrawInstrumentTableMode(void)
 
     switch (ReadCurrentInstrumentByte(0)) {
     case 0:
-        wVramCursor = (UBYTE *)0x9A26;
+        wVramCursor = (UBYTE *)BG_MAP(6, 17);
         break;
     case 1:
-        wVramCursor = (UBYTE *)0x9A26;
+        wVramCursor = (UBYTE *)BG_MAP(6, 17);
         break;
     case 2:
-        wVramCursor = (UBYTE *)0x9A26;
+        wVramCursor = (UBYTE *)BG_MAP(6, 17);
         break;
     case 3:
-        wVramCursor = (UBYTE *)0x99C6;
+        wVramCursor = (UBYTE *)BG_MAP(6, 14);
         break;
     }
     s = (ReadCurrentInstrumentByte(6) & 0x20) ? ((ReadCurrentInstrumentByte(5) & 8) ? "STEP" : "TICK") : " OFF";
@@ -99,20 +99,20 @@ void DrawEnvelopeFields(void)
 {
     UBYTE v;
 
-    wVramCursor = 0x98A7;
+    wVramCursor = BG_MAP(7, 5);
     hBgDigitPalette = 4;
     hBgPalette = 1;
     DrawString("/--/--");
     hBgDigitPalette = wShadedDigitPalette;
     hBgPalette = wShadedPalette;
-    wVramCursor = 0x98A5;
+    wVramCursor = BG_MAP(5, 5);
     DrawHexByte(ReadCurrentInstrumentByte(1));
     if (InstrumentEnvelopeHasSecond()) {
-        wVramCursor = 0x98A8;
+        wVramCursor = BG_MAP(8, 5);
         DrawHexByte(ReadCurrentInstrumentByte(9));
         if (InstrumentEnvelopeHasThird()) {
             v = ReadCurrentInstrumentByte(10);
-            wVramCursor = 0x98AB;
+            wVramCursor = BG_MAP(11, 5);
             if (v & 0xF0)
                 DrawHexByte(v);
             else {
@@ -128,12 +128,12 @@ void DrawPulseInstrument(void)
     UBYTE v;
 
     DrawEnvelopeFields();
-    wVramCursor = 0x98EB;
+    wVramCursor = BG_MAP(11, 7);
     v = ReadCurrentInstrumentByte(7);
     DrawPulseDuty(v >> 6);
-    wVramCursor = 0x990B;
+    wVramCursor = BG_MAP(11, 8);
     DrawFieldValue(0x0C, ReadCurrentInstrumentByte(7));
-    wVramCursor = 0x9928;
+    wVramCursor = BG_MAP(8, 9);
     v = ReadCurrentInstrumentByte(3);
     if (!(v & 0x40)) {
         DrawString("UNLIM");
@@ -141,20 +141,20 @@ void DrawPulseInstrument(void)
         DrawString("   ");
         DrawHexByte((0x3F - v) & 0x3F);
     }
-    wVramCursor = 0x994B;
+    wVramCursor = BG_MAP(11, 10);
     DrawHexByte(ReadCurrentInstrumentByte(4) & 0x7F);
-    wVramCursor = 0x9967;
+    wVramCursor = BG_MAP(7, 11);
     v = ReadCurrentInstrumentByte(5);
     FarCallArgument(1, FAR_FN(DrawSpeedModeName), v);
-    wVramCursor = 0x998A;
+    wVramCursor = BG_MAP(10, 12);
     FarCallArgument(1, FAR_FN(DrawOnOffName), v);
-    wVramCursor = 0x99EC;
+    wVramCursor = BG_MAP(12, 15);
     DrawByte(ReadCurrentInstrumentByte(8));
-    wVramCursor = 0x99AB;
+    wVramCursor = BG_MAP(11, 13);
     DrawHexByte(ReadCurrentInstrumentByte(2));
-    wVramCursor = 0x99CB;
+    wVramCursor = BG_MAP(11, 14);
     DrawHexByte(ReadCurrentInstrumentByte(0x0B));
-    wVramCursor = 0x9A26;
+    wVramCursor = BG_MAP(6, 17);
     DrawInstrumentTableMode();
     wVramCursor++;
     DrawInstrumentTableField();
@@ -164,11 +164,11 @@ void DrawNoiseInstrument(void)
 {
     UBYTE v;
 
-    wVramCursor = 0x98A5;
+    wVramCursor = BG_MAP(5, 5);
     DrawEnvelopeFields();
-    wVramCursor = 0x98EB;
+    wVramCursor = BG_MAP(11, 7);
     DrawFieldValue(0x0C, ReadCurrentInstrumentByte(7));
-    wVramCursor = 0x9908;
+    wVramCursor = BG_MAP(8, 8);
     v = ReadCurrentInstrumentByte(3);
     if (!(v & 0x40)) {
         DrawString("UNLIM");
@@ -176,16 +176,16 @@ void DrawNoiseInstrument(void)
         DrawString("   ");
         DrawHexByte((0x3F - v) & 0x3F);
     }
-    wVramCursor = 0x9929;
+    wVramCursor = BG_MAP(9, 9);
     DrawString(ReadCurrentInstrumentByte(2) ? "SAFE" : "FREE");
-    wVramCursor = 0x994B;
+    wVramCursor = BG_MAP(11, 10);
     v = ReadCurrentInstrumentByte(5);
     FarCallArgument(1, FAR_FN(DrawSpeedGlyph), v);
-    wVramCursor = 0x996A;
+    wVramCursor = BG_MAP(10, 11);
     FarCallArgument(1, FAR_FN(DrawOnOffName), v);
-    wVramCursor = 0x998C;
+    wVramCursor = BG_MAP(12, 12);
     DrawByte(ReadCurrentInstrumentByte(8));
-    wVramCursor = 0x99C6;
+    wVramCursor = BG_MAP(6, 14);
     DrawInstrumentTableMode();
     wVramCursor++;
     DrawInstrumentTableField();
@@ -211,13 +211,13 @@ void DrawKitInstrument(void)
 {
     UBYTE v, flags;
 
-    wVramCursor = 0x98A4;
+    wVramCursor = BG_MAP(4, 5);
     v = ReadCurrentInstrumentByte(2) & 0x3F;
     DrawKitNameCell(v);
-    wVramCursor = 0x98C4;
+    wVramCursor = BG_MAP(4, 6);
     v = ReadCurrentInstrumentByte(9) & 0x3F;
     DrawKitNameCell(v);
-    wVramCursor = 0x9909;
+    wVramCursor = BG_MAP(9, 8);
     v = ReadCurrentInstrumentByte(1);
     switch (v & 0x60) {
     case 0x20:
@@ -239,9 +239,9 @@ void DrawKitInstrument(void)
     hBgDigitPalette = wShadedDigitPalette;
     hBgPalette = wShadedPalette;
     DrawFieldValue(0x0C, ReadCurrentInstrumentByte(7));
-    wVramCursor = 0x99A6;
+    wVramCursor = BG_MAP(6, 13);
     DrawKitLoopField();
-    wVramCursor = 0x99C9;
+    wVramCursor = BG_MAP(9, 14);
     if (0x40 & ReadCurrentInstrumentByte(2))         /* literal first: tested in b */
         DrawString("0.5");
     else
@@ -251,12 +251,12 @@ void DrawKitInstrument(void)
     DrawStringIndexed('X');
     hBgDigitPalette = wShadedDigitPalette;
     hBgPalette = wShadedPalette;
-    wVramCursor = 0x99E8;
+    wVramCursor = BG_MAP(8, 15);
     v = ReadCurrentInstrumentByte(0x0A);
     FarCallArgument(3, FAR_FN(DrawKitDistortionName), v);
-    wVramCursor = 0x994B;
+    wVramCursor = BG_MAP(11, 10);
     DrawHexByte(ReadCurrentInstrumentByte(8));
-    wVramCursor = 0x9968;
+    wVramCursor = BG_MAP(8, 11);
     v = ReadCurrentInstrumentByte(0x0C);
     DrawHexByte(v);
     hBgDigitPalette = 4;
@@ -266,7 +266,7 @@ void DrawKitInstrument(void)
     hBgPalette = wShadedPalette;
     v = ReadCurrentInstrumentByte(0x0D);
     DrawHexByte(v);
-    wVramCursor = 0x9986;
+    wVramCursor = BG_MAP(6, 12);
     v = ReadCurrentInstrumentByte(3);
     if (v) {
         DrawStringTile20();
@@ -284,10 +284,10 @@ void DrawKitInstrument(void)
         DrawHexByte(v);
     } else
         DrawString("ALL");
-    wVramCursor = 0x9927;
+    wVramCursor = BG_MAP(7, 9);
     flags = ReadCurrentInstrumentByte(5);
     FarCallArgument(1, FAR_FN(DrawSpeedModeName), flags);
-    wVramCursor = 0x9A26;
+    wVramCursor = BG_MAP(6, 17);
     DrawInstrumentTableMode();
     wVramCursor++;
     DrawInstrumentTableField();
@@ -297,7 +297,7 @@ void DrawWaveInstrument(void)
 {
     UBYTE v;
 
-    wVramCursor = 0x98A9;
+    wVramCursor = BG_MAP(9, 5);
     v = ReadCurrentInstrumentByte(1);
     switch (v & 0x60) {
     case 0x20:
@@ -320,22 +320,22 @@ void DrawWaveInstrument(void)
     hBgDigitPalette = wShadedDigitPalette;
     hBgPalette = wShadedPalette;
     DrawFieldValue(0x0C, ReadCurrentInstrumentByte(7));
-    wVramCursor = 0x98C7;
+    wVramCursor = BG_MAP(7, 6);
     v = ReadCurrentInstrumentByte(5);
     FarCallArgument(1, FAR_FN(DrawSpeedModeName), v);
-    wVramCursor = 0x98EA;
+    wVramCursor = BG_MAP(10, 7);
     FarCallArgument(1, FAR_FN(DrawOnOffName), v);
-    wVramCursor = 0x992C;
+    wVramCursor = BG_MAP(12, 9);
     DrawByte(ReadCurrentInstrumentByte(8));
     FarCall(3, DrawWaveFinetune);
     FarCall(3, DrawWaveSynthField);
     FarCall(3, DrawWaveLength);
     FarCall(3, DrawWaveLoopPosition);
     FarCall(3, DrawWaveSpeed);
-    wVramCursor = 0x9965;
+    wVramCursor = BG_MAP(5, 11);
     v = ReadCurrentInstrumentByte(9);
     DrawString(PlayModeNames + (v < 5 ? v : 5) * 9);
-    wVramCursor = 0x9A26;
+    wVramCursor = BG_MAP(6, 17);
     DrawInstrumentTableMode();
     wVramCursor++;
     DrawInstrumentTableField();

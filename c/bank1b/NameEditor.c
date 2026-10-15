@@ -115,7 +115,7 @@ void OpenNameEditor(void)
     }
     if (wCurrentScreen == SCREEN_FILE) {
         DrawProjectTextField(4, 4, 0x0C, 9);
-        wVramCursor = 0x98A5;
+        wVramCursor = BG_MAP(5, 5);
         hBgDigitPalette = 4;
         hBgPalette = 1;
         DrawString("SAVE AS:");
@@ -125,7 +125,7 @@ void OpenNameEditor(void)
     hBgDigitPalette = wHighlightDigitPalette;
     hBgPalette = wHighlightPalette;
     if (wCurrentScreen == SCREEN_FILE) {
-        wVramCursor = 0x98C5;
+        wVramCursor = BG_MAP(5, 6);
         DrawString(wNameEditBuffer);
         wNameEditPosition = StringLength(wNameEditBuffer);
         if (wNameEditPosition == 8)
@@ -133,25 +133,25 @@ void OpenNameEditor(void)
         wNameEditColumn = 9;
         wNameEditRow = 3;
     } else {
-        wVramCursor = 0x98CA;
+        wVramCursor = BG_MAP(10, 6);
         for (letter = 0; letter < (wNameEditIsInstrument ? 5 : 3); letter++) {
             v = wNameEditBuffer[letter];
             DrawStringIndexed(v ? v : ' ');
         }
         hBgDigitPalette = 4;
         hBgPalette = 1;
-        wVramCursor = 0x98C5;
+        wVramCursor = BG_MAP(5, 6);
         DrawString("NAME:");
     }
     hBgDigitPalette = 4;
     hBgPalette = 1;
-    wVramCursor = 0x9905;
+    wVramCursor = BG_MAP(5, 8);
     DrawString(AlphanumericCharacters);
-    wVramCursor = 0x9925;
+    wVramCursor = BG_MAP(5, 9);
     DrawString(AlphanumericCharacters[1]);
-    wVramCursor = 0x9945;
+    wVramCursor = BG_MAP(5, 10);
     DrawString(AlphanumericCharacters[2]);
-    wVramCursor = 0x9965;
+    wVramCursor = BG_MAP(5, 11);
     DrawString(AlphanumericCharacters[3]);
     if (wCurrentScreen == SCREEN_FILE) {
         ColorField(5, 6, 0x0A, hGameboyType ? 3 : 2);
@@ -172,15 +172,15 @@ void CommitNameEdit(void)
         FarCall(0x1C, FAR_FN(FileStopSound));
         wFileListActive = 0;
         DrawProjectTextField(2, 6, 0x10, 4);
-        wVramCursor = 0x98E3;
+        wVramCursor = BG_MAP(3, 7);
         hBgDigitPalette = 4;
         hBgPalette = 1;
         DrawString("SAVING...");
         switch (FarCallArgumentByte(0x1C, (UWORD)SaveFile, wFileCursor)) {
         case 0:
-            wVramCursor = 0x98EC;
+            wVramCursor = BG_MAP(12, 7);
             DrawString("FAIL!");
-            wVramCursor = 0x9903;
+            wVramCursor = BG_MAP(3, 8);
             DrawString("OUT OF MEMORY!");
             while (GetNextButtons())
                 ;
@@ -188,12 +188,12 @@ void CommitNameEdit(void)
                 ;
             break;
         case 1:
-            wVramCursor = 0x98EC;
+            wVramCursor = BG_MAP(12, 7);
             DrawString("OK!  ");
             delay(hGameboyType ? 1500 : 750);
             break;
         case 2:
-            wVramCursor = 0x98EC;
+            wVramCursor = BG_MAP(12, 7);
             DrawString("FAIL!");
             while (GetNextButtons())
                 ;

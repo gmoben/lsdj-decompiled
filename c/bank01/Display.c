@@ -177,11 +177,11 @@ void DrawScreenPaletteMap(void)
 
 void ClearBgMapAndAttributes(void)
 {
-    UBYTE *cell = (UBYTE *)0x9800;
+    UBYTE *cell = (UBYTE *)BG_MAP(0, 0);
 
     if (hGameboyType) {
         VBK_REG = 1;
-        while (cell != (UBYTE *)0x9A40) {
+        while (cell != (UBYTE *)BG_MAP(0, 18)) {
             while (STAT_REG & 2)
                 ;
             *cell++ = 0;

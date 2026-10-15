@@ -78,7 +78,7 @@ void DrawSpeechInstrumentScreen(void)
     FarCall(3, FAR_FN(DrawInstrumentScreenFrame));
     hBgDigitPalette = 4;
     hBgPalette = 1;
-    wVramCursor = 0x9840;
+    wVramCursor = BG_MAP(0, 2);
     DrawString("TYPE   SPEECH");
     p = (UBYTE *)0xBDD0;
     row = 4;

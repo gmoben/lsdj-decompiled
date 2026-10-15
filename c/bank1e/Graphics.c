@@ -35,32 +35,32 @@ void DrawScreenColumnLabels(void)
         return;
     hBgDigitPalette = 4;
     hBgPalette = 1;
-    wVramCursor = (UBYTE *)0x9822;
+    wVramCursor = (UBYTE *)BG_MAP(2, 1);
     DrawString(TxtSpaces13);
     wStringSource = IdentityCharacterMap;
     hBgPalette = hGameboyType ? 0x48 : 0xD2;
     switch (wCurrentScreen) {
     case SCREEN_PHRASE:
         if (wPhraseDrawMode) {
-            wVramCursor = (UBYTE *)0x9822;
+            wVramCursor = (UBYTE *)BG_MAP(2, 1);
             DrawStringIndexed(0x10);
             DrawStringIndexed(0x11);
             DrawStringIndexed(0x12);
             DrawStringIndexed(0x10);
             DrawStringIndexed(0x11);
             DrawStringIndexed(0x12);
-            wVramCursor = (UBYTE *)0x9829;
+            wVramCursor = (UBYTE *)BG_MAP(9, 1);
             DrawStringIndexed(0x13);
             DrawStringIndexed(0x14);
             DrawStringIndexed(0x15);
             DrawStringIndexed(0x16);
             DrawStringIndexed(0x17);
         } else {
-            wVramCursor = (UBYTE *)0x9822;
+            wVramCursor = (UBYTE *)BG_MAP(2, 1);
             DrawStringIndexed(0x10);
             DrawStringIndexed(0x11);
             DrawStringIndexed(0x12);
-            wVramCursor = (UBYTE *)0x9826;
+            wVramCursor = (UBYTE *)BG_MAP(6, 1);
             DrawStringIndexed(0x13);
             DrawStringIndexed(0x14);
             DrawStringIndexed(0x15);
@@ -69,28 +69,28 @@ void DrawScreenColumnLabels(void)
         }
         break;
     case SCREEN_CHAIN:
-        wVramCursor = (UBYTE *)0x9822;
+        wVramCursor = (UBYTE *)BG_MAP(2, 1);
         DrawStringIndexed(0x18);
         DrawStringIndexed(0x19);
-        wVramCursor = (UBYTE *)0x9825;
+        wVramCursor = (UBYTE *)BG_MAP(5, 1);
         DrawStringIndexed(0x1A);
         DrawStringIndexed(0x1B);
         break;
     case SCREEN_TABLE:
-        wVramCursor = (UBYTE *)0x9822;
+        wVramCursor = (UBYTE *)BG_MAP(2, 1);
         DrawStringIndexed(0x1C);
         DrawStringIndexed(0x1D);
-        wVramCursor = (UBYTE *)0x9825;
+        wVramCursor = (UBYTE *)BG_MAP(5, 1);
         DrawStringIndexed(0x1A);
         DrawStringIndexed(0x1B);
         DrawStringIndexed(0x16);
         DrawStringIndexed(0x17);
-        wVramCursor = (UBYTE *)0x982B;
+        wVramCursor = (UBYTE *)BG_MAP(11, 1);
         DrawStringIndexed(0x16);
         DrawStringIndexed(0x17);
         break;
     case SCREEN_GROOVE:
-        wVramCursor = (UBYTE *)0x9822;
+        wVramCursor = (UBYTE *)BG_MAP(2, 1);
         DrawStringIndexed(0x1E);
         DrawStringIndexed(0x1F);
         DrawStringIndexed(0x20);
@@ -98,24 +98,24 @@ void DrawScreenColumnLabels(void)
         DrawStringIndexed(0x22);
         break;
     case SCREEN_WORD:
-        wVramCursor = (UBYTE *)0x9822;
+        wVramCursor = (UBYTE *)BG_MAP(2, 1);
         DrawStringIndexed(0x23);
         DrawStringIndexed(0x24);
-        wVramCursor = (UBYTE *)0x9826;
+        wVramCursor = (UBYTE *)BG_MAP(6, 1);
         DrawStringIndexed(0x25);
         DrawStringIndexed(0x26);
         break;
     case SCREEN_SONG:
-        wVramCursor = (UBYTE *)0x9823;
+        wVramCursor = (UBYTE *)BG_MAP(3, 1);
         DrawStringIndexed(0x27);
         DrawStringIndexed(0x28);
-        wVramCursor = (UBYTE *)0x9826;
+        wVramCursor = (UBYTE *)BG_MAP(6, 1);
         DrawStringIndexed(0x27);
         DrawStringIndexed(0x29);
-        wVramCursor = (UBYTE *)0x9829;
+        wVramCursor = (UBYTE *)BG_MAP(9, 1);
         DrawStringIndexed(0x2A);
         DrawStringIndexed(0x2B);
-        wVramCursor = (UBYTE *)0x982C;
+        wVramCursor = (UBYTE *)BG_MAP(12, 1);
         DrawStringIndexed(0x2C);
         DrawStringIndexed(0x2D);
         break;
@@ -130,7 +130,7 @@ void FillVramRegions(void)
 {
     UWORD address;
 
-    for (address = 0x9480; address != (UWORD)0x9800; address += 2)
+    for (address = 0x9480; address != (UWORD)BG_MAP(0, 0); address += 2)
         WriteVramByteSafe(address, 0xFF);
     for (address = 0x8800; address != (UWORD)0x88D0; address += 2)
         WriteVramByteSafe(address, 0xFF);

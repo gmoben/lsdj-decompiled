@@ -117,7 +117,7 @@ void DrawSyncStatusText(char *s)
 {
     hBgDigitPalette = 4;
     hBgPalette = 1;
-    wVramCursor = (UBYTE *)0x99B0;
+    wVramCursor = (UBYTE *)BG_MAP(16, 13);
     DrawString(s);
 }
 

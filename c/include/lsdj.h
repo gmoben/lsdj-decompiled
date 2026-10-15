@@ -67,6 +67,9 @@ typedef int WORD;
 #define J_B       0x20
 #define J_SELECT  0x40
 #define J_START   0x80
+/* a cell of the background map ($9800, 32 cells a row): the screen's x, y */
+#define BG_MAP(x, y) (0x9800 + (y) * 32 + (x))
+
 /* ProcessInput's code for SELECT tapped alone: LEFT and RIGHT are never held
  * together */
 #define J_SELECT_TAP (J_SELECT | J_LEFT | J_RIGHT)

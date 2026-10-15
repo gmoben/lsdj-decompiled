@@ -47,40 +47,40 @@ void DrawCrashScreen(void)
     hBgDigitPalette = 4;
     hBgPalette = 1;
     LCDC_REG &= ~2;                 /* sprites off */
-    wVramCursor = (UBYTE *)0x9800;
+    wVramCursor = (UBYTE *)BG_MAP(0, 0);
     DrawString("DONT PANIC!");
-    wVramCursor = (UBYTE *)0x9840;
+    wVramCursor = (UBYTE *)BG_MAP(0, 2);
     DrawString("PLEASE MAIL THIS");
-    wVramCursor = (UBYTE *)0x9860;
+    wVramCursor = (UBYTE *)BG_MAP(0, 3);
     DrawString("DATA TO INFO AT");
-    wVramCursor = (UBYTE *)0x9880;
+    wVramCursor = (UBYTE *)BG_MAP(0, 4);
     DrawString("LITTLESOUNDDJ.COM");
-    wVramCursor = (UBYTE *)0x98C1;
+    wVramCursor = (UBYTE *)BG_MAP(1, 6);
     DrawString("ROM:");
     DrawHexByte(hCurrentBank);
-    wVramCursor = (UBYTE *)0x9907;
+    wVramCursor = (UBYTE *)BG_MAP(7, 8);
     DrawString("STK:");
     DrawHexByte(wCrashSP >> 8);
     DrawHexByte(wCrashSP);
-    wVramCursor = (UBYTE *)0x9967;
+    wVramCursor = (UBYTE *)BG_MAP(7, 11);
     DrawString("PLY:");
     DrawByte(wPlayMode);
-    wVramCursor = (UBYTE *)0x9987;
+    wVramCursor = (UBYTE *)BG_MAP(7, 12);
     DrawString("CVW:");
     DrawByte(wCurrentScreen);
     if (hGameboyType) {
-        wVramCursor = (UBYTE *)0x99A7;
+        wVramCursor = (UBYTE *)BG_MAP(7, 13);
         DrawString("CGB");
     }
     if (wBootAgbId) {
-        wVramCursor = (UBYTE *)0x99C7;
+        wVramCursor = (UBYTE *)BG_MAP(7, 14);
         DrawString("GBA");
     }
-    wVramCursor = (UBYTE *)0x9A07;
+    wVramCursor = (UBYTE *)BG_MAP(7, 16);
     DrawString("SYN:");
     DrawByte(wSyncMode);
     if (wDebugTrapped) {
-        wVramCursor = (UBYTE *)0x9A27;
+        wVramCursor = (UBYTE *)BG_MAP(7, 17);
         DrawString("AST");
     }
     for (entry = 0; entry < 10; entry++) {
@@ -88,7 +88,7 @@ void DrawCrashScreen(void)
         DrawHexByte(wCrashStack[(entry << 1) + 1]);
         DrawHexByte(wCrashStack[entry << 1]);
     }
-    wVramCursor = (UBYTE *)0x98C9;
+    wVramCursor = (UBYTE *)BG_MAP(9, 6);
     DrawStringIndexed(TxtVersion[0]);
     DrawStringIndexed(TxtVersion[1]);
     DrawStringIndexed(TxtVersion[2]);

@@ -99,7 +99,7 @@ void DrawChainPosition(void)
 {
     UBYTE r;
 
-    wVramCursor = (UBYTE *)0x9851;
+    wVramCursor = (UBYTE *)BG_MAP(17, 2);
     hBgDigitPalette = wShadedDigitPalette;
     hBgPalette = wShadedPalette;
     DrawString("CP");
@@ -200,7 +200,7 @@ void DrawChainScreen(void)
     LoadChainRow();
     hBgDigitPalette = 4;
     hBgPalette = 1;
-    wVramCursor = (UBYTE *)0x9841;
+    wVramCursor = (UBYTE *)BG_MAP(1, 2);
     for (row = 0;; row++) {
         v = wSongReadBuffer[row];
         if (v == 0xFF) {
@@ -213,7 +213,7 @@ void DrawChainScreen(void)
             break;
         wVramCursor += 0x1D;
     }
-    wVramCursor = (UBYTE *)0x9845;
+    wVramCursor = (UBYTE *)BG_MAP(5, 2);
     for (row = 0;; row++) {
         DrawHexByte(wUsedTableMap[row]);
         if (row == 15)

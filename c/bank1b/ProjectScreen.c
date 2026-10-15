@@ -103,7 +103,7 @@ void RedrawProjectTempo(void)
 {
     while (wRedrawPending < 6)
         ;
-    wVramCursor = (UBYTE *)0x9846;
+    wVramCursor = (UBYTE *)BG_MAP(6, 2);
     DrawProjectTempo();
 }
 
@@ -165,7 +165,7 @@ void DrawPrelistenField(void)
 
 void RedrawProjectPrelisten(void)
 {
-    wVramCursor = (UBYTE *)0x992A;
+    wVramCursor = (UBYTE *)BG_MAP(10, 9);
     hBgDigitPalette = wShadedDigitPalette;
     hBgPalette = wShadedPalette;
     DrawPrelistenField();
@@ -173,7 +173,7 @@ void RedrawProjectPrelisten(void)
 
 void DrawSyncSubSetting(void)
 {
-    wVramCursor = 0x9A00;
+    wVramCursor = BG_MAP(0, 16);
     hBgDigitPalette = 4;
     hBgPalette = 1;
     if (wPlayMode) {
@@ -196,36 +196,36 @@ void DrawProjectScreen(void)
 {
     wSramHasFileBanks = FarCallByte(0x1C, FAR_FN(SramHasFileBanks));
     FarCall(1, FAR_FN(DrawTopBar));
-    wVramCursor = 0x9846;
+    wVramCursor = BG_MAP(6, 2);
     hBgDigitPalette = wShadedDigitPalette;
     hBgPalette = wShadedPalette;
     DrawProjectTempo();
-    wVramCursor = 0x986A;
+    wVramCursor = BG_MAP(10, 3);
     DrawHexByte(wSongTranspose);
-    wVramCursor = 0x98E5;
+    wVramCursor = BG_MAP(5, 7);
     DrawFontColorFields();
-    wVramCursor = 0x98C6;
+    wVramCursor = BG_MAP(6, 6);
     if (!wCloneMode)
         DrawString("DEEP");
     else
         DrawString("SLIM");
-    wVramCursor = 0x9911;
+    wVramCursor = BG_MAP(17, 8);
     DrawKeyRepeatField();
-    wVramCursor = 0x992A;
+    wVramCursor = BG_MAP(10, 9);
     DrawPrelistenField();
     hBgDigitPalette = 4;
     hBgPalette = 1;
-    wVramCursor = 0x99C0;
+    wVramCursor = BG_MAP(0, 14);
     if (wSramHasFileBanks)
         DrawString("LOAD/SAVE SONG");
     else
         DrawString("RESET MEMORY");
-    wVramCursor = 0x9885;
+    wVramCursor = BG_MAP(5, 4);
     hBgDigitPalette = wShadedDigitPalette;
     hBgPalette = wShadedPalette;
     DrawSyncField();
     DrawSyncSubSetting();
-    wVramCursor = 0x9A26;
+    wVramCursor = BG_MAP(6, 17);
     printf2("%d:%d:", ReadSongByte(1, 0xBFB6), ReadSongByte(1, 0xBFB7));
     DrawDecimalField(ReadSongByte(1, 0xBFB8));
     DrawProjectCursor();
@@ -488,7 +488,7 @@ UBYTE ProjectScreenInput(void)
             }
             hBgDigitPalette = wHighlightDigitPalette;
             hBgPalette = wHighlightPalette;
-            wVramCursor = (UBYTE *)0x986A;
+            wVramCursor = (UBYTE *)BG_MAP(10, 3);
             wSongTransposeDisplay += 12;
             DrawHexByte(wSongTransposeDisplay);
             return 1;
@@ -522,7 +522,7 @@ UBYTE ProjectScreenInput(void)
             }
             hBgDigitPalette = wHighlightDigitPalette;
             hBgPalette = wHighlightPalette;
-            wVramCursor = (UBYTE *)0x986A;
+            wVramCursor = (UBYTE *)BG_MAP(10, 3);
             wSongTransposeDisplay -= 12;
             DrawHexByte(wSongTransposeDisplay);
             return 1;
@@ -651,11 +651,11 @@ UBYTE ProjectScreenInput(void)
                 DrawProjectTextField(1, 6, 0x12, 5);
                 wProjectMenuActive = 1;
                 wProjectMenuItem = 1;
-                wVramCursor = (UBYTE *)0x98E2;
+                wVramCursor = (UBYTE *)BG_MAP(2, 7);
                 DrawString("RESET CARTRIDGE?");
-                wVramCursor = (UBYTE *)0x9925;
+                wVramCursor = (UBYTE *)BG_MAP(5, 9);
                 DrawString("YES");
-                wVramCursor = (UBYTE *)0x992C;
+                wVramCursor = (UBYTE *)BG_MAP(12, 9);
                 DrawString("NO");
                 ColorField(12, 9, 2, hGameboyType ? 3 : 2);
                 return 1;
@@ -677,7 +677,7 @@ UBYTE ProjectScreenInput(void)
                 WriteSongByte(4, 0xA140, 0xFF);
                 FarCall(0x1C, FAR_FN(LoadFileListState));
                 DrawProjectTextField(2, 7, 0x10, 3);
-                wVramCursor = (UBYTE *)0x9903;
+                wVramCursor = (UBYTE *)BG_MAP(3, 8);
                 DrawString("RESET MEMORY!");
                 delay(hGameboyType ? 2000 : 1000);
                 FarCallArgument(1, FAR_FN(LoadProjectSettings), 0);

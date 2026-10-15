@@ -239,7 +239,8 @@ comment began with a quoted string had been carved as data, since a leading
   constant). A `#define` puts back the very tokens it names, so a name is
   only safe where it expands to the literal's spelling or to a value SDCC
   types the same: every site using these is verified by `make match`, the
-  screens 11-14 once spelled in hex included.
+  screens 11-14 once spelled in hex included. A background-map cell is
+  `BG_MAP(x, y)` (`0x9800 + y * 32 + x`, folded to the address it was).
 - **Sign extension follows the destination type**: `genCast` extends by
   the type cast *to*, so a `char` stored into an `int` element is
   `rla; sbc a,a` and into a `UWORD` is `ld b,#0` (`wSynthShapeBuffer` is

@@ -195,7 +195,7 @@ void DrawSongRowNumber(void)
             ColorField(2, y, 12, IsBookmarked(row));
         }
     }
-    wVramCursor = (UBYTE *)0x9840;
+    wVramCursor = (UBYTE *)BG_MAP(0, 2);
     row = wSongScroll;
     y = 16;
     while (y--) {
@@ -218,7 +218,7 @@ void RedrawSongRow(void)
     DrawSongRowNumber();
     hBgDigitPalette = 4;
     hBgPalette = 1;
-    wVramCursor = (UBYTE *)0x9842;
+    wVramCursor = (UBYTE *)BG_MAP(2, 2);
     DrawSongColumnValues();
     DrawSongCursor();
     wPartialRedrawDone = 1;
@@ -386,7 +386,7 @@ void ScrollSongUp(void)
     ScrollSongVramUp();
     if (hGameboyType)
         CopyVramRowUp();
-    wVramCursor = (UBYTE *)0x9840;
+    wVramCursor = (UBYTE *)BG_MAP(0, 2);
     SetSongRowPalettes(2);
     wPartialRedrawDone = 1;
 }
@@ -396,7 +396,7 @@ void ScrollSongDown(void)
     ScrollSongVramDown();
     if (hGameboyType)
         CopyVramRowDown();
-    wVramCursor = (UBYTE *)0x9A20;
+    wVramCursor = (UBYTE *)BG_MAP(0, 17);
     SetSongRowPalettes(0x11);
     wPartialRedrawDone = 1;
 }

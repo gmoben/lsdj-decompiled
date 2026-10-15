@@ -74,7 +74,7 @@ void FileClearChannelState(void);
 
 UBYTE DrawVerifyPanel(UBYTE f)
 {
-    wVramCursor = 0x98E3;
+    wVramCursor = BG_MAP(3, 7);
     DrawString("VERIFY...    ");
     wBlockSinkPointer = VerifyBlockAgainstSram;
     return FileLoadSlotInfo(f, 1);
@@ -220,7 +220,7 @@ void LoadFile(void)
     wFileFirstCharacter = n;
     if (n) {
         DrawFileTextField(1, 6, 0x11, 3);
-        wVramCursor = 0x98E2;
+        wVramCursor = BG_MAP(2, 7);
         hBgDigitPalette = 4;
         hBgPalette = 1;
         DrawString("LOADING...1/");
@@ -230,7 +230,7 @@ void LoadFile(void)
         wFileSramProperties[2] = ReadSongByte(1, 0xBFB8);
         wFileSramProperties[3] = ReadSongByte(1, 0xBFB9);
         if (!FileLoadSlotInfo(wFileCursor, 0)) {
-            wVramCursor = 0x98EC;
+            wVramCursor = BG_MAP(12, 7);
             DrawString("FAIL!");
             while (GetNextButtons())
                 ;
@@ -347,7 +347,7 @@ void DrawFileList(void)
     CountFileBlocks();
     hBgDigitPalette = 4;
     hBgPalette = 1;
-    wVramCursor = 0x9880;
+    wVramCursor = BG_MAP(0, 4);
     while (row < 12 && slot < 0x20) {
         blocks = wFileBlockCounts[slot];
         if (slot == end)
@@ -409,18 +409,18 @@ void DrawFileScreen(void)
         DrawStringTile20();
     hBgDigitPalette = wShadedDigitPalette;
     hBgPalette = wShadedPalette;
-    wVramCursor = 0x9840;
+    wVramCursor = BG_MAP(0, 2);
     DrawString("LOAD");
-    wVramCursor = 0x9845;
+    wVramCursor = BG_MAP(5, 2);
     DrawString("SAVE");
-    wVramCursor = 0x984A;
+    wVramCursor = BG_MAP(10, 2);
     DrawString("ERASE");
     DrawFileList();
     if (wFileListActive)
         FileDrawFieldChecked(hGameboyType ? 3 : 2);
     else
         FileDrawField(hGameboyType ? 3 : 2);
-    wVramCursor = 0x9A20;
+    wVramCursor = BG_MAP(0, 17);
     hBgDigitPalette = 4;
     hBgPalette = 1;
     printf("BLOCKS USED: %x/", (UWORD)FileListSlots());
@@ -480,16 +480,16 @@ UBYTE DrawBlocksUsed(void)
     DrawFileTextField(1, 5, 0x12, 6);
     wFilePromptActive = 1;
     wFilePromptNo = 1;
-    wVramCursor = 0x98C2;
+    wVramCursor = BG_MAP(2, 6);
     if (n < 0x78)
         printf("LOSE %u MINUTES", n);
     else
         printf("LOSE %u HOURS", n / 60);
-    wVramCursor = 0x98E2;
+    wVramCursor = BG_MAP(2, 7);
     DrawString("OF UNSAVED WORK?");
-    wVramCursor = 0x9926;
+    wVramCursor = BG_MAP(6, 9);
     DrawString("YES");
-    wVramCursor = 0x992B;
+    wVramCursor = BG_MAP(11, 9);
     hBgDigitPalette = wHighlightDigitPalette;
     hBgPalette = wHighlightPalette;
     DrawString("NO");
@@ -527,7 +527,7 @@ UBYTE FileScreenInput(void)
             }
             EraseFile(wFileCursor);
             DrawFileTextField(2, 7, 0x0F, 3);
-            wVramCursor = 0x9903;
+            wVramCursor = BG_MAP(3, 8);
             DrawString("FILE ERASED!");
             delay(hGameboyType ? 2000 : 1000);
             FileDrawFieldChecked(0);
@@ -568,11 +568,11 @@ UBYTE FileScreenInput(void)
                     DrawFileTextField(5, 6, 9, 5);
                     wFilePromptActive = 1;
                     wFilePromptNo = 1;
-                    wVramCursor = 0x98E6;
+                    wVramCursor = BG_MAP(6, 7);
                     DrawString("ERASE?");
-                    wVramCursor = 0x9926;
+                    wVramCursor = BG_MAP(6, 9);
                     DrawString("YES");
-                    wVramCursor = 0x992B;
+                    wVramCursor = BG_MAP(11, 9);
                     DrawString("NO");
                     ColorField(0x0B, 9, 2, hGameboyType ? 3 : 2);
                     return 1;

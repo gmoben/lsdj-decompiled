@@ -55,7 +55,7 @@ void DrawTopBar(void)
     UBYTE i;
     UBYTE isFile;
 
-    wVramCursorW = 0x9800;
+    wVramCursorW = BG_MAP(0, 0);
     hBgDigitPalette = 4;
     hBgPalette = 1;
     if (wMessageStringPointer)
@@ -66,7 +66,7 @@ void DrawTopBar(void)
         set_bkg_tiles(0, 0, 20, 1, TxtBlankString2);
         VBK_REG = 0;
     }
-    wVramCursorW = 0x9800;
+    wVramCursorW = BG_MAP(0, 0);
     switch (wCurrentScreen) {
     default:
         if (!isFile)
@@ -125,7 +125,7 @@ void DrawTopBar(void)
         DrawHexByte(wGroove);
         break;
     }
-    while (wVramCursorW < 0x9811)
+    while (wVramCursorW < BG_MAP(17, 0))
         DrawStringIndexed(' ');
     if (wCurrentScreen != SCREEN_PROJECT && !isFile)
         DrawChannelHeader();
@@ -180,7 +180,7 @@ void ClearMessageBar(void)
     UBYTE letter = 0;
 
     wMessageStringPointer = 0;
-    wVramCursor = (UBYTE *)0x998F;
+    wVramCursor = (UBYTE *)BG_MAP(15, 12);
     hBgDigitPalette = 4;
     hBgPalette = 1;
     do {
@@ -200,7 +200,7 @@ void UpdateMessage(void)
         if (!wMessageTimer) {
             hBgDigitPalette = wHighlightDigitPalette;
             hBgPalette = wHighlightPalette;
-            wVramCursor = (UBYTE *)0x9800;
+            wVramCursor = (UBYTE *)BG_MAP(0, 0);
             for (letter = 0; letter < 20; letter++)
                 DrawStringIndexed(wMessageStringPointer[letter]);
             wMessageTimer = 10;
@@ -219,7 +219,7 @@ void UpdateMessage(void)
             if (wMessagePanelShown) {
                 hBgDigitPalette = 4;
                 hBgPalette = 1;
-                wVramCursor = (UBYTE *)0x998F;
+                wVramCursor = (UBYTE *)BG_MAP(15, 12);
                 DrawString("     ");
             } else {
                 DrawTopBar();

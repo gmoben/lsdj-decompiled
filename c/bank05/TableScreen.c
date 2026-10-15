@@ -89,7 +89,7 @@ void DrawMapTopRow(void)
     x = wMapColumn + 15;
     SetVramCursor(x, 17);
     DrawStringIndexed('G');
-    wVramCursor = (UBYTE *)0x9A0F;
+    wVramCursor = (UBYTE *)BG_MAP(15, 16);
     DrawStringIndexed(wLiveMode ? 'L' : 'S');
     DrawString("CPI");
     DrawStringIndexed(wInstrument == 0x40 ? 'W' : 'T');
@@ -371,14 +371,14 @@ void DrawTableScreen(void)
     ReadTableStep();
     hBgDigitPalette = 4;
     hBgPalette = 1;
-    wVramCursor = (UBYTE *)0x9842;
+    wVramCursor = (UBYTE *)BG_MAP(2, 2);
     for (step = 0; step < 16; step++) {
         DrawTableEnvelope(wSongReadBuffer[step]);
         wVramCursor++;
         DrawHexByte(wUsedTableMap[step]);
         wVramCursor += 0x1B;
     }
-    wVramCursor = (UBYTE *)0x9847;
+    wVramCursor = (UBYTE *)BG_MAP(7, 2);
     for (step = 0; step < 16; step++) {
         a2 = wRowBufferColumn4[step];
         a1 = wRowBufferColumn2[step];

@@ -636,7 +636,7 @@ void FileUpgradeSong(void)
     version = ReadSongByte(3, 0xBFFF);
     if (!(version < 0x16))
         return;
-    wVramCursor = 0x98E2;
+    wVramCursor = BG_MAP(2, 7);
     DrawString("UPGRADING...   ");
     while (version < 0x16) {
         switch (version) {
