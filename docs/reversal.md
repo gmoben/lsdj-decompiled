@@ -15,7 +15,8 @@ all code disassembled with meaningful labels, all data structured.
 | Referenced data (`tools/data_refs.py`) | every operand-referenced ROM data address labeled |
 | C vs hand-written asm (`tools/match/code_kind.py`) | 141.7 KB of C, all of it matched; 225 hand-written asm functions (15.4 KB: bank 0's interrupt/sound-tick/tile-loader code, bank `$02`'s sequencer core) and 31 GBDK/SDCC library routines |
 | Matching C ([`toolchain.md`](toolchain.md)) | 678 functions in 13 banks are C in `c/`; the ROM build assembles them from the compiler's output translated to RGBDS source (`build/c/*/*.lines`; a ROM slice without the compiler) |
-| Comments | the carved asm prints every label's `.sym` comment above it, with each hand-written routine's register contract (`tools/regflow.py`) and each matched function's prototype |
+| Comments | the carved asm prints every label's `.sym` comment above it, with each hand-written routine's register contract (`tools/regflow.py`) and each matched function's prototype; every matched C function opens with a header comment |
+| What the tests' input runs (`tools/tour_coverage.py`) | 84% of the routines (802 of 952 as a CGB) by the shift and behaviour tests' tour and seeded input; the rest is the link cable, the PS/2 keyboard, the crash and cartridge-test screens, old songs' upgrades and the DMG's own drawing |
 
 Open — readability, none affect the bytes:
 

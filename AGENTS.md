@@ -133,6 +133,7 @@ sequencer core, 15.4 KB) and the GBDK/SDCC library routines stay asm. See
 | `tools/show_func.py`, `rom_strings.py`, `annotate_ram.py`, `statevar.py`, `bankmap.py` | Inspection helpers: dump a function by name or address (`--bare`; a matched one is disassembled from the ROM), list the strings at an address, annotate a RAM dump, … |
 | `tools/emu/` | SameBoy-based live-verification harness (see `tools/emu/README.md`) |
 | `tools/shift_test.py` | Shift test for a movable build: pad a bank (`--bank 1f`, `--all`, `--at`, `--by`), run it next to the reference in PyBoy on the same input, report the first divergence, the `rst $38` site and call chain; `--bisect`. Needs `python3 -m venv .venv && .venv/bin/pip install pyboy`; run with `.venv/bin/python` |
+| `tools/tour_coverage.py` | Which routines the shift and behaviour tests' input reaches: plays the tour (`shift_test.TOUR`, one function a section) and seeded random input on the original ROM with a PyBoy hook at every routine's entry, and reports them per bank (`--missed` lists the rest; `--dmg`, `--seeds`, `--tour-only`). Extend the tour where it reports a feature unreached |
 | `tools/behaviour_test.py` | Behaviour test for a build that no longer matches (`make behaviour`): runs it next to the original ROM in PyBoy over the shift test's tour and seeded input (`--build`, `--seeds 1-5`, `--dmg`, `--both`), comparing the screen, the sound (the readable registers, the wave RAM, and the periods PU1/PU2/WAV play) and SRAM; reports the first lasting difference and any `rst $38` |
 | `tools/toolchain/` | The period GBDK 2.95-3 / SDCC 2.2.1: fetch and run under Wine, or build natively (`build_sdcc221.sh`; `--debug` adds the instrumented copy `trace_alloc.py` uses) |
 | `tools/match/` | Track 2: `match_function.py --target` (compile C, link at the ROM address, diff; `--diff` aligns both disassemblies), `verify_all.py` (`make match`; cached batch check, also of files outside `c/`), `peep.py` (our peephole matcher), `code_kind.py` (which functions are matched, C, hand-written asm or library; share of C bytes matched), `shapes.py` (unmatched C functions by size, kind and parked state, or by shape), `rom_grep.py` (count a byte pattern across the code banks by owner: the evidence for a rule), `trace_alloc.py` (the allocator's view of one function: live ranges, homes, extended ranges, hoisting), `to_rgbds.py` (matched C as RGBDS source; `--check` assembles all of it byte-identically: the relocatable build's first step), `merge_c.py` (move matching functions into a module), `split_c.py` (split a module into modules named for what they hold: each takes its functions in ROM order and only the declarations they use), `update_counts.py` (refresh the function/rule counts in the docs and the parked table from `c/parked.txt`) |
@@ -683,6 +684,12 @@ Always, before committing:
       bytes run the same as the original over a tour + 6,000 random frames
 - [x] Wider shift coverage: DMG, odd sizes, all banks at once, more seeds,
       the file screen's load/save (a tour recorded on the reference)
+- [x] A tour that reaches 84% of the routines (`tools/tour_coverage.py`
+      measures it): every project field and sync mode, commands A to Z,
+      every instrument type's fields, the song screen's chains, marks,
+      selections and live mode, speech, the file screen's erase, the
+      cleans. It found DrumPeriodTable, an address the carve still held as
+      numbers, and that the wave RAM reads back the byte playing
 - [x] Bank 0's page-aligned tables (`$0200`-`$0390`) in fixed sections:
       VibratoShapes at `$0200`, VibratoOffsetJumps at `$0300`, the code after
       them at `$0391` (carve_clean's `PINNED_SECTIONS`); code grown into them

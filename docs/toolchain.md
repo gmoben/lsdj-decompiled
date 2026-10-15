@@ -822,18 +822,46 @@ The checklist:
       in every bank at once (`--together`) — taken back from each bank's
       trailing fill — and runs it next to the unshifted build on the same
       SRAM (`.emu/lsdj_song.sav` if present) and input: a tour recorded on
-      the reference (it finds its way round the screen map by search over
-      save states: play the song; every screen with cursor moves, an edit and
-      a play; the four instrument types; the file screen's load, play and
-      save through the name editor) then seeded random input. Every frame it
-      compares the screen and the sound: the sound registers a program can
-      read back (volumes, envelopes, duty, sweep, the noise channel, panning,
-      the on/off bits), the wave RAM, and whenever the frame's audio differs
-      the period each of PU1, PU2 and WAV plays. Those 11 bits are write-only
-      (they read back `$FF`/`$BF`), so they come from PyBoy's save state: the
-      APU's fields come early in it, a sentinel written to each register
-      finds them (a PyBoy that moves them fails there), and the save stops
-      once it has them. SRAM is compared at the end. A shifted build is not
+      the reference, then seeded random input. The tour is `TOUR`, a
+      function a section, finding its way round the screen map by search
+      over save states: play the song; every screen with cursor moves, an
+      edit and a play; the four instrument types; the file screen's load,
+      play and save through the name editor; every project field (the
+      tempo by A+arrows and by tapping A, each sync mode and its parameter,
+      clone, look, the key delay and repeat, prelisten) and the help
+      screen's entries; a phrase on PU1, WAV and NOI with a command on every
+      step, A to Z between them, played; every field of each instrument
+      type, an edit each way and a double A, played on the wave channel;
+      the name editor; the song screen's chains (new, clone, cut, paste),
+      marks, paging, a block and a column copied, mute, solo, pan and live
+      mode, and a chain that ends, so the song moves on a row; the chain,
+      table, groove, synth and wave screens' edits, cuts, pastes and clones,
+      a synth whose wave was drawn by hand and its overwrite prompt; speech
+      and the word screen; the song under the LSDJ, MIDI and AN.OUT sync
+      modes; the file screen's erase; CLEAN SONG DATA and CLEAN INSTR DATA.
+      That is 44,600 frames and 84% of the routines (802 of 952 as a CGB,
+      `tools/tour_coverage.py`, which lists the rest: the link cable, the
+      keyboard, the crash and cartridge-test screens, old songs' upgrades).
+      Every frame it compares the screen and the sound: the sound registers
+      a program can read back (volumes, envelopes, duty, sweep, the noise
+      channel, panning, the on/off bits), the wave RAM while the wave
+      channel is off, and whenever the frame's audio differs the period each
+      of PU1, PU2 and WAV plays and the wave RAM it plays. The periods' 11
+      bits are write-only (they read back `$FF`/`$BF`), and the wave RAM
+      reads back the byte playing while the channel plays (on a CGB; `$FF`
+      on a DMG), at a position a few cycles' timing moves, so both come
+      from PyBoy's save state: the APU's fields come early in it, sentinels
+      written to each register and to the wave RAM find them (a PyBoy that
+      moves them fails there), and the save stops once it has them. Two
+      things LSDj times by DIV, the CPU's cycle count, are held out, since
+      code that runs a few cycles longer moves them without being another
+      program: the random numbers B and Z draw, seeded from DIV as a song
+      starts (`SoundTick`: `initrand(DIV_REG)`; every run gets one seed, by
+      a hook at `initrand`), and the wave channel's pitch while it
+      modulates (`SoundModulateWavFrequency` adds the time since its last
+      step to the vibrato's phase and waits on DIV to restart the wave):
+      then its period, its wave RAM and the bits its restart toggles are
+      not compared. SRAM is compared at the end. A shifted build is not
       cycle-identical — a pointer into moved data crosses a page at another
       step (`inc [hl] / jr nz / inc hl / inc [hl]`) — so a difference counts
       once it lasts 30 frames, and values written a few cycles apart sound
@@ -845,10 +873,15 @@ The checklist:
       the stale target. Bank 0 shifts at `$0391`, past the page-aligned
       tables at `$0200`-`$0390` that SoundCalculateVibratoOffset reaches with
       `ld d, $02` / `ld h, $03`, sections pinned at `$0200` and `$0300`.
-      Passing: every bank alone (16 bytes) and all at once (1, 3, 5, 7, 9, 11,
-      16, 32 bytes), CGB and DMG, seeds 1-15 (the DMG 1-5). Odd sizes matter: a stale
-      target can land on harmless code at one size and on a `ret` at
-      another. It proves what the input reaches, no more.
+      Passing, with the long tour: every bank alone (16 bytes) as a CGB and
+      as a DMG, and all at once (1, 3, 16, 32 bytes; 16 as a DMG; 7 bytes
+      with seed 2, 16 with seed 3 as a DMG); with the first, shorter tour
+      also all at once at 5, 9 and 11 bytes and seeds 1-15. Odd sizes
+      matter: a stale target can land on harmless code at one size and on a
+      `ret` at another. It proves what the input reaches, no more: the long
+      tour found a reference the short one never ran (DrumPeriodTable, its
+      address stored a byte at a time), and that the comparison itself has
+      to leave LSDj's DIV timing out (above).
 - [x] Behaviour tests for builds that no longer match the ROM, what a fork
       runs instead of `make compare`: `make behaviour`
       (`tools/behaviour_test.py`) runs the build next to LSDj 9.4.0 itself in

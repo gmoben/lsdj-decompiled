@@ -213,6 +213,7 @@ lsdj-decompiled/
 │   ├── rom_strings.py    # list the NUL-terminated strings at an address
 │   ├── shift_test.py     # a bank's contents moved, run next to the build in PyBoy
 │   ├── behaviour_test.py # any build run next to the original ROM (make behaviour)
+│   ├── tour_coverage.py  # the routines the tests' input reaches, and the ones it misses
 │   ├── callgraph.py, farcall_targets.py, find_orphans.py, label_gaps.py,
 │   │   data_refs.py      # audits that drove symbol coverage to 100%
 │   ├── bankmap.py, annotate_ram.py, statevar.py, name_locals.py,

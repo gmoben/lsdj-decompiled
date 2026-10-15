@@ -5,17 +5,21 @@
 no longer matches -- functionally equivalent C, a moved routine, an edited
 asset that should not change behaviour, a fork's refactor -- needs another
 gate. This runs the build next to the original ROM in PyBoy, on the same
-SRAM and the same input -- a tour of every screen, recorded on the original
-(play the working song, every screen of the map, the file screen and a save
-through the name editor), then seeded random input -- and compares, every
-frame, the screen and the sound: the sound registers a program can read
-back, the wave RAM, and whenever the frame's audio differs the periods PU1,
-PU2 and WAV play (write-only on the hardware; read from PyBoy's saved APU
-state). SRAM, the song data the input edited, is compared at the end. That
-is the lockstep of tools/shift_test.py; a difference counts once it lasts
-30 frames. A run that parts from the original reports the frame and what
-differed and, if the build crashed, where (`rst $38`: LSDj's crash vector,
-its asserts and DebugTrap).
+SRAM and the same input -- the shift test's tour, recorded on the original
+(shift_test.TOUR: every screen and field, commands A to Z, every instrument
+type, speech, the file screen; 84% of the routines, tools/tour_coverage.py),
+then seeded random input -- and compares, every frame, the screen and the
+sound: the sound registers a program can read back, the wave RAM, and
+whenever the frame's audio differs the periods PU1, PU2 and WAV play
+(write-only on the hardware; read from PyBoy's saved APU state). SRAM, the
+song data the input edited, is compared at the end. That is the lockstep of
+tools/shift_test.py; a difference counts once it lasts 30 frames. Both runs
+get one random seed (LSDj seeds B and Z from DIV, the cycle count, as a song
+starts), and while the wave channel's pitch modulates its timing is not
+compared (LSDj times that by DIV too): a build whose code runs a few cycles
+longer is not a different program. A run that parts from the original
+reports the frame and what differed and, if the build crashed, where
+(`rst $38`: LSDj's crash vector, its asserts and DebugTrap).
 
 It proves what the input reaches, no more: more seeds and both models reach
 more.
