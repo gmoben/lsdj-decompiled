@@ -21,7 +21,7 @@
   "bank": "1F",
   "addr": "4A65",
   "len": 105,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "AllocNextFreePhrase": {
   "bank": "01",
@@ -39,13 +39,13 @@
   "bank": "1F",
   "addr": "5FEC",
   "len": 136,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "AnyTableUsesCmdF": {
   "bank": "1F",
   "addr": "6074",
   "len": 216,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "ApplyColorSet": {
   "bank": "01",
@@ -63,7 +63,7 @@
   "bank": "1F",
   "addr": "64FF",
   "len": 343,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/PhraseScreen.c"
  },
  "ChainDrawLeadStatus": {
   "bank": "06",
@@ -159,19 +159,19 @@
   "bank": "1F",
   "addr": "492A",
   "len": 216,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "CleanInstrData": {
   "bank": "1F",
   "addr": "63B1",
   "len": 156,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "CleanSongData": {
   "bank": "1F",
   "addr": "62DD",
   "len": 160,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "ClearBookmarks": {
   "bank": "07",
@@ -213,19 +213,19 @@
   "bank": "1F",
   "addr": "51B9",
   "len": 178,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "ClearTableRow": {
   "bank": "1F",
   "addr": "5183",
   "len": 54,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "ClearUnusedTables": {
   "bank": "1F",
   "addr": "526B",
   "len": 72,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "CloneInstr": {
   "bank": "04",
@@ -345,25 +345,25 @@
   "bank": "1F",
   "addr": "5FC2",
   "len": 42,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "CountUsedChains": {
   "bank": "1F",
   "addr": "5DF3",
   "len": 42,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "CountUsedPhrases": {
   "bank": "1F",
   "addr": "5DC9",
   "len": 42,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "CountUsedTables": {
   "bank": "1F",
   "addr": "50CC",
   "len": 42,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "CrashHandler": {
   "bank": "01",
@@ -387,7 +387,7 @@
   "bank": "1F",
   "addr": "6698",
   "len": 1178,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/PhraseScreen.c"
  },
  "CutCopySongSelection": {
   "bank": "07",
@@ -411,19 +411,19 @@
   "bank": "1F",
   "addr": "5C78",
   "len": 157,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "DedupPhrases": {
   "bank": "1F",
   "addr": "5BDE",
   "len": 154,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "DedupTables": {
   "bank": "1F",
   "addr": "5D18",
   "len": 174,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "DispatchScreenInput": {
   "bank": "00",
@@ -441,7 +441,7 @@
   "bank": "1F",
   "addr": "7072",
   "len": 37,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/DrawChanStatus.c"
  },
  "DrawAllophoneName": {
   "bank": "06",
@@ -609,7 +609,7 @@
   "bank": "1F",
   "addr": "418A",
   "len": 172,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/InstrFields.c"
  },
  "DrawInstrFieldHelp": {
   "bank": "05",
@@ -633,13 +633,13 @@
   "bank": "1F",
   "addr": "409C",
   "len": 43,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/InstrFields.c"
  },
  "DrawInstrTableMode": {
   "bank": "1F",
   "addr": "4000",
   "len": 141,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/InstrFields.c"
  },
  "DrawKbdCalibScreen": {
   "bank": "07",
@@ -687,25 +687,25 @@
   "bank": "1F",
   "addr": "44DD",
   "len": 609,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/InstrFields.c"
  },
  "DrawKitLoopField": {
   "bank": "1F",
   "addr": "411F",
   "len": 56,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/InstrFields.c"
  },
  "DrawKitLoopMode": {
   "bank": "1F",
   "addr": "40CA",
   "len": 73,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/InstrFields.c"
  },
  "DrawKitNameCell": {
   "bank": "1F",
   "addr": "44B7",
   "len": 38,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/InstrFields.c"
  },
  "DrawKitNameField": {
   "bank": "03",
@@ -735,7 +735,7 @@
   "bank": "1F",
   "addr": "4399",
   "len": 266,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/InstrFields.c"
  },
  "DrawNoteCell": {
   "bank": "04",
@@ -765,7 +765,7 @@
   "bank": "1F",
   "addr": "6C1E",
   "len": 22,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/PhraseScreen.c"
  },
  "DrawPhraseCursorFar": {
   "bank": "04",
@@ -783,7 +783,7 @@
   "bank": "1F",
   "addr": "6D58",
   "len": 422,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/PhraseScreen.c"
  },
  "DrawPhraseSelectionFar": {
   "bank": "04",
@@ -825,7 +825,7 @@
   "bank": "1F",
   "addr": "423D",
   "len": 338,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/InstrFields.c"
  },
  "DrawSongCursor": {
   "bank": "07",
@@ -843,13 +843,13 @@
   "bank": "1F",
   "addr": "70DF",
   "len": 41,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SpeechInstrScreen.c"
  },
  "DrawSpeechInstrScreen": {
   "bank": "1F",
   "addr": "7108",
   "len": 311,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SpeechInstrScreen.c"
  },
  "DrawSpeedGlyph": {
   "bank": "01",
@@ -1017,7 +1017,7 @@
   "bank": "1F",
   "addr": "474E",
   "len": 375,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/InstrFields.c"
  },
  "DrawWaveLen": {
   "bank": "03",
@@ -1071,7 +1071,7 @@
   "bank": "1F",
   "addr": "6C34",
   "len": 106,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SpeechInstrScreen.c"
  },
  "DrawWordScreen": {
   "bank": "06",
@@ -1131,7 +1131,7 @@
   "bank": "1F",
   "addr": "6EFE",
   "len": 22,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/PhraseScreen.c"
  },
  "EraseProjCursor": {
   "bank": "1B",
@@ -1149,7 +1149,7 @@
   "bank": "1F",
   "addr": "70B6",
   "len": 41,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SpeechInstrScreen.c"
  },
  "EraseSynthCursor": {
   "bank": "1D",
@@ -1575,19 +1575,19 @@
   "bank": "1F",
   "addr": "5644",
   "len": 248,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "FindDupPhrase": {
   "bank": "1F",
   "addr": "549C",
   "len": 424,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "FindDupTable": {
   "bank": "1F",
   "addr": "573C",
   "len": 602,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "FindFreeBlock": {
   "bank": "1C",
@@ -1605,7 +1605,7 @@
   "bank": "1F",
   "addr": "4BD9",
   "len": 56,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "FlipWaveRange": {
   "bank": "06",
@@ -1647,19 +1647,19 @@
   "bank": "1F",
   "addr": "4CCD",
   "len": 567,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "FreeUnusedSynths": {
   "bank": "1F",
   "addr": "62BD",
   "len": 32,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "FreeUnusedTables": {
   "bank": "1F",
   "addr": "52B3",
   "len": 39,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "FxCmd_E_Noi": {
   "bank": "02",
@@ -1899,13 +1899,13 @@
   "bank": "1F",
   "addr": "6677",
   "len": 33,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/PhraseScreen.c"
  },
  "HasEnterableColRight": {
   "bank": "1F",
   "addr": "6656",
   "len": 33,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/PhraseScreen.c"
  },
  "HelpScreenInput": {
   "bank": "1B",
@@ -1917,7 +1917,7 @@
   "bank": "1F",
   "addr": "6B3B",
   "len": 227,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/PhraseScreen.c"
  },
  "InitAndLoadSong": {
   "bank": "00",
@@ -1935,7 +1935,7 @@
   "bank": "1F",
   "addr": "4A26",
   "len": 63,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "InstrCheckFieldOption": {
   "bank": "03",
@@ -1965,13 +1965,13 @@
   "bank": "1F",
   "addr": "4157",
   "len": 18,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/InstrFields.c"
  },
  "InstrEnvHasThird": {
   "bank": "1F",
   "addr": "4169",
   "len": 33,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/InstrFields.c"
  },
  "InstrFieldDecHi": {
   "bank": "03",
@@ -2145,13 +2145,13 @@
   "bank": "1F",
   "addr": "5461",
   "len": 23,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "IsInstrAllocated": {
   "bank": "1F",
   "addr": "4F2E",
   "len": 27,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "IsInstrTableOn": {
   "bank": "03",
@@ -2169,31 +2169,31 @@
   "bank": "1F",
   "addr": "5091",
   "len": 23,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "IsSongBlockEmpty": {
   "bank": "1F",
   "addr": "4B00",
   "len": 69,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "IsSongChainUsed": {
   "bank": "1F",
   "addr": "4C20",
   "len": 173,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "IsTableFree": {
   "bank": "1F",
   "addr": "4B45",
   "len": 148,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "IsTableUsed": {
   "bank": "1F",
   "addr": "4F1C",
   "len": 18,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "KbdDrainQueue": {
   "bank": "07",
@@ -2361,7 +2361,7 @@
   "bank": "1F",
   "addr": "5413",
   "len": 78,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "MarkChainUsed": {
   "bank": "01",
@@ -2373,13 +2373,13 @@
   "bank": "1F",
   "addr": "513D",
   "len": 34,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "MarkPhraseTablesUsed": {
   "bank": "1F",
   "addr": "4F49",
   "len": 124,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "MarkPhraseUsed": {
   "bank": "01",
@@ -2391,37 +2391,37 @@
   "bank": "1F",
   "addr": "5478",
   "len": 36,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "MarkTableTablesUsed": {
   "bank": "1F",
   "addr": "4FC5",
   "len": 204,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "MarkTableUsed": {
   "bank": "1F",
   "addr": "4F04",
   "len": 24,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "MarkTablesOfUsedInstrs": {
   "bank": "1F",
   "addr": "515F",
   "len": 36,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "MarkTablesOfUsedPhrases": {
   "bank": "1F",
   "addr": "50A8",
   "len": 36,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "MarkTablesOfUsedTables": {
   "bank": "1F",
   "addr": "50F6",
   "len": 71,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "MigrateTempoProps": {
   "bank": "1C",
@@ -2607,7 +2607,7 @@
   "bank": "1F",
   "addr": "648F",
   "len": 82,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/PhraseScreen.c"
  },
  "PlotEnvCurve": {
   "bank": "1B",
@@ -2823,7 +2823,7 @@
   "bank": "1F",
   "addr": "5E1D",
   "len": 259,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "ReceiveLinkClipboard": {
   "bank": "1C",
@@ -2841,31 +2841,31 @@
   "bank": "1F",
   "addr": "7097",
   "len": 17,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SpeechInstrScreen.c"
  },
  "RemapChainRefs": {
   "bank": "1F",
   "addr": "5A12",
   "len": 124,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "RemapCmdTableRefs": {
   "bank": "1F",
   "addr": "5A8E",
   "len": 336,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "RemapPhraseRefs": {
   "bank": "1F",
   "addr": "5996",
   "len": 124,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "RemapSeqChains": {
   "bank": "1F",
   "addr": "52DA",
   "len": 313,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "RemoveBookmark": {
   "bank": "07",
@@ -2895,25 +2895,25 @@
   "bank": "1F",
   "addr": "61C4",
   "len": 59,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "ResetSynthWaves": {
   "bank": "1F",
   "addr": "619E",
   "len": 38,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "ResetUnusedSynths": {
   "bank": "1F",
   "addr": "620F",
   "len": 174,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "ResetWaveFrame": {
   "bank": "1F",
   "addr": "6163",
   "len": 59,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "ResetWorkState": {
   "bank": "00",
@@ -3441,13 +3441,13 @@
   "bank": "1F",
   "addr": "70A8",
   "len": 14,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SpeechInstrScreen.c"
  },
  "SpeechInstrInput": {
   "bank": "1F",
   "addr": "724D",
   "len": 1448,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SpeechInstrScreen.c"
  },
  "StartScreenPlayback": {
   "bank": "02",
@@ -3609,7 +3609,7 @@
   "bank": "1F",
   "addr": "5F85",
   "len": 61,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "SynthLoadParams": {
   "bank": "1D",
@@ -3855,7 +3855,7 @@
   "bank": "1F",
   "addr": "6CA2",
   "len": 182,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/PhraseScreen.c"
  },
  "UpdateEnvSprites": {
   "bank": "1B",
@@ -3903,7 +3903,7 @@
   "bank": "1F",
   "addr": "5F20",
   "len": 101,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "WaveInitSprites": {
   "bank": "06",
@@ -3951,7 +3951,7 @@
   "bank": "1F",
   "addr": "48C5",
   "len": 85,
-  "src": "c/bank1f/InstrHelpers.c"
+  "src": "c/bank1f/SongData.c"
  },
  "WriteClipboardCell": {
   "bank": "00",

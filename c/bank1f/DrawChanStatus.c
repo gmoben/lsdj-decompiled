@@ -71,3 +71,11 @@ void DrawChanStatus(UBYTE ch)
         }
     }
 }
+
+void DrawAllChanStatus(void)
+{
+    DrawChanStatus(0);
+    DrawChanStatus(1);
+    DrawChanStatus(2);
+    DrawChanStatus(3);
+}
