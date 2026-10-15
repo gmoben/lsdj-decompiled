@@ -84,9 +84,9 @@ UBYTE CanEnterSongColumn(UBYTE column)
         row = wChainRow;
         function = FAR_FN(SoundGetChainPhrase);
         phrase = FarCallArgument2(2, (UWORD)function, chain, wChainRow);
-        while (phrase == 0xFF && row)
+        while (phrase == EMPTY && row)
             phrase = FarCallArgument2(2, (UWORD)function, chain, --row);
-        if (phrase == 0xFF)
+        if (phrase == EMPTY)
             return 0;
     }
     ErasePhraseCursor();

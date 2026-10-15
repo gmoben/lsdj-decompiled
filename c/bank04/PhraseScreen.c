@@ -171,7 +171,7 @@ void WritePhraseNote(UBYTE row, UBYTE v)
     p = (UWORD)(SramPhraseNotes + (unsigned int)row);
     if (row >= 0x10)
         DebugTrap();
-    if (wPhrase == 0xFF)
+    if (wPhrase == EMPTY)
         DebugTrap();
     p += (UWORD)wPhrase << 4;
     WriteSongByte(0, (UBYTE *)p, v);
@@ -181,11 +181,11 @@ void WritePhraseInstrument(UBYTE phrase, UBYTE row, UBYTE instrument)
 {
     UBYTE *p;
 
-    if (phrase == 0xFF)
+    if (phrase == EMPTY)
         DebugTrap();
     if (row >= 0x10)
         DebugTrap();
-    if (instrument > INSTRUMENT_SPEECH && instrument != 0xFF)
+    if (instrument > INSTRUMENT_SPEECH && instrument != EMPTY)
         DebugTrap();
     p = SramPhraseInstruments + ((UWORD)phrase << 4);
     WriteSongByte(3, p + row, instrument);
@@ -255,7 +255,7 @@ void EditPhraseCellUp(UBYTE row)
     p = (UBYTE *)(row + (UWORD)0xA000);
     step = 12;
     full = 0;
-    if (wPhrase == 0xFF)
+    if (wPhrase == EMPTY)
         DebugTrap();
     if (row >= 0x10)
         DebugTrap();
@@ -322,7 +322,7 @@ void EditPhraseCellDown(UBYTE row)
     p = (UBYTE *)(row + (UWORD)0xA000);
     step = 12;
     full = 0;
-    if (wPhrase == 0xFF)
+    if (wPhrase == EMPTY)
         DebugTrap();
     if (row >= 0x10)
         DebugTrap();
@@ -389,7 +389,7 @@ void EditPhraseCellRight(UBYTE row)
 
     p = (UBYTE *)(row + (UWORD)0xA000);
     full = 0;
-    if (wPhrase == 0xFF)
+    if (wPhrase == EMPTY)
         DebugTrap();
     if (row >= 0x10)
         DebugTrap();
@@ -424,7 +424,7 @@ void EditPhraseCellLeft(UBYTE row)
 
     p = (UBYTE *)(row + (UWORD)0xA000);
     full = 0;
-    if (wPhrase == 0xFF)
+    if (wPhrase == EMPTY)
         DebugTrap();
     if (row >= 0x10)
         DebugTrap();
@@ -454,7 +454,7 @@ UBYTE ReadPhraseInstrument(UBYTE phrase, UBYTE row)
 {
     UBYTE *p;
 
-    if (phrase == 0xFF)
+    if (phrase == EMPTY)
         DebugTrap();
     if (row >= 0x10)
         DebugTrap();
@@ -469,7 +469,7 @@ UBYTE ReadPhraseNote(UBYTE row)
     p = (UWORD)(SramPhraseNotes + (unsigned int)row);
     if (row >= 0x10)
         DebugTrap();
-    if (wPhrase == 0xFF)
+    if (wPhrase == EMPTY)
         DebugTrap();
     p += (UWORD)wPhrase << 4;
     return ReadSongByte(0, (UBYTE *)p);
@@ -480,7 +480,7 @@ void WritePhraseCommand(UBYTE phrase, UBYTE row, UBYTE command)
     UWORD p;
 
     p = (UWORD)(SramPhraseCommands + (unsigned int)row);
-    if (phrase == 0xFF)
+    if (phrase == EMPTY)
         DebugTrap();
     if (row >= 0x10)
         DebugTrap();
@@ -495,7 +495,7 @@ void WritePhraseCommandValue(UBYTE phrase, UBYTE row, UBYTE v)
     UWORD p;
 
     p = (UWORD)(SramPhraseCommandValues + (unsigned int)row);
-    if (phrase == 0xFF)
+    if (phrase == EMPTY)
         DebugTrap();
     if (row >= 0x10)
         DebugTrap();
@@ -508,7 +508,7 @@ UBYTE ReadPhraseCommandValue(UBYTE phrase, UBYTE row)
     UWORD p;
 
     p = (UWORD)(SramPhraseCommandValues + (unsigned int)row);
-    if (phrase == 0xFF)
+    if (phrase == EMPTY)
         DebugTrap();
     if (row >= 0x10)
         DebugTrap();
@@ -522,7 +522,7 @@ UBYTE ReadPhraseCommand(UBYTE phrase, UBYTE row)
     UBYTE v, ok;
 
     p = (UWORD)(SramPhraseCommands + (unsigned int)row);
-    if (phrase == 0xFF)
+    if (phrase == EMPTY)
         DebugTrap();
     if (row >= 0x10)
         DebugTrap();
@@ -544,7 +544,7 @@ UBYTE PlacePhraseCell(UBYTE phrase, UBYTE row)
     p = (UBYTE *)(wPhraseRow + (UWORD)0xA000);
     if (wPhraseRow >= 0x10)
         DebugTrap();
-    if (wPhrase == 0xFF)
+    if (wPhrase == EMPTY)
         DebugTrap();
     p += (UWORD)wPhrase << 4;
     v = ReadSongByte(0, p);
@@ -618,7 +618,7 @@ void DrawPhraseScreen(void)
     UWORD address;
     UBYTE *p;
 
-    if (wPhrase == 0xFF)
+    if (wPhrase == EMPTY)
         DebugTrap();
     SetSpriteX(0, 1);
     SetSpriteTile3(0);
@@ -702,7 +702,7 @@ void DrawPhraseScreen(void)
             set_bkg_tiles(2, row + 2, 13, 1, p);
             VBK_REG = 0;
         }
-        if (instrument == 0xFF)
+        if (instrument == EMPTY)
             DrawString("--");
         else
             DrawHexByte(instrument);
@@ -1118,7 +1118,7 @@ UBYTE PhraseScreenInput(void)
     char chainRow;
 
     redraw = 0;
-    if (wPhrase == 0xFF)
+    if (wPhrase == EMPTY)
         DebugTrap();
     if ((UBYTE)(char)wPhraseRow >= 0x10)
         DebugTrap();
@@ -1822,7 +1822,7 @@ UBYTE PhraseScreenInput(void)
             oldPhrase = wPhrase;
             wChainRow--;
             wPhrase = FarCallArgument2P(2, FAR_FN(SoundGetChainPhrase), wChain, wChainRow);
-            if (wPhrase == 0xFF) {
+            if (wPhrase == EMPTY) {
                 wPhrase = oldPhrase;
                 wChainRow++;
             }
@@ -2002,7 +2002,7 @@ UBYTE PhraseScreenInput(void)
             table = ReadPhraseCommandValue(wPhrase, (char)wPhraseRow);
             if (table < 0x20) {
                 wTable = table;
-                wInstrument = 0xFF;
+                wInstrument = EMPTY;
                 FarCall(5, MoveMapCursorRight);
                 FarCall(5, MoveMapCursorRight);
                 FarCall(7, FAR_FN(RedrawScreen));

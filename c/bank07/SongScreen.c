@@ -92,7 +92,7 @@ void WriteSongCell(UBYTE column, UBYTE row, UBYTE chain)
         DebugTrap();
     if (row > 0xBF)
         DebugTrap();
-    if (chain != 0xFF && chain >= 0x80)
+    if (chain != EMPTY && chain >= 0x80)
         DebugTrap();
     p = SramSequence + ((UWORD)row << 2);
     WriteSongByte(0, p + column, chain);
@@ -122,7 +122,7 @@ UBYTE CloneSongChain(UBYTE chain)
         phrase = FarCallArgument2(2, (UWORD)SoundGetChainPhrase, chain, row);
         if (!wCloneMode) {
             wClonePhraseMap[row] = phrase;
-            if (phrase != 0xFF) {
+            if (phrase != EMPTY) {
                 f = 0xFF;
                 earlierRow = 0;
                 while (earlierRow < row) {

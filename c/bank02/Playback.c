@@ -256,7 +256,7 @@ void SoundStartSongPlayback(void)
         }
         wChannelChainRow[hSoundChannel] = 0xFF;
         *phrase = SoundGetChainPhrase(*chain, 0);
-        if (*phrase == 0xFF) {
+        if (*phrase == EMPTY) {
             *active = 0;
             continue;
         }

@@ -118,10 +118,10 @@ UBYTE SongScreenInput(void)
             goto store;
         }
         chain = ReadSequenceByte(wSongColumn, wSongRow);
-        wSongCellEmpty = chain == 0xFF;
+        wSongCellEmpty = chain == EMPTY;
         if (wSongCellEmpty) {
             chain = wColumnChain[wSongColumn];
-            if (chain != 0xFF) {
+            if (chain != EMPTY) {
                 FarCallArgument(1, FAR_FN(MarkChainUsed), chain);
                 goto store;
             }
@@ -134,10 +134,10 @@ UBYTE SongScreenInput(void)
                 }
                 v--;
                 chain = ReadSequenceByte(wSongColumn, v);
-            } while (chain == 0xFF);
+            } while (chain == EMPTY);
         }
     store:
-        if (chain != 0xFF) {
+        if (chain != EMPTY) {
             wColumnChain[wSongColumn] = chain;
             DrawHexByte(chain);
             WriteSongCell(wSongColumn, wSongRow, chain);

@@ -92,6 +92,9 @@ typedef int WORD;
 #define INSTRUMENT_KIT       2
 #define INSTRUMENT_NOISE     3
 
+/* an empty cell: no chain, phrase or instrument (the screens' "--") */
+#define EMPTY                0xFF
+
 /* 64 instruments, then the speech instrument, locked to $40 */
 #define INSTRUMENTS          0x40
 #define INSTRUMENT_SPEECH    0x40

@@ -57,7 +57,7 @@ UBYTE LoadChainCursorPhrase(void)
     row = wChainRow;
     for (;;) {
         phrase = FarCallArgument2(2, (UWORD)SoundGetChainPhrase, wChain, row);
-        if (phrase != 0xFF) {
+        if (phrase != EMPTY) {
             wPhrase = phrase;
             wChainRow = row;
             return 1;
@@ -82,7 +82,7 @@ UBYTE ChainScreenEnter(UBYTE column)
         wSongRow = wChannelSongRow[column];
     } else {
         wChain = ReadSequenceByte(column, wSongRow);
-        while (wChain == 0xFF && wSongRow)
+        while (wChain == EMPTY && wSongRow)
             wChain = ReadSequenceByte(column, --wSongRow);
     }
     if (wChain & 0x80) {
@@ -250,7 +250,7 @@ void OpenChainPhrase(void)
 
     phrase = FarCallArgument2(2, (UWORD)SoundGetChainPhrase, wChain, (char)wChainRow);
     FarCall(5, 0x747D);                 /* RestoreSelectionState, bank 5, by address */
-    if (phrase == 0xFF)
+    if (phrase == EMPTY)
         return;
     wColumnPhrase[wSongColumn] = phrase;
     n = FarCallByte(1, FAR_FN(AllocateNextFreePhrase));

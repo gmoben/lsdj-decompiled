@@ -544,7 +544,7 @@ UBYTE AnyPhraseUsesCommandF(void)
     UBYTE phrase, row;
 
     p = SramPhraseCommands;
-    for (phrase = 0; phrase != 0xFF; phrase++) {
+    for (phrase = 0; phrase != EMPTY; phrase++) {
         row = 0;
         while (1) {
             if (!(row < 0x10))

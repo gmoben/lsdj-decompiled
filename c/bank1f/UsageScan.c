@@ -141,7 +141,7 @@ void MarkChainPhrasesUsed(UBYTE chain)
 
     for (row = 0; row < 16; row++) {
         phrase = FarCallArgument2(2, (UWORD)SoundGetChainPhrase, chain, row);
-        if (phrase != 0xFF)
+        if (phrase != EMPTY)
             FarCallArgument(1, FAR_FN(MarkPhraseUsed), phrase);
     }
 }

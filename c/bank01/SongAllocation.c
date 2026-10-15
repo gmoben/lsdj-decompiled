@@ -45,7 +45,7 @@ void MarkPhraseUsed(UBYTE phrase)
 {
     UBYTE *p;
 
-    if (phrase == 0xFF)
+    if (phrase == EMPTY)
         DebugTrap();
     p = SramPhraseAllocation + (phrase >> 3);
     phrase &= 7;
@@ -67,7 +67,7 @@ void FreePhrase(UBYTE phrase)
 {
     UBYTE *p;
 
-    if (phrase == 0xFF)
+    if (phrase == EMPTY)
         DebugTrap();
     p = SramPhraseAllocation + (phrase >> 3);
     phrase &= 7;
@@ -99,11 +99,11 @@ UBYTE AllocateNextFreePhrase(void)
         p = SramPhraseAllocation + (phrase >> 3);
         if (!(ReadSongByte(1, p) & (1 << (phrase & 7)))) {
             MarkPhraseUsed(phrase);
-            if (phrase == 0xFF)
+            if (phrase == EMPTY)
                 DebugTrap();
             return phrase;
         }
-        if (++phrase == 0xFF)
+        if (++phrase == EMPTY)
             phrase = 0;
     } while (phrase != start);
     FarCall(1, FAR_FN(ShowOutOfMemory));
@@ -125,7 +125,7 @@ UBYTE IsPhraseUsed(UBYTE phrase)
 {
     UBYTE *p;
 
-    if (phrase == 0xFF)
+    if (phrase == EMPTY)
         DebugTrap();
     p = SramPhraseAllocation + (phrase >> 3);
     phrase &= 7;
