@@ -342,7 +342,9 @@ in `docs/functionality.md`.
   `dw Label` so the targets can move. A table of R rows of C bytes is tagged
   `[R][C]`: one `db` line per row (a screen's 20x18 map, `[18][20]`). A
   `Tiles` symbol is a tile block (`tools/gfx.py`): its tiles come from
-  `gfx/<name>.png`.
+  `gfx/<name>.png`. Text (`Txt*`, `*Names`, `*String`, or a comment that
+  opens with a string) prints a line per string: `db "<A>...INSERT\n"`,
+  `db "OK!", 0`.
 - **Vocabulary.** Names spell their words out, one spelling per word in
   every name (routines, data, local labels, RAM, C identifiers):
   `Channel`, `Instrument`, `Project`, `Envelope`, `Vibrato`, `Command`

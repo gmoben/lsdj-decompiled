@@ -248,6 +248,62 @@ def _emit_tiles(data: bytes, lo: int, hi: int, base_addr: int, name: str) -> lis
     return rows
 
 
+TEXT_LINE = 32   # a string with no newline or NUL breaks its line here
+
+
+def _emit_text(data: bytes, lo: int, hi: int, base_addr: int) -> list[Row]:
+    """Text: a `db` line per string -- a newline is `\\n` inside it and ends
+    the line, a NUL ends it as `, 0` -- other bytes as numbers, a run of
+    FILL_MIN or more $FF as padding (`ds`). Byte-exact."""
+    rows: list[Row] = []
+    items: list[str] = []
+    chars: list[str] = []
+    start = lo
+
+    def close_string() -> None:
+        if chars:
+            items.append('"' + "".join(chars) + '"')
+            chars.clear()
+
+    def end_line(i: int) -> None:
+        nonlocal start
+        close_string()
+        if items:
+            rows.append((base_addr + (start - lo), data[start:i], "db " + ", ".join(items), None))
+            items.clear()
+        start = i
+
+    i = lo
+    while i < hi:
+        x = data[i]
+        if x == 0xFF:
+            j = i
+            while j < hi and data[j] == 0xFF:
+                j += 1
+            if j - i >= FILL_MIN:
+                end_line(i)
+                rows.append((base_addr + (i - lo), data[i:j], f"ds {j - i}, $ff", None))
+                start = i = j
+                continue
+        i += 1
+        if 0x20 <= x <= 0x7E:
+            chars.append("\\" + chr(x) if chr(x) in '"\\{}' else chr(x))
+            if len(chars) == TEXT_LINE:
+                end_line(i)
+        elif x == 0x0A:
+            chars.append("\\n")
+            end_line(i)
+        elif x == 0x00:
+            close_string()
+            items.append("0")
+            end_line(i)
+        else:
+            close_string()
+            items.append(f"${x:02x}")
+    end_line(hi)
+    return rows
+
+
 def _emit_data(data: bytes, lo: int, hi: int, base_addr: int) -> list[Row]:
     """Emit a data range as rows: runs of FILL_MIN or more $FF (the ROM's
     padding) as `ds n, $ff`, printable runs (>= 4) as `db "TEXT"`, the rest as
@@ -739,7 +795,8 @@ def disassemble(data: bytes, start: int, end: int, org: int,
                 clines: list[CLines] | None = None,
                 ptr_tables: list[tuple[int, int, int]] | None = None,
                 tiles: list[tuple[int, int, str]] | None = None,
-                row_tables: list[tuple[int, int, int]] | None = None) -> list[Row]:
+                row_tables: list[tuple[int, int, int]] | None = None,
+                texts: list[tuple[int, int]] | None = None) -> list[Row]:
     """Return decoded rows covering file offsets [start, end).
 
     `anchors` is a set of file offsets that are known code-instruction starts
@@ -761,13 +818,17 @@ def disassemble(data: bytes, start: int, end: int, org: int,
     gfx/<name>.png (_emit_tiles).
 
     `row_tables` are (lo, hi, width) tables printed one `db` line per row of
-    `width` bytes (a screen's 20x18 map: a line per screen line)."""
+    `width` bytes (a screen's 20x18 map: a line per screen line).
+
+    `texts` are (lo, hi) ranges of text, printed a line per string
+    (_emit_text)."""
     anchors = anchors or set()
     incbins = incbins or []
     clines = clines or []
     ptr_tables = ptr_tables or []
     tiles = tiles or []
     row_tables = row_tables or []
+    texts = texts or []
 
     def next_data_edge(o: int) -> int:
         edges = [hi if lo <= o < hi else lo for lo, hi in data_ranges if o < hi]
@@ -776,6 +837,7 @@ def disassemble(data: bytes, start: int, end: int, org: int,
         edges += [hi if lo <= o < hi else lo for lo, hi, _b in ptr_tables if o < hi]
         edges += [hi if lo <= o < hi else lo for lo, hi, _n in tiles if o < hi]
         edges += [hi if lo <= o < hi else lo for lo, hi, _w in row_tables if o < hi]
+        edges += [hi if lo <= o < hi else lo for lo, hi in texts if o < hi]
         edges += [a for a in anchors if a > o]
         return min((e for e in edges if e > o), default=end)
 
@@ -808,6 +870,12 @@ def disassemble(data: bytes, start: int, end: int, org: int,
         if tb is not None and tb[1] <= end:
             out.extend(_emit_tiles(data, o, tb[1], addr, tb[2]))
             o = tb[1]
+            continue
+        tx = next((x for x in texts if x[0] <= o < x[1]), None)
+        if tx is not None:
+            edge = min(next_data_edge(o), end)
+            out.extend(_emit_text(data, o, edge, addr))
+            o = edge
             continue
         rt = next((r for r in row_tables if r[0] <= o < r[1]), None)
         if rt is not None:
@@ -1092,7 +1160,9 @@ def render(rows: list[Row], comments: bool,
             lines.append(text)
             continue
         if ref == C_ROW:                     # matching C: already symbolic
-            if comments:
+            if comments and text.startswith('db "'):
+                lines.append(f"\t{text:<28} ; ${addr:04x}")
+            elif comments:
                 hexb = " ".join(f"{b:02x}" for b in raw)
                 lines.append(f"\t{text:<28} ; ${addr:04x}: {hexb}")
             else:
@@ -1204,6 +1274,8 @@ def main() -> None:
     ap.add_argument("--rows", default="",
                     help="comma-separated lo:hi:WIDTH tables printed one db line "
                          "per row of WIDTH bytes")
+    ap.add_argument("--text", default="",
+                    help="comma-separated lo:hi ranges of text, printed a line per string")
     ap.add_argument("--trace", action="store_true",
                     help="recursive-descent: only decode reachable code as code, "
                          "rest as data (auto-seeds vectors/entry for --bank 0)")
@@ -1246,6 +1318,8 @@ def main() -> None:
     incbins: list[IncBin] = []
     tiles: list[tuple[int, int, str]] = []
     row_tables: list[tuple[int, int, int]] = []
+    texts = [tuple(int(x, 0) for x in part.split(":"))
+             for part in filter(None, (p.strip() for p in args.text.split(",")))]
     for part in filter(None, (p.strip() for p in args.rows.split(","))):
         lo, hi, width = (int(x, 0) for x in part.split(":"))
         row_tables.append((lo, hi, width))
@@ -1293,7 +1367,7 @@ def main() -> None:
         lo_s, hi_s, b_s = part.split(":")
         ptr_tables.append((int(lo_s, 0), int(hi_s, 0), int(b_s, 0)))
     table_bank = {org + (o - start): tb for lo, hi, tb in ptr_tables for o in range(lo, hi, 2)}
-    rows = disassemble(data, start, end, org, data_ranges, anchors, incbins, clines, ptr_tables, tiles, row_tables)
+    rows = disassemble(data, start, end, org, data_ranges, anchors, incbins, clines, ptr_tables, tiles, row_tables, texts)
     # ROM-address operands print as labels (rom_pointers): names from the
     # .sym files beside --symbols; a target inside a data run first gets a row
     # of its own (decode again with it as an anchor)
@@ -1317,7 +1391,7 @@ def main() -> None:
                  and any(lo <= start + (t - org) < hi for lo, hi in data_ranges)}
         if split - anchors:
             anchors |= split
-            rows = disassemble(data, start, end, org, data_ranges, anchors, incbins, clines, ptr_tables, tiles, row_tables)
+            rows = disassemble(data, start, end, org, data_ranges, anchors, incbins, clines, ptr_tables, tiles, row_tables, texts)
             ptrs, notes = rom_pointers(rows, args.bank, symbols, home, bank_syms, table_bank)
         same = {t for t in map(own, ptrs.values()) if t is not None}
     labels = ({} if args.no_labels

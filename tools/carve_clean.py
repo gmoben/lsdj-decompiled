@@ -257,6 +257,35 @@ def pointer_tables(bank: int) -> list[tuple[int, int, int]]:
     return out
 
 
+TEXT_NAME = re.compile(r"^Txt|Names$|String$")
+
+
+def text_ranges(rom: bytes, bank: int) -> list[tuple[int, int]]:
+    """Text the bank's .sym names as text (`Txt*`, `*Names`, `*String`, or a
+    comment that opens with a string), from the symbol to the next global
+    symbol less any trailing $FF padding, when at least 90% of it is text
+    (printable ASCII, newlines, NULs): (lo, hi) file offsets for disasm.py
+    --text, which prints a line per string."""
+    sym = ROOT / "src" / f"bank{bank:02x}.sym"
+    if not sym.is_file():
+        return []
+    rows = cov.read_sym(sym)
+    lo_cpu = 0x4000 if bank else 0
+    globs = sorted({a for a, n, _ in rows if not n.startswith(".")})
+    out = []
+    for addr, name, comment in rows:
+        if name.startswith(".") or not (TEXT_NAME.search(name) or comment.startswith('"')):
+            continue
+        nxt = next((g for g in globs if g > addr), lo_cpu + BANK)
+        lo, hi = bank * BANK + (addr - lo_cpu), bank * BANK + (nxt - lo_cpu)
+        while hi > lo and rom[hi - 1] == 0xFF:
+            hi -= 1
+        text = sum(0x20 <= x <= 0x7E or x in (0x00, 0x0A) for x in rom[lo:hi])
+        if hi > lo and text >= 0.9 * (hi - lo):
+            out.append((lo, hi))
+    return out
+
+
 def row_tables(bank: int) -> list[tuple[int, int, int]]:
     """Tables the bank's .sym tags `[R][C]` (R rows of C bytes, e.g. a screen's
     20x18 map): (lo, hi) file offsets and the row width, for disasm.py --rows,
@@ -349,6 +378,9 @@ def main() -> None:
         tables = pointer_tables(b)
         if tables:
             cmd += ["--ptr-tables", ",".join(f"0x{lo:X}:0x{hi:X}:0x{tb:X}" for lo, hi, tb in tables)]
+        texts = text_ranges(rom, b)
+        if texts:
+            cmd += ["--text", ",".join(f"0x{lo:X}:0x{hi:X}" for lo, hi in texts)]
         shaped = row_tables(b)
         if shaped:
             cmd += ["--rows", ",".join(f"0x{lo:X}:0x{hi:X}:{w}" for lo, hi, w in shaped)]

@@ -256,6 +256,24 @@ class RowTableTests(unittest.TestCase):
         self.assertEqual([(a - 0x5000, len(b)) for a, b, _t, _r in rows], [(0, 20), (20, 20), (40, 5), (45, 15)])
 
 
+class TextTests(unittest.TestCase):
+    """Text prints a line per string: a newline ends the line inside the
+    string, a NUL as `, 0`, other bytes as numbers; matched C's strings too."""
+
+    def test_lines_terminators_and_other_bytes(self):
+        data = b'CHAIN\n\n<A>..{x}\n' + b"NOI\x00" + bytes([0x82]) + b'"Q"\x00'
+        rows = disasm._emit_text(data, 0, len(data), 0x430E)
+        self.assertEqual([t for _a, _b, t, _r in rows],
+                         ['db "CHAIN\\n"', 'db "\\n"', 'db "<A>..\\{x\\}\\n"', 'db "NOI", 0', 'db $82, "\\"Q\\"", 0'])
+        self.assertEqual(b"".join(b for _a, b, _t, _r in rows), data)
+
+    def test_c_strings_split_at_a_label_inside(self):
+        t = to_rgbds.Translator.__new__(to_rgbds.Translator)
+        t.labels = {0x456C: ".strOk"}
+        rows = t.text_rows(0x4566, "ROM...OK!")
+        self.assertEqual([r[2] for r in rows], ['db "ROM..."', 'db "OK!"'])
+
+
 class BytePointerTests(unittest.TestCase):
     """Addresses the code loads a byte at a time."""
     HOME = {0x179A: "FarCall"}

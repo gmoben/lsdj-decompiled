@@ -302,6 +302,21 @@ class Translator:
             rows.append((cur_addr, "I", f"{kind} " + ", ".join(cur)))
         return rows
 
+    def text_rows(self, addr: int, text: str) -> list[Row]:
+        """An `.ascii` string as `db "..."` rows (RGBDS escapes), split
+        wherever the carve prints a label inside."""
+        rows: list[Row] = []
+        cur: list[str] = []
+        cur_addr = addr
+        for i, ch in enumerate(text):
+            if cur and addr + i in self.labels:
+                rows.append((cur_addr, "I", 'db "' + "".join(cur) + '"'))
+                cur, cur_addr = [], addr + i
+            cur.append("\\" + ch if ch in '"\\{}' else ch)
+        if cur:
+            rows.append((cur_addr, "I", 'db "' + "".join(cur) + '"'))
+        return rows
+
     def rom_operands(self, rows: list[Row]) -> list[Row]:
         """ROM addresses the C spells as numbers, as labels (a build where
         code moves needs them): a banked call's target and the addresses
@@ -444,6 +459,7 @@ class Translator:
 
     def rows(self) -> list[Row]:
         out: list[Row] = []
+        text_end: tuple[int, int] | None = None   # (row, end address) of the last string
         for n, raw in self.lines:
             s = _strip_comment(raw).strip()
             if not s:
@@ -464,11 +480,20 @@ class Translator:
                 am = re.fullmatch(r'\.ascii\s+"(.*)"', s)
                 if not am:
                     raise ValueError(f"unexpected .ascii: {s}")
-                out += self.data_rows(a, "db", [f"${ord(ch):02X}" for ch in am.group(1)])
+                out += self.text_rows(a, am.group(1))
+                text_end = (len(out) - 1, a + len(am.group(1)))
                 continue
             if s.startswith((".db", ".dw")):
                 kind, rest = s.split(None, 1)
-                out += self.data_rows(a, kind[1:], [self.expr(x) for x in rest.split(",")])
+                items = [self.expr(x) for x in rest.split(",")]
+                # a string's NUL terminator joins its line: db "OK!", 0
+                if (kind == ".db" and items == ["$00"] and text_end and text_end[1] == a
+                        and a not in self.labels and text_end[0] == len(out) - 1):
+                    k, row = text_end[0], out[text_end[0]]
+                    out[k] = (row[0], row[1], row[2] + ", 0")
+                    text_end = None
+                    continue
+                out += self.data_rows(a, kind[1:], items)
                 continue
             parts = s.split(None, 1)
             mn = parts[0].lower()
