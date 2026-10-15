@@ -68,13 +68,14 @@
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 4000 SndFxParsePitchVal         ; parse an FX value (mask $80/$0f) -> SndInitEnv
-4033 SndKitStepLoopWin1         ; kit S cmd, voice 1: nibble-step the loop window (start/end +/- digit*16, min $10); falls into voice-2 twin
-40E6 SndClampAcc6Hi             ; if pitch acc $c4d6:d7 >= limit $c4de:df, clamp to it & ret 0; else ret 1
-410C SndClampAcc4Hi             ; if pitch acc $c4d4:d5 >= limit $c4dc:dd, clamp to it & ret 0; else ret 1
-4132 SndStepAcc4                ; pitch acc $c4d6:d7 = $c4d4:d5 + $10 (16-bit, saturating compare)
-4208 SndClampAccAHi             ; clamp pitch acc $c4da:db to limit $c4e2:e3 (ret 0 if clamped)
-422E SndClampAcc8Hi             ; clamp pitch acc $c4d8:d9 to limit $c4e0:e1 (ret 0 if clamped)
-4254 SndStepAcc8                ; pitch acc $c4da:db = $c4d8:d9 + $10 (16-bit)
+4033 SndKitStepLoopWin1         ; kit S cmd, voice 1: the high digit shifts the loop window (+/- digit*16, each edge clamped to the sample), the low digit moves its end (kept $10 past the start), then the read pointer is rewound into the window; FxCmd_S runs SndKitStepLoopWin2 next
+40E6 SndClampKit1LoopEnd        ; clamp wKit1LoopEnd down to wKit1SampleEnd: a = 0 if it was past it, else 1
+410C SndClampKit1LoopStart      ; clamp wKit1LoopStart up to wKit1SampleStart: a = 0 if it was below it, else 1
+4132 SndKeepKit1LoopOpen        ; keep kit voice 1's loop window open: if wKit1LoopEnd is not past wKit1LoopStart, set it to wKit1LoopStart + $10
+4154 SndKitStepLoopWin2         ; kit S cmd, voice 2: SndKitStepLoopWin1's twin over wKit2Loop*/wKit2ReadPtr (both call the other voice's start clamp: the ROM's cross-wiring)
+4208 SndClampKit2LoopEnd        ; clamp wKit2LoopEnd down to wKit2SampleEnd: a = 0 if it was past it, else 1
+422E SndClampKit2LoopStart      ; clamp wKit2LoopStart up to wKit2SampleStart: a = 0 if it was below it, else 1
+4254 SndKeepKit2LoopOpen        ; keep kit voice 2's loop window open: if wKit2LoopEnd is not past wKit2LoopStart, set it to wKit2LoopStart + $10
 4276 SndDivMod                  ; 16-bit hl / 8-bit c -> quotient in l, remainder in a (shift-subtract)
 43CE SndFxTableJump             ; FX dispatch via computed jump (jp hl region)
 4637 SndClampNoteRange          ; clamp a note value to playable range ($3c..$78) -> $c422
@@ -190,7 +191,7 @@
 ; --- structural local names (loop heads / common exits) ---
 4010 .loop                ; loop head in SndFxParsePitchVal
 40E3 .done                ; common exit of SndKitStepLoopWin1
-4205 .done                ; common exit of SndStepAcc4
+4205 .done                ; common exit of SndKitStepLoopWin2
 4279 .loop                ; loop head in SndDivMod
 4303 .loop                ; loop head in FxCmd_L
 461B .loop                ; loop head in ApplyPitchBend
@@ -275,14 +276,14 @@
 
 
 ; --- first-action / assert local names ---
-404F .sndClampAcc6Hi
-406E .sndClampAcc8Hi
-40B5 .sndClampAcc6Hib
-40C4 .sndStepAcc4
-4171 .sndClampAccAHi
-4190 .sndClampAcc4Hi
-41D7 .sndClampAccAHib
-41E6 .sndStepAcc8
+404F .sndClampKit1LoopEnd
+406E .sndClampKit2LoopStart
+40B5 .sndClampKit1LoopEndb
+40C4 .sndKeepKit1LoopOpen
+4171 .sndClampKit2LoopEnd
+4190 .sndClampKit1LoopStart
+41D7 .sndClampKit2LoopEndb
+41E6 .sndKeepKit2LoopOpen
 43B3 .sndFxTableJump
 49A1 .checkChanActiveInstr
 4A70 .sndSetVibParams
@@ -369,30 +370,29 @@
 4027 .cont
 402C .cont_2
 4062 .cont
-4064 .setPitchModA
-4082 .checkPitchModA
+4064 .shiftBack
+4082 .rewindReadPtr
 409E .readFxVal
-40BA .setPitchModA_2
-40C7 .checkPitchModA_2
-40FB .loadPitchModB
+40BA .endBack
+40C7 .rewindReadPtr_2
+40FB .clamp
 4109 .cont
-4121 .loadPitchModB
+4121 .clamp
 412F .cont
-4142 .loadPitchModA
-4150 .storePitchModA
-4154 .voice2
+4142 .reopen
+4150 .storeHi
 4184 .cont
-4186 .setPitchModB
-41A4 .checkPitchModB
+4186 .shiftBack
+41A4 .rewindReadPtr
 41C0 .readFxVal
-41DC .setPitchModB_2
-41E9 .checkPitchModB_2
-421D .loadPitchModB
+41DC .endBack
+41E9 .rewindReadPtr_2
+421D .clamp
 422B .cont
-4243 .loadPitchModB
+4243 .clamp
 4251 .cont
-4264 .loadPitchModB
-4272 .storePitchModB
+4264 .reopen
+4272 .storeHi
 4280 .cont
 4282 .step
 429C .storeFxVal

@@ -1413,7 +1413,7 @@ untouched (`make match` verifies all 678).
       Project and Song screens matched.
 - [x] Grow the C tree bank by bank (editor code first; the asm functions
       stay asm): every C function in the ROM is matched (678, 141,700 bytes),
-      six of them through an `lsdj-alloc` directive (above). The ~225 asm
+      six of them through an `lsdj-alloc` directive (above). The 226 asm
       functions (the interrupt handlers, the sound driver's core, the tile
       loader, the mixer kernel) stay asm.
 
