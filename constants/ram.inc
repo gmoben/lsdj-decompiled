@@ -179,6 +179,7 @@ DEF wTransposeDirty       EQU $C445  ; transpose edit/commit flag: set by the PR
 DEF wSongTransposeDisplay EQU $C446 ; displayed form of the song transpose (ProjectScreenInput / ProcessInput)
 DEF wNoteTranspose        EQU $C4D3  ; PU2 instrument transpose (from instrument PU2_TRANSPOSE param), added before the period lookup
 DEF wNotePeriods          EQU $CF28  ; runtime 16-bit GB note-period table (computed for tuning); SoundNoteToPeriod indexes it
+DEF wKitMixTable          EQU $D000  ; [$480] KitMixTable's WRAM copy (InitializeKitMixer): MixerKernel's nibble-sum LUT; its last 128 bytes are wMasterVolumeTable
 DEF wCurrentInstrument    EQU $C0D0  ; current instrument record byte 0 = type (0 pulse, 1 wav, 2 kit, 3 noise); 16B staged from SramInstrs $B080+instr*16
                                 ; ($3080 = SRAM bank1 $B080 + instr*16); SoundSetupChannel then
                                 ; distributes its bytes to the rAUDx register shadows
@@ -440,6 +441,7 @@ DEF wPlayFrames       EQU $C6A8  ; PLAY clock frame divider (UpdatePlayClock: 60
                                 ; second to track the 59.73 Hz frame rate); 0 while stopped
 DEF wCrashStack           EQU $C7B0  ; [20] the crash's stack dump: 20 bytes copied from above the stack pointer (SaveCrashStack), shown as 10 words
 DEF wCrashSP              EQU $C7C4  ; the stack pointer at the crash (SaveCrashStack), shown after STK:
+DEF wCrashSPHigh          EQU $C7C5  ; wCrashSP's high byte (SaveCrashStack stores h here)
 DEF wClipboardSave        EQU $C7C6  ; [252] ResetEditorState keeps wClipboardBuffer here across ResetWorkState
 DEF wPlayChannelFirst     EQU $C8DD  ; first channel to start playing (SoundStartChannels)
 DEF wPlayChannelLast      EQU $C8DE  ; last channel to start playing
@@ -820,6 +822,7 @@ DEF wFileBlockIndex                   EQU $C958  ; SRAM block iterator for save/
 DEF wCompressSource                   EQU $C97A  ; compressed-data source ptr lo (16-bit, += $100 per page)
 DEF wFileFirstCharacter               EQU $C980  ; first name char of file being loaded (0 = empty slot)
 DEF wCompressProgress                 EQU $C981  ; blocks-processed counter (progress display)
+DEF wCompressRunByte                  EQU $CB64  ; the byte a run repeats: FileCompressRun writes the $C0 run marker, this byte, then the count
 DEF wDecompressOk                     EQU $C982  ; decompress continue/success flag (cleared on OOB/overflow/mismatch)
 DEF wBlockSinkPointer                 EQU $C984  ; 16-bit handler ptr: FlushBlockToSram or VerifyBlockAgainstSram (jp hl)
 DEF wFileNameTerm                     EQU $C98F  ; NUL terminator after the 8-char filename
@@ -981,6 +984,7 @@ DEF wWaveEditX                      EQU $CB60  ; wave-editor pen X: (column*4) &
 DEF wNotePeriodLow                  EQU $CD28  ; RAM copy of the note->period table (SoundNoteToPeriod indexes by note)
 DEF wNoteFineTable                  EQU $CD94  ; RAM copy of the finetune/delta table (SoundWriteChannelFrequency, index wNoteOctave-1)
 DEF wMasterVolumeTable              EQU $D400  ; master-volume transition LUT (Command_M indexes by rAUDVOL & $70)
+DEF wKitMixerCode                   EQU $D480  ; the kit mixer: MixerKernel unrolled 16 times by InitializeKitMixer, called from the timer handler
 DEF wDecompressBufferEnd            EQU $DA4F  ; end bound of wDecompressBuffer walks (OrBitsIntoDaBuffer)
 DEF wSpriteCursor5X                 EQU $DD41  ; selection cursor sprite 16 X
 DEF wSpriteCursor6X                 EQU $DD45  ; selection cursor sprite 17 X

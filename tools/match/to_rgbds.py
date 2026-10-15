@@ -162,6 +162,18 @@ def source_addresses(source: str, labels: dict[int, str]) -> dict[int, str]:
     return out
 
 
+def is_ram(v: int) -> bool:
+    return 0xC000 <= v <= 0xDFFF or 0xFF80 <= v <= 0xFFFE
+
+
+def is_compare16(after: list[str]) -> bool:
+    """Whether `ld hl, $N` followed by `after` is SDCC's 16-bit compare
+    (gb_cmp16's `ld hl,#-N; add hl,rr`, its carry tested next), not an
+    address plus an index."""
+    return (len(after) == 2 and bool(re.fullmatch(r"add hl, (?:bc|de)", after[0]))
+            and bool(re.match(r"(?:jp|jr) n?c,|ld a, \$00$", after[1])))
+
+
 def _farcall_bank(texts: list[str], rr: str) -> int | None:
     """The bank of a banked call whose target `rr` holds (`FarCall(5, 0x747D)`):
     `push rr`, then `ld a, BANK / push af / inc sp`, then a FarCall* call."""
@@ -303,13 +315,27 @@ class Translator:
             m = re.fullmatch(r"ld (bc|de|hl), \$([0-9A-Fa-f]{4})", texts[n])
             if m:
                 rr, v = m.group(1), int(m.group(2), 16)
+                if rr == "hl" and is_compare16(texts[n + 1:n + 3]):
+                    # SDCC's 16-bit compare: hl = -N, so `add hl, rr` carries when rr >= N
+                    out[k] = (rows[k][0], "I", f"ld hl, -${0x10000 - v:X}")
+                    continue
                 name = self.named.get(v)
                 if name is None:
                     bank = _farcall_bank(texts[n + 1:n + 14], rr)
                     if bank is not None:
                         name = disasm.name_in_bank(bank_labels(0 if v < 0x4000 else bank), v)
+                if name is None and is_ram(v):        # a C literal pointer into named RAM
+                    name = disasm.RAM_SYMS.get(v) or disasm.RAM_OFFSETS.get(v)
                 if name:
                     out[k] = (rows[k][0], "I", f"ld {rr}, {name}")
+                continue
+            m = re.fullmatch(r"(ld \[)\$([0-9A-Fa-f]{4})(\], a)|(ld a, \[)\$([0-9A-Fa-f]{4})(\])", texts[n])
+            if m:
+                pre, v, post = (m.group(1), m.group(2), m.group(3)) if m.group(1) else (m.group(4), m.group(5), m.group(6))
+                v = int(v, 16)
+                name = (disasm.RAM_SYMS.get(v) or disasm.RAM_OFFSETS.get(v)) if is_ram(v) else None
+                if name:
+                    out[k] = (rows[k][0], "I", f"{pre}{name}{post}")
                 continue
             m = re.fullmatch(r"ld \[hl\], \$([0-9A-Fa-f]{2})", texts[n])
             if m and texts[n + 1:n + 2] == ["inc hl"] and n + 2 < len(texts):

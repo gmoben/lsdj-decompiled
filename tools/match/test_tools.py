@@ -302,6 +302,11 @@ class TranslatedPointerTests(unittest.TestCase):
         self.assertEqual(to_rgbds.source_addresses("#define Foo ((char *)0x6E0C)\n",
                                                    {0x6E0C: "TxtHelpPan"}), {})
 
+    def test_compare_constant_versus_indexed_pointer(self):
+        self.assertTrue(to_rgbds.is_compare16(["add hl, de", "jp c, .done"]))
+        self.assertTrue(to_rgbds.is_compare16(["add hl, bc", "ld a, $00"]))
+        self.assertFalse(to_rgbds.is_compare16(["add hl, de", "ld a, [hl]"]))   # base + index
+
     def test_banked_call_by_address(self):
         rows = [(1, "I", "ld hl, $747D"), (4, "I", "push hl"), (5, "I", "ld a, $05"),
                 (7, "I", "push af"), (8, "I", "inc sp"), (9, "I", "call FarCall")]
