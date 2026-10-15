@@ -23,7 +23,7 @@ void DrawInstrumentTableMode(void)
 {
     char *s;
 
-    switch (ReadCurrentInstrumentByte(0)) {
+    switch (ReadCurrentInstrumentByte(INSTRUMENT_BYTE_TYPE)) {
     case 0:
         wVramCursor = (UBYTE *)BG_MAP(6, 17);
         break;
@@ -37,7 +37,9 @@ void DrawInstrumentTableMode(void)
         wVramCursor = (UBYTE *)BG_MAP(6, 14);
         break;
     }
-    s = (ReadCurrentInstrumentByte(6) & 0x20) ? ((ReadCurrentInstrumentByte(5) & 8) ? "STEP" : "TICK") : " OFF";
+    s = (ReadCurrentInstrumentByte(INSTRUMENT_BYTE_TABLE) & 0x20)
+        ? ((ReadCurrentInstrumentByte(INSTRUMENT_BYTE_FLAGS) & 8) ? "STEP" : "TICK")
+        : " OFF";
     DrawString(s);
 }
 
@@ -45,7 +47,7 @@ void DrawInstrumentTableField(void)
 {
     char v;
 
-    v = ReadCurrentInstrumentByte(6);
+    v = ReadCurrentInstrumentByte(INSTRUMENT_BYTE_TABLE);
     if (v & 0x20)
         DrawHexByte(v & 0x1F);
     else
@@ -61,7 +63,7 @@ void DrawInstrumentTableField(void)
  */
 void DrawKitLoopMode(UBYTE loopBit, UBYTE attackByte)
 {
-    if (ReadCurrentInstrumentByte(5) & loopBit) {
+    if (ReadCurrentInstrumentByte(INSTRUMENT_BYTE_FLAGS) & loopBit) {
         if (0x80 & ReadCurrentInstrumentByte(attackByte))
             DrawString("ATK");
         else
@@ -83,7 +85,7 @@ void DrawKitLoopField(void)
 
 UBYTE InstrumentEnvelopeHasSecond(void)
 {
-    return ReadCurrentInstrumentByte(1) & 0x0F;
+    return ReadCurrentInstrumentByte(INSTRUMENT_BYTE_ENVELOPE1) & 0x0F;
 }
 
 UBYTE InstrumentEnvelopeHasThird(void)
@@ -91,7 +93,7 @@ UBYTE InstrumentEnvelopeHasThird(void)
     UBYTE a, b;
 
     a = InstrumentEnvelopeHasSecond();
-    b = ReadCurrentInstrumentByte(9) & 0x0F;
+    b = ReadCurrentInstrumentByte(INSTRUMENT_BYTE_ENVELOPE2) & 0x0F;
     return a && b;
 }
 
@@ -106,12 +108,12 @@ void DrawEnvelopeFields(void)
     hBgDigitPalette = wShadedDigitPalette;
     hBgPalette = wShadedPalette;
     wVramCursor = BG_MAP(5, 5);
-    DrawHexByte(ReadCurrentInstrumentByte(1));
+    DrawHexByte(ReadCurrentInstrumentByte(INSTRUMENT_BYTE_ENVELOPE1));
     if (InstrumentEnvelopeHasSecond()) {
         wVramCursor = BG_MAP(8, 5);
-        DrawHexByte(ReadCurrentInstrumentByte(9));
+        DrawHexByte(ReadCurrentInstrumentByte(INSTRUMENT_BYTE_ENVELOPE2));
         if (InstrumentEnvelopeHasThird()) {
-            v = ReadCurrentInstrumentByte(10);
+            v = ReadCurrentInstrumentByte(INSTRUMENT_BYTE_ENVELOPE3);
             wVramCursor = BG_MAP(11, 5);
             if (v & 0xF0)
                 DrawHexByte(v);
@@ -129,12 +131,12 @@ void DrawPulseInstrument(void)
 
     DrawEnvelopeFields();
     wVramCursor = BG_MAP(11, 7);
-    v = ReadCurrentInstrumentByte(7);
+    v = ReadCurrentInstrumentByte(INSTRUMENT_BYTE_OUTPUT);
     DrawPulseDuty(v >> 6);
     wVramCursor = BG_MAP(11, 8);
-    DrawFieldValue(0x0C, ReadCurrentInstrumentByte(7));
+    DrawFieldValue(0x0C, ReadCurrentInstrumentByte(INSTRUMENT_BYTE_OUTPUT));
     wVramCursor = BG_MAP(8, 9);
-    v = ReadCurrentInstrumentByte(3);
+    v = ReadCurrentInstrumentByte(INSTRUMENT_BYTE_LENGTH);
     if (!(v & 0x40)) {
         DrawString("UNLIM");
     } else {
@@ -142,18 +144,18 @@ void DrawPulseInstrument(void)
         DrawHexByte((0x3F - v) & 0x3F);
     }
     wVramCursor = BG_MAP(11, 10);
-    DrawHexByte(ReadCurrentInstrumentByte(4) & 0x7F);
+    DrawHexByte(ReadCurrentInstrumentByte(PULSE_BYTE_SWEEP) & 0x7F);
     wVramCursor = BG_MAP(7, 11);
-    v = ReadCurrentInstrumentByte(5);
+    v = ReadCurrentInstrumentByte(INSTRUMENT_BYTE_FLAGS);
     FarCallArgument(1, FAR_FN(DrawSpeedModeName), v);
     wVramCursor = BG_MAP(10, 12);
     FarCallArgument(1, FAR_FN(DrawOnOffName), v);
     wVramCursor = BG_MAP(12, 15);
-    DrawByte(ReadCurrentInstrumentByte(8));
+    DrawByte(ReadCurrentInstrumentByte(INSTRUMENT_BYTE_COMMAND_RATE));
     wVramCursor = BG_MAP(11, 13);
-    DrawHexByte(ReadCurrentInstrumentByte(2));
+    DrawHexByte(ReadCurrentInstrumentByte(PULSE_BYTE_PU2_TRANSPOSE));
     wVramCursor = BG_MAP(11, 14);
-    DrawHexByte(ReadCurrentInstrumentByte(0x0B));
+    DrawHexByte(ReadCurrentInstrumentByte(PULSE_BYTE_FINETUNE));
     wVramCursor = BG_MAP(6, 17);
     DrawInstrumentTableMode();
     wVramCursor++;
@@ -167,9 +169,9 @@ void DrawNoiseInstrument(void)
     wVramCursor = BG_MAP(5, 5);
     DrawEnvelopeFields();
     wVramCursor = BG_MAP(11, 7);
-    DrawFieldValue(0x0C, ReadCurrentInstrumentByte(7));
+    DrawFieldValue(0x0C, ReadCurrentInstrumentByte(INSTRUMENT_BYTE_OUTPUT));
     wVramCursor = BG_MAP(8, 8);
-    v = ReadCurrentInstrumentByte(3);
+    v = ReadCurrentInstrumentByte(INSTRUMENT_BYTE_LENGTH);
     if (!(v & 0x40)) {
         DrawString("UNLIM");
     } else {
@@ -177,14 +179,14 @@ void DrawNoiseInstrument(void)
         DrawHexByte((0x3F - v) & 0x3F);
     }
     wVramCursor = BG_MAP(9, 9);
-    DrawString(ReadCurrentInstrumentByte(2) ? "SAFE" : "FREE");
+    DrawString(ReadCurrentInstrumentByte(NOISE_BYTE_PITCH) ? "SAFE" : "FREE");
     wVramCursor = BG_MAP(11, 10);
-    v = ReadCurrentInstrumentByte(5);
+    v = ReadCurrentInstrumentByte(INSTRUMENT_BYTE_FLAGS);
     FarCallArgument(1, FAR_FN(DrawSpeedGlyph), v);
     wVramCursor = BG_MAP(10, 11);
     FarCallArgument(1, FAR_FN(DrawOnOffName), v);
     wVramCursor = BG_MAP(12, 12);
-    DrawByte(ReadCurrentInstrumentByte(8));
+    DrawByte(ReadCurrentInstrumentByte(INSTRUMENT_BYTE_COMMAND_RATE));
     wVramCursor = BG_MAP(6, 14);
     DrawInstrumentTableMode();
     wVramCursor++;
@@ -212,13 +214,13 @@ void DrawKitInstrument(void)
     UBYTE v, flags;
 
     wVramCursor = BG_MAP(4, 5);
-    v = ReadCurrentInstrumentByte(2) & 0x3F;
+    v = ReadCurrentInstrumentByte(KIT_BYTE_KIT1) & 0x3F;
     DrawKitNameCell(v);
     wVramCursor = BG_MAP(4, 6);
-    v = ReadCurrentInstrumentByte(9) & 0x3F;
+    v = ReadCurrentInstrumentByte(KIT_BYTE_KIT2) & 0x3F;
     DrawKitNameCell(v);
     wVramCursor = BG_MAP(9, 8);
-    v = ReadCurrentInstrumentByte(1);
+    v = ReadCurrentInstrumentByte(KIT_BYTE_VOLUME);
     switch (v & 0x60) {
     case 0x20:
         v = '3';
@@ -238,11 +240,11 @@ void DrawKitInstrument(void)
     DrawStringIndexed('/');
     hBgDigitPalette = wShadedDigitPalette;
     hBgPalette = wShadedPalette;
-    DrawFieldValue(0x0C, ReadCurrentInstrumentByte(7));
+    DrawFieldValue(0x0C, ReadCurrentInstrumentByte(INSTRUMENT_BYTE_OUTPUT));
     wVramCursor = BG_MAP(6, 13);
     DrawKitLoopField();
     wVramCursor = BG_MAP(9, 14);
-    if (0x40 & ReadCurrentInstrumentByte(2))         /* literal first: tested in b */
+    if (0x40 & ReadCurrentInstrumentByte(KIT_BYTE_KIT1))         /* literal first: tested in b */
         DrawString("0.5");
     else
         DrawString("  1");
@@ -252,22 +254,22 @@ void DrawKitInstrument(void)
     hBgDigitPalette = wShadedDigitPalette;
     hBgPalette = wShadedPalette;
     wVramCursor = BG_MAP(8, 15);
-    v = ReadCurrentInstrumentByte(0x0A);
+    v = ReadCurrentInstrumentByte(KIT_BYTE_CLIP);
     FarCallArgument(3, FAR_FN(DrawKitDistortionName), v);
     wVramCursor = BG_MAP(11, 10);
-    DrawHexByte(ReadCurrentInstrumentByte(8));
+    DrawHexByte(ReadCurrentInstrumentByte(KIT_BYTE_FINETUNE));
     wVramCursor = BG_MAP(8, 11);
-    v = ReadCurrentInstrumentByte(0x0C);
+    v = ReadCurrentInstrumentByte(KIT_BYTE_OFFSET1);
     DrawHexByte(v);
     hBgDigitPalette = 4;
     hBgPalette = 1;
     DrawStringIndexed('/');
     hBgDigitPalette = wShadedDigitPalette;
     hBgPalette = wShadedPalette;
-    v = ReadCurrentInstrumentByte(0x0D);
+    v = ReadCurrentInstrumentByte(KIT_BYTE_OFFSET2);
     DrawHexByte(v);
     wVramCursor = BG_MAP(6, 12);
-    v = ReadCurrentInstrumentByte(3);
+    v = ReadCurrentInstrumentByte(KIT_BYTE_LENGTH1);
     if (v) {
         DrawStringTile20();
         DrawHexByte(v);
@@ -278,14 +280,14 @@ void DrawKitInstrument(void)
     DrawStringIndexed('/');
     hBgDigitPalette = wShadedDigitPalette;
     hBgPalette = wShadedPalette;
-    v = ReadCurrentInstrumentByte(0x0B);
+    v = ReadCurrentInstrumentByte(KIT_BYTE_LENGTH2);
     if (v) {
         DrawStringTile20();
         DrawHexByte(v);
     } else
         DrawString("ALL");
     wVramCursor = BG_MAP(7, 9);
-    flags = ReadCurrentInstrumentByte(5);
+    flags = ReadCurrentInstrumentByte(INSTRUMENT_BYTE_FLAGS);
     FarCallArgument(1, FAR_FN(DrawSpeedModeName), flags);
     wVramCursor = BG_MAP(6, 17);
     DrawInstrumentTableMode();
@@ -298,7 +300,7 @@ void DrawWaveInstrument(void)
     UBYTE v;
 
     wVramCursor = BG_MAP(9, 5);
-    v = ReadCurrentInstrumentByte(1);
+    v = ReadCurrentInstrumentByte(WAVE_BYTE_VOLUME);
     switch (v & 0x60) {
     case 0x20:
         v = '3';
@@ -319,21 +321,21 @@ void DrawWaveInstrument(void)
     DrawStringIndexed('/');
     hBgDigitPalette = wShadedDigitPalette;
     hBgPalette = wShadedPalette;
-    DrawFieldValue(0x0C, ReadCurrentInstrumentByte(7));
+    DrawFieldValue(0x0C, ReadCurrentInstrumentByte(INSTRUMENT_BYTE_OUTPUT));
     wVramCursor = BG_MAP(7, 6);
-    v = ReadCurrentInstrumentByte(5);
+    v = ReadCurrentInstrumentByte(INSTRUMENT_BYTE_FLAGS);
     FarCallArgument(1, FAR_FN(DrawSpeedModeName), v);
     wVramCursor = BG_MAP(10, 7);
     FarCallArgument(1, FAR_FN(DrawOnOffName), v);
     wVramCursor = BG_MAP(12, 9);
-    DrawByte(ReadCurrentInstrumentByte(8));
+    DrawByte(ReadCurrentInstrumentByte(INSTRUMENT_BYTE_COMMAND_RATE));
     FarCall(3, DrawWaveFinetune);
     FarCall(3, DrawWaveSynthField);
     FarCall(3, DrawWaveLength);
     FarCall(3, DrawWaveLoopPosition);
     FarCall(3, DrawWaveSpeed);
     wVramCursor = BG_MAP(5, 11);
-    v = ReadCurrentInstrumentByte(9);
+    v = ReadCurrentInstrumentByte(WAVE_BYTE_PLAY);
     DrawString(PlayModeNames + (v < 5 ? v : 5) * 9);
     wVramCursor = BG_MAP(6, 17);
     DrawInstrumentTableMode();

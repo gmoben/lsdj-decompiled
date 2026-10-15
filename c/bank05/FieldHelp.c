@@ -86,7 +86,7 @@ void ShowInstrumentFieldHelp(UBYTE type)
             case WAVE_FIELD_FINETUNE: s = TxtHelpDetune; break;
             case WAVE_FIELD_COMMAND_RATE: s = TxtHelpCmdRate; break;
             case WAVE_FIELD_WAVE:
-                if (ReadInstrumentByte(wInstrument, 9) == 0)
+                if (ReadInstrumentByte(wInstrument, WAVE_BYTE_PLAY) == 0)
                     s = TxtHelpWaveToPlay;
                 else
                     s = TxtHelpSynthToPlay;

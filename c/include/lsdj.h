@@ -91,6 +91,39 @@ typedef int WORD;
 #define INSTRUMENT_KIT       2
 #define INSTRUMENT_NOISE     3
 
+/* an instrument's 16 bytes (the manual's Appendix C): the bytes every type
+ * shares, the ones some types share, then each type's own */
+#define INSTRUMENT_BYTE_TYPE           0
+#define INSTRUMENT_BYTE_ENVELOPE1      1    /* pulse, noise */
+#define INSTRUMENT_BYTE_LENGTH         3    /* pulse, noise: bit 6 limited, 5-0 */
+#define INSTRUMENT_BYTE_FLAGS          5    /* pitch, transpose, table speed, vibrato (kit: the loops) */
+#define INSTRUMENT_BYTE_TABLE          6    /* bit 5 on, 4-0 the table */
+#define INSTRUMENT_BYTE_OUTPUT         7    /* bits 1-0 (pulse: the wave in 7-6) */
+#define INSTRUMENT_BYTE_COMMAND_RATE   8    /* pulse, wave, noise */
+#define INSTRUMENT_BYTE_ENVELOPE2      9    /* pulse, noise */
+#define INSTRUMENT_BYTE_ENVELOPE3      10   /* pulse, noise */
+#define PULSE_BYTE_PU2_TRANSPOSE       2
+#define PULSE_BYTE_SWEEP               4
+#define PULSE_BYTE_FINETUNE            11
+#define WAVE_BYTE_VOLUME               1    /* bits 6-5 */
+#define WAVE_BYTE_LOOP_POSITION        2    /* the low nibble, inverted */
+#define WAVE_BYTE_WAVE                 3    /* the wave; the synth in bits 7-4 */
+#define WAVE_BYTE_PLAY                 9
+#define WAVE_BYTE_LENGTH               10   /* $0F - the length */
+#define WAVE_BYTE_SPEED                11   /* the speed - 3 */
+#define WAVE_BYTE_FINETUNE             12
+#define KIT_BYTE_VOLUME                1    /* bits 6-5 */
+#define KIT_BYTE_KIT1                  2    /* bits 5-0; 6 half speed, 7 loop 1 at attack */
+#define KIT_BYTE_LENGTH1               3
+#define KIT_BYTE_FINETUNE              8
+#define KIT_BYTE_KIT2                  9    /* bits 5-0; 7 loop 2 at attack */
+#define KIT_BYTE_CLIP                  10
+#define KIT_BYTE_LENGTH2               11
+#define KIT_BYTE_OFFSET1               12
+#define KIT_BYTE_OFFSET2               13
+#define NOISE_BYTE_PITCH               2    /* bit 0: free/safe */
+#define NOISE_BYTE_LAST_NOTE           4
+
 /* wInstrumentField: the instrument screen's fields, per type (InstrumentFieldX
  * has their places; ShowInstrumentFieldHelp their help) */
 #define INSTRUMENT_FIELD_NAME          0

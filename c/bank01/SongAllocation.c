@@ -198,9 +198,10 @@ void CloneInstrumentTable(void)
 {
     UBYTE v, t;
 
-    if (wInstrumentField != InstrumentTableFieldRow[ReadCurrentInstrumentByte(0) & 3])
+    if (wInstrumentField
+            != InstrumentTableFieldRow[ReadCurrentInstrumentByte(INSTRUMENT_BYTE_TYPE) & 3])
         return;
-    v = ReadCurrentInstrumentByte(6);
+    v = ReadCurrentInstrumentByte(INSTRUMENT_BYTE_TABLE);
     if (!(v & 0x20))
         return;
     v &= 0x1F;
@@ -209,7 +210,7 @@ void CloneInstrumentTable(void)
         return;
     ShowMessage("CLONED TABLE");
     CopyTableData(v, t);
-    WriteInstrumentByte(wInstrument, 6, t | 0x20);
+    WriteInstrumentByte(wInstrument, INSTRUMENT_BYTE_TABLE, t | 0x20);
 }
 
 void PasteInstrument(void)

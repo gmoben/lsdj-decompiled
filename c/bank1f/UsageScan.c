@@ -121,7 +121,7 @@ void MarkInstrumentTableUsed(UBYTE instrument)
 {
     UBYTE v;
 
-    v = ReadInstrumentByte(instrument, 6);
+    v = ReadInstrumentByte(instrument, INSTRUMENT_BYTE_TABLE);
     if (v & 0x20)
         MarkTableUsed(v & 0x1F);
 }

@@ -30,11 +30,11 @@ UWORD GetInstrumentEnvelopeBytes(void)
     int d;
 
     total = 0;
-    v = ReadCurrentInstrumentByte(1);
+    v = ReadCurrentInstrumentByte(INSTRUMENT_BYTE_ENVELOPE1);
     volume = v >> 4;
     length = ExponentialCurve16[v & 0x0F];
     if (length) {
-        v2 = ReadCurrentInstrumentByte(9);
+        v2 = ReadCurrentInstrumentByte(INSTRUMENT_BYTE_ENVELOPE2);
         volume2 = v2 >> 4;
         length2 = ExponentialCurve16[v2 & 0x0F];
         total = abs(volume2 - volume);
@@ -42,7 +42,7 @@ UWORD GetInstrumentEnvelopeBytes(void)
             total = 1;
         total = total * length;
         if (length2) {
-            v3 = ReadCurrentInstrumentByte(10);
+            v3 = ReadCurrentInstrumentByte(INSTRUMENT_BYTE_ENVELOPE3);
             volume3 = v3 >> 4;
             length3 = ExponentialCurve16[v3 & 0x0F];
             d = volume3 - volume2;
@@ -99,7 +99,7 @@ void ComputeEnvelope(void)
 
     position = 0;
     total = GetInstrumentEnvelopeBytes();
-    v = ReadCurrentInstrumentByte(1);
+    v = ReadCurrentInstrumentByte(INSTRUMENT_BYTE_ENVELOPE1);
     volume = v >> 4;
     length = ExponentialCurve16[v & 0x0F];
     if (total < 500)
@@ -108,7 +108,7 @@ void ComputeEnvelope(void)
     FillMemory(wDecompressBuffer, 0, 0xC0);
     PlotEnvelopeCurve(0, volume);
     if (length) {
-        v2 = ReadCurrentInstrumentByte(9);
+        v2 = ReadCurrentInstrumentByte(INSTRUMENT_BYTE_ENVELOPE2);
         volume2 = v2 >> 4;
         length2 = ExponentialCurve16[v2 & 0x0F];
         do {
@@ -120,7 +120,7 @@ void ComputeEnvelope(void)
                 volume++;
         } while (volume != volume2);
         if (length2) {
-            v3 = ReadCurrentInstrumentByte(10);
+            v3 = ReadCurrentInstrumentByte(INSTRUMENT_BYTE_ENVELOPE3);
             volume3 = v3 >> 4;
             length3 = ExponentialCurve16[v3 & 0x0F];
             do {
@@ -165,7 +165,7 @@ void UpdateInstrumentEnvelope(void)
 {
     UBYTE type;
 
-    type = ReadCurrentInstrumentByte(0);
+    type = ReadCurrentInstrumentByte(INSTRUMENT_BYTE_TYPE);
     if (type == INSTRUMENT_WAVE || type == INSTRUMENT_KIT)
         return;
     ComputeEnvelope();

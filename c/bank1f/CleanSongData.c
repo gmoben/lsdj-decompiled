@@ -466,8 +466,8 @@ void RemapCommandTableRefs(UBYTE from, UBYTE to)
     nt = to | 0x20;
     nf = from | 0x20;
     while (instrument != 0x40) {
-        if (ReadInstrumentByte(instrument, 6) == nf)
-            WriteInstrumentByte(instrument, 6, nt);
+        if (ReadInstrumentByte(instrument, INSTRUMENT_BYTE_TABLE) == nf)
+            WriteInstrumentByte(instrument, INSTRUMENT_BYTE_TABLE, nt);
         instrument++;
     }
 }

@@ -24,7 +24,7 @@ void DrawSpeedModeName(UBYTE v)
         DrawString("STEP");
     else if (v & 0x10)
         DrawString("TICK");
-    else if ((v & 0x40) && ReadCurrentInstrumentByte(0) != INSTRUMENT_KIT)
+    else if ((v & 0x40) && ReadCurrentInstrumentByte(INSTRUMENT_BYTE_TYPE) != INSTRUMENT_KIT)
         DrawString("DRUM");
     else
         DrawString("FAST");

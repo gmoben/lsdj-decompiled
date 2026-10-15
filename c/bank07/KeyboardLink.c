@@ -99,7 +99,7 @@ void DrawKeyboardInstrumentState(void)
     wKeyboardChannelState[3] = 0;
     wKeyboardArmed = 0;
     if (wKeyboardInstrument < 0x40) {
-        t = ReadInstrumentByte(wKeyboardInstrument, 0);
+        t = ReadInstrumentByte(wKeyboardInstrument, INSTRUMENT_BYTE_TYPE);
         switch (t) {
         case 0:
             *wav = 0;

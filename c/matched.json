@@ -3221,24 +3221,6 @@
   "len": 130,
   "src": "c/bank1d/GrooveScreen.c"
  },
- "SetInstrumentByte10": {
-  "bank": "03",
-  "addr": "4B0A",
-  "len": 31,
-  "src": "c/bank03/InstrumentScreen.c"
- },
- "SetInstrumentByte11": {
-  "bank": "03",
-  "addr": "4AE0",
-  "len": 20,
-  "src": "c/bank03/InstrumentScreen.c"
- },
- "SetInstrumentByte2": {
-  "bank": "03",
-  "addr": "4B29",
-  "len": 35,
-  "src": "c/bank03/InstrumentScreen.c"
- },
  "SetInstrumentPitchByte": {
   "bank": "03",
   "addr": "4257",
@@ -3328,6 +3310,24 @@
   "addr": "4B16",
   "len": 42,
   "src": "c/bank06/WaveScreen.c"
+ },
+ "SetWaveLength": {
+  "bank": "03",
+  "addr": "4B0A",
+  "len": 31,
+  "src": "c/bank03/InstrumentScreen.c"
+ },
+ "SetWaveLoopPosition": {
+  "bank": "03",
+  "addr": "4B29",
+  "len": 35,
+  "src": "c/bank03/InstrumentScreen.c"
+ },
+ "SetWaveSpeed": {
+  "bank": "03",
+  "addr": "4AE0",
+  "len": 20,
+  "src": "c/bank03/InstrumentScreen.c"
  },
  "SetWaveSpriteColumns": {
   "bank": "06",

@@ -379,8 +379,8 @@ in `docs/functionality.md`.
   things. Renaming a local is byte-neutral; splitting one into two is not
   (a second local can move the stack frame), so a shared variable gets one
   name that fits both uses.
-- **C constants.** Screen numbers, instrument types (`INSTRUMENT_KIT`) and
-  their screen fields (`PULSE_FIELD_SWEEP`),
+- **C constants.** Screen numbers, instrument types (`INSTRUMENT_KIT`), their
+  screen fields (`PULSE_FIELD_SWEEP`) and bytes (`WAVE_BYTE_PLAY`),
   channels (`CHANNEL_WAV`), commands (`COMMAND_S`) and joypad bits are names
   from `lsdj.h`
   (`wCurrentScreen = SCREEN_SONG`, `wButtons == (J_B | J_A)`,

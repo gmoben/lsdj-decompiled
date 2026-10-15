@@ -237,7 +237,9 @@ comment began with a quoted string had been carved as data, since a leading
   `wCurrentScreen` and `wClipboardType`), the instrument types
   (`INSTRUMENT_KIT`, an instrument's byte 0), the instrument screen's fields
   per type (`WAVE_FIELD_PLAY`, `KIT_FIELD_CLIP`: the manual's labels, checked
-  against `ShowInstrumentFieldHelp` and `InstrumentFieldX`), the channels (`CHANNEL_NOI`
+  against `ShowInstrumentFieldHelp` and `InstrumentFieldX`), an instrument's
+  bytes (`INSTRUMENT_BYTE_TABLE`, `KIT_BYTE_OFFSET1`: the manual's Appendix C,
+  which every field handler's reads and writes agree with), the channels (`CHANNEL_NOI`
   for `wSongColumn` and `hSoundChannel`), the commands (`COMMAND_Z`, in
   `CommandMnemonics`' order; `FileUpgrade.c` keeps numbers, which there mean
   an older format's commands) and the joypad bits (`J_A`, GBDK's

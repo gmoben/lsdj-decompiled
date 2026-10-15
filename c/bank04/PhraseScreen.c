@@ -142,8 +142,9 @@ void ResolvePhraseCursorNote(UBYTE v)
     wPhraseColumnLast[wSongColumn] = v;
     if (wSongColumn == CHANNEL_NOI && wCursorMode != 4) {
         instrument = FindCursorInstrument();
-        if (instrument < 0x40 && ReadInstrumentByte(instrument, 0) == INSTRUMENT_NOISE)
-            WriteInstrumentByte(instrument, 4, v);
+        if (instrument < 0x40
+                && ReadInstrumentByte(instrument, INSTRUMENT_BYTE_TYPE) == INSTRUMENT_NOISE)
+            WriteInstrumentByte(instrument, NOISE_BYTE_LAST_NOTE, v);
     }
 }
 
@@ -156,7 +157,8 @@ void SetColumnInstrument(UBYTE instrument)
         if (wSongColumn == CHANNEL_WAV) {
             wInstrumentIsKit = instrument != 0x40;
             if (wInstrumentIsKit)
-                wInstrumentIsKit = ReadInstrumentByte(instrument, 0) == INSTRUMENT_KIT;
+                wInstrumentIsKit
+                    = ReadInstrumentByte(instrument, INSTRUMENT_BYTE_TYPE) == INSTRUMENT_KIT;
         }
         WriteSongByte(1, (UWORD)wSongColumn + (UWORD)SRAM_PROPERTY_COLUMN_INSTRUMENTS, instrument);
     }
@@ -217,7 +219,7 @@ UBYTE CommitPhraseInstrument(void)
         if (wSongColumn == CHANNEL_NOI) {
             n = wColumnInstrument[3];
             if (n < 0x40) {
-                n = ReadInstrumentByte(n, 4);
+                n = ReadInstrumentByte(n, NOISE_BYTE_LAST_NOTE);
                 if (n > 0x78)
                     n = 0x78;
                 WritePhraseNote((char)wPhraseRow, n);
@@ -731,7 +733,7 @@ UBYTE CursorInstrumentIsKit(void)
 
     v = FindCursorInstrument();
     if (v < 0x40)
-        r = ReadInstrumentByte(v, 0) == INSTRUMENT_KIT;
+        r = ReadInstrumentByte(v, INSTRUMENT_BYTE_TYPE) == INSTRUMENT_KIT;
     else
         r = 0;
     return r;
@@ -967,8 +969,8 @@ UBYTE DrawInstrumentName(UBYTE row, UBYTE instrument)
     hBgPalette = wHighlightPalette;
     DrawHexByte(instrument);
     if (wSongColumn == CHANNEL_NOI && instrument < 0x40
-            && ReadInstrumentByte(instrument, 0) == INSTRUMENT_NOISE) {
-        n = ReadInstrumentByte(instrument, 4);
+            && ReadInstrumentByte(instrument, INSTRUMENT_BYTE_TYPE) == INSTRUMENT_NOISE) {
+        n = ReadInstrumentByte(instrument, NOISE_BYTE_LAST_NOTE);
         *(UBYTE *)0xC90A = n;               /* wPhraseInstrumentCache, stored through the literal */
         WritePhraseNote(row, n);
         result = 1;
@@ -989,14 +991,14 @@ UBYTE PhraseCellFlagA(UBYTE row)
     if (i == 0xFF)
         return 0;
     if (i < 0x40) {
-        kit = ReadInstrumentByte(i, 0) == INSTRUMENT_KIT;
+        kit = ReadInstrumentByte(i, INSTRUMENT_BYTE_TYPE) == INSTRUMENT_KIT;
     } else {
         i = 0x40;
         r = 1;
     }
     if (i)
         i--;
-    k2 = ReadInstrumentByte(i, 0);
+    k2 = ReadInstrumentByte(i, INSTRUMENT_BYTE_TYPE);
     k2 = k2 == 2;
     r |= k2;
     r |= !(kit == k2);
@@ -1018,12 +1020,12 @@ UBYTE PhraseCellFlagB(UBYTE row)
     if (i == 0xFF)
         return 0;
     if (i < 0x40) {
-        kit = ReadInstrumentByte(i, 0) == INSTRUMENT_KIT;
+        kit = ReadInstrumentByte(i, INSTRUMENT_BYTE_TYPE) == INSTRUMENT_KIT;
         i++;
     } else
         i = 0x40;
     if (i < 0x40) {
-        k2 = ReadInstrumentByte(i, 0);
+        k2 = ReadInstrumentByte(i, INSTRUMENT_BYTE_TYPE);
         k2 = k2 == 2;
         r = k2;
         r |= !(kit == k2);
@@ -1043,13 +1045,13 @@ UBYTE PhraseCellFlagC(UBYTE row)
     if (i == 0xFF || i < 0x10)
         return 0;
     if (i < 0x40) {
-        kit = ReadInstrumentByte(i, 0) == INSTRUMENT_KIT;
+        kit = ReadInstrumentByte(i, INSTRUMENT_BYTE_TYPE) == INSTRUMENT_KIT;
         i -= 0x10;
     } else {
         i = 0x30;
         r = 1;
     }
-    k2 = ReadInstrumentByte(i, 0);
+    k2 = ReadInstrumentByte(i, INSTRUMENT_BYTE_TYPE);
     k2 = k2 == 2;
     r |= k2;
     r |= !(kit == k2);
@@ -1066,10 +1068,10 @@ UBYTE PhraseCellFlagD(UBYTE row)
     i = ReadPhraseInstrument(wPhrase, row);
     if (i > 0x30)
         return 0;
-    kit = ReadInstrumentByte(i, 0) == INSTRUMENT_KIT;
+    kit = ReadInstrumentByte(i, INSTRUMENT_BYTE_TYPE) == INSTRUMENT_KIT;
     i += 0x10;
     if (i < 0x40) {
-        k2 = ReadInstrumentByte(i, 0);
+        k2 = ReadInstrumentByte(i, INSTRUMENT_BYTE_TYPE);
         k2 = k2 == 2;
         r = k2;
         r |= !(kit == k2);
@@ -1090,7 +1092,7 @@ UBYTE PrelistenEditedCell(void)
         return wInstrumentIsKit;
     if (i == 0x40)
         return 0;
-    return ReadInstrumentByte(i, 0) == INSTRUMENT_KIT;
+    return ReadInstrumentByte(i, INSTRUMENT_BYTE_TYPE) == INSTRUMENT_KIT;
 }
 
 /* $5BA6: the phrase screen's input, an if chain on wButtons: A places the
