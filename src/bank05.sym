@@ -68,7 +68,7 @@
 649E TxtCopy05                  ; "COPY"
 42D5 TableColumnX                  ; [6] x of the six table screen columns (VOL TSP CMD VAL CMD VAL)
 42DB TableColumnWidth              ; [6] widths of the six table screen columns
-42E1 TableColumnPalette            ; normal palette of the six table screen columns (1 on the command columns)
+42E1 TableColumnPalette            ; [6] normal palette of the six table screen columns (1 on the command columns)
 
 ; --- structural local names (loop heads / common exits) ---
 403F .done                ; common exit of UpdateMapTopRow

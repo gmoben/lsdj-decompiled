@@ -147,7 +147,7 @@
 1AFF SoundApplyWavVibrato ; apply WAV-channel vibrato: if wChannelVibratoSpeed+5, compute offset (SoundCalculateVibratoOffset) -> wChannelVibratoOffset+4/5 and advance vib phase wChannelVibratoAccumulatorWav; shared by SoundStepPitchVibratoWav + SoundModulateWavFrequency
 1815 TickWorkTimeClock   ; bump saturating counter wWorkClockSubFrame (<$80), advance wWorkTimeAccumulator ($C69D); wrap at $0E00 -> wWorkTimeTicks ($C577), clear wIdleHalt
 20DB HandleTooBusy       ; CPU-overload handler (redraw backlog overflowed while playing): reset playback (bank2 $710E: exit live mode + sound reinit) and ShowMessage "TOO BUSY!"
-1986 SoundCalculateVibratoOffset    ; eval vibrato/mod waveform: (phase>>2)+e indexes ctrl table TimesTwoTable; bit7 -> negate; dispatch via VibratoOffsetJumps -> signed offset in hl
+1986 SoundCalculateVibratoOffset    ; eval vibrato/mod waveform: (phase>>2)+e indexes ctrl table VibratoShapes; bit7 -> negate; dispatch via VibratoOffsetJumps -> signed offset in hl
 19A1 SoundCalculateVibratoOffsetNeg ; SoundCalculateVibratoOffset bit7-set helper: complement A then dispatch via VibratoOffsetJumps
 19A6 SoundStepPitchVibratoPu1  ; ch0: accumulate wChannelPitchRate->wChannelPitchCurrent, clamp to wChannelPitchTarget (-> SoundUpdatePitchModulationFlagPu1); advance vib phase wChannelVibratoAccumulator -> wChannelVibratoOffset
 1A26 SoundStepPitchVibratoPu2  ; ch1: as PU1 for +2/+3 offsets (-> SoundUpdatePitchModulationFlagPu2); vib phase wChannelVibratoAccumulatorPu2 -> wChannelVibratoOffset+2
@@ -241,8 +241,7 @@
 086F AsciiCharacterMap               ; [89] character-to-tile map from space onward; text draws set wStringSource to this address minus $20
 08C8 IdentityCharacterMap            ; [64] identity tile-index map (loaded into wStringSource for raw-tile draws)
 01E0 SyncModeStubs              ; 4 x 4-byte jp-hl slots from SendSyncHandshake ((mode&3)*4); only slot 0 (ret) populated
-0200 TimesTwoTable              ; [n] -> 2n byte ramp (FileUpgradeRemapBits, synth draw)
-0255 SignedRampTable            ; [171] BYTE -12..-2, 0..31, then 32 x 32, 32 x -33, 64 x 0 (a modulation LUT block; read by LoadHardwareTables)
+0200 VibratoShapes              ; [16][16] the vibrato shapes, 64 steps each -- triangle (the manual's sin), saw, square, then flat -- as offsets into VibratoOffsetJumps; bit 7 marks the negative half, the offset its complement (SoundCalculateVibratoOffset reads them through page $02)
 
 ; --- vector page ($0000-$0068): Emulicious segments the RST/interrupt slots
 ; and creates _DATA_ labels for every data run/accessed offset, ignoring

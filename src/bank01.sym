@@ -144,7 +144,7 @@
 7BDA TxtAst                     ; "AST"
 794B CrashHandler               ; crash entry: di, SRAM locked (rRAMG = 0), SaveCrashStack
 40FA NoteFrequencyTable              ; [108] UWORD GB frequency period per semitone 0-107 (LoadHardwareTables copies it)
-41D2 NoteFrequencyDeltaTable         ; [108] UWORD companion pitch table (finetune/delta variant, LoadHardwareTables)
+41D2 NoteFrequencyTableCgb      ; [108] UWORD the CGB's NoteFrequencyTable (LoadHardwareTables picks by wIsCgb)
 42AA PitchCurve                 ; [216] rising pitch-response curve (LoadHardwareTables copies it)
 4382 PitchCurveCgb              ; [216] PitchCurve's CGB counterpart (LoadHardwareTables picks by wIsCgb)
 5927 ScreenPaletteTable             ; [18][20] ground tiles, TABLE screen (DrawScreenPaletteMap)
@@ -162,7 +162,7 @@
 6A07 ScreenPaletteWord              ; [18][20] ground tiles, WORD screen (DrawScreenPaletteMap)
 6B6F ScreenPaletteFile              ; [18][20] ground tiles, FILE screen (DrawScreenPaletteMap)
 4144 NoteFrequency37                 ; [71] UWORD NoteFrequencyTable from entry 37 on (period $0714; a label inside it, kept for the debugger)
-4247 NoteFrequencyD58High              ; [1] the high byte of NoteFrequencyDeltaTable entry 58 (a label inside it, kept for the debugger)
+4247 NoteFrequencyCgb58High     ; [1] the high byte of NoteFrequencyTableCgb entry 58 (a label inside it, kept for the debugger)
 5099 TxtPctDColon               ; "%d:"
 509D TxtPctD01                  ; "%d"
 4F44 AllocateNextFreePhraseMiddle ; @deploy-only: operand byte of the jp at $4F42 (walker artifact)

@@ -192,9 +192,9 @@ class PointerTests(unittest.TestCase):
         self.assertEqual(ptrs, {0x45C4: (0x1F, 0x473E), 0x45DA: "rRAMB"})
 
     def test_small_numbers_from_other_banks_stay_numbers(self):
-        # `ld de, $0200` in bank $1D computes $200 - x: not TimesTwoTable
+        # `ld de, $0200` in bank $1D computes $200 - x: not VibratoShapes
         rows = self.rows((0x5ACB, "ld de, $0200", None), (0x5ACE, "dec hl", None))
-        self.assertEqual(disasm.rom_pointers(rows, 0x1D, {}, {0x0200: "TimesTwoTable"})[0], {})
+        self.assertEqual(disasm.rom_pointers(rows, 0x1D, {}, {0x0200: "VibratoShapes"})[0], {})
 
     def test_unlabelled_jr_is_relative(self):
         rows = [(0x14D6, b"\x30\xff", "jr nc, $14d7", 0x14D7)]

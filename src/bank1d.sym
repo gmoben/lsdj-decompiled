@@ -96,7 +96,7 @@
 648E TxtWaveGlyphM              ; "mmmm" waveform glyph row
 65B8 TxtFold1D                  ; "FOLD"
 65BD TxtWrap1D                  ; "WRAP"
-60E5 SynthFieldLayout           ; per-synth-field layout, 16 fields each: rows here, then SynthFieldX, SynthFieldWidth
+60E5 SynthFieldLayout           ; [16] the synth screen fields' rows (SynthFieldX and SynthFieldWidth follow)
 435A TxtPctD1D                  ; "%d"
 6DE7 TxtHandDrawn               ; "HAND-DRAWN"
 6DF2 TxtWavesQ                  ; "WAVES?"
@@ -564,5 +564,5 @@
 7D74 .synthDataAddress_2
 7D85 .cont
 7DB9 .cont
-60F5 SynthFieldX        ; x of the 16 synth screen fields
-6105 SynthFieldWidth    ; their widths
+60F5 SynthFieldX        ; [16] x of the 16 synth screen fields
+6105 SynthFieldWidth    ; [16] their widths

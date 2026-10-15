@@ -23,7 +23,7 @@ void LoadObjPalette(UBYTE first, UBYTE nb, UWORD *rgb);
 extern UBYTE wNotePeriodLow[];               /* $CD28 */
 extern UBYTE wNotePeriods[];                /* $CF28 */
 extern UBYTE NoteFrequencyTable[];               /* $01:$40FA, DMG */
-extern UBYTE NoteFrequencyDeltaTable[];          /* $01:$41D2, CGB */
+extern UBYTE NoteFrequencyTableCgb[];          /* $01:$41D2, CGB */
 extern UBYTE PitchCurve[];                  /* $01:$42AA, DMG */
 extern UBYTE PitchCurveCgb[];               /* $01:$4382, CGB */
 void ApplyColorSet(void);
@@ -56,7 +56,7 @@ extern UBYTE ScreenPaletteWord[];               /* $01:$6A07 */
 void LoadHardwareTables(void)
 {
     memcpy(wNotePeriodLow, wIsCgb ? PitchCurveCgb : PitchCurve, 0xD8);
-    memcpy(wNotePeriods, wIsCgb ? NoteFrequencyDeltaTable : NoteFrequencyTable, 0xD8);
+    memcpy(wNotePeriods, wIsCgb ? NoteFrequencyTableCgb : NoteFrequencyTable, 0xD8);
 }
 
 /* $4B5E: clear the OAM shadow and the sprite tiles ($8000-$802F and

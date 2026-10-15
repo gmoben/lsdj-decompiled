@@ -92,7 +92,7 @@
 431D WordScreenInput            ; word screen (12) input handler, from DispatchScreenInput: cursor over wWordRow/Col, dispatch on wButtons
 5391 TxtSelect         ; "SELECT" (pairs with TxtCancelSelect)
 6D4E TxtSelect2        ; "SELECT" (second instance; pairs with TxtCancelSelect2)
-4024 WordColumnWidth               ; widths of the word editor columns ($03, $02)
+4024 WordColumnWidth               ; [2] widths of the word editor columns ($03, $02)
 550F ChainColumnX                  ; [2] x of the chain screen columns ($02, $05)
 5A5E TxtDashes2                 ; " --" (blank transpose display)
 745A TxtLead                    ; "LEAD"
@@ -103,7 +103,7 @@
 7515 TxtBlank4c                 ; "    "
 751A TxtLead2                   ; "LEAD" (second instance)
 751F TxtBlank4d                 ; "    "
-4022 WordColumnX                   ; x of the word editor columns ($02, $06)
+4022 WordColumnX                   ; [2] x of the word editor columns ($02, $06)
 
 ; --- structural local names (loop heads / common exits) ---
 406A .loop                ; loop head in ReadWordCell
