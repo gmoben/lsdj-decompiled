@@ -49,7 +49,7 @@ void SynthClearFlag(UBYTE x);
 void MapMoveLeft(void);                     /* bank 5 */
 void MapMoveRight(void);                    /* bank 5 */
 void MapMoveDown(void);                     /* bank 5 */
-void GetSynthFieldHelp(void);               /* bank 5 */
+void ShowSynthFieldHelp(void);               /* bank 5 */
 void ToggleSongPlayback(void);                 /* bank 2 */
 void TogglePlayback(void);                    /* bank 2 */
 extern UBYTE wSynthRenderIdx;               /* $C9F0 */
@@ -748,8 +748,8 @@ void DrawSynthNumber(void)
     DrawByte(wSynthScreen);
     wVramCursor = (UBYTE *)0x98EB;
     DrawByte(wSynthScreen);
-    hBgDigitPal = wShadowDigitPal;
-    hBgPal = wShadowPal;
+    hBgDigitPal = wShadedDigitPal;
+    hBgPal = wShadedPal;
     DrawSynthWaveField();
     p++;
     DrawSynthFilterField();
@@ -1110,14 +1110,14 @@ UBYTE SynthScreenInput(void)
         OverwritePromptInput();
         return 1;
     }
-    hBgDigitPal = wSelectDigitPal;
-    hBgPal = wSelectPal;
+    hBgDigitPal = wHighlightDigitPal;
+    hBgPal = wHighlightPal;
     if (wButtons != 0x10)
         wDrawStep = 0;
     switch (wButtons) {
     case 0x10:
         if (wAPressEnabled && ++wDrawStep == 2)
-            FarCall(5, GetSynthFieldHelp);
+            FarCall(5, ShowSynthFieldHelp);
         return 1;
     case 0x04:
         if (!wSynthCursor)
@@ -1204,8 +1204,8 @@ UBYTE SynthScreenInput(void)
             default:
                 WriteSynthParam(0, 3);
                 DrawSynthScreen();
-                hBgDigitPal = wSelectDigitPal;
-                hBgPal = wSelectPal;
+                hBgDigitPal = wHighlightDigitPal;
+                hBgPal = wHighlightPal;
                 DrawSynthWaveField();
             }
             DrawSynthWaveField();
@@ -1305,8 +1305,8 @@ UBYTE SynthScreenInput(void)
             case 3:
                 WriteSynthParam(0, 2);
                 DrawSynthScreen();
-                hBgDigitPal = wSelectDigitPal;
-                hBgPal = wSelectPal;
+                hBgDigitPal = wHighlightDigitPal;
+                hBgPal = wHighlightPal;
                 DrawSynthWaveField();
             }
             DrawSynthWaveField();

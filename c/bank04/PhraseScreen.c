@@ -74,7 +74,7 @@ extern UBYTE wChainRow;                     /* $C41A */
 extern UBYTE wButtons;                      /* $C575 */
 extern UBYTE FxPrelistenFlags[];            /* $04:$57C0, [20] */
 extern UBYTE PhraseStepOnes[];              /* $04:$54E3, [4][20] */
-void LoadCmdHelp(void);                 /* bank 1 */
+void ShowCmdHelp(void);                 /* bank 1 */
 UBYTE PhraseCellFlagB(UBYTE row);
 UBYTE PhraseCellFlagD(UBYTE row);
 void ErasePhraseCursor(void);          /* bank $1F */
@@ -661,8 +661,8 @@ void DrawPhraseScreen(void)
             t = ReadSongByte(1, addr);
             t = KitIndexToBank(t & 0x3F);
             wPhraseRowFlags[i] = t;
-            hBgDigitPal = wShadowDigitPal;
-            hBgPal = wShadowPal;
+            hBgDigitPal = wShadedDigitPal;
+            hBgPal = wShadedPal;
             if (!(note & 0xF0)) {
                 DrawEmptyNote();
             } else {
@@ -705,8 +705,8 @@ void DrawPhraseScreen(void)
         else
             DrawHexByte(ins);
         DrawStringTile20();
-        hBgDigitPal = wShadowDigitPal;
-        hBgPal = wShadowPal;
+        hBgDigitPal = wShadedDigitPal;
+        hBgPal = wShadedPal;
         t = wRowBufCol2[i];
         DrawPhraseCmdLetter(t);
         hBgDigitPal = 4;
@@ -963,8 +963,8 @@ UBYTE DrawInstrName(UBYTE row, UBYTE instr)
     PhraseDrawCursorGlyph(row);
     SetColInstr(instr);
     WritePhraseInstr(wPhrase, row, instr);
-    hBgDigitPal = wSelectDigitPal;
-    hBgPal = wSelectPal;
+    hBgDigitPal = wHighlightDigitPal;
+    hBgPal = wHighlightPal;
     DrawHexByte(instr);
     if (wSongCol == 3 && instr < 0x40 && ReadInstrByte(instr, 0) == 3) {
         n = ReadInstrByte(instr, 4);
@@ -1154,8 +1154,8 @@ UBYTE PhraseScreenInput(void)
         wPendingCmdTarget = 0;
         if (wCursorMode == 4)
             return 0;
-        hBgDigitPal = wSelectDigitPal;
-        hBgPal = wSelectPal;
+        hBgDigitPal = wHighlightDigitPal;
+        hBgPal = wHighlightPal;
         switch (wPhraseCol) {
         case 0:
         case 1:
@@ -1200,7 +1200,7 @@ UBYTE PhraseScreenInput(void)
                 if (!v)
                     DebugTrap();
             } else if (wDrawStep++)
-                FarCallArg(1, FAR_FN(LoadCmdHelp), v);
+                FarCallArg(1, FAR_FN(ShowCmdHelp), v);
             wPendingCmds[wPhraseRow] = v;
             DrawPhraseCmdLetter(v);
             hBgDigitPal = 4;
@@ -1319,8 +1319,8 @@ UBYTE PhraseScreenInput(void)
         rowEnd++;
         for (; row < rowEnd; row++) {
             PhraseDrawCursorGlyph(row);
-            hBgDigitPal = wSelectDigitPal;
-            hBgPal = wSelectPal;
+            hBgDigitPal = wHighlightDigitPal;
+            hBgPal = wHighlightPal;
             switch (wPhraseCol) {
             case 0:
                 v = PhraseReadNote(row);
@@ -1383,7 +1383,7 @@ UBYTE PhraseScreenInput(void)
                 if (wPendingCmds[row]) {
                     DrawPhraseCmdLetter(wPendingCmds[row]);
                     if (wMessageStrPtr || wMessageTimer)
-                        FarCallArg(1, FAR_FN(LoadCmdHelp), wPendingCmds[row]);
+                        FarCallArg(1, FAR_FN(ShowCmdHelp), wPendingCmds[row]);
                     hBgDigitPal = 4;
                     hBgPal = 1;
                     DrawFieldVal(wPendingCmds[row], PhraseReadFxVal(wPhrase, row));
@@ -1440,8 +1440,8 @@ UBYTE PhraseScreenInput(void)
         rowEnd++;
         for (; row < rowEnd; row++) {
             PhraseDrawCursorGlyph(row);
-            hBgDigitPal = wSelectDigitPal;
-            hBgPal = wSelectPal;
+            hBgDigitPal = wHighlightDigitPal;
+            hBgPal = wHighlightPal;
             switch (wPhraseCol) {
             case 0:
                 v = PhraseReadNote(row);
@@ -1505,7 +1505,7 @@ UBYTE PhraseScreenInput(void)
                 if (wPendingCmds[row]) {
                     DrawPhraseCmdLetter(wPendingCmds[row]);
                     if (wMessageStrPtr || wMessageTimer)
-                        FarCallArg(1, FAR_FN(LoadCmdHelp), wPendingCmds[row]);
+                        FarCallArg(1, FAR_FN(ShowCmdHelp), wPendingCmds[row]);
                     hBgDigitPal = 4;
                     hBgPal = 1;
                     DrawFieldVal(wPendingCmds[row], PhraseReadFxVal(wPhrase, row));
@@ -1564,8 +1564,8 @@ UBYTE PhraseScreenInput(void)
         rowEnd++;
         for (; row < rowEnd; row++) {
             PhraseDrawCursorGlyph(row);
-            hBgDigitPal = wSelectDigitPal;
-            hBgPal = wSelectPal;
+            hBgDigitPal = wHighlightDigitPal;
+            hBgPal = wHighlightPal;
             switch (wPhraseCol) {
             case 0:
                 v = PhraseReadNote(row);
@@ -1634,7 +1634,7 @@ UBYTE PhraseScreenInput(void)
                 } while (!PhraseStepOnes[(UWORD)wSongCol * 20 + wPendingCmds[row]]);
                 DrawPhraseCmdLetter(wPendingCmds[row]);
                 if (wMessageStrPtr || wMessageTimer)
-                    FarCallArg(1, FAR_FN(LoadCmdHelp), wPendingCmds[row]);
+                    FarCallArg(1, FAR_FN(ShowCmdHelp), wPendingCmds[row]);
                 hBgDigitPal = 4;
                 hBgPal = 1;
                 DrawFieldVal(wPendingCmds[row], PhraseReadFxVal(wPhrase, row));
@@ -1686,8 +1686,8 @@ UBYTE PhraseScreenInput(void)
         rowEnd++;
         for (; row < rowEnd; row++) {
             PhraseDrawCursorGlyph(row);
-            hBgDigitPal = wSelectDigitPal;
-            hBgPal = wSelectPal;
+            hBgDigitPal = wHighlightDigitPal;
+            hBgPal = wHighlightPal;
             switch (wPhraseCol) {
             case 0:
                 v = PhraseReadNote(row);
@@ -1756,7 +1756,7 @@ UBYTE PhraseScreenInput(void)
                 } while (!PhraseStepOnes[(UWORD)wSongCol * 20 + wPendingCmds[row]]);
                 DrawPhraseCmdLetter(wPendingCmds[row]);
                 if (wMessageStrPtr || wMessageTimer)
-                    FarCallArg(1, FAR_FN(LoadCmdHelp), wPendingCmds[row]);
+                    FarCallArg(1, FAR_FN(ShowCmdHelp), wPendingCmds[row]);
                 hBgDigitPal = 4;
                 hBgPal = 1;
                 DrawFieldVal(wPendingCmds[row], PhraseReadFxVal(wPhrase, row));

@@ -331,7 +331,7 @@ class SwitchChainTests(unittest.TestCase):
 
 
 class WordTestHlTests(unittest.TestCase):
-    """A stack word tested by genIfx loses hl (DrawInstrFieldHelp); the same
+    """A stack word tested by genIfx loses hl (ShowInstrFieldHelp); the same
     bytes from genCmpEq keep it (GetInstrEnvBytes)."""
 
     def source(self, marker):

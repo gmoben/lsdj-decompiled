@@ -667,7 +667,7 @@ void DrawTopBar(void)
         DrawChanHeader();
 }
 
-void LoadCmdHelp(UBYTE cmd)
+void ShowCmdHelp(UBYTE cmd)
 {
     UBYTE *saved;
     UBYTE *s;
@@ -734,8 +734,8 @@ void UiUpdateMessage(void)
         return;
     if (wMessageStrPtr) {
         if (!wMessageTimer) {
-            hBgDigitPal = wSelectDigitPal;
-            hBgPal = wSelectPal;
+            hBgDigitPal = wHighlightDigitPal;
+            hBgPal = wHighlightPal;
             wVramCursor = (UBYTE *)0x9800;
             for (i = 0; i < 20; i++)
                 DrawStringIndexed(wMessageStrPtr[i]);

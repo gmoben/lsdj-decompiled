@@ -100,8 +100,8 @@ void DrawChainPos(void)
     UBYTE r;
 
     wVramCursor = (UBYTE *)0x9851;
-    hBgDigitPal = wShadowDigitPal;
-    hBgPal = wShadowPal;
+    hBgDigitPal = wShadedDigitPal;
+    hBgPal = wShadedPal;
     DrawString("CP");
     r = wChainRow;
     DrawByte(r);
@@ -258,8 +258,8 @@ void ChainOpenPhrase(void)
         ClonePhraseAtCursor(ph, n);
         FarCallArg3(0x1F, (UWORD)WriteChainPhrase, wChain, (char)wChainRow, n);
         SetVramCursor(2, wChainRow + 2);
-        hBgDigitPal = wSelectDigitPal;
-        hBgPal = wSelectPal;
+        hBgDigitPal = wHighlightDigitPal;
+        hBgPal = wHighlightPal;
         DrawHexByte(n);
     } else {
         FarCall(1, FAR_FN(ShowOutOfMemory));
@@ -319,8 +319,8 @@ UBYTE ChainScreenInput(void)
     if (wAPressEnabled && isA) {
         if (wCursorMode == 4)
             return 0;
-        hBgDigitPal = wSelectDigitPal;
-        hBgPal = wSelectPal;
+        hBgDigitPal = wHighlightDigitPal;
+        hBgPal = wHighlightPal;
         SetVramCursor(ChainColX[wChainCol], wChainRow + 2);
         switch (wChainCol) {
         case 0:
@@ -419,8 +419,8 @@ UBYTE ChainScreenInput(void)
         SortBytePair(&y0, &y1);
         x1++;
         y1++;
-        hBgDigitPal = wSelectDigitPal;
-        hBgPal = wSelectPal;
+        hBgDigitPal = wHighlightDigitPal;
+        hBgPal = wHighlightPal;
         wChainScopeDirty = 1;
         for (; x < x1; x++) {
             for (y = y0; y < y1; y++) {
@@ -463,8 +463,8 @@ UBYTE ChainScreenInput(void)
         x1++;
         y1++;
         wChainScopeDirty = 1;
-        hBgDigitPal = wSelectDigitPal;
-        hBgPal = wSelectPal;
+        hBgDigitPal = wHighlightDigitPal;
+        hBgPal = wHighlightPal;
         for (; x < x1; x++) {
             for (y = y0; y < y1; y++) {
                 switch (x) {
@@ -510,8 +510,8 @@ UBYTE ChainScreenInput(void)
         x1++;
         y1++;
         wChainScopeDirty = 1;
-        hBgDigitPal = wSelectDigitPal;
-        hBgPal = wSelectPal;
+        hBgDigitPal = wHighlightDigitPal;
+        hBgPal = wHighlightPal;
         for (; x < x1; x++) {
             for (y = y0; y < y1; y++) {
                 switch (x) {
@@ -553,8 +553,8 @@ UBYTE ChainScreenInput(void)
         x1++;
         y1++;
         wChainScopeDirty = 1;
-        hBgDigitPal = wSelectDigitPal;
-        hBgPal = wSelectPal;
+        hBgDigitPal = wHighlightDigitPal;
+        hBgPal = wHighlightPal;
         for (; x < x1; x++) {
             for (y = y0; y < y1; y++) {
                 switch (x) {

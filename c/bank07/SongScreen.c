@@ -200,11 +200,11 @@ void SongDrawRowNumber(void)
     y = 16;
     while (y--) {
         if ((BYTE)row & 4) {
-            hBgDigitPal = wShadowDigitPal;
-            hBgPal = wShadowPal;
+            hBgDigitPal = wShadedDigitPal;
+            hBgPal = wShadedPal;
         } else {
-            hBgDigitPal = wSelectDigitPal;
-            hBgPal = wSelectPal;
+            hBgDigitPal = wHighlightDigitPal;
+            hBgPal = wHighlightPal;
         }
         DrawHexByte(row);
         wVramCursor += 0x1E;
@@ -329,16 +329,16 @@ void SongRowPalettes(UBYTE y)
     cur = wSongScroll + y - 2;
     shadow = cur & (UBYTE)4;
     if (shadow) {
-        hBgDigitPal = wShadowDigitPal;
-        hBgPal = wShadowPal;
+        hBgDigitPal = wShadedDigitPal;
+        hBgPal = wShadedPal;
     } else {
-        hBgDigitPal = wSelectDigitPal;
-        hBgPal = wSelectPal;
+        hBgDigitPal = wHighlightDigitPal;
+        hBgPal = wHighlightPal;
     }
     DrawHexByte(wSongRow);
     if (bm) {
-        hBgDigitPal = wShadowDigitPal;
-        hBgPal = wShadowPal;
+        hBgDigitPal = wShadedDigitPal;
+        hBgPal = wShadedPal;
     } else {
         hBgDigitPal = 4;
         hBgPal = 1;
@@ -348,8 +348,8 @@ void SongRowPalettes(UBYTE y)
         DrawStringIndexed(' ');
         cur = i == wSongCol;
         if (cur) {
-            hBgDigitPal = wSelectDigitPal;
-            hBgPal = wSelectPal;
+            hBgDigitPal = wHighlightDigitPal;
+            hBgPal = wHighlightPal;
         }
         if (v & 0x80)
             DrawString("--");                   /* the literal lands right after the function ($492A) */
@@ -357,8 +357,8 @@ void SongRowPalettes(UBYTE y)
             DrawHexByte(v);
         if (cur) {
             if (bm) {
-                hBgDigitPal = wShadowDigitPal;
-                hBgPal = wShadowPal;
+                hBgDigitPal = wShadedDigitPal;
+                hBgPal = wShadedPal;
             } else {
                 hBgDigitPal = 4;
                 hBgPal = 1;

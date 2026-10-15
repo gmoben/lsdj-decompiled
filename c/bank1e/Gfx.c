@@ -168,10 +168,10 @@ void LoadFontTiles(void)
     ResetDisplayState();
     _asm di _endasm;
     if (hGameboyType) {
-        wShadowDigitPal = 4;
-        wSelectDigitPal = 4;
-        wShadowPal = 1;
-        wSelectPal = 1;
+        wShadedDigitPal = 4;
+        wHighlightDigitPal = 4;
+        wShadedPal = 1;
+        wHighlightPal = 1;
         a = TilesFont0A;
         switch (wFont) {
         case 1:

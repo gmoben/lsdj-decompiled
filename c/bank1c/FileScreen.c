@@ -794,8 +794,8 @@ void DrawFileList(void)
         blocks = wFileBlockCounts[slot];
         if (slot == end)
             break;
-        hBgDigitPal = wShadowDigitPal;
-        hBgPal = wShadowPal;
+        hBgDigitPal = wShadedDigitPal;
+        hBgPal = wShadedPal;
         DrawHexByte(slot);
         hBgDigitPal = 4;
         hBgPal = 1;
@@ -825,8 +825,8 @@ void DrawFileList(void)
         c = row + wFileScroll;
         if (c < 0x20) {
             SetVramCursor(0, row + 4);
-            hBgDigitPal = wShadowDigitPal;
-            hBgPal = wShadowPal;
+            hBgDigitPal = wShadedDigitPal;
+            hBgPal = wShadedPal;
             DrawHexByte(c);
             hBgDigitPal = 4;
             hBgPal = 1;
@@ -849,8 +849,8 @@ void DrawFileScreen(void)
     FarCall(1, FAR_FN(DrawTopBar));
     for (i = StrLength(wTopBarStr); i != 12; i++)
         DrawStringTile20();
-    hBgDigitPal = wShadowDigitPal;
-    hBgPal = wShadowPal;
+    hBgDigitPal = wShadedDigitPal;
+    hBgPal = wShadedPal;
     wVramCursor = 0x9840;
     DrawString("LOAD");
     wVramCursor = 0x9845;
@@ -932,8 +932,8 @@ UBYTE DrawBlocksUsed(void)
     wVramCursor = 0x9926;
     DrawString("YES");
     wVramCursor = 0x992B;
-    hBgDigitPal = wSelectDigitPal;
-    hBgPal = wSelectPal;
+    hBgDigitPal = wHighlightDigitPal;
+    hBgPal = wHighlightPal;
     DrawString("NO");
     if (hGameboyType) {
         VBK_REG = 1;

@@ -1,7 +1,7 @@
 ; Bank $01 -- UI string table + help text (incl. the FX command help popups)
 4485 .done                ; (was CartridgeTest) common exit
 51F4 PitchSpeedNames    ; [4][5] pitch-speed display names "STEP"/"TICK"/"DRUM"/"FAST"
-764C LoadCmdHelp    ; resolve command (sp+8) -> help string in wStrBuf + wVramCursor; shown at screen top on double-A. B/F/H/S/W are context-cased (by $C41D), the rest via CmdHelpTable
+764C ShowCmdHelp                ; show command cmd's help line on double-A (ShowMessage; wVramCursor kept): B and H by screen (phrase or table), F, S and W by channel (wSongCol), the rest from CmdHelpTable
 776E CmdHelpTable   ; [20] dw -> the "X: DESCRIPTION" help line per command (index = command*2; entry 0 points at an empty string, the end of TxtHelpSSweep)
 
 ; --- UI functions called from bank 0 (bank $01 paged in) ---
@@ -227,7 +227,7 @@
 750A .loop                ; loop head in DrawMessageBar
 751F .loop2               ; loop head in DrawMessageBar
 758D .loop3               ; loop head in DrawMessageBar
-776A .done                ; common exit of LoadCmdHelp
+776A .done                ; common exit of ShowCmdHelp
 783A .loop                ; loop head in ClearMessageBar
 78AF .loop                ; loop head in UiUpdateMessage
 7943 .done                ; common exit of UiUpdateMessage
@@ -270,8 +270,8 @@
 6EF1 .onWave              ; wCurScreen == case in DrawTopBar
 6F08 .onSynth             ; wCurScreen == case in DrawTopBar
 6F1F .onGroove            ; wCurScreen == case in DrawTopBar
-76A7 .notPhrase           ; wButtons == case in LoadCmdHelp
-76C5 .notPhrase2          ; wButtons == case in LoadCmdHelp
+76A7 .notPhrase           ; wButtons == case in ShowCmdHelp
+76C5 .notPhrase2          ; wButtons == case in ShowCmdHelp
 4ED1 .haveStart                 ; starting phrase resolved ($ff cache -> 0)
 4F0A .maskBit                   ; shift the bit mask into place for the candidate's alloc bit
 4F29 .found                     ; free phrase found and claimed -> return it in e

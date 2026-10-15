@@ -31,9 +31,9 @@
 43C0 InstrSynthNew              ; A twice on a wave instrument's SYNTH field (PLAY not MANUAL): give it a free synth (FindFreeSynth), drawn and stored in byte 3 bits 7-4
 441A CloneSynth                 ; clone the current instrument's synth into a free synth slot (params + 256 wave bytes), then point the instrument at it
 45A7 InstrScreenFrame           ; shared instrument-screen frame draw (map row, tempo field, marker sprites)
-45D3 InstrSelectPrevUsed        ; step wInstr back to the previous allocated instrument (SramInstrAlloc), then redraw
-461B InstrSelectPrevPage        ; wInstr -= 16 (clamped to 0), then InstrSelectPrevUsed
-4638 InstrSelectNextUsed        ; step wInstr on to the next allocated instrument (stops at $40, speech), then redraw
+45D3 InstrPrevUsed        ; step wInstr back to the previous allocated instrument (SramInstrAlloc), then redraw
+461B InstrPrevPage        ; wInstr -= 16 (clamped to 0), then InstrPrevUsed
+4638 InstrNextUsed        ; step wInstr on to the next allocated instrument (stops at $40, speech), then redraw
 47A2 InstrTableModePrev         ; table mode down: clear byte 5 bit 3 (table step) if set, else table off; redraw
 482E InstrTableModeNext         ; table mode up: table on, then set byte 5 bit 3 (table step); redraw
 489D InstrTableNext             ; table on: table number +1 (up to $1F), then FarCall bank $1F DrawInstrTableField
@@ -61,9 +61,9 @@
 4DD7 InstrEnvChanged       ; FarCall bank1b UpdateInstrEnv after a field edit
 4FDC DrawKitNameField           ; draw kit number (hex) + 6-char kit name (ReadKitName -> wSampleNoteString)
 5002 WriteKitNumber             ; write kit# into the field's low 6 bits (top flag bits preserved via $c0 mask)
-503A KitSelectNext              ; step to the next existing kit bank (KitExists scan), WriteKitNumber
-508C KitSelectPrev              ; step to the previous existing kit (bound $3f), WriteKitNumber
-50DF KitSelectEnsure            ; ensure the kit field points at an existing kit, else fix up
+503A KitNext              ; step to the next existing kit bank (KitExists scan), WriteKitNumber
+508C KitPrev              ; step to the previous existing kit (bound $3f), WriteKitNumber
+50DF KitEnsureExists            ; point either kit field of the current instrument (bytes 2 and 9) that names a missing kit at kit 0
 5128 SetInstrType               ; write instrument byte 0 = type (0=PULSE 1=WAVE 2=KIT 3=NOISE)
 5181 InstrFieldIncLo            ; current field byte: +1 on the lo nibble (clamp $0f), redraw + InstrEnvChanged
 51BC InstrFieldDecLo            ; current field byte: -1 on the lo nibble (clamp 0)
@@ -97,10 +97,10 @@
 4416 .done                ; common exit of InstrSynthNew
 4466 .loop                ; loop head in CloneSynth
 4596 .done                ; common exit of CloneSynth
-45E4 .loop                ; loop head in InstrSelectPrevUsed
-4619 .done                ; common exit of InstrSelectPrevUsed
-4637 .done                ; common exit of InstrSelectPrevPage
-4641 .loop                ; loop head in InstrSelectNextUsed
+45E4 .loop                ; loop head in InstrPrevUsed
+4619 .done                ; common exit of InstrPrevUsed
+4637 .done                ; common exit of InstrPrevPage
+4641 .loop                ; loop head in InstrNextUsed
 473D .done                ; common exit of EraseInstrCursor
 4767 .done                ; common exit of InstrCmdRateInc
 478E .done                ; common exit of InstrCmdRateDec
@@ -123,12 +123,12 @@
 4F9D .eraseLoop           ; DrawInstrScreen: CGB: erase the cursor of every field
 4FC0 .done                ; common exit of DrawInstrScreen
 4FF2 .done                ; common exit of DrawKitNameField
-5060 .loop                ; loop head in KitSelectNext
-5088 .done                ; common exit of KitSelectNext
-50B2 .loop                ; loop head in KitSelectPrev
-50DB .done                ; common exit of KitSelectPrev
-50E4 .loop                ; loop head in KitSelectEnsure
-5124 .done                ; common exit of KitSelectEnsure
+5060 .loop                ; loop head in KitNext
+5088 .done                ; common exit of KitNext
+50B2 .loop                ; loop head in KitPrev
+50DB .done                ; common exit of KitPrev
+50E4 .loop                ; loop head in KitEnsureExists
+5124 .done                ; common exit of KitEnsureExists
 517D .done                ; common exit of SetInstrType
 51BA .done                ; common exit of InstrFieldIncLo
 51F2 .done                ; common exit of InstrFieldDecLo

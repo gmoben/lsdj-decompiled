@@ -21,10 +21,10 @@ DEF wClipboardType   EQU $C411  ; SCREEN_* data-type held in the cut/copy clipbo
 ; Two contexts: dimmed/shadowed ($C566/7) and selected/highlighted ($C568/9). Verified:
 ; the draw helper copies $C568->hBgDigitPal and $C569->hBgPal. (These four were
 ; previously mislabeled wProjectCursor -- they are draw palette config, not a cursor.)
-DEF wShadowDigitPal  EQU $C566  ; BG digit-palette attribute, dimmed/normal context
-DEF wShadowPal       EQU $C567  ; BG tile-palette attribute, dimmed/normal context
-DEF wSelectDigitPal  EQU $C568  ; BG digit-palette attribute, selected/highlighted context (-> hBgDigitPal)
-DEF wSelectPal       EQU $C569  ; BG tile-palette attribute, selected/highlighted context (-> hBgPal)
+DEF wShadedDigitPal  EQU $C566  ; BG digit-palette attribute, dimmed/normal context
+DEF wShadedPal       EQU $C567  ; BG tile-palette attribute, dimmed/normal context
+DEF wHighlightDigitPal  EQU $C568  ; BG digit-palette attribute, selected/highlighted context (-> hBgDigitPal)
+DEF wHighlightPal       EQU $C569  ; BG tile-palette attribute, selected/highlighted context (-> hBgPal)
 DEF wGroove          EQU $C417  ; current groove number being edited (0-31, Groove screen)
 DEF wChain           EQU $C418  ; current chain number being edited (0-127, Chain screen)
 DEF wTable           EQU $C41B  ; current table number being edited (0-31, Table screen)
@@ -65,7 +65,7 @@ DEF wSampleNoteString EQU $C43A  ; [7] shared text buffer for a sample/kit note 
 DEF wTableCol        EQU $C92F  ; Table editor: current column/cursor state (bit7 = special)
 DEF wTableRow        EQU $C930  ; Table editor: current row cursor (0-15); pairs with wTableCol
 DEF wDefaultNotes     EQU $C904  ; table/array of default note values (InstrScreenInput / InstrParamByte10 / InstrParamTableSet2; reset in ResetWorkState)
-DEF wHelpRow   EQU $C934  ; HELP/word screen cursor row (HelpSelectPrev/Next/OpenSelected)
+DEF wHelpRow   EQU $C934  ; HELP/word screen cursor row (HelpCursorUp/Next/OpenSelected)
 DEF wWordRow     EQU $C937  ; Word/speech editor: cursor row within the current word (inc/dec by nav); ReadWordCell indexes word data at +wWordRow*2
 DEF wWordCol     EQU $C938  ; Word/speech editor: cursor column (0/1) within the row; ReadWordCell byte offset within the 2-byte unit
 DEF wPlayMarkerTimer EQU $C950  ; Song screen: free-running blink counter incremented each SongUpdatePlayMarker; bit 3 (and $08) is the play-marker on/off phase

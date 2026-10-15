@@ -181,7 +181,7 @@ Confirmed routines (bank `$1B`):
 
 The Project cursor row is `wProjCursor` (`$C9A4`). (`$C566`-`$C569` were once
 taken for cursor state; they are the BG-attribute draw palettes
-`wShadowDigitPal`/`wShadowPal`/`wSelectDigitPal`/`wSelectPal`.) The field
+`wShadedDigitPal`/`wShadedPal`/`wHighlightDigitPal`/`wHighlightPal`.) The field
 *labels* (TEMPO, SYNC, …) are tiles, not ASCII. The Project input handler is
 the index-9 entry of `DispatchScreenInput` (`ProjScreenInput`, `$5DBF`).
 

@@ -15,7 +15,7 @@
  *     on `if (sfr)`, so LSDj's source must have declared it plainly).
  *   - The working song in SRAM is addressed with numeric constants, not
  *     linker symbols: SDCC swaps a *literal* left operand of `+` to the
- *     right, an extern's address it does not (InstrSelectNextUsed tells them
+ *     right, an extern's address it does not (InstrNextUsed tells them
  *     apart), so the SramXxx names below are literal-pointer macros.
  *   - Banked calls go through FarCall/FarCallArg (bank 0, hand-written asm).
  *     Most call sites pass the function itself (`ld bc,#fn`); others pass
@@ -74,10 +74,10 @@ extern UBYTE wUsedTableMap[];               /* $C47D, [32] tables referenced by 
 extern UBYTE wPlayMode;                     /* $C4D2 */
 extern UBYTE wTempo;                        /* $C529, 0-39 stand for 256-295 */
 extern UBYTE wTempoMode;                    /* $C52A: 0 = BPM, 1-3 = the 2X/3X/6X sync speeds */
-extern UBYTE wShadowDigitPal;               /* $C566 */
-extern UBYTE wShadowPal;                    /* $C567 */
-extern UBYTE wSelectDigitPal;               /* $C568 */
-extern UBYTE wSelectPal;                    /* $C569 */
+extern UBYTE wShadedDigitPal;               /* $C566 */
+extern UBYTE wShadedPal;                    /* $C567 */
+extern UBYTE wHighlightDigitPal;               /* $C568 */
+extern UBYTE wHighlightPal;                    /* $C569 */
 extern UBYTE *wStringSrc;                   /* $C564, the character-to-tile map DrawString reads */
 extern UBYTE AsciiCharMap[];                /* $0:$086F, text from ' '; wStringSrc = AsciiCharMap - 0x20 */
 extern UBYTE IdentityCharMap[];             /* $0:$08C8, raw tile indices */
@@ -256,14 +256,14 @@ UBYTE GetWaveLoopPos(void);
 UBYTE GetInstrType3(void);
 void WriteKitNumber(UBYTE field, UBYTE kit);
 void InstrEnvChanged(void);
-void KitSelectEnsure(void);
+void KitEnsureExists(void);
 void CloneSynth(void);
 void InstrTableOn(void);
 UBYTE IsInstrTableOn(void);
 UBYTE GetWavePlayMode(void);
 UBYTE WavePlayIsManual(void);
 void SetInstrPitchByte(UBYTE v);
-void InstrSelectPrevUsed(void);
+void InstrPrevUsed(void);
 UBYTE GetWaveLen(void);
 UBYTE GetWaveSpeed(void);
 UBYTE GetVibShape(void);

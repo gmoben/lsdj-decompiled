@@ -76,8 +76,8 @@ void DrawKitLoopField(void)
     hBgDigitPal = 4;
     hBgPal = 1;
     DrawStringIndexed('/');
-    hBgDigitPal = wShadowDigitPal;
-    hBgPal = wShadowPal;
+    hBgDigitPal = wShadedDigitPal;
+    hBgPal = wShadedPal;
     DrawKitLoopMode(0x20, 9);
 }
 
@@ -103,8 +103,8 @@ void DrawInstrEnvFields(void)
     hBgDigitPal = 4;
     hBgPal = 1;
     DrawString("/--/--");
-    hBgDigitPal = wShadowDigitPal;
-    hBgPal = wShadowPal;
+    hBgDigitPal = wShadedDigitPal;
+    hBgPal = wShadedPal;
     wVramCursor = 0x98A5;
     DrawHexByte(ReadCurInstrByte(1));
     if (InstrEnvHasSecond()) {
@@ -236,8 +236,8 @@ void DrawKitInstr(void)
     hBgDigitPal = 4;
     hBgPal = 1;
     DrawStringIndexed('/');
-    hBgDigitPal = wShadowDigitPal;
-    hBgPal = wShadowPal;
+    hBgDigitPal = wShadedDigitPal;
+    hBgPal = wShadedPal;
     DrawFieldVal(0x0C, ReadCurInstrByte(7));
     wVramCursor = 0x99A6;
     DrawKitLoopField();
@@ -249,8 +249,8 @@ void DrawKitInstr(void)
     hBgDigitPal = 4;
     hBgPal = 1;
     DrawStringIndexed('X');
-    hBgDigitPal = wShadowDigitPal;
-    hBgPal = wShadowPal;
+    hBgDigitPal = wShadedDigitPal;
+    hBgPal = wShadedPal;
     wVramCursor = 0x99E8;
     v = ReadCurInstrByte(0x0A);
     FarCallArg(3, FAR_FN(DrawKitDistName), v);
@@ -262,8 +262,8 @@ void DrawKitInstr(void)
     hBgDigitPal = 4;
     hBgPal = 1;
     DrawStringIndexed('/');
-    hBgDigitPal = wShadowDigitPal;
-    hBgPal = wShadowPal;
+    hBgDigitPal = wShadedDigitPal;
+    hBgPal = wShadedPal;
     v = ReadCurInstrByte(0x0D);
     DrawHexByte(v);
     wVramCursor = 0x9986;
@@ -276,8 +276,8 @@ void DrawKitInstr(void)
     hBgDigitPal = 4;
     hBgPal = 1;
     DrawStringIndexed('/');
-    hBgDigitPal = wShadowDigitPal;
-    hBgPal = wShadowPal;
+    hBgDigitPal = wShadedDigitPal;
+    hBgPal = wShadedPal;
     v = ReadCurInstrByte(0x0B);
     if (v) {
         DrawStringTile20();
@@ -317,8 +317,8 @@ void DrawWaveInstr(void)
     hBgDigitPal = 4;
     hBgPal = 1;
     DrawStringIndexed('/');
-    hBgDigitPal = wShadowDigitPal;
-    hBgPal = wShadowPal;
+    hBgDigitPal = wShadedDigitPal;
+    hBgPal = wShadedPal;
     DrawFieldVal(0x0C, ReadCurInstrByte(7));
     wVramCursor = 0x98C7;
     v = ReadCurInstrByte(5);

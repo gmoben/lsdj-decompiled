@@ -220,11 +220,11 @@ void DrawWaveCol(UBYTE col)
         p += 0x20;
     }
     if (col & 2) {
-        hBgDigitPal = wShadowDigitPal;
-        hBgPal = wShadowPal;
+        hBgDigitPal = wShadedDigitPal;
+        hBgPal = wShadedPal;
     } else {
-        hBgDigitPal = wSelectDigitPal;
-        hBgPal = wSelectPal;
+        hBgDigitPal = wHighlightDigitPal;
+        hBgPal = wHighlightPal;
     }
     t = col;                        /* a char copy: the test and the x read b */
     if (t & 8)

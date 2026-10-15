@@ -143,8 +143,8 @@ void DrawGrooveRow(void)
                 hBgDigitPal = 4;
                 hBgPal = 1;
             } else {
-                hBgDigitPal = wShadowDigitPal;
-                hBgPal = wShadowPal;
+                hBgDigitPal = wShadedDigitPal;
+                hBgPal = wShadedPal;
             }
             q = a * 100 / (a + b);
             printf("%d", (UWORD)q);
@@ -188,14 +188,14 @@ void GrooveRowPalettes(UBYTE row)
     b = wGrooveRow;
     SortBytePair(&a, &b);
     if (row >= a && b >= row) {
-        hBgDigitPal = wSelectDigitPal;
-        hBgPal = wSelectPal;
+        hBgDigitPal = wHighlightDigitPal;
+        hBgPal = wHighlightPal;
     } else if (row & 2) {
         hBgDigitPal = 4;
         hBgPal = 1;
     } else {
-        hBgDigitPal = wShadowDigitPal;
-        hBgPal = wShadowPal;
+        hBgDigitPal = wShadedDigitPal;
+        hBgPal = wShadedPal;
     }
 }
 
@@ -216,8 +216,8 @@ UBYTE GrooveScreenInput(void)
     UBYTE end;
 
     v = wGrooveRow + 2;
-    hBgDigitPal = wSelectDigitPal;
-    hBgPal = wSelectPal;
+    hBgDigitPal = wHighlightDigitPal;
+    hBgPal = wHighlightPal;
     switch (wButtons) {
     case 0x43:
         if (wCursorMode == 4) {

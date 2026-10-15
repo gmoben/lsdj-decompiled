@@ -12,17 +12,17 @@
 extern UBYTE wHelpOpenEntry;                /* $C933, the open HELP entry (0 = none) */
 extern UBYTE wHelpRow;                /* $C934 */
 extern char *HelpMenuPtrs[];                /* $1B:$4058, NULL-terminated */
-extern UBYTE HelpSelectLines[];             /* $1B:$408E, the selectable lines */
+extern UBYTE HelpEntryLines[];             /* $1B:$408E, the selectable lines */
 extern char **HelpPageRefs[];               /* $1B:$4BAF, &HelpPagePtrs[k] per line */
 extern UBYTE wAPressEnabled;                /* $C409 */
 extern UBYTE wButtons;                      /* $C575 */
 void DrawHelpMenu(void);
-void DrawHelpEntry(UBYTE selected);
-void RedrawHelpSelection(void);
+void DrawHelpCursor(UBYTE erase);
+void RedrawHelpCursor(void);
 UWORD StrLength(char *s);                /* bank 0 */
 void DrawHelpPage(char *s);
-void HelpSelectNext(void);
-void HelpOpenSelected(void);
+void HelpCursorDown(void);
+void HelpOpenEntry(void);
 
 void DrawHelpMenu(void)
 {
@@ -34,45 +34,45 @@ void DrawHelpMenu(void)
     }
 }
 
-void DrawHelpEntry(UBYTE selected)
+void DrawHelpCursor(UBYTE erase)
 {
     UBYTE e;
     UBYTE len;
 
-    e = HelpSelectLines[wHelpRow];
+    e = HelpEntryLines[wHelpRow];
     len = StrLength(HelpMenuPtrs[e]);
-    ColorField(0, e, len, selected ? 0 : 2);
+    ColorField(0, e, len, erase ? 0 : 2);
 }
 
-void RedrawHelpSelection(void)
+void RedrawHelpCursor(void)
 {
     if (wHelpOpenEntry != 0)
         return;
-    DrawHelpEntry(0);
+    DrawHelpCursor(0);
 }
 
 void DrawHelpScreen(void)
 {
     FarCall(1, FAR_FN(UiDrawTextHw));
     DrawHelpMenu();
-    RedrawHelpSelection();
+    RedrawHelpCursor();
 }
 
-void HelpSelectNext(void)
+void HelpCursorDown(void)
 {
     if ((UWORD)wHelpRow == 9)
         return;
-    DrawHelpEntry(1);
+    DrawHelpCursor(1);
     wHelpRow++;
-    DrawHelpEntry(0);
+    DrawHelpCursor(0);
 }
 
-void HelpSelectPrev(void)
+void HelpCursorUp(void)
 {
     if (wHelpRow) {
-        DrawHelpEntry(1);
+        DrawHelpCursor(1);
         wHelpRow--;
-        DrawHelpEntry(0);
+        DrawHelpCursor(0);
     }
 }
 
@@ -118,11 +118,11 @@ void DrawHelpPage(char *s)
     }
 }
 
-void HelpOpenSelected(void)
+void HelpOpenEntry(void)
 {
-    DrawHelpEntry(1);
+    DrawHelpCursor(1);
     ClearBgTilemap();
-    wHelpOpenEntry = HelpSelectLines[wHelpRow];
+    wHelpOpenEntry = HelpEntryLines[wHelpRow];
     DrawHelpPage(*HelpPageRefs[wHelpRow]);
 }
 
@@ -134,15 +134,15 @@ UBYTE HelpScreenInput(void)
     switch (wButtons) {
     case 8:
         if (closed)
-            HelpSelectNext();
+            HelpCursorDown();
         break;
     case 4:
         if (closed)
-            HelpSelectPrev();
+            HelpCursorUp();
         break;
     case 0x10:
         if (wAPressEnabled && closed)
-            HelpOpenSelected();
+            HelpOpenEntry();
         break;
     case 0x20:
         if (wAPressEnabled) {

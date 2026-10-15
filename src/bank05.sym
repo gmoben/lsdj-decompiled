@@ -40,12 +40,12 @@
 4253 MapMoveRight       ; inc wMapCol, MapEnterScreen, MapStartTransition(2), MapUpdateTopRow
 426A MapMoveUp          ; dec wMapRow, MapEnterScreen, MapStartTransition(1)
 4287 MapMoveDown        ; inc wMapRow (max 2), MapEnterScreen, MapStartTransition(3)
-7208 GetSynthFieldHelp  ; -> bc = help string for the selected synth field (jump table by wSynthCursor)
+7208 ShowSynthFieldHelp         ; show the selected synth field's help line (ShowMessage; a jump table on wSynthCursor)
 743F SaveSelectionState ; wCursorMode/wClipboardType/wSelectionLeft/Top/Right/... -> $cbd2 save area
 747D RestoreSelectionState ; $cbd2 save area -> wCursorMode/wClipboardType/wSel*
-69BD DrawInstrFieldHelp ; instrument-screen help line: the string for wInstrField under instrument type arg (TYPE row: TxtHelpInstrType) -> ShowMessage
+69BD ShowInstrFieldHelp ; instrument-screen help line: the string for wInstrField under instrument type arg (TYPE row: TxtHelpInstrType) -> ShowMessage
 6F38 TxtHelpInstrType   ; "USE PULSE IN PU1/PU2; WAVE/KIT IN WAV; NOISE IN NOI"
-6D25 TxtHelpEnvStage1           ; "ENVELOPE STAGE 1: ..." (DrawInstrFieldHelp reaches these ten shared strings by constant address)
+6D25 TxtHelpEnvStage1           ; "ENVELOPE STAGE 1: ..." (ShowInstrFieldHelp reaches these ten shared strings by constant address)
 6D72 TxtHelpEnvStage2           ; "ENVELOPE STAGE 2: ..."
 6DBF TxtHelpEnvStage3           ; "ENVELOPE STAGE 3: ..."
 6E0C TxtHelpPan                 ; "LEFT/RIGHT/BOTH/NONE"
@@ -114,7 +114,7 @@
 692C .loop3               ; loop head in DrawTableSelection
 6957 .loop4               ; loop head in DrawTableSelection
 69B9 .done                ; common exit of DrawTableSelection
-6D21 .done                ; common exit of DrawInstrFieldHelp
+6D21 .done                ; common exit of ShowInstrFieldHelp
 
 ; --- structural local names (loop heads / common exits) ---
 4B85 .aFalse

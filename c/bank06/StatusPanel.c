@@ -81,8 +81,8 @@ void UpdateStatusPanel(void)
     UBYTE *p;
     UBYTE t;
 
-    hBgDigitPal = wShadowDigitPal;
-    hBgPal = wShadowPal;
+    hBgDigitPal = wShadedDigitPal;
+    hBgPal = wShadedPal;
     for (i = 0; i < 4; i++) {
         t = (wChanOutput[i] & 0x80) && !wChanOutputOverride[i];
         if (t)

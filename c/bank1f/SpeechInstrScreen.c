@@ -22,7 +22,7 @@ void MapMoveLeft(void);                     /* bank 5 */
 void MapMoveRight(void);                    /* bank 5 */
 void MapMoveUp(void);                       /* bank 5 */
 void MapMoveDown(void);                     /* bank 5 */
-void InstrSelectPrevPage(void);             /* bank 3 */
+void InstrPrevPage(void);             /* bank 3 */
 void ToggleSongPlayback(void);                 /* bank 2 */
 void TogglePlayback(void);                    /* bank 2 */
 void InstrScreenFrame(void);                /* $03:$45A7 */
@@ -85,8 +85,8 @@ void DrawSpeechInstrScreen(void)
     while (row < 4 + 14) {
         SetVramCursor(0, row);
         if (row & 1) {
-            hBgDigitPal = wShadowDigitPal;
-            hBgPal = wShadowPal;
+            hBgDigitPal = wShadedDigitPal;
+            hBgPal = wShadedPal;
         } else {
             hBgDigitPal = 4;
             hBgPal = 1;
@@ -202,8 +202,8 @@ UBYTE SpeechInstrInput(void)
         }
         if (wButtons == 0x30) {
             SetVramCursor(0, SpeechCursorY());
-            hBgDigitPal = wSelectDigitPal;
-            hBgPal = wSelectPal;
+            hBgDigitPal = wHighlightDigitPal;
+            hBgPal = wHighlightPal;
             p -= 3;
             WriteSongByte(0, p++, 'W');
             DrawStringIndexed('W');
@@ -231,8 +231,8 @@ UBYTE SpeechInstrInput(void)
             WriteSongByte(0, p++, ReadClipboardCell(1, i));
         }
         p = (UWORD)wSpeechRow * 3 + (UWORD)0xBDD0;
-        hBgDigitPal = wSelectDigitPal;
-        hBgPal = wSelectPal;
+        hBgDigitPal = wHighlightDigitPal;
+        hBgPal = wHighlightPal;
         SetVramCursor(0, SpeechCursorY());
         for (i = 0; i < 3; i++) {
             if (p >= (UWORD)0xBE78)
@@ -246,10 +246,10 @@ UBYTE SpeechInstrInput(void)
         }
         return 1;
     case 0x22:
-        FarCall(3, InstrSelectPrevUsed);
+        FarCall(3, InstrPrevUsed);
         return 1;
     case 0x28:
-        FarCall(3, InstrSelectPrevPage);
+        FarCall(3, InstrPrevPage);
         return 1;
     case 0xC0:
         if (!wButtonsSame)

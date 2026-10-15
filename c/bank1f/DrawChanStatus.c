@@ -34,8 +34,8 @@ void DrawChanStatus(UBYTE ch)
     c = ch;
     if (wChanOutput[c] & 0x80) {
         s = "MUTE";
-        hBgDigitPal = wSelectDigitPal;
-        hBgPal = wSelectPal;
+        hBgDigitPal = wHighlightDigitPal;
+        hBgPal = wHighlightPal;
         switch (wChanOutputOverride[c]) {
         case 0:
             wChanMuteShown[c] = 1;
@@ -60,8 +60,8 @@ void DrawChanStatus(UBYTE ch)
         wChanMuteShownPtr = &wChanMuteShown[c];
         if (*wChanMuteShownPtr) {
             *wChanMuteShownPtr = 0;
-            hBgDigitPal = wShadowDigitPal;
-            hBgPal = wShadowPal;
+            hBgDigitPal = wShadedDigitPal;
+            hBgPal = wShadedPal;
             DrawString("   ");
         }
         if (hGameboyType) {

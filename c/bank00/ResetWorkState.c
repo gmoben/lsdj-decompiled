@@ -205,10 +205,10 @@ void ResetWorkState(void)
     wWavPlayMode = 0;
     wMessageNoPause = 1;
     wStringSrc = AsciiCharMap - 0x20;
-    wShadowDigitPal = 0x49;
-    wShadowPal = 0x46;
-    wSelectDigitPal = 0x8E;
-    wSelectPal = 0x8B;
+    wShadedDigitPal = 0x49;
+    wShadedPal = 0x46;
+    wHighlightDigitPal = 0x8E;
+    wHighlightPal = 0x8B;
     wLiveStartCol = 0xFF;
     wPtrChainRow = &wChanChainRow[0];
     wPtrPhraseRow = &wChanPhraseRow[0];

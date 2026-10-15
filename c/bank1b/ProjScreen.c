@@ -82,8 +82,8 @@ void SaveSyncMode(void)
 
 void DrawSyncMode2Field(void)
 {
-    hBgDigitPal = wSelectDigitPal;
-    hBgPal = wSelectPal;
+    hBgDigitPal = wHighlightDigitPal;
+    hBgPal = wHighlightPal;
     DrawHexByte(wSyncMode2);
     WriteSongByte(1, SramPropSyncMode2, wSyncMode2);
 }
@@ -166,8 +166,8 @@ void DrawPrelistenField(void)
 void ProjRedrawPrelisten(void)
 {
     wVramCursor = (UBYTE *)0x992A;
-    hBgDigitPal = wShadowDigitPal;
-    hBgPal = wShadowPal;
+    hBgDigitPal = wShadedDigitPal;
+    hBgPal = wShadedPal;
     DrawPrelistenField();
 }
 
@@ -197,8 +197,8 @@ void DrawProjScreen(void)
     wSramFsFlag = FarCallByte(0x1C, FAR_FN(CheckFileMagic64));
     FarCall(1, FAR_FN(DrawTopBar));
     wVramCursor = 0x9846;
-    hBgDigitPal = wShadowDigitPal;
-    hBgPal = wShadowPal;
+    hBgDigitPal = wShadedDigitPal;
+    hBgPal = wShadedPal;
     ProjDrawTempo();
     wVramCursor = 0x986A;
     DrawHexByte(wSongTranspose);
@@ -221,8 +221,8 @@ void DrawProjScreen(void)
     else
         DrawString("RESET MEMORY");
     wVramCursor = 0x9885;
-    hBgDigitPal = wShadowDigitPal;
-    hBgPal = wShadowPal;
+    hBgDigitPal = wShadedDigitPal;
+    hBgPal = wShadedPal;
     DrawSyncField();
     DrawSyncSubSetting();
     wVramCursor = 0x9A26;
@@ -260,8 +260,8 @@ void ProjScreenRefresh(void)
 UBYTE ProjScreenInput(void)
 {
     SetVramCursor(ProjFieldX[wProjCursor], ProjFieldY[wProjCursor]);
-    hBgDigitPal = wSelectDigitPal;
-    hBgPal = wSelectPal;
+    hBgDigitPal = wHighlightDigitPal;
+    hBgPal = wHighlightPal;
     if (wButtons != 0x10)
         wTapTempoCount = 0xFF;
     switch (wButtons) {
@@ -331,8 +331,8 @@ UBYTE ProjScreenInput(void)
             }
             wSyncState = 0;
             SyncApplyMode();
-            hBgDigitPal = wSelectDigitPal;
-            hBgPal = wSelectPal;
+            hBgDigitPal = wHighlightDigitPal;
+            hBgPal = wHighlightPal;
             DrawSyncField();
             ProjRedrawPrelisten();
             return 1;
@@ -425,8 +425,8 @@ UBYTE ProjScreenInput(void)
             }
             wSyncState = 0;
             SyncApplyMode();
-            hBgDigitPal = wSelectDigitPal;
-            hBgPal = wSelectPal;
+            hBgDigitPal = wHighlightDigitPal;
+            hBgPal = wHighlightPal;
             DrawSyncField();
             ProjRedrawPrelisten();
             return 1;
@@ -486,8 +486,8 @@ UBYTE ProjScreenInput(void)
                 wSongTransposeDisp = wSongTranspose;
                 wTransposeDirty++;
             }
-            hBgDigitPal = wSelectDigitPal;
-            hBgPal = wSelectPal;
+            hBgDigitPal = wHighlightDigitPal;
+            hBgPal = wHighlightPal;
             wVramCursor = (UBYTE *)0x986A;
             wSongTransposeDisp += 12;
             DrawHexByte(wSongTransposeDisp);
@@ -520,8 +520,8 @@ UBYTE ProjScreenInput(void)
                 wSongTransposeDisp = wSongTranspose;
                 wTransposeDirty++;
             }
-            hBgDigitPal = wSelectDigitPal;
-            hBgPal = wSelectPal;
+            hBgDigitPal = wHighlightDigitPal;
+            hBgPal = wHighlightPal;
             wVramCursor = (UBYTE *)0x986A;
             wSongTransposeDisp -= 12;
             DrawHexByte(wSongTransposeDisp);

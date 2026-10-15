@@ -54,8 +54,8 @@ void DrawSyncField(void)
         else
             s = TxtSyncTicksStep;
         DrawString(s);
-        hBgDigitPal = wShadowDigitPal;
-        hBgPal = wShadowPal;
+        hBgDigitPal = wShadedDigitPal;
+        hBgPal = wShadedPal;
         DrawHexByte(wSyncMode2);
         if (hGameboyType)
             ColorField(0x0B, 5, 2, 1);

@@ -382,8 +382,8 @@ void DrawTableScreen(void)
     for (i = 0; i < 16; i++) {
         a2 = wRowBufCol4[i];
         a1 = wRowBufCol2[i];
-        hBgDigitPal = wShadowDigitPal;
-        hBgPal = wShadowPal;
+        hBgDigitPal = wShadedDigitPal;
+        hBgPal = wShadedPal;
         DrawCmdLetter(a1);
         wVramCursor += 3;
         DrawCmdLetter(a2);
@@ -485,7 +485,7 @@ extern UBYTE wSelectHeld;                   /* $C40A */
 extern UBYTE wBHeld;                        /* $C40B */
 extern UBYTE wAPressEnabled;                /* $C409 */
 extern UBYTE wButtons;                      /* $C575 */
-void LoadCmdHelp(void);                 /* bank 1 */
+void ShowCmdHelp(void);                 /* bank 1 */
 void ToggleSongPlayback(void);              /* bank 2 */
 void TogglePlayback(void);                  /* bank 2 */
 void CutCopyTableSelection(UBYTE cut);
@@ -510,8 +510,8 @@ UBYTE TableScreenInput(void)
 
     if (wTable >= 0x20)
         DebugTrap();
-    hBgDigitPal = wSelectDigitPal;
-    hBgPal = wSelectPal;
+    hBgDigitPal = wHighlightDigitPal;
+    hBgPal = wHighlightPal;
     if (wButtons != 0x10)
         wDrawStep = 0;
     switch (wButtons) {
@@ -562,7 +562,7 @@ UBYTE TableScreenInput(void)
                 if (!v)
                     DebugTrap();
             } else if (wDrawStep++)
-                FarCallArg(1, FAR_FN(LoadCmdHelp), v);
+                FarCallArg(1, FAR_FN(ShowCmdHelp), v);
             if (v == 0x0A && wTableCol == 4)
                 v = 1;
             wPendingCmds[wTableRow] = v;
@@ -662,11 +662,11 @@ UBYTE TableScreenInput(void)
                     do
                         wPendingCmds[y]++;
                     while (TableInputFlag(wPendingCmds[y]));
-                hBgDigitPal = wSelectDigitPal;
-                hBgPal = wSelectPal;
+                hBgDigitPal = wHighlightDigitPal;
+                hBgPal = wHighlightPal;
                 DrawCmdLetter(wPendingCmds[y]);
                 if (wMessageStrPtr || wMessageTimer)
-                    FarCallArg(1, FAR_FN(LoadCmdHelp), wPendingCmds[y]);
+                    FarCallArg(1, FAR_FN(ShowCmdHelp), wPendingCmds[y]);
                 hBgDigitPal = 4;
                 hBgPal = 1;
                 DrawFieldVal(wPendingCmds[y], TableReadVal(y));
@@ -701,8 +701,8 @@ UBYTE TableScreenInput(void)
                     v++;
                 }
                 TableWriteVal(y, v);
-                hBgDigitPal = wSelectDigitPal;
-                hBgPal = wSelectPal;
+                hBgDigitPal = wHighlightDigitPal;
+                hBgPal = wHighlightPal;
                 DrawFieldVal(TableReadCmd(y), v);
                 break;
             }
@@ -758,11 +758,11 @@ UBYTE TableScreenInput(void)
                     do
                         wPendingCmds[y]--;
                     while (TableInputFlag(wPendingCmds[y]));
-                hBgDigitPal = wSelectDigitPal;
-                hBgPal = wSelectPal;
+                hBgDigitPal = wHighlightDigitPal;
+                hBgPal = wHighlightPal;
                 DrawCmdLetter(wPendingCmds[y]);
                 if (wMessageStrPtr || wMessageTimer)
-                    FarCallArg(1, FAR_FN(LoadCmdHelp), wPendingCmds[y]);
+                    FarCallArg(1, FAR_FN(ShowCmdHelp), wPendingCmds[y]);
                 hBgDigitPal = 4;
                 hBgPal = 1;
                 DrawFieldVal(wPendingCmds[y], TableReadVal(y));
@@ -791,8 +791,8 @@ UBYTE TableScreenInput(void)
                     v--;
                 }
                 TableWriteVal(y, v);
-                hBgDigitPal = wSelectDigitPal;
-                hBgPal = wSelectPal;
+                hBgDigitPal = wHighlightDigitPal;
+                hBgPal = wHighlightPal;
                 DrawFieldVal(TableReadCmd(y), v);
                 break;
             }
@@ -847,11 +847,11 @@ UBYTE TableScreenInput(void)
                     do
                         wPendingCmds[y]++;
                     while (TableInputFlag(wPendingCmds[y]));
-                hBgDigitPal = wSelectDigitPal;
-                hBgPal = wSelectPal;
+                hBgDigitPal = wHighlightDigitPal;
+                hBgPal = wHighlightPal;
                 DrawCmdLetter(wPendingCmds[y]);
                 if (wMessageStrPtr || wMessageTimer)
-                    FarCallArg(1, FAR_FN(LoadCmdHelp), wPendingCmds[y]);
+                    FarCallArg(1, FAR_FN(ShowCmdHelp), wPendingCmds[y]);
                 hBgDigitPal = 4;
                 hBgPal = 1;
                 DrawFieldVal(wPendingCmds[y], TableReadVal(y));
@@ -888,8 +888,8 @@ UBYTE TableScreenInput(void)
                     v += 0x10;
                 }
                 TableWriteVal(y, v);
-                hBgDigitPal = wSelectDigitPal;
-                hBgPal = wSelectPal;
+                hBgDigitPal = wHighlightDigitPal;
+                hBgPal = wHighlightPal;
                 DrawFieldVal(TableReadCmd(y), v);
                 break;
             }
@@ -943,11 +943,11 @@ UBYTE TableScreenInput(void)
                     do
                         wPendingCmds[y]--;
                     while (TableInputFlag(wPendingCmds[y]));
-                hBgDigitPal = wSelectDigitPal;
-                hBgPal = wSelectPal;
+                hBgDigitPal = wHighlightDigitPal;
+                hBgPal = wHighlightPal;
                 DrawCmdLetter(wPendingCmds[y]);
                 if (wMessageStrPtr || wMessageTimer)
-                    FarCallArg(1, FAR_FN(LoadCmdHelp), wPendingCmds[y]);
+                    FarCallArg(1, FAR_FN(ShowCmdHelp), wPendingCmds[y]);
                 hBgDigitPal = 4;
                 hBgPal = 1;
                 DrawFieldVal(wPendingCmds[y], TableReadVal(y));
@@ -980,8 +980,8 @@ UBYTE TableScreenInput(void)
                     v -= 0x10;
                 }
                 TableWriteVal(y, v);
-                hBgDigitPal = wSelectDigitPal;
-                hBgPal = wSelectPal;
+                hBgDigitPal = wHighlightDigitPal;
+                hBgPal = wHighlightPal;
                 DrawFieldVal(TableReadCmd(y), v);
                 break;
             }
@@ -1372,7 +1372,7 @@ void DrawTableSelection(void)
             ColorField(TableColX[x], y + 2, TableColWidth[x], hGameboyType ? 3 : 2);
 }
 
-void GetSynthFieldHelp(void)
+void ShowSynthFieldHelp(void)
 {
     char *s;
 

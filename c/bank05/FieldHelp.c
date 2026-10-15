@@ -8,7 +8,7 @@
 
 #include "lsdj.h"
 
-/* The help strings follow DrawInstrFieldHelp's code ($05:$6D25..$7207). The
+/* The help strings follow ShowInstrFieldHelp's code ($05:$6D25..$7207). The
    ten that several instrument types share are stored by constant address
    (`ld (hl),#lo; inc hl; ld (hl),#hi`), the others by symbol (`ld de,#sym`),
    so the first group is spelled as addresses here. */
@@ -52,7 +52,7 @@ extern char TxtHelpVibShape[];              /* $05:$71F4 */
  * string for all. The wave PLAY field depends on whether byte 9 selects a
  * synth.
  */
-void DrawInstrFieldHelp(UBYTE type)
+void ShowInstrFieldHelp(UBYTE type)
 {
     char *s = 0;
 

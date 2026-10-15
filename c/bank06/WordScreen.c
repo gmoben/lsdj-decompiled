@@ -125,8 +125,8 @@ void DrawWordScreen(void)
         } else {
             DrawString("--- ");
         }
-        hBgDigitPal = wShadowDigitPal;
-        hBgPal = wShadowPal;
+        hBgDigitPal = wShadedDigitPal;
+        hBgPal = wShadedPal;
         DrawHexByte(ReadSongByte(0, p++));
         i++;
     }
@@ -158,8 +158,8 @@ UBYTE WordScreenInput(void)
     UBYTE col;
     UBYTE y;
 
-    hBgDigitPal = wSelectDigitPal;
-    hBgPal = wSelectPal;
+    hBgDigitPal = wHighlightDigitPal;
+    hBgPal = wHighlightPal;
     y = wWordRow + 2;
     SetVramCursor(wWordCol * 4 + 2, y);
     switch (wButtons) {
@@ -240,8 +240,8 @@ UBYTE WordScreenInput(void)
                 ReadKitSampleName(AllophoneKit(v), wWordClipPtrB);
                 DrawString(wSampleNoteString);
                 DrawStringTile20();
-                hBgDigitPal = wShadowDigitPal;
-                hBgPal = wShadowPal;
+                hBgDigitPal = wShadedDigitPal;
+                hBgPal = wShadedPal;
                 DrawHexByte(wWordClipCell1[0]);
                 wWordCol = col;
                 DrawWordCursor();
@@ -251,8 +251,8 @@ UBYTE WordScreenInput(void)
         } else if (!ReadWordCell()) {
             WriteWordCell(wWordClipCell1[0]);
             SetVramCursor(6, y);
-            hBgDigitPal = wSelectDigitPal;
-            hBgPal = wSelectPal;
+            hBgDigitPal = wHighlightDigitPal;
+            hBgPal = wHighlightPal;
             DrawHexByte(wWordClipCell1[0]);
             return 1;
         }

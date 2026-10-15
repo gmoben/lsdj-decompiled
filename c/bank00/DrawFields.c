@@ -70,8 +70,8 @@ void DrawTempo(UWORD tempo)
 void DrawTempoField(void)
 {
     wVramCursor = (UBYTE *)0x9891;
-    hBgDigitPal = wShadowDigitPal;
-    hBgPal = wShadowPal;
+    hBgDigitPal = wShadedDigitPal;
+    hBgPal = wShadedPal;
     DrawTempo(GetTempoTimerVal());
 }
 
@@ -80,8 +80,8 @@ void DrawChanHeader(void)
     char *s;
 
     s = "NOI";
-    hBgDigitPal = wShadowDigitPal;
-    hBgPal = wShadowPal;
+    hBgDigitPal = wShadedDigitPal;
+    hBgPal = wShadedPal;
     wVramCursor = (UBYTE *)0x9811;
     switch (wSongCol) {
     case 0:

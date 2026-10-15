@@ -144,7 +144,7 @@ void SndSpeechStep(void);
 void SndStepWavFrames(void);
 void SndUpdateAllChans(void);
 void SndRetrigNote(void);
-void SelectKit2Sample(UBYTE n);             /* bank 0 */
+void InitKit2Sample(UBYTE n);             /* bank 0 */
 void TriggerWav(void);                     /* asm */
 void SndClearChanFxSlots(void);             /* asm */
 void SndResetWavFlat(void);                 /* asm */
@@ -1042,7 +1042,7 @@ void SndSpeechStep(void)
             _asm di _endasm;
             wSpeechWord = 0;
             wKit2LoopEnabled = 0;
-            SelectKit2Sample(v);
+            InitKit2Sample(v);
             TriggerWav();
             wSpeechWord = 1;
             _asm ei _endasm;

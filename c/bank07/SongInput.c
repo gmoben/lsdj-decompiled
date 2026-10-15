@@ -94,8 +94,8 @@ UBYTE SongScreenInput(void)
     UBYTE bot;
 
     SetVramCursor(SongColOffsets[wSongCol], wSongRow + 2 - wSongScroll);
-    hBgDigitPal = wSelectDigitPal;
-    hBgPal = wSelectPal;
+    hBgDigitPal = wHighlightDigitPal;
+    hBgPal = wHighlightPal;
     if (wButtons != 0x10)
         wDrawStep = 0;
     if (wButtons != 0x20)

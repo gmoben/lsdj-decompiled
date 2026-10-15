@@ -8,8 +8,8 @@
 2CA4 DrawTempoField     ; set VRAM cursor $9891 + BG/digit palettes, then draw the tempo (GetTempoTimerVal)
 17EC WriteVramByteSafe  ; (vramAddr, value) -> spin until rSTAT allows VRAM access, then [vramAddr]=value
 2D7E DrawFieldVal     ; draw a value formatted by its type: string / hex byte (DrawHexByte) / pulse duty (DrawPulseDuty)
-158F SelectKit1Sample   ; init kit voice 1: bank + sample-table lookup -> loop window/read ptr/clamps (wKit1*)
-1676 SelectKit2Sample   ; init kit voice 2 (wKit2*); speech uses allophone banks
+158F InitKit1Sample   ; init kit voice 1: bank + sample-table lookup -> loop window/read ptr/clamps (wKit1*)
+1676 InitKit2Sample   ; init kit voice 2 (wKit2*); speech uses allophone banks
 339A ResetDisplayState   ; ReinitDisplay, then clear tile-loader alloc + state ($cbe5/$cbfb/$cbfc)
 337D LoadTilesDispatch   ; route a tile-slot arg to LoadTilesToVram / SetTileLoadReq
 148B DebugNop            ; `ld b,b; ret` -- no$gmb/BGB debug marker (no-op at runtime)
@@ -353,10 +353,10 @@
 1304 .done                ; common exit of ColorField
 1439 .loop                ; loop head in main.mainLoop
 14AE .loop                ; loop head in DebugNop
-15B7 .loop                ; loop head in SelectKit1Sample
-1673 .done                ; common exit of SelectKit1Sample
-16A1 .loop                ; loop head in SelectKit2Sample
-175D .done                ; common exit of SelectKit2Sample
+15B7 .loop                ; loop head in InitKit1Sample
+1673 .done                ; common exit of InitKit1Sample
+16A1 .loop                ; loop head in InitKit2Sample
+175D .done                ; common exit of InitKit2Sample
 1774 .loop                ; loop head in ReadKitSampleName
 17F3 .loop                ; loop head in WriteVramByteSafe
 1800 .loop                ; loop head in ClearBgTilemap

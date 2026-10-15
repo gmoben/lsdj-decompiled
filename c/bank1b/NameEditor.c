@@ -122,8 +122,8 @@ void OpenNameEditor(void)
     } else {
         DrawProjTextField(4, 5, 0x0C, 8);
     }
-    hBgDigitPal = wSelectDigitPal;
-    hBgPal = wSelectPal;
+    hBgDigitPal = wHighlightDigitPal;
+    hBgPal = wHighlightPal;
     if (wCurScreen == 0x0D) {
         wVramCursor = 0x98C5;
         DrawString(wNameEditBuf);
@@ -227,8 +227,8 @@ void NameEditBackspace(UBYTE x, UBYTE n)
         ColorField(x + wNameEditPos, 6, 1, hGameboyType ? 4 : 1);
     }
     SetVramCursor(x + wNameEditPos, 6);
-    hBgDigitPal = wShadowDigitPal;
-    hBgPal = wShadowPal;
+    hBgDigitPal = wShadedDigitPal;
+    hBgPal = wShadedPal;
     DrawStringIndexed(wNameEditBuf[wNameEditPos] ? wNameEditBuf[wNameEditPos] : ' ');
 }
 
@@ -276,8 +276,8 @@ UBYTE NameEditorInput(void)
         wNameEditBuf[wNameEditPos] = ch;
         wNameEditBuf[wNameEditPos + 1] = 0;
         SetVramCursor(x + wNameEditPos, 6);
-        hBgDigitPal = wShadowDigitPal;
-        hBgPal = wShadowPal;
+        hBgDigitPal = wShadedDigitPal;
+        hBgPal = wShadedPal;
         DrawStringIndexed(ch);
         if (wNameEditPos != last) {
             /* move the letter highlight on (storing the + 1 kept for the

@@ -563,7 +563,7 @@
   "len": 227,
   "src": "c/bank1d/GrooveScreen.c"
  },
- "DrawHelpEntry": {
+ "DrawHelpCursor": {
   "bank": "1B",
   "addr": "49F8",
   "len": 85,
@@ -598,12 +598,6 @@
   "addr": "418A",
   "len": 172,
   "src": "c/bank1f/InstrFields.c"
- },
- "DrawInstrFieldHelp": {
-  "bank": "05",
-  "addr": "69BD",
-  "len": 872,
-  "src": "c/bank05/FieldHelp.c"
  },
  "DrawInstrName": {
   "bank": "04",
@@ -1769,12 +1763,6 @@
   "len": 222,
   "src": "c/bank01/UiHelpers.c"
  },
- "GetSynthFieldHelp": {
-  "bank": "05",
-  "addr": "7208",
-  "len": 155,
-  "src": "c/bank05/TableScreen.c"
- },
  "GetTempoTimerVal": {
   "bank": "00",
   "addr": "2BC4",
@@ -1913,7 +1901,19 @@
   "len": 33,
   "src": "c/bank1f/PhraseScreen.c"
  },
- "HelpOpenSelected": {
+ "HelpCursorDown": {
+  "bank": "1B",
+  "addr": "4A79",
+  "len": 45,
+  "src": "c/bank1b/HelpScreen.c"
+ },
+ "HelpCursorUp": {
+  "bank": "1B",
+  "addr": "4AA6",
+  "len": 31,
+  "src": "c/bank1b/HelpScreen.c"
+ },
+ "HelpOpenEntry": {
   "bank": "1B",
   "addr": "4B6D",
   "len": 66,
@@ -1929,18 +1929,6 @@
   "bank": "1B",
   "addr": "4BC3",
   "len": 109,
-  "src": "c/bank1b/HelpScreen.c"
- },
- "HelpSelectNext": {
-  "bank": "1B",
-  "addr": "4A79",
-  "len": 45,
-  "src": "c/bank1b/HelpScreen.c"
- },
- "HelpSelectPrev": {
-  "bank": "1B",
-  "addr": "4AA6",
-  "len": 31,
   "src": "c/bank1b/HelpScreen.c"
  },
  "HighlightPhraseCell": {
@@ -2051,6 +2039,12 @@
   "len": 80,
   "src": "c/bank03/InstrScreen.c"
  },
+ "InstrNextUsed": {
+  "bank": "03",
+  "addr": "4638",
+  "len": 65,
+  "src": "c/bank03/InstrScreen.c"
+ },
  "InstrPitchModeDown": {
   "bank": "03",
   "addr": "4C64",
@@ -2063,6 +2057,18 @@
   "len": 107,
   "src": "c/bank03/InstrScreen.c"
  },
+ "InstrPrevPage": {
+  "bank": "03",
+  "addr": "461B",
+  "len": 29,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "InstrPrevUsed": {
+  "bank": "03",
+  "addr": "45D3",
+  "len": 72,
+  "src": "c/bank03/InstrScreen.c"
+ },
  "InstrScreenFrame": {
   "bank": "03",
   "addr": "45A7",
@@ -2073,24 +2079,6 @@
   "bank": "03",
   "addr": "541F",
   "len": 9820,
-  "src": "c/bank03/InstrScreen.c"
- },
- "InstrSelectNextUsed": {
-  "bank": "03",
-  "addr": "4638",
-  "len": 65,
-  "src": "c/bank03/InstrScreen.c"
- },
- "InstrSelectPrevPage": {
-  "bank": "03",
-  "addr": "461B",
-  "len": 29,
-  "src": "c/bank03/InstrScreen.c"
- },
- "InstrSelectPrevUsed": {
-  "bank": "03",
-  "addr": "45D3",
-  "len": 72,
   "src": "c/bank03/InstrScreen.c"
  },
  "InstrSynthNew": {
@@ -2237,25 +2225,25 @@
   "len": 73,
   "src": "c/bank07/KbdLink.c"
  },
+ "KitEnsureExists": {
+  "bank": "03",
+  "addr": "50DF",
+  "len": 73,
+  "src": "c/bank03/InstrScreen.c"
+ },
  "KitExists": {
   "bank": "00",
   "addr": "0CFE",
   "len": 78,
   "src": "c/bank00/Helpers.c"
  },
- "KitSelectEnsure": {
-  "bank": "03",
-  "addr": "50DF",
-  "len": 73,
-  "src": "c/bank03/InstrScreen.c"
- },
- "KitSelectNext": {
+ "KitNext": {
   "bank": "03",
   "addr": "503A",
   "len": 82,
   "src": "c/bank03/InstrScreen.c"
  },
- "KitSelectPrev": {
+ "KitPrev": {
   "bank": "03",
   "addr": "508C",
   "len": 83,
@@ -2272,12 +2260,6 @@
   "addr": "58FB",
   "len": 76,
   "src": "c/bank06/ChainScreen.c"
- },
- "LoadCmdHelp": {
-  "bank": "01",
-  "addr": "764C",
-  "len": 290,
-  "src": "c/bank01/UiHelpers.c"
  },
  "LoadFile": {
   "bank": "1C",
@@ -2825,7 +2807,7 @@
   "len": 242,
   "src": "c/bank1c/FileScreen.c"
  },
- "RedrawHelpSelection": {
+ "RedrawHelpCursor": {
   "bank": "1B",
   "addr": "4A4D",
   "len": 21,
@@ -3083,6 +3065,18 @@
   "len": 42,
   "src": "c/bank06/WaveScreen.c"
  },
+ "ShowCmdHelp": {
+  "bank": "01",
+  "addr": "764C",
+  "len": 290,
+  "src": "c/bank01/UiHelpers.c"
+ },
+ "ShowInstrFieldHelp": {
+  "bank": "05",
+  "addr": "69BD",
+  "len": 872,
+  "src": "c/bank05/FieldHelp.c"
+ },
  "ShowMax16Marks": {
   "bank": "01",
   "addr": "7635",
@@ -3100,6 +3094,12 @@
   "addr": "75BD",
   "len": 10,
   "src": "c/bank01/ShowMessages.c"
+ },
+ "ShowSynthFieldHelp": {
+  "bank": "05",
+  "addr": "7208",
+  "len": 155,
+  "src": "c/bank05/TableScreen.c"
  },
  "ShowTapAddChain": {
   "bank": "01",

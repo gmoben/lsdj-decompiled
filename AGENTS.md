@@ -339,8 +339,11 @@ in `docs/functionality.md`.
   (instrument), `Proj` (project), `Env` (envelope), `Vib` (vibrato), `Cmd`
   (command), `Fx` (effect), `Col` (column), `Cur` (*current*, never
   cursor), `Cursor`, `Ptr`, `Buf`, `Val`, `Len`, `Pos`, `Pal` (palette),
-  `Idx`, `Kbd` (keyboard), `Selection` (the clipboard selection; `Select` is the
-  SELECT button), `Message`, `Number`, `Count`, `Transpose` (never `Trans`;
+  `Idx`, `Kbd` (the PS/2 keyboard; the name editor's on-screen keyboard is
+  `NameEdit`), `Selection` (the clipboard selection; `Select` is only the
+  SELECT button: the item under a cursor is an `Entry`, stepping a value is
+  `Next`/`Prev`), `Highlight` (the cursor's colouring), `Shadow` (a RAM copy,
+  `wTempoShadow`; the DMG font's dotted ground is `Shaded`), `Message`, `Number`, `Count`, `Transpose` (never `Trans`;
   `Transport` is sync), `Compress`/`Decompress`. The four channels are
   `Pu1`, `Pu2`, `Wav`, `Noi` (`TriggerPu1`, `wChanFreqPu2`). Exempt: `Txt`
   labels mirror their text, `SCREAMING_SNAKE` constants mirror the song

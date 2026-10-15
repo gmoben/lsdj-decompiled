@@ -569,7 +569,7 @@ def ifx_word_hl(lines: list[str]) -> tuple[list[str], int]:
     ld a,(hl); inc hl; or a,(hl)` (its peephole folds the first two into
     `ld a,(hl+)`) and still knows hl, so the next use of that word steps
     back with `dec hl`. LSDj's compiler forgot hl after this test and
-    reloaded it (DrawInstrFieldHelp's `if (s) ShowMessage(s)`: `ld hl,sp+0`
+    reloaded it (ShowInstrFieldHelp's `if (s) ShowMessage(s)`: `ld hl,sp+0`
     again). A `w == 0` compare (genCmpEq, the same bytes) keeps hl in both
     (GetInstrEnvBytes' `dec hl; ld (hl),1`), so only genIfx's test counts."""
     lines = list(lines)

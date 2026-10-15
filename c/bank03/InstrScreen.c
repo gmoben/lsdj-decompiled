@@ -37,7 +37,7 @@ extern char PlayModeNames[];                /* $00:$0839, [4][9] */
 void DrawPulseDuty(UBYTE duty);             /* bank 0 */
 void DrawFieldVal(UBYTE kind, UBYTE v);   /* bank 0 */
 void OpenNameEditor(void);                  /* $1B:$4E8A */
-void DrawInstrFieldHelp(void);              /* $05:$69BD */
+void ShowInstrFieldHelp(void);              /* $05:$69BD */
 void PasteInstr(void);                 /* $01:$5503 */
 void CopyInstr(void);                  /* $01:$5253 */
 void SpeechInstrInput(void);                 /* $1F:$724D */
@@ -164,8 +164,8 @@ void InstrTableNew(void)
     t |= 0x20;
     v = ReadCurInstrByte(6);
     WriteCurInstrByte(6, t | (v & 0xD0));
-    hBgDigitPal = wSelectDigitPal;
-    hBgPal = wSelectPal;
+    hBgDigitPal = wHighlightDigitPal;
+    hBgPal = wHighlightPal;
     FarCall(0x1F, FAR_FN(DrawInstrTableField));
 }
 
@@ -177,8 +177,8 @@ void InstrSynthNew(void)
     if (v == 0xFF)
         return;
     SetVramCursor(InstrFieldX[1][9], InstrFieldY[1][9]);   /* WAVE: the synth field */
-    hBgDigitPal = wSelectDigitPal;
-    hBgPal = wSelectPal;
+    hBgDigitPal = wHighlightDigitPal;
+    hBgPal = wHighlightPal;
     DrawByte(v);
     WriteCurInstrByte(3, v << 4);
 }
@@ -223,7 +223,7 @@ void InstrScreenFrame(void)
 }
 
 /* Step back to the previous allocated instrument (stopping at 0). */
-void InstrSelectPrevUsed(void)
+void InstrPrevUsed(void)
 {
     wMessageStrPtr = 0;
     if (wInstr) {
@@ -238,18 +238,18 @@ void InstrSelectPrevUsed(void)
 }
 
 /* Page back 16 instruments, then to the previous allocated one. */
-void InstrSelectPrevPage(void)
+void InstrPrevPage(void)
 {
     if (wInstr) {
         wInstr -= 0x10;
         if (wInstr > 0x40)
             wInstr = 0;
         wInstr++;
-        InstrSelectPrevUsed();
+        InstrPrevUsed();
     }
 }
 
-void InstrSelectNextUsed(void)
+void InstrNextUsed(void)
 {
     wMessageStrPtr = 0;
     while (wInstr != 0x40) {
@@ -313,12 +313,12 @@ void InstrTableModePrev(void)
         WriteCurInstrByte(5, ReadCurInstrByte(5) & 0xF7);
     else
         WriteCurInstrByte(6, ReadCurInstrByte(6) & 0xDF);
-    hBgDigitPal = wSelectDigitPal;
-    hBgPal = wSelectPal;
+    hBgDigitPal = wHighlightDigitPal;
+    hBgPal = wHighlightPal;
     FarCall(0x1F, FAR_FN(DrawInstrTableMode));
     wVramCursor++;
-    hBgDigitPal = wShadowDigitPal;
-    hBgPal = wShadowPal;
+    hBgDigitPal = wShadedDigitPal;
+    hBgPal = wShadedPal;
     FarCall(0x1F, FAR_FN(DrawInstrTableField));
 }
 
@@ -330,12 +330,12 @@ void InstrTableModeNext(void)
         WriteCurInstrByte(5, ReadCurInstrByte(5) | 0x08);
     else
         InstrTableOn();
-    hBgDigitPal = wSelectDigitPal;
-    hBgPal = wSelectPal;
+    hBgDigitPal = wHighlightDigitPal;
+    hBgPal = wHighlightPal;
     FarCall(0x1F, FAR_FN(DrawInstrTableMode));
     wVramCursor++;
-    hBgDigitPal = wShadowDigitPal;
-    hBgPal = wShadowPal;
+    hBgDigitPal = wShadedDigitPal;
+    hBgPal = wShadedPal;
     FarCall(0x1F, FAR_FN(DrawInstrTableField));
 }
 
@@ -599,16 +599,16 @@ void DrawWaveSynthField(void)
         DrawString("WAVE ");
         wVramCursor = (UBYTE *)0x998B;
         ColorField(0x0B, 0x0C, 1, 1);
-        hBgDigitPal = wShadowDigitPal;
-        hBgPal = wShadowPal;
+        hBgDigitPal = wShadedDigitPal;
+        hBgPal = wShadedPal;
         DrawHexByte(ReadCurInstrByte(3));
     } else {
         DrawString("SYNTH");
         wVramCursor = (UBYTE *)0x998B;
         ColorField(0x0B, 0x0C, 1, 0);
         DrawStringIndexed(' ');
-        hBgDigitPal = wShadowDigitPal;
-        hBgPal = wShadowPal;
+        hBgDigitPal = wShadedDigitPal;
+        hBgPal = wShadedPal;
         DrawByte(ReadCurInstrByte(3) >> 4);
     }
 }
@@ -650,8 +650,8 @@ void DrawInstrScreen(void)
     if (wInstrField >= wInstrFieldCount)
         wInstrField = wInstrFieldCount - 1;
     InstrScreenFrame();
-    hBgDigitPal = wShadowDigitPal;
-    hBgPal = wShadowPal;
+    hBgDigitPal = wShadedDigitPal;
+    hBgPal = wShadedPal;
     SetVramCursor(InstrFieldX[type][0], InstrFieldY[type][0]);
     FarCallArg(1, FAR_FN(CopyInstrName), wInstr);
     for (i = 0; i < 5; i++) {
@@ -707,7 +707,7 @@ void WriteKitNumber(UBYTE field, UBYTE kit)
     WriteCurInstrByte(field, t | kit);
 }
 
-UBYTE KitSelectNext(void)
+UBYTE KitNext(void)
 {
     UBYTE field, kit, orig;
 
@@ -723,7 +723,7 @@ UBYTE KitSelectNext(void)
     return kit;
 }
 
-UBYTE KitSelectPrev(void)
+UBYTE KitPrev(void)
 {
     UBYTE field, kit, orig;
 
@@ -739,7 +739,7 @@ UBYTE KitSelectPrev(void)
     return kit;
 }
 
-void KitSelectEnsure(void)
+void KitEnsureExists(void)
 {
     UBYTE i, field;
 
@@ -763,7 +763,7 @@ void SetInstrType(UBYTE type)
     WriteCurInstrByte(0, t);
     FarCall(1, FAR_FN(UiDrawTextHw));
     if (t == 2)
-        KitSelectEnsure();
+        KitEnsureExists();
     DrawInstrScreen();
 }
 
@@ -945,8 +945,8 @@ UBYTE InstrScreenInput(void)
 
     if (wInstr == 0x40)
         return FarCallByte(0x1F, FAR_FN(SpeechInstrInput));
-    hBgDigitPal = wSelectDigitPal;
-    hBgPal = wSelectPal;
+    hBgDigitPal = wHighlightDigitPal;
+    hBgPal = wHighlightPal;
     type = ReadCurInstrByte(0);
     if (wAPressEnabled)
         wInstrEditLatch = 0;
@@ -1304,8 +1304,8 @@ UBYTE InstrScreenInput(void)
                     WriteCurInstrByte(9, v);
                     DrawString(PlayModeNames + v * 9);
                     WriteCurInstrByte(3, ReadCurInstrByte(3) & 0xF0);
-                    hBgDigitPal = wShadowDigitPal;
-                    hBgPal = wShadowPal;
+                    hBgDigitPal = wShadedDigitPal;
+                    hBgPal = wShadedPal;
                     DrawWaveSpeed();
                     DrawWaveLen();
                     DrawWaveLoopPos();
@@ -1318,8 +1318,8 @@ UBYTE InstrScreenInput(void)
                     ++v;
                     SetInstrByte10(v);
                     DrawByte(v);
-                    hBgDigitPal = wShadowDigitPal;
-                    hBgPal = wShadowPal;
+                    hBgDigitPal = wShadedDigitPal;
+                    hBgPal = wShadedPal;
                     DrawWaveLoopPos();
                 }
                 break;
@@ -1363,7 +1363,7 @@ UBYTE InstrScreenInput(void)
             switch (wInstrField) {
             case 2:
             case 3:
-                DrawKitNameField(KitSelectPrev());
+                DrawKitNameField(KitPrev());
                 break;
             case 4:
                 v = ReadCurInstrByte(1) & 0x60;
@@ -1648,8 +1648,8 @@ UBYTE InstrScreenInput(void)
                         --v;
                     WriteCurInstrByte(9, v);
                     DrawString(PlayModeNames + v * 9);
-                    hBgDigitPal = wShadowDigitPal;
-                    hBgPal = wShadowPal;
+                    hBgDigitPal = wShadedDigitPal;
+                    hBgPal = wShadedPal;
                     DrawWaveSpeed();
                     DrawWaveLen();
                     DrawWaveLoopPos();
@@ -1664,8 +1664,8 @@ UBYTE InstrScreenInput(void)
                     DrawByte(v);
                     if (v < GetWaveLoopPos())
                         SetInstrByte2(v);
-                    hBgDigitPal = wShadowDigitPal;
-                    hBgPal = wShadowPal;
+                    hBgDigitPal = wShadedDigitPal;
+                    hBgPal = wShadedPal;
                     DrawWaveLoopPos();
                 }
                 break;
@@ -1709,7 +1709,7 @@ UBYTE InstrScreenInput(void)
             switch (wInstrField) {
             case 2:
             case 3:
-                DrawKitNameField(KitSelectNext());
+                DrawKitNameField(KitNext());
                 break;
             case 4:
                 v = ReadCurInstrByte(1) & 0x60;
@@ -1965,8 +1965,8 @@ UBYTE InstrScreenInput(void)
                 if (v & 0xF0)
                     v = 0x0F;
                 SetInstrByte2(v);
-                hBgDigitPal = wShadowDigitPal;
-                hBgPal = wShadowPal;
+                hBgDigitPal = wShadedDigitPal;
+                hBgPal = wShadedPal;
                 DrawWaveLoopPos();
                 break;
             case 0x0C:
@@ -1996,7 +1996,7 @@ UBYTE InstrScreenInput(void)
                 UBYTE kit;
 
                 for (v = 0x10; v; --v)
-                    kit = KitSelectPrev();
+                    kit = KitPrev();
                 DrawKitNameField(kit);
                 break;
             }
@@ -2165,8 +2165,8 @@ UBYTE InstrScreenInput(void)
             case 0x0B:
                 SetInstrByte10(0);
                 DrawStringIndexed(0x30);
-                hBgDigitPal = wShadowDigitPal;
-                hBgPal = wShadowPal;
+                hBgDigitPal = wShadedDigitPal;
+                hBgPal = wShadedPal;
             case 0x0C:
                 SetInstrByte2(GetWaveLen());
                 DrawWaveLoopPos();
@@ -2214,7 +2214,7 @@ UBYTE InstrScreenInput(void)
                 UBYTE kit;
 
                 for (v = 0x10; v; --v)
-                    kit = KitSelectNext();
+                    kit = KitNext();
                 DrawKitNameField(kit);
                 break;
             }
@@ -2323,34 +2323,34 @@ UBYTE InstrScreenInput(void)
                     InstrSynthNew();
                     return 1;
                 }
-                FarCallArg(5, DrawInstrFieldHelp, type);
+                FarCallArg(5, ShowInstrFieldHelp, type);
             } else if (wDrawStep == 1 && InstrCheckFieldOption(type) && !IsInstrTableOn()) {
                 InstrTableOn();
                 SetVramCursor(InstrFieldX[type][wInstrField - 1], InstrFieldY[type][wInstrField - 1]);
-                hBgDigitPal = wShadowDigitPal;
-                hBgPal = wShadowPal;
+                hBgDigitPal = wShadedDigitPal;
+                hBgPal = wShadedPal;
                 FarCall(0x1F, DrawInstrTableMode);
                 wVramCursor++;
-                hBgDigitPal = wSelectDigitPal;
-                hBgPal = wSelectPal;
+                hBgDigitPal = wHighlightDigitPal;
+                hBgPal = wHighlightPal;
                 FarCall(0x1F, DrawInstrTableField);
             }
         }
         return 1;
     case 0x21:
-        InstrSelectNextUsed();
+        InstrNextUsed();
         return 1;
     case 0x22:
-        InstrSelectPrevUsed();
+        InstrPrevUsed();
         return 1;
     case 0x24:
         wInstr += 0x0F;
         if (wInstr > 0x40)
             wInstr = 0x40;
-        InstrSelectNextUsed();
+        InstrNextUsed();
         return 1;
     case 0x28:
-        InstrSelectPrevPage();
+        InstrPrevPage();
         return 1;
     case 0x44:
         if (wButtonsSame)
