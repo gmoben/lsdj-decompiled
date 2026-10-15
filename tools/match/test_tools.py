@@ -137,14 +137,14 @@ class LabelTests(unittest.TestCase):
     def test_jump_table_and_literal_names(self):
         t = self.translator({0x4000: "F"}, {"00109": 0x4008, "__str_3": 0x4020},
                             {"__str_3": "SAVE SONG?"})
-        rows = [(0x4000, "I", "ldh a, [hSoundChan+0]"), (0x4002, "I", "ld e, a"),
+        rows = [(0x4000, "I", "ldh a, [hSoundChannel+0]"), (0x4002, "I", "ld e, a"),
                 (0x4003, "I", "ld d, $00"), (0x4005, "I", "ld hl, \x0000109\x00"),
                 (0x4008, "L", "\x0000109\x00:"), (0x4008, "I", "jp $4100"),
                 (0x400B, "I", "jp $4110"), (0x4010, "I", "ld hl, \x00__str_3\x00"),
                 (0x4020, "L", "\x00__str_3\x00:")]
         out = [text for _a, _k, text in t.resolve_labels(rows)]
-        self.assertIn("ld hl, .soundChanCases", out)
-        self.assertIn(".soundChanCases:", out)
+        self.assertIn("ld hl, .soundChannelCases", out)
+        self.assertIn(".soundChannelCases:", out)
         self.assertIn("ld hl, .strSaveSong", out)
         self.assertIn(".strSaveSong:", out)
 
@@ -258,7 +258,7 @@ class BytePointerTests(unittest.TestCase):
                          "push bc", "ld a, $1f", "push af", "inc sp", "call $179a")
         rows[2] = (rows[2][0], b"", "jp $6006", 0x6006)
         ptrs, _ = disasm.rom_pointers(rows, 0x03, {}, self.HOME,
-                                      lambda b: {0x423D: "DrawPulseInstr"} if b == 0x1F else {})
+                                      lambda b: {0x423D: "DrawPulseInstrument"} if b == 0x1F else {})
         self.assertEqual(ptrs, {0x6000: (0x1F, 0x423D, "LOW"), 0x6002: (0x1F, 0x423D, "HIGH")})
 
     def test_ram_word_arithmetic_is_not_a_pointer(self):
@@ -312,7 +312,7 @@ class SplitCTests(unittest.TestCase):
     def test_declared_names(self):
         d = split_c.declared
         self.assertEqual(d("extern char AlnumChars[][11];   /* $1B:$4C6A, the name keyboard */"), {"AlnumChars"})
-        self.assertEqual(d("extern UBYTE wColPhrase[];      /* $C453, [4] */"), {"wColPhrase"})
+        self.assertEqual(d("extern UBYTE wColumnPhrase[];      /* $C453, [4] */"), {"wColumnPhrase"})
         self.assertEqual(d("extern UBYTE wSyncRun, wSyncHandshake;"), {"wSyncRun", "wSyncHandshake"})
         self.assertEqual(d("void ReadKitSampleName(UBYTE kit, UBYTE sample);   /* bank 0 */"), {"ReadKitSampleName"})
         self.assertEqual(d("extern void (*wFieldHandler)(UBYTE v);"), {"wFieldHandler"})
@@ -351,6 +351,16 @@ class RelabelTests(unittest.TestCase):
         self.assertEqual(text.split("\n")[1:5], ["4002 .drawBarNameFar", "4004 .loadBarDigitPal",
                                                  "4006 .checkIsFoob", "4008 .fooRowPalettes"])
         self.assertTrue(text.endswith("400C .loadBarDigitPal"))   # another scope, the same rename
+
+    def test_names_c_sees_keep_within_as_gbz80s_symbol_length(self):
+        cnames = {"FooBar", "DrawFooBazQuuxCorgeGraultGarply", "wFooBazQuuxCorgeGraultGarplyWaldo1"}
+        errors = rename.limit_errors([("FooBar", "DrawFooBarBazQuuxCorgeGrault"),       # 28: a function
+                                      ("wFooBazQuuxCorgeGraultGarplyWaldo1", "wFooBazQuuxCorgeGraultGarplyWaldo2X")],
+                                     cnames, {"FooBar"})
+        self.assertEqual(len(errors), 2)
+        self.assertIn("at most 27", errors[0])
+        self.assertIn("at most 31", errors[1])
+        self.assertEqual(rename.limit_errors([("FooBar", "DrawFooBar")], cnames, {"FooBar"}), [])
 
     def test_a_collision_in_a_scope_stops_the_rename(self):
         with self.assertRaises(SystemExit):
