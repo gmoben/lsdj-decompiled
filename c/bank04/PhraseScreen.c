@@ -202,12 +202,12 @@ void DrawPhraseCursorGlyph(UBYTE row)
 UBYTE CommitPhraseInstrument(void)
 {
     UBYTE instrument;
-    UBYTE res;
+    UBYTE result;
     UBYTE *p;
     UBYTE i, v, n;
 
     instrument = ReadCursorInstrument();
-    res = 0;
+    result = 0;
     if (instrument > 0x40) {
         if (wColumnInstrument[wSongColumn] == 0xFF) {
             SetColumnInstrument(FarCallByte(0x1F, FAR_FN(AllocNextFreeInstrument)));
@@ -223,7 +223,7 @@ UBYTE CommitPhraseInstrument(void)
                 WritePhraseNote((char)wPhraseRow, n);
             }
         }
-        res = 1;
+        result = 1;
     } else {
         SetColumnInstrument(instrument);
         if (wPhraseColumn == 2) {
@@ -240,7 +240,7 @@ UBYTE CommitPhraseInstrument(void)
             DrawPhraseCursorGlyph((char)wPhraseRow);
         }
     }
-    return res;
+    return result;
 }
 
 void EditPhraseCellUp(UBYTE row)
@@ -759,7 +759,7 @@ void PastePhraseSelection(void)
     UBYTE savedLeft, savedRight;
     char shift;
     UBYTE v;
-    UBYTE ctx;
+    UBYTE context;
     UBYTE c4, c3;
 
     savedLeft = wSelectionLeft;
@@ -789,8 +789,8 @@ void PastePhraseSelection(void)
     c3 = shift + 3;
     for (; y < wSelectionBottom; y++) {
         for (x = wSelectionRight - 1; !(x < (char)wSelectionLeft); x--) {
-            ctx = CheckPhraseEditContext(y);
-            if (ctx) {
+            context = CheckPhraseEditContext(y);
+            if (context) {
                 if (x < 2)
                     x ^= 1;
             }
@@ -798,7 +798,7 @@ void PastePhraseSelection(void)
             case 0:
                 wPhraseNoteIsKitA = CursorInstrumentIsKit();
                 if (wPhraseNoteIsKitA) {
-                    v = ReadClipboardCell(ctx, y);
+                    v = ReadClipboardCell(context, y);
                     if (v == 0xFF)
                         break;
                     v <<= 4;
@@ -807,7 +807,7 @@ void PastePhraseSelection(void)
                 }
                 break;
             case 1:
-                v = ReadClipboardCell(ctx ^ 1, y);
+                v = ReadClipboardCell(context ^ 1, y);
                 if (!(wSongColumn == 3)) {
                     if (v == 0xFF)
                         break;
@@ -827,7 +827,7 @@ void PastePhraseSelection(void)
                 WritePhraseCommandValue(wPhrase, wPhraseRow, ReadClipboardCell(c4, y));
                 break;
             }
-            if (ctx) {
+            if (context) {
                 if (x < 2)
                     x ^= 1;
             }
@@ -945,11 +945,11 @@ void PrelistenCursorRow(void)
 
 UBYTE DrawInstrumentName(UBYTE row, UBYTE instrument)
 {
-    UBYTE res;
+    UBYTE result;
     UBYTE *p;
     UBYTE i, v, n;
 
-    res = 0;
+    result = 0;
     FarCallArgument(1, FAR_FN(CopyInstrumentName), instrument);
     for (i = 0; i < 5; i++) {
         p = &wSampleNoteString[i];
@@ -970,12 +970,12 @@ UBYTE DrawInstrumentName(UBYTE row, UBYTE instrument)
         n = ReadInstrumentByte(instrument, 4);
         *(UBYTE *)0xC90A = n;               /* wPhraseInstrumentCache, stored through the literal */
         WritePhraseNote(row, n);
-        res = 1;
+        result = 1;
     }
     PrelistenCursorRow();
     wInstrumentRemapDirty = 1;
     wInstrumentRemapTable[row] = instrument;
-    return res;
+    return result;
 }
 
 UBYTE PhraseCellFlagA(UBYTE row)

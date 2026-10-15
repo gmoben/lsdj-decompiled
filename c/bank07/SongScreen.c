@@ -102,13 +102,13 @@ UBYTE CloneSongChain(UBYTE chain)
 {
     UBYTE v;
     UBYTE i;
-    UBYTE ph;
+    UBYTE phrase;
     UBYTE j;
     UBYTE f;
     UBYTE n;
     UBYTE *p;
     UBYTE *q;
-    char *msg;
+    char *message;
 
     FarCall(5, RestoreSelectionState);
     wColumnChain[wSongColumn] = chain;
@@ -119,14 +119,14 @@ UBYTE CloneSongChain(UBYTE chain)
     p = wClonePhraseMap + 16;
     q = (UBYTE *)wClonePhraseMap + 16;
     while (i < 16) {
-        ph = FarCallArgument2(2, (UWORD)SoundGetChainPhrase, chain, i);
+        phrase = FarCallArgument2(2, (UWORD)SoundGetChainPhrase, chain, i);
         if (!wCloneMode) {
-            wClonePhraseMap[i] = ph;
-            if (ph != 0xFF) {
+            wClonePhraseMap[i] = phrase;
+            if (phrase != 0xFF) {
                 f = 0xFF;
                 j = 0;
                 while (j < i) {
-                    if (!(wClonePhraseMap[j] - ph)) {
+                    if (!(wClonePhraseMap[j] - phrase)) {
                         f = p[j];
                         break;
                     }
@@ -135,13 +135,13 @@ UBYTE CloneSongChain(UBYTE chain)
                 if (f != 0xFF) {
                     FarCallArgument3P(0x1F, FAR_FN(WriteChainPhrase), v, i, f);
                 } else {
-                    wColumnPhrase[wSongColumn] = ph;
+                    wColumnPhrase[wSongColumn] = phrase;
                     n = FarCallByte(1, FAR_FN(AllocNextFreePhrase));
                     if (n == 0xFF) {
                         FarCall(1, FAR_FN(ShowOutOfMemory));
                         return 0xFF;
                     }
-                    FarCallArgument2V(6, FAR_FN(ClonePhraseAtCursor), ph, n);
+                    FarCallArgument2V(6, FAR_FN(ClonePhraseAtCursor), phrase, n);
                     FarCallArgument3P(0x1F, FAR_FN(WriteChainPhrase), v, i, n);
                     q[i] = n;
                 }
@@ -149,15 +149,15 @@ UBYTE CloneSongChain(UBYTE chain)
                 FarCallArgument3P(0x1F, FAR_FN(WriteChainPhrase), v, i, 0xFF);
             }
         } else {
-            FarCallArgument3P(0x1F, FAR_FN(WriteChainPhrase), v, i, ph);
+            FarCallArgument3P(0x1F, FAR_FN(WriteChainPhrase), v, i, phrase);
         }
-        ph = FarCallArgument2(6, FAR_FN(ReadChainTranspose), chain, i);
-        FarCallArgument3P(6, FAR_FN(SetChainTranspose), v, i, ph);
+        phrase = FarCallArgument2(6, FAR_FN(ReadChainTranspose), chain, i);
+        FarCallArgument3P(6, FAR_FN(SetChainTranspose), v, i, phrase);
         i++;
     }
     WriteSongCell(wSongColumn, wSongRow, v);
-    msg = wCloneMode ? "CLONED CHAIN" : "CLONED CHAIN+PHRASES";
-    ShowMessage(msg);
+    message = wCloneMode ? "CLONED CHAIN" : "CLONED CHAIN+PHRASES";
+    ShowMessage(message);
     return v;
 }
 
@@ -320,12 +320,12 @@ void SongScreenUpdate(void)
 
 void SetSongRowPalettes(UBYTE y)
 {
-    UBYTE bm;
+    UBYTE bookmarked;
     UBYTE v;
     UBYTE shadow;
     UBYTE i, current;
 
-    bm = IsBookmarked(wSongRow);
+    bookmarked = IsBookmarked(wSongRow);
     current = wSongScroll + y - 2;
     shadow = current & (UBYTE)4;
     if (shadow) {
@@ -336,7 +336,7 @@ void SetSongRowPalettes(UBYTE y)
         hBgPalette = wHighlightPalette;
     }
     DrawHexByte(wSongRow);
-    if (bm) {
+    if (bookmarked) {
         hBgDigitPalette = wShadedDigitPalette;
         hBgPalette = wShadedPalette;
     } else {
@@ -356,7 +356,7 @@ void SetSongRowPalettes(UBYTE y)
         else
             DrawHexByte(v);
         if (current) {
-            if (bm) {
+            if (bookmarked) {
                 hBgDigitPalette = wShadedDigitPalette;
                 hBgPalette = wShadedPalette;
             } else {
@@ -367,7 +367,7 @@ void SetSongRowPalettes(UBYTE y)
     }
     if (hGameboyType) {
         ColorField(0, y, 2, shadow ? 1 : 2);
-        ColorField(2, y, 12, bm);
+        ColorField(2, y, 12, bookmarked);
         ColorField(MulU8(wSongColumn, 3) + 3, y, 2, 3);
     }
 }

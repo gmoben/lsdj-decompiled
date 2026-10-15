@@ -37,7 +37,7 @@ void CutCopySongSelection(UBYTE isCut)
     UBYTE y;
     UWORD x;
     UWORD t;
-    char *msg;
+    char *message;
     UBYTE column;
 
     if (wClipboardType != 4)
@@ -90,8 +90,8 @@ void CutCopySongSelection(UBYTE isCut)
     }
     if (isCut && !wSelectionLeft && wSelectionRight == 4)
         AdjustBookmarksOnDelete(wSelectionTop, wSelectionBottom);
-    msg = isCut ? "CUT CHAINS" : "COPIED CHAINS";   /* both literals follow the function ($5957, $5962) */
-    ShowMessage(msg);
+    message = isCut ? "CUT CHAINS" : "COPIED CHAINS";   /* both literals follow the function ($5957, $5962) */
+    ShowMessage(message);
     wSongColumn = wSelectionLeft;
     wSongRow = isCut ? wSelectionTop : wSongSelectionRow;
     ScrollSongToCursor();

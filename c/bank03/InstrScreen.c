@@ -186,7 +186,7 @@ void AllocInstrumentSynth(void)
 void CloneSynth(void)
 {
     UBYTE s, d, i;
-    UWORD ps, pd;
+    UWORD sourceAddress, destinationAddress;
     UBYTE v, w;
 
     s = ReadCurrentInstrumentByte(3) >> 4;
@@ -198,15 +198,15 @@ void CloneSynth(void)
         WriteSongByte(1, (UWORD)(d << 4) + (UWORD)0xBEB2 + (UWORD)i, v);
     }
     i = 0;
-    ps = s;
-    ps <<= 8;
-    ps |= 0xA000;
-    pd = d;
-    pd <<= 8;
-    pd |= 0xA000;
+    sourceAddress = s;
+    sourceAddress <<= 8;
+    sourceAddress |= 0xA000;
+    destinationAddress = d;
+    destinationAddress <<= 8;
+    destinationAddress |= 0xA000;
     do {
-        w = ReadSongByte(3, (UBYTE *)ps++);
-        WriteSongByte(3, pd++, w);
+        w = ReadSongByte(3, (UBYTE *)sourceAddress++);
+        WriteSongByte(3, destinationAddress++, w);
     } while (++i);
     WriteCurrentInstrumentByte(3, (ReadCurrentInstrumentByte(3) & 0x0F) | (d << 4));
     ShowMessage("CLONED SYNTH");
@@ -709,14 +709,14 @@ void WriteKitNumber(UBYTE field, UBYTE kit)
 
 UBYTE NextKit(void)
 {
-    UBYTE field, kit, orig;
+    UBYTE field, kit, original;
 
     field = (wInstrumentField == 2) ? 2 : 9;
     kit = ReadCurrentInstrumentByte(field) & 0x3F;
-    orig = kit;
+    original = kit;
     do {
         if (!kit)
-            return orig;
+            return original;
         kit--;
     } while (!KitExists(kit));
     WriteKitNumber(field, kit);
@@ -725,14 +725,14 @@ UBYTE NextKit(void)
 
 UBYTE PreviousKit(void)
 {
-    UBYTE field, kit, orig;
+    UBYTE field, kit, original;
 
     field = (wInstrumentField == 2) ? 2 : 9;
     kit = ReadCurrentInstrumentByte(field) & 0x3F;
-    orig = kit;
+    original = kit;
     do {
         if (kit == 0x3F)
-            return orig;
+            return original;
         kit++;
     } while (!KitExists(kit));
     WriteKitNumber(field, kit);

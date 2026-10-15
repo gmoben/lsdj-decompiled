@@ -244,7 +244,7 @@ void BackspaceNameEdit(UBYTE x, UBYTE n)
  */
 UBYTE NameEditorInput(void)
 {
-    UBYTE ch, x, last;
+    UBYTE character, x, last;
 
     if (!wButtonsSame)
         wNameEditWrapLatch = 0;
@@ -269,16 +269,16 @@ UBYTE NameEditorInput(void)
                 CommitNameEdit();
                 return 1;
             }
-        ch = AlphanumericCharacters[wNameEditRow][wNameEditColumn];
+        character = AlphanumericCharacters[wNameEditRow][wNameEditColumn];
         /* the buffer must be in RAM; a char pointer compares signed */
         if ((int)(wNameEditBuffer + 1) > -1)
             DebugTrap();
-        wNameEditBuffer[wNameEditPosition] = ch;
+        wNameEditBuffer[wNameEditPosition] = character;
         wNameEditBuffer[wNameEditPosition + 1] = 0;
         SetVramCursor(x + wNameEditPosition, 6);
         hBgDigitPalette = wShadedDigitPalette;
         hBgPalette = wShadedPalette;
-        DrawStringIndexed(ch);
+        DrawStringIndexed(character);
         if (wNameEditPosition != last) {
             /* move the letter highlight on (storing the + 1 kept for the
                terminator, not an inc (hl)) */

@@ -22,12 +22,12 @@ typedef char * va_list;
 #define va_end(list)
 
 /* libc/abs.c */
-int abs(int num) nonbanked
+int abs(int number) nonbanked
 {
-  if(num < 0)
-    return -num;
+  if(number < 0)
+    return -number;
   else
-    return num;
+    return number;
 }
 
 /* libc/printf.c's _printn: u in `base`, a minus first when issigned and u

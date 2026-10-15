@@ -77,7 +77,7 @@ void EraseGrooveCursor(void)
 
 void DrawGrooveSteps(void)
 {
-    UBYTE i;
+    UBYTE step;
     UBYTE v;
 
     if (wGroove >= 0x20)
@@ -85,9 +85,9 @@ void DrawGrooveSteps(void)
     ReadSongBytes(0, (UBYTE *)(((UWORD)wGroove << 4) + (UWORD)0xB090), wSongReadBuffer);
     hBgDigitPalette = 4;
     hBgPalette = 1;
-    for (i = 0; i < 0x10; i++) {
-        SetVramCursor(1, i + 2);
-        v = wSongReadBuffer[i];
+    for (step = 0; step < 0x10; step++) {
+        SetVramCursor(1, step + 2);
+        v = wSongReadBuffer[step];
         if (!v)
             DrawString(" --    ");
         else {
@@ -95,11 +95,11 @@ void DrawGrooveSteps(void)
             DrawHexByte(v);
             DrawString("    ");
         }
-        if (i == wGrooveRow)
+        if (step == wGrooveRow)
             v = hGameboyType ? 3 : 2;
         else
-            v = (i & 2) ? 0 : 1;
-        ColorField(2, i + 2, 2, v);
+            v = (step & 2) ? 0 : 1;
+        ColorField(2, step + 2, 2, v);
     }
     DrawGrooveRow();
 }
@@ -124,22 +124,22 @@ void GrooveScreenUpdate(void)
 
 void DrawGrooveRow(void)
 {
-    UBYTE i;
+    UBYTE step;
     UWORD a, b;
     UBYTE q;
 
-    i = 0;
-    while (i != 0x10) {
+    step = 0;
+    while (step != 0x10) {
         if (wGrooveCacheValid) {
-            a = wGrooveStepCache[i];
-            b = wGrooveStepCache[i + 1];
+            a = wGrooveStepCache[step];
+            b = wGrooveStepCache[step + 1];
         } else {
-            a = ReadGrooveStep(i);
-            b = ReadGrooveStep(i + 1);
+            a = ReadGrooveStep(step);
+            b = ReadGrooveStep(step + 1);
         }
         if (b) {
-            SetVramCursor(5, i + 2);
-            if (i & 2) {
+            SetVramCursor(5, step + 2);
+            if (step & 2) {
                 hBgDigitPalette = 4;
                 hBgPalette = 1;
             } else {
@@ -152,20 +152,20 @@ void DrawGrooveRow(void)
             if (q < 10)
                 DrawStringTile20();
         }
-        i += 2;
+        step += 2;
     }
 }
 
 void BuildGrooveCache(void)
 {
-    UBYTE i, v;
+    UBYTE step, v;
 
     if (wGrooveCacheValid)
         return;
     wGrooveCacheValid = 1;
-    for (i = 0; i != 16; i++) {
-        wGrooveCachePointer = wGrooveStepCache + i;
-        v = ReadGrooveStep(i);
+    for (step = 0; step != 16; step++) {
+        wGrooveCachePointer = wGrooveStepCache + step;
+        v = ReadGrooveStep(step);
         *wGrooveCachePointer = v;
     }
 }
@@ -210,7 +210,7 @@ void SetGrooveRowPalettes(UBYTE row)
 UBYTE GrooveScreenInput(void)
 {
     UBYTE top;
-    UBYTE bot;
+    UBYTE bottom;
     UBYTE v;
     UBYTE v2;
     UBYTE end;
@@ -265,14 +265,14 @@ UBYTE GrooveScreenInput(void)
         BuildGrooveCache();
         if (wCursorMode == 4 && (!wSelectionLeft || !wSelectionRight)) {
             top = wSelectionTop;
-            bot = wGrooveRow;
-            SortBytePair(&top, &bot);
+            bottom = wGrooveRow;
+            SortBytePair(&top, &bottom);
         } else {
-            bot = wGrooveRow;
+            bottom = wGrooveRow;
             top = wGrooveRow;
         }
-        bot++;
-        for (; top < bot; top++) {
+        bottom++;
+        for (; top < bottom; top++) {
             v = wGrooveStepCache[top];
             if (v < 0xFF)
                 v++;
@@ -286,13 +286,13 @@ UBYTE GrooveScreenInput(void)
         BuildGrooveCache();
         if (wCursorMode == 4 && (!wSelectionLeft || !wSelectionRight)) {
             top = wSelectionTop;
-            bot = wGrooveRow;
-            SortBytePair(&top, &bot);
+            bottom = wGrooveRow;
+            SortBytePair(&top, &bottom);
         } else {
-            bot = wGrooveRow;
+            bottom = wGrooveRow;
             top = wGrooveRow;
         }
-        end = bot;
+        end = bottom;
         end++;
         for (; top < end; top++) {
             SetVramCursor(2, top + 2);
@@ -309,15 +309,15 @@ UBYTE GrooveScreenInput(void)
         BuildGrooveCache();
         if (wCursorMode == 4 && (!wSelectionLeft || !wSelectionRight)) {
             top = wSelectionTop;
-            bot = wGrooveRow;
-            SortBytePair(&top, &bot);
+            bottom = wGrooveRow;
+            SortBytePair(&top, &bottom);
         } else {
-            bot = wGrooveRow;
+            bottom = wGrooveRow;
             top = wGrooveRow;
         }
         top &= 0xFE;
-        bot = (bot & 0xFE) + 2;
-        while (top != bot) {
+        bottom = (bottom & 0xFE) + 2;
+        while (top != bottom) {
             v2 = wGrooveStepCache[top + 1];
             v = wGrooveStepCache[top];
             if (!v2)
@@ -450,9 +450,9 @@ UBYTE GrooveScreenInput(void)
             break;
         if (wCursorMode == 4 && wClipboardType == 2) {
             top = wSelectionTop;
-            bot = wGrooveRow;
-            SortBytePair(&top, &bot);
-            if (top || bot != 0x0F) {
+            bottom = wGrooveRow;
+            SortBytePair(&top, &bottom);
+            if (top || bottom != 0x0F) {
                 wGrooveRow = 0x0F;
                 while (wGrooveRow && !ReadGrooveStep(wGrooveRow))
                     wGrooveRow--;
@@ -504,14 +504,14 @@ void CutCopyGrooveSelection(UBYTE cut)
 
 void PasteGrooveSelection(void)
 {
-    UBYTE i;
+    UBYTE row;
 
     if (wClipboardType != 2)
         return;
     if ((UBYTE)(wSelectionBottom - wSelectionTop) > 1)
         ShowMessage("PASTE");
-    for (i = wSelectionTop; i < wSelectionBottom; i++) {
-        WriteGrooveByte(wGrooveRow, ReadClipboardCell(0, i));
+    for (row = wSelectionTop; row < wSelectionBottom; row++) {
+        WriteGrooveByte(wGrooveRow, ReadClipboardCell(0, row));
         if (++wGrooveRow == 0x10)
             wGrooveRow = 0;
     }
@@ -541,9 +541,9 @@ void DrawGrooveSelection(void)
 
 void ResetGrooveState(void)
 {
-    UBYTE i;
+    UBYTE step;
 
     wGrooveCacheValid = 0;
-    for (i = 0; i != 16; i++)
-        WriteGrooveByte(i, wGrooveStepCache[i]);
+    for (step = 0; step != 16; step++)
+        WriteGrooveByte(step, wGrooveStepCache[step]);
 }

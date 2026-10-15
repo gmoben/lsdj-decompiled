@@ -64,7 +64,7 @@ extern UBYTE wSelectHeld;                   /* $C40A */
 extern UBYTE wBHeld;                        /* $C40B */
 void DrawKeyboardInstrumentName(void);
 void DrawKeyboardOctave(void);
-UBYTE ProcessKeyboardNote(UBYTE sc);
+UBYTE ProcessKeyboardNote(UBYTE scancode);
 void Command_A(void);                         /* bank 2 */
 void FarCallArgument0(UBYTE bank, void (*function)(void));   /* FarCallArgument called without its byte (hCommandValue set by hand; aliased) */
 
@@ -378,7 +378,7 @@ UBYTE ProcessLinkQueue(void)
             if (u) {
                 wKeyboardChannelState[1] = 0;
                 DrawString("PU1  ");
-                goto msg;
+                goto message;
             }
         }
         if (t) {
@@ -387,14 +387,14 @@ UBYTE ProcessLinkQueue(void)
                 wKeyboardChannelState[0] = 0;
                 wKeyboardChannelState[1] = 1;
                 DrawString("PU  2");
-                goto msg;
+                goto message;
             }
         }
         if (!t && wKeyboardChannelState[1]) {
             wKeyboardChannelState[0] = 1;
             DrawString("PU1+2");
         }
-msg:
+message:
         wMessageStringPointer = 0;
         wMessageTimer = 0x64;
         return 0xFF;
@@ -447,13 +447,13 @@ note:
     return ProcessKeyboardNote(key);
 }
 
-UBYTE ProcessKeyboardNote(UBYTE sc)
+UBYTE ProcessKeyboardNote(UBYTE scancode)
 {
     UBYTE note;
     UBYTE armed;
     char isPhrase;
 
-    if (!(sc & 0x80)) {
+    if (!(scancode & 0x80)) {
         isPhrase = 0;
         if (wPlayMode && !wKeyboardHeldNote) {
             armed = wKeyboardArmed;
@@ -464,11 +464,11 @@ UBYTE ProcessKeyboardNote(UBYTE sc)
             return 0;
         }
         if (armed) {
-            note = KeyboardFunctionMap[sc];
+            note = KeyboardFunctionMap[scancode];
             if (!note)
                 return 0;
         } else {
-            note = KeyboardNoteMap[sc];
+            note = KeyboardNoteMap[scancode];
             if (!note)
                 return 0;
             note += wKeyboardTranspose;
@@ -488,12 +488,12 @@ UBYTE ProcessKeyboardNote(UBYTE sc)
             wKeyboardNoteQueued = note;
         }
     } else if (wCurrentScreen == 1) {
-        sc &= 0x7F;
+        scancode &= 0x7F;
         armed = wSongColumn == 3 || !FarCallArgumentByte(4, (UWORD)PhraseRowIsSentinel, wPhraseRow);
         if (armed) {
-            note = KeyboardFunctionMap[sc];
+            note = KeyboardFunctionMap[scancode];
         } else {
-            note = KeyboardNoteMap[sc];
+            note = KeyboardNoteMap[scancode];
             note += wKeyboardTranspose;
         }
         if (note == wKeyboardHeldNote)

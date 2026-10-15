@@ -55,7 +55,7 @@ extern UBYTE wSyncState;                    /* $CBDE */
 extern UBYTE FileFieldX[];                  /* $1C:$5092 */
 extern UBYTE FileFieldWidth[];              /* $1C:$5095 */
 
-void SetInterruptEnable(UBYTE ie);          /* bank 0 */
+void SetInterruptEnable(UBYTE interruptMask);          /* bank 0 */
 UBYTE joypad(void);                         /* bank 0 */
 void SendSyncHandshake(void);               /* bank 0 */
 void SendSyncByte(void);                    /* bank 0 */
@@ -456,7 +456,7 @@ void FreeFileBlocks(UBYTE f)
 
 void LoadFileListState(void)
 {
-    UBYTE ver;
+    UBYTE version;
     char modifier;
     UBYTE i;
 
@@ -481,23 +481,23 @@ void LoadFileListState(void)
         i++;
     }
     wTopBarString[i++] = '.';
-    ver = ReadSongByte(4, (UWORD)0xA100 + wFileCursor);
-    if (ver & 0xF0) {
-        wTopBarString[i] = (ver >> 4) + 0x30;
-        if ((ver >> 4) > 9)
+    version = ReadSongByte(4, (UWORD)0xA100 + wFileCursor);
+    if (version & 0xF0) {
+        wTopBarString[i] = (version >> 4) + 0x30;
+        if ((version >> 4) > 9)
             wTopBarString[i] += 7;
-        ver &= 0x0F;
-        if (ver > 9)
-            ver += 7;
+        version &= 0x0F;
+        if (version > 9)
+            version += 7;
         i++;
-        wTopBarString[i] = ver + 0x30;
+        wTopBarString[i] = version + 0x30;
         i++;
         wTopBarMarkPointer = &wTopBarString[i];
         wTopBarString[i++] = modifier;
         wTopBarString[i] = 0;
     } else {
-        wTopBarString[i] = ver + 0x30;
-        if (ver > 9)
+        wTopBarString[i] = version + 0x30;
+        if (version > 9)
             wTopBarString[i] += 7;
         i++;
         wTopBarMarkPointer = &wTopBarString[i];
@@ -779,7 +779,7 @@ void FileValidateName(void)
 void DrawFileList(void)
 {
     UBYTE row, slot, active, end, blocks;
-    UBYTE ver, c, n;
+    UBYTE version, c, n;
     char *empty = "[EMPTY]      0";
 
     row = 0;
@@ -801,12 +801,12 @@ void DrawFileList(void)
         hBgPalette = 1;
         DrawStringIndexed(slot == active ? '*' : ' ');
         if (blocks) {
-            ver = ReadSongByte(4, (UWORD)0xA100 + slot);
+            version = ReadSongByte(4, (UWORD)0xA100 + slot);
             CopyFileName(slot);
             DrawString(wFileNameBuffer);
             DrawStringIndexed('.');
-            DrawByte(ver);
-            if ((ver & 0xF0) == 0)
+            DrawByte(version);
+            if ((version & 0xF0) == 0)
                 DrawStringTile20();
             n = 9 - StringLength(wFileNameBuffer);
             while (n--)

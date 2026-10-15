@@ -86,7 +86,7 @@ UBYTE ClaimInstrumentSlot(UBYTE instrument)
 {
     UBYTE *source;
     UWORD n;
-    UWORD i;
+    UWORD field;
     UWORD p;
 
     if (instrument >= 0x40)
@@ -108,18 +108,18 @@ UBYTE ClaimInstrumentSlot(UBYTE instrument)
         source = DefaultInstrumentPulse;
         n = 11;
     }
-    for (i = 0; i != n; i++)
-        WriteInstrumentByte(instrument, i, source[i]);
+    for (field = 0; field != n; field++)
+        WriteInstrumentByte(instrument, field, source[field]);
     return 1;
 }
 
 void InitializeRemapTable(void)
 {
-    UBYTE i, v;
+    UBYTE entry, v;
     UBYTE *p;
 
-    for (i = 0; i != 0x10; i++) {
-        p = &wInstrumentRemapTable[i];
+    for (entry = 0; entry != 0x10; entry++) {
+        p = &wInstrumentRemapTable[entry];
         v = *p;
         if (v < 0x40) {
             *p = 0xFF;
@@ -131,12 +131,12 @@ void InitializeRemapTable(void)
 
 UBYTE AllocNextFreeInstrument(void)
 {
-    UBYTE i;
+    UBYTE instrument;
 
-    for (i = 0; i < 0x40; i++) {
-        if (ClaimInstrumentSlot(i)) {
-            FarCallArgument3(4, (UWORD)WritePhraseInstrument, wPhrase, wPhraseRow, i);
-            return i;
+    for (instrument = 0; instrument < 0x40; instrument++) {
+        if (ClaimInstrumentSlot(instrument)) {
+            FarCallArgument3(4, (UWORD)WritePhraseInstrument, wPhrase, wPhraseRow, instrument);
+            return instrument;
         }
     }
     strcpy(wStringBuffer, "OUT OF MEMORY. CLEAN INSTR DATA IN PROJECT SCREEN");
@@ -168,37 +168,37 @@ UBYTE IsTableFree(UWORD t)
 
 UBYTE FindFreeTable(void)
 {
-    UBYTE i;
+    UBYTE table;
 
-    for (i = 0; i != 0x20; i++)
-        if (IsTableFree((UWORD)i))
-            return i;
+    for (table = 0; table != 0x20; table++)
+        if (IsTableFree((UWORD)table))
+            return table;
     ShowMessage("OUT OF TABLES!");
     return 0xFF;
 }
 
 UBYTE IsSongChainUsed(void)
 {
-    UBYTE i;
+    UBYTE chain;
     UBYTE *p;
     UBYTE start;
 
     start = wColumnChain[wSongColumn];
     if (start & 0x80)
         start = 0;
-    i = start;
+    chain = start;
     do {
-        p = SramChainAlloc + (i >> 3);
-        if (!(ReadSongByte(1, (UWORD)p) & (1 << (i & 7)))) {
-            FarCallArgument(1, FAR_FN(MarkChainUsed), i);
-            if (i >= 0x80)
+        p = SramChainAlloc + (chain >> 3);
+        if (!(ReadSongByte(1, (UWORD)p) & (1 << (chain & 7)))) {
+            FarCallArgument(1, FAR_FN(MarkChainUsed), chain);
+            if (chain >= 0x80)
                 DebugTrap();
-            return i;
+            return chain;
         }
-        i++;
-        if (i == 0x80)
-            i = 0;
-    } while (i != start);
+        chain++;
+        if (chain == 0x80)
+            chain = 0;
+    } while (chain != start);
     FarCall(1, FAR_FN(ShowOutOfMemory));
     return 0xFF;
 }
@@ -210,32 +210,32 @@ UBYTE IsSongChainUsed(void)
 UBYTE FreeUnusedInstruments(void)
 {
     UWORD p;
-    UBYTE i;
-    UBYTE ph;
+    UBYTE instrument;
+    UBYTE phrase;
     UBYTE row;
     UBYTE n;
-    UBYTE k;
+    UBYTE column;
     UWORD address;
 
     p = (UWORD)SramInstrAlloc;
     n = 0;
     _asm di _endasm;
-    for (i = 0; i < 0x40; i++) {
+    for (instrument = 0; instrument < 0x40; instrument++) {
         if (ReadSongByte(1, p))
             n++;
         WriteSongByte(1, p, 0);
         p++;
     }
-    for (ph = 0; ph < 0xFF; ph++) {
+    for (phrase = 0; phrase < 0xFF; phrase++) {
         for (row = 0; row < 0x10; row++) {
-            i = FarCallArgument2P(4, FAR_FN(ReadPhraseInstrument), ph, row);
-            if (i < 0x40)
-                WriteSongByte(1, (UWORD)SramInstrAlloc + i, 1);
+            instrument = FarCallArgument2P(4, FAR_FN(ReadPhraseInstrument), phrase, row);
+            if (instrument < 0x40)
+                WriteSongByte(1, (UWORD)SramInstrAlloc + instrument, 1);
         }
     }
     _asm ei _endasm;
     p = (UWORD)SramInstrAlloc;
-    for (i = 0; i < 0x40; i++) {
+    for (instrument = 0; instrument < 0x40; instrument++) {
         _asm di _endasm;
         if (!ReadSongByte(1, p)) {
             wNameEditBuffer[0] = 0;
@@ -243,8 +243,8 @@ UBYTE FreeUnusedInstruments(void)
             wNameEditBuffer[2] = 0;
             wNameEditBuffer[3] = 0;
             wNameEditBuffer[4] = 0;
-            FarCallArgument(1, FAR_FN(WriteInstrumentName), i);
-            address = i;
+            FarCallArgument(1, FAR_FN(WriteInstrumentName), instrument);
+            address = instrument;
             address <<= 4;
             address |= 0xB000;
             address += 0x80;
@@ -254,14 +254,14 @@ UBYTE FreeUnusedInstruments(void)
             FillMemory((UBYTE *)address, 0, 0x10);
             rRAMG = 0;
             _asm ei _endasm;
-            k = 4;
+            column = 4;
             do {
                 /* SDCC fetches i into a over the element it just read
                    (`cp a,a`): the test is always true, so freeing any
                    instrument clears all four columns' */
-                if (wColumnInstrument[k - 1] == i)
-                    wColumnInstrument[k - 1] = 0xFF;
-            } while (--k);
+                if (wColumnInstrument[column - 1] == instrument)
+                    wColumnInstrument[column - 1] = 0xFF;
+            } while (--column);
         } else {
             n--;
         }
@@ -293,11 +293,11 @@ void MarkPhraseTablesUsed(UBYTE phrase)
 {
     UBYTE *c;
     UBYTE *v;
-    UBYTE i;
+    UBYTE row;
 
     c = SramPhraseFx + ((unsigned int)phrase << 4);
     v = SramPhraseFxVal + ((unsigned int)phrase << 4);
-    for (i = 0; i < 16; i++) {
+    for (row = 0; row < 16; row++) {
         if (ReadSongByte(2, c) == 1)
             MarkTableUsed(ReadSongByte(2, v));
         c = c + 1;
@@ -309,14 +309,14 @@ void MarkTableTablesUsed(UBYTE t)
 {
     UWORD o;
     UBYTE *p1, *p2, *p3, *p4;
-    UBYTE i;
+    UBYTE step;
 
     o = (UWORD)t << 4;
     p1 = (UBYTE *)0xB680 + o;
     p2 = (UBYTE *)0xB880 + o;
     p3 = (UBYTE *)0xBA80 + o;
     p4 = (UBYTE *)0xBC80 + o;
-    for (i = 0; i < 0x10; i++) {
+    for (step = 0; step < 0x10; step++) {
         if (ReadSongByte(1, (UWORD)p1) == 1)
             MarkTableUsed(ReadSongByte(1, (UWORD)p2));
         if (ReadSongByte(1, (UWORD)p3) == 1)
@@ -335,32 +335,32 @@ UBYTE IsPhraseUsedFar(UBYTE phrase)
 
 void MarkTablesOfUsedPhrases(void)
 {
-    UBYTE i;
+    UBYTE phrase;
 
-    for (i = 0; i < 0xFF; i++)
-        if (IsPhraseUsedFar(i))
-            MarkPhraseTablesUsed(i);
+    for (phrase = 0; phrase < 0xFF; phrase++)
+        if (IsPhraseUsedFar(phrase))
+            MarkPhraseTablesUsed(phrase);
 }
 
 UBYTE CountUsedTables(void)
 {
-    UBYTE n, i;
+    UBYTE n, table;
 
     n = 0;
-    for (i = 0; i < 0x20; i++)
-        if (IsTableUsed(i))
+    for (table = 0; table < 0x20; table++)
+        if (IsTableUsed(table))
             n++;
     return n;
 }
 
 UBYTE MarkTablesOfUsedTables(void)
 {
-    UBYTE before, i;
+    UBYTE before, table;
 
     before = CountUsedTables();
-    for (i = 0; i < 0x20; i++)
-        if (IsTableUsed(i))
-            MarkTableTablesUsed(i);
+    for (table = 0; table < 0x20; table++)
+        if (IsTableUsed(table))
+            MarkTableTablesUsed(table);
     return !(before == CountUsedTables());
 }
 
@@ -375,18 +375,18 @@ void MarkInstrumentTableUsed(UBYTE instrument)
 
 void MarkTablesOfUsedInstruments(void)
 {
-    UBYTE i;
+    UBYTE instrument;
 
-    for (i = 0; i < 0x40; i++)
-        if (IsInstrumentAllocated(i))
-            MarkInstrumentTableUsed(i);
+    for (instrument = 0; instrument < 0x40; instrument++)
+        if (IsInstrumentAllocated(instrument))
+            MarkInstrumentTableUsed(instrument);
 }
 
 void ClearTableRow(UBYTE bank, UBYTE *p)
 {
-    UBYTE i;
+    UBYTE step;
 
-    for (i = 0; i < 0x10; i++) {
+    for (step = 0; step < 0x10; step++) {
         WriteSongByte(bank, p, 0);
         p = p + 1;
     }
@@ -416,14 +416,14 @@ void ClearTable(UBYTE t)
 
 UBYTE ClearUnusedTables(void)
 {
-    UBYTE n, i;
+    UBYTE n, table;
 
     n = 0;
-    for (i = 0; i < 0x20; i++) {
-        if (!IsTableUsed(i)) {
-            if (!IsTableFree((UWORD)i))
+    for (table = 0; table < 0x20; table++) {
+        if (!IsTableUsed(table)) {
+            if (!IsTableFree((UWORD)table))
                 n++;
-            ClearTable(i);
+            ClearTable(table);
         }
     }
     return n;
@@ -442,23 +442,23 @@ UBYTE FreeUnusedTables(void)
 
 void RemapSequenceChains(void)
 {
-    UBYTE j, i, column;
+    UBYTE row, chain, column;
 
     column = wSongColumn;
     _asm
         di
     _endasm;
-    for (i = 0; i < 0x80; i++)
-        FarCallArgument(1, FAR_FN(FreeChain), i);
+    for (chain = 0; chain < 0x80; chain++)
+        FarCallArgument(1, FAR_FN(FreeChain), chain);
     _asm
         ei
         di
     _endasm;
     for (wSongColumn = 0; wSongColumn < 4; wSongColumn++) {
-        for (j = 0; j != 0xC0; j++) {
-            i = ReadSequenceByte(wSongColumn, j);
-            if (!(i & 0x80))
-                FarCallArgument(1, FAR_FN(MarkChainUsed), i);
+        for (row = 0; row != 0xC0; row++) {
+            chain = ReadSequenceByte(wSongColumn, row);
+            if (!(chain & 0x80))
+                FarCallArgument(1, FAR_FN(MarkChainUsed), chain);
         }
     }
     wSongColumn = column;
@@ -466,11 +466,11 @@ void RemapSequenceChains(void)
         ei
         di
     _endasm;
-    for (i = 0; i < 0x80; i++) {
-        if (!FarCallArgumentByte(1, FAR_FN(IsChainUsed), i)) {
-            for (j = 0; j < 0x10; j++) {
-                WriteChainPhrase(i, j, 0xFF);
-                FarCallArgument3P(6, FAR_FN(SetChainTranspose), i, j, 0);
+    for (chain = 0; chain < 0x80; chain++) {
+        if (!FarCallArgumentByte(1, FAR_FN(IsChainUsed), chain)) {
+            for (row = 0; row < 0x10; row++) {
+                WriteChainPhrase(chain, row, 0xFF);
+                FarCallArgument3P(6, FAR_FN(SetChainTranspose), chain, row, 0);
             }
         }
     }
@@ -481,12 +481,12 @@ void RemapSequenceChains(void)
 
 void MarkChainPhrasesUsed(UBYTE chain)
 {
-    UBYTE i, p;
+    UBYTE row, phrase;
 
-    for (i = 0; i < 16; i++) {
-        p = FarCallArgument2(2, (UWORD)SoundGetChainPhrase, chain, i);
-        if (p != 0xFF)
-            FarCallArgument(1, FAR_FN(MarkPhraseUsed), p);
+    for (row = 0; row < 16; row++) {
+        phrase = FarCallArgument2(2, (UWORD)SoundGetChainPhrase, chain, row);
+        if (phrase != 0xFF)
+            FarCallArgument(1, FAR_FN(MarkPhraseUsed), phrase);
     }
 }
 
@@ -497,11 +497,11 @@ UBYTE IsChainUsedFar(UBYTE chain)
 
 void MarkPhrasesOfUsedChains(void)
 {
-    UBYTE i;
+    UBYTE chain;
 
-    for (i = 0; i < 0x80; i++)
-        if (IsChainUsedFar(i))
-            MarkChainPhrasesUsed(i);
+    for (chain = 0; chain < 0x80; chain++)
+        if (IsChainUsedFar(chain))
+            MarkChainPhrasesUsed(chain);
 }
 
 /* The three duplicate scanners share one register story. The row offsets
@@ -515,43 +515,43 @@ void MarkPhrasesOfUsedChains(void)
 UBYTE FindDuplicatePhrase(UBYTE a, UBYTE b)
 {
     UBYTE *p, *q;
-    UWORD oa, ob;
-    UBYTE i;
+    UWORD offsetA, offsetB;
+    UBYTE row;
     UWORD t;
 
-    oa = a;
-    ob = b;
+    offsetA = a;
+    offsetB = b;
     _asm
         di
     _endasm;
     rRAMG = 0x0A;
-    oa <<= 4;
-    ob <<= 4;
-    t = oa + (UWORD)0xA000;                 /* bank 0: phrase notes */
+    offsetA <<= 4;
+    offsetB <<= 4;
+    t = offsetA + (UWORD)0xA000;                 /* bank 0: phrase notes */
     p = (UBYTE *)t;
-    q = (UBYTE *)(ob + (UWORD)0xA000);
+    q = (UBYTE *)(offsetB + (UWORD)0xA000);
     rRAMB = 0;
-    for (i = 0; i < 0x10; i++) {
+    for (row = 0; row < 0x10; row++) {
         if (*p++ != *q++)
             return 0;
     }
     rRAMB = 3;
-    p = (UBYTE *)(oa + (UWORD)0xB000);                      /* bank 3: phrase instruments */
-    q = (UBYTE *)(ob + (UWORD)0xB000);
-    for (i = 0; i < 0x10; i++) {
+    p = (UBYTE *)(offsetA + (UWORD)0xB000);                      /* bank 3: phrase instruments */
+    q = (UBYTE *)(offsetB + (UWORD)0xB000);
+    for (row = 0; row < 0x10; row++) {
         if (*p++ != *q++)
             return 0;
     }
     rRAMB = 2;
-    p = (UBYTE *)(oa | (UWORD)0xA000);      /* bank 2: phrase commands */
-    q = (UBYTE *)(ob | (UWORD)0xA000);
-    for (i = 0; i < 0x10; i++) {
+    p = (UBYTE *)(offsetA | (UWORD)0xA000);      /* bank 2: phrase commands */
+    q = (UBYTE *)(offsetB | (UWORD)0xA000);
+    for (row = 0; row < 0x10; row++) {
         if (*p++ != *q++)
             return 0;
     }
-    p = (UBYTE *)(oa + (UWORD)0xAFF0);                      /* bank 2: command values */
-    q = (UBYTE *)(ob + (UWORD)0xAFF0);
-    for (i = 0; i < 0x10; i++) {
+    p = (UBYTE *)(offsetA + (UWORD)0xAFF0);                      /* bank 2: command values */
+    q = (UBYTE *)(offsetB + (UWORD)0xAFF0);
+    for (row = 0; row < 0x10; row++) {
         if (*p++ != *q++)
             return 0;
     }
@@ -561,29 +561,29 @@ UBYTE FindDuplicatePhrase(UBYTE a, UBYTE b)
 UBYTE FindDuplicateChain(UBYTE a, UBYTE b)
 {
     UBYTE *p, *q;
-    UWORD oa, ob;
-    UBYTE i;
+    UWORD offsetA, offsetB;
+    UBYTE row;
     UWORD t;
 
-    oa = a;
-    ob = b;
+    offsetA = a;
+    offsetB = b;
     _asm
         di
     _endasm;
     rRAMG = 0x0A;
-    oa <<= 4;
-    ob <<= 4;
-    t = oa + (UWORD)0xA080;                 /* bank 1: chain phrases */
+    offsetA <<= 4;
+    offsetB <<= 4;
+    t = offsetA + (UWORD)0xA080;                 /* bank 1: chain phrases */
     p = (UBYTE *)t;
-    q = (UBYTE *)(ob + (UWORD)0xA080);
+    q = (UBYTE *)(offsetB + (UWORD)0xA080);
     rRAMB = 1;
-    for (i = 0; i < 0x10; i++) {
+    for (row = 0; row < 0x10; row++) {
         if (*p++ != *q++)
             return 0;
     }
-    p = (UBYTE *)(oa + (UWORD)0xA880);                      /* bank 1: chain transposes */
-    q = (UBYTE *)(ob + (UWORD)0xA880);
-    for (i = 0; i < 0x10; i++) {
+    p = (UBYTE *)(offsetA + (UWORD)0xA880);                      /* bank 1: chain transposes */
+    q = (UBYTE *)(offsetB + (UWORD)0xA880);
+    for (row = 0; row < 0x10; row++) {
         if (*p++ != *q++)
             return 0;
     }
@@ -593,55 +593,55 @@ UBYTE FindDuplicateChain(UBYTE a, UBYTE b)
 UBYTE FindDuplicateTable(UBYTE a, UBYTE b)
 {
     UBYTE *p, *q;
-    UWORD oa, ob;
-    UBYTE i;
+    UWORD offsetA, offsetB;
+    UBYTE step;
     UWORD t;
 
-    oa = a;
-    ob = b;
-    oa <<= 4;
-    ob <<= 4;
+    offsetA = a;
+    offsetB = b;
+    offsetA <<= 4;
+    offsetB <<= 4;
     _asm
         di
     _endasm;
     rRAMG = 0x0A;
     rRAMB = 1;
-    t = oa + (UWORD)0xB680;                 /* bank 1: table fx 1 */
+    t = offsetA + (UWORD)0xB680;                 /* bank 1: table fx 1 */
     p = (UBYTE *)t;
-    q = (UBYTE *)(ob + (UWORD)0xB680);
-    for (i = 0; i < 0x10; i++) {
+    q = (UBYTE *)(offsetB + (UWORD)0xB680);
+    for (step = 0; step < 0x10; step++) {
         if (*p++ != *q++)
             return 0;
     }
-    p = (UBYTE *)(oa + (UWORD)0xB880);                      /* bank 1: table fx 1 values */
-    q = (UBYTE *)(ob + (UWORD)0xB880);
-    for (i = 0; i < 0x10; i++) {
+    p = (UBYTE *)(offsetA + (UWORD)0xB880);                      /* bank 1: table fx 1 values */
+    q = (UBYTE *)(offsetB + (UWORD)0xB880);
+    for (step = 0; step < 0x10; step++) {
         if (*p++ != *q++)
             return 0;
     }
-    p = (UBYTE *)(oa + (UWORD)0xBA80);                      /* bank 1: table fx 2 */
-    q = (UBYTE *)(ob + (UWORD)0xBA80);
-    for (i = 0; i < 0x10; i++) {
+    p = (UBYTE *)(offsetA + (UWORD)0xBA80);                      /* bank 1: table fx 2 */
+    q = (UBYTE *)(offsetB + (UWORD)0xBA80);
+    for (step = 0; step < 0x10; step++) {
         if (*p++ != *q++)
             return 0;
     }
-    p = (UBYTE *)(oa + (UWORD)0xBC80);                      /* bank 1: table fx 2 values */
-    q = (UBYTE *)(ob + (UWORD)0xBC80);
-    for (i = 0; i < 0x10; i++) {
+    p = (UBYTE *)(offsetA + (UWORD)0xBC80);                      /* bank 1: table fx 2 values */
+    q = (UBYTE *)(offsetB + (UWORD)0xBC80);
+    for (step = 0; step < 0x10; step++) {
         if (*p++ != *q++)
             return 0;
     }
-    p = (UBYTE *)(oa + (UWORD)0xB690);                      /* bank 0: table envelopes */
-    q = (UBYTE *)(ob + (UWORD)0xB690);
+    p = (UBYTE *)(offsetA + (UWORD)0xB690);                      /* bank 0: table envelopes */
+    q = (UBYTE *)(offsetB + (UWORD)0xB690);
     rRAMB = 0;
-    for (i = 0; i < 0x10; i++) {
+    for (step = 0; step < 0x10; step++) {
         if (*p++ != *q++)
             return 0;
     }
-    p = (UBYTE *)(oa + (UWORD)0xB480);                      /* bank 1: table transposes */
-    q = (UBYTE *)(ob + (UWORD)0xB480);
+    p = (UBYTE *)(offsetA + (UWORD)0xB480);                      /* bank 1: table transposes */
+    q = (UBYTE *)(offsetB + (UWORD)0xB480);
     rRAMB = 1;
-    for (i = 0; i < 0x10; i++) {
+    for (step = 0; step < 0x10; step++) {
         if (*p++ != *q++)
             return 0;
     }
@@ -651,7 +651,7 @@ UBYTE FindDuplicateTable(UBYTE a, UBYTE b)
 void RemapPhraseRefs(UBYTE from, UBYTE to)
 {
     UBYTE *p;
-    UBYTE i;
+    UBYTE column;
 
     p = SramChainPhrases;
     _asm di _endasm;
@@ -663,18 +663,18 @@ void RemapPhraseRefs(UBYTE from, UBYTE to)
     rRAMG = 0;
     _asm ei _endasm;
     FarCallArgument(1, FAR_FN(FreePhrase), from);
-    i = 4;
+    column = 4;
     do {
-        if (from == wColumnPhrase[i - 1])
-            wColumnPhrase[i - 1] = to;
-        i--;
-    } while (i);
+        if (from == wColumnPhrase[column - 1])
+            wColumnPhrase[column - 1] = to;
+        column--;
+    } while (column);
 }
 
 void RemapChainRefs(UBYTE from, UBYTE to)
 {
     UBYTE *p;
-    UBYTE i;
+    UBYTE column;
 
     p = SramSequence;
     _asm di _endasm;
@@ -686,77 +686,77 @@ void RemapChainRefs(UBYTE from, UBYTE to)
     rRAMG = 0;
     _asm ei _endasm;
     FarCallArgument(1, FAR_FN(FreeChain), from);
-    i = 4;
+    column = 4;
     do {
-        if (from == wColumnChain[i - 1])
-            wColumnChain[i - 1] = to;
-        i--;
-    } while (i);
+        if (from == wColumnChain[column - 1])
+            wColumnChain[column - 1] = to;
+        column--;
+    } while (column);
 }
 
 void RemapCommandTableRefs(UBYTE from, UBYTE to)
 {
-    volatile UWORD p;
-    volatile UWORD q;
-    volatile UBYTE i;
+    volatile UWORD command;
+    volatile UWORD value;
+    volatile UBYTE instrument;
     volatile UBYTE nt;
     UBYTE nf;
 
-    p = (UWORD)0xB680;
-    q = (UWORD)0xB880;
+    command = (UWORD)0xB680;
+    value = (UWORD)0xB880;
     _asm di _endasm;
     rRAMG = 0x0A;
     rRAMB = 1;
-    while (p != (UWORD)0xB880) {
-        if (*(UBYTE *)p == 1 && from == *(UBYTE *)q)
-            *(UBYTE *)q = to;
-        p++;
-        q++;
+    while (command != (UWORD)0xB880) {
+        if (*(UBYTE *)command == 1 && from == *(UBYTE *)value)
+            *(UBYTE *)value = to;
+        command++;
+        value++;
     }
-    p = (UWORD)0xBA80;
-    q = (UWORD)0xBC80;
-    while (p != (UWORD)0xBC80) {
-        if (*(UBYTE *)p == 1 && from == *(UBYTE *)q)
-            *(UBYTE *)q = to;
-        p++;
-        q++;
+    command = (UWORD)0xBA80;
+    value = (UWORD)0xBC80;
+    while (command != (UWORD)0xBC80) {
+        if (*(UBYTE *)command == 1 && from == *(UBYTE *)value)
+            *(UBYTE *)value = to;
+        command++;
+        value++;
     }
     rRAMB = 2;
-    p = (UWORD)0xA000;
-    q = (UWORD)0xAFF0;
-    while (p != (UWORD)0xAFF0) {
-        if (*(UBYTE *)p == 1 && from == *(UBYTE *)q)
-            *(UBYTE *)q = to;
-        p++;
-        q++;
+    command = (UWORD)0xA000;
+    value = (UWORD)0xAFF0;
+    while (command != (UWORD)0xAFF0) {
+        if (*(UBYTE *)command == 1 && from == *(UBYTE *)value)
+            *(UBYTE *)value = to;
+        command++;
+        value++;
     }
     rRAMG = 0;
     _asm ei _endasm;
-    i = 0;
+    instrument = 0;
     nt = to | 0x20;
     nf = from | 0x20;
-    while (i != 0x40) {
-        if (ReadInstrumentByte(i, 6) == nf)
-            WriteInstrumentByte(i, 6, nt);
-        i++;
+    while (instrument != 0x40) {
+        if (ReadInstrumentByte(instrument, 6) == nf)
+            WriteInstrumentByte(instrument, 6, nt);
+        instrument++;
     }
 }
 
 void DeduplicatePhrases(void)
 {
-    UBYTE i, j;
+    UBYTE phrase, candidate;
 
-    for (i = 0; i < 0xFF; i = i + 1) {
-        if (!IsPhraseUsedFar(i))
+    for (phrase = 0; phrase < 0xFF; phrase = phrase + 1) {
+        if (!IsPhraseUsedFar(phrase))
             continue;
         wVramCursor = (UBYTE *)0x98AE;
-        DrawHexByte(i);
-        for (j = i + 1; j < 0xFF; j = j + 1) {
-            wDeduplicatePhraseUsed = IsPhraseUsedFar(j);
+        DrawHexByte(phrase);
+        for (candidate = phrase + 1; candidate < 0xFF; candidate = candidate + 1) {
+            wDeduplicatePhraseUsed = IsPhraseUsedFar(candidate);
             if (wDeduplicatePhraseUsed) {
-                wDeduplicatePhraseIsDuplicate = FindDuplicatePhrase(i, j);
+                wDeduplicatePhraseIsDuplicate = FindDuplicatePhrase(phrase, candidate);
                 if (wDeduplicatePhraseIsDuplicate)
-                    RemapPhraseRefs(j, i);
+                    RemapPhraseRefs(candidate, phrase);
             }
         }
     }
@@ -767,19 +767,19 @@ void DeduplicatePhrases(void)
 
 void DeduplicateChains(void)
 {
-    UBYTE i, j;
+    UBYTE chain, candidate;
 
-    for (i = 0; i < 0x80; i = i + 1) {
-        if (!IsChainUsedFar(i))
+    for (chain = 0; chain < 0x80; chain = chain + 1) {
+        if (!IsChainUsedFar(chain))
             continue;
         wVramCursor = (UBYTE *)0x98AE;
-        DrawHexByte(i);
-        for (j = i + 1; j < 0x80; j = j + 1) {
-            wDeduplicateChainUsed = IsChainUsedFar(j);
+        DrawHexByte(chain);
+        for (candidate = chain + 1; candidate < 0x80; candidate = candidate + 1) {
+            wDeduplicateChainUsed = IsChainUsedFar(candidate);
             if (wDeduplicateChainUsed) {
-                wDeduplicateChainIsDuplicate = FindDuplicateChain(i, j);
+                wDeduplicateChainIsDuplicate = FindDuplicateChain(chain, candidate);
                 if (wDeduplicateChainIsDuplicate)
-                    RemapChainRefs(j, i);
+                    RemapChainRefs(candidate, chain);
             }
         }
     }
@@ -789,19 +789,19 @@ void DeduplicateChains(void)
 
 void DeduplicateTables(void)
 {
-    UBYTE i, j;
+    UBYTE table, candidate;
 
-    for (i = 0; i < 0x20; i = i + 1) {
-        if (IsTableFree(i))
+    for (table = 0; table < 0x20; table = table + 1) {
+        if (IsTableFree(table))
             continue;
         wVramCursor = (UBYTE *)0x98AE;
-        DrawHexByte(i);
-        for (j = i + 1; j < 0x20; j = j + 1) {
-            if (IsTableFree(j))
+        DrawHexByte(table);
+        for (candidate = table + 1; candidate < 0x20; candidate = candidate + 1) {
+            if (IsTableFree(candidate))
                 continue;
-            wDeduplicateTableIsDuplicate = FindDuplicateTable(i, j);
+            wDeduplicateTableIsDuplicate = FindDuplicateTable(table, candidate);
             if (wDeduplicateTableIsDuplicate)
-                RemapCommandTableRefs(j, i);
+                RemapCommandTableRefs(candidate, table);
         }
     }
     wVramCursor = (UBYTE *)0x98AE;
@@ -810,29 +810,29 @@ void DeduplicateTables(void)
 
 UBYTE CountUsedPhrases(void)
 {
-    UBYTE n, i;
+    UBYTE n, phrase;
 
     n = 0;
-    for (i = 0; i < 0xFF; i++)
-        if (IsPhraseUsedFar(i))
+    for (phrase = 0; phrase < 0xFF; phrase++)
+        if (IsPhraseUsedFar(phrase))
             n++;
     return n;
 }
 
 UBYTE CountUsedChains(void)
 {
-    UBYTE n, i;
+    UBYTE n, chain;
 
     n = 0;
-    for (i = 0; i < 0x80; i++)
-        if (IsChainUsedFar(i))
+    for (chain = 0; chain < 0x80; chain++)
+        if (IsChainUsedFar(chain))
             n++;
     return n;
 }
 
 void RebuildPhraseAllocMap(void)
 {
-    UBYTE i;
+    UBYTE phrase;
     UWORD o;
 
     rRAMB = 1;
@@ -842,10 +842,10 @@ void RebuildPhraseAllocMap(void)
     rRAMG = 0;
     _asm ei _endasm;
     MarkPhrasesOfUsedChains();
-    for (i = 0; i < 0xFF; i++) {
-        if (IsPhraseUsedFar(i))
+    for (phrase = 0; phrase < 0xFF; phrase++) {
+        if (IsPhraseUsedFar(phrase))
             continue;
-        o = i;
+        o = phrase;
         o <<= 4;
         o |= 0xA000;
         _asm di _endasm;
@@ -867,11 +867,11 @@ void RebuildPhraseAllocMap(void)
 UBYTE WaveFrameModified(UBYTE w)
 {
     UBYTE *p;
-    UBYTE i;
+    UBYTE byte;
 
     p = SramWaveFrames + ((UWORD)w << 4);
-    for (i = 0; i < 0x10; i++) {
-        if (ReadSongByte(3, p) != DefaultWaveFrameB1F[i])
+    for (byte = 0; byte < 0x10; byte++) {
+        if (ReadSongByte(3, p) != DefaultWaveFrameB1F[byte])
             return 1;
         p = p + 1;
     }
@@ -880,10 +880,10 @@ UBYTE WaveFrameModified(UBYTE w)
 
 UBYTE SynthFramesModified(UBYTE chain)
 {
-    UBYTE p, i;
+    UBYTE p, frame;
 
     p = chain << 4;
-    for (i = 0; i != 16; i++) {
+    for (frame = 0; frame != 16; frame++) {
         if (WaveFrameModified(p))
             return 1;
         p++;
@@ -893,11 +893,11 @@ UBYTE SynthFramesModified(UBYTE chain)
 
 UBYTE CountModifiedSynths(void)
 {
-    UBYTE n, i;
+    UBYTE n, synth;
 
     n = 0;
-    for (i = 0; i < 0x10; i++)
-        if (SynthFramesModified(i))
+    for (synth = 0; synth < 0x10; synth++)
+        if (SynthFramesModified(synth))
             n++;
     return n;
 }
@@ -905,18 +905,18 @@ UBYTE CountModifiedSynths(void)
 UBYTE AnyPhraseUsesCommandF(void)
 {
     UBYTE *p;
-    UBYTE ph, i;
+    UBYTE phrase, row;
 
     p = SramPhraseFx;
-    for (ph = 0; ph != 0xFF; ph++) {
-        i = 0;
+    for (phrase = 0; phrase != 0xFF; phrase++) {
+        row = 0;
         while (1) {
-            if (!(i < 0x10))
+            if (!(row < 0x10))
                 break;
             if (ReadSongByte(2, p) == 6)
                 return 1;
             p = p + 1;
-            i = i + 1;
+            row = row + 1;
         }
     }
     return 0;
@@ -925,12 +925,12 @@ UBYTE AnyPhraseUsesCommandF(void)
 UBYTE AnyTableUsesCommandF(void)
 {
     UBYTE *p, *q;
-    UBYTE i, j, ok;
+    UBYTE table, step, ok;
 
     p = (UBYTE *)0xB680;
     q = (UBYTE *)0xBA80;
-    for (i = 0; i < 0x20; i++) {
-        for (j = 0; j < 0x10; j = j + 1) {
+    for (table = 0; table < 0x20; table++) {
+        for (step = 0; step < 0x10; step = step + 1) {
             if (ReadSongByte(1, (UWORD)p) == 6)
                 return 1;
             if (ReadSongByte(1, (UWORD)q) == 6)
@@ -957,10 +957,10 @@ void ResetWaveFrame(UBYTE p)
 
 void ResetSynthWaves(UBYTE chain)
 {
-    UBYTE p, i;
+    UBYTE p, frame;
 
     p = chain << 4;
-    for (i = 0; i < 16; i++) {
+    for (frame = 0; frame < 16; frame++) {
         ResetWaveFrame(p);
         p++;
     }
@@ -981,22 +981,22 @@ void ResetSynthParameters(UBYTE s)
 
 void ResetUnusedSynths(void)
 {
-    UBYTE i;
+    UBYTE synth;
     UBYTE used[16];
-    UBYTE n;
+    UBYTE instrument;
 
-    i = 16;
+    synth = 16;
     do {
-        used[i - 1] = 0;
-        i--;
-    } while (i);
-    for (n = 0; n < 0x40; n++)
-        if ((ReadInstrumentByte(n, 0) & 3) == 1)
-            used[ReadInstrumentByte(n, 3) >> 4] = 1;
-    for (i = 0; i < 0x10; i++)
-        if (!used[i]) {
-            ResetSynthParameters(i);
-            ResetSynthWaves(i);
+        used[synth - 1] = 0;
+        synth--;
+    } while (synth);
+    for (instrument = 0; instrument < 0x40; instrument++)
+        if ((ReadInstrumentByte(instrument, 0) & 3) == 1)
+            used[ReadInstrumentByte(instrument, 3) >> 4] = 1;
+    for (synth = 0; synth < 0x10; synth++)
+        if (!used[synth]) {
+            ResetSynthParameters(synth);
+            ResetSynthWaves(synth);
         }
 }
 

@@ -91,7 +91,7 @@ UBYTE SongScreenInput(void)
     UBYTE left;
     UBYTE right;
     UBYTE top;
-    UBYTE bot;
+    UBYTE bottom;
 
     SetVramCursor(SongColumnOffsets[wSongColumn], wSongRow + 2 - wSongScroll);
     hBgDigitPalette = wHighlightDigitPalette;
@@ -431,7 +431,7 @@ UBYTE SongScreenInput(void)
             left = wSelectionLeft;
             right = wSongColumn;
             top = wSelectionTop;
-            bot = wSongRow;
+            bottom = wSongRow;
             wQuickMarking = 1;
             SortBytePair(&left, &right);
             if (left || right != 3) {
@@ -440,8 +440,8 @@ UBYTE SongScreenInput(void)
                 EditSongSelection();
                 return 1;
             }
-            SortBytePair(&top, &bot);
-            if (top != wSongScroll || bot != wSongScroll + 0x0F) {
+            SortBytePair(&top, &bottom);
+            if (top != wSongScroll || bottom != wSongScroll + 0x0F) {
                 wSelectionTop = wSongScroll;
                 wSongRow = wSelectionTop + 0x0F;
                 EditSongSelection();

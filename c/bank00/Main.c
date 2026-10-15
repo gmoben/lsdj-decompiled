@@ -101,7 +101,7 @@ void UpdatePlayClock(void);                   /* bank 1 */
 void UpdateWorkClock(void);                  /* bank 1 */
 UBYTE IsMessageActive(void);                  /* bank 1 */
 void UpdateMessage(void);                 /* bank 1 */
-void SetInterruptEnable(UBYTE ie);          /* asm */
+void SetInterruptEnable(UBYTE interruptMask);          /* asm */
 UBYTE joypad(void);                         /* GBDK */
 void WaitInterrupt(void);                   /* asm */
 

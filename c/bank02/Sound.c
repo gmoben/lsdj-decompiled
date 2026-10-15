@@ -111,7 +111,7 @@ extern UBYTE wPointerChainRow, wPointerPhraseRow, wPointerNoteCountdown, wPointe
 extern UBYTE wPointerGrooveRow, wPointerPhrase, wPointerNoteSource;                       /* ..$C8ED */
 
 void SoundWritePanning(UBYTE v);              /* bank 0 */
-void SetInterruptEnable(UBYTE ie);          /* bank 0 */
+void SetInterruptEnable(UBYTE interruptMask);          /* bank 0 */
 UBYTE randw(void);                       /* bank 0 (this file reads the low byte) */
 UBYTE MulU8(UBYTE a, UBYTE b);              /* bank 0 */
 void SetSyncSendRate(void);                 /* bank 7 */

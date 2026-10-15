@@ -52,13 +52,13 @@ UBYTE GetCursorChain(void)
 
 UBYTE LoadChainCursorPhrase(void)
 {
-    UBYTE row, ph;
+    UBYTE row, phrase;
 
     row = wChainRow;
     for (;;) {
-        ph = FarCallArgument2(2, (UWORD)SoundGetChainPhrase, wChain, row);
-        if (ph != 0xFF) {
-            wPhrase = ph;
+        phrase = FarCallArgument2(2, (UWORD)SoundGetChainPhrase, wChain, row);
+        if (phrase != 0xFF) {
+            wPhrase = phrase;
             wChainRow = row;
             return 1;
         }
@@ -132,26 +132,26 @@ UBYTE ReadChainTranspose(UBYTE chain, UBYTE step)
 void ClonePhraseAtCursor(UBYTE source, UBYTE destination)
 {
     UBYTE *s1, *d1, *s2, *d2, *s3, *d3, *s4, *d4;
-    UWORD soff, doff;
+    UWORD sourceOffset, destinationOffset;
     UBYTE v;
     UBYTE i;
 
-    soff = (UWORD)source << 4;
-    doff = (UWORD)destination << 4;
+    sourceOffset = (UWORD)source << 4;
+    destinationOffset = (UWORD)destination << 4;
     if (wCurrentScreen == 3)
         ShowMessage(TxtClonedPhrase);
     if (source == 0xFF)
         DebugTrap();
     if (destination == 0xFF)
         DebugTrap();
-    s1 = (UBYTE *)0xA000 + soff;
-    s2 = (UBYTE *)0xB000 + soff;
-    s3 = (UBYTE *)0xA000 + soff;
-    s4 = (UBYTE *)0xAFF0 + soff;
-    d1 = (UBYTE *)0xA000 + doff;
-    d2 = (UBYTE *)0xB000 + doff;
-    d3 = (UBYTE *)0xA000 + doff;
-    d4 = (UBYTE *)0xAFF0 + doff;
+    s1 = (UBYTE *)0xA000 + sourceOffset;
+    s2 = (UBYTE *)0xB000 + sourceOffset;
+    s3 = (UBYTE *)0xA000 + sourceOffset;
+    s4 = (UBYTE *)0xAFF0 + sourceOffset;
+    d1 = (UBYTE *)0xA000 + destinationOffset;
+    d2 = (UBYTE *)0xB000 + destinationOffset;
+    d3 = (UBYTE *)0xA000 + destinationOffset;
+    d4 = (UBYTE *)0xAFF0 + destinationOffset;
     for (i = 0; i < 16; i++) {
         v = ReadSongByte(0, s1++);
         WriteSongByte(0, d1++, v);
@@ -245,17 +245,17 @@ void DrawChainCursor(void)
 
 void OpenChainPhrase(void)
 {
-    UBYTE ph;
+    UBYTE phrase;
     UBYTE n;
 
-    ph = FarCallArgument2(2, (UWORD)SoundGetChainPhrase, wChain, (char)wChainRow);
+    phrase = FarCallArgument2(2, (UWORD)SoundGetChainPhrase, wChain, (char)wChainRow);
     FarCall(5, 0x747D);                 /* RestoreSelectionState, bank 5, by address */
-    if (ph == 0xFF)
+    if (phrase == 0xFF)
         return;
-    wColumnPhrase[wSongColumn] = ph;
+    wColumnPhrase[wSongColumn] = phrase;
     n = FarCallByte(1, FAR_FN(AllocNextFreePhrase));
     if (n != 0xFF) {
-        ClonePhraseAtCursor(ph, n);
+        ClonePhraseAtCursor(phrase, n);
         FarCallArgument3(0x1F, (UWORD)WriteChainPhrase, wChain, (char)wChainRow, n);
         SetVramCursor(2, wChainRow + 2);
         hBgDigitPalette = wHighlightDigitPalette;
@@ -294,7 +294,7 @@ UBYTE ChainScreenInput(void)
 {
     UBYTE x, y, x1, y0, y1, v, left, right;
     UBYTE isA;
-    char cx, cy;
+    char cursorColumn, cursorRow;
 
     if (wChain & 0x80)
         DebugTrap();
@@ -404,16 +404,16 @@ UBYTE ChainScreenInput(void)
         return 1;
     }
     if (wButtons == 0x11) {
-        cx = wChainColumn;
-        x1 = cx;
-        cy = wChainRow;
-        y1 = cy;
+        cursorColumn = wChainColumn;
+        x1 = cursorColumn;
+        cursorRow = wChainRow;
+        y1 = cursorRow;
         if (wCursorMode == 4) {
             x = wSelectionLeft;
             y0 = wSelectionTop;
         } else {
-            x = cx;
-            y0 = cy;
+            x = cursorColumn;
+            y0 = cursorRow;
         }
         SortBytePair(&x, &x1);
         SortBytePair(&y0, &y1);
@@ -447,16 +447,16 @@ UBYTE ChainScreenInput(void)
         return 1;
     }
     if (wButtons == 0x14) {
-        cx = wChainColumn;
-        x1 = cx;
-        cy = wChainRow;
-        y1 = cy;
+        cursorColumn = wChainColumn;
+        x1 = cursorColumn;
+        cursorRow = wChainRow;
+        y1 = cursorRow;
         if (wCursorMode == 4) {
             x = wSelectionLeft;
             y0 = wSelectionTop;
         } else {
-            x = cx;
-            y0 = cy;
+            x = cursorColumn;
+            y0 = cursorRow;
         }
         SortBytePair(&x, &x1);
         SortBytePair(&y0, &y1);
@@ -494,16 +494,16 @@ UBYTE ChainScreenInput(void)
         return 1;
     }
     if (wButtons == 0x12) {
-        cx = wChainColumn;
-        x1 = cx;
-        cy = wChainRow;
-        y1 = cy;
+        cursorColumn = wChainColumn;
+        x1 = cursorColumn;
+        cursorRow = wChainRow;
+        y1 = cursorRow;
         if (wCursorMode == 4) {
             x = wSelectionLeft;
             y0 = wSelectionTop;
         } else {
-            x = cx;
-            y0 = cy;
+            x = cursorColumn;
+            y0 = cursorRow;
         }
         SortBytePair(&x, &x1);
         SortBytePair(&y0, &y1);
@@ -537,16 +537,16 @@ UBYTE ChainScreenInput(void)
         return 1;
     }
     if (wButtons == 0x18) {
-        cx = wChainColumn;
-        x1 = cx;
-        cy = wChainRow;
-        y1 = cy;
+        cursorColumn = wChainColumn;
+        x1 = cursorColumn;
+        cursorRow = wChainRow;
+        y1 = cursorRow;
         if (wCursorMode == 4) {
             x = wSelectionLeft;
             y0 = wSelectionTop;
         } else {
-            x = cx;
-            y0 = cy;
+            x = cursorColumn;
+            y0 = cursorRow;
         }
         SortBytePair(&x, &x1);
         SortBytePair(&y0, &y1);

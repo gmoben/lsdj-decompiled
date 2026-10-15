@@ -57,7 +57,7 @@ extern UBYTE wSyncState;                    /* $CBDE */
 extern char TxtTooBusy[];                   /* $01:$6FAE, "TOO BUSY!" */
 
 void SoundInitializePlayState(void);                /* bank 2 */
-void SetInterruptEnable(UBYTE ie);          /* asm */
+void SetInterruptEnable(UBYTE interruptMask);          /* asm */
 void SendSyncHandshake(void);
 void SendSyncByte(void);                    /* asm */
 UWORD ChecksumRomBank(void);                /* $00:$20B3, asm */
@@ -400,11 +400,11 @@ void ProcessSyncByte(void)
 
 void SyncReceiveAnalogClock(void)
 {
-    UBYTE sb, steps;
+    UBYTE serialByte, steps;
 
-    sb = SB_REG;
+    serialByte = SB_REG;
     steps = 0;
-    if (!wSyncInGate && sb) {
+    if (!wSyncInGate && serialByte) {
         steps = wSyncInPulses + 1;
         if (wPlayMode) {
             wAnalogInStepLength = ((UWORD)wAnalogInPulseCount << 8) / wSyncMode2;
@@ -426,7 +426,7 @@ void SyncReceiveAnalogClock(void)
         }
         wAnalogInPulseCount++;
     }
-    wSyncInGate = sb;
+    wSyncInGate = serialByte;
     SC_REG = 0x81;
     while (steps--)
         SendByteStep();
