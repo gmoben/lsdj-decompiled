@@ -98,7 +98,7 @@
 17BB FarCallArgument            ; like FarCall but also passes one byte argument to the callee
 1574 WriteSongByte              ; (bank,addr,val): select SRAM bank + enable RAM, write [de] (write side of ReadSongByte)
 ; --- screen-drawing helpers (VRAM cursor $C574/$C575, string src $C564/$C565) ---
-24DD RedrawScreen               ; full redraw of the current screen: ResetScreenSprites, clear tilemap (CGB), then per-screen draw passes across banks (1 $6CD7, 5 $4040, ...) by wCurrentScreen
+24DD RedrawScreen               ; full screen repaint: ResetScreenSprites, ClearBgTilemap (CGB), then the current screen's (wCurrentScreen) draw passes across banks; called through FarCall from 18 places, so whichever bank they name is mapped meanwhile
 24A8 ResetScreenSprites         ; before a redraw: clear marker sprites (ClearSprites012 + ClearMarkerSprites), or position sprites 0/1/2 (PositionWavSprites) when the WAV channel is active
 0DBC ShowMessage                ; copy the string arg into wStringBuffer and trigger the on-screen message/popup (bank1 $74F7 sets wMessageStringPointer -> wStringBuffer); 47 callers
 2EAD DrawTileRun                ; draw a run of `count` UI tiles at (col,row): type 0 = cursor arrow (tile $03), 1 = blank (tile $48), else solid block (tile $8D)
@@ -229,7 +229,6 @@
 380F DivStep                    ; one restoring-division step for DivModU16: hl = the dividend shifting out (the quotient shifting in from carry), bc = the remainder, de = the divisor: shift, subtract de from bc when it fits -> carry = the quotient bit
 
 ; --- indirect (FarCall) targets, resolved by tools/farcall_targets.py ---
-24DD RedrawScreen               ; full screen repaint: ResetScreenSprites, ClearBgTilemap (CGB), then dispatch per-screen draw handlers by wCurrentScreen (18+ FarCall sites)
 39E1 set_xy_wtt                 ; GBDK .set_xy_wtt (set_xy_t.s): window tiles from bc at (x, y) = (d, e), (w, h) = (h, l); map base from rLCDC bit 6 ($9800/$9C00), then set_xy_tt
 1FD5 CheckRomChecksum           ; sum ROM bytes vs header global checksum ($014E/$014F) -- SRAM/boot self-test path
 154B ReadSongByteDi             ; di + SRAM enable + bank select + read + reti (unreferenced variant of ReadSongByte)

@@ -8,12 +8,8 @@
 4A02 DefaultInstrumentPulse     ; [11] default pulse (or noise) instrument bytes (ClaimInstrumentSlot)
 4A0D DefaultInstrumentWave      ; [11] default wave instrument bytes
 4A18 DefaultInstrumentKit       ; [14] default kit instrument bytes
-4ACE TxtOutOfMemory1F           ; "OUT OF MEMORY. CLEAN SONG DATA IN PROJECT SCREEN"
 4C11 TxtOutOfTables             ; "OUT OF TABLES!"
 61FF DefaultSynthParameters     ; [16] default softsynth params, memcpy'd into synth_params ($3EB2) by $61E1
-637D TxtDeDupe                  ; "DE-DUPE..."
-644D TxtDeDupe2                 ; "DE-DUPE..." (second instance)
-723F TxtTypeSpeech              ; "TYPE   SPEECH" (instrument-type field)
 77F5 TxtCopiedWord              ; "COPIED WORD"
 423D DrawPulseInstrument        ; draw PULSE instrument params (type 0)
 473E TxtKitSpeedHalf            ; "0.5" (DrawKitInstrument: SPEED, kit byte 2 bit 6 = half speed)
@@ -129,12 +125,12 @@
 639F TxtPhrasesFill             ; "PHRASES..."
 63AA TxtPctD2                   ; "%d"
 63AD TxtOk2                     ; "OK!"
-644D TxtDedupe2                 ; "DE-DUPE..."
+644D TxtDedupe2                 ; "DE-DUPE..." (CleanInstrumentData's, a second copy)
 6458 TxtFreeing2                ; "FREEING:"
 6461 TxtInstrsFill              ; "INSTRS...."
 646C TxtPctD3                   ; "%d"
 646F TxtTablesFill              ; "TABLES...."
-723F TxtTypeSpeech              ; "TYPE   SPEECH"
+723F TxtTypeSpeech              ; "TYPE   SPEECH": the speech instrument's type field
 6698 CutCopyPhraseSelection     ; arg!=0 -> "CUT" (copy+clear) else "COPY": phrase selection -> clipboard (clipType 1)
 6B32 TxtCut1F                   ; "CUT"
 6B36 TxtCopy1F                  ; "COPY"

@@ -1,6 +1,5 @@
 ; Bank $01 -- UI string table + help text (incl. the FX command help popups)
 4485 .done                      ; common exit
-51F4 PitchSpeedNames            ; [4][5] pitch-speed display names "STEP"/"TICK"/"DRUM"/"FAST"
 764C ShowCommandHelp            ; show command cmd's help line on double-A (ShowMessage; wVramCursor kept): B and H by screen (phrase or table), F, S and W by channel (wSongColumn), the rest from CommandHelpPointers
 776E CommandHelpPointers        ; [20] dw -> the "X: DESCRIPTION" help line per command (index = command*2; entry 0 points at an empty string, the end of TxtHelpSSweep)
 
@@ -10,7 +9,7 @@
 4FEC UpdatePlayClock            ; per-frame PLAY clock: wPlayFrames counts to 60 (one frame skipped every 4 s), then seconds/minutes; redraws m:ss on the project screen
 7860 IsMessageActive            ; -> e = 1 while a message is up or pending (wMessageTimer or wMessageStringPointer set), else 0
 7878 UpdateMessage              ; timed message + wSelectHeld handling
-4811 CheckJkMarker              ; check the 'jk' SRAM-init marker at $a13e/$a13f (unreferenced)
+4811 CheckJkMarker              ; 1 if the file system's SRAM bank 4 carries the 'jk' marker at $A13E/$A13F; without it InitializeAndLoadSong formats the file space
 4848 CheckSongInitializedMarker ; ReadSongByte $be78/$be79 ('rb' memory-init marker)
 50A0 UpdateWorkClock            ; apply one work-time minute: song WORKED h:mm ($BFB2/$BFB3) and the total d:hh:mm ($BFB6-$BFB8) in SRAM bank 1
 48D4 WriteSongInitializedMarker ; WriteSongByte $be78 (set the 'rb' init marker)
@@ -117,15 +116,15 @@
 74EF TxtScreenGroove            ; "GROOVE "
 
 ; --- unreferenced allocation/draw helpers (linked but dead) ---
-4DD3 FreePhrase                 ; clear phrase-alloc bit (song $3E82 bitmap) and write back (unreferenced)
-4F59 IsChainUsed                ; e = chain-alloc bit for chain arg <$80 (unreferenced)
-4F99 IsPhraseUsed               ; e = phrase-alloc bit for phrase arg != $ff (unreferenced)
-518C DrawSpeedModeName          ; draw "STEP"/"TICK"/"DRUM"/"FAST" by arg flag bits (unreferenced)
-51F4 TxtStep                    ; "STEP"
+4DD3 FreePhrase                 ; clear phrase's bit in the phrase allocation map (SramPhraseAllocation) and write it back: CleanSongData frees a duplicate
+4F59 IsChainUsed                ; -> e = chain's bit in the chain allocation map, nonzero when in use; chain < $80 (CleanSongData, through FarCallArgumentByte)
+4F99 IsPhraseUsed               ; -> e = phrase's bit in the phrase allocation map, nonzero when in use; phrase != $FF (IsPhraseUsedFar)
+518C DrawSpeedModeName          ; draw an instrument's speed mode from its flags v: STEP (bit 7), TICK (bit 4), DRUM (bit 6, not for a kit) or FAST, then its icon (DrawSpeedGlyph)
+51F4 TxtStep                    ; "STEP": DrawSpeedModeName's names follow, TxtTick, TxtDrum, TxtFast
 51F9 TxtTick                    ; "TICK"
 51FE TxtDrum                    ; "DRUM"
 5203 TxtFast                    ; "FAST"
-522D DrawOnOffName              ; draw " ON"/"OFF" by arg bit 5 (unreferenced)
+522D DrawOnOffName              ; draw "OFF" when bit 5 of v is set, else " ON"
 524B TxtOff                     ; "OFF"
 524F TxtOn                      ; " ON"
 4566 TxtRomDots                 ; "ROM..."

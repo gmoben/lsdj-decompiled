@@ -6,10 +6,12 @@ src/bankNN.sym lines are `ADDR Name`, with a comment's `;` at column 32
 `DEF Name EQU value`, `EQU` at column 38 and a comment's `;` at column 49,
 and a comment continued on the next lines keeps its `;` in the same column.
 Every tool that writes these files ends with align_files(), and
-tools/match/test_tools.py checks they stay aligned.
+tools/match/test_tools.py checks they stay aligned. A bank's file names an
+address once and a name once: of two entries the tools keep the last, so
+the first is dead text.
 
     tools/symfile.py           # align them in place
-    tools/symfile.py --check   # exit 1 if any is not aligned
+    tools/symfile.py --check   # exit 1 if any is not aligned, or names twice
 """
 
 from __future__ import annotations
@@ -69,6 +71,22 @@ def unaligned() -> list[Path]:
     return [p for p, align in files() if align(p.read_text()) != p.read_text()]
 
 
+def duplicates() -> list[str]:
+    """A bank's global symbols that share an address or a name."""
+    out = []
+    for p in sorted((ROOT / "src").glob("bank*.sym")):
+        seen: dict[str, str] = {}
+        for line in p.read_text().splitlines():
+            m = re.match(r"^([0-9A-Fa-f]{4}) ([A-Za-z_]\w*)", line)
+            if not m:
+                continue
+            for key in (m.group(1).upper(), m.group(2)):
+                if key in seen:
+                    out.append(f"{p.name}: {m.group(2)} ({m.group(1)}) repeats {seen[key]}")
+                seen[key] = f"{m.group(2)} ({m.group(1)})"
+    return out
+
+
 def align_files() -> list[Path]:
     """Align every curated symbol file in place; the ones that changed."""
     changed = []
@@ -86,7 +104,10 @@ def main() -> int:
         bad = unaligned()
         for p in bad:
             print(f"{p.relative_to(ROOT)}: not aligned (tools/symfile.py aligns it)")
-        return 1 if bad else 0
+        twice = duplicates()
+        for line in twice:
+            print(line)
+        return 1 if bad or twice else 0
     if sys.argv[1:]:
         print(__doc__)
         return 2

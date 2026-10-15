@@ -567,6 +567,9 @@ class SymLayoutTests(unittest.TestCase):
     def test_the_curated_files_are_aligned(self):
         self.assertEqual([p.name for p in symfile.unaligned()], [], "run tools/symfile.py")
 
+    def test_a_bank_names_an_address_once(self):
+        self.assertEqual(symfile.duplicates(), [])
+
 
 class RegflowTests(unittest.TestCase):
     """Register contracts over a made-up bank 0: routines by address."""

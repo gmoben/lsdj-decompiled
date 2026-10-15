@@ -55,7 +55,7 @@
 5B62 RedrawProjectPrelisten     ; PRELISTEN field at $992A in the shadow palette (DrawPrelistenField)
 5D7C RefreshProjectScreen       ; drain buttons, clear tilemap, DrawProjectScreen + map row
 6988 .applySettings             ; ProjectScreenInput: the reset path after RESET MEMORY! (delay, LoadProjectSettings(0), redraw)
-6A8C TapTempoStep               ; TAP tempo: on each tap record the frames since the last one (wWorkClockSubFrame) into wTapTempoBuffer (8-deep, oldest dropped), reset on a -frame gap; from 3 taps on, tempo = ffe / (8 * mean interval), capped at 
+6A8C TapTempoStep               ; TAP tempo: on each tap record the frames since the last one (wWorkClockSubFrame) into wTapTempoBuffer (8-deep, oldest dropped), starting over after a $80-frame gap; from 3 taps on, tempo = $6FFE / (8 * the mean interval), capped at $FF
 70B8 GetInstrumentEnvelopeBytes ; read the instrument's envelope input bytes (x2 ReadCurrentInstrumentByte)
 7200 PlotEnvelopeCurve          ; plot env-graph column y at x into wDecompressBuffer, filling gap from wEnvelopePlotX (<$40)
 726E ComputeEnvelope            ; plot the instrument envelope graph (bytes 1/9/10 segments over 64 columns, time scaled by GetInstrumentEnvelopeBytes) into wDecompressBuffer, upload

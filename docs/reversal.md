@@ -493,7 +493,7 @@ deferred tables below). Named intuitively (never `Lut<addr>`):
   per-bank copies in `$01`/`$03`/`$1C`/`$1F`), `DefaultSynthParameters`
   (→ `synth_params $3EB2`), `DefaultInstrument`.
 - display tables: `NoteNames` (chromatic), `ChannelNames` (song),
-  `SineTable`/`SynthDispatchJumps` (synth),
+  `SynthShapeTableA`/`SynthDispatchJumps` (synth),
   `WaveSourceNames`/`InstrumentOptionNames` (instrument; the `InstrParamJumps` once
   named here is InstrumentScreenInput's own A+LEFT kit jump table, `.decKitFields`),
   `AlphanumericCharacters`/`TxtClockLabels`/`CloneModeNames`/`SyncModeNames` (project; the
