@@ -1,0 +1,41 @@
+name: check
+
+# What runs without the ROM: the tools' own checks. `make compare`, `make
+# match` and `make behaviour` need lsdj9_4_0.gb, which stays out of the repo;
+# the pre-commit hook (.githooks/pre-commit) runs `make compare` on every commit.
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  tools:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: RGBDS 1.0.1
+        run: |
+          mkdir -p "$HOME/rgbds"
+          curl -sSL https://github.com/gbdev/rgbds/releases/download/v1.0.1/rgbds-linux-x86_64.tar.xz \
+            | tar -xJ -C "$HOME/rgbds"
+          echo "$HOME/rgbds" >> "$GITHUB_PATH"
+
+      - name: The tools compile
+        run: python3 -m py_compile tools/*.py tools/match/*.py
+
+      - name: The disassembler's opcode table round-trips through rgbasm
+        run: python3 tools/disasm.py --selftest
+
+      - name: The tools' regressions
+        run: python3 tools/match/test_tools.py
+
+      - name: The peephole rules' regressions
+        run: python3 tools/match/test_peep.py
+
+      - name: The symbol files are aligned
+        run: python3 tools/symfile.py --check

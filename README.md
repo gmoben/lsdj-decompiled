@@ -225,7 +225,8 @@ lsdj-decompiled/
 │                         #   rom_grep (rule evidence), trace_alloc (allocator trace),
 │                         #   to_rgbds (matched C as RGBDS source)
 │                         #   + lsdj.peep (recovered rules)
-└── .githooks/pre-commit  # ROM-leak guard + `make compare`
+├── .githooks/pre-commit  # ROM-leak guard + `make compare`
+└── .github/workflows/    # CI: the tools' checks, which need no ROM
 ```
 
 > `toolchain/` (SDCC 2.2.1 built from the GBDK 2.95-2 sources by

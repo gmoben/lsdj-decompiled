@@ -143,6 +143,7 @@ sequencer core, 15.4 KB) and the GBDK/SDCC library routines stay asm. See
 | `c/bankNN/*.c` | **Matching C** sources: byte-identical to the ROM when compiled with the period toolchain + `lsdj.peep`. Their output feeds the ROM build (`c/matched.json`, written by `make match`, lists the C-owned ranges; the carve renders their RGBDS translation from `build/c/`, or INCBINs the ROM without the compiler) A file marked `@stock-rules` is GBDK library code, matched with SDCC's stock rules only. |
 | `tools/gen_baseline.py` | Historical one-time bootstrap baseline generator |
 | `.githooks/pre-commit` | ROM-leak guard + `make compare` |
+| `.github/workflows/check.yml` | CI on every push: what runs without the ROM (the tools compile, `disasm.py --selftest`, `test_tools.py`, `test_peep.py`, `symfile.py --check`) |
 
 ## Build & Verify
 
@@ -170,6 +171,7 @@ Quality gates — all must pass before committing:
 | Assembles cleanly | `make` | no errors/warnings |
 | No ROM/saves staged | `.githooks/pre-commit` | zero blocked files |
 | Behaviour, for a build that no longer matches (a fork) | `make behaviour` | the same as LSDj 9.4.0 on every run |
+| The tools' checks (CI runs them on every push) | `python3 tools/match/test_tools.py`, `test_peep.py`, `tools/disasm.py --selftest`, `tools/symfile.py --check` | all pass |
 
 Enable the hook once per clone:
 
