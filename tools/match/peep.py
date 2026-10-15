@@ -470,7 +470,7 @@ _CMP16 = [
       rf"sbc\s+a,{_HEX}", r"jp\s+(n?c),(\S+)"],
      lambda g: (["\tdec\thl", "\tld\te,(hl)", "\tinc\thl", "\tld\td,(hl)"], "de", g[0], g[1], g[2], g[3])),
     # hl one below the operand's low byte (the byte local just compared:
-    # SpeechInstrInput's `i < 0x10` before `p >= 0xBDD0`): stepped up, then
+    # SpeechInstrumentInput's `i < 0x10` before `p >= 0xBDD0`): stepped up, then
     # fetched
     ([r"xor\s+a,a", r"inc\s+hl", r"ld\s+a,\(hl\)", rf"sbc\s+a,{_HEX}", r"inc\s+hl", r"ld\s+a,\(hl\)",
       rf"sbc\s+a,{_HEX}", r"jp\s+(n?c),(\S+)"],
@@ -498,7 +498,7 @@ def _hl_stack_offset(lines: list[str], at: int) -> int | None:
     """The sp-relative offset hl holds just before line `at`, found by walking
     back to the last `lda hl,N(sp)` over hl steps (`inc hl`, `dec hl`, `(hl+)`,
     `(hl-)`) and `lda sp,M(sp)` adjustments and the fall-through of a
-    conditional jump (a loop test: FreeUnusedInstrs's `i < 0x40` before its
+    conditional jump (a loop test: FreeUnusedInstruments's `i < 0x40` before its
     di); None past a label, unconditional jump, call or anything else that
     sets hl."""
     off = 0
@@ -569,9 +569,9 @@ def ifx_word_hl(lines: list[str]) -> tuple[list[str], int]:
     ld a,(hl); inc hl; or a,(hl)` (its peephole folds the first two into
     `ld a,(hl+)`) and still knows hl, so the next use of that word steps
     back with `dec hl`. LSDj's compiler forgot hl after this test and
-    reloaded it (ShowInstrFieldHelp's `if (s) ShowMessage(s)`: `ld hl,sp+0`
+    reloaded it (ShowInstrumentFieldHelp's `if (s) ShowMessage(s)`: `ld hl,sp+0`
     again). A `w == 0` compare (genCmpEq, the same bytes) keeps hl in both
-    (GetInstrEnvBytes' `dec hl; ld (hl),1`), so only genIfx's test counts."""
+    (GetInstrumentEnvelopeBytes' `dec hl; ld (hl),1`), so only genIfx's test counts."""
     lines = list(lines)
     n = 0
     i = 0
@@ -700,7 +700,7 @@ def gb_cmp16(lines: list[str], zero: bool = False) -> tuple[list[str], int]:
                 glob = None
                 if not fetch:
                     # the operand was already in a pair; hl may still point at
-                    # a stack byte the code goes on to use (DrawSpeechInstrScreen's
+                    # a stack byte the code goes on to use (DrawSpeechInstrumentScreen's
                     # `row < 4 + 14` then `SetVramCursor(0, row)`) or at the
                     # global byte it was promoted from (WordScreenInput's
                     # `(UWORD)wSpeechRow < 13` then `wSpeechRow++`)
@@ -755,7 +755,7 @@ def _reseat_hl(lines: list[str], i: int, off: int, glob: str | None = None) -> N
     nxt = text(adj)
     if clear == "xor\ta,a":
         ok = negation(adj)
-    elif clear:                           # a shift's carry clear (FxCmd_F_Wav's `step <<= 1`)
+    elif clear:                           # a shift's carry clear (Command_F_Wav's `step <<= 1`)
         ok = bool(re.fullmatch(r"(rl|rr|sla|sra|srl)\s+\(hl\)", nxt))
     else:
         ok = negation(adj) or ("(hl" in nxt and not nxt.endswith(":"))
@@ -980,13 +980,13 @@ def switch_chain(lines: list[str], jump_targets: set[str]) -> tuple[list[str], i
 
     A case whose test CSE shares with an earlier boolean (`xor a,a; or a,c;
     jp nz,L` in the middle of the chain: SynthScreenInput's `wButtons ==
-    0x10`, also TableScreenInput and ProjScreenInput) clobbers `a` but
+    0x10`, also TableScreenInput and ProjectScreenInput) clobbers `a` but
     not `hl`, so after it only the `ld a,(hl)` comes back (3 such sites; the
     7 `ld hl,nn` reloads after that test in the ROM load another global).
 
     A case value of type int (`case (int)9:`) widens the variable into a
     register pair for a 16-bit compare; inside the chain that copy is taken
-    from `a` (`ld c,a`, InstrScreenInput's kit fields 9/11/13), not reread
+    from `a` (`ld c,a`, InstrumentScreenInput's kit fields 9/11/13), not reread
     through `hl`."""
     out: list[str] = []
     n = 0
@@ -1208,10 +1208,10 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
         if hl_reg is not None and not (mn == "ld" and len(ops) == 2 and ops[1] == "(hl)"):
             # (a load from (hl) keeps the equality whatever it writes; so does
             # a store through de/bc: 3 ROM sites copy the register after one,
-            # none rereads -- SoundStartScreenPlayback's `wChanActive[wSongCol] = 1;
-            # wPlayStartChan = wSongCol` is `ld c,(hl); ...; ld (de),a; ld a,c`).
-            # A conditional jump ends it for a global: FxCmd_E_Pu1/Pu2/Noi's
-            # `wEnvSpeedPu1 = v; if (v) wEnvCounterPu1 = wEnvSpeedPu1;` reread
+            # none rereads -- SoundStartScreenPlayback's `wChannelActive[wSongColumn] = 1;
+            # wPlayStartChannel = wSongColumn` is `ld c,(hl); ...; ld (de),a; ld a,c`).
+            # A conditional jump ends it for a global: Command_E_Pu1/Pu2/Noi's
+            # `wEnvelopeSpeedPu1 = v; if (v) wEnvelopeCounterPu1 = wEnvelopeSpeedPu1;` reread
             # it (`ld (hl),c; or a,c; jp z; ld a,(hl)`, 3 sites), while a stack
             # slot keeps it (PhraseScreenInput's `ld (hl),e; ...; jp c; ld a,e`)
             w = _written(mn, ops)
@@ -1268,7 +1268,7 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
                 if hl is not None and hl[0] == "stk" and hl[1] - want == 1 and _after_word_zero_test(out):
                     # a 16-bit local tested for zero (`ld a,(hl+); or a,(hl);
                     # jp nz`) and then assigned: the ROM steps hl back
-                    # (GetInstrEnvBytes' `if (total == 0) total = 1`) where
+                    # (GetInstrumentEnvelopeBytes' `if (total == 0) total = 1`) where
                     # stock SDCC reloads it
                     raw = "\tdec\thl"
                     hl = ("stk", want)
@@ -1296,7 +1296,7 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
             if hl_reg is not None and (ops[1] == hl_reg or ops[1] in hl_copies):
                 # `ld (hl),e; ld a,e`: `a` is the byte at hl too; so after a
                 # copy of it (`ld (hl),e; ld c,e; ld a,c; bit 6,a; jp nz`: the
-                # byte is not reread, InstrScreenInput's kit flag toggles)
+                # byte is not reread, InstrumentScreenInput's kit flag toggles)
                 eq.add("(hl)")
         elif mn == "ld" and ops == ["a", "(hl)"]:
             if "(hl)" in eq:
@@ -1333,7 +1333,7 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
                 and "(hl)" in eq:
             # `ld c,(hl)` while `a` still holds (hl): LSDj's compiler used `ld c,a`
             # (3 sites after `ld a,(hl); cp; jp`, none rereading; `ld l,a` for a
-            # table index likewise, WriteSynthWaveCol)
+            # table index likewise, WriteSynthWaveColumn)
             raw = raw.replace("(hl)", "a", 1)
             if ops[0] in ("l", "h"):
                 forget_hl()
@@ -1371,12 +1371,12 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
             # a conditional jump: `a` and `hl` survive the fall-through, but
             # after an equality test `a` no longer stands for the byte at hl:
             # SoundPhraseHop's `*wPtrPhraseRow = wSeqNoteLatch; if
-            # (wSeqNoteLatch) AdvanceCurChanCursors(wSeqNoteLatch);` reloads
+            # (wSeqNoteLatch) AdvanceCurrentChannelCursors(wSeqNoteLatch);` reloads
             # it (`ld a,(hl); ld (de),a; or a,a; jp z; ld a,(hl)`, 2 sites,
             # none reusing it), like track_hram's `ldh` rereads; so does a
             # stack slot (PhraseScreenInput's `k = v & 0xF0; if (k)`: `ld
             # (hl),a; or a,a; jp z; ld a,(hl)`, 7 sites). A bit test of a
-            # stack byte keeps it: InstrScreenInput's kit flag toggles test a
+            # stack byte keeps it: InstrumentScreenInput's kit flag toggles test a
             # copy of the byte just stored (`ld (hl),e; ld c,e; ld a,c; bit
             # 6,a; jp nz`) and OR straight into it (4 sites)
             prev = next((_strip(l).strip() for l in reversed(out) if _strip(l).strip()), "")
@@ -1400,7 +1400,7 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
             # a literal stored through hl (`g = n`) leaves `a` standing for n
             # and nothing else: ResetWorkState's `wWordClipCell0[0] = 1`
             # reloads `ld a,#1` after six `g = 0` stores, SoundTogglePlayback's
-            # `wSongPlaying = 0; hSoundChan = 0` keeps the 0 in `a` (the ROM's
+            # `wSongPlaying = 0; hSoundChannel = 0` keeps the 0 in `a` (the ROM's
             # two sites; the tracker apparently took the stored literal for
             # `a`'s value, kept here only when it already was)
             if ops[1] not in eq:
@@ -1471,7 +1471,7 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
 # The same knowledge for `e`, which holds call results and return values:
 # after `ld c,e` (a call's result kept in c), a later `return c` -- SDCC's
 # `ld e,c` -- is dropped while neither register changed and no jump target
-# intervened (`FindCursorInstr` returns the value it just read that way).
+# intervened (`FindCursorInstrument` returns the value it just read that way).
 
 _WRITES_ALL = {"call", "rst", "ret", "reti"}
 
@@ -1510,19 +1510,19 @@ def track_hram(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int
     optimisation applied to every port). LSDj's compiler skipped loading the
     byte into a register that already held it: `ldh a,(X); ld r,a` goes when
     r holds X, within a block or across a jump (HandleInputCombos' two
-    `hSoundChan` indexes in one block, SyncTickLsdj's loop body,
-    SoundUpdateChan's D across `if (d)`). It never copied the byte over from
+    `hSoundChannel` indexes in one block, SyncTickLsdj's loop body,
+    SoundUpdateChannel's D across `if (d)`). It never copied the byte over from
     another register: a reload into b while c holds it stays (the `+=` target
-    in SoundUpdateChan and HandleInputCombos). `a` itself serves a reread
-    in straight-line code (FxCmd_F_Wav's `step = hFxValS`: stock genCast
+    in SoundUpdateChannel and HandleInputCombos). `a` itself serves a reread
+    in straight-line code (Command_F_Wav's `step = hCommandValS`: stock genCast
     reads the byte again for the sign's `rla`; no compiled code in the ROM
     rereads a byte `a` holds before a jump) and across an ordering test
-    (SyncTickLsdj's `hSoundChan < 4`: `cp #4; jp nc`); after an equality test
-    the byte is reread (`cp; jp nz; ldh a,(X)`: SoundUpdateChan,
+    (SyncTickLsdj's `hSoundChannel < 4`: `cp #4; jp nc`); after an equality test
+    the byte is reread (`cp; jp nz; ldh a,(X)`: SoundUpdateChannel,
     SoundRetrigNote). An HRAM store, a
     call or a jump target ends the reuse; a store through a pointer loaded
     from memory (`ld e,(hl); inc hl; ld d,(hl); ld (de),a`) ends it for a
-    byte read before a conditional jump (the `+=` in SoundUpdateChan's D),
+    byte read before a conditional jump (the `+=` in SoundUpdateChannel's D),
     not for one read in this block (SoundStartSongPlayback's `*active = 1`); a
     store to an array element (`#arr + c` in de) ends neither."""
     out: list[str] = []
@@ -1627,7 +1627,7 @@ def track_hram(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int
             continue
         if mn == "ld" and len(ops) == 2 and ops[0] == "(de)" and de_loaded:
             # a store through a pointer of unknown target ends the reuse of
-            # a byte read before a jump (SoundUpdateChan's D), not of one
+            # a byte read before a jump (SoundUpdateChannel's D), not of one
             # read in this block (SoundStartSongPlayback's `*active = 1`)
             for r in carried:
                 holds.pop(r, None)
@@ -1666,7 +1666,7 @@ def track_e(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
 def track_d(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
     """Drop `ld d,r` while `d` already equals r (b, c or e): the second
     `ld e,b; ld d,c` fetch of a pointer kept in bc (ProcessLinkQueue's
-    `wKbdChanState[1]` read then cleared) loses both halves in the ROM."""
+    `wKeyboardChannelState[1]` read then cleared) loses both halves in the ROM."""
     return _track_half(lines, jump_targets, "d", ("b", "c", "e"))
 
 

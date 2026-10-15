@@ -55,7 +55,7 @@ MANUAL: dict[int, list[tuple[int, int]]] = {
     # bank 1 (UI): two LUTs decoded as code (byte+16-bit table at $40EA; a rising
     # byte curve at $42A0), one small zero-source region, the FX-command help
     # strings + message-bar attr row + screen-name strings ($6FB8-$74F7), the
-    # ShowMessage strings between their Show* wrappers, and CmdHelpPtrs +
+    # ShowMessage strings between their Show* wrappers, and CommandHelpPtrs +
     # the three S-command help strings ($776E-$781F).
     0x01: [(0xEA, 0x316), (0x1099, 0x10A0), (0x11EE, 0x1208), (0x124B, 0x1253),
            (0x17BF, 0x17D0),
@@ -63,8 +63,8 @@ MANUAL: dict[int, list[tuple[int, int]]] = {
            (0x3620, 0x3635), (0x363F, 0x364C), (0x376E, 0x381F),
            (0x3B7A, 0x3BDE)],
     # PitchBendTable ($43D8-$45D8, read by SoundApplyPitchBend), the vibrato tables
-    # ($7D81-$7DD1: VibDepthTable[16] + VibRateTableA/B[16 x 16-bit], read by
-    # FxCmd_V), and NoiseFreqTable ($5EDA, hides SoundSetNoisePoly at $5F52).
+    # ($7D81-$7DD1: VibratoDepthTable[16] + VibratoRateTableA/B[16 x 16-bit], read by
+    # Command_V), and NoiseFreqTable ($5EDA, hides SoundSetNoisePoly at $5F52).
     0x02: [(0x3D8, 0x5D8), (0x1EDA, 0x1F52), (0x3D81, 0x3DD1), (0x3EAC, 0x3F24)],
     # bank 1B: SAVING... + %d + ON/OFF/N/A project strings.
     0x1B: [(0x58, 0x98), (0x10E, 0x9F8), (0xC75, 0xC96), (0x1120, 0x1126), (0x12D8, 0x12E2),
@@ -88,7 +88,7 @@ MANUAL: dict[int, list[tuple[int, int]]] = {
     0x04: [(0xC10, 0xC14), (0xCE1, 0xCE5), (0x10D8, 0x10FF), (0x14E3, 0x1500), (0x15D1, 0x15DE)],
     # bank 1D: softsynth shape banks ($4EF0/$50F0) decoded as code.
     0x1D: [(0x35A, 0x35D), (0xEF0, 0x1190), (0x20E6, 0x2116), (0x2DE7, 0x2E00)],
-    # bank 1E: everything between DrawScreenColLabels and FillVramRegions is
+    # bank 1E: everything between DrawScreenColumnLabels and FillVramRegions is
     # data (font/UI tile blocks + synth waveform tables + a blank string).
     0x1E: [(0x2C8, 0x39FA)],
     # bank 1F: OOM-instr + OUT OF TABLES + DE-DUPE panel strings, the

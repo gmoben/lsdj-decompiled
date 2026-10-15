@@ -52,8 +52,8 @@ void DrawMessageBar(void)
         set_bkg_tiles(0, 0, 20, 1, MessageBarAttrRow);
         VBK_REG = 0;
     }
-    hBgDigitPal = wHighlightDigitPal;
-    hBgPal = wHighlightPal;
+    hBgDigitPalette = wHighlightDigitPalette;
+    hBgPalette = wHighlightPalette;
     saved = wVramCursor;
     wVramCursor = (UBYTE *)0x9800;
     for (i = 0; i < 20; i++)

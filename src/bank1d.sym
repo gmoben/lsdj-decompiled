@@ -31,7 +31,7 @@
 425B DrawGrooveRow              ; draw one groove row (step<16; ticks via ReadGrooveStep, state wGrooveCacheValid/wGrooveStepCache)
 435D BuildGrooveCache       ; once (wGrooveCacheValid guard): build the 16-step groove display cache wGrooveStepCache (via ReadGrooveStep)
 4394 DrawGrooveCursor           ; highlight the groove cursor step (palette 3 on CGB, 2 on DMG)
-43CF SetGrooveRowPals          ; pick a groove row's draw palettes: select colours inside the sorted wSelectionTop..wGrooveRow range (select mode) or on the cursor row, 4/1 stripe on rows with bit 1, else shadow
+43CF SetGrooveRowPalettes          ; pick a groove row's draw palettes: select colours inside the sorted wSelectionTop..wGrooveRow range (select mode) or on the cursor row, 4/1 stripe on rows with bit 1, else shadow
 4B6C CutCopyGrooveSelection              ; cut/copy the groove selection (arg 1 = cut: rows cleared to 0, row 0 to 6)
 4C63 PasteGrooveSelection       ; write the clipboard steps into the groove from the cursor (clipType 2), advancing wGrooveRow and wrapping at 16; PASTE message
 4CDE DrawGrooveSelection        ; clipType 2: highlight the rows between the anchor wSelectionTop and the cursor (palette 3 on CGB, 2 on DMG)
@@ -44,10 +44,10 @@
 5BBD SynthFilterBandPass        ; synth filter BANDP: halve the wave an octave per cutoff doubling (pair averages), then the LOWP/HIGHP scatter-and-normalise core with the position masked to the shortened wave
 5E53 SynthFilterPass            ; filter/transform 32 wave samples using wSynthFilterCutoff
 5F00 ApplySynthFilter           ; dispatch filter by wSynthFilterType (2->SynthFilterBandPass, 3->SynthFilterPass, else 58E6); gated wSynthFilterCutoff
-5F29 WriteSynthWaveCol          ; write an edited wave column (<$20) from the edit state (wWaveEditX) into song data
+5F29 WriteSynthWaveColumn          ; write an edited wave column (<$20) from the edit state (wWaveEditX) into song data
 5F90 LoadSynthSignalWave        ; load the custom-wave SIGNAL (W.FX: wave $F0 + synth, 16 packed bytes at SRAM $AF00 + 16 * synth) into wSynthShapeBuf as 32 signed words
 60A7 SynthLockByteAddrB1D       ; bank $1D's copy of SynthLockByteAddr: the SRAM byte holding synth x's lock bit ($BFC5 for 0-7, $BFC4 for 8-F)
-6115 IsSynthLocked              ; nonzero if synth x is locked (its bit in the SynthLockByteAddrB1D byte; LockCurSynth sets it when a wave is edited by hand)
+6115 IsSynthLocked              ; nonzero if synth x is locked (its bit in the SynthLockByteAddrB1D byte; LockCurrentSynth sets it when a wave is edited by hand)
 6144 ClearSynthFlag             ; clear synth x's bit in the flag pair at $BFC4/$BFC5 (SynthLockByteAddrB1D)
 6193 FillSynthWaveRange         ; fill/interpolate a wave value range (16-step; <-SynthLoadWaveTable)
 62A8 DrawSynthField             ; draw the synth PHASE field: switch (jp-table SynthDispatchJumps) -> " PINCH"/"  WARP"/"RESYNC"/"RESYN2"
@@ -116,7 +116,7 @@
 4356 .done                ; common exit of DrawGrooveRow
 436A .loop                ; loop head in BuildGrooveCache
 4392 .done                ; common exit of BuildGrooveCache
-444D .done                ; common exit of SetGrooveRowPals
+444D .done                ; common exit of SetGrooveRowPalettes
 462B .loop                ; loop head in GrooveScreenInput
 46DE .loop2               ; loop head in GrooveScreenInput
 4799 .loop3               ; loop head in GrooveScreenInput
@@ -164,8 +164,8 @@
 5E68 .loop                ; loop head in SynthFilterPass
 5E7D .loop2               ; loop head in SynthFilterPass
 5F28 .done                ; common exit of ApplySynthFilter
-5F30 .loop                ; loop head in WriteSynthWaveCol
-5F8C .done                ; common exit of WriteSynthWaveCol
+5F30 .loop                ; loop head in WriteSynthWaveColumn
+5F8C .done                ; common exit of WriteSynthWaveColumn
 5FA2 .shiftLoop           ; loop head in LoadSynthSignalWave: p <<= 4 done one bit per pass in p's slot
 5FBC .byteLoop            ; loop head in LoadSynthSignalWave: one packed SRAM byte (two samples) per pass
 6031 .done                ; common exit of LoadSynthSignalWave
@@ -251,10 +251,10 @@
 4163 .drawStringTile20
 4179 .checkGrooveRow
 41C6 .drawGrooveRow
-42EE .loadShadedDigitPal
+42EE .loadShadedDigitPalette
 43A4 .ok
 43B3 .loadGrooveRow
-4441 .loadShadedDigitPal
+4441 .loadShadedDigitPalette
 4512 .drawGrooveScreen
 4567 .drawGrooveRow
 457B .drawGrooveCursor
@@ -278,8 +278,8 @@
 4912 .eraseGrooveCursor
 4998 .drawGrooveScreenb
 49CB .setSelectHeld
-4A24 .setCurScreen
-4A2C .setCurScreenb
+4A24 .setCurrentScreen
+4A2C .setCurrentScreenb
 4AE1 .setGrooveRow
 4B04 .setSelectionTop
 4BAA .setCursorMode
@@ -304,7 +304,7 @@
 6806 .setVramCursor_rowB
 6E65 .setOverwriteStart
 716D .checkOverwriteStart
-717D .loadHighlightDigitPal
+717D .loadHighlightDigitPalette
 71A1 .checkButtons
 720D .checkAPressEnabled
 7257 .setSynthCursor
@@ -397,7 +397,7 @@
 4977 .readGrooveStep
 49F9 .ret01_2
 4A0E .ret01_3
-4A13 .loadMapCol
+4A13 .loadMapColumn
 4A31 .farCall
 4B16 .grooveScreenHw
 4B24 .showMessage

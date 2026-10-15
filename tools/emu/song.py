@@ -36,7 +36,7 @@ EMU = str(HERE / "emu.py")
 NAV = str(HERE / "nav.py")
 ROOT = HERE.parent.parent
 
-# Screen ids (wCurScreen $C401).
+# Screen ids (wCurrentScreen $C401).
 SCREENS = {1: "PHRASE", 2: "GROOVE", 3: "CHAIN", 4: "SONG", 5: "TABLE",
            6: "INSTR", 8: "WAVE", 9: "PROJECT", 0x0a: "SYNTH", 0x0d: "FILE",
            0x0e: "HELP"}
@@ -55,7 +55,7 @@ CURSOR = {
     "SYNTH":  ("c442", "c441"),   # cursor, sub-screen
 }
 
-# PHRASE cursor columns in wPhraseCol ($C415) -- VERIFIED live (the old ram.inc
+# PHRASE cursor columns in wPhraseColumn ($C415) -- VERIFIED live (the old ram.inc
 # "0=NOTE" comment is off by one; column 0 is unreachable, NOTE is 1).
 PH_NOTE, PH_INSTR, PH_CMD, PH_CMDVAL = 1, 2, 3, 4
 
@@ -211,7 +211,7 @@ class LSDj:
         return f"{LSDj.NOTE_NAMES[v % 12]}-{v // 12 + 2}"
 
     # Phrase/table command byte -> letter, from the mnemonic table at ROM $0824
-    # (index 0 = '-' = no command). Verified against FxCmdHandlers [19].
+    # (index 0 = '-' = no command). Verified against CommandHandlers [19].
     FX_CMDS = "-ABCDEFGHKLMOPRSTVWZ"
 
     @classmethod
@@ -375,7 +375,7 @@ class LSDj:
         self.a_up(steps)
         return {"cursor": self.cursor()}
 
-    # ------- INSTR (V: TYPE via clamp; field nav). Fields (wInstrField $C427):
+    # ------- INSTR (V: TYPE via clamp; field nav). Fields (wInstrumentField $C427):
     # 0=NAME 1=TYPE 2=ENV... (layout below TYPE changes with the type). KIT type
     # shows a KIT selector (index+name), VOLUME/PITCH/FINETUNE/OFFSET/LEN/LOOP/
     # SPEED/CLIP. -------------------------------------------------------------
@@ -389,13 +389,13 @@ class LSDj:
         instrument's params -- edit a scratch instrument. Returns the type name."""
         idx = t if isinstance(t, int) else self.ITYPE[t.upper()]
         self.goto("INSTR")
-        self.moveto(0, 1)               # TYPE field (wInstrField=1)
+        self.moveto(0, 1)               # TYPE field (wInstrumentField=1)
         self.a_left(4)                  # a+left x4: clamp down to PULSE(0)
         self.a_right(idx)               # a+right x idx: step up to target
         return self.INAME.get(idx, "?")
 
     def instr_field(self, row: int, col: int = 0) -> tuple[int | None, int | None]:
-        """INSTR: move the field cursor to (col,row) = (wInstrCol,wInstrField)."""
+        """INSTR: move the field cursor to (col,row) = (wInstrumentColumn,wInstrumentField)."""
         self.goto("INSTR")
         return self.moveto(col, row)
 

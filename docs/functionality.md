@@ -50,15 +50,15 @@ reset rSCY/rSCX/rSTAT/rWY ; clear scroll, LCD status, window
   [`reversal.md`](reversal.md) and [`data_model.md`](data_model.md).
   - *Per-channel pitch / vibrato / frequency* (bank 0): each frame
     `SndStepPitchVib{PU1,PU2,Wav,Noi}` (`$19A6`/`$1A26`/`$1AA7`/`$1CBA`) advance
-    the pitch slide (`wChanPitchRate`→`wChanPitchCur`, clamped to
-    `wChanPitchTarget`) and the vibrato phase, the latter via the shared waveform
-    evaluator `SoundCalcVibOffset` (`$1986`, ctrl table `$0200` + dispatch `$0300`).
+    the pitch slide (`wChannelPitchRate`→`wChannelPitchCurrent`, clamped to
+    `wChannelPitchTarget`) and the vibrato phase, the latter via the shared waveform
+    evaluator `SoundCalcVibratoOffset` (`$1986`, ctrl table `$0200` + dispatch `$0300`).
     `SndWriteFreq{PU1,PU2,Wav}` (`$1BA7`/`$1BF6`/`$1C3D`) then fold note +
     transpose + finetune + vibrato + pitch into a 16-bit period via
     `SoundInterpPeriod` (`$1B28`, period-table lookup with fractional interpolation)
-    and write `wChanFreq` + `rAUD{1,2,3}LOW/HIGH/LEN`.
+    and write `wChannelFreq` + `rAUD{1,2,3}LOW/HIGH/LEN`.
     `SndUpdatePitchModFlag{PU1,PU2,Wav}` (`$1CA8`/`$1C96`/`$1C84`, dispatched by
-    `SoundUpdatePitchModFlagCur` `$1C7C`) cache a "pitch is modulating" flag at
+    `SoundUpdatePitchModFlagCurrent` `$1C7C`) cache a "pitch is modulating" flag at
     `$C3F9`-`$C3FB`.
   - *Work-time clock* — `TickWorkTimeClock` (`$1815`) advances `wWorkTimeAccum`
     (`$C69D`), wrapping at `$0E00` into `wWorkTimeTicks` (drives the song's
@@ -82,7 +82,7 @@ reset rSCY/rSCX/rSTAT/rWY ; clear scroll, LCD status, window
   [`data_model.md`](data_model.md) for the song structures it indexes and
   [`save_format.md`](save_format.md) for the `.sav` filesystem.
 - **Banking / dispatch** — MBC5 ROM bank register at `$2000`, shadowed in
-  `hCurBank` (`$FF8E`). Cross-bank calls use either an inline trampoline
+  `hCurrentBank` (`$FF8E`). Cross-bank calls use either an inline trampoline
   (`ld a, N` / `ld [$2000], a` / `jp|call $4000-$7FFF`, e.g. the per-screen
   `DispatchScreenDraw_<Screen>` stubs, or `CrashTrampoline` (`$0061`), which selects
   bank 1 and jumps to `CrashHandler` `$794B`, the "DONT PANIC!" crash screen),
@@ -106,7 +106,7 @@ The addresses first identified on this page:
 | `$CBD9` / `$CBDA` | `wBootHwId` / `wBootAgbId` | boot hardware ids (CGB/DMG, AGB) saved at init |
 | `$CBDD` / `$CBDE` | `wSyncRxByte` / `wSyncState` | last received sync byte / serial state machine |
 | `$DD00` | `wOamBuf` | OAM shadow buffer (OAM DMA source) |
-| `$FF8E` | `hCurBank` | shadow of the selected ROM bank |
+| `$FF8E` | `hCurrentBank` | shadow of the selected ROM bank |
 | `$FF90` | `hGameboyType` | 0 = DMG, 1 = CGB |
 
 ## Embedded tables
@@ -114,7 +114,7 @@ The addresses first identified on this page:
 The jump/pointer tables that the first linear disassembly showed as bogus
 instructions are now carved as data (`db`) by `tools/carve_clean.py` and
 resolved by the coverage trace. One correction to the original guess here: the
-bytes at `$09B9`-`$0A90` (between `WriteInstrByte` and `ReadInstrByte`) are
+bytes at `$09B9`-`$0A90` (between `WriteInstrumentByte` and `ReadInstrumentByte`) are
 **not** a jump table but a 108-entry 16-bit ramp (`$0000`, `$0013`, `$0026`, …
 `$07FC`); it is carved as data but has no label yet.
 

@@ -23,15 +23,15 @@ extern UBYTE wGroove;                       /* $C417 */
 extern char wGrooveRow;                     /* $C9D4, a plain char */
 extern UBYTE wSelectHeld;                   /* $C40A */
 extern UBYTE wBHeld;                        /* $C40B */
-extern UBYTE wMapCol;                       /* $C8FF */
-extern UBYTE wChanGroove[];                 /* $C150, [4] */
-extern UBYTE wChanGrooveRow[];              /* $C158, [4] */
+extern UBYTE wMapColumn;                       /* $C8FF */
+extern UBYTE wChannelGroove[];                 /* $C150, [4] */
+extern UBYTE wChannelGrooveRow[];              /* $C158, [4] */
 void WriteGrooveByte(UBYTE step, UBYTE v);
 UBYTE ReadGrooveStep(UBYTE step);
 void DrawGrooveSteps(void);
 void DrawGrooveRow(void);
 void SendLinkClipboard(void);                   /* $1C:$71CD */
-void DrawAllChanStatus(void);
+void DrawAllChannelStatus(void);
 void CutCopyGrooveSelection(UBYTE cut);
 void PasteGrooveSelection(void);
 void DrawGrooveSelection(void);
@@ -83,8 +83,8 @@ void DrawGrooveSteps(void)
     if (wGroove >= 0x20)
         DebugTrap();
     ReadSongBytes(0, (UBYTE *)(((UWORD)wGroove << 4) + (UWORD)0xB090), wSongReadBuf);
-    hBgDigitPal = 4;
-    hBgPal = 1;
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
     for (i = 0; i < 0x10; i++) {
         SetVramCursor(1, i + 2);
         v = wSongReadBuf[i];
@@ -111,13 +111,13 @@ void DrawGrooveScreen(void)
     FarCall(1, FAR_FN(DrawTopBar));
     DrawTempoField();
     DrawGrooveSteps();
-    FarCall(0x1F, FAR_FN(DrawAllChanStatus));
+    FarCall(0x1F, FAR_FN(DrawAllChannelStatus));
 }
 
 void GrooveScreenUpdate(void)
 {
-    if (wPlayMode && wGroove == wChanGroove[wSongCol])
-        SetSpriteY(0, wChanGrooveRow[wSongCol]);
+    if (wPlayMode && wGroove == wChannelGroove[wSongColumn])
+        SetSpriteY(0, wChannelGrooveRow[wSongColumn]);
     else
         ClearSpriteY(0);
 }
@@ -140,11 +140,11 @@ void DrawGrooveRow(void)
         if (b) {
             SetVramCursor(5, i + 2);
             if (i & 2) {
-                hBgDigitPal = 4;
-                hBgPal = 1;
+                hBgDigitPalette = 4;
+                hBgPalette = 1;
             } else {
-                hBgDigitPal = wShadedDigitPal;
-                hBgPal = wShadedPal;
+                hBgDigitPalette = wShadedDigitPalette;
+                hBgPalette = wShadedPalette;
             }
             q = a * 100 / (a + b);
             printf("%d", (UWORD)q);
@@ -180,7 +180,7 @@ void DrawGrooveCursor(void)
     ColorField(2, wGrooveRow + 2, 2, hGameboyType ? 3 : 2);
 }
 
-void SetGrooveRowPals(UBYTE row)
+void SetGrooveRowPalettes(UBYTE row)
 {
     UBYTE a, b;
 
@@ -188,14 +188,14 @@ void SetGrooveRowPals(UBYTE row)
     b = wGrooveRow;
     SortBytePair(&a, &b);
     if (row >= a && b >= row) {
-        hBgDigitPal = wHighlightDigitPal;
-        hBgPal = wHighlightPal;
+        hBgDigitPalette = wHighlightDigitPalette;
+        hBgPalette = wHighlightPalette;
     } else if (row & 2) {
-        hBgDigitPal = 4;
-        hBgPal = 1;
+        hBgDigitPalette = 4;
+        hBgPalette = 1;
     } else {
-        hBgDigitPal = wShadedDigitPal;
-        hBgPal = wShadedPal;
+        hBgDigitPalette = wShadedDigitPalette;
+        hBgPalette = wShadedPalette;
     }
 }
 
@@ -216,15 +216,15 @@ UBYTE GrooveScreenInput(void)
     UBYTE end;
 
     v = wGrooveRow + 2;
-    hBgDigitPal = wHighlightDigitPal;
-    hBgPal = wHighlightPal;
+    hBgDigitPalette = wHighlightDigitPalette;
+    hBgPalette = wHighlightPalette;
     switch (wButtons) {
     case 0x43:
         if (wCursorMode == 4) {
             wGrooveRow = wSelectionTop;
             FarCall(5, 0x747D);
             if (hGameboyType) {
-                FarCall(1, FAR_FN(DrawScreenPalMap));
+                FarCall(1, FAR_FN(DrawScreenPaletteMap));
                 FarCall(5, DrawMapTopRow);
             }
             DrawGrooveScreen();
@@ -332,11 +332,11 @@ UBYTE GrooveScreenInput(void)
             if (v2 && v) {
                 wGrooveStepCache[top] = v;
                 SetVramCursor(2, top + 2);
-                SetGrooveRowPals(top);
+                SetGrooveRowPalettes(top);
                 DrawHexByte(v);
                 wGrooveStepCache[top + 1] = v2;
                 SetVramCursor(2, top + 3);
-                SetGrooveRowPals(top + 1);
+                SetGrooveRowPalettes(top + 1);
                 DrawHexByte(v2);
             }
             top += 2;
@@ -421,16 +421,16 @@ UBYTE GrooveScreenInput(void)
     case 0x80:
         if (wButtonsSame || wBHeld)
             return 1;
-        switch ((char)wMapCol) {
+        switch ((char)wMapColumn) {
         case 0:
-            wCurScreen = 4;
+            wCurrentScreen = 4;
             break;
         case 1:
-            wCurScreen = 3;
+            wCurrentScreen = 3;
             break;
         }
         FarCall(2, FAR_FN(SoundTogglePlayback));
-        wCurScreen = 2;
+        wCurrentScreen = 2;
         return 1;
     case 0x44:
         if (wButtonsSame)

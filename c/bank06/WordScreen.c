@@ -16,13 +16,13 @@ extern UBYTE *wWordClipPtr;                 /* $C939 */
 extern UBYTE wWordClipPtrB;                 /* $C939 as a byte (aliased by match_function.py) */
 extern UBYTE wClipboardBuf[];               /* $C57A */
 extern UBYTE wWordRow;                  /* $C937 */
-extern UBYTE wWordCol;                  /* $C938 */
-extern UBYTE WordColX[];                  /* the word editor's two columns: x */
-extern UBYTE WordColWidth[];                  /* width */
+extern UBYTE wWordColumn;                  /* $C938 */
+extern UBYTE WordColumnX[];                  /* the word editor's two columns: x */
+extern UBYTE WordColumnWidth[];                  /* width */
 void EraseWordCursor(void);
 void DrawWordCursor(void);
 void ReadKitSampleName(UBYTE kit, UBYTE sample);   /* bank 0 */
-void DrawAllChanStatus(void);               /* bank $1F */
+void DrawAllChannelStatus(void);               /* bank $1F */
 extern UBYTE wClipboardType;                /* $C411 */
 extern UBYTE wButtons;                      /* $C575 */
 extern UBYTE wBHeld;                        /* $C40B */
@@ -60,7 +60,7 @@ UBYTE ReadWordCell(void)
     UWORD p;
 
     p = (UWORD)SramWords + ((UWORD)wSpeechRow << 5);
-    p += (unsigned int)wWordCol;
+    p += (unsigned int)wWordColumn;
     p += (unsigned int)(wWordRow << 1);
     return ReadSongByte(0, p);
 }
@@ -70,19 +70,19 @@ void WriteWordCell(UBYTE v)
     UWORD p;
 
     p = (UWORD)SramWords + ((UWORD)wSpeechRow << 5);
-    p += (unsigned int)wWordCol;
+    p += (unsigned int)wWordColumn;
     p += (unsigned int)(wWordRow << 1);
     WriteSongByte(0, p, v);
 }
 
 void EraseWordCursor(void)
 {
-    ColorField(WordColX[wWordCol], wWordRow + 2, WordColWidth[wWordCol], wWordCol);
+    ColorField(WordColumnX[wWordColumn], wWordRow + 2, WordColumnWidth[wWordColumn], wWordColumn);
 }
 
 void DrawWordCursor(void)
 {
-    ColorField(WordColX[wWordCol], wWordRow + 2, WordColWidth[wWordCol], hGameboyType ? 3 : 2);
+    ColorField(WordColumnX[wWordColumn], wWordRow + 2, WordColumnWidth[wWordColumn], hGameboyType ? 3 : 2);
 }
 
 void DrawWordScreen(void)
@@ -94,8 +94,8 @@ void DrawWordScreen(void)
 
     FarCall(1, FAR_FN(DrawTopBar));
     wVramCursor = (UBYTE *)0x9800;
-    hBgDigitPal = 4;
-    hBgPal = 1;
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
     DrawString("WORD ");
     p = (UWORD)0xBDD0 + (UWORD)(wSpeechRow * 3);
     i = 0;
@@ -108,13 +108,13 @@ void DrawWordScreen(void)
         i++;
     }
     DrawTempoField();
-    FarCall(0x1F, FAR_FN(DrawAllChanStatus));
+    FarCall(0x1F, FAR_FN(DrawAllChannelStatus));
     p = (UWORD)0xB890 + ((UWORD)wSpeechRow << 5);
     i = 0;
     while (i < 16) {
         SetVramCursor(2, i + 2);
-        hBgDigitPal = 4;
-        hBgPal = 1;
+        hBgDigitPalette = 4;
+        hBgPalette = 1;
         s = ReadSongByte(0, p++);
         if (s) {
             s--;
@@ -125,8 +125,8 @@ void DrawWordScreen(void)
         } else {
             DrawString("--- ");
         }
-        hBgDigitPal = wShadedDigitPal;
-        hBgPal = wShadedPal;
+        hBgDigitPalette = wShadedDigitPalette;
+        hBgPalette = wShadedPalette;
         DrawHexByte(ReadSongByte(0, p++));
         i++;
     }
@@ -158,10 +158,10 @@ UBYTE WordScreenInput(void)
     UBYTE col;
     UBYTE y;
 
-    hBgDigitPal = wHighlightDigitPal;
-    hBgPal = wHighlightPal;
+    hBgDigitPalette = wHighlightDigitPalette;
+    hBgPalette = wHighlightPalette;
     y = wWordRow + 2;
-    SetVramCursor(wWordCol * 4 + 2, y);
+    SetVramCursor(wWordColumn * 4 + 2, y);
     switch (wButtons) {
     case 0x04:
         if (wWordRow) {
@@ -175,12 +175,12 @@ UBYTE WordScreenInput(void)
         return 1;
     case 0x02:
         EraseWordCursor();
-        wWordCol = 0;
+        wWordColumn = 0;
         DrawWordCursor();
         return 1;
     case 0x01:
         EraseWordCursor();
-        wWordCol = 1;
+        wWordColumn = 1;
         DrawWordCursor();
         return 1;
     case 0x30:
@@ -188,15 +188,15 @@ UBYTE WordScreenInput(void)
             return 0;
         {
         UBYTE t;
-        v = wWordCol;
+        v = wWordColumn;
         if (wClipboardType != 0x0C && wCursorMode == 4)
             DebugTrap();
         wClipboardType = 0x0C;
         wCursorMode = 2;
-        wWordCol = 0;
+        wWordColumn = 0;
         wWordClipCell0[0] = ReadWordCell();
         wClipboardBuf[0] = ReadWordCell();
-        wWordCol = 1;
+        wWordColumn = 1;
         wWordClipPtr = wWordClipCell0 + 1;
         t = ReadWordCell();
         *wWordClipPtr = t;
@@ -204,62 +204,62 @@ UBYTE WordScreenInput(void)
         t = ReadWordCell();
         *wWordClipPtr = t;
         WriteWordCell(0);
-        wWordCol = 0;
+        wWordColumn = 0;
         WriteWordCell(0);
-        wWordCol = v;
+        wWordColumn = v;
         DrawWordScreen();
         return 1;
         }
     case 0x50:
         if (wClipboardType != 0x0C)
             return 0;
-        v = wWordCol;
-        wWordCol = 0;
+        v = wWordColumn;
+        wWordColumn = 0;
         WriteWordCell(wClipboardBuf[0]);
-        wWordCol = 1;
+        wWordColumn = 1;
         WriteWordCell(wClipboardBuf[1]);
-        wWordCol = v;
+        wWordColumn = v;
         DrawWordScreen();
         MoveWordCursorDown();
         return 1;
     case 0x10:
         if (!wAPressEnabled)
             return 0;
-        col = wWordCol;
-        if (!wWordCol) {
+        col = wWordColumn;
+        if (!wWordColumn) {
             if (!ReadWordCell() && wWordClipCell0[0]) {
                 WriteWordCell(wWordClipCell0[0]);
-                wWordCol = 1;
+                wWordColumn = 1;
                 WriteWordCell(wWordClipCell1[0]);
                 SetVramCursor(2, y);
-                hBgDigitPal = 4;
-                hBgPal = 1;
+                hBgDigitPalette = 4;
+                hBgPalette = 1;
                 v = wWordClipCell0[0];
                 v--;
                 wWordClipPtrB = v % 15 + 1;
                 ReadKitSampleName(AllophoneKit(v), wWordClipPtrB);
                 DrawString(wSampleNoteString);
                 DrawStringTile20();
-                hBgDigitPal = wShadedDigitPal;
-                hBgPal = wShadedPal;
+                hBgDigitPalette = wShadedDigitPalette;
+                hBgPalette = wShadedPalette;
                 DrawHexByte(wWordClipCell1[0]);
-                wWordCol = col;
+                wWordColumn = col;
                 DrawWordCursor();
                 return 1;
             }
-            wWordCol = col;
+            wWordColumn = col;
         } else if (!ReadWordCell()) {
             WriteWordCell(wWordClipCell1[0]);
             SetVramCursor(6, y);
-            hBgDigitPal = wHighlightDigitPal;
-            hBgPal = wHighlightPal;
+            hBgDigitPalette = wHighlightDigitPalette;
+            hBgPalette = wHighlightPalette;
             DrawHexByte(wWordClipCell1[0]);
             return 1;
         }
         return 0;
     case 0x11:
         v = ReadWordCell();
-        if (wWordCol) {
+        if (wWordColumn) {
             if (v < 0xFF)
                 v++;
             DrawHexByte(v);
@@ -274,7 +274,7 @@ UBYTE WordScreenInput(void)
         return 1;
     case 0x12:
         v = ReadWordCell();
-        if (wWordCol) {
+        if (wWordColumn) {
             if (v)
                 v--;
             DrawHexByte(v);
@@ -290,7 +290,7 @@ UBYTE WordScreenInput(void)
         return 1;
     case 0x14:
         v = ReadWordCell() + 0x10;
-        if (wWordCol) {
+        if (wWordColumn) {
             if (v < 0x10)
                 return 0;
             DrawHexByte(v);
@@ -304,7 +304,7 @@ UBYTE WordScreenInput(void)
         return 1;
     case 0x18:
         v = ReadWordCell() - 0x10;
-        if (wWordCol) {
+        if (wWordColumn) {
             if (v >= 0xF0)
                 return 0;
             DrawHexByte(v);

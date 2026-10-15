@@ -70,20 +70,20 @@ void DrawTempo(UWORD tempo)
 void DrawTempoField(void)
 {
     wVramCursor = (UBYTE *)0x9891;
-    hBgDigitPal = wShadedDigitPal;
-    hBgPal = wShadedPal;
+    hBgDigitPalette = wShadedDigitPalette;
+    hBgPalette = wShadedPalette;
     DrawTempo(GetTempoTimerVal());
 }
 
-void DrawChanHeader(void)
+void DrawChannelHeader(void)
 {
     char *s;
 
     s = "NOI";
-    hBgDigitPal = wShadedDigitPal;
-    hBgPal = wShadedPal;
+    hBgDigitPalette = wShadedDigitPalette;
+    hBgPalette = wShadedPalette;
     wVramCursor = (UBYTE *)0x9811;
-    switch (wSongCol) {
+    switch (wSongColumn) {
     case 0:
         s = "PU1";
         break;
@@ -123,7 +123,7 @@ void DrawFieldVal(UBYTE kind, UBYTE v)
         DrawString("--");
         break;
     case 0x12:
-        if (wSongCol == 2)
+        if (wSongColumn == 2)
             DrawHexByte(v);
         else
             DrawPulseDuty(v);

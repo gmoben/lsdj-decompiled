@@ -12,17 +12,17 @@ Entry $0100 -> Start $0150 (init) -> main $1306 (InitAndLoadSong $0DDB, ...) -> 
   main.mainLoop: when wRedrawPending ($C56C) says a frame is due ->
     ProcessInput $0ED6: drain the button queue (GetNextButtons); per event
       HandleButtonEvent $2B8D -> HandleInputCombos + DispatchScreenInput
-      ($2A71, jp table $2A86 by wCurScreen -> the screen's input handler)
+      ($2A71, jp table $2A86 by wCurrentScreen -> the screen's input handler)
     DispatchScreenUpdate $264B (screens 1-5), then a bank-1 UI tail
       (UpdatePlayClock, UpdateWorkClock, IsMessageActive)
   otherwise, while wSynthRenderActive ($C9F1): one RenderSynthWave step
       (bank $1D) per pass, 16 steps
-  DispatchScreenDraw $254F (via RedrawScreen): jp ($2563 + 3*wCurScreen)
+  DispatchScreenDraw $254F (via RedrawScreen): jp ($2563 + 3*wCurrentScreen)
       -> the active screen's draw routine (selects its bank, calls it)
 ```
 
 Key mechanisms:
-- **Bank switching**: write the bank number to HRAM shadow `hCurBank`
+- **Bank switching**: write the bank number to HRAM shadow `hCurrentBank`
   (`$FF8E`) *and* the MBC5 register `$2000`. Editors live in the switchable
   window `$4000`-`$7FFF`.
 - **Banked calls**: bank 0 sets the bank then `call`s the `$4000`-`$7FFF`
@@ -44,7 +44,7 @@ Key mechanisms:
 
 ## Screen dispatch — the editor index (bank 0)
 
-The current screen is `wCurScreen` = **`$C401`** (0–14).
+The current screen is `wCurrentScreen` = **`$C401`** (0–14).
 `DispatchScreenDraw` (`$254F`) does `hl = $2563 + 3*screen; jp hl` into a
 15-entry `jp` table (`ScreenDrawJumps`, `$2563`). Each target is a stub that
 selects the screen's ROM bank (`$FF8E` + `$2000`) and `call`s its draw routine:
@@ -60,7 +60,7 @@ selects the screen's ROM bank (`$FF8E` + `$2000`) and `call`s its draw routine:
 | 6 | `$03:$4DE7` | **Instrument** | reads `instruments` 119x; **live `$C401`=6 on Instrument** |
 | 7 | — | (none) | blank slot |
 | 8 | `$06:$4F18` | **Wave** | reads `wave_frames`; copy/paste ("CANCEL SELECT") |
-| 9 | `$1B:$5C17` | **Project** | `DrawProjScreen` ✓ (sync/clone/look/clock) |
+| 9 | `$1B:$5C17` | **Project** | `DrawProjectScreen` ✓ (sync/clone/look/clock) |
 | 10 | `$1D:$68AB` | **Synth** | reads softsynth params (`synth`) |
 | 12 | `$06:$41A2` | **Word / Speech** | reads `words`; draws "WORD" |
 | 13 | `$1C:$57BB` | **File** | "BLOCKS USED", "LOSE %u HOURS OF UNSAVED WORK?" |
@@ -78,11 +78,11 @@ stubs' bank + call target):
 | `$C401` | Input handler | | `$C401` | Input handler |
 |---------|---------------|-|---------|---------------|
 | 1 Phrase | `PhraseScreenInput` `$04:$5BA6` | | 8 Wave | `WaveScreenInput` `$06:$507F` |
-| 2 Groove | `GrooveScreenInput` `$1D:$4451` | | 9 Project | `ProjScreenInput` `$1B:$5DBF` |
+| 2 Groove | `GrooveScreenInput` `$1D:$4451` | | 9 Project | `ProjectScreenInput` `$1B:$5DBF` |
 | 3 Chain | `ChainScreenInput` `$06:$5BD0` | | 10 Synth | `SynthScreenInput` `$1D:$7138` |
 | 4 Song | `SongScreenInput` `$07:$4B3B` | | 12 Word | `WordScreenInput` `$06:$431D` |
 | 5 Table | `TableScreenInput` `$05:$4B5D` | | 13 File | `FileScreenInput` `$1C:$5B0C` |
-| 6 Instrument | `InstrScreenInput` `$03:$541F` | | 14 Help | `HelpScreenInput` `$1B:$4BC3` |
+| 6 Instrument | `InstrumentScreenInput` `$03:$541F` | | 14 Help | `HelpScreenInput` `$1B:$4BC3` |
 | 7 (name editor) | `NameEditorInput` `$1B:$53E8` | | 0, 11 | — |
 
 Matching `DispatchScreenInput` in C (`c/bank00/DispatchScreenDraw.c`) settled
@@ -103,7 +103,7 @@ from the (interleaved) input-edit code. So `$C401` drives parallel *draw* and
 | Groove (2) | `GrooveScreenUpdate` `$1D:$4215` | | Table (5) | `TableScreenUpdate` `$05:$4967` |
 | Chain (3) | `ChainScreenUpdate` `$06:$5A62` | | | |
 
-Before most screen draws, the dispatch prologue calls `DrawScreenColLabels`
+Before most screen draws, the dispatch prologue calls `DrawScreenColumnLabels`
 (`$1E:$4000`). Runtime variables are collected in
 [`../constants/ram.inc`](../constants/ram.inc).
 
@@ -165,7 +165,7 @@ helpers live in bank `$1B`** (`src/bank1b.sym`):
 
 Confirmed routines (bank `$1B`):
 
-- **`DrawProjScreen` (`$5C17`)** — the Project draw routine (dispatch index
+- **`DrawProjectScreen` (`$5C17`)** — the Project draw routine (dispatch index
   9). Paints each field at a fixed tilemap address via helpers, e.g. the
   LOAD/SAVE-SONG vs RESET-MEMORY menu line, then the SYNC value, then song
   properties read with `ReadSongByte`.
@@ -175,15 +175,15 @@ Confirmed routines (bank `$1B`):
   `$98A0`. Its second half was once labelled as a separate `DrawSyncModeField`;
   matching it in C (`c/bank1b/DrawSyncField.c`) showed it is one function.
 - **`DrawSyncSubSetting` (`$5B7A`)** — the PS/2 DELAY / TICKS/STEP value beside
-  SYNC. Other field helpers: `DrawProjTempo` (`$5853`, commit a queued VRAM
+  SYNC. Other field helpers: `DrawProjectTempo` (`$5853`, commit a queued VRAM
   write), `DrawFontColorFields` (`$569C`, the FONT and COLOR SET rows), and
   bank 0's `DrawHexByte` (`$2E33`, numbers).
 
-The Project cursor row is `wProjCursor` (`$C9A4`). (`$C566`-`$C569` were once
+The Project cursor row is `wProjectCursor` (`$C9A4`). (`$C566`-`$C569` were once
 taken for cursor state; they are the BG-attribute draw palettes
-`wShadedDigitPal`/`wShadedPal`/`wHighlightDigitPal`/`wHighlightPal`.) The field
+`wShadedDigitPalette`/`wShadedPalette`/`wHighlightDigitPalette`/`wHighlightPalette`.) The field
 *labels* (TEMPO, SYNC, …) are tiles, not ASCII. The Project input handler is
-the index-9 entry of `DispatchScreenInput` (`ProjScreenInput`, `$5DBF`).
+the index-9 entry of `DispatchScreenInput` (`ProjectScreenInput`, `$5DBF`).
 
 ## Status
 
@@ -192,7 +192,7 @@ byte): draw routines below, input handlers in the input-index table above.
 
 | Screen | idx | Draw routine | Edits | Carved | Draw label |
 |--------|-----|--------------|-------|--------|-----------|
-| Instrument | 6 | `$03:$4DE7` | `instruments` `$3080` | ✓ `bank03.asm` | `DrawInstrScreen` |
+| Instrument | 6 | `$03:$4DE7` | `instruments` `$3080` | ✓ `bank03.asm` | `DrawInstrumentScreen` |
 | Chain | 3 | `$06:$5947` | `chain_*` `$2080`/`$2880` | ✓ `bank06.asm` | `DrawChainScreen` |
 | Song | 4 | `$07:$4574` | `sequence` `$1290` | ✓ `bank07.asm` | `DrawSongScreen` |
 | Phrase | 1 | `$04:$4CE5` | notes/instr/fx | ✓ `bank04.asm` | `DrawPhraseScreen` |
@@ -201,7 +201,7 @@ byte): draw routines below, input handlers in the input-index table above.
 | Wave | 8 | `$06:$4F18` | `wave_frames` `$6000` | ✓ `bank06.asm` | `DrawWaveScreen` |
 | Synth | 10 | `$1D:$68AB` | `synth` `$3EB2` | ✓ `bank1d.asm` | `DrawSynthScreen` |
 | Word/Speech | 12 | `$06:$41A2` | `words` `$1890` | ✓ `bank06.asm` | `DrawWordScreen` |
-| Project | 9 | `$1B:$5C17` | properties `$3FB2` | ✓ `bank1b.asm` | `DrawProjScreen` (+sync) |
+| Project | 9 | `$1B:$5C17` | properties `$3FB2` | ✓ `bank1b.asm` | `DrawProjectScreen` (+sync) |
 | File | 13 | `$1C:$57BB` | SRAM filesystem | ✓ `bank1c.asm` | `DrawFileScreen` |
 | Help | 14 | `$1B:$4A62` | (text) | ✓ `bank1b.asm` | `DrawHelpScreen` |
 

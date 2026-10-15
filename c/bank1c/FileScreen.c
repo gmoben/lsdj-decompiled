@@ -10,7 +10,7 @@
 extern volatile sfr UBYTE IE_REG;           /* $FFFF */
 extern volatile sfr UBYTE NR52_REG;         /* $FF26 */
 extern volatile sfr UBYTE SC_REG;           /* $FF02 */
-extern UBYTE wChanActive[];                 /* $C0E0, [8] */
+extern UBYTE wChannelActive[];                 /* $C0E0, [8] */
 extern UBYTE wFsCheckResult;                /* $C56B */
 extern UBYTE wFileBlockIdx;                 /* $C958 */
 extern UBYTE wFileBlockCounts[];            /* $C959, [32] */
@@ -45,7 +45,7 @@ extern UBYTE wButtons;                      /* $C575 */
 extern UBYTE wAPressEnabled;                /* $C409 */
 extern UBYTE wFileListAction;               /* $C99A */
 extern UBYTE wFileNameNavMode;              /* $C99C */
-extern UBYTE wNameEditIsInstr;              /* $C430 */
+extern UBYTE wNameEditIsInstrument;              /* $C430 */
 extern UBYTE wFileField;                    /* $C992 */
 extern UBYTE wFileCursor;                   /* $C999 */
 extern UBYTE wFileScroll;                   /* $C99B */
@@ -65,7 +65,7 @@ UWORD FileCalcCompressedSize(void);
 UBYTE ReadCompressedByte(void);
 void FilePutDecompressByte(UBYTE v);
 void EmitDefaultWave(void);
-void EmitDefaultInstr(void);
+void EmitDefaultInstrument(void);
 void LoadFileListState(void);
 void FlushBlockToSram(void);                /* $1C:$743C */
 void FileDecompressByte(void);              /* $1C:$749E */
@@ -78,7 +78,7 @@ UBYTE DrawVerifyPanel(UBYTE f);             /* $1C:$4778 */
 UBYTE FileLoadSlotInfo(UBYTE slot, UBYTE verify);
 UBYTE GetNextButtons(void);                 /* bank 0 */
 void FormatSramSong(void);                     /* $01:$45D1 */
-void LoadProjSettings(void);             /* $01:$7C86 */
+void LoadProjectSettings(void);             /* $01:$7C86 */
 void CountFileBlocks(void);                 /* $1C:$48D4 */
 void SoundToggleSongPlayback(void);                 /* $02:$78C4 */
 void OpenNameEditor(void);                  /* $1B:$4E8A */
@@ -94,7 +94,7 @@ void EraseFileName(UBYTE f);
 UBYTE ReadWorkingSongByte(UWORD addr);      /* asm */
 void WriteCompressedByte(UBYTE v);          /* asm, v also in a */
 void FileCompressRun(UBYTE v);              /* asm, v in a */
-void FileClearChanState(void);
+void FileClearChannelState(void);
 
 void FileWriteCompressedSram(void)
 {
@@ -165,8 +165,8 @@ UBYTE FindFreeBlock(UBYTE *bank, UWORD *src)
             if (*src < 0xA000 || *src >= 0xC000)
                 DebugTrap();
             wVramCursor = 0x98EC;
-            hBgDigitPal = 4;
-            hBgPal = 1;
+            hBgDigitPalette = 4;
+            hBgPalette = 1;
             DrawByte(++wCompressProgress);
             return 1;
         }
@@ -335,7 +335,7 @@ UBYTE DecompressBlock(void)
     case 0xF1:
         b = ReadCompressedByte();
         while (b--)
-            EmitDefaultInstr();
+            EmitDefaultInstrument();
         break;
     case 0xFF:
         return 1;
@@ -613,12 +613,12 @@ UBYTE FileLoadSlotInfo(UBYTE slot, UBYTE verify)
     return ok && wCompressDst == 0xA000 && !wDecompressPos;
 }
 
-void FileClearChanState(void)
+void FileClearChannelState(void)
 {
     UBYTE i = 8;
 
     do {
-        wChanActive[i - 1] = 0;
+        wChannelActive[i - 1] = 0;
     } while (--i);
 }
 
@@ -627,7 +627,7 @@ void FileStopSound(void)
     SetInterruptEnable(IE_REG & 0xFB);
     wPlayMode = 0;
     NR52_REG = 0;
-    FileClearChanState();
+    FileClearChannelState();
 }
 
 void LoadFile(void)
@@ -644,8 +644,8 @@ void LoadFile(void)
     if (n) {
         DrawFileTextField(1, 6, 0x11, 3);
         wVramCursor = 0x98E2;
-        hBgDigitPal = 4;
-        hBgPal = 1;
+        hBgDigitPalette = 4;
+        hBgPalette = 1;
         DrawString("LOADING...1/");
         DrawByte(wFileFirstChar);
         wFileSramProps[0] = ReadSongByte(1, 0xBFB6);
@@ -683,9 +683,9 @@ void LoadFile(void)
     WriteSongByte(1, 0xBFC1, 0x20);
     LoadFileListState();
     MigrateTempoProps();
-    FarCallArg(1, FAR_FN(LoadProjSettings), 1);
+    FarCallArg(1, FAR_FN(LoadProjectSettings), 1);
     if (wFileLoadAltReturn)
-        wCurScreen = 0x0D;
+        wCurrentScreen = 0x0D;
     FarCall(1, FAR_FN(RedrawScreen));
     wRedrawPending = 0;
 }
@@ -706,7 +706,7 @@ void DrawFileTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE h)
     for (i = x; i < x + w; i++) {
         for (j = y; j < y + h; j++) {
             wStringSrc = IdentityCharMap;
-            hBgPal = hGameboyType ? 0x48 : 0xD2;
+            hBgPalette = hGameboyType ? 0x48 : 0xD2;
             ColorField(i, j, 1, 0);
             SetVramCursor(i, j);
             if (i == x) {
@@ -729,8 +729,8 @@ void DrawFileTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE h)
                 else if (j == y + h - 1)
                     DrawStringIndexed(6);
                 else {
-                    hBgDigitPal = 4;
-                    hBgPal = 1;
+                    hBgDigitPalette = 4;
+                    hBgPalette = 1;
                     DrawStringIndexed(2);
                 }
                 wStringSrc = AsciiCharMap - 0x20;
@@ -738,8 +738,8 @@ void DrawFileTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE h)
         }
     }
     wStringSrc = AsciiCharMap - 0x20;
-    hBgDigitPal = 4;
-    hBgPal = 1;
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
 }
 
 void FileDrawField(UBYTE pal)
@@ -787,18 +787,18 @@ void DrawFileList(void)
     active = ReadSongByte(4, 0xA140);
     end = FileFindSlotEnd() + 1;
     CountFileBlocks();
-    hBgDigitPal = 4;
-    hBgPal = 1;
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
     wVramCursor = 0x9880;
     while (row < 12 && slot < 0x20) {
         blocks = wFileBlockCounts[slot];
         if (slot == end)
             break;
-        hBgDigitPal = wShadedDigitPal;
-        hBgPal = wShadedPal;
+        hBgDigitPalette = wShadedDigitPalette;
+        hBgPalette = wShadedPalette;
         DrawHexByte(slot);
-        hBgDigitPal = 4;
-        hBgPal = 1;
+        hBgDigitPalette = 4;
+        hBgPalette = 1;
         DrawStringIndexed(slot == active ? '*' : ' ');
         if (blocks) {
             ver = ReadSongByte(4, (UWORD)0xA100 + slot);
@@ -825,11 +825,11 @@ void DrawFileList(void)
         c = row + wFileScroll;
         if (c < 0x20) {
             SetVramCursor(0, row + 4);
-            hBgDigitPal = wShadedDigitPal;
-            hBgPal = wShadedPal;
+            hBgDigitPalette = wShadedDigitPalette;
+            hBgPalette = wShadedPalette;
             DrawHexByte(c);
-            hBgDigitPal = 4;
-            hBgPal = 1;
+            hBgDigitPalette = 4;
+            hBgPalette = 1;
             if (active == c)
                 DrawStringIndexed('*');
             else
@@ -849,8 +849,8 @@ void DrawFileScreen(void)
     FarCall(1, FAR_FN(DrawTopBar));
     for (i = StrLength(wTopBarStr); i != 12; i++)
         DrawStringTile20();
-    hBgDigitPal = wShadedDigitPal;
-    hBgPal = wShadedPal;
+    hBgDigitPalette = wShadedDigitPalette;
+    hBgPalette = wShadedPalette;
     wVramCursor = 0x9840;
     DrawString("LOAD");
     wVramCursor = 0x9845;
@@ -863,8 +863,8 @@ void DrawFileScreen(void)
     else
         FileDrawField(hGameboyType ? 3 : 2);
     wVramCursor = 0x9A20;
-    hBgDigitPal = 4;
-    hBgPal = 1;
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
     printf("BLOCKS USED: %x/", (UWORD)FileListSlots());
     DrawString(wFsCheckResult ? "3F" : "BF");
 }
@@ -932,8 +932,8 @@ UBYTE DrawBlocksUsed(void)
     wVramCursor = 0x9926;
     DrawString("YES");
     wVramCursor = 0x992B;
-    hBgDigitPal = wHighlightDigitPal;
-    hBgPal = wHighlightPal;
+    hBgDigitPalette = wHighlightDigitPalette;
+    hBgPalette = wHighlightPalette;
     DrawString("NO");
     if (hGameboyType) {
         VBK_REG = 1;
@@ -978,7 +978,7 @@ UBYTE FileScreenInput(void)
             if (hGameboyType)
                 ClearBgTilemap();
             else
-                FarCall(1, FAR_FN(DrawScreenPalMap));
+                FarCall(1, FAR_FN(DrawScreenPaletteMap));
             DrawFileScreen();
         } else if (wFileListActive) {
             FileDrawFieldChecked(2);
@@ -998,15 +998,15 @@ UBYTE FileScreenInput(void)
                             wNameEditBuf[i] = wFileNameBuf[i];
                     }
                 }
-                wNameEditIsInstr = 0;
+                wNameEditIsInstrument = 0;
                 wFileListActive = 0;
                 FarCall(0x1B, FAR_FN(OpenNameEditor));
                 return 1;
             case 2:
                 if (GetFileBlockCount(wFileCursor)) {
                     wFileEraseArmed = 1;
-                    hBgDigitPal = 4;
-                    hBgPal = 1;
+                    hBgDigitPalette = 4;
+                    hBgPalette = 1;
                     DrawFileTextField(5, 6, 9, 5);
                     wFilePromptActive = 1;
                     wFilePromptNo = 1;
@@ -1061,14 +1061,14 @@ UBYTE FileScreenInput(void)
             if (hGameboyType)
                 ClearBgTilemap();
             wFileListActive = 0;
-            FarCall(1, FAR_FN(DrawScreenPalMap));
+            FarCall(1, FAR_FN(DrawScreenPaletteMap));
             DrawFileScreen();
         } else if (wFileListActive) {
             FileDrawFieldChecked(0);
             wFileListActive = 0;
             FileDrawField(hGameboyType ? 3 : 2);
         } else {
-            wCurScreen = 9;
+            wCurrentScreen = 9;
             FarCall(7, FAR_FN(RedrawScreen));
         }
         break;

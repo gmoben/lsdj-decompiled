@@ -4,7 +4,7 @@
  * MATCHING C (period GBDK 2.95-3 / SDCC 2.2.1 + tools/match/lsdj.peep);
  * `make match` verifies every function here against the ROM.
  *
- * Its own unit: this file's prototype of CopySongCol takes two UWORDs
+ * Its own unit: this file's prototype of CopySongColumn takes two UWORDs
  * (the ROM casts the pointer arguments; SongScreen.c defines it with
  * pointer parameters), and the song pointers are `UBYTE * volatile` (every
  * use reloads them from the stack).
@@ -18,7 +18,7 @@ extern UBYTE wSelectionRight;                     /* $C40F */
 extern UBYTE wSelectionBottom;                    /* $C410 */
 extern UBYTE wClipboardType;                /* $C411 */
 extern UBYTE wSongSelectionRow;                   /* $C94B */
-void CopySongCol(UWORD src, UWORD dst);   /* this unit's prototype (the ROM casts the pointer args) */
+void CopySongColumn(UWORD src, UWORD dst);   /* this unit's prototype (the ROM casts the pointer args) */
 void EraseSongCursor(void);
 void ScrollSongToCursor(void);
 void RedrawSongRow(void);
@@ -43,7 +43,7 @@ void CutCopySongSelection(UBYTE isCut)
     if (wClipboardType != 4)
         return;
     wCursorMode = 2;
-    wSelectionRight = wSongCol;
+    wSelectionRight = wSongColumn;
     wSelectionBottom = wSongRow;
     SortBytePair(&wSelectionLeft, &wSelectionRight);
     SortBytePair(&wSelectionTop, &wSelectionBottom);
@@ -53,9 +53,9 @@ void CutCopySongSelection(UBYTE isCut)
         DebugTrap();
     wSelectionRight++;
     wSelectionBottom++;
-    wSongCol = wSelectionLeft;
-    while (wSongCol - wSelectionRight) {
-        if (wSongCol >= 6)
+    wSongColumn = wSelectionLeft;
+    while (wSongColumn - wSelectionRight) {
+        if (wSongColumn >= 6)
             DebugTrap();
         wSongRow = wSelectionTop;
         for (;;) {
@@ -66,33 +66,33 @@ void CutCopySongSelection(UBYTE isCut)
             vis = y < 0x10;
             if (vis)
                 EraseSongCursor();
-            v = ReadSeqByte(wSongCol, wSongRow);
+            v = ReadSeqByte(wSongColumn, wSongRow);
             r = wSongRow - wSelectionTop;
-            WriteClipboardCell(wSongCol, r, v);
+            WriteClipboardCell(wSongColumn, r, v);
             wSongRow++;
         }
         if (isCut) {
             n = wSelectionBottom - wSelectionTop;
             p = (UBYTE *)0xB290 + ((UWORD)wSelectionTop << 2);
-            col = wSongCol;
+            col = wSongColumn;
             p += col;
             q = p + ((UWORD)n << 2);
             x = (UWORD)p;
-            CopySongCol((UWORD)q, x);
+            CopySongColumn((UWORD)q, x);
             while (n) {
                 t = n;
                 x = 0xC0 - t;
-                WriteSongCell(wSongCol, x, 0xFF);
+                WriteSongCell(wSongColumn, x, 0xFF);
                 n--;
             }
         }
-        wSongCol++;
+        wSongColumn++;
     }
     if (isCut && !wSelectionLeft && wSelectionRight == 4)
         AdjustBookmarksOnDelete(wSelectionTop, wSelectionBottom);
     msg = isCut ? "CUT CHAINS" : "COPIED CHAINS";   /* both literals follow the function ($5957, $5962) */
     ShowMessage(msg);
-    wSongCol = wSelectionLeft;
+    wSongColumn = wSelectionLeft;
     wSongRow = isCut ? wSelectionTop : wSongSelectionRow;
     ScrollSongToCursor();
     RedrawSongRow();

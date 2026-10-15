@@ -15,9 +15,9 @@
 extern UBYTE wSongScroll;                   /* $C41C */
 extern UBYTE wSelectionTop;                       /* $C40E */
 extern UBYTE wClipboardType;                /* $C411 */
-extern UBYTE wSongPasteCol;                 /* $C94E */
+extern UBYTE wSongPasteColumn;                 /* $C94E */
 extern UBYTE wSongPasteRow;                 /* $C94F */
-extern UBYTE SongColOffsets[];              /* $07:$4047 */
+extern UBYTE SongColumnOffsets[];              /* $07:$4047 */
 void EraseSongCursor(void);
 void SortBytePairC(char *a, char *b);      /* SortBytePair as this unit declares it */
 void DrawTileRun(UBYTE x, UBYTE y, UBYTE w, UBYTE h, UBYTE tile);   /* asm */
@@ -40,10 +40,10 @@ void EditSongSelection(void)
         return;
     if (wSelectionLeft >= 4)
         DebugTrap();
-    if (wSongCol >= 4)
+    if (wSongColumn >= 4)
         DebugTrap();
     x0 = wSelectionLeft;
-    x1 = wSongCol;
+    x1 = wSongColumn;
     SortBytePairC((char *)&x0, (char *)&x1);
     y0 = wSelectionTop;
     y1 = wSongRow;
@@ -57,19 +57,19 @@ void EditSongSelection(void)
     else
         y1 = y1 - wSongScroll + 1;
     x1++;
-    wSongPasteCol = wSongCol;
+    wSongPasteColumn = wSongColumn;
     wSongPasteRow = wSongRow;
-    wSongCol = x0 ? x0 - 1 : 0;
-    while (wSongCol < (x1 == 4 ? 4 : x1 + 1)) {
+    wSongColumn = x0 ? x0 - 1 : 0;
+    while (wSongColumn < (x1 == 4 ? 4 : x1 + 1)) {
         wSongRow = wSongScroll + (y0 ? y0 - 1 : 0);
         while (wSongRow < wSongScroll + (y1 == 0x10 ? 0x10 : y1 + 1)) {
-            if (wSongCol < x0 || wSongCol >= x1 || wSongRow < wSongScroll + y0 || wSongRow >= wSongScroll + y1)
+            if (wSongColumn < x0 || wSongColumn >= x1 || wSongRow < wSongScroll + y0 || wSongRow >= wSongScroll + y1)
                 EraseSongCursor();
             wSongRow++;
         }
-        wSongCol++;
+        wSongColumn++;
     }
-    wSongCol = wSongPasteCol;
+    wSongColumn = wSongPasteColumn;
     wSongRow = wSongPasteRow;
     for (i = x0; i < x1; i++) {
         y = y0 + 2;
@@ -81,10 +81,10 @@ void EditSongSelection(void)
             DebugTrap();
         if (hGameboyType) {
             VBK_REG = 1;
-            set_bkg_tiles(SongColOffsets[i], y, 2, y1 - y0, SongSelectionAttr);
+            set_bkg_tiles(SongColumnOffsets[i], y, 2, y1 - y0, SongSelectionAttr);
             VBK_REG = 0;
         } else {
-            DrawTileRun(SongColOffsets[i], y, 2, y1 - y0, 2);
+            DrawTileRun(SongColumnOffsets[i], y, 2, y1 - y0, 2);
         }
     }
 }

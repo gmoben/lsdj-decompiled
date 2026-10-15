@@ -24,50 +24,50 @@ See [`AGENTS.md`](../AGENTS.md) → *Strategy* for why this gates Track 2.
 | [`c/bank00/FarCall.c`](../c/bank00/FarCall.c) | 5 functions: the far calls passing arguments or returning the callee's byte (FarCallByte, FarCallArgByte, FarCallArg2V, FarCallArg2, FarCallArg3) | the callee called through a function pointer cast from a `UWORD` address (`r = ((UBYTE (*)(UBYTE, UBYTE))fn)(a, b)`): the cast is the copy into b/c, landing reversed (`ld b,(hl); inc hl; ld c,(hl)`) because `old` takes c first and is then spilled for it; a function-pointer parameter is called straight from its stack slot. lsdj.h declares FarCallByte and FarCallArg2V with function-pointer parameters for their callers, so FarCall.c defines `FARCALL_C` to drop those two prototypes. SDCC's return label after the `jp (hl)` is the `.resume` local |
 | [`c/bank00/GbdkLib.c`](../c/bank00/GbdkLib.c) | 4 functions: GBDK's `abs`, the console `printf` and its number printer (`abs`, `printf`, `printn`), `strlen` (`StrLength`) | GBDK library C under the stock rules (`@stock-rules`), the 2.95-2 sources as they stand: `abs`'s `num < 0` and printn's `(int)u < 0` are the signed add form against 0 (`gb_cmp16` still runs for this unit), printf's `...` through GBDK's gbz80 `stdarg.h` macros (lsdj.h's fixed-argument printf prototype hides behind `GBDKLIB_C`), printn's digits a string literal emitted right after it (`DigitChars`); 2.95-2 hands both an emitter, the ROM's call putchar (DrawStringIndexed) and puts (DrawString) directly |
 | [`c/bank00/Helpers.c`](../c/bank00/Helpers.c) | 7 functions: bank 0's shared C helpers | kit bank probes through a `volatile` MBC register, a word compare, the clipboard cell accessors, sign extension into an `int` array with a 32-bit `\|=`, a re-typed pointer argument |
-| [`c/bank00/InstrByte.c`](../c/bank00/InstrByte.c) | `WriteInstrByte`, `ReadInstrByte`, `ReadCurInstrByte` | byte args, pointer local, 16-bit shift loop, asserts (one compound), both forms of pointer + byte |
-| [`c/bank00/Main.c`](../c/bank00/Main.c) | `InitAndLoadSong`, `ProcessInput`, `main` | the boot `switch`, an endless frame loop with `continue`, an `\|\|` chain, a second absolute `sfr` name for a plain global, `?:` into globals, `FarCallArg` with a plain function pointer; ProcessInput's `do ... while (--wLinkQueueCount && buttons == 0xFF)`, `if (buttons) wKbdHeldNote = 0; else return 1;` (the return laid out after), `if (ok = HandleButtonEvent())` (the call result tested in b, copied to c), `wKeyDelay == wKeyDelayTimer` / `wButtons == buttons` (the operand to load into `a` on the right), the transpose stored and then pushed as `wSongTranspose` (an assignment's value pushes the right operand again), `char wChainRow` (copied through b to be pushed), and SoundGetChainPhrase declared with its real arguments under `SND_DIRECT` |
+| [`c/bank00/InstrByte.c`](../c/bank00/InstrByte.c) | `WriteInstrumentByte`, `ReadInstrumentByte`, `ReadCurrentInstrumentByte` | byte args, pointer local, 16-bit shift loop, asserts (one compound), both forms of pointer + byte |
+| [`c/bank00/Main.c`](../c/bank00/Main.c) | `InitAndLoadSong`, `ProcessInput`, `main` | the boot `switch`, an endless frame loop with `continue`, an `\|\|` chain, a second absolute `sfr` name for a plain global, `?:` into globals, `FarCallArg` with a plain function pointer; ProcessInput's `do ... while (--wLinkQueueCount && buttons == 0xFF)`, `if (buttons) wKeyboardHeldNote = 0; else return 1;` (the return laid out after), `if (ok = HandleButtonEvent())` (the call result tested in b, copied to c), `wKeyDelay == wKeyDelayTimer` / `wButtons == buttons` (the operand to load into `a` on the right), the transpose stored and then pushed as `wSongTranspose` (an assignment's value pushes the right operand again), `char wChainRow` (copied through b to be pushed), and SoundGetChainPhrase declared with its real arguments under `SND_DIRECT` |
 | [`c/bank00/ReadSeqByte.c`](../c/bank00/ReadSeqByte.c) | `ReadSeqByte` | `?:` on bit 7 of a call result |
-| [`c/bank00/DispatchScreenDraw.c`](../c/bank00/DispatchScreenDraw.c) | 6 functions: the screen dispatchers, the B combos (mute, pan, solo and their release) | 15-case `switch` → `jp hl` tables, bank switching, cross-bank calls, case bodies out of value order, an `&&` chain; HandleInputCombos' `wChanOutput[wSongCol] &= 3` after `hSoundChan = wSongCol` (the address from the stored value, the operand reread), `wSongCol == hSoundChan` in the loops (the global left: `cp a,(hl)` on the loop test's `a`), `!(wKbdActionChan == 0xFF) ? wKbdActionChan : wSongCol` (both booleans materialised), a two-case `switch` for B+LEFT/RIGHT (compares sorted, bodies in source order) and the saved pan in its own local (`v = wChanOutputSoloSaved[hSoundChan]; if (v) ... = v`) |
+| [`c/bank00/DispatchScreenDraw.c`](../c/bank00/DispatchScreenDraw.c) | 6 functions: the screen dispatchers, the B combos (mute, pan, solo and their release) | 15-case `switch` → `jp hl` tables, bank switching, cross-bank calls, case bodies out of value order, an `&&` chain; HandleInputCombos' `wChannelOutput[wSongColumn] &= 3` after `hSoundChannel = wSongColumn` (the address from the stored value, the operand reread), `wSongColumn == hSoundChannel` in the loops (the global left: `cp a,(hl)` on the loop test's `a`), `!(wKeyboardActionChannel == 0xFF) ? wKeyboardActionChannel : wSongColumn` (both booleans materialised), a two-case `switch` for B+LEFT/RIGHT (compares sorted, bodies in source order) and the saved pan in its own local (`v = wChannelOutputSoloSaved[hSoundChannel]; if (v) ... = v`) |
 | [`c/bank00/Sprites.c`](../c/bank00/Sprites.c) | 10 functions: the sprite helpers | literal-pointer stores, a register pair plus a constant added in place, `v == *p` |
 | [`c/bank00/Sync.c`](../c/bank00/Sync.c) | 18 functions: sync settings, transport and clock, the overload message, unchecked sequence/chain reads, the cartridge test's ROM checksum | literal bank switches around cross-bank calls, a message string in another bank, an early `return` under `&&`, nested `else if` with early returns; CheckRomChecksum: `(UBYTE *)0x2000` as a hoisted cast temp (SDCC folds no literal-to-pointer cast), `return (sum & 0xFF) == lo && (sum >> 8) == hi;` in value context (genAndOp evaluates both), the `& 0xFF` narrowed to a byte in c and then the `cp a,a` miscompile, and a `volatile UBYTE hi` so the final test widens `hi` again instead of reusing the subtraction's cast (CSE) |
 | [`c/bank01/DrawMessageBar.c`](../c/bank01/DrawMessageBar.c) | `DrawMessageBar` (198 B) | globals, `sfr` HRAM stores, two loops, calls |
 | [`c/bank01/SongAlloc.c`](../c/bank01/SongAlloc.c) | 14 functions: song allocation bitmaps, 16-byte row copies | a bit test on the chain bitmap (`1 << (chain & 7)`, whose shift count dies to `ld b,#1`) |
 | [`c/bank01/UiHelpers.c`](../c/bank01/UiHelpers.c) | 27 functions: small UI helpers, the cartridge test and SRAM test, the play/work clocks, instrument names, project settings, the screen palettes, the top bar and command help, the crash entry and the crash screen | `?:` over string literals, a `char` local (its dead `ld b,c` copy), a glyph table, a file-scope `const` table flushed ahead of the next function's strings, a `volatile` scratch byte so `++` is not folded into the store, `v = f(); v++` reusing the call register, a 12-case `switch` chain, a `switch` whose `default:` comes first and `goto`s into a later body, a global read as a word for a 32-bit `<`, a `UBYTE * volatile` loop pointer (kept on the stack, its `+ 1` through a register pair), `char` booleans stored and then tested, a stack-vs-stack `==` whose operand order avoids SDCC's `cp a` miscompile; DrawCrashScreen's `LCDC_REG &= ~2` (the int-promoted copy lands in c: `ld c,a`, never read; `0xFD` or `0xFDU` gives none), its strings as literals laid out right after it (the ROM's `Txt*`), `for (i = 0; i < 10; i++)` over an `int` (the signed add form, `#0x7FF6`) and a `while (1);` after which SDCC still emits the epilogue (4 dead bytes); ClearOamBuf (a plain `UWORD p` compared as a long and cast for every use -- the cast copies spill themselves since p is their operand; `WriteVramByteSafeP` takes the pointer; the WAV sprites through a shadow-OAM struct pointer, `ld de,#addr; ld (de),a` stores); FormatSramSong (a plain `UBYTE *p` for the same reason: its copies and the word loop's `*p` read spill themselves, `memcpy((void *)p, ...)` copies it into bc for the push, a volatile byte for the third saved property) |
 | [`c/bank01/ShowMessages.c`](../c/bank01/ShowMessages.c) | `ShowOutOfMemory`, `ShowTapAddChain` | one-line wrappers, 16-bit argument |
-| [`c/bank02/Sound.c`](../c/bank02/Sound.c) | 45 functions of the sound engine's C: FX commands E (its note-on half, the per-channel envelope restarts, the release's direction), K, O, P, R, T, Z (the repeat and its phrase and table-column entry points), a delayed K's slot firing, the speech player's step, the synth's frame stepping, live mode's chain end (a queued stop or song row) and its queued starts, the noise channel's chord step, the table MayBe hop, Z's random range, E's release speed, the note kill, the WAV level step, the play range and live mode's queued starts and stops, the START and SELECT+START play toggles and the current screen's playback start, a channel's start from its next song row and the song's start at the cursor (each chain walked back past empty rows; from another screen's chain row, each chain starts at that row modulo its length), R's retrig firing, P with PITCH on STEP (an immediate pitch change), F on the wave channel (a synth's wave frame, a kit's sample positions), the noise channel's per-tick P slide and vibrato, the engine tick, the chain-phrase lookup | a pointer local indexed with constants (`q = wChanLiveQueued; if (q[1] && !wChanActive[1])`: `q[1]` is a 16-bit `ld hl,#1; add hl,de` into a stack temp where `wChanActive[1]` is a direct address; SoundLiveStartQueued, SoundNoiChordStep), SoundSpeechStep's `n = wChanNote[2] = v + 1` (the store's address loaded before the sum) and its `rRAMG = 0x0A; x = *p; rRAMG = 0;` (the MBC registers are `volatile` in lsdj.h, or SDCC drops the first store as dead), Z's value as one expression over `wChanCmdVal[slot]` (the address kept in a stack slot, the digits read through it once), R's `n = hFxVal & 0x0F; n = MulU8(n, wChanCmdRate[hSoundChan] + 1)` (the ROM computes the first argument first; arguments are evaluated right to left), SoundStartScreenPlayback's repeated `wSongCol` reads (the second one becomes `ld a,c`, see `track_a`), a `?:` assignment keeping its value in a register (`v = right ? a : b`), a mask compared before the call it is compared with (`(v & 0xF0) > randw()`), `randw` declared as returning a byte, a pointer sum assigned with no cast in between, a const table flushed after its function, a local copy of the volatile `hSoundChan` shared by later stores (`k = hSoundChan;`), `wSongRow == *p` (the global left of `==`), `wChainRow` a `char`, `hFxVal` read both as an sfr and as a plain global (`hFxValMem`), `!=` against a global putting the not-equal branch first, `while (v && wWavLevel)`, SoundStartSongPlayback's chain-length scan with both tests stored (`while (!(stop = wChainRow < n) && !(end = SoundGetChainPhrase(*chain, n) == 0xFF)) n++`) and pointer locals for the channel's cells (`*active = 1`), FxCmd_F_Wav's `wWavSynthFrame = hFxVal + wWavSynthFrame` (an sfr on the right of `+` loads over the left operand in stock SDCC: `ld a,(hl); ldh a,(X); add a,a`), an if/else rather than an early `return` (the inner test then jumps straight to the end), `off & 0xFF` (the low byte through c, the AND's temp unpacked) and `hFxValS`/`wWavLevelS`, the two bytes as signed globals so one cast widens them (a `(BYTE)` cast first leaves a byte temp in c), SoundNoiPitchStep's `v & (UBYTE)3` (a plain `& 3` int-promotes `v` into a two-register temp, spilled to the stack while b and c hold the sign and the value) and the vibrato offset in its own local (`v` reused stays live over the test, pushing the test's temp into b) |
-| [`c/bank02/SoundChan.c`](../c/bank02/SoundChan.c) | 3 functions: the sequencer's per-channel tick (SoundUpdateChan: the next phrase or chain row, then the row's B, D, G and H) and its step read (SoundReadChanStep: the note or the PS/2 keyboard's, the groove less any D delay, the instrument, the transpose) and the phrase's H hop (SoundPhraseHop: HFF stops the song, else after the high digit's count of hops to the low digit's row of this phrase or the chain's next) | the working pointers (`wPtrNoteSrc`, ...) as pointers, which Sound.c declares as bytes for SoundAdvanceStatePtrs (one view per file); `*wPtrNoteCountdown > wChanDelayTicks[hSoundChan]` with the operand the ROM reads first on the left; a `switch (SoundReadPhraseCmd())` whose case 8 body comes first in the source (the chain's last `jp z` folds into `jp nz`) and whose case 0 shares the switch's end with a falling-through case 7; B's and D's values in separate locals (the ROM gives them separate stack slots); `wSongCol == hSoundChan` (the global on the left); `if (0xF0 & v)` for H's register-held mask |
-| [`c/bank03/InstrScreen.c`](../c/bank03/InstrScreen.c) | 66 functions of the instrument screen and its input | field get/set/step helpers, `FarCall` in both address forms, SRAM literal addresses, a string literal placed after its function, `hl` kept across a `!=` compare; InstrScreenInput (9.8 KB) is one `switch (wButtons)` (sorted compare chain, `case 0x10` tested through the CSE'd `wButtons == 0x10`, bodies in the ROM's order) whose A+direction cases switch on the type and then the field (jump tables for contiguous fields, compare chains otherwise; a field's body can come before a lower field's, so the labels follow the tables, not the layout): the kit's fields 9/11/13 are `case (int)9:` (int-typed constants: a 16-bit compare of a copy widened from `a`), `v = ReadCurInstrByte(n); v op= k;` where the ROM stores the read before using it and `v = ReadCurInstrByte(n) op k` where it does not, `v &= 0xFC; v |= 2;` (an OR with a literal never leaves its operand in `a`), the flag toggles' `v & 64` / `v & 128` (decimal: signed literals copy `v` into a register for the `bit` test), `v = (int)(char)v & (int)0xBF` (a 16-bit AND narrowed straight into the stack byte), block-scoped `kit` locals (two same-named block locals at one level become one symbol), and `FarCallByteU(0x1F, InstrEnvHasSecond)` for callees declared returning UBYTE; SetVibShape (a `char` parameter whose OR reads it through a cast placed between the mask and the OR, so the masked byte keeps c -- see Writing C: accumulator packing; the callees take a `char`: `WriteCurInstrByteC`, `FarCallArgWC`) |
+| [`c/bank02/Sound.c`](../c/bank02/Sound.c) | 45 functions of the sound engine's C: FX commands E (its note-on half, the per-channel envelope restarts, the release's direction), K, O, P, R, T, Z (the repeat and its phrase and table-column entry points), a delayed K's slot firing, the speech player's step, the synth's frame stepping, live mode's chain end (a queued stop or song row) and its queued starts, the noise channel's chord step, the table MayBe hop, Z's random range, E's release speed, the note kill, the WAV level step, the play range and live mode's queued starts and stops, the START and SELECT+START play toggles and the current screen's playback start, a channel's start from its next song row and the song's start at the cursor (each chain walked back past empty rows; from another screen's chain row, each chain starts at that row modulo its length), R's retrig firing, P with PITCH on STEP (an immediate pitch change), F on the wave channel (a synth's wave frame, a kit's sample positions), the noise channel's per-tick P slide and vibrato, the engine tick, the chain-phrase lookup | a pointer local indexed with constants (`q = wChannelLiveQueued; if (q[1] && !wChannelActive[1])`: `q[1]` is a 16-bit `ld hl,#1; add hl,de` into a stack temp where `wChannelActive[1]` is a direct address; SoundLiveStartQueued, SoundNoiChordStep), SoundSpeechStep's `n = wChannelNote[2] = v + 1` (the store's address loaded before the sum) and its `rRAMG = 0x0A; x = *p; rRAMG = 0;` (the MBC registers are `volatile` in lsdj.h, or SDCC drops the first store as dead), Z's value as one expression over `wChannelCommandVal[slot]` (the address kept in a stack slot, the digits read through it once), R's `n = hCommandVal & 0x0F; n = MulU8(n, wChannelCommandRate[hSoundChannel] + 1)` (the ROM computes the first argument first; arguments are evaluated right to left), SoundStartScreenPlayback's repeated `wSongColumn` reads (the second one becomes `ld a,c`, see `track_a`), a `?:` assignment keeping its value in a register (`v = right ? a : b`), a mask compared before the call it is compared with (`(v & 0xF0) > randw()`), `randw` declared as returning a byte, a pointer sum assigned with no cast in between, a const table flushed after its function, a local copy of the volatile `hSoundChannel` shared by later stores (`k = hSoundChannel;`), `wSongRow == *p` (the global left of `==`), `wChainRow` a `char`, `hCommandVal` read both as an sfr and as a plain global (`hCommandValMem`), `!=` against a global putting the not-equal branch first, `while (v && wWavLevel)`, SoundStartSongPlayback's chain-length scan with both tests stored (`while (!(stop = wChainRow < n) && !(end = SoundGetChainPhrase(*chain, n) == 0xFF)) n++`) and pointer locals for the channel's cells (`*active = 1`), Command_F_Wav's `wWavSynthFrame = hCommandVal + wWavSynthFrame` (an sfr on the right of `+` loads over the left operand in stock SDCC: `ld a,(hl); ldh a,(X); add a,a`), an if/else rather than an early `return` (the inner test then jumps straight to the end), `off & 0xFF` (the low byte through c, the AND's temp unpacked) and `hCommandValS`/`wWavLevelS`, the two bytes as signed globals so one cast widens them (a `(BYTE)` cast first leaves a byte temp in c), SoundNoiPitchStep's `v & (UBYTE)3` (a plain `& 3` int-promotes `v` into a two-register temp, spilled to the stack while b and c hold the sign and the value) and the vibrato offset in its own local (`v` reused stays live over the test, pushing the test's temp into b) |
+| [`c/bank02/SoundChan.c`](../c/bank02/SoundChan.c) | 3 functions: the sequencer's per-channel tick (SoundUpdateChannel: the next phrase or chain row, then the row's B, D, G and H) and its step read (SoundReadChannelStep: the note or the PS/2 keyboard's, the groove less any D delay, the instrument, the transpose) and the phrase's H hop (SoundPhraseHop: HFF stops the song, else after the high digit's count of hops to the low digit's row of this phrase or the chain's next) | the working pointers (`wPtrNoteSrc`, ...) as pointers, which Sound.c declares as bytes for SoundAdvanceStatePtrs (one view per file); `*wPtrNoteCountdown > wChannelDelayTicks[hSoundChannel]` with the operand the ROM reads first on the left; a `switch (SoundReadPhraseCommand())` whose case 8 body comes first in the source (the chain's last `jp z` folds into `jp nz`) and whose case 0 shares the switch's end with a falling-through case 7; B's and D's values in separate locals (the ROM gives them separate stack slots); `wSongColumn == hSoundChannel` (the global on the left); `if (0xF0 & v)` for H's register-held mask |
+| [`c/bank03/InstrScreen.c`](../c/bank03/InstrScreen.c) | 66 functions of the instrument screen and its input | field get/set/step helpers, `FarCall` in both address forms, SRAM literal addresses, a string literal placed after its function, `hl` kept across a `!=` compare; InstrumentScreenInput (9.8 KB) is one `switch (wButtons)` (sorted compare chain, `case 0x10` tested through the CSE'd `wButtons == 0x10`, bodies in the ROM's order) whose A+direction cases switch on the type and then the field (jump tables for contiguous fields, compare chains otherwise; a field's body can come before a lower field's, so the labels follow the tables, not the layout): the kit's fields 9/11/13 are `case (int)9:` (int-typed constants: a 16-bit compare of a copy widened from `a`), `v = ReadCurrentInstrumentByte(n); v op= k;` where the ROM stores the read before using it and `v = ReadCurrentInstrumentByte(n) op k` where it does not, `v &= 0xFC; v |= 2;` (an OR with a literal never leaves its operand in `a`), the flag toggles' `v & 64` / `v & 128` (decimal: signed literals copy `v` into a register for the `bit` test), `v = (int)(char)v & (int)0xBF` (a 16-bit AND narrowed straight into the stack byte), block-scoped `kit` locals (two same-named block locals at one level become one symbol), and `FarCallByteU(0x1F, InstrumentEnvelopeHasSecond)` for callees declared returning UBYTE; SetVibratoShape (a `char` parameter whose OR reads it through a cast placed between the mask and the OR, so the masked byte keeps c -- see Writing C: accumulator packing; the callees take a `char`: `WriteCurrentInstrumentByteC`, `FarCallArgWC`) |
 | [`c/bank1c/FileScreen.c`](../c/bank1c/FileScreen.c) | 42 functions: file screen and the song compressor | CompressSong (the `cur == next` operand order, `wCompressDst + 2` read twice through one CSE'd temporary, `wCompressSrc & 0x100` / `wCompressDst & 0x8000` as `bit` tests of the high bytes), field highlights from column tables, a `do … while (--i)` clear (CSE shares `i - 1`), the serial receive wait, `?:` returns; DrawFileTextField's frame loops (bounds inline, see Writing C: hoisting depth); FindFreeBlock (the `?:` over two `long` literals copied into a `UWORD end`, the signed-difference loop `while ((p - end) & 0x8000)`, the call result unnamed so `end` is the spill victim, `+ (UWORD)0xA000` to keep the block address 16-bit, both range asserts reading back through the pointers) |
-| [`c/bank1c/FileUpgrade.c`](../c/bank1c/FileUpgrade.c) | 44 functions: the song-format upgrades | per-type instrument callbacks through a function pointer (`FileForEachInstrType`), the upgrade steps' field fix-ups, a 16-bit `\|` forced by an `int` constant, FileUpgradeV11's aliases (`ReadSongBytesW` takes the UWORD SRAM cursor, `ReadInstrByteS` returns `char` so its result keeps a slot of its own; FileUpgradeV18's `v = types[i] == 3` gets the same copy from the comparison's `char` result) |
-| [`c/bank1d/GrooveScreen.c`](../c/bank1d/GrooveScreen.c) | 15 functions: groove screen: steps and rows, cursor, update and step cache, the input, cut/copy/paste and selection | SRAM groove accessors, the cache walker; GrooveScreenInput (`char wGrooveRow` against a decimal `16`, which needs no conversion where `0x10` copies it through `c`; `while (top != bot)` with the operand SDCC loads into `a` on the right; `end = bot; end++;` for `ld c,(hl); inc c`; `wSelectionBottom = wSelectionTop + 1` reusing `a`; `switch ((char)wMapCol)`) |
+| [`c/bank1c/FileUpgrade.c`](../c/bank1c/FileUpgrade.c) | 44 functions: the song-format upgrades | per-type instrument callbacks through a function pointer (`FileForEachInstrumentType`), the upgrade steps' field fix-ups, a 16-bit `\|` forced by an `int` constant, FileUpgradeV11's aliases (`ReadSongBytesW` takes the UWORD SRAM cursor, `ReadInstrumentByteS` returns `char` so its result keeps a slot of its own; FileUpgradeV18's `v = types[i] == 3` gets the same copy from the comparison's `char` result) |
+| [`c/bank1d/GrooveScreen.c`](../c/bank1d/GrooveScreen.c) | 15 functions: groove screen: steps and rows, cursor, update and step cache, the input, cut/copy/paste and selection | SRAM groove accessors, the cache walker; GrooveScreenInput (`char wGrooveRow` against a decimal `16`, which needs no conversion where `0x10` copies it through `c`; `while (top != bot)` with the operand SDCC loads into `a` on the right; `end = bot; end++;` for `ld c,(hl); inc c`; `wSelectionBottom = wSelectionTop + 1` reusing `a`; `switch ((char)wMapColumn)`) |
 | [`c/bank1d/SynthScreen.c`](../c/bank1d/SynthScreen.c) | 42 functions: synth screen and its input handler, the per-wave parameter curves and their loader, the LOWP/HIGHP filter, the overwrite prompt | SRAM param accessors, a `switch` through a jump table, a `?:` over `long` constants (> 32767); FillSynthWaveRange's `*buf++ = ((UWORD)i * b >> 4) + a` (the 16-bit product through MulU16, the sum operand order per branch), RenderSynthWave's curve buffers as real array symbols (`wSynthCurveSeg3[wSynthRenderIdx]` is the `ld a,#<sym; add a,c` form a cast literal would not give), IsSynthLocked's `1 << (x & 7)` mask; LoadSynthSignalWave's `p = wSynthScreen; p <<= 4; p += (UWORD)0xAF00;` (shifted and added in p's slot; a bare `0xAF00` is a `long`) with a signed `char v` so the second nibble's cast copy, not the loop counter, takes the stack (see Writing C: an instruction's own operands); LoadSynthParams reads the 16 parameter bytes through `volatile UWORD` locals (`ReadSongByte(1, p++)`: the old value fetched into bc, the slot incremented in place, a plain `p` pushed straight from the stack), inline call results as arguments (a named result would hold c through the whole function), the last pair into two locals so the `+ 0x0F` adds come out in the ROM's order, and the render destination as a pointer cast of the sum; BuildOverwritePrompt's frame (the ASCII restore at the end of the middle-column branch, see Writing C: hoisting depth); SynthScreenInput (`if (wButtons != 0x10) wDrawStep = 0;` before the `switch (wButtons)`, whose case 0x10 test CSE takes from that boolean in `c` -- see `switch_chain`; nested `switch (wSynthCursor)` jump tables whose case bodies follow the source order, fall-through chains for the cursor moves, a `default:` written first where its body comes first); SynthFilterLowHigh (the resampling filter: two scratch words serve as slot pointer and slot value in the loop's first half and as value and doubled index in its second -- `*(UWORD *)wSynthFilterPtr` through a `UBYTE *` global so the pointer's cast copy is spilt into the global itself and reloaded from it after MulU16; the index as a **block-scope `extern UBYTE`**, which this compiler treats as a register-equivalent local whose spill location is the global: the shift's temporary is spilt into $CB3A, both accumulator pointers are one 2-use temporary each, and the index is fetched from the global with `ld l,(hl)` -- a file-scope global would be copied per use (near-space globals are never replaced by CSE); `(ub - 0x100) & 0x8000` for the stored-then-tested sign of a temporary where `(int)(ub - 0x100) < 0` folds into an unsigned compare) |
-| [`c/bank1e/Gfx.c`](../c/bank1e/Gfx.c) | 5 functions: the top row's column labels, the font loader, VRAM helpers | `UWORD` loop addresses compared against `(UWORD)0x9800` (constants above 32768 are `long`), a `while (STAT_REG & 2)` wait; DrawScreenColLabels's `switch (wCurScreen)` with its bodies in source order (1, 3, 5, 2, 12, 4); LoadFontTiles pushes its two spilled DMG blocks through `(UBYTE *)(UWORD)` cast temps (the ROM's `ld c,(hl); inc hl; ld b,(hl); push bc`); CopyVramTile (`WriteVramByteSafeC(dst++, wVramCopyScratch)`: the char value's cast copy of the scratch global is the pointer copy's register occupant) |
-| [`c/bank1f/InstrFields.c`](../c/bank1f/InstrFields.c) | 12 functions: the instrument screen's bank-$1F half, each instrument type's fields (pulse, wave, kit, noise), the envelope and table fields | DrawKitInstr (`UBYTE v, flags`: byte 5 in a slot of its own, `DrawStringIndexed((char)v)` for the volume digit's copy through b, `0x40 & ReadCurInstrByte(2)` for the SPEED test) |
-| [`c/bank1f/SongData.c`](../c/bank1f/SongData.c) | 52 functions: song data housekeeping, allocation, the usage scans and counters, the de-duplication and remapping behind CLEAN SONG DATA / CLEAN INSTR DATA | the used-table/phrase/chain scans and counters (one template, four limits), SRAM resets bracketed by `_asm di _endasm;` and MBC register writes, a function that returns `e` by accident (no `return`); RemapCmdTableRefs scans three SRAM ranges through `volatile UWORD` pointers (`*(UBYTE *)p` reads via de, in-place increments, `p != (UWORD)0xB880` byte-wise), `from == *(UBYTE *)q` (the global on the left), a `volatile UBYTE` counter and a `volatile` remapped byte for the instrument loop; FreeUnusedInstrs (CLEAN INSTR DATA's instrument pass) calls `FarCallArg2P(4, FAR_FN(ReadPhraseInstr), ph, row)` (the literal through two cast temps), builds the parameter address in place (`addr = i; addr <<= 4; addr \|= 0xB000; addr += 0x80;`), clamps `UBYTE n` with `if (n & 0x80)` (`bit 7`) and keeps `wColInstr[k - 1] == i`, which SDCC compiles to `cp a,a` (always true); FindDupPhrase/FindDupChain/FindDupTable (the duplicate scanners: `UWORD t` declared last for the first row address, `p = (UBYTE *)t`, the other rows cast from `oa + (UWORD)base` temporaries, `if (*p++ != *q++) return 0;` for the byte loops); DedupPhrases/DedupChains/DedupTables (the DE-DUPE passes: plain `UBYTE i, j` counters, `i = i + 1`, the inner call result and the FindDup result stored to their scratch globals before the test, `DrawString("OK")` -- the shape only LSDj's compiler gives, see *Writing C*: `global = call()`) |
+| [`c/bank1e/Gfx.c`](../c/bank1e/Gfx.c) | 5 functions: the top row's column labels, the font loader, VRAM helpers | `UWORD` loop addresses compared against `(UWORD)0x9800` (constants above 32768 are `long`), a `while (STAT_REG & 2)` wait; DrawScreenColumnLabels's `switch (wCurrentScreen)` with its bodies in source order (1, 3, 5, 2, 12, 4); LoadFontTiles pushes its two spilled DMG blocks through `(UBYTE *)(UWORD)` cast temps (the ROM's `ld c,(hl); inc hl; ld b,(hl); push bc`); CopyVramTile (`WriteVramByteSafeC(dst++, wVramCopyScratch)`: the char value's cast copy of the scratch global is the pointer copy's register occupant) |
+| [`c/bank1f/InstrFields.c`](../c/bank1f/InstrFields.c) | 12 functions: the instrument screen's bank-$1F half, each instrument type's fields (pulse, wave, kit, noise), the envelope and table fields | DrawKitInstrument (`UBYTE v, flags`: byte 5 in a slot of its own, `DrawStringIndexed((char)v)` for the volume digit's copy through b, `0x40 & ReadCurrentInstrumentByte(2)` for the SPEED test) |
+| [`c/bank1f/SongData.c`](../c/bank1f/SongData.c) | 52 functions: song data housekeeping, allocation, the usage scans and counters, the de-duplication and remapping behind CLEAN SONG DATA / CLEAN INSTR DATA | the used-table/phrase/chain scans and counters (one template, four limits), SRAM resets bracketed by `_asm di _endasm;` and MBC register writes, a function that returns `e` by accident (no `return`); RemapCommandTableRefs scans three SRAM ranges through `volatile UWORD` pointers (`*(UBYTE *)p` reads via de, in-place increments, `p != (UWORD)0xB880` byte-wise), `from == *(UBYTE *)q` (the global on the left), a `volatile UBYTE` counter and a `volatile` remapped byte for the instrument loop; FreeUnusedInstruments (CLEAN INSTR DATA's instrument pass) calls `FarCallArg2P(4, FAR_FN(ReadPhraseInstrument), ph, row)` (the literal through two cast temps), builds the parameter address in place (`addr = i; addr <<= 4; addr \|= 0xB000; addr += 0x80;`), clamps `UBYTE n` with `if (n & 0x80)` (`bit 7`) and keeps `wColumnInstrument[k - 1] == i`, which SDCC compiles to `cp a,a` (always true); FindDupPhrase/FindDupChain/FindDupTable (the duplicate scanners: `UWORD t` declared last for the first row address, `p = (UBYTE *)t`, the other rows cast from `oa + (UWORD)base` temporaries, `if (*p++ != *q++) return 0;` for the byte loops); DedupPhrases/DedupChains/DedupTables (the DE-DUPE passes: plain `UBYTE i, j` counters, `i = i + 1`, the inner call result and the FindDup result stored to their scratch globals before the test, `DrawString("OK")` -- the shape only LSDj's compiler gives, see *Writing C*: `global = call()`) |
 | [`c/bank1f/PhraseScreen.c`](../c/bank1f/PhraseScreen.c) | 10 functions: the phrase screen's bank-$1F half, its update handler, the channel moves, cut/copy and the cursor and selection highlights | DrawPhraseSelection's loop bounds are `?:` expressions (`x < (right == 5 ? 5 : right + 1)`: the test and the `+ 1` hoisted into stack temporaries, the choice made in b each pass), its ring test an `\|\|` chain over hoisted and per-row booleans, and the cursor column read into a local for the first comparison only (the ROM's `ld c,(hl)` before `sbc a,c`); CutCopyPhraseSelection (a 70-byte frame: every call result and boolean in its own slot) is a five-case `switch` whose case 0 can `goto` the case 2 label, a `UBYTE cutInstr = cut;` copy (CSE reads the copy for the message choice), and far calls short one argument (`FarCallArg2P(4, FAR_FN(ReadPhraseNote), y)`); HighlightPhraseCell (the cursor/selection colouring: `char x`, the width stored and passed as a comma expression in the argument, see *Writing C*) |
-| [`c/bank1f/SpeechInstrScreen.c`](../c/bank1f/SpeechInstrScreen.c) | 7 functions: the speech instrument screen, the word list, its cursor and its input | SpeechInstrInput (a `switch (wButtons)` whose case bodies run in source order, `(UWORD)` on every SRAM literal above `0x7FFF` -- a bare `0xBDD0` makes the address arithmetic 32-bit --, `p++` arguments, CSE sharing `(UWORD)wSpeechRow` between the `<< 5` and the `* 3`) |
-| [`c/bank04/PhraseScreen.c`](../c/bank04/PhraseScreen.c) | 44 functions: phrase screen and its draw, its row loader, the four A+direction cell editors, instrument entry and name draw, prelisten, the screen's input | DrawPhraseScreen (file-level `const` attribute rows defined just before it, which SDCC flushes after its code and ahead of its string literals; a `switch (instr)` whose `== 0x40` test CSE reuses later as a stored boolean; `KitIndexToBank((char)t & 0x3F)` for the second sample's copy through `c`; a nested `?:` for the attribute row; `!wPhraseCol` and `(char)wPhraseRow`), far-call wrappers (`FarCallArg2V`), the phrase instrument reader and the backward search for the instrument in effect (a return through `e`, `track_e`), `?:` returns, a `volatile UWORD` SRAM offset (no CSE of its casts: each push reloads it), `if (a != X && b != Y) return;` chains (the ROM's uncollapsed `jp z,L; jp done; L:`), a name copy through `char` casts, a `UWORD addr = (UWORD)p` copy (a named spill slot the allocator evicts instead of the value), a `wSongCol == 3` test the ROM shares between an `if` and a later `\|\|` (one CSE temp without a spill slot, so the value spills instead); PhraseScreenInput (8.6 KB) is ChainScreenInput's `if` chain over the five columns, its A+direction blocks walking the rows with a per-column `switch` (sorted `case` tests, bodies in source order, the value column's per-command clamps), the command letter stepped in a `do`/`while` over `PhraseStepOnes[(UWORD)wSongCol * 20 + cmd]` (MulU16 and a 16-bit index; `wSongCol * 20` alone is 8-bit) and the kit sample nibbles scanned past empty names: `wButtons == 0x10` is written twice (a named `isA` is the spill victim when the long-lived `wCursorMode == 4` boolean wants its register; the CSE'd test keeps b), `(UBYTE)(char)wPhraseRow >= 0x10` (an unsigned test of the register copy), `(char)wChainRow` far-call arguments, a `char chainRow` that keeps `chainRow + 1` across SoundGetChainPhrase for the store after it, `wPhraseCol == 0` (not `!wPhraseCol`), `wInstr = instr; if (wInstr == 0x40)` (the stored byte tested in `a`), PlacePhraseCell declared with the phrase and row its caller pushes but never reads; PastePhraseSelection (the 27-byte frame of a paste: locals declared in the ROM's slot order `char x; UBYTE y; ... UBYTE c4, c3;`, `switch (wSelectionRight - wSelectionLeft) { default: return; case 2: ... }` with the default first -- a single-case switch with the default last is inverted into one `jp nz` --, a nested switch on wSelectionLeft for the command pair's shift, `for (x = wSelectionRight - 1; !(x < (char)wSelectionLeft); x--)` for the signed column loop with its materialised test, `switch (x)` for the five column pastes (its range checks are the two stored booleans before the jump table), `wPhraseNoteIsKitA = CursorInstrIsKit()` -- the call-result temporary LSDj's compiler keeps, spilt into the global --, and `if ((char)wPhraseRow == 0x10)` for the row wrap (the cast copies the incremented row into c)) |
-| [`c/bank05/TableScreen.c`](../c/bank05/TableScreen.c) | 32 functions: table screen (draw, step reader, play markers, cut/copy/paste, selection, input) and screen map (draw, enter) | table step accessors through column pointers held in `UWORD` globals, the map moves, materialized `<=` tests, a two-case `switch`, six row-buffer column pointers (`t += (UWORD)0xBC80` keeps the add 16-bit), a `switch` with `default:` between `case 0` and an empty `case 0xFF`, the loop counter reused for the cursor x so the column index lands in b; CutCopyTableSelection's six-column `switch` (a jump table whose range test, like `x == 6`, is hoisted out of the row loop as a stored boolean; each case's read result gets its own spill slot) behind `if (x == 6 && y) continue;`; PasteTableCells is the same loop and `switch` over clipboard reads, with `UBYTE swap = 0, fromPhrase = 0` initializers and PasteChainCells' `(char)wTableRow & 0x0F` wrap; DrawTableSelection sorts its rectangle with SortBytePair on address-taken locals and reads `bottom = (char)wTableRow` / `right = (char)right + 1` through b and c; TableScreenInput (5.7 KB) is one `switch (wButtons)` whose bodies run 0x43, 0x10, the directions, A+directions, B+directions, A+B, select+A, start, select+directions, B, select+B -- its `case 0x10` test is the CSE'd `wButtons != 0x10` boolean from the top (`or a,c`), each A+direction a row loop with a `switch (wTableCol)` per cell (command letters stepped with `wPendingCmds[y]++` / `while (TableInputFlag(...))`), `(char)wTableRow` copies again, `v = ReadTableEnv(y); v += 0x10;` (the call's byte stored straight into v), and the groove lookup's addresses as UWORD sums with `(UWORD)wTableRow` (a real cast, which CSE keeps across the call; the pointer form's index is an assignment, dropped at calls) in block-scoped `a, b` |
-| [`c/bank05/FieldHelp.c`](../c/bank05/FieldHelp.c) | `ShowInstrFieldHelp` (872 B) | a `switch` on the instrument type around jump-table `switch`es on the field; the help strings shared by several types are stored by constant address (byte by byte) and the rest by symbol (`ld de,#sym`), so the C spells the first group as `((char *)0x6D25)`; `== 0` on the PLAY field's ReadInstrByte (the `ld a,c; or a,a` compare, where `!x` is toBoolean's `xor a,a; or a,c`); the final `if (s)` reload is `ifx_word_hl` |
+| [`c/bank1f/SpeechInstrScreen.c`](../c/bank1f/SpeechInstrScreen.c) | 7 functions: the speech instrument screen, the word list, its cursor and its input | SpeechInstrumentInput (a `switch (wButtons)` whose case bodies run in source order, `(UWORD)` on every SRAM literal above `0x7FFF` -- a bare `0xBDD0` makes the address arithmetic 32-bit --, `p++` arguments, CSE sharing `(UWORD)wSpeechRow` between the `<< 5` and the `* 3`) |
+| [`c/bank04/PhraseScreen.c`](../c/bank04/PhraseScreen.c) | 44 functions: phrase screen and its draw, its row loader, the four A+direction cell editors, instrument entry and name draw, prelisten, the screen's input | DrawPhraseScreen (file-level `const` attribute rows defined just before it, which SDCC flushes after its code and ahead of its string literals; a `switch (instr)` whose `== 0x40` test CSE reuses later as a stored boolean; `KitIndexToBank((char)t & 0x3F)` for the second sample's copy through `c`; a nested `?:` for the attribute row; `!wPhraseColumn` and `(char)wPhraseRow`), far-call wrappers (`FarCallArg2V`), the phrase instrument reader and the backward search for the instrument in effect (a return through `e`, `track_e`), `?:` returns, a `volatile UWORD` SRAM offset (no CSE of its casts: each push reloads it), `if (a != X && b != Y) return;` chains (the ROM's uncollapsed `jp z,L; jp done; L:`), a name copy through `char` casts, a `UWORD addr = (UWORD)p` copy (a named spill slot the allocator evicts instead of the value), a `wSongColumn == 3` test the ROM shares between an `if` and a later `\|\|` (one CSE temp without a spill slot, so the value spills instead); PhraseScreenInput (8.6 KB) is ChainScreenInput's `if` chain over the five columns, its A+direction blocks walking the rows with a per-column `switch` (sorted `case` tests, bodies in source order, the value column's per-command clamps), the command letter stepped in a `do`/`while` over `PhraseStepOnes[(UWORD)wSongColumn * 20 + cmd]` (MulU16 and a 16-bit index; `wSongColumn * 20` alone is 8-bit) and the kit sample nibbles scanned past empty names: `wButtons == 0x10` is written twice (a named `isA` is the spill victim when the long-lived `wCursorMode == 4` boolean wants its register; the CSE'd test keeps b), `(UBYTE)(char)wPhraseRow >= 0x10` (an unsigned test of the register copy), `(char)wChainRow` far-call arguments, a `char chainRow` that keeps `chainRow + 1` across SoundGetChainPhrase for the store after it, `wPhraseColumn == 0` (not `!wPhraseColumn`), `wInstrument = instr; if (wInstrument == 0x40)` (the stored byte tested in `a`), PlacePhraseCell declared with the phrase and row its caller pushes but never reads; PastePhraseSelection (the 27-byte frame of a paste: locals declared in the ROM's slot order `char x; UBYTE y; ... UBYTE c4, c3;`, `switch (wSelectionRight - wSelectionLeft) { default: return; case 2: ... }` with the default first -- a single-case switch with the default last is inverted into one `jp nz` --, a nested switch on wSelectionLeft for the command pair's shift, `for (x = wSelectionRight - 1; !(x < (char)wSelectionLeft); x--)` for the signed column loop with its materialised test, `switch (x)` for the five column pastes (its range checks are the two stored booleans before the jump table), `wPhraseNoteIsKitA = CursorInstrumentIsKit()` -- the call-result temporary LSDj's compiler keeps, spilt into the global --, and `if ((char)wPhraseRow == 0x10)` for the row wrap (the cast copies the incremented row into c)) |
+| [`c/bank05/TableScreen.c`](../c/bank05/TableScreen.c) | 32 functions: table screen (draw, step reader, play markers, cut/copy/paste, selection, input) and screen map (draw, enter) | table step accessors through column pointers held in `UWORD` globals, the map moves, materialized `<=` tests, a two-case `switch`, six row-buffer column pointers (`t += (UWORD)0xBC80` keeps the add 16-bit), a `switch` with `default:` between `case 0` and an empty `case 0xFF`, the loop counter reused for the cursor x so the column index lands in b; CutCopyTableSelection's six-column `switch` (a jump table whose range test, like `x == 6`, is hoisted out of the row loop as a stored boolean; each case's read result gets its own spill slot) behind `if (x == 6 && y) continue;`; PasteTableCells is the same loop and `switch` over clipboard reads, with `UBYTE swap = 0, fromPhrase = 0` initializers and PasteChainCells' `(char)wTableRow & 0x0F` wrap; DrawTableSelection sorts its rectangle with SortBytePair on address-taken locals and reads `bottom = (char)wTableRow` / `right = (char)right + 1` through b and c; TableScreenInput (5.7 KB) is one `switch (wButtons)` whose bodies run 0x43, 0x10, the directions, A+directions, B+directions, A+B, select+A, start, select+directions, B, select+B -- its `case 0x10` test is the CSE'd `wButtons != 0x10` boolean from the top (`or a,c`), each A+direction a row loop with a `switch (wTableColumn)` per cell (command letters stepped with `wPendingCommands[y]++` / `while (TableInputFlag(...))`), `(char)wTableRow` copies again, `v = ReadTableEnvelope(y); v += 0x10;` (the call's byte stored straight into v), and the groove lookup's addresses as UWORD sums with `(UWORD)wTableRow` (a real cast, which CSE keeps across the call; the pointer form's index is an assignment, dropped at calls) in block-scoped `a, b` |
+| [`c/bank05/FieldHelp.c`](../c/bank05/FieldHelp.c) | `ShowInstrumentFieldHelp` (872 B) | a `switch` on the instrument type around jump-table `switch`es on the field; the help strings shared by several types are stored by constant address (byte by byte) and the rest by symbol (`ld de,#sym`), so the C spells the first group as `((char *)0x6D25)`; `== 0` on the PLAY field's ReadInstrumentByte (the `ld a,c; or a,a` compare, where `!x` is toBoolean's `xor a,a; or a,c`); the final `if (s)` reload is `ifx_word_hl` |
 | [`c/bank06/WordScreen.c`](../c/bank06/WordScreen.c) | 9 functions: word screen (screen 12): a word's allophones and lengths, the allophone kit and names, the cursor and the input | an early `return` under `==` (SDCC's `jp nz,L; jp end; L:`) |
-| [`c/bank06/WaveScreen.c`](../c/bank06/WaveScreen.c) | 21 functions: wave screen: the graph and its columns, the cursor and selection sprites, the range edits (reverse, flip, change, line), copy/paste, the synth lock | `while (i != wWaveSelectionEnd)` (global right: the kept `jr nz` trampoline), `(UWORD)y != 0x80`, the wave copy's nibble pairs read as `ReadWaveSample(i) << 4 \| ReadWaveSample(i + 1)` (a named temp would stay live across the second call); WaveScreenInput is a twenty-case `switch (wButtons)` returning 1/0 per case, its bodies in source order ($43 first) and the cursor wrap `(char)wWaveCursor & 0x1F`; DrawWaveCol passes its tiles as nested `?:` arguments (the outer temp stored, an inner one copied over it) and tests a `char` copy of the column (`t = col; if (t & 8)`, the copy in b); LockCurSynth (`s = wSynth; s >>= 4;` so the address spills before s, a named `r |= 1 << (s & 7)`, and a frame byte that only receives s -- `volatile UBYTE m; m = s;` declared before p for the slot order) |
-| [`c/bank06/ChainScreen.c`](../c/bank06/ChainScreen.c) | 17 functions: chain screen: rows and transposes, draw and update, cursor, phrase open and clone, the input, cut/copy/paste and selection | the chain row buffers through `ReadSongBytes`, a far call by literal address (`FarCall(5, 0x747D)` pushes `ld hl,#nnnn`), `(char)` casts on far-call arguments (their temps take c, so the function-pointer temp lands in b/c reversed), eight SRAM row pointers where the two bank-2 ones are *recomputed* (CSE copies them from the first pair's spill slots; writing `s3 = s1` adds a use and keeps `s1` in bc); CutCopyChainSelection's per-column work is a `switch (x)` (both case tests hoisted out of the row loop as stored booleans, the bodies laid out after the tests; an `if`/`else if` puts the first body between them); PasteChainCells is the same `switch` with `FarCallArg3P(0x1F, FAR_FN(WriteChainPhrase), ...)` (the literal copied between two cast temps, which a `(UWORD)` argument folds away) and `wChainRow = (char)wChainRow & 0x0F` (the row read into c first); DrawChainSelection is DrawPhraseSelection's twin over the two chain columns (`hGameboyType ? x : 0` as the ring's palette); ChainScreenInput (4.4 KB) is an `if` chain on wButtons whose four A+direction blocks walk the selection with SortBytePair'd bounds and a two-case `switch (x)` per cell; `wCursorMode == 4` is written at each use (CSE keeps one stored boolean, a temporary below the named locals), wChainCol and wChainRow are read through `(char)` copies (char locals `cx`/`cy` kept in c/b across the selection test; `(char)wChainRow` arguments reverse the far calls' function-pointer pair), `++x`/`--x` in the B+LEFT/RIGHT channel loops (an `inc (hl)`; `x++` keeps the old value), `wChain = GetCursorChain(); if (wChain & 0x80)` as two statements, `v >= 0xEF` for the 0xFE clamp laid out first, and `wSelectionLeft != wChainCol` (the global to load into `a` on the right) |
+| [`c/bank06/WaveScreen.c`](../c/bank06/WaveScreen.c) | 21 functions: wave screen: the graph and its columns, the cursor and selection sprites, the range edits (reverse, flip, change, line), copy/paste, the synth lock | `while (i != wWaveSelectionEnd)` (global right: the kept `jr nz` trampoline), `(UWORD)y != 0x80`, the wave copy's nibble pairs read as `ReadWaveSample(i) << 4 \| ReadWaveSample(i + 1)` (a named temp would stay live across the second call); WaveScreenInput is a twenty-case `switch (wButtons)` returning 1/0 per case, its bodies in source order ($43 first) and the cursor wrap `(char)wWaveCursor & 0x1F`; DrawWaveColumn passes its tiles as nested `?:` arguments (the outer temp stored, an inner one copied over it) and tests a `char` copy of the column (`t = col; if (t & 8)`, the copy in b); LockCurrentSynth (`s = wSynth; s >>= 4;` so the address spills before s, a named `r |= 1 << (s & 7)`, and a frame byte that only receives s -- `volatile UBYTE m; m = s;` declared before p for the slot order) |
+| [`c/bank06/ChainScreen.c`](../c/bank06/ChainScreen.c) | 17 functions: chain screen: rows and transposes, draw and update, cursor, phrase open and clone, the input, cut/copy/paste and selection | the chain row buffers through `ReadSongBytes`, a far call by literal address (`FarCall(5, 0x747D)` pushes `ld hl,#nnnn`), `(char)` casts on far-call arguments (their temps take c, so the function-pointer temp lands in b/c reversed), eight SRAM row pointers where the two bank-2 ones are *recomputed* (CSE copies them from the first pair's spill slots; writing `s3 = s1` adds a use and keeps `s1` in bc); CutCopyChainSelection's per-column work is a `switch (x)` (both case tests hoisted out of the row loop as stored booleans, the bodies laid out after the tests; an `if`/`else if` puts the first body between them); PasteChainCells is the same `switch` with `FarCallArg3P(0x1F, FAR_FN(WriteChainPhrase), ...)` (the literal copied between two cast temps, which a `(UWORD)` argument folds away) and `wChainRow = (char)wChainRow & 0x0F` (the row read into c first); DrawChainSelection is DrawPhraseSelection's twin over the two chain columns (`hGameboyType ? x : 0` as the ring's palette); ChainScreenInput (4.4 KB) is an `if` chain on wButtons whose four A+direction blocks walk the selection with SortBytePair'd bounds and a two-case `switch (x)` per cell; `wCursorMode == 4` is written at each use (CSE keeps one stored boolean, a temporary below the named locals), wChainColumn and wChainRow are read through `(char)` copies (char locals `cx`/`cy` kept in c/b across the selection test; `(char)wChainRow` arguments reverse the far calls' function-pointer pair), `++x`/`--x` in the B+LEFT/RIGHT channel loops (an `inc (hl)`; `x++` keeps the old value), `wChain = GetCursorChain(); if (wChain & 0x80)` as two statements, `v >= 0xEF` for the 0xFE clamp laid out first, and `wSelectionLeft != wChainColumn` (the global to load into `a` on the right) |
 | [`c/bank06/StatusPanel.c`](../c/bank06/StatusPanel.c) | 7 functions: the per-frame status panel: each channel's playing note (a kit sample name or a note name), the sync status | `?:` over string literals as an argument, string literals declared as the ROM's `Txt*` symbols where the unit's data block sits elsewhere, `(UWORD)t < 0x78` (a 16-bit `add hl` compare off a just-stored temp), `if (n != 0)` keeping the reload of a pointer-read value |
 | [`c/bank06/DrawTileHexCell.c`](../c/bank06/DrawTileHexCell.c) | `DrawTileHexCell` (130 B) | consecutive updates of a stack local, sign test, `-t`, pointer table |
-| [`c/bank07/KbdLink.c`](../c/bank07/KbdLink.c) | 11 functions: keyboard octave, the link queue and its scancode dispatcher, keyboard notes, sync rate, a hex digit, the keyboard instrument name/state and calibration screen | a multiply kept as a `MulU16` call, `di`/`ei` around a 16-bit store, an empty case listed first; `UBYTE * volatile` pointers to `&wKbdChanState[1]`/`[2]` (a single-definition pointer local is otherwise rematerialised) and `wKbdChanState[3] = 0` through the array (the ROM's `ld de,$cb99; ld a,0; ld [de],a`); the name copy as direct stores, `wSampleNoteString[i] = wNameEditBuf[i] ? wNameEditBuf[i] : ' '` and `wSampleNoteString[1] = HexDigitChar(…)` (the address temps live across the call and share one spill slot; naming the address in a pointer local keeps the counter in c instead of on the stack); ProcessKbdNote's `armed = wSongCol == 3 \|\| !FarCallArgByte(...)` as one expression (the `==` temp is what the far-call pointer evicts from c, so the pointer lands b/c reversed), `wKbdHeldNote != note` with the global on the left; ProcessLinkQueue's 28-case `switch` on a stack byte (the ROM reloads it for every compare), case bodies in the ROM's order with `case 0xC0: if (!(mod & 2)) goto note;` falling into `case 0x40`, `wKbdChanState[1]` (never the Pu2 symbol), and FarCallArg called with two arguments (`FarCallArg0`, aliased) |
-| [`c/bank07/SongScreen.c`](../c/bank07/SongScreen.c) | 31 functions: song screen, its row palettes and play markers, the chain clone, bookmarks | page-up/down scroll arithmetic, bookmark add/toggle in SRAM, `WriteBookmarkByte`'s pointer-range asserts (16-bit compares: `ld hl,#-lit; add hl,de`), a `!=` sprite loop; the row-number column's `(row & 4) ? 1 : 2` (the int-promoted copy of `row` is stored to the variable's own stack slot and the register tested) and its second loop's `if ((BYTE)row & 4)` (a signed cast copy lands in b: `ld b,c; ld a,b; bit 2,a`); SetSongRowPals reuses one local for the row offset and the cursor flag (`cur = wSongScroll + y - 2; shadow = cur & (UBYTE)4;` … `cur = i == wSongCol`) -- the long-lived `cur` is what makes the allocator spill the bookmark flag instead of the counter, and `(UBYTE)4` avoids the int-promoted copy; `i == wSongCol` (register left, global right) is the `jr nz` boolean, `wSongCol == i` the `jp nz` one; UpdateSongPlayMarker's sprite index is written `i + 4` at each use (a CSE'd temp; naming it keeps `i` in c where the ROM has it on the stack); CloneSongChain's two pointers into the $C532 map are `wClonePhraseMap + 16` and `(UBYTE *)wClonePhraseMap + 16` (the cast keeps the second sum from being CSE'd into the first), `if (!(wClonePhraseMap[j] - ph))` for the materialised difference test, the `ph != 0xFF` deep-clone body first with the $FF write as the else branch, and the transpose read reusing `ph` |
-| [`c/bank07/SongInput.c`](../c/bank07/SongInput.c) | `SongScreenInput` (3011 B) | its own unit (CopySongCol with UWORD parameters, as in SongCutCopy.c): an if/else chain on wButtons whose `wButtons == 0x10` / `== 0x20` / `wCursorMode == 4` tests CSE keeps as stored booleans; `UBYTE *p = (UBYTE *)0xB290 + ...` (a pointer add straight into p, where the UWORD sum and a cast go through bc) and `p += wSongCol` (a byte operand, no cast temporary); `(char)wChainRow` for the reversed `ld b,lo; ld c,hi` FAR_FN pair; comparison operands written the way round SDCC loads them (`wSelectionLeft != wSongCol`, `top != wSongScroll`) |
-| [`c/bank07/SongCutCopy.c`](../c/bank07/SongCutCopy.c) | `CutCopySongSelection` (545 B) | its own unit: CopySongCol prototyped with two UWORDs (the ROM casts both pointer arguments; SongScreen.c defines it with pointers), `UBYTE * volatile` song pointers (reloaded at every use; the plain pointer would inherit the shifted offset's register pair), a `char` visibility flag, `x = (UWORD)p` as a cast (a plain copy is propagated away), `0xC0 - t` through a UWORD local, `isCut && !wSelectionLeft && wSelectionRight == 4`, the CUT/COPIED CHAINS literals after the function |
+| [`c/bank07/KbdLink.c`](../c/bank07/KbdLink.c) | 11 functions: keyboard octave, the link queue and its scancode dispatcher, keyboard notes, sync rate, a hex digit, the keyboard instrument name/state and calibration screen | a multiply kept as a `MulU16` call, `di`/`ei` around a 16-bit store, an empty case listed first; `UBYTE * volatile` pointers to `&wKeyboardChannelState[1]`/`[2]` (a single-definition pointer local is otherwise rematerialised) and `wKeyboardChannelState[3] = 0` through the array (the ROM's `ld de,$cb99; ld a,0; ld [de],a`); the name copy as direct stores, `wSampleNoteString[i] = wNameEditBuf[i] ? wNameEditBuf[i] : ' '` and `wSampleNoteString[1] = HexDigitChar(…)` (the address temps live across the call and share one spill slot; naming the address in a pointer local keeps the counter in c instead of on the stack); ProcessKeyboardNote's `armed = wSongColumn == 3 \|\| !FarCallArgByte(...)` as one expression (the `==` temp is what the far-call pointer evicts from c, so the pointer lands b/c reversed), `wKeyboardHeldNote != note` with the global on the left; ProcessLinkQueue's 28-case `switch` on a stack byte (the ROM reloads it for every compare), case bodies in the ROM's order with `case 0xC0: if (!(mod & 2)) goto note;` falling into `case 0x40`, `wKeyboardChannelState[1]` (never the Pu2 symbol), and FarCallArg called with two arguments (`FarCallArg0`, aliased) |
+| [`c/bank07/SongScreen.c`](../c/bank07/SongScreen.c) | 31 functions: song screen, its row palettes and play markers, the chain clone, bookmarks | page-up/down scroll arithmetic, bookmark add/toggle in SRAM, `WriteBookmarkByte`'s pointer-range asserts (16-bit compares: `ld hl,#-lit; add hl,de`), a `!=` sprite loop; the row-number column's `(row & 4) ? 1 : 2` (the int-promoted copy of `row` is stored to the variable's own stack slot and the register tested) and its second loop's `if ((BYTE)row & 4)` (a signed cast copy lands in b: `ld b,c; ld a,b; bit 2,a`); SetSongRowPalettes reuses one local for the row offset and the cursor flag (`cur = wSongScroll + y - 2; shadow = cur & (UBYTE)4;` … `cur = i == wSongColumn`) -- the long-lived `cur` is what makes the allocator spill the bookmark flag instead of the counter, and `(UBYTE)4` avoids the int-promoted copy; `i == wSongColumn` (register left, global right) is the `jr nz` boolean, `wSongColumn == i` the `jp nz` one; UpdateSongPlayMarker's sprite index is written `i + 4` at each use (a CSE'd temp; naming it keeps `i` in c where the ROM has it on the stack); CloneSongChain's two pointers into the $C532 map are `wClonePhraseMap + 16` and `(UBYTE *)wClonePhraseMap + 16` (the cast keeps the second sum from being CSE'd into the first), `if (!(wClonePhraseMap[j] - ph))` for the materialised difference test, the `ph != 0xFF` deep-clone body first with the $FF write as the else branch, and the transpose read reusing `ph` |
+| [`c/bank07/SongInput.c`](../c/bank07/SongInput.c) | `SongScreenInput` (3011 B) | its own unit (CopySongColumn with UWORD parameters, as in SongCutCopy.c): an if/else chain on wButtons whose `wButtons == 0x10` / `== 0x20` / `wCursorMode == 4` tests CSE keeps as stored booleans; `UBYTE *p = (UBYTE *)0xB290 + ...` (a pointer add straight into p, where the UWORD sum and a cast go through bc) and `p += wSongColumn` (a byte operand, no cast temporary); `(char)wChainRow` for the reversed `ld b,lo; ld c,hi` FAR_FN pair; comparison operands written the way round SDCC loads them (`wSelectionLeft != wSongColumn`, `top != wSongScroll`) |
+| [`c/bank07/SongCutCopy.c`](../c/bank07/SongCutCopy.c) | `CutCopySongSelection` (545 B) | its own unit: CopySongColumn prototyped with two UWORDs (the ROM casts both pointer arguments; SongScreen.c defines it with pointers), `UBYTE * volatile` song pointers (reloaded at every use; the plain pointer would inherit the shifted offset's register pair), a `char` visibility flag, `x = (UWORD)p` as a cast (a plain copy is propagated away), `0xC0 - t` through a UWORD local, `isCut && !wSelectionLeft && wSelectionRight == 4`, the CUT/COPIED CHAINS literals after the function |
 | [`c/bank07/SongPaste.c`](../c/bank07/SongPaste.c) | `PasteSongSelection` (415 B) | its own unit: `extern volatile UBYTE wSongRow` (the row-shifting loop recomputes `wSongRow + h` where a plain global shares the test's value), WriteSongSramBytes prototyped with UWORD source and destination (both pointers cast, the source through a reversed `b/c` pair), `(UWORD)0xC0 - (wSongRow + h)` for the 16-bit count, `(UWORD)p` compared against `(UWORD)0xB290`/`0xB590` (the CSE'd cast shares one spill slot with the clipboard byte), `if (!(... & 0xF0)) continue;` for the scroll step |
-| [`c/bank07/SongSelection.c`](../c/bank07/SongSelection.c) | `EditSongSelection` (667 B) | its own unit: SortBytePair prototyped with `char *` (the `&UBYTE` locals go through cast temps: the first spilled below the frame's variables, the second in bc), the clamp/erase loops written as expressions (`while (wSongCol < (x1 == 4 ? 4 : x1 + 1))`, a four-way `\|\|` of `<`/`>=` tests each materialised into a spilled boolean temp: a temp defined in a loop is live to the loop's end), the 32-byte CGB attribute table (`const`) after the function |
+| [`c/bank07/SongSelection.c`](../c/bank07/SongSelection.c) | `EditSongSelection` (667 B) | its own unit: SortBytePair prototyped with `char *` (the `&UBYTE` locals go through cast temps: the first spilled below the frame's variables, the second in bc), the clamp/erase loops written as expressions (`while (wSongColumn < (x1 == 4 ? 4 : x1 + 1))`, a four-way `\|\|` of `<`/`>=` tests each materialised into a spilled boolean temp: a temp defined in a loop is live to the loop's end), the 32-byte CGB attribute table (`const`) after the function |
 | [`c/bank1b/HelpScreen.c`](../c/bank1b/HelpScreen.c) | 11 functions: help screen: the menu, its entries and pages, the input | `(UWORD)x == 9` (a 16-bit compare: one `jp nz` per byte through one trampoline), a NULL-terminated pointer table |
-| [`c/bank1b/NameEditor.c`](../c/bank1b/NameEditor.c) | 7 functions: the name editor: the keyboard cursor, the edited name field, commit and backspace, the input | DrawProjTextField, the same frame as DrawFileTextField with the field draw first; NameEditorInput (`wNameEditBuf` is `char[]`, so its RAM assertion `(int)(wNameEditBuf + 1) > -1` compares signed; the keyboard is `char AlnumChars[][11]`; `wNameEditPos = wNameEditPos + 1` stores the terminator's `+ 1` kept in c where `++` is `inc (hl)`) |
-| [`c/bank1b/ProjScreen.c`](../c/bank1b/ProjScreen.c) | 18 functions: project screen: the sync, tempo, key-repeat and prelisten fields, the cursor, the input, tap tempo | property writes to SRAM, a busy-wait on a global, `?:` string arguments; ProjScreenInput (the `switch (wButtons)` case 0x10 shares the `wTapTempoCount` test's boolean; `goto`s into other cases' blocks for the menu's left/right and the reset path -- the ROM's tail merging is source-level; `_asm ei/di _endasm` pairs; `wSyncMode != 0` for genCmpEq's `ld a,(hl); or a,a` where `if (wSyncMode)` is toBoolean's `xor a,a; or a,(hl)`) |
+| [`c/bank1b/NameEditor.c`](../c/bank1b/NameEditor.c) | 7 functions: the name editor: the keyboard cursor, the edited name field, commit and backspace, the input | DrawProjectTextField, the same frame as DrawFileTextField with the field draw first; NameEditorInput (`wNameEditBuf` is `char[]`, so its RAM assertion `(int)(wNameEditBuf + 1) > -1` compares signed; the keyboard is `char AlnumChars[][11]`; `wNameEditPos = wNameEditPos + 1` stores the terminator's `+ 1` kept in c where `++` is `inc (hl)`) |
+| [`c/bank1b/ProjScreen.c`](../c/bank1b/ProjScreen.c) | 18 functions: project screen: the sync, tempo, key-repeat and prelisten fields, the cursor, the input, tap tempo | property writes to SRAM, a busy-wait on a global, `?:` string arguments; ProjectScreenInput (the `switch (wButtons)` case 0x10 shares the `wTapTempoCount` test's boolean; `goto`s into other cases' blocks for the menu's left/right and the reset path -- the ROM's tail merging is source-level; `_asm ei/di _endasm` pairs; `wSyncMode != 0` for genCmpEq's `ld a,(hl); or a,a` where `if (wSyncMode)` is toBoolean's `xor a,a; or a,(hl)`) |
 | [`c/bank1b/KitMixer.c`](../c/bank1b/KitMixer.c) | `InitKitMixer` (190 B) | a code copy bounded by function addresses (`(UBYTE *)(UWORD)MixerKernel` up to `DrawHelpMenu`, the routine behind it), the copy loop's `dst = dst + 1` / `src = src + 1` beside the `*dst++` opcode stores (`inc c`, `inc e`) and the closing `ret` |
-| [`c/bank1b/EnvGraph.c`](../c/bank1b/EnvGraph.c) | 5 functions: the instrument screen's envelope graph: the envelope bytes, the plotted curve and its sprites | ComputeEnv's three segment loops write `vol != vol2` (the ROM loads the target first) and shift by 3; PlotEnvCurve (the graph buffer as a `char *`: the loop store's (char)y is hoisted and holds c until the column address evicts it, the compare at x reuses that signed copy -- see Writing C: a hoisted cast) |
+| [`c/bank1b/EnvGraph.c`](../c/bank1b/EnvGraph.c) | 5 functions: the instrument screen's envelope graph: the envelope bytes, the plotted curve and its sprites | ComputeEnvelope's three segment loops write `vol != vol2` (the ROM loads the target first) and shift by 3; PlotEnvelopeCurve (the graph buffer as a `char *`: the loop store's (char)y is hoisted and holds c until the column address evicts it, the compare at x reuses that signed copy -- see Writing C: a hoisted cast) |
 | [`c/bank1b/DrawSyncField.c`](../c/bank1b/DrawSyncField.c) | `DrawSyncField` (262 B) | sparse `switch` (`cp` chain), if/else, a pointer local chosen by a condition, 4-arg calls |
 | [`c/bank1b/DrawFontColorFields.c`](../c/bank1b/DrawFontColorFields.c) | `DrawFontColorFields` (107 B) | `const` 2-D name tables (SDCC 2.2.1 drops a NUL inside a literal and emits a unit's const data after its first function, so the tables behind it in the ROM make this its own unit), an sfr pushed with `ldh` |
-| [`c/bank1f/DrawChanStatus.c`](../c/bank1f/DrawChanStatus.c) | `DrawChanStatus` (324 B) and `DrawAllChanStatus` (the four in turn) | the song screen's MUTE/L/R channel cell; two `const` CGB attribute rows behind it in the ROM make it its own unit, a static pointer into a static flag array ($C9CE/$C9D2) |
+| [`c/bank1f/DrawChannelStatus.c`](../c/bank1f/DrawChannelStatus.c) | `DrawChannelStatus` (324 B) and `DrawAllChannelStatus` (the four in turn) | the song screen's MUTE/L/R channel cell; two `const` CGB attribute rows behind it in the ROM make it its own unit, a static pointer into a static flag array ($C9CE/$C9D2) |
 
 Shared prototypes, variables and the SRAM layout live in
 [`c/include/lsdj.h`](../c/include/lsdj.h); a signature is part of the match, so
@@ -131,15 +131,15 @@ common (byte-pattern counts over banks `$01`-`$07`, `$1B`-`$1F`):
 | Register reload | `ld r,a` / `ld a,r` → `ld r,a` (r = b, c, d, e, h, l; **not** `(hl)`); `ld c,e` … `ld e,c` (a returned value) even across `add sp,N` | 2 (both with a jump label between) + 1 (below) | 69, 34 |
 | Reload of a stored value | `ld (hl),a`; `ld a,(hl)` → reload dropped, whatever `a` held (an ALU result, a stack copy through `(hl+)`, …); **kept** after a pointer read (`ld a,(de)` / `ld a,(bc)`: all 43 reloads in the ROM) | 0 | 31+ |
 | Dead stores | `ld X,a`; *a-only ops*; `ld X,a` → first store dropped (X a register or `(hl)`, also when the first store is followed by its reload) | 0 | (small; e.g. `and 3; add a,a; ld c,a` ×2) |
-| Constant reuse | `ld a,N` / `push af; inc sp` / `ld a,N` → reload dropped, also across `ldh (n),a` + `ld hl,nn; push hl`; `xor a` / `ld hl,sp+N` / `ld a,#0` → reload dropped; an sfr pushed twice, `ldh a,(X)` / `push af; inc sp` / `ldh a,(X)` → reload dropped (SoundZPhrase); a literal stored through hl (`ld (hl),#n`, a global `g = n`) leaves `a` standing for n and nothing else: the next `ld a,N` stays unless N is that literal (ResetWorkState's `wWordClipCell0[0] = 1` after six `g = 0` stores reloads; SoundTogglePlayback's `hSoundChan = 0` after `wSongPlaying = 0` reuses the 0) | 0 | 10, 5, 2, 1; 1 kept, 1 reused |
-| Compare chains | a sparse `switch` re-reads its global before every `cp` in stock output; LSDj loads it once, and an int-typed case widens the copy in `a` (`ld c,a` for `ld hl,#G; ld c,(hl)`, InstrScreenInput's kit chains) (one rule per chain position, up to twelve, so the pattern always carries the variable; `switch_chain` in peep.py drops what the rules leave of a longer chain, and after a case that tests a CSE'd boolean (`xor a,a; or a,c; jp nz`) reloads only `a`, as the ROM's three such chains do, WaveScreenInput's twenty `wButtons` cases). SDCC's `==` trampoline `jp cc,T; jr F; T: jp X; F:` → `jp cc,X`, every byte's `jp cc,T` of a multi-byte compare included (the only survivor in the ROM is inside GBDK's stock-compiled `gprintf`) | 0, 1 (library) | 72 |
-| Kept across a test | `ld a,r` / `bit n,a` / `jp cc` / `ld a,r` → reload dropped; `ld hl,#x` / `ld a,(hl)` / `cp a,#n` / `jp z,F` / *(dead label)* / `ld hl,#x` → reload dropped (a `!=` test; stock SDCC's Rule 5 leaves the trampoline's label behind, which makes its codegen forget `hl`) unless a constant is stored there next (`ld (hl),#n`: ProcessInput's `wLiveStartCol = 0xFF`, the ROM's one store after such a test; `inc`/`dec (hl)` keep hl), also after `or a,a` (`x != 0`); `xor a` / `ld a,#0` → `xor a` | 0, 1 (a real jump target in between), 0; 0 for `or a,a` | 68, 7, 6; 1 for `or a,a` (ProjScreenInput; 2 more in hand-written asm) |
+| Constant reuse | `ld a,N` / `push af; inc sp` / `ld a,N` → reload dropped, also across `ldh (n),a` + `ld hl,nn; push hl`; `xor a` / `ld hl,sp+N` / `ld a,#0` → reload dropped; an sfr pushed twice, `ldh a,(X)` / `push af; inc sp` / `ldh a,(X)` → reload dropped (SoundZPhrase); a literal stored through hl (`ld (hl),#n`, a global `g = n`) leaves `a` standing for n and nothing else: the next `ld a,N` stays unless N is that literal (ResetWorkState's `wWordClipCell0[0] = 1` after six `g = 0` stores reloads; SoundTogglePlayback's `hSoundChannel = 0` after `wSongPlaying = 0` reuses the 0) | 0 | 10, 5, 2, 1; 1 kept, 1 reused |
+| Compare chains | a sparse `switch` re-reads its global before every `cp` in stock output; LSDj loads it once, and an int-typed case widens the copy in `a` (`ld c,a` for `ld hl,#G; ld c,(hl)`, InstrumentScreenInput's kit chains) (one rule per chain position, up to twelve, so the pattern always carries the variable; `switch_chain` in peep.py drops what the rules leave of a longer chain, and after a case that tests a CSE'd boolean (`xor a,a; or a,c; jp nz`) reloads only `a`, as the ROM's three such chains do, WaveScreenInput's twenty `wButtons` cases). SDCC's `==` trampoline `jp cc,T; jr F; T: jp X; F:` → `jp cc,X`, every byte's `jp cc,T` of a multi-byte compare included (the only survivor in the ROM is inside GBDK's stock-compiled `gprintf`) | 0, 1 (library) | 72 |
+| Kept across a test | `ld a,r` / `bit n,a` / `jp cc` / `ld a,r` → reload dropped; `ld hl,#x` / `ld a,(hl)` / `cp a,#n` / `jp z,F` / *(dead label)* / `ld hl,#x` → reload dropped (a `!=` test; stock SDCC's Rule 5 leaves the trampoline's label behind, which makes its codegen forget `hl`) unless a constant is stored there next (`ld (hl),#n`: ProcessInput's `wLiveStartColumn = 0xFF`, the ROM's one store after such a test; `inc`/`dec (hl)` keep hl), also after `or a,a` (`x != 0`); `xor a` / `ld a,#0` → `xor a` | 0, 1 (a real jump target in between), 0; 0 for `or a,a` | 68, 7, 6; 1 for `or a,a` (ProjectScreenInput; 2 more in hand-written asm) |
 | Register tracking (`track_a`, below) | a reload of what `a` already holds: `ld a,r` / `cp` / `jp cc` / *(dead label)* / `ld a,r` (an `\|\|` chain) → reload dropped; a stored stack local reread: `ld hl,sp+N` / `ld (hl),r` / [`add sp,M`] / `ld a,(hl)` → `ld a,r`; `ld (hl),a` / `ld de,#T` / `ld l,(hl)` → `ld l,a` (indexing a table by the value just stored) | 0, 0, 0 | 35, 25 + 141, 32 |
-| More dead stores | `ld r,#n` / `ld r,X` → `ld r,X`; `ld r,a` / … / `ld r,(hl)` → `ld r,(hl)`; `ld (hl),e` / … / `ld (hl),a` → `ld (hl),a` (nothing touching hl between); a discarded sign extension `rla` / `sbc a,a` / `ld r,a` / `ld a,X` / `and a,#n` → store dropped; the `== 0` test of a fresh `&`: `and a,#n` / `ld r,a` / `or a,a` / `jp nz` → `and a,#n` / `jp nz`; after *ALU* `a,r` / `ld (hl),a` the `ld a,(hl)` reload is dropped too; `ld a,#n` / `ldh a,X` → `ldh a,X` (genCmp's `x > n` against an sfr, FxCmd_E_NoteOn's switch bound) | 0, 0, 0 (1 `jp z` / `if (t)` site keeps it), 0, 0 (no two loads of `a` in a row anywhere) | —, 3, 12, 69, 1 |
+| More dead stores | `ld r,#n` / `ld r,X` → `ld r,X`; `ld r,a` / … / `ld r,(hl)` → `ld r,(hl)`; `ld (hl),e` / … / `ld (hl),a` → `ld (hl),a` (nothing touching hl between); a discarded sign extension `rla` / `sbc a,a` / `ld r,a` / `ld a,X` / `and a,#n` → store dropped; the `== 0` test of a fresh `&`: `and a,#n` / `ld r,a` / `or a,a` / `jp nz` → `and a,#n` / `jp nz`; after *ALU* `a,r` / `ld (hl),a` the `ld a,(hl)` reload is dropped too; `ld a,#n` / `ldh a,X` → `ldh a,X` (genCmp's `x > n` against an sfr, Command_E_NoteOn's switch bound) | 0, 0, 0 (1 `jp z` / `if (t)` site keeps it), 0, 0 (no two loads of `a` in a row anywhere) | —, 3, 12, 69, 1 |
 | 16-bit compare with a constant (`gb_cmp16`, below) | `xor a,a` / `ld a,lo` / `sbc a,#lo` / `ld a,hi` / `sbc a,#hi` / `jp cc` → `ld hl,#-lit` / `add hl,de` (or `bc` when the value already sits there) / `jp` on the inverted carry | 0 (its 5 `sbc` chains are 32-bit) | 28 |
 | `ld a,a` | the MOVA SDCC leaves after reading an sfr for a compare → removed | 0 (the one `ld a,a` in the ROM is palette data) | — |
-| Dead `a` load before a stack read | `ld a,X` / `ld hl,sp+N` / `ld a,(hl)` → first load dropped: `gencjneshort` fetches a stack right operand into `a` over an `a`-packed left (`ld a,(de)` / `ld a,c`, then the `cp a,a` miscompile in FreeUnusedInstrs and CheckRomChecksum) | 0 (any `ld a,X`, after `ld hl,sp+N` or `ld hl,nn`) | — (neither `cp a,a` site has the load) |
-| `if (!(x & n))` trampoline | `and a,#n` / `jr nz,L` / `jp M` / `L: jp X` / `M:` (genAnd's jmpTrueOrFalse for a jump on true) → `and a,#n` / `jp nz,X` | 0 (the one `jr nz,+3; jp; jp` left in the ROM follows a `cp (hl)`: CloneInstrTable's trampoline) | 12 `and a,n; jp nz` |
+| Dead `a` load before a stack read | `ld a,X` / `ld hl,sp+N` / `ld a,(hl)` → first load dropped: `gencjneshort` fetches a stack right operand into `a` over an `a`-packed left (`ld a,(de)` / `ld a,c`, then the `cp a,a` miscompile in FreeUnusedInstruments and CheckRomChecksum) | 0 (any `ld a,X`, after `ld hl,sp+N` or `ld hl,nn`) | — (neither `cp a,a` site has the load) |
+| `if (!(x & n))` trampoline | `and a,#n` / `jr nz,L` / `jp M` / `L: jp X` / `M:` (genAnd's jmpTrueOrFalse for a jump on true) → `and a,#n` / `jp nz,X` | 0 (the one `jr nz,+3; jp; jp` left in the ROM follows a `cp (hl)`: CloneInstrumentTable's trampoline) | 12 `and a,n; jp nz` |
 
 Besides SDCC's `if labelRefCount %N k`, a rule may say `if operandIsReg %N`
 (the variable bound to a register rather than `(hl)`); `peep.py` implements
@@ -161,7 +161,7 @@ not (46 survive), so LSDj's set is its own. The dead-store and reload-after-ALU
 behaviour looks less like text rules and more like the code generator tracking
 what `a` holds; the textual rules reproduce it for the shapes seen so far.
 Expect `lsdj.peep` to keep growing: `DrawMessageBar` needed 6 rules,
-`DrawTileHexCell` added 10, `ReadInstrByte` 2, `DrawSyncField` 11 (ten of
+`DrawTileHexCell` added 10, `ReadInstrumentByte` 2, `DrawSyncField` 11 (ten of
 them the compare-chain positions); the other six needed none.
 
 Two more passes follow `track_a`. It also drops `ld a,(hl)` right after an
@@ -193,7 +193,7 @@ call, `d`/`e` do not): FileUpgradeV3Pulse/V3Kit's `((char)v & 0xF9) |
 1`. The opposite case is not modelled: with the AND result as the
 *right* operand of an OR with a variable, stock packs it into `a` and
 genOr emits `ld a,(hl); or a,a` (wrong code), where the ROM keeps it in
-a register (parked SetVibShape). `gb_cmp16` also re-seats `hl` after the compare it rewrites: stock SDCC
+a register (parked SetVibratoShape). `gb_cmp16` also re-seats `hl` after the compare it rewrites: stock SDCC
 leaves `hl` at the operand's high byte and may continue from there
 (`dec hl; ld a,(hl+)`), while the add form clobbers it, so the ROM
 reloads `ld hl,sp+0` (DrawBlocksUsed), or `ld hl,#G` for a global operand
@@ -218,15 +218,15 @@ its pair cache alone, so a stack byte addressed right after `_asm di
 _endasm` is reached with `inc hl`, where LSDj's compiler emitted
 `ld hl,sp+N` (RemapSeqChains' `i = 0` after the di). The walk back to
 the last `ld hl,sp+N` passes the fall-through of a conditional jump
-(FreeUnusedInstrs' `i < 0x40` loop test right before its `di`).
+(FreeUnusedInstruments' `i < 0x40` loop test right before its `di`).
 
 One hl reload is rewritten: a 16-bit local tested for zero (`ld a,(hl+);
 or a,(hl); jp nz`) and then assigned has stock SDCC reload `ld hl,sp+N`
-for the store; the ROM steps back with `dec hl` (GetInstrEnvBytes'
+for the store; the ROM steps back with `dec hl` (GetInstrumentEnvelopeBytes'
 `if (total == 0) total = 1`). The same bytes from genIfx (`if (w)`, no
 compare) go the other way, and `ifx_word_hl` handles them before the rules
 run: stock SDCC still knows hl after the test and steps back, while LSDj's
-compiler reloaded it (ShowInstrFieldHelp's `if (s) ShowMessage(s)`, the
+compiler reloaded it (ShowInstrumentFieldHelp's `if (s) ShowMessage(s)`, the
 ROM's one such site; no `dec hl` follows a word test elsewhere). The SDCC
 comment naming the code generator (`; genIfx` / `; genCmpEq`) tells the two
 apart. The passes see the jump targets as they
@@ -269,12 +269,12 @@ ROM never rereads the byte after one (171 `ld a,r`, 0 `ld a,(hl)`, 0
 `or a,(hl)` tests), while stock `genCast` does to sign-extend a spilled
 `char` (`ld c,(hl); ld a,(hl); rla`, `LoadSynthShape`). A store through
 `de` or `bc` leaves the equality standing (3 ROM sites copy the register
-after one, none rereads): `SoundStartScreenPlayback`'s `wChanActive[wSongCol] =
-1; wPlayStartChan = wSongCol;` is `ld c,(hl)`, the indexed `ld (de),a`, then
-`ld a,c` for the second read while hl still points at `wSongCol`; the
-`hSoundChan = wSongCol` after it, with hl moved on, reloads. A conditional
-jump ends the equality when hl points at a global: `FxCmd_E_Pu1`'s
-`wEnvSpeedPu1 = v; if (v) wEnvCounterPu1 = wEnvSpeedPu1;` rereads it (`ld
+after one, none rereads): `SoundStartScreenPlayback`'s `wChannelActive[wSongColumn] =
+1; wPlayStartChannel = wSongColumn;` is `ld c,(hl)`, the indexed `ld (de),a`, then
+`ld a,c` for the second read while hl still points at `wSongColumn`; the
+`hSoundChannel = wSongColumn` after it, with hl moved on, reloads. A conditional
+jump ends the equality when hl points at a global: `Command_E_Pu1`'s
+`wEnvelopeSpeedPu1 = v; if (v) wEnvelopeCounterPu1 = wEnvelopeSpeedPu1;` rereads it (`ld
 (hl),c; xor a,a; or a,c; jp z; ld a,(hl)`, 3 sites, one per channel), while
 a stack slot keeps it (PhraseScreenInput's call result: `ld (hl),e; ...; jp
 c; ld a,e`). One exception: a
@@ -288,17 +288,17 @@ After `ld (hl),a` a test of the stored byte is `or a,a` (169 ROM sites: the
 value from an ALU op or a merge label; never `or a,(hl)` alone), except that a
 value read through a pointer is reread, `xor a,a; or a,(hl)` (27 sites, each
 after `ld a,(de)` / `ld a,(bc)`), the same split as the reload row above
-(`SetColInstr`'s `wInstrIsKit = instr != 0x40; if (wInstrIsKit)`).
+(`SetColumnInstrument`'s `wInstrumentIsKit = instr != 0x40; if (wInstrumentIsKit)`).
 
 `track_e` does the same for `e`, which carries call results and return
 values: after `ld c,e` (a result kept in `c`) a later `ld e,c` (returning
 it) is dropped while neither register changed and no jump target
 intervened. Of the 740 `ld r,e` copies in the ROM's compiled code, no
-redundant `ld e,r` follows one (`FindCursorInstr` returns its value so).
+redundant `ld e,r` follows one (`FindCursorInstrument` returns its value so).
 `track_d` is the same knowledge for `d`: a pointer kept in `bc` and fetched
 twice (`ld e,b; ld d,c` for a read, again for the store that follows) loses
 both halves of the second fetch in the ROM (`ProcessLinkQueue` clearing
-`wKbdChanState[1]`).
+`wKeyboardChannelState[1]`).
 `track_const` does it for constants: `ld r,#n` (r = `b`..`e`) is dropped
 while r already holds n, so the high byte of a widened index stays 0 for
 the next one (`ReadWordCell`). None of the 1571 `ld r,#n` in the ROM's
@@ -317,30 +317,30 @@ CSE never substitutes a register for a direct-space global
 (`isGlobalInNearSpace`, an 8051 optimisation applied to every port).
 LSDj's compiler skipped loading the byte into a register that already held
 it -- `ldh a,(X); ld r,a` goes when r holds X, within a block or across a
-jump (`HandleInputCombos`' two `hSoundChan` indexes in one block,
-`SyncTickLsdj`'s loop body, `SoundUpdateChan`'s D across `if (d)`) -- but
+jump (`HandleInputCombos`' two `hSoundChannel` indexes in one block,
+`SyncTickLsdj`'s loop body, `SoundUpdateChannel`'s D across `if (d)`) -- but
 never copied it over from another register: a reload into b while c holds
-the byte stays (the `+=` target in `SoundUpdateChan` and
+the byte stays (the `+=` target in `SoundUpdateChannel` and
 `HandleInputCombos`). `a` itself serves a reread in straight-line code (the
-sign extension of a widened sfr: stock genCast reads `hFxValS` again for
-the `rla`, `FxCmd_F_Wav`; no compiled code in the ROM rereads a byte `a`
+sign extension of a widened sfr: stock genCast reads `hCommandValS` again for
+the `rla`, `Command_F_Wav`; no compiled code in the ROM rereads a byte `a`
 holds before a jump) and across an ordering test (`SyncTickLsdj`'s
-`hSoundChan < 4`: `cp #4; jp nc`); after an equality test the byte is reread
-(`cp; jp nz; ldh a,(X)`: `SoundUpdateChan`, `FxCmd_P_Step`,
+`hSoundChannel < 4`: `cp #4; jp nc`); after an equality test the byte is reread
+(`cp; jp nz; ldh a,(X)`: `SoundUpdateChannel`, `Command_P_Step`,
 `SoundRetrigNote`). The pair goes when `a` dies a few
 instructions on, past ones that leave it alone (`ld de,#x; ld l,c; ld h,#0;
 add hl,de; ld a,l`: the address of an index, `SoundStartSongPlayback`). An HRAM
 store, a call or a jump target ends the reuse. A store through a pointer
 loaded from memory (`ld e,(hl); inc hl; ld d,(hl); ld (de),a`) ends it only
-for a byte read before a conditional jump (the `+=` in `SoundUpdateChan`'s
+for a byte read before a conditional jump (the `+=` in `SoundUpdateChannel`'s
 D), not for one read in the same block (`SoundStartSongPlayback`'s `*active = 1`
-between two `hSoundChan` indexes); a store to an array element (`#arr + c` in
+between two `hSoundChannel` indexes); a store to an array element (`#arr + c` in
 de) ends neither. `track_a` treats the
 byte at hl the same way: after an equality test `a` no longer stands for it
 (`SoundPhraseHop`'s `*wPtrPhraseRow = wSeqNoteLatch; if (wSeqNoteLatch)
-AdvanceCurChanCursors(wSeqNoteLatch);` reloads it, 2 sites, none reusing it;
+AdvanceCurrentChannelCursors(wSeqNoteLatch);` reloads it, 2 sites, none reusing it;
 PhraseScreenInput's `if (k)` on a stack byte, 7 sites), but after a bit test
-of a stack byte it does (InstrScreenInput's kit flag toggles, 4 sites: `ld
+of a stack byte it does (InstrumentScreenInput's kit flag toggles, 4 sites: `ld
 (hl),e; ld c,e; ld a,c; bit 6,a; jp nz; or a,#0x40`). `a` also stands for the
 byte once it copied a register that copied it (`ld c,(hl)` then `ld a,c`).
 A textual rule covers the pair case: `ld b,l; ld c,h; ld l,b; ld h,c` loses
@@ -357,7 +357,7 @@ is used in place, and a stack slot `hl` already points at (a call result
 just stored through it, TapTempoStep's `sum < 0x100`) is fetched from
 there -- also one byte past it, stepping back first (DrawNoteName's
 `(UWORD)t < 0x78` after a two-byte store), or one byte below it, stepping
-up (SpeechInstrInput's `p >= 0xBDD0` right after the `i < 0x10` loop test)
+up (SpeechInstrumentInput's `p >= 0xBDD0` right after the `i < 0x10` loop test)
 -- the following hl-relative use reloaded with `ld hl,sp+N` as the add
 clobbered hl.
 
@@ -368,7 +368,7 @@ sbc a,d`, the constant first for `x > K`); LSDj's compiler built `d:e` as
 `x ^ 0x8000` and added `-(K ^ 0x8000)`: `ld e,lo; ld a,hi; xor a,#0x80; ld
 d,a; ld hl,#0x7FF6; add hl,de; jp c` is DrawCrashScreen's `i < 10`, and
 with the constant first the add compares with `K + 1` and keeps its jump
-(`FxCmd_F_Wav`'s `step >= 16` / `step < -16`: `#0x7FF0`, `#0x8010`). Against
+(`Command_F_Wav`'s `step >= 16` / `step < -16`: `#0x7FF0`, `#0x8010`). Against
 0 stock SDCC tests bit 7 of the high byte (after genCmpLt's or genCmpGt's
 comment); LSDj's code keeps that (RenderSynthWaveA's `(WORD)samp < 0`), but
 GBDK's library build used the add form there too (`abs`'s `num < 0` and
@@ -377,7 +377,7 @@ printn's `(int)u < 0`: `ld hl,#0x8000`), so `gb_cmp16(zero=True)` runs for
 is reloaded at the next use: a negation's after its carry clear and before
 the zero it subtracts from (`xor a,a; ld hl,sp+4; ld a,$00; sbc a,[hl]`),
 a shift's after its `or a,a`. The ROM has 6 signed adds (abs, printn,
-DrawCrashScreen, FxCmd_F_Wav twice, NameEditorInput).
+DrawCrashScreen, Command_F_Wav twice, NameEditorInput).
 
 The same pass now handles a **stored unsigned comparison** from a stack
 operand or register pair: stock `sbc` followed by `ld a,0; rla` becomes
@@ -472,13 +472,13 @@ counts what matching C already owns and the GBDK/SDCC library routines
 | **all** | **575** | **99** | **35** | **200** | **31** | **27** | **64%** (90,980 of ~142,500) | **10%** |
 
 The counts are labels: a big function's case bodies (the 13 `InstrParam*`
-inside `InstrScreenInput`) and an indirect call's return point (the
+inside `InstrumentScreenInput`) and an indirect call's return point (the
 `FarCall*Resume` labels) count separately, so the bytes are the measure.
 
 The asm is where you'd expect it: `TimerHandler` and the sound tick, the
 pitch/vibrato/envelope steppers, the tile loader, `ReadJoypad`, the OAM DMA
 stub, GBDK library routines, and bank `$02`'s note/period/sequencer core
-(`SoundNoteToPeriod`, `SoundWriteChanFreq`, …). Those are kept as asm, pret-style.
+(`SoundNoteToPeriod`, `SoundWriteChannelFreq`, …). Those are kept as asm, pret-style.
 
 Not all of GBDK's library in the ROM is asm: libc's C routines were compiled
 by GBDK's build, with the stock rules (`strlen` is `StrLength`, matched
@@ -487,7 +487,7 @@ does; the absolute-address signal catches `DrawByte`, `DrawString` and
 `SetVramCursor`, and `DrawTileRun` / `WriteVramByteSafe` (which branch with
 `jr` and poll `rSTAT`) are listed by hand. Three functions whose `.sym`
 comment began with a quoted string had been carved as data, since a leading
-`"` marks a data symbol: `DrawCrashScreen`, `CopyInstr`,
+`"` marks a data symbol: `DrawCrashScreen`, `CopyInstrument`,
 `DrawVerifyPanel` (all SDCC code, now disassembled).
 
 ## Writing C that matches (what we learned)
@@ -500,7 +500,7 @@ comment began with a quoted string had been carved as data, since a leading
   plain `extern` variables placed there at link time.
 - **MBC registers are variables**: `rROMB0 = n` gives the ROM's
   `ld hl,#0x2000; ld (hl),#n`; a literal-pointer store goes through `de`.
-  LSDj's bank switch is `hCurBank = n; rROMB0 = n`. `rROMB0` is `volatile`:
+  LSDj's bank switch is `hCurrentBank = n; rROMB0 = n`. `rROMB0` is `volatile`:
   with no call between two switches (`KitExists`, which pages a kit bank in
   and straight back out) SDCC otherwise drops the first store as dead.
   `geniCodeCast` folds no cast of a literal *to a pointer*, so in a loop
@@ -533,9 +533,9 @@ comment began with a quoted string had been carved as data, since a leading
   (WaveScreenInput calling CopyWaveSelection); declare it first.
 - **Too few arguments compile**: SDCC 2.2.1 accepts a call with fewer
   arguments than the prototype, so `printf("INSTRS....")` compiles
-  against `void printf(char *fmt, UWORD v)` (CleanInstrData); a K&R
+  against `void printf(char *fmt, UWORD v)` (CleanInstrumentData); a K&R
   `void printf();` would not promote a byte argument (`...` neither).
-- **Spelling a scan from the top**: `wColPhrase[i - 1]` twice and then `i--`
+- **Spelling a scan from the top**: `wColumnPhrase[i - 1]` twice and then `i--`
   share one `i - 1` temp through CSE, which is why RemapPhraseRefs stores
   `i` only after the test (`ld (hl),b`); `i--` first packs into `inc (hl)`.
   `from == *p` (the stack parameter on the left) is the compare that keeps
@@ -555,7 +555,7 @@ comment began with a quoted string had been carved as data, since a leading
   (`AOP_HL` on the GB) or stack *right* operand takes the pointer branch,
   `cp; jr nz,L; jp X; L:`, which nothing folds. The ROM keeps 12 such
   trampolines (all `x == global`, `x == stack`): `while (i != wWaveSelectionEnd)`
-  in `PasteWaveSelection`, `CloneInstrTable`'s field test. `global == reg`
+  in `PasteWaveSelection`, `CloneInstrumentTable`'s field test. `global == reg`
   is the folded form. (The `!=` double trampoline, `jr nz,L; jr M; L: jp X;
   M:`, is folded by lsdj.peep either way.)
 - **Literal types** (`constVal`): hex and octal literals are *unsigned*,
@@ -604,7 +604,7 @@ comment began with a quoted string had been carved as data, since a leading
   (constant propagation puts the literal back afterwards; `SetSyncSendRate`).
 - **An empty case listed first** (`case 0x27: break;`) puts its `jp end` right
   after the compare chain, where the stock rule `jp z,L1; jp L2; L1:` →
-  `jp nz,L2` inverts the last compare (`KbdPollScancode`).
+  `jp nz,L2` inverts the last compare (`KeyboardPollScancode`).
 - **A re-typed pointer argument is copied first**: `ShowMessage` passes
   its `char *` on as `(UBYTE *)text`, which moves it through `bc` before
   the push; passed as-is it goes straight from `hl` (a `const` in
@@ -642,10 +642,10 @@ comment began with a quoted string had been carved as data, since a leading
 - **Addresses held in integers**: `extern UWORD wTableCellAPtr;` copied
   with `p = (UBYTE *)wTableCellAPtr;` goes byte by byte through `a`
   (`genCast`); a pointer-typed global copies as `ld a,(hl+); ld e,(hl)`
-  (`genAssign`'s two-byte case). The ROM has both (`ReadTableCmd`).
+  (`genAssign`'s two-byte case). The ROM has both (`ReadTableCommand`).
 - **A comparison kept as a value**: `ok = v <= 0x13; if (!ok) …` stores the
   0/1 (`ld a,#0; rla`) and its negation before testing it; the same test
-  written inside the `if` compiles to a plain `cp` / `jp` (`DrawCmdLetter`).
+  written inside the `if` compiles to a plain `cp` / `jp` (`DrawCommandLetter`).
 - **A masked byte tested in a register: the literal first.** `if (x & 0x80)`
   hands the AND to its `if`: ralloc marks the result a condition (REG_CND)
   when the right operand is a literal and the result dies at the `if`, so
@@ -654,14 +654,14 @@ comment began with a quoted string had been carved as data, since a leading
   x)` has no literal on the right, so the AND gets a register and the `if`
   tests it: `and a,#0x80; ld c,a; or a,c; jp z` (toBoolean's `xor a,a; or
   a,c`, folded by lsdj.peep rule 2) -- `DrawKitLoopMode`'s ATK test,
-  `DrawKitInstr`'s SPEED test (in `b`), `SoundPhraseHop`'s `0xF0 & v`; genAnd
+  `DrawKitInstrument`'s SPEED test (in `b`), `SoundPhraseHop`'s `0xF0 & v`; genAnd
   moves the literal to the right itself. `(x & 0x80) != 0` gives `or a,a`
   instead, and a cast or a named temporary is packed away.
 - **Signed globals**: a signed compare that reads the global straight into
   `xor #0x80` (no copy) means the global itself was a plain `char` in that
-  source file (`extern char wPhraseCol;` for `CheckPhraseEditContext`); a
+  source file (`extern char wPhraseColumn;` for `CheckPhraseEditContext`); a
   `(char)` cast copies it through a register first. The clone commands
-  (`CloneInstrAtCursor`, `CloneTableAtCursor`) pass `(char)wPhraseRow`: the
+  (`CloneInstrumentAtCursor`, `CloneTableAtCursor`) pass `(char)wPhraseRow`: the
   ROM loads the row into a register before pushing it, as a conversion does,
   so their file saw `wPhraseRow` as a `char` too. The other face of it: a
   `char` global passed to a `UBYTE` parameter or incremented and tested is
@@ -672,7 +672,7 @@ comment began with a quoted string had been carved as data, since a leading
   a loop that runs to the larger count, so the second register is copied into
   the byte's unused slot and never freed. `(int)(char)x & 0xBF` (SDCC narrows
   the AND back to a byte) leaves `b` taken for the rest of the function and
-  every later temporary spills (InstrScreenInput's kit columns); `v =
+  every later temporary spills (InstrumentScreenInput's kit columns); `v =
   (int)(char)v & (int)0xBF` narrows straight into the stack byte and frees
   both.
 - **Same-named block locals are one variable**: `{ UBYTE kit; ... }` in two
@@ -702,7 +702,7 @@ comment began with a quoted string had been carved as data, since a leading
   the AND and the OR: the AND keeps `c`, the copy is packed into `a`, and
   SDCC 2.2.1 rejects only definition/prototype sign mismatches, not `UBYTE`
   arguments to a `char` parameter -- the callees then need `char`
-  prototypes (`WriteCurInstrByteC`, `FarCallArgWC`; SetVibShape).
+  prototypes (`WriteCurrentInstrumentByteC`, `FarCallArgWC`; SetVibratoShape).
 - **A hoisted cast copy is the invisible register**: a sign-changing copy
   of a parameter inside a loop (`((char *)buf)[i] = y` needs `(char)y`) is
   loop-invariant, so `loopInvariants` hoists it into the preheader, where it
@@ -711,7 +711,7 @@ comment began with a quoted string had been carved as data, since a leading
   temporary evicts it (the address as singles `[b c]`) every use silently
   reads the parameter's slot. CSE, blind to casts in this snapshot, then
   substitutes that signed copy for `y` in `*p < y`, which is why the ROM's
-  last compare is the signed `xor a,#0x80` form (PlotEnvCurve).
+  last compare is the signed `xor a,#0x80` form (PlotEnvelopeCurve).
 - **A symbol spilt later held its register earlier**: `isspilt` is per
   symbol, so a local the allocator evicts half-way through a function is
   generated as a stack variable *everywhere* -- yet in the allocator's
@@ -786,7 +786,7 @@ comment began with a quoted string had been carved as data, since a leading
   (`leastUsed->used > sym->used`, uses weighted by loop depth). `s = wSynth;
   s >>= 4;` gives s a third use where `s = wSynth >> 4` has two, so the
   2-byte address after it (two uses) spills itself and s keeps c, the
-  ROM's shape in LockCurSynth.
+  ROM's shape in LockCurrentSynth.
   The same rule spills a named local at its definition when it is used
   less than whatever holds the registers: `UWORD t; t = oa + 0xA000;
   p = (UBYTE *)t;` (t declared last, used once) writes the sum straight
@@ -801,11 +801,11 @@ comment began with a quoted string had been carved as data, since a leading
   c into the first loop, hence `b` for the first byte there and `c` in the
   later loops (FindDupPhrase/Chain/Table).
 - **An array's address after the array was indexed is `&arr[0]`**:
-  `wPtrChainRow = wChanChainRow` after `wChanChainRow[3] = 0xFF` reuses the
-  `&wChanChainRow` temporary of the element store (CSE) and stores the
+  `wPtrChainRow = wChannelChainRow` after `wChannelChainRow[3] = 0xFF` reuses the
+  `&wChannelChainRow` temporary of the element store (CSE) and stores the
   address as two literal bytes (`ld (hl),#<arr; inc hl; ld (hl),#>arr`); the
   ROM loads it into de (`ld de,#arr; ld hl,#ptr; ld (hl),e; inc hl; ld
-  (hl),d`, an address-of folded into the store), which `&wChanChainRow[0]`
+  (hl),d`, an address-of folded into the store), which `&wChannelChainRow[0]`
   gives -- its `+ 0` is a fresh temporary (ResetWorkState's nine pointers).
 - **A cast copy of a global is an occupant that costs nothing**: a
   `char` parameter fed a `UBYTE` global makes a same-size cast copy whose
@@ -840,8 +840,8 @@ comment began with a quoted string had been carved as data, since a leading
   straight into v's slot. When the ROM stores the result to a separate slot
   and then copies it (`ld hl,sp+N; ld (hl),e` … `ld a,e; ld hl,sp+M;
   ld (hl),a`), a cast sat between the call and the assignment: that file
-  prototyped the callee as returning `char` (`ReadInstrByteS`, aliased to
-  ReadInstrByte, in FileUpgradeV11). A `char` local instead changes every
+  prototyped the callee as returning `char` (`ReadInstrumentByteS`, aliased to
+  ReadInstrumentByte, in FileUpgradeV11). A `char` local instead changes every
   other use of it.
   The slot also decides who spills: a temporary *with* a spill location is
   spilt at its own definition when the live ranges it would push out are
@@ -876,7 +876,7 @@ comment began with a quoted string had been carved as data, since a leading
   the function loads it with `ld bc,#fn`; some call sites instead load it
   byte-wise (`ld c,#<fn; ld b,#>fn`), which is a cast through an integer
   (`FAR_FN(fn)` in `lsdj.h`). FarCallArg takes a function pointer as well:
-  `InitAndLoadSong` passes `LoadProjSettings` plainly (`ld bc,#fn`), the
+  `InitAndLoadSong` passes `LoadProjectSettings` plainly (`ld bc,#fn`), the
   other call sites through `FAR_FN`. A cast to another pointer type, `banked`
   or `nonbanked` all fold away.
 - **String literals** are emitted right after the function that uses them, as
@@ -898,8 +898,8 @@ comment began with a quoted string had been carved as data, since a leading
   call (`ColorField(X[t][f], Y[t][f], W[t][f], gbc ? 3 : 2)`) orders and
   spills the temporaries differently from computing them into locals first;
   the ROM has both.
-- **Per-type tables are 2-D arrays**: `InstrFieldX[type][field]` with
-  `extern UBYTE InstrFieldX[][18]` gives the ROM's `__muluchar` (`type*18`,
+- **Per-type tables are 2-D arrays**: `InstrumentFieldX[type][field]` with
+  `extern UBYTE InstrumentFieldX[][18]` gives the ROM's `__muluchar` (`type*18`,
   computed once and reused across tables) plus a row pointer; LSDj's tables
   are 67 bytes (the NOISE row has 13 fields), so they are declared, not
   defined, in the C. SDCC's runtime helpers (`__muluchar`, `__divuint`, …)
@@ -918,7 +918,7 @@ comment began with a quoted string had been carved as data, since a leading
 - **Plain `char` locals are signed**, and LSDj's source uses them: reading a
   byte into a `char` and testing or masking it compiles to a copy first
   (`ld b,c; ld a,b; bit 5,a` — the implicit conversion), which `UBYTE` does
-  not produce. `DrawInstrTableField`'s `char v` is the first confirmed case;
+  not produce. `DrawInstrumentTableField`'s `char v` is the first confirmed case;
   the same copy shows in several parked functions.
 - **Constants above 127 are `int`s**: `v & 0xF0` feeding another operation
   is done in 16 bits (`and a,$f0; ld b,$00`), which is why
@@ -929,7 +929,7 @@ comment began with a quoted string had been carved as data, since a leading
   parameter and rejects the call ("to few parameters"). Callers passing
   `void f(void)` functions compile the same either way.
 - **Loop invariants are hoisted** (stock SDCC; LSDj built without
-  `--noinvariant`): `FileForEachInstrType` copies its function pointer to a
+  `--noinvariant`): `FileForEachInstrumentType` copies its function pointer to a
   stack temporary before the loop, which `--noinvariant` would not.
 - **How far an invariant is hoisted depends on stale dataflow.** Loops are
   processed inner to outer, and an invariant moved into an inner loop's
@@ -944,7 +944,7 @@ comment began with a quoted string had been carved as data, since a leading
   own definition flows around the back edge), after which everything leaves
   both loops. The three frame drawers rest on this: `BuildOverwritePrompt`
   restores the ASCII map at the end of its middle-column branch (not the end
-  of the body), and `DrawFileTextField`/`DrawProjTextField` write their bounds
+  of the body), and `DrawFileTextField`/`DrawProjectTextField` write their bounds
   inline (`i < x + w`, `j == y + h - 1`) with no named copies, which leaves
   `x + w - 1`, the edge tests and the restore in the inner preheader as in the
   ROM. Their `==` operands come out swapped (`i == x` compiles with `x` on the
@@ -988,7 +988,7 @@ comment began with a quoted string had been carved as data, since a leading
 - **Inline assembly** is SDCC 2.2.1's `_asm ... _endasm;` (the `di`/`ei`
   around SRAM access); the MBC registers are variables (`rRAMG = 0x0A`,
   `rRAMB = 3`), like `rROMB0`.
-- **Missing `return`s are real**: `HasEnterableColLeft/Right` are declared to
+- **Missing `return`s are real**: `HasEnterableColumnLeft/Right` are declared to
   return a byte but only `break` out of their loop; callers read whatever
   the last call left in `e`. SDCC 2.2.1 compiles that without complaint.
 - **A far-call target's own bank declares it for real**: `lsdj.h` declares bank 2's
@@ -1177,7 +1177,7 @@ minute instead of twenty.
   counters needed b held from `j = i + 1` through the inner loop's test,
   which is what the call-result temporary of LSDj's compiler does (*Writing
   C*: `global = call()`); SynthFilterBandPass needs c held at one
-  instruction (the doubled index's definition), WriteSynthWaveCol its
+  instruction (the doubled index's definition), WriteSynthWaveColumn its
   counter spilt at its definition and c held through the body.
 - The debug build has more knobs for such hypotheses, all environment
   variables read by the patched compiler: `KEYOF=name:K` forces a global
@@ -1245,7 +1245,7 @@ address), and records the function in the tracked manifest `c/matched.json`
 (bank, address, length, source). The carve (`tools/carve_clean.py` →
 `tools/disasm.py --clines`) then renders each such range from the
 translation instead of decoding the ROM: the compiler's own code with
-symbolic operands (`ld hl, wCurScreen`, `call DrawString`,
+symbolic operands (`ld hl, wCurrentScreen`, `call DrawString`,
 `jp nz, .notWave`). A branch goes to the `.sym` label at its target (the
 disassembly named every jump target), written as a local reference in its
 own scope and `Parent.local` outside it; SDCC's labels nothing jumps to (its
@@ -1304,10 +1304,10 @@ takes registers from the live ranges ending at an instruction:
 
 | Function | Directive | What it reproduces |
 |----------|-----------|--------------------|
-| `WriteSynthWaveCol` ($1D:$5F29) | `BUSYC=1-17` | c held from the first instruction to the loop body's last byte temporary: i takes b and is evicted by the body, the pointer pair comes out as bc |
+| `WriteSynthWaveColumn` ($1D:$5F29) | `BUSYC=1-17` | c held from the first instruction to the loop body's last byte temporary: i takes b and is evicted by the body, the pointer pair comes out as bc |
 | `SynthFilterBandPass` ($1D:$5BBD) | `BUSYC=82-82` | c held when `next2 = i << 1` is allocated, so the BufB word pushed to DivU16 comes out as bc |
 | `WordScreenInput` ($06:$431D) | `BUSYC=1-93` | c held from the first instruction through the cut's second ReadWordCell result: the first two results take b, y and v never hold a register |
-| `DrawInstrScreen` ($03:$4DE7) | `BUSYB=47-52` | b held from the `type * 18` multiply to the first SetVramCursor's column read: type evicted by the multiply's result, the result and the row value spilt in turn |
+| `DrawInstrumentScreen` ($03:$4DE7) | `BUSYB=47-52` | b held from the `type * 18` multiply to the first SetVramCursor's column read: type evicted by the multiply's result, the result and the row value spilt in turn |
 | `FileUpgradeClearRange` ($1C:$65B9) | `BUSYB=26-62` | b held from the second loop's pointer cast to the end: v and every temporary of the inner loop's three statements in memory |
 | `CountFileBlocks` ($1C:$48D4) | `NOSPILLAT=iTemp0:27 SPILLAT=iTemp0:28` | at the count's read nothing is spillable (p keeps bc and the read spills itself into the dead long's slot); p is evicted at the `+ 1` that follows |
 
@@ -1325,16 +1325,16 @@ untouched (`make match` verifies all 678).
 ## What's still unknown
 
 1. **Build options.** Default loop optimisations: invariant motion is on
-   (`FileForEachInstrType`), and the code that once looked like it was
+   (`FileForEachInstrumentType`), and the code that once looked like it was
    compiled without it (`CloneSynth`, the three frame drawers) is stock
    SDCC 2.2.1's one-level hoisting from stale dataflow (see Writing C).
 2. **The complete compiler model.** An accumulator-tracking pass plus 86
    rules so far; most new functions need nothing new, but each new idiom can
-   surface a rule. One function so far (`SetVibShape`, `$03:$4B5E`)
+   surface a rule. One function so far (`SetVibratoShape`, `$03:$4B5E`)
    points at a register-allocation difference no rule can express: stock
    SDCC keeps the result of an `&` in `a` for the `|` that follows and then
    clobbers it (wrong code), LSDj's compiler keeps it in `c`. Not a fixed
-   bug: `AllocInstrTable` (`$03:$436D`) ships exactly that miscompilation
+   bug: `AllocInstrumentTable` (`$03:$436D`) ships exactly that miscompilation
    (`and a,$d0; ld a,c; or a,a`), so it is a source-shape question. The reload-after-ALU and
    dead-store families are probably one codegen mechanism (tracking what `a`
    holds) that we model textually; the overlapping-pointer exception rests on
@@ -1355,30 +1355,30 @@ untouched (`make match` verifies all 678).
    register were held by an occupant no symbol accounts for, and the debug
    build's BUSYC/BUSYB knobs pin each window (the function is
    byte-identical with the register held over it, and nothing else makes
-   it so): WriteSynthWaveCol c from the first
+   it so): WriteSynthWaveColumn c from the first
    instruction to the loop body's last byte temporary (seq 3..17, released
    before the pointer pair at 21); WordScreenInput c from the first
    instruction through the cut's second ReadWordCell result (1..93,
    released before the third read's call at 99); SynthFilterBandPass c from
    the WrapSynthIndex32 result's death (79) to the BufB word's pair request
-   (90); DrawInstrScreen b from the far-call pair's death (11) or any
+   (90); DrawInstrumentScreen b from the far-call pair's death (11) or any
    later point up to the `type * 18` multiply (47) through the column read
    (52), released before the pair at 56; FileUpgradeClearRange b from the
    second loop's cast pair's death (26) to the function's end;
    CountFileBlocks both registers unspillable at the `*ptr` read. The
    windows end right before a two-register request or a call, and begin at
    the function start, at a pair's or a call result's death, or at no
-   visible event. Not the hand-over leak (WriteSynthWaveCol and
+   visible event. Not the hand-over leak (WriteSynthWaveColumn and
    WordScreenInput have no register pairs before their windows), not a
    carry-over from the previous function in the file (`freeAllRegs` runs
    after every function and the predecessors leak nothing), not a key
    collision, not dead-code-block liveness (no `noPath` blocks). Rules
    tried in the debug build and rejected on the matched set: spill before
-   pairing (`PAIR_SPILL_FIRST`: fits WriteSynthWaveCol and BandPass
+   pairing (`PAIR_SPILL_FIRST`: fits WriteSynthWaveColumn and BandPass
    exactly but gives [c b] where 11 of 80 matched functions keep stock's
-   [b c], e.g. PrevInstrPitchMode; restricted to pairs defined by a load
+   [b c], e.g. PrevInstrumentPitchMode; restricted to pairs defined by a load
    from memory, `PAIR_SPILL_FIRST_LOADS`, still 3 of 80: SaveFile,
-   SpeechInstrInput, TableScreenUpdate's pointer read stays [b c]; the
+   SpeechInstrumentInput, TableScreenUpdate's pointer read stays [b c]; the
    codegen-side swap `PAIR_NORMALIZE` leaves the hand-over copies stale),
    holding a call result's register or a
    dying pair's second register until the next pair request
@@ -1400,7 +1400,7 @@ untouched (`make match` verifies all 678).
 
 - [x] Link step in the harness; `DrawMessageBar` matched.
 - [x] Validate on harder functions: a `switch` (`DispatchScreenDraw`), 16-bit
-      math + locals + asserts (`ReadInstrByte`), the register-reload exception
+      math + locals + asserts (`ReadInstrumentByte`), the register-reload exception
       (`DrawTileHexCell`) — all matched; rule set 6 → 28.
 - [x] `make match` regression suite; `code_kind.py` C/asm map.
 - [x] Matched C feeds the ROM build (first as `INCBIN`s of the compiled bytes,
@@ -1459,7 +1459,7 @@ The checklist:
       add a, $e0 / … / adc a, $ff`).
 - [x] Pointer tables as `dw Label`: a `.sym` tag `[N] dw` (`[N] dw @$BB` for
       one pointing into another bank) makes the carve print the N words as
-      labels — CmdHelpPtrs, FxCmdHandlers, HexCellPrefixPtrs,
+      labels — CommandHelpPtrs, CommandHandlers, HexCellPrefixPtrs,
       HelpMenuPtrs, HelpPagePtrs. The interrupt and `rst $38` vectors are
       named code now (they sat inside `Unused` fill symbols as data, their
       `jp VBlankHandler` a raw number).
@@ -1480,7 +1480,7 @@ The checklist:
       good). On a divergence it reports where an `$FF` (`rst $38`: crash,
       assert, `DebugTrap`) ran and the call chain; `--bisect` narrows down
       the stale target. Bank 0 shifts at `$0391`, past the page-aligned
-      tables at `$0200`-`$0390` that SoundCalcVibOffset reaches with
+      tables at `$0200`-`$0390` that SoundCalcVibratoOffset reaches with
       `ld d, $02` / `ld h, $03`, which a fork keeps in place.
       Passing: every bank alone (16 bytes) and all at once (1, 3, 5, 7, 9, 11,
       16, 32 bytes), CGB and DMG, seeds 1-15. Odd sizes matter: a stale

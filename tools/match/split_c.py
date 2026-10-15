@@ -7,7 +7,7 @@ SPEC maps destination modules to the functions they take:
 
     {"WaveScreen.c": {"title": "The wave screen", "what": "The wave graph, ...",
                       "functions": ["DrawWaveScreen", ...]},
-     "DrawChanStatus.c": {"functions": ["DrawAllChanStatus"]},
+     "DrawChannelStatus.c": {"functions": ["DrawAllChannelStatus"]},
      "SynthScreen.c": {"title": "The synth screen"}}
 
 A destination is a path, or a file name in SRC's directory. A new one gets

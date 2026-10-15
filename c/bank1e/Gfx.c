@@ -27,17 +27,17 @@ extern UBYTE wVramCopyScratch;              /* $C9B4 */
 /* $4000: the top row's column labels for the screen about to be drawn
    (raw tile indices through IdentityCharMap; nothing on the wave screen) */
 
-void DrawScreenColLabels(void)
+void DrawScreenColumnLabels(void)
 {
-    if (wCurScreen == 8)
+    if (wCurrentScreen == 8)
         return;
-    hBgDigitPal = 4;
-    hBgPal = 1;
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
     wVramCursor = (UBYTE *)0x9822;
     DrawString(TxtSpaces13);
     wStringSrc = IdentityCharMap;
-    hBgPal = hGameboyType ? 0x48 : 0xD2;
-    switch (wCurScreen) {
+    hBgPalette = hGameboyType ? 0x48 : 0xD2;
+    switch (wCurrentScreen) {
     case 1:
         if (wPhraseDrawMode) {
             wVramCursor = (UBYTE *)0x9822;
@@ -119,8 +119,8 @@ void DrawScreenColLabels(void)
         break;
     }
     wStringSrc = AsciiCharMap - 0x20;
-    hBgDigitPal = 4;
-    hBgPal = 1;
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
 }
 
 /* $79FA: blank the right third of the tile rows (two VRAM ranges) */
@@ -168,10 +168,10 @@ void LoadFontTiles(void)
     ResetDisplayState();
     _asm di _endasm;
     if (hGameboyType) {
-        wShadedDigitPal = 4;
-        wHighlightDigitPal = 4;
-        wShadedPal = 1;
-        wHighlightPal = 1;
+        wShadedDigitPalette = 4;
+        wHighlightDigitPalette = 4;
+        wShadedPalette = 1;
+        wHighlightPalette = 1;
         a = TilesFont0A;
         switch (wFont) {
         case 1:

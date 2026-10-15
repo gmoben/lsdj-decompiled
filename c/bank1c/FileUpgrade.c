@@ -2,7 +2,7 @@
  * Song-format upgrades -- LSDj 9.4.0, ROM bank $1C: loading an older .sav
  * steps its working song through FileUpgradeV0..V17b, each patching the
  * instruments of one or more types through a per-instrument callback
- * (FileForEachInstrType sets wFileInstrIdx and calls it).
+ * (FileForEachInstrumentType sets wFileInstrumentIdx and calls it).
  *
  * MATCHING C (period GBDK 2.95-3 / SDCC 2.2.1 + tools/match/lsdj.peep);
  * `make match` verifies every function here against the ROM.
@@ -10,13 +10,13 @@
 
 #include "lsdj.h"
 
-extern UBYTE wFileInstrIdx;                 /* $C9A1, the instrument being upgraded */
+extern UBYTE wFileInstrumentIdx;                 /* $C9A1, the instrument being upgraded */
 extern UBYTE FileUpgradeRemapTable[];       /* $1C:$68F1, [8] */
 extern UBYTE NoiseNoteRemapTable[];         /* $1C:$6E3C, [112] */
 
-void FileForEachInstrType(UBYTE type, void (*fn)());
-UBYTE FileReadInstrByte(UBYTE field);
-void FileWriteInstrByte(UBYTE field, UBYTE val);
+void FileForEachInstrumentType(UBYTE type, void (*fn)());
+UBYTE FileReadInstrumentByte(UBYTE field);
+void FileWriteInstrumentByte(UBYTE field, UBYTE val);
 UBYTE FileUpgradeRemapBits(UBYTE v);
 UBYTE FileUpgradeClampNibble(UBYTE v);
 void FileUpgradeV0Kit(void);
@@ -36,7 +36,7 @@ void FileUpgradeRetrigRate(UBYTE *p);          /* $1C:$6973 */
 void FileUpgradeClearRange(void);           /* $1C:$65B9 */
 void FileUpgradeV2(void);
 void ReadSongBytesW(UBYTE bank, UWORD src, UBYTE *dst);  /* ReadSongBytes taking a word address (aliased by match_function.py) */
-char ReadInstrByteS(UBYTE instr, UBYTE field);  /* ReadInstrByte returning char (aliased): the cast to UBYTE keeps the call result in its own slot */
+char ReadInstrumentByteS(UBYTE instr, UBYTE field);  /* ReadInstrumentByte returning char (aliased): the cast to UBYTE keeps the call result in its own slot */
 
 UWORD FileCalcCompressedSize(void)
 {
@@ -50,20 +50,20 @@ UWORD FileCalcCompressedSize(void)
     return n;
 }
 
-UBYTE FileReadInstrByte(UBYTE field)
+UBYTE FileReadInstrumentByte(UBYTE field)
 {
-    return ReadInstrByte(wFileInstrIdx, field);
+    return ReadInstrumentByte(wFileInstrumentIdx, field);
 }
 
-void FileWriteInstrByte(UBYTE field, UBYTE val)
+void FileWriteInstrumentByte(UBYTE field, UBYTE val)
 {
-    WriteInstrByte(wFileInstrIdx, field, val);
+    WriteInstrumentByte(wFileInstrumentIdx, field, val);
 }
 
-void FileForEachInstrType(UBYTE type, void (*fn)())
+void FileForEachInstrumentType(UBYTE type, void (*fn)())
 {
-    for (wFileInstrIdx = 0; wFileInstrIdx < 0x40; wFileInstrIdx++) {
-        if (FileReadInstrByte(0) == type)
+    for (wFileInstrumentIdx = 0; wFileInstrumentIdx < 0x40; wFileInstrumentIdx++) {
+        if (FileReadInstrumentByte(0) == type)
             (*fn)();
     }
 }
@@ -79,44 +79,44 @@ void FileUpgradeV0Kit(void)
 {
     UBYTE a, f, b, la, lb;
 
-    a = FileReadInstrByte(2);
-    f = FileReadInstrByte(5);
-    b = FileReadInstrByte(9);
+    a = FileReadInstrumentByte(2);
+    f = FileReadInstrumentByte(5);
+    b = FileReadInstrumentByte(9);
     la = a & 0x20;
     lb = b & 0x20;
     a &= ~(UWORD)0x20;
     b &= ~(UWORD)0x20;
     a += 8;
     b += 8;
-    FileWriteInstrByte(2, a);
-    FileWriteInstrByte(9, b);
+    FileWriteInstrumentByte(2, a);
+    FileWriteInstrumentByte(9, b);
     if (la)
         f |= 0x40;
     if (lb)
         f |= 0x20;
-    FileWriteInstrByte(5, f);
+    FileWriteInstrumentByte(5, f);
 }
 
 void FileUpgradeV0(void)
 {
-    FileForEachInstrType(2, FileUpgradeV0Kit);
+    FileForEachInstrumentType(2, FileUpgradeV0Kit);
 }
 
 void FileUpgradeV1Kit(void)
 {
     UBYTE a, b;
 
-    a = FileReadInstrByte(2);
-    b = FileReadInstrByte(9);
+    a = FileReadInstrumentByte(2);
+    b = FileReadInstrumentByte(9);
     a -= 8;
     b -= 8;
-    FileWriteInstrByte(2, a);
-    FileWriteInstrByte(9, b);
+    FileWriteInstrumentByte(2, a);
+    FileWriteInstrumentByte(9, b);
 }
 
 void FileUpgradeV1(void)
 {
-    FileForEachInstrType(2, FileUpgradeV1Kit);
+    FileForEachInstrumentType(2, FileUpgradeV1Kit);
 }
 
 /* Version 2 to 3: every table envelope byte ($B690-$B88F) whose low
@@ -142,7 +142,7 @@ void FileUpgradeV3Pulse(void)
 {
     UBYTE v;
 
-    v = FileReadInstrByte(5);
+    v = FileReadInstrumentByte(5);
     switch ((char)v & 6) {
     case 2:
         v |= 0x10;
@@ -154,7 +154,7 @@ void FileUpgradeV3Pulse(void)
         v = ((char)v & 0xF9) | 0x14;
         break;
     }
-    FileWriteInstrByte(5, v);
+    FileWriteInstrumentByte(5, v);
 }
 
 /* The same for kits: 2 sets bit 4, 4 sets bit 7, then bits 2-1 are cleared
@@ -163,7 +163,7 @@ void FileUpgradeV3Kit(void)
 {
     UBYTE v;
 
-    v = FileReadInstrByte(5);
+    v = FileReadInstrumentByte(5);
     switch ((char)v & 6) {
     case 2:
         v |= 0x10;
@@ -173,14 +173,14 @@ void FileUpgradeV3Kit(void)
         break;
     }
     v = ((char)v & 0xF9) | 1;
-    FileWriteInstrByte(5, v);
+    FileWriteInstrumentByte(5, v);
 }
 
 void FileUpgradeV3(void)
 {
-    FileForEachInstrType(0, FileUpgradeV3Pulse);
-    FileForEachInstrType(1, FileUpgradeV3Pulse);
-    FileForEachInstrType(2, FileUpgradeV3Kit);
+    FileForEachInstrumentType(0, FileUpgradeV3Pulse);
+    FileForEachInstrumentType(1, FileUpgradeV3Pulse);
+    FileForEachInstrumentType(2, FileUpgradeV3Kit);
 }
 
 void FileUpgradeV4(void)
@@ -199,29 +199,29 @@ void FileUpgradeV5Wave(void)
 {
     UBYTE v;
 
-    v = FileReadInstrByte(14);
-    FileWriteInstrByte(10, v >> 4);
-    FileWriteInstrByte(11, v & 0x0F);
+    v = FileReadInstrumentByte(14);
+    FileWriteInstrumentByte(10, v >> 4);
+    FileWriteInstrumentByte(11, v & 0x0F);
 }
 
 void FileUpgradeV5(void)
 {
-    FileForEachInstrType(1, FileUpgradeV5Wave);
+    FileForEachInstrumentType(1, FileUpgradeV5Wave);
 }
 
 void FileUpgradeV6Wave(void)
 {
     UBYTE v;
 
-    v = FileReadInstrByte(10);
-    FileWriteInstrByte(10, 0x0F - v);
-    v = FileReadInstrByte(11);
-    FileWriteInstrByte(11, v - 3);
+    v = FileReadInstrumentByte(10);
+    FileWriteInstrumentByte(10, 0x0F - v);
+    v = FileReadInstrumentByte(11);
+    FileWriteInstrumentByte(11, v - 3);
 }
 
 void FileUpgradeV6(void)
 {
-    FileForEachInstrType(1, FileUpgradeV6Wave);
+    FileForEachInstrumentType(1, FileUpgradeV6Wave);
 }
 
 void FileUpgradeV7(void)
@@ -250,40 +250,40 @@ void FileUpgradeV7(void)
 
 void FileUpgradeV8Wave(void)
 {
-    FileWriteInstrByte(2, 0x0F ^ FileReadInstrByte(2));
+    FileWriteInstrumentByte(2, 0x0F ^ FileReadInstrumentByte(2));
 }
 
 void FileUpgradeV8(void)
 {
-    FileForEachInstrType(1, FileUpgradeV8Wave);
+    FileForEachInstrumentType(1, FileUpgradeV8Wave);
 }
 
 void FileUpgradeV9Wave(void)
 {
-    FileWriteInstrByte(9, (FileReadInstrByte(9) + 1) & 3);
+    FileWriteInstrumentByte(9, (FileReadInstrumentByte(9) + 1) & 3);
 }
 
 void FileUpgradeV9(void)
 {
-    FileForEachInstrType(1, FileUpgradeV9Wave);
+    FileForEachInstrumentType(1, FileUpgradeV9Wave);
 }
 
 void FileUpgradeV10Pulse(void)
 {
     UBYTE v;
 
-    v = FileReadInstrByte(1) & 0x0F;
+    v = FileReadInstrumentByte(1) & 0x0F;
     if (v > 8)
         v = 0xF0;
     else
         v = 0;
-    FileWriteInstrByte(9, v);
+    FileWriteInstrumentByte(9, v);
 }
 
 void FileUpgradeV10(void)
 {
-    FileForEachInstrType(0, FileUpgradeV10Pulse);
-    FileForEachInstrType(3, FileUpgradeV10Pulse);
+    FileForEachInstrumentType(0, FileUpgradeV10Pulse);
+    FileForEachInstrumentType(3, FileUpgradeV10Pulse);
 }
 
 UBYTE FileUpgradeReadByte(UBYTE i)
@@ -361,7 +361,7 @@ void FileUpgradeV11(void)
     p = 0xA000;
     q = 0xB000;
     while (i != 0x40) {
-        types[i] = ReadInstrByte(i, 0);
+        types[i] = ReadInstrumentByte(i, 0);
         i++;
     }
     while (q != 0xBFF0) {
@@ -375,7 +375,7 @@ void FileUpgradeV11(void)
                 v = 0;
             } else if (i < 0x40) {
                 if (types[i] == 3)
-                    v = ReadInstrByteS(i, 4);
+                    v = ReadInstrumentByteS(i, 4);
                 else
                     v = 0;
             }
@@ -414,15 +414,15 @@ UBYTE FileUpgradeRemapBits(UBYTE v)
 
 void FileUpgradeV12Pulse(void)
 {
-    FileWriteInstrByte(1, FileUpgradeRemapBits(FileReadInstrByte(1)));
-    FileWriteInstrByte(9, FileUpgradeRemapBits(FileReadInstrByte(9)));
-    FileWriteInstrByte(10, FileUpgradeRemapBits(FileReadInstrByte(10)));
+    FileWriteInstrumentByte(1, FileUpgradeRemapBits(FileReadInstrumentByte(1)));
+    FileWriteInstrumentByte(9, FileUpgradeRemapBits(FileReadInstrumentByte(9)));
+    FileWriteInstrumentByte(10, FileUpgradeRemapBits(FileReadInstrumentByte(10)));
 }
 
 void FileUpgradeV12(void)
 {
-    FileForEachInstrType(0, FileUpgradeV12Pulse);
-    FileForEachInstrType(3, FileUpgradeV12Pulse);
+    FileForEachInstrumentType(0, FileUpgradeV12Pulse);
+    FileForEachInstrumentType(3, FileUpgradeV12Pulse);
 }
 
 void FileUpgradeV13(void)
@@ -459,25 +459,25 @@ UBYTE FileUpgradeClampNibble(UBYTE v)
 
 void FileUpgradeV14Pulse(void)
 {
-    FileWriteInstrByte(1, FileUpgradeClampNibble(FileReadInstrByte(1)));
-    FileWriteInstrByte(9, FileUpgradeClampNibble(FileReadInstrByte(9)));
-    FileWriteInstrByte(10, FileUpgradeClampNibble(FileReadInstrByte(10)));
+    FileWriteInstrumentByte(1, FileUpgradeClampNibble(FileReadInstrumentByte(1)));
+    FileWriteInstrumentByte(9, FileUpgradeClampNibble(FileReadInstrumentByte(9)));
+    FileWriteInstrumentByte(10, FileUpgradeClampNibble(FileReadInstrumentByte(10)));
 }
 
 void FileUpgradeV14(void)
 {
-    FileForEachInstrType(0, FileUpgradeV14Pulse);
-    FileForEachInstrType(3, FileUpgradeV14Pulse);
+    FileForEachInstrumentType(0, FileUpgradeV14Pulse);
+    FileForEachInstrumentType(3, FileUpgradeV14Pulse);
 }
 
 void FileUpgradeV15Wave(void)
 {
-    FileWriteInstrByte(3, FileReadInstrByte(2) & 0xF0);
+    FileWriteInstrumentByte(3, FileReadInstrumentByte(2) & 0xF0);
 }
 
 void FileUpgradeV15(void)
 {
-    FileForEachInstrType(1, FileUpgradeV15Wave);
+    FileForEachInstrumentType(1, FileUpgradeV15Wave);
 }
 
 void FileUpgradeV16(void)
@@ -520,12 +520,12 @@ void FileUpgradeV17(void)
 
 void FileUpgradeV17bPulse(void)
 {
-    FileWriteInstrByte(11, (FileReadInstrByte(7) << 1) & 0x78);
+    FileWriteInstrumentByte(11, (FileReadInstrumentByte(7) << 1) & 0x78);
 }
 
 void FileUpgradeV17b(void)
 {
-    FileForEachInstrType(0, FileUpgradeV17bPulse);
+    FileForEachInstrumentType(0, FileUpgradeV17bPulse);
 }
 
 /*
@@ -549,7 +549,7 @@ void FileUpgradeV18(void)
     p = 0xA000;
     q = 0xB000;
     while (i != 0x40) {
-        types[i] = ReadInstrByte(i, 0);
+        types[i] = ReadInstrumentByte(i, 0);
         i++;
     }
     while (q != 0xBFF0) {

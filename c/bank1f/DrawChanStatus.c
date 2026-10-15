@@ -1,9 +1,9 @@
 /*
- * DrawChanStatus -- LSDj 9.4.0, ROM bank $1F:$6F14-$7057 (324 bytes)
+ * DrawChannelStatus -- LSDj 9.4.0, ROM bank $1F:$6F14-$7057 (324 bytes)
  *
  * MATCHING C (period GBDK 2.95-3 / SDCC 2.2.1 + tools/match/lsdj.peep). Verify:
  *
- *     tools/match/match_function.py --c c/bank1f/DrawChanStatus.c --target DrawChanStatus
+ *     tools/match/match_function.py --c c/bank1f/DrawChannelStatus.c --target DrawChannelStatus
  *
  * The song screen's channel status cell at (16, ch + 6): MUTE / L / R while
  * the channel is muted or panned, else the channel letter, with blanks drawn
@@ -14,16 +14,16 @@
 
 #include "lsdj.h"
 
-extern UBYTE wChanOutput[];                /* $C0A0, [4] */
-extern UBYTE wChanOutputOverride[];                /* $C0A4, [4] */
-extern UBYTE wChanMuteShown[];              /* $C9CE, [4] */
-extern UBYTE *wChanMuteShownPtr;            /* $C9D2 */
+extern UBYTE wChannelOutput[];                /* $C0A0, [4] */
+extern UBYTE wChannelOutputOverride[];                /* $C0A4, [4] */
+extern UBYTE wChannelMuteShown[];              /* $C9CE, [4] */
+extern UBYTE *wChannelMuteShownPtr;            /* $C9D2 */
 int StrLength(const char *s);
 
 const UBYTE ChanStatusAttrSel[4] = {3, 3, 3, 3};
 const UBYTE ChanStatusAttrNorm[4] = {0, 1, 1, 1};
 
-void DrawChanStatus(UBYTE chan)
+void DrawChannelStatus(UBYTE chan)
 {
     UBYTE y;
     char *s;
@@ -32,13 +32,13 @@ void DrawChanStatus(UBYTE chan)
     y = chan + 6;
     SetVramCursor(0x10, y);
     c = chan;
-    if (wChanOutput[c] & 0x80) {
+    if (wChannelOutput[c] & 0x80) {
         s = "MUTE";
-        hBgDigitPal = wHighlightDigitPal;
-        hBgPal = wHighlightPal;
-        switch (wChanOutputOverride[c]) {
+        hBgDigitPalette = wHighlightDigitPalette;
+        hBgPalette = wHighlightPalette;
+        switch (wChannelOutputOverride[c]) {
         case 0:
-            wChanMuteShown[c] = 1;
+            wChannelMuteShown[c] = 1;
             break;
         case 1:
             s = "L";
@@ -54,14 +54,14 @@ void DrawChanStatus(UBYTE chan)
             VBK_REG = 0;
         }
     } else {
-        hBgDigitPal = 4;
-        hBgPal = 1;
+        hBgDigitPalette = 4;
+        hBgPalette = 1;
         DrawStringIndexed("12WN"[c]);
-        wChanMuteShownPtr = &wChanMuteShown[c];
-        if (*wChanMuteShownPtr) {
-            *wChanMuteShownPtr = 0;
-            hBgDigitPal = wShadedDigitPal;
-            hBgPal = wShadedPal;
+        wChannelMuteShownPtr = &wChannelMuteShown[c];
+        if (*wChannelMuteShownPtr) {
+            *wChannelMuteShownPtr = 0;
+            hBgDigitPalette = wShadedDigitPalette;
+            hBgPalette = wShadedPalette;
             DrawString("   ");
         }
         if (hGameboyType) {
@@ -72,10 +72,10 @@ void DrawChanStatus(UBYTE chan)
     }
 }
 
-void DrawAllChanStatus(void)
+void DrawAllChannelStatus(void)
 {
-    DrawChanStatus(0);
-    DrawChanStatus(1);
-    DrawChanStatus(2);
-    DrawChanStatus(3);
+    DrawChannelStatus(0);
+    DrawChannelStatus(1);
+    DrawChannelStatus(2);
+    DrawChannelStatus(3);
 }

@@ -140,7 +140,7 @@ def main():
         lines, addr2line, labeled, _ = banks[b]
         cur_bank = None
         for i, ln in enumerate(lines):
-            m = re.search(r'ldh? \[hCurBank\], a|ld \[\$2000\], a', ln)
+            m = re.search(r'ldh? \[hCurrentBank\], a|ld \[\$2000\], a', ln)
             targets = []
             m1 = MEMOP.search(ln)
             if m1:

@@ -8,7 +8,7 @@
 
 #include "lsdj.h"
 
-/* The help strings follow ShowInstrFieldHelp's code ($05:$6D25..$7207). The
+/* The help strings follow ShowInstrumentFieldHelp's code ($05:$6D25..$7207). The
    ten that several instrument types share are stored by constant address
    (`ld (hl),#lo; inc hl; ld (hl),#hi`), the others by symbol (`ld de,#sym`),
    so the first group is spelled as addresses here. */
@@ -52,16 +52,16 @@ extern char TxtHelpVibShape[];              /* $05:$71F4 */
  * string for all. The wave PLAY field depends on whether byte 9 selects a
  * synth.
  */
-void ShowInstrFieldHelp(UBYTE type)
+void ShowInstrumentFieldHelp(UBYTE type)
 {
     char *s = 0;
 
-    if (wInstrField == 1) {
+    if (wInstrumentField == 1) {
         s = TxtHelpInstrType;
     } else {
         switch (type) {
         case 0:
-            switch (wInstrField) {
+            switch (wInstrumentField) {
             case 2: s = TxtHelpEnvStage1; break;
             case 3: s = TxtHelpEnvStage2; break;
             case 4: s = TxtHelpEnvStage3; break;
@@ -78,7 +78,7 @@ void ShowInstrFieldHelp(UBYTE type)
             }
             break;
         case 1:
-            switch (wInstrField) {
+            switch (wInstrumentField) {
             case 2: s = TxtHelpVolume; break;
             case 3: s = TxtHelpPan; break;
             case 4: s = TxtHelpPitchMode; break;
@@ -86,7 +86,7 @@ void ShowInstrFieldHelp(UBYTE type)
             case 6: s = TxtHelpDetune; break;
             case 7: s = TxtHelpCmdRate; break;
             case 9:
-                if (ReadInstrByte(wInstr, 9) == 0)
+                if (ReadInstrumentByte(wInstrument, 9) == 0)
                     s = TxtHelpWaveToPlay;
                 else
                     s = TxtHelpSynthToPlay;
@@ -99,7 +99,7 @@ void ShowInstrFieldHelp(UBYTE type)
             }
             break;
         case 2:
-            switch (wInstrField) {
+            switch (wInstrumentField) {
             case 2: s = TxtHelpKitLeft; break;
             case 3: s = TxtHelpKitRight; break;
             case 4: s = TxtHelpVolume; break;
@@ -118,7 +118,7 @@ void ShowInstrFieldHelp(UBYTE type)
             }
             break;
         case 3:
-            switch (wInstrField) {
+            switch (wInstrumentField) {
             case 2: s = TxtHelpEnvStage1; break;
             case 3: s = TxtHelpEnvStage2; break;
             case 4: s = TxtHelpEnvStage3; break;

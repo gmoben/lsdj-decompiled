@@ -19,7 +19,7 @@
 7402 ReadCompressedByte  ; read next byte from the compressed stream (ptr wCompressSrcHi/wBlockDstBank)
 74E0 LoadCompressedBlock        ; copy 512-byte compressed block a (SRAM bank 4 + a>>4, $A000 + (a&15)*$200) into the $DB00 buffer and point wCompressSrc at it; ends with reti
 753E EmitDefaultWave     ; $F0 run: emit a default wavetable frame
-758E EmitDefaultInstr ; $F1 run: emit a default instrument
+758E EmitDefaultInstrument ; $F1 run: emit a default instrument
 ; --- file screen ---
 589A FileActionNames    ; action names "LOAD"/"SAVE"/"ERASE" (5-byte stride, indexed by action type)
 
@@ -43,9 +43,9 @@
 4D58 EraseFile                  ; FILE erase action: FreeFileBlocks + EraseFileName + refresh (TxtFileErased)
 4DD1 MigrateTempoProps          ; copy legacy property bytes $bfb2/$bfb3 -> $bfca/$bfcb (format fixup)
 4FA5 FileLoadSlotInfo           ; load slot info for index (arg<$20 -> wCompressByte); calls FileScanSlotNames
-5077 FileClearChanState         ; zero the 8 wChanActive bytes ($C0E0..7) backward
-5098 FileStopSound              ; SetInterruptEnable + FileClearChanState (silence before load/save)
-50B3 LoadFile                   ; FILE load action: keep key delay/repeat + sync modes, FileLoadSlotInfo the slot (FAIL! waits a press), restore props, set active file, LoadProjSettings + RedrawScreen
+5077 FileClearChannelState         ; zero the 8 wChannelActive bytes ($C0E0..7) backward
+5098 FileStopSound              ; SetInterruptEnable + FileClearChannelState (silence before load/save)
+50B3 LoadFile                   ; FILE load action: keep key delay/repeat + sync modes, FileLoadSlotInfo the slot (FAIL! waits a press), restore props, set active file, LoadProjectSettings + RedrawScreen
 5361 DrawFileTextField          ; draw a file-screen text field (highlight-aware) at computed coords
 5531 FileDrawField              ; ColorField wrapper
 5563 FileDrawFieldChecked       ; bounds-check (<$10) then ColorField
@@ -57,33 +57,33 @@
 594A FileCheckNameLen           ; return whether (wFileCursor-wFileScroll) exceeds $0b (name length)
 595F FileCalcCompressedSize     ; read 4 size bytes + MulU16 -> total compressed size
 59E6 DrawBlocksUsed             ; BLOCKS USED/FREE panel (FileCalcCompressedSize, 33-block bound)
-60CC FileReadInstrByte          ; read byte[arg] of the instrument currently being iterated (for upgrade/migration)
-60E0 FileWriteInstrByte         ; write byte[arg] of the instrument currently being iterated
-60F5 FileForEachInstrType       ; for each of the 64 instruments whose byte-0 (type) == arg, invoke the callback ptr
+60CC FileReadInstrumentByte          ; read byte[arg] of the instrument currently being iterated (for upgrade/migration)
+60E0 FileWriteInstrumentByte         ; write byte[arg] of the instrument currently being iterated
+60F5 FileForEachInstrumentType       ; for each of the 64 instruments whose byte-0 (type) == arg, invoke the callback ptr
 61D6 FileUpgradeV0              ; song upgrade step v0->v1: patch type-2 instruments (callback FileUpgradeV0Kit)
 621D FileUpgradeV1              ; song upgrade step v1->v2: type-2 instruments, subtract 8 from fields 2 & 9 (callback FileUpgradeV1Kit)
 622D FileUpgradeV2              ; song upgrade step v2->v3: patch song data (WriteSongByte)
-630F FileUpgradeV3              ; song upgrade step v3->v4: patch instruments (FileForEachInstrType)
+630F FileUpgradeV3              ; song upgrade step v3->v4: patch instruments (FileForEachInstrumentType)
 6336 FileUpgradeV4              ; song upgrade step v4->v5: patch song data (WriteSongByte)
-63C6 FileUpgradeV5              ; song upgrade step v5->v6: patch instruments (FileForEachInstrType)
-640B FileUpgradeV6              ; song upgrade step v6->v7: patch instruments (FileForEachInstrType)
+63C6 FileUpgradeV5              ; song upgrade step v5->v6: patch instruments (FileForEachInstrumentType)
+640B FileUpgradeV6              ; song upgrade step v6->v7: patch instruments (FileForEachInstrumentType)
 641B FileUpgradeV7              ; song upgrade step v7->v8: reclassify instrument bytes ($80/$b8/$bc/$f0)
-6503 FileUpgradeV8              ; song upgrade step v8->v9: patch instruments (FileForEachInstrType)
-6530 FileUpgradeV9              ; song upgrade step v9->v10: patch instruments (FileForEachInstrType)
-656B FileUpgradeV10             ; song upgrade step v10->v11: patch instruments (FileForEachInstrType)
+6503 FileUpgradeV8              ; song upgrade step v8->v9: patch instruments (FileForEachInstrumentType)
+6530 FileUpgradeV9              ; song upgrade step v9->v10: patch instruments (FileForEachInstrumentType)
+656B FileUpgradeV10             ; song upgrade step v10->v11: patch instruments (FileForEachInstrumentType)
 6585 FileUpgradeReadByte        ; upgrade helper: read a working-song byte (ReadSongByte)
 65B9 FileUpgradeClearRange      ; upgrade helper: clear a range (MemSet; reads via FileUpgradeReadByte)
 669E FileUpgradeV11             ; song upgrade step v11->v12: noise-instrument phrase notes -> instrument byte 4, high nibble moved by octave
 68C5 FileUpgradeRemapBits       ; upgrade helper: recursive bit/nibble remap via ROM table FileUpgradeRemapTable
-6959 FileUpgradeV12             ; song upgrade step v12->v13: patch instruments (FileForEachInstrType)
+6959 FileUpgradeV12             ; song upgrade step v12->v13: patch instruments (FileForEachInstrumentType)
 6973 FileUpgradeRetrigRate      ; version 13: an R command value gets 1 added to its rate digit (mod 16), except R8x (resync)
 69A7 FileUpgradeV13             ; song upgrade step v13->v14: patch phrase data
 6A57 FileUpgradeClampNibble     ; upgrade helper: mask low nibble, conditional decrement; return in e
-6AD2 FileUpgradeV14             ; song upgrade step v14->v15: patch instruments (FileForEachInstrType)
-6B08 FileUpgradeV15             ; song upgrade step v15->v16: patch instruments (FileForEachInstrType)
+6AD2 FileUpgradeV14             ; song upgrade step v14->v15: patch instruments (FileForEachInstrumentType)
+6B08 FileUpgradeV15             ; song upgrade step v15->v16: patch instruments (FileForEachInstrumentType)
 6B18 FileUpgradeV16             ; song upgrade step v16->v17: reclassify bytes ($90/$b8/$0f/$0e)
 6BA7 FileUpgradeV17             ; song upgrade step v17->v18: patch song data (+ FileUpgradeV17b)
-6C46 FileUpgradeV17b            ; v17 upgrade helper: patch instruments (FileForEachInstrType)
+6C46 FileUpgradeV17b            ; v17 upgrade helper: patch instruments (FileForEachInstrumentType)
 6C56 FileUpgradeV18             ; song upgrade step v18->v19: noise-instrument phrase notes remapped through NoiseNoteRemapTable
 6EAC FileUpgradeV19             ; song upgrade step v19->v20: patch song data (WriteSongByte)
 6F73 FileUpgradeV21             ; song-format upgrade step for v21->v22: patch synth params (SRAM $beb2.. stride $10, write $03)
@@ -105,7 +105,7 @@
 47B1 FormatFileSpace            ; zero filenames+versions (bank4 $a000-$a13f), reset the block alloc table
 71CD SendLinkClipboard          ; after a copy on linked Game Boys not playing (SYNC = LSDJ): send $FE, the clipboard type, the selection bounds and the cells (manual 5.1.4 Clipboard Transfer)
 
-; --- per-instrument-type migration callbacks (passed to FileForEachInstrType) ---
+; --- per-instrument-type migration callbacks (passed to FileForEachInstrumentType) ---
 6134 FileUpgradeV0Kit    ; save-format 0 kit instrument: the loop bits of kit bytes 2/9 move into byte 5 (bits 6/5), the kit numbers shift up by 8
 61E6 FileUpgradeV1Kit    ; V1 kit-instrument field migration (callback)
 628B FileUpgradeV3Pulse  ; V3 pulse-instrument field migration (callback)
@@ -173,7 +173,7 @@
 4F53 .loop2               ; loop head in SaveFile
 4FA1 .done                ; common exit of SaveFile
 5073 .done                ; common exit of FileLoadSlotInfo
-507A .loop                ; loop head in FileClearChanState
+507A .loop                ; loop head in FileClearChannelState
 51E3 .loop                ; loop head in LoadFile
 51EC .loop2               ; loop head in LoadFile
 51F5 .loop3               ; loop head in LoadFile
@@ -195,9 +195,9 @@
 600A .loop2               ; loop head in FileScreenInput
 607C .loop3               ; loop head in FileScreenInput
 60A5 .done                ; common exit of FileScreenInput
-60F4 .done                ; common exit of FileWriteInstrByte
-6105 .loop                ; loop head in FileForEachInstrType
-6130 .done                ; common exit of FileForEachInstrType
+60F4 .done                ; common exit of FileWriteInstrumentByte
+6105 .loop                ; loop head in FileForEachInstrumentType
+6130 .done                ; common exit of FileForEachInstrumentType
 6237 .loop                ; loop head in FileUpgradeV2
 6287 .done                ; common exit of FileUpgradeV2
 6340 .loop                ; loop head in FileUpgradeV4
@@ -235,11 +235,11 @@
 70F7 .done                ; common exit of FileUpgradeSong
 714B .loop                ; loop head in ReadWorkingSongByte
 7177 .loop                ; loop head in FileCompressRun
-727D .col
+727D .column
 72AA .cell
 72EA .done                ; common exit of SendLinkClipboard
 72EF .loop                ; loop head in SyncTransferByte
-7389 .col
+7389 .column
 73B6 .cell
 744B .loop                ; loop head in FlushBlockToSram
 747D .loop                ; loop head in VerifyBlockAgainstSram
@@ -284,10 +284,10 @@
 55A6 .loadFileCursorRestrict
 55D5 .checkFileCursorRestrict
 55E3 .checkFileCursorRestrictb
-5658 .loadShadedDigitPal
+5658 .loadShadedDigitPalette
 5721 .loadVramCursor
 5788 .drawStringTile20
-57E2 .loadShadedDigitPal
+57E2 .loadShadedDigitPalette
 5846 .checkGameboyType
 585D .setVramCursor
 58F9 .setFileCursorRestrict
@@ -299,12 +299,12 @@
 5B6B .checkIsSelectingFile
 5BA2 .loadFileCursorRestrict
 5C17 .drawFileScreen
-5C1D .checkProjStrBuf
+5C1D .checkProjectStrBuf
 5C43 .drawBlocksUsed
-5CC8 .setNameEditIsInstr
+5CC8 .setNameEditIsInstrument
 5CE5 .loadFileCursorRestrictb
 5D82 .checkGameboyType
-5D8D .setProjStrBuf
+5D8D .setProjectStrBuf
 5D98 .loadFileRedrawCount
 5DAA .loadFileRedrawCountb
 5DE9 .checkFileCursorRestrict
@@ -312,11 +312,11 @@
 5E27 .checkAPressEnabledb
 5E34 .checkIsSelectingFileb
 5E3C .setIsSelectingFile
-5E4C .setProjStrBufb
-5E65 .checkProjStrBufb
-5E95 .setCurScreen
-5EFB .checkProjStrBufc
-5F82 .checkProjStrBufd
+5E4C .setProjectStrBufb
+5E65 .checkProjectStrBufb
+5E95 .setCurrentScreen
+5EFB .checkProjectStrBufc
+5F82 .checkProjectStrBufd
 5FF2 .fileMatchName
 5FF5 .checkFileCursorRestrictb
 6001 .okb
@@ -349,7 +349,7 @@
 70DF .fileUpgradeV21
 71AA .ok
 71DC .modeOk
-71EB .colsOk
+71EB .columnsOk
 71FA .rowsOk
 7207 .rightOk
 7214 .bottomOk
@@ -559,7 +559,7 @@
 64DA .cont_9
 64DD .cont_10
 655B .cont
-655D .fileWriteInstrByte
+655D .fileWriteInstrumentByte
 6594 .step
 65B5 .cont
 65B6 .cont_2
@@ -635,9 +635,9 @@
 71C3 .cont_2
 7225 .skip
 7228 .send
-72DC .nextCol
+72DC .nextColumn
 7301 .loadSyncRxByte
-73EB .nextCol
+73EB .nextColumn
 7417 .storeCompressByte
 7432 .loadDecompressPos
 7485 .incBlockDstPage

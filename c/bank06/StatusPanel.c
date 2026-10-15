@@ -26,10 +26,10 @@ extern char TxtKitNoteC8[];                 /* $06:$7840 "C 8" */
 extern char TxtKitNoteF5[];                 /* $06:$7834 "F 5" */
 extern char TxtNoNote[];                    /* $06:$782C "---" (this unit's literals follow NoteNames) */
 extern char TxtNoteBad[];                   /* $06:$7848 "???" */
-extern UBYTE wChanDispNote[];               /* $C41F, [4] */
-extern UBYTE wChanDispNoteTimer[];          /* $C423, [4] */
-extern UBYTE wChanOutput[];                /* $C0A0, [4] */
-extern UBYTE wChanOutputOverride[];                /* $C0A4, [4] */
+extern UBYTE wChannelDispNote[];               /* $C41F, [4] */
+extern UBYTE wChannelDispNoteTimer[];          /* $C423, [4] */
+extern UBYTE wChannelOutput[];                /* $C0A0, [4] */
+extern UBYTE wChannelOutputOverride[];                /* $C0A4, [4] */
 extern UBYTE wKit1Bank;                     /* $C4F4 */
 extern UBYTE wKit2Bank;                     /* $C4F5 */
 extern UBYTE wNoteTranspose;                /* $C4D3 */
@@ -81,21 +81,21 @@ void UpdateStatusPanel(void)
     UBYTE *p;
     UBYTE t;
 
-    hBgDigitPal = wShadedDigitPal;
-    hBgPal = wShadedPal;
+    hBgDigitPalette = wShadedDigitPalette;
+    hBgPalette = wShadedPalette;
     for (i = 0; i < 4; i++) {
-        t = (wChanOutput[i] & 0x80) && !wChanOutputOverride[i];
+        t = (wChannelOutput[i] & 0x80) && !wChannelOutputOverride[i];
         if (t)
             continue;
-        n = wChanDispNote[i];
+        n = wChannelDispNote[i];
         if (n) {
             DrawStatusNote(i, n);
-            wChanDispNote[i] = 0;
+            wChannelDispNote[i] = 0;
             if (i == 2)
                 PositionWavSprites();
-            wChanDispNoteTimer[i] = 0x19;
+            wChannelDispNoteTimer[i] = 0x19;
         } else {
-            p = &wChanDispNoteTimer[i];
+            p = &wChannelDispNoteTimer[i];
             n = *p;
             if (n != 0) {
                 if (n == 1) {
@@ -115,8 +115,8 @@ void UpdateStatusPanel(void)
 
 void DrawSyncStatusText(char *s)
 {
-    hBgDigitPal = 4;
-    hBgPal = 1;
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
     wVramCursor = (UBYTE *)0x99B0;
     DrawString(s);
 }

@@ -1,13 +1,13 @@
 /*
  * The instrument-record accessors -- LSDj 9.4.0, ROM bank $00:
- *   WriteInstrByte    $0953-$09B8 (102 bytes)
- *   ReadInstrByte     $0A91-$0AE1  (81 bytes)
- *   ReadCurInstrByte  $0AE2-$0AF5  (20 bytes)
+ *   WriteInstrumentByte    $0953-$09B8 (102 bytes)
+ *   ReadInstrumentByte     $0A91-$0AE1  (81 bytes)
+ *   ReadCurrentInstrumentByte  $0AE2-$0AF5  (20 bytes)
  *
  * MATCHING C (period GBDK 2.95-3 / SDCC 2.2.1 + tools/match/lsdj.peep). Verify:
  *
- *     tools/match/match_function.py --c c/bank00/InstrByte.c --target ReadInstrByte
- *     (or WriteInstrByte / ReadCurInstrByte; `make match` runs all three)
+ *     tools/match/match_function.py --c c/bank00/InstrByte.c --target ReadInstrumentByte
+ *     (or WriteInstrumentByte / ReadCurrentInstrumentByte; `make match` runs all three)
  *
  * instruments[instr][field] of the working song: the 16-byte instrument
  * records live at song offset $3080 = SRAM bank 1, $B080 (SramInstrs),
@@ -28,7 +28,7 @@
 
 #include "lsdj.h"
 
-void WriteInstrByte(UBYTE instr, UBYTE field, UBYTE val)
+void WriteInstrumentByte(UBYTE instr, UBYTE field, UBYTE val)
 {
     UBYTE *p;
 
@@ -42,7 +42,7 @@ void WriteInstrByte(UBYTE instr, UBYTE field, UBYTE val)
     WriteSongByte(1, p + (unsigned int)field, val);   /* the cast: field into bc, p into hl */
 }
 
-UBYTE ReadInstrByte(UBYTE instr, UBYTE field)
+UBYTE ReadInstrumentByte(UBYTE instr, UBYTE field)
 {
     UBYTE *p;
 
@@ -54,7 +54,7 @@ UBYTE ReadInstrByte(UBYTE instr, UBYTE field)
     return ReadSongByte(1, p + field);
 }
 
-UBYTE ReadCurInstrByte(UBYTE field)
+UBYTE ReadCurrentInstrumentByte(UBYTE field)
 {
-    return ReadInstrByte(wInstr, field);
+    return ReadInstrumentByte(wInstrument, field);
 }

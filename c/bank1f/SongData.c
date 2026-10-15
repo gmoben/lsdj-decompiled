@@ -11,17 +11,17 @@
 
 #include "lsdj.h"
 
-extern UBYTE wInstrRemapTable[];            /* $C9B8, [16] */
-extern UBYTE wInstrRemapDirty;              /* $C9B7 */
+extern UBYTE wInstrumentRemapTable[];            /* $C9B8, [16] */
+extern UBYTE wInstrumentRemapDirty;              /* $C9B7 */
 extern UBYTE DefaultWaveFrameB1F[];         /* $1F:$491A, [16] */
 extern UBYTE DefaultSynthParams[];          /* $1F:$61FF, [16] */
 extern UBYTE wNameEditBuf[];                /* $C431, [5] */
-extern UBYTE wColInstr[];              /* $C468, [4] */
-UBYTE ReadPhraseInstr(UBYTE phrase, UBYTE row);  /* $04:$4918 */
-void WriteInstrName(UBYTE instr);           /* $01:$4A49 */
+extern UBYTE wColumnInstrument[];              /* $C468, [4] */
+UBYTE ReadPhraseInstrument(UBYTE phrase, UBYTE row);  /* $04:$4918 */
+void WriteInstrumentName(UBYTE instr);           /* $01:$4A49 */
 UBYTE IsPhraseUsed(UBYTE phrase);
-extern UBYTE wColPhrase[];                  /* $C453, [4] */
-extern UBYTE wColChain[];                   /* $C44F, [4] */
+extern UBYTE wColumnPhrase[];                  /* $C453, [4] */
+extern UBYTE wColumnChain[];                   /* $C44F, [4] */
 extern UBYTE wDedupTableIsDup;              /* $C9CC */
 extern UBYTE wDedupPhraseUsed;              /* $C9C8 */
 extern UBYTE wDedupPhraseIsDup;             /* $C9C9 */
@@ -31,16 +31,16 @@ void FreePhrase(void);                      /* $01:$4DD3 */
 void FreeChain(void);                       /* $01:$4E43 */
 void MarkChainUsed(void);                   /* $01:$4D67 */
 void ShowOutOfMemory(void);                 /* $01:$75BD */
-UBYTE FreeUnusedInstrs(void);
+UBYTE FreeUnusedInstruments(void);
 UBYTE CountUsedPhrases(void);
 UBYTE CountUsedChains(void);
 void RemapSeqChains(void);
 void RebuildPhraseAllocMap(void);
 UBYTE FindDupTable(UBYTE a, UBYTE b);
-void RemapCmdTableRefs(UBYTE from, UBYTE to);
-extern UBYTE DefaultInstrPulse[];           /* $1F:$4A02, [11] */
-extern UBYTE DefaultInstrWave[];            /* $4A0D, [11] */
-extern UBYTE DefaultInstrKit[];             /* $4A18, [14] */
+void RemapCommandTableRefs(UBYTE from, UBYTE to);
+extern UBYTE DefaultInstrumentPulse[];           /* $1F:$4A02, [11] */
+extern UBYTE DefaultInstrumentWave[];            /* $4A0D, [11] */
+extern UBYTE DefaultInstrumentKit[];             /* $4A18, [14] */
 UBYTE IsChainUsed(UBYTE chain);
 UBYTE IsTableUsed(UBYTE t);
 void MarkTableUsed(UBYTE t);
@@ -52,22 +52,22 @@ void ResetWaveFrame(UBYTE p);
 void MarkPhraseTablesUsed(UBYTE phrase);
 UBYTE IsTableFree(UWORD t);
 UBYTE CountModifiedSynths(void);
-UBYTE AnyCmdFUsed(void);
+UBYTE AnyCommandFUsed(void);
 void ResetUnusedSynths(void);
-void MarkTablesOfUsedInstrs(void);
+void MarkTablesOfUsedInstruments(void);
 void MarkTablesOfUsedPhrases(void);
 UBYTE MarkTablesOfUsedTables(void);
 UBYTE ClearUnusedTables(void);
 void MarkChainPhrasesUsed(UBYTE chain);
 UBYTE WaveFrameModified(UBYTE phrase);
-UBYTE IsInstrAllocated(UBYTE instr);
-void MarkInstrTableUsed(UBYTE instr);
-UBYTE ClaimInstrSlot(UBYTE instr);
+UBYTE IsInstrumentAllocated(UBYTE instr);
+void MarkInstrumentTableUsed(UBYTE instr);
+UBYTE ClaimInstrumentSlot(UBYTE instr);
 UBYTE CountUsedTables(void);
 void MarkTableTablesUsed(UBYTE t);
 void ClearTable(UBYTE t);
 void MarkPhraseUsed(UBYTE phrase);
-void WritePhraseInstr(UBYTE phrase, UBYTE row, UBYTE instr);
+void WritePhraseInstrument(UBYTE phrase, UBYTE row, UBYTE instr);
 void SetChainTranspose(UBYTE chain, UBYTE row, UBYTE v);    /* $06:$5655 */
 
 void WriteChainPhrase(UBYTE chain, UBYTE row, UBYTE phrase)
@@ -82,7 +82,7 @@ void WriteChainPhrase(UBYTE chain, UBYTE row, UBYTE phrase)
     WriteSongByte(1, p + row, phrase);
 }
 
-UBYTE ClaimInstrSlot(UBYTE instr)
+UBYTE ClaimInstrumentSlot(UBYTE instr)
 {
     UBYTE *src;
     UWORD n;
@@ -95,21 +95,21 @@ UBYTE ClaimInstrSlot(UBYTE instr)
     if (ReadSongByte(1, p))
         return 0;
     WriteSongByte(1, p, 1);
-    switch (wSongCol) {
+    switch (wSongColumn) {
     case 2:
-        src = DefaultInstrKit;
+        src = DefaultInstrumentKit;
         n = 14;
         break;
     case 3:
-        src = DefaultInstrWave;
+        src = DefaultInstrumentWave;
         n = 11;
         break;
     default:
-        src = DefaultInstrPulse;
+        src = DefaultInstrumentPulse;
         n = 11;
     }
     for (i = 0; i != n; i++)
-        WriteInstrByte(instr, i, src[i]);
+        WriteInstrumentByte(instr, i, src[i]);
     return 1;
 }
 
@@ -119,23 +119,23 @@ void InitRemapTable(void)
     UBYTE *p;
 
     for (i = 0; i != 0x10; i++) {
-        p = &wInstrRemapTable[i];
+        p = &wInstrumentRemapTable[i];
         v = *p;
         if (v < 0x40) {
             *p = 0xFF;
-            ClaimInstrSlot(v);
+            ClaimInstrumentSlot(v);
         }
     }
-    wInstrRemapDirty = 0;
+    wInstrumentRemapDirty = 0;
 }
 
-UBYTE AllocNextFreeInstr(void)
+UBYTE AllocNextFreeInstrument(void)
 {
     UBYTE i;
 
     for (i = 0; i < 0x40; i++) {
-        if (ClaimInstrSlot(i)) {
-            FarCallArg3(4, (UWORD)WritePhraseInstr, wPhrase, wPhraseRow, i);
+        if (ClaimInstrumentSlot(i)) {
+            FarCallArg3(4, (UWORD)WritePhraseInstrument, wPhrase, wPhraseRow, i);
             return i;
         }
     }
@@ -183,7 +183,7 @@ UBYTE IsSongChainUsed(void)
     UBYTE *p;
     UBYTE start;
 
-    start = wColChain[wSongCol];
+    start = wColumnChain[wSongColumn];
     if (start & 0x80)
         start = 0;
     i = start;
@@ -207,7 +207,7 @@ UBYTE IsSongChainUsed(void)
    every instrument a phrase row uses, then reset each unmarked one (its
    name, its $B080 parameter block, the columns' current instrument).
    Returns how many of the instruments allocated before were freed. */
-UBYTE FreeUnusedInstrs(void)
+UBYTE FreeUnusedInstruments(void)
 {
     UWORD p;
     UBYTE i;
@@ -228,7 +228,7 @@ UBYTE FreeUnusedInstrs(void)
     }
     for (ph = 0; ph < 0xFF; ph++) {
         for (row = 0; row < 0x10; row++) {
-            i = FarCallArg2P(4, FAR_FN(ReadPhraseInstr), ph, row);
+            i = FarCallArg2P(4, FAR_FN(ReadPhraseInstrument), ph, row);
             if (i < 0x40)
                 WriteSongByte(1, (UWORD)SramInstrAlloc + i, 1);
         }
@@ -243,7 +243,7 @@ UBYTE FreeUnusedInstrs(void)
             wNameEditBuf[2] = 0;
             wNameEditBuf[3] = 0;
             wNameEditBuf[4] = 0;
-            FarCallArg(1, FAR_FN(WriteInstrName), i);
+            FarCallArg(1, FAR_FN(WriteInstrumentName), i);
             addr = i;
             addr <<= 4;
             addr |= 0xB000;
@@ -259,8 +259,8 @@ UBYTE FreeUnusedInstrs(void)
                 /* SDCC fetches i into a over the element it just read
                    (`cp a,a`): the test is always true, so freeing any
                    instrument clears all four columns' */
-                if (wColInstr[k - 1] == i)
-                    wColInstr[k - 1] = 0xFF;
+                if (wColumnInstrument[k - 1] == i)
+                    wColumnInstrument[k - 1] = 0xFF;
             } while (--k);
         } else {
             n--;
@@ -284,7 +284,7 @@ UBYTE IsTableUsed(UBYTE t)
     return wUsedTableMap[t];
 }
 
-UBYTE IsInstrAllocated(UBYTE instr)
+UBYTE IsInstrumentAllocated(UBYTE instr)
 {
     return ReadSongByte(1, SramInstrAlloc + (UWORD)instr);
 }
@@ -364,22 +364,22 @@ UBYTE MarkTablesOfUsedTables(void)
     return !(before == CountUsedTables());
 }
 
-void MarkInstrTableUsed(UBYTE instr)
+void MarkInstrumentTableUsed(UBYTE instr)
 {
     UBYTE v;
 
-    v = ReadInstrByte(instr, 6);
+    v = ReadInstrumentByte(instr, 6);
     if (v & 0x20)
         MarkTableUsed(v & 0x1F);
 }
 
-void MarkTablesOfUsedInstrs(void)
+void MarkTablesOfUsedInstruments(void)
 {
     UBYTE i;
 
     for (i = 0; i < 0x40; i++)
-        if (IsInstrAllocated(i))
-            MarkInstrTableUsed(i);
+        if (IsInstrumentAllocated(i))
+            MarkInstrumentTableUsed(i);
 }
 
 void ClearTableRow(UBYTE bank, UBYTE *p)
@@ -432,7 +432,7 @@ UBYTE ClearUnusedTables(void)
 UBYTE FreeUnusedTables(void)
 {
     MemSet(wUsedTableMap, 0, 0x20);
-    MarkTablesOfUsedInstrs();
+    MarkTablesOfUsedInstruments();
     MarkTablesOfUsedPhrases();
     do
         ;
@@ -444,7 +444,7 @@ void RemapSeqChains(void)
 {
     UBYTE j, i, col;
 
-    col = wSongCol;
+    col = wSongColumn;
     _asm
         di
     _endasm;
@@ -454,14 +454,14 @@ void RemapSeqChains(void)
         ei
         di
     _endasm;
-    for (wSongCol = 0; wSongCol < 4; wSongCol++) {
+    for (wSongColumn = 0; wSongColumn < 4; wSongColumn++) {
         for (j = 0; j != 0xC0; j++) {
-            i = ReadSeqByte(wSongCol, j);
+            i = ReadSeqByte(wSongColumn, j);
             if (!(i & 0x80))
                 FarCallArg(1, FAR_FN(MarkChainUsed), i);
         }
     }
-    wSongCol = col;
+    wSongColumn = col;
     _asm
         ei
         di
@@ -665,8 +665,8 @@ void RemapPhraseRefs(UBYTE from, UBYTE to)
     FarCallArg(1, FAR_FN(FreePhrase), from);
     i = 4;
     do {
-        if (from == wColPhrase[i - 1])
-            wColPhrase[i - 1] = to;
+        if (from == wColumnPhrase[i - 1])
+            wColumnPhrase[i - 1] = to;
         i--;
     } while (i);
 }
@@ -688,13 +688,13 @@ void RemapChainRefs(UBYTE from, UBYTE to)
     FarCallArg(1, FAR_FN(FreeChain), from);
     i = 4;
     do {
-        if (from == wColChain[i - 1])
-            wColChain[i - 1] = to;
+        if (from == wColumnChain[i - 1])
+            wColumnChain[i - 1] = to;
         i--;
     } while (i);
 }
 
-void RemapCmdTableRefs(UBYTE from, UBYTE to)
+void RemapCommandTableRefs(UBYTE from, UBYTE to)
 {
     volatile UWORD p;
     volatile UWORD q;
@@ -736,8 +736,8 @@ void RemapCmdTableRefs(UBYTE from, UBYTE to)
     nt = to | 0x20;
     nf = from | 0x20;
     while (i != 0x40) {
-        if (ReadInstrByte(i, 6) == nf)
-            WriteInstrByte(i, 6, nt);
+        if (ReadInstrumentByte(i, 6) == nf)
+            WriteInstrumentByte(i, 6, nt);
         i++;
     }
 }
@@ -801,7 +801,7 @@ void DedupTables(void)
                 continue;
             wDedupTableIsDup = FindDupTable(i, j);
             if (wDedupTableIsDup)
-                RemapCmdTableRefs(j, i);
+                RemapCommandTableRefs(j, i);
         }
     }
     wVramCursor = (UBYTE *)0x98AE;
@@ -902,7 +902,7 @@ UBYTE CountModifiedSynths(void)
     return n;
 }
 
-UBYTE AnyPhraseUsesCmdF(void)
+UBYTE AnyPhraseUsesCommandF(void)
 {
     UBYTE *p;
     UBYTE ph, i;
@@ -922,7 +922,7 @@ UBYTE AnyPhraseUsesCmdF(void)
     return 0;
 }
 
-UBYTE AnyTableUsesCmdF(void)
+UBYTE AnyTableUsesCommandF(void)
 {
     UBYTE *p, *q;
     UBYTE i, j, ok;
@@ -991,8 +991,8 @@ void ResetUnusedSynths(void)
         i--;
     } while (i);
     for (n = 0; n < 0x40; n++)
-        if ((ReadInstrByte(n, 0) & 3) == 1)
-            used[ReadInstrByte(n, 3) >> 4] = 1;
+        if ((ReadInstrumentByte(n, 0) & 3) == 1)
+            used[ReadInstrumentByte(n, 3) >> 4] = 1;
     for (i = 0; i < 0x10; i++)
         if (!used[i]) {
             ResetSynthParams(i);
@@ -1005,7 +1005,7 @@ UBYTE FreeUnusedSynths(void)
     UBYTE a, b;
 
     a = CountModifiedSynths();
-    if (AnyCmdFUsed())
+    if (AnyCommandFUsed())
         return 0;
     ResetUnusedSynths();
     b = CountModifiedSynths();
@@ -1036,7 +1036,7 @@ void CleanSongData(void)
     printf("OK!");
 }
 
-void CleanInstrData(void)
+void CleanInstrumentData(void)
 {
     wVramCursor = 0x98A4;
     DrawString("DE-DUPE...");
@@ -1045,7 +1045,7 @@ void CleanInstrData(void)
     DrawString("FREEING:");
     wVramCursor = 0x98E4;
     printf("INSTRS....");
-    printf("%d", FreeUnusedInstrs());
+    printf("%d", FreeUnusedInstruments());
     wVramCursor = 0x9904;
     printf("TABLES....");
     printf("%d", FreeUnusedTables());

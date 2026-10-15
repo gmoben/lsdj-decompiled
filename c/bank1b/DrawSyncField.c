@@ -46,16 +46,16 @@ void DrawSyncField(void)
     case 7: DrawString(TxtSyncAnOut); break;
     }
     wVramCursor = (UBYTE *)0x98A0;
-    hBgDigitPal = 4;
-    hBgPal = 1;
-    if (ProjSyncModeIs567()) {
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
+    if (ProjectSyncModeIs567()) {
         if (wSyncMode == 5)
             s = TxtSyncPs2;
         else
             s = TxtSyncTicksStep;
         DrawString(s);
-        hBgDigitPal = wShadedDigitPal;
-        hBgPal = wShadedPal;
+        hBgDigitPalette = wShadedDigitPalette;
+        hBgPalette = wShadedPalette;
         DrawHexByte(wSyncMode2);
         if (hGameboyType)
             ColorField(0x0B, 5, 2, 1);

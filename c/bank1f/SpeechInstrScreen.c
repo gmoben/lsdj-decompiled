@@ -9,9 +9,9 @@
 
 #include "lsdj.h"
 
-void DrawAllChanStatus(void);
+void DrawAllChannelStatus(void);
 extern UBYTE wNameEditBuf[];                /* $C431, [5] */
-extern UBYTE wNameEditIsInstr;              /* $C430 */
+extern UBYTE wNameEditIsInstrument;              /* $C430 */
 extern UBYTE wAPressEnabled;                /* $C409 */
 extern UBYTE wBHeld;                        /* $C40B */
 extern UBYTE wButtons;                      /* $C575 */
@@ -22,10 +22,10 @@ void MoveMapCursorLeft(void);                     /* bank 5 */
 void MoveMapCursorRight(void);                    /* bank 5 */
 void MoveMapCursorUp(void);                       /* bank 5 */
 void MoveMapCursorDown(void);                     /* bank 5 */
-void PrevInstrPage(void);             /* bank 3 */
+void PrevInstrumentPage(void);             /* bank 3 */
 void SoundToggleSongPlayback(void);                 /* bank 2 */
 void SoundTogglePlayback(void);                    /* bank 2 */
-void DrawInstrScreenFrame(void);                /* $03:$45A7 */
+void DrawInstrumentScreenFrame(void);                /* $03:$45A7 */
 
 void DrawWordRow(UBYTE n)
 {
@@ -66,18 +66,18 @@ void DrawSpeechCursor(void)
     ColorField(0, SpeechCursorY(), 3, hGameboyType ? 3 : 2);
 }
 
-void DrawSpeechInstrScreen(void)
+void DrawSpeechInstrumentScreen(void)
 {
     UBYTE *p;
     UBYTE row, i, c;
 
-    wCurScreen = 0x0B;
-    FarCall(1, FAR_FN(DrawScreenPalMap));
-    FarCall(0x1F, FAR_FN(DrawAllChanStatus));
-    wCurScreen = 6;
-    FarCall(3, FAR_FN(DrawInstrScreenFrame));
-    hBgDigitPal = 4;
-    hBgPal = 1;
+    wCurrentScreen = 0x0B;
+    FarCall(1, FAR_FN(DrawScreenPaletteMap));
+    FarCall(0x1F, FAR_FN(DrawAllChannelStatus));
+    wCurrentScreen = 6;
+    FarCall(3, FAR_FN(DrawInstrumentScreenFrame));
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
     wVramCursor = 0x9840;
     DrawString("TYPE   SPEECH");
     p = (UBYTE *)0xBDD0;
@@ -85,11 +85,11 @@ void DrawSpeechInstrScreen(void)
     while (row < 4 + 14) {
         SetVramCursor(0, row);
         if (row & 1) {
-            hBgDigitPal = wShadedDigitPal;
-            hBgPal = wShadedPal;
+            hBgDigitPalette = wShadedDigitPalette;
+            hBgPalette = wShadedPalette;
         } else {
-            hBgDigitPal = 4;
-            hBgPal = 1;
+            hBgDigitPalette = 4;
+            hBgPalette = 1;
         }
         i = 0;
         while (i < 3) {
@@ -117,7 +117,7 @@ void DrawSpeechInstrScreen(void)
  * pairs and 3-letter name; a cut leaves the name "W-n"), select+A pastes it,
  * B+left / B+down step the instrument back. 1 when the key was taken.
  */
-UBYTE SpeechInstrInput(void)
+UBYTE SpeechInstrumentInput(void)
 {
     UWORD p;
     UBYTE i;
@@ -133,7 +133,7 @@ UBYTE SpeechInstrInput(void)
         wNameEditBuf[2] = ReadSongByte(0, p);
         wNameEditBuf[3] = 0;
         wNameEditBuf[4] = 0;
-        wNameEditIsInstr = 0;
+        wNameEditIsInstrument = 0;
         FarCall(0x1B, FAR_FN(OpenNameEditor));
         return 1;
     case 0x04:
@@ -202,8 +202,8 @@ UBYTE SpeechInstrInput(void)
         }
         if (wButtons == 0x30) {
             SetVramCursor(0, SpeechCursorY());
-            hBgDigitPal = wHighlightDigitPal;
-            hBgPal = wHighlightPal;
+            hBgDigitPalette = wHighlightDigitPalette;
+            hBgPalette = wHighlightPalette;
             p -= 3;
             WriteSongByte(0, p++, 'W');
             DrawStringIndexed('W');
@@ -231,8 +231,8 @@ UBYTE SpeechInstrInput(void)
             WriteSongByte(0, p++, ReadClipboardCell(1, i));
         }
         p = (UWORD)wSpeechRow * 3 + (UWORD)0xBDD0;
-        hBgDigitPal = wHighlightDigitPal;
-        hBgPal = wHighlightPal;
+        hBgDigitPalette = wHighlightDigitPalette;
+        hBgPalette = wHighlightPalette;
         SetVramCursor(0, SpeechCursorY());
         for (i = 0; i < 3; i++) {
             if (p >= (UWORD)0xBE78)
@@ -246,10 +246,10 @@ UBYTE SpeechInstrInput(void)
         }
         return 1;
     case 0x22:
-        FarCall(3, PrevUsedInstr);
+        FarCall(3, PrevUsedInstrument);
         return 1;
     case 0x28:
-        FarCall(3, PrevInstrPage);
+        FarCall(3, PrevInstrumentPage);
         return 1;
     case 0xC0:
         if (!wButtonsSame)

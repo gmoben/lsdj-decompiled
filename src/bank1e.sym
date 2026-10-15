@@ -1,5 +1,5 @@
 ; Bank $1E -- screen pre-draw helper
-4000 DrawScreenColLabels       ; top-row column labels for the screen about to be drawn (raw tiles; none on the wave screen); DispatchScreenDraw prologue
+4000 DrawScreenColumnLabels       ; top-row column labels for the screen about to be drawn (raw tiles; none on the wave screen); DispatchScreenDraw prologue
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 79FA FillVramRegions         ; write $ff to VRAM $9480-$97FF and $8800-$88CF (via WriteVramByteSafe vblank tile writer)
@@ -29,7 +29,7 @@
 79EC TxtSpaces13        ; 13-space blank string
 
 ; --- structural local names (loop heads / common exits) ---
-42C6 .done                ; common exit of DrawScreenColLabels
+42C6 .done                ; common exit of DrawScreenColumnLabels
 79FE .loop                ; loop head in FillVramRegions
 7A1B .loop2               ; loop head in FillVramRegions
 7A36 .done                ; common exit of FillVramRegions
@@ -38,13 +38,13 @@
 7A9C .done                ; common exit of CopyVramTile
 
 ; --- structural local names (loop heads / common exits) ---
-400D .notWave             ; wButtons == case in DrawScreenColLabels
-4066 .onPhrase            ; wCurScreen == case in DrawScreenColLabels
-413F .onChain             ; wCurScreen == case in DrawScreenColLabels
-4176 .onTable             ; wCurScreen == case in DrawScreenColLabels
-41D9 .onGroove            ; wCurScreen == case in DrawScreenColLabels
-4211 .onWord              ; wCurScreen == case in DrawScreenColLabels
-4248 .onSong              ; wCurScreen == case in DrawScreenColLabels
+400D .notWave             ; wButtons == case in DrawScreenColumnLabels
+4066 .onPhrase            ; wCurrentScreen == case in DrawScreenColumnLabels
+413F .onChain             ; wCurrentScreen == case in DrawScreenColumnLabels
+4176 .onTable             ; wCurrentScreen == case in DrawScreenColumnLabels
+41D9 .onGroove            ; wCurrentScreen == case in DrawScreenColumnLabels
+4211 .onWord              ; wCurrentScreen == case in DrawScreenColumnLabels
+4248 .onSong              ; wCurrentScreen == case in DrawScreenColumnLabels
 
 
 
@@ -54,7 +54,7 @@
 
 ; --- full local naming (block signature) ---
 403C .cont
-403E .checkCurScreen
+403E .checkCurrentScreen
 42B0 .setStringSrc
 7A09 .writeVramByteSafe
 7A18 .cont

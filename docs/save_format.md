@@ -67,7 +67,7 @@ runs of `$00`/`$FF` (empty phrases/chains).
 | `ReadCompressedByte` | `$7402` | fetch the next stream byte via the SRAM block pointer (`$C97B`/`$C97C`) |
 | `LoadCompressedBlock` | `$74E0` | copy 512-byte block `a` (SRAM bank `4 + a>>4`, `$A000 + (a&15)*$200`) into the `$DB00` buffer and point `wCompressSrc` at it |
 | `EmitDefaultWave` | `$753E` | `$F0` run: emit a default wavetable frame |
-| `EmitDefaultInstr` | `$758E` | `$F1` run: emit a default instrument |
+| `EmitDefaultInstrument` | `$758E` | `$F1` run: emit a default instrument |
 
 The output pointer (`$C97D`/`$C97E`) is filled until it reaches `$8000` (the
 32 KiB song size). `DecompressBlock` (`$46E3`) is the `$E0`-escape sub-handler
@@ -104,9 +104,9 @@ of the synth-params/`'rb'` area). After a song is loaded, `FileUpgradeSong`
   (a per-version data patch), then stamp the version byte to `$16`.
 
 Each `FileUpgradeV<n>` (`$61D6`-`$6F73`) applies that version's data change —
-mostly instrument-field fixups via `FileForEachInstrType` (`$60F5`: iterate the
+mostly instrument-field fixups via `FileForEachInstrumentType` (`$60F5`: iterate the
 64 instruments whose type byte-0 matches a value and invoke a callback) plus
-`FileReadInstrByte`/`FileWriteInstrByte` (`$60CC`/`$60E0`). Version `$14` needs
+`FileReadInstrumentByte`/`FileWriteInstrumentByte` (`$60CC`/`$60E0`). Version `$14` needs
 no change (no step). This is how old `.sav`/`.lsdsng` files keep working across
 LSDj releases.
 

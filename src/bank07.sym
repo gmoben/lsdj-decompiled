@@ -4,11 +4,11 @@
 
 ; --- Song-screen strings + display tables (db; clipboard/output/channel) ---
 6889 TxtOct78                   ; "O7-8"
-6E2C ChanNames       ; channel display names "PU1"/"PU2"/"PU1+2"/...
+6E2C ChannelNames       ; channel display names "PU1"/"PU2"/"PU1+2"/...
 4373 TxtClonedChain     ; "CLONED CHAIN"
 4380 TxtClonedChainPhrases ; "CLONED CHAIN+PHRASES"
 56FE TxtCancelSelect07  ; "CANCEL SELECT"
-492A TxtDashes          ; "--" (SetSongRowPals: cell with bit 7 set)
+492A TxtDashes          ; "--" (SetSongRowPalettes: cell with bit 7 set)
 5957 TxtCutChains       ; "CUT CHAINS"
 5962 TxtCopiedChains    ; "COPIED CHAINS"
 5B0F TxtPastedChains    ; "PASTED CHAINS"
@@ -19,18 +19,18 @@
 4139 CloneSongChain             ; song screen chain clone (CLONED CHAIN / +PHRASES in deep mode): new chain via IsSongChainUsed, copy its 16 phrases (deep: clone each phrase once via the wClonePhraseMap map), transposes; returns the new chain or $ff
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
-4000 CopySongCol             ; copy a song column from p to q (stride 4) until p reaches $B590 (ScanSongSram); asserts both >= $B290, q < $B590
-404B SongChanActiveMask         ; OR wChanActive[0..3] -> combined active flag
-4084 EraseSongCursor            ; restore the cursor cell palette (1 if the row is bookmarked, else 0) at SongColOffsets[wSongCol]
+4000 CopySongColumn             ; copy a song column from p to q (stride 4) until p reaches $B590 (ScanSongSram); asserts both >= $B290, q < $B590
+404B SongChannelActiveMask         ; OR wChannelActive[0..3] -> combined active flag
+4084 EraseSongCursor            ; restore the cursor cell palette (1 if the row is bookmarked, else 0) at SongColumnOffsets[wSongColumn]
 4366 .showCloneMessage    ; (was SongShowCloneMsg) show "CLONED CHAIN" / "CLONED CHAIN+PHRASES" popup
-4395 DrawSongCursor             ; highlight the cursor cell (palette 3 on CGB, 2 on DMG) at SongColOffsets[wSongCol]
+4395 DrawSongCursor             ; highlight the cursor cell (palette 3 on CGB, 2 on DMG) at SongColumnOffsets[wSongColumn]
 43E4 ReadSongRow                ; read song row wSongScroll from SRAM ($B290, ReadSongBytes) -> wSongReadBuf (16 bytes)
 4463 DrawSongRowNumber             ; draw a song row number + bookmark marker (wSongScroll window, 18 rows)
-451E RedrawSongRow              ; ReadSongRow + draw the row at VRAM $9842 (palettes, DrawSongColVals/4395)
+451E RedrawSongRow              ; ReadSongRow + draw the row at VRAM $9842 (palettes, DrawSongColumnVals/4395)
 4540 ScrollSongToCursor         ; clamp song top-row wSongScroll so cursor wSongRow stays visible
-4657 UpdateSongPlayMarker       ; per-channel play-position markers from wChanSongRow/wChanNextSongRow (<-SongScreenUpdate)
-47CF SetSongRowPals            ; pick row draw palettes (cursor/bookmark-aware)
-492D DrawSongCursorRow          ; draw cursor-row string (SetVramCursor at wSongRow-wSongScroll, SetSongRowPals)
+4657 UpdateSongPlayMarker       ; per-channel play-position markers from wChannelSongRow/wChannelNextSongRow (<-SongScreenUpdate)
+47CF SetSongRowPalettes            ; pick row draw palettes (cursor/bookmark-aware)
+492D DrawSongCursorRow          ; draw cursor-row string (SetVramCursor at wSongRow-wSongScroll, SetSongRowPalettes)
 494E ScrollSongUp               ; scroll the song grid for the row above: ScrollSongVramUp (+ CopyVramRowUp on CGB), redraw row 2 ($9840)
 4973 ScrollSongDown             ; scroll the song grid for the row below: ScrollSongVramDown (+ CopyVramRowDown on CGB), redraw row 17 ($9A20)
 4998 FindNextSongRow            ; scan down 1..16 from cursor wSongRow, wrapping at 0 -> $ff
@@ -38,7 +38,7 @@
 4A25 FindPrevSongRow            ; scan up 1..16 from cursor wSongRow, wrapping
 4A79 PageSongCursorUp           ; PgUp: retreat song cursor wSongRow by a page
 4AB8 BeginSongSelection         ; SaveSelectionState, seed wSel* rect from the song cursor
-4AFD LoadSongCursorChain        ; read seq[wSongRow,wSongCol] ($ff -> empty path), validate+cache via CloneSongChain
+4AFD LoadSongCursorChain        ; read seq[wSongRow,wSongColumn] ($ff -> empty path), validate+cache via CloneSongChain
 5736 CutCopySongSelection       ; cut (isCut arg) or copy the song selection rect into the clipboard; a cut shifts each column up and clears the tail ($FF), AdjustBookmarksOnDelete, CUT/COPIED CHAINS
 5929 .endSelection        ; (was SongEndSelection) finish selection (ShowMessage), restore cursor from wSelectionLeft/wSongSelectionRow
 5970 PasteSongSelection         ; paste the clipboard rows into the song grid at the cursor: shifts the columns down (WriteSongSramBytes) to make room, writes the cells, PASTED CHAINS
@@ -50,15 +50,15 @@
 6413 ToggleBookmark             ; song row in list ? RemoveBookmark : AddBookmark
 644F AdjustBookmarksOnDelete    ; song rows [lo,hi) removed: drop bookmarks inside, shift later ones up, re-sort
 64CA AdjustBookmarksOnInsert    ; song rows shifted (src->dst): rebase bookmarks, drop wrapped, re-sort
-6543 DrawKbdInstrState          ; keyboard state cell (arrows by wKbdPulseChans) + instrument hex (wKbdInstr) at row 12
+6543 DrawKeyboardInstrumentState          ; keyboard state cell (arrows by wKeyboardPulseChannels) + instrument hex (wKeyboardInstrument) at row 12
 672A HexDigitChar               ; return hex char "0123456789ABCDEF"[arg]
-674D DrawKbdInstrName           ; DrawKbdInstrState + instrument name via CopyInstrName -> wSampleNoteString
-6812 DrawKbdOctave              ; draw the keyboard octave range ("O3-4".."O7-8") from wKbdTranspose
-6E50 ProcessKbdNote             ; PS/2 keyboard note -> play/preview on the channel (wKbdHeldNote; screen/col aware)
+674D DrawKeyboardInstrumentName           ; DrawKeyboardInstrumentState + instrument name via CopyInstrumentName -> wSampleNoteString
+6812 DrawKeyboardOctave              ; draw the keyboard octave range ("O3-4".."O7-8") from wKeyboardTranspose
+6E50 ProcessKeyboardNote             ; PS/2 keyboard note -> play/preview on the channel (wKeyboardHeldNote; screen/col aware)
 7012 LinkDequeueByte            ; wait for a queued link byte and pop it from the wLinkQueueBuf ring (index wLinkQueueHead, 16 entries)
-7033 KbdDrainQueue              ; delay(10), drop every queued link byte, then SendSyncHandshake
-704E KbdPollScancode            ; drain the queue, then expect 20 key records (3, [7,] $27) from the keyboard: 1 if all arrive (the calibration taps)
-71BF DrawSongColVals       ; draw 16 song-row values into the column (wSongReadBuf, IsBookmarked)
+7033 KeyboardDrainQueue              ; delay(10), drop every queued link byte, then SendSyncHandshake
+704E KeyboardPollScancode            ; drain the queue, then expect 20 key records (3, [7,] $27) from the keyboard: 1 if all arrive (the calibration taps)
+71BF DrawSongColumnVals       ; draw 16 song-row values into the column (wSongReadBuf, IsBookmarked)
 720A DrawHexOrDashes            ; draw space then [bc]: bit7 ? "--" : hex byte
 722B CopyVramRowDown            ; copy tilemap row 2 -> row 3 (VBK-aware, calib screen)
 7276 CopyVramRowUp              ; copy tilemap row 17 -> row 16 (VBK-aware, calib screen)
@@ -76,9 +76,9 @@
 5DD8 SetSyncSendRate            ; wSyncSendRate (interrupts off) from the tempo: $800 x (4 - wTempoMode) for the sync speeds, else TempoTimerTableDmg/Cgb[wTempo - 40]
 5E49 TempoTimerTableDmg         ; [BPM byte] -> 16-bit tempo timer value (DMG), 256 x dw
 6049 TempoTimerTableCgb         ; [BPM byte] -> 16-bit tempo timer value (CGB double-speed), 256 x dw
-662A KbdNoteMap            ; [PS/2 scancode & $7f] -> note (0=none), + wKbdTranspose octave offset
-66AA KbdFnMap              ; [PS/2 scancode & $7f] -> function code (channel mutes/cursor keys)
-7097 DrawKbdCalibScreen    ; PS/2 "KEYBOARD CALIBRATION" screen (tap down-arrow prompt)
+662A KeyboardNoteMap            ; [PS/2 scancode & $7f] -> note (0=none), + wKeyboardTranspose octave offset
+66AA KeyboardFnMap              ; [PS/2 scancode & $7f] -> function code (channel mutes/cursor keys)
+7097 DrawKeyboardCalibScreen    ; PS/2 "KEYBOARD CALIBRATION" screen (tap down-arrow prompt)
 7171 TxtKeyboardCalibration     ; "KEYBOARD CALIBRATION"
 7186 TxtTapDownArrowKey         ; "TAP DOWN ARROW KEY"
 7199 TxtOnPs2Keyboard           ; "ON PS/2 KEYBOARD"
@@ -89,9 +89,9 @@
 6893 TxtOct56                   ; "O5-6"
 6898 TxtOct45                   ; "O4-5"
 689D TxtOct34                   ; "O3-4"
-4047 SongColOffsets             ; per-song-column x offsets (col+1)*3: $03,$06,$09,$0c
+4047 SongColumnOffsets             ; per-song-column x offsets (col+1)*3: $03,$06,$09,$0c
 5DB8 SongSelectionAttr               ; [32] CGB attribute 3 (selection palette) for set_bkg_tiles in EditSongSelection
-403F SongColFlags               ; 8-byte per-column flag row (precedes SongColOffsets)
+403F SongColumnFlags               ; 8-byte per-column flag row (precedes SongColumnOffsets)
 
 ; --- structural local names (loop heads / common exits) ---
 4106 .loop                ; loop head in WriteSongCell
@@ -107,8 +107,8 @@
 47A6 .done                ; common exit of UpdateSongPlayMarker
 47BC .loop                ; loop head in SongScreenUpdate
 47CD .done                ; common exit of SongScreenUpdate
-483A .loop                ; loop head in SetSongRowPals
-4926 .done                ; common exit of SetSongRowPals
+483A .loop                ; loop head in SetSongRowPalettes
+4926 .done                ; common exit of SetSongRowPalettes
 499F .loop                ; loop head in FindNextSongRow
 49E3 .done                ; common exit of FindNextSongRow
 4A23 .done                ; common exit of PageSongCursorDown
@@ -146,18 +146,18 @@
 643B .done                ; common exit of ToggleBookmark
 6456 .loop                ; loop head in AdjustBookmarksOnDelete
 64D1 .loop                ; loop head in AdjustBookmarksOnInsert
-6774 .loop                ; loop head in DrawKbdInstrName
+6774 .loop                ; loop head in DrawKeyboardInstrumentName
 6C48 .loop                ; loop head in ProcessLinkQueue
 6E28 .done                ; common exit of ProcessLinkQueue
-700E .done                ; common exit of ProcessKbdNote
+700E .done                ; common exit of ProcessKeyboardNote
 7013 .loop                ; loop head in LinkDequeueByte
-703C .loop                ; loop head in KbdDrainQueue
-7054 .loop                ; loop head in KbdPollScancode
-7095 .done                ; common exit of KbdPollScancode
-7101 .loop                ; loop head in DrawKbdCalibScreen
-7137 .loop2               ; loop head in DrawKbdCalibScreen
-716F .done                ; common exit of DrawKbdCalibScreen
-71C4 .loop                ; loop head in DrawSongColVals
+703C .loop                ; loop head in KeyboardDrainQueue
+7054 .loop                ; loop head in KeyboardPollScancode
+7095 .done                ; common exit of KeyboardPollScancode
+7101 .loop                ; loop head in DrawKeyboardCalibScreen
+7137 .loop2               ; loop head in DrawKeyboardCalibScreen
+716F .done                ; common exit of DrawKeyboardCalibScreen
+71C4 .loop                ; loop head in DrawSongColumnVals
 7237 .loop                ; loop head in CopyVramRowDown
 7282 .loop                ; loop head in CopyVramRowUp
 72CA .loop                ; loop head in ScrollSongVramUp
@@ -220,8 +220,8 @@
 548B .notStartLeft        ; wButtons == case in SongScreenInput
 553E .notSelectionRight   ; wButtons == case in SongScreenInput
 56F8 .notSelectionB       ; wButtons == case in SongScreenInput
-6EC8 .notPhrase           ; wButtons == case in ProcessKbdNote
-6FFE .notPhrase2          ; wButtons == case in ProcessKbdNote
+6EC8 .notPhrase           ; wButtons == case in ProcessKeyboardNote
+6FFE .notPhrase2          ; wButtons == case in ProcessKeyboardNote
 
 
 
@@ -236,11 +236,11 @@
 40FD .okc
 43AE .ok
 44C8 .setVramCursor
-44F7 .loadHighlightDigitPal
+44F7 .loadHighlightDigitPalette
 4558 .loadSongRow
 4568 .loadSongRowb
 469D .loadPlayMarkerTimer
-4803 .loadHighlightDigitPal
+4803 .loadHighlightDigitPalette
 480F .loadSongRow
 48BC .checkGameboyType
 495C .setVramCursor
@@ -260,9 +260,9 @@
 4C34 .loadSongRow
 4C8A .loadSongRowb
 4D08 .checkButtonsb
-4D31 .incSongCol
+4D31 .incSongColumn
 4D55 .songDrawCellHw
-4D85 .decSongCol
+4D85 .decSongColumn
 4DA9 .songDrawCellHwb
 4DE1 .checkSongRow
 4DF8 .decSongRow
@@ -294,7 +294,7 @@
 5796 .okb
 57BF .okc
 57F0 .loadSongRow
-58E5 .incSongCol
+58E5 .incSongColumn
 5949 .setSongRow
 5992 .loadSelectionBottom
 59C3 .loadSongRow
@@ -306,13 +306,13 @@
 5B38 .ok
 5B44 .okb
 5BB2 .loadSongScroll
-5BFA .setSongCol
-5C25 .clearSongCol
+5BFA .setSongColumn
+5C25 .clearSongColumn
 5C3E .loadSongScrollb
 5C6C .loadSongScrollc
 5CE2 .songReadCellVal
 5CE5 .loadSongRow
-5CF1 .incSongCol
+5CF1 .incSongColumn
 5D28 .okc
 5D33 .okd
 5D45 .oke
@@ -323,27 +323,27 @@
 6602 .setVramCursor
 687B .setMessageStrPtr
 68D2 .incLinkQueueHead
-697B .setKbdTranspose
-6988 .setKbdTransposeb
-6995 .setKbdTransposec
-69A2 .setKbdTransposed
-69AF .setKbdTransposee
+697B .setKeyboardTranspose
+6988 .setKeyboardTransposeb
+6995 .setKeyboardTransposec
+69A2 .setKeyboardTransposed
+69AF .setKeyboardTransposee
 69BC .setVramCursor
 6A2A .setMessageStrPtr
 6B1F .setBHeld
 6B29 .setBHeldb
-6BAB .checkKbdInstr
-6BC4 .checkKbdInstrb
-6CA9 .checkKbdTranspose
-6CBD .checkKbdTransposeb
+6BAB .checkKeyboardInstrument
+6BC4 .checkKeyboardInstrumentb
+6CA9 .checkKeyboardTranspose
+6CBD .checkKeyboardTransposeb
 6D5B .setMessageStrPtrb
 6D8A .setBHeldc
 6DB1 .setBHeldd
 6DD8 .setBHelde
 6DFF .setBHeldf
-6E79 .checkCurScreen
-6F76 .checkCurScreenb
-6FEF .checkKbdHeldNote
+6E79 .checkCurrentScreen
+6F76 .checkCurrentScreenb
+6FEF .checkKeyboardHeldNote
 704A .sendSyncHandshake
 7069 .songDequeueByte
 707B .songDequeueByteb
@@ -361,7 +361,7 @@
 4176 .index
 4212 .cont
 421C .checkArg
-4243 .loadSongCol
+4243 .loadSongColumn
 4280 .cont_2
 42C8 .cont_3
 42E6 .cont_4
@@ -369,7 +369,7 @@
 433B .loadSongRow
 4361 .cont_6
 43BB .cont
-43BD .loadSongCol
+43BD .loadSongColumn
 43CB .cont_2
 43F6 .step
 448C .cont
@@ -388,10 +388,10 @@
 4830 .cont
 4838 .loadSongRow_2
 4865 .cont_2
-4866 .loadHighlightDigitPal_2
+4866 .loadHighlightDigitPalette_2
 4877 .testBit7
 488B .drawHexByte
-4895 .loadShadedDigitPal
+4895 .loadShadedDigitPalette
 48B0 .cont_3
 48B8 .checkGameboyType_2
 48D0 .cont_4
@@ -409,7 +409,7 @@
 4BAF .checkButtons_2
 4C52 .cont_2
 4C53 .setPlayMarkerTimer_2
-4CB3 .loadSongCol
+4CB3 .loadSongColumn
 4CCD .checkArg
 4D03 .ret01
 4D27 .songReadCellVal_2
@@ -444,7 +444,7 @@
 5183 .farCall
 51B9 .farCall_2
 5261 .step
-52BB .loadSongCol_2
+52BB .loadSongColumn_2
 5310 .ret00_2
 5315 .setSelectHeld
 5341 .songStartSelection
@@ -452,7 +452,7 @@
 53AA .ret01_8
 53E7 .farCall_3
 53F5 .ret01_9
-5413 .checkHighlightPal
+5413 .checkHighlightPalette
 5421 .ret01_10
 545F .farCall_4
 546D .ret01_11
@@ -479,7 +479,7 @@
 58EC .checkSelectionLeft
 5915 .cont_2
 5924 .cont_3
-5945 .setWordCol
+5945 .setWordColumn
 5A04 .step
 5A73 .cont
 5AEA .cont_2
@@ -488,16 +488,16 @@
 5B5A .cont
 5BA8 .setSongScroll
 5BC6 .useSongScroll
-5BD3 .setSongCol_2
-5BF8 .setSongCol_3
+5BD3 .setSongColumn_2
+5BF8 .setSongColumn_3
 5C12 .cont_2
 5C13 .cont_3
-5C22 .loadSongCol
+5C22 .loadSongColumn
 5C3C .setSongScroll_2
 5C53 .cont_4
 5C54 .cont_5
 5C62 .loadSongScroll_2
-5CF8 .setWordCol
+5CF8 .setWordColumn
 5D83 .cont_6
 5DAE .cont_7
 5E0B .cont
@@ -513,11 +513,11 @@
 64BA .sortBookmarks
 652A .writeBookmarkByte
 6536 .cont
-65A4 .loadKbdHeldNote
+65A4 .loadKeyboardHeldNote
 65C1 .cont
 65D2 .cont_2
 65E3 .cont_3
-65F2 .setKbdInstr
+65F2 .setKeyboardInstrument
 65FA .setVramCursor_2
 679B .cont
 67A7 .index
@@ -527,12 +527,12 @@
 685A .drawString_3
 6866 .drawString_4
 6872 .drawString_5
-68ED .setKbdInstr
-68F7 .setKbdInstr_2
-6906 .checkKbdInstr_2
+68ED .setKeyboardInstrument
+68F7 .setKeyboardInstrument_2
+6906 .checkKeyboardInstrument_2
 6913 .cont
-6915 .setKbdInstr_3
-6923 .setKbdInstr_4
+6915 .setKeyboardInstrument_3
+6923 .setKeyboardInstrument_4
 6950 .checkArg
 69E7 .drawString
 69FF .drawString_2
@@ -551,48 +551,48 @@
 6BA6 .ret08
 6BBF .retFF_2
 6BD9 .retFF_3
-6BDE .setKbdInstr_5
+6BDE .setKeyboardInstrument_5
 6C0B .retFF_4
-6C10 .checkKbdInstr_3
+6C10 .checkKeyboardInstrument_3
 6C3E .retFF_5
-6C43 .readSoundChan
-6C83 .readSoundChan_2
+6C43 .readSoundChannel
+6C83 .readSoundChannel_2
 6C8C .retFF_6
 6C92 .retFF_7
 6CB8 .retFF_8
 6CCC .retFF_9
-6CD1 .setKbdTranspose_2
+6CD1 .setKeyboardTranspose_2
 6D15 .cont_2
 6D3C .cont_3
 6D6D .testBit1_2
-6D76 .setKbdInstr_6
+6D76 .setKeyboardInstrument_6
 6D94 .testBit1_3
-6D9D .setKbdInstr_7
+6D9D .setKeyboardInstrument_7
 6DBB .testBit1_4
-6DC4 .setKbdInstr_8
+6DC4 .setKeyboardInstrument_8
 6DE2 .testBit1_5
-6DEB .setKbdInstr_9
+6DEB .setKeyboardInstrument_9
 6E09 .ret0D
 6E0E .ret0C
 6E13 .ret0E
 6E18 .ret0F
-6E1D .processKbdNote
+6E1D .processKeyboardNote
 6E56 .testBit7
-6E68 .checkKbdHeldNote_2
+6E68 .checkKeyboardHeldNote_2
 6E93 .cont
 6E94 .loadPhraseRow
 6EBE .cont_2
 6EC2 .ret00
 6ECD .cont_3
 6EEE .cont_4
-6F08 .setKbdTranspose
-6F1E .checkKbdHeldNote_3
-6F31 .setKbdHeldNote
+6F08 .setKeyboardTranspose
+6F1E .checkKeyboardHeldNote_3
+6F31 .setKeyboardHeldNote
 6F45 .cont_5
 6F55 .cont_6
 6F5A .cont_7
-6F5C .setKbdTranspose_2
-6F6C .setKbdTranspose_3
+6F5C .setKeyboardTranspose_2
+6F6C .setKeyboardTranspose_3
 6F92 .cont_8
 6F93 .loadPhraseRow_2
 6FBB .cont_9
@@ -604,7 +604,7 @@
 708F .step
 7093 .cont
 715A .drawString
-71E8 .storeBgDigitPal
+71E8 .storeBgDigitPalette
 7268 .cont
 726F .setrVBK
 72B3 .cont

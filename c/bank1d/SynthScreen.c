@@ -41,7 +41,7 @@ void WriteSynthParam(UBYTE field, UBYTE v);
 void SynthFilterBandPass(void);
 void SynthFilterPass(void);
 void SendLinkClipboard(void);                   /* $1C:$71CD */
-void DrawAllChanStatus(void);
+void DrawAllChannelStatus(void);
 void DrawSynthNumber(void);
 void BuildOverwritePrompt(void);
 void RedrawScreenFar(void);
@@ -77,7 +77,7 @@ void ApplySynthFilter(void);
 void LoadSynthSignalWave(void);
 void RenderSynthWaveType(void);
 void ComposeSynthWave(void);
-void WriteSynthWaveCol(void);
+void WriteSynthWaveColumn(void);
 void RenderSynthWaveA(UBYTE amp);
 void RenderSynthWaveB(UBYTE amp);
 extern UBYTE wSynthWaveShape;               /* $C9E9 */
@@ -516,11 +516,11 @@ void ApplySynthFilter(void)
     }
 }
 
-/* lsdj-alloc(WriteSynthWaveCol): BUSYC=1-17
+/* lsdj-alloc(WriteSynthWaveColumn): BUSYC=1-17
  * -- register c held from the first instruction to the loop body's last
  * byte temporary, so i takes b and is evicted by the body, and the pointer
  * pair comes out as bc (docs/toolchain.md, "The phantom register"). */
-void WriteSynthWaveCol(void)
+void WriteSynthWaveColumn(void)
 {
     UBYTE i;
 
@@ -569,7 +569,7 @@ void RenderSynthWave(void)
         RenderSynthWaveType();
     ComposeSynthWave();
     ApplySynthFilter();
-    WriteSynthWaveCol();
+    WriteSynthWaveColumn();
 }
 
 UWORD SynthLockByteAddrB1D(UBYTE x)
@@ -742,14 +742,14 @@ void DrawSynthNumber(void)
     UBYTE v;
 
     p = (UWORD)SramSynthParams + ((UWORD)wSynthScreen << 4);
-    hBgDigitPal = 4;
-    hBgPal = 1;
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
     wVramCursor = (UBYTE *)0x98E8;
     DrawByte(wSynthScreen);
     wVramCursor = (UBYTE *)0x98EB;
     DrawByte(wSynthScreen);
-    hBgDigitPal = wShadedDigitPal;
-    hBgPal = wShadedPal;
+    hBgDigitPalette = wShadedDigitPalette;
+    hBgPalette = wShadedPalette;
     DrawSynthWaveField();
     p++;
     DrawSynthFilterField();
@@ -806,7 +806,7 @@ void DrawSynthScreen(void)
     wSynth = wSynth + (wSynthScreen << 4);
     FarCall(1, FAR_FN(DrawTopBar));
     DrawTempoField();
-    FarCall(0x1F, FAR_FN(DrawAllChanStatus));
+    FarCall(0x1F, FAR_FN(DrawAllChannelStatus));
     DrawSynthNumber();
     FarCall(5, DrawMapTopRow);
 }
@@ -859,7 +859,7 @@ void BuildOverwritePrompt(void)
     for (x = 3; (UWORD)x < 15; x++) {
         for (y = 4; (UWORD)y < 11; y++) {
             wStringSrc = IdentityCharMap;
-            hBgPal = hGameboyType ? 0x48 : 0xD2;
+            hBgPalette = hGameboyType ? 0x48 : 0xD2;
             ColorField(x, y, 1, 0);
             SetVramCursor(x, y);
             if (x == 3) {
@@ -882,8 +882,8 @@ void BuildOverwritePrompt(void)
                 else if ((UWORD)y == 10)
                     DrawStringIndexed(6);
                 else {
-                    hBgDigitPal = 4;
-                    hBgPal = 1;
+                    hBgDigitPalette = 4;
+                    hBgPalette = 1;
                     DrawStringIndexed(2);
                 }
                 wStringSrc = AsciiCharMap - 0x20;
@@ -891,8 +891,8 @@ void BuildOverwritePrompt(void)
         }
     }
     wStringSrc = AsciiCharMap - 0x20;
-    hBgDigitPal = 4;
-    hBgPal = 1;
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
 }
 
 void DrawOverwriteChoice(void)
@@ -917,8 +917,8 @@ void DrawOverwriteChoice(void)
 /* Open the confirmation dialog; OverwritePromptInput handles the choice. */
 void OverwriteSynthWaves(void)
 {
-    hBgDigitPal = 4;
-    hBgPal = 1;
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
     BuildOverwritePrompt();
     wOverwriteStart = 1;
     wOverwriteEnd = 1;
@@ -1110,8 +1110,8 @@ UBYTE SynthScreenInput(void)
         OverwritePromptInput();
         return 1;
     }
-    hBgDigitPal = wHighlightDigitPal;
-    hBgPal = wHighlightPal;
+    hBgDigitPalette = wHighlightDigitPalette;
+    hBgPalette = wHighlightPalette;
     if (wButtons != 0x10)
         wDrawStep = 0;
     switch (wButtons) {
@@ -1204,8 +1204,8 @@ UBYTE SynthScreenInput(void)
             default:
                 WriteSynthParam(0, 3);
                 DrawSynthScreen();
-                hBgDigitPal = wHighlightDigitPal;
-                hBgPal = wHighlightPal;
+                hBgDigitPalette = wHighlightDigitPalette;
+                hBgPalette = wHighlightPalette;
                 DrawSynthWaveField();
             }
             DrawSynthWaveField();
@@ -1305,8 +1305,8 @@ UBYTE SynthScreenInput(void)
             case 3:
                 WriteSynthParam(0, 2);
                 DrawSynthScreen();
-                hBgDigitPal = wHighlightDigitPal;
-                hBgPal = wHighlightPal;
+                hBgDigitPalette = wHighlightDigitPalette;
+                hBgPalette = wHighlightPalette;
                 DrawSynthWaveField();
             }
             DrawSynthWaveField();

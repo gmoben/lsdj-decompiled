@@ -148,7 +148,7 @@ class Compare16Tests(unittest.TestCase):
         self.assertEqual(gb_cmp16(source), (source, 0))
 
     def test_fetch_stepping_up_from_the_byte_below(self):
-        # SpeechInstrInput: hl still at the loop counter (sp+5) below the word
+        # SpeechInstrumentInput: hl still at the loop counter (sp+5) below the word
         for condition in ("c", "nc"):
             source = ["\tlda\thl,5(sp)", "\txor\ta,a", "\tinc\thl", "\tld\ta,(hl)",
                       "\tsbc\ta,#0xD0", "\tinc\thl", "\tld\ta,(hl)", "\tsbc\ta,#0xBD",
@@ -198,7 +198,7 @@ class Compare16Tests(unittest.TestCase):
 class SignedCompare16Tests(unittest.TestCase):
     """SDCC 2.2.1's signed word compares with a constant, rewritten to the add
     form on the sign-flipped operand (abs, printn, DrawCrashScreen,
-    FxCmd_P_Step)."""
+    Command_P_Step)."""
 
     VALUES = (-0x8000, -0x7FFF, -17, -16, -15, -2, -1, 0, 1, 9, 10, 11, 15, 16, 17, 0x7FFE, 0x7FFF)
     LIMITS = (-0x8000, -0x7FFF, -16, -1, 1, 10, 16, 0x7FFF)
@@ -317,7 +317,7 @@ class SwitchChainTests(unittest.TestCase):
         self.assertEqual(peep.switch_chain(other, set()), (other, 0))
 
     def test_int_case_widens_from_a(self):
-        # InstrScreenInput's kit fields: `case (int)9:` copies the variable
+        # InstrumentScreenInput's kit fields: `case (int)9:` copies the variable
         # into bc for a 16-bit compare; LSDj takes it from `a`
         head = self.LOAD + ["\tcp\ta,#0x08", "\tjp\tz,00107$"]
         tail = ["\tld\tb,#0x00", "\tld\ta,c", "\tcp\ta,#0x09"]
@@ -331,8 +331,8 @@ class SwitchChainTests(unittest.TestCase):
 
 
 class WordTestHlTests(unittest.TestCase):
-    """A stack word tested by genIfx loses hl (ShowInstrFieldHelp); the same
-    bytes from genCmpEq keep it (GetInstrEnvBytes)."""
+    """A stack word tested by genIfx loses hl (ShowInstrumentFieldHelp); the same
+    bytes from genCmpEq keep it (GetInstrumentEnvelopeBytes)."""
 
     def source(self, marker):
         return [marker, "; AOP_STK for _f_s_1_1", "\tlda\thl,0(sp)", "\tld\ta,(hl+)",
@@ -377,7 +377,7 @@ class HlRegisterTests(unittest.TestCase):
         self.assertEqual(peep.track_a(changed, set())[0][11], "\tld\ta,(hl)")
 
     def test_conditional_jump_ends_it_for_a_global_only(self):
-        # FxCmd_E_Pu1: `wEnvSpeedPu1 = v; if (v) wEnvCounterPu1 = wEnvSpeedPu1;`
+        # Command_E_Pu1: `wEnvelopeSpeedPu1 = v; if (v) wEnvelopeCounterPu1 = wEnvelopeSpeedPu1;`
         test = ["\txor\ta,a", "\tor\ta,c", "\tjp\tz,00102$", "\tld\ta,(hl)"]
         source = ["\tld\thl,#_wEnvSpeedPu1 + 0", "\tld\t(hl),c"] + test
         self.assertEqual(peep.track_a(source, set())[0][5], "\tld\ta,(hl)")
@@ -385,7 +385,7 @@ class HlRegisterTests(unittest.TestCase):
         self.assertEqual(peep.track_a(stack, set())[0][5], "\tld\ta,c")
 
     def test_copy_of_a_stored_stack_byte_survives_a_bit_test(self):
-        # InstrScreenInput's kit flags: `v = ReadCurInstrByte(5); if (!(v &
+        # InstrumentScreenInput's kit flags: `v = ReadCurrentInstrumentByte(5); if (!(v &
         # 64)) v |= 0x40;` -- the byte is copied, tested and ORed unreloaded
         source = ["\tlda\thl,7(sp)", "\tld\t(hl),e", "\tlda\tsp,1(sp)", "\tld\tc,(hl)",
                   "\tld\ta,c", "\tbit\t6,a", "\tjp\tnz,00102$", "\tld\ta,(hl)",
@@ -401,7 +401,7 @@ class HlRegisterTests(unittest.TestCase):
     def test_a_literal_store_through_hl_keeps_a_only_when_equal(self):
         # ResetWorkState: `a` held 1, six `g = 0` stores, then `cell[0] = 1`
         # reloads the 1; SoundTogglePlayback: `a` held 0, `wSongPlaying = 0`, then
-        # `hSoundChan = 0` stores `a` unreloaded
+        # `hSoundChannel = 0` stores `a` unreloaded
         reload = ["\tld\ta,#0x01", "\tld\t(de),a", "\tld\thl,#_g", "\tld\t(hl),#0x00",
                   "\tld\tde,#_cell", "\tld\ta,#0x01", "\tld\t(de),a"]
         self.assertEqual(peep.track_a(reload, set())[0], reload)
@@ -429,7 +429,7 @@ class HramReuseTests(unittest.TestCase):
         self.assertEqual(out, self.READ_C + self.INDEX_C + self.INDEX_C)
 
     def test_pair_goes_when_a_dies_a_few_lines_on(self):
-        # SoundStartChanFromRow: the 16-bit index of wChanPhrase[hSoundChan]
+        # SoundStartChannelFromRow: the 16-bit index of wChannelPhrase[hSoundChannel]
         word = ["\tld\tde,#_wChanPhrase", "\tld\tl,c", "\tld\th,#0x00", "\tadd\thl,de", "\tld\ta,l"]
         out = self.run_pass(self.READ_C + self.INDEX_C + self.READ_C + word)
         self.assertEqual(out, self.READ_C + self.INDEX_C + word)
@@ -448,7 +448,7 @@ class HramReuseTests(unittest.TestCase):
         self.assertEqual(self.run_pass(equality), equality)
 
     def test_a_serves_in_straight_line_code(self):
-        # FxCmd_F_Wav's `step = hFxValS`: genCast reads the sfr again for
+        # Command_F_Wav's `step = hCommandValS`: genCast reads the sfr again for
         # the sign; no compiled code in the ROM rereads a byte a holds
         widen = ["\tldh\ta,(_hFxValueS+0)", "\tlda\thl,2(sp)", "\tld\t(hl),a",
                  "\tldh\ta,(_hFxValueS+0)", "\trla", "\tsbc\ta,a"]
@@ -458,7 +458,7 @@ class HramReuseTests(unittest.TestCase):
         self.assertEqual(self.run_pass(changed), changed)
 
     def test_store_through_a_loaded_pointer_ends_a_carried_byte(self):
-        # SoundUpdateChan's D: c read before `if (d)`, then `+=` through a
+        # SoundUpdateChannel's D: c read before `if (d)`, then `+=` through a
         # stack pointer, then a reread; SoundStartSongPlayback's `*active = 1` after an
         # in-block read keeps it
         store = ["\tlda\thl,0(sp)", "\tld\te,(hl)", "\tinc\thl", "\tld\td,(hl)", "\tld\t(de),a"]

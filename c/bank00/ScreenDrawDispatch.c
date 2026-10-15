@@ -4,10 +4,10 @@
  * MATCHING C (period GBDK 2.95-3 / SDCC 2.2.1 + tools/match/lsdj.peep);
  * `make match` verifies every function here against the ROM.
  *
- * The editor index (wCurScreen: 1 phrase, 2 groove, 3 chain, 4 song,
+ * The editor index (wCurrentScreen: 1 phrase, 2 groove, 3 chain, 4 song,
  * 5 table, 6 instrument, 7 name editor, 8 wave, 9 project, 10 synth,
  * 12 word, 13 file, 14 help) selects each screen's draw, per-frame update
- * and input handler: page in the screen's ROM bank (HRAM shadow hCurBank
+ * and input handler: page in the screen's ROM bank (HRAM shadow hCurrentBank
  * + the MBC5 register) and call it. SDCC compiles the dense switches to a
  * bounds check and a `jp hl` into a table of `jp`s; empty cases (0, 7, 11)
  * become their own `jp end` trampolines, in source order, which is how the
@@ -22,7 +22,7 @@
 
 #include "lsdj.h"
 
-extern UBYTE wChanActive[];                 /* $C0E0, [8] */
+extern UBYTE wChannelActive[];                 /* $C0E0, [8] */
 extern UBYTE wRedrawPending;                /* $C56C */
 extern UBYTE wPartialRedrawDone;            /* $C56D */
 extern UBYTE wButtons;                      /* $C575 */
@@ -43,23 +43,23 @@ UBYTE GrooveScreenInput(void);
 UBYTE ChainScreenInput(void);
 UBYTE SongScreenInput(void);
 UBYTE TableScreenInput(void);
-UBYTE InstrScreenInput(void);
+UBYTE InstrumentScreenInput(void);
 UBYTE NameEditorInput(void);
 UBYTE WaveScreenInput(void);
-UBYTE ProjScreenInput(void);
+UBYTE ProjectScreenInput(void);
 UBYTE SynthScreenInput(void);
 UBYTE WordScreenInput(void);
 UBYTE FileScreenInput(void);
 UBYTE HelpScreenInput(void);
-extern volatile sfr UBYTE hSoundChan;         /* $FF8B */
-extern UBYTE wChanOutput[];                 /* $C0A0, [4] */
-extern UBYTE wChanOutputOverride[];         /* $C0A4, [4] */
-extern UBYTE wChanOutputSoloSaved[];        /* $C0A8, [4] */
+extern volatile sfr UBYTE hSoundChannel;         /* $FF8B */
+extern UBYTE wChannelOutput[];                 /* $C0A0, [4] */
+extern UBYTE wChannelOutputOverride[];         /* $C0A4, [4] */
+extern UBYTE wChannelOutputSoloSaved[];        /* $C0A8, [4] */
 extern UBYTE wMuteSoloLatch;                /* $C56A */
-extern UBYTE wKbdActionChan;                  /* $CB9A */
+extern UBYTE wKeyboardActionChannel;                  /* $CB9A */
 extern UBYTE wAPressEnabled;                /* $C409 */
 void SoundWritePanning(UBYTE v);              /* bank 2 */
-void DrawAllChanStatus(void);               /* $271A: the B combos, ahead of the screen's own input (none on the name
+void DrawAllChannelStatus(void);               /* $271A: the B combos, ahead of the screen's own input (none on the name
    editor, wave, project, file and help screens). B+SELECT mutes the cursor's
    channel (or the keyboard's), B+LEFT/RIGHT on the song screen pans it to
    one side, B+START solos it; releasing B with the latch set puts the
@@ -70,35 +70,35 @@ UBYTE HandleInputCombos(void)
     UBYTE saved;
     UBYTE changed, chan, v;
 
-    if (wCurScreen == 7 || wCurScreen == 8 || wCurScreen == 9
-            || wCurScreen == 0x0D || wCurScreen == 0x0E)
+    if (wCurrentScreen == 7 || wCurrentScreen == 8 || wCurrentScreen == 9
+            || wCurrentScreen == 0x0D || wCurrentScreen == 0x0E)
         return 0;
     if (wBHeld) {
         changed = 0;
         if (wButtons == 0x60) {
-            wChanOutputOverride[wSongCol] = 0;
+            wChannelOutputOverride[wSongColumn] = 0;
             changed = 1;
-        } else if (wCurScreen == 4) {
+        } else if (wCurrentScreen == 4) {
             switch (wButtons) {
             case 0x22:
-                wChanOutputOverride[wSongCol] = 1;
+                wChannelOutputOverride[wSongColumn] = 1;
                 changed = 1;
                 break;
             case 0x21:
-                wChanOutputOverride[wSongCol] = 2;
+                wChannelOutputOverride[wSongColumn] = 2;
                 changed = 1;
                 break;
             }
         }
         if (changed) {
-            hSoundChan = !(wKbdActionChan == 0xFF) ? wKbdActionChan : wSongCol;
-            if (!(wChanOutput[hSoundChan] & 0x80)) {
-                saved = wChanOutput[hSoundChan];
+            hSoundChannel = !(wKeyboardActionChannel == 0xFF) ? wKeyboardActionChannel : wSongColumn;
+            if (!(wChannelOutput[hSoundChannel] & 0x80)) {
+                saved = wChannelOutput[hSoundChannel];
                 SWITCH_ROM(2);
-                SoundWritePanning(wChanOutputOverride[hSoundChan]);
-                wChanOutput[hSoundChan] = saved | 0x80;
+                SoundWritePanning(wChannelOutputOverride[hSoundChannel]);
+                wChannelOutput[hSoundChannel] = saved | 0x80;
                 SWITCH_ROM(0x1F);
-                DrawAllChanStatus();
+                DrawAllChannelStatus();
                 wMuteSoloLatch = 1;
             }
             return 1;
@@ -106,22 +106,22 @@ UBYTE HandleInputCombos(void)
     }
     if (wBHeld && wButtons == 0xA0) {
         SWITCH_ROM(2);
-        for (hSoundChan = 0; hSoundChan < 4; hSoundChan++) {
-            if (wSongCol == hSoundChan)
+        for (hSoundChannel = 0; hSoundChannel < 4; hSoundChannel++) {
+            if (wSongColumn == hSoundChannel)
                 continue;
-            saved = wChanOutput[hSoundChan];
-            if (wChanOutputOverride[hSoundChan]) {
-                wChanOutputSoloSaved[hSoundChan] = wChanOutputOverride[hSoundChan];
-                wChanOutputOverride[hSoundChan] = 0;
+            saved = wChannelOutput[hSoundChannel];
+            if (wChannelOutputOverride[hSoundChannel]) {
+                wChannelOutputSoloSaved[hSoundChannel] = wChannelOutputOverride[hSoundChannel];
+                wChannelOutputOverride[hSoundChannel] = 0;
             }
             SoundWritePanning(0);
-            wChanOutput[hSoundChan] = saved | 0x80;
+            wChannelOutput[hSoundChannel] = saved | 0x80;
         }
-        hSoundChan = wSongCol;
-        wChanOutput[wSongCol] &= 3;
-        SoundWritePanning(wChanOutput[wSongCol]);
+        hSoundChannel = wSongColumn;
+        wChannelOutput[wSongColumn] &= 3;
+        SoundWritePanning(wChannelOutput[wSongColumn]);
         SWITCH_ROM(0x1F);
-        DrawAllChanStatus();
+        DrawAllChannelStatus();
         wMuteSoloLatch = 2;
         return 1;
     }
@@ -129,28 +129,28 @@ UBYTE HandleInputCombos(void)
         return 0;
     if (wButtons == 0x20 && wMuteSoloLatch) {
         if (wMuteSoloLatch == 1 || wAPressEnabled) {
-            chan = !(wKbdActionChan == 0xFF) ? wKbdActionChan : wSongCol;
-            wChanOutput[chan] &= 3;
-            wChanOutputOverride[chan] = 0;
-            wChanOutputSoloSaved[chan] = 0;
-            hSoundChan = chan;
+            chan = !(wKeyboardActionChannel == 0xFF) ? wKeyboardActionChannel : wSongColumn;
+            wChannelOutput[chan] &= 3;
+            wChannelOutputOverride[chan] = 0;
+            wChannelOutputSoloSaved[chan] = 0;
+            hSoundChannel = chan;
             SWITCH_ROM(2);
-            SoundWritePanning(wChanOutput[hSoundChan]);
+            SoundWritePanning(wChannelOutput[hSoundChannel]);
         } else {
-            for (hSoundChan = 0; hSoundChan < 4; hSoundChan++) {
-                if (wSongCol == hSoundChan)
+            for (hSoundChannel = 0; hSoundChannel < 4; hSoundChannel++) {
+                if (wSongColumn == hSoundChannel)
                     continue;
-                v = wChanOutputSoloSaved[hSoundChan];
+                v = wChannelOutputSoloSaved[hSoundChannel];
                 if (v)
-                    wChanOutputOverride[hSoundChan] = v;
+                    wChannelOutputOverride[hSoundChannel] = v;
                 else
-                    wChanOutput[hSoundChan] &= 3;
+                    wChannelOutput[hSoundChannel] &= 3;
                 SWITCH_ROM(2);
-                SoundWritePanning(wChanOutput[hSoundChan]);
+                SoundWritePanning(wChannelOutput[hSoundChannel]);
             }
         }
         SWITCH_ROM(0x1F);
-        DrawAllChanStatus();
+        DrawAllChannelStatus();
     }
     return 0;
 }
@@ -159,8 +159,8 @@ UBYTE HandleInputCombos(void)
 
 void ResetScreenSprites(void)
 {
-    if (wCurScreen != 7 && wCurScreen != 8 && wCurScreen != 9
-            && wCurScreen != 0x0D && wCurScreen != 0x0E && wChanActive[2])
+    if (wCurrentScreen != 7 && wCurrentScreen != 8 && wCurrentScreen != 9
+            && wCurrentScreen != 0x0D && wCurrentScreen != 0x0E && wChannelActive[2])
         PositionWavSprites();
     else
         ClearSprites012();
@@ -169,7 +169,7 @@ void ResetScreenSprites(void)
 
 void DispatchScreenDraw(void)
 {
-    switch (wCurScreen) {
+    switch (wCurrentScreen) {
     case 0:
         break;
     case 1:
@@ -188,7 +188,7 @@ void DispatchScreenDraw(void)
         SWITCH_ROM(0x05); DrawTableScreen();
         break;
     case 6:
-        SWITCH_ROM(0x03); DrawInstrScreen();
+        SWITCH_ROM(0x03); DrawInstrumentScreen();
         break;
     case 7:
         break;
@@ -196,7 +196,7 @@ void DispatchScreenDraw(void)
         SWITCH_ROM(0x06); DrawWaveScreen();
         break;
     case 9:
-        SWITCH_ROM(0x1B); DrawProjScreen();
+        SWITCH_ROM(0x1B); DrawProjectScreen();
         break;
     case 10:
         SWITCH_ROM(0x1D); DrawSynthScreen();
@@ -225,7 +225,7 @@ void DispatchScreenUpdate(void)
         wFullRedrawTimer = 0x20;
     }
     wPartialRedrawDone = 0;
-    switch (wCurScreen) {
+    switch (wCurrentScreen) {
     case 1:
         SWITCH_ROM(0x1F);
         PhraseScreenUpdate();
@@ -248,7 +248,7 @@ void DispatchScreenUpdate(void)
         break;
     }
     if (!wRedrawPending) {
-        switch (wCurScreen) {
+        switch (wCurrentScreen) {
         case 7:
         case 8:
         case 9:
@@ -265,7 +265,7 @@ void DispatchScreenUpdate(void)
 
 UBYTE DispatchScreenInput(void)
 {
-    switch (wCurScreen) {
+    switch (wCurrentScreen) {
     case 0:
         break;
     case 1:
@@ -285,7 +285,7 @@ UBYTE DispatchScreenInput(void)
         return TableScreenInput();
     case 6:
         SWITCH_ROM(0x03);
-        return InstrScreenInput();
+        return InstrumentScreenInput();
     case 7:
         SWITCH_ROM(0x1B);
         return NameEditorInput();
@@ -294,7 +294,7 @@ UBYTE DispatchScreenInput(void)
         return WaveScreenInput();
     case 9:
         SWITCH_ROM(0x1B);
-        return ProjScreenInput();
+        return ProjectScreenInput();
     case 10:
         SWITCH_ROM(0x1D);
         return SynthScreenInput();

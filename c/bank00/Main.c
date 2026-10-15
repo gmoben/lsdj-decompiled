@@ -52,7 +52,7 @@ void WriteSongInitFlag(void);               /* bank 1 */
 UBYTE CheckFileMagic64(void);               /* bank $1C */
 UBYTE CheckJkMarker(void);                  /* bank 1 */
 void FormatFileSpace(void);                 /* bank $1C */
-void LoadProjSettings(void);             /* bank 1 */
+void LoadProjectSettings(void);             /* bank 1 */
 UBYTE CheckFileMagicAll(void);              /* bank $1C */
 void RenderSynthWave(void);                 /* bank $1D */
 UBYTE ProcessLinkQueue(void);               /* bank 7 */
@@ -63,30 +63,30 @@ void MarkChainUsed(UBYTE chain);            /* bank 1 */
 void InitRemapTable(void);                  /* bank $1F */
 void SoundTogglePlayback(void);                  /* bank 2 */
 void SyncApplyMode(void);
-void WritePhraseFx(UBYTE phrase, UBYTE row, UBYTE fx);  /* bank 4 */
-void WriteTableCmd(UBYTE row, UBYTE fx);    /* bank 5 */
+void WritePhraseCommand(UBYTE phrase, UBYTE row, UBYTE fx);  /* bank 4 */
+void WriteTableCommand(UBYTE row, UBYTE fx);    /* bank 5 */
 void ResetGrooveState(void);                /* bank $1D */
 UBYTE HandleButtonEvent(void);
-extern UBYTE wKbdActionChan;                  /* $CB9A */
+extern UBYTE wKeyboardActionChannel;                  /* $CB9A */
 extern UBYTE wLinkQueueCount;               /* $CB7D */
-extern UBYTE wKbdHeldNote;                  /* $CB7E */
+extern UBYTE wKeyboardHeldNote;                  /* $CB7E */
 extern UBYTE wSelectHoldFrames;                /* $C676 */
 extern UBYTE wChainScopeDirty;              /* $C403 */
 extern UBYTE wSongScopeDirty;               /* $C404 */
 extern UBYTE wChain;                        /* $C418 */
 extern char wChainRow;                      /* $C41A: a char (copied through b to be pushed) */
-extern UBYTE wColPhrase[];                  /* $C453, [4] */
-extern UBYTE wColChain[];                   /* $C44F, [4] */
-extern UBYTE wColLastCmd[];                 /* $C44B, [4] */
-extern UBYTE wInstrRemapDirty;              /* $C9B7 */
+extern UBYTE wColumnPhrase[];                  /* $C453, [4] */
+extern UBYTE wColumnChain[];                   /* $C44F, [4] */
+extern UBYTE wColumnLastCommand[];                 /* $C44B, [4] */
+extern UBYTE wInstrumentRemapDirty;              /* $C9B7 */
 extern UBYTE wTransposeDirty;               /* $C445 */
 extern UBYTE wSongTranspose;                /* $C444 */
 extern UBYTE wSongTransposeDisp;            /* $C446 */
-extern UBYTE wLiveStartCol;                 /* $C571 */
+extern UBYTE wLiveStartColumn;                 /* $C571 */
 extern UBYTE wSavedLiveMode;                /* $C572 */
 extern UBYTE wLiveMode;                     /* $C528 */
-extern UBYTE wPendingCmdTarget;             /* $C467 */
-extern UBYTE wPendingCmds[];                /* $C457, [16] */
+extern UBYTE wPendingCommandTarget;             /* $C467 */
+extern UBYTE wPendingCommands[];                /* $C457, [16] */
 extern UWORD wTableCellAPtr, wTableCellBPtr;    /* $C447, $C449 */
 extern UBYTE wGrooveCacheValid;             /* $C9D5 */
 extern UBYTE *wTopBarMarkPtr;               /* $C562 */
@@ -96,7 +96,7 @@ extern UBYTE wAPressEnabled;                /* $C409 */
 extern UBYTE wSelectHeld;                   /* $C40A */
 extern UBYTE wBHeld;                        /* $C40B */
 void DispatchScreenUpdate(void);
-UBYTE AnyChanFlagSet(void);
+UBYTE AnyChannelFlagSet(void);
 void UpdatePlayClock(void);                   /* bank 1 */
 void UpdateWorkClock(void);                  /* bank 1 */
 UBYTE IsMessageActive(void);                  /* bank 1 */
@@ -122,7 +122,7 @@ UBYTE ProcessInput(void)
     UBYTE i;
     UBYTE ok;
 
-    wKbdActionChan = 0xFF;
+    wKeyboardActionChannel = 0xFF;
     if (wLinkQueueCount) {
         SWITCH_ROM(7);
         do
@@ -132,9 +132,9 @@ UBYTE ProcessInput(void)
             return 1;
     } else {
         buttons = GetNextButtons();
-        if (wKbdHeldNote) {
+        if (wKeyboardHeldNote) {
             if (buttons)
-                wKbdHeldNote = 0;
+                wKeyboardHeldNote = 0;
             else
                 return 1;
         }
@@ -156,20 +156,20 @@ UBYTE ProcessInput(void)
             if (r != 0xFF) {
                 SWITCH_ROM(1);
                 MarkPhraseUsed(r);
-                wColPhrase[wSongCol] = r;
+                wColumnPhrase[wSongColumn] = r;
             }
         }
         if (wSongScopeDirty) {
             wSongScopeDirty = 0;
             SWITCH_ROM(2);
-            r = ReadSeqByte(wSongCol, wSongRow);
+            r = ReadSeqByte(wSongColumn, wSongRow);
             if (r < 0x80) {
                 SWITCH_ROM(1);
                 MarkChainUsed(r);
-                wColChain[wSongCol] = r;
+                wColumnChain[wSongColumn] = r;
             }
         }
-        if (wInstrRemapDirty) {
+        if (wInstrumentRemapDirty) {
             SWITCH_ROM(0x1F);
             InitRemapTable();
         }
@@ -178,44 +178,44 @@ UBYTE ProcessInput(void)
             wSongTranspose = wSongTransposeDisp;
             WriteSongByte(1, 0xBFB5, wSongTranspose);
         }
-        if (wLiveStartCol != 0xFF) {
-            wLiveStartCol = 0xFF;
+        if (wLiveStartColumn != 0xFF) {
+            wLiveStartColumn = 0xFF;
             SWITCH_ROM(2);
             SoundTogglePlayback();
             wLiveMode = wSavedLiveMode;
             SyncApplyMode();
             return 0;
         }
-        if (wPendingCmdTarget != 0xFF) {
+        if (wPendingCommandTarget != 0xFF) {
             for (i = 0; i < 0x10; i++) {
-                p = &wPendingCmds[i];
+                p = &wPendingCommands[i];
                 v = *p;
                 if (v) {
                     if (v > 0x13)
                         DebugTrap();
-                    switch (wPendingCmdTarget) {
+                    switch (wPendingCommandTarget) {
                     case 0:
                         SWITCH_ROM(4);
-                        WritePhraseFx(wPhrase, i, v);
+                        WritePhraseCommand(wPhrase, i, v);
                         break;
                     case 1:
                         SWITCH_ROM(5);
                         wTableCellAPtr = 0xB680;
                         wTableCellBPtr = 0xB880;
-                        WriteTableCmd(i, v);
+                        WriteTableCommand(i, v);
                         break;
                     case 2:
                         SWITCH_ROM(5);
                         wTableCellAPtr = 0xBA80;
                         wTableCellBPtr = 0xBC80;
-                        WriteTableCmd(i, v);
+                        WriteTableCommand(i, v);
                         break;
                     }
-                    wColLastCmd[wSongCol] = v;
+                    wColumnLastCommand[wSongColumn] = v;
                     *p = 0;
                 }
             }
-            wPendingCmdTarget = 0xFF;
+            wPendingCommandTarget = 0xFF;
         }
         if (wGrooveCacheValid) {
             SWITCH_ROM(0x1D);
@@ -278,8 +278,8 @@ void InitAndLoadSong(void)
     if (!CheckSongInitFlag()) {
         ResetWorkState();
         FarCall(0x1E, FAR_FN(LoadFontTiles));
-        hBgDigitPal = 4;
-        hBgPal = 1;
+        hBgDigitPalette = 4;
+        hBgPalette = 1;
         DrawCartTest();
         WriteSongByte(1, 0xBFB6, 0);
         WriteSongByte(1, 0xBFB8, 0);
@@ -301,7 +301,7 @@ void InitAndLoadSong(void)
     TAC_REG = 6;
     wTimerReload = hGameboyType ? 0x6E : 0xB7;
     wTimerTickInc = hGameboyType ? 0x0C : 0x06;
-    FarCallArg(1, LoadProjSettings, 0);
+    FarCallArg(1, LoadProjectSettings, 0);
     _asm ei _endasm;
 }
 
@@ -340,7 +340,7 @@ void main(void)
         if (!ProcessInput() || wPlayMode || wSyncMode == 6 || wSyncTick != 0xFF)
             wIdleFrames = 0;
         DispatchScreenUpdate();
-        if (AnyChanFlagSet())
+        if (AnyChannelFlagSet())
             wIdleFrames = 0;
         SWITCH_ROM(1);
         UpdatePlayClock();

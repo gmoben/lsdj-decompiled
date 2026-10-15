@@ -10,7 +10,7 @@
  * (ReadSeqByte's twins without the asserts). SyncStartTransport's guard is
  * an early `return` (`if (!lsdj && wSyncMode != 3) return;`), which is what
  * leaves the ROM's `jp z,body; jp end`. SyncTickLsdj needs track_hram
- * (hSoundChan reused across its loop test); SendByteStep is the re-entrancy
+ * (hSoundChannel reused across its loop test); SendByteStep is the re-entrancy
  * guarded step loop the serial interrupt and the analog clock drive.
  * CheckRomChecksum (the cartridge test's ROM pass) sits between them: its
  * low-byte test is SDCC's `cp a,a` miscompile, so it always passes.
@@ -23,19 +23,19 @@ extern volatile sfr UBYTE SC_REG;           /* $FF02 */
 extern volatile sfr UBYTE DIV_REG;          /* $FF04 */
 extern volatile sfr UBYTE NR50_REG;         /* $FF24 */
 extern volatile sfr UBYTE NR52_REG;         /* $FF26 */
-extern volatile sfr UBYTE hSoundChan;         /* $FF8B, the sound engine's channel */
+extern volatile sfr UBYTE hSoundChannel;         /* $FF8B, the sound engine's channel */
 extern volatile sfr UBYTE IE_REG;           /* $FFFF */
-extern UBYTE wChanActive[];                 /* $C0E0, [4] */
-extern UBYTE wChanPhrase[];                 /* $C168, [4] */
-extern UBYTE wChanChain[];                  /* $C170, [4] */
-extern UBYTE wChanChainRow[];               /* $C17C, [4] */
-extern UBYTE wChanSongRow[];                /* $C200, [4] */
-extern UBYTE wChanNextSongRow[];            /* $C2FC, [4] */
-extern UBYTE wChanStopQueued[];                /* $C304, [4] */
+extern UBYTE wChannelActive[];                 /* $C0E0, [4] */
+extern UBYTE wChannelPhrase[];                 /* $C168, [4] */
+extern UBYTE wChannelChain[];                  /* $C170, [4] */
+extern UBYTE wChannelChainRow[];               /* $C17C, [4] */
+extern UBYTE wChannelSongRow[];                /* $C200, [4] */
+extern UBYTE wChannelNextSongRow[];            /* $C2FC, [4] */
+extern UBYTE wChannelStopQueued[];                /* $C304, [4] */
 extern UBYTE wLiveMode;                     /* $C528 */
 extern UBYTE wPlayMinutes;                 /* $C552 */
 extern UBYTE wPlaySeconds;                 /* $C553 */
-extern UBYTE wLiveStartCol;                 /* $C571 */
+extern UBYTE wLiveStartColumn;                 /* $C571 */
 extern UBYTE wAnalogOutTimer;               /* $CB68 */
 extern UBYTE wSyncTick;                     /* $CB69 */
 extern UBYTE wSyncSerialIeMask;             /* $CB6D */
@@ -67,8 +67,8 @@ void SyncTickLsdj(void);
 void SyncSetSendMode(void);
 void SyncSetRecvMode(void);
 void SoundTogglePlayback(void);                    /* bank 2 */
-void SoundResetChanFx(void);           /* bank 2 */
-void SoundResetFxState(void);                 /* bank 2 */
+void SoundResetChannelCommand(void);           /* bank 2 */
+void SoundResetCommandState(void);                 /* bank 2 */
 void SoundEnableLcdInts(void);                /* bank 2 */
 void SoundRunFrame(void);                     /* bank 2 */
 void DrawSyncSubSetting(void);              /* bank $1B */
@@ -123,26 +123,26 @@ void SyncTickLsdj(void)
 
     if (wLiveMode) {
         saved = wVramCursor;
-        for (hSoundChan = 0; hSoundChan < 4; hSoundChan++) {
-            wChanNextSongRow[hSoundChan] = 0xFF;
-            wChanStopQueued[hSoundChan] = 0;
-            wChanActive[hSoundChan] = 0;
+        for (hSoundChannel = 0; hSoundChannel < 4; hSoundChannel++) {
+            wChannelNextSongRow[hSoundChannel] = 0xFF;
+            wChannelStopQueued[hSoundChannel] = 0;
+            wChannelActive[hSoundChannel] = 0;
             _asm di _endasm;
             SWITCH_ROM(2);
-            SoundResetChanFx();
+            SoundResetChannelCommand();
             _asm ei _endasm;
-            if (wCurScreen == 4) {
-                SetVramCursor(hSoundChan * 3 + 2, (wChanSongRow[hSoundChan] & 0x0F) + 2);
+            if (wCurrentScreen == 4) {
+                SetVramCursor(hSoundChannel * 3 + 2, (wChannelSongRow[hSoundChannel] & 0x0F) + 2);
                 DrawStringTile20();
             }
         }
         wVramCursor = (UBYTE *)0x99B0;
-        hBgDigitPal = 4;
-        hBgPal = 1;
+        hBgDigitPalette = 4;
+        hBgPalette = 1;
         DrawString("    ");
         wVramCursor = saved;
     } else {
-        wPlayMode = wCurScreen;
+        wPlayMode = wCurrentScreen;
         _asm di _endasm;
         SWITCH_ROM(2);
         SoundTogglePlayback();
@@ -165,7 +165,7 @@ void DispatchSyncClock(void)
 {
     UBYTE saved;
 
-    saved = hCurBank;
+    saved = hCurrentBank;
     wSyncTick = 0xFF;
     if (wPlayMode) {
         if (wSyncMode == 1)
@@ -269,7 +269,7 @@ void HandleTooBusy(void)
 {
     UBYTE saved;
 
-    saved = hCurBank;
+    saved = hCurrentBank;
     SWITCH_ROM(2);
     SoundInitPlayState();
     SWITCH_ROM(1);
@@ -297,7 +297,7 @@ void SyncSeekSongPos(void)
 {
     UBYTE chan, row, chain;
 
-    SoundResetFxState();
+    SoundResetCommandState();
     for (chan = 0; chan < 4; chan++) {
         row = (wSyncMode == 1) ? wSyncRxPos : wSyncStartRow;
         chain = ReadSeqByteRaw(chan, row);
@@ -306,15 +306,15 @@ void SyncSeekSongPos(void)
             chain = ReadSeqByteRaw(chan, row);
         }
         if (chain & 0x80) {
-            wChanActive[chan] = 0;
+            wChannelActive[chan] = 0;
         } else {
-            wChanSongRow[chan] = row;
-            wChanChainRow[chan] = 0xFF;
-            if ((wChanPhrase[chan] = ReadChainByte(chain, 0)) == 0xFF) {
-                wChanActive[chan] = 0;
+            wChannelSongRow[chan] = row;
+            wChannelChainRow[chan] = 0xFF;
+            if ((wChannelPhrase[chan] = ReadChainByte(chain, 0)) == 0xFF) {
+                wChannelActive[chan] = 0;
             } else {
-                wChanChain[chan] = chain;
-                wChanActive[chan] = 1;
+                wChannelChain[chan] = chain;
+                wChannelActive[chan] = 1;
             }
         }
     }
@@ -331,8 +331,8 @@ void SendByteStep(void)
             HandleTooBusy();
         return;
     }
-    saved = hCurBank;
-    chan = hSoundChan;
+    saved = hCurrentBank;
+    chan = hSoundChannel;
     do {
         _asm ei _endasm;
         if (wSyncRxPos <= 0xBF) {
@@ -343,7 +343,7 @@ void SendByteStep(void)
                 SWITCH_ROM(2);
                 SyncSeekSongPos();
                 SoundEnableLcdInts();
-                if (wCurScreen == 9) {
+                if (wCurrentScreen == 9) {
                     SWITCH_ROM(0x1B);
                     wPlayMinutes = 0;
                     wPlaySeconds = 0;
@@ -368,14 +368,14 @@ void SendByteStep(void)
         _asm di _endasm;
     } while (--wSendByteNest);
     _asm ei _endasm;
-    hSoundChan = chan;
+    hSoundChannel = chan;
 }
 
 void ProcessSyncByte(void)
 {
     UBYTE saved;
 
-    if (wSyncMode == 1 && !wSyncRun && wLiveStartCol == 0xFF) {
+    if (wSyncMode == 1 && !wSyncRun && wLiveStartColumn == 0xFF) {
         if (wSyncRxByte < 0xFD) {
             wSyncRxPos = wSyncRxByte;
         } else if (wPlayMode) {
@@ -387,7 +387,7 @@ void ProcessSyncByte(void)
                 wSyncHandshake = 0;
             }
         } else if (wSyncRxByte == 0xFE) {
-            saved = hCurBank;
+            saved = hCurrentBank;
             SWITCH_ROM(0x1C);
             ReceiveLinkClipboard();
             SWITCH_ROM(saved);

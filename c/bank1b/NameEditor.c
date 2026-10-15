@@ -10,7 +10,7 @@
 
 #include "lsdj.h"
 
-extern UBYTE wNameEditCol;                 /* $C42D */
+extern UBYTE wNameEditColumn;                 /* $C42D */
 extern UBYTE wNameEditRow;                 /* $C42E */
 extern UBYTE wRedrawPending;                /* $C56C */
 extern UBYTE wAPressEnabled;                /* $C409 */
@@ -23,28 +23,28 @@ extern UBYTE wNameEditWrapLatch;            /* $C9A2 */
 extern UBYTE wNameReturnScreen;             /* $C42F */
 extern UBYTE wFileListActive;               /* $C998 */
 extern UBYTE wFileCursor;                   /* $C999 */
-extern UBYTE wNameEditIsInstr;              /* $C430 */
-extern UBYTE wInstr;                   /* $C576 */
+extern UBYTE wNameEditIsInstrument;              /* $C430 */
+extern UBYTE wInstrument;                   /* $C576 */
 void FileStopSound(void);                   /* $1C:$5098 */
 UBYTE SaveFile(UBYTE f);                    /* $1C:$4E10 */
-void WriteInstrName(UBYTE instr);           /* $01:$4A49 */
-void DrawProjTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE h);
+void WriteInstrumentName(UBYTE instr);           /* $01:$4A49 */
+void DrawProjectTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE h);
 void delay(UWORD d);
 extern char AlnumChars[][11];               /* $1B:$4C6A, the name keyboard: "0123456789", "ABCDEFGHIJ", "KLMNOPQRST", "UVWXYZx >w" */
-void CopyInstrName(UBYTE instr);            /* $01:$493B */
+void CopyInstrumentName(UBYTE instr);            /* $01:$493B */
 
 void DrawNameEditCursor(void)
 {
     UBYTE x, y;
 
-    x = wNameEditCol + 5;
+    x = wNameEditColumn + 5;
     y = wNameEditRow + 8;
     ColorField(x, y, 1, hGameboyType ? 3 : 2);
 }
 
 void EraseNameEditCursor(void)
 {
-    ColorField(wNameEditCol + 5, wNameEditRow + 8, 1, 0);
+    ColorField(wNameEditColumn + 5, wNameEditRow + 8, 1, 0);
 }
 
 /* A w x h frame at (x, y): corner/edge tiles through the identity map,
@@ -56,7 +56,7 @@ void EraseNameEditCursor(void)
  * the ROM has them. The `==` operands are written `i == x`: SDCC 2.2.1 swaps
  * them back.
  */
-void DrawProjTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE h)
+void DrawProjectTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE h)
 {
     UBYTE i, j;
 
@@ -65,7 +65,7 @@ void DrawProjTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE h)
             ColorField(i, j, 1, 0);
             SetVramCursor(i, j);
             wStringSrc = IdentityCharMap;
-            hBgPal = hGameboyType ? 0x48 : 0xD2;
+            hBgPalette = hGameboyType ? 0x48 : 0xD2;
             if (i == x) {
                 if (j == y)
                     DrawStringIndexed(0);
@@ -86,8 +86,8 @@ void DrawProjTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE h)
                 else if (j == y + h - 1)
                     DrawStringIndexed(6);
                 else {
-                    hBgDigitPal = 4;
-                    hBgPal = 1;
+                    hBgDigitPalette = 4;
+                    hBgPalette = 1;
                     DrawStringIndexed(2);
                 }
                 wStringSrc = AsciiCharMap - 0x20;
@@ -95,8 +95,8 @@ void DrawProjTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE h)
         }
     }
     wStringSrc = AsciiCharMap - 0x20;
-    hBgDigitPal = 4;
-    hBgPal = 1;
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
 }
 
 void OpenNameEditor(void)
@@ -104,47 +104,47 @@ void OpenNameEditor(void)
     UBYTE i, v;
 
     ClearMarkerSprites();
-    wNameReturnScreen = wCurScreen;
-    if (wNameEditIsInstr)
-        FarCallArg(1, FAR_FN(CopyInstrName), wInstr);
+    wNameReturnScreen = wCurrentScreen;
+    if (wNameEditIsInstrument)
+        FarCallArg(1, FAR_FN(CopyInstrumentName), wInstrument);
     wNameEditPos = 0;
     while (wNameEditBuf[wNameEditPos]) {
-        if (wNameEditPos == (wNameEditIsInstr ? 4 : 2))
+        if (wNameEditPos == (wNameEditIsInstrument ? 4 : 2))
             break;
         wNameEditPos++;
     }
-    if (wCurScreen == 0x0D) {
-        DrawProjTextField(4, 4, 0x0C, 9);
+    if (wCurrentScreen == 0x0D) {
+        DrawProjectTextField(4, 4, 0x0C, 9);
         wVramCursor = 0x98A5;
-        hBgDigitPal = 4;
-        hBgPal = 1;
+        hBgDigitPalette = 4;
+        hBgPalette = 1;
         DrawString("SAVE AS:");
     } else {
-        DrawProjTextField(4, 5, 0x0C, 8);
+        DrawProjectTextField(4, 5, 0x0C, 8);
     }
-    hBgDigitPal = wHighlightDigitPal;
-    hBgPal = wHighlightPal;
-    if (wCurScreen == 0x0D) {
+    hBgDigitPalette = wHighlightDigitPalette;
+    hBgPalette = wHighlightPalette;
+    if (wCurrentScreen == 0x0D) {
         wVramCursor = 0x98C5;
         DrawString(wNameEditBuf);
         wNameEditPos = StrLength(wNameEditBuf);
         if (wNameEditPos == 8)
             wNameEditPos--;
-        wNameEditCol = 9;
+        wNameEditColumn = 9;
         wNameEditRow = 3;
     } else {
         wVramCursor = 0x98CA;
-        for (i = 0; i < (wNameEditIsInstr ? 5 : 3); i++) {
+        for (i = 0; i < (wNameEditIsInstrument ? 5 : 3); i++) {
             v = wNameEditBuf[i];
             DrawStringIndexed(v ? v : ' ');
         }
-        hBgDigitPal = 4;
-        hBgPal = 1;
+        hBgDigitPalette = 4;
+        hBgPalette = 1;
         wVramCursor = 0x98C5;
         DrawString("NAME:");
     }
-    hBgDigitPal = 4;
-    hBgPal = 1;
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
     wVramCursor = 0x9905;
     DrawString(AlnumChars);
     wVramCursor = 0x9925;
@@ -153,15 +153,15 @@ void OpenNameEditor(void)
     DrawString(AlnumChars[2]);
     wVramCursor = 0x9965;
     DrawString(AlnumChars[3]);
-    if (wCurScreen == 0x0D) {
+    if (wCurrentScreen == 0x0D) {
         ColorField(5, 6, 0x0A, hGameboyType ? 3 : 2);
         ColorField(wNameEditPos + 5, 6, 1, hGameboyType ? 4 : 1);
     } else {
-        ColorField(0x0A, 6, wNameEditIsInstr ? 5 : 3, hGameboyType ? 3 : 2);
+        ColorField(0x0A, 6, wNameEditIsInstrument ? 5 : 3, hGameboyType ? 3 : 2);
         ColorField(wNameEditPos + 0x0A, 6, 1, hGameboyType ? 4 : 1);
     }
-    ColorField(wNameEditCol + 5, wNameEditRow + 8, 1, hGameboyType ? 3 : 2);
-    wCurScreen = 7;
+    ColorField(wNameEditColumn + 5, wNameEditRow + 8, 1, hGameboyType ? 3 : 2);
+    wCurrentScreen = 7;
 }
 
 void CommitNameEdit(void)
@@ -171,10 +171,10 @@ void CommitNameEdit(void)
     if (wNameReturnScreen == 0x0D) {
         FarCall(0x1C, FAR_FN(FileStopSound));
         wFileListActive = 0;
-        DrawProjTextField(2, 6, 0x10, 4);
+        DrawProjectTextField(2, 6, 0x10, 4);
         wVramCursor = 0x98E3;
-        hBgDigitPal = 4;
-        hBgPal = 1;
+        hBgDigitPalette = 4;
+        hBgPalette = 1;
         DrawString("SAVING...");
         switch (FarCallArgByte(0x1C, (UWORD)SaveFile, wFileCursor)) {
         case 0:
@@ -202,15 +202,15 @@ void CommitNameEdit(void)
             break;
         }
         wRedrawPending = 0;
-    } else if (wNameEditIsInstr) {
-        FarCallArg(1, FAR_FN(WriteInstrName), wInstr);
+    } else if (wNameEditIsInstrument) {
+        FarCallArg(1, FAR_FN(WriteInstrumentName), wInstrument);
     } else {
         p = (UBYTE *)0xBDD0 + wSpeechRow * 3;
         WriteSongByte(0, p++, wNameEditBuf[0]);
         WriteSongByte(0, p++, wNameEditBuf[1]);
         WriteSongByte(0, p, wNameEditBuf[2]);
     }
-    wCurScreen = wNameReturnScreen;
+    wCurrentScreen = wNameReturnScreen;
     FarCall(3, FAR_FN(RedrawScreen));
 }
 
@@ -227,8 +227,8 @@ void BackspaceNameEdit(UBYTE x, UBYTE n)
         ColorField(x + wNameEditPos, 6, 1, hGameboyType ? 4 : 1);
     }
     SetVramCursor(x + wNameEditPos, 6);
-    hBgDigitPal = wShadedDigitPal;
-    hBgPal = wShadedPal;
+    hBgDigitPalette = wShadedDigitPalette;
+    hBgPalette = wShadedPalette;
     DrawStringIndexed(wNameEditBuf[wNameEditPos] ? wNameEditBuf[wNameEditPos] : ' ');
 }
 
@@ -254,14 +254,14 @@ UBYTE NameEditorInput(void)
         last = 7;
     } else {
         x = 0x0A;
-        last = wNameEditIsInstr ? 4 : 2;
+        last = wNameEditIsInstrument ? 4 : 2;
     }
     switch (wButtons) {
     case 0x10:                                  /* A */
         if (!wAPressEnabled)
             return 0;
         if (wNameEditRow == 3)
-            switch (wNameEditCol) {
+            switch (wNameEditColumn) {
             case 8:
                 BackspaceNameEdit(x, last);
                 return 1;
@@ -269,15 +269,15 @@ UBYTE NameEditorInput(void)
                 CommitNameEdit();
                 return 1;
             }
-        ch = AlnumChars[wNameEditRow][wNameEditCol];
+        ch = AlnumChars[wNameEditRow][wNameEditColumn];
         /* the buffer must be in RAM; a char pointer compares signed */
         if ((int)(wNameEditBuf + 1) > -1)
             DebugTrap();
         wNameEditBuf[wNameEditPos] = ch;
         wNameEditBuf[wNameEditPos + 1] = 0;
         SetVramCursor(x + wNameEditPos, 6);
-        hBgDigitPal = wShadedDigitPal;
-        hBgPal = wShadedPal;
+        hBgDigitPalette = wShadedDigitPalette;
+        hBgPalette = wShadedPalette;
         DrawStringIndexed(ch);
         if (wNameEditPos != last) {
             /* move the letter highlight on (storing the + 1 kept for the
@@ -305,10 +305,10 @@ UBYTE NameEditorInput(void)
         return 1;
     case 0x01:                                  /* right */
         EraseNameEditCursor();
-        if (wNameEditCol != 9 && !wNameEditWrapLatch)
-            wNameEditCol++;
+        if (wNameEditColumn != 9 && !wNameEditWrapLatch)
+            wNameEditColumn++;
         else if (!wButtonsSame) {
-            wNameEditCol = 0;
+            wNameEditColumn = 0;
             wNameEditWrapLatch = 1;
         }
         DrawNameEditCursor();
@@ -325,16 +325,16 @@ UBYTE NameEditorInput(void)
         return 1;
     case 0x02:                                  /* left */
         EraseNameEditCursor();
-        if (wNameEditCol && !wNameEditWrapLatch)
-            wNameEditCol--;
+        if (wNameEditColumn && !wNameEditWrapLatch)
+            wNameEditColumn--;
         else if (!wButtonsSame) {
-            wNameEditCol = 9;
+            wNameEditColumn = 9;
             wNameEditWrapLatch = 1;
         }
         DrawNameEditCursor();
         return 1;
     case 0x20:                                  /* B: leave unchanged */
-        wCurScreen = wNameReturnScreen;
+        wCurrentScreen = wNameReturnScreen;
         FarCall(3, FAR_FN(RedrawScreen));
         return 1;
     }

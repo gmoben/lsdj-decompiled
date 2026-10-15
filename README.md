@@ -166,7 +166,7 @@ lsdj-decompiled/
 │   └── hardware.inc      # standard GB hardware definitions (gbdev, CC0)
 ├── constants/            # symbolic constants
 │   ├── ram.inc           # RAM variable map (~800 named wXxx/hXxx vars)
-│   ├── screens.inc       # screen indices (wCurScreen) -> editor
+│   ├── screens.inc       # screen indices (wCurrentScreen) -> editor
 │   └── song.inc          # song-data memory map (offsets, counts)
 ├── data/                 # extracted data tables (added as carved)
 ├── gfx/                  # graphics assets (added as carved)

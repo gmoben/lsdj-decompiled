@@ -35,7 +35,7 @@ void PasteSongSelection(void)
     colOff = 0;
     w = wSelectionRight - wSelectionLeft;
     if (w == 1)
-        colOff = wSelectionLeft - wSongCol;
+        colOff = wSelectionLeft - wSongColumn;
     h = wSelectionBottom - wSelectionTop;
     if (!wSelectionLeft && wSelectionRight == 4)
         AdjustBookmarksOnInsert(wSongRow, wSongRow + h);

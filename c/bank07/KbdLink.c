@@ -8,7 +8,7 @@
  * r *= ...`): a literal operand of `*` is moved to the right and a power of
  * two there becomes a shift, while the ROM calls MulU16 with 0x800 as the
  * left operand. Its table read goes through the same UWORD (one stack slot
- * in the ROM; a separate pointer local takes a second one). KbdPollScancode's
+ * in the ROM; a separate pointer local takes a second one). KeyboardPollScancode's
  * empty `case 0x27: break;` comes first, which is what inverts the ROM's
  * last compare (`jp nz,default; jp end`).
  */
@@ -18,7 +18,7 @@
 extern UBYTE wLinkQueueCount;                 /* $CB7D, bytes queued */
 extern UBYTE wLinkQueueHead;                /* $CB80, read index */
 extern UBYTE wLinkQueueBuf[];               /* $CB81, [16] ring */
-extern UBYTE wKbdTranspose;                 /* $CB91 */
+extern UBYTE wKeyboardTranspose;                 /* $CB91 */
 extern UWORD wSyncSendRate;                 /* $C954 */
 extern UWORD TempoTimerTableDmg[];          /* $07:$5E49, [256] */
 extern UWORD TempoTimerTableCgb[];          /* $07:$6049, [256] */
@@ -26,10 +26,10 @@ extern UWORD TempoTimerTableCgb[];          /* $07:$6049, [256] */
 void delay(UWORD d);                        /* GBDK */
 void SendSyncHandshake(void);               /* bank 0 */
 
-extern UBYTE wKbdChanState[];               /* $CB96, [4] per-channel keyboard-active state */
-extern UBYTE wKbdArmed;                     /* $CB94 */
-extern UBYTE wKbdInstr;                /* $CB93 */
-extern UBYTE wKbdPulseChans;               /* $CB7F */
+extern UBYTE wKeyboardChannelState[];               /* $CB96, [4] per-channel keyboard-active state */
+extern UBYTE wKeyboardArmed;                     /* $CB94 */
+extern UBYTE wKeyboardInstrument;                /* $CB93 */
+extern UBYTE wKeyboardPulseChannels;               /* $CB7F */
 extern char wNameEditBuf[];                 /* $C431, [5] */
 extern char TxtKeyboardCalibration[];       /* $07:$7171 */
 extern char TxtTapDownArrowKey[];           /* $07:$7186 */
@@ -37,36 +37,36 @@ extern char TxtOnPs2Keyboard[];             /* $07:$7199 */
 extern char TxtManyTimes[];                 /* $07:$71AA */
 extern char TxtFail[];                      /* $07:$71B5 */
 extern char TxtOk[];                        /* $07:$71BB */
-void KbdDrainQueue(void);
+void KeyboardDrainQueue(void);
 UBYTE HexDigitChar(UBYTE v);
-void CopyInstrName(UBYTE instr);            /* bank 1 */
+void CopyInstrumentName(UBYTE instr);            /* bank 1 */
 void ClearMessageBar(void);                 /* bank 1 */
 void ClearBgMapAndAttrs(void);                    /* bank 1 */
 
-extern UBYTE wKbdHeldNote;                  /* $CB7E */
-extern UBYTE wKbdNoteQueued;                /* $CB92 */
+extern UBYTE wKeyboardHeldNote;                  /* $CB7E */
+extern UBYTE wKeyboardNoteQueued;                /* $CB92 */
 extern UBYTE wAPressEnabled;                /* $C409 */
 extern UBYTE wButtons;                      /* $C407 */
-extern UBYTE KbdNoteMap[];             /* $07:$662A */
-extern UBYTE KbdFnMap[];               /* $07:$66AA */
+extern UBYTE KeyboardNoteMap[];             /* $07:$662A */
+extern UBYTE KeyboardFnMap[];               /* $07:$66AA */
 UBYTE PhraseRowIsSentinel(UBYTE row);          /* bank 4 */
 
-extern volatile sfr UBYTE hSoundChan;         /* $FF8B */
-extern volatile sfr UBYTE hFxVal;         /* $FF8F */
-extern UBYTE wKbdCmdAccum;                  /* $CBA1 */
-extern UBYTE wKbdCmdModifier;               /* $CB9F */
-extern UBYTE wKbdSustain;                   /* $CBA0 */
-extern UBYTE wKbdInstr2;               /* $CB95 */
-extern UBYTE wKbdActionChan;                  /* $CB9A */
-extern UBYTE wKbdChanTrigger[];             /* $CB9B, [4] */
-extern UBYTE wChanOutput[];                /* $C0A0, [4] */
+extern volatile sfr UBYTE hSoundChannel;         /* $FF8B */
+extern volatile sfr UBYTE hCommandVal;         /* $FF8F */
+extern UBYTE wKeyboardCommandAccum;                  /* $CBA1 */
+extern UBYTE wKeyboardCommandModifier;               /* $CB9F */
+extern UBYTE wKeyboardSustain;                   /* $CBA0 */
+extern UBYTE wKeyboardInstrument2;               /* $CB95 */
+extern UBYTE wKeyboardActionChannel;                  /* $CB9A */
+extern UBYTE wKeyboardChannelTrigger[];             /* $CB9B, [4] */
+extern UBYTE wChannelOutput[];                /* $C0A0, [4] */
 extern UBYTE wSelectHeld;                   /* $C40A */
 extern UBYTE wBHeld;                        /* $C40B */
-void DrawKbdInstrName(void);
-void DrawKbdOctave(void);
-UBYTE ProcessKbdNote(UBYTE sc);
-void FxCmd_A(void);                         /* bank 2 */
-void FarCallArg0(UBYTE bank, void (*fn)(void));   /* FarCallArg called without its byte (hFxVal set by hand; aliased) */
+void DrawKeyboardInstrumentName(void);
+void DrawKeyboardOctave(void);
+UBYTE ProcessKeyboardNote(UBYTE sc);
+void Command_A(void);                         /* bank 2 */
+void FarCallArg0(UBYTE bank, void (*fn)(void));   /* FarCallArg called without its byte (hCommandVal set by hand; aliased) */
 
 void SetSyncSendRate(void)
 {
@@ -85,41 +85,41 @@ void SetSyncSendRate(void)
     _asm ei _endasm;
 }
 
-void DrawKbdInstrState(void)
+void DrawKeyboardInstrumentState(void)
 {
     UBYTE * volatile pu2;
     UBYTE * volatile wav;
     UBYTE t;
 
-    wKbdChanState[0] = 0;
-    pu2 = &wKbdChanState[1];
+    wKeyboardChannelState[0] = 0;
+    pu2 = &wKeyboardChannelState[1];
     *pu2 = 0;
-    wav = &wKbdChanState[2];
+    wav = &wKeyboardChannelState[2];
     *wav = 1;
-    wKbdChanState[3] = 0;
-    wKbdArmed = 0;
-    if (wKbdInstr < 0x40) {
-        t = ReadInstrByte(wKbdInstr, 0);
+    wKeyboardChannelState[3] = 0;
+    wKeyboardArmed = 0;
+    if (wKeyboardInstrument < 0x40) {
+        t = ReadInstrumentByte(wKeyboardInstrument, 0);
         switch (t) {
         case 0:
             *wav = 0;
-            switch (wKbdPulseChans) {
+            switch (wKeyboardPulseChannels) {
             case 0:
-                wKbdChanState[0] = 1;
+                wKeyboardChannelState[0] = 1;
                 *pu2 = 0;
                 break;
             case 1:
-                wKbdChanState[0] = 0;
+                wKeyboardChannelState[0] = 0;
                 *pu2 = 1;
                 break;
             case 2:
-                wKbdChanState[0] = 1;
+                wKeyboardChannelState[0] = 1;
                 *pu2 = 1;
                 break;
             }
             break;
         case 2:
-            wKbdArmed = 1;
+            wKeyboardArmed = 1;
             break;
         case 3:
             *wav = 0;
@@ -127,10 +127,10 @@ void DrawKbdInstrState(void)
         }
     }
     wVramCursor = (UBYTE *)0x9991;
-    hBgDigitPal = 4;
-    hBgPal = 1;
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
     DrawStringIndexed('I');
-    DrawHexByte(wKbdInstr);
+    DrawHexByte(wKeyboardInstrument);
 }
 
 UBYTE HexDigitChar(UBYTE d)
@@ -138,31 +138,31 @@ UBYTE HexDigitChar(UBYTE d)
     return "0123456789ABCDEF"[d];
 }
 
-void DrawKbdInstrName(void)
+void DrawKeyboardInstrumentName(void)
 {
     UBYTE i;
 
-    DrawKbdInstrState();
-    FarCallArg(1, FAR_FN(CopyInstrName), wKbdInstr);
+    DrawKeyboardInstrumentState();
+    FarCallArg(1, FAR_FN(CopyInstrumentName), wKeyboardInstrument);
     if (wNameEditBuf[0]) {
         for (i = 0; i < 5; i++)
             wSampleNoteString[i] = wNameEditBuf[i] ? wNameEditBuf[i] : ' ';
     } else {
         wSampleNoteString[0] = 'I';
-        wSampleNoteString[1] = HexDigitChar(wKbdInstr >> 4);
-        wSampleNoteString[2] = HexDigitChar(wKbdInstr & 0x0F);
+        wSampleNoteString[1] = HexDigitChar(wKeyboardInstrument >> 4);
+        wSampleNoteString[2] = HexDigitChar(wKeyboardInstrument & 0x0F);
         wSampleNoteString[3] = ' ';
         wSampleNoteString[4] = ' ';
     }
     FarCall(1, FAR_FN(ClearMessageBar));
 }
 
-void DrawKbdOctave(void)
+void DrawKeyboardOctave(void)
 {
     wVramCursor = (UBYTE *)0x99B0;
-    hBgDigitPal = 4;
-    hBgPal = 1;
-    switch (wKbdTranspose) {
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
+    switch (wKeyboardTranspose) {
     case 0x2D:
         DrawString("O7-8");
         break;
@@ -192,73 +192,73 @@ UBYTE ProcessLinkQueue(void)
     UBYTE code;
 
     code = wLinkQueueBuf[wLinkQueueHead];
-    mod = wKbdCmdAccum + wKbdCmdModifier;
-    key = code | wKbdSustain;
+    mod = wKeyboardCommandAccum + wKeyboardCommandModifier;
+    key = code | wKeyboardSustain;
     if (code & 0x80)
         mod |= 4;
     wLinkQueueHead++;
     wLinkQueueHead &= 0x0F;
     switch (code) {
     case 0x03:
-        wKbdCmdModifier = 1;
+        wKeyboardCommandModifier = 1;
         return 0xFF;
     case 0x07:
-        if (!wKbdSustain) {
-            wKbdSustain = 0x80;
+        if (!wKeyboardSustain) {
+            wKeyboardSustain = 0x80;
             return 0xFF;
         }
         break;
     case 0x14:
-        wKbdCmdAccum = wKbdSustain ? 0 : 2;
-        wKbdSustain = 0;
+        wKeyboardCommandAccum = wKeyboardSustain ? 0 : 2;
+        wKeyboardSustain = 0;
         return 0xFF;
     }
-    wKbdSustain = 0;
-    wKbdCmdModifier = 0;
+    wKeyboardSustain = 0;
+    wKeyboardCommandModifier = 0;
     if (mod & 4) {
         if (key <= 0xA0 && key >= 0x80) {
-            wKbdInstr = key + 0x80;
-            DrawKbdInstrName();
+            wKeyboardInstrument = key + 0x80;
+            DrawKeyboardInstrumentName();
         } else {
         switch (key) {
         case 0xB3:
-            wKbdTranspose = 0xFD;
-            DrawKbdOctave();
+            wKeyboardTranspose = 0xFD;
+            DrawKeyboardOctave();
             return 0xFF;
         case 0xB4:
-            wKbdTranspose = 0x09;
-            DrawKbdOctave();
+            wKeyboardTranspose = 0x09;
+            DrawKeyboardOctave();
             return 0xFF;
         case 0xB5:
-            wKbdTranspose = 0x15;
-            DrawKbdOctave();
+            wKeyboardTranspose = 0x15;
+            DrawKeyboardOctave();
             return 0xFF;
         case 0xB6:
-            wKbdTranspose = 0x21;
-            DrawKbdOctave();
+            wKeyboardTranspose = 0x21;
+            DrawKeyboardOctave();
             return 0xFF;
         case 0xB7:
-            wKbdTranspose = 0x2D;
-            DrawKbdOctave();
+            wKeyboardTranspose = 0x2D;
+            DrawKeyboardOctave();
             return 0xFF;
         }
         wVramCursor = (UBYTE *)0x99AF;
-        hBgDigitPal = 4;
-        hBgPal = 1;
+        hBgDigitPalette = 4;
+        hBgPalette = 1;
         switch (key) {
         case 0xA1:
-            wKbdChanState[0] = 1;
-            wKbdChanState[1] = 0;
+            wKeyboardChannelState[0] = 1;
+            wKeyboardChannelState[1] = 0;
             DrawString("PU1  ");
             break;
         case 0xA2:
-            wKbdChanState[0] = 0;
-            wKbdChanState[1] = 1;
+            wKeyboardChannelState[0] = 0;
+            wKeyboardChannelState[1] = 1;
             DrawString("PU  2");
             break;
         case 0xA3:
-            wKbdChanState[0] = 1;
-            wKbdChanState[1] = 1;
+            wKeyboardChannelState[0] = 1;
+            wKeyboardChannelState[1] = 1;
             DrawString("PU1+2");
             break;
         }
@@ -305,93 +305,93 @@ UBYTE ProcessLinkQueue(void)
         }
         return 0x08;
     case 0x10:
-        if (wKbdInstr) {
-            wKbdNoteQueued = 0;
-            wKbdInstr--;
-            DrawKbdInstrName();
+        if (wKeyboardInstrument) {
+            wKeyboardNoteQueued = 0;
+            wKeyboardInstrument--;
+            DrawKeyboardInstrumentName();
         }
         return 0xFF;
     case 0x18:
-        if (wKbdInstr != 0x40) {
-            wKbdNoteQueued = 0;
-            wKbdInstr++;
-            DrawKbdInstrName();
+        if (wKeyboardInstrument != 0x40) {
+            wKeyboardNoteQueued = 0;
+            wKeyboardInstrument++;
+            DrawKeyboardInstrumentName();
         }
         return 0xFF;
     case 0x60:
-        if (wKbdInstr2) {
+        if (wKeyboardInstrument2) {
             wVramCursor = (UBYTE *)0x9991;
-            hBgDigitPal = 4;
-            hBgPal = 1;
+            hBgDigitPalette = 4;
+            hBgPalette = 1;
             DrawStringIndexed('A');
-            wKbdInstr2--;
-            DrawHexByte(wKbdInstr2);
+            wKeyboardInstrument2--;
+            DrawHexByte(wKeyboardInstrument2);
         }
         return 0xFF;
     case 0x68:
-        if (wKbdInstr2 != 0x40) {
+        if (wKeyboardInstrument2 != 0x40) {
             wVramCursor = (UBYTE *)0x9991;
-            hBgDigitPal = 4;
-            hBgPal = 1;
+            hBgDigitPalette = 4;
+            hBgPalette = 1;
             DrawStringIndexed('A');
-            wKbdInstr2++;
-            DrawHexByte(wKbdInstr2);
+            wKeyboardInstrument2++;
+            DrawHexByte(wKeyboardInstrument2);
         }
         return 0xFF;
     case 0x4A:
         _asm di _endasm;
-        for (hSoundChan = 0; hSoundChan < 4; hSoundChan++) {
-            if (wKbdChanState[hSoundChan]) {
-                wKbdChanTrigger[hSoundChan] = wKbdInstr2 | 0x80;
-                hFxVal = wKbdInstr2;
-                FarCallArg0(2, FAR_FN(FxCmd_A));
+        for (hSoundChannel = 0; hSoundChannel < 4; hSoundChannel++) {
+            if (wKeyboardChannelState[hSoundChannel]) {
+                wKeyboardChannelTrigger[hSoundChannel] = wKeyboardInstrument2 | 0x80;
+                hCommandVal = wKeyboardInstrument2;
+                FarCallArg0(2, FAR_FN(Command_A));
             }
         }
         _asm ei _endasm;
         return 0xFF;
     case 0xCA:
-        wKbdChanTrigger[0] = 0;
-        wKbdChanTrigger[1] = 0;
-        wKbdChanTrigger[2] = 0;
-        wKbdChanTrigger[3] = 0;
+        wKeyboardChannelTrigger[0] = 0;
+        wKeyboardChannelTrigger[1] = 0;
+        wKeyboardChannelTrigger[2] = 0;
+        wKeyboardChannelTrigger[3] = 0;
         return 0xFF;
     case 0x50:
-        if (wKbdTranspose != 0xFD) {
-            wKbdTranspose += 0xF4;
-            DrawKbdOctave();
+        if (wKeyboardTranspose != 0xFD) {
+            wKeyboardTranspose += 0xF4;
+            DrawKeyboardOctave();
         }
         return 0xFF;
     case 0x30:
-        if (wKbdTranspose != 0x2D) {
-            wKbdTranspose += 0x0C;
-            DrawKbdOctave();
+        if (wKeyboardTranspose != 0x2D) {
+            wKeyboardTranspose += 0x0C;
+            DrawKeyboardOctave();
         }
         return 0xFF;
     case 0x28:
-        wKbdNoteQueued = 0;
+        wKeyboardNoteQueued = 0;
         wVramCursor = (UBYTE *)0x99AF;
-        hBgDigitPal = 4;
-        hBgPal = 1;
-        t = wKbdChanState[0];
+        hBgDigitPalette = 4;
+        hBgPalette = 1;
+        t = wKeyboardChannelState[0];
         if (t) {
-            u = wKbdChanState[1];
+            u = wKeyboardChannelState[1];
             if (u) {
-                wKbdChanState[1] = 0;
+                wKeyboardChannelState[1] = 0;
                 DrawString("PU1  ");
                 goto msg;
             }
         }
         if (t) {
-            u = wKbdChanState[1];
+            u = wKeyboardChannelState[1];
             if (!u) {
-                wKbdChanState[0] = 0;
-                wKbdChanState[1] = 1;
+                wKeyboardChannelState[0] = 0;
+                wKeyboardChannelState[1] = 1;
                 DrawString("PU  2");
                 goto msg;
             }
         }
-        if (!t && wKbdChanState[1]) {
-            wKbdChanState[0] = 1;
+        if (!t && wKeyboardChannelState[1]) {
+            wKeyboardChannelState[0] = 1;
             DrawString("PU1+2");
         }
 msg:
@@ -402,8 +402,8 @@ msg:
         if (!(mod & 2))
             goto note;
     case 0x40:
-        wKbdActionChan = 0;
-        if (wChanOutput[0] & 0x80)
+        wKeyboardActionChannel = 0;
+        if (wChannelOutput[0] & 0x80)
             return 0x20;
         wBHeld = 1;
         return 0x60;
@@ -411,8 +411,8 @@ msg:
         if (!(mod & 2))
             goto note;
     case 0x48:
-        wKbdActionChan = 1;
-        if (wChanOutput[1] & 0x80)
+        wKeyboardActionChannel = 1;
+        if (wChannelOutput[1] & 0x80)
             return 0x20;
         wBHeld = 1;
         return 0x60;
@@ -420,8 +420,8 @@ msg:
         if (!(mod & 2))
             goto note;
     case 0x0F:
-        wKbdActionChan = 2;
-        if (wChanOutput[2] & 0x80)
+        wKeyboardActionChannel = 2;
+        if (wChannelOutput[2] & 0x80)
             return 0x20;
         wBHeld = 1;
         return 0x60;
@@ -429,8 +429,8 @@ msg:
         if (!(mod & 2))
             goto note;
     case 0x70:
-        wKbdActionChan = 3;
-        if (wChanOutput[3] & 0x80)
+        wKeyboardActionChannel = 3;
+        if (wChannelOutput[3] & 0x80)
             return 0x20;
         wBHeld = 1;
         return 0x60;
@@ -444,10 +444,10 @@ msg:
         return 0x0F;
     }
 note:
-    return ProcessKbdNote(key);
+    return ProcessKeyboardNote(key);
 }
 
-UBYTE ProcessKbdNote(UBYTE sc)
+UBYTE ProcessKeyboardNote(UBYTE sc)
 {
     UBYTE note;
     UBYTE armed;
@@ -455,51 +455,51 @@ UBYTE ProcessKbdNote(UBYTE sc)
 
     if (!(sc & 0x80)) {
         isPhrase = 0;
-        if (wPlayMode && !wKbdHeldNote) {
-            armed = wKbdArmed;
-        } else if (wCurScreen == 1) {
+        if (wPlayMode && !wKeyboardHeldNote) {
+            armed = wKeyboardArmed;
+        } else if (wCurrentScreen == 1) {
             isPhrase = 1;
-            armed = wSongCol == 3 || !FarCallArgByte(4, (UWORD)PhraseRowIsSentinel, wPhraseRow);
+            armed = wSongColumn == 3 || !FarCallArgByte(4, (UWORD)PhraseRowIsSentinel, wPhraseRow);
         } else {
             return 0;
         }
         if (armed) {
-            note = KbdFnMap[sc];
+            note = KeyboardFnMap[sc];
             if (!note)
                 return 0;
         } else {
-            note = KbdNoteMap[sc];
+            note = KeyboardNoteMap[sc];
             if (!note)
                 return 0;
-            note += wKbdTranspose;
+            note += wKeyboardTranspose;
             if (0x6C < note)
                 return 0;
         }
         if (isPhrase) {
-            if (wKbdHeldNote != note) {
-                wKbdHeldNote = note;
+            if (wKeyboardHeldNote != note) {
+                wKeyboardHeldNote = note;
                 wAPressEnabled = 1;
                 wButtons = 0;
             }
         } else if (armed) {
-            wKbdNoteQueued &= (note & 0x0F) ? 0xF0 : 0x0F;
-            wKbdNoteQueued |= note;
+            wKeyboardNoteQueued &= (note & 0x0F) ? 0xF0 : 0x0F;
+            wKeyboardNoteQueued |= note;
         } else {
-            wKbdNoteQueued = note;
+            wKeyboardNoteQueued = note;
         }
-    } else if (wCurScreen == 1) {
+    } else if (wCurrentScreen == 1) {
         sc &= 0x7F;
-        armed = wSongCol == 3 || !FarCallArgByte(4, (UWORD)PhraseRowIsSentinel, wPhraseRow);
+        armed = wSongColumn == 3 || !FarCallArgByte(4, (UWORD)PhraseRowIsSentinel, wPhraseRow);
         if (armed) {
-            note = KbdFnMap[sc];
+            note = KeyboardFnMap[sc];
         } else {
-            note = KbdNoteMap[sc];
-            note += wKbdTranspose;
+            note = KeyboardNoteMap[sc];
+            note += wKeyboardTranspose;
         }
-        if (note == wKbdHeldNote)
-            wKbdHeldNote = 0;
+        if (note == wKeyboardHeldNote)
+            wKeyboardHeldNote = 0;
     }
-    return wKbdHeldNote ? 0x10 : 0;
+    return wKeyboardHeldNote ? 0x10 : 0;
 }
 
 UBYTE LinkDequeueByte(void)
@@ -514,7 +514,7 @@ UBYTE LinkDequeueByte(void)
     return v;
 }
 
-void KbdDrainQueue(void)
+void KeyboardDrainQueue(void)
 {
     delay(10);
     while (wLinkQueueCount)
@@ -522,11 +522,11 @@ void KbdDrainQueue(void)
     SendSyncHandshake();
 }
 
-UBYTE KbdPollScancode(void)
+UBYTE KeyboardPollScancode(void)
 {
     UBYTE i, b;
 
-    KbdDrainQueue();
+    KeyboardDrainQueue();
     for (i = 0; i != 20; i++) {
         b = LinkDequeueByte();
         if (b != 3)
@@ -547,14 +547,14 @@ UBYTE KbdPollScancode(void)
     return 1;
 }
 
-void DrawKbdCalibScreen(void)
+void DrawKeyboardCalibScreen(void)
 {
     UBYTE k;
 
     FarCall(1, ClearBgMapAndAttrs);
     ClearBgTilemap();
-    hBgDigitPal = 4;
-    hBgPal = 1;
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
     wVramCursor = (UBYTE *)0x9800;
     DrawString(TxtKeyboardCalibration);
     wVramCursor = (UBYTE *)0x9840;
@@ -566,7 +566,7 @@ void DrawKbdCalibScreen(void)
     wVramCursor = (UBYTE *)0x98A0;
     wSyncMode2 = 4;
     for (;;) {
-        k = KbdPollScancode();
+        k = KeyboardPollScancode();
         if (k)
             break;
         DrawStringIndexed('.');
@@ -574,7 +574,7 @@ void DrawKbdCalibScreen(void)
         if (!wSyncMode2) {
             DrawString(TxtFail);
             delay(1000);
-            KbdDrainQueue();
+            KeyboardDrainQueue();
             return;
         }
     }
@@ -583,7 +583,7 @@ void DrawKbdCalibScreen(void)
             break;
         wSyncMode2--;
         DrawStringIndexed('.');
-        k = KbdPollScancode();
+        k = KeyboardPollScancode();
         if (!k) {
             wSyncMode2 += 10;
             break;
@@ -591,5 +591,5 @@ void DrawKbdCalibScreen(void)
     }
     DrawString(TxtOk);
     delay(1000);
-    KbdDrainQueue();
+    KeyboardDrainQueue();
 }

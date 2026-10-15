@@ -10,41 +10,41 @@
 4968 ReadPhraseNote             ; read phrase_notes[wPhrase][row] (SRAM bank 0 $A000); asserts row < $10, wPhrase != $FF
 4C14 LoadPhraseRow        ; load the 4 phrase columns for phrase[wPhrase] into row buffers
 4CE5 DrawPhraseScreen     ; screen idx 1: the phrase grid (note or kit samples, instrument, command, value per step), its CGB row attributes, cursor and channel status
-4000 DrawNoteNameFar            ; FarCall bank 6 DrawNoteName(wSongCol, x): the phrase screen's note column
-5533 CloneInstrAtCursor         ; clone the instrument under the cursor: alloc+CloneInstr; fail -> "CANNOT CLONE"
+4000 DrawNoteNameFar            ; FarCall bank 6 DrawNoteName(wSongColumn, x): the phrase screen's note column
+5533 CloneInstrumentAtCursor         ; clone the instrument under the cursor: alloc+CloneInstrument; fail -> "CANNOT CLONE"
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 401B DrawPhraseCursorFar        ; FarCall bank1f DrawPhraseCursor
-402C DrawPhraseCmdLetter        ; draw FX command letter cmd (FxMnemonics), "?" past $13
-405D PhraseModeTile             ; return tile $78 or $6c depending on mode wSongCol
-4071 ReadCursorInstr            ; ReadPhraseInstr(wPhrase, wPhraseRow)
-4087 FindCursorInstr            ; the instrument in effect at the cursor: the nearest step at or above wPhraseRow with one (<= $40), else $FF
-40B2 ResolvePhraseCursorNote    ; remember v as wPhraseColLast[wSongCol]; in column 3 (not selecting) also write it to field 4 of a type-3 instrument in effect
-4106 SetColInstr           ; cache the last-used instrument per channel column (wColInstr+wSongCol; WAV specials)
+402C DrawPhraseCommandLetter        ; draw FX command letter cmd (CommandMnemonics), "?" past $13
+405D PhraseModeTile             ; return tile $78 or $6c depending on mode wSongColumn
+4071 ReadCursorInstrument            ; ReadPhraseInstrument(wPhrase, wPhraseRow)
+4087 FindCursorInstrument            ; the instrument in effect at the cursor: the nearest step at or above wPhraseRow with one (<= $40), else $FF
+40B2 ResolvePhraseCursorNote    ; remember v as wPhraseColumnLast[wSongColumn]; in column 3 (not selecting) also write it to field 4 of a type-3 instrument in effect
+4106 SetColumnInstrument           ; cache the last-used instrument per channel column (wColumnInstrument+wSongColumn; WAV specials)
 418F WritePhraseNote            ; write phrase_notes[wPhrase][row] = v (SRAM bank 0 $A000); asserts row < $10, wPhrase != $FF
-41F0 WritePhraseInstr      ; write phrase_instruments[phrase][row] = instr (SRAM bank 3 $B000); asserts instr <= $40 or $FF
-4257 DrawPhraseCursorGlyph      ; pick glyph data ($429e/$42a3 by wPhraseDrawMode) + col wPhraseCol, then SetVramCursor
-42A8 CommitPhraseInstr         ; after instrument entry: WritePhraseInstr, update wColInstr, redraw
+41F0 WritePhraseInstrument      ; write phrase_instruments[phrase][row] = instr (SRAM bank 3 $B000); asserts instr <= $40 or $FF
+4257 DrawPhraseCursorGlyph      ; pick glyph data ($429e/$42a3 by wPhraseDrawMode) + col wPhraseColumn, then SetVramCursor
+42A8 CommitPhraseInstrument         ; after instrument entry: WritePhraseInstrument, update wColumnInstrument, redraw
 43CD EditPhraseCellUp               ; A+UP edit on the cursor cell (note: +octave; hex fields: +$10)
 457C EditPhraseCellDown             ; A+DOWN edit on the cursor cell (-octave / -$10)
 470B EditPhraseCellRight            ; A+RIGHT edit on the cursor cell (+semitone / +1)
 4811 EditPhraseCellLeft             ; A+LEFT edit on the cursor cell (-semitone / -1)
-4918 ReadPhraseInstr            ; read phrase_instruments[phrase][row] (SRAM bank 3 $B000); asserts phrase != $FF, row < $10
-49C5 WritePhraseFx              ; write phrase_fx[phrase][row] = cmd (SRAM bank 2 $A000); asserts cmd <= $13
-4A30 WritePhraseFxVal           ; write phrase_fx_val[phrase][row] = v (SRAM bank 2 $AFF0); asserts phrase != $FF, row < $10
-4A8F ReadPhraseFxVal            ; read phrase_fx_val[phrase][row] (SRAM bank 2 $AFF0); asserts phrase != $FF, row < $10
-4AEA ReadPhraseFx               ; read phrase_fx[phrase][row] (SRAM bank 2 $A000); 0 unless a command (<= $13)
+4918 ReadPhraseInstrument            ; read phrase_instruments[phrase][row] (SRAM bank 3 $B000); asserts phrase != $FF, row < $10
+49C5 WritePhraseCommand              ; write phrase_fx[phrase][row] = cmd (SRAM bank 2 $A000); asserts cmd <= $13
+4A30 WritePhraseCommandVal           ; write phrase_fx_val[phrase][row] = v (SRAM bank 2 $AFF0); asserts phrase != $FF, row < $10
+4A8F ReadPhraseCommandVal            ; read phrase_fx_val[phrase][row] (SRAM bank 2 $AFF0); asserts phrase != $FF, row < $10
+4AEA ReadPhraseCommand               ; read phrase_fx[phrase][row] (SRAM bank 2 $A000); 0 unless a command (<= $13)
 4B5B PlacePhraseCell            ; plain-A: place/repeat a value into the empty cursor cell
 4C06 DrawEmptyNote              ; draw "---" empty note cell
 4C99 DrawPhraseSelectionFar    ; FarCall bank1f DrawPhraseSelection
 4CAA PhraseRowIsSentinel        ; whether wPhraseRowFlags[arg] > $FD (a $FE/$FF sentinel)
 4CC4 DrawNoteCell               ; draw wSampleNoteString (note name) or "OFF"
-510A CursorInstrIsKit           ; 1 if the instrument in effect at the cursor (FindCursorInstr) is a kit
-5136 CheckPhraseEditContext     ; predicate over mode wSongCol / col wPhraseCol / wSelectionLeft / CursorInstrIsKit
+510A CursorInstrumentIsKit           ; 1 if the instrument in effect at the cursor (FindCursorInstrument) is a kit
+5136 CheckPhraseEditContext     ; predicate over mode wSongColumn / col wPhraseColumn / wSelectionLeft / CursorInstrumentIsKit
 51AE PastePhraseSelection       ; paste the clipboard (wClipboardType) into the phrase: for rows wSelectionTop..wSelBottom and columns wSelectionRight-1 down to wSelectionLeft, each cell by column (kit notes merged nibble-wise, instrument, command, value); a 3-wide table-command selection (wClipboardType 5) shifts its command pair by -1/+1; PASTE message for multi-row pastes
-5491 CloneInstr            ; copy instrument src to dst: its 16 bytes, then its name (CopyInstrName / WriteInstrName)
+5491 CloneInstrument            ; copy instrument src to dst: its 16 bytes, then its name (CopyInstrumentName / WriteInstrumentName)
 55EB CloneTableAtCursor         ; clone the table referenced by the cmd value under the cursor (FindFreeTable+CopyTableData)
-567D PhraseCursorOnEditCell     ; return 1 if cursor is on the active cmd cell (wPhraseRow==wSelectionTop and wPhraseCol==wSelectionLeft)
+567D PhraseCursorOnEditCell     ; return 1 if cursor is on the active cmd cell (wPhraseRow==wSelectionTop and wPhraseColumn==wSelectionLeft)
 56BA CloneAtPhraseCursor        ; double-A clone on the phrase screen: the instrument on the instrument column, an A command's table on the command column ("CLONED TABLE"); 1 if cloned
 572C PrelistenCursorRow         ; play the note/instr under the cursor while editing (wPrelisten gate)
 58D9 PhraseCellFlagA       ; phrase-cell predicate OR-ed in PrelistenEditedCell: note<$40 & instrument type==2 (kit) test
@@ -65,19 +65,19 @@
 5103 TxtPhraseNoInstr   ; "--" (no instrument)
 5106 TxtPhraseBlank3b   ; "   " (the value column's padding without kits)
 54E3 PhraseStepOnes     ; [80] constant $01 table read by the four phrase edit handlers (per-index step/enable)
-57C0 FxPrelistenFlags           ; [20] 1 per FX command (FxMnemonics order) whose value edit re-plays the note (PhraseScreenInput -> PrelistenCursorRow, which checks PRELISTEN): A C E F K M O P R S V W, the ones that change the sound; not - B D G H L T Z
-57D4 DrawInstrName      ; FarCall bank1 CopyInstrName(instr) -> wSampleNoteString, draw the 5-char name
+57C0 CommandPrelistenFlags           ; [20] 1 per FX command (CommandMnemonics order) whose value edit re-plays the note (PhraseScreenInput -> PrelistenCursorRow, which checks PRELISTEN): A C E F K M O P R S V W, the ones that change the sound; not - B D G H L T Z
+57D4 DrawInstrumentName      ; FarCall bank1 CopyInstrumentName(instr) -> wSampleNoteString, draw the 5-char name
 4C10 TxtNoteEmpty               ; "---"
 4CE1 TxtNoteOff                 ; "OFF"
 
 ; --- structural local names (loop heads / common exits) ---
-408C .loop                ; loop head in FindCursorInstr
-40B0 .done                ; common exit of FindCursorInstr
+408C .loop                ; loop head in FindCursorInstrument
+40B0 .done                ; common exit of FindCursorInstrument
 4104 .done                ; common exit of ResolvePhraseCursorNote
-418D .done                ; common exit of SetColInstr
+418D .done                ; common exit of SetColumnInstrument
 41C5 .loop                ; loop head in WritePhraseNote
-4224 .loop                ; loop head in WritePhraseInstr
-4377 .loop                ; loop head in CommitPhraseInstr
+4224 .loop                ; loop head in WritePhraseInstrument
+4377 .loop                ; loop head in CommitPhraseInstrument
 440A .loop                ; loop head in EditPhraseCellUp
 4508 .loop2               ; loop head in EditPhraseCellUp
 4525 .loop3               ; loop head in EditPhraseCellUp
@@ -90,12 +90,12 @@
 480D .done                ; common exit of EditPhraseCellRight
 484B .loop                ; loop head in EditPhraseCellLeft
 4914 .done                ; common exit of EditPhraseCellLeft
-493A .loop                ; loop head in ReadPhraseInstr
+493A .loop                ; loop head in ReadPhraseInstrument
 499E .loop                ; loop head in ReadPhraseNote
-4A05 .loop                ; loop head in WritePhraseFx
-4A64 .loop                ; loop head in WritePhraseFxVal
-4AC3 .loop                ; loop head in ReadPhraseFxVal
-4B1E .loop                ; loop head in ReadPhraseFx
+4A05 .loop                ; loop head in WritePhraseCommand
+4A64 .loop                ; loop head in WritePhraseCommandVal
+4AC3 .loop                ; loop head in ReadPhraseCommandVal
+4B1E .loop                ; loop head in ReadPhraseCommand
 4B93 .loop                ; loop head in PlacePhraseCell
 4C02 .done                ; common exit of PlacePhraseCell
 4C24 .loop                ; loop head in LoadPhraseRow
@@ -106,31 +106,31 @@
 4E84 .loop5               ; loop head in DrawPhraseScreen
 51AC .done                ; common exit of CheckPhraseEditContext
 521F .nextRow             ; PastePhraseSelection: for each row y of the selection
-5233 .nextCol             ; PastePhraseSelection: for each column x, right to left
+5233 .nextColumn             ; PastePhraseSelection: for each column x, right to left
 5487 .done                ; common exit of PastePhraseSelection
-5494 .loop                ; loop head in CloneInstr
-55CD .done                ; common exit of CloneInstrAtCursor
+5494 .loop                ; loop head in CloneInstrument
+55CD .done                ; common exit of CloneInstrumentAtCursor
 5679 .done                ; common exit of CloneTableAtCursor
 571D .done                ; common exit of CloneAtPhraseCursor
 57BE .done                ; common exit of PrelistenCursorRow
-57F2 .loop                ; loop head in DrawInstrName
+57F2 .loop                ; loop head in DrawInstrumentName
 5979 .done                ; common exit of PhraseCellFlagA
 5A1C .done                ; common exit of PhraseCellFlagB
 5AC3 .done                ; common exit of PhraseCellFlagC
 5B5A .done                ; common exit of PhraseCellFlagD
 5BA4 .done                ; common exit of PrelistenEditedCell
 624A .incLoop             ; loop head in PhraseScreenInput
-6403 .incCmdLoop          ; loop head in PhraseScreenInput
+6403 .incCommandLoop          ; loop head in PhraseScreenInput
 669B .bigLoop             ; loop head in PhraseScreenInput
-685C .bigCmdLoop          ; loop head in PhraseScreenInput
+685C .bigCommandLoop          ; loop head in PhraseScreenInput
 6B16 .decLoop             ; loop head in PhraseScreenInput
 6BC8 .decKitHighScan      ; loop head in PhraseScreenInput
 6CEC .decKitLowScan       ; loop head in PhraseScreenInput
-6D66 .decCmdLoop          ; loop head in PhraseScreenInput
+6D66 .decCommandLoop          ; loop head in PhraseScreenInput
 6FE5 .bigDecLoop          ; loop head in PhraseScreenInput
 7098 .bigDecKitHighScan   ; loop head in PhraseScreenInput
 71CA .bigDecKitLowScan    ; loop head in PhraseScreenInput
-7244 .bigDecCmdLoop       ; loop head in PhraseScreenInput
+7244 .bigDecCommandLoop       ; loop head in PhraseScreenInput
 7D45 .done                ; common exit of PhraseScreenInput
 
 ; --- structural local names (loop heads / common exits) ---
@@ -176,7 +176,7 @@
 4519 .phraseModeTile
 45A4 .ok
 45AF .okb
-460B .checkSongCol
+460B .checkSongColumn
 46A7 .phraseModeTile
 4730 .ok
 473B .okb
@@ -205,39 +205,39 @@
 4FBD .drawStringTile20b
 4FC0 .checkGameboyType
 502A .drawStringTile20c
-5088 .checkPhraseCol
+5088 .checkPhraseColumn
 50A6 .checkCursorMode
 50B5 .drawPhraseCursorFar
 5158 .clearSelectionLeft
-5167 .phraseCurNoteIsKit
-5175 .loadPhraseCol
-51DC .cmdPairWidth2       ; PastePhraseSelection: a 3-wide table-command selection: which column?
-51FE .selectCmdCols       ; PastePhraseSelection: paste into columns 3..4
+5167 .phraseCurrentNoteIsKit
+5175 .loadPhraseColumn
+51DC .commandPairWidth2       ; PastePhraseSelection: a 3-wide table-command selection: which column?
+51FE .selectCommandColumns       ; PastePhraseSelection: paste into columns 3..4
 5208 .rowsStart           ; PastePhraseSelection: y = wSelectionTop, the shifted command columns
 52BA .pasteNoteHi         ; PastePhraseSelection: column 0 of a kit note (high nibble)
 5366 .pasteNoteLo         ; PastePhraseSelection: column 1 (low nibble on a kit)
 5443 .rowDone             ; PastePhraseSelection: wPhraseRow++ wraps at $10
 546E .checkRows           ; PastePhraseSelection: PASTE message for a multi-row paste
-56D1 .checkPhraseCol
-56E2 .checkPhraseColb
+56D1 .checkPhraseColumn
+56E2 .checkPhraseColumnb
 5772 .checkPlayMode
 578F .loadLiveMode
 58BB .prelistenCursorRow
-5B6D .phraseReadCmdValCursor
+5B6D .phraseReadCommandValCursor
 5BB9 .phraseOk
 5BC6 .rowOk
 5BF2 .checkMarking
-5C94 .keyToneChan
+5C94 .keyToneChannel
 5CE1 .aNoKey
-5CF2 .aCols
+5CF2 .aColumns
 5D2D .aNote
-5E20 .aInstr
-5E67 .aInstrFromCursor
-5E73 .aInstrPrelisten
-5EB2 .aCmdHelp
+5E20 .aInstrument
+5E67 .aInstrumentFromCursor
+5E73 .aInstrumentPrelisten
+5EB2 .aCommandHelp
 5F12 .aVal
 5FA2 .right
-5FC0 .rightCol
+5FC0 .rightColumn
 5FCD .rightStep
 5FDE .rightCursor
 602A .leftMove
@@ -251,19 +251,19 @@
 61F1 .downCursor
 6308 .incKitHighDone
 63E4 .incNoteDone
-648A .incCmdTest
+648A .incCommandTest
 65D3 .incWave
 675A .bigKitHighDone
 683D .bigNoteDone
-68E3 .bigCmdTest
+68E3 .bigCommandTest
 6A23 .bigWave
 6A4A .bigSweep
 6C32 .decKitHighDone
 6D47 .decNoteDone
-6DE0 .decCmdTest
+6DE0 .decCommandTest
 7102 .bigDecKitHighDone
 7225 .bigDecNoteDone
-72BD .bigDecCmdTest
+72BD .bigDecCommandTest
 73F4 .bigDecWave
 7411 .bigDecSweep
 7546 .bUpRedraw
@@ -272,17 +272,17 @@
 75E4 .cutCell
 7630 .cutKitHigh
 76D9 .cutNote
-77C0 .cutInstr
-7813 .cutCmd
+77C0 .cutInstrument
+7813 .cutCommand
 78B1 .cutRedraw
 78D8 .pasteClipboard
-7964 .pasteNoteCol
-7973 .pasteInstrCol
-7981 .pasteCmdCol
-7B1C .instrAtCursor
-7B5B .instrKeep
+7964 .pasteNoteColumn
+7973 .pasteInstrumentColumn
+7981 .pasteCommandColumn
+7B1C .instrumentAtCursor
+7B5B .instrumentKeep
 7CA0 .markAllRows
-7CE0 .markAllCols
+7CE0 .markAllColumns
 7CF7 .markCopy
 
 
@@ -297,15 +297,15 @@
 4143 .setDefaultNotes
 416B .cont_2
 416C .setDefaultNotes_2
-4170 .loadSongCol
+4170 .loadSongColumn
 41CA .step
 4229 .index
 4272 .cont
-4277 .loadPhraseCol
-42ED .loadSongCol
+4277 .loadPhraseColumn
+42ED .loadSongColumn
 4339 .loadPhraseRow
 4348 .cont
-434F .setColInstr
+434F .setColumnInstrument
 439B .cont_2
 43A6 .farCall
 43C6 .cont_3
@@ -317,13 +317,13 @@
 44BA .cont_4
 44C1 .cont_5
 44C5 .checkCursorMode
-44D8 .loadSongCol
+44D8 .loadSongColumn
 44F2 .checkCursorMode_2
 4538 .cont_6
 4543 .resolvePhraseCursorNote
 456E .drawNoteNameFar
 45BE .step
-45F1 .loadSongCol
+45F1 .loadSongColumn
 4618 .cont
 4619 .cont_2
 462F .cont_3
@@ -338,13 +338,13 @@
 46D0 .resolvePhraseCursorNote
 46FD .drawNoteNameFar
 474A .step
-4784 .loadSongCol
+4784 .loadSongColumn
 47BD .phraseModeTile_2
 47D4 .cont
 47D8 .resolvePhraseCursorNote
 4803 .drawNoteNameFar
 4850 .step
-488C .loadSongCol
+488C .loadSongColumn
 48A6 .checkArg
 48C3 .cont
 48C6 .phraseModeTile_2
@@ -359,7 +359,7 @@
 4B56 .cont
 4B98 .step
 4BD1 .resolvePhraseCursorNote
-4BE0 .loadSongCol
+4BE0 .loadSongColumn
 4C2C .step
 4CD4 .cont
 4CD9 .drawString
@@ -387,14 +387,14 @@
 4FEF .setrVBK
 500C .checkArg_3
 5020 .drawHexByte
-5082 .checkPhraseCol_2
+5082 .checkPhraseColumn_2
 50B8 .farCall
 5128 .cont
 512C .cont_2
 512D .cont_3
 5131 .cont_4
 5133 .cont_5
-5145 .loadPhraseCol_2
+5145 .loadPhraseColumn_2
 518A .cont
 518B .cont_2
 5190 .getScreenScratchCell2
@@ -403,30 +403,30 @@
 51ED .shiftLeft           ; PastePhraseSelection: pair in columns 2..3: shift = -1
 51F4 .shiftRight          ; PastePhraseSelection: pair in columns 4..5: shift = +1
 51FB .badPair             ; PastePhraseSelection: any other width: nothing to paste
-527A .colSwapped          ; PastePhraseSelection: kit context: columns 0/1 swapped
+527A .columnSwapped          ; PastePhraseSelection: kit context: columns 0/1 swapped
 52E2 .hiNotEmpty          ; PastePhraseSelection: high nibble == $FF test
 52E3 .hiTested            ; PastePhraseSelection
-5323 .colLo               ; PastePhraseSelection: column 1: read cell ctx ^ 1
-534A .notInstrCol         ; PastePhraseSelection: wSongCol == 3 test
-534B .instrColTested      ; PastePhraseSelection
+5323 .columnLo               ; PastePhraseSelection: column 1: read cell ctx ^ 1
+534A .notInstrumentColumn         ; PastePhraseSelection: wSongColumn == 3 test
+534B .instrumentColumnTested      ; PastePhraseSelection
 535E .loNotEmpty          ; PastePhraseSelection: low nibble == $FF test
 535F .loTested            ; PastePhraseSelection
 538C .writeNote           ; PastePhraseSelection: WritePhraseNote(wPhraseRow, v)
-539F .pasteInstr          ; PastePhraseSelection: column 2
-53C7 .pasteCmd            ; PastePhraseSelection: column 3 (+ shift)
-53F0 .pasteCmdVal         ; PastePhraseSelection: column 4 (+ shift)
-5416 .colDone             ; PastePhraseSelection: swap columns 0/1 back
-5439 .colStep             ; PastePhraseSelection: x--
+539F .pasteInstrument          ; PastePhraseSelection: column 2
+53C7 .pasteCommand            ; PastePhraseSelection: column 3 (+ shift)
+53F0 .pasteCommandVal         ; PastePhraseSelection: column 4 (+ shift)
+5416 .columnDone             ; PastePhraseSelection: swap columns 0/1 back
+5439 .columnStep             ; PastePhraseSelection: x--
 5453 .rowStep             ; PastePhraseSelection: y++
 5459 .restoreSelection    ; PastePhraseSelection: restore wSelectionLeft/wSelectionRight after a shifted pair
 54BB .cont
 557F .farCallByte
-5597 .copyInstrBytes
+5597 .copyInstrumentBytes
 5627 .cont
 562F .farCallByte
 5643 .cont_2
 568C .cont
-568D .checkPhraseCol
+568D .checkPhraseColumn
 56A3 .cont_2
 56A4 .cont_3
 56B2 .cont_4
@@ -438,20 +438,20 @@
 57B0 .farCall
 5816 .cont
 5821 .farCall
-58FF .readInstrByte
+58FF .readInstrumentByte
 591C .cont
 591D .cont_2
 5923 .cont_3
 5929 .cont_4
-592F .readInstrByte_2
+592F .readInstrumentByte_2
 5946 .cont_5
 5947 .cont_6
 5957 .cont_7
 5958 .cont_8
-59A0 .isInstr
+59A0 .isInstrument
 59BD .notKit
 59BE .setKit
-59C5 .lastInstr
+59C5 .lastInstrument
 59C7 .next
 59E4 .nextNotKit
 59E5 .nextKitFlag
@@ -460,16 +460,16 @@
 5A04 .noNext
 5A08 .drawName
 5A46 .ret00
-5A4B .readInstrByte
+5A4B .readInstrumentByte
 5A68 .cont
 5A69 .cont_2
 5A73 .cont_3
-5A79 .readInstrByte_2
+5A79 .readInstrumentByte_2
 5A90 .cont_4
 5A91 .cont_5
 5AA1 .cont_6
 5AA2 .cont_7
-5AE7 .isInstr
+5AE7 .isInstrument
 5AFE .notKit
 5AFF .setKit
 5B22 .nextNotKit
@@ -479,7 +479,7 @@
 5B42 .noNext
 5B46 .drawName
 5B7F .ret00
-5B8A .readInstrByte
+5B8A .readInstrumentByte
 5BA1 .cont
 5BA2 .cont_2
 5BE8 .aTested
@@ -497,9 +497,9 @@
 5DEF .aWriteKitLow
 5E03 .aRememberLow
 5E14 .aNoteDone
-5E54 .aInstrEntered
-5E7C .aCmd
-5ECF .aCmdDraw
+5E54 .aInstrumentEntered
+5E7C .aCommand
+5ECF .aCommandDraw
 5F6E .aValPrelisten
 5F93 .aRedraw
 5F9D .aDone
@@ -526,12 +526,12 @@
 6371 .incNoteEdit
 637E .incKitLow
 639F .incKitLowWrite
-63EA .incInstr
-6447 .incCmdStep
-6482 .incCmdClamp
-64DF .incCmdDraw
-6509 .incCmdHelp
-652C .incCmdVal
+63EA .incInstrument
+6447 .incCommandStep
+6482 .incCommandClamp
+64DF .incCommandDraw
+6509 .incCommandHelp
+652C .incCommandVal
 6561 .incVal
 65AE .incGroove
 65BD .incOutput
@@ -552,12 +552,12 @@
 67C9 .bigNoteEdit
 67D6 .bigKitLow
 67F8 .bigKitLowWrite
-6843 .bigInstr
-68A0 .bigCmdStep
-68DB .bigCmdClamp
-693A .bigCmdDraw
-6964 .bigCmdHelp
-6987 .bigCmdVal
+6843 .bigInstrument
+68A0 .bigCommandStep
+68DB .bigCommandClamp
+693A .bigCommandDraw
+6964 .bigCommandHelp
+6987 .bigCommandVal
 69BC .bigVal
 6A11 .bigGroove
 6A35 .bigPulseWave
@@ -582,10 +582,10 @@
 6CC8 .decKitLowFloor
 6CCC .decKitLowRead
 6D20 .decKitLowFound
-6D4D .decInstr
-6DA6 .decCmdStep
-6E51 .decCmdHelp
-6E74 .decCmdVal
+6D4D .decInstrument
+6DA6 .decCommandStep
+6E51 .decCommandHelp
+6E74 .decCommandVal
 6EA9 .decVal
 6EF6 .decGroove
 6F01 .decWave
@@ -614,10 +614,10 @@
 71A6 .bigDecKitLowFloor
 71AA .bigDecKitLowRead
 71FE .bigDecKitLowFound
-722B .bigDecInstr
-7284 .bigDecCmdStep
-732E .bigDecCmdHelp
-7351 .bigDecCmdVal
+722B .bigDecInstrument
+7284 .bigDecCommandStep
+732E .bigDecCommandHelp
+7351 .bigDecCommandVal
 7386 .bigDecVal
 73DB .bigDecGroove
 73ED .bigDecOutput
@@ -638,12 +638,12 @@
 773F .cutNoteClip
 777D .cutKitLow
 7796 .cutKitLowClip
-785F .cutCmdClip
+785F .cutCommandClip
 78E5 .pasteNotCells
 78E6 .pasteTypeTested
 78FB .pasteTypeOk
 7915 .pasteCutSelection
-792E .pasteCheckCol
+792E .pasteCheckColumn
 798F .pasteCells
 79D5 .songPlayback
 7A01 .startHeld
@@ -657,17 +657,17 @@
 7BE1 .mapRight
 7C1E .copySelection
 7C4B .markCheck
-7CB7 .markCols
+7CB7 .markColumns
 7D13 .markStart
-429E PhraseColX0        ; x of the phrase screen columns, draw mode 0 (2 2 6 9 10)
-42A3 PhraseColX1        ; the same with wPhraseDrawMode set (2 5 9 12 13)
+429E PhraseColumnX0        ; x of the phrase screen columns, draw mode 0 (2 2 6 9 10)
+42A3 PhraseColumnX1        ; the same with wPhraseDrawMode set (2 5 9 12 13)
 
 ; --- pointer targets (tools/name_targets.py) ---
 52AB .jumpTable           ; PastePhraseSelection: switch (x)
-5D1E .aColTable
-6288 .incColTable
-66D9 .bigColTable
-6B54 .decColTable
-7023 .bigDecColTable
-7621 .cutColTable
-7955 .pasteColTable
+5D1E .aColumnTable
+6288 .incColumnTable
+66D9 .bigColumnTable
+6B54 .decColumnTable
+7023 .bigDecColumnTable
+7621 .cutColumnTable
+7955 .pasteColumnTable

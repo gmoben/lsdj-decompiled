@@ -316,7 +316,7 @@ def _load_ram_syms() -> tuple[dict[int, str], dict[int, str]]:
       exact   {addr: name}                 -- documented base addresses
       offsets {addr: "name + N"}           -- *interior* addresses of a
               documented multi-byte var/array, so a mid-array access renders
-              as `wChanFreq + 4` instead of a raw `$c0f8` (byte-identical: the
+              as `wChannelFreq + 4` instead of a raw `$c0f8` (byte-identical: the
               expression resolves to the same address). Extents come from the
               `; [N]` array-count and `16-bit` (stride 2) annotations, and are
               capped at the next named symbol so they can never swallow it."""

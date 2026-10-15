@@ -5,47 +5,47 @@
 
 ; Bank $05 -- Table screen. tables[wTable][16], 4 columns in SRAM:
 ; envelope $B690 (bank0), transpose $B480, cmd1 $B680, cmd2 $BA80 (bank1).
-4360 WriteTableEnv              ; write table_envelopes[wTable][step] = v (SRAM bank 0 $B690); asserts step < $10, wTable < $20
+4360 WriteTableEnvelope              ; write table_envelopes[wTable][step] = v (SRAM bank 0 $B690); asserts step < $10, wTable < $20
 4491 WriteTableTranspose            ; write table_transposes[wTable][step] = v (SRAM bank 1 $B480); asserts step < $10, wTable < $20
 4668 ReadTableStep       ; read the 4 columns (env/transpose/cmd1/cmd2) for table[wTable][step]
 4762 DrawTableScreen     ; screen idx 5: draws the table (env/transpose/cmd cols)
 4967 TableScreenUpdate  ; per-frame visual update (screen idx 5)
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
-4000 UpdateMapTopRow            ; recompute wMapProjCol/wMapSynthCol from wMapCol when on the map middle row
-4167 GotoMapCursorScreen             ; SEL+B screen map: set wCurScreen from wMapRow/wMapCol (row0=PROJECT/WAVE/SYNTH, row1=SONG CHAIN PHRASE INSTR TABLE, row2=GROOVE)
+4000 UpdateMapTopRow            ; recompute wMapProjectColumn/wMapSynthColumn from wMapColumn when on the map middle row
+4167 GotoMapCursorScreen             ; SEL+B screen map: set wCurrentScreen from wMapRow/wMapColumn (row0=PROJECT/WAVE/SYNTH, row1=SONG CHAIN PHRASE INSTR TABLE, row2=GROOVE)
 420C StartMapTransition         ; store move direction (1=up 2=right 3=down 4=left) -> wMapMoveDir, reset rSCX/rSCY
 421A CancelSelectionMode        ; if select mode (wCursorMode==4), restore the pre-selection state (the screen map's step before leaving a screen)
-42A4 DrawCmdLetter              ; draw an FX command letter cell (FxMnemonics char via DrawStringIndexed; >$13 asserted)
-42E7 ReadTableCmd               ; read the command column (wTableCellAPtr) at step; 0 unless a command (<= $13)
-43B7 WriteTableCmd              ; write the command column (wTableCellAPtr) at step; asserts cmd <= $13
+42A4 DrawCommandLetter              ; draw an FX command letter cell (CommandMnemonics char via DrawStringIndexed; >$13 asserted)
+42E7 ReadTableCommand               ; read the command column (wTableCellAPtr) at step; 0 unless a command (<= $13)
+43B7 WriteTableCommand              ; write the command column (wTableCellAPtr) at step; asserts cmd <= $13
 442A WriteTableVal              ; write the value column (wTableCellBPtr) at step
-44E8 ReadTableEnv          ; read table_envelopes[table][row<$10] from SRAM (bounds-checked)
+44E8 ReadTableEnvelope          ; read table_envelopes[table][row<$10] from SRAM (bounds-checked)
 453B ReadTableVal               ; read the value column (wTableCellBPtr) at step
 459E ReadTableTranspose        ; read table_transposes[table][row<$10] from SRAM (bounds-checked)
-45F1 EraseTableCursor           ; restore the cursor cells to their column palette (TableColPal) at row wTableRow+2, unless selecting
-472B DrawTableEnv               ; draw a table envelope cell (lo-nibble $F -> hi-nibble + release glyph)
-4930 TableInputFlag             ; return e=flag derived from input code (arg sp+4: 4 or $0a) and column wTableCol
+45F1 EraseTableCursor           ; restore the cursor cells to their column palette (TableColumnPalette) at row wTableRow+2, unless selecting
+472B DrawTableEnvelope               ; draw a table envelope cell (lo-nibble $F -> hi-nibble + release glyph)
+4930 TableInputFlag             ; return e=flag derived from input code (arg sp+4: 4 or $0a) and column wTableColumn
 4AA8 DrawTableCursor            ; refresh the table cursor cell (select mode -> DrawTableSelection; palette by CGB)
 61CA CutCopyTableSelection      ; arg? "CUT" (copy+clear) : "COPY": table selection -> clipboard (clipType 5)
 64A3 PasteTableCells            ; table-screen paste: clipboard cells into rows from wTableRow (a phrase selection's CMD pair too; swaps the two CMD/value pairs; "PASTE" for more than one row)
 676A DrawTableSelection         ; table selection (wClipboardType==5) redraw vs the cursor: cells around the rectangle in their column palettes, the inside highlighted (ColorField)
 ; --- functions called from bank 0 (this bank paged in) ---
 4B5D TableScreenInput           ; the table screen's input: A writes envelopes/transposes/commands (a free table on an A command's value), A+directions step cells by 1/16 over the row or selection, B+directions change table, A+B cuts, select+A pastes, start plays, select+DOWN opens a G command's groove, select+B selects
-4040 DrawMapTopRow      ; draw the map top-row entries (PROJECT + WAVE/SYNTH) at wMapProjCol/wMapSynthCol, screen row 15
+4040 DrawMapTopRow      ; draw the map top-row entries (PROJECT + WAVE/SYNTH) at wMapProjectColumn/wMapSynthColumn, screen row 15
 61C3 TxtSelect05       ; "SELECT" (pairs with TxtCancelSelect05)
 
 ; --- screen-map navigation (SEL+direction) + selection save ---
-4233 MoveMapCursorLeft        ; dec wMapCol, GotoMapCursorScreen, StartMapTransition(4), DrawMapTopRow
-4253 MoveMapCursorRight       ; inc wMapCol, GotoMapCursorScreen, StartMapTransition(2), UpdateMapTopRow
+4233 MoveMapCursorLeft        ; dec wMapColumn, GotoMapCursorScreen, StartMapTransition(4), DrawMapTopRow
+4253 MoveMapCursorRight       ; inc wMapColumn, GotoMapCursorScreen, StartMapTransition(2), UpdateMapTopRow
 426A MoveMapCursorUp          ; dec wMapRow, GotoMapCursorScreen, StartMapTransition(1)
 4287 MoveMapCursorDown        ; inc wMapRow (max 2), GotoMapCursorScreen, StartMapTransition(3)
 7208 ShowSynthFieldHelp         ; show the selected synth field's help line (ShowMessage; a jump table on wSynthCursor)
 743F SaveSelectionState ; wCursorMode/wClipboardType/wSelectionLeft/Top/Right/... -> wSavedCursorMode save area
 747D RestoreSelectionState ; wSavedCursorMode save area -> wCursorMode/wClipboardType/wSel*
-69BD ShowInstrFieldHelp ; instrument-screen help line: the string for wInstrField under instrument type arg (TYPE row: TxtHelpInstrType) -> ShowMessage
+69BD ShowInstrumentFieldHelp ; instrument-screen help line: the string for wInstrumentField under instrument type arg (TYPE row: TxtHelpInstrType) -> ShowMessage
 6F38 TxtHelpInstrType   ; "USE PULSE IN PU1/PU2; WAVE/KIT IN WAV; NOISE IN NOI"
-6D25 TxtHelpEnvStage1           ; "ENVELOPE STAGE 1: ..." (ShowInstrFieldHelp reaches these ten shared strings by constant address)
+6D25 TxtHelpEnvStage1           ; "ENVELOPE STAGE 1: ..." (ShowInstrumentFieldHelp reaches these ten shared strings by constant address)
 6D72 TxtHelpEnvStage2           ; "ENVELOPE STAGE 2: ..."
 6DBF TxtHelpEnvStage3           ; "ENVELOPE STAGE 3: ..."
 6E0C TxtHelpPan                 ; "LEFT/RIGHT/BOTH/NONE"
@@ -66,26 +66,26 @@
 7108 TxtHelpPitchShift          ; "PITCH SHIFT"
 649A TxtCut05                   ; "CUT"
 649E TxtCopy05                  ; "COPY"
-42D5 TableColX                  ; x of the six table screen columns (VOL TSP CMD VAL CMD VAL)
-42DB TableColWidth              ; widths of the six table screen columns
-42E1 TableColPal            ; normal palette of the six table screen columns (1 on the command columns)
+42D5 TableColumnX                  ; x of the six table screen columns (VOL TSP CMD VAL CMD VAL)
+42DB TableColumnWidth              ; widths of the six table screen columns
+42E1 TableColumnPalette            ; normal palette of the six table screen columns (1 on the command columns)
 
 ; --- structural local names (loop heads / common exits) ---
 403F .done                ; common exit of UpdateMapTopRow
 420A .done                ; common exit of GotoMapCursorScreen
 4231 .done                ; common exit of CancelSelectionMode
-4319 .loop                ; loop head in ReadTableCmd
-4384 .loop                ; loop head in WriteTableEnv
-43F5 .loop                ; loop head in WriteTableCmd
+4319 .loop                ; loop head in ReadTableCommand
+4384 .loop                ; loop head in WriteTableEnvelope
+43F5 .loop                ; loop head in WriteTableCommand
 445C .loop                ; loop head in WriteTableVal
 44B5 .loop                ; loop head in WriteTableTranspose
-450C .loop                ; loop head in ReadTableEnv
+450C .loop                ; loop head in ReadTableEnvelope
 456D .loop                ; loop head in ReadTableVal
 45C2 .loop                ; loop head in ReadTableTranspose
 4636 .loop                ; loop head in EraseTableCursor
 4664 .done                ; common exit of EraseTableCursor
 4678 .loop                ; loop head in ReadTableStep
-4760 .done                ; common exit of DrawTableEnv
+4760 .done                ; common exit of DrawTableEnvelope
 47D9 .loop                ; loop head in DrawTableScreen
 4824 .loop2               ; loop head in DrawTableScreen
 492C .done                ; common exit of DrawTableScreen
@@ -93,13 +93,13 @@
 4AA4 .done                ; common exit of TableScreenUpdate
 4B59 .done                ; common exit of DrawTableCursor
 4F1F .incLoop ; loop head in TableScreenInput
-508E .incCmdLoop ; loop head in TableScreenInput
+508E .incCommandLoop ; loop head in TableScreenInput
 5251 .decLoop ; loop head in TableScreenInput
-53BD .decCmdLoop ; loop head in TableScreenInput
+53BD .decCommandLoop ; loop head in TableScreenInput
 556B .bigLoop ; loop head in TableScreenInput
-56E3 .bigCmdLoop ; loop head in TableScreenInput
+56E3 .bigCommandLoop ; loop head in TableScreenInput
 58C5 .bigDecLoop ; loop head in TableScreenInput
-5A3B .bigDecCmdLoop ; loop head in TableScreenInput
+5A3B .bigDecCommandLoop ; loop head in TableScreenInput
 5F34 .grooveShift ; loop head in TableScreenInput
 5FD2 .grooveShift2 ; loop head in TableScreenInput
 61B1 .done                ; common exit of TableScreenInput
@@ -114,7 +114,7 @@
 692C .loop3               ; loop head in DrawTableSelection
 6957 .loop4               ; loop head in DrawTableSelection
 69B9 .done                ; common exit of DrawTableSelection
-6D21 .done                ; common exit of ShowInstrFieldHelp
+6D21 .done                ; common exit of ShowInstrumentFieldHelp
 
 ; --- structural local names (loop heads / common exits) ---
 4B85 .aFalse
@@ -126,20 +126,20 @@
 
 
 ; --- first-action / assert local names ---
-400C .checkMapCol
-4028 .setMapProjCol
-4035 .setMapProjColb
-417D .checkMapProjCol
-4190 .checkMapSynthCol
-41A3 .setCurScreen
-41AB .clearMapCol
-41CE .setCurScreenb
-41D6 .setCurScreenc
-41DE .setCurScreend
-41E6 .setCurScreene
-41EE .checkInstr
-41FE .setCurScreenf
-4205 .setCurScreeng
+400C .checkMapColumn
+4028 .setMapProjectColumn
+4035 .setMapProjectColumnb
+417D .checkMapProjectColumn
+4190 .checkMapSynthColumn
+41A3 .setCurrentScreen
+41AB .clearMapColumn
+41CE .setCurrentScreenb
+41D6 .setCurrentScreenc
+41DE .setCurrentScreend
+41E6 .setCurrentScreene
+41EE .checkInstrument
+41FE .setCurrentScreenf
+4205 .setCurrentScreeng
 4243 .ok
 427A .ok
 4297 .ok
@@ -163,11 +163,11 @@
 4771 .ok
 481A .setVramCursor
 48CA .loadTableRow
-4949 .checkTableCol
-49C6 .loadSongCol
-49E3 .loadSongColb
+4949 .checkTableColumn
+49C6 .loadSongColumn
+49E3 .loadSongColumnb
 4ABA .checkGameboyType
-4B06 .checkTableCol
+4B06 .checkTableColumn
 4B36 .setTableCellAPtr
 4B49 .setTableCellAPtrb
 4B6C .tableOk
@@ -175,39 +175,39 @@
 4C0B .cancelSelect
 4C54 .cancelRedraw
 4C68 .aPress
-4CBB .cmd1Cols
-4CCB .aCol
-4D61 .aCmd
-4DA8 .aCmdHelp
+4CBB .command1Columns
+4CCB .aColumn
+4D61 .aCommand
+4DA8 .aCommandHelp
 4E19 .aVal
 4E81 .rightCursor
-4E95 .colLeft
+4E95 .columnLeft
 4EB3 .upCursor
 4ECD .downCursor
 4ED5 .incRows
-4F58 .incCmd1Ptrs
-4F6B .incCmd2Ptrs
-5064 .incCmdTarget
-50C0 .incCmdDraw
+4F58 .incCommand1Ptrs
+4F6B .incCommand2Ptrs
+5064 .incCommandTarget
+50C0 .incCommandDraw
 5207 .decRows
-528A .decCmd1Ptrs
-529D .decCmd2Ptrs
-5367 .decCmd
-53EE .decCmdDraw
+528A .decCommand1Ptrs
+529D .decCommand2Ptrs
+5367 .decCommand
+53EE .decCommandDraw
 5521 .bigRows
-55A4 .bigCmd1Ptrs
-55B7 .bigCmd2Ptrs
-56B9 .bigCmdTarget
-5714 .bigCmdDraw
-57FB .bigWaveCmd
-581B .bigPitchCmd
+55A4 .bigCommand1Ptrs
+55B7 .bigCommand2Ptrs
+56B9 .bigCommandTarget
+5714 .bigCommandDraw
+57FB .bigWaveCommand
+581B .bigPitchCommand
 587B .bigDecRows
-58FE .bigDecCmd1Ptrs
-5911 .bigDecCmd2Ptrs
-59E5 .bigDecCmd
-5A6C .bigDecCmdDraw
-5B41 .bigDecWaveCmd
-5B5E .bigDecPitchCmd
+58FE .bigDecCommand1Ptrs
+5911 .bigDecCommand2Ptrs
+59E5 .bigDecCommand
+5A6C .bigDecCommandDraw
+5B41 .bigDecWaveCommand
+5B5E .bigDecPitchCommand
 5BBE .nextTable
 5BC8 .nextTableDraw
 5BD8 .prevTable
@@ -219,14 +219,14 @@
 5C24 .firstTable
 5C29 .prevTablesDraw
 5C39 .cutCell
-5C90 .cutEnv
+5C90 .cutEnvelope
 5CD3 .cutTranspose
-5D16 .cutCmd1
-5DAD .cutCmd2
+5D16 .cutCommand1
+5DAD .cutCommand2
 5E41 .cutDraw
 5E49 .selectA
 5E74 .selectAClip
-5E82 .selectACol
+5E82 .selectAColumn
 5E92 .pasteCells
 5EA0 .selectStart
 5EC0 .start
@@ -236,7 +236,7 @@
 6097 .copySelection
 60B6 .selectB
 6115 .widenRows
-6155 .widenCols
+6155 .widenColumns
 616C .copyScreen
 6210 .comparePtrBytes
 622F .checkSelectionLeft
@@ -258,10 +258,10 @@
 6707 .setTableCellAPtrd
 6740 .incTableRow
 6779 .loadSelectionLeft
-69FA .checkInstrField
-6AC5 .checkInstrFieldb
-6BA5 .checkInstrFieldc
-6C70 .checkInstrFieldd
+69FA .checkInstrumentField
+6AC5 .checkInstrumentFieldb
+6BA5 .checkInstrumentFieldc
+6C70 .checkInstrumentFieldd
 729B .ok
 745B .setSavedSelectionTop
 
@@ -271,7 +271,7 @@
 40B4 .drawStringIndexed
 40D3 .cont_2
 40D5 .drawStringIndexed_2
-41FC .setCurScreen_2
+41FC .setCurrentScreen_2
 42C9 .cont
 42CB .drawStringIndexed
 431E .step
@@ -283,7 +283,7 @@
 4511 .index
 4572 .step
 45C7 .index
-4609 .loadTableCol
+4609 .loadTableColumn
 467D .index
 4756 .drawHexByte
 47F9 .add16
@@ -294,38 +294,38 @@
 4957 .cont_2
 4963 .cont_3
 498D .clearSpriteY
-49AB .loadSongCol_2
-4A12 .loadSongCol_3
-4A55 .loadSongCol_4
+49AB .loadSongColumn_2
+4A12 .loadSongColumn_3
+4A55 .loadSongColumn_4
 4A7A .setSpriteY
 4AC7 .cont
-4AC9 .loadTableCol
+4AC9 .loadTableColumn
 4B86 .aStore
 4C63 .cancelDone
-4CFD .aEnv
+4CFD .aEnvelope
 4D2F .aTranspose
-4D6F .aCmd1
-4D71 .aCmdTarget
-4DC7 .aCmdAlias
-4DDC .aCmdWrite
+4D6F .aCommand1
+4D71 .aCommandTarget
+4DC7 .aCommandAlias
+4DDC .aCommandWrite
 4E6B .aDone
 4F0A .incOne
 4F18 .incSorted
 4F7B .incCell
-4FCD .incEnv
-4FFD .incEnvKept
+4FCD .incEnvelope
+4FFD .incEnvelopeKept
 5007 .incTranspose
-5036 .incCmd
-5072 .incCmd1
-5074 .incCmdTargetSet
-50F1 .incCmdHelp
-5114 .incCmdVal
+5036 .incCommand
+5072 .incCommand1
+5074 .incCommandTargetSet
+50F1 .incCommandHelp
+5114 .incCommandVal
 5143 .incVal
-5177 .incTableCmd
-5186 .incHopCmd
-5195 .incPanCmd
+5177 .incTableCommand
+5186 .incHopCommand
+5195 .incPanCommand
 51A4 .incPanRight
-51AB .incWaveCmd
+51AB .incWaveCommand
 51BC .incWaveStep
 51C2 .incValStep
 51C5 .incValWrite
@@ -334,20 +334,20 @@
 523C .decOne
 524A .decSorted
 52AD .decCell
-52FF .decEnv
-5314 .decEnvDraw
-532E .decEnvKept
+52FF .decEnvelope
+5314 .decEnvelopeDraw
+532E .decEnvelopeKept
 5338 .decTranspose
-5375 .decCmd1
-5377 .decCmdTargetSet
-53A8 .decCmdRead
-541F .decCmdHelp
-5442 .decCmdVal
+5375 .decCommand1
+5377 .decCommandTargetSet
+53A8 .decCommandRead
+541F .decCommandHelp
+5442 .decCommandVal
 5471 .decVal
-54A1 .decTableCmd
-54B0 .decPanCmd
+54A1 .decTableCommand
+54B0 .decPanCommand
 54BF .decPanLeft
-54C6 .decWaveCmd
+54C6 .decWaveCommand
 54D6 .decWaveStep
 54DC .decValStep
 54DF .decValWrite
@@ -356,19 +356,19 @@
 5556 .bigOne
 5564 .bigSorted
 55C7 .bigCell
-5619 .bigEnv
+5619 .bigEnvelope
 5649 .bigTranspose
 5664 .bigOctave
 5666 .bigTransposeDraw
-568B .bigCmd
-56C7 .bigCmd1
-56C9 .bigCmdTargetSet
-5745 .bigCmdHelp
-5768 .bigCmdVal
+568B .bigCommand
+56C7 .bigCommand1
+56C9 .bigCommandTargetSet
+5745 .bigCommandHelp
+5768 .bigCommandVal
 5797 .bigVal
-57D0 .bigTableCmd
-57E2 .bigHopCmd
-57F4 .bigPanCmd
+57D0 .bigTableCommand
+57E2 .bigHopCommand
+57F4 .bigPanCommand
 580D .bigWaveStep
 5829 .bigPitchOctave
 582B .bigPitchStep
@@ -379,18 +379,18 @@
 58B0 .bigDecOne
 58BE .bigDecSorted
 5921 .bigDecCell
-5973 .bigDecEnv
+5973 .bigDecEnvelope
 59A3 .bigDecTranspose
 59BE .bigDecOctave
 59C0 .bigDecTransposeDraw
-59F3 .bigDecCmd1
-59F5 .bigDecCmdTargetSet
-5A26 .bigDecCmdRead
-5A9D .bigDecCmdHelp
-5AC0 .bigDecCmdVal
+59F3 .bigDecCommand1
+59F5 .bigDecCommandTargetSet
+5A26 .bigDecCommandRead
+5A9D .bigDecCommandHelp
+5AC0 .bigDecCommandVal
 5AEF .bigDecVal
-5B28 .bigDecTableCmd
-5B3A .bigDecPanCmd
+5B28 .bigDecTableCommand
+5B3A .bigDecPanCommand
 5B53 .bigDecWaveStep
 5B6C .bigDecPitchOctave
 5B6E .bigDecPitchStep
@@ -398,17 +398,17 @@
 5B7C .bigDecValWrite
 5BAF .bigDecNextRow
 5BB9 .bigDecDone
-5D55 .cutCmd1Clip
-5DEC .cutCmd2Clip
+5D55 .cutCommand1Clip
+5DEC .cutCommand2Clip
 5EAD .toggleSong
 5ED0 .startDone
 5ED5 .togglePlay
-5F25 .grooveCmd1
+5F25 .grooveCommand1
 5F3C .grooveShiftTest
-5FB5 .grooveCmd2
+5FB5 .grooveCommand2
 5FDA .grooveShiftTest2
 6050 .mapDownGo
-612C .selectBCols
+612C .selectBColumns
 617F .startSelection
 61AF .none
 61D9 .cont
@@ -416,8 +416,8 @@
 61ED .showMessage
 6281 .cont_3
 6282 .cont_4
-62AE .setTableCol
-62E4 .readTableEnv
+62AE .setTableColumn
+62E4 .readTableEnvelope
 631A .readTableTranspose
 6465 .cont_5
 646F .setSelectionLeft
@@ -476,20 +476,20 @@
 6A9B .cont_10
 6AA6 .cont_11
 6AB1 .cont_12
-6ABB .checkInstrField_2
+6ABB .checkInstrumentField_2
 6B07 .cont_13
 6B11 .cont_14
 6B1B .cont_15
 6B25 .cont_16
 6B2F .cont_17
 6B3A .cont_18
-6B44 .loadInstr
+6B44 .loadInstrument
 6B64 .cont_19
 6B6F .cont_20
 6B7A .cont_21
 6B85 .cont_22
 6B90 .cont_23
-6B9B .checkInstrField_3
+6B9B .checkInstrumentField_3
 6BF0 .cont_24
 6BFB .cont_25
 6C06 .cont_26
@@ -501,7 +501,7 @@
 6C45 .cont_32
 6C50 .cont_33
 6C5B .cont_34
-6C66 .checkInstrField_4
+6C66 .checkInstrumentField_4
 6CAC .cont_35
 6CB6 .cont_36
 6CC0 .cont_37
@@ -544,13 +544,13 @@
 73EA TxtHelpLimit               ; "LIMIT SIGNAL VERTICALLY..."
 
 ; --- pointer targets (tools/name_targets.py) ---
-4CEB .colCases
+4CEB .columnCases
 4F4C .incPtrCases
-4FBB .incColCases
+4FBB .incColumnCases
 527E .decPtrCases
-52ED .decColCases
+52ED .decColumnCases
 5598 .bigPtrCases
-5607 .bigColCases
+5607 .bigColumnCases
 58F2 .bigDecPtrCases
-5961 .bigDecColCases
+5961 .bigDecColumnCases
 5C7E .cutCases

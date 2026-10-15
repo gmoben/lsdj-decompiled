@@ -15,22 +15,22 @@ extern UBYTE wWaveCursor;                   /* $C42B */
 extern UBYTE wSynth;                        /* $C42A */
 extern UBYTE wWaveSelectionStart;                 /* $C93B */
 extern UBYTE wWaveSelectionEnd;                   /* $C93C */
-void DrawWaveCol(UBYTE i);
+void DrawWaveColumn(UBYTE i);
 void WriteWaveSample(UBYTE n, UBYTE v);
 UBYTE ReadWaveSample(UBYTE i);
 void InitWaveSprites(void);
-void SetWaveSpriteCols(UBYTE s, UBYTE x);
+void SetWaveSpriteColumns(UBYTE s, UBYTE x);
 void GetWaveEditRange(UBYTE *a, UBYTE *b);
 void DrawWaveRange(void);
-void LockCurSynth(void);
-void DrawWaveCols(void);
+void LockCurrentSynth(void);
+void DrawWaveColumns(void);
 void SetWaveCursorSprite(void);
 extern UBYTE wSelectionTop;                       /* $C40E */
 extern UBYTE wSelectionRight;                     /* $C40F */
 extern UBYTE wSelectionBottom;                    /* $C410 */
 extern UBYTE wClipboardType;                /* $C411 */
 extern UBYTE wButtons;                      /* $C575 */
-extern UBYTE wWaveColEmpty[];               /* $C93D, [8] */
+extern UBYTE wWaveColumnEmpty[];               /* $C93D, [8] */
 void WriteVramByteSafe(UBYTE *addr, UBYTE v);  /* $00:$17EC */
 extern UBYTE wSynthScreen;                  /* $C441 */
 extern UBYTE wSelectHeld;                   /* $C40A */
@@ -72,7 +72,7 @@ UWORD SynthLockByteAddr(UBYTE x)
    lock byte SynthLockByteAddr picks ($BFC4/$BFC5). m is a frame byte that
    only ever receives s (a volatile local nothing reads models it); r named
    so the OR reads it twice. */
-void LockCurSynth(void)
+void LockCurrentSynth(void)
 {
     UBYTE s;
     volatile UBYTE m;
@@ -114,7 +114,7 @@ void WriteWaveSample(UBYTE pos, UBYTE v)
     if (pos >= 0x20)
         DebugTrap();
     p = SramWaveFrames + ((UWORD)wSynth << 4);
-    LockCurSynth();
+    LockCurrentSynth();
     v ^= 0x0F;
     pos = (pos + 1) & 0x1F;
     p += pos >> 1;
@@ -130,7 +130,7 @@ void WriteWaveSample(UBYTE pos, UBYTE v)
     WriteSongByte(3, (UWORD)p, v);
 }
 
-void SetWaveSpriteCols(UBYTE y1, UBYTE y2)
+void SetWaveSpriteColumns(UBYTE y1, UBYTE y2)
 {
     UBYTE i;
 
@@ -148,7 +148,7 @@ void SetWaveCursorSprite(void)
     s = (wWaveSelectionStart << 2) + 0x18;
     if (wCursorMode != 4)
         s = x;
-    SetWaveSpriteCols(s, x);
+    SetWaveSpriteColumns(s, x);
 }
 
 void GetWaveEditRange(UBYTE *a, UBYTE *b)
@@ -188,7 +188,7 @@ void InitWaveSprites(void)
    tile when they share a row, the half-tile pair otherwise; CGB and DMG
    tile numbers), the empty tile on the column's other rows, and the two
    values in hex below the graph. */
-void DrawWaveCol(UBYTE col)
+void DrawWaveColumn(UBYTE col)
 {
     UBYTE s0, s1, i, j;
     UBYTE *p;
@@ -199,9 +199,9 @@ void DrawWaveCol(UBYTE col)
     i = s0 >> 1;
     j = s1 >> 1;
     p = TilemapAddr(col + 2, 13 - i);
-    MemSet(wWaveColEmpty, 1, 8);
-    wWaveColEmpty[i] = 0;
-    wWaveColEmpty[j] = 0;
+    MemSet(wWaveColumnEmpty, 1, 8);
+    wWaveColumnEmpty[i] = 0;
+    wWaveColumnEmpty[j] = 0;
     if (i == j) {
         WriteVramByteSafe(p, (s0 & 1)
                           ? ((s1 & 1) ? (hGameboyType ? 0x54 : 0xDE) : (hGameboyType ? 0x55 : 0xDF))
@@ -213,18 +213,18 @@ void DrawWaveCol(UBYTE col)
     }
     p = TilemapAddr(col + 2, 6);
     for (i = 7; ; i--) {
-        if (wWaveColEmpty[i])
+        if (wWaveColumnEmpty[i])
             WriteVramByteSafe(p, 3);
         if (!i)
             break;
         p += 0x20;
     }
     if (col & 2) {
-        hBgDigitPal = wShadedDigitPal;
-        hBgPal = wShadedPal;
+        hBgDigitPalette = wShadedDigitPalette;
+        hBgPalette = wShadedPalette;
     } else {
-        hBgDigitPal = wHighlightDigitPal;
-        hBgPal = wHighlightPal;
+        hBgDigitPalette = wHighlightDigitPalette;
+        hBgPalette = wHighlightPalette;
     }
     t = col;                        /* a char copy: the test and the x read b */
     if (t & 8)
@@ -235,9 +235,9 @@ void DrawWaveCol(UBYTE col)
     DrawByte(ReadWaveSample(col * 2 + 1));
 }
 
-void DrawWaveCursorCol(void)
+void DrawWaveCursorColumn(void)
 {
-    DrawWaveCol(wWaveCursor >> 1);
+    DrawWaveColumn(wWaveCursor >> 1);
 }
 
 void DrawWaveRange(void)
@@ -248,24 +248,24 @@ void DrawWaveRange(void)
     t = start;
     start = t & 0xFE;
     for (; start < end; start += 2)
-        DrawWaveCol(start >> 1);
+        DrawWaveColumn(start >> 1);
 }
 
-void DrawWaveCols(void)
+void DrawWaveColumns(void)
 {
     UBYTE i;
 
     for (i = 0; i < 0x10; i++)
-        DrawWaveCol(i);
+        DrawWaveColumn(i);
 }
 
 void DrawWaveScreen(void)
 {
     InitWaveSprites();
-    hBgDigitPal = 4;
-    hBgPal = 1;
+    hBgDigitPalette = 4;
+    hBgPalette = 1;
     FarCall(1, FAR_FN(DrawTopBar));
-    DrawWaveCols();
+    DrawWaveColumns();
     FarCall(5, DrawMapTopRow);
 }
 
@@ -320,9 +320,9 @@ void DrawWaveLine(UBYTE d)
     n = (wWaveCursor + d) & 0x1F;
     v = ReadWaveSample(wWaveCursor);
     WriteWaveSample(n, v);
-    DrawWaveCursorCol();
+    DrawWaveCursorColumn();
     wWaveCursor = n;
-    DrawWaveCursorCol();
+    DrawWaveCursorColumn();
     SetWaveCursorSprite();
 }
 
@@ -503,6 +503,6 @@ void PasteWaveSelection(void)
         wWaveCursor &= 0x1F;
     }
     ShowMessage("PASTE");
-    DrawWaveCols();
+    DrawWaveColumns();
     SetWaveCursorSprite();
 }

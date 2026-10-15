@@ -8,16 +8,16 @@
 #include "lsdj.h"
 
 extern UBYTE wClipboardType;                /* $C411 */
-extern UBYTE wInstrField;                   /* $C427 */
+extern UBYTE wInstrumentField;                   /* $C427 */
 extern UBYTE wNameEditBuf[];                /* $C431, [5] */
 extern UBYTE wSelectionTop, wSelectionRight, wSelectionBottom; /* $C40E-$C410 */
 extern UBYTE wSelectHeld;
-extern UBYTE wColPhrase[];                  /* $C453, [4] */
-extern UBYTE InstrTableFieldRow[];          /* $01:$532C, [4] */
+extern UBYTE wColumnPhrase[];                  /* $C453, [4] */
+extern UBYTE InstrumentTableFieldRow[];          /* $01:$532C, [4] */
 void CopyTableData(UBYTE from, UBYTE to);
 void ShowOutOfMemory(void);
-void WriteInstrName(UBYTE instr);
-void CopyInstrName(UBYTE instr);            /* UiHelpers.c */
+void WriteInstrumentName(UBYTE instr);
+void CopyInstrumentName(UBYTE instr);            /* UiHelpers.c */
 void SendLinkClipboard(void);                   /* $1C */
 
 UBYTE CheckSongInitFlag(void)
@@ -91,7 +91,7 @@ UBYTE AllocNextFreePhrase(void)
     UBYTE *p;
     UBYTE start;
 
-    start = wColPhrase[wSongCol];
+    start = wColumnPhrase[wSongColumn];
     if (start == 0xFF)
         start = 0;
     i = start;
@@ -135,7 +135,7 @@ UBYTE IsPhraseUsed(UBYTE phrase)
 /* $5253: copy the instrument ("COPIED INSTR"): its 16 bytes and its name
    into the clipboard's first two columns, as a 3 x 16 selection */
 
-void CopyInstr(void)
+void CopyInstrument(void)
 {
     UBYTE i;
 
@@ -143,8 +143,8 @@ void CopyInstr(void)
     wClipboardType = 6;
     wCursorMode = 2;
     for (i = 0; i < 16; i++)
-        WriteClipboardCell(0, i, ReadCurInstrByte(i));
-    CopyInstrName(wInstr);
+        WriteClipboardCell(0, i, ReadCurrentInstrumentByte(i));
+    CopyInstrumentName(wInstrument);
     for (i = 0; i < 5; i++)
         WriteClipboardCell(1, i, wNameEditBuf[i]);
     wSelectionLeft = 0;
@@ -194,13 +194,13 @@ void CopyTableData(UBYTE src, UBYTE dst)
     CopySong16(0, s6, d6);
 }
 
-void CloneInstrTable(void)
+void CloneInstrumentTable(void)
 {
     UBYTE v, t;
 
-    if (wInstrField != InstrTableFieldRow[ReadCurInstrByte(0) & 3])
+    if (wInstrumentField != InstrumentTableFieldRow[ReadCurrentInstrumentByte(0) & 3])
         return;
-    v = ReadCurInstrByte(6);
+    v = ReadCurrentInstrumentByte(6);
     if (!(v & 0x20))
         return;
     v &= 0x1F;
@@ -209,14 +209,14 @@ void CloneInstrTable(void)
         return;
     ShowMessage("CLONED TABLE");
     CopyTableData(v, t);
-    WriteInstrByte(wInstr, 6, t | 0x20);
+    WriteInstrumentByte(wInstrument, 6, t | 0x20);
 }
 
-void PasteInstr(void)
+void PasteInstrument(void)
 {
     UBYTE i;
 
-    if (wInstr == 0x40)
+    if (wInstrument == 0x40)
         return;
     if (wCursorMode != 2)
         return;
@@ -225,13 +225,13 @@ void PasteInstr(void)
     if (wClipboardType != 6)
         return;
     for (i = 0; i < 16; i++)
-        WriteInstrByte(wInstr, i, ReadClipboardCell(0, i));
+        WriteInstrumentByte(wInstrument, i, ReadClipboardCell(0, i));
     for (i = 0; i < 5; i++)
         wNameEditBuf[i] = ReadClipboardCell(1, i);
-    WriteInstrName(wInstr);
+    WriteInstrumentName(wInstrument);
     if (hGameboyType)
         ClearBgTilemap();
-    DrawScreenPalMap();
-    FarCall(3, FAR_FN(DrawInstrScreen));
+    DrawScreenPaletteMap();
+    FarCall(3, FAR_FN(DrawInstrumentScreen));
     ShowMessage("PASTED INSTR");
 }

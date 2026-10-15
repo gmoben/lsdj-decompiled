@@ -44,11 +44,11 @@ coverage = importlib.import_module("coverage")   # tools/coverage.py: read_sym, 
 # helpers, `ldh a,(c)` kernels, unrolled sample shifts).
 KNOWN_ASM = {
     "01:SaveCrashStack", "01:CopyScreenMapCgb",
-    "01:CopyScreenMapDmg", "01:LoadObjPal",
+    "01:CopyScreenMapDmg", "01:LoadObjPalette",
     "06:DrawScopePoint", "06:ShiftScopeSamples",
     "07:DrawHexOrDashes", "07:ScanSongSram", "07:WriteSongSramBytes",
     "1b:MixerKernel",
-    "1c:EmitDefaultInstr", "1c:EmitDefaultWave", "1c:FileClassifyToken",
+    "1c:EmitDefaultInstrument", "1c:EmitDefaultWave", "1c:FileClassifyToken",
     "1c:FilePutDecompressByte", "1c:ReadWorkingSongByte", "1c:WriteCompressedByte",
     # stack-argument readers that branch with `jr` / poll rSTAT
     "00:DrawTileRun", "00:WriteVramByteSafe",
@@ -57,12 +57,12 @@ KNOWN_ASM = {
     # epilogue), register arguments (`push de` as a ModU8 call), `add a,l;
     # ld l,a` / `inc l` address steps, `swap`, `stop`, unrolled `ld [hl+],a`,
     # tail-jumping dispatchers, the `ld b,b` debugger marker
-    "00:SoundInterpResume", "00:DebugTrap", "00:KitIndexToBank", "00:AnyChanFlagSet",
-    "00:SwitchToDoubleSpeed", "00:VibOffsetJumps",
-    "02:SoundFxTableJump", "02:SoundRandom15", "02:SoundTriggerNote", "02:SoundSetupChan",
-    "02:SoundClearChanFxSlots", "02:SoundAdvanceChanCursors", "02:SoundCountdownStep",
-    "02:SoundFillFF", "02:FxCmd_M", "02:SoundApplyTableTranspose", "02:SoundReadTableEnv",
-    "02:SoundDeactivateChan", "02:SoundReadTableTranspose", "02:SoundDecodeNibbles",
+    "00:SoundInterpResume", "00:DebugTrap", "00:KitIndexToBank", "00:AnyChannelFlagSet",
+    "00:SwitchToDoubleSpeed", "00:VibratoOffsetJumps",
+    "02:SoundCommandTableJump", "02:SoundRandom15", "02:SoundTriggerNote", "02:SoundSetupChannel",
+    "02:SoundClearChannelCommandSlots", "02:SoundAdvanceChannelCursors", "02:SoundCountdownStep",
+    "02:SoundFillFF", "02:Command_M", "02:SoundApplyTableTranspose", "02:SoundReadTableEnvelope",
+    "02:SoundDeactivateChannel", "02:SoundReadTableTranspose", "02:SoundDecodeNibbles",
     # an `hl`-argument call wrapped in the C convention: RequestTileSlot pops
     # its frame before setting the return value, which SDCC never does
     "00:LoadTilesDispatch", "00:RequestTileSlot",

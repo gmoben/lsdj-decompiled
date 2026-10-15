@@ -53,7 +53,7 @@ void RedrawHelpCursor(void)
 
 void DrawHelpScreen(void)
 {
-    FarCall(1, FAR_FN(DrawScreenPalMap));
+    FarCall(1, FAR_FN(DrawScreenPaletteMap));
     DrawHelpMenu();
     RedrawHelpCursor();
 }
@@ -76,9 +76,9 @@ void MoveHelpCursorUp(void)
     }
 }
 
-void GotoProjScreen(void)
+void GotoProjectScreen(void)
 {
-    wCurScreen = 9;
+    wCurrentScreen = 9;
     FarCall(4, FAR_FN(RedrawScreen));
 }
 
@@ -147,7 +147,7 @@ UBYTE HelpScreenInput(void)
     case 0x20:
         if (wAPressEnabled) {
             if (closed)
-                GotoProjScreen();
+                GotoProjectScreen();
             else
                 CloseHelpEntry();
         }

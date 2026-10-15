@@ -15,7 +15,7 @@
  *     on `if (sfr)`, so LSDj's source must have declared it plainly).
  *   - The working song in SRAM is addressed with numeric constants, not
  *     linker symbols: SDCC swaps a *literal* left operand of `+` to the
- *     right, an extern's address it does not (NextUsedInstr tells them
+ *     right, an extern's address it does not (NextUsedInstrument tells them
  *     apart), so the SramXxx names below are literal-pointer macros.
  *   - Banked calls go through FarCall/FarCallArg (bank 0, hand-written asm).
  *     Most call sites pass the function itself (`ld bc,#fn`); others pass
@@ -39,9 +39,9 @@ typedef int WORD;
 /* --- hardware and HRAM ---------------------------------------------------- */
 
 extern volatile sfr UBYTE VBK_REG;          /* $FF4F rVBK */
-extern volatile sfr UBYTE hBgPal;       /* $FF8C */
-extern volatile sfr UBYTE hBgDigitPal;  /* $FF8D */
-extern volatile sfr UBYTE hCurBank;     /* $FF8E */
+extern volatile sfr UBYTE hBgPalette;       /* $FF8C */
+extern volatile sfr UBYTE hBgDigitPalette;  /* $FF8D */
+extern volatile sfr UBYTE hCurrentBank;     /* $FF8E */
 extern UBYTE hGameboyType;                  /* $FF90 */
 extern volatile UBYTE rROMB0;               /* $2000, the MBC5 ROM bank register */
 /* volatile: SoundSpeechStep's `rRAMG = 0x0A; x = *p; rRAMG = 0;` keeps both
@@ -53,20 +53,20 @@ extern volatile UBYTE rRAMB;                /* $4000, MBC5 SRAM bank */
  * de (`ld de,#0x2000; ld a,#n; ld (de),a`); the ROM has the named-variable form
  * (`ld hl,#0x2000; ld (hl),#n`), so LSDj wrote the register as a variable. It
  * also keeps the HRAM shadow the far-call helpers rely on. */
-#define SWITCH_ROM(n) hCurBank = (n); rROMB0 = (n)
+#define SWITCH_ROM(n) hCurrentBank = (n); rROMB0 = (n)
 
 /* --- WRAM ----------------------------------------------------------------- */
 
-extern UBYTE wCurScreen;                /* $C401 */
+extern UBYTE wCurrentScreen;                /* $C401 */
 extern UBYTE wIsCgb;                        /* $C402 */
 extern UBYTE wButtonsSame;                  /* $C408: 1 if the buttons are unchanged since last frame */
 extern UBYTE wSelectionLeft;                      /* $C40D */
 extern UBYTE wCursorMode;                   /* $C413 */
 extern UBYTE wPhrase;                       /* $C414 */
 extern UBYTE wPhraseRow;                    /* $C416 */
-extern UBYTE wSongCol;                      /* $C41D: song cursor column (channel) */
+extern UBYTE wSongColumn;                      /* $C41D: song cursor column (channel) */
 extern UBYTE wSongRow;                      /* $C41E: song cursor row */
-extern UBYTE wInstrField;                   /* $C427: instrument screen cursor row */
+extern UBYTE wInstrumentField;                   /* $C427: instrument screen cursor row */
 extern UBYTE wSpeechRow;              /* $C429 */
 extern char wSampleNoteString[];            /* $C43A: [7] shared name buffer */
 extern UBYTE wSongReadBuf[];                /* $C46D, [64] the song window (16 rows x 4 channels) */
@@ -74,20 +74,20 @@ extern UBYTE wUsedTableMap[];               /* $C47D, [32] tables referenced by 
 extern UBYTE wPlayMode;                     /* $C4D2 */
 extern UBYTE wTempo;                        /* $C529, 0-39 stand for 256-295 */
 extern UBYTE wTempoMode;                    /* $C52A: 0 = BPM, 1-3 = the 2X/3X/6X sync speeds */
-extern UBYTE wShadedDigitPal;               /* $C566 */
-extern UBYTE wShadedPal;                    /* $C567 */
-extern UBYTE wHighlightDigitPal;               /* $C568 */
-extern UBYTE wHighlightPal;                    /* $C569 */
+extern UBYTE wShadedDigitPalette;               /* $C566 */
+extern UBYTE wShadedPalette;                    /* $C567 */
+extern UBYTE wHighlightDigitPalette;               /* $C568 */
+extern UBYTE wHighlightPalette;                    /* $C569 */
 extern UBYTE *wStringSrc;                   /* $C564, the character-to-tile map DrawString reads */
 extern UBYTE AsciiCharMap[];                /* $0:$086F, text from ' '; wStringSrc = AsciiCharMap - 0x20 */
 extern UBYTE IdentityCharMap[];             /* $0:$08C8, raw tile indices */
 extern UBYTE *wVramCursor;                  /* $C573 */
-extern UBYTE wInstr;                   /* $C576, the instrument being edited */
+extern UBYTE wInstrument;                   /* $C576, the instrument being edited */
 extern UBYTE wStrBuf[];                  /* $C6A9, 20 chars + NUL */
 extern UBYTE wMessageTimer;                     /* $C7A9 */
 extern UBYTE *wMessageStrPtr;                   /* $C7AA */
 extern UBYTE wMessagePanelShown;                /* $C7AC */
-extern UBYTE wInstrEditLatch;               /* $C906: instrument screen edit latch */
+extern UBYTE wInstrumentEditLatch;               /* $C906: instrument screen edit latch */
 extern char *wChainScratchPtr;              /* $C948 */
 extern UBYTE wSyncMode;                     /* $CB66 */
 extern UBYTE wSyncMode2;                    /* $CB67 */
@@ -172,9 +172,9 @@ UBYTE ReadSongByte(UBYTE bank, UWORD addr);
 void WriteSongByte(UBYTE bank, UWORD addr, UBYTE val);
 UBYTE ReadSongByteRaw(UBYTE bank, UWORD addr);  /* no range asserts */
 void ReadSongBytes(UBYTE bank, UBYTE *src, UBYTE *dst);  /* 16 bytes */
-void WriteInstrByte(UBYTE instr, UBYTE field, UBYTE val);
-UBYTE ReadInstrByte(UBYTE instr, UBYTE field);
-UBYTE ReadCurInstrByte(UBYTE field);
+void WriteInstrumentByte(UBYTE instr, UBYTE field, UBYTE val);
+UBYTE ReadInstrumentByte(UBYTE instr, UBYTE field);
+UBYTE ReadCurrentInstrumentByte(UBYTE field);
 UBYTE ReadSeqByte(UBYTE chan, UBYTE row);
 void ReadKitName(UBYTE kit);                            /* -> wSampleNoteString */
 UBYTE KitExists(UBYTE kit);
@@ -209,7 +209,7 @@ void LoadSynthShape(char *src);              /* bank $1E seed bytes -> wSynthSha
 
 void RedrawScreen(void);                    /* $24DD: full repaint of the current screen */
 void ClearBgTilemap(void);                  /* $17FB: tile 0 over the visible BG map */
-extern UBYTE FxMnemonics[];                 /* $0824: "-ABCDEFGHKLMOPRSTVWZ", the command letters */
+extern UBYTE CommandMnemonics[];                 /* $0824: "-ABCDEFGHKLMOPRSTVWZ", the command letters */
 void SetSpriteY(UBYTE sprite, UBYTE row);   /* play-position marker sprites */
 void ClearSpriteY(UBYTE sprite);
 void SetSpriteX(UBYTE sprite, UBYTE col);
@@ -225,9 +225,9 @@ void DrawGrooveScreen(void);        /* $1D:$41DA */
 void DrawChainScreen(void);         /* $06:$5947 */
 void DrawSongScreen(void);          /* $07:$4574 */
 void DrawTableScreen(void);         /* $05:$4762 */
-void DrawInstrScreen(void);    /* $03:$4DE7 */
+void DrawInstrumentScreen(void);    /* $03:$4DE7 */
 void DrawWaveScreen(void);          /* $06:$4F18 */
-void DrawProjScreen(void);       /* $1B:$5C17 */
+void DrawProjectScreen(void);       /* $1B:$5C17 */
 void DrawSynthScreen(void);         /* $1D:$68AB */
 void DrawWordScreen(void);          /* $06:$41A2 */
 void DrawFileScreen(void);          /* $1C:$57BB */
@@ -238,36 +238,36 @@ void DrawHelpScreen(void);          /* $1B:$4A62 */
 void ShowMessage(char *text);
 void DrawMessageBar(void);
 void DrawTopBar(void);
-void DrawScreenPalMap(void);
+void DrawScreenPaletteMap(void);
 void DrawOnOffName(UBYTE v);
 void DrawSpeedModeName(UBYTE v);
 void DrawSpeedGlyph(UBYTE v);
-void CloneInstrTable(void);
+void CloneInstrumentTable(void);
 
 /* --- bank 3: instrument screen --------------------------------------------- */
 
-void WriteCurInstrByte(UBYTE field, UBYTE val);
-void DrawInstrCursor(void);
-void EraseInstrCursor(void);
+void WriteCurrentInstrumentByte(UBYTE field, UBYTE val);
+void DrawInstrumentCursor(void);
+void EraseInstrumentCursor(void);
 UBYTE FindFreeSynth(void);
 UBYTE SynthWavesModified(UBYTE synth);
-void PrevInstrTableMode(void);
+void PrevInstrumentTableMode(void);
 UBYTE GetWaveLoopPos(void);
-UBYTE GetInstrType3(void);
+UBYTE GetInstrumentType3(void);
 void WriteKitNumber(UBYTE field, UBYTE kit);
-void InstrEnvChanged(void);
+void InstrumentEnvelopeChanged(void);
 void EnsureKitExists(void);
 void CloneSynth(void);
-void SetInstrTableOn(void);
-UBYTE IsInstrTableOn(void);
+void SetInstrumentTableOn(void);
+UBYTE IsInstrumentTableOn(void);
 UBYTE GetWavePlayMode(void);
 UBYTE WavePlayIsManual(void);
-void SetInstrPitchByte(UBYTE v);
-void PrevUsedInstr(void);
+void SetInstrumentPitchByte(UBYTE v);
+void PrevUsedInstrument(void);
 UBYTE GetWaveLen(void);
 UBYTE GetWaveSpeed(void);
-UBYTE GetVibShape(void);
-void SetVibShape(char v);               /* the shape byte is signed here: its OR reads it through a cast */
+UBYTE GetVibratoShape(void);
+void SetVibratoShape(char v);               /* the shape byte is signed here: its OR reads it through a cast */
 
 /* --- bank 5 ---------------------------------------------------------------- */
 void RestoreSelectionState(void);           /* $05:$747D (far) */
@@ -276,17 +276,17 @@ void DrawMapTopRow(void);
 
 /* --- bank $1B: project screen ---------------------------------------------- */
 
-void UpdateInstrEnv(void);
+void UpdateInstrumentEnvelope(void);
 void ColorField(UBYTE a, UBYTE b, UBYTE c, UBYTE d);
-UBYTE ProjSyncModeIs567(void);
+UBYTE ProjectSyncModeIs567(void);
 
 /* --- bank $1F -------------------------------------------------------------- */
 
-void DrawInstrTableField(void);
-void DrawInstrTableMode(void);
-UBYTE InstrEnvHasSecond(void);
-UBYTE InstrEnvHasThird(void);
+void DrawInstrumentTableField(void);
+void DrawInstrumentTableMode(void);
+UBYTE InstrumentEnvelopeHasSecond(void);
+UBYTE InstrumentEnvelopeHasThird(void);
 UBYTE FindFreeTable(void);
-void DrawInstrEnvFields(void);
+void DrawEnvelopeFields(void);
 
 #endif /* LSDJ_H */
