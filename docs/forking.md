@@ -15,7 +15,10 @@ A file `fork.mk` in the repository root (the Makefile includes it) with
 
     FORK = 1
 
-or `make FORK=1 ...` for one build. In fork mode:
+or `make FORK=1 ...` for one build. The Makefile includes it before its
+first rule, so a fork that adds rules of its own there (a test target, say)
+sets `.DEFAULT_GOAL := all` first, or plain `make` builds the first of
+them. In fork mode:
 
 - `make match` (`tools/match/verify_all.py --fork`) compiles `c/` as usual
   and sorts each function: MATCH (the ROM's bytes), CHANGED (a function the
@@ -62,14 +65,19 @@ for its caller, and LSDj's compiled C keeps values in bc across calls. So
 LSDj code reaches new code through a function that saves bc: the period
 compiler's `FarCall(bank, FAR_FN(Name))` does (it pushes bc to pass the
 address and pops it after), which is also how code in bank `$02` reaches a
-bank with room. The banks' free space (bytes):
+bank with room. The other way, new code calls LSDj's routines in another
+bank with `FarCall(bank, Name)`, declared `void FarCall(UBYTE bank, void
+(*function)(void))`: SDCC 4 pushes the bank as the one byte FarCall reads.
+The banks' free space (bytes):
 
 | `$00` | `$01` | `$02` | `$03` | `$04` | `$05` | `$06` | `$07` | `$1B` | `$1C` | `$1D` | `$1E` | `$1F` |
 |------|------|------|------|------|------|------|------|------|------|------|------|------|
 | 630 | 258 | 157 | 1,355 | 674 | 2,898 | 1,782 | 2,997 | 2,704 | 2,605 | 552 | 1,109 | 2,026 |
 
 Bank `$00` is always mapped (the timer interrupt's code can call into it);
-bank `$02`, the sound engine's, has little room.
+bank `$02`, the sound engine's, has little room, and bank `$01` too little
+for a new command's help line: put it in bank `$00`, which
+`CommandHelpPointers` can point into like any other.
 
 ## Asm and data
 
@@ -92,7 +100,12 @@ unused; C declares it `extern` with the same name.
   keep the tour off what the fork changes (it never steps a command past Z,
   for one), and test the change itself.
 - a feature's own test: play an example song (a `.sav` the fork builds,
-  never commits) in PyBoy and check what the hardware does.
+  never commits) in PyBoy and check what the hardware does, register by
+  register. PyBoy's APU leaves out two things LSDj relies on: NR50, the
+  master volume (it reads back, but the mix ignores it), and zombie mode,
+  the volume an NRx2 write changes while a channel plays, which LSDj 9's
+  envelopes are made of. What a song sounds like is heard in SameBoy,
+  mGBA or BGB, or on a Game Boy.
 
 ## What it can't do yet
 
