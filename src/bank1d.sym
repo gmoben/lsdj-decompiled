@@ -27,10 +27,10 @@
 65B3 TxtClip                    ; "CLIP"
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
-40AE GrooveDrawField        ; draw groove value field at cursor $c9d4 (palette by bit1) via ColorField
+40AE EraseGrooveCursor          ; restore the groove cursor step's palette (alternating per two rows)
 425B DrawGrooveRow              ; draw one groove row (step<16; ticks via ReadGrooveStep, state $c9d5/$c9d6)
 435D GrooveBuildCache       ; once ($c9d5 guard): build the 16-step groove display cache $c9d6 (via $405a)
-4394 GrooveDrawFieldHw      ; like GrooveDrawField but palette per hGameboyType
+4394 DrawGrooveCursor           ; highlight the groove cursor step (palette 3 on CGB, 2 on DMG)
 43CF GrooveRowPalettes          ; pick a groove row's draw palettes: select colours inside the sorted wSelectionTop..wGrooveRow range (select mode) or on the cursor row, 4/1 stripe on rows with bit 1, else shadow
 4B6C GrooveCutCopy              ; cut/copy the groove selection (arg 1 = cut: rows cleared to 0, row 0 to 6)
 4C63 PasteGrooveSelection       ; write the clipboard steps into the groove from the cursor (clipType 2), advancing wGrooveRow and wrapping at 16; PASTE message
@@ -53,8 +53,8 @@
 62A8 DrawSynthField             ; draw the synth PHASE field: switch (jp-table $62bb) -> " PINCH"/"  WARP"/"RESYNC"/"RESYN2"
 636E DrawSynthFilterField       ; draw the FILTER type field (" LOWP"...; "-----" empty; jp-table $63a6)
 6414 DrawSynthWaveField         ; draw the waveform type row (glyph strings "iiii"/"mmmm"; jp-table $6437)
-649F SynthEraseCursor           ; restore palette 1 over the cursor field's cells (SynthFieldX/Width/Layout[wSynthCursor])
-6503 SynthDrawCursor            ; highlight the cursor field's cells (palette 3 on CGB, 2 on DMG)
+649F EraseSynthCursor           ; restore palette 1 over the cursor field's cells (SynthFieldX/Width/Layout[wSynthCursor])
+6503 DrawSynthCursor            ; highlight the cursor field's cells (palette 3 on CGB, 2 on DMG)
 6577 DrawSynthDistField         ; draw the DIST field: "CLIP"/"FOLD"/"WRAP"
 65C2 DrawSynthNumber            ; redraw the synth number and both endpoints of every parameter field
 68A5 TxtSynthFrameDashesA       ; "--" for a hidden parameter's first endpoint
@@ -62,7 +62,7 @@
 6709 .rowA                ; (was DrawSynthHexRowA) draw a START/END hex pair row of the synth screen (section A; "--" empty)
 6791 .rowB                ; (was DrawSynthHexRowB) draw a START/END hex pair row (section B)
 6819 .rowC                ; (was DrawSynthHexRowC) draw a START/END hex pair row (section C)
-6865 .rowD                ; (was DrawSynthHexRowD) draw a START/END hex pair row (section D), then SynthDrawCursor re-render
+6865 .rowD                ; (was DrawSynthHexRowD) draw a START/END hex pair row (section D), then DrawSynthCursor re-render
 68F9 SynthLoadParams            ; load the edited synth's parameters from SRAM ($BEB2 + wSynthScreen*16) into the render state: wave type, wave table, filter
 6935 .loadWaveType        ; (was SynthLoadWaveType) read 2 synth params from SRAM -> $c9ed, $c9e9 (wave type)
 6967 .loadWaveTable       ; (was SynthLoadWaveTable) read packed param from SRAM, build wave table $ca94 (via SynthFillWaveRange)
@@ -184,10 +184,10 @@
 631E .loop                ; loop head in ReadSynthParam
 63EE .done                ; common exit of DrawSynthFilterField
 6487 .done                ; common exit of DrawSynthWaveField
-64B3 .loop                ; loop head in SynthEraseCursor
-64FF .done                ; common exit of SynthEraseCursor
-6517 .loop                ; loop head in SynthDrawCursor
-6573 .done                ; common exit of SynthDrawCursor
+64B3 .loop                ; loop head in EraseSynthCursor
+64FF .done                ; common exit of EraseSynthCursor
+6517 .loop                ; loop head in DrawSynthCursor
+6573 .done                ; common exit of DrawSynthCursor
 65B2 .done                ; common exit of DrawSynthDistField
 65CF .loop                ; loop head in DrawSynthNumber
 6911 .loop                ; loop head in SynthLoadParams
@@ -257,10 +257,10 @@
 4441 .loadShadowDigitPal
 4512 .drawGrooveScreen
 4567 .drawGrooveRow
-457B .grooveDrawFieldHw
+457B .drawGrooveCursor
 458A .drawGrooveRowb
 45B3 .decGrooveRow
-45B7 .grooveDrawFieldHwb
+45B7 .drawGrooveCursorb
 45C6 .drawGrooveRowc
 45EA .loadSelectionTop
 467C .drawGrooveRowd
@@ -275,7 +275,7 @@
 48B1 .setGrooveb
 48B6 .setMessageStrPtrc
 48CF .setMessageStrPtrd
-4912 .grooveDrawField
+4912 .eraseGrooveCursor
 4998 .drawGrooveScreenb
 49CB .setSelectHeld
 4A24 .setCurScreen

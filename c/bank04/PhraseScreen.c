@@ -77,7 +77,7 @@ extern UBYTE PhraseStepOnes[];              /* $04:$54E3, [4][20] */
 void LoadCmdHelp(void);                 /* bank 1 */
 UBYTE PhraseCellFlagB(UBYTE row);
 UBYTE PhraseCellFlagD(UBYTE row);
-void InstrHReadCursorCellAt(void);          /* bank $1F */
+void ErasePhraseCursor(void);          /* bank $1F */
 void HasEnterableColRight(void);            /* bank $1F */
 void HasEnterableColLeft(void);             /* bank $1F */
 void CutCopyPhraseSelection(void);          /* bank $1F */
@@ -1224,7 +1224,7 @@ UBYTE PhraseScreenInput(void)
     }
     if (wButtons == 0x01) {
         if (wCursorMode != 4)
-            FarCall(0x1F, FAR_FN(InstrHReadCursorCellAt));
+            FarCall(0x1F, FAR_FN(ErasePhraseCursor));
         if (wPhraseCol == 4)
             wPhraseCol--;
         wPhraseCol++;
@@ -1243,7 +1243,7 @@ UBYTE PhraseScreenInput(void)
                 return 1;
         }
         if (wCursorMode != 4)
-            FarCall(0x1F, FAR_FN(InstrHReadCursorCellAt));
+            FarCall(0x1F, FAR_FN(ErasePhraseCursor));
         wPhraseCol--;
         if (wCursorMode == 4)
             DrawPhraseSelectionFar();
@@ -1255,7 +1255,7 @@ UBYTE PhraseScreenInput(void)
         if (wCursorMode == 4 && !wPhraseRow)
             return 0;
         if (wCursorMode != 4)
-            FarCall(0x1F, FAR_FN(InstrHReadCursorCellAt));
+            FarCall(0x1F, FAR_FN(ErasePhraseCursor));
         wPhraseRow--;
         if (!wPhraseCol && PhraseCheckColFD((char)wPhraseRow) && wCursorMode != 4)
             wPhraseCol++;
@@ -1284,7 +1284,7 @@ UBYTE PhraseScreenInput(void)
         if (wCursorMode == 4 && (char)wPhraseRow == 0x0F)
             return 0;
         if (wCursorMode != 4)
-            FarCall(0x1F, FAR_FN(InstrHReadCursorCellAt));
+            FarCall(0x1F, FAR_FN(ErasePhraseCursor));
         wPhraseRow++;
         if (!wPhraseCol && PhraseCheckColFD((char)wPhraseRow) && wCursorMode != 4)
             wPhraseCol++;
@@ -1934,7 +1934,7 @@ UBYTE PhraseScreenInput(void)
                 if (wSelectionLeft < 3)
                     return 0;
             }
-        FarCall(0x1F, FAR_FN(InstrHReadCursorCellAt));
+        FarCall(0x1F, FAR_FN(ErasePhraseCursor));
         PastePhraseSelection();
         DrawPhraseScreen();
         return 1;

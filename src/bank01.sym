@@ -5,7 +5,7 @@
 776E CmdHelpTable   ; [20] dw -> the "X: DESCRIPTION" help line per command (index = command*2; entry 0 points at an empty string, the end of TxtHelpSSweep)
 
 ; --- UI functions called from bank 0 (bank $01 paged in) ---
-4CF1 UiInitScreen        ; screen setup: ApplyColorSet + ClearOamBuf + UiLoadHwTables
+4CF1 UiInitScreen        ; screen setup: ApplyColorSet + ClearOamBuf + LoadHwTables
 4487 DrawCartTest               ; boot CARTRIDGE TEST screen (ROM checksum + SRAM self-test)
 4FEC UpdatePlayClock            ; per-frame PLAY clock: wPlayFrames counts to 60 (one frame skipped every 4 s), then seconds/minutes; redraws m:ss on the project screen
 7860 UiShowMessage       ; set up the timed status message (wMessageTimer / wMessageStrPtr)
@@ -16,7 +16,7 @@
 48D4 WriteSongInitFlag   ; WriteSongByte $be78 (set the 'rb' init marker)
 4D67 MarkChainUsed              ; set chain (arg)'s bit in the chain allocation map (SramChainAlloc + chain/8, bit chain&7); asserts chain < $80
 4EA3 .writeSongByte       ; (was WriteSongByteWrap) thin WriteSongByte wrapper
-45D1 UiClearSram         ; format the SRAM song: zero the banks, default grooves/sequence/word names/instr names/synth params/wave frames/properties, 'rb' markers, $bfff=$16
+45D1 FormatSramSong             ; format the SRAM song: zero the banks, default grooves/sequence/word names/instr names/synth params/wave frames
 
 ; --- UI message / status strings (db "..."; referenced by the draw code) ---
 4557 TxtCartridgeTest           ; "CARTRIDGE TEST"
@@ -36,11 +36,11 @@
 7498 TxtBlankString2   ; blank (zero) display string (ref $6D98)
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
-4000 UiTestSramLo               ; cartridge RAM test, SRAM banks 0-3: write/read-back pattern via $33f9 (part of CartridgeTest)
-445A UiTestSramHi               ; probe SRAM banks 4-15 (enable $0a, select bank, call $20c4); jp UiTestSramHi.done on mismatch
+4000 TestSramLo                 ; cartridge RAM test, SRAM banks 0-3: write/read-back pattern (part of DrawCartTest)
+445A TestSramHi                 ; cartridge RAM test, SRAM banks 4-15 (jp TestSramHi.done on mismatch)
 493B CopyInstrName              ; copy instrument arg's 5-char name -> wNameEditBuf (speech $40 -> "SPCH")
 4A49 WriteInstrName             ; wNameEditBuf -> instrument name storage ($be7a + instr*5)
-4B15 UiLoadHwTables             ; load CGB/DMG-specific tables: palette-ish -> $cd28, 216-byte note-period table -> wNotePeriods ($cf28)
+4B15 LoadHwTables               ; load the CGB/DMG-specific tables: palettes -> $cd28, the 216-byte note-period table -> wNotePeriods
 4B5E ClearOamBuf             ; clear the OAM shadow ($dd00, $a0 bytes) and sprite tiles $8000-$802f/$8050-$805f, place the WAV sprites, wait for the OAM DMA, enable sprites
 4C61 ApplyColorSet              ; load the wColorSet CGB BG+OBJ palettes (hw $11 check, set_bkg_palette)
 4CFB MarkPhraseUsed             ; set the phrase-alloc bit (song $3E82 bitmap) for phrase arg
@@ -143,10 +143,10 @@
 7BD5 TxtSynColon                ; "SYN:"
 7BDA TxtAst                     ; "AST"
 794B CrashHandler               ; crash entry: di, SRAM locked (rRAMG = 0), CrashSaveStack
-40FA NoteFreqTable              ; [semitone 0-107] -> GB frequency period (108 x dw, copied by UiLoadHwTables)
-41D2 NoteFreqDeltaTable         ; companion 108 x dw pitch table (finetune/delta variant, UiLoadHwTables)
-42AA PitchCurve                 ; [216] rising pitch-response curve (UiLoadHwTables copies it)
-4382 PitchCurveCgb              ; [216] PitchCurve's CGB counterpart (UiLoadHwTables picks by wIsCGB)
+40FA NoteFreqTable              ; [semitone 0-107] -> GB frequency period (108 x dw, copied by LoadHwTables)
+41D2 NoteFreqDeltaTable         ; companion 108 x dw pitch table (finetune/delta variant, LoadHwTables)
+42AA PitchCurve                 ; [216] rising pitch-response curve (LoadHwTables copies it)
+4382 PitchCurveCgb              ; [216] PitchCurve's CGB counterpart (LoadHwTables picks by wIsCGB)
 5927 ScreenPalTable             ; CGB palette block: TABLE screen
 5A8F ScreenPalPhrase            ; CGB palette block: PHRASE screen
 5BF7 ScreenPalGroove            ; CGB palette block: GROOVE screen
@@ -175,19 +175,19 @@
 6F93 TxtVerPatch                ; '0' patch digit + "  (c) 2000 JOHAN KOTLINSKI"
 
 ; --- structural local names (loop heads / common exits) ---
-4015 .loop                ; loop head in UiTestSramLo
-402A .loop2               ; loop head in UiTestSramLo
-4079 .loop3               ; loop head in UiTestSramLo
-408E .loop4               ; loop head in UiTestSramLo
-40E6 .done                ; common exit of UiTestSramLo
-4462 .loop                ; loop head in UiTestSramHi
+4015 .loop                ; loop head in TestSramLo
+402A .loop2               ; loop head in TestSramLo
+4079 .loop3               ; loop head in TestSramLo
+408E .loop4               ; loop head in TestSramLo
+40E6 .done                ; common exit of TestSramLo
+4462 .loop                ; loop head in TestSramHi
 44F5 .loop                ; loop head in DrawCartTest
 4552 .loop2               ; loop head in DrawCartTest
 4555 .done                ; common exit of DrawCartTest
-4603 .grooveLoop          ; loop head in UiClearSram: p != $b290
-4655 .wordNameLoop        ; loop head in UiClearSram: "W-" + a digit per word
-4763 .synthParamLoop      ; loop head in UiClearSram: synth parameter defaults, 16 bytes per synth
-47D0 .waveFrameLoop       ; loop head in UiClearSram: p < $b000
+4603 .grooveLoop          ; loop head in FormatSramSong: p != $b290
+4655 .wordNameLoop        ; loop head in FormatSramSong: "W-" + a digit per word
+4763 .synthParamLoop      ; loop head in FormatSramSong: synth parameter defaults, 16 bytes per synth
+47D0 .waveFrameLoop       ; loop head in FormatSramSong: p < $b000
 4846 .done                ; common exit of CheckJkMarker
 48D2 .done                ; common exit of CheckSongInitFlag
 4A40 .done                ; common exit of CopyInstrName

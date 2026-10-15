@@ -18,7 +18,7 @@ extern UBYTE wClipboardType;                /* $C411 */
 extern UBYTE wSongPasteCol;                 /* $C94E */
 extern UBYTE wSongPasteRow;                 /* $C94F */
 extern UBYTE SongColOffsets[];              /* $07:$4047 */
-void SongEraseCursor(void);
+void EraseSongCursor(void);
 void SortBytePairC(char *a, char *b);      /* SortBytePair as this unit declares it */
 void DrawTileRun(UBYTE x, UBYTE y, UBYTE w, UBYTE h, UBYTE tile);   /* asm */
 
@@ -64,7 +64,7 @@ void SongEditSelection(void)
         wSongRow = wSongScroll + (y0 ? y0 - 1 : 0);
         while (wSongRow < wSongScroll + (y1 == 0x10 ? 0x10 : y1 + 1)) {
             if (wSongCol < x0 || wSongCol >= x1 || wSongRow < wSongScroll + y0 || wSongRow >= wSongScroll + y1)
-                SongEraseCursor();
+                EraseSongCursor();
             wSongRow++;
         }
         wSongCol++;

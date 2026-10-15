@@ -30,12 +30,12 @@
 5511 ChainLoadCursorPhrase      ; read the phrase at (wChain, wChainRow) via FarCallArg2; $ff -> empty path
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
-4000 ChainScaleValue            ; (v / 15) + $19, then +5 past $1A (DivU8)
-4026 DrawSampleNameCell         ; draw a kit sample-name cell (ChainScaleValue + ReadKitSampleName -> wSampleNoteString)
+4000 AllophoneKit               ; the speech kit holding allophone v: v / 15 + $19, then + 5 past $1A (its sample is v % 15 + 1)
+4026 DrawAllophoneName          ; draw allophone v's name: ReadKitSampleName(AllophoneKit(v), v % 15 + 1)
 40B3 WriteWordCell              ; write to the speech-word data under the word cursor (wWordEditRow/Col, $b890 region)
-410E ChainDrawWaveCell          ; draw cell at cursor $c937/$c938 via ROM tables $4022/$4024
-414F ChainDrawWaveCellHw        ; like ChainDrawWaveCell but palette per hGameboyType
-4306 DrawWaveCellPair           ; draw a wave cell in both variants (ChainDrawWaveCell + Hw) for the row
+410E EraseWordCursor            ; restore the word screen's cursor cell to its column palette
+414F DrawWordCursor             ; highlight the word screen's cursor cell (WordColX/WordColWidth[wWordEditCol], row wWordEditRow)
+4306 WordCursorDown             ; word screen: move the cursor one row down (EraseWordCursor, wWordEditRow++, DrawWordCursor) unless on row 15
 48AB TilemapAddr                ; the BG tilemap address of cell x,y: $9800 | (y*32 + x)
 4901 SynthLockByteAddr          ; the SRAM byte holding synth x's lock bit ("synths locked?" $BFC4-$BFC5): $BFC5 for 0-7, $BFC4 for 8-F
 493F LockCurSynth           ; set the current synth's (wSynth >> 4) bit in its lock byte; WriteWaveSample calls it before editing a wave
@@ -62,8 +62,8 @@
 5804 .copyNotes           ; (was CopyPhraseNotes) copy 16 phrase-note bytes src->dst phrase (clone helper)
 5836 .copyFx              ; (was CopyPhraseFx) copy 16 phrase-fx bytes src->dst phrase
 5868 .copyInstrs          ; (was CopyPhraseInstrs) copy 16 phrase-instrument bytes src->dst phrase
-58A7 ChainDrawCellLo            ; draw cell at cursor $c419/$c41a
-5ABE ChainDrawCellHw            ; draw cell at $c41a (palette per hGameboyType)
+58A7 EraseChainCursor           ; restore the chain cursor cell's palette (the transpose column 1 on CGB, else 0)
+5ABE DrawChainCursor            ; highlight the chain cursor cell (palette 3 on CGB, 2 on DMG) at ChainColX[wChainCol], row wChainRow
 5B00 ChainOpenPhrase            ; open the phrase under the chain cursor (RestoreSelectionState, load phrase)
 6D55 CutCopyChainSelection      ; arg!=0 -> "CUT " (copy+clear) else "COPY": chain selection -> clipboard (clipType 3; phrases via SndGetChainPhrase, transposes)
 6F0D ChainPasteCells            ; SELECT+A paste on the chain screen: clipboard cells into rows wSelectionTop..wSelBottom (column 0 phrases via WriteChainPhrase, column 1 transposes), "PASTE" message when more than one row
@@ -89,7 +89,7 @@
 72C4 UpdateStatusPanel          ; per-frame status update for most screens: pending sample-name cells (wChanDispNote) at x=17, the tempo field when wTempo changed, the scope
 5BD0 ChainScreenInput           ; the chain screen's input: A writes a phrase/transpose, the directions move, A+directions step phrases (1/16) or transposes (1/octave) over the cell or selection, B+directions change channel or song row, A+B cuts, select+A pastes, start plays, select+B selects
 507F WaveScreenInput            ; wave-screen input dispatch (wButtons)
-431D WordEditorInput            ; word screen (12) input handler, from DispatchScreenInput: cursor over wWordEditRow/Col, dispatch on wButtons
+431D WordScreenInput            ; word screen (12) input handler, from DispatchScreenInput: cursor over wWordEditRow/Col, dispatch on wButtons
 5391 TxtSelect         ; "SELECT" (pairs with TxtCancelSelect)
 6D4E TxtSelect2        ; "SELECT" (second instance; pairs with TxtCancelSelect2)
 4024 WordColWidth               ; widths of the word editor columns ($03, $02)
@@ -110,8 +110,8 @@
 40C0 .loop                ; loop head in WriteWordCell
 41EC .loop                ; loop head in DrawWordScreen
 423A .loop2               ; loop head in DrawWordScreen
-431C .done                ; common exit of DrawWaveCellPair
-48A7 .done                ; common exit of WordEditorInput
+431C .done                ; common exit of WordCursorDown
+48A7 .done                ; common exit of WordScreenInput
 48BA .loop                ; loop head in TilemapAddr
 4974 .shiftLoop           ; loop head in LockCurSynth: 1 << (s & 7), one bit per pass
 49B2 .loop                ; loop head in ReadWaveSample
@@ -175,26 +175,26 @@
 76E0 .done                ; common exit of DrawChainCell
 
 ; --- structural local names (loop heads / common exits) ---
-43B6 .up                  ; wButtons == case in WordEditorInput
-43CD .down                ; wButtons == case in WordEditorInput
-43D5 .left                ; wButtons == case in WordEditorInput
-43E5 .right               ; wButtons == case in WordEditorInput
-43F5 .aB                  ; wButtons == case in WordEditorInput
-449C .selA                ; wButtons == case in WordEditorInput
-44E5 .a                   ; wButtons == case in WordEditorInput
-45ED .aRight              ; wButtons == case in WordEditorInput
-4666 .aLeft               ; wButtons == case in WordEditorInput
-46DF .aUp                 ; wButtons == case in WordEditorInput
-4736 .aDown               ; wButtons == case in WordEditorInput
-478D .bLeft               ; wButtons == case in WordEditorInput
-479E .bRight              ; wButtons == case in WordEditorInput
-47B7 .bDown               ; wButtons == case in WordEditorInput
-47CF .bUp                 ; wButtons == case in WordEditorInput
-47E5 .selLeft             ; wButtons == case in WordEditorInput
-480D .selUp               ; wButtons == case in WordEditorInput
-4835 .selDown             ; wButtons == case in WordEditorInput
-485D .selStart            ; wButtons == case in WordEditorInput
-487D .start               ; wButtons == case in WordEditorInput
+43B6 .up                  ; wButtons == case in WordScreenInput
+43CD .down                ; wButtons == case in WordScreenInput
+43D5 .left                ; wButtons == case in WordScreenInput
+43E5 .right               ; wButtons == case in WordScreenInput
+43F5 .aB                  ; wButtons == case in WordScreenInput
+449C .selA                ; wButtons == case in WordScreenInput
+44E5 .a                   ; wButtons == case in WordScreenInput
+45ED .aRight              ; wButtons == case in WordScreenInput
+4666 .aLeft               ; wButtons == case in WordScreenInput
+46DF .aUp                 ; wButtons == case in WordScreenInput
+4736 .aDown               ; wButtons == case in WordScreenInput
+478D .bLeft               ; wButtons == case in WordScreenInput
+479E .bRight              ; wButtons == case in WordScreenInput
+47B7 .bDown               ; wButtons == case in WordScreenInput
+47CF .bUp                 ; wButtons == case in WordScreenInput
+47E5 .selLeft             ; wButtons == case in WordScreenInput
+480D .selUp               ; wButtons == case in WordScreenInput
+4835 .selDown             ; wButtons == case in WordScreenInput
+485D .selStart            ; wButtons == case in WordScreenInput
+487D .start               ; wButtons == case in WordScreenInput
 50EB .selRightLeft        ; wButtons == case in WaveScreenInput
 511A .right               ; wButtons == case in WaveScreenInput
 513C .left                ; wButtons == case in WaveScreenInput
@@ -251,15 +251,15 @@
 ; --- first-action / assert local names ---
 421F .drawTempoField
 42C4 .loadShadowDigitPal
-42F4 .chainDrawWaveCellHw
-4312 .chainDrawWaveCell
-4402 .cut                 ; WordEditorInput: SELECT+B: cut the word into the clipboard
-441E .cutClipOk           ; WordEditorInput: clipboard type already a word, or not in a selection
-44AA .paste               ; WordEditorInput: SELECT+A: paste the clipboard word
-44F2 .enterCells          ; WordEditorInput: A: re-enter the clipboard cells
-45AC .enterLen            ; WordEditorInput: A on the length column
-47C7 .bDownClamped        ; WordEditorInput: B+DOWN: row clamped at 0
-47DD .bUpClamped          ; WordEditorInput: B+UP: row clamped at 13
+42F4 .drawWordCursor
+4312 .eraseWordCursor
+4402 .cut                 ; WordScreenInput: SELECT+B: cut the word into the clipboard
+441E .cutClipOk           ; WordScreenInput: clipboard type already a word, or not in a selection
+44AA .paste               ; WordScreenInput: SELECT+A: paste the clipboard word
+44F2 .enterCells          ; WordScreenInput: A: re-enter the clipboard cells
+45AC .enterLen            ; WordScreenInput: A on the length column
+47C7 .bDownClamped        ; WordScreenInput: B+DOWN: row clamped at 0
+47DD .bUpClamped          ; WordScreenInput: B+UP: row clamped at 13
 4939 .ok
 49A0 .ok
 4A18 .ok
@@ -359,29 +359,29 @@
 4279 .drawSample          ; (was DrawSampleNameFull) the word screen's sample-name column
 42BB .drawString
 42DB .readSongByte
-43C8 .upDone              ; WordEditorInput: the row already 0
-45A2 .restoreCol          ; WordEditorInput: nothing entered: put the column back
-45E8 .enterFail           ; WordEditorInput: A changed nothing: return 0
-4604 .plusLenDraw         ; WordEditorInput: A+RIGHT on the length: draw the byte
-4618 .plusAllophone       ; WordEditorInput: A+RIGHT on the allophone column
-4657 .plusWrite           ; WordEditorInput: write the incremented cell
-467C .minusLenDraw        ; WordEditorInput: A+LEFT on the length: draw the byte
-4690 .minusAllophone      ; WordEditorInput: A+LEFT on the allophone column
-46D0 .minusWrite          ; WordEditorInput: write the decremented cell
-46FE .pageUpLenDraw       ; WordEditorInput: A+UP on the length: draw the byte
-4712 .pageUpAllophone     ; WordEditorInput: A+UP on the allophone column
-471D .pageUpClamped       ; WordEditorInput: allophone clamped to $3b
-4727 .pageUpWrite         ; WordEditorInput: write the +$10 cell
-4755 .pageDownLenDraw     ; WordEditorInput: A+DOWN on the length: draw the byte
-4769 .pageDownAllophone   ; WordEditorInput: A+DOWN on the allophone column
-4774 .pageDownClamped     ; WordEditorInput: allophone wrapped back to 1
-477E .pageDownWrite       ; WordEditorInput: write the -$10 cell
-4799 .bLeftDone           ; WordEditorInput: B+LEFT: already on the first row
-47B2 .bRightDone          ; WordEditorInput: B+RIGHT: already on the last row
-486A .selStartToggle      ; WordEditorInput: SELECT+START: toggle song playback
-488D .startDone           ; WordEditorInput: START held or with B: nothing
-4892 .startToggle         ; WordEditorInput: START: toggle playback
-48A5 .noCase              ; WordEditorInput: no handled button combination: return 0
+43C8 .upDone              ; WordScreenInput: the row already 0
+45A2 .restoreCol          ; WordScreenInput: nothing entered: put the column back
+45E8 .enterFail           ; WordScreenInput: A changed nothing: return 0
+4604 .plusLenDraw         ; WordScreenInput: A+RIGHT on the length: draw the byte
+4618 .plusAllophone       ; WordScreenInput: A+RIGHT on the allophone column
+4657 .plusWrite           ; WordScreenInput: write the incremented cell
+467C .minusLenDraw        ; WordScreenInput: A+LEFT on the length: draw the byte
+4690 .minusAllophone      ; WordScreenInput: A+LEFT on the allophone column
+46D0 .minusWrite          ; WordScreenInput: write the decremented cell
+46FE .pageUpLenDraw       ; WordScreenInput: A+UP on the length: draw the byte
+4712 .pageUpAllophone     ; WordScreenInput: A+UP on the allophone column
+471D .pageUpClamped       ; WordScreenInput: allophone clamped to $3b
+4727 .pageUpWrite         ; WordScreenInput: write the +$10 cell
+4755 .pageDownLenDraw     ; WordScreenInput: A+DOWN on the length: draw the byte
+4769 .pageDownAllophone   ; WordScreenInput: A+DOWN on the allophone column
+4774 .pageDownClamped     ; WordScreenInput: allophone wrapped back to 1
+477E .pageDownWrite       ; WordScreenInput: write the -$10 cell
+4799 .bLeftDone           ; WordScreenInput: B+LEFT: already on the first row
+47B2 .bRightDone          ; WordScreenInput: B+RIGHT: already on the last row
+486A .selStartToggle      ; WordScreenInput: SELECT+START: toggle song playback
+488D .startDone           ; WordScreenInput: START held or with B: nothing
+4892 .startToggle         ; WordScreenInput: START: toggle playback
+48A5 .noCase              ; WordScreenInput: no handled button combination: return 0
 48C2 .step
 491C .cont
 4929 .checkArg

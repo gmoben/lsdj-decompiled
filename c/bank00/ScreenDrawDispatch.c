@@ -48,7 +48,7 @@ UBYTE NameEditorInput(void);
 UBYTE WaveScreenInput(void);
 UBYTE ProjScreenInput(void);
 UBYTE SynthScreenInput(void);
-UBYTE WordEditorInput(void);
+UBYTE WordScreenInput(void);
 UBYTE FileScreenInput(void);
 UBYTE HelpScreenInput(void);
 extern volatile sfr UBYTE hSoundCh;         /* $FF8B */
@@ -302,7 +302,7 @@ UBYTE DispatchScreenInput(void)
         break;
     case 12:
         SWITCH_ROM(0x06);
-        return WordEditorInput();
+        return WordScreenInput();
     case 13:
         SWITCH_ROM(0x1C);
         return FileScreenInput();

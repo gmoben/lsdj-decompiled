@@ -21,9 +21,9 @@
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 4000 SongCopyCol             ; copy a song column from p to q (stride 4) until p reaches $B590 (SongScanSram); asserts both >= $B290, q < $B590
 404B SongChanActiveMask         ; OR wChanActive[0..3] -> combined active flag
-4084 SongEraseCursor            ; restore the cursor cell palette (1 if the row is bookmarked, else 0) at SongColOffsets[wSongCol]
+4084 EraseSongCursor            ; restore the cursor cell palette (1 if the row is bookmarked, else 0) at SongColOffsets[wSongCol]
 4366 .showCloneMessage    ; (was SongShowCloneMsg) show "CLONED CHAIN" / "CLONED CHAIN+PHRASES" popup
-4395 SongDrawCursor             ; highlight the cursor cell (palette 3 on CGB, 2 on DMG) at SongColOffsets[wSongCol]
+4395 DrawSongCursor             ; highlight the cursor cell (palette 3 on CGB, 2 on DMG) at SongColOffsets[wSongCol]
 43E4 SongReadRow                ; read song row $c41c from SRAM ($B290, ReadSongBytes) -> $c46d (16 bytes)
 4463 SongDrawRowNumber             ; draw a song row number + bookmark marker (wSongScroll window, 18 rows)
 451E SongRedrawRow              ; SongReadRow + draw the row at VRAM $9842 (palettes, SongDrawColVals/4395)
@@ -76,9 +76,9 @@
 5DD8 SetSyncSendRate            ; wSyncSendRate (interrupts off) from the tempo: $800 x (4 - wTempoMode) for the sync speeds, else TempoTimerTableDmg/Cgb[wTempo - 40]
 5E49 TempoTimerTableDmg         ; [BPM byte] -> 16-bit tempo timer value (DMG), 256 x dw
 6049 TempoTimerTableCgb         ; [BPM byte] -> 16-bit tempo timer value (CGB double-speed), 256 x dw
-662A KeyboardNoteMap            ; [PS/2 scancode & $7f] -> note (0=none), + wKbdTranspose octave offset
-66AA KeyboardFnMap              ; [PS/2 scancode & $7f] -> function code (channel mutes/cursor keys)
-7097 DrawKeyboardCalibScreen    ; PS/2 "KEYBOARD CALIBRATION" screen (tap down-arrow prompt)
+662A KbdNoteMap            ; [PS/2 scancode & $7f] -> note (0=none), + wKbdTranspose octave offset
+66AA KbdFnMap              ; [PS/2 scancode & $7f] -> function code (channel mutes/cursor keys)
+7097 DrawKbdCalibScreen    ; PS/2 "KEYBOARD CALIBRATION" screen (tap down-arrow prompt)
 7171 TxtKeyboardCalibration     ; "KEYBOARD CALIBRATION"
 7186 TxtTapDownArrowKey         ; "TAP DOWN ARROW KEY"
 7199 TxtOnPs2Keyboard           ; "ON PS/2 KEYBOARD"
@@ -154,9 +154,9 @@
 703C .loop                ; loop head in KbdDrainQueue
 7054 .loop                ; loop head in KbdPollScancode
 7095 .done                ; common exit of KbdPollScancode
-7101 .loop                ; loop head in DrawKeyboardCalibScreen
-7137 .loop2               ; loop head in DrawKeyboardCalibScreen
-716F .done                ; common exit of DrawKeyboardCalibScreen
+7101 .loop                ; loop head in DrawKbdCalibScreen
+7137 .loop2               ; loop head in DrawKbdCalibScreen
+716F .done                ; common exit of DrawKbdCalibScreen
 71C4 .loop                ; loop head in SongDrawColVals
 7237 .loop                ; loop head in VramCopyRowDown
 7282 .loop                ; loop head in VramCopyRowUp

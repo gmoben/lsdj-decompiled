@@ -23,10 +23,10 @@
 44E8 TableReadEnv          ; read table_envelopes[table][row<$10] from SRAM (bounds-checked)
 453B TableReadVal               ; read the value column (wTableCellBPtr) at step
 459E TableReadTranspose        ; read table_transposes[table][row<$10] from SRAM (bounds-checked)
-45F1 TableEraseCursor           ; restore the cursor cells to their column palette (TableColPal) at row wTableRow+2, unless selecting
+45F1 EraseTableCursor           ; restore the cursor cells to their column palette (TableColPal) at row wTableRow+2, unless selecting
 472B DrawTableEnv               ; draw a table envelope cell (lo-nibble $F -> hi-nibble + release glyph)
 4930 TableInputFlag             ; return e=flag derived from input code (arg sp+4: 4 or $0a) and column $c92f
-4AA8 TableDrawCursor            ; refresh the table cursor cell (select mode -> DrawTableSelection; palette by CGB)
+4AA8 DrawTableCursor            ; refresh the table cursor cell (select mode -> DrawTableSelection; palette by CGB)
 61CA CutCopyTableSelection      ; arg? "CUT" (copy+clear) : "COPY": table selection -> clipboard (clipType 5)
 64A3 TablePasteCells            ; table-screen paste: clipboard cells into rows from wTableRow (a phrase selection's CMD pair too; swaps the two CMD/value pairs; "PASTE" for more than one row)
 676A DrawTableSelection         ; table selection (wClipboardType==5) redraw vs the cursor: cells around the rectangle in their column palettes, the inside highlighted (ColorField)
@@ -82,8 +82,8 @@
 450C .loop                ; loop head in TableReadEnv
 456D .loop                ; loop head in TableReadVal
 45C2 .loop                ; loop head in TableReadTranspose
-4636 .loop                ; loop head in TableEraseCursor
-4664 .done                ; common exit of TableEraseCursor
+4636 .loop                ; loop head in EraseTableCursor
+4664 .done                ; common exit of EraseTableCursor
 4678 .loop                ; loop head in ReadTableStep
 4760 .done                ; common exit of DrawTableEnv
 47D9 .loop                ; loop head in DrawTableScreen
@@ -91,7 +91,7 @@
 492C .done                ; common exit of DrawTableScreen
 4965 .done                ; common exit of TableInputFlag
 4AA4 .done                ; common exit of TableScreenUpdate
-4B59 .done                ; common exit of TableDrawCursor
+4B59 .done                ; common exit of DrawTableCursor
 4F1F .incLoop ; loop head in TableScreenInput
 508E .incCmdLoop ; loop head in TableScreenInput
 5251 .decLoop ; loop head in TableScreenInput

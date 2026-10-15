@@ -148,7 +148,7 @@ class Compare16Tests(unittest.TestCase):
         self.assertEqual(gb_cmp16(source), (source, 0))
 
     def test_fetch_stepping_up_from_the_byte_below(self):
-        # WordScreenInput: hl still at the loop counter (sp+5) below the word
+        # SpeechInstrInput: hl still at the loop counter (sp+5) below the word
         for condition in ("c", "nc"):
             source = ["\tlda\thl,5(sp)", "\txor\ta,a", "\tinc\thl", "\tld\ta,(hl)",
                       "\tsbc\ta,#0xD0", "\tinc\thl", "\tld\ta,(hl)", "\tsbc\ta,#0xBD",
@@ -176,7 +176,7 @@ class Compare16Tests(unittest.TestCase):
                 self.assertEqual(execute(source, value), execute(result, value))
 
     def test_promoted_global_byte_in_a_pair_reloads_hl_for_the_next_use(self):
-        # WordEditorInput: `(UWORD)wSpeechCursorRow < 13` promotes the byte
+        # WordScreenInput: `(UWORD)wSpeechCursorRow < 13` promotes the byte
         # into bc and leaves hl at it for the `wSpeechCursorRow++` that follows
         source = ["\tld\thl,#_wSpeechCursorRow", "\tld\tc,(hl)", "\tld\tb,#0x00",
                   "\txor\ta,a", "\tld\ta,c", "\tsbc\ta,#0x0D", "\tld\ta,b",

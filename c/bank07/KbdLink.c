@@ -47,8 +47,8 @@ extern UBYTE wKbdHeldNote;                  /* $CB7E */
 extern UBYTE wKbdNoteQueued;                /* $CB92 */
 extern UBYTE wAPressEnabled;                /* $C409 */
 extern UBYTE wButtons;                      /* $C407 */
-extern UBYTE KeyboardNoteMap[];             /* $07:$662A */
-extern UBYTE KeyboardFnMap[];               /* $07:$66AA */
+extern UBYTE KbdNoteMap[];             /* $07:$662A */
+extern UBYTE KbdFnMap[];               /* $07:$66AA */
 UBYTE PhraseCheckColFD(UBYTE row);          /* bank 4 */
 
 extern volatile sfr UBYTE hSoundCh;         /* $FF8B */
@@ -464,11 +464,11 @@ UBYTE ProcessKbdNote(UBYTE sc)
             return 0;
         }
         if (armed) {
-            note = KeyboardFnMap[sc];
+            note = KbdFnMap[sc];
             if (!note)
                 return 0;
         } else {
-            note = KeyboardNoteMap[sc];
+            note = KbdNoteMap[sc];
             if (!note)
                 return 0;
             note += wKbdTranspose;
@@ -491,9 +491,9 @@ UBYTE ProcessKbdNote(UBYTE sc)
         sc &= 0x7F;
         armed = wSongCol == 3 || !FarCallArgByte(4, (UWORD)PhraseCheckColFD, wPhraseRow);
         if (armed) {
-            note = KeyboardFnMap[sc];
+            note = KbdFnMap[sc];
         } else {
-            note = KeyboardNoteMap[sc];
+            note = KbdNoteMap[sc];
             note += wKbdTranspose;
         }
         if (note == wKbdHeldNote)
@@ -547,7 +547,7 @@ UBYTE KbdPollScancode(void)
     return 1;
 }
 
-void DrawKeyboardCalibScreen(void)
+void DrawKbdCalibScreen(void)
 {
     UBYTE k;
 

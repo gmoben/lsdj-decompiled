@@ -77,7 +77,7 @@ UBYTE CompressSong(void);                   /* $1C:$441F */
 UBYTE DrawVerifyPanel(UBYTE f);             /* $1C:$4778 */
 UBYTE FileLoadSlotInfo(UBYTE slot, UBYTE verify);
 UBYTE GetNextButtons(void);                 /* bank 0 */
-void UiClearSram(void);                     /* $01:$45D1 */
+void FormatSramSong(void);                     /* $01:$45D1 */
 void LoadProjSettings(void);             /* $01:$7C86 */
 void CountFileBlocks(void);                 /* $1C:$48D4 */
 void ToggleSongPlayback(void);                 /* $02:$78C4 */
@@ -670,7 +670,7 @@ void LoadFile(void)
         WriteSongByte(1, 0xBFB8, wFileSramProps[2]);
         WriteSongByte(1, 0xBFB9, wFileSramProps[3]);
     } else {
-        FarCall(1, FAR_FN(UiClearSram));
+        FarCall(1, FAR_FN(FormatSramSong));
         WriteSongByte(4, (UWORD)0xA100 + wFileCursor, 0);
     }
     WriteSongByte(1, 0xBFBA, keyDelay);

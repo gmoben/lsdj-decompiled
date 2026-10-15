@@ -49,8 +49,8 @@ void FreeChain(void);                       /* $01:$4E43 */
 void MarkChainUsed(void);                   /* $01:$4D67 */
 void ShowOutOfMemory(void);                 /* $01:$75BD */
 UBYTE FreeUnusedInstrs(void);
-UBYTE InstrHCountUsedPhrases(void);
-UBYTE InstrHCountUsedChains(void);
+UBYTE CountUsedPhrases(void);
+UBYTE CountUsedChains(void);
 void RemapSeqChains(void);
 void RebuildPhraseAllocMap(void);
 UBYTE FindDupTable(UBYTE a, UBYTE b);
@@ -67,31 +67,31 @@ extern UBYTE DefaultInstrPulse[];           /* $1F:$4A02, [11] */
 extern UBYTE DefaultInstrWave[];            /* $4A0D, [11] */
 extern UBYTE DefaultInstrKit[];             /* $4A18, [14] */
 UBYTE IsChainUsed(UBYTE chain);
-void DrawPhraseCellField(UBYTE col, UBYTE row);
-UBYTE InstrHGetTableUsed(UBYTE t);
-void InstrHMarkTableUsed(UBYTE t);
+void UnhighlightPhraseCell(UBYTE col, UBYTE row);
+UBYTE IsTableUsed(UBYTE t);
+void MarkTableUsed(UBYTE t);
 UBYTE IsPhraseUsedFar(UBYTE phrase);
-void InstrHScanUsedChains(void);
+void MarkPhrasesOfUsedChains(void);
 UBYTE IsChainUsedFar(UBYTE chain);
-UBYTE InstrHScanChainPhrases(UBYTE chain);
+UBYTE SynthFramesModified(UBYTE chain);
 void ResetWaveFrame(UBYTE p);
 void MarkPhraseTablesUsed(UBYTE phrase);
 UBYTE IsTableFree(UWORD t);
-UBYTE InstrHScanAllChainPhr(void);
-UBYTE InstrHAnyCmdRef(void);
-void InstrHScanTableRows(void);
-void InstrHScanInstrTables(void);
-void InstrHScanUsedPhrases(void);
-UBYTE InstrHProcessUsedTables(void);
-UBYTE InstrHCollectUsedTables(void);
+UBYTE CountModifiedSynths(void);
+UBYTE AnyCmdFUsed(void);
+void ResetUnusedSynths(void);
+void MarkTablesOfUsedInstrs(void);
+void MarkTablesOfUsedPhrases(void);
+UBYTE MarkTablesOfUsedTables(void);
+UBYTE ClearUnusedTables(void);
 void MarkChainPhrasesUsed(UBYTE chain);
 UBYTE WaveFrameModified(UBYTE phrase);
 UBYTE CanEnterSongCol(UBYTE col);
-void InstrHReadCursorCellAt(void);
+void ErasePhraseCursor(void);
 UBYTE IsInstrAllocated(UBYTE instr);
-void InstrHMarkInstrTable(UBYTE instr);
+void MarkInstrTableUsed(UBYTE instr);
 void DrawChanStatus(UBYTE chan);
-UBYTE InstrHGetParamPlus4(void);
+UBYTE SpeechCursorY(void);
 void OpenNameEditor(void);                  /* bank $1B */
 void MapMoveLeft(void);                     /* bank 5 */
 void MapMoveRight(void);                    /* bank 5 */
@@ -101,8 +101,8 @@ void InstrSelectPrevPage(void);             /* bank 3 */
 void ToggleSongPlayback(void);                 /* bank 2 */
 void TogglePlayback(void);                    /* bank 2 */
 UBYTE ClaimInstrSlot(UBYTE instr);
-UBYTE InstrHCountUsedTables(void);
-void ReadTableRowCmds(UBYTE t);
+UBYTE CountUsedTables(void);
+void MarkTableTablesUsed(UBYTE t);
 void ClearTable(UBYTE t);
 void MarkPhraseUsed(UBYTE phrase);
 void WritePhraseInstr(UBYTE phrase, UBYTE row, UBYTE instr);
@@ -525,7 +525,7 @@ UBYTE AllocNextFreeInstr(void)
 }
 
 /* 1 if the 16 bytes at bank:addr are all zero. (The loop reuses `bank`.) */
-UBYTE InstrHReadTableRow(UBYTE bank, UBYTE *addr)
+UBYTE IsSongBlockEmpty(UBYTE bank, UBYTE *addr)
 {
     ReadSongBytes(bank, addr, wSongReadBuf);
     for (bank = 0; bank != 16; bank++)
@@ -537,13 +537,13 @@ UBYTE InstrHReadTableRow(UBYTE bank, UBYTE *addr)
 UBYTE IsTableFree(UWORD t)
 {
     t <<= 4;
-    if (!InstrHReadTableRow(1, (UBYTE *)0xB480 + t))
+    if (!IsSongBlockEmpty(1, (UBYTE *)0xB480 + t))
         return 0;
-    if (!InstrHReadTableRow(1, (UBYTE *)0xB680 + t))
+    if (!IsSongBlockEmpty(1, (UBYTE *)0xB680 + t))
         return 0;
-    if (!InstrHReadTableRow(1, (UBYTE *)0xBA80 + t))
+    if (!IsSongBlockEmpty(1, (UBYTE *)0xBA80 + t))
         return 0;
-    return InstrHReadTableRow(0, (UBYTE *)0xB690 + t);
+    return IsSongBlockEmpty(0, (UBYTE *)0xB690 + t);
 }
 
 UBYTE FindFreeTable(void)
@@ -653,13 +653,13 @@ UBYTE FreeUnusedInstrs(void)
     return n;
 }
 
-void InstrHMarkTableUsed(UBYTE t)
+void MarkTableUsed(UBYTE t)
 {
     if (t < 0x20)
         wUsedTableMap[t] = 1;
 }
 
-UBYTE InstrHGetTableUsed(UBYTE t)
+UBYTE IsTableUsed(UBYTE t)
 {
     return wUsedTableMap[t];
 }
@@ -679,13 +679,13 @@ void MarkPhraseTablesUsed(UBYTE phrase)
     v = SramPhraseFxVal + ((unsigned int)phrase << 4);
     for (i = 0; i < 16; i++) {
         if (ReadSongByte(2, c) == 1)
-            InstrHMarkTableUsed(ReadSongByte(2, v));
+            MarkTableUsed(ReadSongByte(2, v));
         c = c + 1;
         v = v + 1;
     }
 }
 
-void ReadTableRowCmds(UBYTE t)
+void MarkTableTablesUsed(UBYTE t)
 {
     UWORD o;
     UBYTE *p1, *p2, *p3, *p4;
@@ -698,9 +698,9 @@ void ReadTableRowCmds(UBYTE t)
     p4 = (UBYTE *)0xBC80 + o;
     for (i = 0; i < 0x10; i++) {
         if (ReadSongByte(1, (UWORD)p1) == 1)
-            InstrHMarkTableUsed(ReadSongByte(1, (UWORD)p2));
+            MarkTableUsed(ReadSongByte(1, (UWORD)p2));
         if (ReadSongByte(1, (UWORD)p3) == 1)
-            InstrHMarkTableUsed(ReadSongByte(1, (UWORD)p4));
+            MarkTableUsed(ReadSongByte(1, (UWORD)p4));
         p1++;
         p2++;
         p3++;
@@ -713,7 +713,7 @@ UBYTE IsPhraseUsedFar(UBYTE phrase)
     return FarCallArgByte(1, (UWORD)IsPhraseUsed, phrase);
 }
 
-void InstrHScanUsedPhrases(void)
+void MarkTablesOfUsedPhrases(void)
 {
     UBYTE i;
 
@@ -722,44 +722,44 @@ void InstrHScanUsedPhrases(void)
             MarkPhraseTablesUsed(i);
 }
 
-UBYTE InstrHCountUsedTables(void)
+UBYTE CountUsedTables(void)
 {
     UBYTE n, i;
 
     n = 0;
     for (i = 0; i < 0x20; i++)
-        if (InstrHGetTableUsed(i))
+        if (IsTableUsed(i))
             n++;
     return n;
 }
 
-UBYTE InstrHProcessUsedTables(void)
+UBYTE MarkTablesOfUsedTables(void)
 {
     UBYTE before, i;
 
-    before = InstrHCountUsedTables();
+    before = CountUsedTables();
     for (i = 0; i < 0x20; i++)
-        if (InstrHGetTableUsed(i))
-            ReadTableRowCmds(i);
-    return !(before == InstrHCountUsedTables());
+        if (IsTableUsed(i))
+            MarkTableTablesUsed(i);
+    return !(before == CountUsedTables());
 }
 
-void InstrHMarkInstrTable(UBYTE instr)
+void MarkInstrTableUsed(UBYTE instr)
 {
     UBYTE v;
 
     v = ReadInstrByte(instr, 6);
     if (v & 0x20)
-        InstrHMarkTableUsed(v & 0x1F);
+        MarkTableUsed(v & 0x1F);
 }
 
-void InstrHScanInstrTables(void)
+void MarkTablesOfUsedInstrs(void)
 {
     UBYTE i;
 
     for (i = 0; i < 0x40; i++)
         if (IsInstrAllocated(i))
-            InstrHMarkInstrTable(i);
+            MarkInstrTableUsed(i);
 }
 
 void ClearTableRow(UBYTE bank, UBYTE *p)
@@ -794,13 +794,13 @@ void ClearTable(UBYTE t)
     ClearTableRow(0, (UBYTE *)o);
 }
 
-UBYTE InstrHCollectUsedTables(void)
+UBYTE ClearUnusedTables(void)
 {
     UBYTE n, i;
 
     n = 0;
     for (i = 0; i < 0x20; i++) {
-        if (!InstrHGetTableUsed(i)) {
+        if (!IsTableUsed(i)) {
             if (!IsTableFree((UWORD)i))
                 n++;
             ClearTable(i);
@@ -809,15 +809,15 @@ UBYTE InstrHCollectUsedTables(void)
     return n;
 }
 
-UBYTE BuildUsedTablesMap(void)
+UBYTE FreeUnusedTables(void)
 {
     MemSet(wUsedTableMap, 0, 0x20);
-    InstrHScanInstrTables();
-    InstrHScanUsedPhrases();
+    MarkTablesOfUsedInstrs();
+    MarkTablesOfUsedPhrases();
     do
         ;
-    while (InstrHProcessUsedTables());
-    return InstrHCollectUsedTables();
+    while (MarkTablesOfUsedTables());
+    return ClearUnusedTables();
 }
 
 void RemapSeqChains(void)
@@ -875,7 +875,7 @@ UBYTE IsChainUsedFar(UBYTE chain)
     return FarCallArgByte(1, (UWORD)IsChainUsed, chain);
 }
 
-void InstrHScanUsedChains(void)
+void MarkPhrasesOfUsedChains(void)
 {
     UBYTE i;
 
@@ -1188,7 +1188,7 @@ void DedupTables(void)
     DrawString("OK");
 }
 
-UBYTE InstrHCountUsedPhrases(void)
+UBYTE CountUsedPhrases(void)
 {
     UBYTE n, i;
 
@@ -1199,7 +1199,7 @@ UBYTE InstrHCountUsedPhrases(void)
     return n;
 }
 
-UBYTE InstrHCountUsedChains(void)
+UBYTE CountUsedChains(void)
 {
     UBYTE n, i;
 
@@ -1221,7 +1221,7 @@ void RebuildPhraseAllocMap(void)
     MemSet(SramPhraseAlloc, 0, 0x20);
     rRAMG = 0;
     _asm ei _endasm;
-    InstrHScanUsedChains();
+    MarkPhrasesOfUsedChains();
     for (i = 0; i < 0xFF; i++) {
         if (IsPhraseUsedFar(i))
             continue;
@@ -1258,7 +1258,7 @@ UBYTE WaveFrameModified(UBYTE w)
     return 0;
 }
 
-UBYTE InstrHScanChainPhrases(UBYTE chain)
+UBYTE SynthFramesModified(UBYTE chain)
 {
     UBYTE p, i;
 
@@ -1271,18 +1271,18 @@ UBYTE InstrHScanChainPhrases(UBYTE chain)
     return 0;
 }
 
-UBYTE InstrHScanAllChainPhr(void)
+UBYTE CountModifiedSynths(void)
 {
     UBYTE n, i;
 
     n = 0;
     for (i = 0; i < 0x10; i++)
-        if (InstrHScanChainPhrases(i))
+        if (SynthFramesModified(i))
             n++;
     return n;
 }
 
-UBYTE InstrHScanPhraseCmds(void)
+UBYTE AnyPhraseUsesCmdF(void)
 {
     UBYTE *p;
     UBYTE ph, i;
@@ -1302,7 +1302,7 @@ UBYTE InstrHScanPhraseCmds(void)
     return 0;
 }
 
-UBYTE InstrHScanTableCmds(void)
+UBYTE AnyTableUsesCmdF(void)
 {
     UBYTE *p, *q;
     UBYTE i, j, ok;
@@ -1335,7 +1335,7 @@ void ResetWaveFrame(UBYTE p)
     _asm ei _endasm;
 }
 
-void InstrHScanChainRows(UBYTE chain)
+void ResetSynthWaves(UBYTE chain)
 {
     UBYTE p, i;
 
@@ -1359,7 +1359,7 @@ void ResetSynthParams(UBYTE s)
     _asm ei _endasm;
 }
 
-void InstrHScanTableRows(void)
+void ResetUnusedSynths(void)
 {
     UBYTE i;
     UBYTE used[16];
@@ -1376,19 +1376,19 @@ void InstrHScanTableRows(void)
     for (i = 0; i < 0x10; i++)
         if (!used[i]) {
             ResetSynthParams(i);
-            InstrHScanChainRows(i);
+            ResetSynthWaves(i);
         }
 }
 
-UBYTE TableIsReferenced(void)
+UBYTE FreeUnusedSynths(void)
 {
     UBYTE a, b;
 
-    a = InstrHScanAllChainPhr();
-    if (InstrHAnyCmdRef())
+    a = CountModifiedSynths();
+    if (AnyCmdFUsed())
         return 0;
-    InstrHScanTableRows();
-    b = InstrHScanAllChainPhr();
+    ResetUnusedSynths();
+    b = CountModifiedSynths();
     return a - b;
 }
 
@@ -1396,8 +1396,8 @@ void CleanSongData(void)
 {
     UBYTE phrases, chains;
 
-    phrases = InstrHCountUsedPhrases();
-    chains = InstrHCountUsedChains();
+    phrases = CountUsedPhrases();
+    chains = CountUsedChains();
     wVramCursor = 0x98A4;
     DrawString("DE-DUPE...");
     DedupPhrases();
@@ -1407,11 +1407,11 @@ void CleanSongData(void)
     wVramCursor = 0x98E4;
     DrawFormat("CHAINS....");
     RemapSeqChains();
-    DrawFormat("%d", chains - InstrHCountUsedChains());
+    DrawFormat("%d", chains - CountUsedChains());
     wVramCursor = 0x9904;
     DrawFormat("PHRASES...");
     RebuildPhraseAllocMap();
-    DrawFormat("%d", phrases - InstrHCountUsedPhrases());
+    DrawFormat("%d", phrases - CountUsedPhrases());
     wVramCursor = 0x9944;
     DrawFormat("OK!");
 }
@@ -1428,10 +1428,10 @@ void CleanInstrData(void)
     DrawFormat("%d", FreeUnusedInstrs());
     wVramCursor = 0x9904;
     DrawFormat("TABLES....");
-    DrawFormat("%d", BuildUsedTablesMap());
+    DrawFormat("%d", FreeUnusedTables());
     wVramCursor = 0x9924;
     DrawFormat("SYNTHS....");
-    DrawFormat("%d", TableIsReferenced());
+    DrawFormat("%d", FreeUnusedSynths());
     wVramCursor = 0x9964;
     DrawFormat("OK!");
 }
@@ -1477,7 +1477,7 @@ UBYTE CanEnterSongCol(UBYTE col)
         if (phrase == 0xFF)
             return 0;
     }
-    InstrHReadCursorCellAt();
+    ErasePhraseCursor();
     wSongCol = col;
     wChain = chain;
     wChainRow = row;
@@ -1537,7 +1537,7 @@ void CutCopyPhraseSelection(UBYTE cut)
         for (x = wSelectionLeft; x < wSelectionRight; x = x + 1) {
             wPhraseCol = x;
             wPhraseRow = y;
-            InstrHReadCursorCellAt();
+            ErasePhraseCursor();
             switch (x) {
             case 0:
                 if (wPhraseRowFlags[y] != 0xFF) {
@@ -1637,7 +1637,7 @@ void DrawWordRow(UBYTE n)
         DrawString("---");
 }
 
-void DrawPhraseCellField(UBYTE col, UBYTE row)
+void UnhighlightPhraseCell(UBYTE col, UBYTE row)
 {
     char x;
     UBYTE y;
@@ -1689,7 +1689,7 @@ void DrawPhraseSelection(void)
     for (x = left ? left - 1 : 0; x < (right == 5 ? 5 : right + 1); x++) {
         for (y = top ? top - 1 : 0; y < (bottom == 0x10 ? 0x10 : bottom + 1); y = y + 1) {
             if (x < left || x >= right || y < top || y >= bottom)
-                DrawPhraseCellField(x, y);
+                UnhighlightPhraseCell(x, y);
         }
     }
     /* ...and the rectangle itself drawn as the cursor cell */
@@ -1698,13 +1698,13 @@ void DrawPhraseSelection(void)
             HighlightPhraseCell(x, y);
 }
 
-void InstrHReadCursorCellAt(void)
+void ErasePhraseCursor(void)
 {
     UBYTE row, col;
 
     row = wPhraseRow;
     col = wPhraseCol;
-    DrawPhraseCellField(col, row);
+    UnhighlightPhraseCell(col, row);
 }
 
 void DrawAllChanStatus(void)
@@ -1720,19 +1720,19 @@ void RedrawScreenFar1F(void)
     FarCall(4, FAR_FN(RedrawScreen));
 }
 
-UBYTE InstrHGetParamPlus4(void)
+UBYTE SpeechCursorY(void)
 {
     return (UWORD)wSpeechCursorRow + 4;
 }
 
-void InstrHDrawParamField(void)
+void EraseSpeechCursor(void)
 {
-    ColorField(0, InstrHGetParamPlus4(), 3, !(wSpeechCursorRow & 1));
+    ColorField(0, SpeechCursorY(), 3, !(wSpeechCursorRow & 1));
 }
 
-void DrawInstrParamField(void)
+void DrawSpeechCursor(void)
 {
-    ColorField(0, InstrHGetParamPlus4(), 3, hGameboyType ? 3 : 2);
+    ColorField(0, SpeechCursorY(), 3, hGameboyType ? 3 : 2);
 }
 
 void DrawSpeechInstrScreen(void)
@@ -1776,7 +1776,7 @@ void DrawSpeechInstrScreen(void)
         }
         row++;
     }
-    DrawInstrParamField();
+    DrawSpeechCursor();
 }
 
 /*
@@ -1786,7 +1786,7 @@ void DrawSpeechInstrScreen(void)
  * pairs and 3-letter name; a cut leaves the name "W-n"), select+A pastes it,
  * B+left / B+down step the instrument back. 1 when the key was taken.
  */
-UBYTE WordScreenInput(void)
+UBYTE SpeechInstrInput(void)
 {
     UWORD p;
     UBYTE i;
@@ -1808,16 +1808,16 @@ UBYTE WordScreenInput(void)
     case 0x04:
         if (!wSpeechCursorRow)
             return 0;
-        InstrHDrawParamField();
+        EraseSpeechCursor();
         wSpeechCursorRow--;
-        DrawInstrParamField();
+        DrawSpeechCursor();
         return 1;
     case 0x08:
         if (wSpeechCursorRow == 0x0D)
             return 0;
-        InstrHDrawParamField();
+        EraseSpeechCursor();
         wSpeechCursorRow++;
-        DrawInstrParamField();
+        DrawSpeechCursor();
         return 1;
     case 0x48:
         if (wButtonsSame)
@@ -1870,7 +1870,7 @@ UBYTE WordScreenInput(void)
             p++;
         }
         if (wButtons == 0x30) {
-            GetTilemapAddr(0, InstrHGetParamPlus4());
+            GetTilemapAddr(0, SpeechCursorY());
             hBgDigitPal = wSelectDigitPal;
             hBgPal = wSelectPal;
             p -= 3;
@@ -1902,7 +1902,7 @@ UBYTE WordScreenInput(void)
         p = (UWORD)wSpeechCursorRow * 3 + (UWORD)0xBDD0;
         hBgDigitPal = wSelectDigitPal;
         hBgPal = wSelectPal;
-        GetTilemapAddr(0, InstrHGetParamPlus4());
+        GetTilemapAddr(0, SpeechCursorY());
         for (i = 0; i < 3; i++) {
             if (p >= (UWORD)0xBE78)
                 DebugTrap();

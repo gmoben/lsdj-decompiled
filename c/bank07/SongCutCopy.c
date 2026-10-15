@@ -19,7 +19,7 @@ extern UBYTE wSelectionBottom;                    /* $C410 */
 extern UBYTE wClipboardType;                /* $C411 */
 extern UBYTE wSongSelectionRow;                   /* $C94B */
 void SongCopyCol(UWORD src, UWORD dst);   /* this unit's prototype (the ROM casts the pointer args) */
-void SongEraseCursor(void);
+void EraseSongCursor(void);
 void SongScrollToCursor(void);
 void SongRedrawRow(void);
 void AdjustBookmarksOnDelete(UBYTE lo, UBYTE hi);
@@ -65,7 +65,7 @@ void CutCopySongSelection(UBYTE isCut)
             y = wSongRow - wSongScroll;
             vis = y < 0x10;
             if (vis)
-                SongEraseCursor();
+                EraseSongCursor();
             v = ReadSeqByte(wSongCol, wSongRow);
             r = wSongRow - wSelectionTop;
             WriteClipboardCell(wSongCol, r, v);

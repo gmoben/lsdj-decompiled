@@ -462,7 +462,7 @@ RUNTIME_ALIASES = {
     "wSynthBandDstW": "wSynthBandDst",  # the band-pass filter's output pointer read as a word: the slot value in the scatter (SynthFilterBandPass)
     "wSynthBandSlotW": "wSynthBandSlot",  # the band-pass filter's slot pointer as a word: the BufB value, the BufA value in the normalise loop
     "wSynthBandIdx": "wSynthBandSlot",  # its low byte: the doubled index in the scatter's second half (a block-scope extern)
-    "wWordClipPtrB": "wWordClipPtr",  # the word clipboard pointer's low byte: the kit sample number cached there in WordEditorInput's A press
+    "wWordClipPtrB": "wWordClipPtr",  # the word clipboard pointer's low byte: the kit sample number cached there in WordScreenInput's A press
     "WriteCurInstrByteC": "WriteCurInstrByte",  # WriteCurInstrByte with a `char` value (SetVibShape)
     "WriteVramByteSafeP": "WriteVramByteSafe",  # WriteVramByteSafe with a pointer address: the cast of a UWORD counter is the spilt argument copy (ClearOamBuf)
     "WriteVramByteSafeC": "WriteVramByteSafe",  # char value: the (char)global cast copy evaluated before dst++ owns c and is spilt into the global (GfxCopyVramRegion)

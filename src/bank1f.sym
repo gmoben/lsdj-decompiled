@@ -46,25 +46,25 @@
 44B7 DrawKitNameCell            ; kit number (hex) + 6-char kit name (ReadKitName)
 48C5 WriteChainPhrase           ; chains[chain*16+row] = phrase (song $2080 region)
 492A ClaimInstrSlot             ; read+mark the instr-alloc entry (song $2040); returns prior state
-4B00 InstrHReadTableRow         ; read a 16-byte row from SRAM (ReadSongBytes) -> $c46d, then scan it
+4B00 IsSongBlockEmpty           ; read 16 song bytes (bank, addr) into wSongReadBuf; 1 if all are zero
 4B45 IsTableFree                ; e=1 if table n has no data in its env/cmd rows (used by FindFreeTable)
 4CCD FreeUnusedInstrs           ; CLEAN INSTR DATA pass: re-mark the instruments phrases use, reset the rest (name, $B080 block, column refs); e = how many allocated ones were freed
-4F04 InstrHMarkTableUsed        ; if arg<$20, set $c47d[arg]=1 (mark table used)
-4F1C InstrHGetTableUsed         ; return $c47d[arg] (table-used flag)
+4F04 MarkTableUsed              ; set wUsedTableMap[t] (t < $20)
+4F1C IsTableUsed                ; -> wUsedTableMap[t], the table's mark
 4F2E IsInstrAllocated           ; instrument n's SramInstrAlloc flag
-4F49 MarkPhraseTablesUsed       ; mark the tables phrase (arg)'s A commands (command 1) name: InstrHMarkTableUsed(value)
-4FC5 ReadTableRowCmds           ; gather one table row's cmd1/val1/cmd2 bytes ($3680/$3880/$3A80 regions)
-50A8 InstrHScanUsedPhrases      ; for each phrase 0..255 used (IsPhraseUsedFar), process via MarkPhraseTablesUsed
-50CC InstrHCountUsedTables      ; count nonzero entries in used-table map $c47d[0..$1f]
-50F6 InstrHProcessUsedTables    ; count tables (50CC) then run ReadTableRowCmds per used
-513D InstrHMarkInstrTable       ; read instr field6; if bit5 set, mark its table used (InstrHMarkTableUsed)
-515F InstrHScanInstrTables      ; for each instrument 0..63 used, mark its table (IsInstrAllocated/513D)
+4F49 MarkPhraseTablesUsed       ; mark the tables phrase (arg)'s A commands (command 1) name: MarkTableUsed(value)
+4FC5 MarkTableTablesUsed        ; mark the tables table t's two command columns name with A (MarkTableUsed)
+50A8 MarkTablesOfUsedPhrases    ; mark the tables each used phrase's A commands name (MarkPhraseTablesUsed)
+50CC CountUsedTables            ; count the marked tables in wUsedTableMap
+50F6 MarkTablesOfUsedTables     ; mark the tables each marked table's A commands name; 1 if that marked more
+513D MarkInstrTableUsed         ; mark instrument i's table used if its TABLE is on (byte 6 bit 5)
+515F MarkTablesOfUsedInstrs     ; mark the table of every allocated instrument (MarkInstrTableUsed)
 5183 ClearTableRow              ; zero 16 bytes of one table column region (row arg <$10)
 51B9 ClearTable                 ; wipe table n (<$20) across all five column regions ($3480..$3C80)
-526B InstrHCollectUsedTables    ; gather used-table indices + pointers from map $c47d
-52B3 BuildUsedTablesMap         ; rebuild the used-tables map ($c47d, 32 slots): scan instrs, phrases, tables
+526B ClearUnusedTables          ; clear every unmarked table; -> how many of them were not empty
+52B3 FreeUnusedTables           ; CLEAN INSTR: mark the tables instruments, phrases and tables use, clear the rest; -> how many were freed
 52DA RemapSeqChains             ; walk the 4 sequence columns remapping chain refs (CleanSongData step)
-5478 InstrHScanUsedChains       ; for each chain 0..127 used (IsChainUsedFar), process (MarkChainPhrasesUsed)
+5478 MarkPhrasesOfUsedChains    ; mark the phrases every used chain plays (MarkChainPhrasesUsed)
 549C FindDupPhrase        ; does phrase b equal phrase a? compares the 16 notes, instruments, commands and command values; 1 = duplicate
 5644 FindDupChain         ; does chain b equal chain a? compares the 16 phrases and transposes; 1 = duplicate
 573C FindDupTable         ; does table b equal table a? compares fx 1/values, fx 2/values, envelopes and transposes; 1 = duplicate
@@ -74,27 +74,27 @@
 5BDE DedupPhrases               ; fold duplicate phrases: for each used phrase i (hex counter at $98AE) every later used phrase FindDupPhrase finds equal is remapped to i (RemapPhraseRefs)
 5C78 DedupChains                ; fold duplicate chains: for each used chain i (counter at $98AE) every later used chain FindDupChain finds equal is remapped to i (RemapChainRefs); then OK
 5D18 DedupTables                ; fold duplicate tables: for each used table i (hex counter at $98AE) every later used table FindDupTable finds equal is remapped to i (RemapCmdTableRefs); then draws OK
-5DC9 InstrHCountUsedPhrases     ; count used phrases 0..255 (IsPhraseUsedFar)
-5DF3 InstrHCountUsedChains      ; count used chains 0..127 (IsChainUsedFar)
+5DC9 CountUsedPhrases           ; count the phrases in use (IsPhraseUsedFar)
+5DF3 CountUsedChains            ; count the chains in use (IsChainUsedFar)
 5E1D RebuildPhraseAllocMap      ; clear the phrase-alloc bitmap ($3E82, 32B) + rescan via used chains
 5F20 WaveFrameModified          ; 1 if synth w's wave frame (SRAM bank 3 $A000 + w*16) differs from DefaultWaveFrameB1F
-5F85 InstrHScanChainPhrases     ; scan the 16 phrase slots of a chain (arg*16) for usage
-5FC2 InstrHScanAllChainPhr      ; for 16 chains, scan their phrases (InstrHScanChainPhrases)
-5FEC InstrHScanPhraseCmds       ; e=1 if any phrase row (SRAM bank 2 phrase commands) holds command 6 (F), else 0
-6074 InstrHScanTableCmds        ; scan table command columns from SRAM ($B680/$BA80) for references
-614C InstrHAnyCmdRef            ; return 1 if InstrHScanPhraseCmds or InstrHScanTableCmds found a reference
+5F85 SynthFramesModified        ; 1 if any of synth s's 16 wave frames differs from the default (WaveFrameModified)
+5FC2 CountModifiedSynths        ; count the synths with a modified wave frame
+5FEC AnyPhraseUsesCmdF          ; 1 if any phrase step holds command F (6)
+6074 AnyTableUsesCmdF           ; 1 if either command column of any table holds command F (6)
+614C AnyCmdFUsed                ; 1 if any phrase or table uses command F (AnyPhraseUsesCmdF / AnyTableUsesCmdF)
 6163 ResetWaveFrame             ; reset wave frame n (SRAM bank 3, $A000 + n*16) to DefaultWaveFrameB1F
-619E InstrHScanChainRows        ; scan 16 rows of a chain (arg*16)
+619E ResetSynthWaves            ; reset synth s's 16 wave frames to the default (ResetWaveFrame)
 61C4 ResetSynthParams           ; reset synth n's 16 params (SRAM bank 1, $BEB2 + n*16) to DefaultSynthParams
-620F InstrHScanTableRows        ; scan 16 table rows from a pointer
-62BD TableIsReferenced          ; e=1 if table n is referenced by any instrument or A command (CleanInstrData)
+620F ResetUnusedSynths          ; reset the params and waves of every synth no wave instrument plays
+62BD FreeUnusedSynths           ; CLEAN INSTR: unless a phrase or table uses F, reset the synths no wave instrument uses; -> how many were freed
 6B3B HighlightPhraseCell        ; colour phrase cell (col,row) as the cursor/selection: ColorField at PhraseCellX/XAlt + 3 in the shifted draw mode, the PhraseCellWidth/WidthAlt width through wDrawTextScratch, palette 3 on CGB / 2 on DMG (row flag $fe/$ff picks the normal tables, else the Alt ones)
-6CA2 DrawPhraseCellField        ; highlight phrase cell (col,row): ColorField from the PhraseCell* layout tables (x,w,pal by row flag)
-6EFE InstrHReadCursorCellAt     ; read cell at cursor $c415/$c416 (DrawPhraseCellField)
+6CA2 UnhighlightPhraseCell      ; colour phrase cell (col,row) in its normal palette (the PhraseCell* layout tables; HighlightPhraseCell's inverse)
+6EFE ErasePhraseCursor          ; restore the phrase cursor cell's palette: UnhighlightPhraseCell(wPhraseCol, wPhraseRow)
 6F14 DrawChanStatus            ; draw channel status cell at (16, ch+6) from wChanOutput[ch]
-70A8 InstrHGetParamPlus4        ; return $c429 + 4
-70B6 InstrHDrawParamField       ; draw a field from $c429 (parity-based) via InstrHGetParamPlus4
-70DF DrawInstrParamField        ; draw an instrument parameter text field (InstrHGetParamPlus4 + ColorField)
+70A8 SpeechCursorY              ; screen row of the speech instrument's word-list cursor: wSpeechCursorRow + 4
+70B6 EraseSpeechCursor          ; restore the word-list row's palette (alternating by row parity)
+70DF DrawSpeechCursor           ; highlight the speech instrument's word-list row under wSpeechCursorRow
 ; --- functions called from bank 0 (this bank paged in) ---
 4A26 InitRemapTable             ; fill $c9b8..+16 with identity 0..15 (remap table for clone/dedupe)
 7801 TxtCutWord        ; "CUT WORD"
@@ -110,10 +110,10 @@
 6656 HasEnterableColRight       ; e=1 if any song column right of wSongCol is enterable (phrase-screen '>' arrow)
 6677 HasEnterableColLeft        ; e=1 if any song column left of wSongCol is enterable ('<' arrow)
 6C1E DrawPhraseCursor           ; draw the phrase cursor cell: HighlightPhraseCell(wPhraseCol, wPhraseRow) via the PhraseCell* tables
-6D58 DrawPhraseSelection        ; phrase selection (wClipboardType==1) redraw vs the cursor: the one-cell ring around the rectangle via DrawPhraseCellField, the inside via HighlightPhraseCell
+6D58 DrawPhraseSelection        ; phrase selection (wClipboardType==1) redraw vs the cursor: the one-cell ring around the rectangle via UnhighlightPhraseCell, the inside via HighlightPhraseCell
 7072 DrawAllChanStatus          ; draw the 4 channel status cells (DrawChanStatus 0-3)
 7108 DrawSpeechInstrScreen      ; instrument screen for SPEECH type: "TYPE   SPEECH" + word list (pseudo-screen $0b)
-724D WordScreenInput            ; word screen input (wButtons): rename, move, map exits, cut/copy/paste of a word (allophones at $B890 + 32n, names at $BDD0 + 3n); 1 = handled
+724D SpeechInstrInput           ; speech instrument screen input (from InstrScreenInput for instrument $40): pick, rename, move, cut/copy/paste a word
 ; --- data ---
 4ACE TxtOutOfMemInstr           ; "OUT OF MEMORY. CLEAN INSTR DATA IN PROJECT SCREEN!"
 64E1 PhraseCellX                ; [5] phrase cell x per column (the six PhraseColLayout rows; $FF = hidden)
@@ -154,8 +154,8 @@
 4A2B .loop                ; loop head in InitRemapTable
 4A6C .loop                ; loop head in AllocNextFreeInstr
 4ACA .done                ; common exit of AllocNextFreeInstr
-4B19 .loop                ; loop head in InstrHReadTableRow
-4B43 .done                ; common exit of InstrHReadTableRow
+4B19 .loop                ; loop head in IsSongBlockEmpty
+4B43 .done                ; common exit of IsSongBlockEmpty
 4B4C .loop                ; loop head in IsTableFree
 4BD5 .done                ; common exit of IsTableFree
 4BDE .loop                ; loop head in FindFreeTable
@@ -169,25 +169,25 @@
 4DEC .loop4               ; loop head in FreeUnusedInstrs
 4E45 .loop5               ; loop head in FreeUnusedInstrs
 4EA8 .loop6               ; loop head in FreeUnusedInstrs
-4F1A .done                ; common exit of InstrHMarkTableUsed
+4F1A .done                ; common exit of MarkTableUsed
 4F55 .loop                ; loop head in MarkPhraseTablesUsed
 4F75 .loop2               ; loop head in MarkPhraseTablesUsed
 4FC1 .done                ; common exit of MarkPhraseTablesUsed
-4FD1 .loop                ; loop head in ReadTableRowCmds
-5005 .loop2               ; loop head in ReadTableRowCmds
-508D .done                ; common exit of ReadTableRowCmds
-50AB .loop                ; loop head in InstrHScanUsedPhrases
-50CA .done                ; common exit of InstrHScanUsedPhrases
-50D5 .loop                ; loop head in InstrHCountUsedTables
-5101 .loop                ; loop head in InstrHProcessUsedTables
-515D .done                ; common exit of InstrHMarkInstrTable
-5162 .loop                ; loop head in InstrHScanInstrTables
-5181 .done                ; common exit of InstrHScanInstrTables
+4FD1 .loop                ; loop head in MarkTableTablesUsed
+5005 .loop2               ; loop head in MarkTableTablesUsed
+508D .done                ; common exit of MarkTableTablesUsed
+50AB .loop                ; loop head in MarkTablesOfUsedPhrases
+50CA .done                ; common exit of MarkTablesOfUsedPhrases
+50D5 .loop                ; loop head in CountUsedTables
+5101 .loop                ; loop head in MarkTablesOfUsedTables
+515D .done                ; common exit of MarkInstrTableUsed
+5162 .loop                ; loop head in MarkTablesOfUsedInstrs
+5181 .done                ; common exit of MarkTablesOfUsedInstrs
 518A .loop                ; loop head in ClearTableRow
 51B5 .done                ; common exit of ClearTableRow
 51C5 .loop                ; loop head in ClearTable
-5274 .loop                ; loop head in InstrHCollectUsedTables
-52CB .loop                ; loop head in BuildUsedTablesMap
+5274 .loop                ; loop head in ClearUnusedTables
+52CB .loop                ; loop head in FreeUnusedTables
 52E9 .loop                ; loop head in RemapSeqChains
 530E .loop2               ; loop head in RemapSeqChains
 531B .loop3               ; loop head in RemapSeqChains
@@ -195,8 +195,8 @@
 53AF .loop5               ; loop head in RemapSeqChains
 541A .loop                ; loop head in MarkChainPhrasesUsed
 545D .done                ; common exit of MarkChainPhrasesUsed
-547B .loop                ; loop head in InstrHScanUsedChains
-549A .done                ; common exit of InstrHScanUsedChains
+547B .loop                ; loop head in MarkPhrasesOfUsedChains
+549A .done                ; common exit of MarkPhrasesOfUsedChains
 54B9 .shiftALoop          ; loop head: row offset a <<= 4 (16 bytes per phrase) in FindDupPhrase
 54C8 .shiftBLoop          ; loop head: row offset b <<= 4 in FindDupPhrase
 5506 .noteLoop            ; loop head: bank 0 notes, 16 bytes in FindDupPhrase
@@ -233,32 +233,32 @@
 5CAD .nextLater           ; DedupChains: inner loop, later chain j
 5D1F .nextTable           ; DedupTables: outer loop, table i
 5D55 .nextLater           ; DedupTables: inner loop, later table j
-5DD2 .loop                ; loop head in InstrHCountUsedPhrases
-5DFC .loop                ; loop head in InstrHCountUsedChains
+5DD2 .loop                ; loop head in CountUsedPhrases
+5DFC .loop                ; loop head in CountUsedChains
 5E49 .loop                ; loop head in RebuildPhraseAllocMap
 5E6A .loop2               ; loop head in RebuildPhraseAllocMap
 5F1C .done                ; common exit of RebuildPhraseAllocMap
 5F2C .loop                ; loop head in WaveFrameModified
 5F42 .loop2               ; loop head in WaveFrameModified
 5F81 .done                ; common exit of WaveFrameModified
-5F9A .loop                ; loop head in InstrHScanChainPhrases
-5FBE .done                ; common exit of InstrHScanChainPhrases
-5FCB .loop                ; loop head in InstrHScanAllChainPhr
-5FFA .loop                ; loop head in InstrHScanPhraseCmds
-6006 .loop2               ; loop head in InstrHScanPhraseCmds
-6070 .done                ; common exit of InstrHScanPhraseCmds
-6089 .loop                ; loop head in InstrHScanTableCmds
-6094 .loop2               ; loop head in InstrHScanTableCmds
-6148 .done                ; common exit of InstrHScanTableCmds
+5F9A .loop                ; loop head in SynthFramesModified
+5FBE .done                ; common exit of SynthFramesModified
+5FCB .loop                ; loop head in CountModifiedSynths
+5FFA .loop                ; loop head in AnyPhraseUsesCmdF
+6006 .loop2               ; loop head in AnyPhraseUsesCmdF
+6070 .done                ; common exit of AnyPhraseUsesCmdF
+6089 .loop                ; loop head in AnyTableUsesCmdF
+6094 .loop2               ; loop head in AnyTableUsesCmdF
+6148 .done                ; common exit of AnyTableUsesCmdF
 616D .loop                ; loop head in ResetWaveFrame
-61AF .loop                ; loop head in InstrHScanChainRows
-61C2 .done                ; common exit of InstrHScanChainRows
+61AF .loop                ; loop head in ResetSynthWaves
+61C2 .done                ; common exit of ResetSynthWaves
 61CE .loop                ; loop head in ResetSynthParams
-621F .loop                ; loop head in InstrHScanTableRows
-623D .loop2               ; loop head in InstrHScanTableRows
-6284 .loop3               ; loop head in InstrHScanTableRows
-62B9 .done                ; common exit of InstrHScanTableRows
-62DB .done                ; common exit of TableIsReferenced
+621F .loop                ; loop head in ResetUnusedSynths
+623D .loop2               ; loop head in ResetUnusedSynths
+6284 .loop3               ; loop head in ResetUnusedSynths
+62B9 .done                ; common exit of ResetUnusedSynths
+62DB .done                ; common exit of FreeUnusedSynths
 64DF .done                ; common exit of PhraseScreenUpdate
 65D5 .loop                ; loop head in CanEnterSongCol
 6652 .done                ; common exit of CanEnterSongCol
@@ -272,7 +272,7 @@
 6C1A .done                ; common exit of HighlightPhraseCell
 6C5D .loop                ; loop head in DrawWordRow
 6C9A .done                ; common exit of DrawWordRow
-6D54 .done                ; common exit of DrawPhraseCellField
+6D54 .done                ; common exit of UnhighlightPhraseCell
 6E0D .loop                ; loop head in DrawPhraseSelection
 6E4F .loop2               ; loop head in DrawPhraseSelection
 6EBF .loop3               ; loop head in DrawPhraseSelection
@@ -282,31 +282,31 @@
 7163 .loop                ; loop head in DrawSpeechInstrScreen
 71A1 .loop2               ; loop head in DrawSpeechInstrScreen
 71FA .loop3               ; loop head in DrawSpeechInstrScreen
-744D .loop                ; loop head in WordScreenInput
-746B .loop2               ; loop head in WordScreenInput
-7525 .loop3               ; loop head in WordScreenInput
-764B .loop4               ; loop head in WordScreenInput
-7669 .loop5               ; loop head in WordScreenInput
-7729 .loop6               ; loop head in WordScreenInput
-77F1 .done                ; common exit of WordScreenInput
+744D .loop                ; loop head in SpeechInstrInput
+746B .loop2               ; loop head in SpeechInstrInput
+7525 .loop3               ; loop head in SpeechInstrInput
+764B .loop4               ; loop head in SpeechInstrInput
+7669 .loop5               ; loop head in SpeechInstrInput
+7729 .loop6               ; loop head in SpeechInstrInput
+77F1 .done                ; common exit of SpeechInstrInput
 
 ; --- structural local names (loop heads / common exits) ---
-729D .a                   ; wButtons == case in WordScreenInput
-7356 .up                  ; wButtons == case in WordScreenInput
-7372 .down                ; wButtons == case in WordScreenInput
-738F .selDown             ; wButtons == case in WordScreenInput
-73AC .selUp               ; wButtons == case in WordScreenInput
-73C9 .selRight            ; wButtons == case in WordScreenInput
-73E6 .selLeft             ; wButtons == case in WordScreenInput
-7403 .aB                  ; wButtons == case in WordScreenInput
-7425 .notSelectionB       ; wButtons == case in WordScreenInput
-74A0 .notAB               ; wButtons == case in WordScreenInput
-760A .notAB2              ; wButtons == case in WordScreenInput
-760F .selA                ; wButtons == case in WordScreenInput
-778D .bLeft               ; wButtons == case in WordScreenInput
-779F .bDown               ; wButtons == case in WordScreenInput
-77B1 .selStart            ; wButtons == case in WordScreenInput
-77CC .start               ; wButtons == case in WordScreenInput
+729D .a                   ; wButtons == case in SpeechInstrInput
+7356 .up                  ; wButtons == case in SpeechInstrInput
+7372 .down                ; wButtons == case in SpeechInstrInput
+738F .selDown             ; wButtons == case in SpeechInstrInput
+73AC .selUp               ; wButtons == case in SpeechInstrInput
+73C9 .selRight            ; wButtons == case in SpeechInstrInput
+73E6 .selLeft             ; wButtons == case in SpeechInstrInput
+7403 .aB                  ; wButtons == case in SpeechInstrInput
+7425 .notSelectionB       ; wButtons == case in SpeechInstrInput
+74A0 .notAB               ; wButtons == case in SpeechInstrInput
+760A .notAB2              ; wButtons == case in SpeechInstrInput
+760F .selA                ; wButtons == case in SpeechInstrInput
+778D .bLeft               ; wButtons == case in SpeechInstrInput
+779F .bDown               ; wButtons == case in SpeechInstrInput
+77B1 .selStart            ; wButtons == case in SpeechInstrInput
+77CC .start               ; wButtons == case in SpeechInstrInput
 
 
 
@@ -327,18 +327,18 @@
 48DE .okb
 4938 .ok
 4C9D .ok
-5120 .instrHCountUsedTables
+5120 .countUsedTables
 51D8 .ok
 5379 .incSongCol
 5C66 .drawOk              ; DedupPhrases: all phrases folded
 5D00 .drawOk              ; DedupChains: all chains folded
 5DB1 .drawOk              ; DedupTables: all tables folded
-62D0 .instrHScanTableRows
+62D0 .resetUnusedSynths
 649C .checkPlayMode
 650D .ok
 658A .loadSongRow
 65A8 .loadChainRow
-6615 .instrHReadCursorCellAt
+6615 .unhighlightPhraseCell
 6706 .checkSelectionRight
 6714 .checkSelectionRightb
 672F .incSelectionRight
@@ -353,10 +353,10 @@
 6D94 .clearSelectionTop
 6DB3 .loadSelectionTop
 702C .checkGameboyType
-70EF .instrHGetParamPlus4
-7238 .drawInstrParamField
-7363 .instrHDrawParamField
-7380 .instrHDrawParamFieldb
+70EF .speechCursorY
+7238 .speechCursorY
+7363 .eraseSpeechCursor
+7380 .eraseSpeechCursorb
 7410 .checkButtons
 742E .setClipboardType
 755A .checkButtonsb
@@ -458,7 +458,7 @@
 50C6 .step
 50EB .step
 50EF .cont
-511C .instrHCountUsedTables_2
+511C .countUsedTables_2
 512F .cont
 5130 .cont_2
 517D .step
@@ -652,7 +652,7 @@
 6E33 .cont_9
 6E5B .cont_10
 6E5E .add16_2
-6E9C .instrHReadCursorCell
+6E9C .erasePhraseCursor
 6EAA .cont_11
 6EB4 .cont_12
 6EBA .cont_13
@@ -663,10 +663,10 @@
 6F96 .drawString
 6FDA .cont_3
 7090 .drawChanStatus
-70ED .instrHGetParamPlus4_2
+70ED .speechCursorY_2
 7195 .cont
 719D .checkArg
-7232 .drawInstrParamField_2
+7232 .speechCursorY_2
 72AA .loadSpeechCursorRow
 72D4 .readSongByte
 72FE .readSongByte_2

@@ -119,8 +119,8 @@
 5583 SndApplyTableTranspose     ; jp target from SndStepTablePtrs: read table_transpose row, add to the channel note, apply (SndTableHop)
 55AE SndCountdownStep           ; count down this channel's ticks left in the step: e = 0 if idle; at 0, flag the note trigger and advance the groove
 55CB SndReadChainEnd            ; chain end-marker check (cp $ff)
-55EF SndDecodeTransA            ; SndTableHop / SndDecodeNibbles
-5604 SndDecodeTransB            ; SndTableHop / SndDecodeNibbles (variant)
+55EF SndTableCmd1Hop            ; table command column 1's H: H0y hops to row y (SndTableHop), Hxy counts x hops first (SndDecodeNibbles)
+5604 SndTableCmd2Hop            ; table command column 2's H: as SndTableCmd1Hop for the right column (bit 7 to SndTableHop)
 561B SndReadGrooveOrSpeed       ; NB misnomer (no groove/speed access): if wChanTableFresh[ch], clear it (NOI: also wNoiTableNotePrev); else when wChanTableStep[ch]==0 step the 5 table read ptrs (wTableNotePtr, wTableCmd1Ptr, wTableCmd2Ptr, wTableCmd1ValPtr, wTableCmd2ValPtr) to the next row
 5657 SndStepTablePtrs           ; advance the channel's table step counter; on 16-step wrap rebuild SRAM read-pointers ($c1xx) for the table transpose ($B480) and command ($BA80) columns of wChanTable[ch]
 56E1 SndReadGrooveVal           ; table step 0 -> jp SndAdvanceGroove unless the groove byte is $20; step 8 -> mark it $ff. (The trailing .initEnvPu1/.initEnvNoi stubs, zeroing wEnvStagePu1/Noi = ex-$cbbf, are separate entries.)

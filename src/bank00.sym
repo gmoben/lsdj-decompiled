@@ -241,7 +241,7 @@
 08C8 IdentityCharMap            ; identity tile-index map (loaded into wStringSrc for raw-tile draws)
 01E0 SyncModeStubs              ; 4 x 4-byte jp-hl slots from SendSyncHandshake ((mode&3)*4); only slot 0 (ret) populated
 0200 TimesTwoTable              ; [n] -> 2n byte ramp (FileUpgradeRemapBits, synth draw)
-0255 SignedRampTable            ; signed ramp -12..+15 (modulation LUT block; read by UiLoadHwTables)
+0255 SignedRampTable            ; signed ramp -12..+15 (modulation LUT block; read by LoadHwTables)
 
 ; --- vector page ($0000-$0068): Emulicious segments the RST/interrupt slots
 ; and creates _DATA_ labels for every data run/accessed offset, ignoring

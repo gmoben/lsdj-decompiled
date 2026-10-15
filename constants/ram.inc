@@ -417,7 +417,7 @@ DEF wSavedSelectionTop     EQU $CBD5  ; saved wSelectionTop
 DEF wSavedSelectionRight   EQU $CBD6  ; saved wSelectionRight
 ; --- PS/2 keyboard (bank 7) ---
 DEF wKbdHeldNote     EQU $CB7E  ; note currently held on the PS/2 keyboard (0=none)
-DEF wKbdTranspose    EQU $CB91  ; keyboard octave/transpose offset added to KeyboardNoteMap notes
+DEF wKbdTranspose    EQU $CB91  ; keyboard octave/transpose offset added to KbdNoteMap notes
 
 ; --- name editor (bank 1b OpenNameEditor) ---
 DEF wNameReturnScreen EQU $C42F ; screen to return to when the name editor closes
@@ -430,7 +430,7 @@ DEF wColInstr   EQU $C468  ; last-used instrument per channel column (4 bytes, s
 ; --- session-evidenced RAM (readers named in parentheses) ---
 DEF wColChain        EQU $C44F  ; chain under cursor per song column, 4 bytes (SongCloneChain / IsSongChainUsed)
 DEF wColPhrase       EQU $C453  ; phrase per song column, 4 bytes (AllocNextFreePhrase scan start)
-DEF wUsedTableMap    EQU $C47D  ; [32] 32-slot used-tables map (BuildUsedTablesMap); overlaps wSongReadBuf + 16
+DEF wUsedTableMap    EQU $C47D  ; [32] 32-slot used-tables map (FreeUnusedTables); overlaps wSongReadBuf + 16
 DEF wRowBufCol2      EQU $C48D  ; [16] shared row buffer, third column (phrase: commands; table: command 1; song: 3rd channel)
 DEF wRowBufCol3      EQU $C49D  ; [16] shared row buffer, fourth column (phrase: command values; table: value 1)
 DEF wRowBufCol4      EQU $C4AD  ; [16] shared row buffer, fifth column (table: command 2)
@@ -837,8 +837,8 @@ DEF wSramFsFlag      EQU $C9A3  ; CheckFileMagic64 result; gates FILE menu + pro
 DEF wProjMenuActive  EQU $C9A5  ; project screen: bottom LOAD/SAVE menu focused
 DEF wProjMenuItem    EQU $C9A6  ; project screen: menu item index (0/1)
 DEF wProjDrawScratch EQU $C9A7  ; transient tile-value scratch (Proj/clock digit draw; also bank01)
-DEF wProjDrawScratch2 EQU $C9A8  ; draw scratch (ProjDrawSyncField)
-DEF wProjDrawScratch3 EQU $C9A9  ; draw scratch (ProjDrawSyncFieldHw)
+DEF wProjDrawScratch2 EQU $C9A8  ; draw scratch (EraseProjCursor)
+DEF wProjDrawScratch3 EQU $C9A9  ; draw scratch (DrawProjCursor)
 DEF wWorkClockSubFrame EQU $C9AA  ; frame counter mod 128 feeding the WORK-time clock (TickWorkTimeClock)
 DEF wTapTempoCount EQU $C9AB  ; project scroll/average queue fill count (0-8)
 DEF wVramCopyScratch EQU $C9B4  ; VRAM byte-copy scratch (bank1e LoadFontTiles path)

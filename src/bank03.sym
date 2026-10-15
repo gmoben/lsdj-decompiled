@@ -75,7 +75,7 @@
 537A InstrLenBigDec          ; A+DOWN on LENGTH: 16 shorter, from UNLIM to 30
 53DE CloneSynthOrTable          ; clone what the instrument screen's cursor names: the softsynth on a WAVE instrument's synth field, else the instrument's table (CloneInstrTable)
 ; --- functions called from bank 0 (this bank paged in) ---
-541F InstrScreenInput           ; instrument-screen input entry (speech $40 -> WordScreenInput via FarCallByte)
+541F InstrScreenInput           ; instrument-screen input entry (speech $40 -> SpeechInstrInput via FarCallByte)
 4790 GetInstrByte5Flag8 ; read current instr byte 5 & $08 (table AUTOMATE-class flag; unreferenced)
 4ABA TxtSoft                    ; " SOFT"
 4AC0 TxtFold                    ; " FOLD"

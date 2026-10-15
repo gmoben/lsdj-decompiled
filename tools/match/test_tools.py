@@ -61,11 +61,11 @@ class ScoreTests(unittest.TestCase):
 
 class AllocDirectiveTests(unittest.TestCase):
     def test_comments_become_function_scoped_directives(self):
-        src = ("/* lsdj-alloc(WordEditorInput): BUSYC=1-93 */\n"
+        src = ("/* lsdj-alloc(WordScreenInput): BUSYC=1-93 */\n"
                "/* notes...\n * lsdj-alloc(CountFileBlocks): NOSPILLAT=iTemp0:27 SPILLAT=iTemp0:28\n */\n"
                "void f(void) {}\n")
         self.assertEqual(match_function.alloc_directives(src),
-                         "WordEditorInput:BUSYC=1-93 CountFileBlocks:NOSPILLAT=iTemp0:27 "
+                         "WordScreenInput:BUSYC=1-93 CountFileBlocks:NOSPILLAT=iTemp0:27 "
                          "CountFileBlocks:SPILLAT=iTemp0:28")
         self.assertEqual(match_function.alloc_directives("/* no directive */"), "")
 
@@ -212,14 +212,14 @@ class BytePointerTests(unittest.TestCase):
         rows = self.rows("ld c, $fe", "ld b, $6e", "push bc", "ld a, $1f", "push af",
                          "inc sp", "call $179a")
         ptrs, _ = disasm.rom_pointers(rows, 0x04, {}, self.HOME,
-                                      lambda b: {0x6EFE: "InstrHReadCursorCellAt"} if b == 0x1F else {})
+                                      lambda b: {0x6EFE: "ErasePhraseCursor"} if b == 0x1F else {})
         self.assertEqual(ptrs, {0x6000: (0x1F, 0x6EFE, "LOW"), 0x6002: (0x1F, 0x6EFE, "HIGH")})
 
     def test_banked_call_target_through_register_copies(self):
         rows = self.rows("ld b, $fe", "ld c, $6e", "ld l, b", "ld h, c", "push hl", "ld a, $1f",
                          "push af", "inc sp", "call $179a")
         ptrs, _ = disasm.rom_pointers(rows, 0x04, {}, self.HOME,
-                                      lambda b: {0x6EFE: "InstrHReadCursorCellAt"} if b == 0x1F else {})
+                                      lambda b: {0x6EFE: "ErasePhraseCursor"} if b == 0x1F else {})
         self.assertEqual(ptrs, {0x6000: (0x1F, 0x6EFE, "LOW"), 0x6002: (0x1F, 0x6EFE, "HIGH")})
 
     def test_table_indexed_by_a_byte_and_by_a_word(self):

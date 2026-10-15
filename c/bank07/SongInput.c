@@ -42,8 +42,8 @@ extern UBYTE wSongAPressState;              /* $C951 */
 extern UBYTE wSongCellEmpty;                /* $C953 */
 extern UBYTE wSyncTick;                     /* $CB69 */
 
-void SongEraseCursor(void);
-void SongDrawCursor(void);
+void EraseSongCursor(void);
+void DrawSongCursor(void);
 void SongRedrawRow(void);
 void SongScrollToCursor(void);
 void SongScrollUp(void);
@@ -148,27 +148,27 @@ UBYTE SongScreenInput(void)
         if (wSongCol == 3 || wBHeld)
             return 0;
         if (wCursorMode != 4)
-            SongEraseCursor();
+            EraseSongCursor();
         wSongCol++;
         if (!wMessageStrPtr && !wMessageTimer)
             DrawChanHeader();
         if (wCursorMode == 4)
             SongEditSelection();
         else
-            SongDrawCursor();
+            DrawSongCursor();
         return 1;
     } else if (wButtons == 0x02) {
         if (!wSongCol || wBHeld)
             return 0;
         if (wCursorMode != 4)
-            SongEraseCursor();
+            EraseSongCursor();
         wSongCol--;
         if (!wMessageStrPtr && !wMessageTimer)
             DrawChanHeader();
         if (wCursorMode == 4)
             SongEditSelection();
         else
-            SongDrawCursor();
+            DrawSongCursor();
         return 1;
     } else if (wButtons == 0x04) {
         if (!wSongRow)
@@ -178,13 +178,13 @@ UBYTE SongScreenInput(void)
         if (!wSongRow)
             return 0;
         if (wCursorMode != 4)
-            SongEraseCursor();
+            EraseSongCursor();
         wSongRow--;
         if (wSongRow - wSongScroll == 0xFF) {
             wSongScroll--;
             SongScrollUp();
         } else if (wCursorMode != 4) {
-            SongDrawCursor();
+            DrawSongCursor();
         }
         if (wCursorMode == 4)
             SongEditSelection();
@@ -195,13 +195,13 @@ UBYTE SongScreenInput(void)
         if (wSongRow == 0xBF)
             return 0;
         if (wCursorMode != 4)
-            SongEraseCursor();
+            EraseSongCursor();
         wSongRow++;
         if (wSongRow - wSongScroll == 0x10) {
             wSongScroll++;
             SongScrollDown();
         } else if (wCursorMode != 4) {
-            SongDrawCursor();
+            DrawSongCursor();
         }
         if (wCursorMode == 4)
             SongEditSelection();
@@ -342,7 +342,7 @@ UBYTE SongScreenInput(void)
         }
         if (wClipboardType != 4)
             return 0;
-        SongEraseCursor();
+        EraseSongCursor();
         PasteSongSelection();
         SongRedrawRow();
         return 1;

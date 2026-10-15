@@ -345,6 +345,13 @@ in `docs/functionality.md`.
   `Pu1`, `Pu2`, `Wav`, `Noi` (`TriggerPu1`, `wChanFreqPu2`). Exempt: `Txt`
   labels mirror their text, `SCREAMING_SNAKE` constants mirror the song
   format's documentation (`SONG_INSTRUMENTS`).
+- **Name patterns.** A prefix names a domain (`Snd` the sound driver,
+  `File`, `Sync`, `Fx`, `Kbd`), never the source file or bank a routine
+  sits in. A screen's cursor highlight pair is `Draw<Screen>Cursor` /
+  `Erase<Screen>Cursor`; a screen's handlers are `Draw<Screen>Screen` /
+  `<Screen>ScreenInput` / `<Screen>ScreenUpdate`; a banked-call wrapper is
+  `<Name>Far`. The *word* screen (screen 12) edits a word's allophones; the
+  *speech* instrument screen lists the words (`SpeechInstrInput`).
 - **Constants.** `SCREAMING_SNAKE_CASE` via `EQU`/`DEF` in `constants/`
   (`rRAMG`, `SOUND_CHANNEL_COUNT`). Use `hardware.inc` names for MMIO registers
   rather than raw `$FFxx` literals.

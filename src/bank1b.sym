@@ -46,8 +46,8 @@
 5896 ProjSyncModeIs567          ; return 1 if wSyncMode in {5,6,7}
 5952 .drawSubSetting            ; (was mislabeled as a function DrawSyncModeField: its `push bc` is the DrawString argument, its `pop bc; ret` DrawSyncField's epilogue)
 5A07 ProjCursorFieldWidth       ; the cursor field's width in tiles: ProjFieldWidth[wProjCursor], 2 more on field 11 while the file browser is up
-5A42 ProjDrawSyncField          ; draw a project/sync field via ProjCursorFieldWidth + ColorField (index $c9a4)
-5A90 ProjDrawSyncFieldHw        ; like ProjDrawSyncField but palette per hGameboyType
+5A42 EraseProjCursor            ; restore the palette of the project screen field under wProjCursor (1 for fields 0-7)
+5A90 DrawProjCursor             ; highlight the project screen field under wProjCursor (ProjFieldX/Y, ProjCursorFieldWidth)
 5AE3 DrawDecimalField           ; draw a small decimal value ("%d" via DrawFormat)
 5B09 ProjSyncModeIs015          ; return 1 if wSyncMode in {0,1,5}
 5B23 DrawPrelistenField         ; PRELISTEN field: "ON "/"OFF"/"N/A" by wPrelisten + sync mode
@@ -303,10 +303,10 @@
 64D2 .setAHeldd
 6510 .checkProjCursor
 6529 .checkProjCursorb
-653F .projDrawSyncFieldHw
+653F .eraseProjCursor
 659B .checkProjCursorc
 65B4 .checkProjCursord
-65CA .projDrawSyncFieldHwb
+65CA .eraseProjCursorb
 6612 .checkAPressEnabled
 66AE .checkAPressEnabledb
 66BB .loadProjCursorc
@@ -535,7 +535,7 @@
 748D .cont_4
 74A5 .step_3
 7565 .computeEnv_2
-575C ProjFieldX         ; [12] x of the 12 project screen fields (ProjDrawSyncField)
+575C ProjFieldX         ; [12] x of the 12 project screen fields (EraseProjCursor)
 5768 ProjFieldY         ; [14] their rows
 5776 ProjFieldWidth     ; [12] the fields' widths in tiles (ProjCursorFieldWidth; ColorField's run)
 4BAF HelpPageRefs       ; [20] dw per help-menu line: &HelpPagePtrs[k], the page it opens

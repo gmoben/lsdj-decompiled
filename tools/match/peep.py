@@ -470,7 +470,7 @@ _CMP16 = [
       rf"sbc\s+a,{_HEX}", r"jp\s+(n?c),(\S+)"],
      lambda g: (["\tdec\thl", "\tld\te,(hl)", "\tinc\thl", "\tld\td,(hl)"], "de", g[0], g[1], g[2], g[3])),
     # hl one below the operand's low byte (the byte local just compared:
-    # WordScreenInput's `i < 0x10` before `p >= 0xBDD0`): stepped up, then
+    # SpeechInstrInput's `i < 0x10` before `p >= 0xBDD0`): stepped up, then
     # fetched
     ([r"xor\s+a,a", r"inc\s+hl", r"ld\s+a,\(hl\)", rf"sbc\s+a,{_HEX}", r"inc\s+hl", r"ld\s+a,\(hl\)",
       rf"sbc\s+a,{_HEX}", r"jp\s+(n?c),(\S+)"],
@@ -533,7 +533,7 @@ def _hl_stack_offset(lines: list[str], at: int) -> int | None:
 def _hl_global_offset(lines: list[str], at: int) -> tuple[str, int] | None:
     """The global and offset hl holds just before line `at`, found the way
     `_hl_stack_offset` finds a stack offset, back to the last `ld hl,#G` or
-    `ld hl,#G + N` (a byte promoted into a pair: WordEditorInput's
+    `ld hl,#G + N` (a byte promoted into a pair: WordScreenInput's
     `(UWORD)wSpeechCursorRow < 13` loads `ld c,(hl); ld b,#0x00` and leaves
     hl at the byte it goes on to increment)."""
     off = 0
@@ -702,7 +702,7 @@ def gb_cmp16(lines: list[str], zero: bool = False) -> tuple[list[str], int]:
                     # the operand was already in a pair; hl may still point at
                     # a stack byte the code goes on to use (DrawSpeechInstrScreen's
                     # `row < 4 + 14` then `GetTilemapAddr(0, row)`) or at the
-                    # global byte it was promoted from (WordEditorInput's
+                    # global byte it was promoted from (WordScreenInput's
                     # `(UWORD)wSpeechCursorRow < 13` then `wSpeechCursorRow++`)
                     known = _hl_stack_offset(lines, idx[0])
                     if known is None:
@@ -1200,7 +1200,7 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
             # copies are forgotten once the pair is rewritten: `ld a,(de);
             # ld c,a; ld e,(hl); inc hl; ld d,(hl); ld a,c; ld (de),a` keeps
             # the reload (SynthFilterPass, FileFormatBuf), while `ld a,(de);
-            # ld b,a; cp a,#n; jp z; ld a,b` drops it (DrawPhraseCellField)
+            # ld b,a; cp a,#n; jp z; ld a,b` drops it (UnhighlightPhraseCell)
             a_pair = None
             eq = set()
         # --- (hl) == a register: after `ld (hl),e` (or a load) the byte at hl is e until

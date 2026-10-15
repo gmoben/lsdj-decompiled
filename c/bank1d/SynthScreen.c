@@ -133,7 +133,7 @@ UBYTE ReadGrooveStep(UBYTE step)
     return ReadSongByte(0, p + (unsigned int)step);
 }
 
-void GrooveDrawField(void)
+void EraseGrooveCursor(void)
 {
     UBYTE r, pal;
 
@@ -239,7 +239,7 @@ void GrooveBuildCache(void)
     }
 }
 
-void GrooveDrawFieldHw(void)
+void DrawGrooveCursor(void)
 {
     UBYTE r;
 
@@ -297,7 +297,7 @@ UBYTE GrooveScreenInput(void)
                 FarCall(5, MapDrawTopRow);
             }
             DrawGrooveScreen();
-            GrooveDrawFieldHw();
+            DrawGrooveCursor();
             ShowMessage("CANCEL SELECT");
         }
         return 1;
@@ -312,20 +312,20 @@ UBYTE GrooveScreenInput(void)
         DrawGrooveRow();
         return 1;
     case 0x04:
-        GrooveDrawField();
+        EraseGrooveCursor();
         if (wGrooveRow)
             wGrooveRow--;
-        GrooveDrawFieldHw();
+        DrawGrooveCursor();
         if (wCursorMode == 4)
             GrooveDrawSelection();
         DrawGrooveRow();
         return 1;
     case 0x08:
-        GrooveDrawField();
+        EraseGrooveCursor();
         wGrooveRow++;
         if (wGrooveRow == 16 || !ReadGrooveStep(wGrooveRow - 1))
             wGrooveRow--;
-        GrooveDrawFieldHw();
+        DrawGrooveCursor();
         if (wCursorMode == 4)
             GrooveDrawSelection();
         DrawGrooveRow();
@@ -448,7 +448,7 @@ UBYTE GrooveScreenInput(void)
             break;
         if (!wGrooveRow && !ReadGrooveStep(1))
             break;
-        GrooveDrawField();
+        EraseGrooveCursor();
         wCursorMode = 2;
         wSelectionLeft = 0;
         wSelectionRight = 1;
@@ -480,7 +480,7 @@ UBYTE GrooveScreenInput(void)
         wSelectHeld = 0;
         if (wSelectionLeft)
             break;
-        GrooveDrawField();
+        EraseGrooveCursor();
         PasteGrooveSelection();
         return 1;
     case 0xC0:
@@ -561,7 +561,7 @@ void GrooveCutCopy(UBYTE cut)
     ShowMessage(cut ? "CUT" : "COPY");
     for (row = wSelectionTop; row < wSelectionBottom; row++) {
         wGrooveRow = row;
-        GrooveDrawField();
+        EraseGrooveCursor();
         WriteClipboardCell(0, row, ReadGrooveStep(row));
         if (cut)
             WriteGrooveByte(row, row ? 0 : 6);
@@ -1228,7 +1228,7 @@ void DrawSynthWaveField(void)
     }
 }
 
-void SynthEraseCursor(void)
+void EraseSynthCursor(void)
 {
     UBYTE x;
 
@@ -1236,7 +1236,7 @@ void SynthEraseCursor(void)
         ColorField(x, SynthFieldLayout[wSynthCursor], 1, 1);
 }
 
-void SynthDrawCursor(void)
+void DrawSynthCursor(void)
 {
     UBYTE x;
 
@@ -1323,7 +1323,7 @@ void DrawSynthNumber(void)
     DrawHexByte(ReadSongByte(1, (UWORD)p++) + 0x0F);
     wVramCursor = (UBYTE *)0x99AB;
     DrawHexByte(ReadSongByte(1, (UWORD)p) + 0x0F);
-    SynthDrawCursor();
+    DrawSynthCursor();
 }
 
 void DrawSynthScreen(void)
@@ -1648,7 +1648,7 @@ UBYTE SynthScreenInput(void)
     case 0x04:
         if (!wSynthCursor)
             break;
-        SynthEraseCursor();
+        EraseSynthCursor();
         switch (wSynthCursor) {
         case 0x0A:
             wSynthCursor = 3;
@@ -1663,10 +1663,10 @@ UBYTE SynthScreenInput(void)
         default:
             wSynthCursor--;
         }
-        SynthDrawCursor();
+        DrawSynthCursor();
         return 1;
     case 0x08:
-        SynthEraseCursor();
+        EraseSynthCursor();
         switch (wSynthCursor) {
         case 0x03:
             wSynthCursor = wSynthNavSide ? 4 : 10;
@@ -1684,11 +1684,11 @@ UBYTE SynthScreenInput(void)
         case 0x0F:
             break;
         }
-        SynthDrawCursor();
+        DrawSynthCursor();
         return 1;
     case 0x02:
         wSynthNavSide = 1;
-        SynthEraseCursor();
+        EraseSynthCursor();
         switch (wSynthCursor) {
         case 0x0A:
         case 0x0B:
@@ -1698,11 +1698,11 @@ UBYTE SynthScreenInput(void)
         case 0x0F:
             wSynthCursor -= 6;
         }
-        SynthDrawCursor();
+        DrawSynthCursor();
         return 1;
     case 0x01:
         wSynthNavSide = 0;
-        SynthEraseCursor();
+        EraseSynthCursor();
         switch (wSynthCursor) {
         case 0x04:
         case 0x05:
@@ -1712,7 +1712,7 @@ UBYTE SynthScreenInput(void)
         case 0x09:
             wSynthCursor += 6;
         }
-        SynthDrawCursor();
+        DrawSynthCursor();
         return 1;
     case 0x11:
         GetTilemapAddr(SynthFieldX[wSynthCursor], SynthFieldLayout[wSynthCursor]);

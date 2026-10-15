@@ -34,8 +34,8 @@ extern UBYTE WordColWidth[];                  /* width */
 extern UBYTE ChainColX[];                  /* the chain screen's two columns: x */
 
 void DrawWaveCol(UBYTE i);
-void ChainDrawWaveCell(void);
-void ChainDrawWaveCellHw(void);
+void EraseWordCursor(void);
+void DrawWordCursor(void);
 void DrawStringAtCursor(char *s);
 void ChainDrawSyncStatus(void);
 void ChainDrawLeadStatus(void);
@@ -109,7 +109,7 @@ void TogglePlayback(void);                    /* $02:$7C4C */
 void SendLinkClipboard(void);                   /* bank $1C */
 extern char TxtCopy[];                      /* $06:$5467 "COPY" */
 
-UBYTE ChainScaleValue(UBYTE v)
+UBYTE AllophoneKit(UBYTE v)
 {
     UBYTE r;
 
@@ -119,7 +119,7 @@ UBYTE ChainScaleValue(UBYTE v)
     return r;
 }
 
-void DrawSampleNameCell(UBYTE v)
+void DrawAllophoneName(UBYTE v)
 {
     UBYTE t, m;
 
@@ -127,7 +127,7 @@ void DrawSampleNameCell(UBYTE v)
     t = v;
     t--;
     m = t % 15 + 1;
-    ReadKitSampleName(ChainScaleValue(t), m);
+    ReadKitSampleName(AllophoneKit(t), m);
     DrawString(wSampleNoteString);
 }
 
@@ -151,12 +151,12 @@ void WriteWordCell(UBYTE v)
     WriteSongByte(0, p, v);
 }
 
-void ChainDrawWaveCell(void)
+void EraseWordCursor(void)
 {
     ColorField(WordColX[wWordEditCol], wWordEditRow + 2, WordColWidth[wWordEditCol], wWordEditCol);
 }
 
-void ChainDrawWaveCellHw(void)
+void DrawWordCursor(void)
 {
     ColorField(WordColX[wWordEditCol], wWordEditRow + 2, WordColWidth[wWordEditCol], hGameboyType ? 3 : 2);
 }
@@ -195,7 +195,7 @@ void DrawWordScreen(void)
         if (s) {
             s--;
             m = s % 15 + 1;
-            ReadKitSampleName(ChainScaleValue(s), m);
+            ReadKitSampleName(AllophoneKit(s), m);
             DrawString(wSampleNoteString);
             DrawStringTile20();
         } else {
@@ -206,16 +206,16 @@ void DrawWordScreen(void)
         DrawHexByte(ReadSongByte(0, p++));
         i++;
     }
-    ChainDrawWaveCellHw();
+    DrawWordCursor();
 }
 
-void DrawWaveCellPair(void)
+void WordCursorDown(void)
 {
     if (wWordEditRow == 0x0F)
         return;
-    ChainDrawWaveCell();
+    EraseWordCursor();
     wWordEditRow++;
-    ChainDrawWaveCellHw();
+    DrawWordCursor();
 }
 
 /* The word (speech) editor's input: cursor moves, the allophone/length
@@ -223,12 +223,12 @@ void DrawWaveCellPair(void)
  * (0x10) to re-enter the clipboard's cells, +/- edits, page moves, the map
  * moves, play. The `.bRight` check is a 16-bit compare of wSpeechCursorRow.
  *
- * lsdj-alloc(WordEditorInput): BUSYC=1-93
+ * lsdj-alloc(WordScreenInput): BUSYC=1-93
  * -- register c held from the first instruction through the cut's second
  * ReadWordCell result (the first two results take b, y and v never hold a
  * register) and released before the third (docs/toolchain.md, "The phantom
  * register"). */
-UBYTE WordEditorInput(void)
+UBYTE WordScreenInput(void)
 {
     UBYTE v;
     UBYTE col;
@@ -241,23 +241,23 @@ UBYTE WordEditorInput(void)
     switch (wButtons) {
     case 0x04:
         if (wWordEditRow) {
-            ChainDrawWaveCell();
+            EraseWordCursor();
             wWordEditRow--;
-            ChainDrawWaveCellHw();
+            DrawWordCursor();
         }
         return 1;
     case 0x08:
-        DrawWaveCellPair();
+        WordCursorDown();
         return 1;
     case 0x02:
-        ChainDrawWaveCell();
+        EraseWordCursor();
         wWordEditCol = 0;
-        ChainDrawWaveCellHw();
+        DrawWordCursor();
         return 1;
     case 0x01:
-        ChainDrawWaveCell();
+        EraseWordCursor();
         wWordEditCol = 1;
-        ChainDrawWaveCellHw();
+        DrawWordCursor();
         return 1;
     case 0x30:
         if (!wAPressEnabled)
@@ -296,7 +296,7 @@ UBYTE WordEditorInput(void)
         WriteWordCell(wClipboardBuf[1]);
         wWordEditCol = v;
         DrawWordScreen();
-        DrawWaveCellPair();
+        WordCursorDown();
         return 1;
     case 0x10:
         if (!wAPressEnabled)
@@ -313,14 +313,14 @@ UBYTE WordEditorInput(void)
                 v = wWordClipCell0[0];
                 v--;
                 wWordClipPtrB = v % 15 + 1;
-                ReadKitSampleName(ChainScaleValue(v), wWordClipPtrB);
+                ReadKitSampleName(AllophoneKit(v), wWordClipPtrB);
                 DrawString(wSampleNoteString);
                 DrawStringTile20();
                 hBgDigitPal = wShadowDigitPal;
                 hBgPal = wShadowPal;
                 DrawHexByte(wWordClipCell1[0]);
                 wWordEditCol = col;
-                ChainDrawWaveCellHw();
+                DrawWordCursor();
                 return 1;
             }
             wWordEditCol = col;
@@ -341,7 +341,7 @@ UBYTE WordEditorInput(void)
             DrawHexByte(v);
             wWordClipCell1[0] = v;
         } else if (v != 0x3B) {
-            ReadKitSampleName(ChainScaleValue(v), v % 15 + 1);
+            ReadKitSampleName(AllophoneKit(v), v % 15 + 1);
             v++;
             wWordClipCell0[0] = v;
             DrawString(wSampleNoteString);
@@ -357,7 +357,7 @@ UBYTE WordEditorInput(void)
             wWordClipCell1[0] = v;
         } else if (v > 1) {
             v -= 2;
-            ReadKitSampleName(ChainScaleValue(v), v % 15 + 1);
+            ReadKitSampleName(AllophoneKit(v), v % 15 + 1);
             v++;
             wWordClipCell0[0] = v;
             DrawString(wSampleNoteString);
@@ -374,7 +374,7 @@ UBYTE WordEditorInput(void)
         } else {
             if (v > 0x3B)
                 v = 0x3B;
-            DrawSampleNameCell(v);
+            DrawAllophoneName(v);
         }
         WriteWordCell(v);
         return 1;
@@ -388,7 +388,7 @@ UBYTE WordEditorInput(void)
         } else {
             if (v > 0x80)
                 v = 1;
-            DrawSampleNameCell(v);
+            DrawAllophoneName(v);
         }
         WriteWordCell(v);
         return 1;
@@ -1027,7 +1027,7 @@ void ClonePhraseAtCursor(UBYTE src, UBYTE dst)
     }
 }
 
-void ChainDrawCellLo(void)
+void EraseChainCursor(void)
 {
     UBYTE r, c;
 
@@ -1101,7 +1101,7 @@ void ChainScreenUpdate(void)
         ClearSpriteY(0);
 }
 
-void ChainDrawCellHw(void)
+void DrawChainCursor(void)
 {
     ColorField(ChainColX[wChainCol], wChainRow + 2, 2, hGameboyType ? 3 : 2);
 }
@@ -1174,7 +1174,7 @@ UBYTE ChainScreenInput(void)
         }
         DrawChainScreen();
         ShowMessage("CANCEL SELECT");
-        ChainDrawCellHw();
+        DrawChainCursor();
         return 1;
     }
     hBgDigitPal = 4;
@@ -1220,50 +1220,50 @@ UBYTE ChainScreenInput(void)
         if (wChainCol == 1)
             return 0;
         if (wCursorMode != 4)
-            ChainDrawCellLo();
+            EraseChainCursor();
         wChainCol++;
         if (wCursorMode == 4)
             DrawChainSelection();
         else
-            ChainDrawCellHw();
+            DrawChainCursor();
         return 1;
     }
     if (wButtons == 0x02) {
         if (!wChainCol)
             return 0;
         if (wCursorMode != 4)
-            ChainDrawCellLo();
+            EraseChainCursor();
         wChainCol--;
         if (wCursorMode == 4)
             DrawChainSelection();
         else
-            ChainDrawCellHw();
+            DrawChainCursor();
         return 1;
     }
     if (wButtons == 0x04) {
         if (!wChainRow)
             return 0;
         if (wCursorMode != 4)
-            ChainDrawCellLo();
+            EraseChainCursor();
         wChainRow--;
         DrawChainPos();
         if (wCursorMode == 4)
             DrawChainSelection();
         else
-            ChainDrawCellHw();
+            DrawChainCursor();
         return 1;
     }
     if (wButtons == 0x08) {
         if (wChainRow == 0x0F)
             return 0;
         if (wCursorMode != 4)
-            ChainDrawCellLo();
+            EraseChainCursor();
         wChainRow++;
         DrawChainPos();
         if (wCursorMode == 4)
             DrawChainSelection();
         else
-            ChainDrawCellHw();
+            DrawChainCursor();
         return 1;
     }
     if (wButtons == 0x11) {
@@ -1465,7 +1465,7 @@ UBYTE ChainScreenInput(void)
         wMessageStrPtr = 0;
         if (!wSongRow) {
             if (wAPressEnabled) {
-                ChainDrawCellLo();
+                EraseChainCursor();
                 wChainRow = 0;
                 DrawChainScreen();
             }
@@ -1539,7 +1539,7 @@ UBYTE ChainScreenInput(void)
                 ChainOpenPhrase();
             return 0;
         }
-        ChainDrawCellLo();
+        EraseChainCursor();
         ChainPasteCells();
         DrawChainScreen();
         return 1;
@@ -1662,7 +1662,7 @@ void CutCopyChainSelection(UBYTE cut)
         for (y = wSelectionTop; y < wSelectionBottom; y = y + 1) {
             wChainCol = x;
             wChainRow = y;
-            ChainDrawCellLo();
+            EraseChainCursor();
             switch (x) {
             case 0:
                 WriteClipboardCell(0, y, FarCallArg2P(2, FAR_FN(SndGetChainPhrase), wChain, y));

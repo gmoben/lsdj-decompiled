@@ -47,7 +47,7 @@ void UiInitScreen(void);                    /* bank 1 */
 UBYTE CheckSongInitFlag(void);              /* bank 1 */
 void LoadFontTiles(void);              /* bank $1E */
 void DrawCartTest(void);                    /* bank 1 */
-void UiClearSram(void);                     /* bank 1 */
+void FormatSramSong(void);                     /* bank 1 */
 void WriteSongInitFlag(void);               /* bank 1 */
 UBYTE CheckFileMagic64(void);               /* bank $1C */
 UBYTE CheckJkMarker(void);                  /* bank 1 */
@@ -284,7 +284,7 @@ void InitAndLoadSong(void)
         WriteSongByte(1, 0xBFB6, 0);
         WriteSongByte(1, 0xBFB8, 0);
         WriteSongByte(1, 0xBFB7, 0);
-        UiClearSram();
+        FormatSramSong();
     }
     WriteSongInitFlag();
     SWITCH_ROM(0x1C);

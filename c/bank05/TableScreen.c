@@ -25,7 +25,7 @@ extern UBYTE wMapProjCol;                /* $C901 */
 extern UBYTE wMapSynthCol;                  /* $C902 */
 extern UBYTE wMapMoveDir;                   /* $C903 */
 extern UBYTE wSynthCursor;                  /* $C442 */
-extern char wTableCol;                      /* $C92F, a plain char (TableDrawCursor's signed switch) */
+extern char wTableCol;                      /* $C92F, a plain char (DrawTableCursor's signed switch) */
 extern UBYTE wTableRow;                     /* $C930 */
 extern UBYTE TableColX[];                /* $05:$42D5..: the six table columns' x, */
 extern UBYTE TableColWidth[];            /* width */
@@ -307,7 +307,7 @@ UBYTE TableReadTranspose(UBYTE step)
     return ReadSongByte(1, p + step);
 }
 
-void TableEraseCursor(void)
+void EraseTableCursor(void)
 {
     UBYTE y, end, x;
 
@@ -454,7 +454,7 @@ void TableScreenUpdate(void)
     SetSpriteY(2, r2);
 }
 
-void TableDrawCursor(void)
+void DrawTableCursor(void)
 {
     if (wCursorMode == 4)
         DrawTableSelection();
@@ -525,7 +525,7 @@ UBYTE TableScreenInput(void)
                 FarCall(5, MapDrawTopRow);
             }
             DrawTableScreen();
-            TableDrawCursor();
+            DrawTableCursor();
             ShowMessage("CANCEL SELECT");
         }
         return 1;
@@ -587,29 +587,29 @@ UBYTE TableScreenInput(void)
         }
         return 1;
     case 0x01:
-        TableEraseCursor();
+        EraseTableCursor();
         if (++wTableCol == 6)
             wTableCol--;
-        TableDrawCursor();
+        DrawTableCursor();
         return 1;
     case 0x02:
-        TableEraseCursor();
+        EraseTableCursor();
         if (!wTableCol)
             wTableCol++;
         wTableCol--;
-        TableDrawCursor();
+        DrawTableCursor();
         return 1;
     case 0x04:
-        TableEraseCursor();
+        EraseTableCursor();
         if ((char)--wTableRow == 0xFF)
             wTableRow++;
-        TableDrawCursor();
+        DrawTableCursor();
         return 1;
     case 0x08:
-        TableEraseCursor();
+        EraseTableCursor();
         if (++wTableRow == 0x10)
             wTableRow = 0x0F;
-        TableDrawCursor();
+        DrawTableCursor();
         return 1;
     case 0x11:
         if (wCursorMode == 4) {
@@ -1019,7 +1019,7 @@ UBYTE TableScreenInput(void)
         if (!wAPressEnabled)
             break;
         wAPressEnabled = 0;
-        TableEraseCursor();
+        EraseTableCursor();
         wCursorMode = 2;
         wSelectionTop = wTableRow;
         wSelectionBottom = wSelectionTop + 1;
@@ -1079,7 +1079,7 @@ UBYTE TableScreenInput(void)
             break;
         }
         if ((wClipboardType == 5 || wClipboardType == 1) && (wTableCol || !wSelectionLeft)) {
-            TableEraseCursor();
+            EraseTableCursor();
             TablePasteCells();
             DrawTableScreen();
             return 1;
@@ -1207,7 +1207,7 @@ void CutCopyTableSelection(UBYTE cut)
                 continue;
             wTableCol = x;
             wTableRow = y;
-            TableEraseCursor();
+            EraseTableCursor();
             switch (x) {
             case 0:
                 WriteClipboardCell(0, y, TableReadEnv(y));

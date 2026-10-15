@@ -80,7 +80,7 @@ stubs' bank + call target):
 | 1 Phrase | `PhraseScreenInput` `$04:$5BA6` | | 8 Wave | `WaveScreenInput` `$06:$507F` |
 | 2 Groove | `GrooveScreenInput` `$1D:$4451` | | 9 Project | `ProjScreenInput` `$1B:$5DBF` |
 | 3 Chain | `ChainScreenInput` `$06:$5BD0` | | 10 Synth | `SynthScreenInput` `$1D:$7138` |
-| 4 Song | `SongScreenInput` `$07:$4B3B` | | 12 Word | `WordEditorInput` `$06:$431D` |
+| 4 Song | `SongScreenInput` `$07:$4B3B` | | 12 Word | `WordScreenInput` `$06:$431D` |
 | 5 Table | `TableScreenInput` `$05:$4B5D` | | 13 File | `FileScreenInput` `$1C:$5B0C` |
 | 6 Instrument | `InstrScreenInput` `$03:$541F` | | 14 Help | `HelpScreenInput` `$1B:$4BC3` |
 | 7 (name editor) | `NameEditorInput` `$1B:$53E8` | | 0, 11 | — |

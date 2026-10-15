@@ -496,7 +496,7 @@ deferred tables below). Named intuitively (never `Lut<addr>`):
   flag/config tables), `$07` `$662A` (a table added to sync var `$CB91`) and
   `$676A` (a mis-carved phantom), `$1E` `$42C8`/`$7550` — each needs the using
   algorithm reversed before it can be named truthfully. *Since resolved:*
-  `PhraseRowAttrs0`, `PhraseStepOnes`, `KeyboardNoteMap` (PS/2 scancode →
+  `PhraseRowAttrs0`, `PhraseStepOnes`, `KbdNoteMap` (PS/2 scancode →
   note, offset by `wKbdTranspose`) and `TilesUiIcons`; `$07:$676A` and
   `$1E:$7550` no longer need a label of their own.
 

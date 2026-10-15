@@ -40,7 +40,7 @@ void OpenNameEditor(void);                  /* $1B:$4E8A */
 void DrawInstrFieldHelp(void);              /* $05:$69BD */
 void PasteInstr(void);                 /* $01:$5503 */
 void CopyInstr(void);                  /* $01:$5253 */
-void WordScreenInput(void);                 /* $1F:$724D */
+void SpeechInstrInput(void);                 /* $1F:$724D */
 void MapMoveLeft(void);                     /* $05:$4233 */
 void MapMoveRight(void);                    /* $05:$4253 */
 void MapMoveUp(void);                       /* $05:$426A */
@@ -927,7 +927,7 @@ void CloneSynthOrTable(void)
 }
 
 /* $541F: the instrument screen's input, a switch on wButtons (a speech
-   instrument hands it to WordScreenInput): the directions move the cursor
+   instrument hands it to SpeechInstrInput): the directions move the cursor
    over the type's fields, skipping those its envelope or type leaves out;
    A+RIGHT/LEFT step the field by 1 and A+UP/DOWN by 16 (a big step), per
    instrument type (pulse, wave, kit, noise) -- on TYPE they change the
@@ -944,7 +944,7 @@ UBYTE InstrScreenInput(void)
     UBYTE v, type;
 
     if (wInstr == 0x40)
-        return FarCallByte(0x1F, FAR_FN(WordScreenInput));
+        return FarCallByte(0x1F, FAR_FN(SpeechInstrInput));
     hBgDigitPal = wSelectDigitPal;
     hBgPal = wSelectPal;
     type = ReadCurInstrByte(0);

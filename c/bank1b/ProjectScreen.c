@@ -72,11 +72,11 @@ void LoadFontTiles(void);                   /* bank $1E */
 void FormatFileSpace(void);                 /* bank $1C */
 void CleanSongData(void);                   /* bank $1F */
 void CleanInstrData(void);                  /* bank $1F */
-void DrawKeyboardCalibScreen(void);         /* bank 7 */
+void DrawKbdCalibScreen(void);         /* bank 7 */
 void FileValidateName(void);                /* bank $1C */
 void LoadFileListState(void);               /* bank $1C */
 void LoadProjSettings(void);             /* bank 1 */
-void UiClearSram(void);                     /* bank 1 */
+void FormatSramSong(void);                     /* bank 1 */
 void MapMoveRight(void);                    /* bank 5 */
 void MapMoveDown(void);                     /* bank 5 */
 void TogglePlayback(void);                    /* bank 2 */
@@ -598,7 +598,7 @@ UBYTE ProjSyncModeIs567(void)
     return 0;
 }
 
-void ProjDrawSyncField(void)
+void EraseProjCursor(void)
 {
     UBYTE pal, y;
 
@@ -608,7 +608,7 @@ void ProjDrawSyncField(void)
     ColorField(ProjFieldX[wProjCursor], y, wProjDrawScratch2, pal);
 }
 
-void ProjDrawSyncFieldHw(void)
+void DrawProjCursor(void)
 {
     UBYTE pal, y;
 
@@ -705,7 +705,7 @@ void DrawProjScreen(void)
     wVramCursor = 0x9A26;
     DrawFormat2("%d:%d:", ReadSongByte(1, 0xBFB6), ReadSongByte(1, 0xBFB7));
     DrawDecimalField(ReadSongByte(1, 0xBFB8));
-    ProjDrawSyncFieldHw();
+    DrawProjCursor();
     wTapTempoCount = 0xFF;
 }
 
@@ -1026,14 +1026,14 @@ UBYTE ProjScreenInput(void)
         break;
     case 0x08:
         if (!wProjMenuActive) {
-            ProjDrawSyncField();
+            EraseProjCursor();
             if (wProjCursor < 0x0B)
                 wProjCursor++;
             if (wProjCursor == 7 && !ProjSyncModeIs015())
                 wProjCursor++;
             else if (wProjCursor == 3 && !ProjSyncModeIs567())
                 wProjCursor++;
-            ProjDrawSyncFieldHw();
+            DrawProjCursor();
         } else {
         menuRight:
             wProjMenuItem = 1;
@@ -1043,14 +1043,14 @@ UBYTE ProjScreenInput(void)
         return 1;
     case 0x04:
         if (!wProjMenuActive) {
-            ProjDrawSyncField();
+            EraseProjCursor();
             if (wProjCursor)
                 wProjCursor--;
             if (wProjCursor == 7 && !ProjSyncModeIs015())
                 wProjCursor--;
             else if (wProjCursor == 3 && !ProjSyncModeIs567())
                 wProjCursor--;
-            ProjDrawSyncFieldHw();
+            DrawProjCursor();
         } else {
         menuLeft:
             wProjMenuItem = 0;
@@ -1086,14 +1086,14 @@ UBYTE ProjScreenInput(void)
             return 1;
         case 9:
             FarCall(0x1C, FAR_FN(FileStopSound));
-            ProjDrawSyncField();
+            EraseProjCursor();
             DrawProjTextField(3, 4, 0x0F, 8);
             FarCall(0x1F, FAR_FN(CleanSongData));
             ProjScreenRefresh();
             return 1;
         case 10:
             FarCall(0x1C, FAR_FN(FileStopSound));
-            ProjDrawSyncField();
+            EraseProjCursor();
             DrawProjTextField(3, 4, 0x0F, 9);
             FarCall(0x1F, FAR_FN(CleanInstrData));
             ProjScreenRefresh();
@@ -1105,7 +1105,7 @@ UBYTE ProjScreenInput(void)
         case 3:
             if (wSyncMode == 5) {
                 FarCall(0x1C, FAR_FN(FileStopSound));
-                FarCall(7, DrawKeyboardCalibScreen);
+                FarCall(7, DrawKbdCalibScreen);
                 DrawSyncMode2Field();
                 FarCall(4, FAR_FN(RedrawScreen));
             }
@@ -1150,7 +1150,7 @@ UBYTE ProjScreenInput(void)
                     WriteSongByte(1, 0xBFB7, 0);
                     FarCall(0x1C, FAR_FN(FormatFileSpace));
                 }
-                FarCall(1, FAR_FN(UiClearSram));
+                FarCall(1, FAR_FN(FormatSramSong));
                 WriteSongByte(4, 0xA140, 0xFF);
                 FarCall(0x1C, FAR_FN(LoadFileListState));
                 DrawProjTextField(2, 7, 0x10, 3);

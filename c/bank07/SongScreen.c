@@ -12,9 +12,9 @@ extern UBYTE wSavedSongCol;                 /* $C952 */
 extern UBYTE wPartialRedrawDone;            /* $C56D */
 extern UBYTE SongColOffsets[];              /* $07:$4047, x of each channel column */
 
-void SongEraseCursor(void);
+void EraseSongCursor(void);
 UBYTE SongCloneChain(UBYTE chain);
-void SongDrawCursor(void);
+void DrawSongCursor(void);
 void SongReadRow(void);
 void SongDrawRowNumber(void);
 void SongDrawColVals(void);
@@ -72,7 +72,7 @@ void SongCopyCol(UBYTE *p, UBYTE *q)
     SongScanSram(p, q);
 }
 
-void SongEraseCursor(void)
+void EraseSongCursor(void)
 {
     UBYTE x, y, pal;
 
@@ -161,7 +161,7 @@ UBYTE SongCloneChain(UBYTE chain)
     return v;
 }
 
-void SongDrawCursor(void)
+void DrawSongCursor(void)
 {
     UBYTE y;
 
@@ -220,7 +220,7 @@ void SongRedrawRow(void)
     hBgPal = 1;
     wVramCursor = (UBYTE *)0x9842;
     SongDrawColVals();
-    SongDrawCursor();
+    DrawSongCursor();
     wPartialRedrawDone = 1;
 }
 
@@ -426,7 +426,7 @@ UBYTE SongCursorPageDown(void)
 
     if (wCursorMode == 4)
         return 0;
-    SongEraseCursor();
+    EraseSongCursor();
     SongFindNextRow();
     d = wSongRow - wSongScroll;
     if (d >= 0x10) {
@@ -436,7 +436,7 @@ UBYTE SongCursorPageDown(void)
             wSongScroll = 0xB0;
         SongRedrawRow();
     } else {
-        SongDrawCursor();
+        DrawSongCursor();
     }
     return 1;
 }
@@ -466,7 +466,7 @@ UBYTE SongCursorPageUp(void)
 
     if (wCursorMode == 4)
         return 0;
-    SongEraseCursor();
+    EraseSongCursor();
     SongFindPrevRow();
     if (wSongRow < wSongScroll) {
         wSongScroll -= 0x10;
@@ -475,7 +475,7 @@ UBYTE SongCursorPageUp(void)
             wSongScroll = 0;
         SongRedrawRow();
     } else {
-        SongDrawCursor();
+        DrawSongCursor();
     }
     return 1;
 }
@@ -499,11 +499,11 @@ void SongLoadCursorChain(void)
     if (c == 0xFF)
         return;
     c &= 0x7F;
-    SongEraseCursor();
+    EraseSongCursor();
     c = SongCloneChain(c);
     if (c != 0xFF)
         DrawHexByte(c);
-    SongDrawCursor();
+    DrawSongCursor();
 }
 
 void WriteBookmarkByte(UWORD p, UBYTE v)

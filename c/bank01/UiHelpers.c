@@ -34,7 +34,7 @@ extern volatile UBYTE wProjDrawScratch;     /* $C9A7; volatile: the ROM re-reads
 extern UBYTE wSelectHeld;                   /* $C40A */
 extern UBYTE wMessageNoPause;                  /* $C530 */
 UBYTE CheckRomChecksum(void);               /* $00:$1FD5 */
-UBYTE UiTestSramLo(void);
+UBYTE TestSramLo(void);
 void SeedRandom16(UWORD seed);              /* bank 0 */
 UBYTE Random16(void);                       /* bank 0, a 16-bit LCG; the SRAM test uses the low byte */
 extern UBYTE wFileNameTmp[];
@@ -50,7 +50,7 @@ extern UBYTE PitchCurveCgb[];               /* $01:$4382, CGB */
 
 void ApplyColorSet(void);
 void ClearOamBuf(void);
-void UiLoadHwTables(void);
+void LoadHwTables(void);
 void ClearSramWindow(void);                 /* $01:$7DE9, asm: zero the SRAM window */
 void ClearBookmarks(void);                  /* $07:$643D */
 extern UBYTE DefaultWaveFrameB1[];          /* $01:$40EA, [16] */
@@ -132,7 +132,7 @@ extern UBYTE wTable;                        /* $C41B */
 extern UWORD wTopBarLen;                    /* $C7AD, wTopBarDrawScratch as a word (aliased by match_function.py) */
 extern UWORD wVramCursorW;                  /* $C573, wVramCursor as a plain word: its `< 0x9811` is a 32-bit compare (aliased by match_function.py) */
 
-UBYTE UiTestSramLo(void)
+UBYTE TestSramLo(void)
 {
     UBYTE i;
     UBYTE * volatile p;                     /* volatile: the ROM keeps p on the stack */
@@ -173,7 +173,7 @@ UBYTE UiTestSramLo(void)
     return 1;
 }
 
-UBYTE UiTestSramHi(void)
+UBYTE TestSramHi(void)
 {
     UBYTE i;
 
@@ -206,7 +206,7 @@ void DrawCartTest(void)
     }
     wVramCursor = (UBYTE *)0x9880;
     DrawString("SRAM...");
-    if (UiTestSramLo() && UiTestSramHi()) {
+    if (TestSramLo() && TestSramHi()) {
         DrawString("OK!");
     } else {
         DrawString("FAIL!");
@@ -227,7 +227,7 @@ void DrawCartTest(void)
    its own copies and reads, which therefore spill themselves (the word
    loop's `*p += ...`); s2 is a volatile byte so the third saved
    property byte is stored while the other two keep b and c. */
-void UiClearSram(void)
+void FormatSramSong(void)
 {
     UBYTE *p;
     UBYTE i;
@@ -349,7 +349,7 @@ void WriteInstrName(UBYTE instr)
     WriteSongByte(0, p, wNameEditBuf[4]);
 }
 
-void UiLoadHwTables(void)
+void LoadHwTables(void)
 {
     memcpy(wNotePeriodLo, wIsCGB ? PitchCurveCgb : PitchCurve, 0xD8);
     memcpy(wNotePeriods, wIsCGB ? NoteFreqDeltaTable : NoteFreqTable, 0xD8);
@@ -404,7 +404,7 @@ void UiInitScreen(void)
 {
     ApplyColorSet();
     ClearOamBuf();
-    UiLoadHwTables();
+    LoadHwTables();
 }
 
 void UpdatePlayClock(void)
