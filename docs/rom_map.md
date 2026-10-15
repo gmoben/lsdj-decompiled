@@ -205,7 +205,9 @@ Nothing reads the blocks' character maps: text is drawn through bank 0's
 `gfx/<name>.png` (`tools/gfx.py`: an indexed PNG, colours 0-3 white to
 black, sixteen tiles a row) and the build converts it back with
 `rgbgfx -c embedded`; the header and the character map stay bytes in
-`src/bank1e.asm`.
+`src/bank1e.asm`. A PNG is extracted only when missing, so an edited one
+is what the build uses (delete it to extract it again); an edit keeps the
+block's tile count, or changes the count in its header too.
 
 ## References
 

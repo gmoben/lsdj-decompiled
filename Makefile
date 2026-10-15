@@ -51,13 +51,20 @@ carve: | $(BASEROM)
 	tools/carve_clean.py
 
 # --- Graphics ----------------------------------------------------------------
-# The carve writes the tile blocks' tiles to gfx/*.png -- the ROM's data, like
-# the carve, so extracted from your ROM and never committed -- and rgbgfx
-# converts them back for the carve's INCBINs (tools/gfx.py has the format).
-GFX_2BPP := $(patsubst gfx/%.png,$(BUILD)/gfx/%.2bpp,$(wildcard gfx/*.png))
+# The carve extracts the tile blocks' tiles to gfx/*.png -- the ROM's data, so
+# from your ROM and never committed -- and rgbgfx converts them back for the
+# carve's INCBINs. A PNG is extracted only when missing: edit one and the
+# build takes it; delete it to extract it again (tools/gfx.py).
+# The list is the carved asm's INCBINs (empty before the first carve: the
+# sub-make in the $(OBJ) recipe converts those); a PNG deleted to extract it
+# again sends make to the carve, which extracts every missing one.
+GFX_2BPP := $(sort $(shell grep -ho 'build/gfx/[a-z0-9_]*\.2bpp' src/bank*.asm 2>/dev/null))
+.NOTINTERMEDIATE: gfx/%.png $(BUILD)/gfx/%.2bpp
 $(BUILD)/gfx/%.2bpp: gfx/%.png
 	@mkdir -p $(@D)
 	$(RGBGFX) -c embedded -o $@ $<
+gfx/%.png: | $(BASEROM)
+	tools/carve_clean.py
 gfx: $(GFX_2BPP)
 	@:
 
@@ -169,9 +176,9 @@ baseline: | $(BASEROM)
 
 # --- Housekeeping ----------------------------------------------------------
 # `clean` also removes the deployed root symbol copy (.emu/ is gitignored
-# runtime) and the generated disassembly and graphics.
+# runtime) and the generated disassembly; gfx/*.png stay (they may be edits).
 clean:
-	rm -rf $(BUILD) $(ROMSYM) src/bank*.asm src/main.asm src/ramsections.asm gfx/*.png
+	rm -rf $(BUILD) $(ROMSYM) src/bank*.asm src/main.asm src/ramsections.asm
 
 tidy:
 	rm -f $(OBJ) $(BUILD)/rgbdscheck.o $(SYM) $(MAP) $(ROMSYM)

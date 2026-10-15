@@ -7,12 +7,17 @@ a prefix the loader skips -- by the mode's low two bits: 1 a 128-byte
 character map (the tile for each ASCII code), 2 none, otherwise 256 bytes --
 then the tiles, raw 2bpp. Every block in 9.4.0 is mode 1.
 
-The carve writes a block's tiles to gfx/<name>.png and the build converts it
-back with `rgbgfx -c embedded`: an indexed PNG whose palette is white, light
-grey, dark grey, black for colours 0-3, sixteen tiles to a row (the last row
-padded with colour-0 tiles, which the INCBIN's length leaves out). The PNG
-is the ROM's data, extracted from your ROM like the rest of the carve and
-never committed.
+The carve extracts a block's tiles to gfx/<name>.png and the build converts
+it back with `rgbgfx -c embedded`: an indexed PNG whose palette is white,
+light grey, dark grey, black for colours 0-3, sixteen tiles to a row (the
+last row padded with colour-0 tiles, which the INCBIN's length leaves out).
+The PNG is the ROM's data, extracted from your ROM and never committed.
+
+A PNG is extracted only when it is missing, so an edited one survives every
+carve and the build takes it (`make compare` then reports the difference);
+delete it to extract it again. An edit keeps the image indexed with the four
+palette entries in that order, and the block's tile count (its header, in
+the carved asm) unless that is changed too.
 
     tools/gfx.py BLOCK.bin OUT.png     # a block's tiles as a PNG (for a look)
 """
@@ -86,21 +91,22 @@ def png_bytes(image: list[list[int]]) -> bytes:
             + chunk(b"IEND", b""))
 
 
-def write_png(path: Path, tiles: bytes) -> bool:
-    """Write the tiles to path as a PNG unless it already holds them; True if
-    written (an unchanged file keeps its time, so make rebuilds nothing)."""
+def extract_png(path: Path, tiles: bytes) -> str:
+    """Write the tiles to path as a PNG unless a file is there: that one is
+    yours (an edit, or this extraction), never overwritten. Returns
+    "written", "same" (the file holds this extraction) or "differs"."""
     data = png_bytes(tile_pixels(tiles))
-    if path.is_file() and path.read_bytes() == data:
-        return False
+    if path.is_file():
+        return "same" if path.read_bytes() == data else "differs"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes(data)
-    return True
+    return "written"
 
 
 def main() -> None:
     if len(sys.argv) != 3:
         sys.exit(__doc__)
-    write_png(Path(sys.argv[2]), block_tiles(Path(sys.argv[1]).read_bytes()))
+    print(extract_png(Path(sys.argv[2]), block_tiles(Path(sys.argv[1]).read_bytes())))
 
 
 if __name__ == "__main__":

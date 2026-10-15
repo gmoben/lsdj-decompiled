@@ -386,7 +386,10 @@ def main() -> None:
             cmd += ["--rows", ",".join(f"0x{lo:X}:0x{hi:X}:{w}" for lo, hi, w in shaped)]
         blocks = tile_blocks(rom, b)
         for lo, hi, name in blocks:
-            gfx.write_png(ROOT / gfx.GFX_DIR / f"{name}.png", gfx.block_tiles(rom[lo:hi]))
+            png = f"{gfx.GFX_DIR}/{name}.png"
+            if gfx.extract_png(ROOT / png, gfx.block_tiles(rom[lo:hi])) == "differs":
+                print(f"{png} is not the extraction of your ROM's tiles: kept as it is "
+                      "(delete it to extract it again)")
         if blocks:
             cmd += ["--tiles", ",".join(f"0x{lo:X}:0x{hi:X}:{name}" for lo, hi, name in blocks)]
         clines, incbins = c_ranges(b)

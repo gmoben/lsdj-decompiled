@@ -240,6 +240,16 @@ class TileBlockTests(unittest.TestCase):
         self.assertEqual(png[:8], b"\x89PNG\r\n\x1a\n")
         self.assertEqual(png[16:26], bytes([0, 0, 0, 128, 0, 0, 0, 8, 2, 3]))   # 128x8, 2 bits, indexed
 
+    def test_extract_only_when_missing(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            png, tiles = Path(d) / "gfx" / "font_test.png", gfx.block_tiles(self.BLOCK)
+            self.assertEqual(gfx.extract_png(png, tiles), "written")
+            self.assertEqual(gfx.extract_png(png, tiles), "same")
+            png.write_bytes(png.read_bytes() + b"edit")
+            self.assertEqual(gfx.extract_png(png, tiles), "differs")
+            self.assertTrue(png.read_bytes().endswith(b"edit"))      # an edit is never overwritten
+
     def test_block_rows(self):
         rows = disasm._emit_tiles(self.BLOCK, 0, len(self.BLOCK), 0x54C0, "font_test")
         texts = [t for _a, _b, t, _r in rows]

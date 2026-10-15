@@ -114,6 +114,14 @@ ROM with all names applied; RGBDS assembles it back; `make compare` asserts
 the result equals your original, byte for byte. If the bytes drift, the
 change was wrong — that invariant has held through every commit.
 
+The graphics come out the same way: the carve extracts the fonts and UI
+tiles from your ROM to `gfx/*.png` (4-colour indexed PNGs), and the build
+converts them back with `rgbgfx`. Edit one and `make` builds the ROM with
+your tiles (`make compare` then reports the difference, as it should); the
+carve never overwrites a PNG that is already there, and deleting one
+extracts it again. An edit keeps the image indexed with its four palette
+entries in order (colours 0-3, white to black) and the block's tile count.
+
 ## Strategy: asm now, matching C later
 
 The project runs on **two tracks** (details in [`AGENTS.md`](AGENTS.md)):
