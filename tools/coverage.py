@@ -42,7 +42,7 @@ SYM_LINE = re.compile(r"^\s*\$?([0-9A-Fa-f]{4})\s+([A-Za-z_.][\w.]*)\s*(?:;\s*(.
 # Txt/Tiles/Default/ScreenPal/Unused name, a comment opening with a string
 # literal or an `[N]` size tag, or a `*Names` table whose comment quotes its
 # strings. Everything else is treated as code.
-DATA_NAME = re.compile(r"^(Txt|Tiles|Default|ScreenPal|Unused)")
+DATA_NAME = re.compile(r"^(Txt|Tiles|Default|ScreenPal|Unused|Padding)")
 DATA_COMMENT = re.compile(r'^("|\[\w+\])')
 
 

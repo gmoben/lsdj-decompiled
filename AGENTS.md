@@ -340,21 +340,22 @@ in `docs/functionality.md`.
   `WaveTableData`); local labels with a leading `.` (`.loop`, `.done`);
   exported/shared symbols use `::`.
 - **Data symbols.** The tools tell data from code by the name/comment in the
-  `.sym`: a `Txt`/`Tiles`/`Default`/`ScreenPal`/`Unused` prefix, a comment
-  that opens with a string literal (`"OUT OF MEMORY..."`) or an `[N]` size
-  tag, or a `*Names` table whose comment quotes its strings
+  `.sym`: a `Txt`/`Tiles`/`Default`/`ScreenPal`/`Unused`/`Padding` prefix, a
+  comment that opens with a string literal (`"OUT OF MEMORY..."`) or an `[N]`
+  size tag, or a `*Names` table whose comment quotes its strings
   (`coverage.is_data_symbol`). Name data that way and it is never traced or
-  rendered as instructions. A table of addresses is tagged `[N] dw` (N
-  words; `[N] dw @$BB` when they point into bank BB): the carve prints it as
-  `dw Label` so the targets can move. Any other table is tagged `[N] TYPE`
-  or `[R][C] TYPE` -- TYPE `UBYTE` (the default), `BYTE` (signed, printed as
-  numbers), `UWORD`, or `RGB` (CGB colours, the `RGB r,g,b` macro in
-  `include/macros.inc`) -- and prints a row of C elements a line (16 bytes, 8
-  words, 4 colours for `[N]`): a screen's 20x18 map is `[18][20]`, the
-  colour sets `[35][4] RGB`. A table runs for its size through labels
-  inside it; a label inside one must itself be data (tagged). A
-  `Tiles` symbol is a tile block (`tools/gfx.py`): its tiles come from
-  `gfx/<name>.png`. Text (`Txt*`, `*Names`, `*String`, or a comment that
+  rendered as instructions; a `Padding` symbol's run of `$FF` is
+  `ds n, $ff` however short (the vector slots' tails). A table of addresses
+  is tagged `[N] dw` (N words; `[N] dw @$BB` when they point into bank BB):
+  the carve prints it as `dw Label` so the targets can move. Any other table
+  is tagged `[N] TYPE` or `[R][C] TYPE` -- TYPE `UBYTE` (the default),
+  `BYTE` (signed, printed as numbers), `UWORD`, or `RGB` (CGB colours, the
+  `RGB r,g,b` macro in `include/macros.inc`) -- and prints a row of C
+  elements a line (16 bytes, 8 words, 4 colours for `[N]`): a screen's
+  20x18 map is `[18][20]`, the colour sets `[35][4] RGB`. A table runs for
+  its size through labels inside it; a label inside one must itself be data
+  (tagged). A `Tiles` symbol is a tile block (`tools/gfx.py`): its tiles come
+  from `gfx/<name>.png`. Text (`Txt*`, `*Names`, `*String`, or a comment that
   opens with a string) prints a line per string: `db "<A>...INSERT\n"`,
   `db "OK!", 0`.
 - **Vocabulary.** Names spell their words out, one spelling per word in

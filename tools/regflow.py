@@ -897,7 +897,8 @@ def describe(c: Contract) -> str:
     if not c.returns:
         text = f"in: {ins}; does not return"
     elif not c.called:
-        text = f"in: {ins}; changes: {clobber_text(c.may)} (no caller)"
+        changes = clobber_text(c.may)
+        text = f"in: {ins}; changes: {'nothing' if changes == '-' else changes} (no caller)"
     else:
         text = f"in: {ins}; out: {regs_text(c.outputs)}; clobbers: {clobber_text(c.may - c.outputs)}"
     partial = c.partial if c.returns else {r for r in c.partial if not r.startswith("via ")}

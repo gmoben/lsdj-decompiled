@@ -811,7 +811,8 @@ def disassemble(data: bytes, start: int, end: int, org: int,
                 ptr_tables: list[tuple[int, int, int]] | None = None,
                 tiles: list[tuple[int, int, str]] | None = None,
                 tables: list[tuple[int, int, int, str]] | None = None,
-                texts: list[tuple[int, int]] | None = None) -> list[Row]:
+                texts: list[tuple[int, int]] | None = None,
+                fills: set[int] | None = None) -> list[Row]:
     """Return decoded rows covering file offsets [start, end).
 
     `anchors` is a set of file offsets that are known code-instruction starts
@@ -837,7 +838,10 @@ def disassemble(data: bytes, start: int, end: int, org: int,
     screen line); a label inside a word splits it into bytes.
 
     `texts` are (lo, hi) ranges of text, printed a line per string
-    (_emit_text)."""
+    (_emit_text).
+
+    `fills` are file offsets of padding labels (`Padding*`): an all-$FF data
+    run there is `ds n, $ff` however short."""
     anchors = anchors or set()
     incbins = incbins or []
     clines = clines or []
@@ -924,6 +928,10 @@ def disassemble(data: bytes, start: int, end: int, org: int,
             continue
         if in_data(o):
             edge = min(next_data_edge(o), end)
+            if fills and o in fills and data[o:edge] == b"\xff" * (edge - o):
+                out.append((addr, data[o:edge], f"ds {edge - o}, $ff", None))
+                o = edge
+                continue
             out.extend(_emit_data(data, o, edge, addr))
             o = edge
             continue
@@ -1458,6 +1466,7 @@ def main() -> None:
     # ROMX banks all share $4000-$7FFF, so prefix their auto-labels with the
     # bank to keep them globally unique once every bank is INCLUDEd together.
     prefix = "L" if args.bank in (0, None) else f"L{args.bank:02X}_"
+    fills = {start + (a - org) for a, n in symbols.items() if n.startswith("Padding") and org <= a < org + size}
     clines: list[CLines] = []
     for part in filter(None, (p.strip() for p in args.clines.split(","))):
         doc = json.loads(Path(part).read_text())
@@ -1469,7 +1478,7 @@ def main() -> None:
         lo_s, hi_s, b_s = part.split(":")
         ptr_tables.append((int(lo_s, 0), int(hi_s, 0), int(b_s, 0)))
     table_bank = {org + (o - start): tb for lo, hi, tb in ptr_tables for o in range(lo, hi, 2)}
-    rows = disassemble(data, start, end, org, data_ranges, anchors, incbins, clines, ptr_tables, tiles, tables, texts)
+    rows = disassemble(data, start, end, org, data_ranges, anchors, incbins, clines, ptr_tables, tiles, tables, texts, fills)
     # ROM-address operands print as labels (rom_pointers): names from the
     # .sym files beside --symbols; a target inside a data run first gets a row
     # of its own (decode again with it as an anchor)
@@ -1493,7 +1502,7 @@ def main() -> None:
                  and any(lo <= start + (t - org) < hi for lo, hi in data_ranges)}
         if split - anchors:
             anchors |= split
-            rows = disassemble(data, start, end, org, data_ranges, anchors, incbins, clines, ptr_tables, tiles, tables, texts)
+            rows = disassemble(data, start, end, org, data_ranges, anchors, incbins, clines, ptr_tables, tiles, tables, texts, fills)
             ptrs, notes = rom_pointers(rows, args.bank, symbols, home, bank_syms, table_bank)
         same = {t for t in map(own, ptrs.values()) if t is not None}
     labels = ({} if args.no_labels
