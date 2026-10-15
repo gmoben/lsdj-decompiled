@@ -24,6 +24,8 @@ rename = importlib.import_module("rename")
 name_locals_full = importlib.import_module("name_locals_full")
 disasm = importlib.import_module("disasm")
 gfx = importlib.import_module("gfx")
+kits = importlib.import_module("kits")
+gen_main = importlib.import_module("gen_main")
 
 
 class PatternTests(unittest.TestCase):
@@ -296,6 +298,44 @@ class TextTests(unittest.TestCase):
         t.labels = {0x456C: ".strOk"}
         rows = t.text_rows(0x4566, "ROM...OK!")
         self.assertEqual([r[2] for r in rows], ['db "ROM..."', 'db "OK!"'])
+
+
+class KitTests(unittest.TestCase):
+    """A kit bank (tools/kits.py): boundary words, then the samples, 4-bit,
+    as WAVs the build converts back."""
+
+    @staticmethod
+    def bank(*sizes):
+        words, at = [], 0x4060
+        for n in sizes:
+            words.append(at)
+            at += n
+        words += [at] + [0] * (16 - len(sizes))
+        head = b"".join(w.to_bytes(2, "little") for w in words) + b"BD-SD-" + b"\0--" * 14 + b"TR-808" + bytes(8)
+        body = bytes(i & 0x7F for i in range(at - 0x4060))
+        return head + body + b"\xff" * (0x4000 - len(head) - len(body))
+
+    def test_boundaries(self):
+        self.assertEqual(kits.boundaries(self.bank(0x100, 0x20)), [0x4060, 0x4160, 0x4180])
+        broken = bytearray(self.bank(0x100, 0x20))
+        broken[0x3FFF] = 0
+        self.assertIsNone(kits.boundaries(bytes(broken)))           # not $FF after the samples
+
+    def test_wav_round_trip_and_other_inputs(self):
+        import tempfile, wave
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / "x.wav"
+            p.write_bytes(kits.wav_bytes(bytes([0x0F, 0x80])))
+            self.assertEqual(kits.pcm_bytes(p), bytes([0x0F, 0x80]))
+            with wave.open(str(p), "wb") as w:                      # 16-bit stereo, an odd count
+                w.setnchannels(2); w.setsampwidth(2); w.setframerate(kits.RATE)
+                w.writeframes(b"".join(v.to_bytes(2, "little", signed=True) * 2 for v in (32767, -32768, 0)))
+            self.assertEqual(kits.pcm_bytes(p), bytes([0xF0, 0x88]))
+
+    def test_names_as_text(self):
+        self.assertEqual(gen_main.db_text(b"BD-"), 'db "BD-"')
+        self.assertEqual(gen_main.db_text(b"\0--"), 'db 0, "--"')
+        self.assertEqual(gen_main.db_text(b'\x80"'), 'db $80, "\\""')
 
 
 class BytePointerTests(unittest.TestCase):

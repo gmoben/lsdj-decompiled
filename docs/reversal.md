@@ -448,13 +448,15 @@ one opaque `INCBIN`. All names are read from the ROM **at build time**, so a kit
 sample renamed with an external tool labels correctly: `Kit<NAME>_Ptrs` (`$4000`
 offset table), `_Names` (`$4022`), `_KitName` (`$4052`), then the sample data split
 at each pointer-table boundary into `Kit<NAME>_<SAMPLE>` using the 3-char sample
-names (e.g. `KitTR808_BD/SD/CHH/…/CLP`). **312 symbols** (TR-606…TT-ZZ; the kit
-name matches the INSTR editor's KIT selector). Collisions are disambiguated — a
-duplicate kit name gets the bank appended, a duplicate sample name within a kit a
-numeric suffix — so patched ROMs never produce duplicate labels. Now the sample
-player's reads resolve to `Kit<NAME>_<SAMPLE>+off` rather than `_DATA_`.
-Byte-identical (contiguous INCBINs). The empty banks (`$22`–`$3F`) are `$00`/`$FF`
-fill and unreferenced.
+names (e.g. `KitTR808_BD/SD/CHH/…/CLP`), and `Kit<NAME>_End` after the last.
+**354 symbols** (TR-606…TT-ZZ; the kit name matches the INSTR editor's KIT
+selector). Collisions are disambiguated — a duplicate kit name gets the bank
+appended, a duplicate sample name within a kit a numeric suffix — so patched ROMs
+never produce duplicate labels. Now the sample player's reads resolve to
+`Kit<NAME>_<SAMPLE>+off` rather than `_DATA_`. Each sample is a WAV
+(`data/kits/`, extracted from your ROM) that the build converts back, and the
+pointer table is the samples' labels (`tools/kits.py`). The empty banks
+(`$22`–`$3F`) are `$FF` fill and unreferenced.
 
 **Naming standard.** Data-table labels are **intuitive/semantic**, reverse-engineered
 from the using code — never `Lut<addr>`/`Table<addr>`. Determine what a table *is*

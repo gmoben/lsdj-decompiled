@@ -119,16 +119,18 @@ AA-EH, EL-KK2, KK3-TH, TT-ZZ.
 
 | Bank offset | Field |
 |-------------|-------|
-| `$0000` | magic `60 40` |
-| `$0002` | 15 × sample end address (u16 LE, relative to `$4060`) |
-| `$0022` | `00 00` |
-| `$0024` | 15 × 3-char sample name (`-` padded) |
+| `$0000` | 17 × sample boundary (u16 LE, a CPU address): sample i runs from word i to word i + 1; the first is `$4060` (the `60 40` that marks a kit, `KitExists`), the words after the last sample's end are 0 |
+| `$0022` | 16 × 3-char sample name (`-` padded; `"\0--"` when unused) |
 | `$0052` | 6-char kit name |
-| `$005C` | force-loop flags |
-| `$0060` | 4-bit PCM **sample data** (to `$3FA0` max) |
+| `$0058` | 8 bytes the kit tools write: `$005C`-`$005D` the force-loop flags (per LSDPatcher), `$005E` `$FF` in the speech and effect kits, `$005F` 1 in every kit here |
+| `$0060` | the samples, 4-bit at 11468 Hz, two to a byte (high nibble first), to the last boundary (`$3FA0` bytes at most); `$FF` to the end of the bank |
 
-`SAMPLE_START_ADDRESS = $4060`. Banks `$22`-`$3F` are empty (`$FF`) — spare room
-for user kits (added by LSDPatcher).
+Every kit in 9.4.0 is laid out this way (249 samples, 268,560 bytes). The
+carve extracts each sample to `data/kits/<kit>/<NN>_<sample>.wav` (8-bit
+mono; `tools/kits.py`) when the file is missing, and the build converts it
+back; the boundary words are the samples' labels, so an edited sample can
+change length. Banks `$22`-`$3F` are empty (`$FF`) — spare room for user
+kits (added by LSDPatcher).
 
 ## `.lsdsng` (single-song export)
 

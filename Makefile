@@ -37,7 +37,7 @@ OBJ    := $(BUILD)/main.o
 SYM    := $(BUILD)/lsdj9_4_0.sym
 MAP    := $(BUILD)/lsdj9_4_0.map
 
-.PHONY: all compare verify-rom sym carve gfx listing audit match clean tidy baseline
+.PHONY: all compare verify-rom sym carve gfx kits listing audit match clean tidy baseline
 .SECONDARY:
 
 all: $(TARGET)
@@ -66,6 +66,19 @@ $(BUILD)/gfx/%.2bpp: gfx/%.png
 gfx/%.png: | $(BASEROM)
 	tools/carve_clean.py
 gfx: $(GFX_2BPP)
+	@:
+
+# --- Kits ------------------------------------------------------------------
+# The same for the kits' samples: data/kits/<kit>/<NN>_<sample>.wav, extracted
+# from your ROM when missing (tools/gen_main.py) and converted back to 4-bit
+# samples by tools/kits.py; edit one and the build takes it.
+KIT_PCM := $(sort $(shell grep -ho 'build/kits/[a-z0-9_/]*\.pcm' src/main.asm 2>/dev/null))
+.NOTINTERMEDIATE: data/kits/%.wav $(BUILD)/kits/%.pcm
+$(BUILD)/kits/%.pcm: data/kits/%.wav tools/kits.py
+	@tools/kits.py pcm $< $@
+data/kits/%.wav: | $(BASEROM)
+	tools/gen_main.py
+kits: $(KIT_PCM)
 	@:
 
 # --- Matching C (Track 2) --------------------------------------------------
@@ -101,18 +114,18 @@ match: | $(BASEROM)
 
 # Auto-carve on a fresh clone: main.asm is the linker entry point; if it is
 # missing, generate the whole tree first.
-src/main.asm: $(CARVED_ASM) constants/ram.inc tools/carve_clean.py tools/disasm.py tools/gfx.py tools/gen_main.py c/matched.json $(C_STAMP) | $(BASEROM)
+src/main.asm: $(CARVED_ASM) constants/ram.inc tools/carve_clean.py tools/disasm.py tools/gfx.py tools/gen_main.py tools/kits.py c/matched.json $(C_STAMP) | $(BASEROM)
 	tools/carve_clean.py
 
 # --- Assemble + link + fix -------------------------------------------------
 src/ramsections.asm: constants/ram.inc tools/gen_ram_sections.py tools/gen_sym.py
 	tools/gen_ram_sections.py
 
-# The sub-make converts the PNGs a fresh carve has just written (this make
-# read gfx/ before the carve ran).
-$(OBJ): src/main.asm src/ramsections.asm include/hardware.inc include/macros.inc $(BUILD)/rgbdscheck.o $(GFX_2BPP) | $(BASEROM)
+# The sub-make converts the PNGs and WAVs a fresh carve has just written (this
+# make read the carved asm before the carve ran).
+$(OBJ): src/main.asm src/ramsections.asm include/hardware.inc include/macros.inc $(BUILD)/rgbdscheck.o $(GFX_2BPP) $(KIT_PCM) | $(BASEROM)
 	@mkdir -p $(@D)
-	@$(MAKE) --no-print-directory gfx
+	@$(MAKE) --no-print-directory gfx kits
 	$(RGBASM) $(RGBASMFLAGS) -o $@ $<
 
 $(BUILD)/rgbdscheck.o: rgbdscheck.asm
@@ -176,7 +189,8 @@ baseline: | $(BASEROM)
 
 # --- Housekeeping ----------------------------------------------------------
 # `clean` also removes the deployed root symbol copy (.emu/ is gitignored
-# runtime) and the generated disassembly; gfx/*.png stay (they may be edits).
+# runtime) and the generated disassembly; gfx/*.png and data/kits/ stay (they
+# may be edits).
 clean:
 	rm -rf $(BUILD) $(ROMSYM) src/bank*.asm src/main.asm src/ramsections.asm
 

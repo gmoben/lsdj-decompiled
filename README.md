@@ -114,13 +114,16 @@ ROM with all names applied; RGBDS assembles it back; `make compare` asserts
 the result equals your original, byte for byte. If the bytes drift, the
 change was wrong — that invariant has held through every commit.
 
-The graphics come out the same way: the carve extracts the fonts and UI
-tiles from your ROM to `gfx/*.png` (4-colour indexed PNGs), and the build
-converts them back with `rgbgfx`. Edit one and `make` builds the ROM with
-your tiles (`make compare` then reports the difference, as it should); the
-carve never overwrites a PNG that is already there, and deleting one
-extracts it again. An edit keeps the image indexed with its four palette
-entries in order (colours 0-3, white to black) and the block's tile count.
+The graphics and the drum kits come out the same way: the carve extracts the
+fonts and UI tiles from your ROM to `gfx/*.png` (4-colour indexed PNGs) and
+each kit sample to `data/kits/<kit>/<NN>_<sample>.wav`, and the build converts
+them back (`rgbgfx`, `tools/kits.py`). Edit one and `make` builds the ROM with
+your tiles or sounds (`make compare` then reports the difference, as it
+should); the carve never overwrites a file that is already there, and
+deleting one extracts it again. A PNG stays indexed with its four palette
+entries in order (colours 0-3, white to black) and keeps the block's tile
+count; a sample can change length (the kit's pointers follow), is read at
+11468 Hz without resampling, and is quantised to 4 bits.
 
 ## Strategy: asm now, matching C later
 
@@ -177,7 +180,7 @@ lsdj-decompiled/
 │   ├── ram.inc           # RAM variable map (~800 named wXxx/hXxx vars)
 │   ├── screens.inc       # screen indices (wCurrentScreen) -> editor
 │   └── song.inc          # song-data memory map (offsets, counts)
-├── data/                 # extracted data tables (added as carved)
+├── data/kits/            # the kits' samples as WAVs: the carve extracts them from your ROM
 ├── gfx/                  # the fonts and UI tiles as PNGs: the carve extracts them from your ROM
 ├── docs/
 │   ├── rom_map.md        # ROM / memory map and per-bank notes
@@ -194,8 +197,9 @@ lsdj-decompiled/
 │   ├── disasm.py         # byte-exact SM83->RGBDS disassembler (self-tested)
 │   ├── coverage.py       # whole-ROM reachability tracing
 │   ├── carve_clean.py    # regenerate src/bankNN.asm (code/data split + symbols)
-│   ├── gen_main.py       # generate main.asm (INCLUDE carved banks, INCBIN kits)
+│   ├── gen_main.py       # generate main.asm (INCLUDE carved banks, the kits)
 │   ├── gfx.py            # the tile block format; the PNGs the carve writes
+│   ├── kits.py           # the kit format; the WAVs the carve writes, converted back
 │   ├── gen_sym.py        # build the debugger symbol file (code + RAM + SRAM)
 │   ├── gen_ram_sections.py  # named WRAM/SRAM sections for the linker map
 │   ├── gen_listing.py    # emit build/listing.asm — whole ROM as one annotated file
