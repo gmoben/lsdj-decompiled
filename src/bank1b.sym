@@ -50,7 +50,7 @@
 5A42 EraseProjectCursor            ; restore the palette of the project screen field under wProjectCursor (1 for fields 0-7)
 5A90 DrawProjectCursor             ; highlight the project screen field under wProjectCursor (ProjectFieldX/Y, ProjectCursorFieldWidth)
 5AE3 DrawDecimalField           ; draw a small decimal value ("%d" via printf)
-5B09 ProjectSyncModeIs015          ; return 1 if wSyncMode in {0,1,5}
+5B09 PrelistenAvailable         ; 1 if the sync mode allows prelisten (OFF, LSDJ, KEYBD); the PRELISTEN field shows N/A otherwise
 5B23 DrawPrelistenField         ; PRELISTEN field: "ON "/"OFF"/"N/A" by wPrelisten + sync mode
 5B62 RedrawProjectPrelisten        ; PRELISTEN field at $992A in the shadow palette (DrawPrelistenField)
 5D7C RefreshProjectScreen       ; drain buttons, clear tilemap, DrawProjectScreen + map row
@@ -153,7 +153,7 @@
 5698 .done                ; common exit of NameEditorInput
 58B0 .done                ; common exit of SyncModeHasParameter
 59B5 .done                ; common exit of DrawSyncField
-5B22 .done                ; common exit of ProjectSyncModeIs015
+5B22 .done                ; common exit of PrelistenAvailable
 5B54 .done                ; common exit of DrawPrelistenField
 5C01 .done                ; common exit of DrawSyncSubSetting
 5D7D .loop                ; loop head in RefreshProjectScreen

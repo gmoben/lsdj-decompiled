@@ -25,7 +25,7 @@ extern UBYTE wProjectDrawScratch;              /* $C9A7 */
 extern UBYTE wProjectDrawScratch2;             /* $C9A8 */
 extern UBYTE wProjectDrawScratch3;             /* $C9A9 */
 void DrawProjectTempo(void);
-UBYTE ProjectSyncModeIs015(void);
+UBYTE PrelistenAvailable(void);
 void DrawPrelistenField(void);
 UBYTE GetNextButtons(void);                 /* bank 0 */
 UBYTE ProjectCursorFieldWidth(void);
@@ -125,7 +125,7 @@ void EraseProjectCursor(void)
 {
     UBYTE palette, y;
 
-    palette = wProjectCursor < 8;
+    palette = wProjectCursor < PROJECT_FIELD_HELP;
     wProjectDrawScratch2 = ProjectCursorFieldWidth();
     y = ProjectFieldY[wProjectCursor];
     ColorField(ProjectFieldX[wProjectCursor], y, wProjectDrawScratch2, palette);
@@ -148,7 +148,7 @@ void DrawDecimalField(UBYTE v)
     printf("%d", v);
 }
 
-UBYTE ProjectSyncModeIs015(void)
+UBYTE PrelistenAvailable(void)
 {
     if (wSyncMode == SYNC_OFF || wSyncMode == SYNC_LSDJ || wSyncMode == SYNC_KEYBOARD)
         return 1;
@@ -157,7 +157,7 @@ UBYTE ProjectSyncModeIs015(void)
 
 void DrawPrelistenField(void)
 {
-    if (ProjectSyncModeIs015())
+    if (PrelistenAvailable())
         DrawString(wPrelisten ? "ON " : "OFF");
     else
         DrawString("N/A");
@@ -298,7 +298,7 @@ UBYTE ProjectScreenInput(void)
         return 0;
     case (J_A | J_RIGHT):
         switch (wProjectCursor) {
-        case 0:
+        case PROJECT_FIELD_TEMPO:
             if (ProjectSyncStateFlag()) {
                 wTickRepeat++;
                 DrawTempo(GetTempoTimerValue() + 1);
@@ -313,7 +313,7 @@ UBYTE ProjectScreenInput(void)
             DrawProjectTempo();
             SaveTempoProperties();
             return 1;
-        case 1:
+        case PROJECT_FIELD_TRANSPOSE:
             if (!wTransposeDirty) {
                 wSongTransposeDisplay = wSongTranspose;
                 wTransposeDirty++;
@@ -321,7 +321,7 @@ UBYTE ProjectScreenInput(void)
             wSongTransposeDisplay++;
             DrawHexByte(wSongTransposeDisplay);
             return 1;
-        case 2:
+        case PROJECT_FIELD_SYNC:
             if (wButtonsSame)
                 return 1;
             if (wSyncMode < 7) {
@@ -337,20 +337,20 @@ UBYTE ProjectScreenInput(void)
             DrawSyncField();
             RedrawProjectPrelisten();
             return 1;
-        case 3:
+        case PROJECT_FIELD_SYNC_PARAMETER:
             if (wSyncMode2 < 0xFF) {
                 wSyncMode2++;
                 DrawSyncMode2Field();
             }
             return 1;
-        case 4:
+        case PROJECT_FIELD_CLONE:
             if (!wCloneMode) {
                 wCloneMode = 1;
                 WriteSongByte(1, SRAM_PROPERTY_CLONE_MODE, 1);
                 DrawString("SLIM");
             }
             return 1;
-        case 5:
+        case PROJECT_FIELD_LOOK:
             if (wButtonsSame)
                 return 0;
             if (!hGameboyType && wColorSet == 3)
@@ -364,7 +364,7 @@ UBYTE ProjectScreenInput(void)
             if (!hGameboyType && wColorSet == 2)
                 FarCall(0x1E, FAR_FN(LoadFontTiles));
             return 1;
-        case 6:
+        case PROJECT_FIELD_KEY_DELAY_REPEAT:
             if (wKeyRepeat == 0x0F || !wAHeld)
                 return 1;
             wAHeld = 0;
@@ -373,7 +373,7 @@ UBYTE ProjectScreenInput(void)
             DrawKeyRepeatField();
             WriteSongByte(1, SRAM_PROPERTY_KEY_REPEAT, wKeyRepeat);
             return 1;
-        case 7:
+        case PROJECT_FIELD_PRELISTEN:
             wPrelisten = 1;
             DrawPrelistenField();
             WriteSongByte(1, SRAM_PROPERTY_PRELISTEN, wPrelisten);
@@ -382,7 +382,7 @@ UBYTE ProjectScreenInput(void)
         break;
     case (J_A | J_LEFT):
         switch (wProjectCursor) {
-        case 5:
+        case PROJECT_FIELD_LOOK:
             if (!wColorSet || wButtonsSame)
                 return 0;
             wColorSet--;
@@ -392,7 +392,7 @@ UBYTE ProjectScreenInput(void)
             if (!hGameboyType && wColorSet == 1)
                 FarCall(0x1E, FAR_FN(LoadFontTiles));
             return 1;
-        case 0:
+        case PROJECT_FIELD_TEMPO:
             if (ProjectSyncStateFlag()) {
                 wFrameSkip++;
                 DrawTempo(GetTempoTimerValue() - 1);
@@ -407,7 +407,7 @@ UBYTE ProjectScreenInput(void)
             DrawProjectTempo();
             SaveTempoProperties();
             return 1;
-        case 1:
+        case PROJECT_FIELD_TRANSPOSE:
             if (!wTransposeDirty) {
                 wSongTransposeDisplay = wSongTranspose;
                 wTransposeDirty++;
@@ -415,7 +415,7 @@ UBYTE ProjectScreenInput(void)
             wSongTransposeDisplay--;
             DrawHexByte(wSongTransposeDisplay);
             return 1;
-        case 2:
+        case PROJECT_FIELD_SYNC:
             if (wButtonsSame)
                 return 1;
             if (wSyncMode != SYNC_OFF) {
@@ -431,20 +431,20 @@ UBYTE ProjectScreenInput(void)
             DrawSyncField();
             RedrawProjectPrelisten();
             return 1;
-        case 3:
+        case PROJECT_FIELD_SYNC_PARAMETER:
             if (wSyncMode2 > 1) {
                 wSyncMode2--;
                 DrawSyncMode2Field();
             }
             return 1;
-        case 4:
+        case PROJECT_FIELD_CLONE:
             if (wCloneMode) {
                 wCloneMode = 0;
                 WriteSongByte(1, SRAM_PROPERTY_CLONE_MODE, 0);
                 DrawString("DEEP");
             }
             return 1;
-        case 6:
+        case PROJECT_FIELD_KEY_DELAY_REPEAT:
             if (!wKeyRepeat || !wAHeld)
                 return 0;
             wAHeld = 0;
@@ -453,7 +453,7 @@ UBYTE ProjectScreenInput(void)
             DrawKeyRepeatField();
             WriteSongByte(1, SRAM_PROPERTY_KEY_REPEAT, wKeyRepeat);
             return 1;
-        case 7:
+        case PROJECT_FIELD_PRELISTEN:
             wPrelisten = 0;
             DrawPrelistenField();
             WriteSongByte(1, SRAM_PROPERTY_PRELISTEN, wPrelisten);
@@ -462,7 +462,7 @@ UBYTE ProjectScreenInput(void)
         break;
     case (J_A | J_UP):
         switch (wProjectCursor) {
-        case 5:
+        case PROJECT_FIELD_LOOK:
             if (wButtonsSame)
                 return 0;
             if (wFont != 2) {
@@ -472,7 +472,7 @@ UBYTE ProjectScreenInput(void)
                 FarCall(0x1E, FAR_FN(LoadFontTiles));
             }
             return 1;
-        case 0:
+        case PROJECT_FIELD_TEMPO:
             if (ProjectSyncStateFlag())
                 return 0;
             wTempo += 10;
@@ -482,7 +482,7 @@ UBYTE ProjectScreenInput(void)
             DrawProjectTempo();
             SaveTempoProperties();
             return 1;
-        case 1:
+        case PROJECT_FIELD_TRANSPOSE:
             if (!wTransposeDirty) {
                 wSongTransposeDisplay = wSongTranspose;
                 wTransposeDirty++;
@@ -493,7 +493,7 @@ UBYTE ProjectScreenInput(void)
             wSongTransposeDisplay += 12;
             DrawHexByte(wSongTransposeDisplay);
             return 1;
-        case 6:
+        case PROJECT_FIELD_KEY_DELAY_REPEAT:
             if (wKeyDelay == 0x0F || !wAHeld)
                 return 1;
             wAHeld = 0;
@@ -506,7 +506,7 @@ UBYTE ProjectScreenInput(void)
         break;
     case (J_A | J_DOWN):
         switch (wProjectCursor) {
-        case 0:
+        case PROJECT_FIELD_TEMPO:
             if (ProjectSyncStateFlag())
                 return 0;
             wTempo -= 10;
@@ -516,7 +516,7 @@ UBYTE ProjectScreenInput(void)
             DrawProjectTempo();
             SaveTempoProperties();
             return 1;
-        case 1:
+        case PROJECT_FIELD_TRANSPOSE:
             if (!wTransposeDirty) {
                 wSongTransposeDisplay = wSongTranspose;
                 wTransposeDirty++;
@@ -527,7 +527,7 @@ UBYTE ProjectScreenInput(void)
             wSongTransposeDisplay -= 12;
             DrawHexByte(wSongTransposeDisplay);
             return 1;
-        case 5:
+        case PROJECT_FIELD_LOOK:
             if (wButtonsSame)
                 return 0;
             if (wFont) {
@@ -537,7 +537,7 @@ UBYTE ProjectScreenInput(void)
                 FarCall(0x1E, FAR_FN(LoadFontTiles));
             }
             return 1;
-        case 6:
+        case PROJECT_FIELD_KEY_DELAY_REPEAT:
             if (!wKeyDelay || !wAHeld)
                 return 1;
             wAHeld = 0;
@@ -551,11 +551,11 @@ UBYTE ProjectScreenInput(void)
     case J_DOWN:
         if (!wProjectMenuActive) {
             EraseProjectCursor();
-            if (wProjectCursor < 0x0B)
+            if (wProjectCursor < PROJECT_FIELD_LOAD_SAVE_SONG)
                 wProjectCursor++;
-            if (wProjectCursor == 7 && !ProjectSyncModeIs015())
+            if (wProjectCursor == PROJECT_FIELD_PRELISTEN && !PrelistenAvailable())
                 wProjectCursor++;
-            else if (wProjectCursor == 3 && !SyncModeHasParameter())
+            else if (wProjectCursor == PROJECT_FIELD_SYNC_PARAMETER && !SyncModeHasParameter())
                 wProjectCursor++;
             DrawProjectCursor();
         } else {
@@ -570,9 +570,9 @@ UBYTE ProjectScreenInput(void)
             EraseProjectCursor();
             if (wProjectCursor)
                 wProjectCursor--;
-            if (wProjectCursor == 7 && !ProjectSyncModeIs015())
+            if (wProjectCursor == PROJECT_FIELD_PRELISTEN && !PrelistenAvailable())
                 wProjectCursor--;
-            else if (wProjectCursor == 3 && !SyncModeHasParameter())
+            else if (wProjectCursor == PROJECT_FIELD_SYNC_PARAMETER && !SyncModeHasParameter())
                 wProjectCursor--;
             DrawProjectCursor();
         } else {
@@ -585,7 +585,7 @@ UBYTE ProjectScreenInput(void)
     case (J_SELECT | J_B | J_A):
         if (!wAPressEnabled)
             return 0;
-        if (!wProjectMenuActive && wProjectCursor == 0x0B)
+        if (!wProjectMenuActive && wProjectCursor == PROJECT_FIELD_LOAD_SAVE_SONG)
             goto openMenu;
         if (!wProjectMenuActive || wProjectMenuItem)
             break;
@@ -600,7 +600,7 @@ UBYTE ProjectScreenInput(void)
         if (!wAPressEnabled)
             return 0;
         switch (wProjectCursor) {
-        case 0:
+        case PROJECT_FIELD_TEMPO:
             if (ProjectSyncStateFlag())
                 break;
             TapTempoStep();
@@ -608,25 +608,25 @@ UBYTE ProjectScreenInput(void)
             DrawProjectTempo();
             SaveTempoProperties();
             return 1;
-        case 9:
+        case PROJECT_FIELD_CLEAN_SONG_DATA:
             FarCall(0x1C, FAR_FN(FileStopSound));
             EraseProjectCursor();
             DrawProjectTextField(3, 4, 0x0F, 8);
             FarCall(0x1F, FAR_FN(CleanSongData));
             RefreshProjectScreen();
             return 1;
-        case 10:
+        case PROJECT_FIELD_CLEAN_INSTRUMENT_DATA:
             FarCall(0x1C, FAR_FN(FileStopSound));
             EraseProjectCursor();
             DrawProjectTextField(3, 4, 0x0F, 9);
             FarCall(0x1F, FAR_FN(CleanInstrumentData));
             RefreshProjectScreen();
             return 1;
-        case 8:
+        case PROJECT_FIELD_HELP:
             wCurrentScreen = SCREEN_HELP;
             FarCall(4, FAR_FN(RedrawScreen));
             return 1;
-        case 3:
+        case PROJECT_FIELD_SYNC_PARAMETER:
             if (wSyncMode == SYNC_KEYBOARD) {
                 FarCall(0x1C, FAR_FN(FileStopSound));
                 FarCall(7, DrawCalibrationScreen);
@@ -634,7 +634,7 @@ UBYTE ProjectScreenInput(void)
                 FarCall(4, FAR_FN(RedrawScreen));
             }
             return 1;
-        case 11:
+        case PROJECT_FIELD_LOAD_SAVE_SONG:
             if (wSramHasFileBanks) {
                 if (wProjectMenuActive)
                     goto closeMenu;

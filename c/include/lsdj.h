@@ -191,6 +191,21 @@ typedef int WORD;
 #define NOISE_FIELD_TABLE_ADVANCE      11
 #define NOISE_FIELD_TABLE              12
 
+/* wProjectCursor: the PROJECT screen's fields, top to bottom (ProjectFieldX
+ * has their places) */
+#define PROJECT_FIELD_TEMPO                  0
+#define PROJECT_FIELD_TRANSPOSE              1
+#define PROJECT_FIELD_SYNC                   2
+#define PROJECT_FIELD_SYNC_PARAMETER         3
+#define PROJECT_FIELD_CLONE                  4
+#define PROJECT_FIELD_LOOK                   5
+#define PROJECT_FIELD_KEY_DELAY_REPEAT       6
+#define PROJECT_FIELD_PRELISTEN              7
+#define PROJECT_FIELD_HELP                   8
+#define PROJECT_FIELD_CLEAN_SONG_DATA        9
+#define PROJECT_FIELD_CLEAN_INSTRUMENT_DATA  10
+#define PROJECT_FIELD_LOAD_SAVE_SONG         11
+
 /* wSyncMode (2 and 4 are no mode: the PROJECT screen steps over them) */
 #define SYNC_OFF             0
 #define SYNC_LSDJ            1

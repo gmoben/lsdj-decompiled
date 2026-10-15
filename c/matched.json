@@ -2663,6 +2663,12 @@
   "len": 40,
   "src": "c/bank00/Sprites.c"
  },
+ "PrelistenAvailable": {
+  "bank": "1B",
+  "addr": "5B09",
+  "len": 26,
+  "src": "c/bank1b/ProjectScreen.c"
+ },
  "PrelistenCursorRow": {
   "bank": "04",
   "addr": "572C",
@@ -2745,12 +2751,6 @@
   "bank": "1B",
   "addr": "5DBF",
   "len": 3229,
-  "src": "c/bank1b/ProjectScreen.c"
- },
- "ProjectSyncModeIs015": {
-  "bank": "1B",
-  "addr": "5B09",
-  "len": 26,
   "src": "c/bank1b/ProjectScreen.c"
  },
  "RaiseInstrumentCommandRate": {
