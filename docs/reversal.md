@@ -26,12 +26,14 @@ Open — readability, none affect the bytes:
   `partial: pops what the code before it pushed`; `CallHL` calls whatever is
   in hl. A routine's `out` is what its callers read, so one no code calls
   (`ModS8`, `DivS16`, the vectors) lists what it changes instead.
-- **Untraced outputs.** A hand-written routine's comment says what its
-  registers carry in and out, except a few `out`s the contract lists and no
-  comment explains: a value some caller reads after the call whose meaning
-  nobody has traced (`SoundModulateWavFrequency`'s and
-  `SoundProcessChannelTable`'s `a`, `SoundLoadWaveRam`'s and
-  `SoundTriggerWav`'s `b`).
+- **A likely LSDj bug.** `SoundSpeechStep` (C, so it keeps a local in b
+  across calls, as SDCC 2.2.1's functions save bc) calls `SoundTriggerWav`,
+  whose wave-reload path (no kit playing, `wWavRamDirty` set) leaves bc =
+  the WAV frequency (`SoundLoadWaveRam` pops it through bc); the note it then
+  marks for the sample-name display (`wChannelDisplayNote + 2`) would be the
+  frequency's high byte. Whether speech ever takes that path is untested.
+  The register contracts found it: it is the one place a C caller reads b
+  or c after an asm routine that changes it.
 - **Unread table.** The 108-entry 16-bit ramp at `$00:$09B9` is
   `UnusedRampTable`: no code reads it.
 

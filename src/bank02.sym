@@ -18,7 +18,7 @@
 6007 SoundTriggerNote           ; dispatch by hSoundChannel to the per-voice trigger below
 604B SoundTriggerPu1            ; PU1 note-on: rAUD1 sweep/env/freq + trigger
 6091 SoundTriggerPu2            ; PU2 note-on: rAUD2 env/freq + trigger
-60D1 SoundTriggerWav            ; WAV note-on: rAUD3 level/freq + trigger
+60D1 SoundTriggerWav            ; WAV note-on: rAUD3 level/freq + trigger. On the wave-reload path (no kit playing, wWavRamDirty set) SoundLoadWaveRam leaves bc = the WAV frequency, while SoundSpeechStep, C, keeps in b the note it then marks for the sample-name display (wChannelDisplayNote + 2)
 6014 SoundTriggerNoi            ; NOI note-on: rAUD4 len/env/poly + trigger
 5151 SoundReadChannelCursor     ; hl = an array's base: -> e = the byte under channel hSoundChannel's 16-bit cursor in it; SRAM-guarded
 485A SoundInitializeStatePointers ; set $C8xx to the low-bytes of the engine's $C1xx state ptrs
@@ -31,7 +31,7 @@
 4F33 FillChannel8               ; write a to the 8 bytes from hl, -> hl past them (clears a per-channel 16-bit array)
 4F37 FillChannel4               ; write a to the 4 bytes from hl, -> hl past them (clears a per-channel [4] array)
 ; --- Table macro playback (per-channel; runs the instrument's table) ----------
-4668 SoundProcessChannelTable   ; advance/apply the channel's table (wChannelTable/Played/Countdown); calls the column readers
+4668 SoundRetriggerNoi          ; retrigger the noise channel after a pitch change (SoundClampNoteRange's tail): NR42 = the volume from wChannelEnvelopeNoi's low nibble, no envelope ($08), then NR44's trigger bit; -> a = NR44's value (nonzero), the a SoundRunTableStep's NOI path hands back
 574B SoundReadTableEnvelope     ; read table_envelopes[wChannelTable][row] (song $1690 = SRAM bank0 $B690)
 587D SoundReadTableTranspose    ; read table_transposes[wChannelTable][row] (song $3480 = SRAM bank1 $B480)
 487E SoundReadGroove            ; -> e = grooves[wChannelGroove][wChannelGrooveRow] (song $1090 = SRAM bank0 $B090) via wPointerGroove/wPointerGrooveRow
@@ -105,7 +105,7 @@
 4F3C SoundDecodeCommandNibbles  ; decode a command's nibbles ($01/$02 cases)
 4FC0 SoundApplyTableCommand     ; (cp $02) SoundReadSramByteVia then jp SoundClampNoteRange
 503C SoundReadSramByteVia       ; hl -> a pointer: -> e = the SRAM byte it points at ($0A enable, di/reti)
-504A SoundRunTableStep          ; run a table step (SoundDecodeCommandNibbles, SoundNoiChordStep)
+504A SoundRunTableStep          ; run a table step (SoundDecodeCommandNibbles, SoundNoiChordStep); -> a nonzero when the channel's frequency should be rewritten: the count while the command rate counts down, else what the step leaves (its pitch-moved flags, SoundModulateWavFrequency's or SoundRetriggerNoi's a), which SoundSetupWaveChannel ORs into wChannelCommandStep
 5074 SoundRandom15              ; -> e = randw() % 15: B (MayBe) in a phrase plays when this is below the probability digit
 507F SoundAdvanceStatePointers  ; advance the 7 working sound-state pointers (low bytes wPointerChainRow/e1/e3/e5/e7/eb/ed) to the next channel's slot in the $C1xx tables (counterpart of SoundInitializeStatePointers)
 509C SoundReadPhraseCommand     ; -> e = the current row's phrase command (0 none; SRAM bank 2 phrase_fx), kept with its value for the channel; H/W special-cased
@@ -131,7 +131,7 @@
 58C7 SoundFillFF                ; write $FF to the 32 bytes from hl (-> hl past them, a = $FF)
 58EA SoundLoadInstrument        ; copy the 16-byte instrument record instruments[a] (SRAM bank1 $B080+a*16) into wCurrentInstrument ($C0D0)
 5F5E SoundResetChannelCommand   ; reset this channel's (hSoundChannel) retrigger rate, pitch slide and vibrato, and its LFO
-5FA7 SoundResetWavCommand       ; the WAV channel's part of SoundResetChannelCommand (retrigger, update flags, pitch rate, frame delta, vibrato)
+5FA7 SoundResetWavCommand       ; the WAV channel's part of SoundResetChannelCommand (retrigger, update flags, pitch rate, frame delta, vibrato); -> a = 0, which SoundResetChannelCommand also stores in wWavUploadPending and rAUD3ENA
 5FBE SoundResetWavFlat          ; SoundResetWavCommand, then a flat wave ($77 x 16) in hWavUploadBuffer
 5FDA SoundSetChannelEnable      ; enable/disable this channel in rAUDENA (per hSoundChannel; SoundWritePanning)
 61A9 SoundWritePanning          ; a & 3 = the channel's output (the O command): set this channel's panning bits in rAUDTERM (wChannelOutputOverride when its bit 7 is set)

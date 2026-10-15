@@ -82,7 +82,7 @@
 75B7 TxtHexCellPrefix3          ; "C "
 75BA DrawNoteName               ; draw note v for channel col: '---' for 0; the noise channel's values (hex below $3C, the kit notes C 5..C 8); else a NoteNames entry (the wave channel an octave down); '???' past the table
 784C ShiftScopeSamples          ; sla each of N bytes from de (scope/visualization helper)
-786F DrawScopePoint             ; c = the PCM register to sample (rPCM12/rPCM34), de = the scope bitmap row: plot its two nibbles' samples, each after ShiftScopeSamples
+786F DrawScopePoint             ; c = the PCM register to sample (rPCM12/rPCM34), de = the scope bitmap row: plot its two nibbles' samples, each after ShiftScopeSamples; -> a = the last bitmap byte it set (nonzero), which UpdateScope stores in wScopeDirty
 78B8 UpdateScope                ; update scope from wScopeDirty/wScopeRefresh/wScopeBitmap
 ; --- functions called from bank 0 (this bank paged in) ---
 74AD DrawSyncStatus             ; draw the sync/lead status by wSyncMode (1/3/6/7 cases)

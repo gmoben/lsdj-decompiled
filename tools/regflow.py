@@ -85,6 +85,9 @@ def phys(bank: int, cpu: int) -> int:
     return cpu if cpu < 0x4000 else bank * 0x4000 + cpu - 0x4000
 
 
+MEMORY_WRITE = re.compile(r"(?:ld|ldh) \[|(?:inc|dec|rlc|rrc|rl|rr|sla|sra|swap|srl|res \d,|set \d,) \[hl\]")
+
+
 def regs_of(names) -> tuple:
     """`flags` stands for both flags."""
     out = []
@@ -228,7 +231,10 @@ def decode(rom: bytes, bank: int, cpu: int) -> Op:
             return o
         src_regs = ("h", "l") if src == "[hl]" else ((src,) if src else ())
         o.uses = ("a",) + src_regs + (("cf",) if alu in (1, 3) else ())
-        o.writes = (("a",) if alu != 7 else ()) + FLAGS
+        if alu in (4, 5, 6):                         # and, xor, or: carry cleared
+            o.writes, o.consts = ("a", "zf"), (("cf", 0),)
+        else:
+            o.writes = (("a",) if alu != 7 else ()) + FLAGS
         return o
     if op in (0xC0, 0xC8, 0xD0, 0xD8):                # ret cc
         o.kind, o.cond = "retcc", FLAG_OF[(op >> 3) & 3]
@@ -785,7 +791,7 @@ class Analysis:
             if not changed:
                 break
 
-    def live_after_calls(self, root, graph):
+    def live_after_calls(self, root, graph, live_out: dict | None = None):
         """[(callees, registers live right after the call)] for every call and
         tail call in root's code (after a tail call: root's own outputs).
 
@@ -793,7 +799,9 @@ class Analysis:
         first): a pushed register is live only if the byte it pushed is
         popped into a live register or dropped by `add sp` (an argument a
         callee read), so `push de / call ... / pop de` does not read de; a
-        byte dropped by `inc sp` (`push af / inc sp`: the flags) is dead."""
+        byte dropped by `inc sp` (`push af / inc sp`: the flags) is dead.
+        A byte no instruction is seen to consume is dead too, so a push/pop
+        pair around a loop does not keep its register live by itself."""
         outs = frozenset(self.contracts[root].outputs)
         empty = (frozenset(), ())
         live: dict[tuple[int, int], tuple] = {k: empty for k in graph}
@@ -801,7 +809,7 @@ class Analysis:
         def join(a, b):
             sa, sb = a[1], b[1]
             n = max(len(sa), len(sb))
-            sa, sb = sa + (True,) * (n - len(sa)), sb + (True,) * (n - len(sb))
+            sa, sb = sa + (False,) * (n - len(sa)), sb + (False,) * (n - len(sb))
             return (a[0] | b[0], tuple(x or y for x, y in zip(sa, sb)))
 
         def flows(key):
@@ -821,6 +829,14 @@ class Analysis:
                 before = ((after[0] - must) | cin, after[1])
                 out = before if out is None else join(out, before)
             regs, stack = out if out is not None else empty
+            # an instruction that only sets registers nobody reads is dead:
+            # its operands are not read either (`or a, a` clearing carry)
+            computed = set(o.writes) | {d for d, _ in o.moves}
+            constants = {r for r, _ in o.consts}
+            if (o.kind == "seq" and (computed or constants) and not o.push and not o.pop
+                    and not o.sp and o.sp_read is None and not MEMORY_WRITE.match(o.text)
+                    and not computed & regs):
+                return (regs - constants, stack), sites
             # the instruction itself, backwards
             if o.pop:                                    # its bytes, top first
                 names = [("cf", "zf") if r == "flags" else (r,) for r in o.pop]
@@ -828,7 +844,7 @@ class Analysis:
                 regs = regs - set(regs_of(o.pop))
             if o.push:                                   # pushed high byte first
                 names = [("zf", "cf") if r == "flags" else (r,) for r in o.push]
-                top = stack[:len(names)] + (True,) * (len(names) - len(stack))
+                top = stack[:len(names)] + (False,) * (len(names) - len(stack))
                 stack = stack[len(names):]
                 for n, alive in zip(reversed(names), top):
                     if alive:
@@ -853,6 +869,8 @@ class Analysis:
                     changed = True
             if not changed:
                 break
+        if live_out is not None:                         # for tools/regflow.py --why
+            live_out.update(live)
         out = []
         for key in graph:
             out += flows(key)[1]

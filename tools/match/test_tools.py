@@ -598,9 +598,22 @@ class RegflowTests(unittest.TestCase):
         self.assertEqual(c[0x100].may, {"a"})
 
     def test_out_is_what_a_caller_reads(self):
-        c = self.contracts({0x100: bytes([0xCD, 0x00, 0x02, 0x7B, 0xC9]),          # call $200; ld a,e; ret
+        c = self.contracts({0x100: bytes([0xCD, 0x00, 0x02, 0x73, 0xC9]),          # call $200; ld [hl],e; ret
                             0x200: bytes([0x1E, 0x05, 0x16, 0x00, 0xC9])})         # ld e,5; ld d,0; ret
         self.assertEqual(regflow.describe(c[0x200]), "in: -; out: e; clobbers: d")
+
+    def test_a_value_nothing_reads_is_not_an_output(self):
+        # call $200; or a,a; ret -- `or a` only clears carry, and no caller reads the flags
+        c = self.contracts({0x100: bytes([0xCD, 0x00, 0x02, 0xB7, 0xC9]),
+                            0x200: bytes([0x3E, 0x01, 0xC9])})                       # ld a,1; ret
+        self.assertEqual(c[0x200].outputs, set())
+
+    def test_a_register_saved_around_a_loop_is_not_read(self):
+        # call $200; .loop: push bc; call $300; pop bc; dec b; jr nz .loop; ret -- c only rides along
+        c = self.contracts({0x100: bytes([0xCD, 0x00, 0x02, 0xC5, 0xCD, 0x00, 0x03, 0xC1, 0x05, 0x20, 0xF8, 0xC9]),
+                            0x200: bytes([0x0E, 0x01, 0xC9]),                       # ld c,1; ret
+                            0x300: bytes([0xC9])})
+        self.assertEqual(c[0x200].outputs, set())
 
     def test_a_byte_argument_pushes_a_not_the_flags(self):
         # ld a,1; push af; inc sp; call $200; inc sp; ret -- the flags byte is dropped

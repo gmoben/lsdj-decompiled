@@ -124,7 +124,10 @@ plain recursive-descent trace couldn't follow them; the bank-aware coverage
 trace (`tools/coverage.py`) now resolves the tables, and `carve_clean.py` only
 marks bytes as data when they are both unreached and data-like. The bit-mask
 table at `$0010` (`80 40 20 10 08 04 02 01 01 02 04 08 10 20 40 80`) is
-`BitMasks`, with per-byte names (`BitMaskBit6`…, `BitMasksAscending`…).
+`BitMasks`, with per-byte names (`BitMaskBit6`…, `BitMasksAscending`…): GBDK
+2.95's `crt0.s` puts it there for its drawing library, which LSDj does not
+link, so no code reads it (the two `ld hl, $0010` in bank `$02` are the number
+16).
 
 See [`functionality.md`](functionality.md) for the recovered behaviour
 (interrupt model, sound/sync/input/LCD engines, banking, RAM map). Named

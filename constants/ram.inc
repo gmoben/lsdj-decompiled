@@ -760,7 +760,7 @@ DEF wCommandSlideTargetNote           EQU $C68E  ; slide (L cmd) destination not
 DEF wCommandSlideNote                 EQU $C68F  ; slide base-note scratch (current note or wNoteOctave source)
 DEF wCommandSlidePitch                EQU $C690  ; slide start pitch lo (-> wChannelPitchCurrent)
 DEF wCommandSlidePitchHigh            EQU $C691  ; slide start pitch hi
-DEF wNoiPitchSafe                     EQU $C692  ; noise instrument byte 2, PITCH: nonzero = SAFE, 0 = FREE (manual C.4; SoundSetupNoi copies it); after a pitch change SAFE goes on to SoundProcessChannelTable, FREE returns for notes >= $3C
+DEF wNoiPitchSafe                     EQU $C692  ; noise instrument byte 2, PITCH: nonzero = SAFE, 0 = FREE (manual C.4; SoundSetupNoi copies it); after a pitch change SAFE goes on to SoundRetriggerNoi, FREE returns for notes >= $3C
 DEF wWavSynthFrame                    EQU $C694  ; current wav-synth frame index (seeded from wWavSynthRepeat; W cmd value adds)
 DEF wWavSynthEnd                      EQU $C695  ; effective wav-synth frame count = min(instr LENGTH, wCommandWaveParameter)
 DEF wChannelFinetunePu1High           EQU $C697  ; wChannelFinetune[0] hi byte (Pu1)
