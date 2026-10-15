@@ -184,7 +184,6 @@
 78C4 SoundToggleSongPlayback         ; SELECT+START on any screen: SoundTogglePlayback as if on the song screen (all four channels); live mode: SoundLiveStopRange
 5EDA NoiseFrequencyTable             ; [noise note] -> NR43 poly/divisor byte (120 entries)
 5F52 SoundSetNoisePolynomial               ; a = NoiseFrequencyTable[a] -> rAUD4POLY (NR43); noise-channel pitch
-7FF0 WavFrequencyTable               ; WAV channel sample-rate steps (Command_P_Step)
 7F51 SoundStepEnvelopeToTarget            ; step channel volume [hl] toward e via zombie mode ($08 nudge up / SoundFadeEnvelopeStepDown); c = rAUDxENV; shared tail of SoundSetupLfo*
 7F5C .stepDown           ; target below current: fade one step down (SoundFadeEnvelopeStepDown)
 

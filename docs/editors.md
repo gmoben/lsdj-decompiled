@@ -108,8 +108,8 @@ Before most screen draws, the dispatch prologue calls `DrawScreenColumnLabels`
 [`../constants/ram.inc`](../constants/ram.inc).
 
 **Carved banks: 13 of 64** — `$00`-`$07` and `$1B`-`$1F`, i.e. **every program
-bank**. The remaining `INCBIN` banks are the 21 sample kits (`$08`-`$1A`,
-`$20`-`$21`) and 30 empty banks (`$22`-`$3F`) — both correctly left as raw data.
+bank**. The 21 sample kits (`$08`-`$1A`, `$20`-`$21`) are `INCBIN`s, and the 30
+kit slots with no kit in them (`$22`-`$3F`, all `$FF`) are `ds $4000, $ff`.
 
 ## The screens (LSDj manual)
 
@@ -143,7 +143,7 @@ from the ROM itself). `make compare` is the invariant throughout.
 
 - Engine/UI code: banks `$00`-`$07`, `$1B`-`$1F` (editors are here).
 - Bank `$01`: UI **string table** (+ code).
-- Sample kits: `$08`-`$1A`, `$20`-`$21`. Empty: `$22`-`$3F`.
+- Sample kits: `$08`-`$1A`, `$20`-`$21`. Empty kit slots: `$22`-`$3F`.
 
 ## Project editor
 
@@ -207,7 +207,7 @@ byte): draw routines below, input handlers in the input-index table above.
 
 All 13 program banks (`$00`-`$07`, `$1B`-`$1F`) are carved; the only `INCBIN`s
 left are the 21 sample kits (`$08`-`$1A`, `$20`-`$21`, emitted as labeled
-per-kit/per-sample sections) and the 30 empty banks (`$22`-`$3F`).
+per-kit/per-sample sections). The 30 empty kit slots (`$22`-`$3F`) are `$FF`.
 
 The whole screen system is named: the spine (`main.mainLoop`, `ProcessInput`,
 `HandleButtonEvent`, `DispatchScreenInput`, `DispatchScreenDraw` +

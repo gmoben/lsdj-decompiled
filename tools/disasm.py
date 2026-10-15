@@ -226,9 +226,13 @@ def _db_str(run: bytes) -> str:
     return 'db "' + "".join(out) + '"'
 
 
+FILL_MIN = 16    # a run of at least this many $FF bytes is padding
+
+
 def _emit_data(data: bytes, lo: int, hi: int, base_addr: int) -> list[Row]:
-    """Emit a data range as rows: printable runs (>= 4) as `db "TEXT"`, the rest
-    as hex `db` lines (<= 16 bytes). Byte-exact either way."""
+    """Emit a data range as rows: runs of FILL_MIN or more $FF (the ROM's
+    padding) as `ds n, $ff`, printable runs (>= 4) as `db "TEXT"`, the rest as
+    hex `db` lines (<= 16 bytes). Byte-exact either way."""
     rows: list[Row] = []
     pend: list[tuple[int, int]] = []
 
@@ -244,6 +248,15 @@ def _emit_data(data: bytes, lo: int, hi: int, base_addr: int) -> list[Row]:
 
     i = lo
     while i < hi:
+        if data[i] == 0xFF:
+            j = i
+            while j < hi and data[j] == 0xFF:
+                j += 1
+            if j - i >= FILL_MIN:
+                flush()
+                rows.append((base_addr + (i - lo), data[i:j], f"ds {j - i}, $ff", None))
+                i = j
+                continue
         if 0x20 <= data[i] <= 0x7E:
             j = i
             while j < hi and 0x20 <= data[j] <= 0x7E:
@@ -374,6 +387,9 @@ IncBin = tuple[int, int, str, int]   # (lo, hi) file offsets, source path, offse
 # verbatim directive. Rows from it carry these `ref` markers:
 C_ROW, C_TEXT = -1, -2
 CLines = tuple[int, int, list[tuple[int, str, str]]]
+# A comment line of the carve's own (the free space at the end of a bank, a
+# data block's format), printed verbatim before the row at its address.
+NOTE = -3
 
 
 # Banked calls: the caller pushes the callee's arguments, its address and its
@@ -382,12 +398,13 @@ FARCALL_NAMES = frozenset({"FarCall", "FarCallArgument", "FarCallByte", "FarCall
                            "FarCallArgument2V", "FarCallArgument2", "FarCallArgument3"})
 # `ld hl, nn` / `ld [hl], x` with nn one of these is an MBC5 register write
 MBC_REGS = {0x2000: "rROMB0", 0x4000: "rRAMB"}
-# A ROM-address operand: (bank, address) to print as a label, or a fixed name.
-Pointer = "tuple[int, int] | str"
+# A ROM-address operand: (bank, address) to print as a label, the same with
+# "LOW"/"HIGH" for one byte of it, or a fixed name.
+Pointer = "tuple[int, int] | tuple[int, int, str] | str"
 
 
 def _decoded(row: Row) -> bool:
-    return row[3] not in (C_ROW, C_TEXT) and not row[2].startswith(("db", "dw", "INCBIN"))
+    return row[3] not in (C_ROW, C_TEXT, NOTE) and not row[2].startswith(("db", "dw", "ds", "INCBIN"))
 
 
 _PAIR_OF = {"a": "af", "b": "bc", "c": "bc", "d": "de", "e": "de", "h": "hl", "l": "hl"}
@@ -817,6 +834,14 @@ def disassemble(data: bytes, start: int, end: int, org: int,
                 ref = raw[1] | (raw[2] << 8)
             out.append((addr, raw, _fmt(length, kind, template, raw, addr), ref))
         o += length
+    # The free space at the end of a bank pads from wherever the content ends,
+    # so the bank can grow into it (and an overflow stops the assembler).
+    bank_end = org + (end - start)
+    if out and bank_end & 0x3FFF == 0:
+        a, raw, text, ref = out[-1]
+        if text.startswith("ds ") and ref is None and a + len(raw) == bank_end:
+            out[-1:] = [(a, b"", f"; Free space: {len(raw):,} bytes to the end of the bank.", NOTE),
+                        (a, raw, f"ds ${bank_end:04x} - @, $ff", None)]
     missed = [f"${org + (lo - start):04x}" for lo, _hi, _r in clines
               if lo not in used and start <= lo < end]
     if missed:   # the decode ran across their start: would silently drop the C
@@ -1019,7 +1044,7 @@ def render(rows: list[Row], comments: bool,
         if addr in labels and addr not in printed:
             lines.append(f"{labels[addr]}:")
             printed.add(addr)
-        if ref == C_TEXT:                    # matching C: its own label / a directive
+        if ref in (C_TEXT, NOTE):            # matching C's label / directive, a note
             lines.append(text)
             continue
         if ref == C_ROW:                     # matching C: already symbolic
@@ -1051,7 +1076,7 @@ def render(rows: list[Row], comments: bool,
         if not text.startswith("INCBIN"):
             text = _sub_hw_regs(text)
             text = _sub_ram_syms(text)
-        if comments and not text.startswith(('db "', "INCBIN")):
+        if comments and not text.startswith(('db "', "ds ", "INCBIN")):
             hexb = " ".join(f"{b:02x}" for b in raw)
             lines.append(f"\t{text:<28} ; ${addr:04x}: {hexb}")
         elif comments:

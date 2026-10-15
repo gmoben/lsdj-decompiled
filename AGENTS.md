@@ -288,7 +288,10 @@ substituted at all call/jump sites (byte-safe). Record what the routine *does*
 in `docs/functionality.md`.
 
 - `--data lo:hi[,lo:hi]` marks file-offset ranges as `db` (e.g. the header,
-  graphics, tables) so they are not mis-decoded as code.
+  graphics, tables) so they are not mis-decoded as code. In them a run of 16
+  or more `$FF` is padding, `ds n, $ff`; the one at the end of a bank is its
+  free space and pads to the bank's end (`ds $8000 - @, $ff`), so code added
+  to the bank takes the space (`docs/rom_map.md` → *Free space*).
 - Labels are generated for in-range branch/call targets, plus named interrupt
   vectors and `Entry`; `$FFxx` I/O accesses become `hardware.inc` register
   names. Both are byte-safe (they resolve to the same addresses).
@@ -626,6 +629,12 @@ Always, before committing:
       the file screen's load/save (a tour recorded on the reference)
 - [ ] Bank 0's page-aligned tables (`$0200`-`$0390`) in fixed sections
 - [ ] Behaviour tests for builds that no longer match: a fork's gate
+- [x] Padding as `ds`: each carved bank's free space pads to the end of the
+      bank, and the 30 empty kit slots (`$22`-`$3F`) are `ds $4000, $ff`
+- [ ] The ROM's data as assets the carve extracts from your ROM (never
+      committed): the fonts and UI tiles as PNGs `rgbgfx` converts back, the
+      screen attribute maps, tables and text in their own shapes, the kits'
+      samples as WAVs
 
 ## References
 

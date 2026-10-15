@@ -198,6 +198,26 @@ class PointerTests(unittest.TestCase):
         self.assertEqual(disasm.render(rows, False, {}), "\tjr nc, @ + 1")
 
 
+class FillTests(unittest.TestCase):
+    """$FF runs are padding: `ds n, $ff`, and the one at the end of a bank pads
+    to the bank's end from wherever the content before it ends."""
+
+    def test_long_ff_runs_are_ds_short_ones_stay_bytes(self):
+        data = bytes([1, 2]) + b"\xff" * 16 + bytes([3]) + b"\xff" * 15
+        rows = disasm._emit_data(data, 0, len(data), 0x4000)
+        self.assertEqual([(a, t) for a, _b, t, _r in rows][:3],
+                         [(0x4000, "db $01, $02"), (0x4002, "ds 16, $ff"), (0x4012, rows[2][2])])
+        self.assertFalse(rows[2][2].startswith("ds"))
+        self.assertEqual(b"".join(b for _a, b, _t, _r in rows), data)
+
+    def test_bank_tail_pads_to_the_end_of_the_bank(self):
+        data = bytes([0xC9]) + b"\xff" * 0x3FFF
+        rows = disasm.disassemble(data, 0, len(data), 0x4000, [(1, len(data))])
+        self.assertEqual([t for _a, _b, t, _r in rows],
+                         ["ret", "; Free space: 16,383 bytes to the end of the bank.", "ds $8000 - @, $ff"])
+        self.assertEqual(rows[1][3], disasm.NOTE)
+
+
 class BytePointerTests(unittest.TestCase):
     """Addresses the code loads a byte at a time."""
     HOME = {0x179A: "FarCall"}

@@ -101,7 +101,7 @@ def collect() -> dict[tuple[int, int], int]:
         # also carry the ": bytes" annotation, so the colon alone isn't enough).
         code[bank] = {int(m.group(1), 16)
                       for line in p.read_text().splitlines()
-                      if (m := CODE_RE.search(line)) and not line.lstrip().startswith("db")}
+                      if (m := CODE_RE.search(line)) and not line.lstrip().startswith(("db", "ds"))}
     return {(b, a): v for (b, a), v in targets.items()
             if (b, a) not in syms and a in code.get(b, set())}
 

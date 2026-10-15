@@ -64,7 +64,7 @@ def propose(rom, bank, addr, body, refs):
     text = text_at(rom, bank, addr)
     to_string = any(r.startswith("dw ") for r, _b in refs) or any(
         r.startswith("ld hl, ") and any(x.startswith("call Draw") for x in b[-0:]) for r, b in refs)
-    if text is not None and (first.startswith("db ") or to_string):
+    if text is not None and (first.startswith(("db ", "ds ")) or to_string):
         return str_name(text)
     return None
 

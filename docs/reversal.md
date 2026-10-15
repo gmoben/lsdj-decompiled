@@ -37,7 +37,8 @@ The 1 MiB ROM is 64 × 16 KiB banks:
   is the reversal target, and all 13 are now carved into the source tree.**
 - **21 sample-kit banks** (`$08`-`$1A`, `$20`-`$21`) — PCM data; identified and
   named (see `bank_map.md`), reversed as data.
-- **30 empty banks** (`$22`-`$3F`) — `$FF` fill / spare.
+- **30 empty kit slots** (`$22`-`$3F`) — all `$FF` (`KitExists` finds no `$4060`
+  marker), emitted as `ds $4000, $ff`.
 
 ## The coverage metric
 

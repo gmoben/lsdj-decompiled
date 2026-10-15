@@ -188,6 +188,15 @@ def data_runs(code: set[int], rom: bytes, bank: int, minlen: int = 4) -> list[tu
             o += 1
         if o - s >= minlen and data_like(rom[s:o]):
             runs.append((s, o))
+    # The trailing $FF to the end of the bank is padding, even where a stray
+    # jump-table read made the trace reach a byte of it ($1E:$7FFF).
+    t = hi
+    while t > lo and rom[t - 1] == 0xFF:
+        t -= 1
+    while t < hi and t in code:          # an instruction's own $FF operand
+        t += 1
+    if hi - t >= disasm.FILL_MIN:
+        runs.append((t, hi))
     # Union with manual ranges (file offsets) and the named data symbols.
     for ca, cb in MANUAL.get(bank, []):
         runs.append((bank * BANK + ca, bank * BANK + cb))
