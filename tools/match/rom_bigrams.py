@@ -19,7 +19,7 @@ CACHE = ROOT / "build" / "rom_bigrams.json"
 
 def norm(line: str) -> str | None:
     t = line.split(";")[0].strip()
-    if not t or t.endswith(":") or t.startswith(".") or t.startswith(("db ", "dw ", "ds ")):
+    if not t or t.endswith(":") or t.startswith(".") or t.startswith(("db ", "dw ", "ds ", "RGB ")):
         return None
     mn, _, ops = t.partition(" ")
     ops = re.sub(r"\.[A-Za-z_]\w*", "N", ops)            # local labels first (`.a` is one)

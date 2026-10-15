@@ -84,7 +84,7 @@
 406E InstrumentFieldY                ; [4][18] per-type cursor Y per field (NOISE row: 13)
 40B1 InstrumentFieldW                ; [4][18] per-type cursor width per field (NOISE row: 13)
 40F4 InstrumentFieldCounts           ; fields per instrument type: PULSE 16, WAVE 15, KIT 18, NOISE 13
-4015 DefaultWaveFrameB3         ; default wave frame (16 bytes, bank-3 copy)
+4015 DefaultWaveFrameB3         ; [16] default wave frame (bank 3's copy)
 
 ; --- structural local names (loop heads / common exits) ---
 4253 .done                ; common exit of DrawInstrumentCursor

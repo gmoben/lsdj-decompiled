@@ -248,6 +248,20 @@ def _emit_tiles(data: bytes, lo: int, hi: int, base_addr: int, name: str) -> lis
     return rows
 
 
+def _table_row(seg: bytes, kind: str) -> str:
+    """One row of a typed table: UBYTE as hex bytes, BYTE as signed numbers,
+    UWORD as hex words, RGB as CGB colours (the RGB macro; a word with bit
+    15 set stays a word)."""
+    if kind == "BYTE":
+        return "db " + ", ".join(str(b - 256 if b > 127 else b) for b in seg)
+    if kind in ("UWORD", "RGB"):
+        words = [seg[i] | seg[i + 1] << 8 for i in range(0, len(seg), 2)]
+        if kind == "RGB" and all(w < 0x8000 for w in words):
+            return "RGB " + ", ".join(f"{w & 31},{w >> 5 & 31},{w >> 10 & 31}" for w in words)
+        return "dw " + ", ".join(f"${w:04x}" for w in words)
+    return _db(seg)
+
+
 TEXT_LINE = 32   # a string with no newline or NUL breaks its line here
 
 
@@ -479,7 +493,7 @@ Pointer = "tuple[int, int] | tuple[int, int, str] | str"
 
 
 def _decoded(row: Row) -> bool:
-    return row[3] not in (C_ROW, C_TEXT, NOTE) and not row[2].startswith(("db", "dw", "ds", "INCBIN"))
+    return row[3] not in (C_ROW, C_TEXT, NOTE) and not row[2].startswith(("db", "dw", "ds", "RGB", "INCBIN"))
 
 
 _PAIR_OF = {"a": "af", "b": "bc", "c": "bc", "d": "de", "e": "de", "h": "hl", "l": "hl"}
@@ -795,7 +809,7 @@ def disassemble(data: bytes, start: int, end: int, org: int,
                 clines: list[CLines] | None = None,
                 ptr_tables: list[tuple[int, int, int]] | None = None,
                 tiles: list[tuple[int, int, str]] | None = None,
-                row_tables: list[tuple[int, int, int]] | None = None,
+                tables: list[tuple[int, int, int, str]] | None = None,
                 texts: list[tuple[int, int]] | None = None) -> list[Row]:
     """Return decoded rows covering file offsets [start, end).
 
@@ -817,8 +831,9 @@ def disassemble(data: bytes, start: int, end: int, org: int,
     `tiles` are (lo, hi, name) tile blocks whose tiles come from
     gfx/<name>.png (_emit_tiles).
 
-    `row_tables` are (lo, hi, width) tables printed one `db` line per row of
-    `width` bytes (a screen's 20x18 map: a line per screen line).
+    `tables` are (lo, hi, per_row, kind) typed tables, printed a row of
+    per_row elements a line (_table_row; a screen's 20x18 map: a line per
+    screen line); a label inside a word splits it into bytes.
 
     `texts` are (lo, hi) ranges of text, printed a line per string
     (_emit_text)."""
@@ -827,7 +842,7 @@ def disassemble(data: bytes, start: int, end: int, org: int,
     clines = clines or []
     ptr_tables = ptr_tables or []
     tiles = tiles or []
-    row_tables = row_tables or []
+    tables = tables or []
     texts = texts or []
 
     def next_data_edge(o: int) -> int:
@@ -836,7 +851,7 @@ def disassemble(data: bytes, start: int, end: int, org: int,
         edges += [hi if lo <= o < hi else lo for lo, hi, _r in clines if o < hi]
         edges += [hi if lo <= o < hi else lo for lo, hi, _b in ptr_tables if o < hi]
         edges += [hi if lo <= o < hi else lo for lo, hi, _n in tiles if o < hi]
-        edges += [hi if lo <= o < hi else lo for lo, hi, _w in row_tables if o < hi]
+        edges += [hi if lo <= o < hi else lo for lo, hi, _w, _k in tables if o < hi]
         edges += [hi if lo <= o < hi else lo for lo, hi in texts if o < hi]
         edges += [a for a in anchors if a > o]
         return min((e for e in edges if e > o), default=end)
@@ -877,12 +892,21 @@ def disassemble(data: bytes, start: int, end: int, org: int,
             out.extend(_emit_text(data, o, edge, addr))
             o = edge
             continue
-        rt = next((r for r in row_tables if r[0] <= o < r[1]), None)
-        if rt is not None:
+        tt = next((r for r in tables if r[0] <= o < r[1]), None)
+        if tt is not None:
             # a row ends at the row's end, or where a label inside the table
             # starts (next_data_edge) -- the next row starts there
-            edge = min(o + rt[2] - (o - rt[0]) % rt[2], next_data_edge(o), end)
-            out.append((addr, data[o:edge], _db(data[o:edge]), None))
+            tlo, _thi, per_row, kind = tt
+            size = 2 if kind in ("UWORD", "RGB") else 1
+            rel = o - tlo
+            edge = min(o + per_row * size - rel % (per_row * size), next_data_edge(o), end)
+            if rel % size:                      # after a label inside a word: its high byte
+                edge, kind = o + 1, "UBYTE"
+            elif (edge - o) % size:             # up to a label inside a word
+                edge -= (edge - o) % size
+                if edge == o:                   # the word's low byte
+                    edge, kind = o + 1, "UBYTE"
+            out.append((addr, data[o:edge], _table_row(data[o:edge], kind), None))
             o = edge
             continue
         pt = next((t for t in ptr_tables if t[0] <= o < t[1]), None)
@@ -1271,9 +1295,9 @@ def main() -> None:
     ap.add_argument("--tiles", default="",
                     help="comma-separated lo:hi:NAME tile blocks whose tiles are "
                          "INCBINs of the 2bpp made from gfx/NAME.png (tools/gfx.py)")
-    ap.add_argument("--rows", default="",
-                    help="comma-separated lo:hi:WIDTH tables printed one db line "
-                         "per row of WIDTH bytes")
+    ap.add_argument("--tables", default="",
+                    help="comma-separated lo:hi:PER_ROW:KIND typed tables (KIND UBYTE, "
+                         "BYTE, UWORD or RGB), printed PER_ROW elements a line")
     ap.add_argument("--text", default="",
                     help="comma-separated lo:hi ranges of text, printed a line per string")
     ap.add_argument("--trace", action="store_true",
@@ -1317,12 +1341,12 @@ def main() -> None:
         explicit_data.append((lo, hi))
     incbins: list[IncBin] = []
     tiles: list[tuple[int, int, str]] = []
-    row_tables: list[tuple[int, int, int]] = []
+    tables: list[tuple[int, int, int, str]] = []
+    for part in filter(None, (p.strip() for p in args.tables.split(","))):
+        lo_s, hi_s, per_s, kind = part.split(":")
+        tables.append((int(lo_s, 0), int(hi_s, 0), int(per_s), kind))
     texts = [tuple(int(x, 0) for x in part.split(":"))
              for part in filter(None, (p.strip() for p in args.text.split(",")))]
-    for part in filter(None, (p.strip() for p in args.rows.split(","))):
-        lo, hi, width = (int(x, 0) for x in part.split(":"))
-        row_tables.append((lo, hi, width))
     for part in filter(None, (p.strip() for p in args.tiles.split(","))):
         lo_s, hi_s, name = part.split(":")
         tiles.append((int(lo_s, 0), int(hi_s, 0), name))
@@ -1367,7 +1391,7 @@ def main() -> None:
         lo_s, hi_s, b_s = part.split(":")
         ptr_tables.append((int(lo_s, 0), int(hi_s, 0), int(b_s, 0)))
     table_bank = {org + (o - start): tb for lo, hi, tb in ptr_tables for o in range(lo, hi, 2)}
-    rows = disassemble(data, start, end, org, data_ranges, anchors, incbins, clines, ptr_tables, tiles, row_tables, texts)
+    rows = disassemble(data, start, end, org, data_ranges, anchors, incbins, clines, ptr_tables, tiles, tables, texts)
     # ROM-address operands print as labels (rom_pointers): names from the
     # .sym files beside --symbols; a target inside a data run first gets a row
     # of its own (decode again with it as an anchor)
@@ -1391,7 +1415,7 @@ def main() -> None:
                  and any(lo <= start + (t - org) < hi for lo, hi in data_ranges)}
         if split - anchors:
             anchors |= split
-            rows = disassemble(data, start, end, org, data_ranges, anchors, incbins, clines, ptr_tables, tiles, row_tables, texts)
+            rows = disassemble(data, start, end, org, data_ranges, anchors, incbins, clines, ptr_tables, tiles, tables, texts)
             ptrs, notes = rom_pointers(rows, args.bank, symbols, home, bank_syms, table_bank)
         same = {t for t in map(own, ptrs.values()) if t is not None}
     labels = ({} if args.no_labels

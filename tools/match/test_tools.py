@@ -259,11 +259,25 @@ class TileBlockTests(unittest.TestCase):
         self.assertEqual(b"".join(b for _a, b, _t, _r in rows), self.BLOCK)
 
 
-class RowTableTests(unittest.TestCase):
+class TableTests(unittest.TestCase):
+    """Typed tables ([N] TYPE / [R][C] TYPE in the .sym): a row of elements a
+    line, split where a label inside starts -- inside a word, into bytes."""
+
     def test_rows_of_a_width_split_at_labels_inside(self):
         data = bytes(range(60))
-        rows = disasm.disassemble(data, 0, 60, 0x5000, [(0, 60)], {45}, row_tables=[(0, 60, 20)])
+        rows = disasm.disassemble(data, 0, 60, 0x5000, [(0, 60)], {45}, tables=[(0, 60, 20, "UBYTE")])
         self.assertEqual([(a - 0x5000, len(b)) for a, b, _t, _r in rows], [(0, 20), (20, 20), (40, 5), (45, 15)])
+
+    def test_types(self):
+        self.assertEqual(disasm._table_row(bytes([0xF4, 0x00, 0x1F]), "BYTE"), "db -12, 0, 31")
+        self.assertEqual(disasm._table_row(bytes([0x2F, 0xB3, 0x14, 0x07]), "UWORD"), "dw $b32f, $0714")
+        self.assertEqual(disasm._table_row(bytes([0xFF, 0x7F, 0x00, 0x54]), "RGB"), "RGB 31,31,31, 0,0,21")
+        self.assertEqual(disasm._table_row(bytes([0x00, 0x80]), "RGB"), "dw $8000")
+
+    def test_a_label_inside_a_word_splits_it(self):
+        data = bytes(range(10))
+        rows = disasm.disassemble(data, 0, 10, 0x4000, [(0, 10)], {5}, tables=[(0, 10, 8, "UWORD")])
+        self.assertEqual([t for _a, _b, t, _r in rows], ["dw $0100, $0302", "db $04", "db $05", "dw $0706, $0908"])
 
 
 class TextTests(unittest.TestCase):

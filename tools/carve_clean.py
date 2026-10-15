@@ -286,18 +286,35 @@ def text_ranges(rom: bytes, bank: int) -> list[tuple[int, int]]:
     return out
 
 
-def row_tables(bank: int) -> list[tuple[int, int, int]]:
-    """Tables the bank's .sym tags `[R][C]` (R rows of C bytes, e.g. a screen's
-    20x18 map): (lo, hi) file offsets and the row width, for disasm.py --rows,
-    which prints one `db` line per row."""
+TABLE_TAG = re.compile(r"\[(\d+)\](?:\[(\d+)\])?(?:\s+(UBYTE|BYTE|UWORD|RGB)\b)?")
+ELEMENT_SIZE = {"UBYTE": 1, "BYTE": 1, "UWORD": 2, "RGB": 2}
+PER_ROW = {"UBYTE": 16, "BYTE": 16, "UWORD": 8, "RGB": 4}
+
+
+def typed_tables(bank: int) -> list[tuple[int, int, int, str]]:
+    """Tables the bank's .sym tags `[N] TYPE` or `[R][C] TYPE` -- TYPE UBYTE
+    (the default), BYTE (signed), UWORD or RGB (a CGB colour); `[N] dw` is a
+    pointer table instead: (lo, hi) file offsets, the elements a row (C, or
+    PER_ROW) and the type, for disasm.py --tables. A table runs for its size,
+    or to the next global symbol that is not data (a label inside it is fine)."""
+    sym = ROOT / "src" / f"bank{bank:02x}.sym"
+    if not sym.is_file():
+        return []
+    rows = cov.read_sym(sym)
+    lo_cpu = 0x4000 if bank else 0
+    base = bank * BANK - lo_cpu
+    stops = sorted(a for a, n, c in rows if not n.startswith(".") and not cov.is_data_symbol(n, c))
     out = []
-    base = bank * BANK - (0 if bank == 0 else 0x4000)
-    for addr, _name, comment in cov.read_sym(ROOT / "src" / f"bank{bank:02x}.sym"):
-        m = re.match(r"\[(\d+)\]\[(\d+)\]", comment)
-        if m:
-            rows, width = int(m.group(1)), int(m.group(2))
-            out.append((base + addr, base + addr + rows * width, width))
-    return out
+    for addr, name, comment in rows:
+        m = TABLE_TAG.match(comment)
+        if name.startswith(".") or not m or re.match(r"\[\d+\] dw\b", comment):
+            continue
+        kind = m.group(3) or "UBYTE"
+        count = int(m.group(1)) * (int(m.group(2)) if m.group(2) else 1)
+        per_row = int(m.group(2)) if m.group(2) else PER_ROW[kind]
+        stop = next((a for a in stops if a > addr), lo_cpu + BANK)
+        out.append((base + addr, base + min(addr + count * ELEMENT_SIZE[kind], stop), per_row, kind))
+    return sorted(out)
 
 
 def tile_blocks(rom: bytes, bank: int) -> list[tuple[int, int, str]]:
@@ -381,9 +398,9 @@ def main() -> None:
         texts = text_ranges(rom, b)
         if texts:
             cmd += ["--text", ",".join(f"0x{lo:X}:0x{hi:X}" for lo, hi in texts)]
-        shaped = row_tables(b)
-        if shaped:
-            cmd += ["--rows", ",".join(f"0x{lo:X}:0x{hi:X}:{w}" for lo, hi, w in shaped)]
+        typed = typed_tables(b)
+        if typed:
+            cmd += ["--tables", ",".join(f"0x{lo:X}:0x{hi:X}:{n}:{k}" for lo, hi, n, k in typed)]
         blocks = tile_blocks(rom, b)
         for lo, hi, name in blocks:
             png = f"{gfx.GFX_DIR}/{name}.png"

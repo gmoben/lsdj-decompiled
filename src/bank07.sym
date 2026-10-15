@@ -74,10 +74,10 @@
 6249 WriteBookmarkByte          ; bounds-checked ($aff0-$afff) WriteSongByte into the bookmarks row
 643D ClearBookmarks             ; FillMemory($aff0, $ff, 16)
 5DD8 SetSyncSendRate            ; wSyncSendRate (interrupts off) from the tempo: $800 x (4 - wTempoMode) for the sync speeds, else TempoTimerTableDmg/Cgb[wTempo - 40]
-5E49 TempoTimerTableDmg         ; [BPM byte] -> 16-bit tempo timer value (DMG), 256 x dw
-6049 TempoTimerTableCgb         ; [BPM byte] -> 16-bit tempo timer value (CGB double-speed), 256 x dw
-662A KeyboardNoteMap            ; [PS/2 scancode & $7f] -> note (0=none), + wKeyboardTranspose octave offset
-66AA KeyboardFunctionMap              ; [PS/2 scancode & $7f] -> function code (channel mutes/cursor keys)
+5E49 TempoTimerTableDmg         ; [256] UWORD tempo timer value per BPM byte (DMG)
+6049 TempoTimerTableCgb         ; [256] UWORD tempo timer value per BPM byte (CGB double speed)
+662A KeyboardNoteMap            ; [128] note per PS/2 scancode & $7F (0 = none), + wKeyboardTranspose octave offset
+66AA KeyboardFunctionMap              ; [128] function code per PS/2 scancode & $7F (channel mutes/cursor keys)
 7097 DrawCalibrationScreen    ; PS/2 "KEYBOARD CALIBRATION" screen (tap down-arrow prompt)
 7171 TxtKeyboardCalibration     ; "KEYBOARD CALIBRATION"
 7186 TxtTapDownArrowKey         ; "TAP DOWN ARROW KEY"

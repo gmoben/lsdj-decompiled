@@ -143,8 +143,8 @@
 7BD5 TxtSynColon                ; "SYN:"
 7BDA TxtAst                     ; "AST"
 794B CrashHandler               ; crash entry: di, SRAM locked (rRAMG = 0), SaveCrashStack
-40FA NoteFrequencyTable              ; [semitone 0-107] -> GB frequency period (108 x dw, copied by LoadHardwareTables)
-41D2 NoteFrequencyDeltaTable         ; companion 108 x dw pitch table (finetune/delta variant, LoadHardwareTables)
+40FA NoteFrequencyTable              ; [108] UWORD GB frequency period per semitone 0-107 (LoadHardwareTables copies it)
+41D2 NoteFrequencyDeltaTable         ; [108] UWORD companion pitch table (finetune/delta variant, LoadHardwareTables)
 42AA PitchCurve                 ; [216] rising pitch-response curve (LoadHardwareTables copies it)
 4382 PitchCurveCgb              ; [216] PitchCurve's CGB counterpart (LoadHardwareTables picks by wIsCgb)
 5927 ScreenPaletteTable             ; [18][20] ground tiles, TABLE screen (DrawScreenPaletteMap)
@@ -161,8 +161,8 @@
 689F ScreenPaletteSynth             ; [18][20] ground tiles, SYNTH screen (DrawScreenPaletteMap)
 6A07 ScreenPaletteWord              ; [18][20] ground tiles, WORD screen (DrawScreenPaletteMap)
 6B6F ScreenPaletteFile              ; [18][20] ground tiles, FILE screen (DrawScreenPaletteMap)
-4144 NoteFrequency37                 ; NoteFrequencyTable entry 37 (period $0714) -- exact symbol for Emulicious's interior split
-4247 NoteFrequencyD58High              ; hi byte of NoteFrequencyDeltaTable entry 58 (interior split)
+4144 NoteFrequency37                 ; [71] UWORD NoteFrequencyTable from entry 37 on (period $0714; a label inside it, kept for the debugger)
+4247 NoteFrequencyD58High              ; [1] the high byte of NoteFrequencyDeltaTable entry 58 (a label inside it, kept for the debugger)
 5099 TxtPctDColon               ; "%d:"
 509D TxtPctD01                  ; "%d"
 4F44 AllocateNextFreePhraseMiddle ; @deploy-only: operand byte of the jp at $4F42 (walker artifact)
@@ -433,7 +433,7 @@
 7E1C .setrVBK
 7E37 .readStat
 6F7E TxtTitle                   ; "LITTLE SOUND DJ " running on into TxtVersion: main's startup message
-56A7 ColorSetPalettes           ; [280] 7 colour sets of 20 words (ApplyColorSet indexes wColorSet*40): 5 BG palettes of 4 colours per set; objects use the first two and colours 5-8
+56A7 ColorSetPalettes           ; [35][4] RGB the 7 colour sets, 5 BG palettes of 4 colours each (ApplyColorSet indexes wColorSet*40); objects use the first two and colours 5-8
 532C InstrumentTableFieldRow         ; [4] instrument-screen row of the TABLE field per type (pulse 15, wave 14, kit 17, noise 12)
 
 ; --- pointer targets (tools/name_targets.py) ---

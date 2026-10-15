@@ -89,8 +89,8 @@
 7D98 TxtPastedSynth    ; "PASTED SYNTH"
 
 ; --- softsynth shape banks (RenderSynthWaveB and $4db1 reader) ---
-4EF0 SynthShapeTableA   ; signed seed samples for synth wave rendering (selected when the shape flag is 0)
-50F0 SynthShapeTableB   ; second shape bank (SynthShapeTableA+$200)
+4EF0 SynthShapeTableA   ; [512] BYTE signed seed samples for synth wave rendering (selected when the shape flag is 0)
+50F0 SynthShapeTableB   ; [160] BYTE second shape bank (SynthShapeTableA+$200)
 405A ReadGrooveStep     ; e = groove data[wGroove*16 + step] (song $1090); asserts step & wGroove<$20
 6489 TxtWaveGlyphI              ; "iiii" waveform glyph row
 648E TxtWaveGlyphM              ; "mmmm" waveform glyph row

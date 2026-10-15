@@ -123,7 +123,7 @@
 39F2 set_xy_btt         ; GBDK .set_xy_btt (set_xy_t.s): BG map base from rLCDC bit3 ($9800/$9C00), then set_xy_tt
 ; --- defensive checks ---
 0953 WriteInstrumentByte     ; write value (sp+8, <4) to instruments[instr][field]: bank1 $B080 + instr*$10 + field
-09B9 UnusedRampTable            ; 108 words n * 2048 / 107 ($0000, $0013, ... $07FC), linked between WriteInstrumentByte and ReadInstrumentByte; no code reads it
+09B9 UnusedRampTable            ; [108] UWORD n * 2048 / 107 ($0000, $0013, ... $07FC), linked between WriteInstrumentByte and ReadInstrumentByte; no code reads it
 0A91 ReadInstrumentByte      ; read instruments[instr][field]: SRAM bank1 $B080 + instr*$10 + field (asserts instr<$40, field<$10)
 0AE2 ReadCurrentInstrumentByte   ; ReadInstrumentByte([wInstrument] current instrument, field)
 0AF6 ReadSequenceByte        ; read song sequence song[step][channel]: bank0 $B290 + step*4 + channel (step<$C0, channel<4)
@@ -237,12 +237,12 @@
 1E70 TxtBlank4 ; "    " 4-space blank field string
 014E HeaderChecksumHigh           ; ROM header global checksum (hi byte), read by CheckRomChecksum
 014F HeaderChecksumLow           ; ROM header global checksum (lo byte)
-300F ExponentialCurve16                ; 16-entry exponential curve $00..$73: envelope speed -> frame count
+300F ExponentialCurve16                ; [16] exponential curve $00..$73: envelope speed -> frame count
 086F AsciiCharacterMap               ; [89] character-to-tile map from space onward; text draws set wStringSource to this address minus $20
 08C8 IdentityCharacterMap            ; identity tile-index map (loaded into wStringSource for raw-tile draws)
 01E0 SyncModeStubs              ; 4 x 4-byte jp-hl slots from SendSyncHandshake ((mode&3)*4); only slot 0 (ret) populated
 0200 TimesTwoTable              ; [n] -> 2n byte ramp (FileUpgradeRemapBits, synth draw)
-0255 SignedRampTable            ; signed ramp -12..+15 (modulation LUT block; read by LoadHardwareTables)
+0255 SignedRampTable            ; [171] BYTE -12..-2, 0..31, then 32 x 32, 32 x -33, 64 x 0 (a modulation LUT block; read by LoadHardwareTables)
 
 ; --- vector page ($0000-$0068): Emulicious segments the RST/interrupt slots
 ; and creates _DATA_ labels for every data run/accessed offset, ignoring

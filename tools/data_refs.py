@@ -43,7 +43,7 @@ def load_bank(path):
             if pend_label:
                 labeled.add(a)
             pend_label = False
-            if re.match(r'\s*d[bws] ', ln):
+            if re.match(r'\s*(d[bws]|RGB) ', ln):
                 data_addr.add(a)
         elif re.match(r'\s*(db|dw)\b', ln):
             pass
@@ -81,7 +81,7 @@ def audit_runs():
         out = []
         for ln in lines:
             t = ln.lstrip()
-            is_db = t.startswith(('db ', 'dw ', 'ds '))
+            is_db = t.startswith(('db ', 'dw ', 'ds ', 'RGB '))
             if is_db:
                 if not prev_db:
                     m2 = re.search(r'; \$([0-9a-f]{4})', ln)
@@ -186,7 +186,7 @@ def main():
                     is_data = True
                 else:
                     row = tl[li].lstrip()
-                    is_data = row.startswith(('db ', 'dw ', 'ds '))
+                    is_data = row.startswith(('db ', 'dw ', 'ds ', 'RGB '))
                     if kind == 'ptr' and not is_data:
                         continue                  # pointer to code (jump tables etc. -> label class)
                     if kind == 'mem' and not is_data:

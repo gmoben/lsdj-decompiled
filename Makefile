@@ -110,7 +110,7 @@ src/ramsections.asm: constants/ram.inc tools/gen_ram_sections.py tools/gen_sym.p
 
 # The sub-make converts the PNGs a fresh carve has just written (this make
 # read gfx/ before the carve ran).
-$(OBJ): src/main.asm src/ramsections.asm include/hardware.inc $(BUILD)/rgbdscheck.o $(GFX_2BPP) | $(BASEROM)
+$(OBJ): src/main.asm src/ramsections.asm include/hardware.inc include/macros.inc $(BUILD)/rgbdscheck.o $(GFX_2BPP) | $(BASEROM)
 	@mkdir -p $(@D)
 	@$(MAKE) --no-print-directory gfx
 	$(RGBASM) $(RGBASMFLAGS) -o $@ $<

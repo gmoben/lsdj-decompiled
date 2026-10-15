@@ -171,7 +171,8 @@ lsdj-decompiled/
 │   ├── bankNN/*.c        # matching C (byte-identical under the period compiler)
 │   └── matched.json      # the C-owned ROM ranges (written by make match)
 ├── include/
-│   └── hardware.inc      # standard GB hardware definitions (gbdev, CC0)
+│   ├── hardware.inc      # standard GB hardware definitions (gbdev, CC0)
+│   └── macros.inc        # macros the carved banks use (RGB, a CGB colour)
 ├── constants/            # symbolic constants
 │   ├── ram.inc           # RAM variable map (~800 named wXxx/hXxx vars)
 │   ├── screens.inc       # screen indices (wCurrentScreen) -> editor

@@ -4,7 +4,7 @@
 
 ; --- data tables + strings (db; instrument-editor + word/phrase helpers) ---
 4236 TxtDashTemplate    ; "/--/--" (value display template)
-491A DefaultWaveFrameB1F        ; default wave frame (16 bytes; WaveFrameModified compares phrase rows against it)
+491A DefaultWaveFrameB1F        ; [16] default wave frame (WaveFrameModified compares phrase rows against it)
 4A02 DefaultInstrumentPulse          ; [11] default pulse (or noise) instrument bytes (ClaimInstrumentSlot)
 4A0D DefaultInstrumentWave           ; [11] default wave instrument bytes
 4A18 DefaultInstrumentKit            ; [14] default kit instrument bytes

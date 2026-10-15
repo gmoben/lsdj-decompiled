@@ -123,7 +123,7 @@ def scan_bank(data: bytes, bank: int, symbols: SymMap,
     rows = disasm.disassemble(data, start, end, org, data_ranges, anchors)
     bank_code = sum(1 for o in range(start, end) if o in code)
     info = BankInfo(
-        instr_starts={a for a, _r, t, _ref in rows if not t.startswith(("db", "ds"))},
+        instr_starts={a for a, _r, t, _ref in rows if not t.startswith(("db", "ds", "RGB"))},
         data_starts={org + (lo - start) for lo, _hi in data_ranges},
         code_pct=100 * bank_code // size,
     )
@@ -148,7 +148,7 @@ def analyze_bank(bank: int, symbols: SymMap, index: dict[int, BankInfo],
             g.data.setdefault((tb, taddr), []).append(site)  # data table
 
     for addr, raw, text, ref in rows:
-        if text.startswith(("db", "ds")):
+        if text.startswith(("db", "ds", "RGB")):
             continue
         site = (addr, text)
         # Control-flow target -> _LABEL_ if unnamed and a real in-bank code start.

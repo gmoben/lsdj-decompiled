@@ -19,13 +19,13 @@
 6356 TilesFontZero              ; font ZERO (wFont 1): a character map, then 71 tiles (gfx/font_zero.png); CGB loads only this block
 6848 TilesFontZeroHighlight     ; font ZERO inverted, the DMG cursor highlight: a character map, then 69 tiles (gfx/font_zero_highlight.png)
 6D1A TilesFontZeroShaded        ; font ZERO on a dotted ground, DMG shaded cells: a character map, then 69 tiles (gfx/font_zero_shaded.png)
-71EC SynthSeedTableA    ; [512] bank-$1E seed cycles: waveform shape 0, signal 0 (32 signed bytes per cycle)
-720C SynthWaveTables    ; [480] interior of SynthSeedTableA, retained debugger name for its second cycle
-73EC SynthSeedTableB    ; [256] seed cycles: waveform shape 0, signal 1
-74EC SynthSeedTableC    ; [512] seed cycles: waveform shape 1, signal 0
-76EC SynthSeedTableD    ; [256] seed cycles: waveform shape 1, signal 1
-77EC SynthSeedTableE    ; [256] seed cycles: waveform shape 0, signal 2
-78EC SynthSeedTableF    ; [256] seed cycles: waveform shape 1, signal 2
+71EC SynthSeedTableA    ; [512] BYTE bank-$1E seed cycles: waveform shape 0, signal 0 (32 signed bytes per cycle)
+720C SynthWaveTables    ; [480] BYTE SynthSeedTableA from its second cycle on (a label inside it, kept for the debugger)
+73EC SynthSeedTableB    ; [256] BYTE seed cycles: waveform shape 0, signal 1
+74EC SynthSeedTableC    ; [512] BYTE seed cycles: waveform shape 1, signal 0
+76EC SynthSeedTableD    ; [256] BYTE seed cycles: waveform shape 1, signal 1
+77EC SynthSeedTableE    ; [256] BYTE seed cycles: waveform shape 0, signal 2
+78EC SynthSeedTableF    ; [256] BYTE seed cycles: waveform shape 1, signal 2
 79EC TxtSpaces13        ; 13-space blank string
 
 ; --- structural local names (loop heads / common exits) ---

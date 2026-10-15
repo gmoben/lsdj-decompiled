@@ -111,6 +111,7 @@ def main() -> None:
         "; create src/bankNN.asm (see tools/disasm.py), then re-run tools/gen_main.py.",
         "",
         'INCLUDE "include/hardware.inc"',
+        'INCLUDE "include/macros.inc"',
         'INCLUDE "constants/ram.inc"',
         '; named WRAM/HRAM/SRAM sections for the linker map (no labels/bytes)',
         'INCLUDE "src/ramsections.asm"',

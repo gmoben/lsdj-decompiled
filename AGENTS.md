@@ -100,6 +100,7 @@ idioms, and the 226 hand-written asm functions (sound tick, sequencer core,
 | `src/ramsections.asm` | **Generated** by `tools/gen_ram_sections.py`: named WRAM/HRAM/SRAM sections for the linker map |
 | `src/bankNN.sym` | **Tracked, hand-curated** per-bank symbol maps: `ADDR Name ; comment` for routines, data, and function-local labels |
 | `include/hardware.inc` | Standard GB hardware defs (gbdev, CC0) — do not edit |
+| `include/macros.inc` | Macros the carved banks use (`RGB`, a CGB colour) |
 | `constants/song.inc` | Song-data memory map (offsets, counts) as RGBDS EQUs |
 | `constants/ram.inc` | WRAM/HRAM variable map (~800 names; arrays tagged `[N]`) |
 | `constants/screens.inc` | Screen indices (`wCurrentScreen`) → editor name |
@@ -339,8 +340,13 @@ in `docs/functionality.md`.
   (`coverage.is_data_symbol`). Name data that way and it is never traced or
   rendered as instructions. A table of addresses is tagged `[N] dw` (N
   words; `[N] dw @$BB` when they point into bank BB): the carve prints it as
-  `dw Label` so the targets can move. A table of R rows of C bytes is tagged
-  `[R][C]`: one `db` line per row (a screen's 20x18 map, `[18][20]`). A
+  `dw Label` so the targets can move. Any other table is tagged `[N] TYPE`
+  or `[R][C] TYPE` -- TYPE `UBYTE` (the default), `BYTE` (signed, printed as
+  numbers), `UWORD`, or `RGB` (CGB colours, the `RGB r,g,b` macro in
+  `include/macros.inc`) -- and prints a row of C elements a line (16 bytes, 8
+  words, 4 colours for `[N]`): a screen's 20x18 map is `[18][20]`, the
+  colour sets `[35][4] RGB`. A table runs for its size through labels
+  inside it; a label inside one must itself be data (tagged). A
   `Tiles` symbol is a tile block (`tools/gfx.py`): its tiles come from
   `gfx/<name>.png`. Text (`Txt*`, `*Names`, `*String`, or a comment that
   opens with a string) prints a line per string: `db "<A>...INSERT\n"`,

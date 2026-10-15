@@ -156,7 +156,7 @@ def classify_bank_full(asm_path: Path, rom: bytes | None = None,
         s = line.split(";")[0].strip()
         if not cur or not s or s.endswith(":") or s.startswith("SECTION"):
             continue
-        if s.startswith(("db", "dw", "ds", "INCBIN")):
+        if s.startswith(("db", "dw", "ds", "RGB", "INCBIN")):
             has_db[cur] = True
             continue
         b = BYTES.search(line)

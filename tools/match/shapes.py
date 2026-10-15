@@ -105,7 +105,7 @@ def load() -> list[Func]:
             continue
         if any(b == f.bank and lo <= f.addr < hi for b, lo, hi in owned):
             continue
-        if any(l.startswith(("db", "dw", "ds", "INCBIN")) for l in f.lines) and f.kind != "C":
+        if any(l.startswith(("db", "dw", "ds", "RGB", "INCBIN")) for l in f.lines) and f.kind != "C":
             continue                    # (code_kind calls a `db` carve with SDCC's prologue C)
         out.append(f)
     return out
