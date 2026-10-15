@@ -88,7 +88,7 @@ UBYTE FileFindSlotEnd(void);
 UBYTE FileSlotHalfBase(void);
 void LoadCompressedBlock(UBYTE v);
 UBYTE FileClassifyToken(void);              /* asm */
-UBYTE CheckFileMagic64(void);
+UBYTE SramHasFileBanks(void);
 void FreeFileBlocks(UBYTE f);
 void EraseFileName(UBYTE f);
 UBYTE ReadWorkingSongByte(UWORD address);      /* asm */
@@ -114,7 +114,7 @@ void FileWriteCompressedSram(void)
     wDecompressPosition = 0;
 }
 
-UBYTE CheckFileMagic64(void)
+UBYTE SramHasFileBanks(void)
 {
     if (ReadSongByte(4, 0xBE78) != 'r')
         return 1;
@@ -133,7 +133,7 @@ UBYTE CheckFileMagic64(void)
 
 UBYTE CheckFileMagicAll(void)
 {
-    if (!CheckFileMagic64())
+    if (!SramHasFileBanks())
         return 0;
     if (ReadSongByte(0x0C, 0xA13E) == 'j' && ReadSongByte(0x0C, 0xA13F) == 'k'
             && ReadSongByte(8, 0xBE78) == 'r' && ReadSongByte(8, 0xBE79) == 'b')

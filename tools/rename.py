@@ -205,6 +205,12 @@ def apply(pairs: list[tuple[str, str, str | None]], c_only: frozenset[str] = fro
                             lambda m: f"{m.group(1)} {m.group(2):26s} ; {comment}", s, flags=re.M)
             if n:
                 p.write_text(s2)
+        inc = ROOT / "constants" / "ram.inc"           # a RAM name's comment sits on its DEF line
+        s = inc.read_text()
+        s2 = re.sub(rf"^(\s*DEF\s+{re.escape(new)}\s+EQU\s+\$[0-9A-Fa-f]{{4}}\s*);.*$",
+                    lambda m: f"{m.group(1)}; {comment}", s, flags=re.M)
+        if s2 != s:
+            inc.write_text(s2)
     labels = sum(n for _, n in relabelled.values())
     shown = ", ".join(f"{o} -> {n}" for o, n, _ in pairs[:20]) + (f", ... ({len(pairs)} names)" if len(pairs) > 20 else "")
     return f"renamed {shown} in {len(changed)} file(s) and {labels} local label(s): {', '.join(changed)}"

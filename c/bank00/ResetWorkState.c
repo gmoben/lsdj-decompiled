@@ -89,7 +89,7 @@ extern UBYTE wHelpRow;                /* $C934 */
 extern UBYTE wWordRow;                  /* $C937 */
 extern UBYTE wWordColumn;                  /* $C938 */
 extern UBYTE wChainCellValue;               /* $C945 */
-extern UBYTE wSramFilesystemFlag;                   /* $C9A3 */
+extern UBYTE wSramHasFileBanks;                   /* $C9A3 */
 extern UBYTE wGrooveRow;                    /* $C9D4 */
 extern UBYTE wAnalogOutTimer;               /* $CB68 */
 extern UBYTE wSyncTick;                     /* $CB69 */
@@ -239,7 +239,7 @@ void ResetWorkState(void)
     wWordRow = 0;
     wWordColumn = 0;
     wChainCellValue = 0;
-    wSramFilesystemFlag = 0;
+    wSramHasFileBanks = 0;
     wInstrumentRemapTable[0] = 0xFF;
     wInstrumentRemapTable[1] = 0xFF;
     wInstrumentRemapTable[2] = 0xFF;

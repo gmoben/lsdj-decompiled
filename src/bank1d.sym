@@ -35,24 +35,24 @@
 4B6C CutCopyGrooveSelection              ; cut/copy the groove selection (arg 1 = cut: rows cleared to 0, row 0 to 6)
 4C63 PasteGrooveSelection       ; write the clipboard steps into the groove from the cursor (clipType 2), advancing wGrooveRow and wrapping at 16; PASTE message
 4CDE DrawGrooveSelection        ; clipType 2: highlight the rows between the anchor wSelectionTop and the cursor (palette 3 on CGB, 2 on DMG)
-4D81 RenderSynthWaveA           ; render synth waveform segment using wave tables $4EF0/$50F0 (wSynthSegmentLength1/wSynthSignalType)
+4D81 RenderSynthWaveA           ; render synth waveform segment using wave tables $4EF0/$50F0 (wSynthCutoff/wSynthSignalType)
 5190 RenderSynthWaveB           ; render synth waveform segment (variant of RenderSynthWaveA)
 5323 ComposeSynthWave           ; main synth wave composition (wSynthRenderIndex, buffer wSynthWaveBuffer); large
-5695 RenderSynthWaveType        ; dispatch waveform shape by type wSynthWaveShape (jump table $56bd); buffer wSynthCurveAmplitude
+5695 RenderSynthWaveType        ; dispatch waveform shape by type wSynthFilterType (jump table $56bd); buffer wSynthCurveResonance
 58DA WrapSynthIndex32           ; return (arg+1) & $1f (wave sample index wrap)
-58E6 SynthFilterLowHigh         ; synth filter LOWP/HIGHP (any type but 2/3): scatter each of the 32 samples over two accumulator slots at a cutoff-driven 8.8 position, then normalise each slot by its weight (type 0 fills missing weight with 8)
-5BBD SynthFilterBandPass        ; synth filter BANDP: halve the wave an octave per cutoff doubling (pair averages), then the LOWP/HIGHP scatter-and-normalise core with the position masked to the shortened wave
-5E53 SynthFilterPass            ; filter/transform 32 wave samples using wSynthFilterCutoff
-5F00 ApplySynthFilter           ; dispatch filter by wSynthFilterType (2->SynthFilterBandPass, 3->SynthFilterPass, else 58E6); gated wSynthFilterCutoff
+58E6 PinchOrWarpSynthWave       ; PHASE PINCH (0) and WARP (1): scatter each of the 32 samples over two accumulator slots at a phase-driven 8.8 position (WARP only the first 15), then normalise each slot by its weight (PINCH fills missing weight with 8)
+5BBD ResyncSynthWave            ; PHASE RESYNC (2): halve the wave an octave per phase doubling (pair averages), then PinchOrWarpSynthWave's scatter-and-normalise core with the position masked to the shortened wave
+5E53 Resync2SynthWave           ; PHASE RESYN2 (3): resample the wave to repeat every 32 - wSynthPhase/8 samples (scratch[i] = wave[(32i + 16) / n mod 32])
+5F00 ApplySynthPhase            ; the PHASE stage, when wSynthPhase is nonzero: PINCH/WARP (PinchOrWarpSynthWave), RESYNC (ResyncSynthWave), RESYN2 (Resync2SynthWave)
 5F29 WriteSynthWaveColumn          ; write an edited wave column (<$20) from the edit state (wWaveEditX) into song data
 5F90 LoadSynthSignalWave        ; load the custom-wave SIGNAL (W.FX: wave $F0 + synth, 16 packed bytes at SRAM $AF00 + 16 * synth) into wSynthShapeBuffer as 32 signed words
 60A7 SynthLockByteAddressB1D       ; bank $1D's copy of SynthLockByteAddress: the SRAM byte holding synth x's lock bit ($BFC5 for 0-7, $BFC4 for 8-F)
 6115 IsSynthLocked              ; nonzero if synth x is locked (its bit in the SynthLockByteAddressB1D byte; LockCurrentSynth sets it when a wave is edited by hand)
 6144 ClearSynthFlag             ; clear synth x's bit in the flag pair at $BFC4/$BFC5 (SynthLockByteAddressB1D)
 6193 FillSynthWaveRange         ; fill/interpolate a wave value range (16-step; <-SynthLoadWaveTable)
-62A8 DrawSynthField             ; draw the synth PHASE field: switch (jp-table SynthDispatchJumps) -> " PINCH"/"  WARP"/"RESYNC"/"RESYN2"
+62A8 DrawSynthPhaseField             ; draw the synth PHASE field: switch (jp-table SynthDispatchJumps) -> " PINCH"/"  WARP"/"RESYNC"/"RESYN2"
 636E DrawSynthFilterField       ; draw the FILTER type field (" LOWP"...; "-----" empty; jp-table $63a6)
-6414 DrawSynthWaveField         ; draw the waveform type row (glyph strings "iiii"/"mmmm"; jp-table $6437)
+6414 DrawSynthSignalField         ; draw the waveform type row (glyph strings "iiii"/"mmmm"; jp-table $6437)
 649F EraseSynthCursor           ; restore palette 1 over the cursor field's cells (SynthFieldX/Width/Layout[wSynthCursor])
 6503 DrawSynthCursor            ; highlight the cursor field's cells (palette 3 on CGB, 2 on DMG)
 6577 DrawSynthDistortionField         ; draw the DIST field: "CLIP"/"FOLD"/"WRAP"
@@ -64,9 +64,9 @@
 6819 .rowC                ; (was DrawSynthHexRowC) draw a START/END hex pair row (section C)
 6865 .rowD                ; (was DrawSynthHexRowD) draw a START/END hex pair row (section D), then DrawSynthCursor re-render
 68F9 LoadSynthParameters            ; load the edited synth's parameters from SRAM ($BEB2 + wSynthScreen*16) into the render state: wave type, wave table, filter
-6935 .loadWaveType        ; (was SynthLoadWaveType) read 2 synth params from SRAM -> wSynthSignalType, wSynthWaveShape (wave type)
-6967 .loadWaveTable       ; (was SynthLoadWaveTable) read packed param from SRAM, build wave table wSynthCurveAmplitude (via FillSynthWaveRange)
-6997 .loadFilterParameters    ; (was SynthLoadFilterParams) read 2 synth params from SRAM -> wSynthFilterParameter, wSynthFilterType (filter)
+6935 .loadWaveType        ; (was SynthLoadWaveType) read 2 synth params from SRAM -> wSynthSignalType, wSynthFilterType (wave type)
+6967 .loadWaveTable       ; (was SynthLoadWaveTable) read packed param from SRAM, build wave table wSynthCurveResonance (via FillSynthWaveRange)
+6997 .loadFilterParameters    ; (was SynthLoadFilterParams) read 2 synth params from SRAM -> wSynthDistortionType, wSynthPhaseType (filter)
 6B33 BuildOverwritePrompt       ; draw the confirmation border at columns 3..14, rows 4..10; restore wStringSource/palettes
 6D0F DrawOverwriteChoice        ; highlight the OVERWRITE? prompt choice (wOverwriteEnd) on row 9
 6D6F OverwriteSynthWaves        ; open the OVERWRITE HAND-DRAWN WAVES? confirmation; set active/choice flags wOverwriteStart/wOverwriteEnd
@@ -152,18 +152,18 @@
 5691 .done                ; common exit of ComposeSynthWave
 583C .loop                ; loop head in RenderSynthWaveType
 58D6 .done                ; common exit of RenderSynthWaveType
-592C .scatterLoop         ; SynthFilterLowHigh: for each of the 32 source samples, scatter it over two accumulator slots
-5AF7 .normaliseLoop       ; SynthFilterLowHigh: for each slot, output = sum / weight
-5B5A .shiftLeft           ; SynthFilterLowHigh: (0x100 - weight) <<= 3, the fill of a slot that has no weight
-5BB9 .done                ; common exit of SynthFilterLowHigh
-5BF7 .octaveLoop          ; SynthFilterBandPass: while the step is below 0x80, halve the wave
-5C10 .halveLoop           ; SynthFilterBandPass: wave[i] = (wave[k] + wave[k + 1]) / 2 over the shortened wave
-5C58 .scatterLoop         ; SynthFilterBandPass: scatter samples until the position reaches 0x20
-5C8F .normaliseLoop       ; SynthFilterBandPass: output = sum / weight for each slot
-5E4F .done                ; common exit of SynthFilterBandPass
-5E68 .loop                ; loop head in SynthFilterPass
-5E7D .loop2               ; loop head in SynthFilterPass
-5F28 .done                ; common exit of ApplySynthFilter
+592C .scatterLoop         ; PinchOrWarpSynthWave: for each of the 32 source samples, scatter it over two accumulator slots
+5AF7 .normaliseLoop       ; PinchOrWarpSynthWave: for each slot, output = sum / weight
+5B5A .shiftLeft           ; PinchOrWarpSynthWave: (0x100 - weight) <<= 3, the fill of a slot that has no weight
+5BB9 .done                ; common exit of PinchOrWarpSynthWave
+5BF7 .octaveLoop          ; ResyncSynthWave: while the step is below 0x80, halve the wave
+5C10 .halveLoop           ; ResyncSynthWave: wave[i] = (wave[k] + wave[k + 1]) / 2 over the shortened wave
+5C58 .scatterLoop         ; ResyncSynthWave: scatter samples until the position reaches 0x20
+5C8F .normaliseLoop       ; ResyncSynthWave: output = sum / weight for each slot
+5E4F .done                ; common exit of ResyncSynthWave
+5E68 .loop                ; loop head in Resync2SynthWave
+5E7D .loop2               ; loop head in Resync2SynthWave
+5F28 .done                ; common exit of ApplySynthPhase
 5F30 .loop                ; loop head in WriteSynthWaveColumn
 5F8C .done                ; common exit of WriteSynthWaveColumn
 5FA2 .shiftLoop           ; loop head in LoadSynthSignalWave: p <<= 4 done one bit per pass in p's slot
@@ -180,10 +180,10 @@
 62D3 .warp                ; case 1 (was DrawPhaseWarp)
 62DF .resync              ; case 2 (was DrawPhaseResync)
 62EB .resyn2              ; case 3 (was DrawPhaseResyn2)
-62F4 .done                ; common exit of DrawSynthField
+62F4 .done                ; common exit of DrawSynthPhaseField
 631E .loop                ; loop head in ReadSynthParameter
 63EE .done                ; common exit of DrawSynthFilterField
-6487 .done                ; common exit of DrawSynthWaveField
+6487 .done                ; common exit of DrawSynthSignalField
 64B3 .loop                ; loop head in EraseSynthCursor
 64FF .done                ; common exit of EraseSynthCursor
 6517 .loop                ; loop head in DrawSynthCursor
@@ -290,7 +290,7 @@
 4D07 .loadSelectionTop
 4D2C .ok
 5F19 .clearSynthWaveBuffers2
-5F1F .synthFilterPass
+5F1F .resync2SynthWave
 5F25 .clearSynthWaveBuffers
 5F75 .loadWaveEditX
 6042 .ok
@@ -322,7 +322,7 @@
 7367 .loadSynthCursorb
 736E .synthLoadWaveDataBd
 73E0 .checkButtonsSame
-743E .drawSynthWaveField
+743E .drawSynthSignalField
 7444 .checkButtonsSameb
 7473 .checkButtonsSamec
 750F .checkButtonsSamed
@@ -330,7 +330,7 @@
 7552 .raiseSynthFieldLow
 75DE .synthDataAddress
 7650 .checkButtonsSamee
-76AA .drawSynthWaveFieldb
+76AA .drawSynthSignalFieldb
 76B0 .checkButtonsSamef
 76DC .checkButtonsSameg
 7771 .checkButtonsSameh
@@ -480,9 +480,9 @@
 5AF3 .normalise           ; second pass: i = 0
 5B62 .shiftCount
 5B7D .writeSample         ; wave[wrap(i)] = sum / weight
-5C55 .mask                ; SynthFilterBandPass: n-- gives the position mask
+5C55 .mask                ; ResyncSynthWave: n-- gives the position mask
 5CF2 .return
-5CF5 .scatter             ; SynthFilterBandPass: the sample goes into two slots (the LOWP/HIGHP core)
+5CF5 .scatter             ; ResyncSynthWave: the sample goes into two slots (the LOWP/HIGHP core)
 5E82 .index
 5EEB .cont
 5FAA .shiftStep           ; the shift count test (a = 4 + 1, entered first)

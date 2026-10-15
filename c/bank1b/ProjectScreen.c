@@ -64,10 +64,10 @@ void FormatSramSong(void);                     /* bank 1 */
 void MoveMapCursorRight(void);                    /* bank 5 */
 void MoveMapCursorDown(void);                     /* bank 5 */
 void SoundTogglePlayback(void);                    /* bank 2 */
-extern UBYTE wSramFilesystemFlag;                   /* $C9A3 */
+extern UBYTE wSramHasFileBanks;                   /* $C9A3 */
 extern UBYTE wSongTranspose;                /* $C444 */
 extern UBYTE wCloneMode;                    /* $C531 */
-UBYTE CheckFileMagic64(void);               /* $1C:$4057 */
+UBYTE SramHasFileBanks(void);               /* $1C:$4057 */
 void DrawSyncField(void);
 void DrawFontColorFields(void);             /* $1B:$569C, its own unit */
 extern UBYTE wFileListActive;               /* $C998 */
@@ -194,7 +194,7 @@ void DrawSyncSubSetting(void)
 
 void DrawProjectScreen(void)
 {
-    wSramFilesystemFlag = FarCallByte(0x1C, FAR_FN(CheckFileMagic64));
+    wSramHasFileBanks = FarCallByte(0x1C, FAR_FN(SramHasFileBanks));
     FarCall(1, FAR_FN(DrawTopBar));
     wVramCursor = 0x9846;
     hBgDigitPalette = wShadedDigitPalette;
@@ -216,7 +216,7 @@ void DrawProjectScreen(void)
     hBgDigitPalette = 4;
     hBgPalette = 1;
     wVramCursor = 0x99C0;
-    if (wSramFilesystemFlag)
+    if (wSramHasFileBanks)
         DrawString("LOAD/SAVE SONG");
     else
         DrawString("RESET MEMORY");
@@ -634,7 +634,7 @@ UBYTE ProjectScreenInput(void)
             }
             return 1;
         case 11:
-            if (wSramFilesystemFlag) {
+            if (wSramHasFileBanks) {
                 if (wProjectMenuActive)
                     goto closeMenu;
                 wCurrentScreen = 0x0D;
@@ -667,7 +667,7 @@ UBYTE ProjectScreenInput(void)
                     goto redraw;
             reset:
                 FarCall(0x1C, FAR_FN(FileStopSound));
-                if (wSramFilesystemFlag) {
+                if (wSramHasFileBanks) {
                     WriteSongByte(1, 0xBFB6, 0);
                     WriteSongByte(1, 0xBFB8, 0);
                     WriteSongByte(1, 0xBFB7, 0);

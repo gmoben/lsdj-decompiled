@@ -146,11 +146,11 @@ The dispatcher selects these bank-$1E seed-table bases:
 `SynthSeedTableA`. Shape 2 clears the accumulator before mixing; shape 3
 uses the fixed offsets A + `$F0`, B + `$70`, or E + `$70`.
 
-Two additional 16-byte per-frame curves are now named: `wSynthCurveAmplitude`
+Two additional 16-byte per-frame curves are now named: `wSynthCurveResonance`
 (`$CA94`), interpolated from synth parameter 2's nibbles, and
 `wSynthCurveLimit` (`$CAA4`), interpolated from parameters 13/14 after adding
 `$0F`. Composition uses the latter to set its window. The byte historically
-named `wSynthFilterParameter` (`$C9EE`) selects **CLIP / FOLD / WRAP** (0/1/2),
+named `wSynthDistortionType` (`$C9EE`) selects **CLIP / FOLD / WRAP** (0/1/2),
 rather than resonance; the actual filter dispatch follows composition.
 
 The full parameter redraw is `DrawSynthNumber` at `$1D:$65C2`; its two

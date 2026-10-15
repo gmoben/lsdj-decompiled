@@ -101,7 +101,7 @@
 5B0C FileScreenInput            ; file-screen input dispatch (wButtons; clears wFileLoadAlternateReturn)
 40F2 CheckFileMagicAll          ; e=0 if the SRAM file space is initialized: 64K 'rb' set, else 'jk' + 128K marker set
 
-4057 CheckFileMagic64           ; e=1 if the 'rb' format markers are missing (SRAM banks 4/5/7)
+4057 SramHasFileBanks           ; 1 if SRAM banks 4, 5 and 7 lack the working song's 'rb' markers: they are banks of their own, not the 32 KB cartridge's mirrors of 0, 1 and 3, so the file system has room
 47B1 FormatFileSpace            ; zero filenames+versions (bank4 $a000-$a13f), reset the block alloc table
 71CD SendLinkClipboard          ; after a copy on linked Game Boys not playing (SYNC = LSDJ): send $FE, the clipboard type, the selection bounds and the cells (manual 5.1.4 Clipboard Transfer)
 
@@ -140,7 +140,7 @@
 4F4C SaveFileMiddle ; @deploy-only: interior of SaveFile (walker artifact)
 
 ; --- structural local names (loop heads / common exits) ---
-40F0 .done                ; common exit of CheckFileMagic64
+40F0 .done                ; common exit of SramHasFileBanks
 4158 .done                ; common exit of CheckFileMagicAll
 41A6 .scanLoop            ; loop head in FindFreeBlock: while p - end is negative
 42D2 .done                ; common exit of FindFreeBlock

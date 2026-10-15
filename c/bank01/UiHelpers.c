@@ -97,7 +97,7 @@ extern char TxtScreenWave[];                /* $01, "WAVE " */
 extern char TxtScreenSynth[];               /* $01, "SYNTH " */
 extern char TxtScreenGroove[];              /* $01, "GROOVE " */
 int StringLength(const char *s);            /* bank 0 */
-UBYTE CheckFileMagic64(void);               /* $1C:$4057 */
+UBYTE SramHasFileBanks(void);               /* $1C:$4057 */
 void DrawChannelHeader(void);               /* bank 0 */
 
 extern UBYTE ScreenPaletteChain[];              /* $01:$57BF */
@@ -629,7 +629,7 @@ void DrawTopBar(void)
         break;
     case 9:
         DrawString(TxtScreenProject);
-        if (FarCallByte(0x1C, FAR_FN(CheckFileMagic64)))
+        if (FarCallByte(0x1C, FAR_FN(SramHasFileBanks)))
             DrawString(wTopBarString);
         break;
     file:

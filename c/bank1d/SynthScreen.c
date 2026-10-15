@@ -2,7 +2,7 @@
  * The synth screen -- LSDj 9.4.0, ROM bank $1D.
  *
  * Its fields and input, the per-wave parameter curves and their loader, the
- * LOWP/HIGHP filter, the overwrite prompt.
+ * PHASE stage (PINCH, WARP, RESYNC, RESYN2), the overwrite prompt.
  *
  * MATCHING C (period GBDK 2.95-3 / SDCC 2.2.1 + tools/match/lsdj.peep);
  * `make match` verifies every function here against the ROM.
@@ -14,14 +14,14 @@ extern UBYTE wSelectionTop;                       /* $C40E */
 extern UBYTE wSelectionBottom;                    /* $C410 */
 extern UBYTE wSelectionRight;                     /* $C40F */
 extern UBYTE wClipboardType;                /* $C411 */
-extern UBYTE wSynthFilterType;              /* $C9EB */
-extern UBYTE wSynthFilterCutoff;            /* $C9EC */
+extern UBYTE wSynthPhaseType;              /* $C9EB */
+extern UBYTE wSynthPhase;            /* $C9EC */
 extern UBYTE wSynthWaveBuffer[];               /* $CA34, [32] */
-extern UBYTE wSynthBufferA[];                  /* $CAB8, [64]: filter accumulator, sample * weight per slot */
-extern UBYTE wSynthBufferB[];                  /* $CAF8, [64]: filter accumulator, weight per slot */
-extern UBYTE *wSynthFilterPointer;              /* $CB38 */
-extern UWORD wSynthFilterPointerW;              /* $CB38, the same word (aliased by match_function.py) */
-extern UWORD wSynthFilterValue;               /* $CB3A */
+extern UBYTE wSynthBufferA[];                  /* $CAB8, [64]: phase accumulator, sample * weight per slot */
+extern UBYTE wSynthBufferB[];                  /* $CAF8, [64]: phase accumulator, weight per slot */
+extern UBYTE *wSynthPhasePointer;              /* $CB38 */
+extern UWORD wSynthPhasePointerW;              /* $CB38, the same word (aliased by match_function.py) */
+extern UWORD wSynthPhaseValue;               /* $CB3A */
 extern UBYTE wSynthWaveScratch[];               /* $CB40, [32] */
 extern UBYTE wSynth;                        /* $C42A */
 extern UBYTE wSynthCursor;                  /* $C442 */
@@ -38,8 +38,8 @@ extern UBYTE wDrawStep;                     /* $C405 */
 extern UBYTE wSynthNavigationSide;                 /* $CB63 */
 UBYTE ReadSynthParameter(UBYTE field);          /* the current synth's param byte */
 void WriteSynthParameter(UBYTE field, UBYTE v);
-void SynthFilterBandPass(void);
-void SynthFilterPass(void);
+void ResyncSynthWave(void);
+void Resync2SynthWave(void);
 void SendLinkClipboard(void);                   /* $1C:$71CD */
 void DrawAllChannelStatus(void);
 void DrawSynthNumber(void);
@@ -53,15 +53,15 @@ void ShowSynthFieldHelp(void);               /* bank 5 */
 void SoundToggleSongPlayback(void);                 /* bank 2 */
 void SoundTogglePlayback(void);                    /* bank 2 */
 extern UBYTE wSynthRenderIndex;               /* $C9F0 */
-extern UBYTE wSynthSegmentLength1;                 /* $C9E8 */
-extern UBYTE wSynthSegmentLength2;                 /* $C9EA */
-extern UBYTE wSynthSegmentLength3;                 /* $C9EF */
+extern UBYTE wSynthCutoff;                 /* $C9E8 */
+extern UBYTE wSynthVerticalShift;                 /* $C9EA */
+extern UBYTE wSynthVolume;                 /* $C9EF */
 extern UBYTE wSynthSignalType;              /* $C9ED */
-extern UBYTE wSynthCurveSegment2[];             /* $CA54, [16] */
-extern UBYTE wSynthCurveCutoff[];           /* $CA64, [16] */
-extern UBYTE wSynthCurveSegment1[];             /* $CA74, [16] */
-extern UBYTE wSynthCurveSegment3[];             /* $CA84, [16] */
-extern UBYTE wSynthCurveAmplitude[];              /* $CA94, [16] */
+extern UBYTE wSynthCurveVerticalShift[];             /* $CA54, [16] */
+extern UBYTE wSynthCurvePhase[];           /* $CA64, [16] */
+extern UBYTE wSynthCurveCutoff[];             /* $CA74, [16] */
+extern UBYTE wSynthCurveVolume[];             /* $CA84, [16] */
+extern UBYTE wSynthCurveResonance[];              /* $CA94, [16] */
 extern UBYTE wSynthCurveLimit[];            /* $CAA4, [16], biased by $0F */
 extern UBYTE wSynthShapeBuffer[];              /* $C9F4, byte view of 32 signed words */
 extern BYTE SynthShapeTableA[];             /* $1D:$4EF0, signed correction samples */
@@ -73,21 +73,21 @@ extern char SynthSeedTableD[];              /* $1E:$76EC, shape 1 / signal 1 */
 extern char SynthSeedTableE[];              /* $1E:$77EC, shape 0 / signal 2 */
 extern char SynthSeedTableF[];              /* $1E:$78EC, shape 1 / signal 2 */
 UWORD SynthLockByteAddressB1D(UBYTE x);
-void ApplySynthFilter(void);
+void ApplySynthPhase(void);
 void LoadSynthSignalWave(void);
 void RenderSynthWaveType(void);
 void ComposeSynthWave(void);
 void WriteSynthWaveColumn(void);
 void RenderSynthWaveA(UBYTE amplitude);
 void RenderSynthWaveB(UBYTE amplitude);
-extern UBYTE wSynthWaveShape;               /* $C9E9 */
-extern UBYTE wSynthFilterParameter;             /* $C9EE, distortion: CLIP/FOLD/WRAP */
+extern UBYTE wSynthFilterType;               /* $C9E9 */
+extern UBYTE wSynthDistortionType;             /* $C9EE, distortion: CLIP/FOLD/WRAP */
 extern UBYTE wSynthRenderActive;            /* $C9F1 */
 extern UBYTE *wSynthRenderDestination;              /* $C9F2 */
-extern UWORD *wSynthBandDestination;                /* $CB3C, band-pass filter: output pointer / the slot value */
-extern UWORD wSynthBandDestinationW;                /* $CB3C, the same word (aliased by match_function.py) */
-extern UBYTE *wSynthBandSlot;               /* $CB3E, band-pass filter: the slot pointer / the BufB value */
-extern UWORD wSynthBandSlotW;               /* $CB3E, the same word (aliased by match_function.py) */
+extern UWORD *wSynthResyncDestination;                /* $CB3C, RESYNC phase: output pointer / the slot value */
+extern UWORD wSynthResyncDestinationW;                /* $CB3C, the same word (aliased by match_function.py) */
+extern UBYTE *wSynthResyncSlot;               /* $CB3E, RESYNC phase: the slot pointer / the BufB value */
+extern UWORD wSynthResyncSlotW;               /* $CB3E, the same word (aliased by match_function.py) */
 extern UBYTE wWaveEditX;                    /* $CB60 */
 void FillSynthWaveRange(UBYTE a, UBYTE b, UBYTE *buffer);
 
@@ -104,7 +104,7 @@ void RenderSynthWaveA(UBYTE amplitude)
     BYTE *table;
     UWORD sample;
 
-    volume = wSynthSegmentLength1 >> 4;
+    volume = wSynthCutoff >> 4;
     if (wSynthSignalType == 2)
         table = &SynthShapeTableB[0];
     else
@@ -120,10 +120,10 @@ void RenderSynthWaveA(UBYTE amplitude)
     for (position = 0; position < volume; position++)
         table += 0x20;
     if (wSynthSignalType) {
-        volume = wSynthSegmentLength1 & 0x1F;
+        volume = wSynthCutoff & 0x1F;
         volume >>= 1;
     } else {
-        volume = wSynthSegmentLength1 & 0x0F;
+        volume = wSynthCutoff & 0x0F;
     }
     if (!volume)
         return;
@@ -157,7 +157,7 @@ void RenderSynthWaveB(UBYTE amplitude)
     else
         table = &SynthShapeTableA[0];
     if (wSynthSignalType) {
-        volume = wSynthSegmentLength1 >> 5;
+        volume = wSynthCutoff >> 5;
         if (!volume)
             return;
         volume--;
@@ -168,7 +168,7 @@ void RenderSynthWaveB(UBYTE amplitude)
                 volume = 4;
         }
     } else {
-        volume = wSynthSegmentLength1 >> 4;
+        volume = wSynthCutoff >> 4;
         if (!volume)
             return;
         volume--;
@@ -176,10 +176,10 @@ void RenderSynthWaveB(UBYTE amplitude)
     for (position = 0; position < volume; position++)
         table += 0x20;
     if (wSynthSignalType) {
-        volume = wSynthSegmentLength1 & 0x1F;
+        volume = wSynthCutoff & 0x1F;
         volume >>= 1;
     } else {
-        volume = wSynthSegmentLength1 & 0x0F;
+        volume = wSynthCutoff & 0x0F;
     }
     volume ^= 0x0F;
     if (!volume)
@@ -219,13 +219,13 @@ void ComposeSynthWave(void)
     high = 0x100 - (((span + 1) >> 1) << 4);
     for (position = 0; position < 0x20; position++) {
         v = *(WORD *)(wSynthShapeBuffer + (position << 1));
-        v = v * wSynthSegmentLength3;
+        v = v * wSynthVolume;
         v >>= 4;
         if (v & 0x0800)
             v |= 0xF000;
         v += 0x80;
-        v += wSynthSegmentLength2;
-        switch (wSynthFilterParameter) {
+        v += wSynthVerticalShift;
+        switch (wSynthDistortionType) {
         case 0:
             if (v < low)
                 v = low;
@@ -278,21 +278,21 @@ void RenderSynthWaveType(void)
     UBYTE position;
     UWORD p;
 
-    amplitude = wSynthCurveAmplitude[wSynthRenderIndex];
-    switch (wSynthWaveShape) {
+    amplitude = wSynthCurveResonance[wSynthRenderIndex];
+    switch (wSynthFilterType) {
     case 0:
         switch (wSynthSignalType) {
         default:
-            p = wSynthSegmentLength1 & 0xF0;
+            p = wSynthCutoff & 0xF0;
             p = (UWORD)(SynthSeedTableA + (p << 1));
             break;
         case 1:
-            p = wSynthSegmentLength1 & 0xE0;
+            p = wSynthCutoff & 0xE0;
             p >>= 1;
             p = (UWORD)(SynthSeedTableB + (p << 1));
             break;
         case 2:
-            p = wSynthSegmentLength1 & 0xE0;
+            p = wSynthCutoff & 0xE0;
             p >>= 1;
             p = (UWORD)(SynthSeedTableE + (p << 1));
             break;
@@ -305,16 +305,16 @@ void RenderSynthWaveType(void)
     case 1:
         switch (wSynthSignalType) {
         case 0:
-            p = wSynthSegmentLength1 & 0xF0;
+            p = wSynthCutoff & 0xF0;
             p = (UWORD)(SynthSeedTableC + (p << 1));
             break;
         case 1:
-            p = wSynthSegmentLength1 & 0xE0;
+            p = wSynthCutoff & 0xE0;
             p >>= 1;
             p = (UWORD)(SynthSeedTableD + (p << 1));
             break;
         case 2:
-            p = wSynthSegmentLength1 & 0xE0;
+            p = wSynthCutoff & 0xE0;
             p >>= 1;
             p = (UWORD)(SynthSeedTableF + (p << 1));
             break;
@@ -356,17 +356,18 @@ UBYTE WrapSynthIndex32(UBYTE v)
     return (v + 1) & 0x1F;
 }
 
-/* $58E6: the LOWP/HIGHP filter (every type but BANDP and ALLP). Each of
-   the 32 samples is scattered over two accumulator slots at an 8.8 position
-   that advances by a cutoff-driven step (the slower the step, the more
-   samples a slot averages: a low cutoff smears the wave); HIGHP reverses
-   direction after 15 samples. A second pass divides each slot's sum by its
-   weight; LOWP fills a slot's missing weight with the mid level 8.
+/* $58E6: the PINCH and WARP phase (types 0 and 1; RESYNC and RESYN2 have
+   their own). Each of the 32 samples is scattered over two accumulator
+   slots at an 8.8 position that advances by a phase-driven step (the
+   slower the step, the more samples a slot averages: the wave is squeezed
+   horizontally); WARP reverses direction after 15 samples. A second pass
+   divides each slot's sum by its weight; PINCH fills a slot's missing
+   weight with the mid level 8.
    The slot pointer and value live in two scratch words ($CB38/$CB3A); the
    second half reuses the value's low byte for the doubled index and the
    pointer word for the value -- the index is a block-scope extern, which
    this compiler keeps in a register and spills into the global. */
-void SynthFilterLowHigh(void)
+void PinchOrWarpSynthWave(void)
 {
     UWORD accumulator;
     UBYTE step;
@@ -377,10 +378,10 @@ void SynthFilterLowHigh(void)
     UWORD ua;
     UWORD ub;
     UBYTE next2;
-    extern UBYTE wSynthFilterIndex;           /* $CB3A, wSynthFilterValue's low byte (aliased by match_function.py) */
+    extern UBYTE wSynthPhaseIndex;           /* $CB3A, wSynthPhaseValue's low byte (aliased by match_function.py) */
 
     accumulator = 0;
-    step = -(wSynthFilterCutoff + (wSynthFilterCutoff >> 5));
+    step = -(wSynthPhase + (wSynthPhase >> 5));
     FillMemory(wSynthBufferA, 0, 0x40);
     FillMemory(wSynthBufferB, 0, 0x40);
     for (output = 0; output < 0x20; output++) {
@@ -388,18 +389,18 @@ void SynthFilterLowHigh(void)
         fraction = (UBYTE)accumulator;
         sample = wSynthWaveBuffer[WrapSynthIndex32(output)];
         next2 = ((position + 1) & 0x1F) << 1;
-        wSynthFilterPointer = wSynthBufferA + next2;
-        wSynthFilterValue = *(UWORD *)wSynthFilterPointer;
-        *(UWORD *)wSynthFilterPointer = wSynthFilterValue + sample * fraction;
-        wSynthFilterValue = *(UWORD *)(wSynthBufferB + next2);
-        wSynthFilterValue += fraction;
-        *(UWORD *)(wSynthBufferB + next2) = wSynthFilterValue;
+        wSynthPhasePointer = wSynthBufferA + next2;
+        wSynthPhaseValue = *(UWORD *)wSynthPhasePointer;
+        *(UWORD *)wSynthPhasePointer = wSynthPhaseValue + sample * fraction;
+        wSynthPhaseValue = *(UWORD *)(wSynthBufferB + next2);
+        wSynthPhaseValue += fraction;
+        *(UWORD *)(wSynthBufferB + next2) = wSynthPhaseValue;
         fraction = 0x100 - fraction;
-        wSynthFilterIndex = position << 1;
-        wSynthFilterPointerW = *(UWORD *)(wSynthBufferA + wSynthFilterIndex);
-        *(UWORD *)(wSynthBufferA + wSynthFilterIndex) = wSynthFilterPointerW + sample * fraction;
-        *(UWORD *)(wSynthBufferB + wSynthFilterIndex) += fraction;
-        if (wSynthFilterType == 0 || output < 0x0F)
+        wSynthPhaseIndex = position << 1;
+        wSynthPhasePointerW = *(UWORD *)(wSynthBufferA + wSynthPhaseIndex);
+        *(UWORD *)(wSynthBufferA + wSynthPhaseIndex) = wSynthPhasePointerW + sample * fraction;
+        *(UWORD *)(wSynthBufferB + wSynthPhaseIndex) += fraction;
+        if (wSynthPhaseType == 0 || output < 0x0F)
             accumulator += step;
         else
             accumulator += 0x200 - step;
@@ -407,7 +408,7 @@ void SynthFilterLowHigh(void)
     for (output = 0; output < 0x20; output++) {
         ua = *(UWORD *)(wSynthBufferA + (output << 1));
         ub = *(UWORD *)(wSynthBufferB + (output << 1));
-        if (wSynthFilterType == 0) {
+        if (wSynthPhaseType == 0) {
             if ((ub - 0x100) & 0x8000) {
                 ua += (0x100 - ub) << 3;
                 ub = 0x100;
@@ -417,16 +418,16 @@ void SynthFilterLowHigh(void)
     }
 }
 
-/* The BANDP filter: halve the wave an octave per cutoff doubling over a
- * shortened n (the two copies through a volatile k), then the LOWP/HIGHP
+/* The RESYNC phase: halve the wave an octave per phase doubling over a
+ * shortened n (the two copies through a volatile k), then the PINCH/WARP
  * scatter core in a `for (;;)` whose head computes pos/frac/sample and, at
  * pos == 0x20, runs the normalise loop and returns.
  *
- * lsdj-alloc(SynthFilterBandPass): BUSYC=82-82
+ * lsdj-alloc(ResyncSynthWave): BUSYC=82-82
  * -- register c held when `next2 = i << 1` is allocated, so next2 takes b
  * and the BufB word comes out as the pair bc (docs/toolchain.md, "The
  * phantom register"). */
-void SynthFilterBandPass(void)
+void ResyncSynthWave(void)
 {
     UWORD accumulator;
     UBYTE step;
@@ -437,10 +438,10 @@ void SynthFilterBandPass(void)
     UWORD fraction;
     UWORD sample;
     UBYTE next2;
-    extern UBYTE wSynthBandIndex;             /* $CB3E */
+    extern UBYTE wSynthResyncIndex;             /* $CB3E */
 
     accumulator = 0;
-    step = -wSynthFilterCutoff;
+    step = -wSynthPhase;
     output = 0;
     n = 0x20;
     FillMemory(wSynthBufferA, 0, 0x40);
@@ -450,8 +451,8 @@ void SynthFilterBandPass(void)
         step <<= 1;
         n >>= 1;
         for (output = 0; output < n; output++) {
-            wSynthBandDestination = (UWORD *)(wSynthWaveBuffer + output);
-            *(UBYTE *)wSynthBandDestination = (wSynthWaveBuffer[k++] + wSynthWaveBuffer[k++]) >> 1;
+            wSynthResyncDestination = (UWORD *)(wSynthWaveBuffer + output);
+            *(UBYTE *)wSynthResyncDestination = (wSynthWaveBuffer[k++] + wSynthWaveBuffer[k++]) >> 1;
         }
     }
     n--;
@@ -461,38 +462,38 @@ void SynthFilterBandPass(void)
         sample = wSynthWaveBuffer[WrapSynthIndex32(output)];
         if (position == 0x20) {
             for (output = 0; output < 0x20; output++) {
-                wSynthBandDestination = (UWORD *)(wSynthWaveBuffer + WrapSynthIndex32(output));
+                wSynthResyncDestination = (UWORD *)(wSynthWaveBuffer + WrapSynthIndex32(output));
                 next2 = output << 1;
-                wSynthBandSlotW = *(UWORD *)(wSynthBufferA + next2);
-                *(UBYTE *)wSynthBandDestination = wSynthBandSlotW / *(UWORD *)(wSynthBufferB + next2);
+                wSynthResyncSlotW = *(UWORD *)(wSynthBufferA + next2);
+                *(UBYTE *)wSynthResyncDestination = wSynthResyncSlotW / *(UWORD *)(wSynthBufferB + next2);
             }
             return;
         }
         next2 = ((position + 1) & 0x1F) << 1;
-        wSynthBandSlot = wSynthBufferA + next2;
-        wSynthBandDestinationW = *(UWORD *)wSynthBandSlot;
-        *(UWORD *)wSynthBandSlot = wSynthBandDestinationW + sample * fraction;
-        wSynthBandSlotW = *(UWORD *)(wSynthBufferB + next2);
-        wSynthBandSlotW += fraction;
-        *(UWORD *)(wSynthBufferB + next2) = wSynthBandSlotW;
+        wSynthResyncSlot = wSynthBufferA + next2;
+        wSynthResyncDestinationW = *(UWORD *)wSynthResyncSlot;
+        *(UWORD *)wSynthResyncSlot = wSynthResyncDestinationW + sample * fraction;
+        wSynthResyncSlotW = *(UWORD *)(wSynthBufferB + next2);
+        wSynthResyncSlotW += fraction;
+        *(UWORD *)(wSynthBufferB + next2) = wSynthResyncSlotW;
         fraction = 0x100 - fraction;
-        wSynthBandIndex = position << 1;
-        wSynthBandDestinationW = *(UWORD *)(wSynthBufferA + wSynthBandIndex);
-        *(UWORD *)(wSynthBufferA + wSynthBandIndex) = wSynthBandDestinationW + sample * fraction;
-        *(UWORD *)(wSynthBufferB + wSynthBandIndex) += fraction;
+        wSynthResyncIndex = position << 1;
+        wSynthResyncDestinationW = *(UWORD *)(wSynthBufferA + wSynthResyncIndex);
+        *(UWORD *)(wSynthBufferA + wSynthResyncIndex) = wSynthResyncDestinationW + sample * fraction;
+        *(UWORD *)(wSynthBufferB + wSynthResyncIndex) += fraction;
         accumulator += step;
         output++;
         output &= n;
     }
 }
 
-void SynthFilterPass(void)
+void Resync2SynthWave(void)
 {
     UBYTE position;
     UBYTE n;
     UBYTE k;
 
-    n = 0x20 - (wSynthFilterCutoff >> 3);
+    n = 0x20 - (wSynthPhase >> 3);
     for (position = 0; position < 0x20; position++) {
         k = (((UWORD)position << 5) + 0x10) / n % 0x20;
         wSynthWaveScratch[WrapSynthIndex32(position)] = wSynthWaveBuffer[WrapSynthIndex32(k)];
@@ -500,18 +501,18 @@ void SynthFilterPass(void)
     memcpy(wSynthWaveBuffer, wSynthWaveScratch, 0x20);
 }
 
-void ApplySynthFilter(void)
+void ApplySynthPhase(void)
 {
-    if (wSynthFilterCutoff) {
-        switch (wSynthFilterType) {
+    if (wSynthPhase) {
+        switch (wSynthPhaseType) {
         case 2:
-            SynthFilterBandPass();
+            ResyncSynthWave();
             break;
         case 3:
-            SynthFilterPass();
+            Resync2SynthWave();
             break;
         default:
-            SynthFilterLowHigh();
+            PinchOrWarpSynthWave();
         }
     }
 }
@@ -559,16 +560,16 @@ void RenderSynthWave(void)
 {
     if (wSynthRenderIndex >= 0x10)
         DebugTrap();
-    wSynthSegmentLength3 = wSynthCurveSegment3[wSynthRenderIndex];
-    wSynthSegmentLength1 = wSynthCurveSegment1[wSynthRenderIndex];
-    wSynthSegmentLength2 = wSynthCurveSegment2[wSynthRenderIndex];
-    wSynthFilterCutoff = wSynthCurveCutoff[wSynthRenderIndex];
+    wSynthVolume = wSynthCurveVolume[wSynthRenderIndex];
+    wSynthCutoff = wSynthCurveCutoff[wSynthRenderIndex];
+    wSynthVerticalShift = wSynthCurveVerticalShift[wSynthRenderIndex];
+    wSynthPhase = wSynthCurvePhase[wSynthRenderIndex];
     if (wSynthSignalType == 3)
         LoadSynthSignalWave();
     else
         RenderSynthWaveType();
     ComposeSynthWave();
-    ApplySynthFilter();
+    ApplySynthPhase();
     WriteSynthWaveColumn();
 }
 
@@ -621,7 +622,7 @@ void FillSynthWaveRange(UBYTE a, UBYTE b, UBYTE *buffer)
     }
 }
 
-void DrawSynthField(UBYTE v)
+void DrawSynthPhaseField(UBYTE v)
 {
     switch (v) {
     case 0:
@@ -679,7 +680,7 @@ void DrawSynthFilterField(void)
     }
 }
 
-void DrawSynthWaveField(void)
+void DrawSynthSignalField(void)
 {
     wVramCursor = (UBYTE *)0x9849;
     switch (ReadSynthParameter(0)) {
@@ -750,7 +751,7 @@ void DrawSynthNumber(void)
     DrawByte(wSynthScreen);
     hBgDigitPalette = wShadedDigitPalette;
     hBgPalette = wShadedPalette;
-    DrawSynthWaveField();
+    DrawSynthSignalField();
     p++;
     DrawSynthFilterField();
     p++;
@@ -768,7 +769,7 @@ void DrawSynthNumber(void)
     wVramCursor = (UBYTE *)0x9889;
     DrawSynthDistortionField(ReadSongByte(1, (UWORD)p++));
     wVramCursor = (UBYTE *)0x98A7;
-    DrawSynthField(ReadSongByte(1, (UWORD)p++));
+    DrawSynthPhaseField(ReadSongByte(1, (UWORD)p++));
     wVramCursor = (UBYTE *)0x9928;
     DrawHexByte(ReadSongByte(1, (UWORD)p++));
     wVramCursor = (UBYTE *)0x9948;
@@ -823,19 +824,19 @@ void LoadSynthParameters(void)
     o = s << 4;
     p = (UWORD)SramSynthParams + o;
     wSynthSignalType = ReadSongByte(1, p++);
-    wSynthWaveShape = ReadSongByte(1, p++);
-    v = ReadSongByte(1, p++);
-    FillSynthWaveRange(v >> 4, v & 0x0F, wSynthCurveAmplitude);
-    wSynthFilterParameter = ReadSongByte(1, p++);
     wSynthFilterType = ReadSongByte(1, p++);
-    wSynthSegmentLength3 = ReadSongByte(1, p++);
-    wSynthSegmentLength1 = ReadSongByte(1, p++);
-    wSynthFilterCutoff = ReadSongByte(1, p++) << 3;
-    wSynthSegmentLength2 = ReadSongByte(1, p++);
-    FillSynthWaveRange(wSynthSegmentLength3, ReadSongByte(1, p++), wSynthCurveSegment3);
-    FillSynthWaveRange(wSynthSegmentLength1, ReadSongByte(1, p++), wSynthCurveSegment1);
-    FillSynthWaveRange(wSynthFilterCutoff, ReadSongByte(1, p++) << 3, wSynthCurveCutoff);
-    FillSynthWaveRange(wSynthSegmentLength2, ReadSongByte(1, p++), wSynthCurveSegment2);
+    v = ReadSongByte(1, p++);
+    FillSynthWaveRange(v >> 4, v & 0x0F, wSynthCurveResonance);
+    wSynthDistortionType = ReadSongByte(1, p++);
+    wSynthPhaseType = ReadSongByte(1, p++);
+    wSynthVolume = ReadSongByte(1, p++);
+    wSynthCutoff = ReadSongByte(1, p++);
+    wSynthPhase = ReadSongByte(1, p++) << 3;
+    wSynthVerticalShift = ReadSongByte(1, p++);
+    FillSynthWaveRange(wSynthVolume, ReadSongByte(1, p++), wSynthCurveVolume);
+    FillSynthWaveRange(wSynthCutoff, ReadSongByte(1, p++), wSynthCurveCutoff);
+    FillSynthWaveRange(wSynthPhase, ReadSongByte(1, p++) << 3, wSynthCurvePhase);
+    FillSynthWaveRange(wSynthVerticalShift, ReadSongByte(1, p++), wSynthCurveVerticalShift);
     x = ReadSongByte(1, p++);
     y = ReadSongByte(1, p);
     FillSynthWaveRange(x + 0x0F, y + 0x0F, wSynthCurveLimit);
@@ -1206,9 +1207,9 @@ UBYTE SynthScreenInput(void)
                 DrawSynthScreen();
                 hBgDigitPalette = wHighlightDigitPalette;
                 hBgPalette = wHighlightPalette;
-                DrawSynthWaveField();
+                DrawSynthSignalField();
             }
-            DrawSynthWaveField();
+            DrawSynthSignalField();
             break;
         case 1:
             if (wButtonsSame)
@@ -1253,7 +1254,7 @@ UBYTE SynthScreenInput(void)
             if (v >= 3)
                 break;
             v++;
-            DrawSynthField(v);
+            DrawSynthPhaseField(v);
             WriteSynthParameter(4, v);
             break;
         case 6:
@@ -1307,9 +1308,9 @@ UBYTE SynthScreenInput(void)
                 DrawSynthScreen();
                 hBgDigitPalette = wHighlightDigitPalette;
                 hBgPalette = wHighlightPalette;
-                DrawSynthWaveField();
+                DrawSynthSignalField();
             }
-            DrawSynthWaveField();
+            DrawSynthSignalField();
             break;
         case 1:
             if (wButtonsSame)
@@ -1354,7 +1355,7 @@ UBYTE SynthScreenInput(void)
             if (!v)
                 break;
             v--;
-            DrawSynthField(v);
+            DrawSynthPhaseField(v);
             WriteSynthParameter(4, v);
             break;
         case 6:

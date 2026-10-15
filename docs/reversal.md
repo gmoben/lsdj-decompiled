@@ -547,7 +547,7 @@ selected by `wFont` `$C52E`) and **synth waveform
 tables**, and the phrase/chain/instr **allocation bitmap** functions
 (`AllocNextFreePhrase`/`FreeChain`/`AllocNextFreeInstrument`/`FindFreeTable`…).
 Several functions were *hidden by misalignment* — strings/tables carved as code
-swallowed the next function's first bytes (`ShowTapAddPhrase`, `CheckFileMagic64`,
+swallowed the next function's first bytes (`ShowTapAddPhrase`, `SramHasFileBanks`,
 `CanEnterSongColumn`) — fixed by adding the data ranges to `carve_clean.py` MANUAL.
 The residual `_LABEL_` count (~365) is entirely the benign classes: 16-bit
 numeric constants that look like addresses (`ld de,$0400` as a copy length) and

@@ -450,7 +450,7 @@ DEF wFileBlockCounts      EQU $C959  ; per-file block counts, 32 slots (CountFil
 DEF wFileNameBuffer       EQU $C987  ; 8-char filename buffer (CopyFileName)
 DEF wFileListActive       EQU $C998  ; cursor is inside the file list (not a string buffer)
 DEF wProjectCursor        EQU $C9A4  ; project-screen cursor row (ProjectCursorFieldWidth index)
-DEF wSynthBufferA         EQU $CAB8  ; [64] 64-byte synth wave work buffer A (SynthFilterLowHigh)
+DEF wSynthBufferA         EQU $CAB8  ; [64] 64-byte synth wave work buffer A (PinchOrWarpSynthWave)
 DEF wSynthBufferB         EQU $CAF8  ; [64] 64-byte synth wave work buffer B
 DEF wOverwriteStart       EQU $CB61  ; nonzero while the synth OVERWRITE? prompt is open (OverwritePromptInput clears it)
 DEF wOverwriteEnd         EQU $CB62  ; the prompt's choice: 0 = left (accept: ClearSynthFlag), 1 = right
@@ -836,7 +836,7 @@ DEF wFileNameNavigationMode           EQU $C99C  ; file list entered from the na
 DEF wFileSramProperties               EQU $C99D  ; [4] SRAM settings backup around FileLoadSlotInfo ($BFB6-B9)
 DEF wFileInstrumentIndex              EQU $C9A1  ; instrument index iterator 0-$3F (FileForEachInstrumentType)
 DEF wNameEditWrapLatch                EQU $C9A2  ; name editor: set when the keyboard cursor wraps (fresh press only); holds it until the buttons change
-DEF wSramFilesystemFlag               EQU $C9A3  ; CheckFileMagic64 result; gates FILE menu + props write (polarity TBD)
+DEF wSramHasFileBanks               EQU $C9A3  ; SramHasFileBanks' result: the project screen offers LOAD/SAVE SONG when set, RESET MEMORY when not
 DEF wProjectMenuActive                EQU $C9A5  ; project screen: bottom LOAD/SAVE menu focused
 DEF wProjectMenuItem                  EQU $C9A6  ; project screen: menu item index (0/1)
 DEF wProjectDrawScratch               EQU $C9A7  ; transient tile-value scratch (Proj/clock digit draw; also bank01)
@@ -859,18 +859,18 @@ DEF wChannelMuteShown                 EQU $C9CE  ; [4] per channel: 1 while the 
 DEF wChannelMuteShownPointer          EQU $C9D2 ; DrawChannelStatus's static pointer into wChannelMuteShown
 DEF wGrooveCacheValid                 EQU $C9D5  ; groove step-cache built flag (BuildGrooveCache sets, ResetGrooveState clears)
 DEF wGrooveCachePointer               EQU $C9E6  ; [1] 16-bit scratch ptr walking wGrooveStepCache (BuildGrooveCache)
-DEF wSynthSegmentLength1              EQU $C9E8  ; synth param: segment length/fill count -> curve buf $CA74 (field TBD)
-DEF wSynthWaveShape                   EQU $C9E9  ; synth waveform shape type (jump-table selector, RenderSynthWaveType)
-DEF wSynthSegmentLength2              EQU $C9EA  ; synth param: fill count -> curve buf $CA54 (field TBD)
-DEF wSynthFilterType                  EQU $C9EB  ; synth filter type (2=clear, 3=SynthFilterPass)
-DEF wSynthFilterCutoff                EQU $C9EC  ; synth filter cutoff (value<<3 & $F8, SynthFilterPass)
+DEF wSynthCutoff              EQU $C9E8  ; synth param byte 6: the current frame's CUTOFF (wSynthCurveCutoff), which picks the shape table's row
+DEF wSynthFilterType                   EQU $C9E9  ; synth param byte 1: the FILTER type (LOWP, HIGHP, BANDP, ALLP) RenderSynthWaveType shapes the wave by
+DEF wSynthVerticalShift              EQU $C9EA  ; synth param byte 8: the current frame's VSHIFT (wSynthCurveVerticalShift), added in ComposeSynthWave
+DEF wSynthPhaseType                  EQU $C9EB  ; synth param byte 4: the PHASE type (0 PINCH, 1 WARP, 2 RESYNC, 3 RESYN2), ApplySynthPhase's switch
+DEF wSynthPhase                EQU $C9EC  ; synth param byte 7 (x8): the current frame's PHASE amount (wSynthCurvePhase); 0 skips ApplySynthPhase
 DEF wSynthSignalType                  EQU $C9ED  ; synth source: 2 selects SynthShapeTableB; 0/1 select SynthShapeTableA; 3 reads a saved wave
-DEF wSynthFilterParameter             EQU $C9EE  ; synth distortion mode: 0=CLIP, 1=FOLD, 2=WRAP (ComposeSynthWave)
-DEF wSynthSegmentLength3              EQU $C9EF  ; synth param: fill count -> curve buf $CA84 (field TBD)
+DEF wSynthDistortionType             EQU $C9EE  ; synth param byte 3: the DIST mode (0 CLIP, 1 FOLD, 2 WRAP) ComposeSynthWave limits by
+DEF wSynthVolume              EQU $C9EF  ; synth param byte 5: the current frame's VOLUME (wSynthCurveVolume), ComposeSynthWave's scale (/16)
 DEF wSynthRenderActive                EQU $C9F1  ; idle synth render in progress (cleared at frame $10)
 DEF wSynthRenderDestination           EQU $C9F2  ; 16-bit SRAM dest ptr for rendered waves ($A0xx)
 DEF wSynthShapeBuffer                 EQU $C9F4  ; [32] words: signed seed samples from bank $1E (LoadSynthShape), accumulated into by RenderSynthWaveA/B
-DEF wSynthFilterPointer               EQU $CB38  ; low-/high-pass synth filter: pointer to the accumulator slot scattered into (SynthFilterLowHigh); the slot value in the loop's second half
+DEF wSynthPhasePointer               EQU $CB38  ; PINCH/WARP phase (PinchOrWarpSynthWave): pointer to the accumulator slot scattered into (PinchOrWarpSynthWave); the slot value in the loop's second half
 DEF wSynthNavigationSide              EQU $CB63  ; synth screen: last horizontal nav direction (cursor column side)
 DEF wSyncTransferActive               EQU $CB65  ; link song-transfer in progress (skips ProcessSyncByte)
 DEF wSyncStartRow                     EQU $CB6A  ; saved/target song row for sync start (B-held save/restore)
@@ -969,17 +969,20 @@ DEF wSelectHoldFrames               EQU $C676  ; frames SELECT has been held (Pr
 DEF wAttributeRowBuffer             EQU $C677  ; [20] CGB attribute row buffer: ColorField fills it with the palette and set_bkg_tiles writes it to VRAM bank 1
 DEF wCommandWaveParameter           EQU $C8C2  ; W command value latch (lo nibble; consumed via SoundSetKitParameters)
 DEF wCommandWaveParameter2          EQU $C8C3  ; W command companion latch
-DEF wSynthFilterValue               EQU $CB3A  ; low-/high-pass synth filter: the accumulator slot value; its low byte the doubled sample index in the loop's second half
+DEF wSynthPhaseValue               EQU $CB3A  ; PINCH/WARP phase: the accumulator slot value; its low byte the doubled sample index in the loop's second half
 DEF wSynthWaveBuffer                EQU $CA34  ; [32] rendered synth wave samples, one nibble each (ComposeSynthWave; WriteSynthWaveColumn packs them into SRAM)
-DEF wSynthCurveSegment2             EQU $CA54  ; [16] per-wave interpolated synth parameter curves (FillSynthWaveRange from LoadSynthParameters,
-DEF wSynthCurveCutoff               EQU $CA64 ;      read back per wave by RenderSynthWave into wSynthSegmentLength2/wSynthFilterCutoff/
-DEF wSynthCurveSegment1             EQU $CA74  ;      wSynthSegmentLength1/wSynthSegmentLength3); the C addresses them as literal pointers
-DEF wSynthCurveSegment3             EQU $CA84
-DEF wSynthCurveAmplitude            EQU $CA94  ; [16] per-frame mix amplitude, interpolated from the two nibbles of synth parameter 2
-DEF wSynthCurveLimit                EQU $CAA4  ; [16] per-frame distortion-window control: synth parameters 13/14 biased by $0F
-DEF wSynthBandDestination           EQU $CB3C  ; band-pass synth filter (SynthFilterBandPass): output pointer in the halving and normalise loops; the slot value in the scatter
-DEF wSynthBandSlot                  EQU $CB3E  ; band-pass synth filter: the accumulator slot pointer; the BufB value and the doubled index in the scatter; the BufA value in the normalise loop
-DEF wSynthWaveScratch               EQU $CB40  ; [32] filter-pass scratch copy of wSynthWaveBuffer (SynthFilterPass writes it, then memcpy back)
+; the synth's per-frame parameter curves: FillSynthWaveRange interpolates each from its start/end
+; parameters (LoadSynthParameters), RenderSynthWave reads one entry per frame; the C addresses them
+; as literal pointers
+DEF wSynthCurveVerticalShift EQU $CA54  ; [16] the VSHIFT per frame (params 8 -> 12)
+DEF wSynthCurvePhase         EQU $CA64  ; [16] the PHASE amount per frame (params 7 -> 11, x8)
+DEF wSynthCurveCutoff        EQU $CA74  ; [16] the CUTOFF per frame (params 6 -> 10)
+DEF wSynthCurveVolume        EQU $CA84  ; [16] the VOLUME per frame (params 5 -> 9)
+DEF wSynthCurveResonance     EQU $CA94  ; [16] the Q (resonance) per frame (param 2's nibbles: start, end)
+DEF wSynthCurveLimit         EQU $CAA4  ; [16] per-frame distortion-window control: synth parameters 13/14 biased by $0F
+DEF wSynthResyncDestination           EQU $CB3C  ; RESYNC phase (ResyncSynthWave): output pointer in the halving and normalise loops; the slot value in the scatter
+DEF wSynthResyncSlot                  EQU $CB3E  ; RESYNC phase: the accumulator slot pointer; the BufB value and the doubled index in the scatter; the BufA value in the normalise loop
+DEF wSynthWaveScratch               EQU $CB40  ; [32] filter-pass scratch copy of wSynthWaveBuffer (Resync2SynthWave writes it, then memcpy back)
 DEF wWaveEditX                      EQU $CB60  ; wave-editor pen X: (column*4) & $f0 (WriteSynthWaveColumn)
 DEF wNotePeriodLow                  EQU $CD28  ; RAM copy of the note->period table (SoundNoteToPeriod indexes by note)
 DEF wNoteFineTable                  EQU $CD94  ; RAM copy of the finetune/delta table (SoundWriteChannelFrequency, index wNoteOctave-1)

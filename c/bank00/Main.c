@@ -49,7 +49,7 @@ void LoadFontTiles(void);              /* bank $1E */
 void DrawCartTest(void);                    /* bank 1 */
 void FormatSramSong(void);                     /* bank 1 */
 void WriteSongInitializedMarker(void);               /* bank 1 */
-UBYTE CheckFileMagic64(void);               /* bank $1C */
+UBYTE SramHasFileBanks(void);               /* bank $1C */
 UBYTE CheckJkMarker(void);                  /* bank 1 */
 void FormatFileSpace(void);                 /* bank $1C */
 void LoadProjectSettings(void);             /* bank 1 */
@@ -288,7 +288,7 @@ void InitializeAndLoadSong(void)
     }
     WriteSongInitializedMarker();
     SWITCH_ROM(0x1C);
-    if (CheckFileMagic64()) {
+    if (SramHasFileBanks()) {
         SWITCH_ROM(0x01);
         if (!CheckJkMarker()) {
             SWITCH_ROM(0x1C);

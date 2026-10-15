@@ -1199,7 +1199,7 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
             # the byte in `a` is remembered as "the byte at (de)", so its
             # copies are forgotten once the pair is rewritten: `ld a,(de);
             # ld c,a; ld e,(hl); inc hl; ld d,(hl); ld a,c; ld (de),a` keeps
-            # the reload (SynthFilterPass, FileFormatBuf), while `ld a,(de);
+            # the reload (Resync2SynthWave, FileFormatBuf), while `ld a,(de);
             # ld b,a; cp a,#n; jp z; ld a,b` drops it (UnhighlightPhraseCell)
             a_pair = None
             eq = set()

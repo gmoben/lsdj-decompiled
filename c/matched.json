@@ -77,7 +77,7 @@
   "len": 144,
   "src": "c/bank01/UiHelpers.c"
  },
- "ApplySynthFilter": {
+ "ApplySynthPhase": {
   "bank": "1D",
   "addr": "5F00",
   "len": 41,
@@ -142,12 +142,6 @@
   "addr": "4FFB",
   "len": 83,
   "src": "c/bank06/WaveScreen.c"
- },
- "CheckFileMagic64": {
-  "bank": "1C",
-  "addr": "4057",
-  "len": 155,
-  "src": "c/bank1c/FileScreen.c"
  },
  "CheckFileMagicAll": {
   "bank": "1C",
@@ -1139,12 +1133,6 @@
   "len": 60,
   "src": "c/bank1d/SynthScreen.c"
  },
- "DrawSynthField": {
-  "bank": "1D",
-  "addr": "62A8",
-  "len": 77,
-  "src": "c/bank1d/SynthScreen.c"
- },
  "DrawSynthFilterField": {
   "bank": "1D",
   "addr": "636E",
@@ -1157,13 +1145,19 @@
   "len": 739,
   "src": "c/bank1d/SynthScreen.c"
  },
+ "DrawSynthPhaseField": {
+  "bank": "1D",
+  "addr": "62A8",
+  "len": 77,
+  "src": "c/bank1d/SynthScreen.c"
+ },
  "DrawSynthScreen": {
   "bank": "1D",
   "addr": "68AB",
   "len": 78,
   "src": "c/bank1d/SynthScreen.c"
  },
- "DrawSynthWaveField": {
+ "DrawSynthSignalField": {
   "bank": "1D",
   "addr": "6414",
   "len": 117,
@@ -2657,6 +2651,12 @@
   "len": 82,
   "src": "c/bank1f/PhraseScreen.c"
  },
+ "PinchOrWarpSynthWave": {
+  "bank": "1D",
+  "addr": "58E6",
+  "len": 727,
+  "src": "c/bank1d/SynthScreen.c"
+ },
  "PlacePhraseCell": {
   "bank": "04",
   "addr": "4B5B",
@@ -3130,6 +3130,18 @@
   "addr": "747D",
   "len": 49,
   "src": "c/bank05/TableScreen.c"
+ },
+ "Resync2SynthWave": {
+  "bank": "1D",
+  "addr": "5E53",
+  "len": 173,
+  "src": "c/bank1d/SynthScreen.c"
+ },
+ "ResyncSynthWave": {
+  "bank": "1D",
+  "addr": "5BBD",
+  "len": 662,
+  "src": "c/bank1d/SynthScreen.c"
  },
  "ReverseWaveRange": {
   "bank": "06",
@@ -3629,6 +3641,12 @@
   "len": 1448,
   "src": "c/bank1f/SpeechInstrumentScreen.c"
  },
+ "SramHasFileBanks": {
+  "bank": "1C",
+  "addr": "4057",
+  "len": 155,
+  "src": "c/bank1c/FileScreen.c"
+ },
  "StartMapTransition": {
   "bank": "05",
   "addr": "420C",
@@ -3724,24 +3742,6 @@
   "addr": "72EE",
   "len": 34,
   "src": "c/bank1c/FileScreen.c"
- },
- "SynthFilterBandPass": {
-  "bank": "1D",
-  "addr": "5BBD",
-  "len": 662,
-  "src": "c/bank1d/SynthScreen.c"
- },
- "SynthFilterLowHigh": {
-  "bank": "1D",
-  "addr": "58E6",
-  "len": 727,
-  "src": "c/bank1d/SynthScreen.c"
- },
- "SynthFilterPass": {
-  "bank": "1D",
-  "addr": "5E53",
-  "len": 173,
-  "src": "c/bank1d/SynthScreen.c"
  },
  "SynthFramesModified": {
   "bank": "1F",

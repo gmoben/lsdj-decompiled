@@ -459,15 +459,15 @@ RUNTIME_ALIASES = {
     "FarCallArgumentWC": "FarCallArgument",  # FarCallArgument with the target as a plain UWORD and a `char` argument: a `?:` over two addresses pushed from bc without a frame (SetVibratoShape)
     "FarCallArgumentW": "FarCallArgument",  # FarCallArgument with the target as a plain UWORD (DrawInstrumentScreen's `fn` local set by a switch)
     "FarCallW": "FarCall",  # FarCall with the target as a plain UWORD (DrawInstrumentScreen)
-    "wSynthBandDestinationW": "wSynthBandDestination",  # the band-pass filter's output pointer read as a word: the slot value in the scatter (SynthFilterBandPass)
-    "wSynthBandSlotW": "wSynthBandSlot",  # the band-pass filter's slot pointer as a word: the BufB value, the BufA value in the normalise loop
-    "wSynthBandIndex": "wSynthBandSlot",  # its low byte: the doubled index in the scatter's second half (a block-scope extern)
+    "wSynthResyncDestinationW": "wSynthResyncDestination",  # the band-pass filter's output pointer read as a word: the slot value in the scatter (ResyncSynthWave)
+    "wSynthResyncSlotW": "wSynthResyncSlot",  # the band-pass filter's slot pointer as a word: the BufB value, the BufA value in the normalise loop
+    "wSynthResyncIndex": "wSynthResyncSlot",  # its low byte: the doubled index in the scatter's second half (a block-scope extern)
     "wWordClipboardPointerB": "wWordClipboardPointer",  # the word clipboard pointer's low byte: the kit sample number cached there in WordScreenInput's A press
     "WriteCurrentInstrumentByteC": "WriteCurrentInstrumentByte",  # WriteCurrentInstrumentByte with a `char` value (SetVibratoShape)
     "WriteVramByteSafeP": "WriteVramByteSafe",  # WriteVramByteSafe with a pointer address: the cast of a UWORD counter is the spilt argument copy (ClearOamBuffer)
     "WriteVramByteSafeC": "WriteVramByteSafe",  # char value: the (char)global cast copy evaluated before dst++ owns c and is spilt into the global (CopyVramTile)
-    "wSynthFilterPointerW": "wSynthFilterPointer",  # the low-/high-pass filter's slot pointer read as a word: the slot value in the second half of the scatter loop (SynthFilterLowHigh)
-    "wSynthFilterIndex": "wSynthFilterValue",  # the filter's slot value's low byte: the doubled sample index, a block-scope extern the compiler spills the index into (SynthFilterLowHigh)
+    "wSynthPhasePointerW": "wSynthPhasePointer",  # the low-/high-pass filter's slot pointer read as a word: the slot value in the second half of the scatter loop (PinchOrWarpSynthWave)
+    "wSynthPhaseIndex": "wSynthPhaseValue",  # the filter's slot value's low byte: the doubled sample index, a block-scope extern the compiler spills the index into (PinchOrWarpSynthWave)
 }
 
 
