@@ -5,9 +5,9 @@
 ; --- data tables + strings (db; instrument-editor + word/phrase helpers) ---
 4236 TxtDashTemplate            ; "/--/--" (value display template)
 491A DefaultWaveFrameB1F        ; [16] default wave frame (WaveFrameModified compares phrase rows against it)
-4A02 DefaultInstrumentPulse     ; [11] default pulse (or noise) instrument bytes (ClaimInstrumentSlot)
-4A0D DefaultInstrumentWave      ; [11] default wave instrument bytes
-4A18 DefaultInstrumentKit       ; [14] default kit instrument bytes
+4A02 DefaultInstrumentPulse     ; [11] default pulse instrument bytes: a new instrument on PU1 or PU2 (ClaimInstrumentSlot)
+4A0D DefaultInstrumentNoise     ; [11] default noise instrument bytes: a new instrument on NOI (ClaimInstrumentSlot)
+4A18 DefaultInstrumentWave      ; [14] default wave instrument bytes: a new instrument on WAV (ClaimInstrumentSlot)
 4C11 TxtOutOfTables             ; "OUT OF TABLES!"
 61FF DefaultSynthParameters     ; [16] default softsynth params, memcpy'd into synth_params ($3EB2) by $61E1
 77F5 TxtCopiedWord              ; "COPIED WORD"

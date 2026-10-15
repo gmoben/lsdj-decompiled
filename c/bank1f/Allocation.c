@@ -14,8 +14,8 @@ extern UBYTE wColumnChain[];                /* $C44F, [4] */
 void MarkChainUsed(void);                   /* $01:$4D67 */
 void ShowOutOfMemory(void);                 /* $01:$75BD */
 extern UBYTE DefaultInstrumentPulse[];      /* $1F:$4A02, [11] */
-extern UBYTE DefaultInstrumentWave[];       /* $4A0D, [11] */
-extern UBYTE DefaultInstrumentKit[];        /* $4A18, [14] */
+extern UBYTE DefaultInstrumentNoise[];      /* $4A0D, [11] */
+extern UBYTE DefaultInstrumentWave[];       /* $4A18, [14] */
 UBYTE IsTableFree(UWORD t);
 UBYTE IsInstrumentAllocated(UBYTE instrument);
 UBYTE ClaimInstrumentSlot(UBYTE instrument);
@@ -50,11 +50,11 @@ UBYTE ClaimInstrumentSlot(UBYTE instrument)
     WriteSongByte(1, p, 1);
     switch (wSongColumn) {
     case CHANNEL_WAV:
-        source = DefaultInstrumentKit;
+        source = DefaultInstrumentWave;
         n = 14;
         break;
     case CHANNEL_NOI:
-        source = DefaultInstrumentWave;
+        source = DefaultInstrumentNoise;
         n = 11;
         break;
     default:
