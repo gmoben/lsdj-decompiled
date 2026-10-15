@@ -4,7 +4,8 @@
     tools/rename.py OLD NEW ["new .sym comment"] [OLD2 NEW2 ["comment"]] ...
 
 Whole-word replacement in src/*.sym, constants/*.inc, c/ (sources and
-headers), docs/*.md, AGENTS.md, README.md and tools/ (Python). Refuses a NEW
+headers), docs/*.md, AGENTS.md, README.md, the Makefile and tools/ (Python,
+Markdown, shell scripts, the peephole rules). Refuses a NEW
 name that is already a symbol. With a comment, the global symbol's `.sym`
 comment is replaced (column kept aligned). `make` regenerates the asm; the
 bytes cannot change, so `make compare` stays green.
@@ -34,6 +35,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 TOKEN = re.compile(r"(?<![\w$.])[A-Za-z_]\w*")
+FILE_SUFFIX = re.compile(r"\.(?:c|h|md|py|inc|sym|asm|sh)\b")   # FooBar.c is a path, not the symbol
+
+
+def replace_names(text: str, mapping: dict[str, str]) -> str:
+    """`text` with each whole-word name in `mapping` replaced -- except where
+    it names a file (a module named after a routine keeps its path)."""
+    return TOKEN.sub(lambda m: m.group(0) if m.group(0) not in mapping or FILE_SUFFIX.match(text, m.end())
+                     else mapping[m.group(0)], text)
 C_NAME_MAX, C_FUNC_MAX = 31, 27
 
 
@@ -42,8 +51,10 @@ def files() -> list[Path]:
     out += [p for p in (ROOT / "c").rglob("*") if p.suffix in (".c", ".h")
             and not p.name.startswith((".", "#"))]   # not editor lock/autosave files
     out += list((ROOT / "docs").glob("*.md")) + [ROOT / "AGENTS.md", ROOT / "README.md"]
-    out += [p for p in (ROOT / "tools").rglob("*.py") if "__pycache__" not in p.parts
+    out += [p for p in (ROOT / "tools").rglob("*") if p.suffix in (".py", ".md", ".sh", ".peep")
+            and "__pycache__" not in p.parts
             and p.name not in ("rename.py", "respell.py")]   # their docs spell old names on purpose
+    out += [ROOT / "Makefile"]
     return [p for p in out if p.is_file()]
 
 
@@ -181,7 +192,7 @@ def apply(pairs: list[tuple[str, str, str | None]], c_only: frozenset[str] = fro
     changed = []
     for f in files():
         s = f.read_text()
-        t = TOKEN.sub(lambda m: mapping.get(m.group(0), m.group(0)), s)
+        t = replace_names(s, mapping)
         if t != s:
             f.write_text(t)
             changed.append(f.relative_to(ROOT).as_posix())

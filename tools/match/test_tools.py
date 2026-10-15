@@ -362,6 +362,11 @@ class RelabelTests(unittest.TestCase):
         self.assertIn("at most 31", errors[1])
         self.assertEqual(rename.limit_errors([("FooBar", "DrawFooBar")], cnames, {"FooBar"}), [])
 
+    def test_a_module_path_keeps_its_name(self):
+        self.assertEqual(rename.replace_names("see c/bank00/FooBar.c: FooBar() calls wFooBar",
+                                              {"FooBar": "BarFoo", "wFooBar": "wBarFoo"}),
+                         "see c/bank00/FooBar.c: BarFoo() calls wBarFoo")
+
     def test_a_collision_in_a_scope_stops_the_rename(self):
         with self.assertRaises(SystemExit):
             self.relabel("4000 Foo\n4002 .loadQuuxCursor\n4004 .loadQuuxMarker", [("wQuuxMarker", "wQuuxCursor")])
