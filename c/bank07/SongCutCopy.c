@@ -40,7 +40,7 @@ void CutCopySongSelection(UBYTE isCut)
     char *message;
     UBYTE column;
 
-    if (wClipboardType != 4)
+    if (wClipboardType != SCREEN_SONG)
         return;
     wCursorMode = 2;
     wSelectionRight = wSongColumn;

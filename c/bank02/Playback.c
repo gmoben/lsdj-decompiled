@@ -81,7 +81,7 @@ void SoundLiveQueueStart(UBYTE channel)
 
     p = wChannelNextSongRow + channel;
     if (wSongRow == *p) {
-        if (wCurrentScreen == 3 || wCurrentScreen == 1) {
+        if (wCurrentScreen == SCREEN_CHAIN || wCurrentScreen == SCREEN_PHRASE) {
             if (SoundGetChainPhrase(wChain, wChainRow) == 0xFF)
                 return;
             wChannelRowQueue[channel] = wChainRow;
@@ -109,7 +109,7 @@ void SoundSetPlayRange(void)
 {
     wPlayChannelFirst = wSongColumn;
     wPlayChannelLast = wSongColumn;
-    if (wCurrentScreen == 4 && wCursorMode == 4) {
+    if (wCurrentScreen == SCREEN_SONG && wCursorMode == 4) {
         if (wSelectionLeft < wSongColumn)
             wPlayChannelFirst = wSelectionLeft;
         else
@@ -204,7 +204,7 @@ void SoundInitializePlayState(void)
 
 void SoundToggleSongPlayback(void)
 {
-    if (wCurrentScreen == 4)
+    if (wCurrentScreen == SCREEN_SONG)
         DebugTrap();
     if (wLiveMode) {
         SoundLiveStopRange();
@@ -217,7 +217,7 @@ void SoundToggleSongPlayback(void)
     if (wSavedScreen)
         DebugTrap();
     wSavedScreen = wCurrentScreen;
-    wCurrentScreen = 4;
+    wCurrentScreen = SCREEN_SONG;
     SoundTogglePlayback();
     wCurrentScreen = wSavedScreen;
     wSavedScreen = 0;
@@ -276,20 +276,20 @@ void SoundStartSongPlayback(void)
 void SoundStartScreenPlayback(void)
 {
     if (wSyncMode == 1 && wSyncTick == 0xFF) {
-        wSyncRun = wCurrentScreen == 4;
+        wSyncRun = wCurrentScreen == SCREEN_SONG;
         SyncSetSendMode();
     }
-    if (wButtons & 0x80)
+    if (wButtons & J_START)
         wSyncStartRow = wSongRow;
     else
         wSongRow = wSyncStartRow;
     SoundSetChannelEnable();
     SoundResetCommandState();
     switch (wCurrentScreen) {
-    case 4:
+    case SCREEN_SONG:
         SoundStartSongPlayback();
         break;
-    case 3:
+    case SCREEN_CHAIN:
         wChannelActive[wSongColumn] = 1;
         wPlayStartChannel = wSongColumn;
         wPlayStartRow = wSongRow;

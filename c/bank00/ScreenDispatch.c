@@ -70,21 +70,22 @@ UBYTE HandleInputCombos(void)
     UBYTE saved;
     UBYTE changed, channel, v;
 
-    if (wCurrentScreen == 7 || wCurrentScreen == 8 || wCurrentScreen == 9
-            || wCurrentScreen == 0x0D || wCurrentScreen == 0x0E)
+    if (wCurrentScreen == SCREEN_NAME_EDITOR || wCurrentScreen == SCREEN_WAVE
+            || wCurrentScreen == SCREEN_PROJECT || wCurrentScreen == SCREEN_FILE
+            || wCurrentScreen == SCREEN_HELP)
         return 0;
     if (wBHeld) {
         changed = 0;
-        if (wButtons == 0x60) {
+        if (wButtons == (J_SELECT | J_B)) {
             wChannelOutputOverride[wSongColumn] = 0;
             changed = 1;
-        } else if (wCurrentScreen == 4) {
+        } else if (wCurrentScreen == SCREEN_SONG) {
             switch (wButtons) {
-            case 0x22:
+            case (J_B | J_LEFT):
                 wChannelOutputOverride[wSongColumn] = 1;
                 changed = 1;
                 break;
-            case 0x21:
+            case (J_B | J_RIGHT):
                 wChannelOutputOverride[wSongColumn] = 2;
                 changed = 1;
                 break;
@@ -104,7 +105,7 @@ UBYTE HandleInputCombos(void)
             return 1;
         }
     }
-    if (wBHeld && wButtons == 0xA0) {
+    if (wBHeld && wButtons == (J_START | J_B)) {
         SWITCH_ROM(2);
         for (hSoundChannel = 0; hSoundChannel < 4; hSoundChannel++) {
             if (wSongColumn == hSoundChannel)
@@ -127,7 +128,7 @@ UBYTE HandleInputCombos(void)
     }
     if (wCursorMode == 4)
         return 0;
-    if (wButtons == 0x20 && wMuteSoloLatch) {
+    if (wButtons == J_B && wMuteSoloLatch) {
         if (wMuteSoloLatch == 1 || wAPressEnabled) {
             channel = !(wKeyboardActionChannel == 0xFF) ? wKeyboardActionChannel : wSongColumn;
             wChannelOutput[channel] &= 3;
@@ -159,8 +160,9 @@ UBYTE HandleInputCombos(void)
 
 void ResetScreenSprites(void)
 {
-    if (wCurrentScreen != 7 && wCurrentScreen != 8 && wCurrentScreen != 9
-            && wCurrentScreen != 0x0D && wCurrentScreen != 0x0E && wChannelActive[2])
+    if (wCurrentScreen != SCREEN_NAME_EDITOR && wCurrentScreen != SCREEN_WAVE
+            && wCurrentScreen != SCREEN_PROJECT && wCurrentScreen != SCREEN_FILE
+            && wCurrentScreen != SCREEN_HELP && wChannelActive[2])
         PositionWavSprites();
     else
         ClearSprites012();
@@ -170,46 +172,46 @@ void ResetScreenSprites(void)
 void DispatchScreenDraw(void)
 {
     switch (wCurrentScreen) {
-    case 0:
+    case SCREEN_NONE:
         break;
-    case 1:
+    case SCREEN_PHRASE:
         SWITCH_ROM(0x04); DrawPhraseScreen();
         break;
-    case 2:
+    case SCREEN_GROOVE:
         SWITCH_ROM(0x1D); DrawGrooveScreen();
         break;
-    case 3:
+    case SCREEN_CHAIN:
         SWITCH_ROM(0x06); DrawChainScreen();
         break;
-    case 4:
+    case SCREEN_SONG:
         SWITCH_ROM(0x07); DrawSongScreen();
         break;
-    case 5:
+    case SCREEN_TABLE:
         SWITCH_ROM(0x05); DrawTableScreen();
         break;
-    case 6:
+    case SCREEN_INSTRUMENT:
         SWITCH_ROM(0x03); DrawInstrumentScreen();
         break;
-    case 7:
+    case SCREEN_NAME_EDITOR:
         break;
-    case 8:
+    case SCREEN_WAVE:
         SWITCH_ROM(0x06); DrawWaveScreen();
         break;
-    case 9:
+    case SCREEN_PROJECT:
         SWITCH_ROM(0x1B); DrawProjectScreen();
         break;
-    case 10:
+    case SCREEN_SYNTH:
         SWITCH_ROM(0x1D); DrawSynthScreen();
         break;
-    case 11:
+    case SCREEN_SPEECH:
         break;
-    case 12:
+    case SCREEN_WORD:
         SWITCH_ROM(0x06); DrawWordScreen();
         break;
-    case 13:
+    case SCREEN_FILE:
         SWITCH_ROM(0x1C); DrawFileScreen();
         break;
-    case 14:
+    case SCREEN_HELP:
         SWITCH_ROM(0x1B); DrawHelpScreen();
         break;
     }
@@ -226,34 +228,34 @@ void DispatchScreenUpdate(void)
     }
     wPartialRedrawDone = 0;
     switch (wCurrentScreen) {
-    case 1:
+    case SCREEN_PHRASE:
         SWITCH_ROM(0x1F);
         PhraseScreenUpdate();
         break;
-    case 2:
+    case SCREEN_GROOVE:
         SWITCH_ROM(0x1D);
         GrooveScreenUpdate();
         break;
-    case 5:
+    case SCREEN_TABLE:
         SWITCH_ROM(0x05);
         TableScreenUpdate();
         break;
-    case 3:
+    case SCREEN_CHAIN:
         SWITCH_ROM(0x06);
         ChainScreenUpdate();
         break;
-    case 4:
+    case SCREEN_SONG:
         SWITCH_ROM(0x07);
         SongScreenUpdate();
         break;
     }
     if (!wRedrawPending) {
         switch (wCurrentScreen) {
-        case 7:
-        case 8:
-        case 9:
-        case 0x0D:
-        case 0x0E:
+        case SCREEN_NAME_EDITOR:
+        case SCREEN_WAVE:
+        case SCREEN_PROJECT:
+        case SCREEN_FILE:
+        case SCREEN_HELP:
             break;
         default:
             SWITCH_ROM(0x06);
@@ -266,47 +268,47 @@ void DispatchScreenUpdate(void)
 UBYTE DispatchScreenInput(void)
 {
     switch (wCurrentScreen) {
-    case 0:
+    case SCREEN_NONE:
         break;
-    case 1:
+    case SCREEN_PHRASE:
         SWITCH_ROM(0x04);
         return PhraseScreenInput();
-    case 2:
+    case SCREEN_GROOVE:
         SWITCH_ROM(0x1D);
         return GrooveScreenInput();
-    case 3:
+    case SCREEN_CHAIN:
         SWITCH_ROM(0x06);
         return ChainScreenInput();
-    case 4:
+    case SCREEN_SONG:
         SWITCH_ROM(0x07);
         return SongScreenInput();
-    case 5:
+    case SCREEN_TABLE:
         SWITCH_ROM(0x05);
         return TableScreenInput();
-    case 6:
+    case SCREEN_INSTRUMENT:
         SWITCH_ROM(0x03);
         return InstrumentScreenInput();
-    case 7:
+    case SCREEN_NAME_EDITOR:
         SWITCH_ROM(0x1B);
         return NameEditorInput();
-    case 8:
+    case SCREEN_WAVE:
         SWITCH_ROM(0x06);
         return WaveScreenInput();
-    case 9:
+    case SCREEN_PROJECT:
         SWITCH_ROM(0x1B);
         return ProjectScreenInput();
-    case 10:
+    case SCREEN_SYNTH:
         SWITCH_ROM(0x1D);
         return SynthScreenInput();
-    case 11:
+    case SCREEN_SPEECH:
         break;
-    case 12:
+    case SCREEN_WORD:
         SWITCH_ROM(0x06);
         return WordScreenInput();
-    case 13:
+    case SCREEN_FILE:
         SWITCH_ROM(0x1C);
         return FileScreenInput();
-    case 14:
+    case SCREEN_HELP:
         SWITCH_ROM(0x1B);
         return HelpScreenInput();
     }
@@ -318,13 +320,13 @@ UBYTE HandleButtonEvent(void)
     UBYTE combo, input;
 
     switch (wButtons) {
-    case 0x40:
+    case J_SELECT:
         wSelectHeld = 1;
         break;
-    case 0x10:
+    case J_A:
         wAHeld = 1;
         break;
-    case 0x20:
+    case J_B:
         wBHeld = 1;
         break;
     }

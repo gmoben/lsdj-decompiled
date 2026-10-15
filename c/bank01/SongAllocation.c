@@ -140,7 +140,7 @@ void CopyInstrument(void)
     UBYTE cell;
 
     ShowMessage("COPIED INSTR");
-    wClipboardType = 6;
+    wClipboardType = SCREEN_INSTRUMENT;
     wCursorMode = 2;
     for (cell = 0; cell < 16; cell++)
         WriteClipboardCell(0, cell, ReadCurrentInstrumentByte(cell));
@@ -222,7 +222,7 @@ void PasteInstrument(void)
         return;
     if (!wSelectHeld)
         return;
-    if (wClipboardType != 6)
+    if (wClipboardType != SCREEN_INSTRUMENT)
         return;
     for (cell = 0; cell < 16; cell++)
         WriteInstrumentByte(wInstrument, cell, ReadClipboardCell(0, cell));

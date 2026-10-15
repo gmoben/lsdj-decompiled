@@ -31,7 +31,7 @@ void UpdatePlayClock(void)
     wPlayFrames = 0;
     if ((wPlaySeconds & 3) == 0)
         wPlayFrames = 1;
-    if (wPlayMode && wCurrentScreen == 9) {
+    if (wPlayMode && wCurrentScreen == SCREEN_PROJECT) {
         hBgDigitPalette = 4;
         hBgPalette = 1;
         wVramCursor = 0x9A05;

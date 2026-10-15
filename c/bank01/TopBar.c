@@ -60,8 +60,8 @@ void DrawTopBar(void)
     hBgPalette = 1;
     if (wMessageStringPointer)
         return;
-    isFile = wCurrentScreen == 13;
-    if (!isFile && wCurrentScreen != 9 && hGameboyType) {
+    isFile = wCurrentScreen == SCREEN_FILE;
+    if (!isFile && wCurrentScreen != SCREEN_PROJECT && hGameboyType) {
         VBK_REG = 1;
         set_bkg_tiles(0, 0, 20, 1, TxtBlankString2);
         VBK_REG = 0;
@@ -72,26 +72,26 @@ void DrawTopBar(void)
         if (!isFile)
             break;
         goto file;
-    case 4:
+    case SCREEN_SONG:
         if (wLiveMode)
             wTopBarDrawScratch = TxtScreenLive;
         else
             wTopBarDrawScratch = TxtScreenSong;
         DrawString(wTopBarDrawScratch);
         break;
-    case 3:
+    case SCREEN_CHAIN:
         DrawString(TxtScreenChain);
         DrawHexByte(wChain);
         break;
-    case 1:
+    case SCREEN_PHRASE:
         DrawString(TxtScreenPhrase);
         DrawHexByte(wPhrase);
         break;
-    case 5:
+    case SCREEN_TABLE:
         DrawString(TxtScreenTable);
         DrawHexByte(wTable);
         break;
-    case 9:
+    case SCREEN_PROJECT:
         DrawString(TxtScreenProject);
         if (FarCallByte(0x1C, FAR_FN(SramHasFileBanks)))
             DrawString(wTopBarString);
@@ -108,26 +108,26 @@ void DrawTopBar(void)
             i++;
         }
         break;
-    case 6:
+    case SCREEN_INSTRUMENT:
         DrawString(TxtScreenInstr);
         DrawHexByte(wInstrument);
         break;
-    case 8:
+    case SCREEN_WAVE:
         DrawString(TxtScreenWave);
         DrawHexByte(wSynth);
         break;
-    case 10:
+    case SCREEN_SYNTH:
         DrawString(TxtScreenSynth);
         DrawByte(wSynthScreen);
         break;
-    case 2:
+    case SCREEN_GROOVE:
         DrawString(TxtScreenGroove);
         DrawHexByte(wGroove);
         break;
     }
     while (wVramCursorW < 0x9811)
         DrawStringIndexed(' ');
-    if (wCurrentScreen != 9 && !isFile)
+    if (wCurrentScreen != SCREEN_PROJECT && !isFile)
         DrawChannelHeader();
 }
 
@@ -143,10 +143,10 @@ void ShowCommandHelp(UBYTE command)
         DebugTrap();
     switch (command) {
     case 2:
-        s = wCurrentScreen == 1 ? TxtHelpBNote : TxtHelpBHop;
+        s = wCurrentScreen == SCREEN_PHRASE ? TxtHelpBNote : TxtHelpBHop;
         break;
     case 8:
-        s = wCurrentScreen == 1 ? TxtHelpHPhrase : TxtHelpHTable;
+        s = wCurrentScreen == SCREEN_PHRASE ? TxtHelpHPhrase : TxtHelpHTable;
         break;
     case 6:
         s = wSongColumn == 2 ? TxtHelpFOffset : TxtHelpFTune;

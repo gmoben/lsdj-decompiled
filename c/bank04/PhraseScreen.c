@@ -765,7 +765,7 @@ void PastePhraseSelection(void)
     savedLeft = wSelectionLeft;
     savedRight = wSelectionRight;
     shift = 0;
-    if (wClipboardType == 5) {
+    if (wClipboardType == SCREEN_TABLE) {
         switch (wSelectionRight - wSelectionLeft) {
         default:
             return;
@@ -1122,9 +1122,9 @@ UBYTE PhraseScreenInput(void)
     hBgDigitPalette = 4;
     hBgPalette = 1;
     DrawPhraseCursorGlyph((char)wPhraseRow);
-    if (wButtons != 0x10)
+    if (wButtons != J_A)
         wDrawStep = 0;
-    if (wCursorMode == 4 && wButtons == 0x43) {
+    if (wCursorMode == 4 && wButtons == J_SELECT_TAP) {
         wPhraseColumn = wSelectionLeft;
         wPhraseRow = wSelectionTop;
         FarCall(5, 0x747D);
@@ -1132,7 +1132,7 @@ UBYTE PhraseScreenInput(void)
         ShowMessage("CANCEL SELECT");
         return 1;
     }
-    if (wAPressEnabled && wButtons == 0x10) {
+    if (wAPressEnabled && wButtons == J_A) {
         keyNote = wKeyboardHeldNote;
         placed = 1;
         if (keyNote) {
@@ -1222,7 +1222,7 @@ UBYTE PhraseScreenInput(void)
             DrawPhraseScreen();
         return 1;
     }
-    if (wButtons == 0x01) {
+    if (wButtons == J_RIGHT) {
         if (wCursorMode != 4)
             FarCall(0x1F, FAR_FN(ErasePhraseCursor));
         if (wPhraseColumn == 4)
@@ -1234,7 +1234,7 @@ UBYTE PhraseScreenInput(void)
             DrawPhraseCursorFar();
         return 1;
     }
-    if (wButtons == 0x02) {
+    if (wButtons == J_LEFT) {
         switch (wPhraseColumn) {
         case 0:
             return 1;
@@ -1251,7 +1251,7 @@ UBYTE PhraseScreenInput(void)
             DrawPhraseCursorFar();
         return 1;
     }
-    if (wButtons == 0x04) {
+    if (wButtons == J_UP) {
         if (wCursorMode == 4 && !wPhraseRow)
             return 0;
         if (wCursorMode != 4)
@@ -1280,7 +1280,7 @@ UBYTE PhraseScreenInput(void)
             DrawPhraseCursorFar();
         return 1;
     }
-    if (wButtons == 0x08) {
+    if (wButtons == J_DOWN) {
         if (wCursorMode == 4 && (char)wPhraseRow == 0x0F)
             return 0;
         if (wCursorMode != 4)
@@ -1307,7 +1307,7 @@ UBYTE PhraseScreenInput(void)
             DrawPhraseCursorFar();
         return 1;
     }
-    if (wButtons == 0x11) {
+    if (wButtons == (J_A | J_RIGHT)) {
         if (wCursorMode == 4) {
             row = wSelectionTop;
             rowEnd = (char)wPhraseRow;
@@ -1428,7 +1428,7 @@ UBYTE PhraseScreenInput(void)
             DrawPhraseScreen();
         return 1;
     }
-    if (wButtons == 0x14) {
+    if (wButtons == (J_A | J_UP)) {
         if (wCursorMode == 4) {
             row = wSelectionTop;
             rowEnd = (char)wPhraseRow;
@@ -1552,7 +1552,7 @@ UBYTE PhraseScreenInput(void)
             DrawPhraseScreen();
         return 1;
     }
-    if (wButtons == 0x12) {
+    if (wButtons == (J_A | J_LEFT)) {
         if (wCursorMode == 4) {
             row = wSelectionTop;
             rowEnd = (char)wPhraseRow;
@@ -1674,7 +1674,7 @@ UBYTE PhraseScreenInput(void)
             DrawPhraseScreen();
         return 1;
     }
-    if (wButtons == 0x18) {
+    if (wButtons == (J_A | J_DOWN)) {
         if (wCursorMode == 4) {
             row = wSelectionTop;
             rowEnd = (char)wPhraseRow;
@@ -1802,17 +1802,17 @@ UBYTE PhraseScreenInput(void)
             DrawPhraseScreen();
         return 1;
     }
-    if (wBHeld && wButtons == 0x21) {
+    if (wBHeld && wButtons == (J_B | J_RIGHT)) {
         wBHeld = 0;
         FarCall(0x1F, FAR_FN(HasEnterableColumnRight));
         return 1;
     }
-    if (wBHeld && wButtons == 0x22) {
+    if (wBHeld && wButtons == (J_B | J_LEFT)) {
         wBHeld = 0;
         FarCall(0x1F, FAR_FN(HasEnterableColumnLeft));
         return 1;
     }
-    if (wBHeld && wButtons == 0x24) {
+    if (wBHeld && wButtons == (J_B | J_UP)) {
         wBHeld = 0;
         wMessageStringPointer = 0;
         if (wChainRow) {
@@ -1830,7 +1830,7 @@ UBYTE PhraseScreenInput(void)
         }
         return 1;
     }
-    if (wBHeld && wButtons == 0x28) {
+    if (wBHeld && wButtons == (J_B | J_DOWN)) {
         wBHeld = 0;
         wMessageStringPointer = 0;
         if ((char)wChainRow == 0x0F)
@@ -1843,14 +1843,14 @@ UBYTE PhraseScreenInput(void)
         }
         return 1;
     }
-    if (wButtons == 0x30) {
+    if (wButtons == (J_B | J_A)) {
         if (!wAPressEnabled)
             return 0;
         wAPressEnabled = 0;
         wCursorMode = 2;
         wSelectionTop = wPhraseRow;
         wSelectionBottom = wSelectionTop + 1;
-        wClipboardType = 1;
+        wClipboardType = SCREEN_PHRASE;
         switch (wPhraseColumn) {
         case 0:
             wSelectionLeft = 0;
@@ -1906,10 +1906,10 @@ UBYTE PhraseScreenInput(void)
         DrawPhraseScreen();
         return 1;
     }
-    if (wButtons == 0x50) {
+    if (wButtons == (J_SELECT | J_A)) {
         if (wCursorMode == 1 || !wSelectHeld)
             return 0;
-        if (wClipboardType != 1 && wClipboardType != 5)
+        if (wClipboardType != SCREEN_PHRASE && wClipboardType != SCREEN_TABLE)
             return 0;
         if (wCursorMode == 4) {
             wSelectHeld = 0;
@@ -1918,7 +1918,7 @@ UBYTE PhraseScreenInput(void)
             FarCallArgument(0x1F, FAR_FN(CutCopyPhraseSelection), 1);
             return 0;
         }
-        if (wClipboardType == 1)
+        if (wClipboardType == SCREEN_PHRASE)
             switch (wPhraseColumn) {
             case 0:
             case 1:
@@ -1939,15 +1939,15 @@ UBYTE PhraseScreenInput(void)
         DrawPhraseScreen();
         return 1;
     }
-    if (wButtons == 0x70 && wCursorMode == 4)
+    if (wButtons == (J_SELECT | J_B | J_A) && wCursorMode == 4)
         return CloneAtPhraseCursor();
-    if (wButtons == 0xC0) {
+    if (wButtons == (J_SELECT | J_START)) {
         if (wButtonsSame)
             return 1;
         FarCall(2, FAR_FN(SoundToggleSongPlayback));
         return 1;
     }
-    if (wButtons == 0x80) {
+    if (wButtons == J_START) {
         if (wButtonsSame || wBHeld) {
             if (wMuteSoloLatch == 2)
                 wMuteSoloLatch = 1;
@@ -1956,14 +1956,14 @@ UBYTE PhraseScreenInput(void)
         FarCall(2, FAR_FN(SoundTogglePlayback));
         return 1;
     }
-    if (wButtons == 0x42) {
+    if (wButtons == (J_SELECT | J_LEFT)) {
         if (wButtonsSame)
             return 0;
         FarCall(5, MoveMapCursorLeft);
         FarCall(4, FAR_FN(RedrawScreen));
         return 1;
     }
-    if (wButtons == 0x48) {
+    if (wButtons == (J_SELECT | J_DOWN)) {
         if (wButtonsSame)
             return 0;
         if (wPhraseColumn > 2 && ReadPhraseCommand(wPhrase, (char)wPhraseRow) == 7)
@@ -1972,14 +1972,14 @@ UBYTE PhraseScreenInput(void)
         FarCall(7, FAR_FN(RedrawScreen));
         return 1;
     }
-    if (wButtons == 0x44) {
+    if (wButtons == (J_SELECT | J_UP)) {
         if (wButtonsSame)
             return 0;
         FarCall(5, MoveMapCursorUp);
         FarCall(7, FAR_FN(RedrawScreen));
         return 1;
     }
-    if (wButtons == 0x41) {
+    if (wButtons == (J_SELECT | J_RIGHT)) {
         if (wButtonsSame)
             return 0;
         instrument = FindCursorInstrument();
@@ -2009,16 +2009,16 @@ UBYTE PhraseScreenInput(void)
         FarCall(4, FAR_FN(RedrawScreen));
         return 1;
     }
-    if (wCursorMode == 4 && wButtons == 0x20) {
+    if (wCursorMode == 4 && wButtons == J_B) {
         if (!wAPressEnabled)
             return 0;
         FarCallArgument(0x1F, FAR_FN(CutCopyPhraseSelection), 0);
         return 1;
     }
-    if (wButtons == 0x60) {
+    if (wButtons == (J_SELECT | J_B)) {
         if (!wSelectHeld)
             return 0;
-        if (wCursorMode == 4 && wClipboardType == 1) {
+        if (wCursorMode == 4 && wClipboardType == SCREEN_PHRASE) {
             left = wSelectionLeft;
             right = wPhraseColumn;
             row = wSelectionTop;

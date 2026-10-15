@@ -71,10 +71,10 @@ void DrawSpeechInstrumentScreen(void)
     UBYTE *p;
     UBYTE row, letter, c;
 
-    wCurrentScreen = 0x0B;
+    wCurrentScreen = SCREEN_SPEECH;
     FarCall(1, FAR_FN(DrawScreenPaletteMap));
     FarCall(0x1F, FAR_FN(DrawAllChannelStatus));
-    wCurrentScreen = 6;
+    wCurrentScreen = SCREEN_INSTRUMENT;
     FarCall(3, FAR_FN(DrawInstrumentScreenFrame));
     hBgDigitPalette = 4;
     hBgPalette = 1;
@@ -124,7 +124,7 @@ UBYTE SpeechInstrumentInput(void)
     UBYTE v;
 
     switch (wButtons) {
-    case 0x10:
+    case J_A:
         if (!wAPressEnabled)
             return 0;
         p = (UWORD)0xBDD0 + wSpeechRow * 3;
@@ -136,62 +136,62 @@ UBYTE SpeechInstrumentInput(void)
         wNameEditIsInstrument = 0;
         FarCall(0x1B, FAR_FN(OpenNameEditor));
         return 1;
-    case 0x04:
+    case J_UP:
         if (!wSpeechRow)
             return 0;
         EraseSpeechCursor();
         wSpeechRow--;
         DrawSpeechCursor();
         return 1;
-    case 0x08:
+    case J_DOWN:
         if (wSpeechRow == 0x0D)
             return 0;
         EraseSpeechCursor();
         wSpeechRow++;
         DrawSpeechCursor();
         return 1;
-    case 0x48:
+    case (J_SELECT | J_DOWN):
         if (wButtonsSame)
             break;
         FarCall(5, MoveMapCursorDown);
         RedrawScreenFar1F();
         return 1;
-    case 0x44:
+    case (J_SELECT | J_UP):
         if (wButtonsSame)
             break;
         FarCall(5, MoveMapCursorUp);
         RedrawScreenFar1F();
         return 1;
-    case 0x41:
+    case (J_SELECT | J_RIGHT):
         if (wButtonsSame)
             break;
         FarCall(5, MoveMapCursorRight);
         RedrawScreenFar1F();
         return 1;
-    case 0x42:
+    case (J_SELECT | J_LEFT):
         if (wButtonsSame)
             break;
         FarCall(5, MoveMapCursorLeft);
         RedrawScreenFar1F();
         return 1;
-    case 0x30:
-    case 0x60:
+    case (J_B | J_A):
+    case (J_SELECT | J_B):
         if (!wAPressEnabled)
             return 0;
-        if (wButtons == 0x60)
+        if (wButtons == (J_SELECT | J_B))
             ShowMessage("COPIED WORD");
         else
             ShowMessage("CUT WORD");
-        wClipboardType = 0x0B;
+        wClipboardType = SCREEN_SPEECH;
         wCursorMode = 2;
         p = ((UWORD)wSpeechRow << 5) + (UWORD)0xB890;
         for (cell = 0; cell < 0x10; cell++) {
             WriteClipboardCell(0, cell, ReadSongByte(0, p));
-            if (wButtons == 0x30)
+            if (wButtons == (J_B | J_A))
                 WriteSongByte(0, p, 0);
             p++;
             WriteClipboardCell(1, cell, ReadSongByte(0, p));
-            if (wButtons == 0x30)
+            if (wButtons == (J_B | J_A))
                 WriteSongByte(0, p, 0);
             p++;
         }
@@ -200,7 +200,7 @@ UBYTE SpeechInstrumentInput(void)
             WriteClipboardCell(2, cell, ReadSongByte(0, p));
             p++;
         }
-        if (wButtons == 0x30) {
+        if (wButtons == (J_B | J_A)) {
             SetVramCursor(0, SpeechCursorY());
             hBgDigitPalette = wHighlightDigitPalette;
             hBgPalette = wHighlightPalette;
@@ -215,10 +215,10 @@ UBYTE SpeechInstrumentInput(void)
             DrawStringIndexed((char)cell);
         }
         return 1;
-    case 0x50:
+    case (J_SELECT | J_A):
         if (!wAPressEnabled)
             return 0;
-        if (wClipboardType != 0x0B)
+        if (wClipboardType != SCREEN_SPEECH)
             return 0;
         ShowMessage("PASTED WORD");
         p = ((UWORD)wSpeechRow << 5) + (UWORD)0xB890;
@@ -245,17 +245,17 @@ UBYTE SpeechInstrumentInput(void)
                 DrawStringTile20();
         }
         return 1;
-    case 0x22:
+    case (J_B | J_LEFT):
         FarCall(3, PreviousUsedInstrument);
         return 1;
-    case 0x28:
+    case (J_B | J_DOWN):
         FarCall(3, PreviousInstrumentPage);
         return 1;
-    case 0xC0:
+    case (J_SELECT | J_START):
         if (!wButtonsSame)
             FarCall(2, FAR_FN(SoundToggleSongPlayback));
         return 1;
-    case 0x80:
+    case J_START:
         if (!wButtonsSame && !wBHeld)
             FarCall(2, FAR_FN(SoundTogglePlayback));
         return 1;

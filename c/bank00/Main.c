@@ -140,15 +140,15 @@ UBYTE ProcessInput(void)
         }
     }
     if (buttons) {
-        if (buttons != 0x40)
+        if (buttons != J_SELECT)
             wSelectHoldFrames = 0;
         else if (!wButtons)
             wSelectHoldFrames = 1;
     } else if (wSelectHoldFrames) {
-        buttons = 0x43;
+        buttons = J_SELECT_TAP;
         wSelectHoldFrames = 0;
     }
-    if ((wButtons & 0x10) && !(buttons & 0x10)) {
+    if ((wButtons & J_A) && !(buttons & J_A)) {
         if (wChainScopeDirty) {
             wChainScopeDirty = 0;
             SWITCH_ROM(2);
@@ -224,7 +224,8 @@ UBYTE ProcessInput(void)
     }
     if (buttons) {
         ok = 1;
-        if (*wTopBarMarkPointer != 0x21 && (buttons & 0x10) && (buttons & 0x6F))
+        if (*wTopBarMarkPointer != 0x21 && (buttons & J_A)
+                && (buttons & (J_SELECT | J_B | J_UP | J_DOWN | J_LEFT | J_RIGHT)))
             WriteSongByte(1, 0xBFC1, *wTopBarMarkPointer = 0x21);
         wButtonsSame = wButtons == buttons;
         if (!wButtonsSame) {
@@ -251,7 +252,7 @@ UBYTE ProcessInput(void)
             else
                 wKeyRepeatTimer = wKeyRepeat;
         }
-        if (ok && (wButtons & 0xF0))
+        if (ok && (wButtons & (J_SELECT | J_START | J_B | J_A)))
             wAPressEnabled = 0;
         return !ok;
     }

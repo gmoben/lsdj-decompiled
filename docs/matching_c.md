@@ -233,6 +233,13 @@ comment began with a quoted string had been carved as data, since a leading
   (`InitializeWaveSprites`, `ReadWaveSample`'s loop bounds) is `(UWORD)y != 0x80`
   -- the zero-extended copy spills in the first of two identical loops and
   sits in `bc` in the second.
+- **Named constants**: `lsdj.h` names the screens (`SCREEN_SONG` for
+  `wCurrentScreen` and `wClipboardType`) and the joypad bits (`J_A`, GBDK's
+  names; held together, `(J_B | J_A)`, which SDCC folds to the one
+  constant). A `#define` puts back the very tokens it names, so a name is
+  only safe where it expands to the literal's spelling or to a value SDCC
+  types the same: every site using these is verified by `make match`, the
+  screens 11-14 once spelled in hex included.
 - **Sign extension follows the destination type**: `genCast` extends by
   the type cast *to*, so a `char` stored into an `int` element is
   `rla; sbc a,a` and into a `UWORD` is `ld b,#0` (`wSynthShapeBuffer` is

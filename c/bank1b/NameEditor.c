@@ -113,7 +113,7 @@ void OpenNameEditor(void)
             break;
         wNameEditPosition++;
     }
-    if (wCurrentScreen == 0x0D) {
+    if (wCurrentScreen == SCREEN_FILE) {
         DrawProjectTextField(4, 4, 0x0C, 9);
         wVramCursor = 0x98A5;
         hBgDigitPalette = 4;
@@ -124,7 +124,7 @@ void OpenNameEditor(void)
     }
     hBgDigitPalette = wHighlightDigitPalette;
     hBgPalette = wHighlightPalette;
-    if (wCurrentScreen == 0x0D) {
+    if (wCurrentScreen == SCREEN_FILE) {
         wVramCursor = 0x98C5;
         DrawString(wNameEditBuffer);
         wNameEditPosition = StringLength(wNameEditBuffer);
@@ -153,7 +153,7 @@ void OpenNameEditor(void)
     DrawString(AlphanumericCharacters[2]);
     wVramCursor = 0x9965;
     DrawString(AlphanumericCharacters[3]);
-    if (wCurrentScreen == 0x0D) {
+    if (wCurrentScreen == SCREEN_FILE) {
         ColorField(5, 6, 0x0A, hGameboyType ? 3 : 2);
         ColorField(wNameEditPosition + 5, 6, 1, hGameboyType ? 4 : 1);
     } else {
@@ -161,7 +161,7 @@ void OpenNameEditor(void)
         ColorField(wNameEditPosition + 0x0A, 6, 1, hGameboyType ? 4 : 1);
     }
     ColorField(wNameEditColumn + 5, wNameEditRow + 8, 1, hGameboyType ? 3 : 2);
-    wCurrentScreen = 7;
+    wCurrentScreen = SCREEN_NAME_EDITOR;
 }
 
 void CommitNameEdit(void)
@@ -257,7 +257,7 @@ UBYTE NameEditorInput(void)
         last = wNameEditIsInstrument ? 4 : 2;
     }
     switch (wButtons) {
-    case 0x10:                                  /* A */
+    case J_A:                                  /* A */
         if (!wAPressEnabled)
             return 0;
         if (wNameEditRow == 3)
@@ -287,13 +287,13 @@ UBYTE NameEditorInput(void)
             ColorField(x + wNameEditPosition, 6, 1, hGameboyType ? 4 : 1);
         }
         return 1;
-    case 0x40:                                  /* select */
+    case J_SELECT:                                  /* select */
         BackspaceNameEdit(x, last);
         return 1;
-    case 0x80:                                  /* start */
+    case J_START:                                  /* start */
         CommitNameEdit();
         return 1;
-    case 0x08:                                  /* down */
+    case J_DOWN:                                  /* down */
         EraseNameEditCursor();
         if (wNameEditRow != 3 && !wNameEditWrapLatch)
             wNameEditRow++;
@@ -303,7 +303,7 @@ UBYTE NameEditorInput(void)
         }
         DrawNameEditCursor();
         return 1;
-    case 0x01:                                  /* right */
+    case J_RIGHT:                                  /* right */
         EraseNameEditCursor();
         if (wNameEditColumn != 9 && !wNameEditWrapLatch)
             wNameEditColumn++;
@@ -313,7 +313,7 @@ UBYTE NameEditorInput(void)
         }
         DrawNameEditCursor();
         return 1;
-    case 0x04:                                  /* up */
+    case J_UP:                                  /* up */
         EraseNameEditCursor();
         if (wNameEditRow && !wNameEditWrapLatch)
             wNameEditRow--;
@@ -323,7 +323,7 @@ UBYTE NameEditorInput(void)
         }
         DrawNameEditCursor();
         return 1;
-    case 0x02:                                  /* left */
+    case J_LEFT:                                  /* left */
         EraseNameEditCursor();
         if (wNameEditColumn && !wNameEditWrapLatch)
             wNameEditColumn--;
@@ -333,7 +333,7 @@ UBYTE NameEditorInput(void)
         }
         DrawNameEditCursor();
         return 1;
-    case 0x20:                                  /* B: leave unchanged */
+    case J_B:                                  /* B: leave unchanged */
         wCurrentScreen = wNameReturnScreen;
         FarCall(3, FAR_FN(RedrawScreen));
         return 1;

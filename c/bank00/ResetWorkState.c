@@ -159,7 +159,7 @@ void ResetWorkState(void)
     wChannelNextSongRow[1] = 0xFF;
     wChannelNextSongRow[2] = 0xFF;
     wChannelNextSongRow[3] = 0xFF;
-    wCurrentScreen = 4;
+    wCurrentScreen = SCREEN_SONG;
     wChainScopeDirty = 0;
     wSongScopeDirty = 0;
     wAPressEnabled = 1;

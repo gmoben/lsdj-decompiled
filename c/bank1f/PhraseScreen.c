@@ -127,7 +127,7 @@ void CutCopyPhraseSelection(UBYTE cut)
     UBYTE column, row, t;
     UBYTE cutInstrument = cut;
 
-    if (wClipboardType != 1)
+    if (wClipboardType != SCREEN_PHRASE)
         return;
     ShowMessage(cutInstrument ? "CUT" : "COPY");
     wCursorMode = 2;
@@ -261,7 +261,7 @@ void DrawPhraseSelection(void)
     UBYTE column, row, left, top, right, bottom;
     UBYTE cursorColumn;
 
-    if (wClipboardType != 1)
+    if (wClipboardType != SCREEN_PHRASE)
         return;
     cursorColumn = wPhraseColumn;               /* the ROM reads the column into c for the test only */
     if (wSelectionLeft < cursorColumn) {

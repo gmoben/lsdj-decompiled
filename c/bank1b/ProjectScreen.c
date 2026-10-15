@@ -262,10 +262,10 @@ UBYTE ProjectScreenInput(void)
     SetVramCursor(ProjectFieldX[wProjectCursor], ProjectFieldY[wProjectCursor]);
     hBgDigitPalette = wHighlightDigitPalette;
     hBgPalette = wHighlightPalette;
-    if (wButtons != 0x10)
+    if (wButtons != J_A)
         wTapTempoCount = 0xFF;
     switch (wButtons) {
-    case 0x48:
+    case (J_SELECT | J_DOWN):
         if (!wSelectHeld || wProjectMenuActive)
             return 0;
         wSelectHeld = 0;
@@ -278,7 +278,7 @@ UBYTE ProjectScreenInput(void)
         ei
         _endasm;
         return 1;
-    case 0x41:
+    case (J_SELECT | J_RIGHT):
         if (!wSelectHeld || wProjectMenuActive)
             return 0;
         if (!(char)wMapColumn)
@@ -287,15 +287,15 @@ UBYTE ProjectScreenInput(void)
         FarCall(5, MoveMapCursorRight);
         FarCall(4, FAR_FN(RedrawScreen));
         return 1;
-    case 0x01:
+    case J_RIGHT:
         if (wProjectMenuActive)
             goto menuRight;
         return 0;
-    case 0x02:
+    case J_LEFT:
         if (wProjectMenuActive)
             goto menuLeft;
         return 0;
-    case 0x11:
+    case (J_A | J_RIGHT):
         switch (wProjectCursor) {
         case 0:
             if (ProjectSyncStateFlag()) {
@@ -379,7 +379,7 @@ UBYTE ProjectScreenInput(void)
             return 1;
         }
         break;
-    case 0x12:
+    case (J_A | J_LEFT):
         switch (wProjectCursor) {
         case 5:
             if (!wColorSet || wButtonsSame)
@@ -459,7 +459,7 @@ UBYTE ProjectScreenInput(void)
             return 1;
         }
         break;
-    case 0x14:
+    case (J_A | J_UP):
         switch (wProjectCursor) {
         case 5:
             if (wButtonsSame)
@@ -503,7 +503,7 @@ UBYTE ProjectScreenInput(void)
             return 1;
         }
         break;
-    case 0x18:
+    case (J_A | J_DOWN):
         switch (wProjectCursor) {
         case 0:
             if (ProjectSyncStateFlag())
@@ -547,7 +547,7 @@ UBYTE ProjectScreenInput(void)
             return 1;
         }
         break;
-    case 0x08:
+    case J_DOWN:
         if (!wProjectMenuActive) {
             EraseProjectCursor();
             if (wProjectCursor < 0x0B)
@@ -564,7 +564,7 @@ UBYTE ProjectScreenInput(void)
             ColorField(12, 9, 2, hGameboyType ? 3 : 2);
         }
         return 1;
-    case 0x04:
+    case J_UP:
         if (!wProjectMenuActive) {
             EraseProjectCursor();
             if (wProjectCursor)
@@ -581,7 +581,7 @@ UBYTE ProjectScreenInput(void)
             ColorField(12, 9, 2, 0);
         }
         return 1;
-    case 0x70:
+    case (J_SELECT | J_B | J_A):
         if (!wAPressEnabled)
             return 0;
         if (!wProjectMenuActive && wProjectCursor == 0x0B)
@@ -595,7 +595,7 @@ UBYTE ProjectScreenInput(void)
         WriteSongByte(1, 0xBFB8, 0);
         WriteSongByte(1, 0xBFB7, 0);
         goto reset;
-    case 0x10:
+    case J_A:
         if (!wAPressEnabled)
             return 0;
         switch (wProjectCursor) {
@@ -622,7 +622,7 @@ UBYTE ProjectScreenInput(void)
             RefreshProjectScreen();
             return 1;
         case 8:
-            wCurrentScreen = 0x0E;
+            wCurrentScreen = SCREEN_HELP;
             FarCall(4, FAR_FN(RedrawScreen));
             return 1;
         case 3:
@@ -637,7 +637,7 @@ UBYTE ProjectScreenInput(void)
             if (wSramHasFileBanks) {
                 if (wProjectMenuActive)
                     goto closeMenu;
-                wCurrentScreen = 0x0D;
+                wCurrentScreen = SCREEN_FILE;
                 wFileField = 0;
                 wFileListActive = 0;
                 FarCall(0x1C, FAR_FN(FileValidateName));
@@ -692,7 +692,7 @@ UBYTE ProjectScreenInput(void)
             return 1;
         }
         return 0;
-    case 0x20:
+    case J_B:
         if (wProjectMenuActive) {
             wProjectMenuActive = 0;
             if (hGameboyType)
@@ -702,16 +702,16 @@ UBYTE ProjectScreenInput(void)
             FarCall(5, DrawMapTopRow);
         }
         return 1;
-    case 0x80:
-    case 0xC0:
+    case J_START:
+    case (J_SELECT | J_START):
         if (wButtonsSame || wBHeld)
             return 1;
         _asm
         di
         _endasm;
-        wCurrentScreen = 4;
+        wCurrentScreen = SCREEN_SONG;
         FarCall(2, FAR_FN(SoundTogglePlayback));
-        wCurrentScreen = 9;
+        wCurrentScreen = SCREEN_PROJECT;
         if (wPlayMode)
             DrawSyncSubSetting();
         _asm

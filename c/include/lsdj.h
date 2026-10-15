@@ -36,6 +36,41 @@ typedef signed char BYTE;
 typedef unsigned int UWORD;     /* SDCC: int is 16 bits */
 typedef int WORD;
 
+/* --- constants --------------------------------------------------------------
+ * A literal's spelling is part of the match: SDCC 2.2.1 types a hex or octal
+ * constant unsigned and a decimal one signed (constVal in SDCCval.c). */
+
+/* wCurrentScreen (constants/screens.inc) */
+#define SCREEN_NONE          0
+#define SCREEN_PHRASE        1
+#define SCREEN_GROOVE        2
+#define SCREEN_CHAIN         3
+#define SCREEN_SONG          4
+#define SCREEN_TABLE         5
+#define SCREEN_INSTRUMENT    6
+#define SCREEN_NAME_EDITOR   7      /* OpenNameEditor */
+#define SCREEN_WAVE          8
+#define SCREEN_PROJECT       9
+#define SCREEN_SYNTH         10
+#define SCREEN_SPEECH        11     /* the speech instrument's word list */
+#define SCREEN_WORD          12
+#define SCREEN_FILE          13
+#define SCREEN_HELP          14
+
+/* wButtons: the joypad bits, GBDK's names; buttons held together are their
+ * `|`, which SDCC folds to the one constant */
+#define J_RIGHT   0x01
+#define J_LEFT    0x02
+#define J_UP      0x04
+#define J_DOWN    0x08
+#define J_A       0x10
+#define J_B       0x20
+#define J_SELECT  0x40
+#define J_START   0x80
+/* ProcessInput's code for SELECT tapped alone: LEFT and RIGHT are never held
+ * together */
+#define J_SELECT_TAP (J_SELECT | J_LEFT | J_RIGHT)
+
 /* --- hardware and HRAM ---------------------------------------------------- */
 
 extern volatile sfr UBYTE VBK_REG;          /* $FF4F rVBK */

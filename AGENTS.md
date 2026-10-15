@@ -379,6 +379,11 @@ in `docs/functionality.md`.
   things. Renaming a local is byte-neutral; splitting one into two is not
   (a second local can move the stack frame), so a shared variable gets one
   name that fits both uses.
+- **C constants.** Screen numbers and joypad bits are names from `lsdj.h`
+  (`wCurrentScreen = SCREEN_SONG`, `wButtons == (J_B | J_A)`,
+  `J_SELECT_TAP`); a literal's spelling decides its type in SDCC 2.2.1 (hex
+  unsigned, decimal signed), so a new name is checked by `make match` like
+  any other change (`docs/matching_c.md` → *Named constants*).
 - **Name patterns.** Routines are verb-first (`OpenChainPhrase`,
   `ReadTableEnvelope`, `MoveHelpCursorDown`); predicates read subject-first
   (`KitExists`, `WaveFrameModified`) and a getter may be a noun phrase

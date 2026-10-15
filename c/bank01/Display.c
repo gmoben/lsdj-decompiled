@@ -114,17 +114,17 @@ void InitializeScreen(void)
 UBYTE *GetScreenPalette(void)
 {
     switch (wCurrentScreen) {
-    case 1:
+    case SCREEN_PHRASE:
         return ScreenPalettePhrase;
-    case 2:
+    case SCREEN_GROOVE:
         return ScreenPaletteGroove;
-    case 3:
+    case SCREEN_CHAIN:
         return ScreenPaletteChain;
-    case 4:
+    case SCREEN_SONG:
         return ScreenPaletteSong;
-    case 5:
+    case SCREEN_TABLE:
         return ScreenPaletteTable;
-    case 6:
+    case SCREEN_INSTRUMENT:
         if (wInstrument < 0x40) {
             switch (ReadCurrentInstrumentByte(0)) {
             case 0:
@@ -140,17 +140,17 @@ UBYTE *GetScreenPalette(void)
             return ScreenPaletteSpeech;
         }
         return 0;
-    case 8:
+    case SCREEN_WAVE:
         return ScreenPaletteWave;
-    case 9:
+    case SCREEN_PROJECT:
         return ScreenPaletteProject;
-    case 10:
+    case SCREEN_SYNTH:
         return ScreenPaletteSynth;
-    case 11:
+    case SCREEN_SPEECH:
         return ScreenPaletteSpeech;
-    case 12:
+    case SCREEN_WORD:
         return ScreenPaletteWord;
-    case 13:
+    case SCREEN_FILE:
         return ScreenPaletteFile;
     }
     return 0;

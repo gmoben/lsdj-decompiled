@@ -219,7 +219,7 @@ UBYTE GrooveScreenInput(void)
     hBgDigitPalette = wHighlightDigitPalette;
     hBgPalette = wHighlightPalette;
     switch (wButtons) {
-    case 0x43:
+    case J_SELECT_TAP:
         if (wCursorMode == 4) {
             wGrooveRow = wSelectionTop;
             FarCall(5, 0x747D);
@@ -232,7 +232,7 @@ UBYTE GrooveScreenInput(void)
             ShowMessage("CANCEL SELECT");
         }
         return 1;
-    case 0x10:
+    case J_A:
         if (!wAPressEnabled)
             break;
         if (!ReadGrooveStep(wGrooveRow)) {
@@ -242,7 +242,7 @@ UBYTE GrooveScreenInput(void)
         }
         DrawGrooveRow();
         return 1;
-    case 0x04:
+    case J_UP:
         EraseGrooveCursor();
         if (wGrooveRow)
             wGrooveRow--;
@@ -251,7 +251,7 @@ UBYTE GrooveScreenInput(void)
             DrawGrooveSelection();
         DrawGrooveRow();
         return 1;
-    case 0x08:
+    case J_DOWN:
         EraseGrooveCursor();
         wGrooveRow++;
         if (wGrooveRow == 16 || !ReadGrooveStep(wGrooveRow - 1))
@@ -261,7 +261,7 @@ UBYTE GrooveScreenInput(void)
             DrawGrooveSelection();
         DrawGrooveRow();
         return 1;
-    case 0x11:
+    case (J_A | J_RIGHT):
         BuildGrooveCache();
         if (wCursorMode == 4 && (!wSelectionLeft || !wSelectionRight)) {
             top = wSelectionTop;
@@ -282,7 +282,7 @@ UBYTE GrooveScreenInput(void)
         }
         DrawGrooveRow();
         return 1;
-    case 0x12:
+    case (J_A | J_LEFT):
         BuildGrooveCache();
         if (wCursorMode == 4 && (!wSelectionLeft || !wSelectionRight)) {
             top = wSelectionTop;
@@ -304,8 +304,8 @@ UBYTE GrooveScreenInput(void)
         }
         DrawGrooveRow();
         return 1;
-    case 0x14:
-    case 0x18:
+    case (J_A | J_UP):
+    case (J_A | J_DOWN):
         BuildGrooveCache();
         if (wCursorMode == 4 && (!wSelectionLeft || !wSelectionRight)) {
             top = wSelectionTop;
@@ -322,7 +322,7 @@ UBYTE GrooveScreenInput(void)
             v = wGrooveStepCache[top];
             if (!v2)
                 v2 = v;
-            if (wButtons == 0x14) {
+            if (wButtons == (J_A | J_UP)) {
                 v++;
                 v2--;
             } else {
@@ -343,13 +343,13 @@ UBYTE GrooveScreenInput(void)
         }
         DrawGrooveRow();
         return 1;
-    case 0x21:
+    case (J_B | J_RIGHT):
         if (wGroove < 0x1F)
             wGroove++;
         wMessageStringPointer = 0;
         DrawGrooveScreen();
         return 1;
-    case 0x24:
+    case (J_B | J_UP):
         if (wGroove < 0x10)
             wGroove += 0x10;
         else
@@ -357,7 +357,7 @@ UBYTE GrooveScreenInput(void)
         wMessageStringPointer = 0;
         DrawGrooveScreen();
         return 1;
-    case 0x28:
+    case (J_B | J_DOWN):
         if (wGroove & 0x10)
             wGroove -= 0x10;
         else
@@ -365,13 +365,13 @@ UBYTE GrooveScreenInput(void)
         wMessageStringPointer = 0;
         DrawGrooveScreen();
         return 1;
-    case 0x22:
+    case (J_B | J_LEFT):
         if (wGroove)
             wGroove--;
         wMessageStringPointer = 0;
         DrawGrooveScreen();
         return 1;
-    case 0x30:
+    case (J_B | J_A):
         if (!wAPressEnabled)
             break;
         wAPressEnabled = 0;
@@ -385,7 +385,7 @@ UBYTE GrooveScreenInput(void)
         wSelectionRight = 1;
         wSelectionTop = wGrooveRow;
         wSelectionBottom = wSelectionTop + 1;
-        wClipboardType = 2;
+        wClipboardType = SCREEN_GROOVE;
         WriteClipboardCell(0, wGrooveRow, ReadGrooveStep(wGrooveRow));
         top = wGrooveRow;
         while (1) {
@@ -398,7 +398,7 @@ UBYTE GrooveScreenInput(void)
         }
         DrawGrooveScreen();
         return 1;
-    case 0x50:
+    case (J_SELECT | J_A):
         if (wCursorMode == 1)
             break;
         if (!wSelectHeld)
@@ -414,41 +414,41 @@ UBYTE GrooveScreenInput(void)
         EraseGrooveCursor();
         PasteGrooveSelection();
         return 1;
-    case 0xC0:
+    case (J_SELECT | J_START):
         if (!wButtonsSame)
             FarCall(2, FAR_FN(SoundToggleSongPlayback));
         return 1;
-    case 0x80:
+    case J_START:
         if (wButtonsSame || wBHeld)
             return 1;
         switch ((char)wMapColumn) {
         case 0:
-            wCurrentScreen = 4;
+            wCurrentScreen = SCREEN_SONG;
             break;
         case 1:
-            wCurrentScreen = 3;
+            wCurrentScreen = SCREEN_CHAIN;
             break;
         }
         FarCall(2, FAR_FN(SoundTogglePlayback));
-        wCurrentScreen = 2;
+        wCurrentScreen = SCREEN_GROOVE;
         return 1;
-    case 0x44:
+    case (J_SELECT | J_UP):
         if (wButtonsSame)
             break;
         FarCall(5, MoveMapCursorUp);
         FarCall(5, FAR_FN(RedrawScreen));
         return 1;
-    case 0x20:
+    case J_B:
         if (wCursorMode != 4)
             break;
         if (!wAPressEnabled)
             break;
         CutCopyGrooveSelection(0);
         return 1;
-    case 0x60:
+    case (J_SELECT | J_B):
         if (!wSelectHeld)
             break;
-        if (wCursorMode == 4 && wClipboardType == 2) {
+        if (wCursorMode == 4 && wClipboardType == SCREEN_GROOVE) {
             top = wSelectionTop;
             bottom = wGrooveRow;
             SortBytePair(&top, &bottom);
@@ -485,7 +485,7 @@ void CutCopyGrooveSelection(UBYTE cut)
     if (wSelectionTop == row)
         return;
     wCursorMode = 2;
-    wClipboardType = 2;
+    wClipboardType = SCREEN_GROOVE;
     wSelectionLeft = 0;
     wSelectionRight = 1;
     wSelectionBottom = row;
@@ -506,7 +506,7 @@ void PasteGrooveSelection(void)
 {
     UBYTE row;
 
-    if (wClipboardType != 2)
+    if (wClipboardType != SCREEN_GROOVE)
         return;
     if ((UBYTE)(wSelectionBottom - wSelectionTop) > 1)
         ShowMessage("PASTE");
@@ -522,7 +522,7 @@ void DrawGrooveSelection(void)
 {
     UBYTE end, y, i;
 
-    if (wClipboardType != 2)
+    if (wClipboardType != SCREEN_GROOVE)
         return;
     if (wSelectionTop < wGrooveRow) {
         i = wSelectionTop;

@@ -457,7 +457,7 @@ UBYTE ProcessKeyboardNote(UBYTE scancode)
         isPhrase = 0;
         if (wPlayMode && !wKeyboardHeldNote) {
             armed = wKeyboardArmed;
-        } else if (wCurrentScreen == 1) {
+        } else if (wCurrentScreen == SCREEN_PHRASE) {
             isPhrase = 1;
             armed = wSongColumn == 3 || !FarCallArgumentByte(4, (UWORD)PhraseRowIsSentinel, wPhraseRow);
         } else {
@@ -487,7 +487,7 @@ UBYTE ProcessKeyboardNote(UBYTE scancode)
         } else {
             wKeyboardNoteQueued = note;
         }
-    } else if (wCurrentScreen == 1) {
+    } else if (wCurrentScreen == SCREEN_PHRASE) {
         scancode &= 0x7F;
         armed = wSongColumn == 3 || !FarCallArgumentByte(4, (UWORD)PhraseRowIsSentinel, wPhraseRow);
         if (armed) {

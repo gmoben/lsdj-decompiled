@@ -104,25 +104,25 @@ void GotoMapCursorScreen(void)
     switch (wMapRow) {
     case 0:
         if (wMapColumn == wMapProjectColumn)
-            wCurrentScreen = 9;
+            wCurrentScreen = SCREEN_PROJECT;
         else if (wMapColumn == wMapSynthColumn)
-            wCurrentScreen = 10;
+            wCurrentScreen = SCREEN_SYNTH;
         else
-            wCurrentScreen = 8;
+            wCurrentScreen = SCREEN_WAVE;
         break;
     case 1:
         switch (wMapColumn) {
         case 0:
-            wCurrentScreen = 4;
+            wCurrentScreen = SCREEN_SONG;
             break;
         case 1:
-            wCurrentScreen = 3;
+            wCurrentScreen = SCREEN_CHAIN;
             break;
         case 2:
-            wCurrentScreen = 1;
+            wCurrentScreen = SCREEN_PHRASE;
             break;
         case 3:
-            wCurrentScreen = 6;
+            wCurrentScreen = SCREEN_INSTRUMENT;
             break;
         case 4:
             wCurrentScreen = wInstrument == 0x40 ? 12 : 5;
@@ -130,7 +130,7 @@ void GotoMapCursorScreen(void)
         }
         break;
     case 2:
-        wCurrentScreen = 2;
+        wCurrentScreen = SCREEN_GROOVE;
         break;
     }
 }
@@ -512,10 +512,10 @@ UBYTE TableScreenInput(void)
         DebugTrap();
     hBgDigitPalette = wHighlightDigitPalette;
     hBgPalette = wHighlightPalette;
-    if (wButtons != 0x10)
+    if (wButtons != J_A)
         wDrawStep = 0;
     switch (wButtons) {
-    case 0x43:
+    case J_SELECT_TAP:
         if (wCursorMode == 4) {
             wTableColumn = wSelectionLeft;
             wTableRow = wSelectionTop;
@@ -529,7 +529,7 @@ UBYTE TableScreenInput(void)
             ShowMessage("CANCEL SELECT");
         }
         return 1;
-    case 0x10:
+    case J_A:
         if (!wAPressEnabled || wCursorMode == 4)
             break;
         SetVramCursor(TableColumnX[wTableColumn], wTableRow + 2);
@@ -586,32 +586,32 @@ UBYTE TableScreenInput(void)
             break;
         }
         return 1;
-    case 0x01:
+    case J_RIGHT:
         EraseTableCursor();
         if (++wTableColumn == 6)
             wTableColumn--;
         DrawTableCursor();
         return 1;
-    case 0x02:
+    case J_LEFT:
         EraseTableCursor();
         if (!wTableColumn)
             wTableColumn++;
         wTableColumn--;
         DrawTableCursor();
         return 1;
-    case 0x04:
+    case J_UP:
         EraseTableCursor();
         if ((char)--wTableRow == 0xFF)
             wTableRow++;
         DrawTableCursor();
         return 1;
-    case 0x08:
+    case J_DOWN:
         EraseTableCursor();
         if (++wTableRow == 0x10)
             wTableRow = 0x0F;
         DrawTableCursor();
         return 1;
-    case 0x11:
+    case (J_A | J_RIGHT):
         if (wCursorMode == 4) {
             row = wSelectionTop;
             rowEnd = (char)wTableRow;
@@ -708,7 +708,7 @@ UBYTE TableScreenInput(void)
             }
         }
         return 1;
-    case 0x12:
+    case (J_A | J_LEFT):
         if (wCursorMode == 4) {
             row = wSelectionTop;
             rowEnd = (char)wTableRow;
@@ -798,7 +798,7 @@ UBYTE TableScreenInput(void)
             }
         }
         return 1;
-    case 0x14:
+    case (J_A | J_UP):
         if (wCursorMode == 4) {
             row = wSelectionTop;
             rowEnd = (char)wTableRow;
@@ -895,7 +895,7 @@ UBYTE TableScreenInput(void)
             }
         }
         return 1;
-    case 0x18:
+    case (J_A | J_DOWN):
         if (wCursorMode == 4) {
             row = wSelectionTop;
             rowEnd = (char)wTableRow;
@@ -987,19 +987,19 @@ UBYTE TableScreenInput(void)
             }
         }
         return 1;
-    case 0x21:
+    case (J_B | J_RIGHT):
         if (wTable < 0x1F)
             wTable++;
         wMessageStringPointer = 0;
         DrawTableScreen();
         return 1;
-    case 0x22:
+    case (J_B | J_LEFT):
         if (wTable)
             wTable--;
         wMessageStringPointer = 0;
         DrawTableScreen();
         return 1;
-    case 0x24:
+    case (J_B | J_UP):
         if (wTable < 0x10)
             wTable += 0x10;
         else
@@ -1007,7 +1007,7 @@ UBYTE TableScreenInput(void)
         wMessageStringPointer = 0;
         DrawTableScreen();
         return 1;
-    case 0x28:
+    case (J_B | J_DOWN):
         if (wTable & 0x10)
             wTable -= 0x10;
         else
@@ -1015,7 +1015,7 @@ UBYTE TableScreenInput(void)
         wMessageStringPointer = 0;
         DrawTableScreen();
         return 1;
-    case 0x30:
+    case (J_B | J_A):
         if (!wAPressEnabled)
             break;
         wAPressEnabled = 0;
@@ -1023,7 +1023,7 @@ UBYTE TableScreenInput(void)
         wCursorMode = 2;
         wSelectionTop = wTableRow;
         wSelectionBottom = wSelectionTop + 1;
-        wClipboardType = 5;
+        wClipboardType = SCREEN_TABLE;
         switch (wTableColumn) {
         case 0:
             wSelectionLeft = 0;
@@ -1070,7 +1070,7 @@ UBYTE TableScreenInput(void)
         }
         DrawTableScreen();
         return 1;
-    case 0x50:
+    case (J_SELECT | J_A):
         if (wCursorMode == 1 || !wSelectHeld)
             break;
         if (wCursorMode == 4) {
@@ -1078,30 +1078,31 @@ UBYTE TableScreenInput(void)
             CutCopyTableSelection(1);
             break;
         }
-        if ((wClipboardType == 5 || wClipboardType == 1) && (wTableColumn || !wSelectionLeft)) {
+        if ((wClipboardType == SCREEN_TABLE || wClipboardType == SCREEN_PHRASE)
+                && (wTableColumn || !wSelectionLeft)) {
             EraseTableCursor();
             PasteTableCells();
             DrawTableScreen();
             return 1;
         }
         break;
-    case 0xC0:
+    case (J_SELECT | J_START):
         if (wButtonsSame)
             return 1;
         FarCall(2, FAR_FN(SoundToggleSongPlayback));
         return 1;
-    case 0x80:
+    case J_START:
         if (wButtonsSame || wBHeld)
             return 1;
         FarCall(2, FAR_FN(SoundTogglePlayback));
         return 1;
-    case 0x44:
+    case (J_SELECT | J_UP):
         if (wButtonsSame)
             break;
         FarCall(5, MoveMapCursorUp);
         FarCall(1, RedrawScreen);
         return 1;
-    case 0x48: {
+    case (J_SELECT | J_DOWN): {
         UWORD a, b;
 
         if (wButtonsSame)
@@ -1127,23 +1128,23 @@ UBYTE TableScreenInput(void)
         FarCall(1, RedrawScreen);
         return 1;
     }
-    case 0x42:
+    case (J_SELECT | J_LEFT):
         if (wButtonsSame)
             break;
         FarCall(5, MoveMapCursorLeft);
         FarCall(5, FAR_FN(RedrawScreen));
         return 1;
-    case 0x20:
+    case J_B:
         if (wCursorMode != 4 || !wAPressEnabled)
             break;
         CutCopyTableSelection(0);
         return 1;
-    case 0x60: {
+    case (J_SELECT | J_B): {
         UBYTE left, right;
 
         if (!wSelectHeld)
             break;
-        if (wCursorMode == 4 && wClipboardType == 5) {
+        if (wCursorMode == 4 && wClipboardType == SCREEN_TABLE) {
             left = wSelectionLeft;
             right = wTableColumn;
             row = wSelectionTop;
@@ -1183,7 +1184,7 @@ void CutCopyTableSelection(UBYTE cut)
 {
     UBYTE column, row;
 
-    if (wClipboardType != 5)
+    if (wClipboardType != SCREEN_TABLE)
         return;
     ShowMessage(cut ? "CUT" : "COPY");
     wCursorMode = 2;
@@ -1267,7 +1268,7 @@ void PasteTableCells(void)
     UBYTE fromPhrase = 0;
     UBYTE v;
 
-    if (wClipboardType == 1) {
+    if (wClipboardType == SCREEN_PHRASE) {
         if (wSelectionLeft != 3 || wSelectionRight != 5)
             return;
         fromPhrase = 1;
@@ -1349,7 +1350,7 @@ void DrawTableSelection(void)
 {
     UBYTE column, row, left, top, right, bottom;
 
-    if (wClipboardType != 5)
+    if (wClipboardType != SCREEN_TABLE)
         return;
     left = wSelectionLeft;
     right = wTableColumn;

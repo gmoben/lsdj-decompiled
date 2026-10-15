@@ -78,7 +78,7 @@ void MoveHelpCursorUp(void)
 
 void GotoProjectScreen(void)
 {
-    wCurrentScreen = 9;
+    wCurrentScreen = SCREEN_PROJECT;
     FarCall(4, FAR_FN(RedrawScreen));
 }
 
@@ -132,19 +132,19 @@ UBYTE HelpScreenInput(void)
 
     closed = wHelpOpenEntry == 0;
     switch (wButtons) {
-    case 8:
+    case J_DOWN:
         if (closed)
             MoveHelpCursorDown();
         break;
-    case 4:
+    case J_UP:
         if (closed)
             MoveHelpCursorUp();
         break;
-    case 0x10:
+    case J_A:
         if (wAPressEnabled && closed)
             OpenHelpEntry();
         break;
-    case 0x20:
+    case J_B:
         if (wAPressEnabled) {
             if (closed)
                 GotoProjectScreen();

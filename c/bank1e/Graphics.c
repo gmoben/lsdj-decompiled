@@ -31,7 +31,7 @@ extern UBYTE wVramCopyScratch;              /* $C9B4 */
 
 void DrawScreenColumnLabels(void)
 {
-    if (wCurrentScreen == 8)
+    if (wCurrentScreen == SCREEN_WAVE)
         return;
     hBgDigitPalette = 4;
     hBgPalette = 1;
@@ -40,7 +40,7 @@ void DrawScreenColumnLabels(void)
     wStringSource = IdentityCharacterMap;
     hBgPalette = hGameboyType ? 0x48 : 0xD2;
     switch (wCurrentScreen) {
-    case 1:
+    case SCREEN_PHRASE:
         if (wPhraseDrawMode) {
             wVramCursor = (UBYTE *)0x9822;
             DrawStringIndexed(0x10);
@@ -68,7 +68,7 @@ void DrawScreenColumnLabels(void)
             DrawStringIndexed(0x17);
         }
         break;
-    case 3:
+    case SCREEN_CHAIN:
         wVramCursor = (UBYTE *)0x9822;
         DrawStringIndexed(0x18);
         DrawStringIndexed(0x19);
@@ -76,7 +76,7 @@ void DrawScreenColumnLabels(void)
         DrawStringIndexed(0x1A);
         DrawStringIndexed(0x1B);
         break;
-    case 5:
+    case SCREEN_TABLE:
         wVramCursor = (UBYTE *)0x9822;
         DrawStringIndexed(0x1C);
         DrawStringIndexed(0x1D);
@@ -89,7 +89,7 @@ void DrawScreenColumnLabels(void)
         DrawStringIndexed(0x16);
         DrawStringIndexed(0x17);
         break;
-    case 2:
+    case SCREEN_GROOVE:
         wVramCursor = (UBYTE *)0x9822;
         DrawStringIndexed(0x1E);
         DrawStringIndexed(0x1F);
@@ -97,7 +97,7 @@ void DrawScreenColumnLabels(void)
         DrawStringIndexed(0x21);
         DrawStringIndexed(0x22);
         break;
-    case 0x0C:
+    case SCREEN_WORD:
         wVramCursor = (UBYTE *)0x9822;
         DrawStringIndexed(0x23);
         DrawStringIndexed(0x24);
@@ -105,7 +105,7 @@ void DrawScreenColumnLabels(void)
         DrawStringIndexed(0x25);
         DrawStringIndexed(0x26);
         break;
-    case 4:
+    case SCREEN_SONG:
         wVramCursor = (UBYTE *)0x9823;
         DrawStringIndexed(0x27);
         DrawStringIndexed(0x28);

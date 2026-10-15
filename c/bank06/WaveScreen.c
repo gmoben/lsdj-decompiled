@@ -329,7 +329,7 @@ void DrawWaveLine(UBYTE d)
 UBYTE WaveScreenInput(void)
 {
     switch (wButtons) {
-    case 0x43:
+    case J_SELECT_TAP:
         if (wCursorMode == 4) {
             wWaveCursor = wWaveSelectionStart;
             FarCall(5, RestoreSelectionState);
@@ -337,73 +337,73 @@ UBYTE WaveScreenInput(void)
             ShowMessage("CANCEL SELECT");
         }
         return 1;
-    case 0x01:
+    case J_RIGHT:
         if (!wButtonsSame || wWaveCursor != 0x1F) {
             wWaveCursor++;
             wWaveCursor = (char)wWaveCursor & 0x1F;
             SetWaveCursorSprite();
         }
         return 1;
-    case 0x02:
+    case J_LEFT:
         if (!wButtonsSame || wWaveCursor) {
             wWaveCursor--;
             wWaveCursor = (char)wWaveCursor & 0x1F;
             SetWaveCursorSprite();
         }
         return 1;
-    case 0x04:
+    case J_UP:
         ChangeWaveRange(1);
         return 1;
-    case 0x08:
+    case J_DOWN:
         ChangeWaveRange(0xFF);
         return 1;
-    case 0x12:
+    case (J_A | J_LEFT):
         if (wCursorMode == 4)
             ReverseWaveRange();
         else
             DrawWaveLine(0xFF);
         return 1;
-    case 0x11:
+    case (J_A | J_RIGHT):
         if (wCursorMode == 4)
             ReverseWaveRange();
         else
             DrawWaveLine(1);
         return 1;
-    case 0x14:
-    case 0x18:
+    case (J_A | J_UP):
+    case (J_A | J_DOWN):
         FlipWaveRange();
         return 1;
-    case 0x21:
+    case (J_B | J_RIGHT):
         wSynth++;
         wMessageStringPointer = 0;
         DrawWaveScreen();
         return 1;
-    case 0x22:
+    case (J_B | J_LEFT):
         wSynth--;
         wMessageStringPointer = 0;
         DrawWaveScreen();
         return 1;
-    case 0x24:
+    case (J_B | J_UP):
         wSynth += 0x10;
         wMessageStringPointer = 0;
         DrawWaveScreen();
         return 1;
-    case 0x28:
+    case (J_B | J_DOWN):
         wSynth -= 0x10;
         wMessageStringPointer = 0;
         DrawWaveScreen();
         return 1;
-    case 0xC0:
+    case (J_SELECT | J_START):
         if (wButtonsSame)
             return 1;
         FarCall(2, FAR_FN(SoundToggleSongPlayback));
         return 1;
-    case 0x80:
+    case J_START:
         if (wButtonsSame || wBHeld)
             return 1;
         FarCall(2, FAR_FN(SoundTogglePlayback));
         return 1;
-    case 0x42:
+    case (J_SELECT | J_LEFT):
         if (wButtonsSame)
             return 0;
         if (wSynth < 0xF0)
@@ -411,13 +411,13 @@ UBYTE WaveScreenInput(void)
         FarCall(5, MoveMapCursorLeft);
         FarCall(7, FAR_FN(RedrawScreen));
         return 1;
-    case 0x48:
+    case (J_SELECT | J_DOWN):
         if (wButtonsSame)
             return 0;
         FarCall(5, MoveMapCursorDown);
         FarCall(7, FAR_FN(RedrawScreen));
         return 1;
-    case 0x60:
+    case (J_SELECT | J_B):
         if (!wSelectHeld)
             return 0;
         wSelectHeld = 0;
@@ -435,7 +435,7 @@ UBYTE WaveScreenInput(void)
         }
         SetWaveCursorSprite();
         return 1;
-    case 0x20:
+    case J_B:
         if (wCursorMode != 4)
             return 0;
         if (!wAPressEnabled)
@@ -443,10 +443,10 @@ UBYTE WaveScreenInput(void)
         CopyWaveSelection();
         SetWaveCursorSprite();
         return 1;
-    case 0x50:
+    case (J_SELECT | J_A):
         if (wCursorMode != 2)
             return 0;
-        if (wClipboardType != 8)
+        if (wClipboardType != SCREEN_WAVE)
             return 0;
         if (!wSelectHeld)
             return 0;
@@ -462,7 +462,7 @@ void CopyWaveSelection(void)
     UBYTE v;
     UBYTE position;
 
-    if (wClipboardType != 8)
+    if (wClipboardType != SCREEN_WAVE)
         DebugTrap();
     ShowMessage(TxtCopy);
     wWaveSelectionEnd = wWaveCursor;

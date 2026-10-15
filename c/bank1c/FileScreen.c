@@ -262,7 +262,7 @@ void LoadFile(void)
     MigrateTempoProperties();
     FarCallArgument(1, FAR_FN(LoadProjectSettings), 1);
     if (wFileLoadAlternateReturn)
-        wCurrentScreen = 0x0D;
+        wCurrentScreen = SCREEN_FILE;
     FarCall(1, FAR_FN(RedrawScreen));
     wRedrawPending = 0;
 }
@@ -507,13 +507,13 @@ UBYTE FileScreenInput(void)
 
     wFileLoadAlternateReturn = 0;
     switch (wButtons) {
-    case 0x80:
+    case J_START:
         if (!wButtonsSame)
             FarCall(2, FAR_FN(SoundToggleSongPlayback));
         break;
-    case 0x50:
+    case (J_SELECT | J_A):
         wFileLoadAlternateReturn = 1;
-    case 0x10:
+    case J_A:
         if (!wAPressEnabled)
             return 0;
         if (wFilePromptActive) {
@@ -610,7 +610,7 @@ UBYTE FileScreenInput(void)
             }
         }
         break;
-    case 0x20:
+    case J_B:
         if (!wAPressEnabled)
             return 0;
         if (wFilePromptActive) {
@@ -626,11 +626,11 @@ UBYTE FileScreenInput(void)
             wFileListActive = 0;
             FileDrawField(hGameboyType ? 3 : 2);
         } else {
-            wCurrentScreen = 9;
+            wCurrentScreen = SCREEN_PROJECT;
             FarCall(7, FAR_FN(RedrawScreen));
         }
         break;
-    case 2:
+    case J_LEFT:
         if (wButtonsSame)
             break;
         if (wFilePromptActive) {
@@ -643,7 +643,7 @@ UBYTE FileScreenInput(void)
             FileDrawField(hGameboyType ? 3 : 2);
         }
         break;
-    case 1:
+    case J_RIGHT:
         if (wButtonsSame)
             break;
         if (wFilePromptActive) {
@@ -656,7 +656,7 @@ UBYTE FileScreenInput(void)
             FileDrawField(hGameboyType ? 3 : 2);
         }
         break;
-    case 8:
+    case J_DOWN:
         if (!wFilePromptActive && wFileListActive && wFileCursor < wFileDrawIndex) {
             FileDrawFieldChecked(0);
             if (!wFileNameNavigationMode)
@@ -674,7 +674,7 @@ UBYTE FileScreenInput(void)
             FileDrawFieldChecked(hGameboyType ? 3 : 2);
         }
         break;
-    case 4:
+    case J_UP:
         if (!wFilePromptActive && wFileListActive && wFileCursor) {
             FileDrawFieldChecked(0);
             if (!wFileNameNavigationMode)

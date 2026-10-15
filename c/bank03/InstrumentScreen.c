@@ -950,12 +950,12 @@ UBYTE InstrumentScreenInput(void)
     type = ReadCurrentInstrumentByte(0);
     if (wAPressEnabled)
         wInstrumentEditLatch = 0;
-    if (wButtons != 0x10)
+    if (wButtons != J_A)
         wDrawStep = 0;
-    if (wButtons & 0x10)
+    if (wButtons & J_A)
         WriteSongByte(1, (UWORD)wInstrument + (UWORD)0xA040, 1);
     switch (wButtons) {
-    case 0x04:
+    case J_UP:
         if (!wInstrumentField)
             break;
         EraseInstrumentCursor();
@@ -1018,7 +1018,7 @@ UBYTE InstrumentScreenInput(void)
         }
         DrawInstrumentCursor();
         return 1;
-    case 0x08:
+    case J_DOWN:
         EraseInstrumentCursor();
         if (InstrumentFieldCounts[type] - wInstrumentField - 1) {
             if (type == 1)
@@ -1078,7 +1078,7 @@ UBYTE InstrumentScreenInput(void)
         }
         DrawInstrumentCursor();
         return 1;
-    case 0x02:
+    case J_LEFT:
         EraseInstrumentCursor();
         switch (type) {
         case 0:
@@ -1117,7 +1117,7 @@ UBYTE InstrumentScreenInput(void)
         }
         DrawInstrumentCursor();
         return 1;
-    case 0x01:
+    case J_RIGHT:
         EraseInstrumentCursor();
         switch (type) {
         case 0:
@@ -1170,7 +1170,7 @@ UBYTE InstrumentScreenInput(void)
         }
         DrawInstrumentCursor();
         return 1;
-    case 0x11:
+    case (J_A | J_RIGHT):
         SetVramCursor(InstrumentFieldX[type][wInstrumentField], InstrumentFieldY[type][wInstrumentField]);
         if (wInstrumentField == 1) {
             if (type < 3)
@@ -1515,7 +1515,7 @@ UBYTE InstrumentScreenInput(void)
             }
         }
         return 1;
-    case 0x12:
+    case (J_A | J_LEFT):
         if (wInstrumentField == 1) {
             if (type)
                 SetInstrumentType(type - 1);
@@ -1864,7 +1864,7 @@ UBYTE InstrumentScreenInput(void)
             }
         }
         return 1;
-    case 0x14:
+    case (J_A | J_UP):
         SetVramCursor(InstrumentFieldX[type][wInstrumentField], InstrumentFieldY[type][wInstrumentField]);
         switch (type) {
         case 0:
@@ -2089,7 +2089,7 @@ UBYTE InstrumentScreenInput(void)
             }
         }
         return 1;
-    case 0x18:
+    case (J_A | J_DOWN):
         SetVramCursor(InstrumentFieldX[type][wInstrumentField], InstrumentFieldY[type][wInstrumentField]);
         switch (type) {
         case 0:
@@ -2310,7 +2310,7 @@ UBYTE InstrumentScreenInput(void)
             }
         }
         return 1;
-    case 0x10:
+    case J_A:
         if (wAPressEnabled) {
             if (!wInstrumentField) {
                 wNameEditIsInstrument = 1;
@@ -2337,22 +2337,22 @@ UBYTE InstrumentScreenInput(void)
             }
         }
         return 1;
-    case 0x21:
+    case (J_B | J_RIGHT):
         NextUsedInstrument();
         return 1;
-    case 0x22:
+    case (J_B | J_LEFT):
         PreviousUsedInstrument();
         return 1;
-    case 0x24:
+    case (J_B | J_UP):
         wInstrument += 0x0F;
         if (wInstrument > 0x40)
             wInstrument = 0x40;
         NextUsedInstrument();
         return 1;
-    case 0x28:
+    case (J_B | J_DOWN):
         PreviousInstrumentPage();
         return 1;
-    case 0x44:
+    case (J_SELECT | J_UP):
         if (wButtonsSame)
             break;
         if (type == 1) {
@@ -2362,19 +2362,19 @@ UBYTE InstrumentScreenInput(void)
         FarCall(5, MoveMapCursorUp);
         FarCall(4, FAR_FN(RedrawScreen));
         break;
-    case 0x48:
+    case (J_SELECT | J_DOWN):
         if (wButtonsSame)
             break;
         FarCall(5, MoveMapCursorDown);
         FarCall(4, FAR_FN(RedrawScreen));
         break;
-    case 0x42:
+    case (J_SELECT | J_LEFT):
         if (wButtonsSame)
             break;
         FarCall(5, MoveMapCursorLeft);
         FarCall(4, FAR_FN(RedrawScreen));
         return 1;
-    case 0x41:
+    case (J_SELECT | J_RIGHT):
         if (wButtonsSame)
             break;
         FarCall(5, MoveMapCursorRight);
@@ -2383,7 +2383,7 @@ UBYTE InstrumentScreenInput(void)
             wTable = v & 0x1F;
         FarCall(4, FAR_FN(RedrawScreen));
         return 1;
-    case 0x50:
+    case (J_SELECT | J_A):
         if (!wSelectHeld)
             return 0;
         if (wInstrumentEditLatch)
@@ -2393,24 +2393,24 @@ UBYTE InstrumentScreenInput(void)
         DrawInstrumentScreen();
         wSelectHeld = 0;
         return 1;
-    case 0x70:
+    case (J_SELECT | J_B | J_A):
         wSelectHeld = 0;
         if (wInstrumentEditLatch) {
             CloneSynthOrTable();
             DrawInstrumentScreen();
         }
         return 1;
-    case 0xC0:
+    case (J_SELECT | J_START):
         if (wButtonsSame)
             return 1;
         FarCall(2, FAR_FN(SoundToggleSongPlayback));
         return 1;
-    case 0x80:
+    case J_START:
         if (wButtonsSame || wBHeld)
             return 1;
         FarCall(2, FAR_FN(SoundTogglePlayback));
         return 1;
-    case 0x60:
+    case (J_SELECT | J_B):
         if (!wSelectHeld)
             return 1;
         wSelectHeld = 0;

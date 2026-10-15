@@ -364,19 +364,19 @@ void OverwritePromptInput(void)
 {
     if (wAPressEnabled) {
         switch (wButtons) {
-        case 0x20:
+        case J_B:
             wOverwriteStart = 0;
             RedrawScreenFar();
             break;
-        case 2:
+        case J_LEFT:
             wOverwriteEnd = 0;
             DrawOverwriteChoice();
             break;
-        case 1:
+        case J_RIGHT:
             wOverwriteEnd = 1;
             DrawOverwriteChoice();
             break;
-        case 0x10:
+        case J_A:
             if (!wOverwriteEnd)
                 ClearSynthFlag(wSynthScreen);
             wOverwriteStart = 0;
@@ -521,7 +521,7 @@ UBYTE SynthScreenInput(void)
     UWORD p;
     UWORD q;
 
-    if ((wButtons & 0x10) && IsSynthLocked(wSynthScreen) && !wOverwriteStart) {
+    if ((wButtons & J_A) && IsSynthLocked(wSynthScreen) && !wOverwriteStart) {
         if (wAPressEnabled)
             OverwriteSynthWaves();
         return 1;
@@ -532,14 +532,14 @@ UBYTE SynthScreenInput(void)
     }
     hBgDigitPalette = wHighlightDigitPalette;
     hBgPalette = wHighlightPalette;
-    if (wButtons != 0x10)
+    if (wButtons != J_A)
         wDrawStep = 0;
     switch (wButtons) {
-    case 0x10:
+    case J_A:
         if (wAPressEnabled && ++wDrawStep == 2)
             FarCall(5, ShowSynthFieldHelp);
         return 1;
-    case 0x04:
+    case J_UP:
         if (!wSynthCursor)
             break;
         EraseSynthCursor();
@@ -559,7 +559,7 @@ UBYTE SynthScreenInput(void)
         }
         DrawSynthCursor();
         return 1;
-    case 0x08:
+    case J_DOWN:
         EraseSynthCursor();
         switch (wSynthCursor) {
         case 0x03:
@@ -580,7 +580,7 @@ UBYTE SynthScreenInput(void)
         }
         DrawSynthCursor();
         return 1;
-    case 0x02:
+    case J_LEFT:
         wSynthNavigationSide = 1;
         EraseSynthCursor();
         switch (wSynthCursor) {
@@ -594,7 +594,7 @@ UBYTE SynthScreenInput(void)
         }
         DrawSynthCursor();
         return 1;
-    case 0x01:
+    case J_RIGHT:
         wSynthNavigationSide = 0;
         EraseSynthCursor();
         switch (wSynthCursor) {
@@ -608,7 +608,7 @@ UBYTE SynthScreenInput(void)
         }
         DrawSynthCursor();
         return 1;
-    case 0x11:
+    case (J_A | J_RIGHT):
         SetVramCursor(SynthFieldX[wSynthCursor], SynthFieldLayout[wSynthCursor]);
         switch (wSynthCursor) {
         case 0:
@@ -709,7 +709,7 @@ UBYTE SynthScreenInput(void)
         }
         LoadSynthParameters();
         return 1;
-    case 0x12:
+    case (J_A | J_LEFT):
         SetVramCursor(SynthFieldX[wSynthCursor], SynthFieldLayout[wSynthCursor]);
         switch (wSynthCursor) {
         case 0:
@@ -810,7 +810,7 @@ UBYTE SynthScreenInput(void)
         }
         LoadSynthParameters();
         return 1;
-    case 0x14:
+    case (J_A | J_UP):
         SetVramCursor(SynthFieldX[wSynthCursor], SynthFieldLayout[wSynthCursor]);
         switch (wSynthCursor) {
         case 6:
@@ -864,7 +864,7 @@ UBYTE SynthScreenInput(void)
         }
         LoadSynthParameters();
         return 1;
-    case 0x18:
+    case (J_A | J_DOWN):
         SetVramCursor(SynthFieldX[wSynthCursor], SynthFieldLayout[wSynthCursor]);
         switch (wSynthCursor) {
         case 6:
@@ -918,45 +918,45 @@ UBYTE SynthScreenInput(void)
         }
         LoadSynthParameters();
         return 1;
-    case 0x21:
-    case 0x24:
+    case (J_B | J_RIGHT):
+    case (J_B | J_UP):
         wMessageStringPointer = 0;
         if (wSynthScreen != 0x0F) {
             wSynthScreen++;
             DrawSynthScreen();
         }
         return 1;
-    case 0x22:
-    case 0x28:
+    case (J_B | J_LEFT):
+    case (J_B | J_DOWN):
         wMessageStringPointer = 0;
         if (wSynthScreen) {
             wSynthScreen--;
             DrawSynthScreen();
         }
         return 1;
-    case 0xC0:
+    case (J_SELECT | J_START):
         if (wButtonsSame)
             return 1;
         FarCall(2, FAR_FN(SoundToggleSongPlayback));
         return 1;
-    case 0x80:
+    case J_START:
         if (wButtonsSame || wBHeld)
             return 1;
         FarCall(2, FAR_FN(SoundTogglePlayback));
         return 1;
-    case 0x48:
+    case (J_SELECT | J_DOWN):
         if (wButtonsSame)
             return 0;
         FarCall(5, MoveMapCursorDown);
         RedrawScreenFar();
         return 1;
-    case 0x42:
+    case (J_SELECT | J_LEFT):
         if (wButtonsSame)
             return 0;
         FarCall(5, MoveMapCursorLeft);
         RedrawScreenFar();
         return 1;
-    case 0x41:
+    case (J_SELECT | J_RIGHT):
         if (wButtonsSame)
             return 0;
         if (wSynthCursor == 0 && SynthSignalIsFrame()) {
@@ -968,10 +968,10 @@ UBYTE SynthScreenInput(void)
         FarCall(5, MoveMapCursorRight);
         FarCall(7, RedrawScreen);
         return 1;
-    case 0x60:
+    case (J_SELECT | J_B):
         ShowMessage("COPIED SYNTH");
         wCursorMode = 2;
-        wClipboardType = 0x0A;
+        wClipboardType = SCREEN_SYNTH;
         p = ((UWORD)wSynthScreen << 4) + (UWORD)0xBEB2;
         for (v = 0; v < 0x10; v++) {
             WriteClipboardCell(0, v, ReadSongByte(1, p));
@@ -983,8 +983,8 @@ UBYTE SynthScreenInput(void)
         wSelectionBottom = 0x10;
         FarCall(0x1C, FAR_FN(SendLinkClipboard));
         return 1;
-    case 0x50:
-        if (wCursorMode == 1 || wClipboardType != 0x0A)
+    case (J_SELECT | J_A):
+        if (wCursorMode == 1 || wClipboardType != SCREEN_SYNTH)
             return 0;
         ShowMessage("PASTED SYNTH");
         q = ((UWORD)wSynthScreen << 4) + (UWORD)0xBEB2;

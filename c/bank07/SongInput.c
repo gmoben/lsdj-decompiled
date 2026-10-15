@@ -96,11 +96,11 @@ UBYTE SongScreenInput(void)
     SetVramCursor(SongColumnOffsets[wSongColumn], wSongRow + 2 - wSongScroll);
     hBgDigitPalette = wHighlightDigitPalette;
     hBgPalette = wHighlightPalette;
-    if (wButtons != 0x10)
+    if (wButtons != J_A)
         wDrawStep = 0;
-    if (wButtons != 0x20)
+    if (wButtons != J_B)
         wSongAPressState = 0;
-    if (wCursorMode == 4 && wButtons == 0x43) {
+    if (wCursorMode == 4 && wButtons == J_SELECT_TAP) {
         wSongColumn = wSelectionLeft;
         wSongRow = wSelectionTop;
         FarCall(5, 0x747D);
@@ -109,7 +109,7 @@ UBYTE SongScreenInput(void)
         ShowMessage("CANCEL SELECT");
         return 1;
     }
-    if (wAPressEnabled && wButtons == 0x10) {
+    if (wAPressEnabled && wButtons == J_A) {
         if (wCursorMode == 4)
             return 0;
         if (wDrawStep++ && wSongCellEmpty) {
@@ -144,7 +144,7 @@ UBYTE SongScreenInput(void)
         }
         return 1;
     }
-    if (wButtons == 0x01) {
+    if (wButtons == J_RIGHT) {
         if (wSongColumn == 3 || wBHeld)
             return 0;
         if (wCursorMode != 4)
@@ -157,7 +157,7 @@ UBYTE SongScreenInput(void)
         else
             DrawSongCursor();
         return 1;
-    } else if (wButtons == 0x02) {
+    } else if (wButtons == J_LEFT) {
         if (!wSongColumn || wBHeld)
             return 0;
         if (wCursorMode != 4)
@@ -170,7 +170,7 @@ UBYTE SongScreenInput(void)
         else
             DrawSongCursor();
         return 1;
-    } else if (wButtons == 0x04) {
+    } else if (wButtons == J_UP) {
         if (!wSongRow)
             return 0;
         if (wCursorMode == 4 && wSelectionTop - wSongRow == 0x29)
@@ -189,7 +189,7 @@ UBYTE SongScreenInput(void)
         if (wCursorMode == 4)
             EditSongSelection();
         return 1;
-    } else if (wButtons == 0x08) {
+    } else if (wButtons == J_DOWN) {
         if (wCursorMode == 4 && wSongRow - wSelectionTop == 0x29)
             return 0;
         if (wSongRow == 0xBF)
@@ -206,11 +206,11 @@ UBYTE SongScreenInput(void)
         if (wCursorMode == 4)
             EditSongSelection();
         return 1;
-    } else if (wButtons == 0x28) {
+    } else if (wButtons == (J_B | J_DOWN)) {
         return PageSongCursorDown();
-    } else if (wButtons == 0x24) {
+    } else if (wButtons == (J_B | J_UP)) {
         return PageSongCursorUp();
-    } else if (wButtons == 0x42) {
+    } else if (wButtons == (J_SELECT | J_LEFT)) {
         if (!wAPressEnabled)
             return 0;
         if (wButtonsSame)
@@ -244,7 +244,7 @@ UBYTE SongScreenInput(void)
         if (wCursorMode == 4)
             EditSongSelection();
         return 1;
-    } else if (wButtons == 0x11) {
+    } else if (wButtons == (J_A | J_RIGHT)) {
         if (wCursorMode == 4)
             return 0;
         wSongScopeDirty = 1;
@@ -255,7 +255,7 @@ UBYTE SongScreenInput(void)
         WriteSongCell(wSongColumn, wSongRow, v);
         DrawHexByte(v);
         return 1;
-    } else if (wButtons == 0x14) {
+    } else if (wButtons == (J_A | J_UP)) {
         if (wCursorMode == 4)
             return 0;
         wSongScopeDirty = 1;
@@ -265,7 +265,7 @@ UBYTE SongScreenInput(void)
         WriteSongCell(wSongColumn, wSongRow, v);
         DrawHexByte(v);
         return 1;
-    } else if (wButtons == 0x12) {
+    } else if (wButtons == (J_A | J_LEFT)) {
         if (wCursorMode == 4)
             return 0;
         wSongScopeDirty = 1;
@@ -276,7 +276,7 @@ UBYTE SongScreenInput(void)
             DrawHexByte(v);
         }
         return 1;
-    } else if (wButtons == 0x18) {
+    } else if (wButtons == (J_A | J_DOWN)) {
         if (wCursorMode == 4)
             return 0;
         wSongScopeDirty = 1;
@@ -292,19 +292,19 @@ UBYTE SongScreenInput(void)
         WriteSongCell(wSongColumn, wSongRow, v);
         DrawHexByte(v);
         return 1;
-    } else if (wButtons == 0x44) {
+    } else if (wButtons == (J_SELECT | J_UP)) {
         if (wButtonsSame)
             return 0;
         FarCall(5, MoveMapCursorUp);
         FarCall(7, FAR_FN(RedrawScreen));
         return 1;
-    } else if (wButtons == 0x48) {
+    } else if (wButtons == (J_SELECT | J_DOWN)) {
         if (wButtonsSame)
             return 0;
         FarCall(5, MoveMapCursorDown);
         FarCall(7, FAR_FN(RedrawScreen));
         return 1;
-    } else if (wButtons == 0x30) {
+    } else if (wButtons == (J_B | J_A)) {
         if (!wAPressEnabled && !wBHeld)
             return 0;
         wBHeld = 0;
@@ -314,7 +314,7 @@ UBYTE SongScreenInput(void)
         wSelectionRight = wSongColumn + 1;
         wSelectionTop = 0;
         wSelectionBottom = 1;
-        wClipboardType = 4;
+        wClipboardType = SCREEN_SONG;
         WriteClipboardCell(wSongColumn, 0, cell);
         if (cell & 0x80) {
             p = (UBYTE *)0xB290 + ((UWORD)wSongRow << 2);
@@ -327,7 +327,7 @@ UBYTE SongScreenInput(void)
         }
         RedrawSongRow();
         return 1;
-    } else if (wButtons == 0x50) {
+    } else if (wButtons == (J_SELECT | J_A)) {
         if (wCursorMode == 1)
             return 0;
         if (!wSelectHeld || wButtonsSame)
@@ -340,16 +340,16 @@ UBYTE SongScreenInput(void)
                 LoadSongCursorChain();
             return 0;
         }
-        if (wClipboardType != 4)
+        if (wClipboardType != SCREEN_SONG)
             return 0;
         EraseSongCursor();
         PasteSongSelection();
         RedrawSongRow();
         return 1;
-    } else if (wButtons == 0x70 && wCursorMode == 4) {
+    } else if (wButtons == (J_SELECT | J_B | J_A) && wCursorMode == 4) {
         LoadSongCursorChain();
         return 1;
-    } else if (wButtons == 0xC0) {
+    } else if (wButtons == (J_SELECT | J_START)) {
         if (wButtonsSame && (wLiveMode || !wPlayMode))
             return 1;
         if (wLiveMode) {
@@ -361,7 +361,7 @@ UBYTE SongScreenInput(void)
             FarCall(2, FAR_FN(SoundTogglePlayback));
         }
         return 1;
-    } else if (wButtons == 0x80) {
+    } else if (wButtons == J_START) {
         if (wButtonsSame || wBHeld) {
             if (wMuteSoloLatch == 2)
                 wMuteSoloLatch = 1;
@@ -374,11 +374,11 @@ UBYTE SongScreenInput(void)
         else
             FarCall(2, FAR_FN(SoundTogglePlayback));
         return 1;
-    } else if (wButtons == 0x82) {
+    } else if (wButtons == (J_START | J_LEFT)) {
         if (!wButtonsSame)
             BeginSongSelection();
         return 1;
-    } else if (wButtons == 0x41) {
+    } else if (wButtons == (J_SELECT | J_RIGHT)) {
         if (wButtonsSame)
             return 0;
         v = wSongRow;
@@ -400,7 +400,7 @@ UBYTE SongScreenInput(void)
         FarCall(5, MoveMapCursorRight);
         FarCall(4, FAR_FN(RedrawScreen));
         return 1;
-    } else if (wButtons == 0x20) {
+    } else if (wButtons == J_B) {
         if (!wAPressEnabled)
             return 0;
         if (wCursorMode == 4) {
@@ -425,9 +425,9 @@ UBYTE SongScreenInput(void)
             }
         }
         return 1;
-    } else if (wSelectHeld && wButtons == 0x60) {
+    } else if (wSelectHeld && wButtons == (J_SELECT | J_B)) {
         wSelectHeld = 0;
-        if (wCursorMode == 4 && wClipboardType == 4) {
+        if (wCursorMode == 4 && wClipboardType == SCREEN_SONG) {
             left = wSelectionLeft;
             right = wSongColumn;
             top = wSelectionTop;

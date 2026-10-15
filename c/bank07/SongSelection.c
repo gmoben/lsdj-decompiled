@@ -36,7 +36,7 @@ void EditSongSelection(void)
     UBYTE y1;
     UBYTE y;
 
-    if (wClipboardType != 4)
+    if (wClipboardType != SCREEN_SONG)
         return;
     if (wSelectionLeft >= 4)
         DebugTrap();

@@ -163,35 +163,35 @@ UBYTE WordScreenInput(void)
     y = wWordRow + 2;
     SetVramCursor(wWordColumn * 4 + 2, y);
     switch (wButtons) {
-    case 0x04:
+    case J_UP:
         if (wWordRow) {
             EraseWordCursor();
             wWordRow--;
             DrawWordCursor();
         }
         return 1;
-    case 0x08:
+    case J_DOWN:
         MoveWordCursorDown();
         return 1;
-    case 0x02:
+    case J_LEFT:
         EraseWordCursor();
         wWordColumn = 0;
         DrawWordCursor();
         return 1;
-    case 0x01:
+    case J_RIGHT:
         EraseWordCursor();
         wWordColumn = 1;
         DrawWordCursor();
         return 1;
-    case 0x30:
+    case (J_B | J_A):
         if (!wAPressEnabled)
             return 0;
         {
         UBYTE t;
         v = wWordColumn;
-        if (wClipboardType != 0x0C && wCursorMode == 4)
+        if (wClipboardType != SCREEN_WORD && wCursorMode == 4)
             DebugTrap();
-        wClipboardType = 0x0C;
+        wClipboardType = SCREEN_WORD;
         wCursorMode = 2;
         wWordColumn = 0;
         wWordClipboardCell0[0] = ReadWordCell();
@@ -210,8 +210,8 @@ UBYTE WordScreenInput(void)
         DrawWordScreen();
         return 1;
         }
-    case 0x50:
-        if (wClipboardType != 0x0C)
+    case (J_SELECT | J_A):
+        if (wClipboardType != SCREEN_WORD)
             return 0;
         v = wWordColumn;
         wWordColumn = 0;
@@ -222,7 +222,7 @@ UBYTE WordScreenInput(void)
         DrawWordScreen();
         MoveWordCursorDown();
         return 1;
-    case 0x10:
+    case J_A:
         if (!wAPressEnabled)
             return 0;
         column = wWordColumn;
@@ -257,7 +257,7 @@ UBYTE WordScreenInput(void)
             return 1;
         }
         return 0;
-    case 0x11:
+    case (J_A | J_RIGHT):
         v = ReadWordCell();
         if (wWordColumn) {
             if (v < 0xFF)
@@ -272,7 +272,7 @@ UBYTE WordScreenInput(void)
         }
         WriteWordCell(v);
         return 1;
-    case 0x12:
+    case (J_A | J_LEFT):
         v = ReadWordCell();
         if (wWordColumn) {
             if (v)
@@ -288,7 +288,7 @@ UBYTE WordScreenInput(void)
         }
         WriteWordCell(v);
         return 1;
-    case 0x14:
+    case (J_A | J_UP):
         v = ReadWordCell() + 0x10;
         if (wWordColumn) {
             if (v < 0x10)
@@ -302,7 +302,7 @@ UBYTE WordScreenInput(void)
         }
         WriteWordCell(v);
         return 1;
-    case 0x18:
+    case (J_A | J_DOWN):
         v = ReadWordCell() - 0x10;
         if (wWordColumn) {
             if (v >= 0xF0)
@@ -316,54 +316,54 @@ UBYTE WordScreenInput(void)
         }
         WriteWordCell(v);
         return 1;
-    case 0x22:
+    case (J_B | J_LEFT):
         if (wSpeechRow) {
             wSpeechRow--;
             DrawWordScreen();
         }
         return 1;
-    case 0x21:
+    case (J_B | J_RIGHT):
         if ((UWORD)wSpeechRow < 13) {
             wSpeechRow++;
             DrawWordScreen();
         }
         return 1;
-    case 0x28:
+    case (J_B | J_DOWN):
         wSpeechRow -= 12;
         if (wSpeechRow > 0x80)
             wSpeechRow = 0;
         DrawWordScreen();
         return 1;
-    case 0x24:
+    case (J_B | J_UP):
         wSpeechRow += 12;
         if (wSpeechRow >= 14)
             wSpeechRow = 13;
         DrawWordScreen();
         return 1;
-    case 0x42:
+    case (J_SELECT | J_LEFT):
         if (wButtonsSame)
             break;
         FarCall(5, MoveMapCursorLeft);
         FarCall(4, FAR_FN(RedrawScreen));
         return 1;
-    case 0x44:
+    case (J_SELECT | J_UP):
         if (wButtonsSame)
             break;
         FarCall(5, MoveMapCursorUp);
         FarCall(4, FAR_FN(RedrawScreen));
         return 1;
-    case 0x48:
+    case (J_SELECT | J_DOWN):
         if (wButtonsSame)
             break;
         FarCall(5, MoveMapCursorDown);
         FarCall(4, FAR_FN(RedrawScreen));
         return 1;
-    case 0xC0:
+    case (J_SELECT | J_START):
         if (wButtonsSame)
             return 1;
         FarCall(2, FAR_FN(SoundToggleSongPlayback));
         return 1;
-    case 0x80:
+    case J_START:
         if (wButtonsSame || wBHeld)
             return 1;
         FarCall(2, FAR_FN(SoundTogglePlayback));

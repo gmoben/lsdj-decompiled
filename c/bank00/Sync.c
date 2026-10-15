@@ -131,7 +131,7 @@ void SyncTickLsdj(void)
             SWITCH_ROM(2);
             SoundResetChannelCommand();
             _asm ei _endasm;
-            if (wCurrentScreen == 4) {
+            if (wCurrentScreen == SCREEN_SONG) {
                 SetVramCursor(hSoundChannel * 3 + 2, (wChannelSongRow[hSoundChannel] & 0x0F) + 2);
                 DrawStringTile20();
             }
@@ -343,7 +343,7 @@ void SendByteStep(void)
                 SWITCH_ROM(2);
                 SyncSeekSongPosition();
                 SoundEnableLcdInterrupts();
-                if (wCurrentScreen == 9) {
+                if (wCurrentScreen == SCREEN_PROJECT) {
                     SWITCH_ROM(0x1B);
                     wPlayMinutes = 0;
                     wPlaySeconds = 0;
