@@ -86,7 +86,7 @@ UBYTE SoundPhraseHop(void)
         else if (!(*p = *p - 1))
             return 0;
         mode = 1;
-    } else if (wPlayMode == 1 && wSongColumn == hSoundChannel)
+    } else if (wPlayMode == PLAY_PHRASE && wSongColumn == hSoundChannel)
         *wPointerPhrase = wPhrase;
     *wPointerPhraseRow = v & 0x0F;
     SoundSplitPhraseNibbles();
@@ -184,7 +184,7 @@ void SoundUpdateChannel(void)
     SoundAdvanceTableCursor();
     if (*wPointerPhraseRow == 0x10 || wPlayRestartPending) {
         *wPointerPhraseRow = 0;
-        if (wPlayMode == 3 || wPlayMode == 4) {
+        if (wPlayMode == PLAY_CHAIN || wPlayMode == PLAY_SONG) {
             SoundAdvanceChainRow();
             SoundLiveStartQueued();
         } else {

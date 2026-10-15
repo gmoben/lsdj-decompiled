@@ -176,10 +176,10 @@ void LoadFontTiles(void)
         wHighlightPalette = 1;
         a = TilesFontY2K;
         switch (wFont) {
-        case 1:
+        case FONT_ZERO:
             a = TilesFontZero;
             break;
-        case 2:
+        case FONT_KIKO:
             a = TilesFontKiko;
             break;
         }
@@ -189,12 +189,12 @@ void LoadFontTiles(void)
         b = TilesFontY2KHighlight;
         c = TilesFontY2KShaded;
         switch (wFont) {
-        case 1:
+        case FONT_ZERO:
             a = TilesFontZero;
             b = TilesFontZeroHighlight;
             c = TilesFontZeroShaded;
             break;
-        case 2:
+        case FONT_KIKO:
             a = TilesFontKiko;
             b = TilesFontKikoHighlight;
             c = TilesFontKikoShaded;

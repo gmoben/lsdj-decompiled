@@ -132,7 +132,7 @@ void SoundLiveQueueRange(void)
 
 void SoundStartChannels(void)
 {
-    wPlayMode = 0;
+    wPlayMode = PLAY_STOPPED;
     SoundSetPlayRange();
     for (hSoundChannel = wPlayChannelFirst; hSoundChannel < wPlayChannelLast + 1; hSoundChannel++) {
         wChannelNextSongRow[hSoundChannel] = wSongRow;
@@ -145,7 +145,7 @@ void SoundStartChannels(void)
         SoundResetCommandState();
         SoundEnableLcdInterrupts();
         SyncStartTransport();
-        wPlayMode = 4;
+        wPlayMode = PLAY_SONG;
     }
 }
 
@@ -212,7 +212,7 @@ void SoundToggleSongPlayback(void)
     }
     if (wSyncMode == SYNC_LSDJ || wSyncMode == SYNC_MIDI)
         wSyncTick = 0xFF;
-    if (wPlayMode && wPlayMode != 4)
+    if (wPlayMode && wPlayMode != PLAY_SONG)
         SoundTogglePlayback();
     if (wSavedScreen)
         DebugTrap();
@@ -327,7 +327,7 @@ void SoundTogglePlayback(void)
         return;
     }
     NR52_REG = 0;
-    wPlayMode = 0;
+    wPlayMode = PLAY_STOPPED;
     for (hSoundChannel = 0; hSoundChannel < 4; hSoundChannel++)
         if (wChannelActive[hSoundChannel])
             SoundResetChannelCommand();
@@ -417,7 +417,7 @@ UBYTE SoundLiveChainEnd(void)
         SoundResetChannelCommand();
         if (!SoundAnyChannelActive()) {
             NR52_REG = 0;
-            wPlayMode = 0;
+            wPlayMode = PLAY_STOPPED;
             SyncStopTransport();
         }
         return 0;

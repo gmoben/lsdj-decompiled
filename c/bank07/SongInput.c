@@ -234,11 +234,11 @@ UBYTE SongScreenInput(void)
         FillMemory(wChannelNextSongRow, 0xFF, 4);
         FillMemory(wChannelLiveQueued, 0, 4);
         FillMemory(wChannelStopQueued, 0, 4);
-        if (wLiveMode && wPlayMode && wPlayMode != 4) {
+        if (wLiveMode && wPlayMode && wPlayMode != PLAY_SONG) {
             wChannelNextSongRow[wPlayStartChannel] = wPlayStartRow;
-            if (wPlayMode != 3)
+            if (wPlayMode != PLAY_CHAIN)
                 wChannelLiveQueued[wPlayStartChannel] = 1;
-            wPlayMode = 4;
+            wPlayMode = PLAY_SONG;
         }
         DrawSongScreen();
         if (wCursorMode == CURSOR_SELECTING)

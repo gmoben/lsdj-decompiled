@@ -288,6 +288,23 @@ typedef int WORD;
 #define TABLE_COLUMN_VALUE2        5
 #define TABLE_COLUMNS              6
 
+/* wPlayMode: stopped, or the screen playback started from */
+#define PLAY_STOPPED         0
+#define PLAY_PHRASE          SCREEN_PHRASE
+#define PLAY_CHAIN           SCREEN_CHAIN
+#define PLAY_SONG            SCREEN_SONG
+
+/* wTempoMode: the tempo as BPM, or a multiple the screen shows as 2X, 3X, 6X */
+#define TEMPO_BPM            0
+#define TEMPO_2X             1
+#define TEMPO_3X             2
+#define TEMPO_6X             3
+
+/* wFont (FontNames) */
+#define FONT_Y2K             0
+#define FONT_ZERO            1
+#define FONT_KIKO            2
+
 /* wCursorMode: nothing copied, the clipboard holding a cut or copy (paste
  * takes it), or a selection being marked */
 #define CURSOR_NORMAL        1

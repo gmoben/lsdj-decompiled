@@ -82,8 +82,8 @@ void LoadProjectSettings(UBYTE keep)
     rRAMG = 0x0A;
     rRAMB = 1;
     wFont = *SramPropertyFont;
-    if (wFont > 2) {
-        wFont = 0;
+    if (wFont > FONT_KIKO) {
+        wFont = FONT_Y2K;
         *SramPropertyFont = 0;
     }
     SyncLoadSetting();

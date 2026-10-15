@@ -318,7 +318,7 @@ void SyncSeekSongPosition(void)
             }
         }
     }
-    wPlayMode = 4;
+    wPlayMode = PLAY_SONG;
 }
 
 void SendByteStep(void)

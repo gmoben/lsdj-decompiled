@@ -310,7 +310,7 @@ void SongScreenUpdate(void)
 {
     UBYTE sprite;
 
-    if (wPlayMode == 4) {
+    if (wPlayMode == PLAY_SONG) {
         UpdateSongPlayMarker();
     } else {
         for (sprite = 0; sprite != 8; sprite++)

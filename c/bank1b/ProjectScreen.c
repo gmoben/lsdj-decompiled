@@ -307,7 +307,7 @@ UBYTE ProjectScreenInput(void)
             }
             if (wTempo != 0x27)
                 wTempo++;
-            else if (wTempoMode < 3)
+            else if (wTempoMode < TEMPO_6X)
                 wTempoMode++;
             FarCall(7, FAR_FN(SetSyncSendRate));
             DrawProjectTempo();
@@ -465,7 +465,7 @@ UBYTE ProjectScreenInput(void)
         case PROJECT_FIELD_LOOK:
             if (wButtonsSame)
                 return 0;
-            if (wFont != 2) {
+            if (wFont != FONT_KIKO) {
                 wFont++;
                 WriteSongByte(1, SRAM_PROPERTY_FONT, wFont);
                 DrawProjectScreen();

@@ -191,7 +191,7 @@ void Command_O(void)
 void Command_T(void)
 {
     wTempo = hCommandValue;
-    wTempoMode = 0;
+    wTempoMode = TEMPO_BPM;
     FarCall(7, FAR_FN(SetSyncSendRate));
 }
 

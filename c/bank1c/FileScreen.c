@@ -202,7 +202,7 @@ void FileClearChannelState(void)
 void FileStopSound(void)
 {
     SetInterruptEnable(IE_REG & 0xFB);
-    wPlayMode = 0;
+    wPlayMode = PLAY_STOPPED;
     NR52_REG = 0;
     FileClearChannelState();
 }

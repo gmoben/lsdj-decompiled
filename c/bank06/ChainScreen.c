@@ -231,7 +231,7 @@ void DrawChainScreen(void)
 
 void ChainScreenUpdate(void)
 {
-    if ((wPlayMode == 4 || wPlayMode == 3) && wChannelActive[wSongColumn]
+    if ((wPlayMode == PLAY_SONG || wPlayMode == PLAY_CHAIN) && wChannelActive[wSongColumn]
             && wChain == wChannelChain[wSongColumn])
         SetSpriteY(0, wChannelChainRow[wSongColumn]);
     else

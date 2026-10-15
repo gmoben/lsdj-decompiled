@@ -246,7 +246,9 @@ comment began with a quoted string had been carved as data, since a leading
   synth's parameter bytes and their values (`SYNTH_FIELD_Q_END`,
   `SYNTH_BYTE_PHASE_TYPE`, `SYNTH_PHASE_RESYNC2`: checked against
   `ShowSynthFieldHelp` and the field draws), the PROJECT screen's fields
-  (`PROJECT_FIELD_CLEAN_SONG_DATA`), the phrase and table columns
+  (`PROJECT_FIELD_CLEAN_SONG_DATA`), the play, tempo and font modes
+  (`PLAY_SONG` -- the screen playback started from --, `TEMPO_6X`,
+  `FONT_KIKO`), the phrase and table columns
   (`PHRASE_COLUMN_LEFT_NOTE`, a kit's first kit; `TABLE_COLUMN_VALUE2`), the cursor modes
   (`CURSOR_COPIED`: the clipboard holds something to paste), the channels (`CHANNEL_NOI`
   for `wSongColumn` and `hSoundChannel`), the commands (`COMMAND_Z`, in
