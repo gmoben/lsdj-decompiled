@@ -92,14 +92,14 @@
 4965 .done                ; common exit of TableInputFlag
 4AA4 .done                ; common exit of TableScreenUpdate
 4B59 .done                ; common exit of DrawTableCursor
-4F1F .incLoop ; loop head in TableScreenInput
-508E .incCommandLoop ; loop head in TableScreenInput
-5251 .decLoop ; loop head in TableScreenInput
-53BD .decCommandLoop ; loop head in TableScreenInput
+4F1F .incrementLoop ; loop head in TableScreenInput
+508E .incrementCommandLoop ; loop head in TableScreenInput
+5251 .decrementLoop ; loop head in TableScreenInput
+53BD .decrementCommandLoop ; loop head in TableScreenInput
 556B .bigLoop ; loop head in TableScreenInput
 56E3 .bigCommandLoop ; loop head in TableScreenInput
-58C5 .bigDecLoop ; loop head in TableScreenInput
-5A3B .bigDecCommandLoop ; loop head in TableScreenInput
+58C5 .bigDecrementLoop ; loop head in TableScreenInput
+5A3B .bigDecrementCommandLoop ; loop head in TableScreenInput
 5F34 .grooveShift ; loop head in TableScreenInput
 5FD2 .grooveShift2 ; loop head in TableScreenInput
 61B1 .done                ; common exit of TableScreenInput
@@ -184,16 +184,16 @@
 4E95 .columnLeft
 4EB3 .upCursor
 4ECD .downCursor
-4ED5 .incRows
-4F58 .incCommand1Pointers
-4F6B .incCommand2Pointers
-5064 .incCommandTarget
-50C0 .incCommandDraw
-5207 .decRows
-528A .decCommand1Pointers
-529D .decCommand2Pointers
-5367 .decCommand
-53EE .decCommandDraw
+4ED5 .incrementRows
+4F58 .incrementCommand1Pointers
+4F6B .incrementCommand2Pointers
+5064 .incrementCommandTarget
+50C0 .incrementCommandDraw
+5207 .decrementRows
+528A .decrementCommand1Pointers
+529D .decrementCommand2Pointers
+5367 .decrementCommand
+53EE .decrementCommandDraw
 5521 .bigRows
 55A4 .bigCommand1Pointers
 55B7 .bigCommand2Pointers
@@ -201,13 +201,13 @@
 5714 .bigCommandDraw
 57FB .bigWaveCommand
 581B .bigPitchCommand
-587B .bigDecRows
-58FE .bigDecCommand1Pointers
-5911 .bigDecCommand2Pointers
-59E5 .bigDecCommand
-5A6C .bigDecCommandDraw
-5B41 .bigDecWaveCommand
-5B5E .bigDecPitchCommand
+587B .bigDecrementRows
+58FE .bigDecrementCommand1Pointers
+5911 .bigDecrementCommand2Pointers
+59E5 .bigDecrementCommand
+5A6C .bigDecrementCommandDraw
+5B41 .bigDecrementWaveCommand
+5B5E .bigDecrementPitchCommand
 5BBE .nextTable
 5BC8 .nextTableDraw
 5BD8 .previousTable
@@ -242,7 +242,7 @@
 622F .checkSelectionLeft
 623C .checkSelectionRight
 6249 .checkSelectionRightb
-6256 .incSelectionRight
+6256 .incrementSelectionRight
 6350 .setTableCellAPointer
 6396 .setTableCellAPointerb
 63DC .setTableCellAPointerc
@@ -256,7 +256,7 @@
 666E .setTableCellAPointerb
 66BB .setTableCellAPointerc
 6707 .setTableCellAPointerd
-6740 .incTableRow
+6740 .incrementTableRow
 6779 .loadSelectionLeft
 69FA .checkInstrumentField
 6AC5 .checkInstrumentFieldb
@@ -309,50 +309,50 @@
 4DC7 .aCommandAlias
 4DDC .aCommandWrite
 4E6B .aDone
-4F0A .incOne
-4F18 .incSorted
-4F7B .incCell
-4FCD .incEnvelope
-4FFD .incEnvelopeKept
-5007 .incTranspose
-5036 .incCommand
-5072 .incCommand1
-5074 .incCommandTargetSet
-50F1 .incCommandHelp
-5114 .incCommandValue
-5143 .incValue
-5177 .incTableCommand
-5186 .incHopCommand
-5195 .incPanCommand
-51A4 .incPanRight
-51AB .incWaveCommand
-51BC .incWaveStep
-51C2 .incValueStep
-51C5 .incValueWrite
-51F8 .incNextRow
-5202 .incDone
-523C .decOne
-524A .decSorted
-52AD .decCell
-52FF .decEnvelope
-5314 .decEnvelopeDraw
-532E .decEnvelopeKept
-5338 .decTranspose
-5375 .decCommand1
-5377 .decCommandTargetSet
-53A8 .decCommandRead
-541F .decCommandHelp
-5442 .decCommandValue
-5471 .decValue
-54A1 .decTableCommand
-54B0 .decPanCommand
-54BF .decPanLeft
-54C6 .decWaveCommand
-54D6 .decWaveStep
-54DC .decValueStep
-54DF .decValueWrite
-5512 .decNextRow
-551C .decDone
+4F0A .incrementOne
+4F18 .incrementSorted
+4F7B .incrementCell
+4FCD .incrementEnvelope
+4FFD .incrementEnvelopeKept
+5007 .incrementTranspose
+5036 .incrementCommand
+5072 .incrementCommand1
+5074 .incrementCommandTargetSet
+50F1 .incrementCommandHelp
+5114 .incrementCommandValue
+5143 .incrementValue
+5177 .incrementTableCommand
+5186 .incrementHopCommand
+5195 .incrementPanCommand
+51A4 .incrementPanRight
+51AB .incrementWaveCommand
+51BC .incrementWaveStep
+51C2 .incrementValueStep
+51C5 .incrementValueWrite
+51F8 .incrementNextRow
+5202 .incrementDone
+523C .decrementOne
+524A .decrementSorted
+52AD .decrementCell
+52FF .decrementEnvelope
+5314 .decrementEnvelopeDraw
+532E .decrementEnvelopeKept
+5338 .decrementTranspose
+5375 .decrementCommand1
+5377 .decrementCommandTargetSet
+53A8 .decrementCommandRead
+541F .decrementCommandHelp
+5442 .decrementCommandValue
+5471 .decrementValue
+54A1 .decrementTableCommand
+54B0 .decrementPanCommand
+54BF .decrementPanLeft
+54C6 .decrementWaveCommand
+54D6 .decrementWaveStep
+54DC .decrementValueStep
+54DF .decrementValueWrite
+5512 .decrementNextRow
+551C .decrementDone
 5556 .bigOne
 5564 .bigSorted
 55C7 .bigCell
@@ -376,28 +376,28 @@
 5839 .bigValueWrite
 586C .bigNextRow
 5876 .bigDone
-58B0 .bigDecOne
-58BE .bigDecSorted
-5921 .bigDecCell
-5973 .bigDecEnvelope
-59A3 .bigDecTranspose
-59BE .bigDecOctave
-59C0 .bigDecTransposeDraw
-59F3 .bigDecCommand1
-59F5 .bigDecCommandTargetSet
-5A26 .bigDecCommandRead
-5A9D .bigDecCommandHelp
-5AC0 .bigDecCommandValue
-5AEF .bigDecValue
-5B28 .bigDecTableCommand
-5B3A .bigDecPanCommand
-5B53 .bigDecWaveStep
-5B6C .bigDecPitchOctave
-5B6E .bigDecPitchStep
-5B76 .bigDecValueStep
-5B7C .bigDecValueWrite
-5BAF .bigDecNextRow
-5BB9 .bigDecDone
+58B0 .bigDecrementOne
+58BE .bigDecrementSorted
+5921 .bigDecrementCell
+5973 .bigDecrementEnvelope
+59A3 .bigDecrementTranspose
+59BE .bigDecrementOctave
+59C0 .bigDecrementTransposeDraw
+59F3 .bigDecrementCommand1
+59F5 .bigDecrementCommandTargetSet
+5A26 .bigDecrementCommandRead
+5A9D .bigDecrementCommandHelp
+5AC0 .bigDecrementCommandValue
+5AEF .bigDecrementValue
+5B28 .bigDecrementTableCommand
+5B3A .bigDecrementPanCommand
+5B53 .bigDecrementWaveStep
+5B6C .bigDecrementPitchOctave
+5B6E .bigDecrementPitchStep
+5B76 .bigDecrementValueStep
+5B7C .bigDecrementValueWrite
+5BAF .bigDecrementNextRow
+5BB9 .bigDecrementDone
 5D55 .cutCommand1Clipboard
 5DEC .cutCommand2Clipboard
 5EAD .toggleSong
@@ -440,7 +440,7 @@
 66CB .getScreenScratchCell2_5
 66ED .setTableCellAPointer_5
 6717 .getScreenScratchCell2_6
-6736 .incTableRow_2
+6736 .incrementTableRow_2
 674F .setSelectionLeft_2
 67E7 .cont
 67E9 .cont_2
@@ -545,12 +545,12 @@
 
 ; --- pointer targets (tools/name_targets.py) ---
 4CEB .columnCases
-4F4C .incPointerCases
-4FBB .incColumnCases
-527E .decPointerCases
-52ED .decColumnCases
+4F4C .incrementPointerCases
+4FBB .incrementColumnCases
+527E .decrementPointerCases
+52ED .decrementColumnCases
 5598 .bigPointerCases
 5607 .bigColumnCases
-58F2 .bigDecPointerCases
-5961 .bigDecColumnCases
+58F2 .bigDecrementPointerCases
+5961 .bigDecrementColumnCases
 5C7E .cutCases

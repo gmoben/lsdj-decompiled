@@ -43,7 +43,7 @@
 4AB0 SetWaveSpriteColumns       ; set the x of wave sprites 3..10 and 11..18
 4B16 SetWaveCursorSprite        ; place the wave cursor and selection-anchor sprites from wWaveCursor/wWaveSelectionStart (SetWaveSpriteColumns)
 4B40 GetWaveEditRange           ; the wave screen's edit range into *start/*end (end exclusive): the cursor sample, or the selection from wWaveSelectionStart (wCursorMode 4)
-4BA7 InitWaveSprites            ; init the 16 wave-sample sprites (3..18): y, tile 5, attr ; x via SetWaveSpriteColumns
+4BA7 InitializeWaveSprites            ; init the 16 wave-sample sprites (3..18): y, tile 5, attr ; x via SetWaveSpriteColumns
 4C55 DrawWaveColumn             ; wave graph column col: samples 2col/2col+1 as dots (one tile or a half-tile pair, CGB/DMG tiles), wWaveColumnEmpty rows blank, their hex values below
 4EAC DrawWaveCursorColumn       ; redraw the wave column under the cursor (DrawWaveColumn(wWaveCursor >> 1))
 4EBD DrawWaveRange              ; redraw the wave columns of the edit range
@@ -119,8 +119,8 @@
 4AB7 .loop                ; loop head in SetWaveSpriteColumns
 4AE8 .loop2               ; loop head in SetWaveSpriteColumns
 4B12 .done                ; common exit of SetWaveSpriteColumns
-4BB1 .loop                ; loop head in InitWaveSprites
-4C04 .loop2               ; loop head in InitWaveSprites
+4BB1 .loop                ; loop head in InitializeWaveSprites
+4C04 .loop2               ; loop head in InitializeWaveSprites
 4DF8 .loop                ; loop head in DrawWaveColumn
 4EE2 .loop                ; loop head in DrawWaveRange
 4EFE .done                ; common exit of DrawWaveRange
@@ -144,14 +144,14 @@
 59DB .loop2               ; loop head in DrawChainScreen
 5ABC .done                ; common exit of ChainScreenUpdate
 5BCC .done                ; common exit of OpenChainPhrase
-5F76 .incColumns    ; loop head in ChainScreenInput
-5F84 .incRows ; loop head in ChainScreenInput
+5F76 .incrementColumns    ; loop head in ChainScreenInput
+5F84 .incrementRows ; loop head in ChainScreenInput
 6168 .bigColumns    ; loop head in ChainScreenInput
 6176 .bigRows ; loop head in ChainScreenInput
-63B2 .decColumns    ; loop head in ChainScreenInput
-63C0 .decRows ; loop head in ChainScreenInput
-659C .bigDecColumns    ; loop head in ChainScreenInput
-65AA .bigDecRows ; loop head in ChainScreenInput
+63B2 .decrementColumns    ; loop head in ChainScreenInput
+63C0 .decrementRows ; loop head in ChainScreenInput
+659C .bigDecrementColumns    ; loop head in ChainScreenInput
+65AA .bigDecrementRows ; loop head in ChainScreenInput
 676D .nextChannelLoop ; loop head in ChainScreenInput
 67B1 .previousChannelLoop ; loop head in ChainScreenInput
 6D3C .done                ; common exit of ChainScreenInput
@@ -272,8 +272,8 @@
 4FA2 .redraw
 4FF4 .redraw
 5047 .redraw
-512B .incWaveCursor
-514C .decWaveCursor
+512B .incrementWaveCursor
+514C .decrementWaveCursor
 5266 .checkSynth
 52D5 .setSelectHeld
 531B .placeCursor
@@ -330,7 +330,7 @@
 6CF2 .copyScreen
 6D64 .setCursorMode
 6D9B .loadSelectionLeft
-6FD4 .incChainRow
+6FD4 .incrementChainRow
 6FE3 .loadSelectionBottom
 7032 .loadSelectionLeft
 7042 .clearSelectionTop
@@ -493,19 +493,19 @@
 5E7C .up
 5E9D .upDone
 5EDA .downDone
-5F0E .incOne
-5F14 .incSorted
-5FA0 .incNotPhraseColumn
-5FA1 .incPhraseColumnTest
-5FB4 .incNotTransposeColumn
-5FB5 .incTransposeColumnTest
-5FBF .incPhrase
-5FF5 .incNotLast
-5FF6 .incLastTest
-6061 .incTranspose
-60B8 .incNextRow
-60C2 .incNextColumn
-60CC .incDone
+5F0E .incrementOne
+5F14 .incrementSorted
+5FA0 .incrementNotPhraseColumn
+5FA1 .incrementPhraseColumnTest
+5FB4 .incrementNotTransposeColumn
+5FB5 .incrementTransposeColumnTest
+5FBF .incrementPhrase
+5FF5 .incrementNotLast
+5FF6 .incrementLastTest
+6061 .incrementTranspose
+60B8 .incrementNextRow
+60C2 .incrementNextColumn
+60CC .incrementDone
 6100 .bigOne
 6106 .bigSorted
 6192 .bigNotPhraseColumn
@@ -526,37 +526,37 @@
 6302 .bigNextRow
 630C .bigNextColumn
 6316 .bigDone
-634A .decOne
-6350 .decSorted
-63DC .decNotPhraseColumn
-63DD .decPhraseColumnTest
-63F0 .decNotTransposeColumn
-63F1 .decTransposeColumnTest
-63FB .decPhrase
-6494 .decTranspose
-64EC .decNextRow
-64F6 .decNextColumn
-6500 .decDone
-6534 .bigDecOne
-653A .bigDecSorted
-65C6 .bigDecNotPhraseColumn
-65C7 .bigDecPhraseColumnTest
-65DA .bigDecNotTransposeColumn
-65DB .bigDecTransposeColumnTest
-65E5 .bigDecPhrase
-663C .bigDecNotEmpty
-663D .bigDecEmptyTest
-665B .bigDecStep
-6671 .bigDecSub
-667C .bigDecWrite
-66BA .bigDecTranspose
-66F9 .bigDecNotNoise
-66FA .bigDecNoiseTest
-6706 .bigDecOctave
-6708 .bigDecSubTranspose
-6735 .bigDecNextRow
-673F .bigDecNextColumn
-6749 .bigDecDone
+634A .decrementOne
+6350 .decrementSorted
+63DC .decrementNotPhraseColumn
+63DD .decrementPhraseColumnTest
+63F0 .decrementNotTransposeColumn
+63F1 .decrementTransposeColumnTest
+63FB .decrementPhrase
+6494 .decrementTranspose
+64EC .decrementNextRow
+64F6 .decrementNextColumn
+6500 .decrementDone
+6534 .bigDecrementOne
+653A .bigDecrementSorted
+65C6 .bigDecrementNotPhraseColumn
+65C7 .bigDecrementPhraseColumnTest
+65DA .bigDecrementNotTransposeColumn
+65DB .bigDecrementTransposeColumnTest
+65E5 .bigDecrementPhrase
+663C .bigDecrementNotEmpty
+663D .bigDecrementEmptyTest
+665B .bigDecrementStep
+6671 .bigDecrementSub
+667C .bigDecrementWrite
+66BA .bigDecrementTranspose
+66F9 .bigDecrementNotNoise
+66FA .bigDecrementNoiseTest
+6706 .bigDecrementOctave
+6708 .bigDecrementSubTranspose
+6735 .bigDecrementNextRow
+673F .bigDecrementNextColumn
+6749 .bigDecrementDone
 6787 .nextChannelSkip
 678D .nextChannelNone
 67CB .previousChannelSkip
@@ -596,7 +596,7 @@
 6F5B .cont_3
 6F65 .getScreenScratchCell2
 6FA7 .getScreenScratchCell2_2
-6FCA .incChainRow_2
+6FCA .incrementChainRow_2
 7015 .loadChainColumn
 7071 .cont
 708E .cont_2

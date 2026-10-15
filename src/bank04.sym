@@ -119,18 +119,18 @@
 5AC3 .done                ; common exit of PhraseCellFlagC
 5B5A .done                ; common exit of PhraseCellFlagD
 5BA4 .done                ; common exit of PrelistenEditedCell
-624A .incLoop             ; loop head in PhraseScreenInput
-6403 .incCommandLoop          ; loop head in PhraseScreenInput
+624A .incrementLoop             ; loop head in PhraseScreenInput
+6403 .incrementCommandLoop          ; loop head in PhraseScreenInput
 669B .bigLoop             ; loop head in PhraseScreenInput
 685C .bigCommandLoop          ; loop head in PhraseScreenInput
-6B16 .decLoop             ; loop head in PhraseScreenInput
-6BC8 .decKitHighScan      ; loop head in PhraseScreenInput
-6CEC .decKitLowScan       ; loop head in PhraseScreenInput
-6D66 .decCommandLoop          ; loop head in PhraseScreenInput
-6FE5 .bigDecLoop          ; loop head in PhraseScreenInput
-7098 .bigDecKitHighScan   ; loop head in PhraseScreenInput
-71CA .bigDecKitLowScan    ; loop head in PhraseScreenInput
-7244 .bigDecCommandLoop       ; loop head in PhraseScreenInput
+6B16 .decrementLoop             ; loop head in PhraseScreenInput
+6BC8 .decrementKitHighScan      ; loop head in PhraseScreenInput
+6CEC .decrementKitLowScan       ; loop head in PhraseScreenInput
+6D66 .decrementCommandLoop          ; loop head in PhraseScreenInput
+6FE5 .bigDecrementLoop          ; loop head in PhraseScreenInput
+7098 .bigDecrementKitHighScan   ; loop head in PhraseScreenInput
+71CA .bigDecrementKitLowScan    ; loop head in PhraseScreenInput
+7244 .bigDecrementCommandLoop       ; loop head in PhraseScreenInput
 7D45 .done                ; common exit of PhraseScreenInput
 
 ; --- structural local names (loop heads / common exits) ---
@@ -214,8 +214,8 @@
 51DC .commandPairWidth2       ; PastePhraseSelection: a 3-wide table-command selection: which column?
 51FE .selectCommandColumns       ; PastePhraseSelection: paste into columns 3..4
 5208 .rowsStart           ; PastePhraseSelection: y = wSelectionTop, the shifted command columns
-52BA .pasteNoteHi         ; PastePhraseSelection: column 0 of a kit note (high nibble)
-5366 .pasteNoteLo         ; PastePhraseSelection: column 1 (low nibble on a kit)
+52BA .pasteNoteHigh         ; PastePhraseSelection: column 0 of a kit note (high nibble)
+5366 .pasteNoteLow         ; PastePhraseSelection: column 1 (low nibble on a kit)
 5443 .rowDone             ; PastePhraseSelection: wPhraseRow++ wraps at $10
 546E .checkRows           ; PastePhraseSelection: PASTE message for a multi-row paste
 56D1 .checkPhraseColumn
@@ -249,23 +249,23 @@
 6167 .downStep
 6190 .downWrap
 61F1 .downCursor
-6308 .incKitHighDone
-63E4 .incNoteDone
-648A .incCommandTest
-65D3 .incWave
+6308 .incrementKitHighDone
+63E4 .incrementNoteDone
+648A .incrementCommandTest
+65D3 .incrementWave
 675A .bigKitHighDone
 683D .bigNoteDone
 68E3 .bigCommandTest
 6A23 .bigWave
 6A4A .bigSweep
-6C32 .decKitHighDone
-6D47 .decNoteDone
-6DE0 .decCommandTest
-7102 .bigDecKitHighDone
-7225 .bigDecNoteDone
-72BD .bigDecCommandTest
-73F4 .bigDecWave
-7411 .bigDecSweep
+6C32 .decrementKitHighDone
+6D47 .decrementNoteDone
+6DE0 .decrementCommandTest
+7102 .bigDecrementKitHighDone
+7225 .bigDecrementNoteDone
+72BD .bigDecrementCommandTest
+73F4 .bigDecrementWave
+7411 .bigDecrementSweep
 7546 .bUpRedraw
 754C .bUpAtTop
 758E .bDownNext
@@ -404,13 +404,13 @@
 51F4 .shiftRight          ; PastePhraseSelection: pair in columns 4..5: shift = +1
 51FB .badPair             ; PastePhraseSelection: any other width: nothing to paste
 527A .columnSwapped          ; PastePhraseSelection: kit context: columns 0/1 swapped
-52E2 .hiNotEmpty          ; PastePhraseSelection: high nibble == $FF test
-52E3 .hiTested            ; PastePhraseSelection
-5323 .columnLo               ; PastePhraseSelection: column 1: read cell ctx ^ 1
+52E2 .highNotEmpty          ; PastePhraseSelection: high nibble == $FF test
+52E3 .highTested            ; PastePhraseSelection
+5323 .columnLow               ; PastePhraseSelection: column 1: read cell ctx ^ 1
 534A .notInstrumentColumn         ; PastePhraseSelection: wSongColumn == 3 test
 534B .instrumentColumnTested      ; PastePhraseSelection
-535E .loNotEmpty          ; PastePhraseSelection: low nibble == $FF test
-535F .loTested            ; PastePhraseSelection
+535E .lowNotEmpty          ; PastePhraseSelection: low nibble == $FF test
+535F .lowTested            ; PastePhraseSelection
 538C .writeNote           ; PastePhraseSelection: WritePhraseNote(wPhraseRow, v)
 539F .pasteInstrument          ; PastePhraseSelection: column 2
 53C7 .pasteCommand            ; PastePhraseSelection: column 3 (+ shift)
@@ -518,31 +518,31 @@
 6152 .downMove
 61E4 .downDraw
 61F4 .downDone
-6235 .incCursorRow
-6243 .incRows
-6297 .incKitHigh
-62B8 .incKitHighWrite
-630E .incNote
-6371 .incNoteEdit
-637E .incKitLow
-639F .incKitLowWrite
-63EA .incInstrument
-6447 .incCommandStep
-6482 .incCommandClamp
-64DF .incCommandDraw
-6509 .incCommandHelp
-652C .incCommandValue
-6561 .incValue
-65AE .incGroove
-65BD .incOutput
-65CC .incOutputRight
-65E4 .incWaveStep
-65EA .incTable
-65F7 .incValueStep
-65FA .incValueWrite
-6631 .incNextRow
-663B .incRedraw
-6645 .incDone
+6235 .incrementCursorRow
+6243 .incrementRows
+6297 .incrementKitHigh
+62B8 .incrementKitHighWrite
+630E .incrementNote
+6371 .incrementNoteEdit
+637E .incrementKitLow
+639F .incrementKitLowWrite
+63EA .incrementInstrument
+6447 .incrementCommandStep
+6482 .incrementCommandClamp
+64DF .incrementCommandDraw
+6509 .incrementCommandHelp
+652C .incrementCommandValue
+6561 .incrementValue
+65AE .incrementGroove
+65BD .incrementOutput
+65CC .incrementOutputRight
+65E4 .incrementWaveStep
+65EA .incrementTable
+65F7 .incrementValueStep
+65FA .incrementValueWrite
+6631 .incrementNextRow
+663B .incrementRedraw
+6645 .incrementDone
 6686 .bigCursorRow
 6694 .bigRows
 66E8 .bigKitHigh
@@ -570,67 +570,67 @@
 6AAC .bigNextRow
 6AB6 .bigRedraw
 6AC0 .bigDone
-6B01 .decCursorRow
-6B0F .decRows
-6B63 .decKitHigh
-6B88 .decKitHighFloor
-6B8C .decKitHighWrite
-6C1E .decKitHighFound
-6C38 .decNote
-6C98 .decNoteEdit
-6CA5 .decKitLow
-6CC8 .decKitLowFloor
-6CCC .decKitLowRead
-6D20 .decKitLowFound
-6D4D .decInstrument
-6DA6 .decCommandStep
-6E51 .decCommandHelp
-6E74 .decCommandValue
-6EA9 .decValue
-6EF6 .decGroove
-6F01 .decWave
-6F11 .decWaveStep
-6F17 .decOutput
-6F24 .decOutputLeft
-6F26 .decOutputSet
-6F2C .decTable
-6F3A .decTableOff
-6F41 .decValueStep
-6F44 .decValueWrite
-6F7B .decNextRow
-6F85 .decRedraw
-6F8F .decDone
-6FD0 .bigDecCursorRow
-6FDE .bigDecRows
-7032 .bigDecKitHigh
-7058 .bigDecKitHighFloor
-705C .bigDecKitHighWrite
-70EE .bigDecKitHighFound
-7108 .bigDecNote
-714C .bigDecWordFloor
-7150 .bigDecWordDraw
-7174 .bigDecNoteEdit
-7181 .bigDecKitLow
-71A6 .bigDecKitLowFloor
-71AA .bigDecKitLowRead
-71FE .bigDecKitLowFound
-722B .bigDecInstrument
-7284 .bigDecCommandStep
-732E .bigDecCommandHelp
-7351 .bigDecCommandValue
-7386 .bigDecValue
-73DB .bigDecGroove
-73ED .bigDecOutput
-7406 .bigDecPulseWave
-741F .bigDecSweepTone
-7421 .bigDecSweepSub
-7429 .bigDecTable
-7438 .bigDecTableOff
-743F .bigDecValueStep
-7445 .bigDecValueWrite
-747C .bigDecNextRow
-7486 .bigDecRedraw
-7490 .bigDecDone
+6B01 .decrementCursorRow
+6B0F .decrementRows
+6B63 .decrementKitHigh
+6B88 .decrementKitHighFloor
+6B8C .decrementKitHighWrite
+6C1E .decrementKitHighFound
+6C38 .decrementNote
+6C98 .decrementNoteEdit
+6CA5 .decrementKitLow
+6CC8 .decrementKitLowFloor
+6CCC .decrementKitLowRead
+6D20 .decrementKitLowFound
+6D4D .decrementInstrument
+6DA6 .decrementCommandStep
+6E51 .decrementCommandHelp
+6E74 .decrementCommandValue
+6EA9 .decrementValue
+6EF6 .decrementGroove
+6F01 .decrementWave
+6F11 .decrementWaveStep
+6F17 .decrementOutput
+6F24 .decrementOutputLeft
+6F26 .decrementOutputSet
+6F2C .decrementTable
+6F3A .decrementTableOff
+6F41 .decrementValueStep
+6F44 .decrementValueWrite
+6F7B .decrementNextRow
+6F85 .decrementRedraw
+6F8F .decrementDone
+6FD0 .bigDecrementCursorRow
+6FDE .bigDecrementRows
+7032 .bigDecrementKitHigh
+7058 .bigDecrementKitHighFloor
+705C .bigDecrementKitHighWrite
+70EE .bigDecrementKitHighFound
+7108 .bigDecrementNote
+714C .bigDecrementWordFloor
+7150 .bigDecrementWordDraw
+7174 .bigDecrementNoteEdit
+7181 .bigDecrementKitLow
+71A6 .bigDecrementKitLowFloor
+71AA .bigDecrementKitLowRead
+71FE .bigDecrementKitLowFound
+722B .bigDecrementInstrument
+7284 .bigDecrementCommandStep
+732E .bigDecrementCommandHelp
+7351 .bigDecrementCommandValue
+7386 .bigDecrementValue
+73DB .bigDecrementGroove
+73ED .bigDecrementOutput
+7406 .bigDecrementPulseWave
+741F .bigDecrementSweepTone
+7421 .bigDecrementSweepSub
+7429 .bigDecrementTable
+7438 .bigDecrementTableOff
+743F .bigDecrementValueStep
+7445 .bigDecrementValueWrite
+747C .bigDecrementNextRow
+7486 .bigDecrementRedraw
+7490 .bigDecrementDone
 755C .bUpDone
 75C9 .bDownDone
 7651 .cutRememberHigh
@@ -665,9 +665,9 @@
 ; --- pointer targets (tools/name_targets.py) ---
 52AB .jumpTable           ; PastePhraseSelection: switch (x)
 5D1E .aColumnTable
-6288 .incColumnTable
+6288 .incrementColumnTable
 66D9 .bigColumnTable
-6B54 .decColumnTable
-7023 .bigDecColumnTable
+6B54 .decrementColumnTable
+7023 .bigDecrementColumnTable
 7621 .cutColumnTable
 7955 .pasteColumnTable

@@ -116,7 +116,7 @@ ld [wBootHardwareId], a <- d   ; save boot A (hardware id), $CBD9
 ld [wBootAgbId], a <- e  ; save boot B (GBA flag),    $CBDA
 call display_off         ; GBDK library routine ($349B)
 xor a / ldh [rSCY],[rSCX],[rSTAT],[rWY],a   ; reset scroll/LCD status/window
-...                      ; -> InitAndLoadSong ($0DDB) -> main.mainLoop ($1377)
+...                      ; -> InitializeAndLoadSong ($0DDB) -> main.mainLoop ($1377)
 ```
 
 `wBootHardwareId`/`wBootAgbId` (`$CBD9`/`$CBDA`) hold the CGB/AGB detection bytes.

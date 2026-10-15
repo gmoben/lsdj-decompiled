@@ -8,15 +8,15 @@
 2CA4 DrawTempoField     ; set VRAM cursor $9891 + BG/digit palettes, then draw the tempo (GetTempoTimerValue)
 17EC WriteVramByteSafe  ; (vramAddr, value) -> spin until rSTAT allows VRAM access, then [vramAddr]=value
 2D7E DrawFieldValue     ; draw a value formatted by its type: string / hex byte (DrawHexByte) / pulse duty (DrawPulseDuty)
-158F SoundInitKit1Sample   ; init kit voice 1: bank + sample-table lookup -> loop window/read ptr/clamps (wKit1*)
-1676 SoundInitKit2Sample   ; init kit voice 2 (wKit2*); speech uses allophone banks
+158F SoundInitializeKit1Sample   ; init kit voice 1: bank + sample-table lookup -> loop window/read ptr/clamps (wKit1*)
+1676 SoundInitializeKit2Sample   ; init kit voice 2 (wKit2*); speech uses allophone banks
 339A ResetDisplayState   ; ReinitDisplay, then clear tile-loader alloc + state (wTileRequestSlot0/wUnusedCBFB/wUnusedCBFC)
 337D LoadTilesDispatch   ; route a tile-slot arg to LoadTilesToVram / SetTileLoadRequest
 148B DebugNop            ; `ld b,b; ret` -- no$gmb/BGB debug marker (no-op at runtime)
 0908 WriteClipboardCell         ; wClipboardBuffer[col*42 + row] = v (asserts col < 6, row < 42)
 07DA ReadClipboardCell          ; return wClipboardBuffer[col*42 + row] (asserts col < 6, row < 42)
 0D8B SortBytePair               ; order the bytes at two pointers: swap them so *a <= *b
-33F9 randw                      ; GBDK libc/gb/rand.s _rand/_randw: 16-bit LCG seed = seed*17 + $5C93 (wRandomSeedHi/Lo); returns de
+33F9 randw                      ; GBDK libc/gb/rand.s _rand/_randw: 16-bit LCG seed = seed*17 + $5C93 (wRandomSeedHigh/Lo); returns de
 3826 initrand                   ; GBDK libc/gb/rand.s _initrand: seed the generator from a 16-bit stack arg
 0B54 LoadSynthShape             ; page in bank $1E and sign-extend the 32 signed seed bytes at the pointer arg into wSynthShapeBuffer
 338B RequestTileSlot     ; wrap SetTileLoadRequest for a tile-slot arg
@@ -30,7 +30,7 @@
 0150 Start              ; init: di, stack=$E000, clear WRAM/HRAM, save boot regs
 0824 CommandMnemonics        ; "-ABCDEFGHKLMOPRSTVWZ": phrase/table command letters indexed by command byte (0='-'=none); CommandHandlers order
 0839 PlayModeNames              ; five 9-byte table PLAY mode names "  MANUAL", "    ONCE", "    LOOP", "PINGPONG", "  RESYNC" (DrawWaveInstrument: byte 9, capped at 5)
-0DDB InitAndLoadSong    ; second-stage boot (runs once before MainLoop): SwitchToDoubleSpeed, ClearBgTilemap, init subsystems, load the working song (bank1 $4CF1/$4848) or ResetWorkState if empty, set palettes + load song properties
+0DDB InitializeAndLoadSong    ; second-stage boot (runs once before MainLoop): SwitchToDoubleSpeed, ClearBgTilemap, init subsystems, load the working song (bank1 $4CF1/$4848) or ResetWorkState if empty, set palettes + load song properties
 1377 .mainLoop            ; (was MainLoop) poll ready flags, then process a frame (-> ProcessInput)
 1CFF SyncLoadSetting    ; read song sync property ($BFBD) -> wSyncMode/wSyncMode2
 254F DispatchScreenDraw ; jp table ScreenDrawJumps indexed by wCurrentScreen ($C401): per-screen draw
@@ -177,7 +177,7 @@
 1EC8 SyncSetSendMode     ; send/leader config: wSyncSendGate=1, wSyncSerialIeMask=0, enable VBlank IRQ + disable serial-receive IRQ
 1EE3 SyncSetReceiveMode     ; receive/follower config: wSyncSendGate=0, wSyncSerialIeMask=8, enable serial-receive IRQ, wSyncTick=$FF, SendSyncHandshake
 1F06 SyncApplyMode       ; (re)configure sync for wSyncMode: di, wSyncRun=0, dispatch 0/1/3/5/6/7 -> SyncSetSendMode/SyncSetReceiveMode/gates/handshake
-01AA InitSerial         ; boot: arm rSC=$80 (slave), preload rSB=$66
+01AA InitializeSerial         ; boot: arm rSC=$80 (slave), preload rSB=$66
 14B9 SerialHandlerTail  ; serial IRQ tail: sync bookkeeping -> TimerHandlerReturn
 3467 SendSyncByte       ; master: wSyncState=1, send wSyncTransmitByte, rSC=$81 (internal clock)
 347A SendSyncHandshake  ; master: wSyncState=2, send $55, rSC=$80
@@ -234,8 +234,8 @@
 154B ReadSongByteDi ; di + SRAM enable + bank select + read + reti (unreferenced variant of ReadSongByte)
 34E9 SendSyncHandshakeByte ; alt-entry into SendSyncHandshake with hl=arg (unreferenced)
 1E70 TxtBlank4 ; "    " 4-space blank field string
-014E HeaderChecksumHi           ; ROM header global checksum (hi byte), read by CheckRomChecksum
-014F HeaderChecksumLo           ; ROM header global checksum (lo byte)
+014E HeaderChecksumHigh           ; ROM header global checksum (hi byte), read by CheckRomChecksum
+014F HeaderChecksumLow           ; ROM header global checksum (lo byte)
 300F ExponentialCurve16                ; 16-entry exponential curve $00..$73: envelope speed -> frame count
 086F AsciiCharacterMap               ; [89] character-to-tile map from space onward; text draws set wStringSource to this address minus $20
 08C8 IdentityCharacterMap            ; identity tile-index map (loaded into wStringSource for raw-tile draws)
@@ -353,10 +353,10 @@
 1304 .done                ; common exit of ColorField
 1439 .loop                ; loop head in main.mainLoop
 14AE .loop                ; loop head in DebugNop
-15B7 .loop                ; loop head in SoundInitKit1Sample
-1673 .done                ; common exit of SoundInitKit1Sample
-16A1 .loop                ; loop head in SoundInitKit2Sample
-175D .done                ; common exit of SoundInitKit2Sample
+15B7 .loop                ; loop head in SoundInitializeKit1Sample
+1673 .done                ; common exit of SoundInitializeKit1Sample
+16A1 .loop                ; loop head in SoundInitializeKit2Sample
+175D .done                ; common exit of SoundInitializeKit2Sample
 1774 .loop                ; loop head in ReadKitSampleName
 17F3 .loop                ; loop head in WriteVramByteSafe
 1800 .loop                ; loop head in ClearBgTilemap
@@ -498,19 +498,19 @@
 1269 .noButtons
 12B4 .ok
 1324 .setIsCgb
-13A5 .decRedrawPending
+13A5 .decrementRedrawPending
 13CC .setIdleFrames
 13D1 .dispatchScreenUpdate
 140D .checkRedrawPending
 141B .setIdleFramesb
-1420 .incIdleFrames
+1420 .incrementIdleFrames
 1453 .setIdleHalt
 148D .checkKeyboardQueueHead
 166A .clearOscillatorLoopA
 1754 .clearOscillatorLoopB
-181F .incWorkTimeAccumulator
+181F .incrementWorkTimeAccumulator
 1834 .tickWorkTimeClock
-1903 .incButtonWriteIndex
+1903 .incrementButtonWriteIndex
 190F .tickWorkTimeClock
 1953 .setrSCX
 1960 .setrSCXb
@@ -529,7 +529,7 @@
 1F6D .syncSetReceiveModeb
 1FA8 .ok
 1FB8 .setSyncTransmitByte
-1FCF .decAnalogOutTimer
+1FCF .decrementAnalogOutTimer
 2273 .setPlayMode
 22F5 .setSyncReceivePosition
 22FA .checkPlayMode
@@ -574,10 +574,10 @@
 0584 .loadChannelPitchModulationActive
 0590 .loadChannelPitchModulationActive_2
 059C .loadChannelPitchModulationActive_3
-05B3 .decChannelRetrigTimer
-05D1 .decChannelRetrigTimer_2
-05ED .decChannelRetrigTimer_3
-0600 .decChannelRetrigTimer_4
+05B3 .decrementChannelRetrigTimer
+05D1 .decrementChannelRetrigTimer_2
+05ED .decrementChannelRetrigTimer_3
+0600 .decrementChannelRetrigTimer_4
 0619 .tickEnvelopePu1
 0626 .tickEnvelopePu2
 0633 .tickEnvelopeNoi
@@ -633,12 +633,12 @@
 125D .result
 1292 .idle
 12EA .cont
-1306 main               ; the C entry point (Start jumps here): detect the hardware, InitAndLoadSong, redraw, file-system check; then main.mainLoop is its endless loop
+1306 main               ; the C entry point (Start jumps here): detect the hardware, InitializeAndLoadSong, redraw, file-system check; then main.mainLoop is its endless loop
 1318 .readAUDENA
 1323 .setIsCgb_2
 132B .cont_2
 132F .setrAUDENA
-13E2 .decWorkTimeTicks
+13E2 .decrementWorkTimeTicks
 13FF .setIdleFrames_2
 14A6 .loadSyncReceiveByte
 14AB .loadSyncMode2
@@ -691,13 +691,13 @@
 197C .storeWorkTimeAccumulator
 1980 .cont
 199D .cont
-19DB .checkChannelPitchCurrentPu1Hi
+19DB .checkChannelPitchCurrentPu1High
 19EA .loadChannelPitchTarget
-19FE .loadChannelVibratoSpeedPu1Hi
-1A5B .checkChannelPitchCurrentPu2Hi
+19FE .loadChannelVibratoSpeedPu1High
+1A5B .checkChannelPitchCurrentPu2High
 1A6A .loadChannelPitchTarget
-1A7E .loadChannelVibratoSpeedPu2Hi
-1ADC .checkChannelPitchCurrentWavHi
+1A7E .loadChannelVibratoSpeedPu2High
+1ADC .checkChannelPitchCurrentWavHigh
 1AEB .loadChannelPitchTarget
 1B39 .cont
 1B4D .index
@@ -713,7 +713,7 @@
 1B8D .cont_4
 1B9F .cont_5
 1BA3 .cont
-1BBD .loadChannelVibratoSpeedPu1Hi
+1BBD .loadChannelVibratoSpeedPu1High
 1BCC .loadChannelPitchCurrent
 1BF2 .setrAUD1HIGH
 1C13 .loadChannelPitchCurrent
@@ -752,9 +752,9 @@
 2296 .cont
 2299 .readCurrentBank
 230E .cont_2
-2339 .decSyncReceivePosition
+2339 .decrementSyncReceivePosition
 2434 .setSyncInGate
-2486 .incSyncInGate
+2486 .incrementSyncInGate
 248A .setSyncInGate_2
 24EB .checkCurrentScreen
 2590 .toDispatchScreenDraw_Help

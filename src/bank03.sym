@@ -3,7 +3,7 @@
 
 ; --- Instrument-screen data tables + strings ---
 4DCB WaveSourceNames  ; "WAVE"/"SYNTH" (wave-instrument source)
-66F5 .decKitFields
+66F5 .decrementKitFields
 7A7B InstrumentOptionNames ; instrument param value strings "ON"/"ATK"/"OFF"/"SAFE"/...
 433B TxtOutOfSynths             ; "OUT OF SYNTHS! CLEAN INSTR DATA IN PROJECT SCREEN"
 459A TxtClonedSynth   ; "CLONED SYNTH"
@@ -17,8 +17,8 @@
 4257 SetInstrumentPitchByte          ; write instrument byte 5 (pitch flags) and redraw its transpose ON/OFF (bank 1 DrawOnOffName)
 4293 SetInstrumentTransposeOff          ; clear instrument byte 5 bit 5 (transpose) via SetInstrumentPitchByte
 4679 EraseInstrumentCursor           ; erase the cursor highlight on field wInstrumentField (palette 1)
-4741 IncInstrumentCommandRate            ; A+RIGHT on CMD/RATE: byte 8 one up (to F), redrawn
-4769 DecInstrumentCommandRate            ; A+LEFT on CMD/RATE: byte 8 one down (to 0), redrawn
+4741 RaiseInstrumentCommandRate            ; A+RIGHT on CMD/RATE: byte 8 one up (to F), redrawn
+4769 LowerInstrumentCommandRate            ; A+LEFT on CMD/RATE: byte 8 one down (to 0), redrawn
 4924 AddInstrumentTable16            ; table on, fresh press: set table-number bit 4 (+16)
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
@@ -65,14 +65,14 @@
 508C PreviousKit              ; step to the previous existing kit (bound $3f), WriteKitNumber
 50DF EnsureKitExists            ; point either kit field of the current instrument (bytes 2 and 9) that names a missing kit at kit 0
 5128 SetInstrumentType               ; write instrument byte 0 = type (0=PULSE 1=WAVE 2=KIT 3=NOISE)
-5181 IncInstrumentFieldLo            ; current field byte: +1 on the lo nibble (clamp $0f), redraw + InstrumentEnvelopeChanged
-51BC DecInstrumentFieldLo            ; current field byte: -1 on the lo nibble (clamp 0)
-51F4 IncInstrumentFieldHi            ; current field byte: +$10 on the hi nibble (clamp $f0)
-5231 DecInstrumentFieldHi            ; current field byte: -$10 on the hi nibble
-526B IncInstrumentLength             ; A+RIGHT on LENGTH (byte 3, bit 6 = limited, shown as 3F - bits 5-0): one longer, past 3F to UNLIM
-52BF DecInstrumentLength             ; A+LEFT on LENGTH: one shorter, from UNLIM to 3F
-531C IncInstrumentLengthBig          ; A+UP on LENGTH: 16 longer, past 3F to UNLIM
-537A DecInstrumentLengthBig          ; A+DOWN on LENGTH: 16 shorter, from UNLIM to 30
+5181 RaiseInstrumentFieldLow            ; current field byte: +1 on the lo nibble (clamp $0f), redraw + InstrumentEnvelopeChanged
+51BC LowerInstrumentFieldLow            ; current field byte: -1 on the lo nibble (clamp 0)
+51F4 RaiseInstrumentFieldHigh            ; current field byte: +$10 on the hi nibble (clamp $f0)
+5231 LowerInstrumentFieldHigh            ; current field byte: -$10 on the hi nibble
+526B RaiseInstrumentLength             ; A+RIGHT on LENGTH (byte 3, bit 6 = limited, shown as 3F - bits 5-0): one longer, past 3F to UNLIM
+52BF LowerInstrumentLength             ; A+LEFT on LENGTH: one shorter, from UNLIM to 3F
+531C RaiseInstrumentLengthBig          ; A+UP on LENGTH: 16 longer, past 3F to UNLIM
+537A LowerInstrumentLengthBig          ; A+DOWN on LENGTH: 16 shorter, from UNLIM to 30
 53DE CloneSynthOrTable          ; clone what the instrument screen's cursor names: the softsynth on a WAVE instrument's synth field, else the instrument's table (CloneInstrumentTable)
 ; --- functions called from bank 0 (this bank paged in) ---
 541F InstrumentScreenInput           ; instrument-screen input entry (speech $40 -> SpeechInstrumentInput via FarCallByte)
@@ -102,8 +102,8 @@
 4637 .done                ; common exit of PreviousInstrumentPage
 4641 .loop                ; loop head in NextUsedInstrument
 473D .done                ; common exit of EraseInstrumentCursor
-4767 .done                ; common exit of IncInstrumentCommandRate
-478E .done                ; common exit of DecInstrumentCommandRate
+4767 .done                ; common exit of RaiseInstrumentCommandRate
+478E .done                ; common exit of LowerInstrumentCommandRate
 482C .done                ; common exit of PreviousInstrumentTableMode
 489B .done                ; common exit of NextInstrumentTableMode
 48D4 .done                ; common exit of NextInstrumentTable
@@ -130,16 +130,16 @@
 50E4 .loop                ; loop head in EnsureKitExists
 5124 .done                ; common exit of EnsureKitExists
 517D .done                ; common exit of SetInstrumentType
-51BA .done                ; common exit of IncInstrumentFieldLo
-51F2 .done                ; common exit of DecInstrumentFieldLo
-522F .done                ; common exit of IncInstrumentFieldHi
-5269 .done                ; common exit of DecInstrumentFieldHi
-52B9 .done                ; common exit of IncInstrumentLength
-5316 .done                ; common exit of DecInstrumentLength
-5374 .done                ; common exit of IncInstrumentLengthBig
-53D8 .done                ; common exit of DecInstrumentLengthBig
+51BA .done                ; common exit of RaiseInstrumentFieldLow
+51F2 .done                ; common exit of LowerInstrumentFieldLow
+522F .done                ; common exit of RaiseInstrumentFieldHigh
+5269 .done                ; common exit of LowerInstrumentFieldHigh
+52B9 .done                ; common exit of RaiseInstrumentLength
+5316 .done                ; common exit of LowerInstrumentLength
+5374 .done                ; common exit of RaiseInstrumentLengthBig
+53D8 .done                ; common exit of LowerInstrumentLengthBig
 6EC8 .bigKitKitLoop        ; loop head in InstrumentScreenInput
-74C9 .bigDecKitKitLoop     ; loop head in InstrumentScreenInput
+74C9 .bigDecrementKitKitLoop     ; loop head in InstrumentScreenInput
 7A77 .done                 ; common exit of InstrumentScreenInput
 
 ; --- structural local names (loop heads / common exits) ---
@@ -148,28 +148,28 @@
 5627 .down
 576C .left
 581D .right
-592E .inc
-6202 .dec
-6725 .decKitKit
-6734 .decKitVolume
-67AD .decKitOutput
-67ED .decKitFinetune
-6813 .decKitLoop1
-6873 .decKitLoop2
-68D3 .decKitOffset
-691C .decKitLength
-697B .decKitSpeed
-69A2 .decKitClipboard
-69F1 .decKitPitch
-69F7 .decKitTableMode
-69FD .decKitTable
+592E .increment
+6202 .decrement
+6725 .decrementKitKit
+6734 .decrementKitVolume
+67AD .decrementKitOutput
+67ED .decrementKitFinetune
+6813 .decrementKitLoop1
+6873 .decrementKitLoop2
+68D3 .decrementKitOffset
+691C .decrementKitLength
+697B .decrementKitSpeed
+69A2 .decrementKitClipboard
+69F1 .decrementKitPitch
+69F7 .decrementKitTableMode
+69FD .decrementKitTable
 
 
 
 
 ; --- first-action / assert local names ---
 41BE .checkGameboyType
-4630 .incInstrument
+4630 .incrementInstrument
 47F0 .loadHighlightDigitPalette
 4812 .loadShadedDigitPalette
 485C .setInstrumentTable
@@ -245,65 +245,65 @@
 58D8 .rightNoise
 5922 .rightNoiseAtTableMode
 5926 .rightDraw
-59C7 .incPulse
-5AB9 .incPulseLength
-5AED .incPulsePitch
-5AFB .incPulseTranspose
-5B01 .incPulseCommandRate
-5B55 .incPulseTableMode
-5B5B .incPulseTable
-5B61 .incWave
-5C5F .incWavePitch
-5D53 .incWaveLength
-5D86 .incWaveLoopPosition
-5DA5 .incWaveSpeed
-5DCA .incWaveTranspose
-5DD0 .incWaveCommandRate
-5DFF .incWaveTableMode
-5E05 .incWaveTable
-5E0B .incKit
-5E59 .incKitKit
-5FF9 .incKitOffset
-6043 .incKitLength
-6064 .incKitLengthDraw
-60F2 .incKitClipboardAHeld
-6106 .incKitPitch
-610C .incKitTableMode
-6112 .incKitTable
-6118 .incNoise
-61BB .incNoiseLength
-61C1 .incNoisePitch
-61E8 .incNoiseTranspose
-61EE .incNoiseCommandRate
-61F4 .incNoiseTableMode
-61FA .incNoiseTable
-629B .decPulse
-638F .decPulseLength
-63C2 .decPulsePitch
-63D0 .decPulseTranspose
-63D6 .decPulseCommandRate
-642A .decPulseTableMode
-6430 .decPulseTable
-6436 .decWave
-6534 .decWavePitch
-6608 .decWaveLength
-663F .decWaveLengthNext2
-6651 .decWaveLoopPosition
-6672 .decWaveSpeed
-6696 .decWaveTranspose
-669C .decWaveCommandRate
-66CB .decWaveTableMode
-66D1 .decWaveTable
-66D7 .decKit
-695C .decKitLengthTest2
-69DD .decKitClipboardAHeld
-6A03 .decNoise
-6AA6 .decNoiseLength
-6AAC .decNoisePitch
-6AD3 .decNoiseTranspose
-6AD9 .decNoiseCommandRate
-6ADF .decNoiseTableMode
-6AE5 .decNoiseTable
+59C7 .incrementPulse
+5AB9 .incrementPulseLength
+5AED .incrementPulsePitch
+5AFB .incrementPulseTranspose
+5B01 .incrementPulseCommandRate
+5B55 .incrementPulseTableMode
+5B5B .incrementPulseTable
+5B61 .incrementWave
+5C5F .incrementWavePitch
+5D53 .incrementWaveLength
+5D86 .incrementWaveLoopPosition
+5DA5 .incrementWaveSpeed
+5DCA .incrementWaveTranspose
+5DD0 .incrementWaveCommandRate
+5DFF .incrementWaveTableMode
+5E05 .incrementWaveTable
+5E0B .incrementKit
+5E59 .incrementKitKit
+5FF9 .incrementKitOffset
+6043 .incrementKitLength
+6064 .incrementKitLengthDraw
+60F2 .incrementKitClipboardAHeld
+6106 .incrementKitPitch
+610C .incrementKitTableMode
+6112 .incrementKitTable
+6118 .incrementNoise
+61BB .incrementNoiseLength
+61C1 .incrementNoisePitch
+61E8 .incrementNoiseTranspose
+61EE .incrementNoiseCommandRate
+61F4 .incrementNoiseTableMode
+61FA .incrementNoiseTable
+629B .decrementPulse
+638F .decrementPulseLength
+63C2 .decrementPulsePitch
+63D0 .decrementPulseTranspose
+63D6 .decrementPulseCommandRate
+642A .decrementPulseTableMode
+6430 .decrementPulseTable
+6436 .decrementWave
+6534 .decrementWavePitch
+6608 .decrementWaveLength
+663F .decrementWaveLengthNext2
+6651 .decrementWaveLoopPosition
+6672 .decrementWaveSpeed
+6696 .decrementWaveTranspose
+669C .decrementWaveCommandRate
+66CB .decrementWaveTableMode
+66D1 .decrementWaveTable
+66D7 .decrementKit
+695C .decrementKitLengthTest2
+69DD .decrementKitClipboardAHeld
+6A03 .decrementNoise
+6AA6 .decrementNoiseLength
+6AAC .decrementNoisePitch
+6AD3 .decrementNoiseTranspose
+6AD9 .decrementNoiseCommandRate
+6ADF .decrementNoiseTableMode
+6AE5 .decrementNoiseTable
 6B66 .bigPulse
 6C37 .bigPulseLength
 6C73 .bigPulsePitch
@@ -330,32 +330,32 @@
 70EA .bigNoiseLength
 70F0 .bigNoiseTableMode
 7104 .bigNoiseTable
-7185 .bigDecPulse
-7259 .bigDecPulseLength
-7294 .bigDecPulsePitch
-72E9 .bigDecPulseTableMode
-72FD .bigDecPulseTable
-7303 .bigDecWave
-7372 .bigDecWavePitch
-7396 .bigDecWaveLoopPosition
-73A8 .bigDecWaveSpeed
-73D9 .bigDecWaveSynth
-744D .bigDecWaveTableMode
-7461 .bigDecWaveTable
-7467 .bigDecKit
-749B .bigDecKitCheck
-74AF .bigDecKitCheck2
-7543 .bigDecKitOffset
-759B .bigDecKitLength
-75EA .bigDecKitLengthTest2
-765D .bigDecKitClipboardAHeld
-7671 .bigDecKitPitch
-7677 .bigDecKitTableMode
-768B .bigDecKitTable
-7691 .bigDecNoise
-76FC .bigDecNoiseLength
-7702 .bigDecNoiseTableMode
-7716 .bigDecNoiseTable
+7185 .bigDecrementPulse
+7259 .bigDecrementPulseLength
+7294 .bigDecrementPulsePitch
+72E9 .bigDecrementPulseTableMode
+72FD .bigDecrementPulseTable
+7303 .bigDecrementWave
+7372 .bigDecrementWavePitch
+7396 .bigDecrementWaveLoopPosition
+73A8 .bigDecrementWaveSpeed
+73D9 .bigDecrementWaveSynth
+744D .bigDecrementWaveTableMode
+7461 .bigDecrementWaveTable
+7467 .bigDecrementKit
+749B .bigDecrementKitCheck
+74AF .bigDecrementKitCheck2
+7543 .bigDecrementKitOffset
+759B .bigDecrementKitLength
+75EA .bigDecrementKitLengthTest2
+765D .bigDecrementKitClipboardAHeld
+7671 .bigDecrementKitPitch
+7677 .bigDecrementKitTableMode
+768B .bigDecrementKitTable
+7691 .bigDecrementNoise
+76FC .bigDecrementNoiseLength
+7702 .bigDecrementNoiseTableMode
+7716 .bigDecrementNoiseTable
 771E .aPress
 7744 .aSecond
 77F6 .aTableOn
@@ -400,7 +400,7 @@
 44D6 .cont_2
 4535 .cont_3
 4540 .copyWave         ; wave-page copy loop body (was mislabelled SetInstrLen3)
-4558 .destinationIncDone
+4558 .destinationIncrementDone
 45F5 .readSongByte
 4608 .farCall
 4666 .farCall
@@ -474,131 +474,131 @@
 586F .rightPulseAtEnvelope2
 58EE .rightNoiseAtEnvelope1
 5908 .rightNoiseAtEnvelope2
-59A3 .incDone
-59A8 .incTest
-5A0F .incPulseEnvelope1
-5A1B .incPulseEnvelope2
-5A27 .incPulseEnvelope3
-5A33 .incPulseWave
-5A73 .incPulseOutput
-5A92 .incPulseOutputNext
-5A9A .incPulseOutputWrite
-5ABF .incPulseSweep
-5AD2 .incPulseSweepWrite
-5B07 .incPulsePu2Transpose
-5B2D .incPulseFinetune
-5BA6 .incWaveVolume
-5BD5 .incWaveVolumeSet
-5BE5 .incWaveVolumeNext
-5BF1 .incWaveVolumeSet2
-5C01 .incWaveVolumeSet3
-5C0E .incWaveVolumeWrite
-5C1F .incWaveOutput
-5C3C .incWaveOutputSet
-5C40 .incWaveOutputWrite
-5C65 .incWaveSynth
-5C9B .incWaveSynthNext
-5CBD .incWaveSynthWrite
-5CCE .incWavePlay
-5CEE .incWavePlayNext
-5CF1 .incWavePlayWrite
-5D94 .incWaveLoopPositionNext
-5DD6 .incWaveFinetune
-5E68 .incKitVolume
-5E97 .incKitVolumeSet
-5EA7 .incKitVolumeNext
-5EB3 .incKitVolumeSet2
-5EC3 .incKitVolumeSet3
-5ED0 .incKitVolumeWrite
-5EE1 .incKitOutput
-5EFE .incKitOutputSet
-5F02 .incKitOutputWrite
-5F21 .incKitFinetune
-5F47 .incKitLoop1
-5F77 .incKitLoop1Read
-5FA0 .incKitLoop2
-5FD0 .incKitLoop2Read
-6006 .incKitOffsetColumn
-6008 .incKitOffsetRead
-601A .incKitOffsetNext
-6031 .incKitOffsetColumn2
-6033 .incKitOffsetWrite
-6050 .incKitLengthColumn
-6052 .incKitLengthRead
-607E .incKitLengthColumn2
-6080 .incKitLengthWrite
-6090 .incKitSpeed
-60B7 .incKitClipboard
-60D1 .incKitClipboardNext
-6157 .incNoiseEnvelope1
-6163 .incNoiseEnvelope2
-616F .incNoiseEnvelope3
-617B .incNoiseOutput
-6198 .incNoiseOutputSet
-619C .incNoiseOutputWrite
-61CF .incNoiseSafe
-61FD .incDone2
-621D .decDone
-6222 .decCursor
-62E3 .decPulseEnvelope1
-62EF .decPulseEnvelope2
-62FB .decPulseEnvelope3
-6307 .decPulseWave
-631B .decPulseWaveStep
-6349 .decPulseOutput
-6368 .decPulseOutputNext
-6370 .decPulseOutputWrite
-6395 .decPulseSweep
-63A7 .decPulseSweepWrite
-63DC .decPulsePu2Transpose
-6402 .decPulseFinetune
-647B .decWaveVolume
-64AA .decWaveVolumeNext
-64B6 .decWaveVolumeSet
-64C6 .decWaveVolumeSet2
-64D6 .decWaveVolumeSet3
-64E3 .decWaveVolumeWrite
-64F4 .decWaveOutput
-6511 .decWaveOutputSet
-6515 .decWaveOutputWrite
-653A .decWaveSynth
-656F .decWaveSynthNext
-6579 .decWaveSynthStep
-6590 .decWaveSynthWrite
-65A1 .decWavePlay
-65BE .decWavePlayNext
-65C1 .decWavePlayWrite
-6616 .decWaveLengthNext
-66A2 .decWaveFinetune
-6763 .decKitVolumeNext
-676F .decKitVolumeSet
-677F .decKitVolumeSet2
-678F .decKitVolumeSet3
-679C .decKitVolumeWrite
-67CA .decKitOutputSet
-67CE .decKitOutputWrite
-6843 .decKitLoop1Read
-68A3 .decKitLoop2Read
-68E0 .decKitOffsetColumn
-68E2 .decKitOffsetRead
-68F3 .decKitOffsetNext
-690A .decKitOffsetColumn2
-690C .decKitOffsetWrite
-6929 .decKitLengthColumn
-692B .decKitLengthRead
-693C .decKitLengthTest
-6953 .decKitLengthDraw
-6969 .decKitLengthColumn2
-696B .decKitLengthWrite
-69BC .decKitClipboardNext
-6A42 .decNoiseEnvelope1
-6A4E .decNoiseEnvelope2
-6A5A .decNoiseEnvelope3
-6A66 .decNoiseOutput
-6A83 .decNoiseOutputSet
-6A87 .decNoiseOutputWrite
-6ABA .decNoiseSafe
-6AE8 .decDone2
+59A3 .incrementDone
+59A8 .incrementTest
+5A0F .incrementPulseEnvelope1
+5A1B .incrementPulseEnvelope2
+5A27 .incrementPulseEnvelope3
+5A33 .incrementPulseWave
+5A73 .incrementPulseOutput
+5A92 .incrementPulseOutputNext
+5A9A .incrementPulseOutputWrite
+5ABF .incrementPulseSweep
+5AD2 .incrementPulseSweepWrite
+5B07 .incrementPulsePu2Transpose
+5B2D .incrementPulseFinetune
+5BA6 .incrementWaveVolume
+5BD5 .incrementWaveVolumeSet
+5BE5 .incrementWaveVolumeNext
+5BF1 .incrementWaveVolumeSet2
+5C01 .incrementWaveVolumeSet3
+5C0E .incrementWaveVolumeWrite
+5C1F .incrementWaveOutput
+5C3C .incrementWaveOutputSet
+5C40 .incrementWaveOutputWrite
+5C65 .incrementWaveSynth
+5C9B .incrementWaveSynthNext
+5CBD .incrementWaveSynthWrite
+5CCE .incrementWavePlay
+5CEE .incrementWavePlayNext
+5CF1 .incrementWavePlayWrite
+5D94 .incrementWaveLoopPositionNext
+5DD6 .incrementWaveFinetune
+5E68 .incrementKitVolume
+5E97 .incrementKitVolumeSet
+5EA7 .incrementKitVolumeNext
+5EB3 .incrementKitVolumeSet2
+5EC3 .incrementKitVolumeSet3
+5ED0 .incrementKitVolumeWrite
+5EE1 .incrementKitOutput
+5EFE .incrementKitOutputSet
+5F02 .incrementKitOutputWrite
+5F21 .incrementKitFinetune
+5F47 .incrementKitLoop1
+5F77 .incrementKitLoop1Read
+5FA0 .incrementKitLoop2
+5FD0 .incrementKitLoop2Read
+6006 .incrementKitOffsetColumn
+6008 .incrementKitOffsetRead
+601A .incrementKitOffsetNext
+6031 .incrementKitOffsetColumn2
+6033 .incrementKitOffsetWrite
+6050 .incrementKitLengthColumn
+6052 .incrementKitLengthRead
+607E .incrementKitLengthColumn2
+6080 .incrementKitLengthWrite
+6090 .incrementKitSpeed
+60B7 .incrementKitClipboard
+60D1 .incrementKitClipboardNext
+6157 .incrementNoiseEnvelope1
+6163 .incrementNoiseEnvelope2
+616F .incrementNoiseEnvelope3
+617B .incrementNoiseOutput
+6198 .incrementNoiseOutputSet
+619C .incrementNoiseOutputWrite
+61CF .incrementNoiseSafe
+61FD .incrementDone2
+621D .decrementDone
+6222 .decrementCursor
+62E3 .decrementPulseEnvelope1
+62EF .decrementPulseEnvelope2
+62FB .decrementPulseEnvelope3
+6307 .decrementPulseWave
+631B .decrementPulseWaveStep
+6349 .decrementPulseOutput
+6368 .decrementPulseOutputNext
+6370 .decrementPulseOutputWrite
+6395 .decrementPulseSweep
+63A7 .decrementPulseSweepWrite
+63DC .decrementPulsePu2Transpose
+6402 .decrementPulseFinetune
+647B .decrementWaveVolume
+64AA .decrementWaveVolumeNext
+64B6 .decrementWaveVolumeSet
+64C6 .decrementWaveVolumeSet2
+64D6 .decrementWaveVolumeSet3
+64E3 .decrementWaveVolumeWrite
+64F4 .decrementWaveOutput
+6511 .decrementWaveOutputSet
+6515 .decrementWaveOutputWrite
+653A .decrementWaveSynth
+656F .decrementWaveSynthNext
+6579 .decrementWaveSynthStep
+6590 .decrementWaveSynthWrite
+65A1 .decrementWavePlay
+65BE .decrementWavePlayNext
+65C1 .decrementWavePlayWrite
+6616 .decrementWaveLengthNext
+66A2 .decrementWaveFinetune
+6763 .decrementKitVolumeNext
+676F .decrementKitVolumeSet
+677F .decrementKitVolumeSet2
+678F .decrementKitVolumeSet3
+679C .decrementKitVolumeWrite
+67CA .decrementKitOutputSet
+67CE .decrementKitOutputWrite
+6843 .decrementKitLoop1Read
+68A3 .decrementKitLoop2Read
+68E0 .decrementKitOffsetColumn
+68E2 .decrementKitOffsetRead
+68F3 .decrementKitOffsetNext
+690A .decrementKitOffsetColumn2
+690C .decrementKitOffsetWrite
+6929 .decrementKitLengthColumn
+692B .decrementKitLengthRead
+693C .decrementKitLengthTest
+6953 .decrementKitLengthDraw
+6969 .decrementKitLengthColumn2
+696B .decrementKitLengthWrite
+69BC .decrementKitClipboardNext
+6A42 .decrementNoiseEnvelope1
+6A4E .decrementNoiseEnvelope2
+6A5A .decrementNoiseEnvelope3
+6A66 .decrementNoiseOutput
+6A83 .decrementNoiseOutputSet
+6A87 .decrementNoiseOutputWrite
+6ABA .decrementNoiseSafe
+6AE8 .decrementDone2
 6AED .big
 6BA9 .bigPulseEnvelope1
 6BB5 .bigPulseEnvelope2
@@ -641,54 +641,54 @@
 70C1 .bigNoiseEnvelope3
 70CD .bigNoiseOutput
 7107 .bigDone
-710C .bigDec
-71C8 .bigDecPulseEnvelope1
-71D4 .bigDecPulseEnvelope2
-71E0 .bigDecPulseEnvelope3
-71EC .bigDecPulseWave
-7200 .bigDecPulseWaveStep
-722E .bigDecPulseOutput
-725F .bigDecPulseSweep
-7273 .bigDecPulseSweepStep
-7279 .bigDecPulseSweepWrite
-729A .bigDecPulsePu2Transpose
-72C1 .bigDecPulseFinetune
-733C .bigDecWaveVolume
-7355 .bigDecWaveOutput
-7378 .bigDecWaveLength
-73B9 .bigDecWaveSpeedStep
-73BF .bigDecWaveSpeedNext
-741D .bigDecWaveFinetune
-7439 .bigDecWaveFinetuneWrite
-74C5 .bigDecKitKit
-74DA .bigDecKitNextKit
-74E5 .bigDecKitVolume
-74FE .bigDecKitOutput
-751B .bigDecKitFinetune
-7550 .bigDecKitOffsetColumn
-7552 .bigDecKitOffsetRead
-7565 .bigDecKitOffsetStep
-756E .bigDecKitOffsetSet
-7572 .bigDecKitOffsetNext
-7589 .bigDecKitOffsetColumn2
-758B .bigDecKitOffsetWrite
-75A8 .bigDecKitLengthColumn
-75AA .bigDecKitLengthRead
-75BD .bigDecKitLengthStep
-75C6 .bigDecKitLengthSet
-75CA .bigDecKitLengthTest
-75E1 .bigDecKitLengthDraw
-75F7 .bigDecKitLengthColumn2
-75F9 .bigDecKitLengthWrite
-7609 .bigDecKitClipboard
-7623 .bigDecKitClipboardTest
-7637 .bigDecKitClipboardStep
-763D .bigDecKitClipboardWrite
-76BB .bigDecNoiseEnvelope1
-76C7 .bigDecNoiseEnvelope2
-76D3 .bigDecNoiseEnvelope3
-76DF .bigDecNoiseOutput
-7719 .bigDecDone
+710C .bigDecrement
+71C8 .bigDecrementPulseEnvelope1
+71D4 .bigDecrementPulseEnvelope2
+71E0 .bigDecrementPulseEnvelope3
+71EC .bigDecrementPulseWave
+7200 .bigDecrementPulseWaveStep
+722E .bigDecrementPulseOutput
+725F .bigDecrementPulseSweep
+7273 .bigDecrementPulseSweepStep
+7279 .bigDecrementPulseSweepWrite
+729A .bigDecrementPulsePu2Transpose
+72C1 .bigDecrementPulseFinetune
+733C .bigDecrementWaveVolume
+7355 .bigDecrementWaveOutput
+7378 .bigDecrementWaveLength
+73B9 .bigDecrementWaveSpeedStep
+73BF .bigDecrementWaveSpeedNext
+741D .bigDecrementWaveFinetune
+7439 .bigDecrementWaveFinetuneWrite
+74C5 .bigDecrementKitKit
+74DA .bigDecrementKitNextKit
+74E5 .bigDecrementKitVolume
+74FE .bigDecrementKitOutput
+751B .bigDecrementKitFinetune
+7550 .bigDecrementKitOffsetColumn
+7552 .bigDecrementKitOffsetRead
+7565 .bigDecrementKitOffsetStep
+756E .bigDecrementKitOffsetSet
+7572 .bigDecrementKitOffsetNext
+7589 .bigDecrementKitOffsetColumn2
+758B .bigDecrementKitOffsetWrite
+75A8 .bigDecrementKitLengthColumn
+75AA .bigDecrementKitLengthRead
+75BD .bigDecrementKitLengthStep
+75C6 .bigDecrementKitLengthSet
+75CA .bigDecrementKitLengthTest
+75E1 .bigDecrementKitLengthDraw
+75F7 .bigDecrementKitLengthColumn2
+75F9 .bigDecrementKitLengthWrite
+7609 .bigDecrementKitClipboard
+7623 .bigDecrementKitClipboardTest
+7637 .bigDecrementKitClipboardStep
+763D .bigDecrementKitClipboardWrite
+76BB .bigDecrementNoiseEnvelope1
+76C7 .bigDecrementNoiseEnvelope2
+76D3 .bigDecrementNoiseEnvelope3
+76DF .bigDecrementNoiseOutput
+7719 .bigDecrementDone
 77BF .aSecondSynth
 77E1 .aFieldHelp
 78AA .aDone
@@ -707,17 +707,17 @@
 553C .upTypes
 5782 .leftTypes
 5833 .rightTypes
-59BB .incTypes
-59E5 .incPulseFields
-5B7F .incWaveFields
-5E29 .incKitFields
-6136 .incNoiseFields
-628F .decTypes
-62B9 .decPulseFields
-6454 .decWaveFields
-6A21 .decNoiseFields
+59BB .incrementTypes
+59E5 .incrementPulseFields
+5B7F .incrementWaveFields
+5E29 .incrementKitFields
+6136 .incrementNoiseFields
+628F .decrementTypes
+62B9 .decrementPulseFields
+6454 .decrementWaveFields
+6A21 .decrementNoiseFields
 6B5A .bigTypes
-7179 .bigDecTypes
+7179 .bigDecrementTypes
 7A7F .stringAttack
 7A83 .stringOn
 7A87 .stringAttack2

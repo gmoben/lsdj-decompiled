@@ -1,11 +1,11 @@
 /*
- * InitAndLoadSong, ProcessInput and main -- LSDj 9.4.0, ROM bank $00 ($0DDB,
+ * InitializeAndLoadSong, ProcessInput and main -- LSDj 9.4.0, ROM bank $00 ($0DDB,
  * $0ED6, $1306).
  *
  * MATCHING C (period GBDK 2.95-3 / SDCC 2.2.1 + tools/match/lsdj.peep);
  * `make match` verifies every function here against the ROM.
  *
- * The C entry point Start jumps to: detect the hardware, InitAndLoadSong,
+ * The C entry point Start jumps to: detect the hardware, InitializeAndLoadSong,
  * the first redraw, the title message and the file-system check, then the
  * endless frame loop (main.mainLoop: idle synth rendering until a frame is
  * due, then input, the screen update, the work clock and the idle halt).
@@ -29,7 +29,7 @@ extern UBYTE wRedrawPending;                /* $C56C */
 extern UBYTE wPrelisten;                    /* $C56E */
 extern UBYTE wButtons;                      /* $C575 */
 extern UBYTE wTimerReload;                  /* $C578 */
-extern UBYTE wTimerTickInc;                 /* $C579 */
+extern UBYTE wTimerTickIncrement;                 /* $C579 */
 extern UBYTE wWorkTimeTicks;                /* $C577 */
 extern UBYTE wIdleHalt;                     /* $C68B */
 extern UBYTE wIdleFrames;                   /* $C68C */
@@ -42,13 +42,13 @@ extern char TxtTitle[];                     /* $01:$6F7E */
 
 void SwitchToDoubleSpeed(void);             /* asm */
 void ResetWorkState(void);
-void InitKitMixer(void);                    /* bank $1B */
-void InitScreen(void);                    /* bank 1 */
-UBYTE CheckSongInitFlag(void);              /* bank 1 */
+void InitializeKitMixer(void);                    /* bank $1B */
+void InitializeScreen(void);                    /* bank 1 */
+UBYTE CheckSongInitializedMarker(void);              /* bank 1 */
 void LoadFontTiles(void);              /* bank $1E */
 void DrawCartTest(void);                    /* bank 1 */
 void FormatSramSong(void);                     /* bank 1 */
-void WriteSongInitFlag(void);               /* bank 1 */
+void WriteSongInitializedMarker(void);               /* bank 1 */
 UBYTE CheckFileMagic64(void);               /* bank $1C */
 UBYTE CheckJkMarker(void);                  /* bank 1 */
 void FormatFileSpace(void);                 /* bank $1C */
@@ -60,7 +60,7 @@ UBYTE GetNextButtons(void);
 UBYTE SoundGetChainPhrase(UBYTE chain, UBYTE row);    /* bank 2 */
 void MarkPhraseUsed(UBYTE phrase);          /* bank 1 */
 void MarkChainUsed(UBYTE chain);            /* bank 1 */
-void InitRemapTable(void);                  /* bank $1F */
+void InitializeRemapTable(void);                  /* bank $1F */
 void SoundTogglePlayback(void);                  /* bank 2 */
 void SyncApplyMode(void);
 void WritePhraseCommand(UBYTE phrase, UBYTE row, UBYTE fx);  /* bank 4 */
@@ -171,7 +171,7 @@ UBYTE ProcessInput(void)
         }
         if (wInstrumentRemapDirty) {
             SWITCH_ROM(0x1F);
-            InitRemapTable();
+            InitializeRemapTable();
         }
         if (wTransposeDirty) {
             wTransposeDirty = 0;
@@ -266,16 +266,16 @@ UBYTE ProcessInput(void)
     return 1;
 }
 
-void InitAndLoadSong(void)
+void InitializeAndLoadSong(void)
 {
     SwitchToDoubleSpeed();
     ClearBgTilemap();
     rRAMG = 0;
     SWITCH_ROM(0x1B);
-    InitKitMixer();
+    InitializeKitMixer();
     SWITCH_ROM(0x01);
-    InitScreen();
-    if (!CheckSongInitFlag()) {
+    InitializeScreen();
+    if (!CheckSongInitializedMarker()) {
         ResetWorkState();
         FarCall(0x1E, FAR_FN(LoadFontTiles));
         hBgDigitPalette = 4;
@@ -286,7 +286,7 @@ void InitAndLoadSong(void)
         WriteSongByte(1, 0xBFB7, 0);
         FormatSramSong();
     }
-    WriteSongInitFlag();
+    WriteSongInitializedMarker();
     SWITCH_ROM(0x1C);
     if (CheckFileMagic64()) {
         SWITCH_ROM(0x01);
@@ -300,7 +300,7 @@ void InitAndLoadSong(void)
     TMA_REG = 0x49;
     TAC_REG = 6;
     wTimerReload = hGameboyType ? 0x6E : 0xB7;
-    wTimerTickInc = hGameboyType ? 0x0C : 0x06;
+    wTimerTickIncrement = hGameboyType ? 0x0C : 0x06;
     FarCallArgument(1, LoadProjectSettings, 0);
     _asm ei _endasm;
 }
@@ -316,7 +316,7 @@ void main(void)
         break;
     }
     NR52_REG = 0;
-    InitAndLoadSong();
+    InitializeAndLoadSong();
     _asm di _endasm;
     SWITCH_ROM(2);
     RedrawScreen();

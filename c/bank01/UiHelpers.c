@@ -34,14 +34,14 @@ extern volatile UBYTE wProjectDrawScratch;     /* $C9A7; volatile: the ROM re-re
 extern UBYTE wSelectHeld;                   /* $C40A */
 extern UBYTE wMessageNoPause;                  /* $C530 */
 UBYTE CheckRomChecksum(void);               /* $00:$1FD5 */
-UBYTE TestSramLo(void);
+UBYTE TestSramLow(void);
 void initrand(UWORD seed);              /* bank 0 */
 UBYTE randw(void);                       /* bank 0, a 16-bit LCG; the SRAM test uses the low byte */
 extern UBYTE wFileNameScratch[];
 extern UWORD ColorSetPalettes[];            /* $01:$56A7, [sets][20] */
 void set_bkg_palette(UBYTE first, UBYTE nb, UWORD *rgb);   /* GBDK */
 void LoadObjPalette(UBYTE first, UBYTE nb, UWORD *rgb);
-extern UBYTE wNotePeriodLo[];               /* $CD28 */
+extern UBYTE wNotePeriodLow[];               /* $CD28 */
 extern UBYTE wNotePeriods[];                /* $CF28 */
 extern UBYTE NoteFrequencyTable[];               /* $01:$40FA, DMG */
 extern UBYTE NoteFrequencyDeltaTable[];          /* $01:$41D2, CGB */
@@ -132,7 +132,7 @@ extern UBYTE wTable;                        /* $C41B */
 extern UWORD wTopBarLength;                    /* $C7AD, wTopBarDrawScratch as a word (aliased by match_function.py) */
 extern UWORD wVramCursorW;                  /* $C573, wVramCursor as a plain word: its `< 0x9811` is a 32-bit compare (aliased by match_function.py) */
 
-UBYTE TestSramLo(void)
+UBYTE TestSramLow(void)
 {
     UBYTE i;
     UBYTE * volatile p;                     /* volatile: the ROM keeps p on the stack */
@@ -173,7 +173,7 @@ UBYTE TestSramLo(void)
     return 1;
 }
 
-UBYTE TestSramHi(void)
+UBYTE TestSramHigh(void)
 {
     UBYTE i;
 
@@ -206,7 +206,7 @@ void DrawCartTest(void)
     }
     wVramCursor = (UBYTE *)0x9880;
     DrawString("SRAM...");
-    if (TestSramLo() && TestSramHi()) {
+    if (TestSramLow() && TestSramHigh()) {
         DrawString("OK!");
     } else {
         DrawString("FAIL!");
@@ -351,7 +351,7 @@ void WriteInstrumentName(UBYTE instr)
 
 void LoadHardwareTables(void)
 {
-    memcpy(wNotePeriodLo, wIsCgb ? PitchCurveCgb : PitchCurve, 0xD8);
+    memcpy(wNotePeriodLow, wIsCgb ? PitchCurveCgb : PitchCurve, 0xD8);
     memcpy(wNotePeriods, wIsCgb ? NoteFrequencyDeltaTable : NoteFrequencyTable, 0xD8);
 }
 
@@ -400,7 +400,7 @@ void ApplyColorSet(void)
     }
 }
 
-void InitScreen(void)
+void InitializeScreen(void)
 {
     ApplyColorSet();
     ClearOamBuffer();

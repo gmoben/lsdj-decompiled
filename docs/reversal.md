@@ -178,13 +178,13 @@ the new chain number into `wChannelChain[ch]` (`$4DD2`), then channel setup:
   `wSoundParams`), then
   dispatches by `hSoundChannel` to `SoundSetupPu1/PU2/Wave/Noise`, each of which
   distributes the staged bytes into the `rAUDx` register shadows (`wChannelEnvelope`
-  `$C2D8`, `wChannelLengthDuty` `$C2DC`, `wChannelFrequencyHi` `$C2E0`, `wChannelSweep` `$C2E4`)
+  `$C2D8`, `wChannelLengthDuty` `$C2DC`, `wChannelFrequencyHigh` `$C2E0`, `wChannelSweep` `$C2E4`)
   and triggers the voice. The note→GB-period value arrives **pre-staged** in
   `wCurrentInstrument`; it is computed upstream.
 
 **Resolved — `SoundReadChainPhrase` (`$5E7C`) and a `wChannelNote` correction.** This reads
 one byte from a working-song SRAM table (bank 1, base `$A080`) at `idx*16 + step`,
-where `step = [$C17C]` (pointer low-byte `$7C` from `SoundInitStatePointers`), and
+where `step = [$C17C]` (pointer low-byte `$7C` from `SoundInitializeStatePointers`), and
 stores the result into per-channel `$C168`. Mapping SRAM bank 1 `$A080` → `.sav`
 offset `0x2080` identifies the table as **`chain_phrases`** (the authoritative
 liblsdj `song_offsets.h` and our [`data_model.md`](data_model.md) agree). So the

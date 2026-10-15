@@ -105,7 +105,7 @@ DEF wFilePromptActive EQU $C995  ; YES/NO prompt shown
 DEF wFileField       EQU $C992  ; file-screen field cursor (0-2)
                                  ; once per field and it decrements to 0 (entry value 1/2 also selects which fields)
 DEF wCompressBank        EQU $C979  ; SRAM bank used for compressed block I/O
-DEF wCompressSourceHi       EQU $C97B  ; compressed-data source ptr hi
+DEF wCompressSourceHigh       EQU $C97B  ; compressed-data source ptr hi
 DEF wCompressDestination         EQU $C97D  ; (de)compression output pointer into the working song, 16-bit
 DEF wCompressByte        EQU $C97F  ; current byte being processed in song (de)compression: loaded via ReadSongByte and
                                 ; compared against RLE markers ($20, $ff, run counts); set to $ff as a sentinel
@@ -128,7 +128,7 @@ DEF wDebugTrapped    EQU $C7AF  ; set by DebugTrap so it fires only once
 ; --- Playback / timing ------------------------------------------------------
 DEF wLiveMode        EQU $C528  ; SONG-screen LIVE mode flag, 0=SONG / 1=LIVE (verified: SELECT+LEFT on SONG
                                 ; toggles it, title + nav letter switch SONG<->LIVE). Boolean toggle at bank07 $4eda;
-                                ; the playback engine branches on it. Cleared by SoundInitPlayState
+                                ; the playback engine branches on it. Cleared by SoundInitializePlayState
 DEF wTempoMode       EQU $C52A  ; tempo mode (song property $BFCC): 0 = numeric BPM (wTempo), 1/2/3 = special tempo presets with fixed CGB/DMG timer values (GetTempoTimerValue / DrawTempo)
 DEF wTempo           EQU $C529  ; song tempo in BPM (verified: PROJECT TEMPO 124->134 on edit). Also set by the
                                 ; T command (Command_T). wTimerReload is derived from it
@@ -269,8 +269,8 @@ DEF wChannelCommandValue      EQU $C36B  ; [6] its value, same slots (Z's digits
 DEF wLastCommand        EQU $C371  ; [68] the last command that was not Z or H, for Z to repeat: the 4 phrase channels,
                                 ; then each table's CMD1 (4 + table) and CMD2 ($24 + table)
 DEF wLastCommandValue     EQU $C3B5  ; [68] its value, same slots
-; Current-channel state pointers (16-bit; low byte seeded by SoundInitStatePointers,
-; high byte set on channel select). These match the SoundInitStatePointers cluster
+; Current-channel state pointers (16-bit; low byte seeded by SoundInitializeStatePointers,
+; high byte set on channel select). These match the SoundInitializeStatePointers cluster
 ; ($C8DF=$7C->wChannelChainRow, etc.):
 ; (addresses verified against the authoritative pointer-init block in bank0 @ $3C6F)
 DEF wPointerChainRow     EQU $C8DF  ; -> wChannelChainRow[curChan]
@@ -303,11 +303,11 @@ DEF wChannelEnvelope         EQU $C2D8  ; [4] envelope value -> rAUDxENV (ch2/WA
 ; (The +N*7 slot for noise would land on $CBD1, but that byte is wOamDirty below -- the
 ; noise channel has no software-envelope struct here.)
 DEF wOamDirty        EQU $CBD1  ; OAM shadow dirty flag: timer ($185F) calls hOamRefresh (OAM DMA) when nonzero; set by OAM-buffer writers (SetOamByte, screen redraws)
-DEF wEnvelopeNode1Pu1     EQU $CBBC  ; envelope node 1, PU1: vol hi-nibble / fade-speed lo-nibble (SoundInitEnvelope)
+DEF wEnvelopeNode1Pu1     EQU $CBBC  ; envelope node 1, PU1: vol hi-nibble / fade-speed lo-nibble (SoundInitializeEnvelope)
 DEF wEnvelopeNode2Pu1     EQU $CBBD  ; envelope node 2, PU1 (stage 1 target/speed)
 DEF wEnvelopeNode3Pu1     EQU $CBBE  ; envelope node 3, PU1 (stage 2 target/speed)
 DEF wChannelLengthDuty     EQU $C2DC  ; [4] length/duty value -> rAUDxLEN
-DEF wChannelFrequencyHi      EQU $C2E0  ; [4] freq-high + trigger/length-enable bits -> rAUDxHIGH
+DEF wChannelFrequencyHigh      EQU $C2E0  ; [4] freq-high + trigger/length-enable bits -> rAUDxHIGH
 DEF wChannelSweep       EQU $C2E4  ; [4] per channel: PU1's sweep (-> rAUD1SWEEP); NOI's [3] is its note (wNoiNote, set from wNoiseNoteLatch on a retrig)
 DEF wNoiNote         EQU $C2E7  ; current noise note number (wraps 0..$77, drives SoundSetNoisePolynomial)
 
@@ -476,7 +476,7 @@ DEF wChannelNoteWav      EQU $C0CE  ; wChannelNote[2] = Wav channel
 DEF wChannelNoteNoi      EQU $C0CF  ; wChannelNote[3] = Noi channel
 DEF wCurrentInstrumentB1      EQU $C0D1  ; instrument byte 1: pulse = envelope; wav/kit = volume (-> wWavLevel)
 DEF wCurrentInstrumentB2      EQU $C0D2  ; instrument byte 2: pulse = transpose enable/flags (-> wNoteTranspose)
-DEF wCurrentInstrumentB3      EQU $C0D3  ; instrument byte 3 (-> wChannelFrequencyHi* on setup)
+DEF wCurrentInstrumentB3      EQU $C0D3  ; instrument byte 3 (-> wChannelFrequencyHigh* on setup)
 DEF wCurrentInstrumentB5      EQU $C0D5  ; instrument byte 5
 DEF wCurrentInstrumentB6      EQU $C0D6  ; instrument byte 6
 DEF wCurrentInstrumentB7      EQU $C0D7  ; instrument byte 7: pan (bits 0-1) | length bits (-> wChannelPan/wChannelLengthDuty)
@@ -489,15 +489,15 @@ DEF wChannelActiveNoi    EQU $C0E3  ; wChannelActive[3] = Noi channel
 DEF wChannelRestartPu2   EQU $C0E5  ; wChannelRestart[1] = Pu2 channel
 DEF wChannelRestartWav   EQU $C0E6  ; wChannelRestart[2] = Wav channel
 DEF wChannelRestartNoi   EQU $C0E7  ; wChannelRestart[3] = Noi channel
-DEF wChannelOutNotePu1Hi EQU $C0E9  ; wChannelOutNote[0] hi byte (Pu1)
+DEF wChannelOutNotePu1High EQU $C0E9  ; wChannelOutNote[0] hi byte (Pu1)
 DEF wChannelOutNotePu2 EQU $C0EA  ; wChannelOutNote[1]  (Pu2)
-DEF wChannelOutNotePu2Hi EQU $C0EB  ; wChannelOutNote[1] hi byte (Pu2)
+DEF wChannelOutNotePu2High EQU $C0EB  ; wChannelOutNote[1] hi byte (Pu2)
 DEF wChannelOutNoteWav EQU $C0EC  ; wChannelOutNote[2]  (Wav)
-DEF wChannelFrequencyPu1Hi   EQU $C0F5  ; channel frequency shadow, PU1 hi (|$80 -> rAUD1HIGH on retrigger)
+DEF wChannelFrequencyPu1High   EQU $C0F5  ; channel frequency shadow, PU1 hi (|$80 -> rAUD1HIGH on retrigger)
 DEF wChannelFrequencyPu2     EQU $C0F6  ; channel frequency shadow, PU2 lo
-DEF wChannelFrequencyPu2Hi   EQU $C0F7  ; channel frequency shadow, PU2 hi
+DEF wChannelFrequencyPu2High   EQU $C0F7  ; channel frequency shadow, PU2 hi
 DEF wChannelFrequencyWav     EQU $C0F8  ; channel frequency shadow, WAV lo (rAUD3LOW)
-DEF wChannelFrequencyWavHi   EQU $C0F9  ; channel frequency shadow, WAV hi
+DEF wChannelFrequencyWavHigh   EQU $C0F9  ; channel frequency shadow, WAV hi
 DEF wChannelGrooveTicks EQU $C0FC  ; ticks left in groove step, PU1: 0 -> wChannelNoteTrigger + advance groove (SoundCountdownStep)
 DEF wTableNotePointer    EQU $C108  ; SRAM read ptr: table NOTE column, PU1 (lo nibble = table row; hop cmd writes it, SoundTableHop)
 DEF wTableNotePointerPu2 EQU $C10A  ; SRAM read ptr: table NOTE column, PU2
@@ -525,13 +525,13 @@ DEF wChannelGrooveNoi    EQU $C153  ; wChannelGroove[3] = Noi channel
 DEF wChannelTablePlayedPu2  EQU $C155  ; wChannelTablePlayed[1] = Pu2 channel
 DEF wChannelTablePlayedWav  EQU $C156  ; wChannelTablePlayed[2] = Wav channel
 DEF wChannelTablePlayedNoi  EQU $C157  ; wChannelTablePlayed[3] = Noi channel
-DEF wChannelGrooveRowPu1Hi EQU $C159  ; wChannelGrooveRow[0] hi byte (Pu1)
+DEF wChannelGrooveRowPu1High EQU $C159  ; wChannelGrooveRow[0] hi byte (Pu1)
 DEF wChannelGrooveRowPu2 EQU $C15A  ; wChannelGrooveRow[1]  (Pu2)
-DEF wChannelGrooveRowPu2Hi EQU $C15B  ; wChannelGrooveRow[1] hi byte (Pu2)
+DEF wChannelGrooveRowPu2High EQU $C15B  ; wChannelGrooveRow[1] hi byte (Pu2)
 DEF wChannelGrooveRowWav EQU $C15C  ; wChannelGrooveRow[2]  (Wav)
-DEF wChannelGrooveRowWavHi EQU $C15D  ; wChannelGrooveRow[2] hi byte (Wav)
+DEF wChannelGrooveRowWavHigh EQU $C15D  ; wChannelGrooveRow[2] hi byte (Wav)
 DEF wChannelGrooveRowNoi EQU $C15E  ; wChannelGrooveRow[3]  (Noi)
-DEF wChannelGrooveRowNoiHi EQU $C15F  ; wChannelGrooveRow[3] hi byte (Noi)
+DEF wChannelGrooveRowNoiHigh EQU $C15F  ; wChannelGrooveRow[3] hi byte (Noi)
 DEF wChannelTableCountdownPu2  EQU $C165  ; wChannelTableCountdown[1] = Pu2 channel
 DEF wChannelTableCountdownWav  EQU $C166  ; wChannelTableCountdown[2] = Wav channel
 DEF wChannelTableCountdownNoi  EQU $C167  ; wChannelTableCountdown[3] = Noi channel
@@ -570,21 +570,21 @@ DEF wChannelTableLatch  EQU $C220  ; table number latched at note-on, PU1
 DEF wChannelTableLatchPu2 EQU $C221  ; table number latched at note-on, PU2
 DEF wChannelTableLatchWav EQU $C222  ; table number latched at note-on, WAV
 DEF wChannelTableLatchNoi EQU $C223  ; table number latched at note-on, NOI
-DEF wChannelEnvelopeVolumeOffset EQU $C224  ; signed volume delta (<<4) applied to the env-node triplet, PU1 (SoundCommandParsePitchValue -> SoundInitEnvelope)
+DEF wChannelEnvelopeVolumeOffset EQU $C224  ; signed volume delta (<<4) applied to the env-node triplet, PU1 (SoundCommandParsePitchValue -> SoundInitializeEnvelope)
 DEF wChannelPitchTargetPu2 EQU $C24A  ; pitch slide target (16-bit), PU2
 DEF wChannelPitchTargetWav EQU $C24C  ; pitch slide target (16-bit), WAV
 DEF wChannelPitchSlots  EQU $C250  ; [128] per-channel 16-byte pitch-FX state block, reset to $80 center (8x FillChannel16; layout TBD)
-DEF wChannelPitchRatePu1Hi EQU $C2D1  ; wChannelPitchRate[0] hi byte (Pu1)
+DEF wChannelPitchRatePu1High EQU $C2D1  ; wChannelPitchRate[0] hi byte (Pu1)
 DEF wChannelPitchRatePu2 EQU $C2D2  ; wChannelPitchRate[1]  (Pu2)
-DEF wChannelPitchRatePu2Hi EQU $C2D3  ; wChannelPitchRate[1] hi byte (Pu2)
+DEF wChannelPitchRatePu2High EQU $C2D3  ; wChannelPitchRate[1] hi byte (Pu2)
 DEF wChannelPitchRateWav EQU $C2D4  ; wChannelPitchRate[2]  (Wav)
-DEF wChannelPitchRateWavHi EQU $C2D5  ; wChannelPitchRate[2] hi byte (Wav)
+DEF wChannelPitchRateWavHigh EQU $C2D5  ; wChannelPitchRate[2] hi byte (Wav)
 DEF wChannelEnvelopePu2       EQU $C2D9  ; wChannelEnvelope[1] = Pu2 channel
 DEF wChannelEnvelopeWav       EQU $C2DA  ; wChannelEnvelope[2] = Wav channel
 DEF wChannelEnvelopeNoi       EQU $C2DB  ; wChannelEnvelope[3] = Noi channel
 DEF wChannelLengthDutyPu2   EQU $C2DD  ; wChannelLengthDuty[1] = Pu2 channel
-DEF wChannelFrequencyHiPu2    EQU $C2E1  ; wChannelFrequencyHi[1] = Pu2 channel
-DEF wChannelFrequencyHiNoi    EQU $C2E3  ; wChannelFrequencyHi[3] = Noi channel
+DEF wChannelFrequencyHighPu2    EQU $C2E1  ; wChannelFrequencyHigh[1] = Pu2 channel
+DEF wChannelFrequencyHighNoi    EQU $C2E3  ; wChannelFrequencyHigh[3] = Noi channel
 DEF wChannelTableActive EQU $C2E8  ; table engaged at note-on, PU1 (set 1 in Setup* .storeChanTable)
 DEF wChannelTableActivePu2 EQU $C2E9  ; table engaged at note-on, PU2
 DEF wChannelTableActiveWav EQU $C2EA  ; table engaged at note-on, WAV
@@ -593,33 +593,33 @@ DEF wChannelTableFresh  EQU $C2EC  ; table freshly (re)started, PU1: buffers FF-
 DEF wChannelTableFreshPu2 EQU $C2ED  ; table freshly restarted, PU2
 DEF wChannelTableFreshWav EQU $C2EE  ; table freshly restarted, WAV
 DEF wChannelTableFreshNoi EQU $C2EF  ; table freshly restarted, NOI
-DEF wChannelNextSongRowPu1Hi EQU $C2FD  ; wChannelNextSongRow[0] hi byte (Pu1)
+DEF wChannelNextSongRowPu1High EQU $C2FD  ; wChannelNextSongRow[0] hi byte (Pu1)
 DEF wChannelNextSongRowPu2 EQU $C2FE  ; wChannelNextSongRow[1]  (Pu2)
-DEF wChannelNextSongRowPu2Hi EQU $C2FF  ; wChannelNextSongRow[1] hi byte (Pu2)
+DEF wChannelNextSongRowPu2High EQU $C2FF  ; wChannelNextSongRow[1] hi byte (Pu2)
 DEF wChannelLiveQueued  EQU $C300  ; [4] live mode: a song row is queued for this channel (SoundLiveStartQueued; the play marker blinks faster while set)
-DEF wChannelVibratoAccumulatorPu1Hi EQU $C309  ; vibrato phase accumulator hi, PU1 (16-bit += wChannelVibratoSpeed)
+DEF wChannelVibratoAccumulatorPu1High EQU $C309  ; vibrato phase accumulator hi, PU1 (16-bit += wChannelVibratoSpeed)
 DEF wChannelVibratoAccumulatorPu2 EQU $C30A  ; vibrato phase accumulator lo, PU2
-DEF wChannelVibratoAccumulatorPu2Hi EQU $C30B  ; vibrato phase accumulator hi, PU2
+DEF wChannelVibratoAccumulatorPu2High EQU $C30B  ; vibrato phase accumulator hi, PU2
 DEF wChannelVibratoAccumulatorWav EQU $C30C  ; vibrato phase accumulator lo, WAV
-DEF wChannelVibratoAccumulatorWavHi EQU $C30D  ; vibrato phase accumulator hi, WAV
+DEF wChannelVibratoAccumulatorWavHigh EQU $C30D  ; vibrato phase accumulator hi, WAV
 DEF wChannelVibratoAccumulatorNoi EQU $C30E  ; vibrato phase accumulator lo, NOI
-DEF wChannelVibratoAccumulatorNoiHi EQU $C30F  ; vibrato phase accumulator hi, NOI
+DEF wChannelVibratoAccumulatorNoiHigh EQU $C30F  ; vibrato phase accumulator hi, NOI
 DEF wChannelVibratoWaveOffset  EQU $C310  ; vib waveform base offset (type*$40), PU1 (SoundCalculateVibratoOffset)
 DEF wChannelVibratoWaveOffsetPu2 EQU $C311  ; vib waveform base offset, PU2
 DEF wChannelVibratoWaveOffsetWav EQU $C312  ; vib waveform base offset, WAV
 DEF wChannelVibratoWaveOffsetNoi EQU $C313  ; vib waveform base offset, NOI
-DEF wChannelVibratoSpeedPu1Hi EQU $C315  ; wChannelVibratoSpeed[0] hi byte (Pu1)
+DEF wChannelVibratoSpeedPu1High EQU $C315  ; wChannelVibratoSpeed[0] hi byte (Pu1)
 DEF wChannelVibratoSpeedPu2 EQU $C316  ; wChannelVibratoSpeed[1]  (Pu2)
-DEF wChannelVibratoSpeedPu2Hi EQU $C317  ; wChannelVibratoSpeed[1] hi byte (Pu2)
+DEF wChannelVibratoSpeedPu2High EQU $C317  ; wChannelVibratoSpeed[1] hi byte (Pu2)
 DEF wChannelVibratoSpeedWav EQU $C318  ; wChannelVibratoSpeed[2]  (Wav)
-DEF wChannelVibratoSpeedWavHi EQU $C319  ; wChannelVibratoSpeed[2] hi byte (Wav)
+DEF wChannelVibratoSpeedWavHigh EQU $C319  ; wChannelVibratoSpeed[2] hi byte (Wav)
 DEF wChannelVibratoSpeedNoi EQU $C31A  ; wChannelVibratoSpeed[3]  (Noi)
-DEF wChannelVibratoSpeedNoiHi EQU $C31B  ; wChannelVibratoSpeed[3] hi byte (Noi)
-DEF wChannelVibratoOffsetPu1Hi EQU $C31D  ; wChannelVibratoOffset[0] hi byte (Pu1)
+DEF wChannelVibratoSpeedNoiHigh EQU $C31B  ; wChannelVibratoSpeed[3] hi byte (Noi)
+DEF wChannelVibratoOffsetPu1High EQU $C31D  ; wChannelVibratoOffset[0] hi byte (Pu1)
 DEF wChannelVibratoOffsetPu2 EQU $C31E  ; wChannelVibratoOffset[1]  (Pu2)
-DEF wChannelVibratoOffsetPu2Hi EQU $C31F  ; wChannelVibratoOffset[1] hi byte (Pu2)
+DEF wChannelVibratoOffsetPu2High EQU $C31F  ; wChannelVibratoOffset[1] hi byte (Pu2)
 DEF wChannelVibratoOffsetWav EQU $C320  ; wChannelVibratoOffset[2]  (Wav)
-DEF wChannelVibratoOffsetWavHi EQU $C321  ; wChannelVibratoOffset[2] hi byte (Wav)
+DEF wChannelVibratoOffsetWavHigh EQU $C321  ; wChannelVibratoOffset[2] hi byte (Wav)
 DEF wChannelVibratoDepthPu2  EQU $C325  ; wChannelVibratoDepth[1] = Pu2 channel
 DEF wChannelVibratoDepthWav  EQU $C326  ; wChannelVibratoDepth[2] = Wav channel
 DEF wChannelVibratoDepthNoi  EQU $C327  ; wChannelVibratoDepth[3] = Noi channel
@@ -634,11 +634,11 @@ DEF wChannelSlideNoteSourceWav  EQU $C332  ; wChannelSlideNoteSource[2] = Wav ch
 DEF wChannelTransposePu2  EQU $C334  ; wChannelTranspose[1] = Pu2 channel
 DEF wChannelTransposeWav  EQU $C335  ; wChannelTranspose[2] = Wav channel
 DEF wChannelTransposeNoi  EQU $C336  ; wChannelTranspose[3] = Noi channel
-DEF wChannelPitchCurrentPu1Hi EQU $C338  ; wChannelPitchCurrent[0] hi byte (Pu1)
+DEF wChannelPitchCurrentPu1High EQU $C338  ; wChannelPitchCurrent[0] hi byte (Pu1)
 DEF wChannelPitchCurrentPu2 EQU $C339  ; wChannelPitchCurrent[1]  (Pu2)
-DEF wChannelPitchCurrentPu2Hi EQU $C33A  ; wChannelPitchCurrent[1] hi byte (Pu2)
+DEF wChannelPitchCurrentPu2High EQU $C33A  ; wChannelPitchCurrent[1] hi byte (Pu2)
 DEF wChannelPitchCurrentWav EQU $C33B  ; wChannelPitchCurrent[2]  (Wav)
-DEF wChannelPitchCurrentWavHi EQU $C33C  ; wChannelPitchCurrent[2] hi byte (Wav)
+DEF wChannelPitchCurrentWavHigh EQU $C33C  ; wChannelPitchCurrent[2] hi byte (Wav)
 DEF wChannelTableStepPu2 EQU $C340  ; table step row, PU2
 DEF wChannelTableStepWav EQU $C341  ; table step row, WAV
 DEF wChannelTableStepNoi EQU $C342  ; table step row, NOI
@@ -661,11 +661,11 @@ DEF wChannelPeriodTablePointerPu2 EQU $C358  ; period-table ptr, PU2
 DEF wChannelPeriodTablePointerWav EQU $C35A  ; period-table ptr, WAV (NOI has no period table)
 DEF wChannelPitchStepPu2  EQU $C35D  ; wChannelPitchStep[1] = Pu2 channel
 DEF wChannelPitchStepWav  EQU $C35E  ; wChannelPitchStep[2] = Wav channel
-DEF wChannelVibratoShapePu1Hi EQU $C360  ; wChannelVibratoShape[0] hi byte (Pu1)
+DEF wChannelVibratoShapePu1High EQU $C360  ; wChannelVibratoShape[0] hi byte (Pu1)
 DEF wChannelVibratoShapePu2 EQU $C361  ; wChannelVibratoShape[1]  (Pu2)
 DEF wNoiPSpeed EQU $C362  ; wChannelVibratoShape[3]: noise has no vibrato, so the slot holds P's speed (applied as S every tick)
 DEF wChannelVibratoShapeWav EQU $C363  ; wChannelVibratoShape[2]  (Wav)
-DEF wChannelVibratoShapeWavHi EQU $C364  ; wChannelVibratoShape[2] hi byte (Wav)
+DEF wChannelVibratoShapeWavHigh EQU $C364  ; wChannelVibratoShape[2] hi byte (Wav)
 DEF wTableCommand1       EQU $C369  ; current-channel table CMD1 command (scratch)
 DEF wTableCommand2       EQU $C36A  ; current-channel table CMD2 command (scratch)
 DEF wChannelCommandValueWav EQU $C36D  ; wChannelCommandValue[2] (WAV)
@@ -697,50 +697,50 @@ DEF wUnusedC46C EQU $C46C  ; set at reset, never read
 DEF wSpeechWord      EQU $C4CE  ; word being spoken (-> wChannelNoteWav at speech note-on)
 DEF wSpeechFrameTicks EQU $C4CF  ; frames left in current allophone frame; 0 -> stream next (SoundSpeechStep)
 DEF wSpeechPointer       EQU $C4D0  ; allophone stream read ptr lo (SramWords $B890 base)
-DEF wSpeechPointerHi     EQU $C4D1  ; allophone stream read ptr hi
-DEF wKit1LoopStartHi EQU $C4D5  ; kit voice 1 loop-window start hi
+DEF wSpeechPointerHigh     EQU $C4D1  ; allophone stream read ptr hi
+DEF wKit1LoopStartHigh EQU $C4D5  ; kit voice 1 loop-window start hi
 DEF wKit1LoopEnd     EQU $C4D6  ; kit voice 1 loop-window end ptr lo (stop/wrap comparator)
-DEF wKit1LoopEndHi   EQU $C4D7  ; kit voice 1 loop-window end hi
-DEF wKit2LoopStartHi EQU $C4D9  ; kit voice 2 loop-window start hi
+DEF wKit1LoopEndHigh   EQU $C4D7  ; kit voice 1 loop-window end hi
+DEF wKit2LoopStartHigh EQU $C4D9  ; kit voice 2 loop-window start hi
 DEF wKit2LoopEnd     EQU $C4DA  ; kit voice 2 loop-window end ptr lo
-DEF wKit2LoopEndHi   EQU $C4DB  ; kit voice 2 loop-window end hi
+DEF wKit2LoopEndHigh   EQU $C4DB  ; kit voice 2 loop-window end hi
 DEF wKit1SampleStart EQU $C4DC  ; kit voice 1 raw sample start lo (lower clamp; note: start clamps are cross-wired between voices in ROM)
-DEF wKit1SampleStartHi EQU $C4DD  ; kit voice 1 raw sample start hi
+DEF wKit1SampleStartHigh EQU $C4DD  ; kit voice 1 raw sample start hi
 DEF wKit1SampleEnd   EQU $C4DE  ; kit voice 1 sample end lo (upper clamp for loop end)
-DEF wKit1SampleEndHi EQU $C4DF  ; kit voice 1 sample end hi
+DEF wKit1SampleEndHigh EQU $C4DF  ; kit voice 1 sample end hi
 DEF wKit2SampleStart EQU $C4E0  ; kit voice 2 raw sample start lo
-DEF wKit2SampleStartHi EQU $C4E1  ; kit voice 2 raw sample start hi
+DEF wKit2SampleStartHigh EQU $C4E1  ; kit voice 2 raw sample start hi
 DEF wKit2SampleEnd   EQU $C4E2  ; kit voice 2 sample end lo
-DEF wKit2SampleEndHi EQU $C4E3  ; kit voice 2 sample end hi
+DEF wKit2SampleEndHigh EQU $C4E3  ; kit voice 2 sample end hi
 DEF wKitHalfSpeed    EQU $C4E6  ; kit half-speed tick-skip phase ($40 = half speed, toggles $40<->$41)
 DEF wKit1KeepAttack  EQU $C4E7  ; kit voice 1 LOOP=ATK: bit7 keeps attack, loop from OFFSET
 DEF wKit2KeepAttack  EQU $C4E8  ; kit voice 2 LOOP=ATK flag
 DEF wKitPitch        EQU $C4E9  ; kit PITCH byte: biases CH3 replay frequency (bit7 = base select)
-DEF wKit1OffsetHi    EQU $C4EA  ; kit voice 1 OFFSET hi nibble (added to sample start, *16)
-DEF wKit1OffsetLo    EQU $C4EB  ; kit voice 1 OFFSET lo (F cmd adjusts +/-hCommandValue*32)
-DEF wKit2OffsetHi    EQU $C4EC  ; kit voice 2 OFFSET hi
-DEF wKit2OffsetLo    EQU $C4ED  ; kit voice 2 OFFSET lo
+DEF wKit1OffsetHigh    EQU $C4EA  ; kit voice 1 OFFSET hi nibble (added to sample start, *16)
+DEF wKit1OffsetLow    EQU $C4EB  ; kit voice 1 OFFSET lo (F cmd adjusts +/-hCommandValue*32)
+DEF wKit2OffsetHigh    EQU $C4EC  ; kit voice 2 OFFSET hi
+DEF wKit2OffsetLow    EQU $C4ED  ; kit voice 2 OFFSET lo
 DEF wKit1LengthDisabled EQU $C4EE  ; kit voice 1: instr LEN==0, skip end clamp
-DEF wKit1LengthHi       EQU $C4EF  ; kit voice 1 LEN hi nibble (caps loop end = start + LEN*16)
-DEF wKit1LengthLo       EQU $C4F0  ; kit voice 1 LEN lo
+DEF wKit1LengthHigh       EQU $C4EF  ; kit voice 1 LEN hi nibble (caps loop end = start + LEN*16)
+DEF wKit1LengthLow       EQU $C4F0  ; kit voice 1 LEN lo
 DEF wKit2LengthDisabled EQU $C4F1  ; kit voice 2: LEN==0 flag (also 1 for speech)
-DEF wKit2LengthHi       EQU $C4F2  ; kit voice 2 LEN hi
-DEF wKit2LengthLo       EQU $C4F3  ; kit voice 2 LEN lo
+DEF wKit2LengthHigh       EQU $C4F2  ; kit voice 2 LEN hi
+DEF wKit2LengthLow       EQU $C4F3  ; kit voice 2 LEN lo
 DEF wKit1BankPending EQU $C4F6  ; kit voice 1 pending bank (committed at trigger; change clears active bit0)
 DEF wKit2BankPending EQU $C4F7  ; kit voice 2 pending bank
 DEF wKitDistortionType     EQU $C4F8  ; kit DIST/clip mode fed to the RAM dual-voice mixer at $D480
 DEF wKit1ReadPointer     EQU $C4F9  ; kit voice 1 sample read ptr lo (16 bytes streamed per tick)
-DEF wKit1ReadPointerHi   EQU $C4FA  ; kit voice 1 sample read ptr hi
+DEF wKit1ReadPointerHigh   EQU $C4FA  ; kit voice 1 sample read ptr hi
 DEF wKit2ReadPointer     EQU $C4FB  ; kit voice 2 sample read ptr lo
-DEF wKit2ReadPointerHi   EQU $C4FC  ; kit voice 2 sample read ptr hi
+DEF wKit2ReadPointerHigh   EQU $C4FC  ; kit voice 2 sample read ptr hi
 DEF wNoiseNoteLatch  EQU $C4FD  ; noise note-1 latched at trigger; replayed via SoundSetNoisePolynomial on cmd expiry
 DEF wWavSynthRepeat  EQU $C4FE  ; wav instr byte3: synth start/repeat frame (seeds current frame)
 DEF wWavSynthLength  EQU $C4FF  ; wav instr LENGTH nibble inverted (delta-list build bound)
 DEF wWavFrameDeltas  EQU $C501  ; [32] signed wave-frame step list (from ROM table $7EAC, 0-terminated)
 DEF wWavFrameDeltaPointer EQU $C521  ; wave-frame delta list cursor lo
-DEF wWavFrameDeltaPointerHi EQU $C522  ; wave-frame delta list cursor hi
+DEF wWavFrameDeltaPointerHigh EQU $C522  ; wave-frame delta list cursor hi
 DEF wWavFrameDeltaLoop EQU $C523  ; saved delta-list reload ptr lo (list end, mode != once)
-DEF wWavFrameDeltaLoopHi EQU $C524  ; saved delta-list reload ptr hi
+DEF wWavFrameDeltaLoopHigh EQU $C524  ; saved delta-list reload ptr hi
 DEF wWavFrameTimer   EQU $C525  ; wave-frame step countdown (reload = wCommandWaveParameter2; W cmd hi nibble sets)
 DEF wMessageNoPause     EQU $C530  ; 1 while a message SELECT cannot pause (set at reset: the startup banner); cleared when a message ends, on redraw, on a live-mode switch (UpdateMessage)
 DEF wTopBarMarkPointer   EQU $C562  ; 16-bit ptr to the unsaved-'!' char slot in the top bar
@@ -749,19 +749,19 @@ DEF wFilesystemCheckResult   EQU $C56B  ; CheckFileMagicAll result (drives file-
 DEF wPartialRedrawDone EQU $C56D  ; partial row redraw done; DispatchScreenUpdate skips full update
 DEF wLiveStartColumn    EQU $C571  ; LIVE queued start column ($FF = none; saves wLiveMode)
 DEF wSavedLiveMode   EQU $C572  ; saved wLiveMode across queued LIVE start
-DEF wTimerTickInc    EQU $C579  ; per-tick work-time increment ($0C CGB / $06 DMG)
+DEF wTimerTickIncrement    EQU $C579  ; per-tick work-time increment ($0C CGB / $06 DMG)
 DEF wClipboardBuffer    EQU $C57A  ; [252] clipboard buffer, 6 columns of 42 cells (ReadClipboardCell/WriteClipboardCell index col*42 + row; word cut/paste uses first two bytes; link transfer indexes it)
 DEF wCommandSlideTargetNote EQU $C68E  ; slide (L cmd) destination note, clamped to $6C
 DEF wCommandSlideNote     EQU $C68F  ; slide base-note scratch (current note or wNoteOctave source)
 DEF wCommandSlidePitch    EQU $C690  ; slide start pitch lo (-> wChannelPitchCurrent)
-DEF wCommandSlidePitchHi  EQU $C691  ; slide start pitch hi
+DEF wCommandSlidePitchHigh  EQU $C691  ; slide start pitch hi
 DEF wNoiPitchSafe     EQU $C692  ; noise instrument byte 2, PITCH: nonzero = SAFE, 0 = FREE (manual C.4; SoundSetupNoi copies it); after a pitch change SAFE goes on to SoundProcessChannelTable, FREE returns for notes >= $3C
 DEF wWavSynthFrame   EQU $C694  ; current wav-synth frame index (seeded from wWavSynthRepeat; W cmd value adds)
 DEF wWavSynthEnd     EQU $C695  ; effective wav-synth frame count = min(instr LENGTH, wCommandWaveParameter)
-DEF wChannelFinetunePu1Hi EQU $C697  ; wChannelFinetune[0] hi byte (Pu1)
+DEF wChannelFinetunePu1High EQU $C697  ; wChannelFinetune[0] hi byte (Pu1)
 DEF wChannelFinetunePu2 EQU $C698  ; wChannelFinetune[1]  (Pu2)
 DEF wChannelFinetuneWav EQU $C69A  ; wChannelFinetune[2]  (Wav)
-DEF wChannelFinetuneWavHi EQU $C69B  ; wChannelFinetune[2] hi byte (Wav)
+DEF wChannelFinetuneWavHigh EQU $C69B  ; wChannelFinetune[2] hi byte (Wav)
 DEF wWavUploadPending EQU $C69C  ; nonzero: the timer interrupt uploads hWavUploadBuffer to wave RAM (SoundModulateWavFrequency; cleared after the upload)
 DEF wTimerTailBusy   EQU $C69F  ; timer-tail reentrancy guard (scope bitmap copy work)
 DEF wMessagePanelShown   EQU $C7AC  ; 4-line message panel shown (wMessageTimer=$64; special clear on expiry)
@@ -843,9 +843,9 @@ DEF wWorkClockSubFrame EQU $C9AA  ; frame counter mod 128 feeding the WORK-time 
 DEF wTapTempoCount EQU $C9AB  ; project scroll/average queue fill count (0-8)
 DEF wVramCopyScratch EQU $C9B4  ; VRAM byte-copy scratch (bank1e LoadFontTiles path)
 DEF wTileSlotPointer     EQU $C9B5  ; 16-bit scratch ptr (LoadTilesDispatch -> RequestTileSlot)
-DEF wTileSlotPointerHi   EQU $C9B6  ; hi byte of wTileSlotPointer
+DEF wTileSlotPointerHigh   EQU $C9B6  ; hi byte of wTileSlotPointer
 DEF wInstrumentRemapDirty EQU $C9B7  ; instrument remap table populated/dirty flag
-DEF wInstrumentRemapTable EQU $C9B8  ; [16] instrument-slot remap/claim table ($FF = empty; InitRemapTable)
+DEF wInstrumentRemapTable EQU $C9B8  ; [16] instrument-slot remap/claim table ($FF = empty; InitializeRemapTable)
 DEF wDeduplicatePhraseUsed EQU $C9C8  ; DeduplicatePhrases: IsPhraseUsedFar(j) in the inner loop
 DEF wDeduplicatePhraseIsDuplicate EQU $C9C9  ; DeduplicatePhrases: FindDuplicatePhrase(i, j)
 DEF wDeduplicateChainUsed EQU $C9CA  ; DeduplicateChains: IsChainUsedFar(j) in the inner loop
@@ -874,9 +874,9 @@ DEF wSyncStartRow    EQU $CB6A  ; saved/target song row for sync start (B-held s
 DEF wSyncSerialIeMask EQU $CB6D  ; IE serial-bit mask ($08/$00) for the current sync mode
 DEF wSendByteNest    EQU $CB72  ; SendByteStep nesting/pending counter (wrap -> HandleTooBusy)
 DEF wAnalogInStepLength    EQU $CB73  ; analog sync-in: pulses per step, 8.8 fixed lo (DivU16 quotient)
-DEF wAnalogInStepLengthHi  EQU $CB74  ; analog sync-in step interval hi
+DEF wAnalogInStepLengthHigh  EQU $CB74  ; analog sync-in step interval hi
 DEF wAnalogInStepAccumulator  EQU $CB75  ; analog sync-in progress accumulator lo (+= $0100 per pulse)
-DEF wAnalogInStepAccumulatorHi EQU $CB76  ; analog sync-in progress accumulator hi
+DEF wAnalogInStepAccumulatorHigh EQU $CB76  ; analog sync-in progress accumulator hi
 DEF wAnalogInPulseCount EQU $CB79  ; analog sync-in pulses since resync
 DEF wAnalogInPreviousPlayMode EQU $CB7A  ; analog sync-in: latched wPlayMode (0 -> emit extra step)
 DEF wFullRedrawTimer EQU $CB7B  ; forces a full screen update every 32 frames despite partial redraws
@@ -920,8 +920,8 @@ DEF wEnvelopePlotX        EQU $CBD8  ; last plotted env-graph column 0-$3F (Plot
 DEF wTileRequestSlot0    EQU $CBE5  ; tile-load request table: 6 entries x [slot, ptrLo, ptrHi] at $CBE5-$CBF6 (this = entry-0 slot)
 DEF wUnusedCBF7      EQU $CBF7  ; zeroed by ResetTileLoader, never read
 DEF wUnusedCBF8      EQU $CBF8  ; zeroed by ResetTileLoader, never read
-DEF wRandomSeedHi       EQU $CBF9  ; RNG seed hi byte (randw: seed = seed*17 + $5C93)
-DEF wRandomSeedLo       EQU $CBFA  ; RNG seed lo byte (initrand sets)
+DEF wRandomSeedHigh       EQU $CBF9  ; RNG seed hi byte (randw: seed = seed*17 + $5C93)
+DEF wRandomSeedLow       EQU $CBFA  ; RNG seed lo byte (initrand sets)
 DEF wUnusedCBFB      EQU $CBFB  ; set to $03 at display reinit, never read
 DEF wUnusedCBFC      EQU $CBFC  ; set to $00 at display reinit, never read
 DEF wSpriteWavX      EQU $DD01  ; WAV display sprite 0 X (=$90, ClearOamBuffer)
@@ -952,10 +952,10 @@ DEF wSpriteCursor1X  EQU $DD31  ; selection cursor sprite 12 X
 DEF wSpriteCursor2X  EQU $DD35  ; selection cursor sprite 13 X
 DEF wSpriteCursor3X  EQU $DD39  ; selection cursor sprite 14 X
 DEF wSpriteCursor4X  EQU $DD3D  ; selection cursor sprite 15 X
-DEF hWavFrequencySaveLo   EQU $FFB0  ; saved WAV channel freq lo, restored to rAUD3LOW after wave upload
-DEF hWavFrequencySaveHi   EQU $FFB1  ; saved WAV channel freq hi -> rAUD3HIGH
-DEF hSavedSPLo       EQU $FFB2  ; saved stack pointer lo (ld sp,hWavUploadBuffer pop-stream trick)
-DEF hSavedSPHi       EQU $FFB3  ; saved stack pointer hi
+DEF hWavFrequencySaveLow   EQU $FFB0  ; saved WAV channel freq lo, restored to rAUD3LOW after wave upload
+DEF hWavFrequencySaveHigh   EQU $FFB1  ; saved WAV channel freq hi -> rAUD3HIGH
+DEF hSavedSPLow       EQU $FFB2  ; saved stack pointer lo (ld sp,hWavUploadBuffer pop-stream trick)
+DEF hSavedSPHigh       EQU $FFB3  ; saved stack pointer hi
 DEF hSavedAudTerm    EQU $FFB4  ; saved rAUDTERM (panning) across the AUD3 off/retrigger window
 
 ; --- orphan RAM addresses from the debugger export, named from their readers ---
@@ -978,7 +978,7 @@ DEF wSynthBandDestination    EQU $CB3C  ; band-pass synth filter (SynthFilterBan
 DEF wSynthBandSlot   EQU $CB3E  ; band-pass synth filter: the accumulator slot pointer; the BufB value and the doubled index in the scatter; the BufA value in the normalise loop
 DEF wSynthWaveScratch    EQU $CB40  ; [32] filter-pass scratch copy of wSynthWaveBuffer (SynthFilterPass writes it, then memcpy back)
 DEF wWaveEditX       EQU $CB60  ; wave-editor pen X: (column*4) & $f0 (WriteSynthWaveColumn)
-DEF wNotePeriodLo    EQU $CD28  ; RAM copy of the note->period table (SoundNoteToPeriod indexes by note)
+DEF wNotePeriodLow    EQU $CD28  ; RAM copy of the note->period table (SoundNoteToPeriod indexes by note)
 DEF wNoteFineTable   EQU $CD94  ; RAM copy of the finetune/delta table (SoundWriteChannelFrequency, index wNoteOctave-1)
 DEF wMasterVolumeTable  EQU $D400  ; master-volume transition LUT (Command_M indexes by rAUDVOL & $70)
 DEF wDecompressBufferEnd    EQU $DA4F  ; end bound of wDecompressBuffer walks (OrBitsIntoDaBuffer)

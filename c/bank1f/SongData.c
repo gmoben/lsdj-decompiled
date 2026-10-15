@@ -113,7 +113,7 @@ UBYTE ClaimInstrumentSlot(UBYTE instr)
     return 1;
 }
 
-void InitRemapTable(void)
+void InitializeRemapTable(void)
 {
     UBYTE i, v;
     UBYTE *p;

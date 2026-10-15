@@ -179,7 +179,7 @@
   "len": 222,
   "src": "c/bank00/Sync.c"
  },
- "CheckSongInitFlag": {
+ "CheckSongInitializedMarker": {
   "bank": "01",
   "addr": "4848",
   "len": 140,
@@ -556,54 +556,6 @@
   "addr": "61CA",
   "len": 720,
   "src": "c/bank05/TableScreen.c"
- },
- "DecInstrumentCommandRate": {
-  "bank": "03",
-  "addr": "4769",
-  "len": 39,
-  "src": "c/bank03/InstrScreen.c"
- },
- "DecInstrumentFieldHi": {
-  "bank": "03",
-  "addr": "5231",
-  "len": 58,
-  "src": "c/bank03/InstrScreen.c"
- },
- "DecInstrumentFieldLo": {
-  "bank": "03",
-  "addr": "51BC",
-  "len": 56,
-  "src": "c/bank03/InstrScreen.c"
- },
- "DecInstrumentLength": {
-  "bank": "03",
-  "addr": "52BF",
-  "len": 89,
-  "src": "c/bank03/InstrScreen.c"
- },
- "DecInstrumentLengthBig": {
-  "bank": "03",
-  "addr": "537A",
-  "len": 96,
-  "src": "c/bank03/InstrScreen.c"
- },
- "DecSynthFieldHi": {
-  "bank": "1D",
-  "addr": "70E4",
-  "len": 45,
-  "src": "c/bank1d/SynthScreen.c"
- },
- "DecSynthFieldLo": {
-  "bank": "1D",
-  "addr": "7111",
-  "len": 39,
-  "src": "c/bank1d/SynthScreen.c"
- },
- "DecSynthParameterTo0": {
-  "bank": "1D",
-  "addr": "702B",
-  "len": 99,
-  "src": "c/bank1d/SynthScreen.c"
  },
  "DecompressBlock": {
   "bank": "1C",
@@ -2141,79 +2093,31 @@
   "len": 227,
   "src": "c/bank1f/PhraseScreen.c"
  },
- "IncInstrumentCommandRate": {
-  "bank": "03",
-  "addr": "4741",
-  "len": 40,
-  "src": "c/bank03/InstrScreen.c"
- },
- "IncInstrumentFieldHi": {
-  "bank": "03",
-  "addr": "51F4",
-  "len": 61,
-  "src": "c/bank03/InstrScreen.c"
- },
- "IncInstrumentFieldLo": {
-  "bank": "03",
-  "addr": "5181",
-  "len": 59,
-  "src": "c/bank03/InstrScreen.c"
- },
- "IncInstrumentLength": {
-  "bank": "03",
-  "addr": "526B",
-  "len": 80,
-  "src": "c/bank03/InstrScreen.c"
- },
- "IncInstrumentLengthBig": {
-  "bank": "03",
-  "addr": "531C",
-  "len": 90,
-  "src": "c/bank03/InstrScreen.c"
- },
- "IncSynthFieldHi": {
-  "bank": "1D",
-  "addr": "708E",
-  "len": 46,
-  "src": "c/bank1d/SynthScreen.c"
- },
- "IncSynthFieldLo": {
-  "bank": "1D",
-  "addr": "70BC",
-  "len": 40,
-  "src": "c/bank1d/SynthScreen.c"
- },
- "IncSynthParameterTo": {
-  "bank": "1D",
-  "addr": "6FC4",
-  "len": 103,
-  "src": "c/bank1d/SynthScreen.c"
- },
- "InitAndLoadSong": {
+ "InitializeAndLoadSong": {
   "bank": "00",
   "addr": "0DDB",
   "len": 251,
   "src": "c/bank00/Main.c"
  },
- "InitKitMixer": {
+ "InitializeKitMixer": {
   "bank": "1B",
   "addr": "6B7A",
   "len": 190,
   "src": "c/bank1b/KitMixer.c"
  },
- "InitRemapTable": {
+ "InitializeRemapTable": {
   "bank": "1F",
   "addr": "4A26",
   "len": 63,
   "src": "c/bank1f/SongData.c"
  },
- "InitScreen": {
+ "InitializeScreen": {
   "bank": "01",
   "addr": "4CF1",
   "len": 10,
   "src": "c/bank01/UiHelpers.c"
  },
- "InitWaveSprites": {
+ "InitializeWaveSprites": {
   "bank": "06",
   "addr": "4BA7",
   "len": 174,
@@ -2416,6 +2320,54 @@
   "addr": "493F",
   "len": 83,
   "src": "c/bank06/WaveScreen.c"
+ },
+ "LowerInstrumentCommandRate": {
+  "bank": "03",
+  "addr": "4769",
+  "len": 39,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "LowerInstrumentFieldHigh": {
+  "bank": "03",
+  "addr": "5231",
+  "len": 58,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "LowerInstrumentFieldLow": {
+  "bank": "03",
+  "addr": "51BC",
+  "len": 56,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "LowerInstrumentLength": {
+  "bank": "03",
+  "addr": "52BF",
+  "len": 89,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "LowerInstrumentLengthBig": {
+  "bank": "03",
+  "addr": "537A",
+  "len": 96,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "LowerSynthFieldHigh": {
+  "bank": "1D",
+  "addr": "70E4",
+  "len": 45,
+  "src": "c/bank1d/SynthScreen.c"
+ },
+ "LowerSynthFieldLow": {
+  "bank": "1D",
+  "addr": "7111",
+  "len": 39,
+  "src": "c/bank1d/SynthScreen.c"
+ },
+ "LowerSynthParameterTo0": {
+  "bank": "1D",
+  "addr": "702B",
+  "len": 99,
+  "src": "c/bank1d/SynthScreen.c"
  },
  "MarkChainPhrasesUsed": {
   "bank": "1F",
@@ -2818,6 +2770,54 @@
   "addr": "5896",
   "len": 27,
   "src": "c/bank1b/ProjScreen.c"
+ },
+ "RaiseInstrumentCommandRate": {
+  "bank": "03",
+  "addr": "4741",
+  "len": 40,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "RaiseInstrumentFieldHigh": {
+  "bank": "03",
+  "addr": "51F4",
+  "len": 61,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "RaiseInstrumentFieldLow": {
+  "bank": "03",
+  "addr": "5181",
+  "len": 59,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "RaiseInstrumentLength": {
+  "bank": "03",
+  "addr": "526B",
+  "len": 80,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "RaiseInstrumentLengthBig": {
+  "bank": "03",
+  "addr": "531C",
+  "len": 90,
+  "src": "c/bank03/InstrScreen.c"
+ },
+ "RaiseSynthFieldHigh": {
+  "bank": "1D",
+  "addr": "708E",
+  "len": 46,
+  "src": "c/bank1d/SynthScreen.c"
+ },
+ "RaiseSynthFieldLow": {
+  "bank": "1D",
+  "addr": "70BC",
+  "len": 40,
+  "src": "c/bank1d/SynthScreen.c"
+ },
+ "RaiseSynthParameterTo": {
+  "bank": "1D",
+  "addr": "6FC4",
+  "len": 103,
+  "src": "c/bank1d/SynthScreen.c"
  },
  "ReadChainByte": {
   "bank": "00",
@@ -3425,7 +3425,7 @@
   "len": 81,
   "src": "c/bank02/Sound.c"
  },
- "SoundInitPlayState": {
+ "SoundInitializePlayState": {
   "bank": "02",
   "addr": "710E",
   "len": 17,
@@ -3803,13 +3803,13 @@
   "len": 238,
   "src": "c/bank1b/ProjScreen.c"
  },
- "TestSramHi": {
+ "TestSramHigh": {
   "bank": "01",
   "addr": "445A",
   "len": 45,
   "src": "c/bank01/UiHelpers.c"
  },
- "TestSramLo": {
+ "TestSramLow": {
   "bank": "01",
   "addr": "4000",
   "len": 234,
@@ -3989,7 +3989,7 @@
   "len": 105,
   "src": "c/bank07/SongScreen.c"
  },
- "WriteSongInitFlag": {
+ "WriteSongInitializedMarker": {
   "bank": "01",
   "addr": "48D4",
   "len": 103,

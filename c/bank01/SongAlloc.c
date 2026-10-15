@@ -20,7 +20,7 @@ void WriteInstrumentName(UBYTE instr);
 void CopyInstrumentName(UBYTE instr);            /* UiHelpers.c */
 void SendLinkClipboard(void);                   /* $1C */
 
-UBYTE CheckSongInitFlag(void)
+UBYTE CheckSongInitializedMarker(void)
 {
     if (ReadSongByte(0, SramInitFlag1) == 'r' && ReadSongByte(0, SramInitFlag1 + 1) == 'b')
         return 1;
@@ -31,7 +31,7 @@ UBYTE CheckSongInitFlag(void)
     return 0;
 }
 
-void WriteSongInitFlag(void)
+void WriteSongInitializedMarker(void)
 {
     WriteSongByte(0, SramInitFlag1, 'r');
     WriteSongByte(0, SramInitFlag1 + 1, 'b');

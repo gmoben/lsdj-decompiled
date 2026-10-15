@@ -5,15 +5,15 @@
 776E CommandHelpPointers   ; [20] dw -> the "X: DESCRIPTION" help line per command (index = command*2; entry 0 points at an empty string, the end of TxtHelpSSweep)
 
 ; --- UI functions called from bank 0 (bank $01 paged in) ---
-4CF1 InitScreen        ; screen setup: ApplyColorSet + ClearOamBuffer + LoadHardwareTables
+4CF1 InitializeScreen        ; screen setup: ApplyColorSet + ClearOamBuffer + LoadHardwareTables
 4487 DrawCartTest               ; boot CARTRIDGE TEST screen (ROM checksum + SRAM self-test)
 4FEC UpdatePlayClock            ; per-frame PLAY clock: wPlayFrames counts to 60 (one frame skipped every 4 s), then seconds/minutes; redraws m:ss on the project screen
 7860 IsMessageActive            ; 1 while a message is up or pending (wMessageTimer or wMessageStringPointer set)
 7878 UpdateMessage     ; timed message + wSelectHeld handling
 4811 CheckJkMarker              ; check the 'jk' SRAM-init marker at $a13e/$a13f (unreferenced)
-4848 CheckSongInitFlag   ; ReadSongByte $be78/$be79 ('rb' memory-init marker)
+4848 CheckSongInitializedMarker   ; ReadSongByte $be78/$be79 ('rb' memory-init marker)
 50A0 UpdateWorkClock            ; apply one work-time minute: song WORKED h:mm ($BFB2/$BFB3) and the total d:hh:mm ($BFB6-$BFB8) in SRAM bank 1
-48D4 WriteSongInitFlag   ; WriteSongByte $be78 (set the 'rb' init marker)
+48D4 WriteSongInitializedMarker   ; WriteSongByte $be78 (set the 'rb' init marker)
 4D67 MarkChainUsed              ; set chain (arg)'s bit in the chain allocation map (SramChainAlloc + chain/8, bit chain&7); asserts chain < $80
 4EA3 .writeSongByte       ; (was WriteSongByteWrap) thin WriteSongByte wrapper
 45D1 FormatSramSong             ; format the SRAM song: zero the banks, default grooves/sequence/word names/instr names/synth params/wave frames
@@ -36,11 +36,11 @@
 7498 TxtBlankString2   ; blank (zero) display string (ref $6D98)
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
-4000 TestSramLo                 ; cartridge RAM test, SRAM banks 0-3: write/read-back pattern (part of DrawCartTest)
-445A TestSramHi                 ; cartridge RAM test, SRAM banks 4-15 (jp TestSramHi.done on mismatch)
+4000 TestSramLow                 ; cartridge RAM test, SRAM banks 0-3: write/read-back pattern (part of DrawCartTest)
+445A TestSramHigh                 ; cartridge RAM test, SRAM banks 4-15 (jp TestSramHigh.done on mismatch)
 493B CopyInstrumentName              ; copy instrument arg's 5-char name -> wNameEditBuffer (speech $40 -> "SPCH")
 4A49 WriteInstrumentName             ; wNameEditBuffer -> instrument name storage ($be7a + instr*5)
-4B15 LoadHardwareTables               ; load the CGB/DMG-specific tables: palettes -> wNotePeriodLo, the 216-byte note-period table -> wNotePeriods
+4B15 LoadHardwareTables               ; load the CGB/DMG-specific tables: palettes -> wNotePeriodLow, the 216-byte note-period table -> wNotePeriods
 4B5E ClearOamBuffer             ; clear the OAM shadow (wOamBuffer, $a0 bytes) and sprite tiles $8000-$802f/$8050-$805f, place the WAV sprites, wait for the OAM DMA, enable sprites
 4C61 ApplyColorSet              ; load the wColorSet CGB BG+OBJ palettes (hw $11 check, set_bkg_palette)
 4CFB MarkPhraseUsed             ; set the phrase-alloc bit (song $3E82 bitmap) for phrase arg
@@ -162,7 +162,7 @@
 6A07 ScreenPaletteWord              ; CGB palette block: WORD screen
 6B6F ScreenPaletteFile              ; CGB palette block: FILE screen
 4144 NoteFrequency37                 ; NoteFrequencyTable entry 37 (period $0714) -- exact symbol for Emulicious's interior split
-4247 NoteFrequencyD58Hi              ; hi byte of NoteFrequencyDeltaTable entry 58 (interior split)
+4247 NoteFrequencyD58High              ; hi byte of NoteFrequencyDeltaTable entry 58 (interior split)
 5099 TxtPctDColon               ; "%d:"
 509D TxtPctD01                  ; "%d"
 4F44 AllocNextFreePhraseMiddle ; @deploy-only: operand byte of the jp at $4F42 (walker artifact)
@@ -175,12 +175,12 @@
 6F93 TxtVerPatch                ; '0' patch digit + "  (c) 2000 JOHAN KOTLINSKI"
 
 ; --- structural local names (loop heads / common exits) ---
-4015 .loop                ; loop head in TestSramLo
-402A .loop2               ; loop head in TestSramLo
-4079 .loop3               ; loop head in TestSramLo
-408E .loop4               ; loop head in TestSramLo
-40E6 .done                ; common exit of TestSramLo
-4462 .loop                ; loop head in TestSramHi
+4015 .loop                ; loop head in TestSramLow
+402A .loop2               ; loop head in TestSramLow
+4079 .loop3               ; loop head in TestSramLow
+408E .loop4               ; loop head in TestSramLow
+40E6 .done                ; common exit of TestSramLow
+4462 .loop                ; loop head in TestSramHigh
 44F5 .loop                ; loop head in DrawCartTest
 4552 .loop2               ; loop head in DrawCartTest
 4555 .done                ; common exit of DrawCartTest
@@ -189,7 +189,7 @@
 4763 .synthParameterLoop      ; loop head in FormatSramSong: synth parameter defaults, 16 bytes per synth
 47D0 .waveFrameLoop       ; loop head in FormatSramSong: p < $b000
 4846 .done                ; common exit of CheckJkMarker
-48D2 .done                ; common exit of CheckSongInitFlag
+48D2 .done                ; common exit of CheckSongInitializedMarker
 4A40 .done                ; common exit of CopyInstrumentName
 4B7E .clearLoop           ; loop head in ClearOamBuffer: p != $8030 (32-bit compare), one tile byte per pass
 4BD5 .patternLoop         ; loop head in ClearOamBuffer: p != $8060
@@ -313,7 +313,7 @@
 7722 .checkSongColumnc
 78CD .setMessageTimer
 78FC .loadMessageStringPointer
-7907 .decMessageTimer
+7907 .decrementMessageTimer
 790E .checkMessageTimer
 7940 .drawTopBar
 7A44 .gba
@@ -345,7 +345,7 @@
 45D4 .disableInterrupts         ; di, then enable SRAM and select bank 0
 45D5 .clearSramWindow     ; rRAMG=$0a, rRAMB=0, ClearSramWindow, ClearBookmarks (bank 7)
 45F3 .rbMarker0           ; 'rb' at $be78, then the groove loop from $b090
-460B .grooveHiTest        ; the high byte of the end test
+460B .grooveHighTest        ; the high byte of the end test
 4612 .grooveDefault       ; *p++ = 6, *p = 6, p += 15: a 6/6 groove
 4620 .grooveSecond        ; the second step byte
 4639 .sequenceClear       ; FillMemory($b290, $ff, $400), then the word names from $bdd0
@@ -392,7 +392,7 @@
 4E94 .step
 4F90 .step
 4FE1 .step
-4FFD .incClockFrame60
+4FFD .incrementClockFrame60
 500A .cont
 500D .tick                 ; (was UpdateWorkClock) once a second: advance the PLAY clock, redraw it on the project screen
 501D .setClockFrame60

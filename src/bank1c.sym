@@ -16,7 +16,7 @@
 715B WriteCompressedByte ; emit one byte to the compressed output stream
 711F ReadWorkingSongByte ; read a byte of the working song (input to compress)
 ; --- song decompressor (LOAD) ---
-7402 ReadCompressedByte  ; read next byte from the compressed stream (ptr wCompressSourceHi/wBlockDestinationBank)
+7402 ReadCompressedByte  ; read next byte from the compressed stream (ptr wCompressSourceHigh/wBlockDestinationBank)
 74E0 LoadCompressedBlock        ; copy 512-byte compressed block a (SRAM bank 4 + a>>4, $A000 + (a&15)*$200) into the $DB00 buffer and point wCompressSource at it; ends with reti
 753E EmitDefaultWave     ; $F0 run: emit a default wavetable frame
 758E EmitDefaultInstrument ; $F1 run: emit a default instrument
@@ -378,7 +378,7 @@
 42D0 .tableFull           ; p reached end: return 0
 42E4 .cont
 42E6 .cont_2
-4320 .incSyncSendAccumulator
+4320 .incrementSyncSendAccumulator
 43AA .cont
 43D6 .checkArgument
 440E .ret00
@@ -408,7 +408,7 @@
 48CA .cont_2
 48CD .cont_3
 491A .blockRead           ; CountFileBlocks: not at the end: read the entry
-4929 .pointerIncDone          ; CountFileBlocks: p++ done (the high byte carried or not)
+4929 .pointerIncrementDone          ; CountFileBlocks: p++ done (the high byte carried or not)
 49A2 .cont
 49B1 .readSongByte
 49CD .cont_2
@@ -430,7 +430,7 @@
 4D19 .readSongByte
 4D4A .cont_5
 4D51 .cont_6
-4DA0 .decCompressByte
+4DA0 .decrementCompressByte
 4E4C .writeSongByte
 4E62 .setCompressByte
 4E94 .freeFileBlocks
@@ -532,7 +532,7 @@
 6099 .cont_14
 609B .fileDrawFieldChecked_5
 60A3 .cont_15
-6129 .incFileScroll
+6129 .incrementFileScroll
 61B7 .kit1LoopOff         ; kit 1 had no loop bit: test kit 2's
 61C4 .writeByte5          ; write back byte 5 (loop flags)
 6246 .body
@@ -640,8 +640,8 @@
 73EB .nextColumn
 7417 .storeCompressByte
 7432 .loadDecompressPosition
-7485 .incBlockDestinationPage
-74AF .incDecompressPosition
+7485 .incrementBlockDestinationPage
+74AF .incrementDecompressPosition
 74C9 .fileDecompressNextBank_2
 753C .cont
 5092 FileFieldX         ; x of the three file screen fields (0, 5, 10)

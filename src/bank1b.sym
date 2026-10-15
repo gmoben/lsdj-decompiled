@@ -3,7 +3,7 @@
 ; tables are marked as data in the disasm command; some embedded graphics/jump
 ; tables are still shown as code (byte-safe) and will be refined.
 
-4000 MixerKernel                ; 27-byte asm kit mixer step (ldh a,[c] .. ldh [c],a), copied to WRAM by InitKitMixer; ends at DrawHelpMenu
+4000 MixerKernel                ; 27-byte asm kit mixer step (ldh a,[c] .. ldh [c],a), copied to WRAM by InitializeKitMixer; ends at DrawHelpMenu
 4A62 DrawHelpScreen   ; Help screen (idx 14): renders the help/command-list text
 5C17 DrawProjectScreen ; Project screen draw: edits song-global properties at SRAM bank1 $BFB2+ (song offset $3FB2: tempo/transpose/sync/font/colorset/clone; see data_model.md)
 58B1 DrawSyncField   ; Project SYNC field ($58B1-$59B6): draw the wSyncMode name (TxtSyncOff..TxtSyncAnOut) at VRAM $9885, then at $98A0 either the sub-setting label (PS/2 DELAY / TICKS/STEP, ProjectSyncModeIs567) + wSyncMode2 in hex, or a blank; CGB attribute row via ColorField. Matched in C: c/bank1b/DrawSyncField.c
@@ -60,7 +60,7 @@
 726E ComputeEnvelope            ; plot the instrument envelope graph (bytes 1/9/10 segments over 64 columns, time scaled by GetInstrumentEnvelopeBytes) into wDecompressBuffer, upload
 74E4 UpdateEnvelopeSprites           ; write the envelope OAM markers (SetOamByte x2, 8-slot bound)
 ; --- functions called from bank 0 (this bank paged in) ---
-6B7A InitKitMixer               ; build the kit sample mixer in WRAM: KitMixTable -> $d000 (1152 B), then MixerKernel unrolled 16x at $d480 with inc c / inc e between copies and a ret after the last
+6B7A InitializeKitMixer               ; build the kit sample mixer in WRAM: KitMixTable -> $d000 (1152 B), then MixerKernel unrolled 16x at $d480 with inc c / inc e between copies and a ret after the last
 5DBF ProjectScreenInput         ; project screen (9) input (wButtons): field edits saved to the song properties, tap tempo, clean, file screen, RESET CARTRIDGE? menu; 1 = handled
 53E8 NameEditorInput            ; name-editor input (screen 7): d-pad moves the keyboard cursor, A types the key, select = backspace, start = done, B = cancel
 4BC3 HelpScreenInput            ; HELP screen input: UP/DOWN move the selection, A opens the entry, B closes it or returns to the project screen
@@ -163,8 +163,8 @@
 6AF8 .loop                ; loop head in TapTempoStep
 6B2A .loop2               ; loop head in TapTempoStep
 6B76 .done                ; common exit of TapTempoStep
-6B99 .loop                ; loop head in InitKitMixer
-6BAA .loop2               ; loop head in InitKitMixer
+6B99 .loop                ; loop head in InitializeKitMixer
+6BAA .loop2               ; loop head in InitializeKitMixer
 720E .fillLoop            ; loop head in PlotEnvelopeCurve: while wEnvelopePlotX + 1 < x, fill the next column with y
 72BF .loop                ; loop head in ComputeEnvelope
 7318 .loop2               ; loop head in ComputeEnvelope
@@ -252,31 +252,31 @@
 5F48 .checkTempo
 5F55 .checkTempoMode
 5F78 .checkTransposeDirty
-5F8C .incSongTransposeDisplay
+5F8C .incrementSongTransposeDisplay
 5F9D .checkButtonsSame
 5FAA .checkSyncMode
-5FC3 .incSyncMode
+5FC3 .incrementSyncMode
 5FC7 .saveSyncMode
 5FCA .setSyncState
 5FFB .checkCloneMode
 6022 .checkButtonsSameb
 602F .checkGameboyType
 6045 .checkGameboyTypeb
-605B .incColorSet
+605B .incrementColorSet
 60A4 .checkKeyRepeat
 60BA .setAHeld
 60E3 .setPrelisten
 6103 .clearProjectCursorb
 612F .checkColorSet
-6144 .decColorSet
+6144 .decrementColorSet
 618D .projectSyncStateFlagb
 61AE .checkTempoModeb
 61BA .checkTempob
 61DD .checkTransposeDirtyb
-61F1 .decSongTransposeDisplay
+61F1 .decrementSongTransposeDisplay
 6202 .checkButtonsSamec
 620F .loadSyncMode
-6227 .decSyncMode
+6227 .decrementSyncMode
 622B .saveSyncModeb
 622E .setSyncStateb
 6260 .checkCloneModeb
@@ -367,7 +367,7 @@
 4E60 .cont_13
 4E6A .cont_14
 4E70 .setStringSource_2
-4ED9 .incNameEditPosition
+4ED9 .incrementNameEditPosition
 4EF5 .cont
 4F2B .cont_2
 4FA1 .cont_3
@@ -456,7 +456,7 @@
 5EA9 .ret00_2
 5EAE .loadMapColumn
 5F5F .farCall
-5FE9 .incSyncMode2
+5FE9 .incrementSyncMode2
 5FF6 .ret01
 601D .ret01_2
 609F .ret01_3
@@ -464,7 +464,7 @@
 613F .ret00_3
 6188 .ret01_5
 61C4 .farCall_2
-624D .decSyncMode2
+624D .decrementSyncMode2
 625B .ret01_6
 6284 .ret01_7
 6299 .ret00_4

@@ -1005,7 +1005,7 @@ void SubSynthParameterClamped(UBYTE field, UBYTE dec)
     WriteSongByte(1, p, v);
 }
 
-void IncSynthParameterTo(UBYTE field, UBYTE max)
+void RaiseSynthParameterTo(UBYTE field, UBYTE max)
 {
     UWORD p;
     UBYTE v;
@@ -1020,7 +1020,7 @@ void IncSynthParameterTo(UBYTE field, UBYTE max)
     }
 }
 
-void DecSynthParameterTo0(UBYTE field)
+void LowerSynthParameterTo0(UBYTE field)
 {
     UWORD p;
     UBYTE v;
@@ -1035,7 +1035,7 @@ void DecSynthParameterTo0(UBYTE field)
     }
 }
 
-UBYTE IncSynthFieldHi(void)
+UBYTE RaiseSynthFieldHigh(void)
 {
     UBYTE v, t;
 
@@ -1048,7 +1048,7 @@ UBYTE IncSynthFieldHi(void)
     return v >> 4;
 }
 
-UBYTE IncSynthFieldLo(void)
+UBYTE RaiseSynthFieldLow(void)
 {
     UBYTE v, t;
 
@@ -1061,7 +1061,7 @@ UBYTE IncSynthFieldLo(void)
     return v & 0x0F;
 }
 
-UBYTE DecSynthFieldHi(void)
+UBYTE LowerSynthFieldHigh(void)
 {
     UBYTE v;
 
@@ -1073,7 +1073,7 @@ UBYTE DecSynthFieldHi(void)
     return v >> 4;
 }
 
-UBYTE DecSynthFieldLo(void)
+UBYTE LowerSynthFieldLow(void)
 {
     UBYTE v;
 
@@ -1257,34 +1257,34 @@ UBYTE SynthScreenInput(void)
             WriteSynthParameter(4, v);
             break;
         case 6:
-            DrawByte(IncSynthFieldHi());
+            DrawByte(RaiseSynthFieldHigh());
             break;
         case 12:
-            DrawByte(IncSynthFieldLo());
+            DrawByte(RaiseSynthFieldLow());
             break;
         case 4:
-            IncSynthParameterTo(5, 0xFF);
+            RaiseSynthParameterTo(5, 0xFF);
             break;
         case 10:
-            IncSynthParameterTo(9, 0xFF);
+            RaiseSynthParameterTo(9, 0xFF);
             break;
         case 5:
-            IncSynthParameterTo(6, 0xFF);
+            RaiseSynthParameterTo(6, 0xFF);
             break;
         case 11:
-            IncSynthParameterTo(0x0A, 0xFF);
+            RaiseSynthParameterTo(0x0A, 0xFF);
             break;
         case 7:
-            IncSynthParameterTo(8, 0xFF);
+            RaiseSynthParameterTo(8, 0xFF);
             break;
         case 13:
-            IncSynthParameterTo(0x0C, 0xFF);
+            RaiseSynthParameterTo(0x0C, 0xFF);
             break;
         case 9:
-            IncSynthParameterTo(7, 0x1F);
+            RaiseSynthParameterTo(7, 0x1F);
             break;
         case 15:
-            IncSynthParameterTo(0x0B, 0x1F);
+            RaiseSynthParameterTo(0x0B, 0x1F);
             break;
         }
         LoadSynthParameters();
@@ -1358,34 +1358,34 @@ UBYTE SynthScreenInput(void)
             WriteSynthParameter(4, v);
             break;
         case 6:
-            DrawByte(DecSynthFieldHi());
+            DrawByte(LowerSynthFieldHigh());
             break;
         case 12:
-            DrawByte(DecSynthFieldLo());
+            DrawByte(LowerSynthFieldLow());
             break;
         case 4:
-            DecSynthParameterTo0(5);
+            LowerSynthParameterTo0(5);
             break;
         case 10:
-            DecSynthParameterTo0(9);
+            LowerSynthParameterTo0(9);
             break;
         case 5:
-            DecSynthParameterTo0(6);
+            LowerSynthParameterTo0(6);
             break;
         case 11:
-            DecSynthParameterTo0(0x0A);
+            LowerSynthParameterTo0(0x0A);
             break;
         case 7:
-            DecSynthParameterTo0(8);
+            LowerSynthParameterTo0(8);
             break;
         case 13:
-            DecSynthParameterTo0(0x0C);
+            LowerSynthParameterTo0(0x0C);
             break;
         case 9:
-            DecSynthParameterTo0(7);
+            LowerSynthParameterTo0(7);
             break;
         case 15:
-            DecSynthParameterTo0(0x0B);
+            LowerSynthParameterTo0(0x0B);
             break;
         }
         LoadSynthParameters();
@@ -1394,12 +1394,12 @@ UBYTE SynthScreenInput(void)
         SetVramCursor(SynthFieldX[wSynthCursor], SynthFieldLayout[wSynthCursor]);
         switch (wSynthCursor) {
         case 6:
-            IncSynthFieldHi();
-            DrawByte(IncSynthFieldHi());
+            RaiseSynthFieldHigh();
+            DrawByte(RaiseSynthFieldHigh());
             break;
         case 12:
-            IncSynthFieldLo();
-            DrawByte(IncSynthFieldLo());
+            RaiseSynthFieldLow();
+            DrawByte(RaiseSynthFieldLow());
             break;
         case 9:
             AddSynthParameterClamped(7, 0x1F, 8);
@@ -1448,12 +1448,12 @@ UBYTE SynthScreenInput(void)
         SetVramCursor(SynthFieldX[wSynthCursor], SynthFieldLayout[wSynthCursor]);
         switch (wSynthCursor) {
         case 6:
-            DecSynthFieldHi();
-            DrawByte(DecSynthFieldHi());
+            LowerSynthFieldHigh();
+            DrawByte(LowerSynthFieldHigh());
             break;
         case 12:
-            DecSynthFieldLo();
-            DrawByte(DecSynthFieldLo());
+            LowerSynthFieldLow();
+            DrawByte(LowerSynthFieldLow());
             break;
         case 9:
             SubSynthParameterClamped(7, 8);

@@ -75,12 +75,12 @@
 6E6E WriteSynthParameter            ; synth_params[wSynthScreen*16+n] = value (song $3EB2); 24 uses
 6EB6 AddSynthParameterClamped         ; synth param field += inc, clamped to max; draws it and writes it back
 6F3F SubSynthParameterClamped         ; synth param field -= dec, clamped at 0; draws it and writes it back
-6FC4 IncSynthParameterTo            ; increment the edited synth's param field unless it equals max; draw it (hex) and store it
-702B DecSynthParameterTo0           ; decrement the edited synth's param field unless 0; draw it (hex) and store it
-708E IncSynthFieldHi            ; current synth field: +$10 on the hi nibble (clamp $f0), WriteSynthParameter
-70BC IncSynthFieldLo            ; current synth field: +1 on the lo nibble (clamp $0f)
-70E4 DecSynthFieldHi            ; current synth field: -$10 on the hi nibble
-7111 DecSynthFieldLo            ; current synth field: -1 on the lo nibble
+6FC4 RaiseSynthParameterTo            ; increment the edited synth's param field unless it equals max; draw it (hex) and store it
+702B LowerSynthParameterTo0           ; decrement the edited synth's param field unless 0; draw it (hex) and store it
+708E RaiseSynthFieldHigh            ; current synth field: +$10 on the hi nibble (clamp $f0), WriteSynthParameter
+70BC RaiseSynthFieldLow            ; current synth field: +1 on the lo nibble (clamp $0f)
+70E4 LowerSynthFieldHigh            ; current synth field: -$10 on the hi nibble
+7111 LowerSynthFieldLow            ; current synth field: -1 on the lo nibble
 ; --- functions called from bank 0 (this bank paged in) ---
 7138 SynthScreenInput           ; synth screen input (wButtons): overwrite prompt, help, cursor moves, field steps, synth select, copy/paste; 1 = handled
 4D58 ResetGrooveState           ; reset groove screen state (wGrooveCacheValid=0 + 16-slot loop)
@@ -197,10 +197,10 @@
 6E7B .loop                ; loop head in WriteSynthParameter
 6EC3 .loop                ; loop head in AddSynthParameterClamped
 6F4C .loop                ; loop head in SubSynthParameterClamped
-6FD1 .loop                ; loop head in IncSynthParameterTo
-7027 .done                ; common exit of IncSynthParameterTo
-7038 .loop                ; loop head in DecSynthParameterTo0
-708A .done                ; common exit of DecSynthParameterTo0
+6FD1 .loop                ; loop head in RaiseSynthParameterTo
+7027 .done                ; common exit of RaiseSynthParameterTo
+7038 .loop                ; loop head in LowerSynthParameterTo0
+708A .done                ; common exit of LowerSynthParameterTo0
 7C95 .loop                ; loop head in SynthScreenInput
 7CAA .loop2               ; loop head in SynthScreenInput
 7D31 .loop3               ; loop head in SynthScreenInput
@@ -259,7 +259,7 @@
 4567 .drawGrooveRow
 457B .drawGrooveCursor
 458A .drawGrooveRowb
-45B3 .decGrooveRow
+45B3 .decrementGrooveRow
 45B7 .drawGrooveCursorb
 45C6 .drawGrooveRowc
 45EA .loadSelectionTop
@@ -310,12 +310,12 @@
 7257 .setSynthCursor
 725F .synthSignalIsFrame
 726C .synthSignalIsFrameb
-7279 .decSynthCursor
+7279 .decrementSynthCursor
 727D .synthLoadWaveDataB
 72BB .setSynthCursorb
 72C2 .synthSignalIsFramec
 72CF .synthSignalIsFramed
-72DC .incSynthCursor
+72DC .incrementSynthCursor
 72E0 .synthLoadWaveDataBb
 7320 .loadSynthCursor
 7327 .synthLoadWaveDataBc
@@ -326,22 +326,22 @@
 7444 .checkButtonsSameb
 7473 .checkButtonsSamec
 750F .checkButtonsSamed
-7543 .incSynthFieldHi
-7552 .incSynthFieldLo
+7543 .raiseSynthFieldHigh
+7552 .raiseSynthFieldLow
 75DE .synthDataAddress
 7650 .checkButtonsSamee
 76AA .drawSynthWaveFieldb
 76B0 .checkButtonsSamef
 76DC .checkButtonsSameg
 7771 .checkButtonsSameh
-77A4 .decSynthFieldHi
-77B3 .decSynthFieldLo
+77A4 .lowerSynthFieldHigh
+77B3 .lowerSynthFieldLow
 781F .synthDataAddressb
-788F .incSynthFieldHib
-78A1 .incSynthFieldLob
+788F .raiseSynthFieldHighb
+78A1 .raiseSynthFieldLowb
 79C2 .synthDataAddressc
-7A32 .decSynthFieldHib
-7A44 .decSynthFieldLob
+7A32 .lowerSynthFieldHighb
+7A44 .lowerSynthFieldLowb
 7B4B .synthDataAddressd
 7B53 .setMessageStringPointer
 7B6D .setMessageStringPointerb

@@ -56,7 +56,7 @@ extern UBYTE wSyncReceiveByte;                   /* $CBDD */
 extern UBYTE wSyncState;                    /* $CBDE */
 extern char TxtTooBusy[];                   /* $01:$6FAE, "TOO BUSY!" */
 
-void SoundInitPlayState(void);                /* bank 2 */
+void SoundInitializePlayState(void);                /* bank 2 */
 void SetInterruptEnable(UBYTE ie);          /* asm */
 void SendSyncHandshake(void);
 void SendSyncByte(void);                    /* asm */
@@ -249,8 +249,8 @@ UBYTE CheckRomChecksum(void)
     UWORD sum;
     UWORD p;
 
-    lo = *(UBYTE *)0x014F;  /* HeaderChecksumLo */
-    hi = *(UBYTE *)0x014E;  /* HeaderChecksumHi */
+    lo = *(UBYTE *)0x014F;  /* HeaderChecksumLow */
+    hi = *(UBYTE *)0x014E;  /* HeaderChecksumHigh */
     sum = 0;
     for (p = 0; p < 0x4000; p++)
         sum += *(UBYTE *)p;
@@ -271,7 +271,7 @@ void HandleTooBusy(void)
 
     saved = hCurrentBank;
     SWITCH_ROM(2);
-    SoundInitPlayState();
+    SoundInitializePlayState();
     SWITCH_ROM(1);
     ShowMessage(TxtTooBusy);
     SWITCH_ROM(saved);

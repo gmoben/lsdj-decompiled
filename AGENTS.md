@@ -342,7 +342,9 @@ in `docs/functionality.md`.
   (the PS/2 keyboard; the name editor's on-screen keyboard is `NameEdit`),
   `Sound`, `Pointer`, `Buffer`, `Value`, `Length`, `Position`, `Index`,
   `Frequency`, `Previous`, `Parameter`, `Attribute`, `String`, `Scratch` (a
-  working copy), `Selection` (the clipboard selection; `Select` is only the
+  working copy), `High`/`Low` (a word's bytes), `Initialize`,
+  `Increment`/`Decrement` (an editor's field steppers are `Raise<Field>`/
+  `Lower<Field>`: `RaiseInstrumentCommandRate`), `Maximum`/`Minimum`, `Selection` (the clipboard selection; `Select` is only the
   SELECT button: the item under a cursor is an `Entry`, stepping a value is
   `Next`/`Previous`), `Highlight` (the cursor's colouring), `Shadow` (a RAM copy,
   `wTempoShadow`; the DMG font's dotted ground is `Shaded`), `Message`, `Number`, `Count`, `Transpose` (never `Trans`;

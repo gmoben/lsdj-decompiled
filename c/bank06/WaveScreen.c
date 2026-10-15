@@ -18,7 +18,7 @@ extern UBYTE wWaveSelectionEnd;                   /* $C93C */
 void DrawWaveColumn(UBYTE i);
 void WriteWaveSample(UBYTE n, UBYTE v);
 UBYTE ReadWaveSample(UBYTE i);
-void InitWaveSprites(void);
+void InitializeWaveSprites(void);
 void SetWaveSpriteColumns(UBYTE s, UBYTE x);
 void GetWaveEditRange(UBYTE *a, UBYTE *b);
 void DrawWaveRange(void);
@@ -164,7 +164,7 @@ void GetWaveEditRange(UBYTE *a, UBYTE *b)
     (*b)++;
 }
 
-void InitWaveSprites(void)
+void InitializeWaveSprites(void)
 {
     UBYTE y, i;
 
@@ -261,7 +261,7 @@ void DrawWaveColumns(void)
 
 void DrawWaveScreen(void)
 {
-    InitWaveSprites();
+    InitializeWaveSprites();
     hBgDigitPalette = 4;
     hBgPalette = 1;
     FarCall(1, FAR_FN(DrawTopBar));

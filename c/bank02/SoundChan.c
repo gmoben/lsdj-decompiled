@@ -51,7 +51,7 @@ UBYTE SoundReadPhraseCommand(void);               /* asm */
 UBYTE SoundPhraseHop(void);
 UBYTE SoundRandom15(void);                    /* asm */
 void SoundMaskLow5(UBYTE v);                  /* asm (takes it in a) */
-void SoundInitPlayState(void);
+void SoundInitializePlayState(void);
 void AdvanceCurrentChannelCursors(UBYTE n);        /* asm (takes it in a) */
 UBYTE SoundReadChainPhrase(void);                /* asm */
 UBYTE SoundLiveChainEnd(void);
@@ -74,7 +74,7 @@ UBYTE SoundPhraseHop(void)
     mode = wPlayMode;
     v = wChannelCommandValue[hSoundChannel];
     if (v == 0xFF) {
-        SoundInitPlayState();
+        SoundInitializePlayState();
         return 2;
     }
     if (wTableHopDone++)

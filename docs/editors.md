@@ -8,7 +8,7 @@ the end.)
 ## Control-flow spine (confirmed)
 
 ```
-Entry $0100 -> Start $0150 (init) -> main $1306 (InitAndLoadSong $0DDB, ...) -> main.mainLoop $1377
+Entry $0100 -> Start $0150 (init) -> main $1306 (InitializeAndLoadSong $0DDB, ...) -> main.mainLoop $1377
   main.mainLoop: when wRedrawPending ($C56C) says a frame is due ->
     ProcessInput $0ED6: drain the button queue (GetNextButtons); per event
       HandleButtonEvent $2B8D -> HandleInputCombos + DispatchScreenInput

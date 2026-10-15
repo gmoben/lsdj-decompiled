@@ -276,7 +276,7 @@ void EraseInstrumentCursor(void)
     ColorField(x, y, r - x, 1);
 }
 
-void IncInstrumentCommandRate(void)
+void RaiseInstrumentCommandRate(void)
 {
     UBYTE v;
 
@@ -288,7 +288,7 @@ void IncInstrumentCommandRate(void)
     }
 }
 
-void DecInstrumentCommandRate(void)
+void LowerInstrumentCommandRate(void)
 {
     UBYTE v;
 
@@ -767,7 +767,7 @@ void SetInstrumentType(UBYTE type)
     DrawInstrumentScreen();
 }
 
-void IncInstrumentFieldLo(UBYTE field)
+void RaiseInstrumentFieldLow(UBYTE field)
 {
     UBYTE v, t;
 
@@ -782,7 +782,7 @@ void IncInstrumentFieldLo(UBYTE field)
     InstrumentEnvelopeChanged();
 }
 
-void DecInstrumentFieldLo(UBYTE field)
+void LowerInstrumentFieldLow(UBYTE field)
 {
     UBYTE v;
 
@@ -796,7 +796,7 @@ void DecInstrumentFieldLo(UBYTE field)
     InstrumentEnvelopeChanged();
 }
 
-void IncInstrumentFieldHi(UBYTE field)
+void RaiseInstrumentFieldHigh(UBYTE field)
 {
     UBYTE v, t;
 
@@ -811,7 +811,7 @@ void IncInstrumentFieldHi(UBYTE field)
     InstrumentEnvelopeChanged();
 }
 
-void DecInstrumentFieldHi(UBYTE field)
+void LowerInstrumentFieldHigh(UBYTE field)
 {
     UBYTE v;
 
@@ -825,7 +825,7 @@ void DecInstrumentFieldHi(UBYTE field)
     InstrumentEnvelopeChanged();
 }
 
-void IncInstrumentLength(void)
+void RaiseInstrumentLength(void)
 {
     UBYTE v;
 
@@ -845,7 +845,7 @@ void IncInstrumentLength(void)
         DrawString(TxtUnlim);
 }
 
-void DecInstrumentLength(void)
+void LowerInstrumentLength(void)
 {
     UBYTE v, t;
 
@@ -868,7 +868,7 @@ void DecInstrumentLength(void)
         DrawString(TxtUnlim);
 }
 
-void IncInstrumentLengthBig(void)
+void RaiseInstrumentLengthBig(void)
 {
     UBYTE v, t;
 
@@ -890,7 +890,7 @@ void IncInstrumentLengthBig(void)
         DrawString(TxtUnlim);
 }
 
-void DecInstrumentLengthBig(void)
+void LowerInstrumentLengthBig(void)
 {
     UBYTE v, t;
 
@@ -1181,13 +1181,13 @@ UBYTE InstrumentScreenInput(void)
         case 0:
             switch (wInstrumentField) {
             case 2:
-                IncInstrumentFieldLo(1);
+                RaiseInstrumentFieldLow(1);
                 break;
             case 3:
-                IncInstrumentFieldLo(9);
+                RaiseInstrumentFieldLow(9);
                 break;
             case 4:
-                IncInstrumentFieldLo(0x0A);
+                RaiseInstrumentFieldLow(0x0A);
                 break;
             case 5:
                 v = ReadCurrentInstrumentByte(7);
@@ -1209,7 +1209,7 @@ UBYTE InstrumentScreenInput(void)
                 DrawFieldValue(0x0C, v);
                 break;
             case 7:
-                IncInstrumentLength();
+                RaiseInstrumentLength();
                 break;
             case 8:
                 v = ReadCurrentInstrumentByte(4);
@@ -1226,7 +1226,7 @@ UBYTE InstrumentScreenInput(void)
                 SetInstrumentTransposeOff();
                 break;
             case 0x0D:
-                IncInstrumentCommandRate();
+                RaiseInstrumentCommandRate();
                 break;
             case 0x0B:
                 v = ReadCurrentInstrumentByte(2);
@@ -1343,7 +1343,7 @@ UBYTE InstrumentScreenInput(void)
                 SetInstrumentTransposeOff();
                 break;
             case 7:
-                IncInstrumentCommandRate();
+                RaiseInstrumentCommandRate();
                 break;
             case 6:
                 v = ReadCurrentInstrumentByte(0x0C) + 1;
@@ -1473,13 +1473,13 @@ UBYTE InstrumentScreenInput(void)
         case 3:
             switch (wInstrumentField) {
             case 2:
-                IncInstrumentFieldLo(1);
+                RaiseInstrumentFieldLow(1);
                 break;
             case 3:
-                IncInstrumentFieldLo(9);
+                RaiseInstrumentFieldLow(9);
                 break;
             case 4:
-                IncInstrumentFieldLo(0x0A);
+                RaiseInstrumentFieldLow(0x0A);
                 break;
             case 5:
                 v = ReadCurrentInstrumentByte(7);
@@ -1491,7 +1491,7 @@ UBYTE InstrumentScreenInput(void)
                 DrawFieldValue(0x0C, v);
                 break;
             case 6:
-                IncInstrumentLength();
+                RaiseInstrumentLength();
                 break;
             case 8:
                 if (!wButtonsSame)
@@ -1505,7 +1505,7 @@ UBYTE InstrumentScreenInput(void)
                 SetInstrumentTransposeOff();
                 break;
             case 0x0A:
-                IncInstrumentCommandRate();
+                RaiseInstrumentCommandRate();
                 break;
             case 0x0B:
                 NextInstrumentTableMode();
@@ -1526,13 +1526,13 @@ UBYTE InstrumentScreenInput(void)
         case 0:
             switch (wInstrumentField) {
             case 2:
-                DecInstrumentFieldLo(1);
+                LowerInstrumentFieldLow(1);
                 break;
             case 3:
-                DecInstrumentFieldLo(9);
+                LowerInstrumentFieldLow(9);
                 break;
             case 4:
-                DecInstrumentFieldLo(0x0A);
+                LowerInstrumentFieldLow(0x0A);
                 break;
             case 5:
                 v = ReadCurrentInstrumentByte(7);
@@ -1554,7 +1554,7 @@ UBYTE InstrumentScreenInput(void)
                 DrawFieldValue(0x0C, v);
                 break;
             case 7:
-                DecInstrumentLength();
+                LowerInstrumentLength();
                 break;
             case 8:
                 v = ReadCurrentInstrumentByte(4);
@@ -1571,7 +1571,7 @@ UBYTE InstrumentScreenInput(void)
                 SetInstrumentTransposeOn();
                 break;
             case 0x0D:
-                DecInstrumentCommandRate();
+                LowerInstrumentCommandRate();
                 break;
             case 0x0B:
                 v = ReadCurrentInstrumentByte(2);
@@ -1689,7 +1689,7 @@ UBYTE InstrumentScreenInput(void)
                 SetInstrumentTransposeOn();
                 break;
             case 7:
-                DecInstrumentCommandRate();
+                LowerInstrumentCommandRate();
                 break;
             case 6:
                 v = ReadCurrentInstrumentByte(0x0C) - 1;
@@ -1822,13 +1822,13 @@ UBYTE InstrumentScreenInput(void)
         case 3:
             switch (wInstrumentField) {
             case 2:
-                DecInstrumentFieldLo(1);
+                LowerInstrumentFieldLow(1);
                 break;
             case 3:
-                DecInstrumentFieldLo(9);
+                LowerInstrumentFieldLow(9);
                 break;
             case 4:
-                DecInstrumentFieldLo(0x0A);
+                LowerInstrumentFieldLow(0x0A);
                 break;
             case 5:
                 v = ReadCurrentInstrumentByte(7);
@@ -1840,7 +1840,7 @@ UBYTE InstrumentScreenInput(void)
                 DrawFieldValue(0x0C, v);
                 break;
             case 6:
-                DecInstrumentLength();
+                LowerInstrumentLength();
                 break;
             case 8:
                 if (!wButtonsSame)
@@ -1854,7 +1854,7 @@ UBYTE InstrumentScreenInput(void)
                 SetInstrumentTransposeOn();
                 break;
             case 0x0A:
-                DecInstrumentCommandRate();
+                LowerInstrumentCommandRate();
                 break;
             case 0x0B:
                 PreviousInstrumentTableMode();
@@ -1870,13 +1870,13 @@ UBYTE InstrumentScreenInput(void)
         case 0:
             switch (wInstrumentField) {
             case 2:
-                IncInstrumentFieldHi(1);
+                RaiseInstrumentFieldHigh(1);
                 break;
             case 3:
-                IncInstrumentFieldHi(9);
+                RaiseInstrumentFieldHigh(9);
                 break;
             case 4:
-                IncInstrumentFieldHi(0x0A);
+                RaiseInstrumentFieldHigh(0x0A);
                 break;
             case 5:
                 v = ReadCurrentInstrumentByte(7);
@@ -1893,7 +1893,7 @@ UBYTE InstrumentScreenInput(void)
                 DrawFieldValue(0x0C, 3);
                 break;
             case 7:
-                IncInstrumentLengthBig();
+                RaiseInstrumentLengthBig();
                 break;
             case 8:
                 v = ReadCurrentInstrumentByte(4);
@@ -2064,20 +2064,20 @@ UBYTE InstrumentScreenInput(void)
         case 3:
             switch (wInstrumentField) {
             case 2:
-                IncInstrumentFieldHi(1);
+                RaiseInstrumentFieldHigh(1);
                 break;
             case 3:
-                IncInstrumentFieldHi(9);
+                RaiseInstrumentFieldHigh(9);
                 break;
             case 4:
-                IncInstrumentFieldHi(0x0A);
+                RaiseInstrumentFieldHigh(0x0A);
                 break;
             case 5:
                 WriteCurrentInstrumentByte(7, 3);
                 DrawFieldValue(0x0C, 3);
                 break;
             case 6:
-                IncInstrumentLengthBig();
+                RaiseInstrumentLengthBig();
                 break;
             case 0x0B:
                 NextInstrumentTableMode();
@@ -2095,13 +2095,13 @@ UBYTE InstrumentScreenInput(void)
         case 0:
             switch (wInstrumentField) {
             case 2:
-                DecInstrumentFieldHi(1);
+                LowerInstrumentFieldHigh(1);
                 break;
             case 3:
-                DecInstrumentFieldHi(9);
+                LowerInstrumentFieldHigh(9);
                 break;
             case 4:
-                DecInstrumentFieldHi(0x0A);
+                LowerInstrumentFieldHigh(0x0A);
                 break;
             case 5:
                 v = ReadCurrentInstrumentByte(7);
@@ -2117,7 +2117,7 @@ UBYTE InstrumentScreenInput(void)
                 DrawFieldValue(0x0C, 0);
                 break;
             case 7:
-                DecInstrumentLengthBig();
+                LowerInstrumentLengthBig();
                 break;
             case 8:
                 v = ReadCurrentInstrumentByte(4);
@@ -2285,20 +2285,20 @@ UBYTE InstrumentScreenInput(void)
         case 3:
             switch (wInstrumentField) {
             case 2:
-                DecInstrumentFieldHi(1);
+                LowerInstrumentFieldHigh(1);
                 break;
             case 3:
-                DecInstrumentFieldHi(9);
+                LowerInstrumentFieldHigh(9);
                 break;
             case 4:
-                DecInstrumentFieldHi(0x0A);
+                LowerInstrumentFieldHigh(0x0A);
                 break;
             case 5:
                 WriteCurrentInstrumentByte(7, 0);
                 DrawFieldValue(0x0C, 0);
                 break;
             case 6:
-                DecInstrumentLengthBig();
+                LowerInstrumentLengthBig();
                 break;
             case 0x0B:
                 PreviousInstrumentTableMode();

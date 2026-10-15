@@ -67,8 +67,8 @@ extern UBYTE wNoiPitchFraction;                 /* $C8DB */
 extern UBYTE wNoiVibratoPreviousOffset;                /* $C8DA */
 extern UBYTE wChannelVibratoSpeed[];               /* $C314, [4] words, read here by byte */
 extern UWORD wChannelFrequency[];                   /* $C0F4, [4] */
-extern UBYTE wKit1OffsetHi, wKit1OffsetLo;  /* $C4EA, $C4EB */
-extern UBYTE wKit2OffsetHi, wKit2OffsetLo;  /* $C4EC, $C4ED */
+extern UBYTE wKit1OffsetHigh, wKit1OffsetLow;  /* $C4EA, $C4EB */
+extern UBYTE wKit2OffsetHigh, wKit2OffsetLow;  /* $C4EC, $C4ED */
 extern UBYTE wSyncSerialIeMask;             /* $CB6D */
 extern UBYTE wPlayChannelFirst;                /* $C8DD */
 extern UBYTE wPlayChannelLast;                 /* $C8DE */
@@ -97,7 +97,7 @@ extern UBYTE wWavFrameTimer;                /* $C525 */
 extern UBYTE wWavSynthFrame;                /* $C694 */
 extern UBYTE wWavUploadPending;              /* $C69C */
 extern UBYTE wCommandWaveParameter2;                 /* $C8C3 */
-extern UBYTE wChannelFrequencyHi[];                 /* $C2E0, [4] */
+extern UBYTE wChannelFrequencyHigh[];                 /* $C2E0, [4] */
 extern UBYTE wChannelEnvelope[];                    /* $C2D8, [4] */
 extern UBYTE wChannelRestart[];                /* $C0E4, [4] */
 extern UBYTE wChannelChordPhase[];             /* $C21C, [4] */
@@ -144,7 +144,7 @@ void SoundSpeechStep(void);
 void SoundStepWavFrames(void);
 void SoundUpdateAllChannels(void);
 void SoundRetrigNote(void);
-void SoundInitKit2Sample(UBYTE n);             /* bank 0 */
+void SoundInitializeKit2Sample(UBYTE n);             /* bank 0 */
 void SoundTriggerWav(void);                     /* asm */
 void SoundClearChannelCommandSlots(void);             /* asm */
 void SoundResetWavFlat(void);                 /* asm */
@@ -376,7 +376,7 @@ void Command_F_Wav(void)
         }
     } else {
         step = hCommandValueS;
-        off = wKit1OffsetHi;
+        off = wKit1OffsetHigh;
         if (step >= 16) {
             step <<= 1;
             step -= 16;
@@ -386,20 +386,20 @@ void Command_F_Wav(void)
         }
         step <<= 4;
         off <<= 8;
-        off += wKit1OffsetLo;
+        off += wKit1OffsetLow;
         off += step;
         if (off & 0x8000)
             off = 0;
-        wKit1OffsetLo = off & 0xFF;
-        wKit1OffsetHi = off >> 8;
-        off = wKit2OffsetHi;
+        wKit1OffsetLow = off & 0xFF;
+        wKit1OffsetHigh = off >> 8;
+        off = wKit2OffsetHigh;
         off <<= 8;
-        off += wKit2OffsetLo;
+        off += wKit2OffsetLow;
         off += step;
         if (off & 0x8000)
             off = 0;
-        wKit2OffsetLo = off & 0xFF;
-        wKit2OffsetHi = off >> 8;
+        wKit2OffsetLow = off & 0xFF;
+        wKit2OffsetHigh = off >> 8;
         step = wWavLevelS;
         wWavLevel = wChannelEnvelope[2];
         SoundTriggerWav();
@@ -535,7 +535,7 @@ void Command_E_Pu1(void)
 {
     UBYTE v;
 
-    if (wChannelFrequencyHi[0] & 0x40)
+    if (wChannelFrequencyHigh[0] & 0x40)
         SoundTriggerPu1();
     wEnvelopeStagePu1 = 0;
     SoundSetupLfo();
@@ -555,7 +555,7 @@ void Command_E_Pu2(void)
 {
     UBYTE v;
 
-    if (wChannelFrequencyHi[1] & 0x40)
+    if (wChannelFrequencyHigh[1] & 0x40)
         SoundTriggerPu2();
     wEnvelopeStagePu2 = 0;
     SoundSetupLfo();
@@ -575,7 +575,7 @@ void Command_E_Noi(void)
 {
     UBYTE v;
 
-    if (wChannelFrequencyHi[3] & 0x40)
+    if (wChannelFrequencyHigh[3] & 0x40)
         SoundTriggerNoi();
     wEnvelopeStageNoi = 0;
     SoundSetupLfo();
@@ -726,7 +726,7 @@ UBYTE SoundGetChainPhrase(UBYTE chain, UBYTE row)
 
 /* $710E: play the current screen's scope from scratch */
 
-void SoundInitPlayState(void)
+void SoundInitializePlayState(void)
 {
     wPlayMode = wCurrentScreen;
     wLiveMode = 0;
@@ -1042,7 +1042,7 @@ void SoundSpeechStep(void)
             _asm di _endasm;
             wSpeechWord = 0;
             wKit2LoopEnabled = 0;
-            SoundInitKit2Sample(v);
+            SoundInitializeKit2Sample(v);
             SoundTriggerWav();
             wSpeechWord = 1;
             _asm ei _endasm;

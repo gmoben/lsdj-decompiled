@@ -4,7 +4,7 @@
  * MATCHING C (period GBDK 2.95-3 / SDCC 2.2.1 + tools/match/lsdj.peep);
  * `make match` verifies it against the ROM.
  *
- * The work-RAM reset InitAndLoadSong runs before a song is loaded: the four
+ * The work-RAM reset InitializeAndLoadSong runs before a song is loaded: the four
  * channels' sequencer state, the editors' cursors, the clipboard caches and
  * the per-channel pointers the sound driver indexes through.
  *

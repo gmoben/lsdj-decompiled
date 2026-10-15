@@ -96,7 +96,7 @@
 70B6 EraseSpeechCursor          ; restore the word-list row's palette (alternating by row parity)
 70DF DrawSpeechCursor           ; highlight the speech instrument's word-list row under wSpeechRow
 ; --- functions called from bank 0 (this bank paged in) ---
-4A26 InitRemapTable             ; fill wInstrumentRemapTable..+16 with identity 0..15 (remap table for clone/dedupe)
+4A26 InitializeRemapTable             ; fill wInstrumentRemapTable..+16 with identity 0..15 (remap table for clone/dedupe)
 7801 TxtCutWord        ; "CUT WORD"
 780A TxtPastedWord     ; "PASTED WORD"
 
@@ -151,7 +151,7 @@
 4234 .done                ; common exit of DrawEnvelopeFields
 43B7 .done                ; common exit of DrawNoiseInstrument
 48E7 .loop                ; loop head in WriteChainPhrase
-4A2B .loop                ; loop head in InitRemapTable
+4A2B .loop                ; loop head in InitializeRemapTable
 4A6C .loop                ; loop head in AllocNextFreeInstrument
 4ACA .done                ; common exit of AllocNextFreeInstrument
 4B19 .loop                ; loop head in IsSongBlockEmpty
@@ -329,7 +329,7 @@
 4C9D .ok
 5120 .countUsedTables
 51D8 .ok
-5379 .incSongColumn
+5379 .incrementSongColumn
 5C66 .drawOk              ; DeduplicatePhrases: all phrases folded
 5D00 .drawOk              ; DeduplicateChains: all chains folded
 5DB1 .drawOk              ; DeduplicateTables: all tables folded
@@ -341,7 +341,7 @@
 6615 .unhighlightPhraseCell
 6706 .checkSelectionRight
 6714 .checkSelectionRightb
-672F .incSelectionRight
+672F .incrementSelectionRight
 683E .checkSelectionRightc
 6AF4 .checkSelectionRightd
 6B5B .rowOk               ; HighlightPhraseCell: row < $10
@@ -470,7 +470,7 @@
 5307 .setSongColumn
 5327 .cont
 5328 .loadSongColumn
-536F .incSongColumn_2
+536F .incrementSongColumn_2
 5380 .setSongColumn_2
 5408 .cont_2
 540E .cont_3
