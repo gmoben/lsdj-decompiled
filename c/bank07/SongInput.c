@@ -117,12 +117,12 @@ UBYTE SongScreenInput(void)
             wDrawStep = 0;
             goto store;
         }
-        chain = ReadSeqByte(wSongColumn, wSongRow);
+        chain = ReadSequenceByte(wSongColumn, wSongRow);
         wSongCellEmpty = chain == 0xFF;
         if (wSongCellEmpty) {
             chain = wColumnChain[wSongColumn];
             if (chain != 0xFF) {
-                FarCallArg(1, FAR_FN(MarkChainUsed), chain);
+                FarCallArgument(1, FAR_FN(MarkChainUsed), chain);
                 goto store;
             }
             v = wSongRow;
@@ -133,7 +133,7 @@ UBYTE SongScreenInput(void)
                     goto store;
                 }
                 v--;
-                chain = ReadSeqByte(wSongColumn, v);
+                chain = ReadSequenceByte(wSongColumn, v);
             } while (chain == 0xFF);
         }
     store:
@@ -150,7 +150,7 @@ UBYTE SongScreenInput(void)
         if (wCursorMode != 4)
             EraseSongCursor();
         wSongColumn++;
-        if (!wMessageStrPtr && !wMessageTimer)
+        if (!wMessageStringPointer && !wMessageTimer)
             DrawChannelHeader();
         if (wCursorMode == 4)
             EditSongSelection();
@@ -163,7 +163,7 @@ UBYTE SongScreenInput(void)
         if (wCursorMode != 4)
             EraseSongCursor();
         wSongColumn--;
-        if (!wMessageStrPtr && !wMessageTimer)
+        if (!wMessageStringPointer && !wMessageTimer)
             DrawChannelHeader();
         if (wCursorMode == 4)
             EditSongSelection();
@@ -216,9 +216,9 @@ UBYTE SongScreenInput(void)
         if (wButtonsSame)
             return 1;
         wLiveMode = !wLiveMode;
-        if (wMessageStrPtr) {
+        if (wMessageStringPointer) {
             wMessageNoPause = 0;
-            wMessageStrPtr = 0;
+            wMessageStringPointer = 0;
             wMessageTimer = 0;
         }
         if (!wLiveMode) {
@@ -231,9 +231,9 @@ UBYTE SongScreenInput(void)
             SetSpriteTile3(2);
             SetSpriteTile3(3);
         }
-        MemSet(wChannelNextSongRow, 0xFF, 4);
-        MemSet(wChannelLiveQueued, 0, 4);
-        MemSet(wChannelStopQueued, 0, 4);
+        FillMemory(wChannelNextSongRow, 0xFF, 4);
+        FillMemory(wChannelLiveQueued, 0, 4);
+        FillMemory(wChannelStopQueued, 0, 4);
         if (wLiveMode && wPlayMode && wPlayMode != 4) {
             wChannelNextSongRow[wPlayStartChannel] = wPlayStartRow;
             if (wPlayMode != 3)
@@ -248,7 +248,7 @@ UBYTE SongScreenInput(void)
         if (wCursorMode == 4)
             return 0;
         wSongScopeDirty = 1;
-        v = ReadSeqByte(wSongColumn, wSongRow);
+        v = ReadSequenceByte(wSongColumn, wSongRow);
         if (v < 0x7F)
             v++;
         v &= 0x7F;
@@ -259,7 +259,7 @@ UBYTE SongScreenInput(void)
         if (wCursorMode == 4)
             return 0;
         wSongScopeDirty = 1;
-        v = ReadSeqByte(wSongColumn, wSongRow) + 0x10;
+        v = ReadSequenceByte(wSongColumn, wSongRow) + 0x10;
         if (v & 0x80)
             v = 0x7F;
         WriteSongCell(wSongColumn, wSongRow, v);
@@ -269,7 +269,7 @@ UBYTE SongScreenInput(void)
         if (wCursorMode == 4)
             return 0;
         wSongScopeDirty = 1;
-        v = ReadSeqByte(wSongColumn, wSongRow);
+        v = ReadSequenceByte(wSongColumn, wSongRow);
         if (v && v != 0xFF) {
             v--;
             WriteSongCell(wSongColumn, wSongRow, v);
@@ -280,7 +280,7 @@ UBYTE SongScreenInput(void)
         if (wCursorMode == 4)
             return 0;
         wSongScopeDirty = 1;
-        v = ReadSeqByte(wSongColumn, wSongRow);
+        v = ReadSequenceByte(wSongColumn, wSongRow);
         if (v == 0xFF)
             v = 0;
         else if (v & 0xF0) {
@@ -308,7 +308,7 @@ UBYTE SongScreenInput(void)
         if (!wAPressEnabled && !wBHeld)
             return 0;
         wBHeld = 0;
-        cell = ReadSeqByte(wSongColumn, wSongRow);
+        cell = ReadSequenceByte(wSongColumn, wSongRow);
         wCursorMode = 2;
         wSelectionLeft = wSongColumn;
         wSelectionRight = wSongColumn + 1;
@@ -383,7 +383,7 @@ UBYTE SongScreenInput(void)
             return 0;
         v = wSongRow;
         while (1) {
-            chain = ReadSeqByte(wSongColumn, v);
+            chain = ReadSequenceByte(wSongColumn, v);
             if (chain < 0x80) {
                 wChain = chain;
                 wSongRow = v;
@@ -395,7 +395,7 @@ UBYTE SongScreenInput(void)
             }
             v--;
         }
-        while (wChainRow && FarCallArg2(2, (UWORD)SoundGetChainPhrase, wChain, (char)wChainRow) == 0xFF)
+        while (wChainRow && FarCallArgument2(2, (UWORD)SoundGetChainPhrase, wChain, (char)wChainRow) == 0xFF)
             wChainRow--;
         FarCall(5, MoveMapCursorRight);
         FarCall(4, FAR_FN(RedrawScreen));

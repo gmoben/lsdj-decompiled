@@ -4,9 +4,9 @@
    is the `ld b,(hl); inc hl; ld c,(hl)`; SDCC's call through a pointer
    pushes the return label and jumps with `jp (hl)`), then switches back.
    The callee's byte comes back in e, untouched by the bank restore.
-   FarCall and FarCallArg are hand-written. */
+   FarCall and FarCallArgument are hand-written. */
 
-#define FARCALL_C       /* FarCallByte and FarCallArg2V take a UWORD here */
+#define FARCALL_C       /* FarCallByte and FarCallArgument2V take a UWORD here */
 #include "lsdj.h"
 
 /* $0BFE: call fn in ROM bank `bank`, returning its byte */
@@ -24,7 +24,7 @@ UBYTE FarCallByte(UBYTE bank, UWORD fn)
 
 /* $0C29: call fn(arg) in ROM bank `bank`, returning its byte */
 
-UBYTE FarCallArgByte(UBYTE bank, UWORD fn, UBYTE arg)
+UBYTE FarCallArgumentByte(UBYTE bank, UWORD fn, UBYTE arg)
 {
     UBYTE old, r;
 
@@ -37,7 +37,7 @@ UBYTE FarCallArgByte(UBYTE bank, UWORD fn, UBYTE arg)
 
 /* $0C5A: call fn(a, b) in ROM bank `bank` */
 
-void FarCallArg2V(UBYTE bank, UWORD fn, UBYTE a, UBYTE b)
+void FarCallArgument2V(UBYTE bank, UWORD fn, UBYTE a, UBYTE b)
 {
     UBYTE old;
 
@@ -49,7 +49,7 @@ void FarCallArg2V(UBYTE bank, UWORD fn, UBYTE a, UBYTE b)
 
 /* $0C8F: call fn(a, b) in ROM bank `bank`, returning its byte */
 
-UBYTE FarCallArg2(UBYTE bank, UWORD fn, UBYTE a, UBYTE b)
+UBYTE FarCallArgument2(UBYTE bank, UWORD fn, UBYTE a, UBYTE b)
 {
     UBYTE old, r;
 
@@ -62,7 +62,7 @@ UBYTE FarCallArg2(UBYTE bank, UWORD fn, UBYTE a, UBYTE b)
 
 /* $0CC5: call fn(a, b, c) in ROM bank `bank` */
 
-void FarCallArg3(UBYTE bank, UWORD fn, UBYTE a, UBYTE b, UBYTE c)
+void FarCallArgument3(UBYTE bank, UWORD fn, UBYTE a, UBYTE b, UBYTE c)
 {
     UBYTE old;
 

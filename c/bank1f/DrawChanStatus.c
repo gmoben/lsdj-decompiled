@@ -17,8 +17,8 @@
 extern UBYTE wChannelOutput[];                /* $C0A0, [4] */
 extern UBYTE wChannelOutputOverride[];                /* $C0A4, [4] */
 extern UBYTE wChannelMuteShown[];              /* $C9CE, [4] */
-extern UBYTE *wChannelMuteShownPtr;            /* $C9D2 */
-int StrLength(const char *s);
+extern UBYTE *wChannelMuteShownPointer;            /* $C9D2 */
+int StringLength(const char *s);
 
 const UBYTE ChanStatusAttrSel[4] = {3, 3, 3, 3};
 const UBYTE ChanStatusAttrNorm[4] = {0, 1, 1, 1};
@@ -50,16 +50,16 @@ void DrawChannelStatus(UBYTE chan)
         DrawString(s);
         if (hGameboyType) {
             VBK_REG = 1;
-            set_bkg_tiles(0x10, y, StrLength(s), 1, ChanStatusAttrSel);
+            set_bkg_tiles(0x10, y, StringLength(s), 1, ChanStatusAttrSel);
             VBK_REG = 0;
         }
     } else {
         hBgDigitPalette = 4;
         hBgPalette = 1;
         DrawStringIndexed("12WN"[c]);
-        wChannelMuteShownPtr = &wChannelMuteShown[c];
-        if (*wChannelMuteShownPtr) {
-            *wChannelMuteShownPtr = 0;
+        wChannelMuteShownPointer = &wChannelMuteShown[c];
+        if (*wChannelMuteShownPointer) {
+            *wChannelMuteShownPointer = 0;
             hBgDigitPalette = wShadedDigitPalette;
             hBgPalette = wShadedPalette;
             DrawString("   ");

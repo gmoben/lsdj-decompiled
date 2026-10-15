@@ -161,7 +161,7 @@ class Compare16Tests(unittest.TestCase):
                     self.assertEqual(execute(source, value), execute(result, value))
 
     def test_global_branch_reloads_hl_for_the_next_use(self):
-        # CompressSong: `wCompressDst < 0x7FFF` then `wCompressDst + 1`; stock SDCC
+        # CompressSong: `wCompressDestination < 0x7FFF` then `wCompressDestination + 1`; stock SDCC
         # steps back from the high byte, which the add form has clobbered
         source = ["\txor\ta,a", "\tld\thl,#0xC006 + 0", "\tld\ta,(hl)",
                   "\tsbc\ta,#0xFF", "\tinc\thl", "\tld\ta,(hl)",
@@ -448,7 +448,7 @@ class HramReuseTests(unittest.TestCase):
         self.assertEqual(self.run_pass(equality), equality)
 
     def test_a_serves_in_straight_line_code(self):
-        # Command_F_Wav's `step = hCommandValS`: genCast reads the sfr again for
+        # Command_F_Wav's `step = hCommandValueS`: genCast reads the sfr again for
         # the sign; no compiled code in the ROM rereads a byte a holds
         widen = ["\tldh\ta,(_hFxValueS+0)", "\tlda\thl,2(sp)", "\tld\t(hl),a",
                  "\tldh\ta,(_hFxValueS+0)", "\trla", "\tsbc\ta,a"]

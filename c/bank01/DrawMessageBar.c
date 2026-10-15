@@ -8,9 +8,9 @@
  *     tools/match/match_function.py --c c/bank01/DrawMessageBar.c \
  *         --target DrawMessageBar
  *
- * What it does: pad the transient message in wStrBuf to 20 characters
- * (spaces, then a NUL), point wMessageStrPtr at it, on CGB write the
- * MessageBarAttrRow attributes to the top tilemap row (VRAM bank 1), select the
+ * What it does: pad the transient message in wStringBuffer to 20 characters
+ * (spaces, then a NUL), point wMessageStringPointer at it, on CGB write the
+ * MessageBarAttributeRow attributes to the top tilemap row (VRAM bank 1), select the
  * "selected" draw palettes, draw the 20 characters at $9800, and arm the
  * 50-frame message timer.
  *
@@ -22,15 +22,15 @@
  *    ordinary extern variable that the link places at $FF90, not an sfr.
  *  - The attribute-row write is GBDK's own set_bkg_tiles(). Calls are direct
  *    (GBDK 2.95-3's default small model; plain 2.95 needs `nonbanked`).
- *  - `&wStrBuf[0]` (or a cast) makes SDCC load the address into de first,
- *    as the ROM does; plain `wStrBuf` stores it as two immediates.
- *  - `if (!wStrBuf[i])` gives the ROM's direct `jp nz` to the loop step;
+ *  - `&wStringBuffer[0]` (or a cast) makes SDCC load the address into de first,
+ *    as the ROM does; plain `wStringBuffer` stores it as two immediates.
+ *  - `if (!wStringBuffer[i])` gives the ROM's direct `jp nz` to the loop step;
  *    `== 0` produces a jp/jr trampoline instead.
  */
 
 #include "lsdj.h"
 
-extern UBYTE MessageBarAttrRow[];               /* $01:$7484, 20 x $04 */
+extern UBYTE MessageBarAttributeRow[];               /* $01:$7484, 20 x $04 */
 
 void DrawMessageBar(void)
 {
@@ -38,18 +38,18 @@ void DrawMessageBar(void)
     UBYTE *saved;
 
     wMessagePanelShown = 0;
-    wMessageStrPtr = &wStrBuf[0];
+    wMessageStringPointer = &wStringBuffer[0];
     for (i = 0; i < 20; i++) {
-        if (!wStrBuf[i]) {
+        if (!wStringBuffer[i]) {
             while (i < 20)
-                wStrBuf[i++] = ' ';
-            wStrBuf[i] = 0;
+                wStringBuffer[i++] = ' ';
+            wStringBuffer[i] = 0;
             break;
         }
     }
     if (hGameboyType) {
         VBK_REG = 1;
-        set_bkg_tiles(0, 0, 20, 1, MessageBarAttrRow);
+        set_bkg_tiles(0, 0, 20, 1, MessageBarAttributeRow);
         VBK_REG = 0;
     }
     hBgDigitPalette = wHighlightDigitPalette;
@@ -57,7 +57,7 @@ void DrawMessageBar(void)
     saved = wVramCursor;
     wVramCursor = (UBYTE *)0x9800;
     for (i = 0; i < 20; i++)
-        DrawStringIndexed(wMessageStrPtr[i]);
+        DrawStringIndexed(wMessageStringPointer[i]);
     wVramCursor = saved;
     wMessageTimer = 50;
 }

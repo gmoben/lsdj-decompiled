@@ -10,7 +10,7 @@
 4A18 DefaultInstrumentKit            ; [14] default kit instrument bytes
 4ACE TxtOutOfMemory1F     ; "OUT OF MEMORY. CLEAN SONG DATA IN PROJECT SCREEN"
 4C11 TxtOutOfTables     ; "OUT OF TABLES!"
-61FF DefaultSynthParams  ; [16] default softsynth params, memcpy'd into synth_params ($3EB2) by $61E1
+61FF DefaultSynthParameters  ; [16] default softsynth params, memcpy'd into synth_params ($3EB2) by $61E1
 637D TxtDeDupe          ; "DE-DUPE..."
 644D TxtDeDupe2         ; "DE-DUPE..." (second instance)
 723F TxtTypeSpeech      ; "TYPE   SPEECH" (instrument-type field)
@@ -24,11 +24,11 @@
 44DD DrawKitInstrument       ; draw KIT instrument params (type 2)
 4399 DrawNoiseInstrument     ; draw NOISE instrument params (type 3)
 ; --- instrument-screen display strings ---------------------------------------
-408D StepRateStr       ; "STEP" (instrument cmd/table rate when byte5 bit3 set)
-4092 TickRateStr       ; "TICK" (instrument cmd/table rate when byte5 bit3 clear)
-44A3 LenUnlimStr       ; "UNLIM" (shown when sound-length byte3 bit6 = 0)
-44AD NoiseSafeStr      ; "SAFE" (noise S command, nonzero)
-44B2 NoiseFreeStr      ; "FREE" (noise S command, 0)
+408D StepRateString       ; "STEP" (instrument cmd/table rate when byte5 bit3 set)
+4092 TickRateString       ; "TICK" (instrument cmd/table rate when byte5 bit3 clear)
+44A3 LengthUnlimitedString       ; "UNLIM" (shown when sound-length byte3 bit6 = 0)
+44AD NoiseSafeString      ; "SAFE" (noise S command, nonzero)
+44B2 NoiseFreeString      ; "FREE" (noise S command, 0)
 648F PhraseScreenUpdate ; per-frame visual update (screen idx 1 = Phrase)
 4000 DrawInstrumentTableMode         ; draw the instrument's table mode at its type's row: " OFF", or STEP/TICK by byte 5 bit 3 when the table is on (byte 6 bit 5)
 4157 InstrumentEnvelopeHasSecond          ; 1 if the envelope's first value moves on (byte 1's speed nibble nonzero), so its second value is used
@@ -46,7 +46,7 @@
 44B7 DrawKitNameCell            ; kit number (hex) + 6-char kit name (ReadKitName)
 48C5 WriteChainPhrase           ; chains[chain*16+row] = phrase (song $2080 region)
 492A ClaimInstrumentSlot             ; read+mark the instr-alloc entry (song $2040); returns prior state
-4B00 IsSongBlockEmpty           ; read 16 song bytes (bank, addr) into wSongReadBuf; 1 if all are zero
+4B00 IsSongBlockEmpty           ; read 16 song bytes (bank, addr) into wSongReadBuffer; 1 if all are zero
 4B45 IsTableFree                ; e=1 if table n has no data in its env/cmd rows (used by FindFreeTable)
 4CCD FreeUnusedInstruments           ; CLEAN INSTR DATA pass: re-mark the instruments phrases use, reset the rest (name, $B080 block, column refs); e = how many allocated ones were freed
 4F04 MarkTableUsed              ; set wUsedTableMap[t] (t < $20)
@@ -63,17 +63,17 @@
 51B9 ClearTable                 ; wipe table n (<$20) across all five column regions ($3480..$3C80)
 526B ClearUnusedTables          ; clear every unmarked table; -> how many of them were not empty
 52B3 FreeUnusedTables           ; CLEAN INSTR: mark the tables instruments, phrases and tables use, clear the rest; -> how many were freed
-52DA RemapSeqChains             ; walk the 4 sequence columns remapping chain refs (CleanSongData step)
+52DA RemapSequenceChains             ; walk the 4 sequence columns remapping chain refs (CleanSongData step)
 5478 MarkPhrasesOfUsedChains    ; mark the phrases every used chain plays (MarkChainPhrasesUsed)
-549C FindDupPhrase        ; does phrase b equal phrase a? compares the 16 notes, instruments, commands and command values; 1 = duplicate
-5644 FindDupChain         ; does chain b equal chain a? compares the 16 phrases and transposes; 1 = duplicate
-573C FindDupTable         ; does table b equal table a? compares fx 1/values, fx 2/values, envelopes and transposes; 1 = duplicate
+549C FindDuplicatePhrase        ; does phrase b equal phrase a? compares the 16 notes, instruments, commands and command values; 1 = duplicate
+5644 FindDuplicateChain         ; does chain b equal chain a? compares the 16 phrases and transposes; 1 = duplicate
+573C FindDuplicateTable         ; does table b equal table a? compares fx 1/values, fx 2/values, envelopes and transposes; 1 = duplicate
 5996 RemapPhraseRefs            ; walk all chains ($2080..) replacing dup phrase refs with the canonical one
 5A12 RemapChainRefs             ; walk the song sequence ($B290-$B68F) replacing references to a duplicate chain with the canonical one
 5A8E RemapCommandTableRefs          ; walk phrase/table cmd values replacing dup table refs (A command)
-5BDE DedupPhrases               ; fold duplicate phrases: for each used phrase i (hex counter at $98AE) every later used phrase FindDupPhrase finds equal is remapped to i (RemapPhraseRefs)
-5C78 DedupChains                ; fold duplicate chains: for each used chain i (counter at $98AE) every later used chain FindDupChain finds equal is remapped to i (RemapChainRefs); then OK
-5D18 DedupTables                ; fold duplicate tables: for each used table i (hex counter at $98AE) every later used table FindDupTable finds equal is remapped to i (RemapCommandTableRefs); then draws OK
+5BDE DeduplicatePhrases               ; fold duplicate phrases: for each used phrase i (hex counter at $98AE) every later used phrase FindDuplicatePhrase finds equal is remapped to i (RemapPhraseRefs)
+5C78 DeduplicateChains                ; fold duplicate chains: for each used chain i (counter at $98AE) every later used chain FindDuplicateChain finds equal is remapped to i (RemapChainRefs); then OK
+5D18 DeduplicateTables                ; fold duplicate tables: for each used table i (hex counter at $98AE) every later used table FindDuplicateTable finds equal is remapped to i (RemapCommandTableRefs); then draws OK
 5DC9 CountUsedPhrases           ; count the phrases in use (IsPhraseUsedFar)
 5DF3 CountUsedChains            ; count the chains in use (IsChainUsedFar)
 5E1D RebuildPhraseAllocMap      ; clear the phrase-alloc bitmap ($3E82, 32B) + rescan via used chains
@@ -85,7 +85,7 @@
 614C AnyCommandFUsed                ; 1 if any phrase or table uses command F (AnyPhraseUsesCommandF / AnyTableUsesCommandF)
 6163 ResetWaveFrame             ; reset wave frame n (SRAM bank 3, $A000 + n*16) to DefaultWaveFrameB1F
 619E ResetSynthWaves            ; reset synth s's 16 wave frames to the default (ResetWaveFrame)
-61C4 ResetSynthParams           ; reset synth n's 16 params (SRAM bank 1, $BEB2 + n*16) to DefaultSynthParams
+61C4 ResetSynthParameters           ; reset synth n's 16 params (SRAM bank 1, $BEB2 + n*16) to DefaultSynthParameters
 620F ResetUnusedSynths          ; reset the params and waves of every synth no wave instrument plays
 62BD FreeUnusedSynths           ; CLEAN INSTR: unless a phrase or table uses F, reset the synths no wave instrument uses; -> how many were freed
 6B3B HighlightPhraseCell        ; colour phrase cell (col,row) as the cursor/selection: ColorField at PhraseCellX/XAlt + 3 in the shifted draw mode, the PhraseCellWidth/WidthAlt width through wDrawTextScratch, palette 3 on CGB / 2 on DMG (row flag $fe/$ff picks the normal tables, else the Alt ones)
@@ -117,10 +117,10 @@
 ; --- data ---
 4ACE TxtOutOfMemInstr           ; "OUT OF MEMORY. CLEAN INSTR DATA IN PROJECT SCREEN!"
 64E1 PhraseCellX                ; [5] phrase cell x per column (the six PhraseColLayout rows; $FF = hidden)
-64E6 PhraseCellXAlt             ; [5] x when the step's row flag is not $FE/$FF
-64EB PhraseCellWidthAlt         ; [5] width, alt rows
+64E6 PhraseCellXAlternate             ; [5] x when the step's row flag is not $FE/$FF
+64EB PhraseCellWidthAlternate         ; [5] width, alt rows
 64F0 PhraseCellWidth            ; [5] width
-64F5 PhraseCellPaletteAlt           ; [5] highlight palette, alt rows
+64F5 PhraseCellPaletteAlternate           ; [5] highlight palette, alt rows
 64FA PhraseCellPalette              ; [5] highlight palette
 637D TxtDedupe                  ; "DE-DUPE..."
 6388 TxtFreeing                 ; "FREEING:"
@@ -188,36 +188,36 @@
 51C5 .loop                ; loop head in ClearTable
 5274 .loop                ; loop head in ClearUnusedTables
 52CB .loop                ; loop head in FreeUnusedTables
-52E9 .loop                ; loop head in RemapSeqChains
-530E .loop2               ; loop head in RemapSeqChains
-531B .loop3               ; loop head in RemapSeqChains
-538D .loop4               ; loop head in RemapSeqChains
-53AF .loop5               ; loop head in RemapSeqChains
+52E9 .loop                ; loop head in RemapSequenceChains
+530E .loop2               ; loop head in RemapSequenceChains
+531B .loop3               ; loop head in RemapSequenceChains
+538D .loop4               ; loop head in RemapSequenceChains
+53AF .loop5               ; loop head in RemapSequenceChains
 541A .loop                ; loop head in MarkChainPhrasesUsed
 545D .done                ; common exit of MarkChainPhrasesUsed
 547B .loop                ; loop head in MarkPhrasesOfUsedChains
 549A .done                ; common exit of MarkPhrasesOfUsedChains
-54B9 .shiftALoop          ; loop head: row offset a <<= 4 (16 bytes per phrase) in FindDupPhrase
-54C8 .shiftBLoop          ; loop head: row offset b <<= 4 in FindDupPhrase
-5506 .noteLoop            ; loop head: bank 0 notes, 16 bytes in FindDupPhrase
-5561 .instrumentLoop           ; loop head: instrument column in FindDupPhrase
-55B6 .commandLoop             ; loop head: command column in FindDupPhrase
-560C .valLoop             ; loop head: command values in FindDupPhrase
-5640 .done                ; common exit in FindDupPhrase
-5661 .shiftALoop          ; loop head: row offset a <<= 4 (16 bytes per chain) in FindDupChain
-5670 .shiftBLoop          ; loop head: row offset b <<= 4 in FindDupChain
+54B9 .shiftALoop          ; loop head: row offset a <<= 4 (16 bytes per phrase) in FindDuplicatePhrase
+54C8 .shiftBLoop          ; loop head: row offset b <<= 4 in FindDuplicatePhrase
+5506 .noteLoop            ; loop head: bank 0 notes, 16 bytes in FindDuplicatePhrase
+5561 .instrumentLoop           ; loop head: instrument column in FindDuplicatePhrase
+55B6 .commandLoop             ; loop head: command column in FindDuplicatePhrase
+560C .valueLoop             ; loop head: command values in FindDuplicatePhrase
+5640 .done                ; common exit in FindDuplicatePhrase
+5661 .shiftALoop          ; loop head: row offset a <<= 4 (16 bytes per chain) in FindDuplicateChain
+5670 .shiftBLoop          ; loop head: row offset b <<= 4 in FindDuplicateChain
 56AE .phraseLoop          ; loop head: chain phrases, 16 bytes
 5704 .transposeLoop       ; loop head: chain transposes
-5738 .done                ; common exit in FindDupChain
-5753 .shiftALoop          ; loop head: row offset a <<= 4 (16 bytes per table column) in FindDupTable
-5762 .shiftBLoop          ; loop head: row offset b <<= 4 in FindDupTable
-57A6 .command1Loop             ; loop head: bank 1 fx 1 column ($B680) in FindDupTable
-57FC .val1Loop            ; loop head: fx 1 values in FindDupTable
-5852 .command2Loop             ; loop head: fx 2 column in FindDupTable
-58A8 .val2Loop            ; loop head: fx 2 values in FindDupTable
-5903 .envelopeLoop             ; loop head: table envelopes in FindDupTable
-595E .transposeLoop       ; loop head: table transposes in FindDupTable
-5992 .done                ; common exit in FindDupTable
+5738 .done                ; common exit in FindDuplicateChain
+5753 .shiftALoop          ; loop head: row offset a <<= 4 (16 bytes per table column) in FindDuplicateTable
+5762 .shiftBLoop          ; loop head: row offset b <<= 4 in FindDuplicateTable
+57A6 .command1Loop             ; loop head: bank 1 fx 1 column ($B680) in FindDuplicateTable
+57FC .value1Loop            ; loop head: fx 1 values in FindDuplicateTable
+5852 .command2Loop             ; loop head: fx 2 column in FindDuplicateTable
+58A8 .value2Loop            ; loop head: fx 2 values in FindDuplicateTable
+5903 .envelopeLoop             ; loop head: table envelopes in FindDuplicateTable
+595E .transposeLoop       ; loop head: table transposes in FindDuplicateTable
+5992 .done                ; common exit in FindDuplicateTable
 59A7 .loop                ; loop head in RemapPhraseRefs
 59DF .loop2               ; loop head in RemapPhraseRefs
 5A23 .loop                ; loop head in RemapChainRefs
@@ -227,12 +227,12 @@
 5B4D .loop3               ; loop head in RemapCommandTableRefs
 5BA6 .loop4               ; loop head in RemapCommandTableRefs
 5BDA .done                ; common exit of RemapCommandTableRefs
-5BE5 .nextPhrase          ; DedupPhrases: outer loop, phrase i
-5C13 .nextLater           ; DedupPhrases: inner loop, later phrase j
-5C7F .nextChain           ; DedupChains: outer loop, chain i
-5CAD .nextLater           ; DedupChains: inner loop, later chain j
-5D1F .nextTable           ; DedupTables: outer loop, table i
-5D55 .nextLater           ; DedupTables: inner loop, later table j
+5BE5 .nextPhrase          ; DeduplicatePhrases: outer loop, phrase i
+5C13 .nextLater           ; DeduplicatePhrases: inner loop, later phrase j
+5C7F .nextChain           ; DeduplicateChains: outer loop, chain i
+5CAD .nextLater           ; DeduplicateChains: inner loop, later chain j
+5D1F .nextTable           ; DeduplicateTables: outer loop, table i
+5D55 .nextLater           ; DeduplicateTables: inner loop, later table j
 5DD2 .loop                ; loop head in CountUsedPhrases
 5DFC .loop                ; loop head in CountUsedChains
 5E49 .loop                ; loop head in RebuildPhraseAllocMap
@@ -253,7 +253,7 @@
 616D .loop                ; loop head in ResetWaveFrame
 61AF .loop                ; loop head in ResetSynthWaves
 61C2 .done                ; common exit of ResetSynthWaves
-61CE .loop                ; loop head in ResetSynthParams
+61CE .loop                ; loop head in ResetSynthParameters
 621F .loop                ; loop head in ResetUnusedSynths
 623D .loop2               ; loop head in ResetUnusedSynths
 6284 .loop3               ; loop head in ResetUnusedSynths
@@ -330,9 +330,9 @@
 5120 .countUsedTables
 51D8 .ok
 5379 .incSongColumn
-5C66 .drawOk              ; DedupPhrases: all phrases folded
-5D00 .drawOk              ; DedupChains: all chains folded
-5DB1 .drawOk              ; DedupTables: all tables folded
+5C66 .drawOk              ; DeduplicatePhrases: all phrases folded
+5D00 .drawOk              ; DeduplicateChains: all chains folded
+5DB1 .drawOk              ; DeduplicateTables: all tables folded
 62D0 .resetUnusedSynths
 649C .checkPlayMode
 650D .ok
@@ -346,7 +346,7 @@
 6AF4 .checkSelectionRightd
 6B5B .rowOk               ; HighlightPhraseCell: row < $10
 6B8D .normalRow           ; HighlightPhraseCell: row flag $fe/$ff: the normal layout tables
-6BCF .altRow              ; HighlightPhraseCell: any other row flag: the Alt layout tables
+6BCF .alternateRow              ; HighlightPhraseCell: any other row flag: the Alt layout tables
 6CD7 .loadPhraseRow
 6CE5 .ok
 6D84 .loadSelectionLeft
@@ -391,9 +391,9 @@
 4561 .drawVolume
 45D0 .fullSpeed
 45D9 .speedSuffix
-46AD .len1All
-46B6 .len2
-46F4 .len2All
+46AD .length1All
+46B6 .length2
+46F4 .length2All
 476E .branch
 477B .cont
 4782 .cont_2
@@ -431,7 +431,7 @@
 4CB0 .cont_3
 4CFF .cont
 4D19 .cont_2
-4D1F .checkArg
+4D1F .checkArgument
 4D9C .cont_3
 4DA6 .cont_4
 4DAC .cont_5
@@ -463,7 +463,7 @@
 5130 .cont_2
 517D .step
 51AF .cont
-51CA .checkArg
+51CA .checkArgument
 52A0 .clearTable
 52A8 .step
 52AC .cont
@@ -476,60 +476,60 @@
 540E .cont_3
 5457 .cont
 5496 .step
-54C1 .shiftAStep          ; shift count step for a in FindDupPhrase
-54D0 .shiftBStep          ; shift count step for b in FindDupPhrase
-551B .noteNextP           ; p incremented, read *q in FindDupPhrase
-5528 .noteCompare         ; q incremented, compare the bytes in FindDupPhrase
-5532 .noteNext            ; i++ in FindDupPhrase
-5538 .instruments         ; bank 3: row pointers at $B000 + offset in FindDupPhrase
-5576 .instrumentNextP          ; p incremented, read *q in FindDupPhrase
-5583 .instrumentCompare        ; compare the bytes in FindDupPhrase
-558D .instrumentNext           ; i++ in FindDupPhrase
-5593 .commands            ; bank 2: row pointers at $A000 | offset in FindDupPhrase
-55CB .commandNextP            ; p incremented, read *q in FindDupPhrase
-55D8 .commandCompare          ; compare the bytes in FindDupPhrase
-55E2 .commandNext             ; i++ in FindDupPhrase
-55E8 .commandVals             ; bank 2: row pointers at $AFF0 + offset in FindDupPhrase
-5621 .valNextP            ; p incremented, read *q in FindDupPhrase
-562E .valCompare          ; compare the bytes in FindDupPhrase
-5638 .valNext             ; i++ in FindDupPhrase
-563E .duplicate           ; all four columns equal: return 1 in FindDupPhrase
-5669 .shiftAStep          ; shift count step for a in FindDupChain
-5678 .shiftBStep          ; shift count step for b in FindDupChain
-56C3 .phraseNextP         ; p incremented, read *q in FindDupChain
-56D0 .phraseCompare       ; compare the bytes in FindDupChain
-56DA .phraseNext          ; i++ in FindDupChain
-56E0 .transposes          ; row pointers at $A880 + offset in FindDupChain
-5719 .transposeNextP      ; p incremented, read *q in FindDupChain
-5726 .transposeCompare    ; compare the bytes in FindDupChain
-5730 .transposeNext       ; i++ in FindDupChain
-5736 .duplicate           ; both columns equal: return 1 in FindDupChain
-575B .shiftAStep          ; shift count step for a in FindDupTable
-576A .shiftBStep          ; shift count step for b in FindDupTable
-57BB .command1NextP            ; p incremented, read *q in FindDupTable
-57C8 .command1Compare          ; compare the bytes in FindDupTable
-57D2 .command1Next             ; i++ in FindDupTable
-57D8 .command1Vals             ; row pointers at $B880 + offset in FindDupTable
-5811 .val1NextP           ; p incremented, read *q in FindDupTable
-581E .val1Compare         ; compare the bytes in FindDupTable
-5828 .val1Next            ; i++ in FindDupTable
-582E .command2                 ; row pointers at $BA80 + offset in FindDupTable
-5867 .command2NextP            ; p incremented, read *q in FindDupTable
-5874 .command2Compare          ; compare the bytes in FindDupTable
-587E .command2Next             ; i++ in FindDupTable
-5884 .command2Vals             ; row pointers at $BC80 + offset in FindDupTable
-58BD .val2NextP           ; p incremented, read *q in FindDupTable
-58CA .val2Compare         ; compare the bytes in FindDupTable
-58D4 .val2Next            ; i++ in FindDupTable
-58DA .envelopes           ; bank 0: row pointers at $B690 + offset in FindDupTable
-5918 .envelopeNextP            ; p incremented, read *q in FindDupTable
-5925 .envelopeCompare          ; compare the bytes in FindDupTable
-592F .envelopeNext             ; i++ in FindDupTable
-5935 .transposes          ; bank 1: row pointers at $B480 + offset in FindDupTable
-5973 .transposeNextP      ; p incremented, read *q in FindDupTable
-5980 .transposeCompare    ; compare the bytes in FindDupTable
-598A .transposeNext       ; i++ in FindDupTable
-5990 .duplicate           ; all six columns equal: return 1 in FindDupTable
+54C1 .shiftAStep          ; shift count step for a in FindDuplicatePhrase
+54D0 .shiftBStep          ; shift count step for b in FindDuplicatePhrase
+551B .noteNextP           ; p incremented, read *q in FindDuplicatePhrase
+5528 .noteCompare         ; q incremented, compare the bytes in FindDuplicatePhrase
+5532 .noteNext            ; i++ in FindDuplicatePhrase
+5538 .instruments         ; bank 3: row pointers at $B000 + offset in FindDuplicatePhrase
+5576 .instrumentNextP          ; p incremented, read *q in FindDuplicatePhrase
+5583 .instrumentCompare        ; compare the bytes in FindDuplicatePhrase
+558D .instrumentNext           ; i++ in FindDuplicatePhrase
+5593 .commands            ; bank 2: row pointers at $A000 | offset in FindDuplicatePhrase
+55CB .commandNextP            ; p incremented, read *q in FindDuplicatePhrase
+55D8 .commandCompare          ; compare the bytes in FindDuplicatePhrase
+55E2 .commandNext             ; i++ in FindDuplicatePhrase
+55E8 .commandValues             ; bank 2: row pointers at $AFF0 + offset in FindDuplicatePhrase
+5621 .valueNextP            ; p incremented, read *q in FindDuplicatePhrase
+562E .valueCompare          ; compare the bytes in FindDuplicatePhrase
+5638 .valueNext             ; i++ in FindDuplicatePhrase
+563E .duplicate           ; all four columns equal: return 1 in FindDuplicatePhrase
+5669 .shiftAStep          ; shift count step for a in FindDuplicateChain
+5678 .shiftBStep          ; shift count step for b in FindDuplicateChain
+56C3 .phraseNextP         ; p incremented, read *q in FindDuplicateChain
+56D0 .phraseCompare       ; compare the bytes in FindDuplicateChain
+56DA .phraseNext          ; i++ in FindDuplicateChain
+56E0 .transposes          ; row pointers at $A880 + offset in FindDuplicateChain
+5719 .transposeNextP      ; p incremented, read *q in FindDuplicateChain
+5726 .transposeCompare    ; compare the bytes in FindDuplicateChain
+5730 .transposeNext       ; i++ in FindDuplicateChain
+5736 .duplicate           ; both columns equal: return 1 in FindDuplicateChain
+575B .shiftAStep          ; shift count step for a in FindDuplicateTable
+576A .shiftBStep          ; shift count step for b in FindDuplicateTable
+57BB .command1NextP            ; p incremented, read *q in FindDuplicateTable
+57C8 .command1Compare          ; compare the bytes in FindDuplicateTable
+57D2 .command1Next             ; i++ in FindDuplicateTable
+57D8 .command1Values             ; row pointers at $B880 + offset in FindDuplicateTable
+5811 .value1NextP           ; p incremented, read *q in FindDuplicateTable
+581E .value1Compare         ; compare the bytes in FindDuplicateTable
+5828 .value1Next            ; i++ in FindDuplicateTable
+582E .command2                 ; row pointers at $BA80 + offset in FindDuplicateTable
+5867 .command2NextP            ; p incremented, read *q in FindDuplicateTable
+5874 .command2Compare          ; compare the bytes in FindDuplicateTable
+587E .command2Next             ; i++ in FindDuplicateTable
+5884 .command2Values             ; row pointers at $BC80 + offset in FindDuplicateTable
+58BD .value2NextP           ; p incremented, read *q in FindDuplicateTable
+58CA .value2Compare         ; compare the bytes in FindDuplicateTable
+58D4 .value2Next            ; i++ in FindDuplicateTable
+58DA .envelopes           ; bank 0: row pointers at $B690 + offset in FindDuplicateTable
+5918 .envelopeNextP            ; p incremented, read *q in FindDuplicateTable
+5925 .envelopeCompare          ; compare the bytes in FindDuplicateTable
+592F .envelopeNext             ; i++ in FindDuplicateTable
+5935 .transposes          ; bank 1: row pointers at $B480 + offset in FindDuplicateTable
+5973 .transposeNextP      ; p incremented, read *q in FindDuplicateTable
+5980 .transposeCompare    ; compare the bytes in FindDuplicateTable
+598A .transposeNext       ; i++ in FindDuplicateTable
+5990 .duplicate           ; all six columns equal: return 1 in FindDuplicateTable
 59B3 .cont
 59BE .step
 59C2 .cont_2
@@ -554,12 +554,12 @@
 5B8B .cont_14
 5B8E .cont_15
 5BD4 .cont_16
-5C56 .laterDone           ; DedupPhrases: j++
-5C60 .phraseDone          ; DedupPhrases: i++
-5CF0 .laterDone           ; DedupChains: j++
-5CFA .chainDone           ; DedupChains: i++
-5DA1 .laterDone           ; DedupTables: j++
-5DAB .tableDone           ; DedupTables: i++
+5C56 .laterDone           ; DeduplicatePhrases: j++
+5C60 .phraseDone          ; DeduplicatePhrases: i++
+5CF0 .laterDone           ; DeduplicateChains: j++
+5CFA .chainDone           ; DeduplicateChains: i++
+5DA1 .laterDone           ; DeduplicateTables: j++
+5DAB .tableDone           ; DeduplicateTables: i++
 5DE8 .step
 5DEC .cont
 5E12 .step
@@ -593,7 +593,7 @@
 6172 .step
 61D3 .step
 627C .step
-6280 .checkArg
+6280 .checkArgument
 62B3 .cont
 64D6 .clearSpriteY
 6547 .add16
@@ -628,8 +628,8 @@
 6B75 .xVisible            ; HighlightPhraseCell: x >= 0
 6B9A .normalDmg           ; HighlightPhraseCell: palette 2 (DMG)
 6B9C .normalColor         ; HighlightPhraseCell: palette chosen; width through wDrawTextScratch
-6BDE .altDmg              ; HighlightPhraseCell: palette 2 (DMG)
-6BE2 .altColor            ; HighlightPhraseCell: palette chosen; width through wDrawTextScratch
+6BDE .alternateDmg              ; HighlightPhraseCell: palette 2 (DMG)
+6BE2 .alternateColor            ; HighlightPhraseCell: palette chosen; width through wDrawTextScratch
 6C6F .readSongByte
 6C83 .drawStringIndexed
 6C91 .drawString
@@ -643,7 +643,7 @@
 6DD3 .cont_2
 6DD7 .cont_3
 6DF9 .cont_4
-6DFA .checkArg
+6DFA .checkArgument
 6E09 .cont_5
 6E0A .cont_6
 6E19 .cont_7
@@ -665,7 +665,7 @@
 7090 .drawChannelStatus
 70ED .speechCursorY_2
 7195 .cont
-719D .checkArg
+719D .checkArgument
 7232 .speechCursorY_2
 72AA .loadSpeechRow
 72D4 .readSongByte
@@ -695,8 +695,8 @@
 77EF .cont_11
 
 ; --- pointer targets (tools/name_targets.py) ---
-4113 .strAtk
-4117 .strOn
-411B .strOff
-5D15 .strOk               ; DedupChains: "OK"
-5DC6 .strOk               ; DedupTables: "OK"
+4113 .stringAttack
+4117 .stringOn
+411B .stringOff
+5D15 .stringOk               ; DeduplicateChains: "OK"
+5DC6 .stringOk               ; DeduplicateTables: "OK"

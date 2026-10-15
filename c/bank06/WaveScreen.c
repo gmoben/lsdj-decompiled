@@ -47,7 +47,7 @@ void SoundTogglePlayback(void);                    /* $02:$7C4C */
 void SendLinkClipboard(void);                   /* bank $1C */
 extern char TxtCopy[];                      /* $06:$5467 "COPY" */
 
-UBYTE *TilemapAddr(UBYTE x, UBYTE y)
+UBYTE *TilemapAddress(UBYTE x, UBYTE y)
 {
     UWORD a;
 
@@ -58,7 +58,7 @@ UBYTE *TilemapAddr(UBYTE x, UBYTE y)
     return (UBYTE *)a;
 }
 
-UWORD SynthLockByteAddr(UBYTE x)
+UWORD SynthLockByteAddress(UBYTE x)
 {
     UWORD p;
 
@@ -69,7 +69,7 @@ UWORD SynthLockByteAddr(UBYTE x)
 }
 
 /* $493F: mark the current synth (wSynth >> 4) locked: set its bit in the
-   lock byte SynthLockByteAddr picks ($BFC4/$BFC5). m is a frame byte that
+   lock byte SynthLockByteAddress picks ($BFC4/$BFC5). m is a frame byte that
    only ever receives s (a volatile local nothing reads models it); r named
    so the OR reads it twice. */
 void LockCurrentSynth(void)
@@ -81,7 +81,7 @@ void LockCurrentSynth(void)
 
     s = wSynth;
     s >>= 4;
-    p = SynthLockByteAddr(s);
+    p = SynthLockByteAddress(s);
     r = ReadSongByte(1, p);
     m = s;
     r |= 1 << (s & 7);
@@ -198,8 +198,8 @@ void DrawWaveColumn(UBYTE col)
     s1 = ReadWaveSample(col * 2 + 1);
     i = s0 >> 1;
     j = s1 >> 1;
-    p = TilemapAddr(col + 2, 13 - i);
-    MemSet(wWaveColumnEmpty, 1, 8);
+    p = TilemapAddress(col + 2, 13 - i);
+    FillMemory(wWaveColumnEmpty, 1, 8);
     wWaveColumnEmpty[i] = 0;
     wWaveColumnEmpty[j] = 0;
     if (i == j) {
@@ -208,10 +208,10 @@ void DrawWaveColumn(UBYTE col)
                           : ((s1 & 1) ? (hGameboyType ? 0x56 : 0xE0) : (hGameboyType ? 0x57 : 0xE1)));
     } else {
         WriteVramByteSafe(p, (s0 & 1) ? (hGameboyType ? 0x50 : 0xDA) : (hGameboyType ? 0x53 : 0xDD));
-        p = TilemapAddr(col + 2, 13 - j);
+        p = TilemapAddress(col + 2, 13 - j);
         WriteVramByteSafe(p, (s1 & 1) ? (hGameboyType ? 0x51 : 0xDB) : (hGameboyType ? 0x52 : 0xDC));
     }
-    p = TilemapAddr(col + 2, 6);
+    p = TilemapAddress(col + 2, 6);
     for (i = 7; ; i--) {
         if (wWaveColumnEmpty[i])
             WriteVramByteSafe(p, 3);
@@ -375,22 +375,22 @@ UBYTE WaveScreenInput(void)
         return 1;
     case 0x21:
         wSynth++;
-        wMessageStrPtr = 0;
+        wMessageStringPointer = 0;
         DrawWaveScreen();
         return 1;
     case 0x22:
         wSynth--;
-        wMessageStrPtr = 0;
+        wMessageStringPointer = 0;
         DrawWaveScreen();
         return 1;
     case 0x24:
         wSynth += 0x10;
-        wMessageStrPtr = 0;
+        wMessageStringPointer = 0;
         DrawWaveScreen();
         return 1;
     case 0x28:
         wSynth -= 0x10;
-        wMessageStrPtr = 0;
+        wMessageStringPointer = 0;
         DrawWaveScreen();
         return 1;
     case 0xC0:

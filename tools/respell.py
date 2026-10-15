@@ -46,8 +46,10 @@ volatile while sfr _asm _endasm UBYTE BYTE UWORD WORD DWORD UDWORD NULL""".split
 WORD = re.compile(r"[A-Z]+(?![a-z])|[A-Z][a-z]*|[a-z]+|[0-9]+")
 
 
-def respell(name: str, words: dict[str, str]) -> str:
-    """`name` with each short word spelt out (see the module doc)."""
+def respell(name: str, words: dict[str, str], known: frozenset[str] = frozenset()) -> str:
+    """`name` with each short word spelt out (see the module doc). A last word
+    one letter (b-f) past a short word is a de-duplication letter only if
+    it is not a word of its own, which `known` holds (Mode is not Mod+e)."""
     prefix = name[0] if name[:1] in ("w", "h") and name[1:2].isupper() else ""
     parts = name[len(prefix):].split("_")
     out = []
@@ -62,7 +64,7 @@ def respell(name: str, words: dict[str, str]) -> str:
             last = pi == len(parts) - 1 and ti == len(toks) - 1
             if full is None and cap.endswith("s") and cap[:-1] in words:
                 full = words[cap[:-1]] + "s"
-            if full is None and last and len(cap) > 2 and cap[-1] in "bcdefghijklmnopqrstuvwxyz" and cap[:-1] in words:
+            if full is None and last and len(cap) > 2 and cap[-1] in "bcdef" and cap[:-1] in words and cap not in known:
                 full = words[cap[:-1]] + cap[-1]          # the labeller's de-duplication letter
             if full is None:
                 piece = tok
@@ -89,11 +91,17 @@ def global_names() -> tuple[set[str], set[str]]:
     return defined, aliases - defined
 
 
+def known_words(names: set[str]) -> frozenset[str]:
+    """Every camelCase word the global names use."""
+    return frozenset(w for n in names for w in WORD.findall(n) if w[:1].isupper())
+
+
 def plan(words: dict[str, str], keep: set[str], sets: dict[str, str]) -> tuple[list[tuple[str, str]], list[str], set[str]]:
     defined, aliases = global_names()
+    known = known_words(defined)
     pairs = []
     for n in sorted(defined | aliases):
-        new = sets.get(n) or (n if exempt(n, keep) else respell(n, words))
+        new = sets.get(n) or (n if exempt(n, keep) else respell(n, words, known))
         if new != n:
             pairs.append((n, new))
     olds = {o for o, _ in pairs}
@@ -105,6 +113,7 @@ def plan(words: dict[str, str], keep: set[str], sets: dict[str, str]) -> tuple[l
 
 
 def respell_labels(words: dict[str, str], dry: bool) -> int:
+    known = known_words(global_names()[0])
     total = 0
     for p in sorted((ROOT / "src").glob("bank*.sym")):
         lines = p.read_text().split("\n")
@@ -122,7 +131,7 @@ def respell_labels(words: dict[str, str], dry: bool) -> int:
             else:
                 scopes.setdefault(scope, []).append((idx, name))
         for scope, labels in scopes.items():
-            renamed = [(idx, lab, respell(lab, words)) for idx, lab in labels]
+            renamed = [(idx, lab, respell(lab, words, known)) for idx, lab in labels]
             names = [n for _, _, n in renamed]
             dups = sorted({n for n in names if names.count(n) > 1})
             if dups and any(o != n for _, o, n in renamed):

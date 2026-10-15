@@ -26,8 +26,8 @@ extern char TxtKitNoteC8[];                 /* $06:$7840 "C 8" */
 extern char TxtKitNoteF5[];                 /* $06:$7834 "F 5" */
 extern char TxtNoNote[];                    /* $06:$782C "---" (this unit's literals follow NoteNames) */
 extern char TxtNoteBad[];                   /* $06:$7848 "???" */
-extern UBYTE wChannelDispNote[];               /* $C41F, [4] */
-extern UBYTE wChannelDispNoteTimer[];          /* $C423, [4] */
+extern UBYTE wChannelDisplayNote[];               /* $C41F, [4] */
+extern UBYTE wChannelDisplayNoteTimer[];          /* $C423, [4] */
 extern UBYTE wChannelOutput[];                /* $C0A0, [4] */
 extern UBYTE wChannelOutputOverride[];                /* $C0A4, [4] */
 extern UBYTE wKit1Bank;                     /* $C4F4 */
@@ -87,15 +87,15 @@ void UpdateStatusPanel(void)
         t = (wChannelOutput[i] & 0x80) && !wChannelOutputOverride[i];
         if (t)
             continue;
-        n = wChannelDispNote[i];
+        n = wChannelDisplayNote[i];
         if (n) {
             DrawStatusNote(i, n);
-            wChannelDispNote[i] = 0;
+            wChannelDisplayNote[i] = 0;
             if (i == 2)
                 PositionWavSprites();
-            wChannelDispNoteTimer[i] = 0x19;
+            wChannelDisplayNoteTimer[i] = 0x19;
         } else {
-            p = &wChannelDispNoteTimer[i];
+            p = &wChannelDisplayNoteTimer[i];
             n = *p;
             if (n != 0) {
                 if (n == 1) {

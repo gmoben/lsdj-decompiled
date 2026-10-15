@@ -10,7 +10,7 @@ extern char TxtSpaces13[];                  /* $1E:$79EC, 13 spaces */
 extern volatile sfr UBYTE STAT_REG;         /* $FF41 */
 extern UBYTE wFont;                         /* $C52E */
 extern UBYTE wColorSet;                     /* $C52F */
-extern UWORD wTileSlotPtr;                  /* $C9B5 */
+extern UWORD wTileSlotPointer;                  /* $C9B5 */
 extern UBYTE TilesUiIcons[];                /* $1E:$42C8 */
 extern UBYTE TilesFont0A[], TilesFont0B[], TilesFont0C[];   /* $1E:$54C0.. */
 extern UBYTE TilesFont1A[], TilesFont1B[], TilesFont1C[];   /* $1E:$6356.. */
@@ -25,7 +25,7 @@ void WriteVramByteSafeC(UWORD addr, char v);   /* WriteVramByteSafe with a char 
 extern UBYTE wVramCopyScratch;              /* $C9B4 */
 
 /* $4000: the top row's column labels for the screen about to be drawn
-   (raw tile indices through IdentityCharMap; nothing on the wave screen) */
+   (raw tile indices through IdentityCharacterMap; nothing on the wave screen) */
 
 void DrawScreenColumnLabels(void)
 {
@@ -35,7 +35,7 @@ void DrawScreenColumnLabels(void)
     hBgPalette = 1;
     wVramCursor = (UBYTE *)0x9822;
     DrawString(TxtSpaces13);
-    wStringSrc = IdentityCharMap;
+    wStringSource = IdentityCharacterMap;
     hBgPalette = hGameboyType ? 0x48 : 0xD2;
     switch (wCurrentScreen) {
     case 1:
@@ -118,7 +118,7 @@ void DrawScreenColumnLabels(void)
         DrawStringIndexed(0x2D);
         break;
     }
-    wStringSrc = AsciiCharMap - 0x20;
+    wStringSource = AsciiCharacterMap - 0x20;
     hBgDigitPalette = 4;
     hBgPalette = 1;
 }
@@ -181,7 +181,7 @@ void LoadFontTiles(void)
             a = TilesFont2A;
             break;
         }
-        wTileSlotPtr = LoadTilesDispatch(a);
+        wTileSlotPointer = LoadTilesDispatch(a);
     } else {
         a = TilesFont0A;
         b = TilesFont0B;
@@ -198,7 +198,7 @@ void LoadFontTiles(void)
             c = TilesFont2C;
             break;
         }
-        wTileSlotPtr = LoadTilesDispatch(a);
+        wTileSlotPointer = LoadTilesDispatch(a);
         LoadTilesDispatch((UBYTE *)(UWORD)c);  /* each through a cast temp in bc */
         LoadTilesDispatch((UBYTE *)(UWORD)b);
         if (wColorSet & 2)
@@ -208,5 +208,5 @@ void LoadFontTiles(void)
     CopyVramTile(0x9020, 0x8030);
     CopyVramTile(0x9280, 0x8040);
     _asm ei _endasm;
-    RequestTileSlot(wTileSlotPtr);
+    RequestTileSlot(wTileSlotPointer);
 }

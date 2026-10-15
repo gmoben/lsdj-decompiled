@@ -31,8 +31,8 @@
 4811 EditPhraseCellLeft             ; A+LEFT edit on the cursor cell (-semitone / -1)
 4918 ReadPhraseInstrument            ; read phrase_instruments[phrase][row] (SRAM bank 3 $B000); asserts phrase != $FF, row < $10
 49C5 WritePhraseCommand              ; write phrase_fx[phrase][row] = cmd (SRAM bank 2 $A000); asserts cmd <= $13
-4A30 WritePhraseCommandVal           ; write phrase_fx_val[phrase][row] = v (SRAM bank 2 $AFF0); asserts phrase != $FF, row < $10
-4A8F ReadPhraseCommandVal            ; read phrase_fx_val[phrase][row] (SRAM bank 2 $AFF0); asserts phrase != $FF, row < $10
+4A30 WritePhraseCommandValue           ; write phrase_fx_val[phrase][row] = v (SRAM bank 2 $AFF0); asserts phrase != $FF, row < $10
+4A8F ReadPhraseCommandValue            ; read phrase_fx_val[phrase][row] (SRAM bank 2 $AFF0); asserts phrase != $FF, row < $10
 4AEA ReadPhraseCommand               ; read phrase_fx[phrase][row] (SRAM bank 2 $A000); 0 unless a command (<= $13)
 4B5B PlacePhraseCell            ; plain-A: place/repeat a value into the empty cursor cell
 4C06 DrawEmptyNote              ; draw "---" empty note cell
@@ -58,9 +58,9 @@
 7D57 TxtSelect04       ; "SELECT" (pairs with TxtCancelSelect04)
 
 ; --- phrase-screen render/edit tables ---
-50D8 PhraseRowAttrs0    ; [13] CGB BG attributes of a kit row (PhraseRowIsSentinel false); DrawPhraseScreen's const data
-50E5 PhraseRowAttrs1    ; [13] CGB BG attributes of a non-kit row on a kit phrase
-50F2 PhraseRowAttrs2    ; [13] CGB BG attributes of a row on a phrase without kits
+50D8 PhraseRowAttributes0    ; [13] CGB BG attributes of a kit row (PhraseRowIsSentinel false); DrawPhraseScreen's const data
+50E5 PhraseRowAttributes1    ; [13] CGB BG attributes of a non-kit row on a kit phrase
+50F2 PhraseRowAttributes2    ; [13] CGB BG attributes of a row on a phrase without kits
 50FF TxtPhraseBlank3    ; "   " (DrawPhraseScreen: the note column's padding on kit phrases)
 5103 TxtPhraseNoInstr   ; "--" (no instrument)
 5106 TxtPhraseBlank3b   ; "   " (the value column's padding without kits)
@@ -93,8 +93,8 @@
 493A .loop                ; loop head in ReadPhraseInstrument
 499E .loop                ; loop head in ReadPhraseNote
 4A05 .loop                ; loop head in WritePhraseCommand
-4A64 .loop                ; loop head in WritePhraseCommandVal
-4AC3 .loop                ; loop head in ReadPhraseCommandVal
+4A64 .loop                ; loop head in WritePhraseCommandValue
+4AC3 .loop                ; loop head in ReadPhraseCommandValue
 4B1E .loop                ; loop head in ReadPhraseCommand
 4B93 .loop                ; loop head in PlacePhraseCell
 4C02 .done                ; common exit of PlacePhraseCell
@@ -223,7 +223,7 @@
 5772 .checkPlayMode
 578F .loadLiveMode
 58BB .prelistenCursorRow
-5B6D .phraseReadCommandValCursor
+5B6D .phraseReadCommandValueCursor
 5BB9 .phraseOk
 5BC6 .rowOk
 5BF2 .checkMarking
@@ -235,7 +235,7 @@
 5E67 .aInstrumentFromCursor
 5E73 .aInstrumentPrelisten
 5EB2 .aCommandHelp
-5F12 .aVal
+5F12 .aValue
 5FA2 .right
 5FC0 .rightColumn
 5FCD .rightStep
@@ -311,7 +311,7 @@
 43C6 .cont_3
 440F .step
 443E .cont
-443F .checkArg
+443F .checkArgument
 44AC .cont_2
 44B3 .cont_3
 44BA .cont_4
@@ -345,7 +345,7 @@
 4803 .drawNoteNameFar
 4850 .step
 488C .loadSongColumn
-48A6 .checkArg
+48A6 .checkArgument
 48C3 .cont
 48C6 .phraseModeTile_2
 48DF .resolvePhraseCursorNote
@@ -365,9 +365,9 @@
 4CD9 .drawString
 4D61 .step
 4D85 .cont
-4D8B .checkArg
+4D8B .checkArgument
 4DB2 .cont_2
-4DB3 .checkArg_2
+4DB3 .checkArgument_2
 4DC5 .cont_3
 4DDA .index
 4DEC .cont_4
@@ -385,7 +385,7 @@
 4FE9 .cont_11
 4FEC .cont_12
 4FEF .setrVBK
-500C .checkArg_3
+500C .checkArgument_3
 5020 .drawHexByte
 5082 .checkPhraseColumn_2
 50B8 .farCall
@@ -414,7 +414,7 @@
 538C .writeNote           ; PastePhraseSelection: WritePhraseNote(wPhraseRow, v)
 539F .pasteInstrument          ; PastePhraseSelection: column 2
 53C7 .pasteCommand            ; PastePhraseSelection: column 3 (+ shift)
-53F0 .pasteCommandVal         ; PastePhraseSelection: column 4 (+ shift)
+53F0 .pasteCommandValue         ; PastePhraseSelection: column 4 (+ shift)
 5416 .columnDone             ; PastePhraseSelection: swap columns 0/1 back
 5439 .columnStep             ; PastePhraseSelection: x--
 5453 .rowStep             ; PastePhraseSelection: y++
@@ -500,7 +500,7 @@
 5E54 .aInstrumentEntered
 5E7C .aCommand
 5ECF .aCommandDraw
-5F6E .aValPrelisten
+5F6E .aValuePrelisten
 5F93 .aRedraw
 5F9D .aDone
 5FE1 .rightDone
@@ -512,7 +512,7 @@
 6063 .leftDone
 6085 .upMove
 60C3 .upWrap
-610C .upPrevPhrase
+610C .upPreviousPhrase
 611E .upDraw
 612E .upDone
 6152 .downMove
@@ -531,15 +531,15 @@
 6482 .incCommandClamp
 64DF .incCommandDraw
 6509 .incCommandHelp
-652C .incCommandVal
-6561 .incVal
+652C .incCommandValue
+6561 .incValue
 65AE .incGroove
 65BD .incOutput
 65CC .incOutputRight
 65E4 .incWaveStep
 65EA .incTable
-65F7 .incValStep
-65FA .incValWrite
+65F7 .incValueStep
+65FA .incValueWrite
 6631 .incNextRow
 663B .incRedraw
 6645 .incDone
@@ -557,16 +557,16 @@
 68DB .bigCommandClamp
 693A .bigCommandDraw
 6964 .bigCommandHelp
-6987 .bigCommandVal
-69BC .bigVal
+6987 .bigCommandValue
+69BC .bigValue
 6A11 .bigGroove
 6A35 .bigPulseWave
 6A43 .bigOutput
 6A58 .bigSweepTone
 6A5A .bigSweepAdd
 6A62 .bigTable
-6A6F .bigValStep
-6A75 .bigValWrite
+6A6F .bigValueStep
+6A75 .bigValueWrite
 6AAC .bigNextRow
 6AB6 .bigRedraw
 6AC0 .bigDone
@@ -585,8 +585,8 @@
 6D4D .decInstrument
 6DA6 .decCommandStep
 6E51 .decCommandHelp
-6E74 .decCommandVal
-6EA9 .decVal
+6E74 .decCommandValue
+6EA9 .decValue
 6EF6 .decGroove
 6F01 .decWave
 6F11 .decWaveStep
@@ -595,8 +595,8 @@
 6F26 .decOutputSet
 6F2C .decTable
 6F3A .decTableOff
-6F41 .decValStep
-6F44 .decValWrite
+6F41 .decValueStep
+6F44 .decValueWrite
 6F7B .decNextRow
 6F85 .decRedraw
 6F8F .decDone
@@ -617,8 +617,8 @@
 722B .bigDecInstrument
 7284 .bigDecCommandStep
 732E .bigDecCommandHelp
-7351 .bigDecCommandVal
-7386 .bigDecVal
+7351 .bigDecCommandValue
+7386 .bigDecValue
 73DB .bigDecGroove
 73ED .bigDecOutput
 7406 .bigDecPulseWave
@@ -626,19 +626,19 @@
 7421 .bigDecSweepSub
 7429 .bigDecTable
 7438 .bigDecTableOff
-743F .bigDecValStep
-7445 .bigDecValWrite
+743F .bigDecValueStep
+7445 .bigDecValueWrite
 747C .bigDecNextRow
 7486 .bigDecRedraw
 7490 .bigDecDone
 755C .bUpDone
 75C9 .bDownDone
 7651 .cutRememberHigh
-766B .cutKitHighClip
-773F .cutNoteClip
+766B .cutKitHighClipboard
+773F .cutNoteClipboard
 777D .cutKitLow
-7796 .cutKitLowClip
-785F .cutCommandClip
+7796 .cutKitLowClipboard
+785F .cutCommandClipboard
 78E5 .pasteNotCells
 78E6 .pasteTypeTested
 78FB .pasteTypeOk

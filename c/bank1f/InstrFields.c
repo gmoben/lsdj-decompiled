@@ -10,13 +10,13 @@
 
 #include "lsdj.h"
 
-void DrawFieldVal(UBYTE kind, UBYTE v);   /* bank 0, DrawFields.c */
+void DrawFieldValue(UBYTE kind, UBYTE v);   /* bank 0, DrawFields.c */
 extern char PlayModeNames[];                /* $00:$0839, five 9-byte names "  MANUAL".."  RESYNC" */
 void DrawPulseDuty(UBYTE duty);             /* bank 0 */
 void DrawWaveFinetune(void);                 /* $03:$4CD9 */
 void DrawWaveSynthField(void);              /* $03:$4D15 */
-void DrawWaveLen(void);                 /* $03:$498B */
-void DrawWaveLoopPos(void);                  /* $03:$49FD */
+void DrawWaveLength(void);                 /* $03:$498B */
+void DrawWaveLoopPosition(void);                  /* $03:$49FD */
 void DrawWaveSpeed(void);                 /* $03:$49B7 */
 
 void DrawInstrumentTableMode(void)
@@ -132,7 +132,7 @@ void DrawPulseInstrument(void)
     v = ReadCurrentInstrumentByte(7);
     DrawPulseDuty(v >> 6);
     wVramCursor = 0x990B;
-    DrawFieldVal(0x0C, ReadCurrentInstrumentByte(7));
+    DrawFieldValue(0x0C, ReadCurrentInstrumentByte(7));
     wVramCursor = 0x9928;
     v = ReadCurrentInstrumentByte(3);
     if (!(v & 0x40)) {
@@ -145,9 +145,9 @@ void DrawPulseInstrument(void)
     DrawHexByte(ReadCurrentInstrumentByte(4) & 0x7F);
     wVramCursor = 0x9967;
     v = ReadCurrentInstrumentByte(5);
-    FarCallArg(1, FAR_FN(DrawSpeedModeName), v);
+    FarCallArgument(1, FAR_FN(DrawSpeedModeName), v);
     wVramCursor = 0x998A;
-    FarCallArg(1, FAR_FN(DrawOnOffName), v);
+    FarCallArgument(1, FAR_FN(DrawOnOffName), v);
     wVramCursor = 0x99EC;
     DrawByte(ReadCurrentInstrumentByte(8));
     wVramCursor = 0x99AB;
@@ -167,7 +167,7 @@ void DrawNoiseInstrument(void)
     wVramCursor = 0x98A5;
     DrawEnvelopeFields();
     wVramCursor = 0x98EB;
-    DrawFieldVal(0x0C, ReadCurrentInstrumentByte(7));
+    DrawFieldValue(0x0C, ReadCurrentInstrumentByte(7));
     wVramCursor = 0x9908;
     v = ReadCurrentInstrumentByte(3);
     if (!(v & 0x40)) {
@@ -180,9 +180,9 @@ void DrawNoiseInstrument(void)
     DrawString(ReadCurrentInstrumentByte(2) ? "SAFE" : "FREE");
     wVramCursor = 0x994B;
     v = ReadCurrentInstrumentByte(5);
-    FarCallArg(1, FAR_FN(DrawSpeedGlyph), v);
+    FarCallArgument(1, FAR_FN(DrawSpeedGlyph), v);
     wVramCursor = 0x996A;
-    FarCallArg(1, FAR_FN(DrawOnOffName), v);
+    FarCallArgument(1, FAR_FN(DrawOnOffName), v);
     wVramCursor = 0x998C;
     DrawByte(ReadCurrentInstrumentByte(8));
     wVramCursor = 0x99C6;
@@ -199,7 +199,7 @@ void DrawKitNameCell(UBYTE kit)
     DrawString(wSampleNoteString);
 }
 
-void DrawKitDistName(UBYTE v);              /* bank 3 */
+void DrawKitDistortionName(UBYTE v);              /* bank 3 */
 
 /*
  * The KIT instrument's fields: both kits' names, VOLUME (byte 1 bits 6-5,
@@ -238,7 +238,7 @@ void DrawKitInstrument(void)
     DrawStringIndexed('/');
     hBgDigitPalette = wShadedDigitPalette;
     hBgPalette = wShadedPalette;
-    DrawFieldVal(0x0C, ReadCurrentInstrumentByte(7));
+    DrawFieldValue(0x0C, ReadCurrentInstrumentByte(7));
     wVramCursor = 0x99A6;
     DrawKitLoopField();
     wVramCursor = 0x99C9;
@@ -253,7 +253,7 @@ void DrawKitInstrument(void)
     hBgPalette = wShadedPalette;
     wVramCursor = 0x99E8;
     v = ReadCurrentInstrumentByte(0x0A);
-    FarCallArg(3, FAR_FN(DrawKitDistName), v);
+    FarCallArgument(3, FAR_FN(DrawKitDistortionName), v);
     wVramCursor = 0x994B;
     DrawHexByte(ReadCurrentInstrumentByte(8));
     wVramCursor = 0x9968;
@@ -286,7 +286,7 @@ void DrawKitInstrument(void)
         DrawString("ALL");
     wVramCursor = 0x9927;
     flags = ReadCurrentInstrumentByte(5);
-    FarCallArg(1, FAR_FN(DrawSpeedModeName), flags);
+    FarCallArgument(1, FAR_FN(DrawSpeedModeName), flags);
     wVramCursor = 0x9A26;
     DrawInstrumentTableMode();
     wVramCursor++;
@@ -319,18 +319,18 @@ void DrawWaveInstrument(void)
     DrawStringIndexed('/');
     hBgDigitPalette = wShadedDigitPalette;
     hBgPalette = wShadedPalette;
-    DrawFieldVal(0x0C, ReadCurrentInstrumentByte(7));
+    DrawFieldValue(0x0C, ReadCurrentInstrumentByte(7));
     wVramCursor = 0x98C7;
     v = ReadCurrentInstrumentByte(5);
-    FarCallArg(1, FAR_FN(DrawSpeedModeName), v);
+    FarCallArgument(1, FAR_FN(DrawSpeedModeName), v);
     wVramCursor = 0x98EA;
-    FarCallArg(1, FAR_FN(DrawOnOffName), v);
+    FarCallArgument(1, FAR_FN(DrawOnOffName), v);
     wVramCursor = 0x992C;
     DrawByte(ReadCurrentInstrumentByte(8));
     FarCall(3, DrawWaveFinetune);
     FarCall(3, DrawWaveSynthField);
-    FarCall(3, DrawWaveLen);
-    FarCall(3, DrawWaveLoopPos);
+    FarCall(3, DrawWaveLength);
+    FarCall(3, DrawWaveLoopPosition);
     FarCall(3, DrawWaveSpeed);
     wVramCursor = 0x9965;
     v = ReadCurrentInstrumentByte(9);

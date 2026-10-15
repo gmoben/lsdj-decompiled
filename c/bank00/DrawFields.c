@@ -4,20 +4,20 @@
  * MATCHING C (period GBDK 2.95-3 / SDCC 2.2.1 + tools/match/lsdj.peep);
  * `make match` verifies every function here against the ROM.
  *
- * ColorField colours a field: on CGB it fills wAttrRowBuf with the palette
+ * ColorField colours a field: on CGB it fills wAttributeRowBuffer with the palette
  * and writes it to VRAM bank 1 with set_bkg_tiles, on DMG it draws a tile run.
  * The tempo (a stored 0-39 stands for 256-295; the three sync speeds show
  * as 2X/3X/6X), the channel header and the pulse duty / pan values. The
  * string literals come out in the order SDCC numbers them, and a block-local
  * initialiser is numbered before everything else in the function: the pan
  * default is `char *s = "LR";` inside its case, which puts "LR" ahead of
- * case 0's "--" in the ROM (DrawFieldVal).
+ * case 0's "--" in the ROM (DrawFieldValue).
  */
 
 #include "lsdj.h"
 
 extern volatile sfr UBYTE VBK_REG;          /* $FF4F */
-extern UBYTE wAttrRowBuf[];                 /* $C677, [20] */
+extern UBYTE wAttributeRowBuffer[];                 /* $C677, [20] */
 void DrawTileRun(UBYTE x, UBYTE y, UBYTE w, UBYTE h, UBYTE tile);   /* asm */
 
 void ColorField(UBYTE x, UBYTE y, UBYTE w, UBYTE pal)
@@ -27,15 +27,15 @@ void ColorField(UBYTE x, UBYTE y, UBYTE w, UBYTE pal)
     if (hGameboyType) {
         if (w > 20)
             DebugTrap();
-        MemSet(wAttrRowBuf, pal, w);
+        FillMemory(wAttributeRowBuffer, pal, w);
         VBK_REG = 1;
-        set_bkg_tiles(x, y, w, 1, wAttrRowBuf);
+        set_bkg_tiles(x, y, w, 1, wAttributeRowBuffer);
         VBK_REG = 0;
     } else
         DrawTileRun(x, y, w, 1, pal);
 }
 
-UWORD GetTempoTimerVal(void)
+UWORD GetTempoTimerValue(void)
 {
     switch (wTempoMode) {
     case 1:
@@ -72,7 +72,7 @@ void DrawTempoField(void)
     wVramCursor = (UBYTE *)0x9891;
     hBgDigitPalette = wShadedDigitPalette;
     hBgPalette = wShadedPalette;
-    DrawTempo(GetTempoTimerVal());
+    DrawTempo(GetTempoTimerValue());
 }
 
 void DrawChannelHeader(void)
@@ -116,7 +116,7 @@ void DrawPulseDuty(UBYTE duty)
     DrawString(s);
 }
 
-void DrawFieldVal(UBYTE kind, UBYTE v)
+void DrawFieldValue(UBYTE kind, UBYTE v)
 {
     switch (kind) {
     case 0:

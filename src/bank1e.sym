@@ -55,7 +55,7 @@
 ; --- full local naming (block signature) ---
 403C .cont
 403E .checkCurrentScreen
-42B0 .setStringSrc
+42B0 .setStringSource
 7A09 .writeVramByteSafe
 7A18 .cont
 7A27 .writeVramByteSafe_2

@@ -7,7 +7,7 @@
  *     tools/match/match_function.py --c c/bank01/ShowMessages.c --target ShowTapAddChain
  *
  * One-line wrappers that pop up a fixed message via bank 0's ShowMessage
- * (which copies the string into wStrBuf; DrawMessageBar then renders it).
+ * (which copies the string into wStringBuffer; DrawMessageBar then renders it).
  */
 
 #include "lsdj.h"

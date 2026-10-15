@@ -11,7 +11,7 @@
   "len": 56,
   "src": "c/bank03/InstrScreen.c"
  },
- "AddSynthParamClamped": {
+ "AddSynthParameterClamped": {
   "bank": "1D",
   "addr": "6EB6",
   "len": 137,
@@ -203,7 +203,7 @@
   "len": 160,
   "src": "c/bank1f/SongData.c"
  },
- "ClearBgMapAndAttrs": {
+ "ClearBgMapAndAttributes": {
   "bank": "01",
   "addr": "6D23",
   "len": 48,
@@ -227,7 +227,7 @@
   "len": 65,
   "src": "c/bank01/UiHelpers.c"
  },
- "ClearOamBuf": {
+ "ClearOamBuffer": {
   "bank": "01",
   "addr": "4B5E",
   "len": 259,
@@ -575,13 +575,13 @@
   "len": 56,
   "src": "c/bank03/InstrScreen.c"
  },
- "DecInstrumentLen": {
+ "DecInstrumentLength": {
   "bank": "03",
   "addr": "52BF",
   "len": 89,
   "src": "c/bank03/InstrScreen.c"
  },
- "DecInstrumentLenBig": {
+ "DecInstrumentLengthBig": {
   "bank": "03",
   "addr": "537A",
   "len": 96,
@@ -599,7 +599,7 @@
   "len": 39,
   "src": "c/bank1d/SynthScreen.c"
  },
- "DecSynthParamTo0": {
+ "DecSynthParameterTo0": {
   "bank": "1D",
   "addr": "702B",
   "len": 99,
@@ -611,19 +611,19 @@
   "len": 149,
   "src": "c/bank1c/FileScreen.c"
  },
- "DedupChains": {
+ "DeduplicateChains": {
   "bank": "1F",
   "addr": "5C78",
   "len": 157,
   "src": "c/bank1f/SongData.c"
  },
- "DedupPhrases": {
+ "DeduplicatePhrases": {
   "bank": "1F",
   "addr": "5BDE",
   "len": 154,
   "src": "c/bank1f/SongData.c"
  },
- "DedupTables": {
+ "DeduplicateTables": {
   "bank": "1F",
   "addr": "5D18",
   "len": 174,
@@ -671,6 +671,12 @@
   "len": 238,
   "src": "c/bank1c/FileScreen.c"
  },
+ "DrawCalibrationScreen": {
+  "bank": "07",
+  "addr": "7097",
+  "len": 218,
+  "src": "c/bank07/KbdLink.c"
+ },
  "DrawCartTest": {
   "bank": "01",
   "addr": "4487",
@@ -683,7 +689,7 @@
   "len": 66,
   "src": "c/bank06/ChainScreen.c"
  },
- "DrawChainPos": {
+ "DrawChainPosition": {
   "bank": "06",
   "addr": "5626",
   "len": 44,
@@ -743,7 +749,7 @@
   "len": 172,
   "src": "c/bank1f/InstrFields.c"
  },
- "DrawFieldVal": {
+ "DrawFieldValue": {
   "bank": "00",
   "addr": "2D7E",
   "len": 166,
@@ -869,12 +875,6 @@
   "len": 32,
   "src": "c/bank1b/ProjScreen.c"
  },
- "DrawKeyboardCalibScreen": {
-  "bank": "07",
-  "addr": "7097",
-  "len": 218,
-  "src": "c/bank07/KbdLink.c"
- },
  "DrawKeyboardInstrumentName": {
   "bank": "07",
   "addr": "674D",
@@ -893,7 +893,7 @@
   "len": 119,
   "src": "c/bank07/KbdLink.c"
  },
- "DrawKitDistName": {
+ "DrawKitDistortionName": {
   "bank": "03",
   "addr": "4A44",
   "len": 112,
@@ -1181,7 +1181,7 @@
   "len": 116,
   "src": "c/bank1d/SynthScreen.c"
  },
- "DrawSynthDistField": {
+ "DrawSynthDistortionField": {
   "bank": "1D",
   "addr": "6577",
   "len": 60,
@@ -1301,7 +1301,7 @@
   "len": 375,
   "src": "c/bank1f/InstrFields.c"
  },
- "DrawWaveLen": {
+ "DrawWaveLength": {
   "bank": "03",
   "addr": "498B",
   "len": 44,
@@ -1313,7 +1313,7 @@
   "len": 49,
   "src": "c/bank06/WaveScreen.c"
  },
- "DrawWaveLoopPos": {
+ "DrawWaveLoopPosition": {
   "bank": "03",
   "addr": "49FD",
   "len": 71,
@@ -1475,25 +1475,25 @@
   "len": 65,
   "src": "c/bank06/WordScreen.c"
  },
- "FarCallArg2": {
+ "FarCallArgument2": {
   "bank": "00",
   "addr": "0C8F",
   "len": 54,
   "src": "c/bank00/FarCall.c"
  },
- "FarCallArg2V": {
+ "FarCallArgument2V": {
   "bank": "00",
   "addr": "0C5A",
   "len": 53,
   "src": "c/bank00/FarCall.c"
  },
- "FarCallArg3": {
+ "FarCallArgument3": {
   "bank": "00",
   "addr": "0CC5",
   "len": 57,
   "src": "c/bank00/FarCall.c"
  },
- "FarCallArgByte": {
+ "FarCallArgumentByte": {
   "bank": "00",
   "addr": "0C29",
   "len": 49,
@@ -1505,13 +1505,13 @@
   "len": 43,
   "src": "c/bank00/FarCall.c"
  },
- "FileCalcCompressedSize": {
+ "FileCalculateCompressedSize": {
   "bank": "1C",
   "addr": "595F",
   "len": 135,
   "src": "c/bank1c/FileUpgrade.c"
  },
- "FileCheckNameLen": {
+ "FileCheckNameLength": {
   "bank": "1C",
   "addr": "594A",
   "len": 21,
@@ -1523,7 +1523,7 @@
   "len": 27,
   "src": "c/bank1c/FileScreen.c"
  },
- "FileCopyNameToBuf": {
+ "FileCopyNameToBuffer": {
   "bank": "1C",
   "addr": "590B",
   "len": 63,
@@ -1889,19 +1889,19 @@
   "len": 43,
   "src": "c/bank04/PhraseScreen.c"
  },
- "FindDupChain": {
+ "FindDuplicateChain": {
   "bank": "1F",
   "addr": "5644",
   "len": 248,
   "src": "c/bank1f/SongData.c"
  },
- "FindDupPhrase": {
+ "FindDuplicatePhrase": {
   "bank": "1F",
   "addr": "549C",
   "len": 424,
   "src": "c/bank1f/SongData.c"
  },
- "FindDupTable": {
+ "FindDuplicateTable": {
   "bank": "1F",
   "addr": "573C",
   "len": 602,
@@ -1931,7 +1931,7 @@
   "len": 79,
   "src": "c/bank07/SongScreen.c"
  },
- "FindPrevSongRow": {
+ "FindPreviousSongRow": {
   "bank": "07",
   "addr": "4A25",
   "len": 84,
@@ -2027,7 +2027,7 @@
   "len": 222,
   "src": "c/bank01/UiHelpers.c"
  },
- "GetTempoTimerVal": {
+ "GetTempoTimerValue": {
   "bank": "00",
   "addr": "2BC4",
   "len": 120,
@@ -2045,13 +2045,13 @@
   "len": 103,
   "src": "c/bank06/WaveScreen.c"
  },
- "GetWaveLen": {
+ "GetWaveLength": {
   "bank": "03",
   "addr": "4AF4",
   "len": 22,
   "src": "c/bank03/InstrScreen.c"
  },
- "GetWaveLoopPos": {
+ "GetWaveLoopPosition": {
   "bank": "03",
   "addr": "49E7",
   "len": 22,
@@ -2129,7 +2129,7 @@
   "len": 109,
   "src": "c/bank1b/HelpScreen.c"
  },
- "HexDigitChar": {
+ "HexDigitCharacter": {
   "bank": "07",
   "addr": "672A",
   "len": 18,
@@ -2159,13 +2159,13 @@
   "len": 59,
   "src": "c/bank03/InstrScreen.c"
  },
- "IncInstrumentLen": {
+ "IncInstrumentLength": {
   "bank": "03",
   "addr": "526B",
   "len": 80,
   "src": "c/bank03/InstrScreen.c"
  },
- "IncInstrumentLenBig": {
+ "IncInstrumentLengthBig": {
   "bank": "03",
   "addr": "531C",
   "len": 90,
@@ -2183,7 +2183,7 @@
   "len": 40,
   "src": "c/bank1d/SynthScreen.c"
  },
- "IncSynthParamTo": {
+ "IncSynthParameterTo": {
   "bank": "1D",
   "addr": "6FC4",
   "len": 103,
@@ -2369,7 +2369,7 @@
   "len": 267,
   "src": "c/bank1e/Gfx.c"
  },
- "LoadHwTables": {
+ "LoadHardwareTables": {
   "bank": "01",
   "addr": "4B15",
   "len": 73,
@@ -2393,7 +2393,7 @@
   "len": 62,
   "src": "c/bank07/SongScreen.c"
  },
- "LoadSynthParams": {
+ "LoadSynthParameters": {
   "bank": "1D",
   "addr": "68F9",
   "len": 570,
@@ -2483,7 +2483,7 @@
   "len": 71,
   "src": "c/bank1f/SongData.c"
  },
- "MigrateTempoProps": {
+ "MigrateTempoProperties": {
   "bank": "1C",
   "addr": "4DD1",
   "len": 63,
@@ -2735,43 +2735,43 @@
   "len": 72,
   "src": "c/bank04/PhraseScreen.c"
  },
- "PrevInstrumentPage": {
+ "PreviousInstrumentPage": {
   "bank": "03",
   "addr": "461B",
   "len": 29,
   "src": "c/bank03/InstrScreen.c"
  },
- "PrevInstrumentPitchMode": {
+ "PreviousInstrumentPitchMode": {
   "bank": "03",
   "addr": "4C64",
   "len": 117,
   "src": "c/bank03/InstrScreen.c"
  },
- "PrevInstrumentTable": {
+ "PreviousInstrumentTable": {
   "bank": "03",
   "addr": "48D6",
   "len": 78,
   "src": "c/bank03/InstrScreen.c"
  },
- "PrevInstrumentTableMode": {
+ "PreviousInstrumentTableMode": {
   "bank": "03",
   "addr": "47A2",
   "len": 140,
   "src": "c/bank03/InstrScreen.c"
  },
- "PrevKit": {
+ "PreviousKit": {
   "bank": "03",
   "addr": "508C",
   "len": 83,
   "src": "c/bank03/InstrScreen.c"
  },
- "PrevUsedInstrument": {
+ "PreviousUsedInstrument": {
   "bank": "03",
   "addr": "45D3",
   "len": 72,
   "src": "c/bank03/InstrScreen.c"
  },
- "PrevVibratoShape": {
+ "PreviousVibratoShape": {
   "bank": "03",
   "addr": "4BCB",
   "len": 30,
@@ -2873,7 +2873,7 @@
   "len": 113,
   "src": "c/bank04/PhraseScreen.c"
  },
- "ReadPhraseCommandVal": {
+ "ReadPhraseCommandValue": {
   "bank": "04",
   "addr": "4A8F",
   "len": 91,
@@ -2891,13 +2891,13 @@
   "len": 93,
   "src": "c/bank04/PhraseScreen.c"
  },
- "ReadSeqByte": {
+ "ReadSequenceByte": {
   "bank": "00",
   "addr": "0AF6",
   "len": 94,
   "src": "c/bank00/ReadSeqByte.c"
  },
- "ReadSeqByteRaw": {
+ "ReadSequenceByteRaw": {
   "bank": "00",
   "addr": "2106",
   "len": 59,
@@ -2909,7 +2909,7 @@
   "len": 127,
   "src": "c/bank07/SongScreen.c"
  },
- "ReadSynthParam": {
+ "ReadSynthParameter": {
   "bank": "1D",
   "addr": "6311",
   "len": 67,
@@ -2939,7 +2939,7 @@
   "len": 83,
   "src": "c/bank05/TableScreen.c"
  },
- "ReadTableVal": {
+ "ReadTableValue": {
   "bank": "05",
   "addr": "453B",
   "len": 99,
@@ -3035,7 +3035,7 @@
   "len": 124,
   "src": "c/bank1f/SongData.c"
  },
- "RemapSeqChains": {
+ "RemapSequenceChains": {
   "bank": "1F",
   "addr": "52DA",
   "len": 313,
@@ -3089,7 +3089,7 @@
   "len": 53,
   "src": "c/bank00/ScreenDrawDispatch.c"
  },
- "ResetSynthParams": {
+ "ResetSynthParameters": {
   "bank": "1F",
   "addr": "61C4",
   "len": 59,
@@ -3155,7 +3155,7 @@
   "len": 20,
   "src": "c/bank1b/ProjScreen.c"
  },
- "SaveTempoProps": {
+ "SaveTempoProperties": {
   "bank": "1B",
   "addr": "582C",
   "len": 39,
@@ -3269,7 +3269,7 @@
   "len": 347,
   "src": "c/bank07/SongScreen.c"
  },
- "SetSpriteAttr": {
+ "SetSpriteAttribute": {
   "bank": "00",
   "addr": "324A",
   "len": 23,
@@ -3395,13 +3395,13 @@
   "len": 49,
   "src": "c/bank00/Helpers.c"
  },
- "SoundAdvanceStatePtrs": {
+ "SoundAdvanceStatePointers": {
   "bank": "02",
   "addr": "507F",
   "len": 29,
   "src": "c/bank02/Sound.c"
  },
- "SoundEnableLcdInts": {
+ "SoundEnableLcdInterrupts": {
   "bank": "02",
   "addr": "70FB",
   "len": 19,
@@ -3635,7 +3635,7 @@
   "len": 14,
   "src": "c/bank05/TableScreen.c"
  },
- "StrLength": {
+ "StringLength": {
   "bank": "00",
   "addr": "36DD",
   "len": 55,
@@ -3647,7 +3647,7 @@
   "len": 47,
   "src": "c/bank03/InstrScreen.c"
  },
- "SubSynthParamClamped": {
+ "SubSynthParameterClamped": {
   "bank": "1D",
   "addr": "6F3F",
   "len": 133,
@@ -3671,7 +3671,7 @@
   "len": 222,
   "src": "c/bank00/Sync.c"
  },
- "SyncSeekSongPos": {
+ "SyncSeekSongPosition": {
   "bank": "00",
   "addr": "217C",
   "len": 256,
@@ -3683,7 +3683,7 @@
   "len": 59,
   "src": "c/bank00/Sync.c"
  },
- "SyncSetRecvMode": {
+ "SyncSetReceiveMode": {
   "bank": "00",
   "addr": "1EE3",
   "len": 35,
@@ -3749,13 +3749,13 @@
   "len": 61,
   "src": "c/bank1f/SongData.c"
  },
- "SynthLockByteAddr": {
+ "SynthLockByteAddress": {
   "bank": "06",
   "addr": "4901",
   "len": 62,
   "src": "c/bank06/WaveScreen.c"
  },
- "SynthLockByteAddrB1D": {
+ "SynthLockByteAddressB1D": {
   "bank": "1D",
   "addr": "60A7",
   "len": 62,
@@ -3815,7 +3815,7 @@
   "len": 234,
   "src": "c/bank01/UiHelpers.c"
  },
- "TilemapAddr": {
+ "TilemapAddress": {
   "bank": "06",
   "addr": "48AB",
   "len": 86,
@@ -3965,7 +3965,7 @@
   "len": 107,
   "src": "c/bank04/PhraseScreen.c"
  },
- "WritePhraseCommandVal": {
+ "WritePhraseCommandValue": {
   "bank": "04",
   "addr": "4A30",
   "len": 95,
@@ -3995,7 +3995,7 @@
   "len": 103,
   "src": "c/bank01/SongAlloc.c"
  },
- "WriteSynthParam": {
+ "WriteSynthParameter": {
   "bank": "1D",
   "addr": "6E6E",
   "len": 72,
@@ -4025,7 +4025,7 @@
   "len": 87,
   "src": "c/bank05/TableScreen.c"
  },
- "WriteTableVal": {
+ "WriteTableValue": {
   "bank": "05",
   "addr": "442A",
   "len": 103,

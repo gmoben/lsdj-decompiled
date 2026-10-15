@@ -1,5 +1,5 @@
 ; Bank $1D -- Groove / Synth screens + softsynth renderer
-6035 RenderSynthWave    ; render a softsynth wave frame; called from main.mainLoop idle time (counter wSynthRenderIdx, 0-15)
+6035 RenderSynthWave    ; render a softsynth wave frame; called from main.mainLoop idle time (counter wSynthRenderIndex, 0-15)
 
 ; --- synth data tables + strings ---
 4EF0 SineTable          ; signed sine waveform (synth source): 0..$3f..0..-$3f..
@@ -19,7 +19,7 @@
 ; Synth editor: softsynth_params[wSynth][16] at SRAM bank1 $BEB2 (16 synths);
 ; params read via per-field getters ($6311/$68CC/... -> ReadSongByte on $BEB2).
 6354 SynthSignalIsFrame ; -> 1 if synth signal type (param 0) == 3 (FRAME mode), else 0
-6311 ReadSynthParam             ; the current synth's param byte n: synth_params[wSynthScreen*16 + n] (song $3EB2)
+6311 ReadSynthParameter             ; the current synth's param byte n: synth_params[wSynthScreen*16 + n] (song $3EB2)
 68AB DrawSynthScreen    ; screen idx 10: draws softsynth params (wave/filter/cutoff/dist/...)
 ; --- synth-screen value-name tables (indexed by the synth param value) --------
 62F5 SynthPhaseNames    ; phase types " PINCH"/"  WARP"/"RESYNC" (7-byte stride)
@@ -35,27 +35,27 @@
 4B6C CutCopyGrooveSelection              ; cut/copy the groove selection (arg 1 = cut: rows cleared to 0, row 0 to 6)
 4C63 PasteGrooveSelection       ; write the clipboard steps into the groove from the cursor (clipType 2), advancing wGrooveRow and wrapping at 16; PASTE message
 4CDE DrawGrooveSelection        ; clipType 2: highlight the rows between the anchor wSelectionTop and the cursor (palette 3 on CGB, 2 on DMG)
-4D81 RenderSynthWaveA           ; render synth waveform segment using wave tables $4EF0/$50F0 (wSynthSegLen1/wSynthSignalType)
+4D81 RenderSynthWaveA           ; render synth waveform segment using wave tables $4EF0/$50F0 (wSynthSegmentLength1/wSynthSignalType)
 5190 RenderSynthWaveB           ; render synth waveform segment (variant of RenderSynthWaveA)
-5323 ComposeSynthWave           ; main synth wave composition (wSynthRenderIdx, buffer wSynthWaveBuf); large
-5695 RenderSynthWaveType        ; dispatch waveform shape by type wSynthWaveShape (jump table $56bd); buffer wSynthCurveAmp
+5323 ComposeSynthWave           ; main synth wave composition (wSynthRenderIndex, buffer wSynthWaveBuffer); large
+5695 RenderSynthWaveType        ; dispatch waveform shape by type wSynthWaveShape (jump table $56bd); buffer wSynthCurveAmplitude
 58DA WrapSynthIndex32           ; return (arg+1) & $1f (wave sample index wrap)
 58E6 SynthFilterLowHigh         ; synth filter LOWP/HIGHP (any type but 2/3): scatter each of the 32 samples over two accumulator slots at a cutoff-driven 8.8 position, then normalise each slot by its weight (type 0 fills missing weight with 8)
 5BBD SynthFilterBandPass        ; synth filter BANDP: halve the wave an octave per cutoff doubling (pair averages), then the LOWP/HIGHP scatter-and-normalise core with the position masked to the shortened wave
 5E53 SynthFilterPass            ; filter/transform 32 wave samples using wSynthFilterCutoff
 5F00 ApplySynthFilter           ; dispatch filter by wSynthFilterType (2->SynthFilterBandPass, 3->SynthFilterPass, else 58E6); gated wSynthFilterCutoff
 5F29 WriteSynthWaveColumn          ; write an edited wave column (<$20) from the edit state (wWaveEditX) into song data
-5F90 LoadSynthSignalWave        ; load the custom-wave SIGNAL (W.FX: wave $F0 + synth, 16 packed bytes at SRAM $AF00 + 16 * synth) into wSynthShapeBuf as 32 signed words
-60A7 SynthLockByteAddrB1D       ; bank $1D's copy of SynthLockByteAddr: the SRAM byte holding synth x's lock bit ($BFC5 for 0-7, $BFC4 for 8-F)
-6115 IsSynthLocked              ; nonzero if synth x is locked (its bit in the SynthLockByteAddrB1D byte; LockCurrentSynth sets it when a wave is edited by hand)
-6144 ClearSynthFlag             ; clear synth x's bit in the flag pair at $BFC4/$BFC5 (SynthLockByteAddrB1D)
+5F90 LoadSynthSignalWave        ; load the custom-wave SIGNAL (W.FX: wave $F0 + synth, 16 packed bytes at SRAM $AF00 + 16 * synth) into wSynthShapeBuffer as 32 signed words
+60A7 SynthLockByteAddressB1D       ; bank $1D's copy of SynthLockByteAddress: the SRAM byte holding synth x's lock bit ($BFC5 for 0-7, $BFC4 for 8-F)
+6115 IsSynthLocked              ; nonzero if synth x is locked (its bit in the SynthLockByteAddressB1D byte; LockCurrentSynth sets it when a wave is edited by hand)
+6144 ClearSynthFlag             ; clear synth x's bit in the flag pair at $BFC4/$BFC5 (SynthLockByteAddressB1D)
 6193 FillSynthWaveRange         ; fill/interpolate a wave value range (16-step; <-SynthLoadWaveTable)
 62A8 DrawSynthField             ; draw the synth PHASE field: switch (jp-table SynthDispatchJumps) -> " PINCH"/"  WARP"/"RESYNC"/"RESYN2"
 636E DrawSynthFilterField       ; draw the FILTER type field (" LOWP"...; "-----" empty; jp-table $63a6)
 6414 DrawSynthWaveField         ; draw the waveform type row (glyph strings "iiii"/"mmmm"; jp-table $6437)
 649F EraseSynthCursor           ; restore palette 1 over the cursor field's cells (SynthFieldX/Width/Layout[wSynthCursor])
 6503 DrawSynthCursor            ; highlight the cursor field's cells (palette 3 on CGB, 2 on DMG)
-6577 DrawSynthDistField         ; draw the DIST field: "CLIP"/"FOLD"/"WRAP"
+6577 DrawSynthDistortionField         ; draw the DIST field: "CLIP"/"FOLD"/"WRAP"
 65C2 DrawSynthNumber            ; redraw the synth number and both endpoints of every parameter field
 68A5 TxtSynthFrameDashesA       ; "--" for a hidden parameter's first endpoint
 68A8 TxtSynthFrameDashesB       ; "--" for its second endpoint
@@ -63,21 +63,21 @@
 6791 .rowB                ; (was DrawSynthHexRowB) draw a START/END hex pair row (section B)
 6819 .rowC                ; (was DrawSynthHexRowC) draw a START/END hex pair row (section C)
 6865 .rowD                ; (was DrawSynthHexRowD) draw a START/END hex pair row (section D), then DrawSynthCursor re-render
-68F9 LoadSynthParams            ; load the edited synth's parameters from SRAM ($BEB2 + wSynthScreen*16) into the render state: wave type, wave table, filter
+68F9 LoadSynthParameters            ; load the edited synth's parameters from SRAM ($BEB2 + wSynthScreen*16) into the render state: wave type, wave table, filter
 6935 .loadWaveType        ; (was SynthLoadWaveType) read 2 synth params from SRAM -> wSynthSignalType, wSynthWaveShape (wave type)
-6967 .loadWaveTable       ; (was SynthLoadWaveTable) read packed param from SRAM, build wave table wSynthCurveAmp (via FillSynthWaveRange)
-6997 .loadFilterParams    ; (was SynthLoadFilterParams) read 2 synth params from SRAM -> wSynthFilterParam, wSynthFilterType (filter)
-6B33 BuildOverwritePrompt       ; draw the confirmation border at columns 3..14, rows 4..10; restore wStringSrc/palettes
+6967 .loadWaveTable       ; (was SynthLoadWaveTable) read packed param from SRAM, build wave table wSynthCurveAmplitude (via FillSynthWaveRange)
+6997 .loadFilterParameters    ; (was SynthLoadFilterParams) read 2 synth params from SRAM -> wSynthFilterParameter, wSynthFilterType (filter)
+6B33 BuildOverwritePrompt       ; draw the confirmation border at columns 3..14, rows 4..10; restore wStringSource/palettes
 6D0F DrawOverwriteChoice        ; highlight the OVERWRITE? prompt choice (wOverwriteEnd) on row 9
 6D6F OverwriteSynthWaves        ; open the OVERWRITE HAND-DRAWN WAVES? confirmation; set active/choice flags wOverwriteStart/wOverwriteEnd
 6E00 RedrawScreenFar            ; FarCall home RedrawScreen ($24dd)
 6E11 OverwritePromptInput       ; synth OVERWRITE? prompt input: LEFT/RIGHT move the choice, A accepts (clearing the synth flag on the left choice), B cancels
-6E6E WriteSynthParam            ; synth_params[wSynthScreen*16+n] = value (song $3EB2); 24 uses
-6EB6 AddSynthParamClamped         ; synth param field += inc, clamped to max; draws it and writes it back
-6F3F SubSynthParamClamped         ; synth param field -= dec, clamped at 0; draws it and writes it back
-6FC4 IncSynthParamTo            ; increment the edited synth's param field unless it equals max; draw it (hex) and store it
-702B DecSynthParamTo0           ; decrement the edited synth's param field unless 0; draw it (hex) and store it
-708E IncSynthFieldHi            ; current synth field: +$10 on the hi nibble (clamp $f0), WriteSynthParam
+6E6E WriteSynthParameter            ; synth_params[wSynthScreen*16+n] = value (song $3EB2); 24 uses
+6EB6 AddSynthParameterClamped         ; synth param field += inc, clamped to max; draws it and writes it back
+6F3F SubSynthParameterClamped         ; synth param field -= dec, clamped at 0; draws it and writes it back
+6FC4 IncSynthParameterTo            ; increment the edited synth's param field unless it equals max; draw it (hex) and store it
+702B DecSynthParameterTo0           ; decrement the edited synth's param field unless 0; draw it (hex) and store it
+708E IncSynthFieldHi            ; current synth field: +$10 on the hi nibble (clamp $f0), WriteSynthParameter
 70BC IncSynthFieldLo            ; current synth field: +1 on the lo nibble (clamp $0f)
 70E4 DecSynthFieldHi            ; current synth field: -$10 on the hi nibble
 7111 DecSynthFieldLo            ; current synth field: -1 on the lo nibble
@@ -181,26 +181,26 @@
 62DF .resync              ; case 2 (was DrawPhaseResync)
 62EB .resyn2              ; case 3 (was DrawPhaseResyn2)
 62F4 .done                ; common exit of DrawSynthField
-631E .loop                ; loop head in ReadSynthParam
+631E .loop                ; loop head in ReadSynthParameter
 63EE .done                ; common exit of DrawSynthFilterField
 6487 .done                ; common exit of DrawSynthWaveField
 64B3 .loop                ; loop head in EraseSynthCursor
 64FF .done                ; common exit of EraseSynthCursor
 6517 .loop                ; loop head in DrawSynthCursor
 6573 .done                ; common exit of DrawSynthCursor
-65B2 .done                ; common exit of DrawSynthDistField
+65B2 .done                ; common exit of DrawSynthDistortionField
 65CF .loop                ; loop head in DrawSynthNumber
-6911 .loop                ; loop head in LoadSynthParams
+6911 .loop                ; loop head in LoadSynthParameters
 6B3A .loop                ; loop head in BuildOverwritePrompt
 6B82 .loop2               ; loop head in BuildOverwritePrompt
 6E6D .done                ; common exit of OverwritePromptInput
-6E7B .loop                ; loop head in WriteSynthParam
-6EC3 .loop                ; loop head in AddSynthParamClamped
-6F4C .loop                ; loop head in SubSynthParamClamped
-6FD1 .loop                ; loop head in IncSynthParamTo
-7027 .done                ; common exit of IncSynthParamTo
-7038 .loop                ; loop head in DecSynthParamTo0
-708A .done                ; common exit of DecSynthParamTo0
+6E7B .loop                ; loop head in WriteSynthParameter
+6EC3 .loop                ; loop head in AddSynthParameterClamped
+6F4C .loop                ; loop head in SubSynthParameterClamped
+6FD1 .loop                ; loop head in IncSynthParameterTo
+7027 .done                ; common exit of IncSynthParameterTo
+7038 .loop                ; loop head in DecSynthParameterTo0
+708A .done                ; common exit of DecSynthParameterTo0
 7C95 .loop                ; loop head in SynthScreenInput
 7CAA .loop2               ; loop head in SynthScreenInput
 7D31 .loop3               ; loop head in SynthScreenInput
@@ -269,12 +269,12 @@
 4751 .loadSelectionTopc
 47CF .checkButtons
 485C .drawGrooveRowf
-486E .setMessageStrPtr
+486E .setMessageStringPointer
 488D .setGroove
-4892 .setMessageStrPtrb
+4892 .setMessageStringPointerb
 48B1 .setGrooveb
-48B6 .setMessageStrPtrc
-48CF .setMessageStrPtrd
+48B6 .setMessageStringPointerc
+48CF .setMessageStringPointerd
 4912 .eraseGrooveCursor
 4998 .drawGrooveScreenb
 49CB .setSelectHeld
@@ -289,9 +289,9 @@
 4CD1 .drawGrooveSteps
 4D07 .loadSelectionTop
 4D2C .ok
-5F19 .clearSynthWaveBufs2
+5F19 .clearSynthWaveBuffers2
 5F1F .synthFilterPass
-5F25 .clearSynthWaveBufs
+5F25 .clearSynthWaveBuffers
 5F75 .loadWaveEditX
 6042 .ok
 6099 .renderSynthWaveType
@@ -328,7 +328,7 @@
 750F .checkButtonsSamed
 7543 .incSynthFieldHi
 7552 .incSynthFieldLo
-75DE .synthDataAddr
+75DE .synthDataAddress
 7650 .checkButtonsSamee
 76AA .drawSynthWaveFieldb
 76B0 .checkButtonsSamef
@@ -336,15 +336,15 @@
 7771 .checkButtonsSameh
 77A4 .decSynthFieldHi
 77B3 .decSynthFieldLo
-781F .synthDataAddrb
+781F .synthDataAddressb
 788F .incSynthFieldHib
 78A1 .incSynthFieldLob
-79C2 .synthDataAddrc
+79C2 .synthDataAddressc
 7A32 .decSynthFieldHib
 7A44 .decSynthFieldLob
-7B4B .synthDataAddrd
-7B53 .setMessageStrPtr
-7B6D .setMessageStrPtrb
+7B4B .synthDataAddressd
+7B53 .setMessageStringPointer
+7B6D .setMessageStringPointerb
 7B86 .checkButtonsSamei
 7BA6 .checkButtonsSamej
 7BCE .checkButtonsSamek
@@ -354,7 +354,7 @@
 7C3D .loadSynth
 7CE0 .setSelectionLeft
 7D07 .checkCursorMode
-7D7A .synthDataAddre
+7D7A .synthDataAddresse
 
 
 ; --- full local naming (block signature) ---
@@ -399,7 +399,7 @@
 4A0E .ret01_3
 4A13 .loadMapColumn
 4A31 .farCall
-4B16 .grooveScreenHw
+4B16 .grooveScreenHardware
 4B24 .showMessage
 4B51 .cont_8
 4B9D .checkSelectionTop
@@ -488,18 +488,18 @@
 5FAA .shiftStep           ; the shift count test (a = 4 + 1, entered first)
 602E .nextByte            ; p++ done (the high byte skipped without a carry), back to .byteLoop
 60C2 .cont
-60CF .checkArg
+60CF .checkArgument
 613B .step
 6174 .step
-61AE .checkArg
+61AE .checkArgument
 61ED .step
 6218 .cont
-6227 .checkArg_2
+6227 .checkArgument_2
 626C .step_2
 6323 .index
 6369 .cont
 636A .cont_2
-638C .synthParamAddr
+638C .synthParameterAddress
 63B5 .drawString
 63C1 .drawString_2
 63CD .drawString_3
@@ -531,7 +531,7 @@
 683F .readSongByte_rowC
 6919 .step
 694E .readSongByte
-69B0 .readSongByte_loadFilterParams
+69B0 .readSongByte_loadFilterParameters
 69C9 .readSongByte_2
 69E2 .readSongByte_3
 69FB .readSongByte_4
@@ -544,32 +544,32 @@
 6B5C .cont
 6B5D .cont_2
 6B70 .cont_3
-6B71 .setStringSrc
+6B71 .setStringSource
 6BB3 .cont_4
 6BB5 .cont_5
 6BEF .cont_6
 6BF0 .drawStringIndexed
-6C03 .checkArg
+6C03 .checkArgument
 6C15 .cont_7
 6C16 .drawStringIndexed_2
 6C29 .drawStringIndexed_3
 6C35 .cont_8
 6C48 .cont_9
 6C49 .drawStringIndexed_4
-6C5C .checkArg_2
+6C5C .checkArgument_2
 6C6E .cont_10
 6C6F .drawStringIndexed_5
 6C82 .drawStringIndexed_6
-6C8E .checkArg_3
+6C8E .checkArgument_3
 6C9A .cont_11
 6C9B .drawStringIndexed_7
-6CAE .checkArg_4
+6CAE .checkArgument_4
 6CC0 .cont_12
 6CC1 .drawStringIndexed_8
 6CD4 .drawStringIndexed_9
 6CE5 .cont_13
 6CEF .cont_14
-6CF5 .setStringSrc_2
+6CF5 .setStringSource_2
 6D28 .cont
 6D33 .cont_2
 6D55 .cont_3
@@ -584,9 +584,9 @@
 703D .index
 70B1 .shift
 70DD .cont
-70F7 .writeSynthParam
+70F7 .writeSynthParameter
 7106 .shift
-7124 .writeSynthParam
+7124 .writeSynthParameter
 7131 .cont
 7168 .ret01
 7197 .setDrawStep
@@ -594,58 +594,58 @@
 72AC .checkOverwriteEnd
 72B9 .setSynthCursor_2
 7376 .loadSynthCursor_2
-73FF .writeSynthParam
-740F .writeSynthParam_2
-741F .writeSynthParam_3
-74A7 .synthParamAddr
-74DB .synthParamAddr_2
-7561 .drawSynthParamPair
-7571 .drawSynthParamPair_2
-7581 .drawSynthParamPair_3
-7591 .drawSynthParamPair_4
-75A1 .drawSynthParamPair_5
-75B1 .drawSynthParamPair_6
-75C1 .drawSynthParamPair_7
-75D1 .drawSynthParamPair_8
+73FF .writeSynthParameter
+740F .writeSynthParameter_2
+741F .writeSynthParameter_3
+74A7 .synthParameterAddress
+74DB .synthParameterAddress_2
+7561 .drawSynthParameterPair
+7571 .drawSynthParameterPair_2
+7581 .drawSynthParameterPair_3
+7591 .drawSynthParameterPair_4
+75A1 .drawSynthParameterPair_5
+75B1 .drawSynthParameterPair_6
+75C1 .drawSynthParameterPair_7
+75D1 .drawSynthParameterPair_8
 75E6 .loadSynthCursor_3
-767B .writeSynthParam_4
-768B .writeSynthParam_5
-770F .synthParamAddr_3
-7740 .synthParamAddr_4
-77C2 .drawSynthParamPair2
-77CE .drawSynthParamPair2_2
-77DA .drawSynthParamPair2_3
-77E6 .drawSynthParamPair2_4
-77F2 .drawSynthParamPair2_5
-77FE .drawSynthParamPair2_6
-780A .drawSynthParamPair2_7
-7816 .drawSynthParamPair2_8
+767B .writeSynthParameter_4
+768B .writeSynthParameter_5
+770F .synthParameterAddress_3
+7740 .synthParameterAddress_4
+77C2 .drawSynthParameterPair2
+77CE .drawSynthParameterPair2_2
+77DA .drawSynthParameterPair2_3
+77E6 .drawSynthParameterPair2_4
+77F2 .drawSynthParameterPair2_5
+77FE .drawSynthParameterPair2_6
+780A .drawSynthParameterPair2_7
+7816 .drawSynthParameterPair2_8
 7827 .loadSynthCursor_4
-78B3 .readSynthParamPair
-78C7 .readSynthParamPair_2
-78DB .readSynthParamPair_3
-78EF .readSynthParamPair_4
-7903 .synthParamAddr_5
+78B3 .readSynthParameterPair
+78C7 .readSynthParameterPair_2
+78DB .readSynthParameterPair_3
+78EF .readSynthParameterPair_4
+7903 .synthParameterAddress_5
 791E .drawHexByte
-793C .synthParamAddr_6
+793C .synthParameterAddress_6
 7957 .drawHexByte_2
-7975 .readSynthParamPair_5
-7989 .readSynthParamPair_6
-799D .readSynthParamPair_7
-79B1 .readSynthParamPair_8
+7975 .readSynthParameterPair_5
+7989 .readSynthParameterPair_6
+799D .readSynthParameterPair_7
+79B1 .readSynthParameterPair_8
 79CA .loadSynthCursor_5
-7A56 .readSynthParamPair2
-7A66 .readSynthParamPair2_2
-7A76 .readSynthParamPair2_3
-7A86 .readSynthParamPair2_4
-7A96 .synthParamAddr_7
+7A56 .readSynthParameterPair2
+7A66 .readSynthParameterPair2_2
+7A76 .readSynthParameterPair2_3
+7A86 .readSynthParameterPair2_4
+7A96 .synthParameterAddress_7
 7AB4 .drawHexByte_3
-7AD2 .synthParamAddr_8
+7AD2 .synthParameterAddress_8
 7AF0 .drawHexByte_4
-7B0E .readSynthParamPair2_5
-7B1E .readSynthParamPair2_6
-7B2E .readSynthParamPair2_7
-7B3E .readSynthParamPair2_8
+7B0E .readSynthParameterPair2_5
+7B1E .readSynthParameterPair2_6
+7B2E .readSynthParameterPair2_7
+7B3E .readSynthParameterPair2_8
 7B68 .ret01_3
 7B81 .ret01_4
 7B93 .farCall
@@ -660,7 +660,7 @@
 7D19 .ret00
 7D1E .showMessage_2
 7D36 .index_2
-7D74 .synthDataAddr_2
+7D74 .synthDataAddress_2
 7D85 .cont
 7DB9 .cont
 60F5 SynthFieldX        ; x of the 16 synth screen fields

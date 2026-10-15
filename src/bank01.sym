@@ -1,14 +1,14 @@
 ; Bank $01 -- UI string table + help text (incl. the FX command help popups)
 4485 .done                ; (was CartridgeTest) common exit
 51F4 PitchSpeedNames    ; [4][5] pitch-speed display names "STEP"/"TICK"/"DRUM"/"FAST"
-764C ShowCommandHelp                ; show command cmd's help line on double-A (ShowMessage; wVramCursor kept): B and H by screen (phrase or table), F, S and W by channel (wSongColumn), the rest from CommandHelpPtrs
-776E CommandHelpPtrs   ; [20] dw -> the "X: DESCRIPTION" help line per command (index = command*2; entry 0 points at an empty string, the end of TxtHelpSSweep)
+764C ShowCommandHelp                ; show command cmd's help line on double-A (ShowMessage; wVramCursor kept): B and H by screen (phrase or table), F, S and W by channel (wSongColumn), the rest from CommandHelpPointers
+776E CommandHelpPointers   ; [20] dw -> the "X: DESCRIPTION" help line per command (index = command*2; entry 0 points at an empty string, the end of TxtHelpSSweep)
 
 ; --- UI functions called from bank 0 (bank $01 paged in) ---
-4CF1 InitScreen        ; screen setup: ApplyColorSet + ClearOamBuf + LoadHwTables
+4CF1 InitScreen        ; screen setup: ApplyColorSet + ClearOamBuffer + LoadHardwareTables
 4487 DrawCartTest               ; boot CARTRIDGE TEST screen (ROM checksum + SRAM self-test)
 4FEC UpdatePlayClock            ; per-frame PLAY clock: wPlayFrames counts to 60 (one frame skipped every 4 s), then seconds/minutes; redraws m:ss on the project screen
-7860 IsMessageActive            ; 1 while a message is up or pending (wMessageTimer or wMessageStrPtr set)
+7860 IsMessageActive            ; 1 while a message is up or pending (wMessageTimer or wMessageStringPointer set)
 7878 UpdateMessage     ; timed message + wSelectHeld handling
 4811 CheckJkMarker              ; check the 'jk' SRAM-init marker at $a13e/$a13f (unreferenced)
 4848 CheckSongInitFlag   ; ReadSongByte $be78/$be79 ('rb' memory-init marker)
@@ -38,10 +38,10 @@
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 4000 TestSramLo                 ; cartridge RAM test, SRAM banks 0-3: write/read-back pattern (part of DrawCartTest)
 445A TestSramHi                 ; cartridge RAM test, SRAM banks 4-15 (jp TestSramHi.done on mismatch)
-493B CopyInstrumentName              ; copy instrument arg's 5-char name -> wNameEditBuf (speech $40 -> "SPCH")
-4A49 WriteInstrumentName             ; wNameEditBuf -> instrument name storage ($be7a + instr*5)
-4B15 LoadHwTables               ; load the CGB/DMG-specific tables: palettes -> wNotePeriodLo, the 216-byte note-period table -> wNotePeriods
-4B5E ClearOamBuf             ; clear the OAM shadow (wOamBuf, $a0 bytes) and sprite tiles $8000-$802f/$8050-$805f, place the WAV sprites, wait for the OAM DMA, enable sprites
+493B CopyInstrumentName              ; copy instrument arg's 5-char name -> wNameEditBuffer (speech $40 -> "SPCH")
+4A49 WriteInstrumentName             ; wNameEditBuffer -> instrument name storage ($be7a + instr*5)
+4B15 LoadHardwareTables               ; load the CGB/DMG-specific tables: palettes -> wNotePeriodLo, the 216-byte note-period table -> wNotePeriods
+4B5E ClearOamBuffer             ; clear the OAM shadow (wOamBuffer, $a0 bytes) and sprite tiles $8000-$802f/$8050-$805f, place the WAV sprites, wait for the OAM DMA, enable sprites
 4C61 ApplyColorSet              ; load the wColorSet CGB BG+OBJ palettes (hw $11 check, set_bkg_palette)
 4CFB MarkPhraseUsed             ; set the phrase-alloc bit (song $3E82 bitmap) for phrase arg
 5208 DrawSpeedGlyph             ; draw the 2-tile speed icon (SpeedGlyphTiles[value&7])
@@ -50,8 +50,8 @@
 5331 CopyTableData              ; copy table src->dst across the table column regions (song $3680/$3880/$3A80)
 55C9 GetScreenPalette           ; -> de = CGB BG palette block for wCurrentScreen (INSTR varies by instr type)
 6CD7 DrawScreenPaletteMap           ; the current screen's palette map (GetScreenPalette): CopyScreenMapCgb on CGB, CopyScreenMapDmg on DMG (the message cancelled); none clears the attribute map
-6D23 ClearBgMapAndAttrs               ; clear BG tilemap from $9800 (VBK-aware: bank1 attrs on CGB)
-6D53 DrawTopBar                 ; top status bar: active message (wMessageStrPtr) or screen title + hex number
+6D23 ClearBgMapAndAttributes               ; clear BG tilemap from $9800 (VBK-aware: bank1 attrs on CGB)
+6D53 DrawTopBar                 ; top status bar: active message (wMessageStringPointer) or screen title + hex number
 7955 DrawCrashScreen            ; the crash screen: "DONT PANIC!", the bank, the stack pointer and 10 stack words, play mode, screen, hardware, sync, AST, the version; then hangs
 7BDE ResetEditorState           ; clear selection rect, clipboard type, cursor mode (+wQuickMarking)
 7DE9 ClearSramWindow           ; zero the whole $A000-$BFFF SRAM window (8 bytes/iter until h==$c0); used during init/format
@@ -69,13 +69,13 @@
 5253 CopyInstrument     ; copy the instrument ("COPIED INSTR"): wClipboardType=6, 16 instr bytes -> screen scratch
 546E CloneInstrumentTable    ; on instr TABLE field: alloc table copy (bank1f), "CLONED TABLE", write #|$20
 5503 PasteInstrument    ; if select-held + clipboardType==6: paste 16 bytes back into instrument
-74F7 DrawMessageBar     ; render wStrBuf (20 ch) to tilemap row 0 + CGB attrs (MessageBarAttrRow)
+74F7 DrawMessageBar     ; render wStringBuffer (20 ch) to tilemap row 0 + CGB attrs (MessageBarAttributeRow)
 7616 ShowTapAddPhrase   ; push TxtTapAddPhrase, call ShowMessage
 7635 ShowMax16Marks     ; push TxtMax16Marks, call ShowMessage
-781F ClearMessageBar    ; zero wMessageStrPtr, fill top bar with spaces
+781F ClearMessageBar    ; zero wMessageStringPointer, fill top bar with spaces
 7C86 LoadProjectSettings ; audio off; read key-repeat/sync/clone/colorset from song properties ($bfbc+), clamp, re-init palettes
 
-; --- FX command help strings (CommandHelpPtrs targets; shown on double-A) ---
+; --- FX command help strings (CommandHelpPointers targets; shown on double-A) ---
 6FB8 TxtHelpA           ; "A: RUN TABLE [00-1F=PLAY, 20=STOP]"
 6FDB TxtHelpBNote       ; "B: MAYBE PLAY NOTE; ..." (phrase screen)
 7016 TxtHelpBHop        ; "B: MAYBE HOP; ..." (table screen)
@@ -103,7 +103,7 @@
 780D TxtHelpSSweep      ; "S: SET PU1 SWEEP" (pulse 1)
 
 ; --- message bar attributes + screen name strings ---
-7484 MessageBarAttrRow      ; 20 x $04: CGB attribute row for the top message bar
+7484 MessageBarAttributeRow      ; 20 x $04: CGB attribute row for the top message bar
 74AC TxtScreenLive      ; "LIVE"
 74B1 TxtScreenSong      ; "SONG"
 74B6 TxtScreenChain     ; "CHAIN "
@@ -143,10 +143,10 @@
 7BD5 TxtSynColon                ; "SYN:"
 7BDA TxtAst                     ; "AST"
 794B CrashHandler               ; crash entry: di, SRAM locked (rRAMG = 0), SaveCrashStack
-40FA NoteFreqTable              ; [semitone 0-107] -> GB frequency period (108 x dw, copied by LoadHwTables)
-41D2 NoteFreqDeltaTable         ; companion 108 x dw pitch table (finetune/delta variant, LoadHwTables)
-42AA PitchCurve                 ; [216] rising pitch-response curve (LoadHwTables copies it)
-4382 PitchCurveCgb              ; [216] PitchCurve's CGB counterpart (LoadHwTables picks by wIsCgb)
+40FA NoteFrequencyTable              ; [semitone 0-107] -> GB frequency period (108 x dw, copied by LoadHardwareTables)
+41D2 NoteFrequencyDeltaTable         ; companion 108 x dw pitch table (finetune/delta variant, LoadHardwareTables)
+42AA PitchCurve                 ; [216] rising pitch-response curve (LoadHardwareTables copies it)
+4382 PitchCurveCgb              ; [216] PitchCurve's CGB counterpart (LoadHardwareTables picks by wIsCgb)
 5927 ScreenPaletteTable             ; CGB palette block: TABLE screen
 5A8F ScreenPalettePhrase            ; CGB palette block: PHRASE screen
 5BF7 ScreenPaletteGroove            ; CGB palette block: GROOVE screen
@@ -161,11 +161,11 @@
 689F ScreenPaletteSynth             ; CGB palette block: SYNTH screen
 6A07 ScreenPaletteWord              ; CGB palette block: WORD screen
 6B6F ScreenPaletteFile              ; CGB palette block: FILE screen
-4144 NoteFreq37                 ; NoteFreqTable entry 37 (period $0714) -- exact symbol for Emulicious's interior split
-4247 NoteFreqD58Hi              ; hi byte of NoteFreqDeltaTable entry 58 (interior split)
+4144 NoteFrequency37                 ; NoteFrequencyTable entry 37 (period $0714) -- exact symbol for Emulicious's interior split
+4247 NoteFrequencyD58Hi              ; hi byte of NoteFrequencyDeltaTable entry 58 (interior split)
 5099 TxtPctDColon               ; "%d:"
 509D TxtPctD01                  ; "%d"
-4F44 AllocNextFreePhraseMid ; @deploy-only: operand byte of the jp at $4F42 (walker artifact)
+4F44 AllocNextFreePhraseMiddle ; @deploy-only: operand byte of the jp at $4F42 (walker artifact)
 6F8E TxtVersion                 ; "V9.4.0  (c) 2000 JOHAN KOTLINSKI" (chars drawn individually by DrawCrashScreen)
 6F91 TxtVerMinor                ; '4' minor version digit (string continues)
 6FAE TxtTooBusy                 ; "TOO BUSY!" (CPU overload message)
@@ -186,13 +186,13 @@
 4555 .done                ; common exit of DrawCartTest
 4603 .grooveLoop          ; loop head in FormatSramSong: p != $b290
 4655 .wordNameLoop        ; loop head in FormatSramSong: "W-" + a digit per word
-4763 .synthParamLoop      ; loop head in FormatSramSong: synth parameter defaults, 16 bytes per synth
+4763 .synthParameterLoop      ; loop head in FormatSramSong: synth parameter defaults, 16 bytes per synth
 47D0 .waveFrameLoop       ; loop head in FormatSramSong: p < $b000
 4846 .done                ; common exit of CheckJkMarker
 48D2 .done                ; common exit of CheckSongInitFlag
 4A40 .done                ; common exit of CopyInstrumentName
-4B7E .clearLoop           ; loop head in ClearOamBuf: p != $8030 (32-bit compare), one tile byte per pass
-4BD5 .patternLoop         ; loop head in ClearOamBuf: p != $8060
+4B7E .clearLoop           ; loop head in ClearOamBuffer: p != $8030 (32-bit compare), one tile byte per pass
+4BD5 .patternLoop         ; loop head in ClearOamBuffer: p != $8060
 4C4F .waitOamDma          ; spin until the timer's OAM DMA clears wOamDirty
 4CEF .done                ; common exit of ApplyColorSet
 4D49 .loop                ; loop head in MarkPhraseUsed
@@ -218,9 +218,9 @@
 55B8 .done                ; common exit of PasteInstrument
 56A5 .done                ; common exit of GetScreenPalette
 6D1F .done                ; common exit of DrawScreenPaletteMap
-6D33 .loop                ; loop head in ClearBgMapAndAttrs
-6D3F .loop2               ; loop head in ClearBgMapAndAttrs
-6D51 .done                ; common exit of ClearBgMapAndAttrs
+6D33 .loop                ; loop head in ClearBgMapAndAttributes
+6D3F .loop2               ; loop head in ClearBgMapAndAttributes
+6D51 .done                ; common exit of ClearBgMapAndAttributes
 6EA6 .loop                ; loop head in DrawTopBar
 6F33 .loop2               ; loop head in DrawTopBar
 6F7A .done                ; common exit of DrawTopBar
@@ -300,7 +300,7 @@
 5552 .writeInstrumentByte
 5588 .loadInstrument
 559E .drawScreenPaletteMap
-6CF2 .setMessageStrPtr
+6CF2 .setMessageStringPointer
 6ED1 .drawStringTile20
 6F67 .checkCurrentScreen
 7549 .checkGameboyType
@@ -312,7 +312,7 @@
 76F0 .checkSongColumnb
 7722 .checkSongColumnc
 78CD .setMessageTimer
-78FC .loadMessageStrPtr
+78FC .loadMessageStringPointer
 7907 .decMessageTimer
 790E .checkMessageTimer
 7940 .drawTopBar
@@ -326,7 +326,7 @@
 403C .cont
 403D .randw
 4066 .cont_2
-406C .seedRng
+406C .seedRandom
 40A0 .cont_3
 40A1 .cont_4
 40BF .cont_5
@@ -342,19 +342,19 @@
 4527 .drawString_2
 45B6 .cont
 45BF .cont_2
-45D4 .disableInts         ; di, then enable SRAM and select bank 0
+45D4 .disableInterrupts         ; di, then enable SRAM and select bank 0
 45D5 .clearSramWindow     ; rRAMG=$0a, rRAMB=0, ClearSramWindow, ClearBookmarks (bank 7)
 45F3 .rbMarker0           ; 'rb' at $be78, then the groove loop from $b090
 460B .grooveHiTest        ; the high byte of the end test
 4612 .grooveDefault       ; *p++ = 6, *p = 6, p += 15: a 6/6 groove
 4620 .grooveSecond        ; the second step byte
-4639 .sequenceClear       ; MemSet($b290, $ff, $400), then the word names from $bdd0
+4639 .sequenceClear       ; FillMemory($b290, $ff, $400), then the word names from $bdd0
 4663 .wordNameDash        ; '-'
 4671 .wordNameDigit       ; *p = i, then add '0' (i < 10) or '7' (letters)
 4697 .wordNameLetter      ; i >= 10: '7' (A-F follow '9' + 7)
 4699 .wordNameAdd         ; *p += the offset
 46AA .wordNameNext        ; i++, loop until p == $bdfa; then bank 1 and the saved property bytes
-4772 .synthParamDefault   ; bytes 5/9 = $10, 6/10 = $ff
+4772 .synthParameterDefault   ; bytes 5/9 = $10, 6/10 = $ff
 47B8 .waveFrames          ; bank 3: 'rb' at $bff0, then the default wave frame into every frame
 4801 .finish              ; $bfff = $16, ei, disable SRAM
 482B .readSongByte
@@ -426,8 +426,8 @@
 6D19 .copyScreenMapDmg
 6D4D .setrVBK
 6D7C .checkCurrentScreen_2
-6E08 .setMessageStrPtr
-6E11 .loadMessageStrPtr
+6E08 .setMessageStringPointer
+6E11 .loadMessageStringPointer
 6E90 .drawString
 7536 .add16
 7545 .checkGameboyType_2
@@ -445,7 +445,7 @@
 7756 .showMessage
 7870 .cont
 7874 .cont_2
-7889 .checkMessageStrPtr
+7889 .checkMessageStringPointer
 7A92 .stackDump
 7B14 .nextWord
 7C2B .resetWorkState
@@ -460,4 +460,4 @@
 532C InstrumentTableFieldRow         ; [4] instrument-screen row of the TABLE field per type (pulse 15, wave 14, kit 17, noise 12)
 
 ; --- pointer targets (tools/name_targets.py) ---
-781E .strEmpty
+781E .stringEmpty

@@ -24,7 +24,7 @@ extern volatile sfr UBYTE NR52_REG;         /* $FF26 */
 extern volatile sfr UBYTE STAT_REG;         /* $FF41 */
 extern volatile sfr UBYTE TMA_REG;          /* $FF06 */
 extern volatile sfr UBYTE TAC_REG;          /* $FF07 */
-extern UBYTE wFsCheckResult;                /* $C56B */
+extern UBYTE wFilesystemCheckResult;                /* $C56B */
 extern UBYTE wRedrawPending;                /* $C56C */
 extern UBYTE wPrelisten;                    /* $C56E */
 extern UBYTE wButtons;                      /* $C575 */
@@ -33,11 +33,11 @@ extern UBYTE wTimerTickInc;                 /* $C579 */
 extern UBYTE wWorkTimeTicks;                /* $C577 */
 extern UBYTE wIdleHalt;                     /* $C68B */
 extern UBYTE wIdleFrames;                   /* $C68C */
-extern UBYTE wSynthRenderIdx;               /* $C9F0 */
+extern UBYTE wSynthRenderIndex;               /* $C9F0 */
 extern UBYTE wSynthRenderActive;            /* $C9F1 */
 extern UBYTE wSyncTick;                     /* $CB69 */
 extern UBYTE wSyncSerialIeMask;             /* $CB6D */
-extern UBYTE wBootHwId;                     /* $CBD9 */
+extern UBYTE wBootHardwareId;                     /* $CBD9 */
 extern char TxtTitle[];                     /* $01:$6F7E */
 
 void SwitchToDoubleSpeed(void);             /* asm */
@@ -81,15 +81,15 @@ extern UBYTE wColumnLastCommand[];                 /* $C44B, [4] */
 extern UBYTE wInstrumentRemapDirty;              /* $C9B7 */
 extern UBYTE wTransposeDirty;               /* $C445 */
 extern UBYTE wSongTranspose;                /* $C444 */
-extern UBYTE wSongTransposeDisp;            /* $C446 */
+extern UBYTE wSongTransposeDisplay;            /* $C446 */
 extern UBYTE wLiveStartColumn;                 /* $C571 */
 extern UBYTE wSavedLiveMode;                /* $C572 */
 extern UBYTE wLiveMode;                     /* $C528 */
 extern UBYTE wPendingCommandTarget;             /* $C467 */
 extern UBYTE wPendingCommands[];                /* $C457, [16] */
-extern UWORD wTableCellAPtr, wTableCellBPtr;    /* $C447, $C449 */
+extern UWORD wTableCellAPointer, wTableCellBPointer;    /* $C447, $C449 */
 extern UBYTE wGrooveCacheValid;             /* $C9D5 */
-extern UBYTE *wTopBarMarkPtr;               /* $C562 */
+extern UBYTE *wTopBarMarkPointer;               /* $C562 */
 extern UBYTE wKeyDelay, wKeyRepeat;         /* $C52B, $C52C */
 extern UBYTE wKeyDelayTimer, wKeyRepeatTimer;   /* $C406, $C407 */
 extern UBYTE wAPressEnabled;                /* $C409 */
@@ -162,7 +162,7 @@ UBYTE ProcessInput(void)
         if (wSongScopeDirty) {
             wSongScopeDirty = 0;
             SWITCH_ROM(2);
-            r = ReadSeqByte(wSongColumn, wSongRow);
+            r = ReadSequenceByte(wSongColumn, wSongRow);
             if (r < 0x80) {
                 SWITCH_ROM(1);
                 MarkChainUsed(r);
@@ -175,7 +175,7 @@ UBYTE ProcessInput(void)
         }
         if (wTransposeDirty) {
             wTransposeDirty = 0;
-            wSongTranspose = wSongTransposeDisp;
+            wSongTranspose = wSongTransposeDisplay;
             WriteSongByte(1, 0xBFB5, wSongTranspose);
         }
         if (wLiveStartColumn != 0xFF) {
@@ -200,14 +200,14 @@ UBYTE ProcessInput(void)
                         break;
                     case 1:
                         SWITCH_ROM(5);
-                        wTableCellAPtr = 0xB680;
-                        wTableCellBPtr = 0xB880;
+                        wTableCellAPointer = 0xB680;
+                        wTableCellBPointer = 0xB880;
                         WriteTableCommand(i, v);
                         break;
                     case 2:
                         SWITCH_ROM(5);
-                        wTableCellAPtr = 0xBA80;
-                        wTableCellBPtr = 0xBC80;
+                        wTableCellAPointer = 0xBA80;
+                        wTableCellBPointer = 0xBC80;
                         WriteTableCommand(i, v);
                         break;
                     }
@@ -224,8 +224,8 @@ UBYTE ProcessInput(void)
     }
     if (buttons) {
         ok = 1;
-        if (*wTopBarMarkPtr != 0x21 && (buttons & 0x10) && (buttons & 0x6F))
-            WriteSongByte(1, 0xBFC1, *wTopBarMarkPtr = 0x21);
+        if (*wTopBarMarkPointer != 0x21 && (buttons & 0x10) && (buttons & 0x6F))
+            WriteSongByte(1, 0xBFC1, *wTopBarMarkPointer = 0x21);
         wButtonsSame = wButtons == buttons;
         if (!wButtonsSame) {
             wKeyDelayTimer = wKeyDelay;
@@ -301,13 +301,13 @@ void InitAndLoadSong(void)
     TAC_REG = 6;
     wTimerReload = hGameboyType ? 0x6E : 0xB7;
     wTimerTickInc = hGameboyType ? 0x0C : 0x06;
-    FarCallArg(1, LoadProjectSettings, 0);
+    FarCallArgument(1, LoadProjectSettings, 0);
     _asm ei _endasm;
 }
 
 void main(void)
 {
-    switch (wBootHwId) {
+    switch (wBootHardwareId) {
     case 0x01:
         wIsCgb = NR52_REG == 0xF0;
         break;
@@ -324,14 +324,14 @@ void main(void)
     SWITCH_ROM(1);
     ShowMessage(TxtTitle);
     SWITCH_ROM(0x1C);
-    wFsCheckResult = CheckFileMagicAll();
+    wFilesystemCheckResult = CheckFileMagicAll();
     wPrelisten = ReadSongByte(1, 0xBFC3);
     while (1) {
         if (!wRedrawPending) {
             if (wSynthRenderActive) {
                 SWITCH_ROM(0x1D);
                 RenderSynthWave();
-                if (++wSynthRenderIdx == 0x10)
+                if (++wSynthRenderIndex == 0x10)
                     wSynthRenderActive = 0;
             }
             continue;

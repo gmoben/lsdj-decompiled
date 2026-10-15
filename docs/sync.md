@@ -128,18 +128,18 @@ writes); these tie the serial primitives above to playback transport.
 
 - `SyncApplyMode` (`$1F06`) — apply the current `wSyncMode` ($CB66) to the
   hardware: `di`, `wSyncRun=0`, then a `cp` chain selects per mode →
-  `SyncSetSendMode`/`SyncSetRecvMode` (plus gate/handshake tweaks for
+  `SyncSetSendMode`/`SyncSetReceiveMode` (plus gate/handshake tweaks for
   KEYBD/ANA.IN). Called by `SyncLoadSetting` and when the SYNC setting changes.
 - `SyncSetSendMode` (`$1EC8`) — leader/output config: `wSyncSendGate=1`,
   `$CB6D=0`, enable VBlank IRQ and **disable** the serial-receive IRQ.
-- `SyncSetRecvMode` (`$1EE3`) — follower/input config: `wSyncSendGate=0`,
+- `SyncSetReceiveMode` (`$1EE3`) — follower/input config: `wSyncSendGate=0`,
   `$CB6D=8`, **enable** the serial-receive IRQ, `wSyncTick=$FF`, then
   `SendSyncHandshake`.
 - `SyncStartTransport` (`$1D29`) — on play-start (LSDJ/MIDI): if LSDJ and idle
   (`wSyncTick=$FF`), become leader (`wSyncRun=1`, `SyncSetSendMode`); otherwise
   announce with `wSyncHandshake=1` + `SendSyncHandshake`.
 - `SyncStopTransport` (`$1D6C`) — on play-stop: LSDJ/MIDI reset
-  (`wSyncRun=0`, `wSyncTick=$FF`, `wSyncHandshake=0`, `SyncSetRecvMode`);
+  (`wSyncRun=0`, `wSyncTick=$FF`, `wSyncHandshake=0`, `SyncSetReceiveMode`);
   AN.OUT writes `$CB68=3`.
 - `DispatchSyncClock` (`$1E93`) — runs each sync tick: `wSyncTick=$FF`, and if
   playing dispatch by mode → `SyncTickLsdj` (1) or `SyncTickMidi` (3),

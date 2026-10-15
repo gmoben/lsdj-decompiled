@@ -23,7 +23,7 @@ void DrawAllChannelStatus(void);               /* bank $1F */
 extern char TxtClonedPhrase[];              /* $06:$5899 "CLONED PHRASE" */
 extern char TxtDashes2[];                   /* $06:$5A5E " --" */
 extern UBYTE wColumnPhrase[];                  /* $C453, [4] */
-void DrawChainPos(void);
+void DrawChainPosition(void);
 void LoadChainRow(void);
 void AllocNextFreePhrase(void);             /* bank 1 */
 void WriteChainPhrase(void);                /* bank $1F */
@@ -47,7 +47,7 @@ void SendLinkClipboard(void);                   /* bank $1C */
 
 UBYTE GetCursorChain(void)
 {
-    return ReadSeqByte(wSongColumn, wSongRow);
+    return ReadSequenceByte(wSongColumn, wSongRow);
 }
 
 UBYTE LoadChainCursorPhrase(void)
@@ -56,7 +56,7 @@ UBYTE LoadChainCursorPhrase(void)
 
     row = wChainRow;
     for (;;) {
-        ph = FarCallArg2(2, (UWORD)SoundGetChainPhrase, wChain, row);
+        ph = FarCallArgument2(2, (UWORD)SoundGetChainPhrase, wChain, row);
         if (ph != 0xFF) {
             wPhrase = ph;
             wChainRow = row;
@@ -76,14 +76,14 @@ UBYTE ChainScreenEnter(UBYTE col)
     row = wSongRow;
     if (col >= 4)
         DebugTrap();
-    wMessageStrPtr = 0;
+    wMessageStringPointer = 0;
     if (wLiveMode && wChannelActive[col]) {
         wChain = wChannelChain[col];
         wSongRow = wChannelSongRow[col];
     } else {
-        wChain = ReadSeqByte(col, wSongRow);
+        wChain = ReadSequenceByte(col, wSongRow);
         while (wChain == 0xFF && wSongRow)
-            wChain = ReadSeqByte(col, --wSongRow);
+            wChain = ReadSequenceByte(col, --wSongRow);
     }
     if (wChain & 0x80) {
         wChain = chain;
@@ -95,7 +95,7 @@ UBYTE ChainScreenEnter(UBYTE col)
     return 1;
 }
 
-void DrawChainPos(void)
+void DrawChainPosition(void)
 {
     UBYTE r;
 
@@ -181,7 +181,7 @@ void LoadChainRow(void)
 
     p = SramChainPhrases + ((UWORD)wChain << 4);
     q = SramChainTransposes + ((UWORD)wChain << 4);
-    ReadSongBytes(1, p, wSongReadBuf);
+    ReadSongBytes(1, p, wSongReadBuffer);
     ReadSongBytes(1, q, wUsedTableMap);
 }
 
@@ -196,13 +196,13 @@ void DrawChainScreen(void)
     SetSpriteTile3(0);
     FarCall(1, FAR_FN(DrawTopBar));
     DrawTempoField();
-    DrawChainPos();
+    DrawChainPosition();
     LoadChainRow();
     hBgDigitPalette = 4;
     hBgPalette = 1;
     wVramCursor = (UBYTE *)0x9841;
     for (i = 0;; i++) {
-        v = wSongReadBuf[i];
+        v = wSongReadBuffer[i];
         if (v == 0xFF) {
             DrawString(TxtDashes2);
         } else {
@@ -248,7 +248,7 @@ void OpenChainPhrase(void)
     UBYTE ph;
     UBYTE n;
 
-    ph = FarCallArg2(2, (UWORD)SoundGetChainPhrase, wChain, (char)wChainRow);
+    ph = FarCallArgument2(2, (UWORD)SoundGetChainPhrase, wChain, (char)wChainRow);
     FarCall(5, 0x747D);                 /* RestoreSelectionState, bank 5, by address */
     if (ph == 0xFF)
         return;
@@ -256,7 +256,7 @@ void OpenChainPhrase(void)
     n = FarCallByte(1, FAR_FN(AllocNextFreePhrase));
     if (n != 0xFF) {
         ClonePhraseAtCursor(ph, n);
-        FarCallArg3(0x1F, (UWORD)WriteChainPhrase, wChain, (char)wChainRow, n);
+        FarCallArgument3(0x1F, (UWORD)WriteChainPhrase, wChain, (char)wChainRow, n);
         SetVramCursor(2, wChainRow + 2);
         hBgDigitPalette = wHighlightDigitPalette;
         hBgPalette = wHighlightPalette;
@@ -266,7 +266,7 @@ void OpenChainPhrase(void)
     }
 }
 
-extern UBYTE wChainCellVal;               /* $C945 */
+extern UBYTE wChainCellValue;               /* $C945 */
 extern UBYTE wChainCellEmpty;               /* $C946 */
 extern UBYTE wDrawStep;                     /* $C405 */
 extern UBYTE wSongScroll;                   /* $C41C */
@@ -328,7 +328,7 @@ UBYTE ChainScreenInput(void)
                 v = FarCallByte(1, FAR_FN(AllocNextFreePhrase));
                 wDrawStep = 0;
             } else {
-                v = FarCallArg2P(2, FAR_FN(SoundGetChainPhrase), wChain, wChainRow);
+                v = FarCallArgument2P(2, FAR_FN(SoundGetChainPhrase), wChain, wChainRow);
                 wChainCellEmpty = v == 0xFF;
                 if (wChainCellEmpty) {
                     v = wColumnPhrase[wSongColumn];
@@ -336,19 +336,19 @@ UBYTE ChainScreenInput(void)
                         v = FarCallByte(1, FAR_FN(AllocNextFreePhrase));
                         wChainCellEmpty = 0;
                     } else
-                        FarCallArg(1, FAR_FN(MarkPhraseUsed), v);
+                        FarCallArgument(1, FAR_FN(MarkPhraseUsed), v);
                 }
             }
             if (v != 0xFF) {
-                FarCallArg3P(0x1F, FAR_FN(WriteChainPhrase), wChain, (char)wChainRow, v);
+                FarCallArgument3P(0x1F, FAR_FN(WriteChainPhrase), wChain, (char)wChainRow, v);
                 DrawHexByte(v);
                 wColumnPhrase[wSongColumn] = v;
             }
             return 1;
         case 1:
             if (!ReadChainTranspose(wChain, (char)wChainRow)) {
-                SetChainTranspose(wChain, (char)wChainRow, wChainCellVal);
-                DrawHexByte(wChainCellVal);
+                SetChainTranspose(wChain, (char)wChainRow, wChainCellValue);
+                DrawHexByte(wChainCellValue);
                 return 1;
             }
         }
@@ -383,7 +383,7 @@ UBYTE ChainScreenInput(void)
         if (wCursorMode != 4)
             EraseChainCursor();
         wChainRow--;
-        DrawChainPos();
+        DrawChainPosition();
         if (wCursorMode == 4)
             DrawChainSelection();
         else
@@ -396,7 +396,7 @@ UBYTE ChainScreenInput(void)
         if (wCursorMode != 4)
             EraseChainCursor();
         wChainRow++;
-        DrawChainPos();
+        DrawChainPosition();
         if (wCursorMode == 4)
             DrawChainSelection();
         else
@@ -426,10 +426,10 @@ UBYTE ChainScreenInput(void)
             for (y = y0; y < y1; y++) {
                 switch (x) {
                 case 0:
-                    v = FarCallArg2P(2, FAR_FN(SoundGetChainPhrase), wChain, y);
+                    v = FarCallArgument2P(2, FAR_FN(SoundGetChainPhrase), wChain, y);
                     if (v != 0xFE) {
                         v = v + 1;
-                        FarCallArg3P(0x1F, FAR_FN(WriteChainPhrase), wChain, y, v);
+                        FarCallArgument3P(0x1F, FAR_FN(WriteChainPhrase), wChain, y, v);
                         SetVramCursor(ChainColumnX[0], y + 2);
                         DrawHexByte(v);
                     }
@@ -439,7 +439,7 @@ UBYTE ChainScreenInput(void)
                     v = ReadChainTranspose(wChain, y) + 1;
                     SetChainTranspose(wChain, y, v);
                     DrawHexByte(v);
-                    wChainCellVal = v;
+                    wChainCellValue = v;
                     break;
                 }
             }
@@ -469,14 +469,14 @@ UBYTE ChainScreenInput(void)
             for (y = y0; y < y1; y++) {
                 switch (x) {
                 case 0:
-                    v = FarCallArg2P(2, FAR_FN(SoundGetChainPhrase), wChain, y);
+                    v = FarCallArgument2P(2, FAR_FN(SoundGetChainPhrase), wChain, y);
                     if (v == 0xFF)
                         v = wColumnPhrase[wSongColumn];
                     else if (v >= 0xEF)
                         v = 0xFE;
                     else
                         v = v + 0x10;
-                    FarCallArg3P(0x1F, FAR_FN(WriteChainPhrase), wChain, y, v);
+                    FarCallArgument3P(0x1F, FAR_FN(WriteChainPhrase), wChain, y, v);
                     SetVramCursor(ChainColumnX[0], y + 2);
                     DrawHexByte(v);
                     break;
@@ -486,7 +486,7 @@ UBYTE ChainScreenInput(void)
                     v = v + (wSongColumn == 3 ? 4 : 12);
                     SetChainTranspose(wChain, y, v);
                     DrawHexByte(v);
-                    wChainCellVal = v;
+                    wChainCellValue = v;
                     break;
                 }
             }
@@ -516,10 +516,10 @@ UBYTE ChainScreenInput(void)
             for (y = y0; y < y1; y++) {
                 switch (x) {
                 case 0:
-                    v = FarCallArg2P(2, FAR_FN(SoundGetChainPhrase), wChain, y);
+                    v = FarCallArgument2P(2, FAR_FN(SoundGetChainPhrase), wChain, y);
                     if (v) {
                         v = v - 1;
-                        FarCallArg3P(0x1F, FAR_FN(WriteChainPhrase), wChain, y, v);
+                        FarCallArgument3P(0x1F, FAR_FN(WriteChainPhrase), wChain, y, v);
                         SetVramCursor(ChainColumnX[0], y + 2);
                         DrawHexByte(v);
                     }
@@ -529,7 +529,7 @@ UBYTE ChainScreenInput(void)
                     v = ReadChainTranspose(wChain, y) - 1;
                     SetChainTranspose(wChain, y, v);
                     DrawHexByte(v);
-                    wChainCellVal = v;
+                    wChainCellValue = v;
                     break;
                 }
             }
@@ -560,14 +560,14 @@ UBYTE ChainScreenInput(void)
                 switch (x) {
                 case 0:
                     SetVramCursor(ChainColumnX[0], y + 2);
-                    v = FarCallArg2P(2, FAR_FN(SoundGetChainPhrase), wChain, y);
+                    v = FarCallArgument2P(2, FAR_FN(SoundGetChainPhrase), wChain, y);
                     if (v == 0xFF)
                         v = wColumnPhrase[wSongColumn];
                     else if (v < 0x10)
                         v = 0;
                     else
                         v = v - 0x10;
-                    FarCallArg3P(0x1F, FAR_FN(WriteChainPhrase), wChain, y, v);
+                    FarCallArgument3P(0x1F, FAR_FN(WriteChainPhrase), wChain, y, v);
                     DrawHexByte(v);
                     break;
                 case 1:
@@ -576,7 +576,7 @@ UBYTE ChainScreenInput(void)
                     v = v - (wSongColumn == 3 ? 4 : 12);
                     SetChainTranspose(wChain, y, v);
                     DrawHexByte(v);
-                    wChainCellVal = v;
+                    wChainCellValue = v;
                     break;
                 }
             }
@@ -599,7 +599,7 @@ UBYTE ChainScreenInput(void)
     }
     if (wBHeld && wButtons == 0x24) {
         wBHeld = 0;
-        wMessageStrPtr = 0;
+        wMessageStringPointer = 0;
         if (!wSongRow) {
             if (wAPressEnabled) {
                 EraseChainCursor();
@@ -621,7 +621,7 @@ UBYTE ChainScreenInput(void)
     }
     if (wBHeld && wButtons == 0x28) {
         wBHeld = 0;
-        wMessageStrPtr = 0;
+        wMessageStringPointer = 0;
         if (wSongRow == 0xFF)
             return 0;
         wSongRow++;
@@ -648,14 +648,14 @@ UBYTE ChainScreenInput(void)
         wSelectionBottom = wSelectionTop + 1;
         wClipboardType = 3;
         if (!wChainColumn) {
-            v = FarCallArg2P(2, FAR_FN(SoundGetChainPhrase), wChain, (char)wChainRow);
+            v = FarCallArgument2P(2, FAR_FN(SoundGetChainPhrase), wChain, (char)wChainRow);
             wColumnPhrase[wSongColumn] = v;
             WriteClipboardCell(0, (char)wChainRow, v);
         }
-        wChainCellVal = ReadChainTranspose(wChain, (char)wChainRow);
-        WriteClipboardCell(1, (char)wChainRow, wChainCellVal);
+        wChainCellValue = ReadChainTranspose(wChain, (char)wChainRow);
+        WriteClipboardCell(1, (char)wChainRow, wChainCellValue);
         if (!wChainColumn)
-            FarCallArg3P(0x1F, FAR_FN(WriteChainPhrase), wChain, (char)wChainRow, 0xFF);
+            FarCallArgument3P(0x1F, FAR_FN(WriteChainPhrase), wChain, (char)wChainRow, 0xFF);
         else
             SetChainTranspose(wChain, (char)wChainRow, 0);
         DrawChainScreen();
@@ -697,8 +697,8 @@ UBYTE ChainScreenInput(void)
                 wMuteSoloLatch = 1;
             return 1;
         }
-        if (!wPlayMode && FarCallArg2P(2, FAR_FN(SoundGetChainPhrase), wChain, (char)wChainRow) == 0xFF
-                && FarCallArg2P(2, FAR_FN(SoundGetChainPhrase), wChain, 0) == 0xFF)
+        if (!wPlayMode && FarCallArgument2P(2, FAR_FN(SoundGetChainPhrase), wChain, (char)wChainRow) == 0xFF
+                && FarCallArgument2P(2, FAR_FN(SoundGetChainPhrase), wChain, 0) == 0xFF)
             return 0;
         FarCall(2, FAR_FN(SoundTogglePlayback));
         return 1;
@@ -802,9 +802,9 @@ void CutCopyChainSelection(UBYTE cut)
             EraseChainCursor();
             switch (x) {
             case 0:
-                WriteClipboardCell(0, y, FarCallArg2P(2, FAR_FN(SoundGetChainPhrase), wChain, y));
+                WriteClipboardCell(0, y, FarCallArgument2P(2, FAR_FN(SoundGetChainPhrase), wChain, y));
                 if (cut)
-                    FarCallArg3P(0x1F, FAR_FN(WriteChainPhrase), wChain, y, 0xFF);
+                    FarCallArgument3P(0x1F, FAR_FN(WriteChainPhrase), wChain, y, 0xFF);
                 break;
             case 1:
                 WriteClipboardCell(1, y, ReadChainTranspose(wChain, y));
@@ -829,7 +829,7 @@ void PasteChainCells(void)
         for (x = wSelectionLeft; x < wSelectionRight; x = x + 1) {
             switch (x) {
             case 0:
-                FarCallArg3P(0x1F, FAR_FN(WriteChainPhrase), wChain, wChainRow, ReadClipboardCell(0, y));
+                FarCallArgument3P(0x1F, FAR_FN(WriteChainPhrase), wChain, wChainRow, ReadClipboardCell(0, y));
                 break;
             case 1:
                 SetChainTranspose(wChain, wChainRow, ReadClipboardCell(1, y));

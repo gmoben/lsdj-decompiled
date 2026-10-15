@@ -231,7 +231,7 @@ class BytePointerTests(unittest.TestCase):
             self.assertEqual(ptrs, {0x6000: (0x1F, 0x64F0, "LOW"), 0x6006: (0x1F, 0x64F0, "HIGH")}, adc)
 
     def test_address_plus_a_constant(self):
-        # wStringSrc = AsciiCharMap - $20, a byte at a time
+        # wStringSource = AsciiCharacterMap - $20, a byte at a time
         rows = self.rows("ld a, $6f", "add a, $e0", "ld hl, $c564", "ld [hl], a", "ld a, $08",
                          "adc a, $ff", start=0x3C48)
         ptrs, _ = disasm.rom_pointers(rows, 0, {}, self.HOME)
@@ -242,7 +242,7 @@ class BytePointerTests(unittest.TestCase):
         for setup in (["ld hl, $0005", "ld [hl], $65", "inc hl", "ld [hl], $6f"],
                       ["ld b, $65", "ld c, $6f", "ld hl, $0003", "ld [hl], b", "inc hl", "ld [hl], c"]):
             rows = self.rows(*setup, "push hl", "ld a, $02", "push af", "inc sp", "call $0c8f")
-            ptrs, _ = disasm.rom_pointers(rows, 0x06, {}, {0x0C8F: "FarCallArg2"},
+            ptrs, _ = disasm.rom_pointers(rows, 0x06, {}, {0x0C8F: "FarCallArgument2"},
                                           lambda b: {0x6F65: "SoundGetChainPhrase"} if b == 0x02 else {})
             lo = next(a for a, r in zip(range(0x6000, 0x7000, 2), rows) if r[2] in ("ld [hl], $65", "ld b, $65"))
             hi = next(a for a, r in zip(range(0x6000, 0x7000, 2), rows) if r[2] in ("ld [hl], $6f", "ld c, $6f"))
@@ -311,7 +311,7 @@ class TranslatedPointerTests(unittest.TestCase):
 class SplitCTests(unittest.TestCase):
     def test_declared_names(self):
         d = split_c.declared
-        self.assertEqual(d("extern char AlnumChars[][11];   /* $1B:$4C6A, the name keyboard */"), {"AlnumChars"})
+        self.assertEqual(d("extern char AlphanumericCharacters[][11];   /* $1B:$4C6A, the name keyboard */"), {"AlphanumericCharacters"})
         self.assertEqual(d("extern UBYTE wColumnPhrase[];      /* $C453, [4] */"), {"wColumnPhrase"})
         self.assertEqual(d("extern UBYTE wSyncRun, wSyncHandshake;"), {"wSyncRun", "wSyncHandshake"})
         self.assertEqual(d("void ReadKitSampleName(UBYTE kit, UBYTE sample);   /* bank 0 */"), {"ReadKitSampleName"})

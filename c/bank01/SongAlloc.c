@@ -9,7 +9,7 @@
 
 extern UBYTE wClipboardType;                /* $C411 */
 extern UBYTE wInstrumentField;                   /* $C427 */
-extern UBYTE wNameEditBuf[];                /* $C431, [5] */
+extern UBYTE wNameEditBuffer[];                /* $C431, [5] */
 extern UBYTE wSelectionTop, wSelectionRight, wSelectionBottom; /* $C40E-$C410 */
 extern UBYTE wSelectHeld;
 extern UBYTE wColumnPhrase[];                  /* $C453, [4] */
@@ -146,7 +146,7 @@ void CopyInstrument(void)
         WriteClipboardCell(0, i, ReadCurrentInstrumentByte(i));
     CopyInstrumentName(wInstrument);
     for (i = 0; i < 5; i++)
-        WriteClipboardCell(1, i, wNameEditBuf[i]);
+        WriteClipboardCell(1, i, wNameEditBuffer[i]);
     wSelectionLeft = 0;
     wSelectionRight = 2;
     wSelectionTop = 0;
@@ -227,7 +227,7 @@ void PasteInstrument(void)
     for (i = 0; i < 16; i++)
         WriteInstrumentByte(wInstrument, i, ReadClipboardCell(0, i));
     for (i = 0; i < 5; i++)
-        wNameEditBuf[i] = ReadClipboardCell(1, i);
+        wNameEditBuffer[i] = ReadClipboardCell(1, i);
     WriteInstrumentName(wInstrument);
     if (hGameboyType)
         ClearBgTilemap();

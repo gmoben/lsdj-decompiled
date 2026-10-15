@@ -32,7 +32,7 @@ LD_C = re.compile(r'^\tld c, \$([0-9a-fA-F]{1,2})\b')
 LD_B = re.compile(r'^\tld b, \$([0-9a-fA-F]{1,2})\b')
 LD_BC = re.compile(r'^\tld bc, \$([0-9a-fA-F]{1,4})\b')
 LD_A = re.compile(r'^\tld a, \$([0-9a-fA-F]{1,2})\b')
-CALL_FAR = re.compile(r'^\tcall (FarCall|FarCallByte|FarCallArg)\b')
+CALL_FAR = re.compile(r'^\tcall (FarCall|FarCallByte|FarCallArgument)\b')
 
 def bank_label_addrs(path):
     """Return set of addresses that carry a global label in this bank file."""

@@ -79,7 +79,7 @@ KNOWN_ASM = {
 # library C and is matched in c/bank00/GbdkLib.c with the stock rules.)
 LIBRARY = {
     # libc/asm/gbz80/asm_string.s
-    "00:strcpy", "00:memcpy", "00:StrCompare",
+    "00:strcpy", "00:memcpy", "00:StringCompare",
     # libc/asm/gbz80/div.s, mul.s (the SDCC runtime)
     "00:DivS8", "00:ModS8", "00:DivS16", "00:ModS16", "00:DivU8", "00:ModU8",
     "00:DivU16", "00:ModU16", "00:DivModS8", "00:DivModS16", "00:DivModU8",

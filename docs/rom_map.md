@@ -97,7 +97,7 @@ plain recursive-descent trace couldn't follow them; the bank-aware coverage
 trace (`tools/coverage.py`) now resolves the tables, and `carve_clean.py` only
 marks bytes as data when they are both unreached and data-like. The bit-mask
 table at `$0010` (`80 40 20 10 08 04 02 01 01 02 04 08 10 20 40 80`) is
-`BitMasks`, with per-byte names (`BitMaskBit6`…, `BitMasksAsc`…).
+`BitMasks`, with per-byte names (`BitMaskBit6`…, `BitMasksAscending`…).
 
 See [`functionality.md`](functionality.md) for the recovered behaviour
 (interrupt model, sound/sync/input/LCD engines, banking, RAM map). Named
@@ -112,14 +112,14 @@ xor a
 ld sp, $e000             ; stack at top of WRAM
 ld hl, $dfff / clear...  ; zero WRAM  $C000-$DFFF (0x2000 bytes)
 ld hl, $ffff / clear...  ; zero HRAM  $FF80-$FFFF (0x80 bytes)
-ld [wBootHwId], a <- d   ; save boot A (hardware id), $CBD9
+ld [wBootHardwareId], a <- d   ; save boot A (hardware id), $CBD9
 ld [wBootAgbId], a <- e  ; save boot B (GBA flag),    $CBDA
 call display_off         ; GBDK library routine ($349B)
 xor a / ldh [rSCY],[rSCX],[rSTAT],[rWY],a   ; reset scroll/LCD status/window
 ...                      ; -> InitAndLoadSong ($0DDB) -> main.mainLoop ($1377)
 ```
 
-`wBootHwId`/`wBootAgbId` (`$CBD9`/`$CBDA`) hold the CGB/AGB detection bytes.
+`wBootHardwareId`/`wBootAgbId` (`$CBD9`/`$CBDA`) hold the CGB/AGB detection bytes.
 
 ## Banks $1D/$1E: synth rendering
 
@@ -127,7 +127,7 @@ The matching C in `c/bank1d/SynthScreen.c` covers the two weighted waveform
 mixers (`$4D81`, `$5190`), composition/distortion (`$5323`), and shape
 dispatch (`$5695`). `LoadSynthShape` in bank 0 temporarily selects bank
 `$1E` and sign-extends a 32-byte seed cycle into the 32-word accumulator
-`wSynthShapeBuf` (`$C9F4`). The mixers add signed correction samples from
+`wSynthShapeBuffer` (`$C9F4`). The mixers add signed correction samples from
 bank `$1D`: `SynthShapeTableA` at `$4EF0` for signal types 0/1, or
 `SynthShapeTableB` at `$50F0` for type 2.
 
@@ -146,19 +146,19 @@ The dispatcher selects these bank-$1E seed-table bases:
 `SynthSeedTableA`. Shape 2 clears the accumulator before mixing; shape 3
 uses the fixed offsets A + `$F0`, B + `$70`, or E + `$70`.
 
-Two additional 16-byte per-frame curves are now named: `wSynthCurveAmp`
+Two additional 16-byte per-frame curves are now named: `wSynthCurveAmplitude`
 (`$CA94`), interpolated from synth parameter 2's nibbles, and
 `wSynthCurveLimit` (`$CAA4`), interpolated from parameters 13/14 after adding
 `$0F`. Composition uses the latter to set its window. The byte historically
-named `wSynthFilterParam` (`$C9EE`) selects **CLIP / FOLD / WRAP** (0/1/2),
+named `wSynthFilterParameter` (`$C9EE`) selects **CLIP / FOLD / WRAP** (0/1/2),
 rather than resonance; the actual filter dispatch follows composition.
 
 The full parameter redraw is `DrawSynthNumber` at `$1D:$65C2`; its two
 hidden-field `--` strings are at `$68A5`/`$68A8`. `OverwriteSynthWaves`
 at `$6D6F` opens the overwrite confirmation and sets `$CB61`/`$CB62` flags;
 it does not itself write wave data. The dialog's text uses bank 0's
-`AsciiCharMap` (`$086F`, with `wStringSrc` biased by -`$20`) and
-`IdentityCharMap` (`$08C8`) for its border tiles.
+`AsciiCharacterMap` (`$086F`, with `wStringSource` biased by -`$20`) and
+`IdentityCharacterMap` (`$08C8`) for its border tiles.
 
 ## References
 

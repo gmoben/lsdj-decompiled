@@ -22,11 +22,11 @@ extern UBYTE wSelectionBottom;                    /* $C410 */
 extern UBYTE wClipboardType;                /* $C411 */
 extern UBYTE wQuickMarking;             /* $C412 */
 extern UBYTE wLiveMode;                     /* $C528 */
-extern UBYTE wClipboardBuf[];               /* $C57A, [252] */
+extern UBYTE wClipboardBuffer[];               /* $C57A, [252] */
 extern UBYTE wClipboardSave[];              /* $C7C6, [252] */
 void ResetWorkState(void);                  /* bank 0 */
-extern UBYTE wBootHwId;                     /* $CBD9 */
-extern UBYTE wNameEditBuf[];                /* $C431, [5] + NUL */
+extern UBYTE wBootHardwareId;                     /* $CBD9 */
+extern UBYTE wNameEditBuffer[];                /* $C431, [5] + NUL */
 extern UBYTE wPlayMinutes;                  /* $C552 */
 extern UBYTE wPlaySeconds;                  /* $C553 */
 extern UBYTE wPlayFrames;                   /* $C6A8 */
@@ -37,25 +37,25 @@ UBYTE CheckRomChecksum(void);               /* $00:$1FD5 */
 UBYTE TestSramLo(void);
 void initrand(UWORD seed);              /* bank 0 */
 UBYTE randw(void);                       /* bank 0, a 16-bit LCG; the SRAM test uses the low byte */
-extern UBYTE wFileNameTmp[];
+extern UBYTE wFileNameScratch[];
 extern UWORD ColorSetPalettes[];            /* $01:$56A7, [sets][20] */
 void set_bkg_palette(UBYTE first, UBYTE nb, UWORD *rgb);   /* GBDK */
 void LoadObjPalette(UBYTE first, UBYTE nb, UWORD *rgb);
 extern UBYTE wNotePeriodLo[];               /* $CD28 */
 extern UBYTE wNotePeriods[];                /* $CF28 */
-extern UBYTE NoteFreqTable[];               /* $01:$40FA, DMG */
-extern UBYTE NoteFreqDeltaTable[];          /* $01:$41D2, CGB */
+extern UBYTE NoteFrequencyTable[];               /* $01:$40FA, DMG */
+extern UBYTE NoteFrequencyDeltaTable[];          /* $01:$41D2, CGB */
 extern UBYTE PitchCurve[];                  /* $01:$42AA, DMG */
 extern UBYTE PitchCurveCgb[];               /* $01:$4382, CGB */
 
 void ApplyColorSet(void);
-void ClearOamBuf(void);
-void LoadHwTables(void);
+void ClearOamBuffer(void);
+void LoadHardwareTables(void);
 void ClearSramWindow(void);                 /* $01:$7DE9, asm: zero the SRAM window */
 void ClearBookmarks(void);                  /* $07:$643D */
 extern UBYTE DefaultWaveFrameB1[];          /* $01:$40EA, [16] */
 void WriteVramByteSafeP(UBYTE *addr, UBYTE v);   /* WriteVramByteSafe with a pointer address (aliased) */
-extern UBYTE wOamBuf[];                  /* $DD00, the OAM shadow: 40 sprites x {y, x, tile, prop} */
+extern UBYTE wOamBuffer[];                  /* $DD00, the OAM shadow: 40 sprites x {y, x, tile, prop} */
 extern volatile UBYTE wOamDirty;            /* $CBD1 */
 
 typedef struct { UBYTE y, x, tile, prop; } OamEntry;
@@ -71,7 +71,7 @@ void SetSyncSendRate(void);                 /* bank 7 */
 void LoadFileListState(void);               /* bank $1C */
 void FileUpgradeSong(void);                 /* bank $1C */
 void DrawKeyboardInstrumentState(void);               /* bank 7 */
-extern char *CommandHelpPtrs[];            /* $01:$776E */
+extern char *CommandHelpPointers[];            /* $01:$776E */
 extern char TxtHelpBNote[];                 /* $01:$6FDB "B: MAYBE PLAY NOTE; ..." */
 extern char TxtHelpBHop[];                  /* $01:$7016 "B: MAYBE HOP; ..." */
 extern char TxtHelpFTune[];                 /* $01:$7123 "F: FINETUNE ..." */
@@ -83,7 +83,7 @@ extern char TxtHelpW[];                     /* $01:$7419 "W: WAVE [SPEED,LENGTH]
 extern char TxtHelpSKit[];                  /* $01:$7796 "S: MOVE KIT LOOP POINTS; ..." */
 extern char TxtHelpSNoise[];                /* $01:$77DF "S: ADD TO NOISE SHAPE; ..." */
 extern char TxtHelpSSweep[];                /* $01:$780D "S: SET PU1 SWEEP" */
-extern char wTopBarStr[];                   /* $C555 */
+extern char wTopBarString[];                   /* $C555 */
 extern char *wTopBarDrawScratch;            /* $C7AD, 16-bit scratch */
 extern char TxtScreenLive[];                /* $01, "LIVE" */
 extern char TxtScreenSong[];                /* $01, "SONG" */
@@ -96,7 +96,7 @@ extern char TxtScreenInstr[];               /* $01, "INSTR " */
 extern char TxtScreenWave[];                /* $01, "WAVE " */
 extern char TxtScreenSynth[];               /* $01, "SYNTH " */
 extern char TxtScreenGroove[];              /* $01, "GROOVE " */
-int StrLength(const char *s);            /* bank 0 */
+int StringLength(const char *s);            /* bank 0 */
 UBYTE CheckFileMagic64(void);               /* $1C:$4057 */
 void DrawChannelHeader(void);               /* bank 0 */
 
@@ -129,7 +129,7 @@ extern UBYTE wSongTranspose;                /* $C444 */
 extern UBYTE wSynth;                        /* $C42A */
 extern UBYTE wSynthScreen;                  /* $C441 */
 extern UBYTE wTable;                        /* $C41B */
-extern UWORD wTopBarLen;                    /* $C7AD, wTopBarDrawScratch as a word (aliased by match_function.py) */
+extern UWORD wTopBarLength;                    /* $C7AD, wTopBarDrawScratch as a word (aliased by match_function.py) */
 extern UWORD wVramCursorW;                  /* $C573, wVramCursor as a plain word: its `< 0x9811` is a 32-bit compare (aliased by match_function.py) */
 
 UBYTE TestSramLo(void)
@@ -249,7 +249,7 @@ void FormatSramSong(void)
         *p = 6;
         p += 0x0F;
     }
-    MemSet((UBYTE *)0xB290, 0xFF, 0x400);
+    FillMemory((UBYTE *)0xB290, 0xFF, 0x400);
     p = (UBYTE *)0xBDD0;
     i = 0;
     do {
@@ -267,14 +267,14 @@ void FormatSramSong(void)
     s1 = *(UBYTE *)0xBFB7;
     s2 = *(UBYTE *)0xBFB8;
     ClearSramWindow();
-    MemSet((UBYTE *)0xBFC6, 0xFF, 4);
+    FillMemory((UBYTE *)0xBFC6, 0xFF, 4);
     *(UBYTE *)0xBFB6 = s0;
     *(UBYTE *)0xBFB7 = s1;
     *(UBYTE *)0xBFB8 = s2;
     *(UBYTE *)0xBFC3 = 1;
     rRAMB = 3;
     ClearSramWindow();
-    MemSet((UBYTE *)0xB000, 0xFF, 0xFF0);
+    FillMemory((UBYTE *)0xB000, 0xFF, 0xFF0);
     rRAMB = 2;
     ClearSramWindow();
     _asm
@@ -288,7 +288,7 @@ void FormatSramSong(void)
     *(UBYTE *)0xBFBA = 7;
     *(UBYTE *)0xBFBB = 2;
     wColorSet = 0;
-    MemSet((UBYTE *)0xA080, 0xFF, 0x800);
+    FillMemory((UBYTE *)0xA080, 0xFF, 0x800);
     for (p = (UBYTE *)0xBEB2; p != (UBYTE *)0xBFB2; p += 0x10) {
         p[5] = 0x10;
         p[9] = 0x10;
@@ -323,16 +323,16 @@ void CopyInstrumentName(UBYTE instr)
     if (instr > 0x40)
         DebugTrap();
     if (instr == 0x40) {
-        strcpy(wNameEditBuf, "SPCH");
+        strcpy(wNameEditBuffer, "SPCH");
         return;
     }
     p = (UBYTE *)0xBE7A + (UWORD)instr * 5;
-    wNameEditBuf[0] = ReadSongByte(0, p++);
-    wNameEditBuf[1] = ReadSongByte(0, p++);
-    wNameEditBuf[2] = ReadSongByte(0, p++);
-    wNameEditBuf[3] = ReadSongByte(0, p++);
-    wNameEditBuf[4] = ReadSongByte(0, p);
-    wNameEditBuf[5] = 0;
+    wNameEditBuffer[0] = ReadSongByte(0, p++);
+    wNameEditBuffer[1] = ReadSongByte(0, p++);
+    wNameEditBuffer[2] = ReadSongByte(0, p++);
+    wNameEditBuffer[3] = ReadSongByte(0, p++);
+    wNameEditBuffer[4] = ReadSongByte(0, p);
+    wNameEditBuffer[5] = 0;
 }
 
 void WriteInstrumentName(UBYTE instr)
@@ -342,17 +342,17 @@ void WriteInstrumentName(UBYTE instr)
     if (instr >= 0x40)
         DebugTrap();
     p = (UBYTE *)0xBE7A + (UWORD)instr * 5;
-    WriteSongByte(0, p++, wNameEditBuf[0]);
-    WriteSongByte(0, p++, wNameEditBuf[1]);
-    WriteSongByte(0, p++, wNameEditBuf[2]);
-    WriteSongByte(0, p++, wNameEditBuf[3]);
-    WriteSongByte(0, p, wNameEditBuf[4]);
+    WriteSongByte(0, p++, wNameEditBuffer[0]);
+    WriteSongByte(0, p++, wNameEditBuffer[1]);
+    WriteSongByte(0, p++, wNameEditBuffer[2]);
+    WriteSongByte(0, p++, wNameEditBuffer[3]);
+    WriteSongByte(0, p, wNameEditBuffer[4]);
 }
 
-void LoadHwTables(void)
+void LoadHardwareTables(void)
 {
     memcpy(wNotePeriodLo, wIsCgb ? PitchCurveCgb : PitchCurve, 0xD8);
-    memcpy(wNotePeriods, wIsCgb ? NoteFreqDeltaTable : NoteFreqTable, 0xD8);
+    memcpy(wNotePeriods, wIsCgb ? NoteFrequencyDeltaTable : NoteFrequencyTable, 0xD8);
 }
 
 /* $4B5E: clear the OAM shadow and the sprite tiles ($8000-$802F and
@@ -360,11 +360,11 @@ void LoadHwTables(void)
    display sprites and wait for the next OAM DMA before enabling sprites.
    p is a plain word that is the operand of every cast on it, so the cast
    copies spill themselves and p ends in its slot. */
-void ClearOamBuf(void)
+void ClearOamBuffer(void)
 {
     UWORD p;
 
-    MemSet(wOamBuf, 0, 0xA0);
+    FillMemory(wOamBuffer, 0, 0xA0);
     wOamDirty = 1;
     for (p = 0x8000; p != 0x8030; p++)
         WriteVramByteSafeP((UBYTE *)p, 0);
@@ -385,13 +385,13 @@ void ApplyColorSet(void)
     UWORD *pal;
     UBYTE v;
 
-    if (wBootHwId == 0x11) {
+    if (wBootHardwareId == 0x11) {
         LCDC_REG &= 0x7F;
         pal = &ColorSetPalettes[wColorSet * 20];
         set_bkg_palette(0, 5, pal);
         LoadObjPalette(0, 2, pal);
-        memcpy(wFileNameTmp, (UBYTE *)(pal + 5), 8);
-        LoadObjPalette(2, 1, (UWORD *)wFileNameTmp);
+        memcpy(wFileNameScratch, (UBYTE *)(pal + 5), 8);
+        LoadObjPalette(2, 1, (UWORD *)wFileNameScratch);
         LCDC_REG |= 0x80;
     } else {
         v = (wColorSet & 1) ? 0x1B : 0xE4;
@@ -403,8 +403,8 @@ void ApplyColorSet(void)
 void InitScreen(void)
 {
     ApplyColorSet();
-    ClearOamBuf();
-    LoadHwTables();
+    ClearOamBuffer();
+    LoadHardwareTables();
 }
 
 void UpdatePlayClock(void)
@@ -562,7 +562,7 @@ void DrawScreenPaletteMap(void)
         ClearBgTilemap();
         VBK_REG = 0;
     } else {
-        wMessageStrPtr = 0;
+        wMessageStringPointer = 0;
         wMessageTimer = 0;
         if (hGameboyType)
             CopyScreenMapCgb((UWORD)s);
@@ -571,7 +571,7 @@ void DrawScreenPaletteMap(void)
     }
 }
 
-void ClearBgMapAndAttrs(void)
+void ClearBgMapAndAttributes(void)
 {
     UBYTE *p = (UBYTE *)0x9800;
 
@@ -594,7 +594,7 @@ void DrawTopBar(void)
     wVramCursorW = 0x9800;
     hBgDigitPalette = 4;
     hBgPalette = 1;
-    if (wMessageStrPtr)
+    if (wMessageStringPointer)
         return;
     isFile = wCurrentScreen == 13;
     if (!isFile && wCurrentScreen != 9 && hGameboyType) {
@@ -630,15 +630,15 @@ void DrawTopBar(void)
     case 9:
         DrawString(TxtScreenProject);
         if (FarCallByte(0x1C, FAR_FN(CheckFileMagic64)))
-            DrawString(wTopBarStr);
+            DrawString(wTopBarString);
         break;
     file:
         DrawString(TxtScreenFile);
-        DrawString(wTopBarStr);
+        DrawString(wTopBarString);
         i = 0;
         for (;;) {
-            wTopBarLen = 12 - StrLength(wTopBarStr);
-            if (i == wTopBarLen)
+            wTopBarLength = 12 - StringLength(wTopBarString);
+            if (i == wTopBarLength)
                 break;
             DrawStringTile20();
             i++;
@@ -704,7 +704,7 @@ void ShowCommandHelp(UBYTE cmd)
         s = wSongColumn == 2 ? TxtHelpW : TxtHelpWShort;
         break;
     default:
-        s = CommandHelpPtrs[cmd];
+        s = CommandHelpPointers[cmd];
         break;
     }
     ShowMessage(s);
@@ -715,7 +715,7 @@ void ClearMessageBar(void)
 {
     UBYTE i = 0;
 
-    wMessageStrPtr = 0;
+    wMessageStringPointer = 0;
     wVramCursor = (UBYTE *)0x998F;
     hBgDigitPalette = 4;
     hBgPalette = 1;
@@ -732,21 +732,21 @@ void UpdateMessage(void)
 
     if (wSelectHeld && !wMessageNoPause)
         return;
-    if (wMessageStrPtr) {
+    if (wMessageStringPointer) {
         if (!wMessageTimer) {
             hBgDigitPalette = wHighlightDigitPalette;
             hBgPalette = wHighlightPalette;
             wVramCursor = (UBYTE *)0x9800;
             for (i = 0; i < 20; i++)
-                DrawStringIndexed(wMessageStrPtr[i]);
+                DrawStringIndexed(wMessageStringPointer[i]);
             wMessageTimer = 10;
-            wMessageStrPtr += 20;
-            if (!*wMessageStrPtr) {
+            wMessageStringPointer += 20;
+            if (!*wMessageStringPointer) {
                 wMessageNoPause = 0;
-                wMessageStrPtr = 0;
+                wMessageStringPointer = 0;
                 wMessageTimer = 150;
             } else {
-                wMessageStrPtr -= 19;
+                wMessageStringPointer -= 19;
             }
         }
         wMessageTimer--;
@@ -777,12 +777,12 @@ void ResetEditorState(UBYTE keep)
     mode = wCursorMode;
     live = wLiveMode;
     if (keep)
-        memcpy(wClipboardSave, wClipboardBuf, 0xFC);
+        memcpy(wClipboardSave, wClipboardBuffer, 0xFC);
     rRAMG = 0x0A;
     ResetWorkState();
     rRAMG = 0;
     if (keep) {
-        memcpy(wClipboardBuf, wClipboardSave, 0xFC);
+        memcpy(wClipboardBuffer, wClipboardSave, 0xFC);
         wSelectionLeft = left;
         wSelectionRight = right;
         wSelectionTop = top;
@@ -933,7 +933,7 @@ void DrawCrashScreen(void)
     SCY_REG = 0;
     SCX_REG = 0;
     DebugNop();
-    ClearBgMapAndAttrs();
+    ClearBgMapAndAttributes();
     while (1)
         ;
 }

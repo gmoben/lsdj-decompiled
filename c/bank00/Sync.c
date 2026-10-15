@@ -7,7 +7,7 @@
  * The sync setting and transport (start/stop, the per-mode clock tick, the
  * analog clock out, the received-byte handler), the CPU-overload message and
  * the unchecked sequence/chain readers the song-position sync uses
- * (ReadSeqByte's twins without the asserts). SyncStartTransport's guard is
+ * (ReadSequenceByte's twins without the asserts). SyncStartTransport's guard is
  * an early `return` (`if (!lsdj && wSyncMode != 3) return;`), which is what
  * leaves the ROM's `jp z,body; jp end`. SyncTickLsdj needs track_hram
  * (hSoundChannel reused across its loop test); SendByteStep is the re-entrancy
@@ -43,16 +43,16 @@ extern UBYTE wSyncStartRow;                 /* $CB6A */
 extern UBYTE wSyncRun;                      /* $CB6B */
 extern UBYTE wSyncHandshake;                /* $CB6C */
 extern UBYTE wSyncSendGate;                 /* $CB6E */
-extern UBYTE wSyncRxPos;                    /* $CB71 */
+extern UBYTE wSyncReceivePosition;                    /* $CB71 */
 extern UBYTE wSendByteNest;                 /* $CB72 */
-extern UWORD wAnaInStepLen;                 /* $CB73 */
-extern UWORD wAnaInStepAccum;               /* $CB75 */
+extern UWORD wAnalogInStepLength;                 /* $CB73 */
+extern UWORD wAnalogInStepAccumulator;               /* $CB75 */
 extern UBYTE wSyncInPulses;                 /* $CB77 */
 extern UBYTE wSyncInGate;                   /* $CB78 */
-extern UBYTE wAnaInPulseCount;              /* $CB79 */
-extern UBYTE wAnaInPrevPlayMode;            /* $CB7A */
-extern UBYTE wSyncTxByte;                   /* $CBDC */
-extern UBYTE wSyncRxByte;                   /* $CBDD */
+extern UBYTE wAnalogInPulseCount;              /* $CB79 */
+extern UBYTE wAnalogInPreviousPlayMode;            /* $CB7A */
+extern UBYTE wSyncTransmitByte;                   /* $CBDC */
+extern UBYTE wSyncReceiveByte;                   /* $CBDD */
 extern UBYTE wSyncState;                    /* $CBDE */
 extern char TxtTooBusy[];                   /* $01:$6FAE, "TOO BUSY!" */
 
@@ -65,11 +65,11 @@ void SendByteStep(void);
 void SyncApplyMode(void);
 void SyncTickLsdj(void);
 void SyncSetSendMode(void);
-void SyncSetRecvMode(void);
+void SyncSetReceiveMode(void);
 void SoundTogglePlayback(void);                    /* bank 2 */
 void SoundResetChannelCommand(void);           /* bank 2 */
 void SoundResetCommandState(void);                 /* bank 2 */
-void SoundEnableLcdInts(void);                /* bank 2 */
+void SoundEnableLcdInterrupts(void);                /* bank 2 */
 void SoundRunFrame(void);                     /* bank 2 */
 void DrawSyncSubSetting(void);              /* bank $1B */
 void ReceiveLinkClipboard(void);                /* bank $1C */
@@ -109,7 +109,7 @@ void SyncStopTransport(void)
         wSyncRun = 0;
         wSyncTick = 0xFF;
         wSyncHandshake = 0;
-        SyncSetRecvMode();
+        SyncSetReceiveMode();
         break;
     case 7:
         wAnalogOutTimer = 3;
@@ -183,7 +183,7 @@ void SyncSetSendMode(void)
     SetInterruptEnable((IE_REG & 4) | 1);
 }
 
-void SyncSetRecvMode(void)
+void SyncSetReceiveMode(void)
 {
     wSyncSerialIeMask = 8;
     wSyncSendGate = 0;
@@ -213,10 +213,10 @@ void SyncApplyMode(void)
             wSyncRun = 1;
             SyncSetSendMode();
         } else
-            SyncSetRecvMode();
+            SyncSetReceiveMode();
         break;
     case 3:
-        SyncSetRecvMode();
+        SyncSetReceiveMode();
         break;
     case 5:
         wSyncSerialIeMask = 8;
@@ -234,7 +234,7 @@ void SyncSendAnalogClock(void)
 {
     if ((SC_REG & 0x81) == 0x81)
         DebugTrap();
-    wSyncTxByte = wAnalogOutTimer < 3 ? 0xFF : 0x00;
+    wSyncTransmitByte = wAnalogOutTimer < 3 ? 0xFF : 0x00;
     SendSyncByte();
     if (wAnalogOutTimer == 0)
         wAnalogOutTimer = wSyncMode2;
@@ -277,7 +277,7 @@ void HandleTooBusy(void)
     SWITCH_ROM(saved);
 }
 
-UBYTE ReadSeqByteRaw(UBYTE chan, UBYTE step)
+UBYTE ReadSequenceByteRaw(UBYTE chan, UBYTE step)
 {
     UBYTE *p;
 
@@ -293,17 +293,17 @@ UBYTE ReadChainByte(UBYTE chain, UBYTE row)
     return ReadSongByteRaw(1, p + row);
 }
 
-void SyncSeekSongPos(void)
+void SyncSeekSongPosition(void)
 {
     UBYTE chan, row, chain;
 
     SoundResetCommandState();
     for (chan = 0; chan < 4; chan++) {
-        row = (wSyncMode == 1) ? wSyncRxPos : wSyncStartRow;
-        chain = ReadSeqByteRaw(chan, row);
+        row = (wSyncMode == 1) ? wSyncReceivePosition : wSyncStartRow;
+        chain = ReadSequenceByteRaw(chan, row);
         while (row && (chain & 0x80)) {
             row--;
-            chain = ReadSeqByteRaw(chan, row);
+            chain = ReadSequenceByteRaw(chan, row);
         }
         if (chain & 0x80) {
             wChannelActive[chan] = 0;
@@ -325,7 +325,7 @@ void SendByteStep(void)
 {
     UBYTE saved, chan;
 
-    wSyncTxByte = 0xFF;
+    wSyncTransmitByte = 0xFF;
     if (wSendByteNest++) {
         if (!wSendByteNest)
             HandleTooBusy();
@@ -335,14 +335,14 @@ void SendByteStep(void)
     chan = hSoundChannel;
     do {
         _asm ei _endasm;
-        if (wSyncRxPos <= 0xBF) {
+        if (wSyncReceivePosition <= 0xBF) {
             DIV_REG = 0;
             NR52_REG = 0x80;
             NR50_REG = 0x77;
             if (!wLiveMode) {
                 SWITCH_ROM(2);
-                SyncSeekSongPos();
-                SoundEnableLcdInts();
+                SyncSeekSongPosition();
+                SoundEnableLcdInterrupts();
                 if (wCurrentScreen == 9) {
                     SWITCH_ROM(0x1B);
                     wPlayMinutes = 0;
@@ -351,7 +351,7 @@ void SendByteStep(void)
                 }
                 SWITCH_ROM(saved);
             }
-            wSyncRxPos = 0xFF;
+            wSyncReceivePosition = 0xFF;
         }
         if (wPlayMode) {
             if (wSyncMode == 7)
@@ -376,17 +376,17 @@ void ProcessSyncByte(void)
     UBYTE saved;
 
     if (wSyncMode == 1 && !wSyncRun && wLiveStartColumn == 0xFF) {
-        if (wSyncRxByte < 0xFD) {
-            wSyncRxPos = wSyncRxByte;
+        if (wSyncReceiveByte < 0xFD) {
+            wSyncReceivePosition = wSyncReceiveByte;
         } else if (wPlayMode) {
             if (wSyncHandshake) {
-                if (wSyncRxByte > 0xFD) {
+                if (wSyncReceiveByte > 0xFD) {
                     SendSyncHandshake();
                     return;
                 }
                 wSyncHandshake = 0;
             }
-        } else if (wSyncRxByte == 0xFE) {
+        } else if (wSyncReceiveByte == 0xFE) {
             saved = hCurrentBank;
             SWITCH_ROM(0x1C);
             ReceiveLinkClipboard();
@@ -407,24 +407,24 @@ void SyncReceiveAnalogClock(void)
     if (!wSyncInGate && sb) {
         steps = wSyncInPulses + 1;
         if (wPlayMode) {
-            wAnaInStepLen = ((UWORD)wAnaInPulseCount << 8) / wSyncMode2;
+            wAnalogInStepLength = ((UWORD)wAnalogInPulseCount << 8) / wSyncMode2;
             wSyncInPulses = wSyncMode2 - 1;
-            wAnaInStepAccum = 0;
-            if (!wAnaInPrevPlayMode)
+            wAnalogInStepAccumulator = 0;
+            if (!wAnalogInPreviousPlayMode)
                 steps++;
         }
-        wAnaInPulseCount = 0;
-        wAnaInPrevPlayMode = wPlayMode;
+        wAnalogInPulseCount = 0;
+        wAnalogInPreviousPlayMode = wPlayMode;
     } else {
         if (wSyncInPulses) {
-            wAnaInStepAccum += 0x100;
-            if (wAnaInStepAccum >= wAnaInStepLen) {
-                wAnaInStepAccum -= wAnaInStepLen;
+            wAnalogInStepAccumulator += 0x100;
+            if (wAnalogInStepAccumulator >= wAnalogInStepLength) {
+                wAnalogInStepAccumulator -= wAnalogInStepLength;
                 steps = 1;
                 wSyncInPulses--;
             }
         }
-        wAnaInPulseCount++;
+        wAnalogInPulseCount++;
     }
     wSyncInGate = sb;
     SC_REG = 0x81;

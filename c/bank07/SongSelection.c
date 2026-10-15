@@ -22,7 +22,7 @@ void EraseSongCursor(void);
 void SortBytePairC(char *a, char *b);      /* SortBytePair as this unit declares it */
 void DrawTileRun(UBYTE x, UBYTE y, UBYTE w, UBYTE h, UBYTE tile);   /* asm */
 
-const UBYTE SongSelectionAttr[32] = {             /* $07:$5DB8: CGB attribute 3 for the selection */
+const UBYTE SongSelectionAttribute[32] = {             /* $07:$5DB8: CGB attribute 3 for the selection */
     3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
     3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 };
@@ -81,7 +81,7 @@ void EditSongSelection(void)
             DebugTrap();
         if (hGameboyType) {
             VBK_REG = 1;
-            set_bkg_tiles(SongColumnOffsets[i], y, 2, y1 - y0, SongSelectionAttr);
+            set_bkg_tiles(SongColumnOffsets[i], y, 2, y1 - y0, SongSelectionAttribute);
             VBK_REG = 0;
         } else {
             DrawTileRun(SongColumnOffsets[i], y, 2, y1 - y0, 2);

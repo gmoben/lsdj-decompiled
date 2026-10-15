@@ -300,7 +300,7 @@ in `docs/functionality.md`.
   own), bank 0's `ld rr` to its own global names, and MBC5 writes (`rROMB0`,
   `rRAMB`), addresses loaded a byte at a time (SDCC's `Table[i]` as
   `ld a, LOW(T) / add a, c / … / adc a, $00`, a banked call's target as
-  `ld c, LOW(F) / ld b, HIGH(F) / push bc`, `AsciiCharMap - $20`), and the
+  `ld c, LOW(F) / ld b, HIGH(F) / push bc`, `AsciiCharacterMap - $20`), and the
   words of tagged pointer tables (`[N] dw`). Constants stay numbers:
   `gb_cmp16`'s add form (`ld hl, $5000 / add hl, de / jp c`), kit-format
   addresses, small numbers from ROMX code. A `jr` to an unlabelled address
@@ -340,13 +340,15 @@ in `docs/functionality.md`.
   (LSDj's word for the CMD column's letters, which the code had called FX),
   `Column`, `Current` (never the cursor), `Cursor`, `Palette`, `Keyboard`
   (the PS/2 keyboard; the name editor's on-screen keyboard is `NameEdit`),
-  `Sound`, `Ptr`, `Buf`, `Val`, `Len`, `Pos`, `Idx`, `Selection` (the clipboard selection; `Select` is only the
+  `Sound`, `Pointer`, `Buffer`, `Value`, `Length`, `Position`, `Index`,
+  `Frequency`, `Previous`, `Parameter`, `Attribute`, `String`, `Scratch` (a
+  working copy), `Selection` (the clipboard selection; `Select` is only the
   SELECT button: the item under a cursor is an `Entry`, stepping a value is
-  `Next`/`Prev`), `Highlight` (the cursor's colouring), `Shadow` (a RAM copy,
+  `Next`/`Previous`), `Highlight` (the cursor's colouring), `Shadow` (a RAM copy,
   `wTempoShadow`; the DMG font's dotted ground is `Shaded`), `Message`, `Number`, `Count`, `Transpose` (never `Trans`;
   `Transport` is sync), `Compress`/`Decompress`. LSDj's own terms keep
   LSDj's spelling: the four channels are `Pu1`, `Pu2`, `Wav`, `Noi`
-  (`SoundTriggerPu1`, `wChannelFreqPu2`). Exempt: `Txt`
+  (`SoundTriggerPu1`, `wChannelFrequencyPu2`). Exempt: `Txt`
   labels mirror their text, `SCREAMING_SNAKE` constants mirror the song
   format's documentation (`SONG_INSTRUMENTS`).
 - **Name patterns.** Routines are verb-first (`OpenChainPhrase`,
@@ -356,10 +358,10 @@ in `docs/functionality.md`.
   `File`, `Sync`, `Keyboard`) and comes before the verb
   (`SoundReadTableEnvelope`), never the source file or bank a routine sits in; an
   identical copy of a routine or table in another bank takes that bank as a
-  suffix (`SynthLockByteAddrB1D`, `DefaultWaveFrameB1F`). A list of `jp`s is
+  suffix (`SynthLockByteAddressB1D`, `DefaultWaveFrameB1F`). A list of `jp`s is
   `<Name>Jumps` (`ScreenDrawJumps`), a `dw` list of routines
-  `<Name>Handlers` (`CommandHandlers`) and of strings or pages `<Name>Ptrs`
-  (`CommandHelpPtrs`); a lookup table is `<Name>Table` (`NoteFreqTable`); a
+  `<Name>Handlers` (`CommandHandlers`) and of strings or pages `<Name>Pointers`
+  (`CommandHelpPointers`); a lookup table is `<Name>Table` (`NoteFrequencyTable`); a
   case body labelled for the disassembly is `<Routine>_<Case>`
   (`DispatchScreenDraw_Song`); a command's handler is `Command_<letter>`. A screen's cursor highlight pair is `Draw<Screen>Cursor` /
   `Erase<Screen>Cursor`; a screen's handlers are `Draw<Screen>Screen` /
@@ -410,7 +412,7 @@ the dot), and the SDCC `mul` runtime. **Convention:** label GBDK/SDCC library
 functions with their canonical lowercase name (`set_bkg_palette`, `strcpy`,
 `printf`, `abs`, `randw`, `initrand`); reserve PascalCase for LSDj's own
 routines. Exceptions: rgbasm reserves `STRCMP` and `STRLEN` in any case, so
-those two are `StrCompare` and `StrLength`; the SDCC runtime the compiler
+those two are `StringCompare` and `StringLength`; the SDCC runtime the compiler
 calls (`__divschar` ...) and GBDK's dot-prefixed internals (`.div8`,
 `.delay`, which would collide with `delay`) are named for their operation
 (`DivS8`, `DivModS8`, `DelayTicks`), the canonical name in the `.sym`
@@ -560,11 +562,11 @@ Always, before committing:
 - [x] Reverse the bank `$02` sound engine, verified against live RAM/SRAM dumps:
       sequencer cursors (`wChannelSongRow`→`wChannelChain`→`wChannelPhrase`→note) with
       `SoundAdvanceSongRow`/`SoundReadSongChain`/`SoundReadChainPhrase`/`SoundAdvanceChannelCursors`;
-      pitch (`SoundNoteToPeriod`, `wNotePeriods` `$CF28`, `wChannelFreq`, `SoundWriteChannelFreq`);
+      pitch (`SoundNoteToPeriod`, `wNotePeriods` `$CF28`, `wChannelFrequency`, `SoundWriteChannelFrequency`);
       note-on (`SoundSetupChannel`→per-channel + `rAUDx` shadows); FX dispatch
-      (`SoundDispatchCommand`, all `FxCmd_*`, `hCommandVal`, `SoundApplyPitchBend`)
+      (`SoundDispatchCommand`, all `FxCmd_*`, `hCommandValue`, `SoundApplyPitchBend`)
 - [x] Cross-bank entry discovery (banked-call helper) to cover `$1E`/`$1F`
-      (`FarCall`/`FarCallArg`/`FarCallByte` call sites resolved)
+      (`FarCall`/`FarCallArgument`/`FarCallByte` call sites resolved)
 - [x] Name all routines: 100% of function entries (call- and jp-reached) have
       real global names; internal control flow is RGBDS local labels;
       zero global `L0x_xxxx` auto-labels remain

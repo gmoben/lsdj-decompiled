@@ -10,10 +10,10 @@
 
 #include "lsdj.h"
 
-extern UBYTE ExpoCurve16[];                 /* $00:$300F, envelope speed -> frame count */
-extern UBYTE wDecompressBuf[];                  /* $DA00 */
+extern UBYTE ExponentialCurve16[];                 /* $00:$300F, envelope speed -> frame count */
+extern UBYTE wDecompressBuffer[];                  /* $DA00 */
 void PlotEnvelopeCurve(UBYTE x, UBYTE y);
-void OrBitsIntoDaBuf(void);              /* $00:$3261 */
+void OrBitsIntoDaBuffer(void);              /* $00:$3261 */
 void UploadTilesToVram(void);               /* $00:$3298 */
 int abs(int v);                           /* $00:$343F */
 
@@ -32,11 +32,11 @@ UWORD GetInstrumentEnvelopeBytes(void)
     total = 0;
     v = ReadCurrentInstrumentByte(1);
     vol = v >> 4;
-    len = ExpoCurve16[v & 0x0F];
+    len = ExponentialCurve16[v & 0x0F];
     if (len) {
         v2 = ReadCurrentInstrumentByte(9);
         vol2 = v2 >> 4;
-        len2 = ExpoCurve16[v2 & 0x0F];
+        len2 = ExponentialCurve16[v2 & 0x0F];
         total = abs(vol2 - vol);
         if (total == 0)
             total = 1;
@@ -44,7 +44,7 @@ UWORD GetInstrumentEnvelopeBytes(void)
         if (len2) {
             v3 = ReadCurrentInstrumentByte(10);
             vol3 = v3 >> 4;
-            len3 = ExpoCurve16[v3 & 0x0F];
+            len3 = ExponentialCurve16[v3 & 0x0F];
             d = vol3 - vol2;
             if (abs(d))
                 d = abs(d);
@@ -61,7 +61,7 @@ UWORD GetInstrumentEnvelopeBytes(void)
 extern UBYTE wEnvelopePlotX;                     /* $CBD8, the last plotted column */
 
 /* $7200: plot envelope column x (clamped to $3F) at height y into the
-   graph buffer ($DA00, wDecompressBuf), filling the columns since wEnvelopePlotX
+   graph buffer ($DA00, wDecompressBuffer), filling the columns since wEnvelopePlotX
    with y and keeping the higher of the two at x. The buffer is addressed
    as a `char *`: the store's (char)y is the loop invariant the ROM holds in
    c, and the compare at x reuses that signed copy. */
@@ -101,16 +101,16 @@ void ComputeEnvelope(void)
     total = GetInstrumentEnvelopeBytes();
     v = ReadCurrentInstrumentByte(1);
     vol = v >> 4;
-    len = ExpoCurve16[v & 0x0F];
+    len = ExponentialCurve16[v & 0x0F];
     if (total < 500)
         total = 500;
     total >>= 3;
-    MemSet(wDecompressBuf, 0, 0xC0);
+    FillMemory(wDecompressBuffer, 0, 0xC0);
     PlotEnvelopeCurve(0, vol);
     if (len) {
         v2 = ReadCurrentInstrumentByte(9);
         vol2 = v2 >> 4;
-        len2 = ExpoCurve16[v2 & 0x0F];
+        len2 = ExponentialCurve16[v2 & 0x0F];
         do {
             pos += len;
             PlotEnvelopeCurve((pos << 3) / total, vol);
@@ -122,7 +122,7 @@ void ComputeEnvelope(void)
         if (len2) {
             v3 = ReadCurrentInstrumentByte(10);
             vol3 = v3 >> 4;
-            len3 = ExpoCurve16[v3 & 0x0F];
+            len3 = ExponentialCurve16[v3 & 0x0F];
             do {
                 pos += len2;
                 PlotEnvelopeCurve((pos << 3) / total, vol);
@@ -142,7 +142,7 @@ void ComputeEnvelope(void)
     }
     PlotEnvelopeCurve((pos << 3) / total, vol);
     PlotEnvelopeCurve(0x3F, vol);
-    OrBitsIntoDaBuf();
+    OrBitsIntoDaBuffer();
     UploadTilesToVram();
 }
 

@@ -14,8 +14,8 @@
 
 #include "lsdj.h"
 
-extern UBYTE wClipboardBuf[];               /* $C57A, [6][42] */
-extern int wSynthShapeBuf[];                /* $C9F4, [32] */
+extern UBYTE wClipboardBuffer[];               /* $C57A, [6][42] */
+extern int wSynthShapeBuffer[];                /* $C9F4, [32] */
 
 UBYTE KitIndexToBank(UBYTE kit);            /* hand-written asm */
 
@@ -27,7 +27,7 @@ UBYTE ReadClipboardCell(UBYTE col, UBYTE row)
         DebugTrap(); 
    if (row >= 42)
         DebugTrap();
-    p = wClipboardBuf + col * 42;
+    p = wClipboardBuffer + col * 42;
     return p[row];
 }
 
@@ -39,7 +39,7 @@ void WriteClipboardCell(UBYTE col, UBYTE row, UBYTE v)
         DebugTrap();
     if (row >= 42)
         DebugTrap();
-    p = wClipboardBuf + col * 42;
+    p = wClipboardBuffer + col * 42;
     p[row] = v;
 }
 
@@ -53,10 +53,10 @@ void LoadSynthShape(char *src)
     for (i = 0; i < 0x20; i++) {
         v = *src;
         if (v & 0x80) {
-            wSynthShapeBuf[i] = v;
-            wSynthShapeBuf[i] |= 0xFF00;
+            wSynthShapeBuffer[i] = v;
+            wSynthShapeBuffer[i] |= 0xFF00;
         } else {
-            wSynthShapeBuf[i] = v;
+            wSynthShapeBuffer[i] = v;
         }
         src++;
     }
@@ -102,6 +102,6 @@ void SortBytePair(UBYTE *a, UBYTE *b)
 
 void ShowMessage(char *text)
 {
-    strcpy(wStrBuf, (UBYTE *)text);
+    strcpy(wStringBuffer, (UBYTE *)text);
     FarCall(1, DrawMessageBar);
 }

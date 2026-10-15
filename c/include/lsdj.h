@@ -17,10 +17,10 @@
  *     linker symbols: SDCC swaps a *literal* left operand of `+` to the
  *     right, an extern's address it does not (NextUsedInstrument tells them
  *     apart), so the SramXxx names below are literal-pointer macros.
- *   - Banked calls go through FarCall/FarCallArg (bank 0, hand-written asm).
+ *   - Banked calls go through FarCall/FarCallArgument (bank 0, hand-written asm).
  *     Most call sites pass the function itself (`ld bc,#fn`); others pass
  *     it cast through an integer, which SDCC loads byte-wise (`ld c,#<fn;
- *     ld b,#>fn`) -- FAR_FN(fn) reproduces those. FarCallArg's address
+ *     ld b,#>fn`) -- FAR_FN(fn) reproduces those. FarCallArgument's address
  *     parameter is an integer (its call sites cast with (UWORD)).
  */
 
@@ -69,7 +69,7 @@ extern UBYTE wSongRow;                      /* $C41E: song cursor row */
 extern UBYTE wInstrumentField;                   /* $C427: instrument screen cursor row */
 extern UBYTE wSpeechRow;              /* $C429 */
 extern char wSampleNoteString[];            /* $C43A: [7] shared name buffer */
-extern UBYTE wSongReadBuf[];                /* $C46D, [64] the song window (16 rows x 4 channels) */
+extern UBYTE wSongReadBuffer[];                /* $C46D, [64] the song window (16 rows x 4 channels) */
 extern UBYTE wUsedTableMap[];               /* $C47D, [32] tables referenced by instruments; also a scratch buffer */
 extern UBYTE wPlayMode;                     /* $C4D2 */
 extern UBYTE wTempo;                        /* $C529, 0-39 stand for 256-295 */
@@ -78,17 +78,17 @@ extern UBYTE wShadedDigitPalette;               /* $C566 */
 extern UBYTE wShadedPalette;                    /* $C567 */
 extern UBYTE wHighlightDigitPalette;               /* $C568 */
 extern UBYTE wHighlightPalette;                    /* $C569 */
-extern UBYTE *wStringSrc;                   /* $C564, the character-to-tile map DrawString reads */
-extern UBYTE AsciiCharMap[];                /* $0:$086F, text from ' '; wStringSrc = AsciiCharMap - 0x20 */
-extern UBYTE IdentityCharMap[];             /* $0:$08C8, raw tile indices */
+extern UBYTE *wStringSource;                   /* $C564, the character-to-tile map DrawString reads */
+extern UBYTE AsciiCharacterMap[];                /* $0:$086F, text from ' '; wStringSource = AsciiCharacterMap - 0x20 */
+extern UBYTE IdentityCharacterMap[];             /* $0:$08C8, raw tile indices */
 extern UBYTE *wVramCursor;                  /* $C573 */
 extern UBYTE wInstrument;                   /* $C576, the instrument being edited */
-extern UBYTE wStrBuf[];                  /* $C6A9, 20 chars + NUL */
+extern UBYTE wStringBuffer[];                  /* $C6A9, 20 chars + NUL */
 extern UBYTE wMessageTimer;                     /* $C7A9 */
-extern UBYTE *wMessageStrPtr;                   /* $C7AA */
+extern UBYTE *wMessageStringPointer;                   /* $C7AA */
 extern UBYTE wMessagePanelShown;                /* $C7AC */
 extern UBYTE wInstrumentEditLatch;               /* $C906: instrument screen edit latch */
-extern char *wChainScratchPtr;              /* $C948 */
+extern char *wChainScratchPointer;              /* $C948 */
 extern UBYTE wSyncMode;                     /* $CB66 */
 extern UBYTE wSyncMode2;                    /* $CB67 */
 
@@ -147,18 +147,18 @@ void SoundGetChainPhrase(void);               /* $02:$6F65 (far): chain_phrases[
 /* runtime (hand-written asm) */
 void DebugTrap(void);                                   /* `ld b,b` + rst $38 assert */
 void FarCall(UBYTE bank, void (*fn)(void));
-void FarCallArg(UBYTE bank, void (*fn)(void), UBYTE arg);    /* FAR_FN(f) for the byte-wise form */
+void FarCallArgument(UBYTE bank, void (*fn)(void), UBYTE arg);    /* FAR_FN(f) for the byte-wise form */
 
 /* far calls with arguments or a byte result (C: c/bank00/FarCall.c) */
-UBYTE FarCallArgByte(UBYTE bank, UWORD fn, UBYTE arg);         /* returns fn's byte */
-UBYTE FarCallArg2(UBYTE bank, UWORD fn, UBYTE a, UBYTE b);
-UBYTE FarCallArg2P(UBYTE bank, void (*fn)(void), UBYTE a, UBYTE b);  /* the same routine taking FAR_FN(f) (match_function.py aliases it) */
-void FarCallArg3(UBYTE bank, UWORD fn, UBYTE a, UBYTE b, UBYTE c);
-void FarCallArg3P(UBYTE bank, void (*fn)(void), UBYTE a, UBYTE b, UBYTE c);  /* the same routine taking FAR_FN(f) (match_function.py aliases it) */
+UBYTE FarCallArgumentByte(UBYTE bank, UWORD fn, UBYTE arg);         /* returns fn's byte */
+UBYTE FarCallArgument2(UBYTE bank, UWORD fn, UBYTE a, UBYTE b);
+UBYTE FarCallArgument2P(UBYTE bank, void (*fn)(void), UBYTE a, UBYTE b);  /* the same routine taking FAR_FN(f) (match_function.py aliases it) */
+void FarCallArgument3(UBYTE bank, UWORD fn, UBYTE a, UBYTE b, UBYTE c);
+void FarCallArgument3P(UBYTE bank, void (*fn)(void), UBYTE a, UBYTE b, UBYTE c);  /* the same routine taking FAR_FN(f) (match_function.py aliases it) */
 UBYTE FarCallByteU(UBYTE bank, UBYTE (*fn)(void));  /* FarCallByte for a callee declared returning UBYTE: `ld bc,#f` (aliased) */
 #ifndef FARCALL_C
 /* their callers pass a function; FarCall.c defines them taking a UWORD */
-void FarCallArg2V(UBYTE bank, void (*fn)(void), UBYTE a, UBYTE b);
+void FarCallArgument2V(UBYTE bank, void (*fn)(void), UBYTE a, UBYTE b);
 UBYTE FarCallByte(UBYTE bank, void (*fn)(void));    /* returns fn's byte result */
 #endif
 #define FAR_FN(f) ((void (*)(void))(UWORD)(f))
@@ -175,7 +175,7 @@ void ReadSongBytes(UBYTE bank, UBYTE *src, UBYTE *dst);  /* 16 bytes */
 void WriteInstrumentByte(UBYTE instr, UBYTE field, UBYTE val);
 UBYTE ReadInstrumentByte(UBYTE instr, UBYTE field);
 UBYTE ReadCurrentInstrumentByte(UBYTE field);
-UBYTE ReadSeqByte(UBYTE chan, UBYTE row);
+UBYTE ReadSequenceByte(UBYTE chan, UBYTE row);
 void ReadKitName(UBYTE kit);                            /* -> wSampleNoteString */
 UBYTE KitExists(UBYTE kit);
 
@@ -187,7 +187,7 @@ void DrawStringTile20(void);
 void DrawByte(UBYTE v);
 void DrawHexByte(UBYTE v);
 void DrawTempoField(void);
-UWORD GetTempoTimerVal(void);                 /* the tempo as shown (or a speed code) */
+UWORD GetTempoTimerValue(void);                 /* the tempo as shown (or a speed code) */
 void DrawTempo(UWORD tempo);
 #ifndef GBDKLIB_C       /* GbdkLib.c defines it with `...` */
 void printf(char *fmt, UWORD v);            /* printf-style, varargs */
@@ -196,14 +196,14 @@ void printf2(char *fmt, UWORD a, UWORD b);  /* the same routine with two values 
 void SetVramCursor(UBYTE x, UBYTE y);                  /* sets wVramCursor (asm) */
 void ClearMarkerSprites(void);
 char *strcpy(char *dest, char *src);
-void MemSet(UBYTE *dest, UBYTE value, UWORD count);
+void FillMemory(UBYTE *dest, UBYTE value, UWORD count);
 void memcpy(UBYTE *dst, UBYTE *src, UWORD n);
 
 /* misc */
 void SortBytePair(UBYTE *a, UBYTE *b);               /* swap so *a <= *b */
-UBYTE ReadClipboardCell(UBYTE col, UBYTE row);         /* wClipboardBuf[col*42 + row] */
+UBYTE ReadClipboardCell(UBYTE col, UBYTE row);         /* wClipboardBuffer[col*42 + row] */
 void WriteClipboardCell(UBYTE col, UBYTE row, UBYTE v);
-void LoadSynthShape(char *src);              /* bank $1E seed bytes -> wSynthShapeBuf */
+void LoadSynthShape(char *src);              /* bank $1E seed bytes -> wSynthShapeBuffer */
 
 /* --- the screens' draw entry points (DispatchScreenDraw, bank 0) ----------- */
 
@@ -215,8 +215,8 @@ void ClearSpriteY(UBYTE sprite);
 void SetSpriteX(UBYTE sprite, UBYTE col);
 void SetSpriteTile3(UBYTE sprite);
 void SetSpriteTile4(UBYTE sprite);
-void SetSpriteAttr(UBYTE sprite, UBYTE attr);
-void SetOamByte(UWORD offset, UBYTE v);         /* wOamBuf[offset] = v if changed */
+void SetSpriteAttribute(UBYTE sprite, UBYTE attr);
+void SetOamByte(UWORD offset, UBYTE v);         /* wOamBuffer[offset] = v if changed */
 void ClearSprites012(void);
 void PositionWavSprites(void);
 
@@ -251,8 +251,8 @@ void DrawInstrumentCursor(void);
 void EraseInstrumentCursor(void);
 UBYTE FindFreeSynth(void);
 UBYTE SynthWavesModified(UBYTE synth);
-void PrevInstrumentTableMode(void);
-UBYTE GetWaveLoopPos(void);
+void PreviousInstrumentTableMode(void);
+UBYTE GetWaveLoopPosition(void);
 UBYTE GetInstrumentType3(void);
 void WriteKitNumber(UBYTE field, UBYTE kit);
 void InstrumentEnvelopeChanged(void);
@@ -263,8 +263,8 @@ UBYTE IsInstrumentTableOn(void);
 UBYTE GetWavePlayMode(void);
 UBYTE WavePlayIsManual(void);
 void SetInstrumentPitchByte(UBYTE v);
-void PrevUsedInstrument(void);
-UBYTE GetWaveLen(void);
+void PreviousUsedInstrument(void);
+UBYTE GetWaveLength(void);
 UBYTE GetWaveSpeed(void);
 UBYTE GetVibratoShape(void);
 void SetVibratoShape(char v);               /* the shape byte is signed here: its OR reads it through a cast */

@@ -120,9 +120,9 @@ Verified against a live RAM dump cross-checked with this map:
 | `wChannelChainRow` | `$C17C` | row in chain (0-15) | into `chain_phrases`/`chain_transposes` |
 | `wChannelPhrase` | `$C168` | current phrase # | `= chain_phrases[chain][chainRow]` |
 | `wChannelPhraseRow` | `$C16C` | note step in phrase (0-15) | into the phrase columns |
-| `wPhraseCommandPtr` | `$C110` | 16-bit SRAM cursor | `phrase_notes`(b0)/`phrase_fx`(b2) |
-| `wPhraseCommandValPtr` | `$C128` | 16-bit SRAM cursor | `phrase_fx_val` (`$AFF0`+) |
-| `wChannelInstrumentPtr` | `$C140` | 16-bit SRAM cursor | `phrase_instruments` (`$B000`+) |
+| `wPhraseCommandPointer` | `$C110` | 16-bit SRAM cursor | `phrase_notes`(b0)/`phrase_fx`(b2) |
+| `wPhraseCommandValuePointer` | `$C128` | 16-bit SRAM cursor | `phrase_fx_val` (`$AFF0`+) |
+| `wChannelInstrumentPointer` | `$C140` | 16-bit SRAM cursor | `phrase_instruments` (`$B000`+) |
 
 The bank `$02` walkers: `SoundAdvanceSongRow` (`$48D2`) reloads `wChannelChain` from
 `song` when a chain ends (with LSDj's loop-back scan); `SoundReadSongChain` (`$5EAD`)
@@ -130,13 +130,13 @@ reads `song[wChannelSongRow][ch]`; `SoundReadChainPhrase` (`$5E7C`) computes `wC
 from `chain_phrases[wChannelChain*16 + wChannelChainRow]` in SRAM bank 1.
 
 **Pitch.** Notes read from `phrase_notes` are turned into GB periods by `SoundNoteToPeriod`
-(bank `$02` `$49B7`): `wChannelFreq[ch] (16-bit, $C0F4) = wNotePeriods[note + wNoteTranspose - 1]`.
+(bank `$02` `$49B7`): `wChannelFrequency[ch] (16-bit, $C0F4) = wNotePeriods[note + wNoteTranspose - 1]`.
 `wNotePeriods` (`$CF28`) is a 16-bit GB-period table built in WRAM at runtime (so it
-tracks master tuning), and `SoundWriteChannelFreq` writes `wChannelFreq` to `rAUDxLOW/HIGH`
-each tick. Verified against a live dump: `wChannelFreq` = `$0706/$0672/$0511` for PU1/PU2/WAV,
+tracks master tuning), and `SoundWriteChannelFrequency` writes `wChannelFrequency` to `rAUDxLOW/HIGH`
+each tick. Verified against a live dump: `wChannelFrequency` = `$0706/$0672/$0511` for PU1/PU2/WAV,
 each value present in the `$CF28` table.
 
-**Instruments.** A phrase step's instrument number (read via `wChannelInstrumentPtr` from
+**Instruments.** A phrase step's instrument number (read via `wChannelInstrumentPointer` from
 `phrase_instruments`, `$7000`) selects a 16-byte record in `instruments` (`$3080`).
 On note-on the engine copies that record verbatim into `wCurrentInstrument` (`$C0D0`),
 then `SoundSetupChannel` distributes its bytes to the `rAUDx` register shadows

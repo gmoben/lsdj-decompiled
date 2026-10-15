@@ -2,7 +2,7 @@
  * Song-format upgrades -- LSDj 9.4.0, ROM bank $1C: loading an older .sav
  * steps its working song through FileUpgradeV0..V17b, each patching the
  * instruments of one or more types through a per-instrument callback
- * (FileForEachInstrumentType sets wFileInstrumentIdx and calls it).
+ * (FileForEachInstrumentType sets wFileInstrumentIndex and calls it).
  *
  * MATCHING C (period GBDK 2.95-3 / SDCC 2.2.1 + tools/match/lsdj.peep);
  * `make match` verifies every function here against the ROM.
@@ -10,7 +10,7 @@
 
 #include "lsdj.h"
 
-extern UBYTE wFileInstrumentIdx;                 /* $C9A1, the instrument being upgraded */
+extern UBYTE wFileInstrumentIndex;                 /* $C9A1, the instrument being upgraded */
 extern UBYTE FileUpgradeRemapTable[];       /* $1C:$68F1, [8] */
 extern UBYTE NoiseNoteRemapTable[];         /* $1C:$6E3C, [112] */
 
@@ -38,7 +38,7 @@ void FileUpgradeV2(void);
 void ReadSongBytesW(UBYTE bank, UWORD src, UBYTE *dst);  /* ReadSongBytes taking a word address (aliased by match_function.py) */
 char ReadInstrumentByteS(UBYTE instr, UBYTE field);  /* ReadInstrumentByte returning char (aliased): the cast to UBYTE keeps the call result in its own slot */
 
-UWORD FileCalcCompressedSize(void)
+UWORD FileCalculateCompressedSize(void)
 {
     UWORD n;
 
@@ -52,17 +52,17 @@ UWORD FileCalcCompressedSize(void)
 
 UBYTE FileReadInstrumentByte(UBYTE field)
 {
-    return ReadInstrumentByte(wFileInstrumentIdx, field);
+    return ReadInstrumentByte(wFileInstrumentIndex, field);
 }
 
 void FileWriteInstrumentByte(UBYTE field, UBYTE val)
 {
-    WriteInstrumentByte(wFileInstrumentIdx, field, val);
+    WriteInstrumentByte(wFileInstrumentIndex, field, val);
 }
 
 void FileForEachInstrumentType(UBYTE type, void (*fn)())
 {
-    for (wFileInstrumentIdx = 0; wFileInstrumentIdx < 0x40; wFileInstrumentIdx++) {
+    for (wFileInstrumentIndex = 0; wFileInstrumentIndex < 0x40; wFileInstrumentIndex++) {
         if (FileReadInstrumentByte(0) == type)
             (*fn)();
     }
@@ -316,7 +316,7 @@ void FileUpgradeClearRange(void)
     UBYTE t;
 
     i = 0;
-    MemSet((UBYTE *)0xDA00, 0, 0x80);
+    FillMemory((UBYTE *)0xDA00, 0, 0x80);
     do {
         t = FileUpgradeReadByte(i);
         if (t < 0x80) {
@@ -329,10 +329,10 @@ void FileUpgradeClearRange(void)
         if (*p) {
             j = 0;
             while (!(j == 0x10)) {
-                v = FarCallArg2(6, 0x56AA, i, j);
+                v = FarCallArgument2(6, 0x56AA, i, j);
                 v = v / 12;
                 v <<= 4;
-                FarCallArg3(6, 0x5655, i, j, v);
+                FarCallArgument3(6, 0x5655, i, j, v);
                 j++;
             }
         }
@@ -367,7 +367,7 @@ void FileUpgradeV11(void)
     while (q != 0xBFF0) {
         v = 0;
         j = 0;
-        ReadSongBytesW(0, p, wSongReadBuf);
+        ReadSongBytesW(0, p, wSongReadBuffer);
         ReadSongBytesW(3, q, wUsedTableMap);
         for (; j != 0x10; j = j + 1) {
             i = wUsedTableMap[j];
@@ -380,7 +380,7 @@ void FileUpgradeV11(void)
                     v = 0;
             }
             if (v) {
-                n = wSongReadBuf[j];
+                n = wSongReadBuffer[j];
                 if (n) {
                     n = n - 1;
                     n = n / 12;
@@ -555,7 +555,7 @@ void FileUpgradeV18(void)
     while (q != 0xBFF0) {
         v = 0;
         j = 0;
-        ReadSongBytesW(0, p, wSongReadBuf);
+        ReadSongBytesW(0, p, wSongReadBuffer);
         ReadSongBytesW(3, q, wUsedTableMap);
         for (; j != 0x10; j = j + 1) {
             i = wUsedTableMap[j];
@@ -565,7 +565,7 @@ void FileUpgradeV18(void)
                 v = types[i] == 3;
             }
             if (v) {
-                n = wSongReadBuf[j];
+                n = wSongReadBuffer[j];
                 m = 0;
                 if (n) {
                     if (!(n < 0x20)) {

@@ -66,7 +66,7 @@ void CutCopySongSelection(UBYTE isCut)
             vis = y < 0x10;
             if (vis)
                 EraseSongCursor();
-            v = ReadSeqByte(wSongColumn, wSongRow);
+            v = ReadSequenceByte(wSongColumn, wSongRow);
             r = wSongRow - wSelectionTop;
             WriteClipboardCell(wSongColumn, r, v);
             wSongRow++;

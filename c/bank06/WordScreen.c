@@ -10,11 +10,11 @@
 
 #include "lsdj.h"
 
-extern UBYTE wWordClipCell0[];              /* $C935 */
-extern UBYTE wWordClipCell1[];              /* $C936 */
-extern UBYTE *wWordClipPtr;                 /* $C939 */
-extern UBYTE wWordClipPtrB;                 /* $C939 as a byte (aliased by match_function.py) */
-extern UBYTE wClipboardBuf[];               /* $C57A */
+extern UBYTE wWordClipboardCell0[];              /* $C935 */
+extern UBYTE wWordClipboardCell1[];              /* $C936 */
+extern UBYTE *wWordClipboardPointer;                 /* $C939 */
+extern UBYTE wWordClipboardPointerB;                 /* $C939 as a byte (aliased by match_function.py) */
+extern UBYTE wClipboardBuffer[];               /* $C57A */
 extern UBYTE wWordRow;                  /* $C937 */
 extern UBYTE wWordColumn;                  /* $C938 */
 extern UBYTE WordColumnX[];                  /* the word editor's two columns: x */
@@ -47,7 +47,7 @@ void DrawAllophoneName(UBYTE v)
 {
     UBYTE t, m;
 
-    wWordClipCell0[0] = v;
+    wWordClipboardCell0[0] = v;
     t = v;
     t--;
     m = t % 15 + 1;
@@ -194,15 +194,15 @@ UBYTE WordScreenInput(void)
         wClipboardType = 0x0C;
         wCursorMode = 2;
         wWordColumn = 0;
-        wWordClipCell0[0] = ReadWordCell();
-        wClipboardBuf[0] = ReadWordCell();
+        wWordClipboardCell0[0] = ReadWordCell();
+        wClipboardBuffer[0] = ReadWordCell();
         wWordColumn = 1;
-        wWordClipPtr = wWordClipCell0 + 1;
+        wWordClipboardPointer = wWordClipboardCell0 + 1;
         t = ReadWordCell();
-        *wWordClipPtr = t;
-        wWordClipPtr = wClipboardBuf + 1;
+        *wWordClipboardPointer = t;
+        wWordClipboardPointer = wClipboardBuffer + 1;
         t = ReadWordCell();
-        *wWordClipPtr = t;
+        *wWordClipboardPointer = t;
         WriteWordCell(0);
         wWordColumn = 0;
         WriteWordCell(0);
@@ -215,9 +215,9 @@ UBYTE WordScreenInput(void)
             return 0;
         v = wWordColumn;
         wWordColumn = 0;
-        WriteWordCell(wClipboardBuf[0]);
+        WriteWordCell(wClipboardBuffer[0]);
         wWordColumn = 1;
-        WriteWordCell(wClipboardBuf[1]);
+        WriteWordCell(wClipboardBuffer[1]);
         wWordColumn = v;
         DrawWordScreen();
         MoveWordCursorDown();
@@ -227,33 +227,33 @@ UBYTE WordScreenInput(void)
             return 0;
         col = wWordColumn;
         if (!wWordColumn) {
-            if (!ReadWordCell() && wWordClipCell0[0]) {
-                WriteWordCell(wWordClipCell0[0]);
+            if (!ReadWordCell() && wWordClipboardCell0[0]) {
+                WriteWordCell(wWordClipboardCell0[0]);
                 wWordColumn = 1;
-                WriteWordCell(wWordClipCell1[0]);
+                WriteWordCell(wWordClipboardCell1[0]);
                 SetVramCursor(2, y);
                 hBgDigitPalette = 4;
                 hBgPalette = 1;
-                v = wWordClipCell0[0];
+                v = wWordClipboardCell0[0];
                 v--;
-                wWordClipPtrB = v % 15 + 1;
-                ReadKitSampleName(AllophoneKit(v), wWordClipPtrB);
+                wWordClipboardPointerB = v % 15 + 1;
+                ReadKitSampleName(AllophoneKit(v), wWordClipboardPointerB);
                 DrawString(wSampleNoteString);
                 DrawStringTile20();
                 hBgDigitPalette = wShadedDigitPalette;
                 hBgPalette = wShadedPalette;
-                DrawHexByte(wWordClipCell1[0]);
+                DrawHexByte(wWordClipboardCell1[0]);
                 wWordColumn = col;
                 DrawWordCursor();
                 return 1;
             }
             wWordColumn = col;
         } else if (!ReadWordCell()) {
-            WriteWordCell(wWordClipCell1[0]);
+            WriteWordCell(wWordClipboardCell1[0]);
             SetVramCursor(6, y);
             hBgDigitPalette = wHighlightDigitPalette;
             hBgPalette = wHighlightPalette;
-            DrawHexByte(wWordClipCell1[0]);
+            DrawHexByte(wWordClipboardCell1[0]);
             return 1;
         }
         return 0;
@@ -263,11 +263,11 @@ UBYTE WordScreenInput(void)
             if (v < 0xFF)
                 v++;
             DrawHexByte(v);
-            wWordClipCell1[0] = v;
+            wWordClipboardCell1[0] = v;
         } else if (v != 0x3B) {
             ReadKitSampleName(AllophoneKit(v), v % 15 + 1);
             v++;
-            wWordClipCell0[0] = v;
+            wWordClipboardCell0[0] = v;
             DrawString(wSampleNoteString);
         }
         WriteWordCell(v);
@@ -278,12 +278,12 @@ UBYTE WordScreenInput(void)
             if (v)
                 v--;
             DrawHexByte(v);
-            wWordClipCell1[0] = v;
+            wWordClipboardCell1[0] = v;
         } else if (v > 1) {
             v -= 2;
             ReadKitSampleName(AllophoneKit(v), v % 15 + 1);
             v++;
-            wWordClipCell0[0] = v;
+            wWordClipboardCell0[0] = v;
             DrawString(wSampleNoteString);
         }
         WriteWordCell(v);
@@ -294,7 +294,7 @@ UBYTE WordScreenInput(void)
             if (v < 0x10)
                 return 0;
             DrawHexByte(v);
-            wWordClipCell1[0] = v;
+            wWordClipboardCell1[0] = v;
         } else {
             if (v > 0x3B)
                 v = 0x3B;
@@ -308,7 +308,7 @@ UBYTE WordScreenInput(void)
             if (v >= 0xF0)
                 return 0;
             DrawHexByte(v);
-            wWordClipCell1[0] = v;
+            wWordClipboardCell1[0] = v;
         } else {
             if (v > 0x80)
                 v = 1;

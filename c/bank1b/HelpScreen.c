@@ -11,15 +11,15 @@
 
 extern UBYTE wHelpOpenEntry;                /* $C933, the open HELP entry (0 = none) */
 extern UBYTE wHelpRow;                /* $C934 */
-extern char *HelpMenuPtrs[];                /* $1B:$4058, NULL-terminated */
+extern char *HelpMenuPointers[];                /* $1B:$4058, NULL-terminated */
 extern UBYTE HelpEntryLines[];             /* $1B:$408E, the selectable lines */
-extern char **HelpPageRefs[];               /* $1B:$4BAF, &HelpPagePtrs[k] per line */
+extern char **HelpPageRefs[];               /* $1B:$4BAF, &HelpPagePointers[k] per line */
 extern UBYTE wAPressEnabled;                /* $C409 */
 extern UBYTE wButtons;                      /* $C575 */
 void DrawHelpMenu(void);
 void DrawHelpCursor(UBYTE erase);
 void RedrawHelpCursor(void);
-UWORD StrLength(char *s);                /* bank 0 */
+UWORD StringLength(char *s);                /* bank 0 */
 void DrawHelpPage(char *s);
 void MoveHelpCursorDown(void);
 void OpenHelpEntry(void);
@@ -28,9 +28,9 @@ void DrawHelpMenu(void)
 {
     UBYTE i;
 
-    for (i = 0; HelpMenuPtrs[i]; i++) {
+    for (i = 0; HelpMenuPointers[i]; i++) {
         SetVramCursor(0, i);
-        DrawString(HelpMenuPtrs[i]);
+        DrawString(HelpMenuPointers[i]);
     }
 }
 
@@ -40,7 +40,7 @@ void DrawHelpCursor(UBYTE erase)
     UBYTE len;
 
     e = HelpEntryLines[wHelpRow];
-    len = StrLength(HelpMenuPtrs[e]);
+    len = StringLength(HelpMenuPointers[e]);
     ColorField(0, e, len, erase ? 0 : 2);
 }
 

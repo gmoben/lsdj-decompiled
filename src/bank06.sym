@@ -18,8 +18,8 @@
 749E TxtSync            ; "SYNC" (sync status)
 7510 TxtSync2           ; "SYNC" (second instance)
 5908 .shift               ; wChain * 16 (was SetChainPhrase)
-58FB LoadChainRow        ; load chain_phrases/chain_transposes[wChain] -> wSongReadBuf / wUsedTableMap (16 each)
-5626 DrawChainPos               ; draw "CP" and the chain cursor row (DrawByte) at $9851 in the shadow palette
+58FB LoadChainRow        ; load chain_phrases/chain_transposes[wChain] -> wSongReadBuffer / wUsedTableMap (16 each)
+5626 DrawChainPosition               ; draw "CP" and the chain cursor row (DrawByte) at $9851 in the shadow palette
 569C .write               ; (was ReadChainTranspose)
 5947 DrawChainScreen     ; screen idx 3: draws chain phrases + transposes
 4A0A WriteWaveSample            ; write sample pos+1 (inverted nibble) of the edited wave frame (SRAM bank 3 )
@@ -27,7 +27,7 @@
 405D ReadWordCell               ; read the speech word cell under the cursor: SRAM bank 0 $B890 + word*32 + col + row*2
 41A2 DrawWordScreen      ; screen idx 12: draws speech words; edits words ($B890) + word_names ($BDD0)
 5A62 ChainScreenUpdate  ; per-frame visual update (screen idx 3)
-5511 LoadChainCursorPhrase      ; read the phrase at (wChain, wChainRow) via FarCallArg2; $ff -> empty path
+5511 LoadChainCursorPhrase      ; read the phrase at (wChain, wChainRow) via FarCallArgument2; $ff -> empty path
 
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 4000 AllophoneKit               ; the speech kit holding allophone v: v / 15 + $19, then + 5 past $1A (its sample is v % 15 + 1)
@@ -36,8 +36,8 @@
 410E EraseWordCursor            ; restore the word screen's cursor cell to its column palette
 414F DrawWordCursor             ; highlight the word screen's cursor cell (WordColumnX/WordColumnWidth[wWordColumn], row wWordRow)
 4306 MoveWordCursorDown             ; word screen: move the cursor one row down (EraseWordCursor, wWordRow++, DrawWordCursor) unless on row 15
-48AB TilemapAddr                ; the BG tilemap address of cell x,y: $9800 | (y*32 + x)
-4901 SynthLockByteAddr          ; the SRAM byte holding synth x's lock bit ("synths locked?" $BFC4-$BFC5): $BFC5 for 0-7, $BFC4 for 8-F
+48AB TilemapAddress                ; the BG tilemap address of cell x,y: $9800 | (y*32 + x)
+4901 SynthLockByteAddress          ; the SRAM byte holding synth x's lock bit ("synths locked?" $BFC4-$BFC5): $BFC5 for 0-7, $BFC4 for 8-F
 493F LockCurrentSynth           ; set the current synth's (wSynth >> 4) bit in its lock byte; WriteWaveSample calls it before editing a wave
 4992 ReadWaveSample             ; sample (i+1)&31 of the edited synth wave frame (SRAM bank 3 $A000 + wSynth*16), inverted: $0F ^ nibble
 4AB0 SetWaveSpriteColumns       ; set the x of wave sprites 3..10 and 11..18
@@ -54,7 +54,7 @@
 504E DrawWaveLine               ; A+LEFT/RIGHT (help: DRAW LINE): copy the cursor's sample into the next column (d = +-1) and move there
 5398 CopyWaveSelection          ; wave-screen COPY: selection -> clipboard (clipType 8), shows "COPY"
 546C PasteWaveSelection         ; wave screen: paste the clipboard samples at the cursor
-54FA GetCursorChain             ; read the chain number under the song cursor (ReadSeqByte(wSongColumn, wSongRow))
+54FA GetCursorChain             ; read the chain number under the song cursor (ReadSequenceByte(wSongColumn, wSongRow))
 5563 ChainScreenEnter           ; enter the chain screen for the cursor chain (LIVE-mode aware, clears message)
 5655 SetChainTranspose          ; write chain_transposes[chain<$80][step<$10] = v (SRAM bank 1 $A880)
 56AA ReadChainTranspose        ; read chain_transposes[chain<$80] from SRAM (bounds-checked)
@@ -74,8 +74,8 @@
 740C DrawSyncStatusLsdj         ; sync mode LSDJ: WAIT while handshaking, LEAD while running, else SYNC or blank (SyncStatusFlag)
 7469 DrawSyncStatusMidi         ; sync mode MIDI: SYNC (SyncStatusFlag), WAIT while playing, else blank
 7508 .drawStatus          ; (was ChainDrawStatusWord) draw a status word (SYNC/LEAD) via DrawSyncStatusText
-7524 DrawTileHexCell            ; (v): t = ((v-60)+1)>>2 - 9; prefix = HexCellPrefixPtrs[v&3]; t<0 -> prefix[0], '-', DrawByte(-t); else DrawString(prefix), DrawByte(t). Matched in C: c/bank06/DrawTileHexCell.c
-75A6 HexCellPrefixPtrs          ; [4] dw -> the 2-char prefix strings below, indexed by (v & 3) in DrawTileHexCell (also parked in wChainScratchPtr)
+7524 DrawTileHexCell            ; (v): t = ((v-60)+1)>>2 - 9; prefix = HexCellPrefixPointers[v&3]; t<0 -> prefix[0], '-', DrawByte(-t); else DrawString(prefix), DrawByte(t). Matched in C: c/bank06/DrawTileHexCell.c
+75A6 HexCellPrefixPointers          ; [4] dw -> the 2-char prefix strings below, indexed by (v & 3) in DrawTileHexCell (also parked in wChainScratchPointer)
 75AE TxtHexCellPrefix0          ; "D "
 75B1 TxtHexCellPrefix1          ; "F "
 75B4 TxtHexCellPrefix2          ; "G#"
@@ -86,7 +86,7 @@
 78B8 UpdateScope           ; update scope from wScopeDirty/wScopeRefresh/wScopeBitmap
 ; --- functions called from bank 0 (this bank paged in) ---
 74AD DrawSyncStatus             ; draw the sync/lead status by wSyncMode (1/3/6/7 cases)
-72C4 UpdateStatusPanel          ; per-frame status update for most screens: pending sample-name cells (wChannelDispNote) at x=17, the tempo field when wTempo changed, the scope
+72C4 UpdateStatusPanel          ; per-frame status update for most screens: pending sample-name cells (wChannelDisplayNote) at x=17, the tempo field when wTempo changed, the scope
 5BD0 ChainScreenInput           ; the chain screen's input: A writes a phrase/transpose, the directions move, A+directions step phrases (1/16) or transposes (1/octave) over the cell or selection, B+directions change channel or song row, A+B cuts, select+A pastes, start plays, select+B selects
 507F WaveScreenInput            ; wave-screen input dispatch (wButtons)
 431D WordScreenInput            ; word screen (12) input handler, from DispatchScreenInput: cursor over wWordRow/Col, dispatch on wButtons
@@ -112,7 +112,7 @@
 423A .loop2               ; loop head in DrawWordScreen
 431C .done                ; common exit of MoveWordCursorDown
 48A7 .done                ; common exit of WordScreenInput
-48BA .loop                ; loop head in TilemapAddr
+48BA .loop                ; loop head in TilemapAddress
 4974 .shiftLoop           ; loop head in LockCurrentSynth: 1 << (s & 7), one bit per pass
 49B2 .loop                ; loop head in ReadWaveSample
 4A22 .loop                ; loop head in WriteWaveSample
@@ -153,7 +153,7 @@
 659C .bigDecColumns    ; loop head in ChainScreenInput
 65AA .bigDecRows ; loop head in ChainScreenInput
 676D .nextChannelLoop ; loop head in ChainScreenInput
-67B1 .prevChannelLoop ; loop head in ChainScreenInput
+67B1 .previousChannelLoop ; loop head in ChainScreenInput
 6D3C .done                ; common exit of ChainScreenInput
 6DA2 .loop                ; loop head in CutCopyChainSelection
 6DD0 .loop2               ; loop head in CutCopyChainSelection
@@ -233,7 +233,7 @@
 686C .songRowDown
 68AF .testAB
 69B1 .testSelectionA
-69C8 .selectAClip
+69C8 .selectAClipboard
 6A31 .testSelectionAB
 6A49 .testSelectionStart
 6A72 .testStart
@@ -254,10 +254,10 @@
 42F4 .drawWordCursor
 4312 .eraseWordCursor
 4402 .cut                 ; WordScreenInput: SELECT+B: cut the word into the clipboard
-441E .cutClipOk           ; WordScreenInput: clipboard type already a word, or not in a selection
+441E .cutClipboardOk           ; WordScreenInput: clipboard type already a word, or not in a selection
 44AA .paste               ; WordScreenInput: SELECT+A: paste the clipboard word
 44F2 .enterCells          ; WordScreenInput: A: re-enter the clipboard cells
-45AC .enterLen            ; WordScreenInput: A on the length column
+45AC .enterLength            ; WordScreenInput: A on the length column
 47C7 .bDownClamped        ; WordScreenInput: B+DOWN: row clamped at 0
 47DD .bUpClamped          ; WordScreenInput: B+UP: row clamped at 13
 4939 .ok
@@ -355,24 +355,24 @@
 4161 .loadWordColumn
 4219 .drawTempoField_2
 423F .index
-4250 .checkArg
+4250 .checkArgument
 4279 .drawSample          ; (was DrawSampleNameFull) the word screen's sample-name column
 42BB .drawString
 42DB .readSongByte
 43C8 .upDone              ; WordScreenInput: the row already 0
 45A2 .restoreColumn          ; WordScreenInput: nothing entered: put the column back
 45E8 .enterFail           ; WordScreenInput: A changed nothing: return 0
-4604 .plusLenDraw         ; WordScreenInput: A+RIGHT on the length: draw the byte
+4604 .plusLengthDraw         ; WordScreenInput: A+RIGHT on the length: draw the byte
 4618 .plusAllophone       ; WordScreenInput: A+RIGHT on the allophone column
 4657 .plusWrite           ; WordScreenInput: write the incremented cell
-467C .minusLenDraw        ; WordScreenInput: A+LEFT on the length: draw the byte
+467C .minusLengthDraw        ; WordScreenInput: A+LEFT on the length: draw the byte
 4690 .minusAllophone      ; WordScreenInput: A+LEFT on the allophone column
 46D0 .minusWrite          ; WordScreenInput: write the decremented cell
-46FE .pageUpLenDraw       ; WordScreenInput: A+UP on the length: draw the byte
+46FE .pageUpLengthDraw       ; WordScreenInput: A+UP on the length: draw the byte
 4712 .pageUpAllophone     ; WordScreenInput: A+UP on the allophone column
 471D .pageUpClamped       ; WordScreenInput: allophone clamped to $3b
 4727 .pageUpWrite         ; WordScreenInput: write the +$10 cell
-4755 .pageDownLenDraw     ; WordScreenInput: A+DOWN on the length: draw the byte
+4755 .pageDownLengthDraw     ; WordScreenInput: A+DOWN on the length: draw the byte
 4769 .pageDownAllophone   ; WordScreenInput: A+DOWN on the allophone column
 4774 .pageDownClamped     ; WordScreenInput: allophone wrapped back to 1
 477E .pageDownWrite       ; WordScreenInput: write the -$10 cell
@@ -384,7 +384,7 @@
 48A5 .noCase              ; WordScreenInput: no handled button combination: return 0
 48C2 .step
 491C .cont
-4929 .checkArg
+4929 .checkArgument
 4977 .shiftStep           ; the shift count test (entered first)
 49B7 .step
 49F9 .shift
@@ -423,7 +423,7 @@
 4DCE .cont_14
 4DD0 .cont_15
 4DD3 .cont_16
-4DE3 .chainCalcSampleAddr
+4DE3 .chainCalculateSampleAddress
 4E18 .cont_17
 4E34 .testBit1
 4E58 .testBit3
@@ -457,7 +457,7 @@
 56C6 .index
 5709 .step
 5722 .checkCurrentScreen
-57BB .checkArg
+57BB .checkArgument
 57CE .readSongByte
 57E8 .cont
 581C .writeNote
@@ -559,8 +559,8 @@
 6749 .bigDecDone
 6787 .nextChannelSkip
 678D .nextChannelNone
-67CB .prevChannelSkip
-67D1 .prevChannelNone
+67CB .previousChannelSkip
+67D1 .previousChannelNone
 680F .songTop
 693C .cutTranspose
 6993 .clearTranspose
@@ -591,7 +591,7 @@
 6EF6 .showMessage
 6F08 .cont
 6F46 .cont
-6F47 .checkArg
+6F47 .checkArgument
 6F5A .cont_2
 6F5B .cont_3
 6F65 .getScreenScratchCell2
@@ -600,7 +600,7 @@
 7015 .loadChainColumn
 7071 .cont
 708E .cont_2
-708F .checkArg
+708F .checkArgument
 70AA .cont_3
 70AE .add16
 70E3 .cont_4
@@ -614,11 +614,11 @@
 71B2 .cont_11
 71E3 .cont_12
 7221 .cont
-723D .loadOscBankB
+723D .loadOscillatorBankB
 7250 .cont_2
 7260 .cont_3
 7270 .drawString
-727C .checkArg
+727C .checkArgument
 72A1 .setNoteTranspose
 72AB .add16
 7306 .cont
@@ -638,7 +638,7 @@
 74EA .drawSyncStatusText
 7503 .cont_2
 7574 .cont
-75D0 .checkArg
+75D0 .checkArgument
 75F0 .cont
 7625 .drawString
 7631 .drawString_2

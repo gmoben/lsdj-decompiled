@@ -10,8 +10,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 EMU = os.path.join(ROOT, "tools", "emu", "emu.py")
 KNOWN = {
     0xc100: 'wChanNextPhrase', 0xc108: '?', 0xc10e: 'wTableTransposePtr', 0xc110: 'wChanReadPtr(16)',
-    0xc118: '?', 0xc11e: 'wTableCommand1Ptr', 0xc126: 'wTableCommand2Ptr', 0xc128: 'wChanCmdValPtr(16)',
-    0xc136: 'wTableCommand1ValPtr', 0xc13e: 'wTableCommand2ValPtr', 0xc140: 'wChannelInstrumentPtr(16)', 0xc148: '?GAP',
+    0xc118: '?', 0xc11e: 'wTableCommand1Pointer', 0xc126: 'wTableCommand2Pointer', 0xc128: 'wChanCmdValPtr(16)',
+    0xc136: 'wTableCommand1ValuePointer', 0xc13e: 'wTableCommand2ValuePointer', 0xc140: 'wChannelInstrumentPointer(16)', 0xc148: '?GAP',
     0xc150: 'wChannelGroove', 0xc154: 'wChannelTablePlayed', 0xc158: 'wChannelGrooveRow', 0xc15c: '?GAP',
     0xc160: 'wChannelNoteCountdown', 0xc164: 'wChannelTableCountdown', 0xc168: 'wChannelPhrase', 0xc16c: 'wChannelPhraseRow',
     0xc170: 'wChannelChain', 0xc174: '?GAP', 0xc178: '?GAP', 0xc17c: 'wChannelChainRow',

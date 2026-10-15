@@ -4,12 +4,12 @@
  * MATCHING C (period GBDK 2.95-3 / SDCC 2.2.1 + tools/match/lsdj.peep);
  * `make match` verifies every function here against the ROM.
  *
- * Everything writes the OAM shadow at $DD00 (wOamBuf, DMA-copied while
+ * Everything writes the OAM shadow at $DD00 (wOamBuffer, DMA-copied while
  * wOamDirty is set). The clears are literal-pointer stores (`ld de,#addr;
  * ld (de),a`; track_a drops the repeated `ld a,#0x00`). SetOamByte adds the
  * shadow's address to its cast offset, `(UBYTE *)offset + 0xDD00`, which
  * SDCC does in place in bc with the constant second, as the ROM does:
- * `wOamBuf + offset` adds the address first, and `offset + 0xDD00` on the
+ * `wOamBuffer + offset` adds the address first, and `offset + 0xDD00` on the
  * stack operand goes through `add hl,de`. Its test is `v == *p` (`*p == v`
  * is SDCC's `cp a,a` miscompile).
  */
@@ -58,7 +58,7 @@ void SetOamByte(UWORD offset, UBYTE v)
 {
     UBYTE *p;
 
-    p = (UBYTE *)offset + 0xDD00;             /* wOamBuf */
+    p = (UBYTE *)offset + 0xDD00;             /* wOamBuffer */
     if (v == *p)
         return;
     *p = v;
@@ -99,7 +99,7 @@ void SetSpriteTile4(UBYTE sprite)
     SetOamByte(sprite * 4 + 0x0E, 4);
 }
 
-void SetSpriteAttr(UBYTE sprite, UBYTE attr)
+void SetSpriteAttribute(UBYTE sprite, UBYTE attr)
 {
     SetOamByte(sprite * 4 + 0x0F, attr);
 }

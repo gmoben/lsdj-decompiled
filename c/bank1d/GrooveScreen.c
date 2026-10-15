@@ -16,7 +16,7 @@ extern UBYTE wSelectionRight;                     /* $C40F */
 extern UBYTE wClipboardType;                /* $C411 */
 extern UBYTE wGrooveCacheValid;             /* $C9D5 */
 extern UBYTE wGrooveStepCache[];            /* $C9D6, [16] */
-extern UBYTE *wGrooveCachePtr;              /* $C9E6 */
+extern UBYTE *wGrooveCachePointer;              /* $C9E6 */
 extern UBYTE wAPressEnabled;                /* $C409 */
 extern UBYTE wButtons;                      /* $C575 */
 extern UBYTE wGroove;                       /* $C417 */
@@ -82,12 +82,12 @@ void DrawGrooveSteps(void)
 
     if (wGroove >= 0x20)
         DebugTrap();
-    ReadSongBytes(0, (UBYTE *)(((UWORD)wGroove << 4) + (UWORD)0xB090), wSongReadBuf);
+    ReadSongBytes(0, (UBYTE *)(((UWORD)wGroove << 4) + (UWORD)0xB090), wSongReadBuffer);
     hBgDigitPalette = 4;
     hBgPalette = 1;
     for (i = 0; i < 0x10; i++) {
         SetVramCursor(1, i + 2);
-        v = wSongReadBuf[i];
+        v = wSongReadBuffer[i];
         if (!v)
             DrawString(" --    ");
         else {
@@ -164,9 +164,9 @@ void BuildGrooveCache(void)
         return;
     wGrooveCacheValid = 1;
     for (i = 0; i != 16; i++) {
-        wGrooveCachePtr = wGrooveStepCache + i;
+        wGrooveCachePointer = wGrooveStepCache + i;
         v = ReadGrooveStep(i);
-        *wGrooveCachePtr = v;
+        *wGrooveCachePointer = v;
     }
 }
 
@@ -346,7 +346,7 @@ UBYTE GrooveScreenInput(void)
     case 0x21:
         if (wGroove < 0x1F)
             wGroove++;
-        wMessageStrPtr = 0;
+        wMessageStringPointer = 0;
         DrawGrooveScreen();
         return 1;
     case 0x24:
@@ -354,7 +354,7 @@ UBYTE GrooveScreenInput(void)
             wGroove += 0x10;
         else
             wGroove = 0x1F;
-        wMessageStrPtr = 0;
+        wMessageStringPointer = 0;
         DrawGrooveScreen();
         return 1;
     case 0x28:
@@ -362,13 +362,13 @@ UBYTE GrooveScreenInput(void)
             wGroove -= 0x10;
         else
             wGroove = 0;
-        wMessageStrPtr = 0;
+        wMessageStringPointer = 0;
         DrawGrooveScreen();
         return 1;
     case 0x22:
         if (wGroove)
             wGroove--;
-        wMessageStrPtr = 0;
+        wMessageStringPointer = 0;
         DrawGrooveScreen();
         return 1;
     case 0x30:

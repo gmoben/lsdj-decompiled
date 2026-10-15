@@ -11,46 +11,46 @@ extern volatile sfr UBYTE IE_REG;           /* $FFFF */
 extern volatile sfr UBYTE NR52_REG;         /* $FF26 */
 extern volatile sfr UBYTE SC_REG;           /* $FF02 */
 extern UBYTE wChannelActive[];                 /* $C0E0, [8] */
-extern UBYTE wFsCheckResult;                /* $C56B */
-extern UBYTE wFileBlockIdx;                 /* $C958 */
+extern UBYTE wFilesystemCheckResult;                /* $C56B */
+extern UBYTE wFileBlockIndex;                 /* $C958 */
 extern UBYTE wFileBlockCounts[];            /* $C959, [32] */
-extern UBYTE *wFileBlockCountPtr;           /* $C990 */
+extern UBYTE *wFileBlockCountPointer;           /* $C990 */
 extern UBYTE wCompressByte;                     /* $C97F */
 extern UBYTE wCompressBank;                     /* $C979 */
-extern UWORD wCompressSrc;                      /* $C97A, an SRAM address */
-extern UWORD wCompressDst;                      /* $C97D, a working-song offset */
-extern UBYTE wDecompressPos;                    /* $C983 */
+extern UWORD wCompressSource;                      /* $C97A, an SRAM address */
+extern UWORD wCompressDestination;                      /* $C97D, a working-song offset */
+extern UBYTE wDecompressPosition;                    /* $C983 */
 extern UBYTE wWorkSongPage;                 /* $C986, ReadWorkingSongByte's cached page */
-extern char wFileNameBuf[];                 /* $C987, [8] */
+extern char wFileNameBuffer[];                 /* $C987, [8] */
 extern UBYTE wFileNameTerm[];               /* $C98F, its NUL */
-extern UBYTE wDecompressBuf[];                  /* $DA00, [256] */
+extern UBYTE wDecompressBuffer[];                  /* $DA00, [256] */
 extern UBYTE DefaultWaveFrameB1C[];         /* $1C:$4047 */
-extern UBYTE *wTopBarMarkPtr;               /* $C562 */
+extern UBYTE *wTopBarMarkPointer;               /* $C562 */
 extern UBYTE wFileEraseArmed;               /* $C994 */
 extern UBYTE wFilePromptActive;             /* $C995 */
 extern UBYTE wFilePromptNo;                 /* $C996 */
-extern void (*wBlockSinkPtr)(void);         /* $C984, FlushBlockToSram or the verify sink */
+extern void (*wBlockSinkPointer)(void);         /* $C984, FlushBlockToSram or the verify sink */
 extern UBYTE wCompressProgress;                 /* $C981 */
-extern UBYTE wFileFirstChar;                /* $C980 */
-extern char wTopBarStr[];                   /* $C555 */
+extern UBYTE wFileFirstCharacter;                /* $C980 */
+extern char wTopBarString[];                   /* $C555 */
 extern UBYTE wFileListActive;               /* $C998 */
 extern UBYTE wDecompressOk;                     /* $C982 */
-extern UBYTE wBlockDstBank;                 /* $C97C */
-extern UBYTE wNameEditBuf[];                /* $C431, [5] */
-extern UBYTE wFileSramProps[];              /* $C99D, [4] */
-extern UBYTE wFileLoadAltReturn;            /* $C997 */
+extern UBYTE wBlockDestinationBank;                 /* $C97C */
+extern UBYTE wNameEditBuffer[];                /* $C431, [5] */
+extern UBYTE wFileSramProperties[];              /* $C99D, [4] */
+extern UBYTE wFileLoadAlternateReturn;            /* $C997 */
 extern UBYTE wRedrawPending;                /* $C56C */
-extern UBYTE wFileDrawIdx;                  /* $C993 */
+extern UBYTE wFileDrawIndex;                  /* $C993 */
 extern UBYTE wButtons;                      /* $C575 */
 extern UBYTE wAPressEnabled;                /* $C409 */
 extern UBYTE wFileListAction;               /* $C99A */
-extern UBYTE wFileNameNavMode;              /* $C99C */
+extern UBYTE wFileNameNavigationMode;              /* $C99C */
 extern UBYTE wNameEditIsInstrument;              /* $C430 */
 extern UBYTE wFileField;                    /* $C992 */
 extern UBYTE wFileCursor;                   /* $C999 */
 extern UBYTE wFileScroll;                   /* $C99B */
-extern UBYTE wSyncTxByte;                   /* $CBDC */
-extern UBYTE wSyncRxByte;                   /* $CBDD */
+extern UBYTE wSyncTransmitByte;                   /* $CBDC */
+extern UBYTE wSyncReceiveByte;                   /* $CBDD */
 extern UBYTE wSyncState;                    /* $CBDE */
 extern UBYTE FileFieldX[];                  /* $1C:$5092 */
 extern UBYTE FileFieldWidth[];              /* $1C:$5095 */
@@ -61,7 +61,7 @@ void SendSyncHandshake(void);               /* bank 0 */
 void SendSyncByte(void);                    /* bank 0 */
 void delay(UWORD d);                        /* bank 0 (GBDK) */
 void DrawFileTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE h);
-UWORD FileCalcCompressedSize(void);
+UWORD FileCalculateCompressedSize(void);
 UBYTE ReadCompressedByte(void);
 void FilePutDecompressByte(UBYTE v);
 void EmitDefaultWave(void);
@@ -71,7 +71,7 @@ void FlushBlockToSram(void);                /* $1C:$743C */
 void FileDecompressByte(void);              /* $1C:$749E */
 void VerifyBlockAgainstSram(void);         /* $1C:$746E */
 void DrawFileList(void);                    /* $1C:$55F1 */
-int StrLength(const char *s);            /* bank00/GbdkLib.c, nonbanked */
+int StringLength(const char *s);            /* bank00/GbdkLib.c, nonbanked */
 UBYTE FindFreeBlock(UBYTE *bank, UWORD *src);   /* $1C:$415A */
 UBYTE CompressSong(void);                   /* $1C:$441F */
 UBYTE DrawVerifyPanel(UBYTE f);             /* $1C:$4778 */
@@ -82,7 +82,7 @@ void LoadProjectSettings(void);             /* $01:$7C86 */
 void CountFileBlocks(void);                 /* $1C:$48D4 */
 void SoundToggleSongPlayback(void);                 /* $02:$78C4 */
 void OpenNameEditor(void);                  /* $1B:$4E8A */
-int strcmp(const char *a, const char *b);   /* bank 0's StrCompare */
+int strcmp(const char *a, const char *b);   /* bank 0's StringCompare */
 UBYTE GetFileBlockCount(UBYTE i);
 UBYTE FileFindSlotEnd(void);
 UBYTE FileSlotHalfBase(void);
@@ -105,13 +105,13 @@ void FileWriteCompressedSram(void)
         di
     _endasm;
     rRAMG = 0x0A;
-    memcpy((UBYTE *)wCompressSrc, wDecompressBuf, 0x100);
+    memcpy((UBYTE *)wCompressSource, wDecompressBuffer, 0x100);
     rRAMG = 0;
     _asm
         ei
     _endasm;
-    wCompressSrc += 0x100;
-    wDecompressPos = 0;
+    wCompressSource += 0x100;
+    wDecompressPosition = 0;
 }
 
 UBYTE CheckFileMagic64(void)
@@ -142,7 +142,7 @@ UBYTE CheckFileMagicAll(void)
 }
 
 /* $415A: claim the first free block of the allocation table ($A141 on;
-   to $A180 on the 64K-only SRAM format, wFsCheckResult, else $A200) for
+   to $A180 on the 64K-only SRAM format, wFilesystemCheckResult, else $A200) for
    the file being compressed: mark it with wCompressByte, return its bank and
    SRAM address through the pointers (range-checked). 0 when the table is
    full. */
@@ -151,15 +151,15 @@ UBYTE FindFreeBlock(UBYTE *bank, UWORD *src)
     UWORD p, end;
 
     p = 0xA141;
-    end = wFsCheckResult ? 0xA180 : 0xA200;
+    end = wFilesystemCheckResult ? 0xA180 : 0xA200;
     if (wCompressByte >= 0x20)
         DebugTrap();
-    wFileBlockIdx = 1;
+    wFileBlockIndex = 1;
     while ((p - end) & 0x8000) {
         if (ReadSongByte(4, p) > 0x1F) {
             WriteSongByte(4, p, wCompressByte);
-            *bank = (wFileBlockIdx >> 4) + 4;
-            *src = ((UWORD)(wFileBlockIdx & 0x0F) << 9) + (UWORD)0xA000;
+            *bank = (wFileBlockIndex >> 4) + 4;
+            *src = ((UWORD)(wFileBlockIndex & 0x0F) << 9) + (UWORD)0xA000;
             if (*bank < 4 || *bank >= 0x10)
                 DebugTrap();
             if (*src < 0xA000 || *src >= 0xC000)
@@ -170,7 +170,7 @@ UBYTE FindFreeBlock(UBYTE *bank, UWORD *src)
             DrawByte(++wCompressProgress);
             return 1;
         }
-        wFileBlockIdx++;
+        wFileBlockIndex++;
         p++;
     }
     return 0;
@@ -178,19 +178,19 @@ UBYTE FindFreeBlock(UBYTE *bank, UWORD *src)
 
 UBYTE FileSlotHalfBase(void)
 {
-    return wFsCheckResult ? 0x40 : 0xC0;
+    return wFilesystemCheckResult ? 0x40 : 0xC0;
 }
 
 UBYTE FileScanSlotNames(void)
 {
-    wFileBlockIdx = 1;
+    wFileBlockIndex = 1;
     do {
-        if (wCompressByte == ReadSongByte(4, (UBYTE *)0xA140 + (unsigned int)wFileBlockIdx)) {
-            LoadCompressedBlock(wFileBlockIdx);
+        if (wCompressByte == ReadSongByte(4, (UBYTE *)0xA140 + (unsigned int)wFileBlockIndex)) {
+            LoadCompressedBlock(wFileBlockIndex);
             return 1;
         }
-        wFileBlockIdx++;
-    } while (wFileBlockIdx < FileSlotHalfBase());
+        wFileBlockIndex++;
+    } while (wFileBlockIndex < FileSlotHalfBase());
     return 0;
 }
 
@@ -214,14 +214,14 @@ void CopyFileName(UBYTE f)
         _endasm;
         rRAMB = 4;
         rRAMG = 0x0A;
-        memcpy((UBYTE *)wFileNameBuf, p, 8);
+        memcpy((UBYTE *)wFileNameBuffer, p, 8);
         rRAMG = 0;
         _asm
             ei
         _endasm;
         wFileNameTerm[0] = 0;
     } else {
-        strcpy(wFileNameBuf, "[EMPTY]");
+        strcpy(wFileNameBuffer, "[EMPTY]");
     }
 }
 
@@ -229,10 +229,10 @@ UBYTE CompressIsDefaultWave(void)
 {
     UBYTE i;
 
-    if (wCompressDst >= (UWORD)0x7FF1)
+    if (wCompressDestination >= (UWORD)0x7FF1)
         return 0;
     for (i = 0; i < 0x10; i++) {
-        if (ReadWorkingSongByte(wCompressDst + i) != DefaultWaveFrameB1C[i])
+        if (ReadWorkingSongByte(wCompressDestination + i) != DefaultWaveFrameB1C[i])
             return 0;
     }
     return 1;
@@ -254,8 +254,8 @@ UBYTE CompressSong(void)
     UBYTE bank;
     UWORD src;
 
-    wCompressDst = 0;
-    wDecompressPos = 0;
+    wCompressDestination = 0;
+    wDecompressPosition = 0;
     wWorkSongPage = 0xFF;
     cur = ReadSongByte(0, 0xA000);
     next = ReadSongByte(0, 0xA001);
@@ -264,57 +264,57 @@ UBYTE CompressSong(void)
             WriteCompressedByte(0xC0);
             WriteCompressedByte(0xC0);
             cur = next;
-            wCompressDst++;
-            if (wCompressDst < 0x7FFF)
-                next = ReadWorkingSongByte(wCompressDst + 1);
+            wCompressDestination++;
+            if (wCompressDestination < 0x7FFF)
+                next = ReadWorkingSongByte(wCompressDestination + 1);
         } else if (cur == 0x71 && next == 0x32 && CompressIsDefaultWave()) {
             k = 0;
             do {
                 k = k + 1;
-                wCompressDst += 0x10;
+                wCompressDestination += 0x10;
             } while (CompressIsDefaultWave() && k != 0xFF);
             WriteCompressedByte(0xE0);
             WriteCompressedByte(0xF0);
             WriteCompressedByte(k);
-            cur = ReadWorkingSongByte(wCompressDst);
-            next = ReadWorkingSongByte(wCompressDst + 1);
+            cur = ReadWorkingSongByte(wCompressDestination);
+            next = ReadWorkingSongByte(wCompressDestination + 1);
         } else if (cur == 0xE0) {
             WriteCompressedByte(0xE0);
             WriteCompressedByte(0xE0);
             cur = next;
-            wCompressDst++;
-            if (wCompressDst < 0x7FFF)
-                next = ReadWorkingSongByte(wCompressDst + 1);
-        } else if (cur == next && wCompressDst < 0x7FFD
-                   && next == ReadWorkingSongByte(wCompressDst + 2)
-                   && ReadWorkingSongByte(wCompressDst + 2) == ReadWorkingSongByte(wCompressDst + 3)) {
+            wCompressDestination++;
+            if (wCompressDestination < 0x7FFF)
+                next = ReadWorkingSongByte(wCompressDestination + 1);
+        } else if (cur == next && wCompressDestination < 0x7FFD
+                   && next == ReadWorkingSongByte(wCompressDestination + 2)
+                   && ReadWorkingSongByte(wCompressDestination + 2) == ReadWorkingSongByte(wCompressDestination + 3)) {
             FileCompressRun(cur);
-            if (wCompressDst < 0x8000) {
-                cur = ReadWorkingSongByte(wCompressDst);
-                if (wCompressDst < 0x7FFF)
-                    next = ReadWorkingSongByte(wCompressDst + 1);
+            if (wCompressDestination < 0x8000) {
+                cur = ReadWorkingSongByte(wCompressDestination);
+                if (wCompressDestination < 0x7FFF)
+                    next = ReadWorkingSongByte(wCompressDestination + 1);
             }
         } else {
             WriteCompressedByte(cur);
             cur = next;
-            wCompressDst++;
-            if (wCompressDst < 0x7FFF)
-                next = ReadWorkingSongByte(wCompressDst + 1);
+            wCompressDestination++;
+            if (wCompressDestination < 0x7FFF)
+                next = ReadWorkingSongByte(wCompressDestination + 1);
         }
-        if (wDecompressPos > 0xFB && (wCompressSrc & 0x100)) {
+        if (wDecompressPosition > 0xFB && (wCompressSource & 0x100)) {
             WriteCompressedByte(0xE0);
             if (!FindFreeBlock(&bank, &src))
                 return 0;
-            WriteCompressedByte(wFileBlockIdx);
-            if (wDecompressPos)
+            WriteCompressedByte(wFileBlockIndex);
+            if (wDecompressPosition)
                 FileWriteCompressedSram();
             wCompressBank = bank;
-            wCompressSrc = src;
+            wCompressSource = src;
         }
-    } while (!(wCompressDst & 0x8000));
+    } while (!(wCompressDestination & 0x8000));
     WriteCompressedByte(0xE0);
     WriteCompressedByte(0xFF);
-    if (wDecompressPos)
+    if (wDecompressPosition)
         FileWriteCompressedSram();
     return 1;
 }
@@ -340,12 +340,12 @@ UBYTE DecompressBlock(void)
     case 0xFF:
         return 1;
     default:
-        if (wBlockSinkPtr == FlushBlockToSram) {
+        if (wBlockSinkPointer == FlushBlockToSram) {
             wVramCursor = 0x98EC;
             wCompressProgress++;
             DrawByte(wCompressProgress);
             DrawStringIndexed('/');
-            DrawByte(wFileFirstChar);
+            DrawByte(wFileFirstCharacter);
         }
         LoadCompressedBlock(b);
     }
@@ -359,7 +359,7 @@ UBYTE DrawVerifyPanel(UBYTE f)
 {
     wVramCursor = 0x98E3;
     DrawString("VERIFY...    ");
-    wBlockSinkPtr = VerifyBlockAgainstSram;
+    wBlockSinkPointer = VerifyBlockAgainstSram;
     return FileLoadSlotInfo(f, 1);
 }
 
@@ -399,7 +399,7 @@ UBYTE FileFindSlotEnd(void)
 /*
  * Count the blocks each file owns: clear the 32 counts, then walk the block
  * allocation table ($A141..$A1FF, bank 4) and bump the count of every file
- * number below 32 -- the increment through wFileBlockCountPtr, written as
+ * number below 32 -- the increment through wFileBlockCountPointer, written as
  * two statements so the store re-reads the pointer global as the ROM does.
  * `while (p != 0xA200)` is the 32-bit compare (a UWORD against a constant
  * above 32767).
@@ -416,13 +416,13 @@ void CountFileBlocks(void)
     UBYTE t;
 
     p = 0xA141;
-    MemSet(wFileBlockCounts, 0, 0x20);
+    FillMemory(wFileBlockCounts, 0, 0x20);
     while (p != 0xA200) {
         v = ReadSongByte(4, p++);
         if (v < 0x20) {
-            wFileBlockCountPtr = &wFileBlockCounts[v];
-            t = *wFileBlockCountPtr + 1;
-            *wFileBlockCountPtr = t;
+            wFileBlockCountPointer = &wFileBlockCounts[v];
+            t = *wFileBlockCountPointer + 1;
+            *wFileBlockCountPointer = t;
         }
     }
 }
@@ -466,8 +466,8 @@ void LoadFileListState(void)
     if (wFileCursor == 0xFF) {
         wFileScroll = 0;
         wFileCursor = 0;
-        strcpy(wTopBarStr, "[EMPTY] ");
-        wTopBarMarkPtr = wTopBarStr + 7;
+        strcpy(wTopBarString, "[EMPTY] ");
+        wTopBarMarkPointer = wTopBarString + 7;
         return;
     }
     i = 0;
@@ -475,34 +475,34 @@ void LoadFileListState(void)
         wFileCursor = 0;
     CopyFileName(wFileCursor);
     while (i < 8) {
-        if (!wFileNameBuf[i])
+        if (!wFileNameBuffer[i])
             break;
-        wTopBarStr[i] = wFileNameBuf[i];
+        wTopBarString[i] = wFileNameBuffer[i];
         i++;
     }
-    wTopBarStr[i++] = '.';
+    wTopBarString[i++] = '.';
     ver = ReadSongByte(4, (UWORD)0xA100 + wFileCursor);
     if (ver & 0xF0) {
-        wTopBarStr[i] = (ver >> 4) + 0x30;
+        wTopBarString[i] = (ver >> 4) + 0x30;
         if ((ver >> 4) > 9)
-            wTopBarStr[i] += 7;
+            wTopBarString[i] += 7;
         ver &= 0x0F;
         if (ver > 9)
             ver += 7;
         i++;
-        wTopBarStr[i] = ver + 0x30;
+        wTopBarString[i] = ver + 0x30;
         i++;
-        wTopBarMarkPtr = &wTopBarStr[i];
-        wTopBarStr[i++] = mod;
-        wTopBarStr[i] = 0;
+        wTopBarMarkPointer = &wTopBarString[i];
+        wTopBarString[i++] = mod;
+        wTopBarString[i] = 0;
     } else {
-        wTopBarStr[i] = ver + 0x30;
+        wTopBarString[i] = ver + 0x30;
         if (ver > 9)
-            wTopBarStr[i] += 7;
+            wTopBarString[i] += 7;
         i++;
-        wTopBarMarkPtr = &wTopBarStr[i];
-        wTopBarStr[i++] = mod;
-        wTopBarStr[i] = 0;
+        wTopBarMarkPointer = &wTopBarString[i];
+        wTopBarString[i++] = mod;
+        wTopBarString[i] = 0;
     }
     if (i >= 0x0D)
         DebugTrap();
@@ -549,7 +549,7 @@ void EraseFile(UBYTE f)
     WriteSongByte(4, 0xA140, wCompressByte);
 }
 
-void MigrateTempoProps(void)
+void MigrateTempoProperties(void)
 {
     WriteSongByte(1, (UBYTE *)0xBFCB, ReadSongByte(1, (UBYTE *)0xBFB3));
     WriteSongByte(1, (UBYTE *)0xBFCA, ReadSongByte(1, (UBYTE *)0xBFB2));
@@ -568,7 +568,7 @@ UBYTE SaveFile(UBYTE f)
     wCompressByte = f;
     FreeFileBlocks(f);
     wCompressProgress = 0;
-    i = FindFreeBlock(&wCompressBank, &wCompressSrc);
+    i = FindFreeBlock(&wCompressBank, &wCompressSource);
     if (!i || !CompressSong()) {
         FreeFileBlocks(f);
         return 0;
@@ -586,10 +586,10 @@ UBYTE SaveFile(UBYTE f)
     WriteSongByte(4, (UWORD)0xA100 + wCompressByte, i + 1);
     p = (UWORD)0xA000 + (wCompressByte << 3);
     for (i = 0; i < 8; i++)
-        WriteSongByte(4, p++, wNameEditBuf[i]);
+        WriteSongByte(4, p++, wNameEditBuffer[i]);
     WriteSongByte(1, 0xBFC1, 0x20);
     LoadFileListState();
-    MigrateTempoProps();
+    MigrateTempoProperties();
     return 1;
 }
 
@@ -604,13 +604,13 @@ UBYTE FileLoadSlotInfo(UBYTE slot, UBYTE verify)
     wCompressProgress = 1;
     if (FileScanSlotNames() == 0)
         return 0;
-    wDecompressPos = 0;
-    wCompressDst = 0xA000;
-    wBlockDstBank = 0;
-    wBlockSinkPtr = verify ? VerifyBlockAgainstSram : FlushBlockToSram;
+    wDecompressPosition = 0;
+    wCompressDestination = 0xA000;
+    wBlockDestinationBank = 0;
+    wBlockSinkPointer = verify ? VerifyBlockAgainstSram : FlushBlockToSram;
     FileDecompressByte();
-    ok = wDecompressOk && wBlockDstBank == 4;
-    return ok && wCompressDst == 0xA000 && !wDecompressPos;
+    ok = wDecompressOk && wBlockDestinationBank == 4;
+    return ok && wCompressDestination == 0xA000 && !wDecompressPosition;
 }
 
 void FileClearChannelState(void)
@@ -640,18 +640,18 @@ void LoadFile(void)
     syncOut = ReadSongByte(1, 0xBFBF);
     FileStopSound();
     n = GetFileBlockCount(wFileCursor);
-    wFileFirstChar = n;
+    wFileFirstCharacter = n;
     if (n) {
         DrawFileTextField(1, 6, 0x11, 3);
         wVramCursor = 0x98E2;
         hBgDigitPalette = 4;
         hBgPalette = 1;
         DrawString("LOADING...1/");
-        DrawByte(wFileFirstChar);
-        wFileSramProps[0] = ReadSongByte(1, 0xBFB6);
-        wFileSramProps[1] = ReadSongByte(1, 0xBFB7);
-        wFileSramProps[2] = ReadSongByte(1, 0xBFB8);
-        wFileSramProps[3] = ReadSongByte(1, 0xBFB9);
+        DrawByte(wFileFirstCharacter);
+        wFileSramProperties[0] = ReadSongByte(1, 0xBFB6);
+        wFileSramProperties[1] = ReadSongByte(1, 0xBFB7);
+        wFileSramProperties[2] = ReadSongByte(1, 0xBFB8);
+        wFileSramProperties[3] = ReadSongByte(1, 0xBFB9);
         if (!FileLoadSlotInfo(wFileCursor, 0)) {
             wVramCursor = 0x98EC;
             DrawString("FAIL!");
@@ -665,10 +665,10 @@ void LoadFile(void)
             FarCall(1, FAR_FN(RedrawScreen));
             return;
         }
-        WriteSongByte(1, 0xBFB6, wFileSramProps[0]);
-        WriteSongByte(1, 0xBFB7, wFileSramProps[1]);
-        WriteSongByte(1, 0xBFB8, wFileSramProps[2]);
-        WriteSongByte(1, 0xBFB9, wFileSramProps[3]);
+        WriteSongByte(1, 0xBFB6, wFileSramProperties[0]);
+        WriteSongByte(1, 0xBFB7, wFileSramProperties[1]);
+        WriteSongByte(1, 0xBFB8, wFileSramProperties[2]);
+        WriteSongByte(1, 0xBFB9, wFileSramProperties[3]);
     } else {
         FarCall(1, FAR_FN(FormatSramSong));
         WriteSongByte(4, (UWORD)0xA100 + wFileCursor, 0);
@@ -682,9 +682,9 @@ void LoadFile(void)
     WriteSongByte(4, 0xA140, wFileCursor);
     WriteSongByte(1, 0xBFC1, 0x20);
     LoadFileListState();
-    MigrateTempoProps();
-    FarCallArg(1, FAR_FN(LoadProjectSettings), 1);
-    if (wFileLoadAltReturn)
+    MigrateTempoProperties();
+    FarCallArgument(1, FAR_FN(LoadProjectSettings), 1);
+    if (wFileLoadAlternateReturn)
         wCurrentScreen = 0x0D;
     FarCall(1, FAR_FN(RedrawScreen));
     wRedrawPending = 0;
@@ -705,7 +705,7 @@ void DrawFileTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE h)
 
     for (i = x; i < x + w; i++) {
         for (j = y; j < y + h; j++) {
-            wStringSrc = IdentityCharMap;
+            wStringSource = IdentityCharacterMap;
             hBgPalette = hGameboyType ? 0x48 : 0xD2;
             ColorField(i, j, 1, 0);
             SetVramCursor(i, j);
@@ -733,11 +733,11 @@ void DrawFileTextField(UBYTE x, UBYTE y, UBYTE w, UBYTE h)
                     hBgPalette = 1;
                     DrawStringIndexed(2);
                 }
-                wStringSrc = AsciiCharMap - 0x20;
+                wStringSource = AsciiCharacterMap - 0x20;
             }
         }
     }
-    wStringSrc = AsciiCharMap - 0x20;
+    wStringSource = AsciiCharacterMap - 0x20;
     hBgDigitPalette = 4;
     hBgPalette = 1;
 }
@@ -803,12 +803,12 @@ void DrawFileList(void)
         if (blocks) {
             ver = ReadSongByte(4, (UWORD)0xA100 + slot);
             CopyFileName(slot);
-            DrawString(wFileNameBuf);
+            DrawString(wFileNameBuffer);
             DrawStringIndexed('.');
             DrawByte(ver);
             if ((ver & 0xF0) == 0)
                 DrawStringTile20();
-            n = 9 - StrLength(wFileNameBuf);
+            n = 9 - StringLength(wFileNameBuffer);
             while (n--)
                 DrawStringTile20();
             if ((blocks & 0xF0) == 0)
@@ -837,9 +837,9 @@ void DrawFileList(void)
             DrawString(empty);
         }
     }
-    wFileDrawIdx = row + wFileScroll;
-    if (wFileDrawIdx == 0x20)
-        wFileDrawIdx--;
+    wFileDrawIndex = row + wFileScroll;
+    if (wFileDrawIndex == 0x20)
+        wFileDrawIndex--;
 }
 
 void DrawFileScreen(void)
@@ -847,7 +847,7 @@ void DrawFileScreen(void)
     UBYTE i;
 
     FarCall(1, FAR_FN(DrawTopBar));
-    for (i = StrLength(wTopBarStr); i != 12; i++)
+    for (i = StringLength(wTopBarString); i != 12; i++)
         DrawStringTile20();
     hBgDigitPalette = wShadedDigitPalette;
     hBgPalette = wShadedPalette;
@@ -866,7 +866,7 @@ void DrawFileScreen(void)
     hBgDigitPalette = 4;
     hBgPalette = 1;
     printf("BLOCKS USED: %x/", (UWORD)FileListSlots());
-    DrawString(wFsCheckResult ? "3F" : "BF");
+    DrawString(wFilesystemCheckResult ? "3F" : "BF");
 }
 
 void FileMatchName(void)
@@ -886,7 +886,7 @@ void FileMatchName(void)
         DebugTrap();
 }
 
-void FileCopyNameToBuf(void)
+void FileCopyNameToBuffer(void)
 {
     UBYTE i;
 
@@ -901,7 +901,7 @@ void FileCopyNameToBuf(void)
         DebugTrap();
 }
 
-UBYTE FileCheckNameLen(void)
+UBYTE FileCheckNameLength(void)
 {
     UBYTE d;
 
@@ -909,14 +909,14 @@ UBYTE FileCheckNameLen(void)
     return d > 0x0B;
 }
 
-const UBYTE FileNoAttrTiles[] = {3, 3};    /* $1C:$5AD4: CGB attributes under the NO prompt */
+const UBYTE FileNoAttributeTiles[] = {3, 3};    /* $1C:$5AD4: CGB attributes under the NO prompt */
 
 UBYTE DrawBlocksUsed(void)
 {
     UWORD n;
 
-    n = FileCalcCompressedSize();
-    if (*wTopBarMarkPtr != 0x21)
+    n = FileCalculateCompressedSize();
+    if (*wTopBarMarkPointer != 0x21)
         return 0;
     wFileEraseArmed = 0;
     DrawFileTextField(1, 5, 0x12, 6);
@@ -937,7 +937,7 @@ UBYTE DrawBlocksUsed(void)
     DrawString("NO");
     if (hGameboyType) {
         VBK_REG = 1;
-        set_bkg_tiles(0x0B, 9, 2, 1, FileNoAttrTiles);
+        set_bkg_tiles(0x0B, 9, 2, 1, FileNoAttributeTiles);
         VBK_REG = 0;
     }
     return 1;
@@ -947,14 +947,14 @@ UBYTE FileScreenInput(void)
 {
     UBYTE i;
 
-    wFileLoadAltReturn = 0;
+    wFileLoadAlternateReturn = 0;
     switch (wButtons) {
     case 0x80:
         if (!wButtonsSame)
             FarCall(2, FAR_FN(SoundToggleSongPlayback));
         break;
     case 0x50:
-        wFileLoadAltReturn = 1;
+        wFileLoadAlternateReturn = 1;
     case 0x10:
         if (!wAPressEnabled)
             return 0;
@@ -990,12 +990,12 @@ UBYTE FileScreenInput(void)
             case 1:
                 FileDrawFieldChecked(0);
                 i = ReadSongByte(4, 0xA140);
-                wNameEditBuf[0] = 0;
+                wNameEditBuffer[0] = 0;
                 if (i != 0xFF) {
                     CopyFileName(i);
-                    if (strcmp("[EMPTY]", wFileNameBuf)) {
+                    if (strcmp("[EMPTY]", wFileNameBuffer)) {
                         for (i = 0; i < 9; i++)
-                            wNameEditBuf[i] = wFileNameBuf[i];
+                            wNameEditBuffer[i] = wFileNameBuffer[i];
                     }
                 }
                 wNameEditIsInstrument = 0;
@@ -1034,14 +1034,14 @@ UBYTE FileScreenInput(void)
             case 2:
                 wFileListAction = wFileField;
                 wFileListActive = 1;
-                wFileNameNavMode = wFileField == 1;
-                if (wFileNameNavMode) {
+                wFileNameNavigationMode = wFileField == 1;
+                if (wFileNameNavigationMode) {
                     wFileCursor = ReadSongByte(4, 0xA140);
                     if (wFileCursor == 0xFF)
                         wFileCursor = 0;
                     if (wFileCursor >= 0x20)
                         DebugTrap();
-                    if (FileCheckNameLen()) {
+                    if (FileCheckNameLength()) {
                         FileValidateName();
                         DrawFileList();
                     }
@@ -1099,18 +1099,18 @@ UBYTE FileScreenInput(void)
         }
         break;
     case 8:
-        if (!wFilePromptActive && wFileListActive && wFileCursor < wFileDrawIdx) {
+        if (!wFilePromptActive && wFileListActive && wFileCursor < wFileDrawIndex) {
             FileDrawFieldChecked(0);
-            if (!wFileNameNavMode)
+            if (!wFileNameNavigationMode)
                 wFileCursor++;
             else
                 FileMatchName();
             if (wFileCursor >= 0x20)
                 DebugTrap();
-            if (FileCheckNameLen()) {
+            if (FileCheckNameLength()) {
                 do {
                     wFileScroll++;
-                } while (FileCheckNameLen());
+                } while (FileCheckNameLength());
                 DrawFileList();
             }
             FileDrawFieldChecked(hGameboyType ? 3 : 2);
@@ -1119,16 +1119,16 @@ UBYTE FileScreenInput(void)
     case 4:
         if (!wFilePromptActive && wFileListActive && wFileCursor) {
             FileDrawFieldChecked(0);
-            if (!wFileNameNavMode)
+            if (!wFileNameNavigationMode)
                 wFileCursor--;
             else
-                FileCopyNameToBuf();
+                FileCopyNameToBuffer();
             if (wFileCursor >= 0x20)
                 DebugTrap();
-            if (FileCheckNameLen()) {
+            if (FileCheckNameLength()) {
                 do {
                     wFileScroll--;
-                } while (FileCheckNameLen());
+                } while (FileCheckNameLength());
                 DrawFileList();
             }
             FileDrawFieldChecked(hGameboyType ? 3 : 2);
@@ -1155,9 +1155,9 @@ extern UBYTE wSelectionTop;                       /* $C40E */
 extern UBYTE wSelectionRight;                     /* $C40F */
 extern UBYTE wSelectionBottom;                    /* $C410 */
 extern UBYTE wClipboardType;                /* $C411 */
-extern UBYTE wClipboardBuf[][42];           /* $C57A, 6 columns of 42 cells */
-extern UBYTE wSyncXferActive;               /* $CB65 */
-void SyncSetRecvMode(void);                 /* bank 0 */
+extern UBYTE wClipboardBuffer[][42];           /* $C57A, 6 columns of 42 cells */
+extern UBYTE wSyncTransferActive;               /* $CB65 */
+void SyncSetReceiveMode(void);                 /* bank 0 */
 
 void FileSendSyncByte(UBYTE v)
 {
@@ -1166,7 +1166,7 @@ void FileSendSyncByte(UBYTE v)
     s = SC_REG & 0x81;
     if (s == 0x81)
         DebugTrap();
-    wSyncTxByte = v;
+    wSyncTransmitByte = v;
     SendSyncByte();
     delay(hGameboyType ? 6 : 3);
 }
@@ -1191,7 +1191,7 @@ void SendLinkClipboard(void)
         DebugTrap();
     if (wPlayMode || wSyncMode != 1)
         return;
-    wSyncXferActive = 1;
+    wSyncTransferActive = 1;
     SetInterruptEnable(0);
     FileSendSyncByte(0xFE);
     FileSendSyncByte(wClipboardType);
@@ -1202,19 +1202,19 @@ void SendLinkClipboard(void)
     for (x = wSelectionLeft; x < wSelectionRight; x++) {
         y = wSelectionTop;
         while (ok = y < wSelectionBottom) {
-            FileSendSyncByte(wClipboardBuf[x][y]);
+            FileSendSyncByte(wClipboardBuffer[x][y]);
             y = y + 1;
         }
     }
-    SyncSetRecvMode();
-    wSyncXferActive = 0;
+    SyncSetReceiveMode();
+    wSyncTransferActive = 0;
 }
 
 void SyncTransferByte(UBYTE *out)
 {
     while (wSyncState == 2 && joypad() == 0)
         ;
-    *out = wSyncRxByte;
+    *out = wSyncReceiveByte;
     SendSyncHandshake();
 }
 
@@ -1227,7 +1227,7 @@ void ReceiveLinkClipboard(void)
     UBYTE x, y, ok;
 
     wCursorMode = 1;
-    wSyncXferActive = 1;
+    wSyncTransferActive = 1;
     SetInterruptEnable(8);
     SendSyncHandshake();
     SyncTransferByte(&wClipboardType);
@@ -1239,12 +1239,12 @@ void ReceiveLinkClipboard(void)
         for (x = wSelectionLeft; x < wSelectionRight; x++) {
             y = wSelectionTop;
             while (ok = y < wSelectionBottom) {
-                SyncTransferByte(&wClipboardBuf[x][y]);
+                SyncTransferByte(&wClipboardBuffer[x][y]);
                 y = y + 1;
             }
         }
         wCursorMode = 2;
     }
-    SyncSetRecvMode();
-    wSyncXferActive = 0;
+    SyncSetReceiveMode();
+    wSyncTransferActive = 0;
 }

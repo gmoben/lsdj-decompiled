@@ -1,28 +1,28 @@
 /* Bank $02: the sequencer's per-channel step, in C (the sound engine's other
  * C is in Sound.c). The working pointers (wPtr*) are pointers here; Sound.c
- * declares their low bytes, which SoundAdvanceStatePtrs steps.
+ * declares their low bytes, which SoundAdvanceStatePointers steps.
  * Byte-identical to the ROM under the period compiler plus
  * tools/match/lsdj.peep. */
 #define SOUND_BANK                          /* lsdj.h: our own far-call targets */
 #include "lsdj.h"
 
 extern volatile sfr UBYTE hSoundChannel;         /* $FF8B */
-extern UBYTE *wPtrNoteSrc;                  /* $C8ED: the channel's note cursor */
-extern UBYTE *wPtrNoteCountdown;            /* $C8E3: the channel's ticks left in the step */
-extern UBYTE *wPtrPhraseRow;                /* $C8E1 */
-extern UBYTE *wPtrPhrase;                   /* $C8EB */
+extern UBYTE *wPointerNoteSource;                  /* $C8ED: the channel's note cursor */
+extern UBYTE *wPointerNoteCountdown;            /* $C8E3: the channel's ticks left in the step */
+extern UBYTE *wPointerPhraseRow;                /* $C8E1 */
+extern UBYTE *wPointerPhrase;                   /* $C8EB */
 extern UBYTE wPlayRestartPending;           /* $C4CD */
 extern UBYTE wLiveStartColumn;                 /* $C571 */
-extern UWORD wChannelInstrumentPtr[];               /* $C140, [4]: SRAM cursors into the phrase's columns */
-extern UWORD wPhraseCommandPtr[];               /* $C110, [4] */
-extern UWORD wPhraseCommandValPtr[];            /* $C128, [4] */
+extern UWORD wChannelInstrumentPointer[];               /* $C140, [4]: SRAM cursors into the phrase's columns */
+extern UWORD wPhraseCommandPointer[];               /* $C110, [4] */
+extern UWORD wPhraseCommandValuePointer[];            /* $C128, [4] */
 extern UBYTE wTableHopDone;                 /* $C8F8 */
-extern UBYTE wChannelCommandVal[];                 /* $C36B, [6] */
+extern UBYTE wChannelCommandValue[];                 /* $C36B, [6] */
 extern UBYTE wChannelNoteTrigger[];            /* $C0F0, [4] */
 extern UBYTE wChannelGrooveTicks[];            /* $C0FC, [4] */
-extern UBYTE *wPtrChainRow;                 /* $C8DF */
+extern UBYTE *wPointerChainRow;                 /* $C8DF */
 extern UBYTE wChannelHopCount[];               /* $C214, [4] */
-extern UBYTE wSeqNoteLatch;                 /* $C8F7 */
+extern UBYTE wSequenceNoteLatch;                 /* $C8F7 */
 extern UBYTE wChannelSongRow[];                /* $C200, [4] */
 extern UBYTE wChannelChain[];                  /* $C170, [4] */
 extern UBYTE wChannelLiveQueued[];             /* $C300, [4] */
@@ -72,7 +72,7 @@ UBYTE SoundPhraseHop(void)
     UBYTE *p;
 
     mode = wPlayMode;
-    v = wChannelCommandVal[hSoundChannel];
+    v = wChannelCommandValue[hSoundChannel];
     if (v == 0xFF) {
         SoundInitPlayState();
         return 2;
@@ -87,18 +87,18 @@ UBYTE SoundPhraseHop(void)
             return 0;
         mode = 1;
     } else if (wPlayMode == 1 && wSongColumn == hSoundChannel)
-        *wPtrPhrase = wPhrase;
-    *wPtrPhraseRow = v & 0x0F;
+        *wPointerPhrase = wPhrase;
+    *wPointerPhraseRow = v & 0x0F;
     SoundSplitPhraseNibbles();
-    wSeqNoteLatch = *wPtrPhraseRow;
-    if (wSeqNoteLatch)
-        AdvanceCurrentChannelCursors(wSeqNoteLatch);
+    wSequenceNoteLatch = *wPointerPhraseRow;
+    if (wSequenceNoteLatch)
+        AdvanceCurrentChannelCursors(wSequenceNoteLatch);
     switch (mode) {
     case 4:
-        (*wPtrChainRow)++;
-        if (wChannelLiveQueued[hSoundChannel] || SoundReadChainPhrase() == 0xFF || *wPtrChainRow == 0x10) {
+        (*wPointerChainRow)++;
+        if (wChannelLiveQueued[hSoundChannel] || SoundReadChainPhrase() == 0xFF || *wPointerChainRow == 0x10) {
             wChannelLiveQueued[hSoundChannel] = 0;
-            *wPtrChainRow = 0;
+            *wPointerChainRow = 0;
             if (SoundLiveChainEnd()) {
                 wChannelSongRow[hSoundChannel]++;
                 wChannelChain[hSoundChannel] = SoundReadSongChain();
@@ -107,26 +107,26 @@ UBYTE SoundPhraseHop(void)
             SoundQueueSyncByte();
         }
         SoundLiveStartQueued();
-        *wPtrPhrase = SoundReadChainPhrase();
-        if (*wPtrPhrase == 0xFF) {
+        *wPointerPhrase = SoundReadChainPhrase();
+        if (*wPointerPhrase == 0xFF) {
             wChannelActive[hSoundChannel] = 0;
             SoundResetChannelCommand();
         }
         SoundSplitPhraseNibbles();
-        *wPtrPhraseRow = wSeqNoteLatch;
-        if (wSeqNoteLatch)
-            AdvanceCurrentChannelCursors(wSeqNoteLatch);
+        *wPointerPhraseRow = wSequenceNoteLatch;
+        if (wSequenceNoteLatch)
+            AdvanceCurrentChannelCursors(wSequenceNoteLatch);
         SoundReadChainTranspose();
         break;
     case 3:
-        (*wPtrChainRow)++;
-        if (SoundReadChainPhrase() == 0xFF || *wPtrChainRow == 0x10)
-            *wPtrChainRow = 0;
-        *wPtrPhrase = SoundReadChainPhrase();
+        (*wPointerChainRow)++;
+        if (SoundReadChainPhrase() == 0xFF || *wPointerChainRow == 0x10)
+            *wPointerChainRow = 0;
+        *wPointerPhrase = SoundReadChainPhrase();
         SoundSplitPhraseNibbles();
-        *wPtrPhraseRow = wSeqNoteLatch;
-        if (wSeqNoteLatch)
-            AdvanceCurrentChannelCursors(wSeqNoteLatch);
+        *wPointerPhraseRow = wSequenceNoteLatch;
+        if (wSequenceNoteLatch)
+            AdvanceCurrentChannelCursors(wSequenceNoteLatch);
         SoundReadChainTranspose();
         break;
     }
@@ -143,18 +143,18 @@ void SoundReadChannelStep(void)
 
     rRAMB = 0;
     if (wKeyboardNoteQueued && wKeyboardChannelState[hSoundChannel]) {
-        *wPtrNoteSrc = wKeyboardNoteQueued;
+        *wPointerNoteSource = wKeyboardNoteQueued;
         wKeyboardNoteInjected = 1;
     } else
         SoundReadCursorByte();
     SoundAdvanceGroove();
     if (wChannelDelayTicks[hSoundChannel]) {
-        if (*wPtrNoteCountdown > wChannelDelayTicks[hSoundChannel])
+        if (*wPointerNoteCountdown > wChannelDelayTicks[hSoundChannel])
             t = wChannelDelayTicks[hSoundChannel];
         else
-            t = *wPtrNoteCountdown - 1;
+            t = *wPointerNoteCountdown - 1;
         wChannelDelayTicks[hSoundChannel] -= t;
-        *wPtrNoteCountdown -= t;
+        *wPointerNoteCountdown -= t;
     }
     if (wKeyboardNoteQueued && wKeyboardChannelState[hSoundChannel]) {
         SoundLoadInstrument(wKeyboardInstrument);
@@ -162,7 +162,7 @@ void SoundReadChannelStep(void)
     } else
         SoundLoadChannelInstrument();
     if (hSoundChannel == 2 && wSoundUpdateFlags)
-        *wPtrNoteSrc &= wKitNoteNibbleMask;
+        *wPointerNoteSource &= wKitNoteNibbleMask;
     else
         SoundTransposeNote();
 }
@@ -182,19 +182,19 @@ void SoundUpdateChannel(void)
         return;
     wKitNoteNibbleMask = 0xFF;
     SoundAdvanceTableCursor();
-    if (*wPtrPhraseRow == 0x10 || wPlayRestartPending) {
-        *wPtrPhraseRow = 0;
+    if (*wPointerPhraseRow == 0x10 || wPlayRestartPending) {
+        *wPointerPhraseRow = 0;
         if (wPlayMode == 3 || wPlayMode == 4) {
             SoundAdvanceChainRow();
             SoundLiveStartQueued();
         } else {
             if (wSongColumn == hSoundChannel)
-                *wPtrPhrase = wPhrase;
+                *wPointerPhrase = wPhrase;
             SoundSplitPhraseNibbles();
             if (wLiveStartColumn == hSoundChannel) {
-                wChannelInstrumentPtr[hSoundChannel] += wPhraseRow;
-                wPhraseCommandPtr[hSoundChannel] += wPhraseRow;
-                wPhraseCommandValPtr[hSoundChannel] += wPhraseRow;
+                wChannelInstrumentPointer[hSoundChannel] += wPhraseRow;
+                wPhraseCommandPointer[hSoundChannel] += wPhraseRow;
+                wPhraseCommandValuePointer[hSoundChannel] += wPhraseRow;
             }
         }
     }
@@ -209,7 +209,7 @@ void SoundUpdateChannel(void)
                 return;
             break;
         case 2:
-            v = wChannelCommandVal[hSoundChannel];
+            v = wChannelCommandValue[hSoundChannel];
             if ((v >> 4) <= SoundRandom15())
                 wKitNoteNibbleMask = 0x0F;
             if ((v & 0x0F) <= SoundRandom15())
@@ -221,7 +221,7 @@ void SoundUpdateChannel(void)
             }
             break;
         case 4:
-            d = wChannelCommandVal[hSoundChannel];
+            d = wChannelCommandValue[hSoundChannel];
             if (d) {
                 wChannelDelayTicks[hSoundChannel] += d;
                 wChannelGrooveTicks[hSoundChannel] = d;
@@ -230,7 +230,7 @@ void SoundUpdateChannel(void)
             }
             break;
         case 7:
-            SoundMaskLow5(wChannelCommandVal[hSoundChannel]);
+            SoundMaskLow5(wChannelCommandValue[hSoundChannel]);
         case 0:
             break;
         }

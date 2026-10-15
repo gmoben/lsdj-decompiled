@@ -91,7 +91,7 @@ void printf(char *format, ...) nonbanked
 }
 
 /* libc/strlen.c: Return length of string */
-int StrLength(const char *s) nonbanked
+int StringLength(const char *s) nonbanked
 {
     int i;
 

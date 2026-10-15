@@ -19,9 +19,9 @@
 extern UBYTE wChannelOutput[];                 /* $C0A0, [4] */
 extern UBYTE wChannelStepCountdown[];          /* $C0C4, [4] */
 extern UBYTE wChannelNote[];                   /* $C0CC, [4] */
-extern UWORD wPhraseCommandPtr[];               /* $C110, [4] */
-extern UWORD wTableCommand1Ptr[];               /* $C118, [4] */
-extern UWORD wTableCommand2Ptr[];               /* $C120, [4] */
+extern UWORD wPhraseCommandPointer[];               /* $C110, [4] */
+extern UWORD wTableCommand1Pointer[];               /* $C118, [4] */
+extern UWORD wTableCommand2Pointer[];               /* $C120, [4] */
 extern UBYTE wChannelGroove[];                 /* $C150, [4] */
 extern UBYTE wChannelTablePlayed[];            /* $C154, [4] */
 extern UBYTE wChannelGrooveRow[];              /* $C158, [8] */
@@ -36,22 +36,22 @@ extern UBYTE wChannelTableRow2[];              /* $C20C, [4] */
 extern UBYTE wChannelInstrument[];                  /* $C210, [4] */
 extern UBYTE wChannelNextSongRow[];            /* $C2FC, [4] */
 extern UBYTE wChannelTableStep[];              /* $C33F, [4] */
-extern UBYTE wChannelDispNote[];               /* $C41F, [4] */
+extern UBYTE wChannelDisplayNote[];               /* $C41F, [4] */
 extern UBYTE wColumnLastCommand[];                 /* $C44B, [4] */
 extern UBYTE wColumnChain[];                   /* $C44F, [4] */
 extern UBYTE wColumnPhrase[];                  /* $C453, [4] */
 extern UBYTE wPhraseColumnLast[];              /* $C907, [4] */
-extern UBYTE wWordClipCell0[];              /* $C935, [2] */
+extern UBYTE wWordClipboardCell0[];              /* $C935, [2] */
 extern UBYTE wInstrumentRemapTable[];            /* $C9B8, [16] */
-extern UBYTE *wPtrChainRow;                 /* $C8DF */
-extern UBYTE *wPtrPhraseRow;                /* $C8E1 */
-extern UBYTE *wPtrNoteCountdown;            /* $C8E3 */
-extern UBYTE *wPtrGroove;                   /* $C8E5 */
-extern UBYTE *wPtrGrooveRow;                /* $C8E7 */
-extern UBYTE *wPtrPhrase;                   /* $C8EB */
-extern UBYTE *wPtrNoteSrc;                  /* $C8ED */
-extern UBYTE *wPtrStepCountdown;            /* $C8EF */
-extern UBYTE *wPtrTableStep;                /* $C8FC */
+extern UBYTE *wPointerChainRow;                 /* $C8DF */
+extern UBYTE *wPointerPhraseRow;                /* $C8E1 */
+extern UBYTE *wPointerNoteCountdown;            /* $C8E3 */
+extern UBYTE *wPointerGroove;                   /* $C8E5 */
+extern UBYTE *wPointerGrooveRow;                /* $C8E7 */
+extern UBYTE *wPointerPhrase;                   /* $C8EB */
+extern UBYTE *wPointerNoteSource;                  /* $C8ED */
+extern UBYTE *wPointerStepCountdown;            /* $C8EF */
+extern UBYTE *wPointerTableStep;                /* $C8FC */
 extern UBYTE wChainScopeDirty;              /* $C403 */
 extern UBYTE wSongScopeDirty;               /* $C404 */
 extern UBYTE wAPressEnabled;                /* $C409 */
@@ -88,12 +88,12 @@ extern UBYTE wHelpOpenEntry;                /* $C933 */
 extern UBYTE wHelpRow;                /* $C934 */
 extern UBYTE wWordRow;                  /* $C937 */
 extern UBYTE wWordColumn;                  /* $C938 */
-extern UBYTE wChainCellVal;               /* $C945 */
-extern UBYTE wSramFsFlag;                   /* $C9A3 */
+extern UBYTE wChainCellValue;               /* $C945 */
+extern UBYTE wSramFilesystemFlag;                   /* $C9A3 */
 extern UBYTE wGrooveRow;                    /* $C9D4 */
 extern UBYTE wAnalogOutTimer;               /* $CB68 */
 extern UBYTE wSyncTick;                     /* $CB69 */
-extern UBYTE wSyncRxPos;                    /* $CB71 */
+extern UBYTE wSyncReceivePosition;                    /* $CB71 */
 extern UBYTE wKeyboardQueueTail;                 /* $CB7C */
 extern UBYTE wKeyboardTranspose;                 /* $CB91 */
 
@@ -103,18 +103,18 @@ void ResetWorkState(void)
     wChannelOutput[1] = 0;
     wChannelOutput[2] = 0;
     wChannelOutput[3] = 0;
-    wPhraseCommandPtr[0] = 0x0140;
-    wPhraseCommandPtr[1] = 0x0140;
-    wPhraseCommandPtr[2] = 0x0140;
-    wPhraseCommandPtr[3] = 0x0140;
-    wTableCommand1Ptr[0] = 0x0140;
-    wTableCommand1Ptr[1] = 0x0140;
-    wTableCommand1Ptr[2] = 0x0140;
-    wTableCommand1Ptr[3] = 0x0140;
-    wTableCommand2Ptr[0] = 0x0140;
-    wTableCommand2Ptr[1] = 0x0140;
-    wTableCommand2Ptr[2] = 0x0140;
-    wTableCommand2Ptr[3] = 0x0140;
+    wPhraseCommandPointer[0] = 0x0140;
+    wPhraseCommandPointer[1] = 0x0140;
+    wPhraseCommandPointer[2] = 0x0140;
+    wPhraseCommandPointer[3] = 0x0140;
+    wTableCommand1Pointer[0] = 0x0140;
+    wTableCommand1Pointer[1] = 0x0140;
+    wTableCommand1Pointer[2] = 0x0140;
+    wTableCommand1Pointer[3] = 0x0140;
+    wTableCommand2Pointer[0] = 0x0140;
+    wTableCommand2Pointer[1] = 0x0140;
+    wTableCommand2Pointer[2] = 0x0140;
+    wTableCommand2Pointer[3] = 0x0140;
     wChannelGroove[0] = 0;
     wChannelGroove[1] = 0;
     wChannelGroove[2] = 0;
@@ -174,10 +174,10 @@ void ResetWorkState(void)
     wSongScroll = 0;
     wSongColumn = 0;
     wSongRow = 0;
-    wChannelDispNote[0] = 0;
-    wChannelDispNote[1] = 0;
-    wChannelDispNote[2] = 0;
-    wChannelDispNote[3] = 0;
+    wChannelDisplayNote[0] = 0;
+    wChannelDisplayNote[1] = 0;
+    wChannelDisplayNote[2] = 0;
+    wChannelDisplayNote[3] = 0;
     wInstrumentField = 0;
     wInstrumentColumn = 0;
     wSpeechRow = 0;
@@ -204,21 +204,21 @@ void ResetWorkState(void)
     wUnusedC46C = 0;
     wWavPlayMode = 0;
     wMessageNoPause = 1;
-    wStringSrc = AsciiCharMap - 0x20;
+    wStringSource = AsciiCharacterMap - 0x20;
     wShadedDigitPalette = 0x49;
     wShadedPalette = 0x46;
     wHighlightDigitPalette = 0x8E;
     wHighlightPalette = 0x8B;
     wLiveStartColumn = 0xFF;
-    wPtrChainRow = &wChannelChainRow[0];
-    wPtrPhraseRow = &wChannelPhraseRow[0];
-    wPtrNoteCountdown = &wChannelNoteCountdown[0];
-    wPtrGroove = &wChannelGroove[0];
-    wPtrGrooveRow = &wChannelGrooveRow[0];
-    wPtrPhrase = &wChannelPhrase[0];
-    wPtrNoteSrc = &wChannelNote[0];
-    wPtrStepCountdown = &wChannelStepCountdown[0];
-    wPtrTableStep = &wChannelTableStep[0];
+    wPointerChainRow = &wChannelChainRow[0];
+    wPointerPhraseRow = &wChannelPhraseRow[0];
+    wPointerNoteCountdown = &wChannelNoteCountdown[0];
+    wPointerGroove = &wChannelGroove[0];
+    wPointerGrooveRow = &wChannelGrooveRow[0];
+    wPointerPhrase = &wChannelPhrase[0];
+    wPointerNoteSource = &wChannelNote[0];
+    wPointerStepCountdown = &wChannelStepCountdown[0];
+    wPointerTableStep = &wChannelTableStep[0];
     wMapColumn = 0;
     wMapRow = 1;
     wMapProjectColumn = 0;
@@ -234,12 +234,12 @@ void ResetWorkState(void)
     wTableTransposeCache = 0;
     wHelpOpenEntry = 0;
     wHelpRow = 0;
-    wWordClipCell0[0] = 1;
-    wWordClipCell0[1] = 0;
+    wWordClipboardCell0[0] = 1;
+    wWordClipboardCell0[1] = 0;
     wWordRow = 0;
     wWordColumn = 0;
-    wChainCellVal = 0;
-    wSramFsFlag = 0;
+    wChainCellValue = 0;
+    wSramFilesystemFlag = 0;
     wInstrumentRemapTable[0] = 0xFF;
     wInstrumentRemapTable[1] = 0xFF;
     wInstrumentRemapTable[2] = 0xFF;
@@ -259,7 +259,7 @@ void ResetWorkState(void)
     wGrooveRow = 0;
     wAnalogOutTimer = 3;
     wSyncTick = 0xFF;
-    wSyncRxPos = 0xFF;
+    wSyncReceivePosition = 0xFF;
     wKeyboardQueueTail = 0xFF;
     wKeyboardTranspose = 9;
 }

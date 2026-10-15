@@ -619,7 +619,7 @@ def inline_asm_hl(lines: list[str]) -> tuple[list[str], int]:
     SDCC 2.2.1's genInline leaves its pair cache alone, so a stack byte
     addressed right after `_asm di _endasm` is reached with `inc hl` from
     the previous `lda hl,N(sp)`; LSDj's compiler reloaded `ld hl,sp+N`
-    there (RemapSeqChains' `i = 0` after the di). An inline line keeps the
+    there (RemapSequenceChains' `i = 0` after the di). An inline line keeps the
     user's indentation after SDCC's tab (`\t        di`)."""
     lines = list(lines)
     n = 0
@@ -711,7 +711,7 @@ def gb_cmp16(lines: list[str], zero: bool = False) -> tuple[list[str], int]:
                             glob, known = found
                 if fetch and fetch[0].startswith("\tld\thl,#"):
                     # a global: hl was left at its high byte the same way
-                    # (CompressSong's `wCompressDst < 0x7FFF` then `wCompressDst + 1`)
+                    # (CompressSong's `wCompressDestination < 0x7FFF` then `wCompressDestination + 1`)
                     gm = re.fullmatch(r"#(\w+)(?: \+ (\d+))?", groups[0].strip())
                     if gm:
                         glob = gm.group(1)
@@ -1170,7 +1170,7 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
         mn, ops = _ops(t)
         # a 16-bit call result copied into bc (`ld c,d; ld b,e`): the ROM's
         # one reread of a byte just stored from a register (`ld (hl),b; ld
-        # a,(hl)`, OpenNameEditor's StrLength result) stores such a half;
+        # a,(hl)`, OpenNameEditor's StringLength result) stores such a half;
         # the 46 sites that reuse the register stored a byte value
         for r in _written(mn, ops):
             pair_half.discard(r)
@@ -1242,7 +1242,7 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
                 # the byte at hl is still in a register: LSDj's compiler
                 # copied it (`ld (hl),e; add sp,3; ld c,e`: 18 + 2 + 3 ROM
                 # sites) or, for the same register, skipped the reload
-                # (FileCalcCompressedSize's result; the ROM never reloads
+                # (FileCalculateCompressedSize's result; the ROM never reloads
                 # `ld e,(hl)` after `ld (hl),e`)
                 if hl_reg == ops[0]:
                     dropped += 1
@@ -1370,8 +1370,8 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
         elif mn in ("jp", "jr") and len(ops) == 2:
             # a conditional jump: `a` and `hl` survive the fall-through, but
             # after an equality test `a` no longer stands for the byte at hl:
-            # SoundPhraseHop's `*wPtrPhraseRow = wSeqNoteLatch; if
-            # (wSeqNoteLatch) AdvanceCurrentChannelCursors(wSeqNoteLatch);` reloads
+            # SoundPhraseHop's `*wPointerPhraseRow = wSequenceNoteLatch; if
+            # (wSequenceNoteLatch) AdvanceCurrentChannelCursors(wSequenceNoteLatch);` reloads
             # it (`ld a,(hl); ld (de),a; or a,a; jp z; ld a,(hl)`, 2 sites,
             # none reusing it), like track_hram's `ldh` rereads; so does a
             # stack slot (PhraseScreenInput's `k = v & 0xF0; if (k)`: `ld
@@ -1398,7 +1398,7 @@ def track_a(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int]:
                 forget_hl()
         elif mn == "ld" and ops[:1] == ["(hl)"] and len(ops) == 2 and ops[1].startswith("#"):
             # a literal stored through hl (`g = n`) leaves `a` standing for n
-            # and nothing else: ResetWorkState's `wWordClipCell0[0] = 1`
+            # and nothing else: ResetWorkState's `wWordClipboardCell0[0] = 1`
             # reloads `ld a,#1` after six `g = 0` stores, SoundTogglePlayback's
             # `wSongPlaying = 0; hSoundChannel = 0` keeps the 0 in `a` (the ROM's
             # two sites; the tracker apparently took the stored literal for
@@ -1514,7 +1514,7 @@ def track_hram(lines: list[str], jump_targets: set[str]) -> tuple[list[str], int
     SoundUpdateChannel's D across `if (d)`). It never copied the byte over from
     another register: a reload into b while c holds it stays (the `+=` target
     in SoundUpdateChannel and HandleInputCombos). `a` itself serves a reread
-    in straight-line code (Command_F_Wav's `step = hCommandValS`: stock genCast
+    in straight-line code (Command_F_Wav's `step = hCommandValueS`: stock genCast
     reads the byte again for the sign's `rla`; no compiled code in the ROM
     rereads a byte `a` holds before a jump) and across an ordering test
     (SyncTickLsdj's `hSoundChannel < 4`: `cp #4; jp nc`); after an equality test

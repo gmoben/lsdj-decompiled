@@ -11,7 +11,7 @@ Each gets a name from its content, deduplicated within its function:
                       `.jumpTable`
   string           -- after its text: `.strOn`, `.strEmpty`
   `dw Name` entry  -- after what it points to: `.toName` (a help page's
-                      entry after the page: `HelpPagePtrs.song`)
+                      entry after the page: `HelpPagePointers.song`)
 
 Writes `ADDR .name` lines into the .sym (then re-carve with `make`); prints
 any target it cannot name. Idempotent: named targets are no longer `.L_`.
@@ -56,7 +56,7 @@ def propose(rom, bank, addr, body, refs):
         before = next(b for r, b in refs if r.startswith("ld hl, "))
         return to_rgbds.Translator.switch_name(before)
     m = re.fullmatch(r"dw TxtHelpPage(\w+)", first)
-    if m:                                 # HelpPagePtrs' entries: the page they open
+    if m:                                 # HelpPagePointers' entries: the page they open
         return "." + m.group(1)[0].lower() + m.group(1)[1:]
     m = re.fullmatch(r"dw (\w+)", first)
     if m:

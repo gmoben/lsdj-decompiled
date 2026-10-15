@@ -10,7 +10,7 @@
 #include "lsdj.h"
 
 void DrawAllChannelStatus(void);
-extern UBYTE wNameEditBuf[];                /* $C431, [5] */
+extern UBYTE wNameEditBuffer[];                /* $C431, [5] */
 extern UBYTE wNameEditIsInstrument;              /* $C430 */
 extern UBYTE wAPressEnabled;                /* $C409 */
 extern UBYTE wBHeld;                        /* $C40B */
@@ -22,7 +22,7 @@ void MoveMapCursorLeft(void);                     /* bank 5 */
 void MoveMapCursorRight(void);                    /* bank 5 */
 void MoveMapCursorUp(void);                       /* bank 5 */
 void MoveMapCursorDown(void);                     /* bank 5 */
-void PrevInstrumentPage(void);             /* bank 3 */
+void PreviousInstrumentPage(void);             /* bank 3 */
 void SoundToggleSongPlayback(void);                 /* bank 2 */
 void SoundTogglePlayback(void);                    /* bank 2 */
 void DrawInstrumentScreenFrame(void);                /* $03:$45A7 */
@@ -128,11 +128,11 @@ UBYTE SpeechInstrumentInput(void)
         if (!wAPressEnabled)
             return 0;
         p = (UWORD)0xBDD0 + wSpeechRow * 3;
-        wNameEditBuf[0] = ReadSongByte(0, p++);
-        wNameEditBuf[1] = ReadSongByte(0, p++);
-        wNameEditBuf[2] = ReadSongByte(0, p);
-        wNameEditBuf[3] = 0;
-        wNameEditBuf[4] = 0;
+        wNameEditBuffer[0] = ReadSongByte(0, p++);
+        wNameEditBuffer[1] = ReadSongByte(0, p++);
+        wNameEditBuffer[2] = ReadSongByte(0, p);
+        wNameEditBuffer[3] = 0;
+        wNameEditBuffer[4] = 0;
         wNameEditIsInstrument = 0;
         FarCall(0x1B, FAR_FN(OpenNameEditor));
         return 1;
@@ -246,10 +246,10 @@ UBYTE SpeechInstrumentInput(void)
         }
         return 1;
     case 0x22:
-        FarCall(3, PrevUsedInstrument);
+        FarCall(3, PreviousUsedInstrument);
         return 1;
     case 0x28:
-        FarCall(3, PrevInstrumentPage);
+        FarCall(3, PreviousInstrumentPage);
         return 1;
     case 0xC0:
         if (!wButtonsSame)

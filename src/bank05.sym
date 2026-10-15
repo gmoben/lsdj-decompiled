@@ -14,14 +14,14 @@
 ; --- context-based names (callee-derived role; Func/Proc = purpose TBD) ---
 4000 UpdateMapTopRow            ; recompute wMapProjectColumn/wMapSynthColumn from wMapColumn when on the map middle row
 4167 GotoMapCursorScreen             ; SEL+B screen map: set wCurrentScreen from wMapRow/wMapColumn (row0=PROJECT/WAVE/SYNTH, row1=SONG CHAIN PHRASE INSTR TABLE, row2=GROOVE)
-420C StartMapTransition         ; store move direction (1=up 2=right 3=down 4=left) -> wMapMoveDir, reset rSCX/rSCY
+420C StartMapTransition         ; store move direction (1=up 2=right 3=down 4=left) -> wMapMoveDirection, reset rSCX/rSCY
 421A CancelSelectionMode        ; if select mode (wCursorMode==4), restore the pre-selection state (the screen map's step before leaving a screen)
 42A4 DrawCommandLetter              ; draw an FX command letter cell (CommandMnemonics char via DrawStringIndexed; >$13 asserted)
-42E7 ReadTableCommand               ; read the command column (wTableCellAPtr) at step; 0 unless a command (<= $13)
-43B7 WriteTableCommand              ; write the command column (wTableCellAPtr) at step; asserts cmd <= $13
-442A WriteTableVal              ; write the value column (wTableCellBPtr) at step
+42E7 ReadTableCommand               ; read the command column (wTableCellAPointer) at step; 0 unless a command (<= $13)
+43B7 WriteTableCommand              ; write the command column (wTableCellAPointer) at step; asserts cmd <= $13
+442A WriteTableValue              ; write the value column (wTableCellBPointer) at step
 44E8 ReadTableEnvelope          ; read table_envelopes[table][row<$10] from SRAM (bounds-checked)
-453B ReadTableVal               ; read the value column (wTableCellBPtr) at step
+453B ReadTableValue               ; read the value column (wTableCellBPointer) at step
 459E ReadTableTranspose        ; read table_transposes[table][row<$10] from SRAM (bounds-checked)
 45F1 EraseTableCursor           ; restore the cursor cells to their column palette (TableColumnPalette) at row wTableRow+2, unless selecting
 472B DrawTableEnvelope               ; draw a table envelope cell (lo-nibble $F -> hi-nibble + release glyph)
@@ -77,10 +77,10 @@
 4319 .loop                ; loop head in ReadTableCommand
 4384 .loop                ; loop head in WriteTableEnvelope
 43F5 .loop                ; loop head in WriteTableCommand
-445C .loop                ; loop head in WriteTableVal
+445C .loop                ; loop head in WriteTableValue
 44B5 .loop                ; loop head in WriteTableTranspose
 450C .loop                ; loop head in ReadTableEnvelope
-456D .loop                ; loop head in ReadTableVal
+456D .loop                ; loop head in ReadTableValue
 45C2 .loop                ; loop head in ReadTableTranspose
 4636 .loop                ; loop head in EraseTableCursor
 4664 .done                ; common exit of EraseTableCursor
@@ -168,8 +168,8 @@
 49E3 .loadSongColumnb
 4ABA .checkGameboyType
 4B06 .checkTableColumn
-4B36 .setTableCellAPtr
-4B49 .setTableCellAPtrb
+4B36 .setTableCellAPointer
+4B49 .setTableCellAPointerb
 4B6C .tableOk
 4B90 .dispatch
 4C0B .cancelSelect
@@ -179,45 +179,45 @@
 4CCB .aColumn
 4D61 .aCommand
 4DA8 .aCommandHelp
-4E19 .aVal
+4E19 .aValue
 4E81 .rightCursor
 4E95 .columnLeft
 4EB3 .upCursor
 4ECD .downCursor
 4ED5 .incRows
-4F58 .incCommand1Ptrs
-4F6B .incCommand2Ptrs
+4F58 .incCommand1Pointers
+4F6B .incCommand2Pointers
 5064 .incCommandTarget
 50C0 .incCommandDraw
 5207 .decRows
-528A .decCommand1Ptrs
-529D .decCommand2Ptrs
+528A .decCommand1Pointers
+529D .decCommand2Pointers
 5367 .decCommand
 53EE .decCommandDraw
 5521 .bigRows
-55A4 .bigCommand1Ptrs
-55B7 .bigCommand2Ptrs
+55A4 .bigCommand1Pointers
+55B7 .bigCommand2Pointers
 56B9 .bigCommandTarget
 5714 .bigCommandDraw
 57FB .bigWaveCommand
 581B .bigPitchCommand
 587B .bigDecRows
-58FE .bigDecCommand1Ptrs
-5911 .bigDecCommand2Ptrs
+58FE .bigDecCommand1Pointers
+5911 .bigDecCommand2Pointers
 59E5 .bigDecCommand
 5A6C .bigDecCommandDraw
 5B41 .bigDecWaveCommand
 5B5E .bigDecPitchCommand
 5BBE .nextTable
 5BC8 .nextTableDraw
-5BD8 .prevTable
-5BE1 .prevTableDraw
+5BD8 .previousTable
+5BE1 .previousTableDraw
 5BF1 .nextTables
 5C00 .lastTable
 5C05 .nextTablesDraw
-5C15 .prevTables
+5C15 .previousTables
 5C24 .firstTable
-5C29 .prevTablesDraw
+5C29 .previousTablesDraw
 5C39 .cutCell
 5C90 .cutEnvelope
 5CD3 .cutTranspose
@@ -225,7 +225,7 @@
 5DAD .cutCommand2
 5E41 .cutDraw
 5E49 .selectA
-5E74 .selectAClip
+5E74 .selectAClipboard
 5E82 .selectAColumn
 5E92 .pasteCells
 5EA0 .selectStart
@@ -238,24 +238,24 @@
 6115 .widenRows
 6155 .widenColumns
 616C .copyScreen
-6210 .comparePtrBytes
+6210 .comparePointerBytes
 622F .checkSelectionLeft
 623C .checkSelectionRight
 6249 .checkSelectionRightb
 6256 .incSelectionRight
-6350 .setTableCellAPtr
-6396 .setTableCellAPtrb
-63DC .setTableCellAPtrc
-6422 .setTableCellAPtrd
+6350 .setTableCellAPointer
+6396 .setTableCellAPointerb
+63DC .setTableCellAPointerc
+6422 .setTableCellAPointerd
 6475 .loadSelectionLeft
 64D9 .loadSelectionBottom
 64F2 .checkSelectionLeft
 650D .checkSelectionLeftb
 6527 .loadSelectionTop
-6631 .setTableCellAPtr
-666E .setTableCellAPtrb
-66BB .setTableCellAPtrc
-6707 .setTableCellAPtrd
+6631 .setTableCellAPointer
+666E .setTableCellAPointerb
+66BB .setTableCellAPointerc
+6707 .setTableCellAPointerd
 6740 .incTableRow
 6779 .loadSelectionLeft
 69FA .checkInstrumentField
@@ -319,16 +319,16 @@
 5072 .incCommand1
 5074 .incCommandTargetSet
 50F1 .incCommandHelp
-5114 .incCommandVal
-5143 .incVal
+5114 .incCommandValue
+5143 .incValue
 5177 .incTableCommand
 5186 .incHopCommand
 5195 .incPanCommand
 51A4 .incPanRight
 51AB .incWaveCommand
 51BC .incWaveStep
-51C2 .incValStep
-51C5 .incValWrite
+51C2 .incValueStep
+51C5 .incValueWrite
 51F8 .incNextRow
 5202 .incDone
 523C .decOne
@@ -342,15 +342,15 @@
 5377 .decCommandTargetSet
 53A8 .decCommandRead
 541F .decCommandHelp
-5442 .decCommandVal
-5471 .decVal
+5442 .decCommandValue
+5471 .decValue
 54A1 .decTableCommand
 54B0 .decPanCommand
 54BF .decPanLeft
 54C6 .decWaveCommand
 54D6 .decWaveStep
-54DC .decValStep
-54DF .decValWrite
+54DC .decValueStep
+54DF .decValueWrite
 5512 .decNextRow
 551C .decDone
 5556 .bigOne
@@ -364,16 +364,16 @@
 56C7 .bigCommand1
 56C9 .bigCommandTargetSet
 5745 .bigCommandHelp
-5768 .bigCommandVal
-5797 .bigVal
+5768 .bigCommandValue
+5797 .bigValue
 57D0 .bigTableCommand
 57E2 .bigHopCommand
 57F4 .bigPanCommand
 580D .bigWaveStep
 5829 .bigPitchOctave
 582B .bigPitchStep
-5833 .bigValStep
-5839 .bigValWrite
+5833 .bigValueStep
+5839 .bigValueWrite
 586C .bigNextRow
 5876 .bigDone
 58B0 .bigDecOne
@@ -387,19 +387,19 @@
 59F5 .bigDecCommandTargetSet
 5A26 .bigDecCommandRead
 5A9D .bigDecCommandHelp
-5AC0 .bigDecCommandVal
-5AEF .bigDecVal
+5AC0 .bigDecCommandValue
+5AEF .bigDecValue
 5B28 .bigDecTableCommand
 5B3A .bigDecPanCommand
 5B53 .bigDecWaveStep
 5B6C .bigDecPitchOctave
 5B6E .bigDecPitchStep
-5B76 .bigDecValStep
-5B7C .bigDecValWrite
+5B76 .bigDecValueStep
+5B7C .bigDecValueWrite
 5BAF .bigDecNextRow
 5BB9 .bigDecDone
-5D55 .cutCommand1Clip
-5DEC .cutCommand2Clip
+5D55 .cutCommand1Clipboard
+5DEC .cutCommand2Clipboard
 5EAD .toggleSong
 5ED0 .startDone
 5ED5 .togglePlay
@@ -432,20 +432,20 @@
 65CD .getScreenScratchCell2_2
 65EF .getScreenScratchCell2_3
 6624 .cont_4
-6625 .setTableCellAPtr_2
+6625 .setTableCellAPointer_2
 6641 .loadTableRow
-6654 .setTableCellAPtr_3
+6654 .setTableCellAPointer_3
 667E .getScreenScratchCell2_4
-66A1 .setTableCellAPtr_4
+66A1 .setTableCellAPointer_4
 66CB .getScreenScratchCell2_5
-66ED .setTableCellAPtr_5
+66ED .setTableCellAPointer_5
 6717 .getScreenScratchCell2_6
 6736 .incTableRow_2
 674F .setSelectionLeft_2
 67E7 .cont
 67E9 .cont_2
 6807 .cont_3
-6808 .checkArg
+6808 .checkArgument
 6817 .cont_4
 6818 .cont_5
 6827 .cont_6
@@ -545,12 +545,12 @@
 
 ; --- pointer targets (tools/name_targets.py) ---
 4CEB .columnCases
-4F4C .incPtrCases
+4F4C .incPointerCases
 4FBB .incColumnCases
-527E .decPtrCases
+527E .decPointerCases
 52ED .decColumnCases
-5598 .bigPtrCases
+5598 .bigPointerCases
 5607 .bigColumnCases
-58F2 .bigDecPtrCases
+58F2 .bigDecPointerCases
 5961 .bigDecColumnCases
 5C7E .cutCases

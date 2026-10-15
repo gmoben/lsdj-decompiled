@@ -31,7 +31,7 @@ UBYTE GetNextButtons(void);                 /* bank 0 */
 UBYTE ProjectCursorFieldWidth(void);
 extern UBYTE wWorkClockSubFrame;            /* $C9AA */
 extern UBYTE wTapTempoCount;                /* $C9AB */
-extern UBYTE wTapTempoBuf[];                /* $C9AC, [8] */
+extern UBYTE wTapTempoBuffer[];                /* $C9AC, [8] */
 extern UBYTE wSelectHeld;                   /* $C40A */
 extern UBYTE wBHeld;                        /* $C40B */
 extern UBYTE wAHeld;                        /* $C40C */
@@ -41,7 +41,7 @@ extern UBYTE wProjectMenuItem;                 /* $C9A6, its YES/NO */
 extern UBYTE wTickRepeat;                   /* $CB70 */
 extern UBYTE wFrameSkip;                    /* $CB6F */
 extern UBYTE wTransposeDirty;               /* $C445 */
-extern UBYTE wSongTransposeDisp;            /* $C446 */
+extern UBYTE wSongTransposeDisplay;            /* $C446 */
 extern UBYTE wSyncState;                    /* $CBDE */
 extern UBYTE wColorSet;                     /* $C52F */
 extern UBYTE wKeyDelayTimer;                /* $C406 */
@@ -56,7 +56,7 @@ void LoadFontTiles(void);                   /* bank $1E */
 void FormatFileSpace(void);                 /* bank $1C */
 void CleanSongData(void);                   /* bank $1F */
 void CleanInstrumentData(void);                  /* bank $1F */
-void DrawKeyboardCalibScreen(void);         /* bank 7 */
+void DrawCalibrationScreen(void);         /* bank 7 */
 void FileValidateName(void);                /* bank $1C */
 void LoadFileListState(void);               /* bank $1C */
 void LoadProjectSettings(void);             /* bank 1 */
@@ -64,7 +64,7 @@ void FormatSramSong(void);                     /* bank 1 */
 void MoveMapCursorRight(void);                    /* bank 5 */
 void MoveMapCursorDown(void);                     /* bank 5 */
 void SoundTogglePlayback(void);                    /* bank 2 */
-extern UBYTE wSramFsFlag;                   /* $C9A3 */
+extern UBYTE wSramFilesystemFlag;                   /* $C9A3 */
 extern UBYTE wSongTranspose;                /* $C444 */
 extern UBYTE wCloneMode;                    /* $C531 */
 UBYTE CheckFileMagic64(void);               /* $1C:$4057 */
@@ -88,7 +88,7 @@ void DrawSyncMode2Field(void)
     WriteSongByte(1, SramPropSyncMode2, wSyncMode2);
 }
 
-void SaveTempoProps(void)
+void SaveTempoProperties(void)
 {
     WriteSongByte(1, SramPropTempo, wTempo);
     WriteSongByte(1, SramPropTempoMode, wTempoMode);
@@ -96,7 +96,7 @@ void SaveTempoProps(void)
 
 void DrawProjectTempo(void)
 {
-    DrawTempo(GetTempoTimerVal());
+    DrawTempo(GetTempoTimerValue());
 }
 
 void RedrawProjectTempo(void)
@@ -194,7 +194,7 @@ void DrawSyncSubSetting(void)
 
 void DrawProjectScreen(void)
 {
-    wSramFsFlag = FarCallByte(0x1C, FAR_FN(CheckFileMagic64));
+    wSramFilesystemFlag = FarCallByte(0x1C, FAR_FN(CheckFileMagic64));
     FarCall(1, FAR_FN(DrawTopBar));
     wVramCursor = 0x9846;
     hBgDigitPalette = wShadedDigitPalette;
@@ -216,7 +216,7 @@ void DrawProjectScreen(void)
     hBgDigitPalette = 4;
     hBgPalette = 1;
     wVramCursor = 0x99C0;
-    if (wSramFsFlag)
+    if (wSramFilesystemFlag)
         DrawString("LOAD/SAVE SONG");
     else
         DrawString("RESET MEMORY");
@@ -300,7 +300,7 @@ UBYTE ProjectScreenInput(void)
         case 0:
             if (ProjectSyncStateFlag()) {
                 wTickRepeat++;
-                DrawTempo(GetTempoTimerVal() + 1);
+                DrawTempo(GetTempoTimerValue() + 1);
                 RedrawProjectTempo();
                 return 1;
             }
@@ -310,15 +310,15 @@ UBYTE ProjectScreenInput(void)
                 wTempoMode++;
             FarCall(7, FAR_FN(SetSyncSendRate));
             DrawProjectTempo();
-            SaveTempoProps();
+            SaveTempoProperties();
             return 1;
         case 1:
             if (!wTransposeDirty) {
-                wSongTransposeDisp = wSongTranspose;
+                wSongTransposeDisplay = wSongTranspose;
                 wTransposeDirty++;
             }
-            wSongTransposeDisp++;
-            DrawHexByte(wSongTransposeDisp);
+            wSongTransposeDisplay++;
+            DrawHexByte(wSongTransposeDisplay);
             return 1;
         case 2:
             if (wButtonsSame)
@@ -394,7 +394,7 @@ UBYTE ProjectScreenInput(void)
         case 0:
             if (ProjectSyncStateFlag()) {
                 wFrameSkip++;
-                DrawTempo(GetTempoTimerVal() - 1);
+                DrawTempo(GetTempoTimerValue() - 1);
                 RedrawProjectTempo();
                 return 1;
             }
@@ -404,15 +404,15 @@ UBYTE ProjectScreenInput(void)
                 wTempo--;
             FarCall(7, FAR_FN(SetSyncSendRate));
             DrawProjectTempo();
-            SaveTempoProps();
+            SaveTempoProperties();
             return 1;
         case 1:
             if (!wTransposeDirty) {
-                wSongTransposeDisp = wSongTranspose;
+                wSongTransposeDisplay = wSongTranspose;
                 wTransposeDirty++;
             }
-            wSongTransposeDisp--;
-            DrawHexByte(wSongTransposeDisp);
+            wSongTransposeDisplay--;
+            DrawHexByte(wSongTransposeDisplay);
             return 1;
         case 2:
             if (wButtonsSame)
@@ -479,18 +479,18 @@ UBYTE ProjectScreenInput(void)
                 wTempo = 0x27;
             FarCall(7, FAR_FN(SetSyncSendRate));
             DrawProjectTempo();
-            SaveTempoProps();
+            SaveTempoProperties();
             return 1;
         case 1:
             if (!wTransposeDirty) {
-                wSongTransposeDisp = wSongTranspose;
+                wSongTransposeDisplay = wSongTranspose;
                 wTransposeDirty++;
             }
             hBgDigitPalette = wHighlightDigitPalette;
             hBgPalette = wHighlightPalette;
             wVramCursor = (UBYTE *)0x986A;
-            wSongTransposeDisp += 12;
-            DrawHexByte(wSongTransposeDisp);
+            wSongTransposeDisplay += 12;
+            DrawHexByte(wSongTransposeDisplay);
             return 1;
         case 6:
             if (wKeyDelay == 0x0F || !wAHeld)
@@ -513,18 +513,18 @@ UBYTE ProjectScreenInput(void)
                 wTempo = 0x28;
             FarCall(7, FAR_FN(SetSyncSendRate));
             DrawProjectTempo();
-            SaveTempoProps();
+            SaveTempoProperties();
             return 1;
         case 1:
             if (!wTransposeDirty) {
-                wSongTransposeDisp = wSongTranspose;
+                wSongTransposeDisplay = wSongTranspose;
                 wTransposeDirty++;
             }
             hBgDigitPalette = wHighlightDigitPalette;
             hBgPalette = wHighlightPalette;
             wVramCursor = (UBYTE *)0x986A;
-            wSongTransposeDisp -= 12;
-            DrawHexByte(wSongTransposeDisp);
+            wSongTransposeDisplay -= 12;
+            DrawHexByte(wSongTransposeDisplay);
             return 1;
         case 5:
             if (wButtonsSame)
@@ -605,7 +605,7 @@ UBYTE ProjectScreenInput(void)
             TapTempoStep();
             FarCall(7, FAR_FN(SetSyncSendRate));
             DrawProjectTempo();
-            SaveTempoProps();
+            SaveTempoProperties();
             return 1;
         case 9:
             FarCall(0x1C, FAR_FN(FileStopSound));
@@ -628,13 +628,13 @@ UBYTE ProjectScreenInput(void)
         case 3:
             if (wSyncMode == 5) {
                 FarCall(0x1C, FAR_FN(FileStopSound));
-                FarCall(7, DrawKeyboardCalibScreen);
+                FarCall(7, DrawCalibrationScreen);
                 DrawSyncMode2Field();
                 FarCall(4, FAR_FN(RedrawScreen));
             }
             return 1;
         case 11:
-            if (wSramFsFlag) {
+            if (wSramFilesystemFlag) {
                 if (wProjectMenuActive)
                     goto closeMenu;
                 wCurrentScreen = 0x0D;
@@ -667,7 +667,7 @@ UBYTE ProjectScreenInput(void)
                     goto redraw;
             reset:
                 FarCall(0x1C, FAR_FN(FileStopSound));
-                if (wSramFsFlag) {
+                if (wSramFilesystemFlag) {
                     WriteSongByte(1, 0xBFB6, 0);
                     WriteSongByte(1, 0xBFB8, 0);
                     WriteSongByte(1, 0xBFB7, 0);
@@ -680,7 +680,7 @@ UBYTE ProjectScreenInput(void)
                 wVramCursor = (UBYTE *)0x9903;
                 DrawString("RESET MEMORY!");
                 delay(hGameboyType ? 2000 : 1000);
-                FarCallArg(1, FAR_FN(LoadProjectSettings), 0);
+                FarCallArgument(1, FAR_FN(LoadProjectSettings), 0);
             redraw:
                 if (hGameboyType)
                     ClearBgTilemap();
@@ -734,16 +734,16 @@ void TapTempoStep(void)
         return;
     }
     if (wTapTempoCount == 8) {
-        memcpy(wTapTempoBuf, wTapTempoBuf + 1, 7);
+        memcpy(wTapTempoBuffer, wTapTempoBuffer + 1, 7);
         wTapTempoCount--;
     }
-    wTapTempoBuf[wTapTempoCount] = wWorkClockSubFrame;
+    wTapTempoBuffer[wTapTempoCount] = wWorkClockSubFrame;
     wWorkClockSubFrame = 0;
     wTapTempoCount++;
     if (wTapTempoCount < 3)
         return;
     for (i = 0; i < wTapTempoCount; i++)
-        sum += wTapTempoBuf[i];
+        sum += wTapTempoBuffer[i];
     sum <<= 3;
     sum /= wTapTempoCount;
     sum = 0x6FFE / sum;

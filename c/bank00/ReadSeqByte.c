@@ -1,9 +1,9 @@
 /*
- * ReadSeqByte -- LSDj 9.4.0, ROM bank $00:$0AF6-$0B4A (85 bytes)
+ * ReadSequenceByte -- LSDj 9.4.0, ROM bank $00:$0AF6-$0B4A (85 bytes)
  *
  * MATCHING C (period GBDK 2.95-3 / SDCC 2.2.1 + tools/match/lsdj.peep). Verify:
  *
- *     tools/match/match_function.py --c c/bank00/ReadSeqByte.c --target ReadSeqByte
+ *     tools/match/match_function.py --c c/bank00/ReadSequenceByte.c --target ReadSequenceByte
  *
  * song[step][channel] of the working song's sequence (song offset $1290 =
  * SRAM bank 0, $B290, SramSequence; 4 channels per row), with the empty
@@ -12,7 +12,7 @@
 
 #include "lsdj.h"
 
-UBYTE ReadSeqByte(UBYTE chan, UBYTE step)
+UBYTE ReadSequenceByte(UBYTE chan, UBYTE step)
 {
     UBYTE *p;
     UBYTE v;

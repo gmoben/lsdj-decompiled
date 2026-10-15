@@ -28,14 +28,14 @@ Key mechanisms:
 - **Banked calls**: bank 0 sets the bank then `call`s the `$4000`-`$7FFF`
   routine; results come back in `e`/`de` (SDCC convention). Inline stubs (the
   `DispatchScreenDraw_<Screen>` entries, `CrashTrampoline` `$0061`) and the far-call
-  helpers `FarCall`/`FarCallArg`/`FarCallByte` wrap this. (In the generated
+  helpers `FarCall`/`FarCallArgument`/`FarCallByte` wrap this. (In the generated
   asm, bank 0's inline-stub call targets still print as raw `$4000`-`$7FFF`
   addresses — 79 sites; the debugger resolves them at runtime.)
 - **Song access**: editors read/write the working song via `ReadSongByte`
   ($14D1) and SRAM banking — see [`data_model.md`](data_model.md).
 - **UI text**: a **string table lives in bank 1** (e.g. `$6F7E` =
   "LITTLE SOUND DJ V9.4.0 © 2000 JOHAN KOTLINSKI", plus "TOO BUSY!",
-  "A: RUN …"). `ShowMessage` (`$0DBC`) copies a string into `wStrBuf`
+  "A: RUN …"). `ShowMessage` (`$0DBC`) copies a string into `wStringBuffer`
   (`$C6A9`) and triggers the on-screen message; bank 1's `DrawMessageBar`
   (`$74F7`) renders that buffer onto the top tilemap row. (`DrawMessageBar` is
   also the first function matched in C: `c/bank01/DrawMessageBar.c`.)

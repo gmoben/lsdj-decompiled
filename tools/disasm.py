@@ -316,7 +316,7 @@ def _load_ram_syms() -> tuple[dict[int, str], dict[int, str]]:
       exact   {addr: name}                 -- documented base addresses
       offsets {addr: "name + N"}           -- *interior* addresses of a
               documented multi-byte var/array, so a mid-array access renders
-              as `wChannelFreq + 4` instead of a raw `$c0f8` (byte-identical: the
+              as `wChannelFrequency + 4` instead of a raw `$c0f8` (byte-identical: the
               expression resolves to the same address). Extents come from the
               `; [N]` array-count and `16-bit` (stride 2) annotations, and are
               capped at the next named symbol so they can never swallow it."""
@@ -378,8 +378,8 @@ CLines = tuple[int, int, list[tuple[int, str, str]]]
 
 # Banked calls: the caller pushes the callee's arguments, its address and its
 # bank, then calls one of these bank-0 routines (src/bank00.sym).
-FARCALL_NAMES = frozenset({"FarCall", "FarCallArg", "FarCallByte", "FarCallArgByte",
-                           "FarCallArg2V", "FarCallArg2", "FarCallArg3"})
+FARCALL_NAMES = frozenset({"FarCall", "FarCallArgument", "FarCallByte", "FarCallArgumentByte",
+                           "FarCallArgument2V", "FarCallArgument2", "FarCallArgument3"})
 # `ld hl, nn` / `ld [hl], x` with nn one of these is an MBC5 register write
 MBC_REGS = {0x2000: "rROMB0", 0x4000: "rRAMB"}
 # A ROM-address operand: (bank, address) to print as a label, or a fixed name.
@@ -516,7 +516,7 @@ def _next_farcall_bank(rows: list[Row], i: int, far: set[int]) -> int | None:
 
 def _offset_halves(rows: list[Row], i: int) -> tuple[int, int] | None:
     """An address plus a constant, a byte at a time (SDCC doesn't fold
-    `(UBYTE *)AsciiCharMap - 0x20`): `ld a, LO / add a, KL / (store a) /
+    `(UBYTE *)AsciiCharacterMap - 0x20`): `ld a, LO / add a, KL / (store a) /
     ld a, HI / adc a, KH`, the stores in between not touching a. (address,
     index of the HI row) or None; the offset stays a number."""
     if i + 3 >= len(rows) or not _decoded(rows[i]) or not _decoded(rows[i + 1]):
