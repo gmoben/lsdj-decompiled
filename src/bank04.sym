@@ -599,8 +599,8 @@
 7C4B .markCheck
 7CB7 .markColumns
 7D13 .markStart
-429E PhraseColumnX0        ; x of the phrase screen columns, draw mode 0 (2 2 6 9 10)
-42A3 PhraseColumnX1        ; the same with wPhraseDrawMode set (2 5 9 12 13)
+429E PhraseColumnX0        ; [5] x of the phrase screen columns, draw mode 0 (2 2 6 9 10)
+42A3 PhraseColumnX1        ; [5] the same with wPhraseDrawMode set (2 5 9 12 13)
 
 ; --- pointer targets (tools/name_targets.py) ---
 52AB .jumpTable           ; PastePhraseSelection: switch (x)

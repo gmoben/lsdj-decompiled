@@ -239,7 +239,7 @@
 014F HeaderChecksumLow           ; ROM header global checksum (lo byte)
 300F ExponentialCurve16                ; [16] exponential curve $00..$73: envelope speed -> frame count
 086F AsciiCharacterMap               ; [89] character-to-tile map from space onward; text draws set wStringSource to this address minus $20
-08C8 IdentityCharacterMap            ; identity tile-index map (loaded into wStringSource for raw-tile draws)
+08C8 IdentityCharacterMap            ; [64] identity tile-index map (loaded into wStringSource for raw-tile draws)
 01E0 SyncModeStubs              ; 4 x 4-byte jp-hl slots from SendSyncHandshake ((mode&3)*4); only slot 0 (ret) populated
 0200 TimesTwoTable              ; [n] -> 2n byte ramp (FileUpgradeRemapBits, synth draw)
 0255 SignedRampTable            ; [171] BYTE -12..-2, 0..31, then 32 x 32, 32 x -33, 64 x 0 (a modulation LUT block; read by LoadHardwareTables)

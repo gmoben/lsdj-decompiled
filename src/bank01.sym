@@ -103,7 +103,7 @@
 780D TxtHelpSSweep      ; "S: SET PU1 SWEEP" (pulse 1)
 
 ; --- message bar attributes + screen name strings ---
-7484 MessageBarAttributeRow      ; 20 x $04: CGB attribute row for the top message bar
+7484 MessageBarAttributeRow      ; [20] 20 x $04: CGB attribute row for the top message bar
 74AC TxtScreenLive      ; "LIVE"
 74B1 TxtScreenSong      ; "SONG"
 74B6 TxtScreenChain     ; "CHAIN "

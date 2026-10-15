@@ -89,7 +89,7 @@
 6893 TxtOct56                   ; "O5-6"
 6898 TxtOct45                   ; "O4-5"
 689D TxtOct34                   ; "O3-4"
-4047 SongColumnOffsets             ; per-song-column x offsets (col+1)*3: $03,$06,$09,$0c
+4047 SongColumnOffsets             ; [4] per-song-column x offsets (col+1)*3: $03,$06,$09,$0c
 5DB8 SongSelectionAttribute               ; [32] CGB attribute 3 (selection palette) for set_bkg_tiles in EditSongSelection
 403F SongColumnFlags               ; 8-byte per-column flag row (precedes SongColumnOffsets)
 

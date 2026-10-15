@@ -46,18 +46,23 @@ reset rSCY/rSCX/rSTAT/rWY ; clear scroll, LCD status, window
   streams **kit samples**: each tick an active kit voice copies 16 bytes from its
   banked ROM read pointer into `hWavUploadBuffer` (→ WAV RAM), looping or stopping
   at the loop end (`wKitVoicesActive`, `wKit1*`/`wKit2*` in `constants/ram.inc`).
+  Two kits play at once through the kit mixer: `InitializeKitMixer` copies
+  `KitMixTable` -- the kit instrument's four CLIP curves (HARD, SOFT, FOLD,
+  WRAP), a 256-byte page each indexed by the two samples' nibbles -- and
+  `MasterVolumeTable` to WRAM (`$D000`), and unrolls `MixerKernel` sixteen
+  times at `$D480` (`wKitMixerCode`), which the timer handler calls.
   The sequencer/FX/instrument side of the engine lives in bank `$02` — see
   [`reversal.md`](reversal.md) and [`data_model.md`](data_model.md).
   - *Per-channel pitch / vibrato / frequency* (bank 0): each frame
-    `SndStepPitchVib{PU1,PU2,Wav,Noi}` (`$19A6`/`$1A26`/`$1AA7`/`$1CBA`) advance
+    `SoundStepPitchVibrato{Pu1,Pu2,Wav,Noi}` (`$19A6`/`$1A26`/`$1AA7`/`$1CBA`) advance
     the pitch slide (`wChannelPitchRate`→`wChannelPitchCurrent`, clamped to
     `wChannelPitchTarget`) and the vibrato phase, the latter via the shared waveform
     evaluator `SoundCalculateVibratoOffset` (`$1986`, ctrl table `$0200` + dispatch `$0300`).
-    `SndWriteFreq{PU1,PU2,Wav}` (`$1BA7`/`$1BF6`/`$1C3D`) then fold note +
+    `SoundWriteFrequency{Pu1,Pu2,Wav}` (`$1BA7`/`$1BF6`/`$1C3D`) then fold note +
     transpose + finetune + vibrato + pitch into a 16-bit period via
     `SoundInterpolatePeriod` (`$1B28`, period-table lookup with fractional interpolation)
     and write `wChannelFrequency` + `rAUD{1,2,3}LOW/HIGH/LEN`.
-    `SndUpdatePitchModFlag{PU1,PU2,Wav}` (`$1CA8`/`$1C96`/`$1C84`, dispatched by
+    `SoundUpdatePitchModulationFlag{Pu1,Pu2,Wav}` (`$1CA8`/`$1C96`/`$1C84`, dispatched by
     `SoundUpdatePitchModulationFlagCurrent` `$1C7C`) cache a "pitch is modulating" flag at
     `$C3F9`-`$C3FB`.
   - *Work-time clock* — `TickWorkTimeClock` (`$1815`) advances `wWorkTimeAccumulator`
@@ -111,12 +116,11 @@ The addresses first identified on this page:
 
 ## Embedded tables
 
-The jump/pointer tables that the first linear disassembly showed as bogus
-instructions are now carved as data (`db`) by `tools/carve_clean.py` and
-resolved by the coverage trace. One correction to the original guess here: the
-bytes at `$09B9`-`$0A90` (between `WriteInstrumentByte` and `ReadInstrumentByte`) are
-**not** a jump table but a 108-entry 16-bit ramp (`$0000`, `$0013`, `$0026`, …
-`$07FC`): `UnusedRampTable`, since no code reads it.
+Tables are carved as data by `tools/carve_clean.py` (the coverage trace
+leaves them unreached; a `.sym` tag gives a table its shape). The bytes at
+`$09B9`-`$0A90` (between `WriteInstrumentByte` and `ReadInstrumentByte`) are a
+108-entry 16-bit ramp (`$0000`, `$0013`, `$0026`, … `$07FC`):
+`UnusedRampTable`, since no code reads it.
 
 ## Where to go next
 

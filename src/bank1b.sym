@@ -16,7 +16,8 @@
 52D8 TxtSaving                  ; "SAVING..."
 5C03 TxtClockLabels  ; "PLAY %d:"/"WORKED %d:" (total/work-time clock)
 6A5C CloneModeNames2 ; "SLIM", "DEEP": ProjectScreenInput's string literals (then the reset menu's)
-6C38 KitMixTable                ; 1152-byte nibble-sum LUT copied to WRAM $d000 for the MixerKernel (indexed h = page, l = sample nibbles)
+6C38 KitMixTable                ; [64][16] the kit instrument's CLIP curves for mixing two kits, a page each -- HARD, SOFT, FOLD, WRAP (MixerKernel: h = the page, l = the two sample nibbles, a row per high nibble); InitializeKitMixer copies them with MasterVolumeTable to wKitMixTable ($D000)
+7038 MasterVolumeTable          ; [8][16] the master-volume transition LUT, copied after KitMixTable to wMasterVolumeTable ($D400; Command_M indexes it by rAUDVOL & $70)
 5D4F CloneModeNames  ; clone-mode display names "DEEP"/"SLIM" (5-byte stride)
 5B7A DrawSyncSubSetting ; draw PS/2 DELAY (KEYBD) or TICKS/STEP (analog) value beside SYNC
 5126 CommitNameEdit             ; name-editor done (start, or the keyboard's done key): store the name (instrument, speech word) or save the song under it (FILE flow: "SAVING..."), back to wNameReturnScreen
@@ -73,8 +74,6 @@
 5B5E TxtNA                      ; "N/A"
 5707 FontNames                  ; 5-char FONT names "Y2K ", "ZERO", "KIKO" (indexed wFont*5; DrawFontColorFields)
 5716 ColorSetNames              ; 5-char COLOR SET names ("AIRY"...; indexed wColorSet*5)
-6FFE ScrollStepTable            ; scroll index-step table (TapTempoStep)
-703C EnvelopeVolumeRamps             ; 8-byte volume ramp rows (envelope precalc family; computed base from ScrollStepTable region)
 4058 HelpMenuPointers               ; [16] dw -> the help-menu line strings
 4098 TxtHelpTitle               ; "HELP / V9.4.0"
 40A6 TxtHelpBlank1              ; "" empty help line

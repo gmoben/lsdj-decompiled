@@ -305,13 +305,13 @@ tempo/sprite/tile-loader clusters, the running ROM), build byte-identical
 throughout. Clusters named:
 
 - **Sound engine**: per-channel pitch-slide/vibrato steppers, period interpolation,
-  `SndWriteFreq{PU1,PU2,Wav}`, pitch-mod flags, the software-envelope ("zombie
+  `SoundWriteFrequency{Pu1,Pu2,Wav}`, pitch-mod flags, the software-envelope ("zombie
   mode") volume engine (`SoundFadeEnvelopeStep`/`UpdateEnv*`), `SoundLoadWaveRam`, `SoundModulateWavFrequency`.
 - **SDCC/GBDK runtime**: the whole 8/16-bit signed+unsigned `Div`/`Mod` family +
   `DivStep`, `memcpy`, `StringCompare` (rgbasm reserves `strcmp`!), `joypad`,
   `delay`/`DelayLoop`, `abs`, `CallHL`.
-- **Sync**: `DispatchSyncClock`, `SyncTick{LSDJ,Midi}`, `Sync{Start,Stop}Transport`,
-  `SyncSet{Send,Recv}Mode`, `SyncApplyMode`, `Sync{Send,Receive}AnalogClock`
+- **Sync**: `DispatchSyncClock`, `SyncTick{Lsdj,Midi}`, `Sync{Start,Stop}Transport`,
+  `SyncSet{Send,Receive}Mode`, `SyncApplyMode`, `Sync{Send,Receive}AnalogClock`
   (AN.OUT/AN.IN) — see sync.md.
 - **Input**: `HandleButtonEvent` → `HandleInputCombos` + `DispatchScreenInput`
   (the per-event chain from the main loop).

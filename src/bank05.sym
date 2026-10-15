@@ -66,8 +66,8 @@
 7108 TxtHelpPitchShift          ; "PITCH SHIFT"
 649A TxtCut05                   ; "CUT"
 649E TxtCopy05                  ; "COPY"
-42D5 TableColumnX                  ; x of the six table screen columns (VOL TSP CMD VAL CMD VAL)
-42DB TableColumnWidth              ; widths of the six table screen columns
+42D5 TableColumnX                  ; [6] x of the six table screen columns (VOL TSP CMD VAL CMD VAL)
+42DB TableColumnWidth              ; [6] widths of the six table screen columns
 42E1 TableColumnPalette            ; normal palette of the six table screen columns (1 on the command columns)
 
 ; --- structural local names (loop heads / common exits) ---

@@ -93,7 +93,7 @@
 5391 TxtSelect         ; "SELECT" (pairs with TxtCancelSelect)
 6D4E TxtSelect2        ; "SELECT" (second instance; pairs with TxtCancelSelect2)
 4024 WordColumnWidth               ; widths of the word editor columns ($03, $02)
-550F ChainColumnX                  ; x of the chain screen columns ($02, $05)
+550F ChainColumnX                  ; [2] x of the chain screen columns ($02, $05)
 5A5E TxtDashes2                 ; " --" (blank transpose display)
 745A TxtLead                    ; "LEAD"
 745F TxtSync3                   ; "SYNC" (third instance)
