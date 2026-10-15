@@ -1,5 +1,5 @@
 ; Bank $01 -- UI string table + help text (incl. the FX command help popups)
-4485 .done                ; (was CartridgeTest) common exit
+4485 .done                ; common exit
 51F4 PitchSpeedNames    ; [4][5] pitch-speed display names "STEP"/"TICK"/"DRUM"/"FAST"
 764C ShowCommandHelp                ; show command cmd's help line on double-A (ShowMessage; wVramCursor kept): B and H by screen (phrase or table), F, S and W by channel (wSongColumn), the rest from CommandHelpPointers
 776E CommandHelpPointers   ; [20] dw -> the "X: DESCRIPTION" help line per command (index = command*2; entry 0 points at an empty string, the end of TxtHelpSSweep)
@@ -15,7 +15,7 @@
 50A0 UpdateWorkClock            ; apply one work-time minute: song WORKED h:mm ($BFB2/$BFB3) and the total d:hh:mm ($BFB6-$BFB8) in SRAM bank 1
 48D4 WriteSongInitializedMarker   ; WriteSongByte $be78 (set the 'rb' init marker)
 4D67 MarkChainUsed              ; set chain (arg)'s bit in the chain allocation map (SramChainAllocation + chain/8, bit chain&7); asserts chain < $80
-4EA3 .writeSongByte       ; (was WriteSongByteWrap) thin WriteSongByte wrapper
+4EA3 .writeSongByte       ; thin WriteSongByte wrapper
 45D1 FormatSramSong             ; format the SRAM song: zero the banks, default grooves/sequence/word names/instr names/synth params/wave frames
 
 ; --- UI message / status strings (db "..."; referenced by the draw code) ---
@@ -45,7 +45,7 @@
 4C61 ApplyColorSet              ; load the wColorSet CGB BG+OBJ palettes (hw $11 check, set_bkg_palette)
 4CFB MarkPhraseUsed             ; set the phrase-alloc bit (song $3E82 bitmap) for phrase arg
 5208 DrawSpeedGlyph             ; draw the 2-tile speed icon (SpeedGlyphTiles[value&7])
-5243 .drawString          ; (was DrawStringBC) draw the string pointed to by bc (shared tail of the flag-name drawers)
+5243 .drawString          ; draw the string pointed to by bc (shared tail of the flag-name drawers)
 52EB CopySong16                 ; copy a 16-byte song-data row src->dst via Read/WriteSongByte
 5331 CopyTableData              ; copy table src->dst across the table column regions (song $3680/$3880/$3A80)
 55C9 GetScreenPalette           ; -> de = CGB BG palette block for wCurrentScreen (INSTR varies by instr type)
@@ -382,7 +382,7 @@
 4F90 .step
 4FE1 .step
 500A .cont
-500D .tick                 ; (was UpdateWorkClock) once a second: advance the PLAY clock, redraw it on the project screen
+500D .tick                 ; once a second: advance the PLAY clock, redraw it on the project screen
 51A1 .testBit4
 51B5 .testBit6
 51D9 .drawString

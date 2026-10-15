@@ -59,14 +59,14 @@
 65C2 DrawSynthNumber            ; redraw the synth number and both endpoints of every parameter field
 68A5 TxtSynthFrameDashesA       ; "--" for a hidden parameter's first endpoint
 68A8 TxtSynthFrameDashesB       ; "--" for its second endpoint
-6709 .rowA                ; (was DrawSynthHexRowA) draw a START/END hex pair row of the synth screen (section A; "--" empty)
-6791 .rowB                ; (was DrawSynthHexRowB) draw a START/END hex pair row (section B)
-6819 .rowC                ; (was DrawSynthHexRowC) draw a START/END hex pair row (section C)
-6865 .rowD                ; (was DrawSynthHexRowD) draw a START/END hex pair row (section D), then DrawSynthCursor re-render
+6709 .rowA                ; draw a START/END hex pair row of the synth screen (section A; "--" empty)
+6791 .rowB                ; draw a START/END hex pair row (section B)
+6819 .rowC                ; draw a START/END hex pair row (section C)
+6865 .rowD                ; draw a START/END hex pair row (section D), then DrawSynthCursor re-render
 68F9 LoadSynthParameters            ; load the edited synth's parameters from SRAM ($BEB2 + wSynthScreen*16) into the render state: wave type, wave table, filter
-6935 .loadWaveType        ; (was SynthLoadWaveType) read 2 synth params from SRAM -> wSynthSignalType, wSynthFilterType (wave type)
-6967 .loadWaveTable       ; (was SynthLoadWaveTable) read packed param from SRAM, build wave table wSynthCurveResonance (via FillSynthWaveRange)
-6997 .loadFilterParameters    ; (was SynthLoadFilterParams) read 2 synth params from SRAM -> wSynthDistortionType, wSynthPhaseType (filter)
+6935 .loadWaveType        ; read 2 synth params from SRAM -> wSynthSignalType, wSynthFilterType (wave type)
+6967 .loadWaveTable       ; read packed param from SRAM, build wave table wSynthCurveResonance (via FillSynthWaveRange)
+6997 .loadFilterParameters    ; read 2 synth params from SRAM -> wSynthDistortionType, wSynthPhaseType (filter)
 6B33 BuildOverwritePrompt       ; draw the confirmation border at columns 3..14, rows 4..10; restore wStringSource/palettes
 6D0F DrawOverwriteChoice        ; highlight the OVERWRITE? prompt choice (wOverwriteEnd) on row 9
 6D6F OverwriteSynthWaves        ; open the OVERWRITE HAND-DRAWN WAVES? confirmation; set active/choice flags wOverwriteStart/wOverwriteEnd
@@ -176,10 +176,10 @@
 622B .loop3               ; loop head in FillSynthWaveRange
 6264 .loop4               ; loop head in FillSynthWaveRange
 62A4 .done                ; common exit of FillSynthWaveRange
-62C7 .pinch               ; case 0 (was DrawPhasePinch)
-62D3 .warp                ; case 1 (was DrawPhaseWarp)
-62DF .resync              ; case 2 (was DrawPhaseResync)
-62EB .resyn2              ; case 3 (was DrawPhaseResyn2)
+62C7 .pinch               ; case 0
+62D3 .warp                ; case 1
+62DF .resync              ; case 2
+62EB .resyn2              ; case 3
 62F4 .done                ; common exit of DrawSynthPhaseField
 631E .loop                ; loop head in ReadSynthParameter
 63EE .done                ; common exit of DrawSynthFilterField

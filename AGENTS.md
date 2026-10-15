@@ -84,7 +84,7 @@ betting on C. **Status:** 678 functions match (`c/`, `make match`) — including
 a 15-case `switch`, 16-bit SRAM addressing and most of the instrument screen's
 helpers — using stock GBDK 2.95-3 / SDCC 2.2.1 plus peephole rules recovered
 from the ROM (`tools/match/lsdj.peep`). Go: the rule set still grows with new
-idioms, and the ~200 hand-written asm functions (sound tick, sequencer core,
+idioms, and the 226 hand-written asm functions (sound tick, sequencer core,
 ~15 KB) and the GBDK/SDCC library routines stay asm. See
 [`docs/toolchain.md`](docs/toolchain.md).
 
@@ -112,7 +112,8 @@ idioms, and the ~200 hand-written asm functions (sound tick, sequencer core,
 | `docs/data_model.md` | Song format: chains/phrases/instruments/tables/synths/… |
 | `docs/save_format.md` | `.sav` filesystem, compression, sample-kit & lsdsng formats |
 | `docs/reversal.md` | Current status + known gaps, the coverage metric, and the methodology log |
-| `docs/toolchain.md` | Track 2: period GBDK 2.95 / SDCC 2.2.1, match harness, current goal |
+| `docs/toolchain.md` | Track 2: period GBDK 2.95 / SDCC 2.2.1, the match harness, allocator directives, next steps |
+| `docs/matching_c.md` | The C tree: every module and what it holds, what is C and what is asm, writing C that matches |
 | `tools/disasm.py` | SM83→RGBDS disassembler (`--selftest`, labels, symbols, hw regs) |
 | `tools/coverage.py` | Whole-ROM, bank-aware reachability trace ("% reversed") |
 | `tools/carve_clean.py` | Regenerate `src/bankNN.asm` (trace-driven code/data split + `MANUAL` data ranges) |
@@ -214,7 +215,7 @@ Tips:
    and the default mode groups them by instruction shape (one C template can
    match a whole family).
 2. Write them in a scratch file (`#include "lsdj.h"`; function names must be
-   `src/*.sym` names) following `docs/toolchain.md` → *Writing C that
+   `src/*.sym` names) following `docs/matching_c.md` → *Writing C that
    matches*; check a batch with `tools/match/verify_all.py /tmp/x.c` and one
    function with `tools/match/match_function.py --c FILE --target Name
    --diff` (both disassemblies aligned; `--score` for a one-line distance,
@@ -405,8 +406,8 @@ When writing *matching C*, the source forms matter as much as the logic —
 `extern volatile sfr` for bytes stored with `ldh`, MBC registers as variables
 (`rROMB0 = n`), `if (!x)` rather than `== 0`, `&buf[0]` for address loads,
 `(unsigned int)x << 4` for a 16-bit shift, one statement per update of a
-local; see [`docs/toolchain.md`](docs/toolchain.md) → *Writing C that matches*.
-Check `tools/match/code_kind.py` first: ~200 functions (~15 KB: the
+local; see [`docs/matching_c.md`](docs/matching_c.md) → *Writing C that matches*.
+Check `tools/match/code_kind.py` first: 226 functions (15.5 KB: the
 interrupt handlers, sound tick, bank `$02`'s sequencer core) are hand-written
 asm and ~30 are GBDK/SDCC library routines; neither is a C target. Its
 summary also gives the share of C bytes matched so far.
@@ -519,9 +520,10 @@ Always, before committing:
       `ShowOutOfMemory`/`ShowTapAddChain`, `DispatchScreenDraw` (`switch`),
       `ReadInstrumentByte` (16-bit math, asserts) and `DrawTileHexCell` (the
       register-reload exception): six functions, three banks
-- [x] Map what is C at all: `tools/match/code_kind.py` — ~200 functions are
+- [x] Map what is C at all: `tools/match/code_kind.py` — 226 functions are
       hand-written asm (sound tick, envelope/pitch, tile loader, sequencer core)
-- [ ] Match a large editor function (a screen input handler) to grow the rule set
+- [x] Match a large editor function (a screen input handler) to grow the rule set
+      (every screen's input handler is matched C now)
 - [x] Matched C feeds the RGBDS build: `make match` writes each function's
       RGBDS translation, the carve renders it in place (ROM INCBIN without the
       compiler), `make compare` is the gate

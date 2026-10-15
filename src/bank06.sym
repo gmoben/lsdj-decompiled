@@ -1,7 +1,7 @@
 ; Bank $06 -- Chain / Wave / Word screens
 ; Chain editor: chains[wChain] = phrase# + transpose per step (16); chain_phrases
 ; at SRAM bank1 $A080, chain_transposes at $A880.
-5677 .shift               ; chain * 16 (was GetChainTranspose)
+5677 .shift               ; chain * 16
 
 ; --- UI strings + note-name table (db "..."; referenced by draw/clipboard code) ---
 76E4 NoteNames          ; chromatic note-name display table "---C 2C#2..." (C-2..B, all octaves)
@@ -17,10 +17,10 @@
 7455 TxtWait            ; "WAIT" (sync status)
 749E TxtSync            ; "SYNC" (sync status)
 7510 TxtSync2           ; "SYNC" (second instance)
-5908 .shift               ; wChain * 16 (was SetChainPhrase)
+5908 .shift               ; wChain * 16
 58FB LoadChainRow        ; load chain_phrases/chain_transposes[wChain] -> wSongReadBuffer / wUsedTableMap (16 each)
 5626 DrawChainPosition               ; draw "CP" and the chain cursor row (DrawByte) at $9851 in the shadow palette
-569C .write               ; (was ReadChainTranspose)
+569C .write               ;
 5947 DrawChainScreen     ; screen idx 3: draws chain phrases + transposes
 4A0A WriteWaveSample            ; write sample pos+1 (inverted nibble) of the edited wave frame (SRAM bank 3 )
 4F18 DrawWaveScreen      ; screen idx 8: draws the waveform; edits wave_frames (bank3 $A000) directly
@@ -59,9 +59,9 @@
 5655 SetChainTranspose          ; write chain_transposes[chain<$80][step<$10] = v (SRAM bank 1 $A880)
 56AA ReadChainTranspose        ; read chain_transposes[chain<$80] from SRAM (bounds-checked)
 56F0 ClonePhraseAtCursor        ; chain screen deep-clone: new phrase + copy rows, "CLONED PHRASE"
-5804 .copyNotes           ; (was CopyPhraseNotes) copy 16 phrase-note bytes src->dst phrase (clone helper)
-5836 .copyCommand              ; (was CopyPhraseFx) copy 16 phrase-fx bytes src->dst phrase
-5868 .copyInstruments          ; (was CopyPhraseInstrs) copy 16 phrase-instrument bytes src->dst phrase
+5804 .copyNotes           ; copy 16 phrase-note bytes src->dst phrase (clone helper)
+5836 .copyCommand              ; copy 16 phrase-fx bytes src->dst phrase
+5868 .copyInstruments          ; copy 16 phrase-instrument bytes src->dst phrase
 58A7 EraseChainCursor           ; restore the chain cursor cell's palette (the transpose column 1 on CGB, else 0)
 5ABE DrawChainCursor            ; highlight the chain cursor cell (palette 3 on CGB, 2 on DMG) at ChainColumnX[wChainColumn], row wChainRow
 5B00 OpenChainPhrase            ; open the phrase under the chain cursor (RestoreSelectionState, load phrase)
@@ -73,7 +73,7 @@
 73DC SyncStatusFlag        ; read wSyncTick, return status flag
 740C DrawSyncStatusLsdj         ; sync mode LSDJ: WAIT while handshaking, LEAD while running, else SYNC or blank (SyncStatusFlag)
 7469 DrawSyncStatusMidi         ; sync mode MIDI: SYNC (SyncStatusFlag), WAIT while playing, else blank
-7508 .drawStatus          ; (was ChainDrawStatusWord) draw a status word (SYNC/LEAD) via DrawSyncStatusText
+7508 .drawStatus          ; draw a status word (SYNC/LEAD) via DrawSyncStatusText
 7524 DrawTileHexCell            ; (v): t = ((v-60)+1)>>2 - 9; prefix = HexCellPrefixPointers[v&3]; t<0 -> prefix[0], '-', DrawByte(-t); else DrawString(prefix), DrawByte(t). Matched in C: c/bank06/DrawTileHexCell.c
 75A6 HexCellPrefixPointers          ; [4] dw -> the 2-char prefix strings below, indexed by (v & 3) in DrawTileHexCell (also parked in wChainScratchPointer)
 75AE TxtHexCellPrefix0          ; "D "
@@ -345,7 +345,7 @@
 4161 .loadWordColumn
 423F .index
 4250 .checkArgument
-4279 .drawSample          ; (was DrawSampleNameFull) the word screen's sample-name column
+4279 .drawSample          ; the word screen's sample-name column
 42BB .drawString
 43C8 .upDone              ; WordScreenInput: the row already 0
 45A2 .restoreColumn          ; WordScreenInput: nothing entered: put the column back

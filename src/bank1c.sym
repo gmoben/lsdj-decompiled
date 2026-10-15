@@ -51,7 +51,7 @@
 5563 FileDrawFieldChecked       ; bounds-check (<$10) then ColorField
 5597 FileValidateName           ; validate a name (FileFindSlotEnd; char range $0a/$1f/$20 checks)
 55F1 DrawFileList               ; draw the visible file slots (wFileScroll window, names + block counts)
-5892 .drawLabel           ; (was DrawLoadLabel) draw the "LOAD" prompt string
+5892 .drawLabel           ; draw the "LOAD" prompt string
 58C1 SeekNextWritableSlot       ; move wFileCursor down to the next slot a save may use: an empty one or the open file (not past the list's end)
 590B SeekPreviousWritableSlot   ; move wFileCursor up to the previous slot a save may use: an empty one or the open file
 594A FileCursorBelowWindow      ; whether wFileCursor is below the 12-row file list window (wFileCursor - wFileScroll > 11)

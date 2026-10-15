@@ -188,8 +188,8 @@ where `step = [$C17C]` (pointer low-byte `$7C` from `SoundInitializeStatePointer
 stores the result into per-channel `$C168`. Mapping SRAM bank 1 `$A080` → `.sav`
 offset `0x2080` identifies the table as **`chain_phrases`** (the authoritative
 liblsdj `song_offsets.h` and our [`data_model.md`](data_model.md) agree). So the
-index `[$C170+ch]` is a **chain number**, not a note — my earlier `wChannelNote $C170`
-label was wrong; it is **`wChannelChain`**. A live-dump cross-check nails it: in
+index `[$C170+ch]` is a **chain number**, not a note (an early reading had
+named it `wChannelNote`): it is **`wChannelChain`**. A live-dump cross-check nails it: in
 `songplaying.ram`, `wChannelChain` = `01 05 04 00` = exactly song-row 0 of
 `chain_assignments`, and `wChannelPhrase` (`$C168`) = `chain_phrases[chain][chainRow]`
 for every channel (ch1: chain `05`, row `01` → phrase `0C` ✓). The per-channel
@@ -241,8 +241,8 @@ one thing in the game, diff WRAM, and read the on-screen result.
 
 **What the *remaining* unnamed WRAM is — checked against the actual compiler.**
 LSDj is SDCC-compiled C (GBDK 2.95 / SDCC 2.2.1, the period toolchain in
-`toolchain/`). I compiled probe functions with that exact compiler
-(`tools/match/match_function.py --show-asm`) to settle how it allocates storage:
+`toolchain/`). Probe functions compiled with that exact compiler
+(`tools/match/match_function.py --show-asm`) settle how it allocates storage:
 **function locals go on the stack** — the codegen is a `lda sp,-N(sp)` frame with
 `lda hl,N(sp)` (= `add sp,-N` / `ld hl, sp+N`) accesses, and the `_OVERLAY` area
 is **empty**. LSDj's own code uses those exact stack-local patterns. Therefore:

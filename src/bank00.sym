@@ -31,7 +31,7 @@
 0824 CommandMnemonics        ; "-ABCDEFGHKLMOPRSTVWZ": phrase/table command letters indexed by command byte (0='-'=none); CommandHandlers order
 0839 PlayModeNames              ; five 9-byte table PLAY mode names "  MANUAL", "    ONCE", "    LOOP", "PINGPONG", "  RESYNC" (DrawWaveInstrument: byte 9, capped at 5)
 0DDB InitializeAndLoadSong    ; second-stage boot (runs once before MainLoop): SwitchToDoubleSpeed, ClearBgTilemap, init subsystems, load the working song (bank1 $4CF1/$4848) or ResetWorkState if empty, set palettes + load song properties
-1377 .mainLoop            ; (was MainLoop) poll ready flags, then process a frame (-> ProcessInput)
+1377 .mainLoop            ; poll ready flags, then process a frame (-> ProcessInput)
 1CFF SyncLoadSetting    ; read song sync property ($BFBD) -> wSyncMode/wSyncMode2
 254F DispatchScreenDraw ; jp table ScreenDrawJumps indexed by wCurrentScreen ($C401): per-screen draw
 2563 ScreenDrawJumps    ; 15x jp: screen index -> "select bank N; call draw; ret"
@@ -49,12 +49,12 @@
 262F DispatchScreenDraw_File       ; idx 13 -> bank $1C:$57BB (save/load filesystem)
 263E DispatchScreenDraw_Help       ; idx 14 -> bank $1B:$4A62 (help text)
 264B DispatchScreenUpdate ; per-frame per-screen update for screens 1-5 (table $268D)
-268D .jumpTable           ; (was ScreenUpdateTable) 5x jp: screen 1-5 -> "select bank N; call update; ret"
-269C .phrase              ; (was UpdateDispatch_Phrase) idx 1 -> bank $1F:$648F (PhraseScreenUpdate)
-26AB .groove              ; (was UpdateDispatch_Groove) idx 2 -> bank $1D:$4215 (GrooveScreenUpdate)
-26BA .table               ; (was UpdateDispatch_Table) idx 5 -> bank $05:$4967 (TableScreenUpdate)
-26C9 .chain               ; (was UpdateDispatch_Chain) idx 3 -> bank $06:$5A62 (ChainScreenUpdate)
-26D8 .song                ; (was UpdateDispatch_Song) idx 4 -> bank $07:$47AA (SongScreenUpdate)
+268D .jumpTable           ; 5x jp: screen 1-5 -> "select bank N; call update; ret"
+269C .phrase              ; idx 1 -> bank $1F:$648F (PhraseScreenUpdate)
+26AB .groove              ; idx 2 -> bank $1D:$4215 (GrooveScreenUpdate)
+26BA .table               ; idx 5 -> bank $05:$4967 (TableScreenUpdate)
+26C9 .chain               ; idx 3 -> bank $06:$5A62 (ChainScreenUpdate)
+26D8 .song                ; idx 4 -> bank $07:$47AA (SongScreenUpdate)
 0038 Rst38                      ; rst $38, LSDj's crash vector (and its asserts'): di, ld b,b (debugger break), jr CrashTrampoline
 0040 VBlankInterrupt            ; VBlank vector: push af/hl, jp VBlankHandler
 0048 StatInterrupt              ; STAT vector: reti (unused)

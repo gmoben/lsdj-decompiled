@@ -31,7 +31,7 @@ Current state:
   byte-for-byte with the original GBDK 2.95-3 / SDCC 2.2.1 plus peephole
   rules recovered from the ROM, LSDj's "modified GBDK", and the ROM build takes those functions' bytes
   from the compiled C (`make match`; see
-  [`docs/toolchain.md`](docs/toolchain.md)). About 200 functions — the sound
+  [`docs/toolchain.md`](docs/toolchain.md)). 226 functions — the sound
   tick and sequencer core — are hand-written asm and stay that way
 
 ## Why
@@ -179,7 +179,8 @@ lsdj-decompiled/
 │   ├── data_model.md     # song format: chains/phrases/instruments/tables/synths
 │   ├── save_format.md    # .sav filesystem, compression, kits, lsdsng
 │   ├── reversal.md       # methodology + the road to full symbol coverage
-│   └── toolchain.md      # Track 2: period GBDK 2.95 / SDCC 2.2.1 recovery
+│   ├── matching_c.md     # the matching C: every module, what is C and what is asm, writing C that matches
+│   └── toolchain.md      # Track 2: period GBDK 2.95 / SDCC 2.2.1, the match harness
 ├── tools/
 │   ├── disasm.py         # byte-exact SM83->RGBDS disassembler (self-tested)
 │   ├── coverage.py       # whole-ROM reachability tracing
