@@ -177,9 +177,9 @@ void ReadSongRow(void)
 
     p = SramSequence + ((unsigned int)wSongScroll << 2);
     ReadSongBytes(0, p, wSongReadBuffer);
-    ReadSongBytes(0, p + 0x10, (UBYTE *)0xC47D);
-    ReadSongBytes(0, p + 0x20, (UBYTE *)0xC48D);
-    ReadSongBytes(0, p + 0x30, (UBYTE *)0xC49D);
+    ReadSongBytes(0, p + 0x10, (UBYTE *)ROW_BUFFER_COLUMN(1));
+    ReadSongBytes(0, p + 0x20, (UBYTE *)ROW_BUFFER_COLUMN(2));
+    ReadSongBytes(0, p + 0x30, (UBYTE *)ROW_BUFFER_COLUMN(3));
 }
 
 void DrawSongRowNumber(void)

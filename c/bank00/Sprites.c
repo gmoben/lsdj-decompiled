@@ -5,8 +5,9 @@
  * `make match` verifies every function here against the ROM.
  *
  * Everything writes the OAM shadow at $DD00 (wOamBuffer, DMA-copied while
- * wOamDirty is set). The clears are literal-pointer stores (`ld de,#addr;
- * ld (de),a`; track_a drops the repeated `ld a,#0x00`). SetOamByte adds the
+ * wOamDirty is set). The clears store to OamShadow's fields, which SDCC
+ * folds to literal addresses (`ld de,#addr; ld (de),a`; track_a drops the
+ * repeated `ld a,#0x00`). SetOamByte adds the
  * shadow's address to its cast offset, `(UBYTE *)offset + 0xDD00`, which
  * SDCC does in place in bc with the constant second, as the ROM does:
  * `wOamBuffer + offset` adds the address first, and `offset + 0xDD00` on the
@@ -20,37 +21,38 @@ extern UBYTE wOamDirty;                     /* $CBD1 */
 
 void ClearSprites012(void)
 {
-    *(UBYTE *)0xDD00 = 0;
-    *(UBYTE *)0xDD04 = 0;
-    *(UBYTE *)0xDD08 = 0;
+    OamShadow[0].y = 0;
+    OamShadow[1].y = 0;
+    OamShadow[2].y = 0;
 }
 
 void ClearMarkerSprites(void)
 {
-    *(UBYTE *)0xDD0C = 0;
-    *(UBYTE *)0xDD10 = 0;
-    *(UBYTE *)0xDD14 = 0;
-    *(UBYTE *)0xDD18 = 0;
-    *(UBYTE *)0xDD1C = 0;
-    *(UBYTE *)0xDD20 = 0;
-    *(UBYTE *)0xDD24 = 0;
-    *(UBYTE *)0xDD28 = 0;
-    *(UBYTE *)0xDD2D = 0;
-    *(UBYTE *)0xDD31 = 0;
-    *(UBYTE *)0xDD35 = 0;
-    *(UBYTE *)0xDD39 = 0;
-    *(UBYTE *)0xDD3D = 0;
-    *(UBYTE *)0xDD41 = 0;
-    *(UBYTE *)0xDD45 = 0;
-    *(UBYTE *)0xDD49 = 0;
-    *(UBYTE *)0xDD0F = 0;
-    *(UBYTE *)0xDD13 = 0;
-    *(UBYTE *)0xDD17 = 0;
-    *(UBYTE *)0xDD1B = 0;
-    *(UBYTE *)0xDD1F = 0;
-    *(UBYTE *)0xDD23 = 0;
-    *(UBYTE *)0xDD27 = 0;
-    *(UBYTE *)0xDD2B = 0;
+    /* the eight marks are sprites 3-10, the eight cursor sprites 11-18 */
+    OamShadow[3].y = 0;
+    OamShadow[4].y = 0;
+    OamShadow[5].y = 0;
+    OamShadow[6].y = 0;
+    OamShadow[7].y = 0;
+    OamShadow[8].y = 0;
+    OamShadow[9].y = 0;
+    OamShadow[10].y = 0;
+    OamShadow[11].x = 0;
+    OamShadow[12].x = 0;
+    OamShadow[13].x = 0;
+    OamShadow[14].x = 0;
+    OamShadow[15].x = 0;
+    OamShadow[16].x = 0;
+    OamShadow[17].x = 0;
+    OamShadow[18].x = 0;
+    OamShadow[3].prop = 0;
+    OamShadow[4].prop = 0;
+    OamShadow[5].prop = 0;
+    OamShadow[6].prop = 0;
+    OamShadow[7].prop = 0;
+    OamShadow[8].prop = 0;
+    OamShadow[9].prop = 0;
+    OamShadow[10].prop = 0;
     wOamDirty = 1;
 }
 

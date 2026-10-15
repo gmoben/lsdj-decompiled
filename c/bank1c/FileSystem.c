@@ -88,7 +88,7 @@ UBYTE FindFreeBlock(UBYTE *bank, UWORD *source)
             *source = ((UWORD)(wFileBlockIndex & 0x0F) << 9) + (UWORD)0xA000;
             if (*bank < 4 || *bank >= 0x10)
                 DebugTrap();
-            if (*source < 0xA000 || *source >= 0xC000)
+            if (*source < SRAM_START || *source >= SRAM_END)
                 DebugTrap();
             wVramCursor = BG_MAP(12, 7);
             hBgDigitPalette = 4;

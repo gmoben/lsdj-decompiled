@@ -72,7 +72,7 @@ UBYTE KitExists(UBYTE kit)
     if (bank > 0x3F)
         return 0;
     SWITCH_ROM(bank);
-    ok = (*(UWORD *)0x4000 == 0x4060);
+    ok = (*(UWORD *)KIT_SAMPLE_BOUNDARIES == KIT_SAMPLES);
     SWITCH_ROM(saved);
     return ok;
 }
@@ -83,7 +83,7 @@ void ReadKitName(UBYTE kit)
 
     saved = hCurrentBank;
     SWITCH_ROM(KitIndexToBank(kit));
-    memcpy(wSampleNoteString, (UBYTE *)0x4052, 6);
+    memcpy(wSampleNoteString, (UBYTE *)KIT_NAME, 6);
     wSampleNoteString[6] = 0;
     SWITCH_ROM(saved);
 }

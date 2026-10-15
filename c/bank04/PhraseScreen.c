@@ -568,9 +568,9 @@ void LoadPhraseRow(void)
     off <<= 4;
     p = (UWORD)0xA000 + off;
     ReadSongBytes(0, p, wSongReadBuffer);
-    ReadSongBytes(3, (UWORD)0xB000 + off, (UBYTE *)0xC47D);
-    ReadSongBytes(2, p, (UBYTE *)0xC48D);
-    ReadSongBytes(2, (UWORD)0xAFF0 + off, (UBYTE *)0xC49D);
+    ReadSongBytes(3, (UWORD)0xB000 + off, (UBYTE *)ROW_BUFFER_COLUMN(1));
+    ReadSongBytes(2, p, (UBYTE *)ROW_BUFFER_COLUMN(2));
+    ReadSongBytes(2, (UWORD)0xAFF0 + off, (UBYTE *)ROW_BUFFER_COLUMN(3));
 }
 
 void DrawPhraseSelectionFar(void)

@@ -73,10 +73,10 @@ void PlotEnvelopeCurve(UBYTE x, UBYTE y)
         wEnvelopePlotX = wEnvelopePlotX + 1;
         if (wEnvelopePlotX >= 0x40)
             DebugTrap();
-        ((char *)0xDA00)[wEnvelopePlotX] = y;
+        ((char *)DECOMPRESS_BUFFER)[wEnvelopePlotX] = y;
     }
-    if (((char *)0xDA00)[x] < y)
-        ((char *)0xDA00)[x] = y;
+    if (((char *)DECOMPRESS_BUFFER)[x] < y)
+        ((char *)DECOMPRESS_BUFFER)[x] = y;
     wEnvelopePlotX = x;
 }
 

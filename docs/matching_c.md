@@ -240,7 +240,13 @@ comment began with a quoted string had been carved as data, since a leading
   only safe where it expands to the literal's spelling or to a value SDCC
   types the same: every site using these is verified by `make match`, the
   screens 11-14 once spelled in hex included. A background-map cell is
-  `BG_MAP(x, y)` (`0x9800 + y * 32 + x`, folded to the address it was).
+  `BG_MAP(x, y)` (`0x9800 + y * 32 + x`, folded to the address it was), the
+  OAM shadow GBDK's sprite records (`OamShadow[3].prop = 0`, folded the same
+  way), and the fixed addresses the code uses as numbers have names that are
+  those numbers: `SRAM_START`/`SRAM_END`, `ROW_BUFFER_COLUMN(k)`,
+  `DECOMPRESS_BUFFER`, a kit's `KIT_SAMPLE_BOUNDARIES`, `KIT_NAME`,
+  `KIT_SAMPLES`. SRAM addresses stay numbers where no bank is evident: the
+  same address is a different region in each SRAM bank.
 - **Sign extension follows the destination type**: `genCast` extends by
   the type cast *to*, so a `char` stored into an `int` element is
   `rla; sbc a,a` and into a `UWORD` is `ld b,#0` (`wSynthShapeBuffer` is

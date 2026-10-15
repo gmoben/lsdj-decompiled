@@ -381,7 +381,9 @@ in `docs/functionality.md`.
   name that fits both uses.
 - **C constants.** Screen numbers and joypad bits are names from `lsdj.h`
   (`wCurrentScreen = SCREEN_SONG`, `wButtons == (J_B | J_A)`,
-  `J_SELECT_TAP`), a background-map cell `BG_MAP(x, y)`; a literal's spelling decides its type in SDCC 2.2.1 (hex
+  `J_SELECT_TAP`), a background-map cell `BG_MAP(x, y)`, the OAM shadow
+  `OamShadow[n].field`, fixed addresses (`DECOMPRESS_BUFFER`, `KIT_NAME`); a
+  literal's spelling decides its type in SDCC 2.2.1 (hex
   unsigned, decimal signed), so a new name is checked by `make match` like
   any other change (`docs/matching_c.md` → *Named constants*).
 - **Name patterns.** Routines are verb-first (`OpenChainPhrase`,

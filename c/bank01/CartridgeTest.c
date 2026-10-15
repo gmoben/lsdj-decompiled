@@ -34,7 +34,7 @@ UBYTE TestSramLow(void)
         p = (UBYTE *)0xA000;
         rRAMB = bank;
         for (;;) {
-            done = p == (UBYTE *)0xC000;
+            done = p == (UBYTE *)SRAM_END;
             if (done)
                 break;
             v = randw();
@@ -47,7 +47,7 @@ UBYTE TestSramLow(void)
         p = (UBYTE *)0xA000;
         rRAMB = bank;
         for (;;) {
-            done = p == (UBYTE *)0xC000;
+            done = p == (UBYTE *)SRAM_END;
             if (done)
                 break;
             v = *p;

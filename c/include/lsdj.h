@@ -70,6 +70,23 @@ typedef int WORD;
 /* a cell of the background map ($9800, 32 cells a row): the screen's x, y */
 #define BG_MAP(x, y) (0x9800 + (y) * 32 + (x))
 
+/* the OAM shadow ($DD00, wOamBuffer) as GBDK's sprite records */
+typedef struct { UBYTE y, x, tile, prop; } OamEntry;
+#define OamShadow ((OamEntry *)0xDD00)
+
+/* fixed addresses the code uses as numbers (constants/ram.inc names them) */
+#define SRAM_START            0xA000   /* the SRAM window */
+#define SRAM_END              0xC000
+#define ROW_BUFFER_COLUMN(k)  (0xC46D + (k) * 16)   /* wSongReadBuffer, wRowBufferColumn2.. */
+#define KIT_MIX_TABLE         0xD000   /* wKitMixTable */
+#define KIT_MIXER_CODE        0xD480   /* wKitMixerCode */
+#define DECOMPRESS_BUFFER     0xDA00   /* wDecompressBuffer */
+
+/* a kit's header, in its ROM bank at $4000 (tools/kits.py) */
+#define KIT_SAMPLE_BOUNDARIES 0x4000
+#define KIT_NAME              0x4052
+#define KIT_SAMPLES           0x4060   /* the first boundary: where the samples start */
+
 /* ProcessInput's code for SELECT tapped alone: LEFT and RIGHT are never held
  * together */
 #define J_SELECT_TAP (J_SELECT | J_LEFT | J_RIGHT)

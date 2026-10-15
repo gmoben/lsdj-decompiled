@@ -333,11 +333,11 @@ void ReadTableStep(void)
     p4 = (UBYTE *)0xB880 + t;
     t += (UWORD)0xBC80;
     ReadSongBytes(0, p0, wSongReadBuffer);
-    ReadSongBytes(1, p1, (UBYTE *)0xC47D);
-    ReadSongBytes(1, p2, (UBYTE *)0xC48D);
-    ReadSongBytes(1, p4, (UBYTE *)0xC49D);
-    ReadSongBytes(1, p3, (UBYTE *)0xC4AD);
-    ReadSongBytes(1, (UBYTE *)t, (UBYTE *)0xC4BD);
+    ReadSongBytes(1, p1, (UBYTE *)ROW_BUFFER_COLUMN(1));
+    ReadSongBytes(1, p2, (UBYTE *)ROW_BUFFER_COLUMN(2));
+    ReadSongBytes(1, p4, (UBYTE *)ROW_BUFFER_COLUMN(3));
+    ReadSongBytes(1, p3, (UBYTE *)ROW_BUFFER_COLUMN(4));
+    ReadSongBytes(1, (UBYTE *)t, (UBYTE *)ROW_BUFFER_COLUMN(5));
 }
 
 void DrawTableEnvelope(UBYTE v)

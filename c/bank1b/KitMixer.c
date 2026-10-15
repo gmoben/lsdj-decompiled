@@ -21,8 +21,8 @@ void InitializeKitMixer(void)
     UBYTE copy;
     UBYTE b;
 
-    destination = (UBYTE *)0xD480;
-    memcpy((UBYTE *)0xD000, KitMixTable, 0x480);
+    destination = (UBYTE *)KIT_MIXER_CODE;
+    memcpy((UBYTE *)KIT_MIX_TABLE, KitMixTable, 0x480);
     for (copy = 0; copy != 0x10; copy++) {
         source = (UBYTE *)(UWORD)MixerKernel;
         do {

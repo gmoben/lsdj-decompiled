@@ -322,16 +322,16 @@ void FileUpgradeClearRange(void)
     UBYTE t;
 
     i = 0;
-    FillMemory((UBYTE *)0xDA00, 0, 0x80);
+    FillMemory((UBYTE *)DECOMPRESS_BUFFER, 0, 0x80);
     do {
         t = FileUpgradeReadByte(i);
         if (t < 0x80) {
-            p = (UBYTE *)0xDA00 + (UWORD)t;
+            p = (UBYTE *)DECOMPRESS_BUFFER + (UWORD)t;
             *p = 1;
         }
     } while (++i);
     do {
-        p = (UBYTE *)0xDA00 + (UWORD)i;
+        p = (UBYTE *)DECOMPRESS_BUFFER + (UWORD)i;
         if (*p) {
             j = 0;
             while (!(j == 0x10)) {

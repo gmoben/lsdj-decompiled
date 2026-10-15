@@ -32,8 +32,6 @@ void LoadHardwareTables(void);
 void WriteVramByteSafeP(UBYTE *address, UBYTE v);   /* WriteVramByteSafe with a pointer address (aliased) */
 extern UBYTE wOamBuffer[];                  /* $DD00, the OAM shadow: 40 sprites x {y, x, tile, prop} */
 extern volatile UBYTE wOamDirty;            /* $CBD1 */
-typedef struct { UBYTE y, x, tile, prop; } OamEntry;
-#define OamShadow ((OamEntry *)0xDD00)      /* the OAM shadow as GBDK's sprite records */
 UBYTE *GetScreenPalette(void);
 void CopyScreenMapCgb(UWORD s);              /* asm */
 void CopyScreenMapDmg(UBYTE *s);             /* asm */
